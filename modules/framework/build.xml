@@ -1,0 +1,188 @@
+<project>
+
+    <target name="clean">
+        <delete dir="build"/>
+    </target>
+    
+    <target name="compile-core">
+        <mkdir dir="build/core/classes"/>
+        <javac srcdir="core" destdir="build/core/classes" classpath="${classpath}"/>
+    </target>
+
+    <target name="compile-ui-core">
+        <mkdir dir="build/ui-core/classes"/>
+        <javac srcdir="ui-core" destdir="build/ui-core/classes" classpath="${classpath}"/>
+    </target>
+
+    <target name="compile-agents">
+        <mkdir dir="build/agents/classes"/>
+        <javac srcdir="agents" destdir="build/agents/classes" classpath="${classpath}"/>
+    </target>
+
+    <target name="compile-pull-agent">
+        <mkdir dir="build/pull-agent/classes"/>
+        <javac srcdir="pull-agent" destdir="build/pull-agent/classes" classpath="${classpath}"/>
+    </target>
+
+    <target name="compile-authority-webapp">
+        <mkdir dir="build/authority-webapp/classes"/>
+        <javac srcdir="authority-webapp" destdir="build/authority-webapp/classes" classpath="${classpath}"/>
+    </target>
+
+
+    <target name="compile-crawler-ui">
+        <!-- Define the jsp compilation task using tomcat libraries -->
+        <taskdef classname="org.apache.jasper.JspC" name="jasper2" > 
+            <classpath id="jspc.classpath"> 
+                <pathelement location="${java.home}/../lib/tools.jar"/>
+                <fileset dir="lib"> 
+                    <include name="*.jar"/> 
+                </fileset>
+                <pathelement location="build/core/classes"/>
+                <pathelement location="build/ui-core/classes"/>
+                <pathelement location="build/agents/classes"/>
+                <pathelement location="build/pull-agent/classes"/>
+            </classpath> 
+        </taskdef> 
+        <!-- Compile jsp's to java -->
+        <mkdir dir="build/crawler-ui/java"/>
+        <jasper2 validateXml="false" uriroot="crawler-ui" webXmlFragment="crawler-ui/WEB-INF/web-generated.xml" outputDir="build/crawler-ui/java" /> 
+        <!-- Compile java classes -->
+        <mkdir dir="build/crawler-ui/classes"/>
+        <javac srcdir="build/crawler-ui/java" destdir="build/crawler-ui/classes">
+            <classpath id="classpath">
+                <pathelement location="${java.home}/../lib/tools.jar"/>
+                <fileset dir="lib"> 
+                    <include name="*.jar"/> 
+                </fileset>
+                <pathelement location="build/core/classes"/>
+                <pathelement location="build/ui-core/classes"/>
+                <pathelement location="build/agents/classes"/>
+                <pathelement location="build/pull-agent/classes"/>
+                <fileset dir="crawler-ui/WEB-INF/lib">
+                    <include name="*.jar"/> 
+                </fileset>
+            </classpath>
+
+        </javac>
+    </target>
+
+    <target name="compile">
+        <property name="baseclasspath" value="lib/servlet-2.3.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar"/>
+        <antcall target="compile-core">
+            <param name="classpath" value="${baseclasspath}"/>
+        </antcall>
+        <antcall target="compile-ui-core">
+            <param name="classpath" value="${baseclasspath}:build/core/classes"/>
+        </antcall>
+        <antcall target="compile-agents">
+            <param name="classpath" value="${baseclasspath}:build/core/classes"/>
+        </antcall>
+        <antcall target="compile-pull-agent">
+            <param name="classpath" value="${baseclasspath}:build/core/classes:build/agents/classes"/>
+        </antcall>
+        <antcall target="compile-authority-webapp">
+            <param name="classpath" value="${baseclasspath}:build/core/classes:build/agents/classes:build/pull-agent/classes"/>
+        </antcall>
+        <antcall target="compile-crawler-ui">
+            <param name="classpath" value="${baseclasspath}:build/core/classes:build/agents/classes:build/pull-agent/classes:build/ui-core/classes"/>
+        </antcall>
+    </target>
+
+    <target name="jar-core">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/lcf-core.jar" basedir="build/core/classes"/>
+    </target>
+
+    <target name="jar-ui-core">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/lcf-ui-core.jar" basedir="build/ui-core/classes"/>
+    </target>
+
+    <target name="jar-agents">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/lcf-agents.jar" basedir="build/agents/classes"/>
+    </target>
+
+    <target name="jar-pull-agent">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/lcf-pull-agent.jar" basedir="build/pull-agent/classes"/>
+    </target>
+
+    <target name="webapp-authority">
+        <mkdir dir="build/webapp/authority/WEB-INF/lib"/>
+        <copy todir="build/webapp/authority/WEB-INF/lib" file="lib/jdbcpool-0.99.jar"/>
+        <copy todir="build/webapp/authority/WEB-INF/lib" file="lib/log4j-1.2.jar"/>
+        <copy todir="build/webapp/authority/WEB-INF/lib" file="lib/commons-logging.jar"/>
+        <copy todir="build/webapp/authority/WEB-INF/lib" file="lib/commons-fileupload.jar"/>
+        <copy todir="build/webapp/authority/WEB-INF/lib" file="lib/commons-collections.jar"/>
+        <copy todir="build/webapp/authority/WEB-INF/lib" file="lib/commons-io.jar"/>
+        <copy todir="build/webapp/authority/WEB-INF/lib" file="lib/commons-codec.jar"/>
+        <copy todir="build/webapp/authority/WEB-INF/lib" file="lib/commons-httpclient.jar"/>
+        <copy todir="build/webapp/authority/WEB-INF/lib" file="lib/xml-apis.jar"/>
+        <copy todir="build/webapp/authority/WEB-INF/lib" file="lib/xalan2.jar"/>
+        <copy todir="build/webapp/authority/WEB-INF/lib" file="lib/serializer.jar"/>
+        <copy todir="build/webapp/authority/WEB-INF/lib" file="lib/postgresql.jar"/>
+        <copy todir="build/webapp/authority/WEB-INF/lib" file="build/jar/lcf-core.jar"/>
+        <copy todir="build/webapp/authority/WEB-INF/lib" file="build/jar/lcf-agents.jar"/>
+        <copy todir="build/webapp/authority/WEB-INF/lib" file="build/jar/lcf-pull-agent.jar"/>
+        <jar destfile="build/webapp/authority/WEB-INF/lib/lcf-authority-servlet.jar" basedir="build/authority-webapp/classes"/>
+    </target>
+    
+    <target name="webapp-crawler-ui">
+        <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib">
+            <fileset dir="crawler-ui/WEB-INF/lib">
+                <include name="*.jar"/>
+            </fileset>
+        </copy>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/jdbcpool-0.99.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/log4j-1.2.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-logging.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-fileupload.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-collections.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-io.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-codec.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-httpclient.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/xml-apis.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/xalan2.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/serializer.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/postgresql.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-core.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-ui-core.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-agents.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-pull-agent.jar"/>
+        <mkdir dir="build/webapp/crawler-ui/WEB-INF/jsp"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/jsp">
+            <fileset dir="crawler-ui/WEB-INF/jsp">
+                <include name="*.tld"/>
+            </fileset>
+        </copy>
+        <copy todir="build/webapp/crawler-ui">
+            <fileset dir="crawler-ui" includes="**/*.jsp"/>
+        </copy>
+    </target>
+    
+    <target name="war-authority">
+        <mkdir dir="build/war"/>
+        <war destfile="build/war/lcf-authority.war" webxml="authority-webapp/web.xml" basedir="build/webapp/authority"/>
+    </target>
+    
+    <target name="war-crawler-ui">
+        <mkdir dir="build/war"/>
+        <war destfile="build/war/lcf-crawler-ui.war" webxml="crawler-ui/WEB-INF/web.xml" basedir="build/webapp/crawler-ui"/>
+    </target>
+
+    <target name="all">
+        <antcall target="compile"/>
+        <antcall target="jar-core"/>
+        <antcall target="jar-ui-core"/>
+        <antcall target="jar-agents"/>
+        <antcall target="jar-pull-agent"/>
+        <antcall target="webapp-authority"/>
+        <antcall target="webapp-crawler-ui"/>
+        <antcall target="war-authority"/>
+        <antcall target="war-crawler-ui"/>
+    </target>
+    
+</project>
