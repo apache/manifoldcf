@@ -1,0 +1,106 @@
+dnl $Id$
+
+dnl Licensed to the Apache Software Foundation (ASF) under one or more
+dnl contributor license agreements. See the NOTICE file distributed with
+dnl this work for additional information regarding copyright ownership.
+dnl The ASF licenses this file to You under the Apache License, Version 2.0
+dnl (the "License"); you may not use this file except in compliance with
+dnl the License. You may obtain a copy of the License at
+dnl
+dnl http://www.apache.org/licenses/LICENSE-2.0
+dnl
+dnl Unless required by applicable law or agreed to in writing, software
+dnl distributed under the License is distributed on an "AS IS" BASIS,
+dnl WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+dnl See the License for the specific language governing permissions and
+dnl limitations under the License.
+
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(com/metacarta/crawler/connectors/filesystem/FileConnector.java)
+
+dnl Directory to find install-sh, mkinstalldirs, etc.
+AC_CONFIG_AUX_DIR(config)
+
+dnl Find a way to substitute real version number from CVS?
+AM_INIT_AUTOMAKE(metacarta-filesystemconnector, "4.6.0.0.0")
+
+dnl Break version string into integer segments for comparing
+AC_DEFUN(
+ version_segment,
+ [`echo $VERSION | sed -e 's/^\([[0-9]]*\)\.\([[0-9]]*\)\.\([[0-9]]*\).*/\$1/'`])
+
+VERSION_MAJOR=version_segment(1)
+VERSION_MINOR=version_segment(2)
+VERSION_PATCH=version_segment(3)
+
+AC_DEFINE_UNQUOTED(VERSION_MAJOR, $VERSION_MAJOR, [Major Version Number])
+AC_SUBST(VERSION_MAJOR)
+AC_DEFINE_UNQUOTED(VERSION_MINOR, $VERSION_MINOR, [Minor Version Number])
+AC_SUBST(VERSION_MINOR)
+AC_DEFINE_UNQUOTED(VERSION_PATCH, $VERSION_PATCH, [Patch Level Number])
+AC_SUBST(VERSION_PATCH)
+
+dnl By default install things into /usr
+AC_PREFIX_DEFAULT(/usr)
+
+dnl Checks for programs.
+AC_PROG_MAKE_SET
+
+dnl define WORDS_BIGENDIAN if we are on a bigendian system
+AC_C_BIGENDIAN
+
+AC_PATH_PROG(PATH_TO_PROGRAM_PERL, perl)
+AC_SUBST(PATH_TO_PROGRAM_PERL)
+
+AC_PATH_PROG(PATH_TO_PROGRAM_PYTHON, python2.5)
+AC_SUBST(PATH_TO_PROGRAM_PYTHON)
+
+PYTHON_CPPFLAGS=`$PATH_TO_PROGRAM_PYTHON -c 'from distutils import sysconfig; print "-I%s" % sysconfig.get_python_inc()' 2>/dev/null`
+AC_SUBST(PYTHON_CPPFLAGS)
+
+AC_PATH_PROG(JAVA, java)
+AC_SUBST(JAVA)
+AC_PATH_PROG(JAVAC, javac)
+JAVAC="$JAVAC -source 1.4"
+AC_SUBST(JAVAC)
+AC_PATH_PROG(JAR, jar)
+AC_SUBST(JAR)
+AC_PATH_PROG(RMIC, rmic)
+AC_SUBST(RMIC)
+
+AC_PATH_PROG(PATH_TO_PROGRAM_REALPATH, realpath)
+
+JAVA_INCLUDES=`$PATH_TO_PROGRAM_REALPATH $JAVA | sed -e 's/\/bin\/.*$//; s/\/jre$//; s/^\(.*\)$/-I\1\/include -I\1\/include\/linux/;' `
+JAVA_INCLUDES="-I/usr/lib/jvm/java-1.5.0-sun/include -I/usr/lib/jvm/java-1.5.0-sun/include/linux"
+AC_SUBST(JAVA_INCLUDES)
+
+JAVA_CLASSPATH=/usr/share/tomcat5.5/common/lib/servlet-api.jar
+AC_SUBST(JAVA_CLASSPATH)
+
+JAVA_HOME=`$PATH_TO_PROGRAM_REALPATH $JAVA | sed -e 's/\/bin\/.*$//' -e 's/\/jre$//'`
+JAVA_HOME="/usr/lib/jvm/java-1.5.0-sun"
+AC_SUBST(JAVA_HOME)
+
+JSPC="/usr/share/tomcat5.5/bin/jspc.sh"
+AC_SUBST(JSPC)
+
+JSP_CLASSPATH=/usr/share/tomcat5.5/common/lib/jasper-runtime.jar:/usr/share/tomcat5.5/common/lib/jsp-api.jar
+AC_SUBST(JSP_CLASSPATH)
+
+AC_PATH_PROG(PATH_TO_PROGRAM_MAKENSIS, makensis)
+
+XML_AXIS_CLASSPATH="/usr/share/java/commons-discovery.jar:/usr/share/java/saaj.jar:/usr/share/java/wsdl4j.jar:/usr/share/java/jaxrpc.jar:/usr/share/java/commons-logging.jar:/usr/share/java/serializer.jar:/usr/share/java/log4j-1.2.jar:/usr/share/java/axis.jar:/usr/share/java/serializer.jar"
+AC_SUBST(XML_AXIS_CLASSPATH)
+
+XML_AXIS_JAR_FILE_PATHS="/usr/share/java/commons-discovery.jar /usr/share/java/saaj.jar /usr/share/java/wsdl4j.jar /usr/share/java/jaxrpc.jar /usr/share/java/commons-logging.jar /usr/share/java/serializer.jar /usr/share/java/log4j-1.2.jar /usr/share/java/axis.jar /usr/share/java/serializer.jar"
+AC_SUBST(XML_AXIS_JAR_FILE_PATHS)
+
+XML_AXIS_JAR_FILES="commons-discovery.jar saaj.jar wsdl4j.jar jaxrpc.jar commons-logging.jar serializer.jar log4j-1.2.jar axis.jar serializer.jar"
+AC_SUBST(XML_AXIS_JAR_FILES)
+
+WSDL2JAVA="$JAVA -classpath $XML_AXIS_CLASSPATH org.apache.axis.wsdl.WSDL2Java"
+AC_SUBST(WSDL2JAVA)
+
+AC_OUTPUT(Makefile)
+
+

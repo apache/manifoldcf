@@ -1,0 +1,115 @@
+% Licensed to the Apache Software Foundation (ASF) under one or more
+% contributor license agreements. See the NOTICE file distributed with
+% this work for additional information regarding copyright ownership.
+% The ASF licenses this file to You under the Apache License, Version 2.0
+% (the ``License''); you may not use this file except in compliance with
+% the License. You may obtain a copy of the License at
+%
+% http://www.apache.org/licenses/LICENSE-2.0
+%
+% Unless required by applicable law or agreed to in writing, software
+% distributed under the License is distributed on an ``AS IS'' BASIS,
+% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+% See the License for the specific language governing permissions and
+% limitations under the License.
+
+\subsubsection{Meridio Job Options}
+
+You must fill in the following extra fields if you are configuring a
+Meridio job:
+
+\bigimage{mer-edit-job-tab3}
+
+\input{schedule-input}
+
+\includegraphics[width=300pt]{mer-edit-job-tab4}
+
+\begin{itemize}
+
+\item \textbf{Paths:} The directory paths in your Meridio
+service from which you want your crawl to start. You can specify
+one or more directory paths. If you do not specify directory paths,
+the job will crawl all directories in your Meridio service. You
+can build directory paths by selecting individual directories. To
+start, select the base directory of the path you wish to create, then
+click the ``+'' button. A new selection box will appear with the
+directories contained by that parent directory. Select a directory at
+that level and click the ``+'' button. Continue building your
+directory path in this fashion. When it's complete, click ``Add''. A
+new selection box will appear beneath the added directory path. You
+can continue to add more directory paths to your list. To remove a
+directory path from the list, click the ``Delete'' button next to it.
+
+\end{itemize}
+
+\includegraphics[width=300pt]{mer-edit-job-tab5}
+
+\begin{itemize}
+
+\item \textbf{Mime Types:} Check the
+mime types you wish to include in this job. This list of mime types is
+based on the mime types that the appliance is capable of ingesting.
+
+\end{itemize}
+
+%\includegraphics[width=300pt]{mer-edit-job-tab6}
+
+\begin{itemize}
+
+\item \textbf{Categories:} Check the categories that you wish to include in this job. These categories are created by your Meridio administrator; ask your administrator which categories you should include.
+
+\end{itemize}
+
+\includegraphics[width=300pt]{mer-edit-job-tab7}
+
+\begin{itemize}
+
+\item \textbf{Data types to ingest:} 
+Here you can specify if this job should include \textbf{Documents},
+\textbf{Records}, or \textbf{Documents and records}.
+ 
+\end{itemize}
+
+
+\includegraphics[width=300pt]{mer-edit-job-tab8}
+
+\begin{itemize}
+
+\item \textbf{Security:} Use this option to enable or disable document
+security. If you choose to enable security, user permissions will be
+ingested with documents, while if you choose to disable security,
+documents will be ingested without permissions.
+
+\item \textbf{Access Tokens:} \label{ForceACL} If you wish to specify
+your own permissions lists for files ingested through this job, you
+can specify them here. You should use this option if you selected
+``Standard (Kerberos)'' as the authority connection for your
+repository connection and you are choosing to enable security. Simply
+enter one or more Meridio user or group identifiers into the field and
+click the ``Add'' button. The identifiers will appear in a list. You
+can continue to add more identifiers using the ``Add'' button, or
+remove them using the ``Delete'' button that appears next to each
+identifier.
+
+\end{itemize}
+
+\includegraphics[width=300pt]{mer-edit-job-tab9}
+
+\begin{itemize}
+
+\item \textbf{Include all metadata:} This allows you to chose between including all metadata present for each file and creating a subset of the metadata attributes to include. If you select ``Include specified'', you can use the following field to select the metadata attributes you want to include.
+
+\item \textbf{Metadata:} Each metadata field that is available on your Meridio system is listed here.
+
+\item \textbf{Path attribute metadata name:} The Meridio Connector does not support path attribute metadata. Leave this field blank.
+
+\item \textbf{Path-value mapping:} Leave these fields blank.
+
+\end{itemize}
+
+
+After entering this information, you will be taken to the status page
+for this job:
+
+\includegraphics[width=300pt]{mer-view-job-status}
+

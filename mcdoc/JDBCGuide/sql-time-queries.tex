@@ -1,0 +1,60 @@
+% Licensed to the Apache Software Foundation (ASF) under one or more
+% contributor license agreements. See the NOTICE file distributed with
+% this work for additional information regarding copyright ownership.
+% The ASF licenses this file to You under the Apache License, Version 2.0
+% (the ``License''); you may not use this file except in compliance with
+% the License. You may obtain a copy of the License at
+%
+% http://www.apache.org/licenses/LICENSE-2.0
+%
+% Unless required by applicable law or agreed to in writing, software
+% distributed under the License is distributed on an ``AS IS'' BASIS,
+% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+% See the License for the specific language governing permissions and
+% limitations under the License.
+
+%BEGIN LATEX
+\ifBigMargins\begin{changemargin}{-1.5in}{0in}\fi
+\ifLittleMargins\begin{changemargin}{-.75in}{0in}\fi
+%END LATEX
+
+\begin{tabular}{|p{1in}|p{1in}|p{3.5in}|}
+
+\hline
+
+\textbf{Database Type}&\textbf{Date Type}&\textbf{Sample Query Phrase}\\
+
+\hline
+
+Oracle & \textit{date} & \command{ TO\_DATE ( '1970/01/01:00:00:00',
+'yyyy/mm/dd:hh:mi:ss') + ROUND (\$(STARTTIME)/86400000)}\\
+
+%Oracle & \textit{date} & \command{ TO_DATE ( '1970/01/01:00:00:00', 'yyyy/mm/dd:hh:mi:ss') + ROUND (\$(STARTTIME)/86400000)}\\
+
+\hline
+
+Oracle & \textit{timestamp} & \command{TO\_TIMESTAMP('1970-01-01 00:00:00')
++ interval '\$(STARTTIME)/1000' second}\\
+
+\hline
+
+Postgres SQL & \textit{timestamp} & \command{date '1970-01-01' + interval
+'\$(STARTTIME) milliseconds'}\\
+
+\hline
+
+MS SQL Server ($>$6.5) & \textit{datetime} & \command{DATEADD(ms,
+\$(STARTTIME), '19700101') }\\
+
+\hline
+
+Sybase (10+) &  \textit{datetime} &\command{DATEADD(ms,
+\$(STARTTIME), '19700101') }\\
+
+\hline
+
+\end{tabular}
+%BEGIN LATEX
+\ifBigMargins\end{changemargin}\fi
+\ifLittleMargins\end{changemargin}\fi
+%END LATEX

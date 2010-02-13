@@ -1,0 +1,230 @@
+% Licensed to the Apache Software Foundation (ASF) under one or more
+% contributor license agreements. See the NOTICE file distributed with
+% this work for additional information regarding copyright ownership.
+% The ASF licenses this file to You under the Apache License, Version 2.0
+% (the ``License''); you may not use this file except in compliance with
+% the License. You may obtain a copy of the License at
+%
+% http://www.apache.org/licenses/LICENSE-2.0
+%
+% Unless required by applicable law or agreed to in writing, software
+% distributed under the License is distributed on an ``AS IS'' BASIS,
+% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+% See the License for the specific language governing permissions and
+% limitations under the License.
+
+% This makes sections look better.
+
+\renewcommand\section{\@startsection {section}{1}{\z@}%
+                                   {-3.5ex \@plus -1ex \@minus -.2ex}%
+                                   {2.3ex \@plus.2ex}%
+                                   {\normalfont\Large\bfseries\underline}}
+
+%% The code that used to be here was rendered harmful in lenny.
+
+% This makes nothing have a number in front of it.
+
+\setcounter{secnumdepth}{-1}
+
+% For great conditional text!
+\newif\ifAdminGuide
+\newif\ifUserGuide
+\newif\ifInstallGuide
+\newif\ifSOAPSearchGuide
+\newif\ifSearchGuide
+\newif\ifBigMargins
+\newif\ifLittleMargins
+\newif\ifInQTel
+\newif\ifSmallGuide
+\newif\ifDraft
+\newif\ifOffBoxDocumentumConnector
+\newif\ifSecurityDocument
+\newif\ifDocumentumGuide
+\newif\ifJDBCGuide
+\newif\ifLivelinkGuide
+\newif\ifShareGuide
+\newif\ifCombinedConnectorGuide
+\newif\ifAtlantis
+\newif\ifWebServices
+\newif\ifSDK
+\newif\ifMeridioGuide
+\newif\ifFilenetGuide
+\newif\ifOnAppliance
+
+%There will be consistent and single tags for the following things:
+% * Bulleted lists : default bulleted lists seem sufficient for this,
+%   that is, "\begin{itemize}"
+%   In some circumstances you want tightlist:
+
+\newenvironment{tightlist}{
+    \begin{list}{$\bullet$}{
+        \setlength{\itemsep}{0mm}
+        \setlength{\parsep}{0mm}
+    }}{\end{list}}
+
+% Note that tightlist does not nest! "nesting tightlist would be a valid
+%  feature request that would require development time"
+
+% * Numbered lists : default numbered lists seem to be fine as well.
+%   Oddly, the tight version of this might stack. I haven't tested it
+%   though.
+
+\newenvironment{tightenum}{%
+    \begin{enumerate}%
+        {\setlength{\itemsep}{0pt}%
+        \setlength{\parskip}{0pt}}}%
+    {\end{enumerate}}
+
+% * tables : I like to use tabular or longtable. \hline where applicable. 
+
+% * references and footnotes:  
+
+% * emphasis: \emph{} 
+
+% This is for code. It's wide. It's monospaced. It doesn't escape
+% anything. At some point I should make this use the listings package
+% so that the escapes are unnecessary. 
+\newenvironment{code}
+   {\begin{list}{}{
+     \setlength{\leftmargin}{-1.5in}
+     \raggedright
+     \setlength{\itemsep}{0pt}
+     \setlength{\parsep}{0pt}
+     \normalfont\ttfamily}%
+    \item[]}
+   {\end{list}}
+
+% This is like code, but narrow.
+% Use this in documents that don't use changemargin (release notes, say)
+\newenvironment{codesmall}
+   {\begin{list}{}{
+     \setlength{\leftmargin}{0in}
+     \raggedright
+     \setlength{\itemsep}{0pt}
+     \setlength{\parsep}{0pt}
+     \normalfont\ttfamily}%
+    \item[]}
+   {\end{list}}
+
+
+% Code and console are the same right now, but they might want to be
+% differentiated in the future, so they get the same descriptions for now.
+% Use this one for console output: anything that you type into or get out
+% of the command line, basically.
+\newenvironment{console}
+   {\begin{list}{}{
+     \setlength{\leftmargin}{0in}
+     \raggedright
+     \setlength{\itemsep}{0pt}
+     \setlength{\parsep}{0pt}
+     \normalfont\ttfamily}%
+    \item[]}
+   {\end{list}}
+
+% If it needs to be the whole page, use this one instead.
+\newenvironment{consolewide}
+   {\begin{list}{}{
+     \setlength{\leftmargin}{-1.5in}
+     \raggedright
+     \setlength{\itemsep}{0pt}
+     \setlength{\parsep}{0pt}
+     \normalfont\ttfamily}%
+    \item[]}
+   {\end{list}}
+
+
+% This is just a cleaner thing to do than type it every time.
+% Sometimes (since we don't use listings for the code environment)
+% this is the only sane way to include a large chunk of code.
+\newcommand{\beginvw}{\end{changemargin}\begin{verbatim}}
+
+% Hah! I thought this would work this way! Why doesn't it, kids?
+%\newcommand{\finishvw}[1]{\end{verbatim} \begin{changemargin}{#1}{0in}}
+\newcommand{\finishvw}[1]{\begin{changemargin}{#1}{0in}}
+
+% Commands in running text should be monospaced to distinguish them. 
+\newcommand{\command}[1]{\texttt{#1}}
+
+%For email, directory paths, and URLs, we use the url package.
+% For URLs this is just \url{http://blah}, for the others I had to change
+% the style slightly. This means that they _don't_ need escapes, and that
+% dirpath linebreaks in sensible places. Email linebreaks in... mostly
+% sensible places.
+\newcommand{\email}{\begingroup \def\UrlLeft{\langle} \def\UrlRight{\rangle}%
+    \urlstyle{tt}\Url}
+\newcommand{\dirpath}{\begingroup \urlstyle{tt}\Url}
+
+% Someday this could be a PDF hyperlink or something! Right now, it's just
+% if you reference another document, it should stand out.
+\newcommand{\documentref}[1]{\textit{#1}}
+
+% I use \field{thing} for variables in command-line arguments. I picked a
+% format I liked; italics would also work and in some cases look prettier.
+% I had no one to have this argument with when I started, though, so I picked
+% one.
+\newcommand{\field}[1]{\textsf{$\langle$#1$\rangle$}}
+
+% Hack hack hack! Hack hack hack! Hack hack hack hack kludge!
+\providecommand{\note}[1]{\begin{description}%
+  \item [Note:] #1 %
+  \end{description}}
+
+% Centers an image on the page; a useful shortcut
+\newcommand{\mcimage}[1]{\begin{changemargin}{-1.5in}{0in}%
+    \begin{center}%
+    \includegraphics{#1}%
+    \end{center}%
+    \end{changemargin}}
+
+% I don't even remember what this _means_, but it seems to work well :)
+% Anytime you need to force a manual page break, use this.
+\newcommand{\mcpagebreak}{\vskip 0pt plus1fil \eject}
+
+% Will shrink (or grow! be careful!) an image to fill the page.
+\newcommand{\bigimage}[1]{\begin{changemargin}{-1.5in}{0in}%
+    \begin{center}%
+    \includegraphics[width=450pt]{#1}%
+    \end{center}%
+    \end{changemargin}}
+
+% Registered trademark symbol.
+\newcommand{\circler}{{\small ${}^{\textregistered}$}}
+
+% Since I can never remember it.
+\newcommand{\degree}{\ensuremath{^\circ}}
+
+% For callouts in images:
+\setlength{\unitlength}{1pt}
+\setlength{\fboxsep}{2pt}
+\setlength{\fboxrule}{1pt}
+
+% These mean that there must be a \usepackage{color} before any
+% \usepackage{mcstyle}. Irritatingly I don't think I can force that
+% in here, but it might be worth looking at if it trips people up.
+\definecolor{darkgreen}{rgb}{0,0.9,0.6}
+\definecolor{darkred}{rgb}{0.5,0,0.1}
+\definecolor{blue}{rgb}{0,0.4,0.7}
+\definecolor{darkblue}{rgb}{0,0.1,0.3}
+\definecolor{gold}{rgb}{0.9,0.5,0}
+
+% This will trip up the build. It's a good way to leave notes to yourself
+% or the hypothetical other writers I am writing this for.
+\newcommand{\missing}[1]{\textcolor{darkblue}{\bf #1}\pdfinfo{/Missing(This PDF is missing information!)}}
+
+% This never gets used. 
+\newcommand{\new}[1]{\textcolor{darkred}{\bf #1}}
+
+%Thanks, emma@csli.stanford.edu!
+% This goes at the beginning and end of the long documents.
+% It's particularly awesome because it changes the margins for the
+% running text but not the headers or footers.
+% usage: \begin{changemargin}{1in}{1in} to take in 1" on each side
+\def\changemargin#1#2{\list{}{\rightmargin#2\leftmargin#1}\item[]}
+\let\endchangemargin=\endlist
+
+% Looks better this way.
+\hyphenation{Meta-Carta}
+\hyphenation{meta-carta}
+\hyphenation{Time-Tagger} % we mention this in documentation?? ew
+\hyphenation{Multi-Tagger}
+

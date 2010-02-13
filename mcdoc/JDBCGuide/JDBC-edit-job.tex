@@ -1,0 +1,168 @@
+% Licensed to the Apache Software Foundation (ASF) under one or more
+% contributor license agreements. See the NOTICE file distributed with
+% this work for additional information regarding copyright ownership.
+% The ASF licenses this file to You under the Apache License, Version 2.0
+% (the ``License''); you may not use this file except in compliance with
+% the License. You may obtain a copy of the License at
+%
+% http://www.apache.org/licenses/LICENSE-2.0
+%
+% Unless required by applicable law or agreed to in writing, software
+% distributed under the License is distributed on an ``AS IS'' BASIS,
+% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+% See the License for the specific language governing permissions and
+% limitations under the License.
+
+\subsubsection{JDBC Job Options}
+
+You must fill in the ``Scheduling,'' ``Queries,'' and ``Security''
+tabs to configure a JDBC job.
+
+\bigimage{JDBC-edit-job-tab3}
+
+\ifJDBCGuide
+\input{schedule-input}
+\fi
+
+\ifCombinedConnectorGuide
+This tab presents scheduling options. Here you can generate one or
+more scheduled run times for the job. For a complete description of
+the scheduling options, see the description starting on page
+\pageref{scheduling}.
+\fi
+
+\includegraphics[width=300pt]{JDBC-edit-job-tab4}
+
+In each of the three fields, you will need to construct an appropriate
+SQL query. The sample queries shown include helper strings of the form
+\command{\$(HELPER)} used by the connector, which are explained as they
+appear.
+
+\begin{itemize}
+
+\item \textbf{Seeding Query:} The seeding query should return the
+identifiers of documents in the repository that should be checked
+against the files indexed in the GTS database. These identifiers
+should be returned in a result-set as a column named
+\command{\$(IDCOLUMN)}. The sample query shown above reads:
+
+\begin{console}
+SELECT idfield AS \$(IDCOLUMN) FROM documenttable WHERE modifydatefield
+> \$(STARTTIME) AND modifydatefield <= \$(ENDTIME)
+
+\end{console}
+
+In this sample seeding query, identifiers from \command{idfield} for
+entries from table \command{documenttable} are returned as a column
+named \command{\$(IDCOLUMN)}. This example uses a \command{WHERE}
+expression to limit the returned identifiers to entries with a
+modified date, \command{modifydatefield}, in the range specified by
+\command{\$(STARTTIME)} to \command{\$(ENDTIME)}. The time range spans
+from the last time the job was run to the current start time, as
+maintained by the GTS appliance. Time filtering is not a required part
+of this query, but it helps reduce the number of documents being
+passed to the ingestion interface by filtering out documents that have
+not been modified since the last time the job was run.
+
+A seeding query must be included. The seeding query must return a
+column named \command{\$(IDCOLUMN)} as part of its result-set.
+
+\note{Use caution when constructing queries that include time-based
+components. \command{\$(STARTTIME)} and \command{\$(ENDTIME)} provide
+times in milliseconds since epoch. If the modified date field is not
+in this unit, the seeding query may not select the desired document
+identifiers. You should convert \command{\$(STARTTIME)} and
+\command{\$(ENDTIME)} to the appropriate timestamp unit for your system.
+
+The following table gives several sample query fragments that can be
+used to convert the helper strings \command{\$(STARTTIME)} and
+\command{\$(ENDTIME)} into other date and time types. The first column names
+the SQL database type that the following query phrase corresponds to,
+the second column names the output data type for the query phrase, and
+the third gives the query phrase itself using \command{\$(STARTTIME)}
+as an example time in milliseconds since epoch. These query phrases
+are intended as guidlines for creating an appropriate query phrase in
+each language. Each query phrase is designed to work with the most
+current version of the database software available at the time of
+publishing for this document. If your modified date field is not of
+the type given in the second column, the query phrase may not provide
+an appropriate output for date comparisons.}
+
+\input{sql-time-queries}
+
+\item \textbf{Version Check Query:} If your document system has
+versioning capabilities, a version check query should be used to
+filter documents based on version. The sample version query shown
+above reads:
+
+\begin{console}
+SELECT idfield AS \$(IDCOLUMN), versionfield AS \$(VERSIONCOLUMN) FROM
+documenttable WHERE idfield IN \$(IDLIST)
+\end{console}
+
+The sample query returns a column
+named \command{\$(IDCOLUMN)} of identifiers from \command{idfield} and a
+column named \command{\$(VERSIONCOLUMN)} of version numbers from
+\command{versionfield} from entries in the table \command{documenttable}
+whose identifiers were passed to this query by the job process using
+the input \command{\$(IDLIST)}.
+
+A version check query is not required. If your document system does
+not have versioning capability, leave this query blank.
+
+\item \textbf{Data Query:} A data query returns the identifiers, URLs,
+and data for a document. The sample data query shown above reads:
+
+\begin{console}
+SELECT idfield AS \$(IDCOLUMN), urlfield AS \$(URLCOLUMN), datafield AS
+\$(DATACOLUMN) FROM documenttable WHERE idfield IN \$(IDLIST)
+\end{console}
+
+This sample data query returns three columns, a column named\linebreak
+\command{\$(IDCOLUMN)} of identifiers from \command{idfield}, a column
+named \command{\$(URLCOLUMN)} of document URLs from \command{urlfield},
+and a column named \command{\$(DATACOLUMN)} of document contents from
+\command{datafield}. These outputs are generated from entries in the table
+\command{documenttable} whose identifiers were passed to this query by
+the job process using the input \command{\$(IDLIST)}.
+
+The data query is required. This query passes the documents and
+associated information to the ingestion interface for either initial
+ingestion or re-ingestion.
+
+\end{itemize}
+
+When possible, filter the files passed to the ingestion interface by
+way of version, modification time, or other methods to reduce the
+number of files that are re-ingested unnecessarily. This can
+significantly improve the performance of the ingestion.
+
+The exact entry form of helper strings varies depending on the type of
+database being used. In the case of Postgres SQL, MS SQL Server, and
+Sybase, the helper strings should just be entered as shown in the
+sample queries, as \command{\$(HELPER)}. In the case of Oracle, the
+helper strings naming columns should be enclosed in double
+quotation marks, as \command{\char34\$(IDCOLUMN)\char34},
+\command{\char34\$(VERSIONCOLUMN)\char34},\linebreak
+\command{\char34\$(URLCOLUMN)\char34}, and
+\command{\char34\$(DATACOLUMN)\char34}, while the helper strings
+\command{\$(IDLIST)}, \command{\$(STARTTIME)}, and
+\command{\$(ENDTIME)} should be left as shown.
+
+\includegraphics[width=300pt]{JDBC-edit-job-tab5}
+
+If you wish to enable security, the user permissions you enter here will
+be ingested with each document in this job. Otherwise, all documents in
+this job will be ingested without permissions.
+
+\item \textbf{Access Tokens:} To specify your own ACLs for files ingested
+through this job, you can specify enter one or more ACL identifiers into
+this field and click the ``Add'' button. The ACL identifiers will appear
+in a list. You can continue to add more ACL identifiers using the ``Add''
+button, or remove them using the ``Delete'' button that appears next to
+each ACL identifier.
+
+After entering this information, you will be taken to the status page
+for this job:
+
+\includegraphics[width=300pt]{JDBC-view-job-status}

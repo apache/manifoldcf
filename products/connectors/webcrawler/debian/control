@@ -1,0 +1,52 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements. See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+Source: metacarta-webconnector
+Section: unknown
+Priority: optional
+Maintainer: MetaCarta <support@metacarta.com>
+Build-Depends: automake1.9,
+ debhelper (>= 5.0.0),
+ libcommons-codec-java (>=1.3),
+ libcommons-collections-java (>=2.1.1),
+ libcommons-httpclient-java (>=3.0),
+ libcommons-logging-java (>=1.0.4),
+ liblog4j1.2-java,
+ libtomcat5.5-java,
+ metacarta-build-utils,
+ metacarta-java-agents-dev (>=3.10.0.1),
+ metacarta-crawler-dev (>=3.10.0.1),
+ metacarta-java-license,
+ sun-java5-jdk,
+ tomcat5.5,
+ tomcat5.5-jspc,
+ zip
+Standards-Version: 3.5.2
+
+Package: metacarta-webconnector-appliance
+Architecture: all
+Depends: metacarta-connectors-appliance,
+ metacarta-webconnector
+Description: MetaCarta web connector addon metapackage
+ MetaCarta web connector addon metapackage
+
+Package: metacarta-webconnector
+Architecture: all
+Depends: metacarta-crawler (>=3.10.0.1),
+ metacarta-java-agents (>=4.5.0),
+ metacarta-java-apache-commons,
+ metacarta-java-license
+Description: MetaCarta web connector
+ MetaCarta web connector
+

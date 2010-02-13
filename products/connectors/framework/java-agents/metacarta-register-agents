@@ -1,0 +1,48 @@
+#!/bin/bash -e
+
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements. See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
+# 
+# http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.#
+# IF YOU ARE READING THIS, YOU ARE VIOLATING YOUR LICENSE AGREEMENT.
+# $Id$
+
+case "$1" in
+  start)
+    su -p -s /bin/sh tomcat55 -c "/usr/lib/metacarta/agents-install"
+
+    # I originally wanted to get rid of all agents before registration began,
+    # so that the system would properly pick up deleted jars,
+    # but kicking out the old stuff requires the old jars in any case,
+    # which are not likely to be around anymore.  So we have
+    # to leave old cruft dangling without cleanup.
+    # The only cleanup I really need to do at some point is to synchronize
+    # the registration entries with the existing, loaded classes, which
+    # will happen at the END of the registration.
+
+    AGENTS_D=/usr/lib/metacarta/agents-register.d
+
+    if [ -d $AGENTS_D ]; then
+        /bin/run-parts --verbose --exit-on-error $AGENTS_D
+    fi
+
+    su -p -s /bin/sh tomcat55 -c "/usr/lib/metacarta/agents-synchronizealloutputs"
+    su -p -s /bin/sh tomcat55 -c "/usr/lib/metacarta/agents-synchronizeall"
+
+    ;;
+  stop)
+    ;;
+  restart)
+
+    ;;
+esac

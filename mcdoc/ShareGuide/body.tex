@@ -1,0 +1,326 @@
+% Licensed to the Apache Software Foundation (ASF) under one or more
+% contributor license agreements. See the NOTICE file distributed with
+% this work for additional information regarding copyright ownership.
+% The ASF licenses this file to You under the Apache License, Version 2.0
+% (the ``License''); you may not use this file except in compliance with
+% the License. You may obtain a copy of the License at
+%
+% http://www.apache.org/licenses/LICENSE-2.0
+%
+% Unless required by applicable law or agreed to in writing, software
+% distributed under the License is distributed on an ``AS IS'' BASIS,
+% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+% See the License for the specific language governing permissions and
+% limitations under the License.
+
+\begin{changemargin}{1.5in}{0in}
+
+\section{Overview}
+
+The MetaCarta GTS appliance indexes documents and allows users to
+search these documents based on both keywords and geographic
+references. The MetaCarta Share Connector allows system administrators
+to configure connections to network shares and define jobs to maintain
+synchronization between the network shares and the GTS
+index. Currently, the Share Connector supports connections to Windows Shares
+and Samba shares. Limited support is available for NetApp shares.
+
+This document specifies the means for connecting to these shares,
+indexing files from these shares, and maintaining connections to
+these shares.
+
+\subsection{Assumptions}
+
+This document assumes you have a basic level of familiarity with GTS
+appliance administration. This document also assumes that you have a
+basic understanding of the shared document repositories to which you
+are trying to connect. If you need more information about the
+MetaCarta GTS appliance, please read the \documentref{MetaCarta GTS
+Administrator's Guide} stored on the appliance at
+\dirpath{/usr/share/doc/metacarta/AdminGuide.pdf}. For more
+information about network shares, please see your network share
+documentation or network share administrator.
+
+Throughout this document, we assume that your appliance is named \\
+\url{metacarta.example.com}. 
+
+\section{Installation}
+
+The Share Connector is included with the Connector Addon
+available from Metacarta. \input{install-input}
+
+\section{Configuration}
+
+\subsection{Access to the Connector}
+
+The administrator to the Share Connector \input{access-input}
+
+\subsection{Initial Network Setup}
+
+\input{active-directory}
+
+\section{Collecting Documents From Repositories} % Retitle this, yo.
+
+The Connector Framework manages retrieving documents from different
+repositories through \emph{jobs}. Jobs can be scheduled to run
+regularly; each job connects to a single repository using a particular
+set of credentials. Each job is tied to a \emph{repository
+connection}. Repository connections contain information allowing the
+connector framework to connect to a given repository, in this case a
+given network share. A repository connection may be tied to an
+\emph{authority connection}, which manages document security. While
+using the Share Connector to connect to a network share, no authority
+connection is needed; you can simply create a repository connection.
+
+
+
+\subsection{Creating Repository Connections}
+
+In order to create jobs to ingest documents, you need to create a
+repository connection. To do so, click ``List Repository
+Connections'' on the sidebar menu. Then, when presented with the list
+of repository connections, click ``Add a new connection.'' You will
+see the following two tabs:
+
+\includegraphics[width=300pt]{Share-edit-repository-tab1}
+
+\includegraphics[width=300pt]{Share-edit-repository-tab2}
+
+\input{sidebar}
+
+Now you must provide a name, description, and connector type for your
+new repository connection. The name should be unique, as you will use
+it to select this connection later when defining jobs. The description
+should explain the repository connection to you or another
+administrator.  The connector type is the type of repository from
+which you will get documents, in this case a ShareConnector. The
+authority type is the type of authority from which you will get
+authorization information. The Share Connector does not use an
+administrator-created authority; you should simply select ``Standard
+(Kerberos)'' here.
+
+Once you have filled in those tabs, click ``Continue'' to be taken to
+the repository-specific options.
+
+\input{Share-edit-repo}
+
+\subsection{Creating and Running Jobs}
+
+To run a job, click ``Status and Job Management'' on the sidebar menu.
+You can run or edit existing jobs from this menu.
+
+To create a new job, click ``List All Jobs'' on the sidebar menu. Then, when
+presented with the list of current jobs, click ``Add a new job.'' You
+will be presented with two tabs, in which you must fill in the following
+information:
+
+\includegraphics[width=300pt]{Share-edit-job-tab1}
+
+\begin{itemize}
+
+\item \textbf{Name:} The name of the job. You will use this to identify
+the job later.
+
+\item \textbf{Collection:} The collection name metadata for all
+documents in this job. End users can use this name to select the set
+of documents in this job. For more information on collection name
+metadata, please see the \documentref{MetaCarta GTS Administrator's
+Guide}.
+
+\end{itemize}
+
+\includegraphics[width=300pt]{Share-edit-job-tab2}
+
+\begin{itemize}
+
+\item \textbf{Connection:} The name of the repository connection you
+wish to use for this job. You select this from the list of repository
+connections you have already made. You may have more than one job use
+the same repository connection, but if you have two jobs crawl the same
+documents, the documents will have the metadata and collection name
+associated with whatever job crawled the document most recently. This
+will cause unpredictable results when searching those collections,
+searching for those documents, or trying to delete those collections.
+We recommend never crawling the same document in two different jobs.
+
+\item \textbf{Start method:} Whether you want to start this job the next
+time jobs are scheduled to run (``Start when schedule window starts''),
+immediately after you finish defining it (``Start even inside a schedule
+window''), or not at all (``Don't automatically start this job'').
+
+\item \textbf{Priority:} From 1 (highest) to 10 (lowest), the priority
+this crawl should have if it must compete for resources with other
+crawls on the appliance. You should not need to change this unless you
+are running more than one crawl at the same time; if you are, assign a
+higher priority to the crawls whose documents you want to be processed
+preferentially before documents from other jobs.
+
+\end{itemize}
+
+
+After filling in those options, click ``Continue'' and you will be
+presented with repository-specific options.
+
+\input{Share-edit-job}
+
+\subsection{\label{ManageJobs}Status and Job Management}
+
+You can then look at the status of your job by clicking ``Status and 
+Job Management'' on the sidebar. You will see a list of one or more jobs
+much like this one:
+
+\includegraphics[width=300pt]{Share-jobs-list}
+
+You can start any crawl you like immediately from this interface by
+clicking ``Start'' next to the name of the crawl. This interface also
+allows you to see how many documents have been crawled; this information
+may help you structure and plan future crawls.
+
+\note{Refresh this page by clicking the ``Refresh'' link at the bottom
+of the page, not by clicking your browser's reload button.}
+
+\section{Reports}
+
+The Connector interface can generate four types of reports:
+
+\begin{itemize}
+
+\item Simple History, which lets you list an ordered set of log events
+based on chosen criteria
+
+\item Maximum Activity, which lets you see the period of time in
+which a certain event happened most often
+
+\item Maximum Bandwith, which lets you see the period of time in
+which the most bandwidth was used 
+
+\item Result Histogram, which provides log information that would be
+appropriate for constructing a histogram or other diagram
+
+\end{itemize}
+
+Each of these reports allows you to specify a connection, one or more
+activities, a start time, an end time, an entity match, and a result code
+match.  Some also allow you to specify an identifier class description
+and a sliding window size. This section will show sample results for
+each type of report and an explanation of the fields selected.
+
+\subsection{Simple History}
+
+This report was generated by selecting ``Share Repository Connection,'' 
+clicking Continue, selecting ``document ingest,'' and clicking Go.
+
+\includegraphics[width=300pt]{Share-simple-history-report}
+
+\begin{itemize}
+
+\item \textbf{Connection:} The repository connection from which to generate
+a report.
+
+\item \textbf{Activities}: What crawler activities you would like to see. 
+Your options are document ingest, document remove, fetch document, find 
+documents, job abort, job continue, job end, job start, and job wait. 
+
+\item \textbf{Start time}: The earliest time in the crawler logs to be
+considered for this query.  Choose ``Not specified'' for any field to
+start at the beginning of the crawler's logs.
+
+\item \textbf{End time:} The latest time in the crawler logs to be
+considered for this query. Choose ``Not specified'' for any field 
+to end at the current time.
+
+\item \textbf{Entity match:} A regular expression to limit the
+Identifier field. If the entity match field in the example above had
+been \texttt{\^{}17}, only document fetches with Identifiers starting
+with 17 would be shown.
+
+\item \textbf{Result code match:} A regular expression to limit the
+ResultCode field.
+
+\end{itemize}
+
+You can sort the history report by any of the returned fields; to do so,
+click the field names.
+
+\subsection{Maximum Activity}
+
+This report was generated by selecting ``Share Repository Connection,''
+clicking Continue, selecting ``document ingest,'' changing the Identifier
+class description, and clicking Go.
+
+\includegraphics[width=300pt]{Share-maximum-activity-report}
+
+This form offers two more fields than the previous form:
+
+\begin{itemize}
+
+\item \textbf{Identifier class description:} A regular expression
+that determines how to group identifiers together. If this were set to
+\texttt{(.*)}, there would be no grouping, and so there would be only one
+ingestion event per document. If this were set to \texttt{(17)},
+then all documents with identifiers beginning with 17 would be grouped
+together. The setting in the example, \texttt{()}, groups all
+documents together. Some other possibilities:
+
+\begin{itemize}
+
+\item \texttt{1(.)}: (up to) Ten groups of documents whose identifier starts
+with 1, labeled 0-9, grouped by the second digit of their identifier.
+
+\item \texttt{()}: One group of documents containing all documents 
+regardless of identifier.
+
+\item \texttt{17}: One group of documents whose identifier contains
+the string ``17.''
+
+\item \texttt{\^{}17}: One group of documents whose identifier \emph{starts}
+with the string ``17.''
+
+\end{itemize}
+
+\item \textbf{Sliding window size}: The search interval in minutes.
+
+\end{itemize}
+
+The report returned will have only one result per group with one or more
+documents in it, if there is a clear highest activity rate, or a list of
+all the results tied for highest activity rate if there are more than one.
+
+\subsection{Maximum Bandwidth}
+
+This report was generated by selecting ``Share Repository Connection,''
+clicking Continue, selecting ``document ingest,'' changing the Identifier
+class description, and clicking Go.
+
+\includegraphics[width=300pt]{Share-maximum-bandwidth-report}
+
+This form offers the same fields as the maximum activity form, and
+returns similar results; instead of tracking events per time window,
+it tracks the window with the highest average bandwith usage, measured
+in bytes per second. Again, the identifier class description has been
+changed to a regular expression that will match all identifiers (and
+thus in this case documents).
+
+\subsection{Result Histogram}
+
+This report was generated by selecting ``Share Repository Connection,''
+clicking Continue, selecting ``document ingest,'' and clicking Go.
+
+\includegraphics[width=300pt]{Share-activity-result-report}
+
+This form adds one new field:
+
+\begin{itemize}
+
+\item \textbf{Result code class description:} A regular expression that
+determines how to group result classes together; like Identifier class
+descriptions but for result classes.
+
+\end{itemize}
+
+This report does not produce an actual histogram, but provides data that
+could be used to generate histograms.  
+
+% This is a little sparse, but that's basically all this is, so.
+
+\end{changemargin}

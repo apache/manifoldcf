@@ -1,0 +1,21 @@
+#!/bin/sh -e
+#
+# $Id$
+# This command file generates a backup of the Connector Framework configuration.
+
+# Check superuser status
+if [ `id -u` != "0" ]; then
+    echo "$0: This script must be run as root"
+    exit 1
+fi
+
+# Verify argument count
+if [ $# != 1 ]; then
+    echo "Usage: $0 <config_file_name>"
+    exit 1
+fi
+
+# All locking is handled by the database and by the java code, so nothing
+# need be done in here.
+chown tomcat55: $1
+su tomcat55 -s /bin/sh -c "/usr/lib/metacarta/crawler-importconfiguration $1"

@@ -1,0 +1,43 @@
+Source: metacarta-filesystemconnector
+Section: unknown
+Priority: optional
+Maintainer: MetaCarta <support@metacarta.com>
+Build-Depends: automake1.9,
+ debhelper (>= 5.0.0),
+ libcommons-codec-java (>=1.3),
+ libcommons-collections-java (>=2.1.1),
+ libcommons-logging-java (>=1.0.4),
+ liblog4j1.2-java,
+ libtomcat5.5-java,
+ metacarta-java-agents-dev,
+ metacarta-crawler-dev,
+ metacarta-build-utils,
+ python,
+ sun-java5-jdk,
+ tar,
+ tomcat5.5,
+ tomcat5.5-jspc,
+ zip
+Standards-Version: 3.5.2
+
+Package: metacarta-filesystemconnector
+Architecture: all
+Depends: metacarta-crawler, 
+ metacarta-java-agents (>=4.5.0),
+ metacarta-filesystemconnector-dev
+Description: MetaCarta crawler file system connector
+ MetaCarta crawler file system connector
+
+Package: metacarta-filesystemconnector-dev
+Architecture: all
+Replaces: metacarta-filesystemconnector (<<3.10.0)
+Conflicts: metacarta-filesystemconnector (<<3.10.0)
+Depends:
+Description: MetaCarta crawler file system connector dev package
+ MetaCarta crawler file system connector dev package
+
+Package: metacarta-filesystemconnector-src
+Architecture: all
+Depends:
+Description: MetaCarta crawler file system connector source package
+ MetaCarta crawler file system connector source package

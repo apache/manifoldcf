@@ -1,0 +1,103 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements. See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+Source: metacarta-connectors
+Section: unknown
+Priority: optional
+Maintainer: MetaCarta <support@metacarta.com>
+Build-Depends: automake1.9,
+ debhelper (>= 5.0.0),
+ libcommons-codec-java (>=1.3),
+ libcommons-collections-java (>=2.1.1),
+ libcommons-fileupload-java (>=1.0),
+ libcommons-logging-java (>=1.0.4),
+ liblog4j1.2-java,
+ libpg-java (>=8.2),
+ libtomcat5.5-java,
+ metacarta-build-utils,
+ metacarta-java-license,
+ perl,
+ python,
+ sun-java5-jdk,
+ tar,
+ tomcat5.5,
+ tomcat5.5-jspc,
+ zip
+Standards-Version: 3.5.2
+
+Package: metacarta-connectors-appliance
+Architecture: any
+Depends: metacarta-appliance (>= 3.5),
+ metacarta-java-agents,
+ metacarta-crawler,
+ metacarta-gtsconnector,
+ metacarta-livelinkconnector,
+ metacarta-documentumconnector,
+ metacarta-jcifsconnector,
+ metacarta-jdbcconnector,
+ metacarta-rssconnector
+Description: MetaCarta Connectors meta-package
+ All software that goes on the Connectors addon
+
+Package: metacarta-java-agents-src
+Architecture: all
+Depends:
+Description: MetaCarta Java agents source package
+ MetaCarta Java agents source package
+
+Package: metacarta-java-agents-dev
+Architecture: all
+Depends:
+Description: MetaCarta Java agents dev package
+ MetaCarta Java agents dev package
+
+Package: metacarta-java-agents
+Architecture: all
+Depends: apache2-utils,
+ metacarta-java-agents-dev,
+ libpg-java (>=8.2),
+ liblockfile1,
+ metacarta-admin-common,
+ metacarta-java-apache-log4j,
+ metacarta-java-xalan2,
+ metacarta-java-environment,
+ metacarta-postgres-config,
+ metacarta-standalone-tools,
+ dmidecode
+Description: MetaCarta Java agents package
+ MetaCarta Java agents package
+
+Package: metacarta-crawler-src
+Architecture: all
+Depends:
+Description: MetaCarta crawler source package
+ MetaCarta crawler source package
+
+Package: metacarta-crawler-dev
+Architecture: all
+Depends:
+Description: MetaCarta crawler dev package
+ MetaCarta crawler dev package
+
+Package: metacarta-crawler
+Architecture: all
+Depends: metacarta-crawler-dev,
+ libapache2-mod-authz-annotate,
+ liblockfile1,
+ metacarta-java-agents,
+ metacarta-java-environment,
+ python-pygresql
+Description: MetaCarta crawler infrastructure
+ MetaCarta crawler infrastructure
+

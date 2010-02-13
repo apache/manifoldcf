@@ -1,0 +1,59 @@
+#!/bin/sh -e
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements. See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
+# 
+# http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.#
+# IF YOU ARE READING THIS, YOU ARE VIOLATING YOUR LICENSE AGREEMENT.
+#
+# $Id$
+
+# Check superuser status
+if [ `id -u` != "0" ]; then
+    echo "$0: This script must be run as root"
+    exit 1
+fi
+
+if ( /usr/bin/dotlockfile -l -r 0 /var/run/metacarta/reset-crawler-in-progress.lock ) ; then
+	trap "/usr/bin/dotlockfile -u /var/run/metacarta/reset-crawler-in-progress.lock" EXIT
+	# This will also block postgres-maintenance from running
+	# Don't allow script to act if daemon checker in progress
+	if [ "/usr/bin/dotlockfile -c /var/run/metacarta/check_agentsrunning_in_progress.lock" ] ; then
+		# Don't allow script to actually act if authority check in progress
+		if [ "/usr/bin/dotlockfile -c /var/run/metacarta/check_authorities_in_progress.lock" ] ; then
+			# Don't allow script to actually act if postgres maintenance underway
+			if [ "/usr/bin/dotlockfile -c /var/run/metacarta/postgres-maintenance-in-progress.lock" ] ; then
+				# Shut down crawler
+				/etc/init.d/metacarta-agents stop || true
+				# Shut down tomcat5.5
+				/etc/init.d/tomcat5.5 stop || true
+				# Clean the locks
+				su -p -s /bin/sh tomcat55 -c "/usr/lib/metacarta/core-lockclean"
+				# Restart tomcat
+				/etc/init.d/tomcat5.5 start
+				# Restart crawler
+				/etc/init.d/metacarta-agents start
+				echo "$0: Crawler reset successfully completed."
+			else
+				echo "$0: Postgresql maintenance in progress; please try later"
+			fi
+		else
+			echo "$0: Authority check in progress; please try later"
+		fi
+	else
+		echo "$0: Agents running check in progress; please try later"
+	fi
+else
+        echo "$0: reset-crawler already in progress - skipping"
+fi
+

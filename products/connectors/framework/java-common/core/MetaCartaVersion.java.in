@@ -1,0 +1,50 @@
+/* $Id$ */
+
+/**
+* Licensed to the Apache Software Foundation (ASF) under one or more
+* contributor license agreements. See the NOTICE file distributed with
+* this work for additional information regarding copyright ownership.
+* The ASF licenses this file to You under the Apache License, Version 2.0
+* (the "License"); you may not use this file except in compliance with
+* the License. You may obtain a copy of the License at
+* 
+* http://www.apache.org/licenses/LICENSE-2.0
+* 
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+/* Warning: This file is dynamically generated. */
+
+package com.metacarta.core;
+
+/** This is the class that describes the current version of the software, in java-accessible
+* form.
+*/
+public class MetaCartaVersion
+{
+	public static final String _rcsid = "@(#)$Id$";
+
+	private MetaCartaVersion()
+	{
+	}
+
+	/** MetaCarta Version String */
+	public static final String string = "__VERSION__";
+
+	/** MetaCarta Major Version Number */
+	public static final int major = __VERSION_MAJOR__;
+
+	/** MetaCarta Minor Version Number */
+	public static final int minor = __VERSION_MINOR__;
+
+	/** MetaCarta Patch Level Number */
+	public static final int patch = __VERSION_PATCH__;
+
+	/** Software Build Date */
+	public static final String build_date = "__BUILD_DATE__";
+
+
+}

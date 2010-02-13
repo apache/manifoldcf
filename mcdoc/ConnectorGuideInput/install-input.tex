@@ -1,0 +1,59 @@
+% Licensed to the Apache Software Foundation (ASF) under one or more
+% contributor license agreements. See the NOTICE file distributed with
+% this work for additional information regarding copyright ownership.
+% The ASF licenses this file to You under the Apache License, Version 2.0
+% (the ``License''); you may not use this file except in compliance with
+% the License. You may obtain a copy of the License at
+%
+% http://www.apache.org/licenses/LICENSE-2.0
+%
+% Unless required by applicable law or agreed to in writing, software
+% distributed under the License is distributed on an ``AS IS'' BASIS,
+% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+% See the License for the specific language governing permissions and
+% limitations under the License.
+
+If you have not already installed the Connector Addon, you should use
+the Connector Addon DVD to install it using the following steps:
+
+\begin{enumerate}
+
+\item Insert the DVD in your appliance.
+
+\item Install the Connector Addon:
+
+\begin{console}
+
+metacarta:\~{}\$ sudo upgrade\_control install --from-dvd 
+
+\end{console}
+
+This will restart your appliance and eject the Connector Addon DVD.
+
+\item Upgrade your license file, if necessary. For instructions,
+see the \documentref{MetaCarta Appliance Administrator's Guide} or 
+contact Customer Support (see page \pageref{SupportContact}).
+
+\end{enumerate}
+
+The Connector Addon cannot be uninstalled.
+
+\subsection{Remote Updates}
+
+In some cases, it may be very difficult to get physical access to an
+appliance in order to install new software. To make the installation
+process easier, MetaCarta provides a mechanism for remote
+installations.  MetaCarta will provide you with ISO images of the
+software you need upon request.  In brief, you can install the 
+Connector Addon from ISO with the following command:
+
+\begin{console}
+
+metacarta:\~{}\$ sudo upgrade\_control install /path/to/iso.iso
+
+\end{console}
+
+For more information on the use of ISO
+images for remote installations, see the \documentref{MetaCarta GTS
+Administrator's Guide} stored on the appliance at
+\dirpath{/usr/share/doc/metacarta/AdminGuide.pdf}.

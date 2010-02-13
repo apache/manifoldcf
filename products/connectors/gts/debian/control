@@ -1,0 +1,29 @@
+Source: metacarta-gtsconnector
+Section: unknown
+Priority: optional
+Maintainer: MetaCarta <support@metacarta.com>
+Build-Depends: automake1.9,
+ debhelper (>= 5.0.0),
+ liblog4j1.2-java,
+ libtomcat5.5-java,
+ metacarta-java-agents-dev (>=3.10.0.1),
+ metacarta-crawler-dev (>=3.10.0.1),
+ metacarta-build-utils,
+ sun-java5-jdk,
+ tomcat5.5,
+ tomcat5.5-jspc
+Standards-Version: 3.5.2
+
+Package: metacarta-gtsconnector
+Architecture: all
+Depends: metacarta-java-agents (>=4.5.0),
+ metacarta-gtsconnector-dev
+Description: MetaCarta GTS output connector
+ MetaCarta GTS output connector
+
+Package: metacarta-gtsconnector-dev
+Architecture: all
+Depends:
+Description: MetaCarta GTS output connector dev package
+ MetaCarta GTS output connector dev package
+

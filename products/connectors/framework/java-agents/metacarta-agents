@@ -1,0 +1,104 @@
+#!/bin/sh -e
+#
+# $Id$
+# This command file controls the metacarta agents framework.
+
+# Check superuser status
+if [ `id -u` != "0" ]; then
+    echo "$0: This script must be run as root"
+    exit 1
+fi
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+NAME=agents
+FULLNAME=metacarta-agents
+DESC="Metacarta Agent Framework"
+DAEMON=/usr/lib/metacarta/agents
+JAVA_HOME=/usr/lib/jvm/java-1.5.0-sun
+AGENTS_USER=tomcat55
+PIDFILE="/var/run/metacarta/$NAME.pid"
+LOGDIR=/var/log/metacarta/java-agents
+LOGFILE="$LOGDIR/agents.log"
+
+test -f $DAEMON || exit 0
+export JAVA_HOME
+
+case "$1" in
+  start)
+        # METACARTA: do not start agents if mid install
+        if [ -e /INSTALL-IN-PROGRESS ]; then
+            echo "Not starting $DESC because /INSTALL-IN-PROGRESS"
+            exit 0
+        fi        
+
+	touch "$PIDFILE" "$LOGFILE" || true
+	chown --dereference $AGENTS_USER "$PIDFILE" "$LOGDIR" \
+	    "$LOGFILE" || true
+	if start-stop-daemon --test --start --pidfile "$PIDFILE" \
+		--user $AGENTS_USER --startas "$DAEMON" >/dev/null; then
+
+            echo -n "Starting $DESC using Java from $JAVA_HOME: "
+
+	    # -p preserves the environment (for $JAVA_HOME etc.)
+	    # -s is required because the login shell is /bin/false
+            su -p -s /bin/sh $AGENTS_USER \
+                -c "\"$DAEMON\" start" \
+                >>"$LOGFILE" 2>&1 < /dev/null
+            echo "$FULLNAME."
+	else
+            echo -n "Starting $DESC using Java from $JAVA_HOME: "           
+            echo "(already running)."
+	fi
+	;;
+  stop)
+	echo -n "Stopping $DESC: "
+	# probe first - if we *could* start it, then it isn't running, so don't
+	#  bother trying to stop it.
+	if start-stop-daemon --test --start --pidfile "$PIDFILE" \
+		--user $AGENTS_USER --startas "$DAEMON" >/dev/null; then
+		echo "(not running)."
+	else
+	        # actually try to stop it by calling com.metacarta.agents.AgentStop
+	        #  if AGENTS_USER is gone, this fails immediately
+                su -p -s /bin/sh $AGENTS_USER -c "\"$DAEMON\" stop"
+                # spin 5m waiting to see if the java process goes away
+                sleep 1
+		SHUTDOWN_VALUE=300
+		# same probe as above.
+                while ! start-stop-daemon --test --start \
+                        --pidfile "$PIDFILE" --user $AGENTS_USER \
+                        --startas "$JAVA_HOME/bin/java" >/dev/null; do
+                        sleep 1
+                        echo -n "."
+                        SHUTDOWN_VALUE=`expr $SHUTDOWN_VALUE - 1` || true
+                        if [ $SHUTDOWN_VALUE -le 0 ]; then
+			        logger -t "$FULLNAME" -p local0.error killing $(< "$PIDFILE") because $DAEMON stop failed
+				# get a java traceback
+                                echo -n " (forcing traceback) "
+				kill -QUIT $(< "$PIDFILE")
+				sleep 5
+                                echo -n " (killing) "
+				# the java process didn't go away after 5m - stomp on it
+                                start-stop-daemon --stop --signal 9 --oknodo \
+                                        --quiet --pidfile "$PIDFILE" \
+                                        --user "$AGENTS_USER"
+				break
+                        fi
+                done
+                rm -f "$PIDFILE"
+                echo "$FULLNAME."
+	fi
+	;;
+  restart|force-reload)
+	$0 stop
+	sleep 1
+	$0 start
+	;;
+  *)
+	echo "Usage: /etc/init.d/metacarta-agents {start|stop|restart|force-reload}" >&2
+	exit 1
+	;;
+esac
+
+exit 0
+

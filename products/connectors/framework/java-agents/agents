@@ -1,0 +1,103 @@
+#!/bin/sh -e
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements. See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
+# 
+# http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.#
+# IF YOU ARE READING THIS, YOU ARE VIOLATING YOUR LICENSE AGREEMENT.
+#
+# $Id$
+# This script is provided to provide the actual actions of the start/stop script,
+# in a manner similar to tomcat
+
+if [ "$JAVA_HOME" = "" ] ; then
+        JAVA_HOME=/usr/lib/jvm/java-1.5.0-sun
+fi
+
+# Pull together extra jar files into extra classpath
+EXTRACLASS=""
+for filename in $(ls -1 /usr/lib/metacarta/java-common)
+do
+  EXTRACLASS="$EXTRACLASS":/usr/lib/metacarta/java-common/"$filename"
+done
+
+for filename in $(ls -1 /usr/lib/metacarta/java-environment)
+do
+  EXTRACLASS="$EXTRACLASS":/usr/lib/metacarta/java-environment/"$filename"
+done
+
+# Do extra classpath stuff
+for filename in $(ls -1 /usr/lib/metacarta/java-classpath)
+do
+  EXTRACLASS="$EXTRACLASS":$(cat /usr/lib/metacarta/java-classpath/"$filename" | tr -d "\n")
+done
+
+# Set specified variables
+for filename in $(ls -1 /usr/lib/metacarta/java-vars)
+do
+  export "$filename"=$(cat /usr/lib/metacarta/java-vars/"$filename" | tr -d "\n"
+)
+done
+
+# Do defines
+DEFINESET=""
+for filename in $(ls -1 /usr/lib/metacarta/java-defines)
+do
+  TERM=-D"$filename"=$(cat /usr/lib/metacarta/java-defines/"$filename" | tr -d "\n")
+  DEFINESET="$DEFINESET $TERM"
+done
+
+BASESIZE=32
+for filename in $(ls -1 /var/lib/metacarta/java-agents-base-sizes)
+do
+  SIZE=$(cat /var/lib/metacarta/java-agents-base-sizes/"$filename" | tr -d "\n")
+  if ((SIZE>BASESIZE)); then
+    BASESIZE=$SIZE
+  fi
+done
+
+# Add up incremental sizes
+for filename in $(ls -1 /var/lib/metacarta/java-agents-incremental-sizes)
+do
+  SIZE=$(cat /var/lib/metacarta/java-agents-incremental-sizes/"$filename" | tr -d "\n")
+  BASESIZE=$((BASESIZE+SIZE))
+done
+
+JAVALIBPATH="$JAVA_HOME"/jre/lib/i386/client:"$JAVA_HOME"/jre/lib/i386:"$JAVA_HOME"/lib/i386:/usr/lib
+
+case "$1" in
+    start)
+	rm -rf /var/log/metacarta/java-agents/agents.out
+        mkfifo -m700 /var/log/metacarta/java-agents/agents.out
+	/usr/sbin/rotatelogs /var/log/metacarta/java-agents/agents_out.log 10M >/dev/null </var/log/metacarta/java-agents/agents.out &
+        "$JAVA_HOME"/bin/java -XX:HeapDumpPath=/common/metacarta/java-heap-dumps -XX:+HeapDumpOnOutOfMemoryError -Xmx"$BASESIZE"m -Xms32m $DEFINESET -Djava.library.path="$JAVALIBPATH" -Djava.io.tmpdir=/common/metacarta/java-temp -classpath "$JAVA_HOME"/jre/lib/rt.jar:"$JAVA_HOME"/lib/tools.jar"$EXTRACLASS" com.metacarta.agents.AgentRun >> /var/log/metacarta/java-agents/agents.out 2>&1 &
+ 
+	echo "Process ID of spawned JVM: $!"
+	# This code is correct; the pid file is created by /etc/init.d/metacarta-agents, and just filled in here.
+	if [ -w /var/run/metacarta/agents.pid ]; then
+	    echo $! > /var/run/metacarta/agents.pid
+	fi
+	;;
+    stop)
+
+        "$JAVA_HOME"/bin/java -XX:HeapDumpPath=/common/metacarta/java-heap-dumps -XX:+HeapDumpOnOutOfMemoryError $DEFINESET -Djava.library.path="$JAVALIBPATH" -Djava.io.tmpdir=/common/metacarta/java-temp -classpath "$JAVA_HOME"/jre/lib/rt.jar:"$JAVA_HOME"/lib/tools.jar"$EXTRACLASS" com.metacarta.agents.AgentStop
+	rm -rf /var/log/metacarta/java-agents/agents.out
+	
+	;;
+    *)
+	echo "Usage: $0 start|stop"
+	exit 1
+	;;
+esac
+exit 0
+

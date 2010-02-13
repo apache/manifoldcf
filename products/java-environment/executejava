@@ -1,0 +1,81 @@
+#!/bin/sh
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements. See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
+# 
+# http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.#
+# IF YOU ARE READING THIS, YOU ARE VIOLATING YOUR LICENSE AGREEMENT.
+#
+# $Id$
+# This script runs a java command, using the standard metacarta environment.
+
+if [ "$JAVA_HOME" = "" ] ; then
+        JAVA_HOME=/usr/lib/jvm/java-1.5.0-sun
+fi
+
+# Pull together extra jar files into extra classpath
+EXTRACLASS=""
+for filename in $(ls -1 /usr/lib/metacarta/java-common)
+do
+  EXTRACLASS="$EXTRACLASS":/usr/lib/metacarta/java-common/"$filename"
+done
+
+for filename in $(ls -1 /usr/lib/metacarta/java-environment)
+do
+  EXTRACLASS="$EXTRACLASS":/usr/lib/metacarta/java-environment/"$filename"
+done
+
+# Do extra classpath stuff
+for filename in $(ls -1 /usr/lib/metacarta/java-classpath)
+do
+  EXTRACLASS="$EXTRACLASS":$(cat /usr/lib/metacarta/java-classpath/"$filename" | tr -d "\n")
+done
+
+# Set specified variables
+for filename in $(ls -1 /usr/lib/metacarta/java-vars)
+do
+  export "$filename"=$(cat /usr/lib/metacarta/java-vars/"$filename" | tr -d "\n")
+done
+
+# Do defines
+DEFINESET=""
+for filename in $(ls -1 /usr/lib/metacarta/java-defines)
+do
+  TERM=-D"$filename"=$(cat /usr/lib/metacarta/java-defines/"$filename" | tr -d "\n")
+  DEFINESET="$DEFINESET $TERM"
+done
+
+# Find memory base size
+BASESIZE=16
+for filename in $(ls -1 /var/lib/metacarta/java-utilities-base-sizes)
+do
+  SIZE=$(cat /var/lib/metacarta/java-utilities-base-sizes/"$filename" | tr -d "\n")
+  if ((SIZE>BASESIZE)); then
+    BASESIZE=$SIZE
+  fi
+done
+
+# Add up incremental sizes
+for filename in $(ls -1 /var/lib/metacarta/java-utilities-incremental-sizes)
+do
+  SIZE=$(cat /var/lib/metacarta/java-utilities-incremental-sizes/"$filename" | tr -d "\n")
+  BASESIZE=$((BASESIZE+SIZE))
+done
+
+# Set up proper .so path
+JAVALIBPATH="$JAVA_HOME"/jre/lib/i386/client:"$JAVA_HOME"/jre/lib/i386:"$JAVA_HOME"/lib/i386:/usr/lib
+
+# Call java
+CLASSNAME=$1
+shift
+"$JAVA_HOME"/bin/java -XX:HeapDumpPath=/common/metacarta/java-heap-dumps -XX:+HeapDumpOnOutOfMemoryError $DEFINESET -Djava.library.path="$JAVALIBPATH" -Djava.io.tmpdir=/common/metacarta/java-temp -classpath "$JAVA_HOME"/jre/lib/rt.jar:"$JAVA_HOME"/lib/tools.jar"$EXTRACLASS" -Xmx"$BASESIZE"m -Xms32m "$CLASSNAME" "$@"

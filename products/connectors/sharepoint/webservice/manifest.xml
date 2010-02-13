@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Solution SolutionId="2b046d97-9511-4839-9994-235816c9e79d" xmlns="http://schemas.microsoft.com/sharepoint/">
+  <Assemblies>
+    <Assembly Location="MetaCarta.SharePoint.dll" DeploymentTarget="GlobalAssemblyCache" />
+  </Assemblies>
+  <RootFiles>
+    <RootFile Location="ISAPI\MCPermissions.asmx" />
+    <RootFile Location="ISAPI\MCPermissionsdisco.aspx" />
+    <RootFile Location="ISAPI\MCPermissionswsdl.aspx" />
+  </RootFiles>
+</Solution>
