@@ -68,7 +68,7 @@
     </target>
 
     <target name="compile">
-        <property name="baseclasspath" value="lib/servlet-2.3.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar"/>
+        <property name="baseclasspath" value="lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar"/>
         <antcall target="compile-core">
             <param name="classpath" value="${baseclasspath}"/>
         </antcall>
@@ -165,7 +165,7 @@
     
     <target name="war-authority">
         <mkdir dir="build/war"/>
-        <war destfile="build/war/lcf-authority.war" webxml="authority-webapp/web.xml" basedir="build/webapp/authority"/>
+        <war destfile="build/war/lcf-authority.war" webxml="authority-webapp/WEB-INF/web.xml" basedir="build/webapp/authority"/>
     </target>
     
     <target name="war-crawler-ui">
