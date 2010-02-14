@@ -31,7 +31,6 @@ import com.metacarta.agents.common.XMLStream;
 import com.metacarta.agents.common.XMLContext;
 import com.metacarta.agents.common.XMLStringContext;
 import com.metacarta.agents.common.XMLFileContext;
-import com.metacarta.license.LicenseFile;
 
 import java.io.*;
 import java.util.*;
@@ -41,8 +40,6 @@ import java.util.regex.*;
 import org.apache.commons.httpclient.*;
 import org.apache.commons.httpclient.methods.*;
 import org.apache.commons.httpclient.params.*;
-
-import com.metacarta.core.MetaCartaVersion;
 
 /** This is the RSS implementation of the IRepositoryConnector interface.
 * This connector basically looks at an RSS document in order to seed the
@@ -227,21 +224,12 @@ public class RSSConnector extends com.metacarta.crawler.connectors.BaseRepositor
         {
                 if (!isInitialized)
                 {
-                        RSSLicense license = RSSLicense.getInstance();
-                        LicenseFile.Error license_error = license.verify();
-                        if (! license.verify().equals(LicenseFile.Error.E_NOERROR)) {
-                            throw new MetacartaException("License error.  Contact MetaCarta customer service. (" + license_error.toString() + ")");
-                        }
-
                         String x;
 
                         String emailAddress = params.getParameter(emailParameter);
-                        userAgent = "MetaCartaRSSFeedReader/"+MetaCartaVersion.string+" Beta ("+MetaCartaVersion.build_date+"; "+((emailAddress==null)?"":emailAddress)+")";
-                        from = emailAddress;
-
                         if (emailAddress == null)
                                 throw new MetacartaException("Missing email address");
-                        userAgent = "MetaCartaRSSFeedReader/"+MetaCartaVersion.string+" Beta ("+MetaCartaVersion.build_date+"; "+emailAddress+")";
+                        userAgent = "ApacheLCFRSSFeedReader; "+((emailAddress==null)?"":emailAddress)+")";
                         from = emailAddress;
 
                         String robotsUsageString = params.getParameter(robotsUsageParameter);

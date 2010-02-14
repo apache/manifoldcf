@@ -31,7 +31,6 @@ import com.metacarta.agents.common.XMLStream;
 import com.metacarta.agents.common.XMLContext;
 import com.metacarta.agents.common.XMLStringContext;
 import com.metacarta.agents.common.XMLFileContext;
-import com.metacarta.license.LicenseFile;
 
 import java.io.*;
 import java.util.*;
@@ -41,8 +40,6 @@ import java.util.regex.*;
 import org.apache.commons.httpclient.*;
 import org.apache.commons.httpclient.methods.*;
 import org.apache.commons.httpclient.params.*;
-
-import com.metacarta.core.MetaCartaVersion;
 
 /** This is the Web Crawler implementation of the IRepositoryConnector interface.
 * This connector may be superceded by one that calls out to python, or by a entirely
@@ -417,19 +414,12 @@ public class WebcrawlerConnector extends com.metacarta.crawler.connectors.BaseRe
                 // Handle everything else
                 if (!isInitialized)
                 {
-                        WebLicense license = WebLicense.getInstance();
-                        LicenseFile.Error license_error = license.verify();
-                        if (! license.verify().equals(LicenseFile.Error.E_NOERROR))
-                        {
-                                throw new MetacartaException("License error.  Contact MetaCarta customer service. (" + license_error.toString() + ")");
-                        }
-
                         String x;
 
                         String emailAddress = params.getParameter(WebcrawlerConfig.PARAMETER_EMAIL);
                         if (emailAddress == null)
                                 throw new MetacartaException("Missing email address");
-                        userAgent = "MetaCartaWebCrawler/"+MetaCartaVersion.string+" Beta ("+MetaCartaVersion.build_date+"; "+emailAddress+")";
+                        userAgent = "ApacheLCFWebCrawler; "+emailAddress+")";
                         from = emailAddress;
 
                         x = params.getParameter(WebcrawlerConfig.PARAMETER_ROBOTSUSAGE);
