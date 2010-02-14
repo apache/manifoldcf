@@ -159,7 +159,7 @@
             </fileset>
         </copy>
         <copy todir="build/webapp/crawler-ui">
-            <fileset dir="crawler-ui" includes="**/*.jsp"/>
+            <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
         </copy>
     </target>
     

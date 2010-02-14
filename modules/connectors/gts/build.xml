@@ -24,14 +24,9 @@
         <copy todir="build/jsp-environment" file="build/crawler-war/error.jsp"/>
         <copy todir="build/jsp-environment" file="build/crawler-war/checkAdminLogin.jsp"/>
 
-        <copy todir="build/jsp-environment/output/gts" file="crawler-ui/output/gts/headerconfig.jsp"/>
-        <copy todir="build/jsp-environment/output/gts" file="crawler-ui/output/gts/editconfig.jsp"/>
-        <copy todir="build/jsp-environment/output/gts" file="crawler-ui/output/gts/postconfig.jsp"/>
-        <copy todir="build/jsp-environment/output/gts" file="crawler-ui/output/gts/viewconfig.jsp"/>
-        <copy todir="build/jsp-environment/output/gts" file="crawler-ui/output/gts/headerspec.jsp"/>
-        <copy todir="build/jsp-environment/output/gts" file="crawler-ui/output/gts/editspec.jsp"/>
-        <copy todir="build/jsp-environment/output/gts" file="crawler-ui/output/gts/postspec.jsp"/>
-        <copy todir="build/jsp-environment/output/gts" file="crawler-ui/output/gts/viewspec.jsp"/>
+        <copy todir="build/jsp-environment">
+            <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
+        </copy>
         <copy todir="build/jsp-environment/WEB-INF/lib">
             <fileset dir="build/crawler-war/WEB-INF/lib">
                 <include name="*.jar"/>
@@ -88,11 +83,9 @@
     <target name="webapp-connector-ui">
         <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-gts-connector.jar"/>
-        <mkdir dir="build/webapp/crawler-ui/output/gts"/>
-        <copy todir="build/webapp/crawler-ui/output/gts">
-            <fileset dir="crawler-ui/output/gts">
-                <include name="*.jsp"/>
-            </fileset>
+        <mkdir dir="build/webapp/crawler-ui"/>
+        <copy todir="build/webapp/crawler-ui">
+            <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
         </copy>
     </target>
     

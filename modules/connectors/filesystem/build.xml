@@ -24,14 +24,9 @@
         <copy todir="build/jsp-environment" file="build/crawler-war/error.jsp"/>
         <copy todir="build/jsp-environment" file="build/crawler-war/checkAdminLogin.jsp"/>
 
-        <copy todir="build/jsp-environment/connectors/filesystem" file="crawler-ui/connectors/filesystem/headerconfig.jsp"/>
-        <copy todir="build/jsp-environment/connectors/filesystem" file="crawler-ui/connectors/filesystem/editconfig.jsp"/>
-        <copy todir="build/jsp-environment/connectors/filesystem" file="crawler-ui/connectors/filesystem/postconfig.jsp"/>
-        <copy todir="build/jsp-environment/connectors/filesystem" file="crawler-ui/connectors/filesystem/viewconfig.jsp"/>
-        <copy todir="build/jsp-environment/connectors/filesystem" file="crawler-ui/connectors/filesystem/headerspec.jsp"/>
-        <copy todir="build/jsp-environment/connectors/filesystem" file="crawler-ui/connectors/filesystem/editspec.jsp"/>
-        <copy todir="build/jsp-environment/connectors/filesystem" file="crawler-ui/connectors/filesystem/postspec.jsp"/>
-        <copy todir="build/jsp-environment/connectors/filesystem" file="crawler-ui/connectors/filesystem/viewspec.jsp"/>
+        <copy todir="build/jsp-environment">
+            <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
+        </copy>
         <copy todir="build/jsp-environment/WEB-INF/lib">
             <fileset dir="build/crawler-war/WEB-INF/lib">
                 <include name="*.jar"/>
@@ -88,11 +83,9 @@
     <target name="webapp-connector-ui">
         <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-filesystem-connector.jar"/>
-        <mkdir dir="build/webapp/crawler-ui/connectors/filesystem"/>
-        <copy todir="build/webapp/crawler-ui/connectors/filesystem">
-            <fileset dir="crawler-ui/connectors/filesystem">
-                <include name="*.jsp"/>
-            </fileset>
+        <mkdir dir="build/webapp/crawler-ui"/>
+        <copy todir="build/webapp/crawler-ui">
+            <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
         </copy>
     </target>
     
