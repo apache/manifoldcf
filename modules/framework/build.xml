@@ -6,27 +6,27 @@
     
     <target name="compile-core">
         <mkdir dir="build/core/classes"/>
-        <javac srcdir="core" destdir="build/core/classes" classpath="${classpath}"/>
+        <javac srcdir="core" destdir="build/core/classes" classpath="${classpath}" compiler="javac1.4"/>
     </target>
 
     <target name="compile-ui-core">
         <mkdir dir="build/ui-core/classes"/>
-        <javac srcdir="ui-core" destdir="build/ui-core/classes" classpath="${classpath}"/>
+        <javac srcdir="ui-core" destdir="build/ui-core/classes" classpath="${classpath}" compiler="javac1.4"/>
     </target>
 
     <target name="compile-agents">
         <mkdir dir="build/agents/classes"/>
-        <javac srcdir="agents" destdir="build/agents/classes" classpath="${classpath}"/>
+        <javac srcdir="agents" destdir="build/agents/classes" classpath="${classpath}" compiler="javac1.4"/>
     </target>
 
     <target name="compile-pull-agent">
         <mkdir dir="build/pull-agent/classes"/>
-        <javac srcdir="pull-agent" destdir="build/pull-agent/classes" classpath="${classpath}"/>
+        <javac srcdir="pull-agent" destdir="build/pull-agent/classes" classpath="${classpath}" compiler="javac1.4"/>
     </target>
 
     <target name="compile-authority-webapp">
         <mkdir dir="build/authority-webapp/classes"/>
-        <javac srcdir="authority-webapp" destdir="build/authority-webapp/classes" classpath="${classpath}"/>
+        <javac srcdir="authority-webapp" destdir="build/authority-webapp/classes" classpath="${classpath}" compiler="javac1.4"/>
     </target>
 
 
@@ -49,7 +49,7 @@
         <jasper2 validateXml="false" uriroot="crawler-ui" webXmlFragment="crawler-ui/WEB-INF/web-generated.xml" outputDir="build/crawler-ui/java" /> 
         <!-- Compile java classes -->
         <mkdir dir="build/crawler-ui/classes"/>
-        <javac srcdir="build/crawler-ui/java" destdir="build/crawler-ui/classes">
+        <javac srcdir="build/crawler-ui/java" destdir="build/crawler-ui/classes" compiler="javac1.4">
             <classpath id="classpath">
                 <pathelement location="${java.home}/../lib/tools.jar"/>
                 <fileset dir="lib"> 

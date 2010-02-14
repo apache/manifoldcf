@@ -7,7 +7,7 @@
     <target name="compile-connector">
         <property name="classpath" value="lib/log4j-1.2.jar:lib/commons-logging.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar"/>
         <mkdir dir="build/connector/classes"/>
-        <javac srcdir="connector" destdir="build/connector/classes" classpath="${classpath}"/>
+        <javac srcdir="connector" destdir="build/connector/classes" classpath="${classpath}" compiler="javac1.4"/>
     </target>
 
     <target name="compile-crawler-ui">
@@ -15,7 +15,6 @@
         <mkdir dir="build/crawler-war"/>
         <unwar src="war/lcf-crawler-ui.war" dest="build/crawler-war"/>
         <!-- Create a copy of everything in the proper environment -->
-        <mkdir dir="build/jsp-environment/connectors/filesystem"/>
         <mkdir dir="build/jsp-environment/WEB-INF/lib"/>
         <mkdir dir="build/jsp-environment/WEB-INF/jsp"/>
         <copy todir="build/jsp-environment/WEB-INF" file="build/crawler-war/WEB-INF/web.xml"/>
@@ -57,7 +56,7 @@
         <jasper2 validateXml="false" uriroot="build/jsp-environment" webXmlFragment="build/jsp-environment/WEB-INF/web-generated.xml" outputDir="build/crawler-ui/java" /> 
         <!-- Compile java classes -->
         <mkdir dir="build/crawler-ui/classes"/>
-        <javac srcdir="build/crawler-ui/java" destdir="build/crawler-ui/classes">
+        <javac srcdir="build/crawler-ui/java" destdir="build/crawler-ui/classes" compiler="javac1.4">
             <classpath id="classpath">
                 <pathelement location="${java.home}/../lib/tools.jar"/>
                 <fileset dir="lib"> 

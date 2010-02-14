@@ -5,7 +5,7 @@
     </target>
     
     <target name="compile-connector">
-        <property name="classpath" value="lib/log4j-1.2.jar:lib/commons-logging.jar:lib/lcf-core.jar:lib/lcf-agents.jar"/>
+        <property name="classpath" value="lib/log4j-1.2.jar:lib/commons-logging.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:lapi/lapi.jar:lib/commons-httpclient.jar:lib/commons-codec.jar:lib/commons-collections.jar"/>
         <mkdir dir="build/connector/classes"/>
         <javac srcdir="connector" destdir="build/connector/classes" classpath="${classpath}" compiler="javac1.4"/>
     </target>
@@ -76,12 +76,12 @@
     
     <target name="jar-connector">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/lcf-gts-connector.jar" basedir="build/connector/classes"/>
+        <jar destfile="build/jar/lcf-livelink-connector.jar" basedir="build/connector/classes"/>
     </target>
 
     <target name="webapp-connector-ui">
         <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-gts-connector.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-livelink-connector.jar"/>
         <mkdir dir="build/webapp/crawler-ui"/>
         <copy todir="build/webapp/crawler-ui">
             <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
@@ -90,7 +90,7 @@
     
     <target name="iar-connector-ui">
         <mkdir dir="build/iar"/>
-        <jar destfile="build/iar/lcf-gtsconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
+        <jar destfile="build/iar/lcf-livelinkconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
     </target>
 
     <target name="all">
