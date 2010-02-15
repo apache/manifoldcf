@@ -24,7 +24,6 @@ import com.metacarta.crawler.interfaces.*;
 import com.metacarta.crawler.system.Logging;
 import com.metacarta.crawler.system.Metacarta;
 import com.metacarta.core.common.*;
-import com.metacarta.license.LicenseFile;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -110,12 +109,6 @@ public class SharePointRepository extends com.metacarta.crawler.connectors.BaseR
 	{
 		if (proxy == null)
 		{
-			SharepointLicense license = SharepointLicense.getInstance();
-			LicenseFile.Error license_error = license.verify();
-			if (! license.verify().equals(LicenseFile.Error.E_NOERROR)) {
-			    throw new MetacartaException("License error.  Contact MetaCarta customer service. (" + license_error.toString() + ")");
-			}
-			
 			String serverVersion = params.getParameter( "serverVersion" );
 			if (serverVersion == null)
 				serverVersion = "2.0";
