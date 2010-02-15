@@ -1,0 +1,189 @@
+<project>
+
+    <target name="clean">
+        <delete dir="build"/>
+    </target>
+    
+    <target name="classcreate-wsdl">
+        <mkdir dir="build/wsdljava"/>
+        <java classname="org.apache.axis.wsdl.WSDL2Java" fork="true" classpath="lib/axis.jar:lib/commons-logging.jar:lib/commons-discovery.jar:lib/saaj.jar:lib/wsdl4j.jar:lib/jaxrpc.jar:lib/activation.jar:lib/xml-apis.jar:lib/xercesImpl.jar">
+            <arg value="--timeout"/>
+            <arg value="0"/>
+            <arg value="--noImports"/>
+            <arg value="-o"/>
+            <arg value="build/wsdljava"/>
+            <arg value="${wsdlname}"/>
+        </java>
+    </target>
+    
+    <target name="classcreate-wsdls">
+        <antcall target="classcreate-wsdl">
+            <param name="wsdlname" value="wsdls/MeridioDMWS_axis.wsdl"/>
+        </antcall>
+        <antcall target="classcreate-wsdl">
+            <param name="wsdlname" value="wsdls/MeridioRMWS_axis.wsdl"/>
+        </antcall>
+        <antcall target="classcreate-wsdl">
+            <param name="wsdlname" value="wsdls/MetaCartaWS_axis.wsdl"/>
+        </antcall>
+    </target>
+    
+    <target name="classcreate-xsd">
+        <mkdir dir="build/xsdjava"/>
+        <java classname="org.exolab.castor.builder.SourceGeneratorMain" fork="true">
+            <classpath>
+                <fileset dir="lib">
+                    <include name="*.jar"/>
+                </fileset>
+            </classpath>
+            <arg value="-i"/>
+            <arg value="${xsdname}"/>
+            <arg value="=f"/>
+            <arg value="-dest"/>
+            <arg value="build/xsdjava"/>
+            <arg value="-package"/>
+            <arg value="com.metacarta.crawler.connectors.meridio.${packagename}"/>
+        </java>
+    </target>
+
+    <target name="classcreate-xsds">
+        <mkdir dir="build/xsdjava"/>
+        <antcall target="classcreate-xsd">
+            <param name="xsdname" value="wsdls/DMDataSet.xsd"/>
+            <param name="packagename" value="DMDataSet"/>
+        </antcall>
+        <antcall target="classcreate-xsd">
+            <param name="xsdname" value="wsdls/RMClassificationDataSet.xsd"/>
+            <param name="packagename" value="RMClassificationDataSet"/>
+        </antcall>
+        <antcall target="classcreate-xsd">
+            <param name="xsdname" value="wsdls/RMDataSet.xsd"/>
+            <param name="packagename" value="RMDataSet"/>
+        </antcall>
+    </target>
+    
+    <target name="compile-connector">
+        <property name="classpath" value="lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:lib/mailapi.jar:lib/castor-1.0.5-commons.jar:lib/castor-1.0.5.jar:lib/castor-1.0.5-xml.jar:lib/axis.jar:build/wsdlclasses:build/xsdclasses:lib/activation.jar:lib/jaxrpc.jar:lib/saaj.jar"/>
+        <mkdir dir="build/connector/classes"/>
+        <javac srcdir="connector" destdir="build/connector/classes" classpath="${classpath}" target="1.5" source="1.4"/>
+    </target>
+
+    <target name="compile-wsdls">
+        <property name="classpath" value="lib/log4j-1.2.jar:lib/commons-logging.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:lib/mailapi.jar:lib/axis.jar:lib/activation.jar:lib/jaxrpc.jar:lib/saaj.jar"/>
+        <mkdir dir="build/wsdlclasses"/>
+        <javac srcdir="build/wsdljava" destdir="build/wsdlclasses" classpath="${classpath}" target="1.5" source="1.4"/>
+    </target>
+
+    <target name="compile-xsds">
+        <property name="classpath" value="lib/log4j-1.2.jar:lib/commons-logging.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:lib/mailapi.jar:lib/castor-1.0.5-commons.jar:lib/castor-1.0.5.jar:lib/castor-1.0.5-xml.jar"/>
+        <mkdir dir="build/xsdclasses"/>
+        <javac srcdir="build/xsdjava" destdir="build/xsdclasses" classpath="${classpath}" target="1.5" source="1.4"/>
+    </target>
+
+    <target name="compile-crawler-ui">
+        <!-- Unpack the crawler war -->
+        <mkdir dir="build/crawler-war"/>
+        <unwar src="war/lcf-crawler-ui.war" dest="build/crawler-war"/>
+        <!-- Create a copy of everything in the proper environment -->
+        <mkdir dir="build/jsp-environment/WEB-INF/lib"/>
+        <mkdir dir="build/jsp-environment/WEB-INF/jsp"/>
+        <copy todir="build/jsp-environment/WEB-INF" file="build/crawler-war/WEB-INF/web.xml"/>
+        <copy todir="build/jsp-environment" file="build/crawler-war/adminHeaders.jsp"/>
+        <copy todir="build/jsp-environment" file="build/crawler-war/adminDefaults.jsp"/>
+        <copy todir="build/jsp-environment" file="build/crawler-war/error.jsp"/>
+        <copy todir="build/jsp-environment" file="build/crawler-war/checkAdminLogin.jsp"/>
+
+        <copy todir="build/jsp-environment">
+            <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
+        </copy>
+        <copy todir="build/jsp-environment/WEB-INF/lib">
+            <fileset dir="build/crawler-war/WEB-INF/lib">
+                <include name="*.jar"/>
+            </fileset>
+        </copy>
+        <copy todir="build/jsp-environment/WEB-INF/jsp">
+            <fileset dir="build/crawler-war/WEB-INF/jsp">
+                <include name="*.tld"/>
+            </fileset>
+        </copy>
+        <copy todir="build/jsp-environment/WEB-INF/classes">
+            <fileset dir="build/connector/classes"/>
+        </copy>
+        <!-- Compile to java, as a check -->
+        <mkdir dir="build/crawler-ui/java"/>
+        <!-- Define the jsp compilation task using tomcat libraries -->
+        <taskdef classname="org.apache.jasper.JspC" name="jasper2" > 
+            <classpath id="jspc.classpath"> 
+                <pathelement location="${java.home}/../lib/tools.jar"/>
+                <fileset dir="lib"> 
+                    <include name="*.jar"/> 
+                </fileset> 
+                <pathelement location="build/crawler-war/WEB-INF/lib/jstl.jar"/>
+                <pathelement location="build/crawler-war/WEB-INF/lib/standard.jar"/>
+                <pathelement location="build/connector/classes"/>
+                <pathelement location="build/wsdlclasses"/>
+                <pathelement location="build/xsdclasses"/>
+            </classpath> 
+        </taskdef> 
+        <jasper2 validateXml="false" uriroot="build/jsp-environment" webXmlFragment="build/jsp-environment/WEB-INF/web-generated.xml" outputDir="build/crawler-ui/java" /> 
+        <!-- Compile java classes -->
+        <mkdir dir="build/crawler-ui/classes"/>
+        <javac srcdir="build/crawler-ui/java" destdir="build/crawler-ui/classes" target="1.5" source="1.4">
+            <classpath id="classpath">
+                <pathelement location="${java.home}/../lib/tools.jar"/>
+                <fileset dir="lib"> 
+                    <include name="*.jar"/> 
+                </fileset>
+                <pathelement location="build/crawler-war/WEB-INF/lib/jstl.jar"/>
+                <pathelement location="build/crawler-war/WEB-INF/lib/standard.jar"/>
+                <pathelement location="build/connector/classes"/>
+                <pathelement location="build/wsdlclasses"/>
+                <pathelement location="build/xsdclasses"/>
+            </classpath>
+        </javac>
+    </target>
+    
+    <target name="classcreate">
+        <antcall target="classcreate-wsdls"/>
+        <antcall target="classcreate-xsds"/>
+    </target>
+    
+    <target name="compile">
+        <antcall target="compile-wsdls"/>
+        <antcall target="compile-xsds"/>
+        <antcall target="compile-connector"/>
+        <antcall target="compile-crawler-ui"/>
+    </target>
+    
+    <target name="jar-connector">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/lcf-meridio-connector.jar" basedir="build/connector/classes"/>
+        <jar destfile="build/jar/lcf-meridio-wsdlstub.jar" basedir="build/wsdlclasses"/>
+        <jar destfile="build/jar/lcf-meridio-xsdstub.jar" basedir="build/xsdclasses"/>
+    </target>
+
+    <target name="webapp-connector-ui">
+        <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-meridio-connector.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-meridio-wsdlstub.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-meridio-xsdstub.jar"/>
+        <mkdir dir="build/webapp/crawler-ui"/>
+        <copy todir="build/webapp/crawler-ui">
+            <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
+        </copy>
+    </target>
+    
+    <target name="iar-connector-ui">
+        <mkdir dir="build/iar"/>
+        <jar destfile="build/iar/lcf-meridioconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
+    </target>
+
+    <target name="all">
+        <antcall target="classcreate"/>
+        <antcall target="compile"/>
+        <antcall target="jar-connector"/>
+        <antcall target="webapp-connector-ui"/>
+        <antcall target="iar-connector-ui"/>
+    </target>
+    
+</project>

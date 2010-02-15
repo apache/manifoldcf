@@ -56,8 +56,6 @@ import org.apache.axis.attachments.AttachmentPart;
 import com.metacarta.crawler.connectors.meridio.DMDataSet.*;
 import com.metacarta.crawler.connectors.meridio.RMDataSet.*;
 
-import com.metacarta.license.LicenseFile;
-
 /** This is the "repository connector" for a file system. 
 */
 public class MeridioConnector extends com.metacarta.crawler.connectors.BaseRepositoryConnector
@@ -120,12 +118,6 @@ public class MeridioConnector extends com.metacarta.crawler.connectors.BaseRepos
 		if (meridio_ == null)
 		{
 			// Do the first part (which used to be in connect() itself)
-			MeridioLicense license = MeridioLicense.getInstance();
-			LicenseFile.Error license_error = license.verify();
-			if (! license.verify().equals(LicenseFile.Error.E_NOERROR)) {
-			    throw new MetacartaException("License error.  Contact MetaCarta customer service. (" + license_error.toString() + ")");
-			}				
-			
 			try
 			{								
 				/*=================================================================
