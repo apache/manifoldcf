@@ -4,11 +4,27 @@
         <delete dir="build"/>
     </target>
 
-    <target name="precompile-check">
-        <available file="wsdls/Permissions.wsdl" property="sharepointStatus"/>
+    <target name="calculate-condition">
+        <available file="wsdls/DspSts.wsdl" property="DspStsStatus"/>
+        <available file="wsdls/Lists.wsdl" property="ListsStatus"/>
+        <available file="wsdls/Permissions.wsdl" property="PermissionsStatus"/>
+        <available file="wsdls/usergroup.wsdl" property="usergroupStatus"/>
+        <available file="wsdls/versions.wsdl" property="versionsStatus"/>
+        <available file="wsdls/webs.wsdl" property="websStatus"/>
         <condition property="canBuild">
-            <isset property="sharepointStatus"/>
+            <and>
+                <isset property="DspStsStatus"/>
+                <isset property="ListsStatus"/>
+                <isset property="PermissionsStatus"/>
+                <isset property="usergroupStatus"/>
+                <isset property="versionsStatus"/>
+                <isset property="websStatus"/>
+            </and>
         </condition>
+    </target>
+    
+    <target name="precompile-check" depends="calculate-condition" unless="canBuild">
+        <echo message="SharePoint Connector cannot be built without DspSts.wsdl, Lists.wsdl, Permissions.wsdl, usergroup.wsdl, versions.wsdl, and webs.wsdl"/>
     </target>
 
     <target name="classcreate-wsdl">

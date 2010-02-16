@@ -4,11 +4,15 @@
         <delete dir="build"/>
     </target>
 
-    <target name="precompile-check">
+    <target name="calculate-condition">
         <available file="jcifs/jcifs.jar" property="jcifsStatus"/>
         <condition property="canBuild">
             <isset property="jcifsStatus"/>
         </condition>
+    </target>
+
+    <target name="precompile-check" depends="calculate-condition" unless="canBuild">
+        <echo message="JCifs Connector cannot be built without jcifs.jar"/>
     </target>
 
     <target name="compile-connector" depends="precompile-check" if="canBuild">

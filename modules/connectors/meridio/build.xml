@@ -4,11 +4,25 @@
         <delete dir="build"/>
     </target>
 
-    <target name="precompile-check">
-        <available file="wsdls/MeridioDMWS_axis.wsdl" property="meridioStatus"/>
+    <target name="calculate-condition">
+        <available file="wsdls/MeridioDMWS_axis.wsdl" property="meridioDMWS_axisStatus"/>
+        <available file="wsdls/MeridioRMWS_axis.wsdl" property="meridioRMWS_axisStatus"/>
+        <available file="wsdls/DMDataSet.xsd" property="DMDataSetStatus"/>
+        <available file="wsdls/RMDataSet.xsd" property="RMDataSetStatus"/>
+        <available file="wsdls/RMClassificationDataSet.xsd" property="RMClassificationDataSetStatus"/>
         <condition property="canBuild">
-            <isset property="meridioStatus"/>
+            <and>
+                <isset property="meridioDMWS_axisStatus"/>
+                <isset property="meridioRMWS_axisStatus"/>
+                <isset property="DMDataSetStatus"/>
+                <isset property="RMDataSetStatus"/>
+                <isset property="RMClassificationDataSetStatus"/>
+            </and>
         </condition>
+    </target>
+
+    <target name="precompile-check" depends="calculate-condition" unless="canBuild">
+        <echo message="Meridio Connector cannot be built without MeridioDMWS_axis.wsdl, MeridioRMWS_axis.wsdl, DMDataSet.xsd, RMDataSet.xsd, and RMClassificationDataSet.xsd"/>
     </target>
 
     <target name="classcreate-wsdl">

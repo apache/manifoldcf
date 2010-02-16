@@ -4,11 +4,15 @@
         <delete dir="build"/>
     </target>
 
-    <target name="precompile-check">
-        <available file="filenet-api/Jace.jar" property="filenetAPIStatus"/>
+    <target name="calculate-condition">
+        <available file="filenet-api/Jace.jar" property="JaceStatus"/>
         <condition property="canBuild">
-            <isset property="filenetAPIStatus"/>
+            <isset property="JaceStatus"/>
         </condition>
+    </target>
+
+    <target name="precompile-check" depends="calculate-condition" unless="canBuild">
+        <echo message="FileNet Connector cannot be built without Jace.jar"/>
     </target>
 
     <target name="compile-interface" depends="precompile-check" if="canBuild">

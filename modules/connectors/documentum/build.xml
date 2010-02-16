@@ -4,13 +4,23 @@
         <delete dir="build"/>
     </target>
 
-    <target name="precompile-check">
+    <target name="calculate-condition">
         <available file="dfc/dfc.jar" property="dfcStatus"/>
+        <available file="dfc/dfcbase.jar" property="dfcbaseStatus"/>
+        <available file="dfc/dctm.jar" property="dctmStatus"/>
         <condition property="canBuild">
-            <isset property="dfcStatus"/>
+            <and>
+                <isset property="dfcStatus"/>
+                <isset property="dfcbaseStatus"/>
+                <isset property="dctmStatus"/>
+            </and>
         </condition>
     </target>
     
+    <target name="precompile-check" depends="calculate-condition" unless="canBuild">
+        <echo message="Documentum Connector cannot be built without dfc.jar, dfcbase.jar, and dctm.jar"/>
+    </target>
+
     <target name="compile-interface" depends="precompile-check" if="canBuild">
         <mkdir dir="build/interface/classes"/>
         <javac srcdir="interface" destdir="build/interface/classes" classpath="" target="1.5" source="1.4"/>

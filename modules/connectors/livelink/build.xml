@@ -4,11 +4,15 @@
         <delete dir="build"/>
     </target>
 
-    <target name="precompile-check">
+    <target name="calculate-condition">
         <available file="lapi/lapi.jar" property="lapiStatus"/>
         <condition property="canBuild">
             <isset property="lapiStatus"/>
         </condition>
+    </target>
+
+    <target name="precompile-check" depends="calculate-condition" unless="canBuild">
+        <echo message="LiveLink Connector cannot be built without lapi.jar"/>
     </target>
 
     <target name="compile-connector" depends="precompile-check" if="canBuild">
