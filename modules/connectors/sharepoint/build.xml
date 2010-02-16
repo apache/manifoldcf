@@ -4,6 +4,7 @@
         <delete dir="build"/>
     </target>
 
+    
     <target name="calculate-condition">
         <available file="wsdls/DspSts.wsdl" property="DspStsStatus"/>
         <available file="wsdls/Lists.wsdl" property="ListsStatus"/>
@@ -25,6 +26,14 @@
     
     <target name="precompile-check" depends="calculate-condition" unless="canBuild">
         <echo message="SharePoint Connector cannot be built without DspSts.wsdl, Lists.wsdl, Permissions.wsdl, usergroup.wsdl, versions.wsdl, and webs.wsdl"/>
+    </target>
+
+    <target name="build-webservice" depends="precompile-check" if="canBuild">
+        <copy todir="webservice/References/SPPermissionsService" file="wsdls/Permissions.wsdl"/>
+        <exec executable="cmd" dir="webservice">
+            <arg value="/c"/>
+            <arg value="build.bat"/>
+        </exec>
     </target>
 
     <target name="classcreate-wsdl">
