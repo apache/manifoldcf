@@ -1,15 +1,22 @@
-<project>
+<project default="all">
 
     <target name="clean">
         <delete dir="build"/>
     </target>
 
-    <target name="compile-interface">
+    <target name="precompile-check">
+        <available file="dfc/dfc.jar" property="dfcStatus"/>
+        <condition property="canBuild">
+            <isset property="dfcStatus"/>
+        </condition>
+    </target>
+    
+    <target name="compile-interface" depends="precompile-check" if="canBuild">
         <mkdir dir="build/interface/classes"/>
         <javac srcdir="interface" destdir="build/interface/classes" classpath="" target="1.5" source="1.4"/>
     </target>
 
-    <target name="compile-implementation">
+    <target name="compile-implementation" depends="compile-interface,precompile-check" if="canBuild">
         <mkdir dir="build/implementation/classes"/>
         <javac srcdir="implementation" destdir="build/implementation/classes" target="1.5" source="1.4">
             <classpath id="implementation.classpath">
@@ -33,7 +40,7 @@
         </rmic>
     </target>
     
-    <target name="compile-rmic">
+    <target name="compile-rmic" depends="compile-implementation,compile-interface,precompile-check" if="canBuild">
         <mkdir dir="build/rmijava"/>
         <copy todir="build/rmijava">
             <fileset dir="implementation"/>
@@ -65,25 +72,22 @@
         </copy>
     </target>
     
-    <target name="compile-server">
-        <property name="classpath" value="build/interface/classes:build/implementation/classes:build/rmistub/classes:build/rmiskel/classes"/>
+    <target name="compile-server" depends="compile-interface,compile-implementation,compile-rmic,precompile-check" if="canBuild">
         <mkdir dir="build/server/classes"/>
-        <javac srcdir="server" destdir="build/server/classes" classpath="${classpath}" target="1.5" source="1.4"/>
+        <javac srcdir="server" destdir="build/server/classes" classpath="build/interface/classes:build/implementation/classes:build/rmistub/classes:build/rmiskel/classes" target="1.5" source="1.4"/>
     </target>
 
-    <target name="compile-registry">
-        <property name="classpath" value="build/interface/classes"/>
+    <target name="compile-registry" depends="compile-interface,precompile-check" if="canBuild">
         <mkdir dir="build/registry/classes"/>
-        <javac srcdir="registry" destdir="build/registry/classes" classpath="${classpath}" target="1.5" source="1.4"/>
+        <javac srcdir="registry" destdir="build/registry/classes" classpath="build/interface/classes" target="1.5" source="1.4"/>
     </target>
 
-    <target name="compile-connector">
-        <property name="classpath" value="lib/log4j-1.2.jar:lib/commons-logging.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:build/interface/classes:build/rmistub/classes"/>
+    <target name="compile-connector" depends="compile-interface,compile-rmic,precompile-check" if="canBuild">
         <mkdir dir="build/connector/classes"/>
-        <javac srcdir="connector" destdir="build/connector/classes" classpath="${classpath}" target="1.5" source="1.4"/>
+        <javac srcdir="connector" destdir="build/connector/classes" classpath="lib/log4j-1.2.jar:lib/commons-logging.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:build/interface/classes:build/rmistub/classes" target="1.5" source="1.4"/>
     </target>
 
-    <target name="compile-crawler-ui">
+    <target name="compile-crawler-ui" depends="compile-interface,compile-rmic,compile-connector,precompile-check" if="canBuild">
         <!-- Unpack the crawler war -->
         <mkdir dir="build/crawler-war"/>
         <unwar src="war/lcf-crawler-ui.war" dest="build/crawler-war"/>
@@ -147,52 +151,42 @@
         </javac>
     </target>
     
-    <target name="compile">
-        <antcall target="compile-interface"/>
-        <antcall target="compile-implementation"/>
-        <antcall target="compile-rmic"/>
-        <antcall target="compile-server"/>
-        <antcall target="compile-registry"/>
-        <antcall target="compile-connector"/>
-        <antcall target="compile-crawler-ui"/>
-    </target>
-    
-    <target name="jar-interface">
+    <target name="jar-interface" depends="compile-interface,precompile-check" if="canBuild">
         <mkdir dir="build/jar"/>
         <jar destfile="build/jar/lcf-documentum-interface.jar" basedir="build/interface/classes"/>
     </target>
 
-    <target name="jar-implementation">
+    <target name="jar-implementation" depends="compile-implementation,precompile-check" if="canBuild">
         <mkdir dir="build/jar"/>
         <jar destfile="build/jar/lcf-documentum-implementation.jar" basedir="build/implementation/classes"/>
     </target>
 
-    <target name="jar-rmiskel">
+    <target name="jar-rmiskel" depends="compile-rmic,precompile-check" if="canBuild">
         <mkdir dir="build/jar"/>
         <jar destfile="build/jar/lcf-documentum-rmiskel.jar" basedir="build/rmiskel/classes"/>
     </target>
 
-    <target name="jar-rmistub">
+    <target name="jar-rmistub" depends="compile-rmic,precompile-check" if="canBuild">
         <mkdir dir="build/jar"/>
         <jar destfile="build/jar/lcf-documentum-rmistub.jar" basedir="build/rmistub/classes"/>
     </target>
 
-    <target name="jar-server">
+    <target name="jar-server" depends="compile-server,precompile-check" if="canBuild">
         <mkdir dir="build/jar"/>
         <jar destfile="build/jar/lcf-documentum-server.jar" basedir="build/server/classes"/>
     </target>
 
-    <target name="jar-registry">
+    <target name="jar-registry" depends="compile-registry,precompile-check" if="canBuild">
         <mkdir dir="build/jar"/>
         <jar destfile="build/jar/lcf-documentum-registry.jar" basedir="build/registry/classes"/>
     </target>
     
-    <target name="jar-connector">
+    <target name="jar-connector" depends="compile-connector,precompile-check" if="canBuild">
         <mkdir dir="build/jar"/>
         <jar destfile="build/jar/lcf-documentum-connector.jar" basedir="build/connector/classes"/>
     </target>
 
-    <target name="webapp-connector-ui">
+    <target name="webapp-connector-ui" depends="compile-crawler-ui,jar-rmistub,jar-interface,jar-connector,precompile-check" if="canBuild">
         <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-documentum-connector.jar"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-documentum-rmistub.jar"/>
@@ -203,22 +197,11 @@
         </copy>
     </target>
     
-    <target name="iar-connector-ui">
+    <target name="iar-connector-ui" depends="webapp-connector-ui,precompile-check" if="canBuild">
         <mkdir dir="build/iar"/>
         <jar destfile="build/iar/lcf-documentumconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
     </target>
 
-    <target name="all">
-        <antcall target="compile"/>
-        <antcall target="jar-interface"/>
-        <antcall target="jar-implementation"/>
-        <antcall target="jar-rmiskel"/>
-        <antcall target="jar-rmistub"/>
-        <antcall target="jar-server"/>
-        <antcall target="jar-registry"/>
-        <antcall target="jar-connector"/>
-        <antcall target="webapp-connector-ui"/>
-        <antcall target="iar-connector-ui"/>
-    </target>
+    <target name="all" depends="jar-interface,jar-implementation,jar-rmiskel,jar-rmistub,jar-server,jar-registry,jar-connector,iar-connector-ui"/>
     
 </project>

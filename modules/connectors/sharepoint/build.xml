@@ -1,9 +1,16 @@
-<project>
+<project default="all">
 
     <target name="clean">
         <delete dir="build"/>
     </target>
-    
+
+    <target name="precompile-check">
+        <available file="wsdls/Permissions.wsdl" property="sharepointStatus"/>
+        <condition property="canBuild">
+            <isset property="sharepointStatus"/>
+        </condition>
+    </target>
+
     <target name="classcreate-wsdl">
         <mkdir dir="build/wsdljava"/>
         <java classname="org.apache.axis.wsdl.WSDL2Java" fork="true" classpath="lib/axis.jar:lib/commons-logging.jar:lib/commons-discovery.jar:lib/saaj.jar:lib/wsdl4j.jar:lib/jaxrpc.jar:lib/activation.jar:lib/xml-apis.jar:lib/xercesImpl.jar">
@@ -16,7 +23,7 @@
         </java>
     </target>
     
-    <target name="classcreate-wsdls">
+    <target name="classcreate-wsdls" depends="precompile-check" if="canBuild">
         <antcall target="classcreate-wsdl">
             <param name="wsdlname" value="wsdls/DspSts.wsdl"/>
         </antcall>
@@ -39,20 +46,18 @@
             <param name="wsdlname" value="wsdls/webs.wsdl"/>
         </antcall>
     </target>
-    
-    <target name="compile-connector">
-        <property name="classpath" value="lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:lib/axis.jar:lib/activation.jar:lib/jaxrpc.jar:lib/saaj.jar:build/wsdlclasses"/>
-        <mkdir dir="build/connector/classes"/>
-        <javac srcdir="connector" destdir="build/connector/classes" classpath="${classpath}" target="1.5" source="1.4"/>
-    </target>
 
-    <target name="compile-wsdls">
-        <property name="classpath" value="lib/log4j-1.2.jar:lib/commons-logging.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:lib/mailapi.jar:lib/axis.jar:lib/activation.jar:lib/jaxrpc.jar:lib/saaj.jar"/>
+    <target name="compile-wsdls" depends="classcreate-wsdls,precompile-check" if="canBuild">
         <mkdir dir="build/wsdlclasses"/>
-        <javac srcdir="build/wsdljava" destdir="build/wsdlclasses" classpath="${classpath}" target="1.5" source="1.4"/>
+        <javac srcdir="build/wsdljava" destdir="build/wsdlclasses" classpath="lib/log4j-1.2.jar:lib/commons-logging.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:lib/axis.jar:lib/activation.jar:lib/jaxrpc.jar:lib/saaj.jar" target="1.5" source="1.4"/>
     </target>
 
-    <target name="compile-crawler-ui">
+    <target name="compile-connector" depends="compile-wsdls,precompile-check" if="canBuild">
+        <mkdir dir="build/connector/classes"/>
+        <javac srcdir="connector" destdir="build/connector/classes" classpath="lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:lib/axis.jar:lib/activation.jar:lib/jaxrpc.jar:lib/saaj.jar:build/wsdlclasses" target="1.5" source="1.4"/>
+    </target>
+
+    <target name="compile-crawler-ui" depends="compile-connector,compile-wsdls,precompile-check" if="canBuild">
         <!-- Unpack the crawler war -->
         <mkdir dir="build/crawler-war"/>
         <unwar src="war/lcf-crawler-ui.war" dest="build/crawler-war"/>
@@ -113,23 +118,17 @@
         </javac>
     </target>
     
-    <target name="classcreate">
-        <antcall target="classcreate-wsdls"/>
-    </target>
-    
-    <target name="compile">
-        <antcall target="compile-wsdls"/>
-        <antcall target="compile-connector"/>
-        <antcall target="compile-crawler-ui"/>
-    </target>
-    
-    <target name="jar-connector">
+    <target name="jar-connector" depends="compile-connector,precompile-check" if="canBuild">
         <mkdir dir="build/jar"/>
         <jar destfile="build/jar/lcf-sharepoint-connector.jar" basedir="build/connector/classes"/>
+    </target>
+    
+    <target name="jar-wsdls" depends="compile-wsdls,precompile-check" if="canBuild">
+        <mkdir dir="build/jar"/>
         <jar destfile="build/jar/lcf-sharepoint-wsdlstub.jar" basedir="build/wsdlclasses"/>
     </target>
 
-    <target name="webapp-connector-ui">
+    <target name="webapp-connector-ui" depends="compile-crawler-ui,jar-connector,jar-wsdls,precompile-check" if="canBuild">
         <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-sharepoint-connector.jar"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-sharepoint-wsdlstub.jar"/>
@@ -139,17 +138,11 @@
         </copy>
     </target>
     
-    <target name="iar-connector-ui">
+    <target name="iar-connector-ui" depends="webapp-connector-ui,precompile-check" if="canBuild">
         <mkdir dir="build/iar"/>
         <jar destfile="build/iar/lcf-sharepointconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
     </target>
 
-    <target name="all">
-        <antcall target="classcreate"/>
-        <antcall target="compile"/>
-        <antcall target="jar-connector"/>
-        <antcall target="webapp-connector-ui"/>
-        <antcall target="iar-connector-ui"/>
-    </target>
+    <target name="all" depends="jar-connector,jar-wsdls,iar-connector-ui"/>
     
 </project>

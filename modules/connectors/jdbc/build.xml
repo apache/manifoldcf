@@ -1,16 +1,15 @@
-<project>
+<project default="all">
 
     <target name="clean">
         <delete dir="build"/>
     </target>
     
     <target name="compile-connector">
-        <property name="classpath" value="lib/log4j-1.2.jar:lib/commons-logging.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:lib/jdbcpool-0.99.jar"/>
         <mkdir dir="build/connector/classes"/>
-        <javac srcdir="connector" destdir="build/connector/classes" classpath="${classpath}" target="1.5" source="1.4"/>
+        <javac srcdir="connector" destdir="build/connector/classes" classpath="lib/log4j-1.2.jar:lib/commons-logging.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:lib/jdbcpool-0.99.jar" target="1.5" source="1.4"/>
     </target>
 
-    <target name="compile-crawler-ui">
+    <target name="compile-crawler-ui" depends="compile-connector">
         <!-- Unpack the crawler war -->
         <mkdir dir="build/crawler-war"/>
         <unwar src="war/lcf-crawler-ui.war" dest="build/crawler-war"/>
@@ -69,17 +68,12 @@
         </javac>
     </target>
     
-    <target name="compile">
-        <antcall target="compile-connector"/>
-        <antcall target="compile-crawler-ui"/>
-    </target>
-    
-    <target name="jar-connector">
+    <target name="jar-connector" depends="compile-connector">
         <mkdir dir="build/jar"/>
         <jar destfile="build/jar/lcf-jdbc-connector.jar" basedir="build/connector/classes"/>
     </target>
 
-    <target name="webapp-connector-ui">
+    <target name="webapp-connector-ui" depends="compile-crawler-ui,jar-connector">
         <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-jdbc-connector.jar"/>
         <mkdir dir="build/webapp/crawler-ui"/>
@@ -88,16 +82,11 @@
         </copy>
     </target>
     
-    <target name="iar-connector-ui">
+    <target name="iar-connector-ui" depends="webapp-connector-ui">
         <mkdir dir="build/iar"/>
         <jar destfile="build/iar/lcf-jdbcconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
     </target>
 
-    <target name="all">
-        <antcall target="compile"/>
-        <antcall target="jar-connector"/>
-        <antcall target="webapp-connector-ui"/>
-        <antcall target="iar-connector-ui"/>
-    </target>
+    <target name="all" depends="jar-connector,iar-connector-ui"/>
     
 </project>
