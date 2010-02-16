@@ -25,7 +25,6 @@ import com.metacarta.crawler.interfaces.*;
 import com.metacarta.crawler.system.Logging;
 import java.util.*;
 import java.io.*;
-import com.metacarta.license.LicenseFile;
 import com.metacarta.crawler.common.DCTM.*;
 import java.rmi.*;
 
@@ -108,13 +107,6 @@ public class DCTM extends com.metacarta.crawler.connectors.BaseRepositoryConnect
 	{
 		if (session == null)
 		{
-			// License check at the point we actually establish connection to the server
-			DCTMLicense license = DCTMLicense.getInstance();
-			LicenseFile.Error license_error = license.verify();
-			if (! license.verify().equals(LicenseFile.Error.E_NOERROR)) {
-			    throw new MetacartaException("License error.  Contact MetaCarta customer service. (" + license_error.toString() + ")");
-			}
-
 			// Perform basic parameter checking, and debug output.
 			if (docbaseName == null || docbaseName.length() < 1)
 				throw new MetacartaException("Parameter "+CONFIG_PARAM_DOCBASE+" required but not set");
