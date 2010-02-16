@@ -1,0 +1,221 @@
+<project default="all">
+
+    <target name="clean">
+        <ant dir="framework" target="clean"/>
+        <ant dir="connectors/documentum" target="clean"/>
+        <ant dir="connectors/filenet" target="clean"/>
+        <ant dir="connectors/filesystem" target="clean"/>
+        <ant dir="connectors/gts" target="clean"/>
+        <ant dir="connectors/jcifs" target="clean"/>
+        <ant dir="connectors/jdbc" target="clean"/>
+        <ant dir="connectors/livelink" target="clean"/>
+        <ant dir="connectors/lucene" target="clean"/>
+        <ant dir="connectors/memex" target="clean"/>
+        <ant dir="connectors/meridio" target="clean"/>
+        <ant dir="connectors/nulloutput" target="clean"/>
+        <ant dir="connectors/rss" target="clean"/>
+        <ant dir="connectors/sharepoint" target="clean"/>
+        <ant dir="connectors/webcrawler" target="clean"/>
+    </target>
+    
+    <target name="build-framework">
+        <copy todir="framework/lib">
+            <fileset dir="lib"/>
+        </copy>
+        <ant dir="framework"/>
+    </target>
+
+    <target name="build-documentum-connector" depends="build-framework">
+        <copy todir="connectors/documentum/lib">
+            <fileset dir="lib"/>
+        </copy>
+        <copy todir="connectors/documentum/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+        <copy todir="connectors/documentum/war">
+            <fileset dir="framework/build/war"/>
+        </copy>
+        <ant dir="connectors/documentum"/>
+    </target>
+
+    <target name="build-filenet-connector" depends="build-framework">
+        <copy todir="connectors/filenet/lib">
+            <fileset dir="lib"/>
+        </copy>
+        <copy todir="connectors/filenet/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+        <copy todir="connectors/filenet/war">
+            <fileset dir="framework/build/war"/>
+        </copy>
+        <ant dir="connectors/filenet"/>
+    </target>
+
+    <target name="build-filesystem-connector" depends="build-framework">
+        <copy todir="connectors/filesystem/lib">
+            <fileset dir="lib"/>
+        </copy>
+        <copy todir="connectors/filesystem/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+        <copy todir="connectors/filesystem/war">
+            <fileset dir="framework/build/war"/>
+        </copy>
+        <ant dir="connectors/filesystem"/>
+    </target>
+
+    <target name="build-gts-connector" depends="build-framework">
+        <copy todir="connectors/gts/lib">
+            <fileset dir="lib"/>
+        </copy>
+        <copy todir="connectors/gts/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+        <copy todir="connectors/gts/war">
+            <fileset dir="framework/build/war"/>
+        </copy>
+        <ant dir="connectors/gts"/>
+    </target>
+
+    <target name="build-jcifs-connector" depends="build-framework">
+        <copy todir="connectors/jcifs/lib">
+            <fileset dir="lib"/>
+        </copy>
+        <copy todir="connectors/jcifs/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+        <copy todir="connectors/jcifs/war">
+            <fileset dir="framework/build/war"/>
+        </copy>
+        <ant dir="connectors/jcifs"/>
+    </target>
+
+    <target name="build-jdbc-connector" depends="build-framework">
+        <copy todir="connectors/jdbc/lib">
+            <fileset dir="lib"/>
+        </copy>
+        <copy todir="connectors/jdbc/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+        <copy todir="connectors/jdbc/war">
+            <fileset dir="framework/build/war"/>
+        </copy>
+        <ant dir="connectors/jdbc"/>
+    </target>
+
+    <target name="build-livelink-connector" depends="build-framework">
+        <copy todir="connectors/livelink/lib">
+            <fileset dir="lib"/>
+        </copy>
+        <copy todir="connectors/livelink/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+        <copy todir="connectors/livelink/war">
+            <fileset dir="framework/build/war"/>
+        </copy>
+        <ant dir="connectors/livelink"/>
+    </target>
+
+    <target name="build-lucene-connector" depends="build-framework">
+        <copy todir="connectors/lucene/lib">
+            <fileset dir="lib"/>
+        </copy>
+        <copy todir="connectors/lucene/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+        <copy todir="connectors/lucene/war">
+            <fileset dir="framework/build/war"/>
+        </copy>
+        <ant dir="connectors/lucene"/>
+    </target>
+
+    <target name="build-memex-connector" depends="build-framework">
+        <copy todir="connectors/memex/lib">
+            <fileset dir="lib"/>
+        </copy>
+        <copy todir="connectors/memex/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+        <copy todir="connectors/memex/war">
+            <fileset dir="framework/build/war"/>
+        </copy>
+        <ant dir="connectors/memex"/>
+    </target>
+
+    <target name="build-meridio-connector" depends="build-framework">
+        <copy todir="connectors/meridio/lib">
+            <fileset dir="lib"/>
+        </copy>
+        <copy todir="connectors/meridio/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+        <copy todir="connectors/meridio/war">
+            <fileset dir="framework/build/war"/>
+        </copy>
+        <ant dir="connectors/meridio"/>
+    </target>
+
+    <target name="build-nulloutput-connector" depends="build-framework">
+        <copy todir="connectors/nulloutput/lib">
+            <fileset dir="lib"/>
+        </copy>
+        <copy todir="connectors/nulloutput/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+        <copy todir="connectors/nulloutput/war">
+            <fileset dir="framework/build/war"/>
+        </copy>
+        <ant dir="connectors/nulloutput"/>
+    </target>
+
+    <target name="build-rss-connector" depends="build-framework">
+        <copy todir="connectors/rss/lib">
+            <fileset dir="lib"/>
+        </copy>
+        <copy todir="connectors/rss/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+        <copy todir="connectors/rss/war">
+            <fileset dir="framework/build/war"/>
+        </copy>
+        <ant dir="connectors/rss"/>
+    </target>
+
+    <target name="build-sharepoint-connector" depends="build-framework">
+        <copy todir="connectors/sharepoint/lib">
+            <fileset dir="lib"/>
+        </copy>
+        <copy todir="connectors/sharepoint/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+        <copy todir="connectors/sharepoint/war">
+            <fileset dir="framework/build/war"/>
+        </copy>
+        <ant dir="connectors/sharepoint"/>
+    </target>
+
+    <target name="build-webcrawler-connector" depends="build-framework">
+        <copy todir="connectors/webcrawler/lib">
+            <fileset dir="lib"/>
+        </copy>
+        <copy todir="connectors/webcrawler/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+        <copy todir="connectors/webcrawler/war">
+            <fileset dir="framework/build/war"/>
+        </copy>
+        <ant dir="connectors/webcrawler"/>
+    </target>
+
+    <target name="build-open-connectors" depends="build-filesystem-connector,build-rss-connector,build-webcrawler-connector,build-jdbc-connector"/>
+    
+    <target name="build-output-connectors" depends="build-gts-connector,build-lucene-connector,build-nulloutput-connector"/>
+    
+    <target name="build-lgpl-connectors" depends="build-jcifs-connector"/>
+    
+    <target name="build-proprietary-connectors" depends="build-documentum-connector,build-filenet-connector,build-livelink-connector,build-memex-connector,build-meridio-connector,build-sharepoint-connector"/>
+    
+    <target name="all" depends="build-framework,build-open-connectors,build-output-connectors,build-lgpl-connectors,build-proprietary-connectors"/>
+
+    
+</project>
