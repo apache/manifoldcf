@@ -1,0 +1,218 @@
+<project>
+
+    <target name="clean">
+        <delete dir="build"/>
+    </target>
+
+    <target name="compile-interface">
+        <mkdir dir="build/interface/classes"/>
+        <javac srcdir="interface" destdir="build/interface/classes" classpath="" target="1.5" source="1.4"/>
+    </target>
+
+    <target name="compile-implementation">
+        <mkdir dir="build/implementation/classes"/>
+        <javac srcdir="implementation" destdir="build/implementation/classes" target="1.5" source="1.4">
+            <classpath id="implementation.classpath">
+                <fileset dir="filenet-api"> 
+                    <include name="*.jar"/> 
+                </fileset> 
+                <pathelement location="build/interface/classes"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="rmic-build">
+        <rmic base="build/rmijava" classname="${classname}">
+            <classpath id="rmi.classpath">
+                <fileset dir="filenet-api"> 
+                    <include name="*.jar"/> 
+                </fileset> 
+                <pathelement location="build/interface/classes"/>
+                <pathelement location="build/implementation/classes"/>
+            </classpath>
+        </rmic>
+    </target>
+    
+    <target name="compile-rmic">
+        <mkdir dir="build/rmijava"/>
+        <copy todir="build/rmijava">
+            <fileset dir="implementation"/>
+        </copy>
+        <!-- The ant version I have doesn't seem to handle class specifications based on file names, so this is the best I could come up with -->
+        <antcall target="rmic-build">
+            <param name="classname" value="com.metacarta.crawler.common.filenet.FilenetFactoryImpl"/>
+        </antcall>
+        <antcall target="rmic-build">
+            <param name="classname" value="com.metacarta.crawler.common.filenet.FilenetImpl"/>
+        </antcall>
+        <mkdir dir="build/rmiskel/classes"/>
+        <copy todir="build/rmiskel/classes">
+            <fileset dir="build/rmijava">
+                <include name="**/*_Skel.class"/>
+            </fileset>
+        </copy>
+        <mkdir dir="build/rmistub/classes"/>
+        <copy todir="build/rmistub/classes">
+            <fileset dir="build/rmijava">
+                <include name="**/*_Stub.class"/>
+            </fileset>
+        </copy>
+    </target>
+    
+    <target name="compile-server">
+        <property name="classpath" value="build/interface/classes:build/implementation/classes:build/rmistub/classes:build/rmiskel/classes"/>
+        <mkdir dir="build/server/classes"/>
+        <javac srcdir="server" destdir="build/server/classes" classpath="${classpath}" target="1.5" source="1.4"/>
+    </target>
+
+    <target name="compile-registry">
+        <property name="classpath" value="build/interface/classes"/>
+        <mkdir dir="build/registry/classes"/>
+        <javac srcdir="registry" destdir="build/registry/classes" classpath="${classpath}" target="1.5" source="1.4"/>
+    </target>
+
+    <target name="compile-connector">
+        <property name="classpath" value="lib/log4j-1.2.jar:lib/commons-logging.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:build/interface/classes:build/rmistub/classes"/>
+        <mkdir dir="build/connector/classes"/>
+        <javac srcdir="connector" destdir="build/connector/classes" classpath="${classpath}" target="1.5" source="1.4"/>
+    </target>
+
+    <target name="compile-crawler-ui">
+        <!-- Unpack the crawler war -->
+        <mkdir dir="build/crawler-war"/>
+        <unwar src="war/lcf-crawler-ui.war" dest="build/crawler-war"/>
+        <!-- Create a copy of everything in the proper environment -->
+        <mkdir dir="build/jsp-environment/WEB-INF/lib"/>
+        <mkdir dir="build/jsp-environment/WEB-INF/jsp"/>
+        <copy todir="build/jsp-environment/WEB-INF" file="build/crawler-war/WEB-INF/web.xml"/>
+        <copy todir="build/jsp-environment" file="build/crawler-war/adminHeaders.jsp"/>
+        <copy todir="build/jsp-environment" file="build/crawler-war/adminDefaults.jsp"/>
+        <copy todir="build/jsp-environment" file="build/crawler-war/error.jsp"/>
+        <copy todir="build/jsp-environment" file="build/crawler-war/checkAdminLogin.jsp"/>
+
+        <copy todir="build/jsp-environment">
+            <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
+        </copy>
+        <copy todir="build/jsp-environment/WEB-INF/lib">
+            <fileset dir="build/crawler-war/WEB-INF/lib">
+                <include name="*.jar"/>
+            </fileset>
+        </copy>
+        <copy todir="build/jsp-environment/WEB-INF/jsp">
+            <fileset dir="build/crawler-war/WEB-INF/jsp">
+                <include name="*.tld"/>
+            </fileset>
+        </copy>
+        <copy todir="build/jsp-environment/WEB-INF/classes">
+            <fileset dir="build/rmistub/classes"/>
+            <fileset dir="build/connector/classes"/>
+        </copy>
+        <!-- Compile to java, as a check -->
+        <mkdir dir="build/crawler-ui/java"/>
+        <!-- Define the jsp compilation task using tomcat libraries -->
+        <taskdef classname="org.apache.jasper.JspC" name="jasper2" > 
+            <classpath id="jspc.classpath"> 
+                <pathelement location="${java.home}/../lib/tools.jar"/>
+                <fileset dir="lib"> 
+                    <include name="*.jar"/> 
+                </fileset> 
+                <pathelement location="build/crawler-war/WEB-INF/lib/jstl.jar"/>
+                <pathelement location="build/crawler-war/WEB-INF/lib/standard.jar"/>
+                <pathelement location="build/interface/classes"/>
+                <pathelement location="build/rmistub/classes"/>
+                <pathelement location="build/connector/classes"/>
+            </classpath> 
+        </taskdef> 
+        <jasper2 validateXml="false" uriroot="build/jsp-environment" webXmlFragment="build/jsp-environment/WEB-INF/web-generated.xml" outputDir="build/crawler-ui/java" /> 
+        <!-- Compile java classes -->
+        <mkdir dir="build/crawler-ui/classes"/>
+        <javac srcdir="build/crawler-ui/java" destdir="build/crawler-ui/classes" target="1.5" source="1.4">
+            <classpath id="classpath">
+                <pathelement location="${java.home}/../lib/tools.jar"/>
+                <fileset dir="lib"> 
+                    <include name="*.jar"/> 
+                </fileset>
+                <pathelement location="build/crawler-war/WEB-INF/lib/jstl.jar"/>
+                <pathelement location="build/crawler-war/WEB-INF/lib/standard.jar"/>
+                <pathelement location="build/interface/classes"/>
+                <pathelement location="build/rmistub/classes"/>
+                <pathelement location="build/connector/classes"/>
+            </classpath>
+        </javac>
+    </target>
+    
+    <target name="compile">
+        <antcall target="compile-interface"/>
+        <antcall target="compile-implementation"/>
+        <antcall target="compile-rmic"/>
+        <antcall target="compile-server"/>
+        <antcall target="compile-registry"/>
+        <antcall target="compile-connector"/>
+        <antcall target="compile-crawler-ui"/>
+    </target>
+    
+    <target name="jar-interface">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/lcf-filenet-interface.jar" basedir="build/interface/classes"/>
+    </target>
+
+    <target name="jar-implementation">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/lcf-filenet-implementation.jar" basedir="build/implementation/classes"/>
+    </target>
+
+    <target name="jar-rmiskel">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/lcf-filenet-rmiskel.jar" basedir="build/rmiskel/classes"/>
+    </target>
+
+    <target name="jar-rmistub">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/lcf-filenet-rmistub.jar" basedir="build/rmistub/classes"/>
+    </target>
+
+    <target name="jar-server">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/lcf-filenet-server.jar" basedir="build/server/classes"/>
+    </target>
+
+    <target name="jar-registry">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/lcf-filenet-registry.jar" basedir="build/registry/classes"/>
+    </target>
+    
+    <target name="jar-connector">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/lcf-filenet-connector.jar" basedir="build/connector/classes"/>
+    </target>
+
+    <target name="webapp-connector-ui">
+        <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-filenet-connector.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-filenet-rmistub.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-filenet-interface.jar"/>
+        <mkdir dir="build/webapp/crawler-ui"/>
+        <copy todir="build/webapp/crawler-ui">
+            <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
+        </copy>
+    </target>
+    
+    <target name="iar-connector-ui">
+        <mkdir dir="build/iar"/>
+        <jar destfile="build/iar/lcf-filenetconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
+    </target>
+
+    <target name="all">
+        <antcall target="compile"/>
+        <antcall target="jar-interface"/>
+        <antcall target="jar-implementation"/>
+        <antcall target="jar-rmiskel"/>
+        <antcall target="jar-rmistub"/>
+        <antcall target="jar-server"/>
+        <antcall target="jar-registry"/>
+        <antcall target="jar-connector"/>
+        <antcall target="webapp-connector-ui"/>
+        <antcall target="iar-connector-ui"/>
+    </target>
+    
+</project>

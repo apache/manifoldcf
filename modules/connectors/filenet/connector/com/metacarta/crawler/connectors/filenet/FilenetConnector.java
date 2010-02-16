@@ -25,7 +25,6 @@ import com.metacarta.crawler.interfaces.*;
 import com.metacarta.crawler.system.Logging;
 import java.util.*;
 import java.io.*;
-import com.metacarta.license.LicenseFile;
 import com.metacarta.crawler.common.filenet.*;
 import java.rmi.*;
 import java.text.SimpleDateFormat;
@@ -145,13 +144,6 @@ public class FilenetConnector extends com.metacarta.crawler.connectors.BaseRepos
 	{
 		if (session == null)
 		{
-			// Do license check at the point we get ready to talk to the server
-			FilenetLicense license = FilenetLicense.getInstance();
-			LicenseFile.Error license_error = license.verify();
-			if (! license.verify().equals(LicenseFile.Error.E_NOERROR)) {
-			    throw new MetacartaException("License error.  Contact MetaCarta customer service. (" + license_error.toString() + ")");
-			}
-
 			// Check for parameter validity
 			if (userID == null || userID.length() < 1)
 				throw new MetacartaException("Parameter "+CONFIG_PARAM_USERID+" required but not set");
