@@ -1,4 +1,4 @@
-<project>
+<project default="all">
 
     <target name="clean">
         <delete dir="build"/>
@@ -6,31 +6,31 @@
     
     <target name="compile-core">
         <mkdir dir="build/core/classes"/>
-        <javac srcdir="core" destdir="build/core/classes" classpath="${classpath}" target="1.5" source="1.4"/>
+        <javac srcdir="core" destdir="build/core/classes" classpath="lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar" target="1.5" source="1.4"/>
     </target>
 
-    <target name="compile-ui-core">
+    <target name="compile-ui-core" depends="compile-core">
         <mkdir dir="build/ui-core/classes"/>
-        <javac srcdir="ui-core" destdir="build/ui-core/classes" classpath="${classpath}" target="1.5" source="1.4"/>
+        <javac srcdir="ui-core" destdir="build/ui-core/classes" classpath="lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar:build/core/classes" target="1.5" source="1.4"/>
     </target>
 
-    <target name="compile-agents">
+    <target name="compile-agents" depends="compile-core">
         <mkdir dir="build/agents/classes"/>
-        <javac srcdir="agents" destdir="build/agents/classes" classpath="${classpath}" target="1.5" source="1.4"/>
+        <javac srcdir="agents" destdir="build/agents/classes" classpath="lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar:build/core/classes" target="1.5" source="1.4"/>
     </target>
 
-    <target name="compile-pull-agent">
+    <target name="compile-pull-agent" depends="compile-core,compile-agents">
         <mkdir dir="build/pull-agent/classes"/>
-        <javac srcdir="pull-agent" destdir="build/pull-agent/classes" classpath="${classpath}" target="1.5" source="1.4"/>
+        <javac srcdir="pull-agent" destdir="build/pull-agent/classes" classpath="lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar:build/core/classes:build/agents/classes" target="1.5" source="1.4"/>
     </target>
 
-    <target name="compile-authority-webapp">
+    <target name="compile-authority-webapp" depends="compile-core,compile-agents,compile-pull-agent">
         <mkdir dir="build/authority-webapp/classes"/>
-        <javac srcdir="authority-webapp" destdir="build/authority-webapp/classes" classpath="${classpath}" target="1.5" source="1.4"/>
+        <javac srcdir="authority-webapp" destdir="build/authority-webapp/classes" classpath="lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar:build/core/classes:build/agents/classes:build/pull-agent/classes" target="1.5" source="1.4"/>
     </target>
 
 
-    <target name="compile-crawler-ui">
+    <target name="compile-crawler-ui" depends="compile-core,compile-ui-core,compile-agents,compile-pull-agent">
         <!-- Define the jsp compilation task using tomcat libraries -->
         <taskdef classname="org.apache.jasper.JspC" name="jasper2" > 
             <classpath id="jspc.classpath"> 
@@ -67,49 +67,27 @@
         </javac>
     </target>
 
-    <target name="compile">
-        <property name="baseclasspath" value="lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar"/>
-        <antcall target="compile-core">
-            <param name="classpath" value="${baseclasspath}"/>
-        </antcall>
-        <antcall target="compile-ui-core">
-            <param name="classpath" value="${baseclasspath}:build/core/classes"/>
-        </antcall>
-        <antcall target="compile-agents">
-            <param name="classpath" value="${baseclasspath}:build/core/classes"/>
-        </antcall>
-        <antcall target="compile-pull-agent">
-            <param name="classpath" value="${baseclasspath}:build/core/classes:build/agents/classes"/>
-        </antcall>
-        <antcall target="compile-authority-webapp">
-            <param name="classpath" value="${baseclasspath}:build/core/classes:build/agents/classes:build/pull-agent/classes"/>
-        </antcall>
-        <antcall target="compile-crawler-ui">
-            <param name="classpath" value="${baseclasspath}:build/core/classes:build/agents/classes:build/pull-agent/classes:build/ui-core/classes"/>
-        </antcall>
-    </target>
-
-    <target name="jar-core">
+    <target name="jar-core" depends="compile-core">
         <mkdir dir="build/jar"/>
         <jar destfile="build/jar/lcf-core.jar" basedir="build/core/classes"/>
     </target>
 
-    <target name="jar-ui-core">
+    <target name="jar-ui-core" depends="compile-ui-core">
         <mkdir dir="build/jar"/>
         <jar destfile="build/jar/lcf-ui-core.jar" basedir="build/ui-core/classes"/>
     </target>
 
-    <target name="jar-agents">
+    <target name="jar-agents" depends="compile-agents">
         <mkdir dir="build/jar"/>
         <jar destfile="build/jar/lcf-agents.jar" basedir="build/agents/classes"/>
     </target>
 
-    <target name="jar-pull-agent">
+    <target name="jar-pull-agent" depends="compile-pull-agent">
         <mkdir dir="build/jar"/>
         <jar destfile="build/jar/lcf-pull-agent.jar" basedir="build/pull-agent/classes"/>
     </target>
 
-    <target name="webapp-authority">
+    <target name="webapp-authority" depends="jar-core,jar-agents,jar-pull-agent,compile-authority-webapp">
         <mkdir dir="build/webapp/authority/WEB-INF/lib"/>
         <copy todir="build/webapp/authority/WEB-INF/lib" file="lib/jdbcpool-0.99.jar"/>
         <copy todir="build/webapp/authority/WEB-INF/lib" file="lib/log4j-1.2.jar"/>
@@ -129,7 +107,7 @@
         <jar destfile="build/webapp/authority/WEB-INF/lib/lcf-authority-servlet.jar" basedir="build/authority-webapp/classes"/>
     </target>
     
-    <target name="webapp-crawler-ui">
+    <target name="webapp-crawler-ui" depends="compile-crawler-ui,jar-core,jar-ui-core,jar-agents,jar-pull-agent">
         <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib">
             <fileset dir="crawler-ui/WEB-INF/lib">
@@ -163,26 +141,16 @@
         </copy>
     </target>
     
-    <target name="war-authority">
+    <target name="war-authority" depends="webapp-authority">
         <mkdir dir="build/war"/>
         <war destfile="build/war/lcf-authority.war" webxml="authority-webapp/WEB-INF/web.xml" basedir="build/webapp/authority"/>
     </target>
     
-    <target name="war-crawler-ui">
+    <target name="war-crawler-ui" depends="webapp-crawler-ui">
         <mkdir dir="build/war"/>
         <war destfile="build/war/lcf-crawler-ui.war" webxml="crawler-ui/WEB-INF/web.xml" basedir="build/webapp/crawler-ui"/>
     </target>
 
-    <target name="all">
-        <antcall target="compile"/>
-        <antcall target="jar-core"/>
-        <antcall target="jar-ui-core"/>
-        <antcall target="jar-agents"/>
-        <antcall target="jar-pull-agent"/>
-        <antcall target="webapp-authority"/>
-        <antcall target="webapp-crawler-ui"/>
-        <antcall target="war-authority"/>
-        <antcall target="war-crawler-ui"/>
-    </target>
+    <target name="all" depends="jar-core,jar-agents,jar-pull-agent,war-authority,war-crawler-ui"/>
     
 </project>
