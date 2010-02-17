@@ -963,7 +963,7 @@ public class HttpPoster
                                                 }
                                                 catch (IOException ioe)
                                                 {
-                                                        // We need to decide whether to throw a service interruption or metacarta exception, based on what went wrong.
+                                                        // We need to decide whether to throw a service interruption or lcf exception, based on what went wrong.
                                                         // We never retry here; the cause is the repository, so there's not any point.
 
                                                         // Log the error

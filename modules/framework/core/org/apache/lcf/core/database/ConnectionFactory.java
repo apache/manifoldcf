@@ -245,8 +245,8 @@ public class ConnectionFactory
 			// are finished.
 			//
 			// Under conditions of high load, or (more likely) when long-running exclusive operations like REINDEX are running, the 15 seconds may well be insufficient to acheive
-			// thread shutdown.  In that case a message "LOG:  unexpected EOF on client connection" will appear for each dangling connection in the postgresql log (which is
-			// usually directed to /var/log/metacarta/error.log).  This is not ideal, but is a compromise designed to permit speedy and relatively clean shutdown even under
+			// thread shutdown.  In that case a message "LOG:  unexpected EOF on client connection" will appear for each dangling connection in the postgresql log.
+                        // This is not ideal, but is a compromise designed to permit speedy and relatively clean shutdown even under
 			// difficult conditions.
 
 			
@@ -260,7 +260,7 @@ public class ConnectionFactory
 					// The removeAllConnections() method did not work, probably because the cleanup was
 					// delayed by their design.  So instead, we have to do everything the hard way.
 					// If the calling logic is poorly behaved, there is a chance that an open connection will be
-					// left hanging around after this call happens.  If so, /var/log/metacarta/debug.log gets written
+					// left hanging around after this call happens.  If so, postgresql log gets written
 					// with: LOG:  unexpected EOF on client connection
 						
 					// System.err.println("There are currently "+Integer.toString(pool.size())+" connections in this pool");

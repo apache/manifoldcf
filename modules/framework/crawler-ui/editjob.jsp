@@ -410,7 +410,7 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
 	<title>
-		MetaCarta Administration: Edit Job
+		Lucene Connector Framework: Edit Job
 	</title>
 
 	<script type="text/javascript">

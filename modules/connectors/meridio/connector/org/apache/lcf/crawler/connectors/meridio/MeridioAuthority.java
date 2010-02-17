@@ -209,12 +209,16 @@ public class MeridioAuthority extends org.apache.lcf.authorities.authorities.Bas
                                 * Now try and login to Meridio; the wrapper's constructor can be
                                 * used as it calls the Meridio login method
                                 *================================================================*/
+                                String meridioWSDDLocation = System.getProperty("org.apache.lcf.meridio.wsddpath");
+                                if (meridioWSDDLocation == null)
+                                        throw new LCFException("Meridio wsdd location path (property org.apache.lcf.meridio.wsddpath) must be specified!");
+
                                 meridio_ = new MeridioWrapper(Logging.authorityConnectors, DmwsURL, RmwsURL, MetaCartawsURL,
                                         DMWSProxyHost, DMWSProxyPort, RMWSProxyHost, RMWSProxyPort, MetaCartaWSProxyHost, MetaCartaWSProxyPort,
                                         UserName, Password,
                                         InetAddress.getLocalHost().getHostName(),
                                         myFactory,
-                                        "/usr/lib/metacarta/meridio-client-config.wsdd");
+                                        meridioWSDDLocation);
                         }
                         catch (UnknownHostException unknownHostException)
                         {

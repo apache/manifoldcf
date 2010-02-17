@@ -163,7 +163,7 @@ public class JobResetThread extends Thread
 				}
 				catch (OutOfMemoryError e)
 				{
-					System.err.println("metacarta-agents ran out of memory - please contact MetaCarta Customer Support");
+					System.err.println("agents process ran out of memory - shutting down");
 					e.printStackTrace(System.err);
 					System.exit(-200);
 				}
@@ -177,7 +177,7 @@ public class JobResetThread extends Thread
 		catch (Throwable e)
 		{
 			// Severe error on initialization
-			System.err.println("metacarta-agents could not start - please contact MetaCarta Customer Support");
+			System.err.println("agents process could not start - shutting down");
 			Logging.threads.fatal("JobResetThread initialization error tossed: "+e.getMessage(),e);
 			System.exit(-300);
 		}

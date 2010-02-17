@@ -23,9 +23,7 @@ import org.apache.lcf.agents.interfaces.*;
 
 import java.util.*;
 
-/** This is the output connector for the MetaCarta appliance.  It establishes a notion of
-* collection(s) a document is ingested into, as well as the idea of a document template for the
-* output.
+/** This is a null output connector.  It eats all output and simply logs the events.
 */
 public class NullConnector extends org.apache.lcf.agents.output.BaseOutputConnector
 {

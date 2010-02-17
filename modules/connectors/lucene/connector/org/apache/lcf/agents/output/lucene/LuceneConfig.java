@@ -19,7 +19,7 @@
 package org.apache.lcf.agents.output.lucene;
 
 
-/** Parameters and output data for MetaCarta Lucene output connector.
+/** Parameters and output data for Lucene output connector.
 */
 public class LuceneConfig
 {

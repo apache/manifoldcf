@@ -23,7 +23,7 @@ import org.apache.lcf.agents.interfaces.*;
 import java.util.*;
 
 /** This is a paper object describing a job.
-* Each job in the metacarta framework has:
+* Each job in lcf has:
 * - an identifier;
 * - a description;
 * - a repository connection;

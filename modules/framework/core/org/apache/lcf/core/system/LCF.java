@@ -58,7 +58,7 @@ public class LCF
 	protected static long propertyFilelastMod = 0;
 	protected static String propertyFileName = null;
 
-	protected static final String applicationName = "metacarta";
+	protected static final String applicationName = "lcf";
 
 	// Property names
 	public static final String masterDatabaseNameProperty = "org.apache.lcf.database.name";
@@ -157,37 +157,23 @@ public class LCF
 			String defaultLogConfigFile;
 			// Get system properties
 			java.util.Properties props = System.getProperties();
-			String osName = (String)props.get("os.name");
-			boolean isWindows = osName.startsWith("Windows");
+			// First, look for a define that might indicate where to look
+			configPath = (String)props.get("org.apache.lcf.location");
+			if (configPath == null)
+				configPath = (String)props.get("user.home") + "/"+applicationName;
+			configPath = configPath.replace('\\', '/');
+			propertyFileName = "properties.ini";
+			defaultLogConfigFile = new File(configPath,"logging.ini").toString();
 
-			if (isWindows)
+			// Make sure both the log path and the config path are present
+			try
 			{
-				// First, look for a define that might indicate where to look
-				configPath = (String)props.get("org.apache.lcf.location");
-				if (configPath == null)
-					configPath = (String)props.get("user.home") + "/"+applicationName;
-				configPath = configPath.replace('\\', '/');
-				propertyFileName = "metacarta.ini";
-				defaultLogConfigFile = new File(configPath,"logging.ini").toString();
-
-				// Make sure both the log path and the config path are present
-				try
-				{
-					ensureFolder(configPath);
-				}
-				catch (LCFException e)
-				{
-					e.printStackTrace();
-				}
-
+				ensureFolder(configPath);
 			}
-			else
+			catch (LCFException e)
 			{
-				configPath = "/etc/metacarta";
-				defaultLogConfigFile = new File(configPath,"agent-logging.conf").toString();
-				propertyFileName = "agents.conf";
+				e.printStackTrace();
 			}
-
 
 			// Read .ini parameters
 			localProperties = new java.util.Properties();
@@ -199,10 +185,10 @@ public class LCF
 
 			masterDatabaseName = getProperty(masterDatabaseNameProperty);
 			if (masterDatabaseName == null)
-				masterDatabaseName = "metacarta";
+				masterDatabaseName = "dbname";
 			masterDatabaseUsername = getProperty(masterDatabaseUsernameProperty);
 			if (masterDatabaseUsername == null)
-				masterDatabaseUsername = "metacarta";
+				masterDatabaseUsername = "lcf";
 			masterDatabasePassword = getProperty(masterDatabasePasswordProperty);
 			if (masterDatabasePassword == null)
 				masterDatabasePassword = "local_pg_passwd";
@@ -603,7 +589,7 @@ public class LCF
 		String databasePassword = getMasterDatabasePassword();
 
 		IDBInterface master = DBInterfaceFactory.make(threadcontext,masterName,masterUsername,masterPassword);
-		// Ideally, check for existence of metacarta user.  In fact, we don't
+		// Ideally, check for existence of lcf user.  In fact, we don't
 		// have a hook for this.  So, attempt the create, and interpret failure as
 		// meaning "user already exists".
 		if (master.lookupUser(databaseUsername,null,null) == false)

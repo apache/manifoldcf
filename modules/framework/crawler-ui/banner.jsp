@@ -24,7 +24,7 @@
 
 <%
 	// This module is meant to be called within a table cell, and will drop the
-	// metacarta banner into the cell
+	// lcf banner into the cell
 	String dateString = java.text.DateFormat.getDateTimeInstance().format(new java.util.Date());
 %>
 

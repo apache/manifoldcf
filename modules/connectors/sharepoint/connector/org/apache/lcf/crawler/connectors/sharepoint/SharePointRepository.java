@@ -183,8 +183,12 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
 			connectionManager.getParams().setMaxTotalConnections(1);
 			
 			fileBaseUrl = serverUrl + encodedServerLocation;
-		
-			proxy = new SPSProxyHelper( serverUrl, encodedServerLocation, serverLocation, userName, password, myFactory, "/usr/lib/metacarta/sharepoint-client-config.wsdd",
+                        
+			String sharepointWSDDLocation = System.getProperty("org.apache.lcf.sharepoint.wsddpath");
+			if (sharepointWSDDLocation == null)
+				throw new LCFException("SharePoint wsdd location path (property org.apache.lcf.sharepoint.wsddpath) must be specified!");
+
+			proxy = new SPSProxyHelper( serverUrl, encodedServerLocation, serverLocation, userName, password, myFactory, sharepointWSDDLocation,
 				connectionManager );
 		}
 	}

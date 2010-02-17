@@ -31,7 +31,7 @@ boolean maintenanceUnderway = org.apache.lcf.crawler.system.LCF.checkMaintenance
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
 	<title>
-		MetaCarta Administration: Status of all jobs
+		Lucene Connector Framework: Status of all jobs
 	</title>
 
 	<script type="text/javascript">

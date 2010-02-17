@@ -320,7 +320,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
 					if (((LCFException)e).getErrorCode() == LCFException.INTERRUPTED)
 						return;
 				}
-				System.err.println("metacarta-agents could not start - please contact MetaCarta Customer Support");
+				System.err.println("agents process could not start - shutting down");
 				Logging.threads.fatal("Startup initialization error tossed: "+e.getMessage(),e);
 				System.exit(-300);
 			}
@@ -646,7 +646,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
 		{
 			// On error, delete any file we created
 			outputFile.delete();
-			// Convert I/O error into metacarta exception
+			// Convert I/O error into lcf exception
 			throw new LCFException("Error creating configuration file: "+e.getMessage(),e);
 		}
 	}
@@ -732,7 +732,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
 		}
 		catch (java.io.IOException e)
 		{
-			// Convert I/O error into metacarta exception
+			// Convert I/O error into lcf exception
 			throw new LCFException("Error reading configuration file: "+e.getMessage(),e);
 		}
 	}

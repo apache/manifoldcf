@@ -752,8 +752,7 @@ public class LockObject
 		{
 			// Couldn't write for some reason!  Write to BOTH stdout and the log, since we
 			// can't be sure we will succeed at the latter.
-			String message = "Couldn't write to lock file; hard error occurred.  Shutting down process; locks may be left dangling.  To cleanup,\n"+
-				"run /usr/lib/metacarta/reset-crawler";
+			String message = "Couldn't write to lock file; hard error occurred.  Shutting down process; locks may be left dangling.  You must cleanup before restarting.";
 			try
 			{
 				Logging.lock.error(message,e);
@@ -769,8 +768,7 @@ public class LockObject
 		{
 			// Couldn't write for some reason!  Write to BOTH stdout and the log, since we
 			// can't be sure we will succeed at the latter.
-			String message = "Couldn't write to lock file; JVM error.  Shutting down process; locks may be left dangling.  To cleanup,\n"+
-				"run /usr/lib/metacarta/reset-crawler";
+			String message = "Couldn't write to lock file; JVM error.  Shutting down process; locks may be left dangling.  You must cleanup before restarting.";
 			try
 			{
 				Logging.lock.error(message,e);
@@ -790,8 +788,7 @@ public class LockObject
 		{
 			// Couldn't write for some reason!  Write to BOTH stdout and the log, since we
 			// can't be sure we will succeed at the latter.
-			String message = "Couldn't write to lock file; disk may be full.  Shutting down process; locks may be left dangling.  To cleanup,\n"+
-				"run /usr/lib/metacarta/reset-crawler";
+			String message = "Couldn't write to lock file; disk may be full.  Shutting down process; locks may be left dangling.  You must cleanup before restarting.";
 			try
 			{
 				Logging.lock.error(message,e);

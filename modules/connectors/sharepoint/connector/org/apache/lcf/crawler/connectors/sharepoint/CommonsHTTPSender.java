@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * This version modified for MetaCarta use with Sharepoint connector by
- * Karl Wright.
  * $Id$
  */
 package org.apache.lcf.crawler.connectors.sharepoint;

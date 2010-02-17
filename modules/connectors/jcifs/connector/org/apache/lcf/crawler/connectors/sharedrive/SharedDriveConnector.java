@@ -3093,7 +3093,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
                 /** Document specification */
                 protected DocumentSpecification spec;
                 /** Exceptions that we saw.  These are saved here so that they can be rethrown when done */
-                protected LCFException metacartaException = null;
+                protected LCFException lcfException = null;
                 protected ServiceInterruption serviceInterruption = null;
 
                 /** Constructor */
@@ -3106,7 +3106,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
                 /** Decide if we accept the file.  This is where we will actually do the work. */
                 public boolean accept(SmbFile f) throws SmbException
                 {
-                        if (metacartaException != null || serviceInterruption != null)
+                        if (lcfException != null || serviceInterruption != null)
                                 return false;
 
                         try
@@ -3145,8 +3145,8 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
                         }
                         catch (LCFException e)
                         {
-                                if (metacartaException == null)
-                                        metacartaException = e;
+                                if (lcfException == null)
+                                        lcfException = e;
                                 return false;
                         }
                         catch (ServiceInterruption e)
@@ -3161,8 +3161,8 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
                 public void checkAndThrow()
                         throws ServiceInterruption, LCFException
                 {
-                        if (metacartaException != null)
-                                throw metacartaException;
+                        if (lcfException != null)
+                                throw lcfException;
                         if (serviceInterruption != null)
                                 throw serviceInterruption;
                 }

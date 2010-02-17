@@ -30,7 +30,7 @@
 	<link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
 
 	<title>
-		MetaCarta Administration: List Authorities
+		Lucene Connector Framework: List Authorities
 	</title>
 
 	<script type="text/javascript">

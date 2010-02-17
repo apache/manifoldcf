@@ -24,7 +24,7 @@
 
 <%
 	// This module is meant to be called within a table cell, and will drop the
-	// metacarta navigation into the cell
+	// lcf navigation into the cell
 
 %>
 
