@@ -2,32 +2,83 @@
 
     <target name="clean">
         <ant dir="framework" target="clean"/>
+        <delete dir="framework/lib"/>
         <ant dir="connectors/documentum" target="clean"/>
+        <delete dir="connectors/documentum/lib"/>
+        <delete dir="connectors/documentum/war"/>
         <ant dir="connectors/filenet" target="clean"/>
+        <delete dir="connectors/filenet/lib"/>
+        <delete dir="connectors/filenet/war"/>
         <ant dir="connectors/filesystem" target="clean"/>
+        <delete dir="connectors/filesystem/lib"/>
+        <delete dir="connectors/filesystem/war"/>
         <ant dir="connectors/gts" target="clean"/>
+        <delete dir="connectors/gts/lib"/>
+        <delete dir="connectors/gts/war"/>
         <ant dir="connectors/jcifs" target="clean"/>
+        <delete dir="connectors/jcifs/lib"/>
+        <delete dir="connectors/jcifs/war"/>
         <ant dir="connectors/jdbc" target="clean"/>
+        <delete dir="connectors/jdbc/lib"/>
+        <delete dir="connectors/jdbc/war"/>
         <ant dir="connectors/livelink" target="clean"/>
+        <delete dir="connectors/livelink/lib"/>
+        <delete dir="connectors/livelink/war"/>
         <ant dir="connectors/lucene" target="clean"/>
+        <delete dir="connectors/lucene/lib"/>
+        <delete dir="connectors/lucene/war"/>
         <ant dir="connectors/memex" target="clean"/>
+        <delete dir="connectors/memex/lib"/>
+        <delete dir="connectors/memex/war"/>
         <ant dir="connectors/meridio" target="clean"/>
+        <delete dir="connectors/meridio/lib"/>
+        <delete dir="connectors/meridio/war"/>
         <ant dir="connectors/nulloutput" target="clean"/>
+        <delete dir="connectors/nulloutput/lib"/>
+        <delete dir="connectors/nulloutput/war"/>
         <ant dir="connectors/rss" target="clean"/>
+        <delete dir="connectors/rss/lib"/>
+        <delete dir="connectors/rss/war"/>
         <ant dir="connectors/sharepoint" target="clean"/>
+        <delete dir="connectors/sharepoint/lib"/>
+        <delete dir="connectors/sharepoint/war"/>
         <ant dir="connectors/webcrawler" target="clean"/>
+        <delete dir="connectors/webcrawler/lib"/>
+        <delete dir="connectors/webcrawler/war"/>
     </target>
     
     <target name="build-framework">
-        <copy todir="framework/lib">
-            <fileset dir="lib"/>
-        </copy>
+    
+        <mkdir dir="framework/lib"/>
+        <!-- Individually specify the needed libraries, since otherwise that information would not be available readily -->
+        <copy todir="framework/lib" file="lib/commons-codec.jar"/>
+        <copy todir="framework/lib" file="lib/commons-collections.jar"/>
+        <copy todir="framework/lib" file="lib/commons-el.jar"/>
+        <copy todir="framework/lib" file="lib/commons-fileupload.jar"/>
+        <copy todir="framework/lib" file="lib/commons-httpclient.jar"/>
+        <copy todir="framework/lib" file="lib/commons-io.jar"/>
+        <copy todir="framework/lib" file="lib/commons-logging.jar"/>
+        <copy todir="framework/lib" file="lib/jasper-compiler.jar"/>
+        <copy todir="framework/lib" file="lib/jasper-compiler-jdt.jar"/>
+        <copy todir="framework/lib" file="lib/jasper-runtime.jar"/>
+        <copy todir="framework/lib" file="lib/jdbcpool-0.99.jar"/>
+        <copy todir="framework/lib" file="lib/jsp-api.jar"/>
+        <copy todir="framework/lib" file="lib/log4j-1.2.jar"/>
+        <copy todir="framework/lib" file="lib/postgresql.jar"/>
+        <copy todir="framework/lib" file="lib/serializer.jar"/>
+        <copy todir="framework/lib" file="lib/servlet-api.jar"/>
+        <copy todir="framework/lib" file="lib/xalan2.jar"/>
+        <copy todir="framework/lib" file="lib/xercesImpl.jar"/>
+        <copy todir="framework/lib" file="lib/xml-apis.jar"/>
+
         <ant dir="framework"/>
     </target>
 
     <target name="build-documentum-connector" depends="build-framework">
+        <mkdir dir="connectors/documentum/lib"/>
+        <mkdir dir="connectors/documentum/war"/>
         <copy todir="connectors/documentum/lib">
-            <fileset dir="lib"/>
+            <fileset dir="framework/lib"/>
         </copy>
         <copy todir="connectors/documentum/lib">
             <fileset dir="framework/build/jar"/>
@@ -39,8 +90,10 @@
     </target>
 
     <target name="build-filenet-connector" depends="build-framework">
+        <mkdir dir="connectors/filenet/lib"/>
+        <mkdir dir="connectors/filenet/war"/>
         <copy todir="connectors/filenet/lib">
-            <fileset dir="lib"/>
+            <fileset dir="framework/lib"/>
         </copy>
         <copy todir="connectors/filenet/lib">
             <fileset dir="framework/build/jar"/>
@@ -52,8 +105,10 @@
     </target>
 
     <target name="build-filesystem-connector" depends="build-framework">
+        <mkdir dir="connectors/filesystem/lib"/>
+        <mkdir dir="connectors/filesystem/war"/>
         <copy todir="connectors/filesystem/lib">
-            <fileset dir="lib"/>
+            <fileset dir="framework/lib"/>
         </copy>
         <copy todir="connectors/filesystem/lib">
             <fileset dir="framework/build/jar"/>
@@ -65,8 +120,10 @@
     </target>
 
     <target name="build-gts-connector" depends="build-framework">
+        <mkdir dir="connectors/gts/lib"/>
+        <mkdir dir="connectors/gts/war"/>
         <copy todir="connectors/gts/lib">
-            <fileset dir="lib"/>
+            <fileset dir="framework/lib"/>
         </copy>
         <copy todir="connectors/gts/lib">
             <fileset dir="framework/build/jar"/>
@@ -78,8 +135,11 @@
     </target>
 
     <target name="build-jcifs-connector" depends="build-framework">
+        <mkdir dir="connectors/jcifs/lib"/>
+        <mkdir dir="connectors/jcifs/war"/>
+        <copy todir="connectors/jcifs/lib" file="lib/jakarta-poi.jar"/>
         <copy todir="connectors/jcifs/lib">
-            <fileset dir="lib"/>
+            <fileset dir="framework/lib"/>
         </copy>
         <copy todir="connectors/jcifs/lib">
             <fileset dir="framework/build/jar"/>
@@ -91,8 +151,10 @@
     </target>
 
     <target name="build-jdbc-connector" depends="build-framework">
+        <mkdir dir="connectors/jdbc/lib"/>
+        <mkdir dir="connectors/jdbc/war"/>
         <copy todir="connectors/jdbc/lib">
-            <fileset dir="lib"/>
+            <fileset dir="framework/lib"/>
         </copy>
         <copy todir="connectors/jdbc/lib">
             <fileset dir="framework/build/jar"/>
@@ -104,8 +166,10 @@
     </target>
 
     <target name="build-livelink-connector" depends="build-framework">
+        <mkdir dir="connectors/livelink/lib"/>
+        <mkdir dir="connectors/livelink/war"/>
         <copy todir="connectors/livelink/lib">
-            <fileset dir="lib"/>
+            <fileset dir="framework/lib"/>
         </copy>
         <copy todir="connectors/livelink/lib">
             <fileset dir="framework/build/jar"/>
@@ -117,8 +181,10 @@
     </target>
 
     <target name="build-lucene-connector" depends="build-framework">
+        <mkdir dir="connectors/lucene/lib"/>
+        <mkdir dir="connectors/lucene/war"/>
         <copy todir="connectors/lucene/lib">
-            <fileset dir="lib"/>
+            <fileset dir="framework/lib"/>
         </copy>
         <copy todir="connectors/lucene/lib">
             <fileset dir="framework/build/jar"/>
@@ -130,8 +196,10 @@
     </target>
 
     <target name="build-memex-connector" depends="build-framework">
+        <mkdir dir="connectors/memex/lib"/>
+        <mkdir dir="connectors/memex/war"/>
         <copy todir="connectors/memex/lib">
-            <fileset dir="lib"/>
+            <fileset dir="framework/lib"/>
         </copy>
         <copy todir="connectors/memex/lib">
             <fileset dir="framework/build/jar"/>
@@ -143,8 +211,18 @@
     </target>
 
     <target name="build-meridio-connector" depends="build-framework">
+        <mkdir dir="connectors/meridio/lib"/>
+        <mkdir dir="connectors/meridio/war"/>
+        <copy todir="connectors/meridio/lib" file="lib/axis.jar"/>
+        <copy todir="connectors/meridio/lib" file="lib/jaxrpc.jar"/>
+        <copy todir="connectors/meridio/lib" file="lib/saaj.jar"/>
+        <copy todir="connectors/meridio/lib" file="lib/w2dl4j.jar"/>
+        <copy todir="connectors/meridio/lib" file="lib/castor-1.0.5-commons.jar"/>
+        <copy todir="connectors/meridio/lib" file="lib/castor-1.0.5.jar"/>
+        <copy todir="connectors/meridio/lib" file="lib/castor-1.0.5-xml.jar"/>
+        <copy todir="connectors/meridio/lib" file="lib/commons-discovery.jar"/>
         <copy todir="connectors/meridio/lib">
-            <fileset dir="lib"/>
+            <fileset dir="framework/lib"/>
         </copy>
         <copy todir="connectors/meridio/lib">
             <fileset dir="framework/build/jar"/>
@@ -156,8 +234,10 @@
     </target>
 
     <target name="build-nulloutput-connector" depends="build-framework">
+        <mkdir dir="connectors/nulloutput/lib"/>
+        <mkdir dir="connectors/nulloutput/war"/>
         <copy todir="connectors/nulloutput/lib">
-            <fileset dir="lib"/>
+            <fileset dir="framework/lib"/>
         </copy>
         <copy todir="connectors/nulloutput/lib">
             <fileset dir="framework/build/jar"/>
@@ -169,8 +249,10 @@
     </target>
 
     <target name="build-rss-connector" depends="build-framework">
+        <mkdir dir="connectors/rss/lib"/>
+        <mkdir dir="connectors/rss/war"/>
         <copy todir="connectors/rss/lib">
-            <fileset dir="lib"/>
+            <fileset dir="framework/lib"/>
         </copy>
         <copy todir="connectors/rss/lib">
             <fileset dir="framework/build/jar"/>
@@ -182,8 +264,16 @@
     </target>
 
     <target name="build-sharepoint-connector" depends="build-framework">
+        <mkdir dir="connectors/sharepoint/lib"/>
+        <mkdir dir="connectors/sharepoint/war"/>
+        <copy todir="connectors/sharepoint/lib" file="lib/axis.jar"/>
+        <copy todir="connectors/sharepoint/lib" file="lib/jaxrpc.jar"/>
+        <copy todir="connectors/sharepoint/lib" file="lib/saaj.jar"/>
+        <copy todir="connectors/sharepoint/lib" file="lib/w2dl4j.jar"/>
+        <copy todir="connectors/sharepoint/lib" file="lib/commons-discovery.jar"/>
+
         <copy todir="connectors/sharepoint/lib">
-            <fileset dir="lib"/>
+            <fileset dir="framework/lib"/>
         </copy>
         <copy todir="connectors/sharepoint/lib">
             <fileset dir="framework/build/jar"/>
@@ -195,8 +285,10 @@
     </target>
 
     <target name="build-webcrawler-connector" depends="build-framework">
+        <mkdir dir="connectors/webcrawler/lib"/>
+        <mkdir dir="connectors/webcrawler/war"/>
         <copy todir="connectors/webcrawler/lib">
-            <fileset dir="lib"/>
+            <fileset dir="framework/lib"/>
         </copy>
         <copy todir="connectors/webcrawler/lib">
             <fileset dir="framework/build/jar"/>
