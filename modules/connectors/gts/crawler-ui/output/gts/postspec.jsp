@@ -48,15 +48,15 @@
 		while (i < os.getChildCount())
 		{
 			SpecificationNode sn = os.getChild(i);
-			if (sn.getType().equals(com.metacarta.agents.output.gts.GTSConfig.NODE_COLLECTION))
+			if (sn.getType().equals(org.apache.lcf.agents.output.gts.GTSConfig.NODE_COLLECTION))
 				os.removeChild(i);
 			else
 				i++;
 		}
 		if (collectionName.length() > 0)
 		{
-			SpecificationNode newspec = new SpecificationNode(com.metacarta.agents.output.gts.GTSConfig.NODE_COLLECTION);
-			newspec.setAttribute(com.metacarta.agents.output.gts.GTSConfig.ATTRIBUTE_VALUE,collectionName);
+			SpecificationNode newspec = new SpecificationNode(org.apache.lcf.agents.output.gts.GTSConfig.NODE_COLLECTION);
+			newspec.setAttribute(org.apache.lcf.agents.output.gts.GTSConfig.ATTRIBUTE_VALUE,collectionName);
 			os.addChild(os.getChildCount(),newspec);
 		}
 	}
@@ -69,13 +69,13 @@
 		while (i < os.getChildCount())
 		{
 			SpecificationNode sn = os.getChild(i);
-			if (sn.getType().equals(com.metacarta.agents.output.gts.GTSConfig.NODE_DOCUMENTTEMPLATE))
+			if (sn.getType().equals(org.apache.lcf.agents.output.gts.GTSConfig.NODE_DOCUMENTTEMPLATE))
 				os.removeChild(i);
 			else
 				i++;
 		}
-		SpecificationNode newspec = new SpecificationNode(com.metacarta.agents.output.gts.GTSConfig.NODE_DOCUMENTTEMPLATE);
-		newspec.setAttribute(com.metacarta.agents.output.gts.GTSConfig.ATTRIBUTE_VALUE,documentTemplate);
+		SpecificationNode newspec = new SpecificationNode(org.apache.lcf.agents.output.gts.GTSConfig.NODE_DOCUMENTTEMPLATE);
+		newspec.setAttribute(org.apache.lcf.agents.output.gts.GTSConfig.ATTRIBUTE_VALUE,documentTemplate);
 		os.addChild(os.getChildCount(),newspec);
 	}
 %>

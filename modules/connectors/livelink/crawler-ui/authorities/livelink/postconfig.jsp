@@ -38,25 +38,25 @@
 
 	String serverName = variableContext.getParameter("servername");
 	if (serverName != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.serverName,serverName);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.serverName,serverName);
 	String serverPort = variableContext.getParameter("serverport");
 	if (serverPort != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.serverPort,serverPort);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.serverPort,serverPort);
 	String serverUserName = variableContext.getParameter("serverusername");
 	if (serverUserName != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.serverUsername,serverUserName);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.serverUsername,serverUserName);
 	String serverPassword = variableContext.getParameter("serverpassword");
 	if (serverPassword != null)
-		parameters.setObfuscatedParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.serverPassword,serverPassword);
+		parameters.setObfuscatedParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.serverPassword,serverPassword);
 	String usernameRegexp = variableContext.getParameter("usernameregexp");
 	String livelinkUserExpr = variableContext.getParameter("livelinkuserexpr");
 	if (usernameRegexp != null && livelinkUserExpr != null)
 	{
-		parameters.setParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.userNameRegexp,null);
-		parameters.setParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.livelinkNameSpec,null);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.userNameRegexp,null);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.livelinkNameSpec,null);
 
-		com.metacarta.crawler.connectors.livelink.MatchMap matchMap = new com.metacarta.crawler.connectors.livelink.MatchMap();
+		org.apache.lcf.crawler.connectors.livelink.MatchMap matchMap = new org.apache.lcf.crawler.connectors.livelink.MatchMap();
 		matchMap.appendMatchPair(usernameRegexp,livelinkUserExpr);
-		parameters.setParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.userNameMapping,matchMap.toString());
+		parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.userNameMapping,matchMap.toString());
 	}
 %>

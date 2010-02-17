@@ -98,12 +98,12 @@
 %>
 		<tr <%="class=\""+((i%2==0)?"evendatarow":"odddatarow")+"\""%>>
 			<td class="columncell">
-				<a href='<%="viewconnection.jsp?connname="+java.net.URLEncoder.encode(name,"UTF-8")%>' alt='<%="View "+com.metacarta.ui.util.Encoder.attributeEscape(name)%>'>View</a>&nbsp;<a href='<%="editconnection.jsp?connname="+java.net.URLEncoder.encode(name,"UTF-8")%>' alt='<%="Edit "+com.metacarta.ui.util.Encoder.attributeEscape(name)%>'>Edit</a>&nbsp;<a href="javascript:void()" onclick='<%="javascript:Delete(\""+com.metacarta.ui.util.Encoder.attributeJavascriptEscape(name)+"\")"%>' alt='<%="Delete "+com.metacarta.ui.util.Encoder.attributeEscape(name)%>'>Delete</a>
+				<a href='<%="viewconnection.jsp?connname="+java.net.URLEncoder.encode(name,"UTF-8")%>' alt='<%="View "+org.apache.lcf.ui.util.Encoder.attributeEscape(name)%>'>View</a>&nbsp;<a href='<%="editconnection.jsp?connname="+java.net.URLEncoder.encode(name,"UTF-8")%>' alt='<%="Edit "+org.apache.lcf.ui.util.Encoder.attributeEscape(name)%>'>Edit</a>&nbsp;<a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.lcf.ui.util.Encoder.attributeJavascriptEscape(name)+"\")"%>' alt='<%="Delete "+org.apache.lcf.ui.util.Encoder.attributeEscape(name)%>'>Delete</a>
 			</td>
-			<td class="columncell"><%=com.metacarta.ui.util.Encoder.bodyEscape(name)%></td>
-			<td class="columncell"><%=com.metacarta.ui.util.Encoder.bodyEscape(description)%></td>
-			<td class="columncell"><%=com.metacarta.ui.util.Encoder.bodyEscape(connectorName)%></td>
-			<td class="columncell"><%=((authorityName==null)?"Default (Kerberos)":com.metacarta.ui.util.Encoder.bodyEscape(authorityName))%></td>
+			<td class="columncell"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(name)%></td>
+			<td class="columncell"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(description)%></td>
+			<td class="columncell"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(connectorName)%></td>
+			<td class="columncell"><%=((authorityName==null)?"Default (Kerberos)":org.apache.lcf.ui.util.Encoder.bodyEscape(authorityName))%></td>
 			<td class="columncell"><%=Integer.toString(maxCount)%></td>
 		</tr>
 <%

@@ -49,13 +49,13 @@
 		while (i < ds.getChildCount())
 		{
 			SpecificationNode sn = ds.getChild(i);
-			if (sn.getType().equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_SEEDS))
+			if (sn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_SEEDS))
 				ds.removeChild(i);
 			else
 				i++;
 		}
 
-		SpecificationNode cn = new SpecificationNode(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_SEEDS);
+		SpecificationNode cn = new SpecificationNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_SEEDS);
 		cn.setValue(seeds);
 		ds.addChild(ds.getChildCount(),cn);
 	}
@@ -69,13 +69,13 @@
 		while (i < ds.getChildCount())
 		{
 			SpecificationNode sn = ds.getChild(i);
-			if (sn.getType().equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_INCLUDES))
+			if (sn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_INCLUDES))
 				ds.removeChild(i);
 			else
 				i++;
 		}
 
-		SpecificationNode cn = new SpecificationNode(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_INCLUDES);
+		SpecificationNode cn = new SpecificationNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_INCLUDES);
 		cn.setValue(inclusions);
 		ds.addChild(ds.getChildCount(),cn);
 	}
@@ -89,13 +89,13 @@
 		while (i < ds.getChildCount())
 		{
 			SpecificationNode sn = ds.getChild(i);
-			if (sn.getType().equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_EXCLUDES))
+			if (sn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_EXCLUDES))
 				ds.removeChild(i);
 			else
 				i++;
 		}
 
-		SpecificationNode cn = new SpecificationNode(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_EXCLUDES);
+		SpecificationNode cn = new SpecificationNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_EXCLUDES);
 		cn.setValue(exclusions);
 		ds.addChild(ds.getChildCount(),cn);
 	}

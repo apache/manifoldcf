@@ -38,26 +38,26 @@
 
 	String docbaseName = variableContext.getParameter("docbasename");
 	if (docbaseName != null)
-		parameters.setParameter(com.metacarta.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_DOCBASE,docbaseName);
+		parameters.setParameter(org.apache.lcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_DOCBASE,docbaseName);
 	
 	String docbaseUserName = variableContext.getParameter("docbaseusername");
 	if (docbaseUserName != null)
-		parameters.setParameter(com.metacarta.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_USERNAME,docbaseUserName);
+		parameters.setParameter(org.apache.lcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_USERNAME,docbaseUserName);
 	
 	String docbasePassword = variableContext.getParameter("docbasepassword");
 	if (docbasePassword != null)
-		parameters.setObfuscatedParameter(com.metacarta.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_PASSWORD,docbasePassword);
+		parameters.setObfuscatedParameter(org.apache.lcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_PASSWORD,docbasePassword);
 	
 	String docbaseDomain = variableContext.getParameter("docbasedomain");
 	if (docbaseDomain != null)
-		parameters.setParameter(com.metacarta.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_DOMAIN,docbaseDomain);
+		parameters.setParameter(org.apache.lcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_DOMAIN,docbaseDomain);
 
         String caseInsensitiveUser = variableContext.getParameter("usernamecaseinsensitive");
         if (caseInsensitiveUser != null)
-                parameters.setParameter(com.metacarta.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_CASEINSENSITIVE,caseInsensitiveUser);
+                parameters.setParameter(org.apache.lcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_CASEINSENSITIVE,caseInsensitiveUser);
 
         String useSystemAcls = variableContext.getParameter("usesystemacls");
         if (useSystemAcls != null)
-                parameters.setParameter(com.metacarta.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_USESYSTEMACLS,useSystemAcls);
+                parameters.setParameter(org.apache.lcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_USESYSTEMACLS,useSystemAcls);
 
 %>

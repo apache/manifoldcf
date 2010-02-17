@@ -59,7 +59,7 @@
 				seenAny = true;
 			}
 %>
-			<%=com.metacarta.ui.util.Encoder.bodyEscape(sn.getAttributeValue("path"))%><br/>
+			<%=org.apache.lcf.ui.util.Encoder.bodyEscape(sn.getAttributeValue("path"))%><br/>
 <%
 		}
 	}
@@ -102,7 +102,7 @@
 %>
 				<%=sn.getType().equals("include")?"Include file:":""%>
 				<%=sn.getType().equals("exclude")?"Exclude file:":""%>
-				<%=com.metacarta.ui.util.Encoder.bodyEscape(filespec)%><br/>
+				<%=org.apache.lcf.ui.util.Encoder.bodyEscape(filespec)%><br/>
 <%		}
 	}
 
@@ -168,7 +168,7 @@
 			}
 			String token = sn.getAttributeValue("token");
 %>
-				<%=com.metacarta.ui.util.Encoder.bodyEscape(token)%><br/>
+				<%=org.apache.lcf.ui.util.Encoder.bodyEscape(token)%><br/>
 <%		}
 	}
 
@@ -230,7 +230,7 @@
 			String attribute = sn.getAttributeValue("attribute");
 			String isAll = sn.getAttributeValue("all");
 %>
-				<%=com.metacarta.ui.util.Encoder.bodyEscape(category)%>:<%=(isAll!=null&&isAll.equals("true"))?"(All metadata attributes)":com.metacarta.ui.util.Encoder.bodyEscape(attribute)%><br/>
+				<%=org.apache.lcf.ui.util.Encoder.bodyEscape(category)%>:<%=(isAll!=null&&isAll.equals("true"))?"(All metadata attributes)":org.apache.lcf.ui.util.Encoder.bodyEscape(attribute)%><br/>
 <%		}
 	}
 
@@ -268,7 +268,7 @@
 	{
 %>
 		<td class="description">Path-name metadata attribute:</td>
-		<td class="value"><%=com.metacarta.ui.util.Encoder.bodyEscape(pathNameAttribute)%></td>
+		<td class="value"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(pathNameAttribute)%></td>
 <%
 	}
 	else
@@ -287,7 +287,7 @@
 <%
 	// Find the path-value mapping data
 	i = 0;
-	com.metacarta.crawler.connectors.livelink.MatchMap matchMap = new com.metacarta.crawler.connectors.livelink.MatchMap();
+	org.apache.lcf.crawler.connectors.livelink.MatchMap matchMap = new org.apache.lcf.crawler.connectors.livelink.MatchMap();
 	while (i < ds.getChildCount())
 	{
 		SpecificationNode sn = ds.getChild(i++);
@@ -311,7 +311,7 @@
 		String matchString = matchMap.getMatchString(i);
 		String replaceString = matchMap.getReplaceString(i);
 %>
-		    <tr><td class="value"><%=com.metacarta.ui.util.Encoder.bodyEscape(matchString)%></td><td class="value">--></td><td class="value"><%=com.metacarta.ui.util.Encoder.bodyEscape(replaceString)%></td></tr>
+		    <tr><td class="value"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(matchString)%></td><td class="value">--></td><td class="value"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(replaceString)%></td></tr>
 <%
 		i++;
 	    }

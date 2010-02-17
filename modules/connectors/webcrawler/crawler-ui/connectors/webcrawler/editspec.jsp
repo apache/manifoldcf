@@ -53,15 +53,15 @@
 	while (i < ds.getChildCount())
 	{
 		SpecificationNode sn = ds.getChild(i++);
-		if (sn.getType().equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_SEEDS))
+		if (sn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_SEEDS))
 		{
 			seeds = sn.getValue();
 		}
-		else if (sn.getType().equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_INCLUDES))
+		else if (sn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_INCLUDES))
 		{
 			inclusions = sn.getValue();
 		}
-		else if (sn.getType().equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_EXCLUDES))
+		else if (sn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_EXCLUDES))
 		{
 			exclusions = sn.getValue();
 		}
@@ -76,7 +76,7 @@
 		<tr><td class="separator" colspan="2"><hr/></td></tr>
 		<tr>
 			<td class="value" colspan="2">
-				<textarea rows="25" cols="80" name="seeds"><%=com.metacarta.ui.util.Encoder.bodyEscape(seeds)%></textarea>
+				<textarea rows="25" cols="80" name="seeds"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(seeds)%></textarea>
 			</td>
 		</tr>
 	</table>
@@ -85,7 +85,7 @@
 	else
 	{
 %>
-	<input type="hidden" name="seeds" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(seeds)%>'/>
+	<input type="hidden" name="seeds" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(seeds)%>'/>
 <%
 	}
 
@@ -143,20 +143,20 @@
 					<tr class='<%=((l % 2)==0)?"evenformrow":"oddformrow"%>'>
 						<td class="formcolumncell">
 							<a name='<%="urlregexp_"+Integer.toString(l)%>'>
-								<input type="button" value="Delete" alt='<%="Delete url regexp "+com.metacarta.ui.util.Encoder.attributeEscape(regexpString)%>' onclick='<%="javascript:URLRegexpDelete("+Integer.toString(l)+",\"urlregexp_"+Integer.toString(l)+"\");"%>'/>
+								<input type="button" value="Delete" alt='<%="Delete url regexp "+org.apache.lcf.ui.util.Encoder.attributeEscape(regexpString)%>' onclick='<%="javascript:URLRegexpDelete("+Integer.toString(l)+",\"urlregexp_"+Integer.toString(l)+"\");"%>'/>
 							</a>
 						</td>
 						<td class="formcolumncell">
-							<input type="hidden" name='<%="urlregexp_"+Integer.toString(l)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(regexpString)%>'/>
-							<input type="hidden" name='<%="urlregexpdesc_"+Integer.toString(l)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(description)%>'/>
+							<input type="hidden" name='<%="urlregexp_"+Integer.toString(l)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(regexpString)%>'/>
+							<input type="hidden" name='<%="urlregexpdesc_"+Integer.toString(l)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(description)%>'/>
 							<input type="hidden" name='<%="urlregexpreorder_"+Integer.toString(l)%>' value='<%=allowReorder%>'/>
 							<input type="hidden" name='<%="urlregexpjava_"+Integer.toString(l)%>' value='<%=allowJavaSessionRemoval%>'/>
 							<input type="hidden" name='<%="urlregexpasp_"+Integer.toString(l)%>' value='<%=allowASPSessionRemoval%>'/>
 							<input type="hidden" name='<%="urlregexpphp_"+Integer.toString(l)%>' value='<%=allowPHPSessionRemoval%>'/>
 							<input type="hidden" name='<%="urlregexpbv_"+Integer.toString(l)%>' value='<%=allowBVSessionRemoval%>'/>
-							<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(regexpString)%></nobr>
+							<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(regexpString)%></nobr>
 						</td>
-						<td class="formcolumncell"><%=com.metacarta.ui.util.Encoder.bodyEscape(description)%></td>
+						<td class="formcolumncell"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(description)%></td>
 						<td class="formcolumncell"><%=allowReorder%></td>
 						<td class="formcolumncell"><%=allowJavaSessionRemoval%></td>
 						<td class="formcolumncell"><%=allowASPSessionRemoval%></td>
@@ -228,8 +228,8 @@
 				if (allowBVSessionRemoval == null || allowBVSessionRemoval.length() == 0)
 					allowBVSessionRemoval = "no";
 %>
-	<input type="hidden" name='<%="urlregexp_"+Integer.toString(l)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(regexpString)%>'/>
-	<input type="hidden" name='<%="urlregexpdesc_"+Integer.toString(l)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(description)%>'/>
+	<input type="hidden" name='<%="urlregexp_"+Integer.toString(l)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(regexpString)%>'/>
+	<input type="hidden" name='<%="urlregexpdesc_"+Integer.toString(l)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(description)%>'/>
 	<input type="hidden" name='<%="urlregexpreorder_"+Integer.toString(l)%>' value='<%=allowReorder%>'/>
 	<input type="hidden" name='<%="urlregexpjava_"+Integer.toString(l)%>' value='<%=allowJavaSessionRemoval%>'/>
 	<input type="hidden" name='<%="urlregexpasp_"+Integer.toString(l)%>' value='<%=allowASPSessionRemoval%>'/>
@@ -253,7 +253,7 @@
 		<tr><td class="separator" colspan="2"><hr/></td></tr>
 		<tr>
 			<td class="value" colspan="2">
-				<textarea rows="25" cols="80" name="inclusions"><%=com.metacarta.ui.util.Encoder.bodyEscape(inclusions)%></textarea>
+				<textarea rows="25" cols="80" name="inclusions"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(inclusions)%></textarea>
 			</td>
 		</tr>
 	</table>
@@ -262,7 +262,7 @@
 	else
 	{
 %>
-	<input type="hidden" name="inclusions" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(inclusions)%>'/>
+	<input type="hidden" name="inclusions" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(inclusions)%>'/>
 <%
 	}
 
@@ -275,7 +275,7 @@
 		<tr><td class="separator" colspan="2"><hr/></td></tr>
 		<tr>
 			<td class="value" colspan="2">
-				<textarea rows="25" cols="80" name="exclusions"><%=com.metacarta.ui.util.Encoder.bodyEscape(exclusions)%></textarea>
+				<textarea rows="25" cols="80" name="exclusions"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(exclusions)%></textarea>
 			</td>
 		</tr>
 	</table>
@@ -284,7 +284,7 @@
 	else
 	{
 %>
-	<input type="hidden" name="exclusions" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(exclusions)%>'/>
+	<input type="hidden" name="exclusions" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(exclusions)%>'/>
 <%
 	}
 	
@@ -313,11 +313,11 @@
 			<tr>
 				<td class="description">
 					<input type="hidden" name='<%=accessOpName%>' value=""/>
-					<input type="hidden" name='<%="spectoken"+accessDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(token)%>'/>
+					<input type="hidden" name='<%="spectoken"+accessDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(token)%>'/>
 					<a name='<%="token_"+Integer.toString(k)%>'><input type="button" value="Delete" onClick='<%="Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")"%>' alt='<%="Delete token #"+Integer.toString(k)%>'/></a>&nbsp;
 				</td>
 				<td class="value">
-					<%=com.metacarta.ui.util.Encoder.bodyEscape(token)%>
+					<%=org.apache.lcf.ui.util.Encoder.bodyEscape(token)%>
 				</td>
 			</tr>
 <%
@@ -360,7 +360,7 @@
 			String accessDescription = "_"+Integer.toString(k);
 			String token = sn.getAttributeValue("token");
 %>
-	<input type="hidden" name='<%="spectoken"+accessDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(token)%>'/>
+	<input type="hidden" name='<%="spectoken"+accessDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(token)%>'/>
 <%
 			k++;
 		}
@@ -393,16 +393,16 @@
 			<tr>
 				<td class="description">
 					<input type="hidden" name='<%=metadataOpName%>' value=""/>
-					<input type="hidden" name='<%="specmetaname"+metadataDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(name)%>'/>
-					<input type="hidden" name='<%="specmetavalue"+metadataDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(value)%>'/>
+					<input type="hidden" name='<%="specmetaname"+metadataDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(name)%>'/>
+					<input type="hidden" name='<%="specmetavalue"+metadataDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(value)%>'/>
 					<a name='<%="metadata_"+Integer.toString(k)%>'><input type="button" value="Delete" onClick='<%="Javascript:SpecOp(\""+metadataOpName+"\",\"Delete\",\"metadata_"+Integer.toString(k)+"\")"%>' alt='<%="Delete metadata #"+Integer.toString(k)%>'/></a>&nbsp;
 				</td>
 				<td class="value">
-					<%=com.metacarta.ui.util.Encoder.bodyEscape(name)%>
+					<%=org.apache.lcf.ui.util.Encoder.bodyEscape(name)%>
 				</td>
 				<td class="value">=</td>
 				<td class="value">
-					<%=com.metacarta.ui.util.Encoder.bodyEscape(value)%>
+					<%=org.apache.lcf.ui.util.Encoder.bodyEscape(value)%>
 				</td>
 			</tr>
 <%
@@ -452,8 +452,8 @@
 			String name = sn.getAttributeValue("name");
 			String value = sn.getAttributeValue("value");
 %>
-	<input type="hidden" name='<%="specmetaname"+metadataDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(name)%>'/>
-	<input type="hidden" name='<%="specmetavalue"+metadataDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(value)%>'/>
+	<input type="hidden" name='<%="specmetaname"+metadataDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(name)%>'/>
+	<input type="hidden" name='<%="specmetavalue"+metadataDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(value)%>'/>
 <%
 			k++;
 		}

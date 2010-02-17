@@ -39,18 +39,18 @@
 
 	String ingestURI = variableContext.getParameter("ingesturi");
 	if (ingestURI != null)
-		parameters.setParameter(com.metacarta.agents.output.gts.GTSConfig.PARAM_INGESTURI,ingestURI);
+		parameters.setParameter(org.apache.lcf.agents.output.gts.GTSConfig.PARAM_INGESTURI,ingestURI);
 
 	String realm = variableContext.getParameter("realm");
 	if (realm != null)
-		parameters.setParameter(com.metacarta.agents.output.gts.GTSConfig.PARAM_REALM,realm);
+		parameters.setParameter(org.apache.lcf.agents.output.gts.GTSConfig.PARAM_REALM,realm);
 
 	String userID = variableContext.getParameter("userid");
 	if (userID != null)
-		parameters.setParameter(com.metacarta.agents.output.gts.GTSConfig.PARAM_USERID,userID);
+		parameters.setParameter(org.apache.lcf.agents.output.gts.GTSConfig.PARAM_USERID,userID);
 		
 	String password = variableContext.getParameter("password");
 	if (password != null)
-		parameters.setObfuscatedParameter(com.metacarta.agents.output.gts.GTSConfig.PARAM_PASSWORD,password);
+		parameters.setObfuscatedParameter(org.apache.lcf.agents.output.gts.GTSConfig.PARAM_PASSWORD,password);
 	
 %>

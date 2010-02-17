@@ -38,37 +38,37 @@
 
 	String email = variableContext.getParameter("email");
 	if (email != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.rss.RSSConnector.emailParameter,email);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.emailParameter,email);
 	String robotsUsage = variableContext.getParameter("robotsusage");
 	if (robotsUsage != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.rss.RSSConnector.robotsUsageParameter,robotsUsage);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.robotsUsageParameter,robotsUsage);
 	String bandwidth = variableContext.getParameter("bandwidth");
 	if (bandwidth != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.rss.RSSConnector.bandwidthParameter,bandwidth);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.bandwidthParameter,bandwidth);
 	String connections = variableContext.getParameter("connections");
 	if (connections != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.rss.RSSConnector.maxOpenParameter,connections);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.maxOpenParameter,connections);
 	String fetches = variableContext.getParameter("fetches");
 	if (fetches != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.rss.RSSConnector.maxFetchesParameter,fetches);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.maxFetchesParameter,fetches);
 	String throttleGroup = variableContext.getParameter("throttlegroup");
 	if (throttleGroup != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.rss.RSSConnector.throttleGroupParameter,throttleGroup);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.throttleGroupParameter,throttleGroup);
 	String proxyHost = variableContext.getParameter("proxyhost");
 	if (proxyHost != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.rss.RSSConnector.proxyHostParameter,proxyHost);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.proxyHostParameter,proxyHost);
 	String proxyPort = variableContext.getParameter("proxyport");
 	if (proxyPort != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.rss.RSSConnector.proxyPortParameter,proxyPort);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.proxyPortParameter,proxyPort);
 	String proxyAuthDomain = variableContext.getParameter("proxyauthdomain");
 	if (proxyAuthDomain != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.rss.RSSConnector.proxyAuthDomainParameter,proxyAuthDomain);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.proxyAuthDomainParameter,proxyAuthDomain);
 	String proxyAuthUsername = variableContext.getParameter("proxyauthusername");
 	if (proxyAuthUsername != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.rss.RSSConnector.proxyAuthUsernameParameter,proxyAuthUsername);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.proxyAuthUsernameParameter,proxyAuthUsername);
 	String proxyAuthPassword = variableContext.getParameter("proxyauthpassword");
 	if (proxyAuthPassword != null)
-		parameters.setObfuscatedParameter(com.metacarta.crawler.connectors.rss.RSSConnector.proxyAuthPasswordParameter,proxyAuthPassword);
+		parameters.setObfuscatedParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.proxyAuthPasswordParameter,proxyAuthPassword);
 
 
 %>

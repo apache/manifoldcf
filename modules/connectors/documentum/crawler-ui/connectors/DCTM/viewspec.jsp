@@ -48,7 +48,7 @@
 	while (i < ds.getChildCount())
 	{
 		SpecificationNode sn = ds.getChild(i++);
-		if (sn.getType().equals(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_LOCATION))
+		if (sn.getType().equals(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_LOCATION))
 		{
 			if (seenAny == false)
 			{
@@ -59,7 +59,7 @@
 <%
 			}
 %>
-			<%=com.metacarta.ui.util.Encoder.bodyEscape(sn.getAttributeValue("path"))%><br/>
+			<%=org.apache.lcf.ui.util.Encoder.bodyEscape(sn.getAttributeValue("path"))%><br/>
 <%
 		}
 	}
@@ -87,7 +87,7 @@
 	while (i < ds.getChildCount())
 	{
 		SpecificationNode sn = ds.getChild(i++);
-		if (sn.getType().equals(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_OBJECTTYPE))
+		if (sn.getType().equals(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_OBJECTTYPE))
 		{
 			if (seenAny == false)
 			{
@@ -103,7 +103,7 @@
 %>
 			  <tr>
 			    <td class="value">
-			      <%=com.metacarta.ui.util.Encoder.bodyEscape(strObjectType)%>
+			      <%=org.apache.lcf.ui.util.Encoder.bodyEscape(strObjectType)%>
 			    </td>
 			    <td class="value">
 <%
@@ -115,11 +115,11 @@
 			    while (k < sn.getChildCount())
 			    {
 				SpecificationNode dsn = sn.getChild(k++);
-				if (dsn.getType().equals(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_ATTRIBUTENAME))
+				if (dsn.getType().equals(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_ATTRIBUTENAME))
 				{
 					String attrName = dsn.getAttributeValue("attrname");
 %>
-			      <%=com.metacarta.ui.util.Encoder.bodyEscape(attrName)%><br/>
+			      <%=org.apache.lcf.ui.util.Encoder.bodyEscape(attrName)%><br/>
 <%
 				}
 			    }
@@ -155,7 +155,7 @@
 	while (i < ds.getChildCount())
 	{
 		SpecificationNode sn = ds.getChild(i++);
-		if (sn.getType().equals(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_FORMAT))
+		if (sn.getType().equals(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_FORMAT))
 		{
 			if (seenAny == false)
 			{
@@ -167,7 +167,7 @@
 			}
 			String strContentType = sn.getAttributeValue("value");
 %>
-			<%=com.metacarta.ui.util.Encoder.bodyEscape(strContentType)%><br/>
+			<%=org.apache.lcf.ui.util.Encoder.bodyEscape(strContentType)%><br/>
 <%
 		}
 	}
@@ -194,7 +194,7 @@
 	while (i < ds.getChildCount())
 	{
 		SpecificationNode sn = ds.getChild(i++);
-		if (sn.getType().equals(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_MAXLENGTH))
+		if (sn.getType().equals(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_MAXLENGTH))
 		{
 			maxDocumentLength = sn.getAttributeValue("value");
 		}
@@ -251,7 +251,7 @@
 			}
 			String token = sn.getAttributeValue("token");
 %>
-				<%=com.metacarta.ui.util.Encoder.bodyEscape(token)%><br/>
+				<%=org.apache.lcf.ui.util.Encoder.bodyEscape(token)%><br/>
 <%		}
 	}
 
@@ -278,7 +278,7 @@
 	while (i < ds.getChildCount())
 	{
 		SpecificationNode sn = ds.getChild(i++);
-		if (sn.getType().equals(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_PATHNAMEATTRIBUTE))
+		if (sn.getType().equals(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_PATHNAMEATTRIBUTE))
 		{
 			pathNameAttribute = sn.getAttributeValue("value");
 		}
@@ -290,7 +290,7 @@
 	{
 %>
 		<td class="description">Path-name metadata attribute:</td>
-		<td class="value"><%=com.metacarta.ui.util.Encoder.bodyEscape(pathNameAttribute)%></td>
+		<td class="value"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(pathNameAttribute)%></td>
 <%
 	}
 	else
@@ -309,11 +309,11 @@
 <%
 	// Find the path-value mapping data
 	i = 0;
-	com.metacarta.crawler.connectors.DCTM.MatchMap matchMap = new com.metacarta.crawler.connectors.DCTM.MatchMap();
+	org.apache.lcf.crawler.connectors.DCTM.MatchMap matchMap = new org.apache.lcf.crawler.connectors.DCTM.MatchMap();
 	while (i < ds.getChildCount())
 	{
 		SpecificationNode sn = ds.getChild(i++);
-		if (sn.getType().equals(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_PATHMAP))
+		if (sn.getType().equals(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_PATHMAP))
 		{
 			String pathMatch = sn.getAttributeValue("match");
 			String pathReplace = sn.getAttributeValue("replace");
@@ -333,7 +333,7 @@
 		String matchString = matchMap.getMatchString(i);
 		String replaceString = matchMap.getReplaceString(i);
 %>
-		    <tr><td class="value"><%=com.metacarta.ui.util.Encoder.bodyEscape(matchString)%></td><td class="value">--></td><td class="value"><%=com.metacarta.ui.util.Encoder.bodyEscape(replaceString)%></td></tr>
+		    <tr><td class="value"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(matchString)%></td><td class="value">--></td><td class="value"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(replaceString)%></td></tr>
 <%
 		i++;
 	    }

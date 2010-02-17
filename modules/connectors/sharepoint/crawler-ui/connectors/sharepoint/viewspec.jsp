@@ -91,7 +91,7 @@
 					completePath = siteLib + matchPart;
 %>
 					<tr class='<%=((l % 2)==0)?"evenformrow":"oddformrow"%>'>
-						<td class="formcolumncell"><nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(completePath)%></nobr></td>
+						<td class="formcolumncell"><nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(completePath)%></nobr></td>
 						<td class="formcolumncell"><nobr>file</nobr></td>
 						<td class="formcolumncell"><nobr><%=action%></nobr></td>
 					</tr>
@@ -102,7 +102,7 @@
 						completePath = siteLib + "*/" + matchPart;
 %>
 					<tr class='<%=((l % 2)==0)?"evenformrow":"oddformrow"%>'>
-						<td class="formcolumncell"><nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(completePath)%></nobr></td>
+						<td class="formcolumncell"><nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(completePath)%></nobr></td>
 						<td class="formcolumncell"><nobr>file</nobr></td>
 						<td class="formcolumncell"><nobr><%=action%></nobr></td>
 					</tr>
@@ -133,7 +133,7 @@
 			}
 %>
 					<tr class='<%=((l % 2)==0)?"evenformrow":"oddformrow"%>'>
-						<td class="formcolumncell"><nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(path)%></nobr></td>
+						<td class="formcolumncell"><nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(path)%></nobr></td>
 						<td class="formcolumncell"><nobr><%=ruleType%></nobr></td>
 						<td class="formcolumncell"><nobr><%=action%></nobr></td>
 					</tr>
@@ -213,10 +213,10 @@
 				}
 %>
 					<tr class='<%=((l % 2)==0)?"evenformrow":"oddformrow"%>'>
-						<td class="formcolumncell"><nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(path)%></nobr></td>
+						<td class="formcolumncell"><nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(path)%></nobr></td>
 						<td class="formcolumncell"><nobr>include</nobr></td>
 						<td class="formcolumncell"><nobr><%=allmetadata%></nobr></td>
-						<td class="formcolumncell"><%=com.metacarta.ui.util.Encoder.bodyEscape(metadataFieldList.toString())%></td>
+						<td class="formcolumncell"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(metadataFieldList.toString())%></td>
 					</tr>
 <%
 				l++;
@@ -266,10 +266,10 @@
 			}
 %>
 					<tr class='<%=((l % 2)==0)?"evenformrow":"oddformrow"%>'>
-						<td class="formcolumncell"><nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(path)%></nobr></td>
+						<td class="formcolumncell"><nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(path)%></nobr></td>
 						<td class="formcolumncell"><nobr><%=action%></nobr></td>
 						<td class="formcolumncell"><nobr><%=allmetadata%></nobr></td>
-						<td class="formcolumncell"><%=com.metacarta.ui.util.Encoder.bodyEscape(metadataFieldList.toString())%></td>
+						<td class="formcolumncell"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(metadataFieldList.toString())%></td>
 					</tr>
 <%
 			l++;
@@ -337,7 +337,7 @@
 			}
 			String token = sn.getAttributeValue("token");
 %>
-				<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(token)%></nobr><br/>
+				<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(token)%></nobr><br/>
 <%		}
 	}
 
@@ -376,7 +376,7 @@
 	{
 %>
 			<td class="description"><nobr>Path metadata attribute name:</nobr></td>
-			<td class="value"><nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(pathNameAttribute)%></nobr></td>
+			<td class="value"><nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(pathNameAttribute)%></nobr></td>
 <%
 	}
 	else
@@ -395,7 +395,7 @@
 <%
 	// Find the path-value mapping data
 	i = 0;
-	com.metacarta.crawler.connectors.sharepoint.MatchMap matchMap = new com.metacarta.crawler.connectors.sharepoint.MatchMap();
+	org.apache.lcf.crawler.connectors.sharepoint.MatchMap matchMap = new org.apache.lcf.crawler.connectors.sharepoint.MatchMap();
 	while (i < ds.getChildCount())
 	{
 		SpecificationNode sn = ds.getChild(i++);
@@ -419,7 +419,7 @@
 		String matchString = matchMap.getMatchString(i);
 		String replaceString = matchMap.getReplaceString(i);
 %>
-				<tr><td class="value"><nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(matchString)%></nobr></td><td class="value">==></td><td class="value"><nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(replaceString)%></nobr></td></tr>
+				<tr><td class="value"><nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(matchString)%></nobr></td><td class="value">==></td><td class="value"><nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(replaceString)%></nobr></td></tr>
 <%
 		i++;
 	    }

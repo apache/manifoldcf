@@ -37,31 +37,31 @@
 	if (tabName == null)
 		out.println("No tab name!");
 
-	String memexServerName = parameters.getParameter(com.metacarta.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_MEMEXSERVERNAME);
+	String memexServerName = parameters.getParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_MEMEXSERVERNAME);
 	if (memexServerName == null)
 		memexServerName = "";
-	String memexServerPort = parameters.getParameter(com.metacarta.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_MEMEXSERVERPORT);
+	String memexServerPort = parameters.getParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_MEMEXSERVERPORT);
 	if (memexServerPort == null)
 		memexServerPort = "";
-	String crawlUser = parameters.getParameter(com.metacarta.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_USERID);
+	String crawlUser = parameters.getParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_USERID);
 	if (crawlUser == null)
 		crawlUser = "";
-	String crawlUserPassword = parameters.getObfuscatedParameter(com.metacarta.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_PASSWORD);
+	String crawlUserPassword = parameters.getObfuscatedParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_PASSWORD);
 	if (crawlUserPassword == null)
 		crawlUserPassword = "";
-	String webServerProtocol = parameters.getParameter(com.metacarta.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_WEBSERVERPROTOCOL);
+	String webServerProtocol = parameters.getParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_WEBSERVERPROTOCOL);
 	if (webServerProtocol == null)
 		webServerProtocol = "http";
-	String webServerName = parameters.getParameter(com.metacarta.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_WEBSERVERNAME);
+	String webServerName = parameters.getParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_WEBSERVERNAME);
 	if (webServerName == null)
 		webServerName = "";
-	String webServerPort = parameters.getParameter(com.metacarta.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_WEBSERVERPORT);
+	String webServerPort = parameters.getParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_WEBSERVERPORT);
 	if (webServerPort == null)
 		webServerPort = "";
-	String characterEncoding = parameters.getParameter(com.metacarta.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_CHARACTERENCODING);
+	String characterEncoding = parameters.getParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_CHARACTERENCODING);
 	if (characterEncoding == null)
 		characterEncoding = "windows-1252";
-	String serverTimezone = parameters.getParameter(com.metacarta.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_SERVERTIMEZONE);
+	String serverTimezone = parameters.getParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_SERVERTIMEZONE);
 	if (serverTimezone == null)
 		serverTimezone = "GMT";
 
@@ -225,16 +225,16 @@
 <table class="displaytable">
 	<tr><td class="separator" colspan="2"><hr/></td></tr>
 	<tr>
-		<td class="description"><nobr>Memex server name:</nobr></td><td class="value"><input type="text" size="64" name="memexservername" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(memexServerName)%>'/></td>
+		<td class="description"><nobr>Memex server name:</nobr></td><td class="value"><input type="text" size="64" name="memexservername" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(memexServerName)%>'/></td>
 	</tr>
 	<tr>
-		<td class="description"><nobr>Memex server port:</nobr></td><td class="value"><input type="text" size="5" name="memexserverport" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(memexServerPort)%>'/></td>
+		<td class="description"><nobr>Memex server port:</nobr></td><td class="value"><input type="text" size="5" name="memexserverport" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(memexServerPort)%>'/></td>
 	</tr>
 	<tr>
-		<td class="description"><nobr>Crawl user name:</nobr></td><td class="value"><input type="text" size="32" name="crawluser" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(crawlUser)%>'/></td>
+		<td class="description"><nobr>Crawl user name:</nobr></td><td class="value"><input type="text" size="32" name="crawluser" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(crawlUser)%>'/></td>
 	</tr>
 	<tr>
-		<td class="description"><nobr>Crawl user password:</nobr></td><td class="value"><input type="password" size="32" name="crawluserpassword" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(crawlUserPassword)%>'/></td>
+		<td class="description"><nobr>Crawl user password:</nobr></td><td class="value"><input type="password" size="32" name="crawluserpassword" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(crawlUserPassword)%>'/></td>
 	</tr>
 	<tr>
 		<td class="description"><nobr>Character encoding:</nobr></td>
@@ -246,7 +246,7 @@
 		{
 			String charSet = legalCharsets[k++];
 %>
-				<option value="<%=com.metacarta.ui.util.Encoder.attributeEscape(charSet)%>" <%=(charSet.equals(characterEncoding))?" selected=\"selected\"":""%>><%=com.metacarta.ui.util.Encoder.bodyEscape(charSet)%></option>
+				<option value="<%=org.apache.lcf.ui.util.Encoder.attributeEscape(charSet)%>" <%=(charSet.equals(characterEncoding))?" selected=\"selected\"":""%>><%=org.apache.lcf.ui.util.Encoder.bodyEscape(charSet)%></option>
 <%
 		}
 %>
@@ -263,7 +263,7 @@
 		{
 			String timezone = legalTimezones[k++];
 %>
-				<option value="<%=com.metacarta.ui.util.Encoder.attributeEscape(timezone)%>" <%=(timezone.equals(serverTimezone))?" selected=\"selected\"":""%>><%=com.metacarta.ui.util.Encoder.bodyEscape(timezone)%></option>
+				<option value="<%=org.apache.lcf.ui.util.Encoder.attributeEscape(timezone)%>" <%=(timezone.equals(serverTimezone))?" selected=\"selected\"":""%>><%=org.apache.lcf.ui.util.Encoder.bodyEscape(timezone)%></option>
 <%
 		}
 %>
@@ -277,12 +277,12 @@
 	{
 		// Hiddens for Memex Server tab
 %>
-<input type="hidden" name="memexservername" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(memexServerName)%>'/>
-<input type="hidden" name="memexserverport" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(memexServerPort)%>'/>
-<input type="hidden" name="crawluser" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(crawlUser)%>'/>
-<input type="hidden" name="crawluserpassword" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(crawlUserPassword)%>'/>
-<input type="hidden" name="characterencoding" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(characterEncoding)%>'/>
-<input type="hidden" name="servertimezone" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(serverTimezone)%>'/>
+<input type="hidden" name="memexservername" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(memexServerName)%>'/>
+<input type="hidden" name="memexserverport" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(memexServerPort)%>'/>
+<input type="hidden" name="crawluser" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(crawlUser)%>'/>
+<input type="hidden" name="crawluserpassword" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(crawlUserPassword)%>'/>
+<input type="hidden" name="characterencoding" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(characterEncoding)%>'/>
+<input type="hidden" name="servertimezone" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(serverTimezone)%>'/>
 <%
 	}
 
@@ -302,10 +302,10 @@
 		</td>
 	</tr>
 	<tr>
-		<td class="description"><nobr>Web server name:</nobr><br/><nobr>(blank if same as Memex server)</nobr></td><td class="value"><input type="text" size="64" name="webservername" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(webServerName)%>'/></td>
+		<td class="description"><nobr>Web server name:</nobr><br/><nobr>(blank if same as Memex server)</nobr></td><td class="value"><input type="text" size="64" name="webservername" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(webServerName)%>'/></td>
 	</tr>
 	<tr>
-		<td class="description"><nobr>Web server port:</nobr></td><td class="value"><input type="text" size="5" name="webserverport" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(webServerPort)%>'/></td>
+		<td class="description"><nobr>Web server port:</nobr></td><td class="value"><input type="text" size="5" name="webserverport" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(webServerPort)%>'/></td>
 	</tr>
 </table>
 <%
@@ -315,7 +315,7 @@
 		// Hiddens for Web Server tab
 %>
 <input type="hidden" name="webserverprotocol" value='<%=webServerProtocol%>'/>
-<input type="hidden" name="webservername" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(webServerName)%>'/>
+<input type="hidden" name="webservername" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(webServerName)%>'/>
 <input type="hidden" name="webserverport" value='<%=webServerPort%>'/>
 <%
 	}

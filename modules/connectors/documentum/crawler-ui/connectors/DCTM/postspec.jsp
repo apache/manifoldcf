@@ -48,7 +48,7 @@
 		while (i < ds.getChildCount())
 		{
 			SpecificationNode sn = ds.getChild(i);
-			if (sn.getType().equals(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_LOCATION))
+			if (sn.getType().equals(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_LOCATION))
 				ds.removeChild(i);
 			else
 				i++;
@@ -71,7 +71,7 @@
 			}
 			// Path inserts won't happen until the very end
 			String path = variableContext.getParameter("specpath"+pathDescription);
-			SpecificationNode node = new SpecificationNode(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_LOCATION);
+			SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_LOCATION);
 			node.setAttribute("path",path);
 			ds.addChild(ds.getChildCount(),node);
 			i++;
@@ -82,7 +82,7 @@
 		if (op != null && op.equals("Add"))
 		{
 			String path = variableContext.getParameter("specpath");
-			SpecificationNode node = new SpecificationNode(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_LOCATION);
+			SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_LOCATION);
 			node.setAttribute("path",path);
 			ds.addChild(ds.getChildCount(),node);
 		}
@@ -185,7 +185,7 @@
 		while (i < ds.getChildCount())
 		{
 			SpecificationNode sn = ds.getChild(i);
-			if (sn.getType().equals(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_OBJECTTYPE))
+			if (sn.getType().equals(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_OBJECTTYPE))
 				ds.removeChild(i);
 			else
 				i++;
@@ -196,7 +196,7 @@
 		while (i < y.length)
 		{
 			String fileType = y[i++];
-			SpecificationNode node = new SpecificationNode(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_OBJECTTYPE);
+			SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_OBJECTTYPE);
 			node.setAttribute("token",fileType);
 			String isAll = variableContext.getParameter("specfileallattrs_"+fileType);
 			if (isAll != null)
@@ -207,7 +207,7 @@
 				int k = 0;
 				while (k < z.length)
 				{
-					SpecificationNode attrNode = new SpecificationNode(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_ATTRIBUTENAME);
+					SpecificationNode attrNode = new SpecificationNode(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_ATTRIBUTENAME);
 					attrNode.setAttribute("attrname",z[k++]);
 					node.addChild(node.getChildCount(),attrNode);
 				}
@@ -224,7 +224,7 @@
 		while (i < ds.getChildCount())
 		{
 			SpecificationNode sn = ds.getChild(i);
-			if (sn.getType().equals(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_FORMAT))
+			if (sn.getType().equals(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_FORMAT))
 				ds.removeChild(i);
 			else
 				i++;
@@ -235,7 +235,7 @@
 		while (i < y.length)
 		{
 			String fileType = y[i++];
-			SpecificationNode node = new SpecificationNode(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_FORMAT);
+			SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_FORMAT);
 			node.setAttribute("value",fileType);
 			ds.addChild(ds.getChildCount(),node);
 		}
@@ -249,7 +249,7 @@
 		while (i < ds.getChildCount())
 		{
 			SpecificationNode sn = ds.getChild(i);
-			if (sn.getType().equals(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_MAXLENGTH))
+			if (sn.getType().equals(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_MAXLENGTH))
 				ds.removeChild(i);
 			else
 				i++;
@@ -257,7 +257,7 @@
 
 		if (x.length() > 0)
 		{
-			SpecificationNode node = new SpecificationNode(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_MAXLENGTH);
+			SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_MAXLENGTH);
 			node.setAttribute("value",x);
 			ds.addChild(ds.getChildCount(),node);
 		}
@@ -271,14 +271,14 @@
 		while (i < ds.getChildCount())
 		{
 			SpecificationNode sn = ds.getChild(i);
-			if (sn.getType().equals(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_PATHNAMEATTRIBUTE))
+			if (sn.getType().equals(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_PATHNAMEATTRIBUTE))
 				ds.removeChild(i);
 			else
 				i++;
 		}
 		if (xc.length() > 0)
 		{
-			SpecificationNode node = new SpecificationNode(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_PATHNAMEATTRIBUTE);
+			SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_PATHNAMEATTRIBUTE);
 			node.setAttribute("value",xc);
 			ds.addChild(ds.getChildCount(),node);
 		}
@@ -292,7 +292,7 @@
 		while (i < ds.getChildCount())
 		{
 			SpecificationNode sn = ds.getChild(i);
-			if (sn.getType().equals(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_PATHMAP))
+			if (sn.getType().equals(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_PATHMAP))
 				ds.removeChild(i);
 			else
 				i++;
@@ -317,7 +317,7 @@
 			// Inserts won't happen until the very end
 			String match = variableContext.getParameter("specmatch"+pathDescription);
 			String replace = variableContext.getParameter("specreplace"+pathDescription);
-			SpecificationNode node = new SpecificationNode(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_PATHMAP);
+			SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_PATHMAP);
 			node.setAttribute("match",match);
 			node.setAttribute("replace",replace);
 			ds.addChild(ds.getChildCount(),node);
@@ -330,7 +330,7 @@
 		{
 			String match = variableContext.getParameter("specmatch");
 			String replace = variableContext.getParameter("specreplace");
-			SpecificationNode node = new SpecificationNode(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_PATHMAP);
+			SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_PATHMAP);
 			node.setAttribute("match",match);
 			node.setAttribute("replace",replace);
 			ds.addChild(ds.getChildCount(),node);

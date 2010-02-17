@@ -48,7 +48,7 @@
 		while (i < ds.getChildCount())
 		{
 			SpecificationNode sn = ds.getChild(i);
-			if (sn.getType().equals(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_STARTPOINT))
+			if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_STARTPOINT))
 				ds.removeChild(i);
 			else
 				i++;
@@ -71,8 +71,8 @@
 			}
 			// Path inserts won't happen until the very end
 			String path = variableContext.getParameter("specpath"+pathDescription);
-			SpecificationNode node = new SpecificationNode(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_STARTPOINT);
-			node.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_PATH,path);
+			SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_STARTPOINT);
+			node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_PATH,path);
 
 			// Now, get the number of children
 			String y = variableContext.getParameter("specchildcount"+pathDescription);
@@ -119,10 +119,10 @@
 					match = variableContext.getParameter("specfile_i"+instanceDescription);
 					sn = new SpecificationNode(flavor);
 					if (type != null && type.length() > 0)
-						sn.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TYPE,type);
+						sn.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TYPE,type);
 					if (indexable != null && indexable.length() > 0)
-						sn.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_INDEXABLE,indexable);
-					sn.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_FILESPEC,match);
+						sn.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_INDEXABLE,indexable);
+					sn.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_FILESPEC,match);
 					node.addChild(w++,sn);
 				}
 				flavor = variableContext.getParameter("specfl"+instanceDescription);
@@ -131,10 +131,10 @@
 				indexable = variableContext.getParameter("specin"+instanceDescription);
 				sn = new SpecificationNode(flavor);
 				if (type != null && type.length() > 0)
-					sn.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TYPE,type);
+					sn.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TYPE,type);
 				if (indexable != null && indexable.length() > 0)
-					sn.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_INDEXABLE,indexable);
-				sn.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_FILESPEC,match);
+					sn.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_INDEXABLE,indexable);
+				sn.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_FILESPEC,match);
 				node.addChild(w++,sn);
 				j++;
 			}
@@ -161,10 +161,10 @@
 				String flavor = variableContext.getParameter("specfl"+pathDescription);
 				SpecificationNode sn = new SpecificationNode(flavor);
 				if (type != null && type.length() > 0)
-					sn.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TYPE,type);
+					sn.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TYPE,type);
 				if (indexable != null && indexable.length() > 0)
-					sn.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_INDEXABLE,indexable);
-				sn.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_FILESPEC,match);
+					sn.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_INDEXABLE,indexable);
+				sn.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_FILESPEC,match);
 				node.addChild(w,sn);
 			}
 
@@ -177,19 +177,19 @@
 		if (op != null && op.equals("Add"))
 		{
 			String path = variableContext.getParameter("specpath");
-			SpecificationNode node = new SpecificationNode(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_STARTPOINT);
-			node.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_PATH,path);
+			SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_STARTPOINT);
+			node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_PATH,path);
 			ds.addChild(ds.getChildCount(),node);
 
 			// Now add in the defaults; these will be "include all directories" and "include all indexable files".
-			SpecificationNode sn = new SpecificationNode(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_INCLUDE);
-			sn.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TYPE,"file");
-			sn.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_INDEXABLE,"yes");
-			sn.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_FILESPEC,"*");
+			SpecificationNode sn = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_INCLUDE);
+			sn.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TYPE,"file");
+			sn.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_INDEXABLE,"yes");
+			sn.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_FILESPEC,"*");
 			node.addChild(node.getChildCount(),sn);
-			sn = new SpecificationNode(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_INCLUDE);
-			sn.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TYPE,"directory");
-			sn.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_FILESPEC,"*");
+			sn = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_INCLUDE);
+			sn.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TYPE,"directory");
+			sn.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_FILESPEC,"*");
 			node.addChild(node.getChildCount(),sn);
 		}
 		else if (op != null && op.equals("Up"))
@@ -231,7 +231,7 @@
 						repositoryConnection.getMaxConnections());
 					try
 					{
-						com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector c = (com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector)connector;
+						org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector c = (org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector)connector;
 						trialPath = c.validateFolderName(trialPath);
 						if (trialPath != null)
 							path = trialPath;
@@ -258,15 +258,15 @@
 		while (i < ds.getChildCount())
 		{
 			SpecificationNode sn = ds.getChild(i);
-			if (sn.getType().equals(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_MAXLENGTH))
+			if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_MAXLENGTH))
 				ds.removeChild(i);
 			else
 				i++;
 		}
 		if (x.length() > 0)
 		{
-			SpecificationNode node = new SpecificationNode(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_MAXLENGTH);
-			node.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_VALUE,x);
+			SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_MAXLENGTH);
+			node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_VALUE,x);
 			ds.addChild(ds.getChildCount(),node);
 		}
 	}
@@ -279,14 +279,14 @@
 		while (i < ds.getChildCount())
 		{
 			SpecificationNode sn = ds.getChild(i);
-			if (sn.getType().equals(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_SECURITY))
+			if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_SECURITY))
 				ds.removeChild(i);
 			else
 				i++;
 		}
 
-		SpecificationNode node = new SpecificationNode(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_SECURITY);
-		node.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_VALUE,x);
+		SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_SECURITY);
+		node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_VALUE,x);
 		ds.addChild(ds.getChildCount(),node);
 
 	}
@@ -299,7 +299,7 @@
 		while (i < ds.getChildCount())
 		{
 			SpecificationNode sn = ds.getChild(i);
-			if (sn.getType().equals(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_ACCESS))
+			if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_ACCESS))
 				ds.removeChild(i);
 			else
 				i++;
@@ -320,8 +320,8 @@
 			}
 			// Get the stuff we need
 			String accessSpec = variableContext.getParameter("spectoken"+accessDescription);
-			SpecificationNode node = new SpecificationNode(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_ACCESS);
-			node.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TOKEN,accessSpec);
+			SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_ACCESS);
+			node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TOKEN,accessSpec);
 			ds.addChild(ds.getChildCount(),node);
 			i++;
 		}
@@ -330,8 +330,8 @@
 		if (op != null && op.equals("Add"))
 		{
 			String accessspec = variableContext.getParameter("spectoken");
-			SpecificationNode node = new SpecificationNode(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_ACCESS);
-			node.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TOKEN,accessspec);
+			SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_ACCESS);
+			node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TOKEN,accessspec);
 			ds.addChild(ds.getChildCount(),node);
 		}
 	}
@@ -344,14 +344,14 @@
 		while (i < ds.getChildCount())
 		{
 			SpecificationNode sn = ds.getChild(i);
-			if (sn.getType().equals(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_SHARESECURITY))
+			if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_SHARESECURITY))
 				ds.removeChild(i);
 			else
 				i++;
 		}
 
-		SpecificationNode node = new SpecificationNode(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_SHARESECURITY);
-		node.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_VALUE,x);
+		SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_SHARESECURITY);
+		node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_VALUE,x);
 		ds.addChild(ds.getChildCount(),node);
 
 	}
@@ -364,15 +364,15 @@
 		while (i < ds.getChildCount())
 		{
 			SpecificationNode sn = ds.getChild(i);
-			if (sn.getType().equals(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_PATHNAMEATTRIBUTE))
+			if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_PATHNAMEATTRIBUTE))
 				ds.removeChild(i);
 			else
 				i++;
 		}
 		if (xc.length() > 0)
 		{
-			SpecificationNode node = new SpecificationNode(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_PATHNAMEATTRIBUTE);
-			node.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_VALUE,xc);
+			SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_PATHNAMEATTRIBUTE);
+			node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_VALUE,xc);
 			ds.addChild(ds.getChildCount(),node);
 		}
 	}
@@ -385,7 +385,7 @@
 		while (i < ds.getChildCount())
 		{
 			SpecificationNode sn = ds.getChild(i);
-			if (sn.getType().equals(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_PATHMAP))
+			if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_PATHMAP))
 				ds.removeChild(i);
 			else
 				i++;
@@ -410,9 +410,9 @@
 			// Inserts won't happen until the very end
 			String match = variableContext.getParameter("specmatch"+pathDescription);
 			String replace = variableContext.getParameter("specreplace"+pathDescription);
-			SpecificationNode node = new SpecificationNode(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_PATHMAP);
-			node.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH,match);
-			node.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE,replace);
+			SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_PATHMAP);
+			node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH,match);
+			node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE,replace);
 			ds.addChild(ds.getChildCount(),node);
 			i++;
 		}
@@ -423,9 +423,9 @@
 		{
 			String match = variableContext.getParameter("specmatch");
 			String replace = variableContext.getParameter("specreplace");
-			SpecificationNode node = new SpecificationNode(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_PATHMAP);
-			node.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH,match);
-			node.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE,replace);
+			SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_PATHMAP);
+			node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH,match);
+			node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE,replace);
 			ds.addChild(ds.getChildCount(),node);
 		}
 	}
@@ -438,7 +438,7 @@
 		while (i < ds.getChildCount())
 		{
 			SpecificationNode sn = ds.getChild(i);
-			if (sn.getType().equals(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_FILEMAP))
+			if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_FILEMAP))
 				ds.removeChild(i);
 			else
 				i++;
@@ -463,9 +463,9 @@
 			// Inserts won't happen until the very end
 			String match = variableContext.getParameter("specfmapmatch"+pathDescription);
 			String replace = variableContext.getParameter("specfmapreplace"+pathDescription);
-			SpecificationNode node = new SpecificationNode(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_FILEMAP);
-			node.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH,match);
-			node.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE,replace);
+			SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_FILEMAP);
+			node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH,match);
+			node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE,replace);
 			ds.addChild(ds.getChildCount(),node);
 			i++;
 		}
@@ -476,9 +476,9 @@
 		{
 			String match = variableContext.getParameter("specfmapmatch");
 			String replace = variableContext.getParameter("specfmapreplace");
-			SpecificationNode node = new SpecificationNode(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_FILEMAP);
-			node.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH,match);
-			node.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE,replace);
+			SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_FILEMAP);
+			node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH,match);
+			node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE,replace);
 			ds.addChild(ds.getChildCount(),node);
 		}
 	}
@@ -491,7 +491,7 @@
 		while (i < ds.getChildCount())
 		{
 			SpecificationNode sn = ds.getChild(i);
-			if (sn.getType().equals(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_URIMAP))
+			if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_URIMAP))
 				ds.removeChild(i);
 			else
 				i++;
@@ -516,9 +516,9 @@
 			// Inserts won't happen until the very end
 			String match = variableContext.getParameter("specumapmatch"+pathDescription);
 			String replace = variableContext.getParameter("specumapreplace"+pathDescription);
-			SpecificationNode node = new SpecificationNode(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_URIMAP);
-			node.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH,match);
-			node.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE,replace);
+			SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_URIMAP);
+			node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH,match);
+			node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE,replace);
 			ds.addChild(ds.getChildCount(),node);
 			i++;
 		}
@@ -529,9 +529,9 @@
 		{
 			String match = variableContext.getParameter("specumapmatch");
 			String replace = variableContext.getParameter("specumapreplace");
-			SpecificationNode node = new SpecificationNode(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_URIMAP);
-			node.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH,match);
-			node.setAttribute(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE,replace);
+			SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_URIMAP);
+			node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH,match);
+			node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE,replace);
 			ds.addChild(ds.getChildCount(),node);
 		}
 	}

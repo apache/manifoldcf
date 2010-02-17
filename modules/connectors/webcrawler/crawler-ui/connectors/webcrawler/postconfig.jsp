@@ -38,10 +38,10 @@
 
 	String email = variableContext.getParameter("email");
 	if (email != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.PARAMETER_EMAIL,email);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.PARAMETER_EMAIL,email);
 	String robotsUsage = variableContext.getParameter("robotsusage");
 	if (robotsUsage != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.PARAMETER_ROBOTSUSAGE,robotsUsage);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.PARAMETER_ROBOTSUSAGE,robotsUsage);
 
 	String x = variableContext.getParameter("bandwidth_count");
 	if (x != null && x.length() > 0)
@@ -51,7 +51,7 @@
 		while (i < parameters.getChildCount())
 		{
 			ConfigNode node = parameters.getChild(i);
-			if (node.getType().equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_BINDESC))
+			if (node.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_BINDESC))
 				parameters.removeChild(i);
 			else
 				i++;
@@ -70,26 +70,26 @@
 				String maxConnections = variableContext.getParameter("connections_"+prefix);
 				String rate = variableContext.getParameter("rate_"+prefix);
 				String fetches = variableContext.getParameter("fetches_"+prefix);
-				ConfigNode node = new ConfigNode(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_BINDESC);
-				node.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_BINREGEXP,regexp);
+				ConfigNode node = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_BINDESC);
+				node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_BINREGEXP,regexp);
 				if (isCaseInsensitive != null && isCaseInsensitive.length() > 0)
-					node.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_INSENSITIVE,isCaseInsensitive);
+					node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_INSENSITIVE,isCaseInsensitive);
 				if (maxConnections != null && maxConnections.length() > 0)
 				{
-					ConfigNode child = new ConfigNode(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXCONNECTIONS);
-					child.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,maxConnections);
+					ConfigNode child = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXCONNECTIONS);
+					child.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,maxConnections);
 					node.addChild(node.getChildCount(),child);
 				}
 				if (rate != null && rate.length() > 0)
 				{
-					ConfigNode child = new ConfigNode(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXKBPERSECOND);
-					child.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,rate);
+					ConfigNode child = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXKBPERSECOND);
+					child.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,rate);
 					node.addChild(node.getChildCount(),child);
 				}
 				if (fetches != null && fetches.length() > 0)
 				{
-					ConfigNode child = new ConfigNode(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXFETCHESPERMINUTE);
-					child.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,fetches);
+					ConfigNode child = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXFETCHESPERMINUTE);
+					child.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,fetches);
 					node.addChild(node.getChildCount(),child);
 				}
 				parameters.addChild(parameters.getChildCount(),node);
@@ -104,26 +104,26 @@
 			String maxConnections = variableContext.getParameter("connections_bandwidth");
 			String rate = variableContext.getParameter("rate_bandwidth");
 			String fetches = variableContext.getParameter("fetches_bandwidth");
-			ConfigNode node = new ConfigNode(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_BINDESC);
-			node.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_BINREGEXP,regexp);
+			ConfigNode node = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_BINDESC);
+			node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_BINREGEXP,regexp);
 			if (isCaseInsensitive != null && isCaseInsensitive.length() > 0)
-				node.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_INSENSITIVE,isCaseInsensitive);
+				node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_INSENSITIVE,isCaseInsensitive);
 			if (maxConnections != null && maxConnections.length() > 0)
 			{
-				ConfigNode child = new ConfigNode(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXCONNECTIONS);
-				child.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,maxConnections);
+				ConfigNode child = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXCONNECTIONS);
+				child.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,maxConnections);
 				node.addChild(node.getChildCount(),child);
 			}
 			if (rate != null && rate.length() > 0)
 			{
-				ConfigNode child = new ConfigNode(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXKBPERSECOND);
-				child.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,rate);
+				ConfigNode child = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXKBPERSECOND);
+				child.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,rate);
 				node.addChild(node.getChildCount(),child);
 			}
 			if (fetches != null && fetches.length() > 0)
 			{
-				ConfigNode child = new ConfigNode(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXFETCHESPERMINUTE);
-				child.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,fetches);
+				ConfigNode child = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXFETCHESPERMINUTE);
+				child.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,fetches);
 				node.addChild(node.getChildCount(),child);
 			}
 			parameters.addChild(parameters.getChildCount(),node);
@@ -138,8 +138,8 @@
 		while (i < parameters.getChildCount())
 		{
 			ConfigNode node = parameters.getChild(i);
-			if (node.getType().equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL)
-                                && !node.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE).equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION))
+			if (node.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL)
+                                && !node.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE).equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION))
 				parameters.removeChild(i);
 			else
 				i++;
@@ -160,13 +160,13 @@
 					domain = "";
 				String userName = variableContext.getParameter("username_"+prefix);
 				String password = variableContext.getParameter("password_"+prefix);
-				ConfigNode node = new ConfigNode(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL);
-				node.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,regexp);
-				node.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE,type);
-				node.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_DOMAIN,domain);
-				node.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_USERNAME,userName);
-				node.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD,
-					com.metacarta.crawler.system.Metacarta.obfuscate(password));
+				ConfigNode node = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL);
+				node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,regexp);
+				node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE,type);
+				node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_DOMAIN,domain);
+				node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_USERNAME,userName);
+				node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD,
+					org.apache.lcf.crawler.system.Metacarta.obfuscate(password));
 				parameters.addChild(parameters.getChildCount(),node);
 			}
 			i++;
@@ -179,13 +179,13 @@
 			String domain = variableContext.getParameter("domain_acredential");
 			String userName = variableContext.getParameter("username_acredential");
 			String password = variableContext.getParameter("password_acredential");
-			ConfigNode node = new ConfigNode(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL);
-			node.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,regexp);
-			node.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE,type);
-			node.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_DOMAIN,domain);
-			node.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_USERNAME,userName);
-			node.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD,
-				com.metacarta.crawler.system.Metacarta.obfuscate(password));
+			ConfigNode node = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL);
+			node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,regexp);
+			node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE,type);
+			node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_DOMAIN,domain);
+			node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_USERNAME,userName);
+			node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD,
+				org.apache.lcf.crawler.system.Metacarta.obfuscate(password));
 			parameters.addChild(parameters.getChildCount(),node);
 		}
 	}
@@ -198,8 +198,8 @@
 		while (i < parameters.getChildCount())
 		{
 			ConfigNode node = parameters.getChild(i);
-			if (node.getType().equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL)
-                                && node.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE).equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION))
+			if (node.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL)
+                                && node.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE).equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION))
 				parameters.removeChild(i);
 			else
 				i++;
@@ -214,9 +214,9 @@
 			{
 				// Gather the regexp etc.
 				String regexp = variableContext.getParameter(prefix+"_regexp");
-				ConfigNode node = new ConfigNode(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL);
-				node.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,regexp);
-				node.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE,com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION);
+				ConfigNode node = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL);
+				node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,regexp);
+				node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE,org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION);
                                 // How many login pages are there?
                                 int loginPageCount = Integer.parseInt(variableContext.getParameter(prefix+"_loginpagecount"));
                                 int q = 0;
@@ -231,11 +231,11 @@
 						String matchRegexp = variableContext.getParameter(authpagePrefix+"_matchregexp");
 						if (matchRegexp == null)
 							matchRegexp = "";
-                                                ConfigNode authPageNode = new ConfigNode(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPAGE);
-                                                authPageNode.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,pageRegexp);
-						authPageNode.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE,pageType);
-						authPageNode.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_MATCHREGEXP,matchRegexp);
-						if (pageType.equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_FORM))
+                                                ConfigNode authPageNode = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPAGE);
+                                                authPageNode.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,pageRegexp);
+						authPageNode.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE,pageType);
+						authPageNode.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_MATCHREGEXP,matchRegexp);
+						if (pageType.equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_FORM))
 						{
 							// How many parameters are there?
 							int paramCount = Integer.parseInt(variableContext.getParameter(authpagePrefix+"_loginparamcount"));
@@ -249,12 +249,12 @@
 									String name = variableContext.getParameter(paramPrefix+"_param");
 									String value = variableContext.getParameter(paramPrefix+"_value");
 									String password = variableContext.getParameter(paramPrefix+"_password");
-									ConfigNode paramNode = new ConfigNode(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPARAMETER);
-									paramNode.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_NAMEREGEXP,name);
+									ConfigNode paramNode = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPARAMETER);
+									paramNode.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_NAMEREGEXP,name);
 									if (value != null && value.length() > 0)
-										paramNode.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,value);
+										paramNode.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,value);
 									if (password != null && password.length() > 0)
-										paramNode.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD,com.metacarta.crawler.system.Metacarta.obfuscate(password));
+										paramNode.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD,org.apache.lcf.crawler.system.Metacarta.obfuscate(password));
 									authPageNode.addChild(authPageNode.getChildCount(),paramNode);
 								}
 								z++;
@@ -267,12 +267,12 @@
 								String name = variableContext.getParameter(authpagePrefix+"_loginparamname");
 								String value = variableContext.getParameter(authpagePrefix+"_loginparamvalue");
 								String password = variableContext.getParameter(authpagePrefix+"_loginparampassword");
-								ConfigNode paramNode = new ConfigNode(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPARAMETER);
-								paramNode.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_NAMEREGEXP,name);
+								ConfigNode paramNode = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPARAMETER);
+								paramNode.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_NAMEREGEXP,name);
 								if (value != null && value.length() > 0)
-									paramNode.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,value);
+									paramNode.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,value);
 								if (password != null && password.length() > 0)
-									paramNode.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD,com.metacarta.crawler.system.Metacarta.obfuscate(password));
+									paramNode.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD,org.apache.lcf.crawler.system.Metacarta.obfuscate(password));
 								authPageNode.addChild(authPageNode.getChildCount(),paramNode);
 							}
 						}
@@ -290,10 +290,10 @@
 					String matchRegexp = variableContext.getParameter(prefix+"_loginpagematchregexp");
 					if (matchRegexp == null)
 						matchRegexp = "";
-                                        ConfigNode authPageNode = new ConfigNode(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPAGE);
-                                        authPageNode.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,pageRegexp);
-					authPageNode.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE,pageType);
-					authPageNode.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_MATCHREGEXP,matchRegexp);
+                                        ConfigNode authPageNode = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPAGE);
+                                        authPageNode.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,pageRegexp);
+					authPageNode.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE,pageType);
+					authPageNode.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_MATCHREGEXP,matchRegexp);
                                         node.addChild(node.getChildCount(),authPageNode);
                                 }
 
@@ -305,9 +305,9 @@
 		if (addop != null && addop.equals("Add"))
 		{
 			String regexp = variableContext.getParameter("scredential_regexp");
-			ConfigNode node = new ConfigNode(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL);
-			node.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,regexp);
-			node.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE,com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION);
+			ConfigNode node = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL);
+			node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,regexp);
+			node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE,org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION);
 			parameters.addChild(parameters.getChildCount(),node);
 		}
 	}
@@ -320,7 +320,7 @@
 		while (i < parameters.getChildCount())
 		{
 			ConfigNode node = parameters.getChild(i);
-			if (node.getType().equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_TRUST))
+			if (node.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_TRUST))
 				parameters.removeChild(i);
 			else
 				i++;
@@ -337,12 +337,12 @@
 				String regexp = variableContext.getParameter("regexp_"+prefix);
 				String trustall = variableContext.getParameter("trustall_"+prefix);
 				String truststore = variableContext.getParameter("truststore_"+prefix);
-				ConfigNode node = new ConfigNode(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_TRUST);
-				node.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,regexp);
+				ConfigNode node = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_TRUST);
+				node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,regexp);
 				if (trustall != null && trustall.equals("true"))
-					node.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTEVERYTHING,"true");
+					node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTEVERYTHING,"true");
 				else
-					node.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTSTORE,truststore);
+					node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTSTORE,truststore);
 				parameters.addChild(parameters.getChildCount(),node);
 			}
 			i++;
@@ -354,9 +354,9 @@
 			String trustall = variableContext.getParameter("all_trust");
 			if (trustall != null && trustall.equals("true"))
 			{
-				ConfigNode node = new ConfigNode(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_TRUST);
-				node.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,regexp);
-				node.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTEVERYTHING,"true");
+				ConfigNode node = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_TRUST);
+				node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,regexp);
+				node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTEVERYTHING,"true");
 				parameters.addChild(parameters.getChildCount(),node);
 			}
 			else
@@ -388,9 +388,9 @@
 <%
 				}
 
-				ConfigNode node = new ConfigNode(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_TRUST);
-				node.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,regexp);
-				node.setAttribute(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTSTORE,mgr.getString());
+				ConfigNode node = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_TRUST);
+				node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,regexp);
+				node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTSTORE,mgr.getString());
 				parameters.addChild(parameters.getChildCount(),node);
 			}
 		}

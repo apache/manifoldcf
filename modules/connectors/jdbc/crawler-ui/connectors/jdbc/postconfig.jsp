@@ -39,22 +39,22 @@
 
 	String type = variableContext.getParameter("databasetype");
 	if (type != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.jdbc.JDBCConstants.providerParameter,type);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.providerParameter,type);
 
 	String host = variableContext.getParameter("databasehost");
 	if (host != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.jdbc.JDBCConstants.hostParameter,host);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.hostParameter,host);
 
 	String databaseName = variableContext.getParameter("databasename");
 	if (databaseName != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.jdbc.JDBCConstants.databaseNameParameter,databaseName);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.databaseNameParameter,databaseName);
 
 	String userName = variableContext.getParameter("username");
 	if (userName != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.jdbc.JDBCConstants.databaseUserName,userName);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.databaseUserName,userName);
 
 	String password = variableContext.getParameter("password");
 	if (password != null)
-		parameters.setObfuscatedParameter(com.metacarta.crawler.connectors.jdbc.JDBCConstants.databasePassword,password);
+		parameters.setObfuscatedParameter(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.databasePassword,password);
 
 %>

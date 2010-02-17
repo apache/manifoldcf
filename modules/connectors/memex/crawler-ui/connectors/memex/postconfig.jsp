@@ -38,38 +38,38 @@
 
 	String memexServerName = variableContext.getParameter("memexservername");
 	if (memexServerName != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_MEMEXSERVERNAME,memexServerName);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_MEMEXSERVERNAME,memexServerName);
 		
 	String memexServerPort = variableContext.getParameter("memexserverport");
 	if (memexServerPort != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_MEMEXSERVERPORT,memexServerPort);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_MEMEXSERVERPORT,memexServerPort);
 	
 	String crawlUser = variableContext.getParameter("crawluser");
 	if (crawlUser != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_USERID,crawlUser);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_USERID,crawlUser);
 
 	String crawlUserPassword = variableContext.getParameter("crawluserpassword");
 	if (crawlUserPassword != null)
-		parameters.setObfuscatedParameter(com.metacarta.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_PASSWORD,crawlUserPassword);
+		parameters.setObfuscatedParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_PASSWORD,crawlUserPassword);
 
 	String webServerProtocol = variableContext.getParameter("webserverprotocol");
 	if (webServerProtocol != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_WEBSERVERPROTOCOL,webServerProtocol);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_WEBSERVERPROTOCOL,webServerProtocol);
 		
 	String webServerName = variableContext.getParameter("webservername");
 	if (webServerName != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_WEBSERVERNAME,webServerName);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_WEBSERVERNAME,webServerName);
 		
 	String webServerPort = variableContext.getParameter("webserverport");
 	if (webServerPort != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_WEBSERVERPORT,webServerPort);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_WEBSERVERPORT,webServerPort);
 
 	String characterEncoding = variableContext.getParameter("characterencoding");
 	if (characterEncoding != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_CHARACTERENCODING,characterEncoding);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_CHARACTERENCODING,characterEncoding);
 		
 	String serverTimezone = variableContext.getParameter("servertimezone");
 	if (serverTimezone != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_SERVERTIMEZONE,serverTimezone);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_SERVERTIMEZONE,serverTimezone);
 
 %>

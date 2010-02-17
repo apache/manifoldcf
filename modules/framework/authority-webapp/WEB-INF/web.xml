@@ -27,7 +27,7 @@
 
   <servlet>
 	<servlet-name>UserACLServlet</servlet-name>
-    	<servlet-class>com.metacarta.authorityservice.servlet.UserACLServlet</servlet-class>
+    	<servlet-class>org.apache.lcf.authorityservice.servlet.UserACLServlet</servlet-class>
   </servlet>
 
   <servlet-mapping>

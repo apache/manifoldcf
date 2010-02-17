@@ -58,10 +58,10 @@ i = 0;
 while (i < ds.getChildCount())
 {
 	SpecificationNode sn = ds.getChild(i++);
-	if (sn.getType().equals(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_NODE_ENTITY))
+	if (sn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_ENTITY))
 	{
-		String entityName = sn.getAttributeValue(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_NAME);
-		String entityDescription = sn.getAttributeValue(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_DESCRIPTION);
+		String entityName = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_NAME);
+		String entityDescription = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_DESCRIPTION);
 		if (entityDescription == null)
 			entityDescription = entityName;
 
@@ -73,15 +73,15 @@ while (i < ds.getChildCount())
 		while (kk < sn.getChildCount())
 		{
 			SpecificationNode dsn = sn.getChild(kk++);
-			if (dsn.getType().equals(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_NODE_PRIMARYFIELD))
+			if (dsn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_PRIMARYFIELD))
 			{
-				String fieldName = dsn.getAttributeValue(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_NAME);
+				String fieldName = dsn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_NAME);
 				primaryList.add(fieldName);
 				overallMap.put(fieldName,fieldName);
 			}
-			else if (dsn.getType().equals(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_NODE_METAFIELD))
+			else if (dsn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_METAFIELD))
 			{
-				String fieldName = dsn.getAttributeValue(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_NAME);
+				String fieldName = dsn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_NAME);
 				attrMap.put(fieldName,fieldName);
 				overallMap.put(fieldName,fieldName);
 			}
@@ -117,15 +117,15 @@ if (tabName.equals("Entities"))
 		// We'll need to release the connection without fail
 		try
 		{
-			com.metacarta.crawler.connectors.memex.MemexConnector memexConnector = (com.metacarta.crawler.connectors.memex.MemexConnector) connector;
-			com.metacarta.crawler.connectors.memex.NameDescription[] entityTypes = memexConnector.listEntityTypes();
+			org.apache.lcf.crawler.connectors.memex.MemexConnector memexConnector = (org.apache.lcf.crawler.connectors.memex.MemexConnector) connector;
+			org.apache.lcf.crawler.connectors.memex.NameDescription[] entityTypes = memexConnector.listEntityTypes();
 %>
 		<input type="hidden" name="entitytypecount" value="<%=Integer.toString(entityTypes.length)%>"/>
 <%
 			int ii = 0;
 			while (ii < entityTypes.length)
 			{
-				com.metacarta.crawler.connectors.memex.NameDescription entityType = entityTypes[ii];
+				org.apache.lcf.crawler.connectors.memex.NameDescription entityType = entityTypes[ii];
 				String entityPrefix = entityType.getSymbolicName();
 				String entityDisplayName = entityType.getDisplayName();
 				ArrayList primaryFields = (ArrayList)entityMap.get(entityPrefix);
@@ -137,9 +137,9 @@ if (tabName.equals("Entities"))
 %>
 		<tr class='<%=((ii % 2)==0)?"evenformrow":"oddformrow"%>'>
 			<td class="formcolumncell">
-				<input type="hidden" name='<%="entitytype_"+Integer.toString(ii)%>' value="<%=com.metacarta.ui.util.Encoder.attributeEscape(entityPrefix)%>"/>
-				<input type="hidden" name='<%="entitydesc_"+Integer.toString(ii)%>' value="<%=com.metacarta.ui.util.Encoder.attributeEscape(entityDisplayName)%>"/>
-				<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(entityDisplayName)%>:</nobr>
+				<input type="hidden" name='<%="entitytype_"+Integer.toString(ii)%>' value="<%=org.apache.lcf.ui.util.Encoder.attributeEscape(entityPrefix)%>"/>
+				<input type="hidden" name='<%="entitydesc_"+Integer.toString(ii)%>' value="<%=org.apache.lcf.ui.util.Encoder.attributeEscape(entityDisplayName)%>"/>
+				<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(entityDisplayName)%>:</nobr>
 			</td>
 			<td class="formcolumncell">
 				<select name='<%="primaryfields_"+Integer.toString(ii)%>' size="5" multiple="true">
@@ -153,7 +153,7 @@ if (tabName.equals("Entities"))
 					{
 						String primaryField = (String)primaryFields.get(jj++);
 %>
-					<option value="<%=com.metacarta.ui.util.Encoder.attributeEscape(primaryField)%>"><%=com.metacarta.ui.util.Encoder.bodyEscape(primaryField)%></option>
+					<option value="<%=org.apache.lcf.ui.util.Encoder.attributeEscape(primaryField)%>"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(primaryField)%></option>
 <%
 					}
 				}
@@ -175,7 +175,7 @@ if (tabName.equals("Entities"))
 					if (overallMap == null || overallMap.get(legalFieldValue) == null)
 					{
 %>
-					<option value="<%=com.metacarta.ui.util.Encoder.attributeEscape(legalFieldValue)%>"><%=com.metacarta.ui.util.Encoder.bodyEscape(legalFieldValue)%></option>
+					<option value="<%=org.apache.lcf.ui.util.Encoder.attributeEscape(legalFieldValue)%>"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(legalFieldValue)%></option>
 <%
 					}
 				}
@@ -199,7 +199,7 @@ if (tabName.equals("Entities"))
 						if (attrMap.get(legalFieldValue) != null)
 						{
 %>
-					<option value="<%=com.metacarta.ui.util.Encoder.attributeEscape(legalFieldValue)%>"><%=com.metacarta.ui.util.Encoder.bodyEscape(legalFieldValue)%></option>
+					<option value="<%=org.apache.lcf.ui.util.Encoder.attributeEscape(legalFieldValue)%>"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(legalFieldValue)%></option>
 <%
 						}
 					}
@@ -222,7 +222,7 @@ if (tabName.equals("Entities"))
 %>
 		<tr>
 			<td class="message" colspan="6">
-				<%=com.metacarta.ui.util.Encoder.bodyEscape(e.getMessage())%>
+				<%=org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())%>
 			</td>
 		</tr>
 <%
@@ -256,15 +256,15 @@ if (tabName.equals("Entities"))
 		ArrayList primaryFields = (ArrayList)entityMap.get(entityType);
 		HashMap attrMap = (HashMap)entityMetadataMap.get(entityType);
 %>
-	<input type="hidden" name='<%="entitytype_"+Integer.toString(ii)%>' value="<%=com.metacarta.ui.util.Encoder.attributeEscape(entityType)%>"/>
-	<input type="hidden" name='<%="entitydesc_"+Integer.toString(ii)%>' value="<%=com.metacarta.ui.util.Encoder.attributeEscape(displayName)%>"/>
+	<input type="hidden" name='<%="entitytype_"+Integer.toString(ii)%>' value="<%=org.apache.lcf.ui.util.Encoder.attributeEscape(entityType)%>"/>
+	<input type="hidden" name='<%="entitydesc_"+Integer.toString(ii)%>' value="<%=org.apache.lcf.ui.util.Encoder.attributeEscape(displayName)%>"/>
 <%
 		int jj = 0;
 		while (jj < primaryFields.size())
 		{
 			String primaryField = (String)primaryFields.get(jj++);
 %>
-	<input type="hidden" name='<%="primaryfields_"+Integer.toString(ii)%>' value="<%=com.metacarta.ui.util.Encoder.attributeEscape(primaryField)%>"/>
+	<input type="hidden" name='<%="primaryfields_"+Integer.toString(ii)%>' value="<%=org.apache.lcf.ui.util.Encoder.attributeEscape(primaryField)%>"/>
 <%
 		}
 		Iterator iter2 = attrMap.keySet().iterator();
@@ -272,7 +272,7 @@ if (tabName.equals("Entities"))
 		{
 			String attrName = (String)iter2.next();
 %>
-	<input type="hidden" name='<%="metadatafields_"+Integer.toString(ii)%>' value="<%=com.metacarta.ui.util.Encoder.attributeEscape(attrName)%>"/>
+	<input type="hidden" name='<%="metadatafields_"+Integer.toString(ii)%>' value="<%=org.apache.lcf.ui.util.Encoder.attributeEscape(attrName)%>"/>
 <%
 		}
 		ii++;
@@ -305,25 +305,25 @@ if (tabName.equals("Record Criteria"))
 	while (q < ds.getChildCount())
 	{
 	    SpecificationNode sn = ds.getChild(q++);
-	    if (sn.getType().equals(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_NODE_SPECIFICATIONRULE))
+	    if (sn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_SPECIFICATIONRULE))
 	    {
 		// Grab the appropriate rule data
-		String virtualServer = sn.getAttributeValue(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_VIRTUALSERVER);
+		String virtualServer = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_VIRTUALSERVER);
 		if (virtualServer == null)
 			virtualServer = "";
-		String entityPrefix = sn.getAttributeValue(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_ENTITY);
+		String entityPrefix = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_ENTITY);
 		if (entityPrefix == null)
 			entityPrefix = "";
-		String entityDescription = sn.getAttributeValue(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_DESCRIPTION);
+		String entityDescription = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_DESCRIPTION);
 		if (entityDescription == null)
 			entityDescription = entityPrefix;
-		String fieldName = sn.getAttributeValue(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_FIELDNAME);
+		String fieldName = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_FIELDNAME);
 		if (fieldName == null)
 			fieldName = "";
-		String operation = sn.getAttributeValue(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_OPERATION);
+		String operation = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_OPERATION);
 		if (operation == null)
 			operation = "";
-		String fieldValue = sn.getAttributeValue(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_FIELDVALUE);
+		String fieldValue = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_FIELDVALUE);
 		if (fieldValue == null)
 			fieldValue = "";
 
@@ -335,22 +335,22 @@ if (tabName.equals("Record Criteria"))
 						<td class="formcolumncell"><nobr>
 							<a name='<%="rule_"+Integer.toString(l)%>'/>
 							<input type="hidden" name='<%=pathOpName%>' value=""/>
-							<input type="hidden" name='<%="virtualserver"+pathDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(virtualServer)%>'/>
-							<input type="hidden" name='<%="entityprefix"+pathDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(entityPrefix)%>'/>
-							<input type="hidden" name='<%="entitydescription"+pathDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(entityDescription)%>'/>
-							<input type="hidden" name='<%="fieldname"+pathDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(fieldName)%>'/>
-							<input type="hidden" name='<%="operation"+pathDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(operation)%>'/>
-							<input type="hidden" name='<%="fieldvalue"+pathDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(fieldValue)%>'/>
+							<input type="hidden" name='<%="virtualserver"+pathDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(virtualServer)%>'/>
+							<input type="hidden" name='<%="entityprefix"+pathDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(entityPrefix)%>'/>
+							<input type="hidden" name='<%="entitydescription"+pathDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(entityDescription)%>'/>
+							<input type="hidden" name='<%="fieldname"+pathDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(fieldName)%>'/>
+							<input type="hidden" name='<%="operation"+pathDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(operation)%>'/>
+							<input type="hidden" name='<%="fieldvalue"+pathDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(fieldValue)%>'/>
 							<input type="button" value="Delete" onClick='<%="Javascript:SpecDeleteRule("+Integer.toString(l)+")"%>' alt='<%="Delete rule #"+Integer.toString(l)%>'/></nobr>
 						</td>
 						<td class="formcolumncell">
-							<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape((virtualServer.length()==0)?"(All)":virtualServer)%></nobr>
+							<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape((virtualServer.length()==0)?"(All)":virtualServer)%></nobr>
 						</td>
 						<td class="formcolumncell">
-							<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape((entityPrefix.length()==0)?"(All)":(entityDescription==null)?entityPrefix:entityDescription)%></nobr>
+							<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape((entityPrefix.length()==0)?"(All)":(entityDescription==null)?entityPrefix:entityDescription)%></nobr>
 						</td>
 						<td class="formcolumncell">
-							<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape((fieldName.length()==0)?"(All)":(fieldName+" "+operation+" "+fieldValue))%></nobr>
+							<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape((fieldName.length()==0)?"(All)":(fieldName+" "+operation+" "+fieldValue))%></nobr>
 						</td>
 					</tr>
 <%
@@ -402,12 +402,12 @@ if (tabName.equals("Record Criteria"))
 		ruleFieldValue = "";
 
 %>
-							<input type="hidden" name="rulevirtualserver" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(ruleVirtualServer)%>'/>
-							<input type="hidden" name="ruleentityprefix" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(ruleEntityPrefix)%>'/>
-							<input type="hidden" name="ruleentitydescription" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(ruleEntityDescription)%>'/>
-							<input type="hidden" name="rulefieldname" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(ruleFieldName)%>'/>
-							<input type="hidden" name="ruleoperation" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(ruleOperation)%>'/>
-							<input type="hidden" name="rulefieldvalue" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(ruleFieldValue)%>'/>
+							<input type="hidden" name="rulevirtualserver" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(ruleVirtualServer)%>'/>
+							<input type="hidden" name="ruleentityprefix" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(ruleEntityPrefix)%>'/>
+							<input type="hidden" name="ruleentitydescription" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(ruleEntityDescription)%>'/>
+							<input type="hidden" name="rulefieldname" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(ruleFieldName)%>'/>
+							<input type="hidden" name="ruleoperation" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(ruleOperation)%>'/>
+							<input type="hidden" name="rulefieldvalue" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(ruleFieldValue)%>'/>
 							</nobr>
 							<br/>
 							<nobr>
@@ -447,7 +447,7 @@ if (tabName.equals("Record Criteria"))
 	{
 		// Display what was chosen
 %>
-							<%=com.metacarta.ui.util.Encoder.bodyEscape(ruleVirtualServer)%>
+							<%=org.apache.lcf.ui.util.Encoder.bodyEscape(ruleVirtualServer)%>
 <%
 	}
 	else
@@ -461,7 +461,7 @@ if (tabName.equals("Record Criteria"))
 				repositoryConnection.getMaxConnections());
 			try
 			{
-				com.metacarta.crawler.connectors.memex.MemexConnector memexConnector = (com.metacarta.crawler.connectors.memex.MemexConnector) connector;
+				org.apache.lcf.crawler.connectors.memex.MemexConnector memexConnector = (org.apache.lcf.crawler.connectors.memex.MemexConnector) connector;
 				// Fetch the legal virtual servers
 				String[] virtualServers = memexConnector.listVirtualServers();
 %>
@@ -473,7 +473,7 @@ if (tabName.equals("Record Criteria"))
 				while (ii < virtualServers.length)
 				{
 %>
-								<option value='<%=com.metacarta.ui.util.Encoder.attributeEscape(virtualServers[ii])%>'><%=com.metacarta.ui.util.Encoder.bodyEscape(virtualServers[ii])%></option>
+								<option value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(virtualServers[ii])%>'><%=org.apache.lcf.ui.util.Encoder.bodyEscape(virtualServers[ii])%></option>
 <%
 					ii++;
 				}
@@ -489,13 +489,13 @@ if (tabName.equals("Record Criteria"))
 		catch (MetacartaException e)
 		{
 %>
-							<%=com.metacarta.ui.util.Encoder.bodyEscape(e.getMessage())%>
+							<%=org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())%>
 <%
 		}
 		catch (ServiceInterruption e)
 		{
 %>
-							Transient service interruption - <%=com.metacarta.ui.util.Encoder.bodyEscape(e.getMessage())%>
+							Transient service interruption - <%=org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())%>
 <%
 		}
 
@@ -510,7 +510,7 @@ if (tabName.equals("Record Criteria"))
 	{
 		// Display what was chosen
 %>
-							<%=com.metacarta.ui.util.Encoder.bodyEscape(ruleEntityDescription)%>
+							<%=org.apache.lcf.ui.util.Encoder.bodyEscape(ruleEntityDescription)%>
 <%
 	}
 	else
@@ -527,9 +527,9 @@ if (tabName.equals("Record Criteria"))
 					repositoryConnection.getMaxConnections());
 				try
 				{
-					com.metacarta.crawler.connectors.memex.MemexConnector memexConnector = (com.metacarta.crawler.connectors.memex.MemexConnector) connector;
+					org.apache.lcf.crawler.connectors.memex.MemexConnector memexConnector = (org.apache.lcf.crawler.connectors.memex.MemexConnector) connector;
 					// Fetch the legal entity prefixes and descriptions
-					com.metacarta.crawler.connectors.memex.NameDescription[] allowedEntities = memexConnector.listDatabasesForVirtualServer(ruleVirtualServer);
+					org.apache.lcf.crawler.connectors.memex.NameDescription[] allowedEntities = memexConnector.listDatabasesForVirtualServer(ruleVirtualServer);
 %>
 							<input type="button" value="Set Entity" onClick='Javascript:SpecRuleSetEntity()' alt="Set entity in rule"/>
 							<select name="ruleentityselect" size="5">
@@ -538,7 +538,7 @@ if (tabName.equals("Record Criteria"))
 					while (ii < allowedEntities.length)
 					{
 %>
-								<option value='<%=com.metacarta.ui.util.Encoder.attributeEscape(allowedEntities[ii].getSymbolicName()+":"+allowedEntities[ii].getDisplayName())%>'><%=com.metacarta.ui.util.Encoder.bodyEscape(allowedEntities[ii].getDisplayName())%></option>
+								<option value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(allowedEntities[ii].getSymbolicName()+":"+allowedEntities[ii].getDisplayName())%>'><%=org.apache.lcf.ui.util.Encoder.bodyEscape(allowedEntities[ii].getDisplayName())%></option>
 <%
 						ii++;
 					}
@@ -554,13 +554,13 @@ if (tabName.equals("Record Criteria"))
 			catch (MetacartaException e)
 			{
 %>
-							<%=com.metacarta.ui.util.Encoder.bodyEscape(e.getMessage())%>
+							<%=org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())%>
 <%
 			}
 			catch (ServiceInterruption e)
 			{
 %>
-							Transient service interruption - <%=com.metacarta.ui.util.Encoder.bodyEscape(e.getMessage())%>
+							Transient service interruption - <%=org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())%>
 <%
 			}
 		}
@@ -579,7 +579,7 @@ if (tabName.equals("Record Criteria"))
 	{
 		// Display the field criteria
 %>
-							<%=com.metacarta.ui.util.Encoder.bodyEscape(ruleFieldName)%> <%=com.metacarta.ui.util.Encoder.bodyEscape(ruleOperation)%> <%=com.metacarta.ui.util.Encoder.bodyEscape(ruleFieldValue)%>
+							<%=org.apache.lcf.ui.util.Encoder.bodyEscape(ruleFieldName)%> <%=org.apache.lcf.ui.util.Encoder.bodyEscape(ruleOperation)%> <%=org.apache.lcf.ui.util.Encoder.bodyEscape(ruleFieldValue)%>
 <%
 	}
 	else
@@ -596,7 +596,7 @@ if (tabName.equals("Record Criteria"))
 					repositoryConnection.getMaxConnections());
 				try
 				{
-					com.metacarta.crawler.connectors.memex.MemexConnector memexConnector = (com.metacarta.crawler.connectors.memex.MemexConnector) connector;
+					org.apache.lcf.crawler.connectors.memex.MemexConnector memexConnector = (org.apache.lcf.crawler.connectors.memex.MemexConnector) connector;
 					// Fetch the legal field names for this entity
 					String[] fieldNames = memexConnector.listMatchableFieldNames(ruleEntityPrefix);
 %>
@@ -608,7 +608,7 @@ if (tabName.equals("Record Criteria"))
 					while (ii < fieldNames.length)
 					{
 %>
-								<option value='<%=com.metacarta.ui.util.Encoder.attributeEscape(fieldNames[ii])%>'><%=com.metacarta.ui.util.Encoder.bodyEscape(fieldNames[ii])%></option>
+								<option value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(fieldNames[ii])%>'><%=org.apache.lcf.ui.util.Encoder.bodyEscape(fieldNames[ii])%></option>
 <%
 						ii++;
 					}
@@ -633,13 +633,13 @@ if (tabName.equals("Record Criteria"))
 			catch (MetacartaException e)
 			{
 %>
-							<%=com.metacarta.ui.util.Encoder.bodyEscape(e.getMessage())%>
+							<%=org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())%>
 <%
 			}
 			catch (ServiceInterruption e)
 			{
 %>
-							Transient service interruption - <%=com.metacarta.ui.util.Encoder.bodyEscape(e.getMessage())%>
+							Transient service interruption - <%=org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())%>
 <%
 			}
 		}
@@ -666,37 +666,37 @@ else
 	while (q < ds.getChildCount())
 	{
 	    SpecificationNode sn = ds.getChild(q++);
-	    if (sn.getType().equals(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_NODE_SPECIFICATIONRULE))
+	    if (sn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_SPECIFICATIONRULE))
 	    {
 		// Grab the appropriate rule data
-		String virtualServer = sn.getAttributeValue(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_VIRTUALSERVER);
+		String virtualServer = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_VIRTUALSERVER);
 		if (virtualServer == null)
 			virtualServer = "";
-		String entityPrefix = sn.getAttributeValue(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_ENTITY);
+		String entityPrefix = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_ENTITY);
 		if (entityPrefix == null)
 			entityPrefix = "";
-		String entityDescription = sn.getAttributeValue(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_DESCRIPTION);
+		String entityDescription = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_DESCRIPTION);
 		if (entityDescription == null)
 			entityDescription = entityPrefix;
-		String fieldName = sn.getAttributeValue(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_FIELDNAME);
+		String fieldName = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_FIELDNAME);
 		if (fieldName == null)
 			fieldName = "";
-		String operation = sn.getAttributeValue(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_OPERATION);
+		String operation = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_OPERATION);
 		if (operation == null)
 			operation = "";
-		String fieldValue = sn.getAttributeValue(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_FIELDVALUE);
+		String fieldValue = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_FIELDVALUE);
 		if (fieldValue == null)
 			fieldValue = "";
 			
 		String pathDescription = "_"+Integer.toString(l);
 
 %>
-	<input type="hidden" name='<%="virtualserver"+pathDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(virtualServer)%>'/>
-	<input type="hidden" name='<%="entityprefix"+pathDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(entityPrefix)%>'/>
-	<input type="hidden" name='<%="entitydescription"+pathDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(entityDescription)%>'/>
-	<input type="hidden" name='<%="fieldname"+pathDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(fieldName)%>'/>
-	<input type="hidden" name='<%="operation"+pathDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(operation)%>'/>
-	<input type="hidden" name='<%="fieldvalue"+pathDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(fieldValue)%>'/>
+	<input type="hidden" name='<%="virtualserver"+pathDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(virtualServer)%>'/>
+	<input type="hidden" name='<%="entityprefix"+pathDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(entityPrefix)%>'/>
+	<input type="hidden" name='<%="entitydescription"+pathDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(entityDescription)%>'/>
+	<input type="hidden" name='<%="fieldname"+pathDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(fieldName)%>'/>
+	<input type="hidden" name='<%="operation"+pathDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(operation)%>'/>
+	<input type="hidden" name='<%="fieldvalue"+pathDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(fieldValue)%>'/>
 <%
 		l++;
 	    }
@@ -713,12 +713,12 @@ boolean securityOn = true;
 while (i < ds.getChildCount())
 {
 	SpecificationNode sn = ds.getChild(i++);
-	if (sn.getType().equals(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_NODE_SECURITY))
+	if (sn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_SECURITY))
 	{
-		String securityValue = sn.getAttributeValue(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_VALUE);
-		if (securityValue.equals(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_VALUE_OFF))
+		String securityValue = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_VALUE);
+		if (securityValue.equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_VALUE_OFF))
 			securityOn = false;
-		else if (securityValue.equals(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_VALUE_ON))
+		else if (securityValue.equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_VALUE_ON))
 			securityOn = true;
 	}
 }
@@ -743,20 +743,20 @@ if (tabName.equals("Security"))
 	while (i < ds.getChildCount())
 	{
 		SpecificationNode sn = ds.getChild(i++);
-		if (sn.getType().equals(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_NODE_ACCESS))
+		if (sn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_ACCESS))
 		{
 			String accessDescription = "_"+Integer.toString(k);
 			String accessOpName = "accessop"+accessDescription;
-			String token = sn.getAttributeValue(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_TOKEN);
+			String token = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_TOKEN);
 %>
 			<tr>
 				<td class="description">
 					<input type="hidden" name='<%=accessOpName%>' value=""/>
-					<input type="hidden" name='<%="spectoken"+accessDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(token)%>'/>
+					<input type="hidden" name='<%="spectoken"+accessDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(token)%>'/>
 					<a name='<%="token_"+Integer.toString(k)%>'><input type="button" value="Delete" onClick='<%="Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")"%>' alt='<%="Delete token #"+Integer.toString(k)%>'/></a>&nbsp;
 				</td>
 				<td class="value">
-					<%=com.metacarta.ui.util.Encoder.bodyEscape(token)%>
+					<%=org.apache.lcf.ui.util.Encoder.bodyEscape(token)%>
 				</td>
 			</tr>
 <%
@@ -789,7 +789,7 @@ if (tabName.equals("Security"))
 else
 {
 %>
-	<input type="hidden" name="specsecurity" value='<%=(securityOn?com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_VALUE_ON:com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_VALUE_OFF)%>'/>
+	<input type="hidden" name="specsecurity" value='<%=(securityOn?org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_VALUE_ON:org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_VALUE_OFF)%>'/>
 <%
 	// Finally, go through forced ACL
 	i = 0;
@@ -797,12 +797,12 @@ else
 	while (i < ds.getChildCount())
 	{
 		SpecificationNode sn = ds.getChild(i++);
-		if (sn.getType().equals(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_NODE_ACCESS))
+		if (sn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_ACCESS))
 		{
 			String accessDescription = "_"+Integer.toString(k);
-			String token = sn.getAttributeValue(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_TOKEN);
+			String token = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_TOKEN);
 %>
-	<input type="hidden" name='<%="spectoken"+accessDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(token)%>'/>
+	<input type="hidden" name='<%="spectoken"+accessDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(token)%>'/>
 <%
 			k++;
 		}

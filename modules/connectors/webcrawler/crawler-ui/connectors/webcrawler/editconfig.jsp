@@ -37,10 +37,10 @@
 	if (tabName == null)
 		out.println("No tab name!");
 
-	String email = parameters.getParameter(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.PARAMETER_EMAIL);
+	String email = parameters.getParameter(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.PARAMETER_EMAIL);
 	if (email == null)
 		email = "";
-	String robotsUsage = parameters.getParameter(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.PARAMETER_ROBOTSUSAGE);
+	String robotsUsage = parameters.getParameter(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.PARAMETER_ROBOTSUSAGE);
 	if (robotsUsage == null)
 		robotsUsage = "all";
 
@@ -51,7 +51,7 @@
 <table class="displaytable">
 	<tr><td class="separator" colspan="2"><hr/></td></tr>
 	<tr>
-		<td class="description"><nobr>Email address to contact:</nobr></td><td class="value"><input type="text" size="32" name="email" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(email)%>'/></td>
+		<td class="description"><nobr>Email address to contact:</nobr></td><td class="value"><input type="text" size="32" name="email" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(email)%>'/></td>
 	</tr>
 </table>
 <%
@@ -59,7 +59,7 @@
 	else
 	{
 %>
-<input type="hidden" name="email" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(email)%>'/>
+<input type="hidden" name="email" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(email)%>'/>
 <%
 	}
 
@@ -113,11 +113,11 @@
 		while (i < parameters.getChildCount())
 		{
 			ConfigNode cn = parameters.getChild(i++);
-			if (cn.getType().equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_BINDESC))
+			if (cn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_BINDESC))
 			{
 				// A bin description node!  Look for all its parameters.
-				String regexp = cn.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_BINREGEXP);
-				String isCaseInsensitive = cn.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_INSENSITIVE);
+				String regexp = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_BINREGEXP);
+				String isCaseInsensitive = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_INSENSITIVE);
 				String maxConnections = null;
 				String maxKBPerSecond = null;
 				String maxFetchesPerMinute = null;
@@ -125,12 +125,12 @@
 				while (j < cn.getChildCount())
 				{
 					ConfigNode childNode = cn.getChild(j++);
-					if (childNode.getType().equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXCONNECTIONS))
-						maxConnections = childNode.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
-					else if (childNode.getType().equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXKBPERSECOND))
-						maxKBPerSecond = childNode.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
-					else if (childNode.getType().equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXFETCHESPERMINUTE))
-						maxFetchesPerMinute = childNode.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
+					if (childNode.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXCONNECTIONS))
+						maxConnections = childNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
+					else if (childNode.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXKBPERSECOND))
+						maxKBPerSecond = childNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
+					else if (childNode.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXFETCHESPERMINUTE))
+						maxFetchesPerMinute = childNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
 				}
 				if (maxConnections == null)
 					maxConnections = "";
@@ -149,10 +149,10 @@
 					<td class="formcolumncell">
 						<a name='<%=prefix%>'><input type="button" value="Delete" alt='<%="Delete bin regular expression #"+Integer.toString(binCounter+1)%>' onclick='<%="javascript:deleteRegexp("+Integer.toString(binCounter)+");"%>'/>
 						<input type="hidden" name='<%="op_"+prefix%>' value="Continue"/>
-						<input type="hidden" name='<%="regexp_"+prefix%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(regexp)%>'/></a>
+						<input type="hidden" name='<%="regexp_"+prefix%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(regexp)%>'/></a>
 					</td>
 					<td class="formcolumncell">
-						<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(regexp)%></nobr>
+						<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(regexp)%></nobr>
 					</td>
 					<td class="formcolumncell">
 						<nobr><input type="checkbox" name='<%="insensitive_"+prefix%>' value="true" <%=(isCaseInsensitive.equals("true"))?"checked=\"\"":""%> /></nobr>
@@ -216,11 +216,11 @@
 		while (i < parameters.getChildCount())
 		{
 			ConfigNode cn = parameters.getChild(i++);
-			if (cn.getType().equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_BINDESC))
+			if (cn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_BINDESC))
 			{
 				// A bin description node!  Look for all its parameters.
-				String regexp = cn.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_BINREGEXP);
-				String isCaseInsensitive = cn.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_INSENSITIVE);
+				String regexp = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_BINREGEXP);
+				String isCaseInsensitive = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_INSENSITIVE);
 				String maxConnections = null;
 				String maxKBPerSecond = null;
 				String maxFetchesPerMinute = null;
@@ -228,12 +228,12 @@
 				while (j < cn.getChildCount())
 				{
 					ConfigNode childNode = cn.getChild(j++);
-					if (childNode.getType().equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXCONNECTIONS))
-						maxConnections = childNode.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
-					else if (childNode.getType().equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXKBPERSECOND))
-						maxKBPerSecond = childNode.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
-					else if (childNode.getType().equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXFETCHESPERMINUTE))
-						maxFetchesPerMinute = childNode.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
+					if (childNode.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXCONNECTIONS))
+						maxConnections = childNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
+					else if (childNode.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXKBPERSECOND))
+						maxKBPerSecond = childNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
+					else if (childNode.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXFETCHESPERMINUTE))
+						maxFetchesPerMinute = childNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
 				}
 				if (maxConnections == null)
 					maxConnections = "";
@@ -247,7 +247,7 @@
 				// It's prefix will be...
 				String prefix = "bandwidth_" + Integer.toString(binCounter);
 %>
-<input type="hidden" name='<%="regexp_"+prefix%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(regexp)%>'/>
+<input type="hidden" name='<%="regexp_"+prefix%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(regexp)%>'/>
 <input type="hidden" name='<%="insensitive_"+prefix%>' value='<%=isCaseInsensitive%>'/>
 <input type="hidden" name='<%="connections_"+prefix%>' value='<%=maxConnections%>'/>
 <input type="hidden" name='<%="rate_"+prefix%>' value='<%=maxKBPerSecond%>'/>
@@ -285,18 +285,18 @@
 		while (i < parameters.getChildCount())
 		{
 			ConfigNode cn = parameters.getChild(i++);
-			if (cn.getType().equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
+			if (cn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
 			{
 				// A bin description node!  Look for all its parameters.
-				String type = cn.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE);
-                                if (!type.equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION))
+				String type = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE);
+                                if (!type.equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION))
                                 {
-                                        String regexp = cn.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
-                                        String domain = cn.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_DOMAIN);
+                                        String regexp = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
+                                        String domain = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_DOMAIN);
                                         if (domain == null)
                                                 domain = "";
-                                        String userName = cn.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_USERNAME);
-                                        String password = com.metacarta.crawler.system.Metacarta.deobfuscate(cn.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD));
+                                        String userName = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_USERNAME);
+                                        String password = org.apache.lcf.crawler.system.Metacarta.deobfuscate(cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD));
                                         
                                         // It's prefix will be...
                                         String prefix = "acredential_" + Integer.toString(accessCounter);
@@ -305,23 +305,23 @@
 					<td class="formcolumncell">
 						<a name='<%=prefix%>'><input type="button" value="Delete" alt='<%="Delete page authentication url regular expression #"+Integer.toString(accessCounter+1)%>' onclick='<%="javascript:deleteARegexp("+Integer.toString(accessCounter)+");"%>'/>
 						<input type="hidden" name='<%="op_"+prefix%>' value="Continue"/>
-						<input type="hidden" name='<%="regexp_"+prefix%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(regexp)%>'/></a>
+						<input type="hidden" name='<%="regexp_"+prefix%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(regexp)%>'/></a>
 					</td>
 					<td class="formcolumncell">
-						<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(regexp)%></nobr>
+						<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(regexp)%></nobr>
 					</td>
 					<td class="formcolumncell">
 						<nobr><input type="radio" name='<%="type_"+prefix%>' value="basic" <%=(type.equals("basic"))?"checked=\"\"":""%> />&nbsp;Basic authentication</nobr><br/>
 						<nobr><input type="radio" name='<%="type_"+prefix%>' value="ntlm" <%=(type.equals("ntlm"))?"checked=\"\"":""%> />&nbsp;NTLM authentication</nobr>
 					</td>
 					<td class="formcolumncell">
-						<nobr><input type="text" size="16" name='<%="domain_"+prefix%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(domain)%>'/></nobr>
+						<nobr><input type="text" size="16" name='<%="domain_"+prefix%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(domain)%>'/></nobr>
 					</td>
 					<td class="formcolumncell">
-						<nobr><input type="text" size="16" name='<%="username_"+prefix%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(userName)%>'/></nobr>
+						<nobr><input type="text" size="16" name='<%="username_"+prefix%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(userName)%>'/></nobr>
 					</td>
 					<td class="formcolumncell">
-						<nobr><input type="password" size="16" name='<%="password_"+prefix%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(password)%>'/></nobr>
+						<nobr><input type="password" size="16" name='<%="password_"+prefix%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(password)%>'/></nobr>
 					</td>
 				</tr>
 <%
@@ -382,13 +382,13 @@
 		while (i < parameters.getChildCount())
 		{
 			ConfigNode cn = parameters.getChild(i++);
-			if (cn.getType().equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
+			if (cn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
 			{
 				// A bin description node!  Look for all its parameters.
-				String type = cn.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE);
-                                if (type.equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION))
+				String type = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE);
+                                if (type.equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION))
                                 {
-                                        String regexp = cn.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
+                                        String regexp = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
                                         
                                         // It's prefix will be...
                                         String prefix = "scredential_" + Integer.toString(accessCounter);
@@ -398,11 +398,11 @@
 						<a name='<%=prefix%>'>
 							<input type="button" value="Delete" alt='<%="Delete session authentication url regular expression #"+Integer.toString(accessCounter+1)%>' onclick='<%="javascript:deleteSRegexp("+Integer.toString(accessCounter)+");"%>'/>
 							<input type="hidden" name='<%=prefix+"_op"%>' value="Continue"/>
-							<input type="hidden" name='<%=prefix+"_regexp"%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(regexp)%>'/>
+							<input type="hidden" name='<%=prefix+"_regexp"%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(regexp)%>'/>
 						</a>
 					</td>
 					<td class="formcolumncell">
-						<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(regexp)%></nobr>
+						<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(regexp)%></nobr>
 					</td>
 					<td class="boxcell">
 						<table class="formtable">
@@ -419,11 +419,11 @@
 					while (q < cn.getChildCount())
 					{
 						ConfigNode authPageNode = cn.getChild(q++);
-						if (authPageNode.getType().equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPAGE))
+						if (authPageNode.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPAGE))
 						{
-							String pageRegexp = authPageNode.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
-							String pageType = authPageNode.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE);
-							String matchRegexp = authPageNode.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_MATCHREGEXP);
+							String pageRegexp = authPageNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
+							String pageType = authPageNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE);
+							String matchRegexp = authPageNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_MATCHREGEXP);
 							if (matchRegexp == null)
 								matchRegexp = "";
 							String authpagePrefix = prefix + "_" + authPageCounter;
@@ -433,16 +433,16 @@
 									<a name='<%=authpagePrefix%>'>
 										<input type="button" value="Delete" alt='<%="Delete login page #"+(authPageCounter+1)+" for url regular expression #"+Integer.toString(accessCounter+1)%>' onclick='<%="javascript:deleteLoginPage("+Integer.toString(accessCounter)+","+Integer.toString(authPageCounter)+");"%>'/>
 										<input type="hidden" name='<%=authpagePrefix+"_op"%>' value="Continue"/>
-										<input type="hidden" name='<%=authpagePrefix+"_regexp"%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(pageRegexp)%>'/>
+										<input type="hidden" name='<%=authpagePrefix+"_regexp"%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(pageRegexp)%>'/>
 										<input type="hidden" name='<%=authpagePrefix+"_type"%>' value='<%=pageType%>'/>
 									</a>
 								</td>
 
-								<td class="formcolumncell"><nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(pageRegexp)%></nobr></td>
+								<td class="formcolumncell"><nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(pageRegexp)%></nobr></td>
 								<td class="formcolumncell"><nobr><%=pageType%></nobr></td>
-								<td class="formcolumncell"><nobr><input type="text" size="30" name='<%=authpagePrefix+"_matchregexp"%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(matchRegexp)%>'/></nobr></td>
+								<td class="formcolumncell"><nobr><input type="text" size="30" name='<%=authpagePrefix+"_matchregexp"%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(matchRegexp)%>'/></nobr></td>
 <%
-							if (pageType.equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_FORM))
+							if (pageType.equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_FORM))
 							{
 %>
 								<td class="boxcell">
@@ -459,15 +459,15 @@
 								while (z < authPageNode.getChildCount())
 								{
 									ConfigNode paramNode = authPageNode.getChild(z++);
-									if (paramNode.getType().equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPARAMETER))
+									if (paramNode.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPARAMETER))
 									{
-										String param = paramNode.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_NAMEREGEXP);
+										String param = paramNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_NAMEREGEXP);
 										if (param == null)
 											param = "";
-										String value = paramNode.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
+										String value = paramNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
 										if (value == null)
 											value = "";
-										String password = paramNode.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD);
+										String password = paramNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD);
 										if (password == null)
 											password = "";
 										String authParamPrefix = authpagePrefix + "_" + paramCounter;
@@ -480,13 +480,13 @@
 												</a>
 											</td>
 											<td class="formcolumncell">
-												<nobr><input type="text" size="30" name='<%=authParamPrefix+"_param"%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(param)%>'/></nobr>
+												<nobr><input type="text" size="30" name='<%=authParamPrefix+"_param"%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(param)%>'/></nobr>
 											</td>
 											<td class="formcolumncell">
-												<nobr><input type="text" size="15" name='<%=authParamPrefix+"_value"%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(value)%>'/></nobr>
+												<nobr><input type="text" size="15" name='<%=authParamPrefix+"_value"%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(value)%>'/></nobr>
 											</td>
 											<td class="formcolumncell">
-												<nobr><input type="password" size="15" name='<%=authParamPrefix+"_password"%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(com.metacarta.crawler.system.Metacarta.deobfuscate(password))%>'/></nobr>
+												<nobr><input type="password" size="15" name='<%=authParamPrefix+"_password"%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(org.apache.lcf.crawler.system.Metacarta.deobfuscate(password))%>'/></nobr>
 											</td>
 										</tr>
 <%
@@ -539,9 +539,9 @@
 									<nobr><input type="text" size="30" name='<%=prefix+"_loginpageregexp"%>' value=""/></nobr>
 								</td>
 								<td class="formcolumncell">
-									<nobr><input type="radio" name='<%=prefix+"_loginpagetype"%>' value='<%=com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_FORM%>' checked=""/>&nbsp;Form name</nobr><br/>
-									<nobr><input type="radio" name='<%=prefix+"_loginpagetype"%>' value='<%=com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_LINK%>'/>&nbsp;Link target</nobr>
-									<nobr><input type="radio" name='<%=prefix+"_loginpagetype"%>' value='<%=com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_REDIRECTION%>'/>&nbsp;Redirection</nobr>
+									<nobr><input type="radio" name='<%=prefix+"_loginpagetype"%>' value='<%=org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_FORM%>' checked=""/>&nbsp;Form name</nobr><br/>
+									<nobr><input type="radio" name='<%=prefix+"_loginpagetype"%>' value='<%=org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_LINK%>'/>&nbsp;Link target</nobr>
+									<nobr><input type="radio" name='<%=prefix+"_loginpagetype"%>' value='<%=org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_REDIRECTION%>'/>&nbsp;Redirection</nobr>
 								</td>
 								<td class="formcolumncell">
 									<nobr><input type="text" size="30" name='<%=prefix+"_loginpagematchregexp"%>' value=""/></nobr>
@@ -596,27 +596,27 @@
 		while (i < parameters.getChildCount())
 		{
 			ConfigNode cn = parameters.getChild(i++);
-			if (cn.getType().equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
+			if (cn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
 			{
 				// A bin description node!  Look for all its parameters.
-				String type = cn.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE);
-				if (!type.equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION))
+				String type = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE);
+				if (!type.equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION))
 				{
-					String regexp = cn.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
-					String domain = cn.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_DOMAIN);
+					String regexp = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
+					String domain = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_DOMAIN);
 					if (domain == null)
 						domain = "";
-					String userName = cn.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_USERNAME);
-					String password = com.metacarta.crawler.system.Metacarta.deobfuscate(cn.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD));
+					String userName = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_USERNAME);
+					String password = org.apache.lcf.crawler.system.Metacarta.deobfuscate(cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD));
 
 					// It's prefix will be...
 					String prefix = "acredential_" + Integer.toString(accessCounter);
 %>
-<input type="hidden" name='<%="regexp_"+prefix%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(regexp)%>'/>
+<input type="hidden" name='<%="regexp_"+prefix%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(regexp)%>'/>
 <input type="hidden" name='<%="type_"+prefix%>' value='<%=type%>'/>
-<input type="hidden" name='<%="domain_"+prefix%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(domain)%>'/>
-<input type="hidden" name='<%="username_"+prefix%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(userName)%>'/>
-<input type="hidden" name='<%="password_"+prefix%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(password)%>'/>
+<input type="hidden" name='<%="domain_"+prefix%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(domain)%>'/>
+<input type="hidden" name='<%="username_"+prefix%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(userName)%>'/>
+<input type="hidden" name='<%="password_"+prefix%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(password)%>'/>
 <%
 					accessCounter++;
 				}
@@ -632,17 +632,17 @@
 		while (i < parameters.getChildCount())
 		{
 			ConfigNode cn = parameters.getChild(i++);
-			if (cn.getType().equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
+			if (cn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
 			{
 				// A bin description node!  Look for all its parameters.
-				String type = cn.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE);
-				if (type.equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION))
+				String type = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE);
+				if (type.equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION))
 				{
-					String regexp = cn.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
+					String regexp = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
 					// It's identifier will be...
 					String prefix = "scredential_" + Integer.toString(accessCounter);
 %>
-<input type="hidden" name='<%=prefix+"_regexp"%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(regexp)%>'/>
+<input type="hidden" name='<%=prefix+"_regexp"%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(regexp)%>'/>
 <%
 					// Loop through login pages...
 					int q = 0;
@@ -650,42 +650,42 @@
 					while (q < cn.getChildCount())
 					{
 						ConfigNode authPageNode = cn.getChild(q++);
-						if (authPageNode.getType().equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPAGE))
+						if (authPageNode.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPAGE))
 						{
-							String pageRegexp = authPageNode.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
-							String pageType = authPageNode.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE);
-							String matchRegexp = authPageNode.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_MATCHREGEXP);
+							String pageRegexp = authPageNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
+							String pageType = authPageNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE);
+							String matchRegexp = authPageNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_MATCHREGEXP);
 							if (matchRegexp == null)
 								matchRegexp = "";
 							String authpagePrefix = prefix + "_" + authPageCounter;
 %>
-<input type="hidden" name='<%=authpagePrefix+"_regexp"%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(pageRegexp)%>'/>
+<input type="hidden" name='<%=authpagePrefix+"_regexp"%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(pageRegexp)%>'/>
 <input type="hidden" name='<%=authpagePrefix+"_type"%>' value='<%=pageType%>'/>
-<input type="hidden" name='<%=authpagePrefix+"_matchregexp"%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(matchRegexp)%>'/>
+<input type="hidden" name='<%=authpagePrefix+"_matchregexp"%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(matchRegexp)%>'/>
 <%
-							if (pageType.equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_FORM))
+							if (pageType.equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_FORM))
 							{
 								int z = 0;
 								int paramCounter = 0;
 								while (z < authPageNode.getChildCount())
 								{
 									ConfigNode paramNode = authPageNode.getChild(z++);
-									if (paramNode.getType().equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPARAMETER))
+									if (paramNode.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPARAMETER))
 									{
-										String param = paramNode.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_NAMEREGEXP);
+										String param = paramNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_NAMEREGEXP);
 										if (param == null)
 											param = "";
-										String value = paramNode.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
+										String value = paramNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
 										if (value == null)
 											value = "";
-										String password = paramNode.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD);
+										String password = paramNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD);
 										if (password == null)
 											password = "";
 										String authParamPrefix = authpagePrefix + "_" + paramCounter;
 %>
-<input type="hidden" name='<%=authParamPrefix+"_param"%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(param)%>'/>
-<input type="hidden" name='<%=authParamPrefix+"_value"%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(value)%>'/>
-<input type="hidden" name='<%=authParamPrefix+"_password"%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(com.metacarta.crawler.system.Metacarta.deobfuscate(password))%>'/>
+<input type="hidden" name='<%=authParamPrefix+"_param"%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(param)%>'/>
+<input type="hidden" name='<%=authParamPrefix+"_value"%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(value)%>'/>
+<input type="hidden" name='<%=authParamPrefix+"_password"%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(org.apache.lcf.crawler.system.Metacarta.deobfuscate(password))%>'/>
 <%
 										paramCounter++;
 									}
@@ -730,13 +730,13 @@
 		while (i < parameters.getChildCount())
 		{
 			ConfigNode cn = parameters.getChild(i++);
-			if (cn.getType().equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_TRUST))
+			if (cn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_TRUST))
 			{
 				// It's prefix will be...
 				String prefix = "trust_" + Integer.toString(trustsCounter);
 				// A bin description node!  Look for all its parameters.
-				String regexp = cn.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
-				String trustEverything = cn.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTEVERYTHING);
+				String regexp = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
+				String trustEverything = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTEVERYTHING);
 				if (trustEverything != null && trustEverything.equals("true"))
 				{
 					// We trust everything that matches this regexp
@@ -745,13 +745,13 @@
 					<td class="formcolumncell">
 						<a name='<%=prefix%>'><input type="button" value="Delete" alt='<%="Delete trust url regular expression #"+Integer.toString(trustsCounter+1)%>' onclick='<%="javascript:deleteTRegexp("+Integer.toString(trustsCounter)+");"%>'/>
 						<input type="hidden" name='<%="op_"+prefix%>' value="Continue"/>
-						<input type="hidden" name='<%="regexp_"+prefix%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(regexp)%>'/>
+						<input type="hidden" name='<%="regexp_"+prefix%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(regexp)%>'/>
 						<input type="hidden" name='<%="trustall_"+prefix%>' value="true"/>
 						<input type="hidden" name='<%="truststore_"+prefix%>' value=""/>
 						</a>
 					</td>
 					<td class="formcolumncell">
-						<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(regexp)%></nobr>
+						<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(regexp)%></nobr>
 					</td>
 					<td class="formcolumncell">
 						<nobr><i>Trust everything</i></nobr>
@@ -762,7 +762,7 @@
 				}
 				else
 				{
-					String trustStore = cn.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTSTORE);
+					String trustStore = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTSTORE);
 					IKeystoreManager localTruststore = KeystoreManagerFactory.make("",trustStore);
 					String[] truststoreContents = localTruststore.getContents();
 					
@@ -782,16 +782,16 @@
 					<td class="formcolumncell">
 						<a name='<%=prefix%>'><input type="button" value="Delete" alt='<%="Delete trust url regular expression #"+Integer.toString(trustsCounter+1)%>' onclick='<%="javascript:deleteTRegexp("+Integer.toString(trustsCounter)+");"%>'/>
 						<input type="hidden" name='<%="op_"+prefix%>' value="Continue"/>
-						<input type="hidden" name='<%="regexp_"+prefix%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(regexp)%>'/>
+						<input type="hidden" name='<%="regexp_"+prefix%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(regexp)%>'/>
 						<input type="hidden" name='<%="trustall_"+prefix%>' value="false"/>
-						<input type="hidden" name='<%="truststore_"+prefix%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(trustStore)%>'/>
+						<input type="hidden" name='<%="truststore_"+prefix%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(trustStore)%>'/>
 						</a>
 					</td>
 					<td class="formcolumncell">
-						<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(regexp)%></nobr>
+						<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(regexp)%></nobr>
 					</td>
 					<td class="formcolumncell">
-						<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(shortenedDescription)%></nobr>
+						<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(shortenedDescription)%></nobr>
 					</td>
 				</tr>
 <%
@@ -838,19 +838,19 @@
 		while (i < parameters.getChildCount())
 		{
 			ConfigNode cn = parameters.getChild(i++);
-			if (cn.getType().equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_TRUST))
+			if (cn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_TRUST))
 			{
 				// It's prefix will be...
 				String prefix = "trust_" + Integer.toString(trustsCounter);
 
 				// A bin description node!  Look for all its parameters.
-				String regexp = cn.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
-				String trustEverything = cn.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTEVERYTHING);
+				String regexp = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
+				String trustEverything = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTEVERYTHING);
 				if (trustEverything != null && trustEverything.equals("true"))
 				{
 					// We trust everything that matches this regexp
 %>
-<input type="hidden" name='<%="regexp_"+prefix%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(regexp)%>'/>
+<input type="hidden" name='<%="regexp_"+prefix%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(regexp)%>'/>
 <input type="hidden" name='<%="truststore_"+prefix%>' value=""/>
 <input type="hidden" name='<%="trustall_"+prefix%>' value="true"/>
 <%
@@ -858,11 +858,11 @@
 				}
 				else
 				{
-					String trustStore = cn.getAttributeValue(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTSTORE);
+					String trustStore = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTSTORE);
 
 %>
-<input type="hidden" name='<%="regexp_"+prefix%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(regexp)%>'/>
-<input type="hidden" name='<%="truststore_"+prefix%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(trustStore)%>'/>
+<input type="hidden" name='<%="regexp_"+prefix%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(regexp)%>'/>
+<input type="hidden" name='<%="truststore_"+prefix%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(trustStore)%>'/>
 <input type="hidden" name='<%="trustall_"+prefix%>' value="false"/>
 <%
 					trustsCounter++;

@@ -137,16 +137,16 @@
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description" colspan="1"><nobr>Name:</nobr></td><td class="value" colspan="3" ><%="<!--jobid="+jobID+"-->"%><%=com.metacarta.ui.util.Encoder.bodyEscape(job.getDescription())%></td>
+				<td class="description" colspan="1"><nobr>Name:</nobr></td><td class="value" colspan="3" ><%="<!--jobid="+jobID+"-->"%><%=org.apache.lcf.ui.util.Encoder.bodyEscape(job.getDescription())%></td>
 			</tr>
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
 				<td class="description"><nobr>Output connection:</nobr></td>
-				<td class="value"><%=com.metacarta.ui.util.Encoder.bodyEscape(job.getOutputConnectionName())%></td>
+				<td class="value"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(job.getOutputConnectionName())%></td>
 				<td class="description"><nobr>Repository connection:</nobr></td>
-				<td class="value"><%=com.metacarta.ui.util.Encoder.bodyEscape(job.getConnectionName())%></td>
+				<td class="value"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(job.getConnectionName())%></td>
 			</tr>
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
@@ -521,7 +521,7 @@
 				Long value = (Long)hopCountFilters.get(relationshipType);
 %>
 			<tr>
-				<td class="description" colspan="1"><nobr>Maximum hop count for link type '<%=com.metacarta.ui.util.Encoder.bodyEscape(relationshipType)%>':</nobr></td>
+				<td class="description" colspan="1"><nobr>Maximum hop count for link type '<%=org.apache.lcf.ui.util.Encoder.bodyEscape(relationshipType)%>':</nobr></td>
 				<td class="value" colspan="3"><%=((value==null)?"Unlimited":value.toString())%></td>
 			</tr>
 			

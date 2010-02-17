@@ -107,7 +107,7 @@
 				pathSoFar = pathSoFar.substring(0,pathSoFar.lastIndexOf("/"));
 				pathSoFar = pathSoFar.substring(0,pathSoFar.lastIndexOf("/")+1);
 				idsSoFar = idsSoFar.substring(0,idsSoFar.lastIndexOf(",")-1);
-				containerType = new Integer(com.metacarta.crawler.connectors.meridio.MeridioClassContents.CLASS);
+				containerType = new Integer(org.apache.lcf.crawler.connectors.meridio.MeridioClassContents.CLASS);
 			}
 
 			threadContext.save("specpath",pathSoFar);

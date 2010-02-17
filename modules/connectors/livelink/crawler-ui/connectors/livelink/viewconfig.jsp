@@ -49,20 +49,20 @@
 			if (param.length() >= "password".length() && param.substring(param.length()-"password".length()).equalsIgnoreCase("password"))
 			{
 %>
-			<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(param)+"=********"%></nobr><br/>
+			<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"=********"%></nobr><br/>
 <%
 			}
 			else if (param.length() >="keystore".length() && param.substring(param.length()-"keystore".length()).equalsIgnoreCase("keystore"))
 			{
 				IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
 %>
-			<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(param)+"=<"+Integer.toString(kmanager.getContents().length)+" certificate(s)>"%></nobr><br/>
+			<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"=<"+Integer.toString(kmanager.getContents().length)+" certificate(s)>"%></nobr><br/>
 <%
 			}
 			else
 			{
 %>
-			<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(param)+"="+com.metacarta.ui.util.Encoder.bodyEscape(value)%></nobr><br/>
+			<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"="+org.apache.lcf.ui.util.Encoder.bodyEscape(value)%></nobr><br/>
 <%
 			}
 		}

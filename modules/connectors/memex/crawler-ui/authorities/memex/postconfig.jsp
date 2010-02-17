@@ -38,31 +38,31 @@
 
 	String memexServerName = variableContext.getParameter("memexservername");
 	if (memexServerName != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.memex.MemexAuthority.CONFIG_PARAM_MEMEXSERVERNAME,memexServerName);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.memex.MemexAuthority.CONFIG_PARAM_MEMEXSERVERNAME,memexServerName);
 		
 	String memexServerPort = variableContext.getParameter("memexserverport");
 	if (memexServerPort != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.memex.MemexAuthority.CONFIG_PARAM_MEMEXSERVERPORT,memexServerPort);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.memex.MemexAuthority.CONFIG_PARAM_MEMEXSERVERPORT,memexServerPort);
 	
 	String crawlUser = variableContext.getParameter("crawluser");
 	if (crawlUser != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.memex.MemexAuthority.CONFIG_PARAM_USERID,crawlUser);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.memex.MemexAuthority.CONFIG_PARAM_USERID,crawlUser);
 
 	String crawlUserPassword = variableContext.getParameter("crawluserpassword");
 	if (crawlUserPassword != null)
-		parameters.setObfuscatedParameter(com.metacarta.crawler.connectors.memex.MemexAuthority.CONFIG_PARAM_PASSWORD,crawlUserPassword);
+		parameters.setObfuscatedParameter(org.apache.lcf.crawler.connectors.memex.MemexAuthority.CONFIG_PARAM_PASSWORD,crawlUserPassword);
 
 	String characterEncoding = variableContext.getParameter("characterencoding");
 	if (characterEncoding != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.memex.MemexAuthority.CONFIG_PARAM_CHARACTERENCODING,characterEncoding);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.memex.MemexAuthority.CONFIG_PARAM_CHARACTERENCODING,characterEncoding);
 
 	String usernameRegexp = variableContext.getParameter("usernameregexp");
 	String memexUserExpr = variableContext.getParameter("memexuserexpr");
 	if (usernameRegexp != null && memexUserExpr != null)
 	{
-		com.metacarta.crawler.connectors.memex.MatchMap matchMap = new com.metacarta.crawler.connectors.memex.MatchMap();
+		org.apache.lcf.crawler.connectors.memex.MatchMap matchMap = new org.apache.lcf.crawler.connectors.memex.MatchMap();
 		matchMap.appendMatchPair(usernameRegexp,memexUserExpr);
-		parameters.setParameter(com.metacarta.crawler.connectors.memex.MemexAuthority.CONFIG_PARAM_USERNAMEMAPPING,matchMap.toString());
+		parameters.setParameter(org.apache.lcf.crawler.connectors.memex.MemexAuthority.CONFIG_PARAM_USERNAMEMAPPING,matchMap.toString());
 	}
 
 %>

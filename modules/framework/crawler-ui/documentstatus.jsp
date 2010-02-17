@@ -20,7 +20,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-boolean maintenanceUnderway = com.metacarta.crawler.system.Metacarta.checkMaintenanceUnderway();
+boolean maintenanceUnderway = org.apache.lcf.crawler.system.Metacarta.checkMaintenanceUnderway();
 
 %>
 
@@ -240,7 +240,7 @@ if (maintenanceUnderway == false)
 		if (thisDescription == null || thisDescription.length() == 0)
 			thisDescription = thisConnectionName;
 %>
-						<option <%=(thisConnectionName.equals(statusConnection))?"selected=\"selected\"":""%> value='<%=com.metacarta.ui.util.Encoder.attributeEscape(thisConnectionName)%>'><%=com.metacarta.ui.util.Encoder.bodyEscape(thisDescription)%></option>
+						<option <%=(thisConnectionName.equals(statusConnection))?"selected=\"selected\"":""%> value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(thisConnectionName)%>'><%=org.apache.lcf.ui.util.Encoder.bodyEscape(thisDescription)%></option>
 <%
 	}
 %>
@@ -260,7 +260,7 @@ if (maintenanceUnderway == false)
 		String description = job.getDescription();
 		Long identifier = job.getID();
 %>
-						<option <%=((selectedJobs.get(identifier)==null)?"":"selected=\"selected\"")%> value='<%=identifier.toString()%>'><%=com.metacarta.ui.util.Encoder.bodyEscape(description)%></option>
+						<option <%=((selectedJobs.get(identifier)==null)?"":"selected=\"selected\"")%> value='<%=identifier.toString()%>'><%=org.apache.lcf.ui.util.Encoder.bodyEscape(description)%></option>
 <%
 	    }
 %>
@@ -316,7 +316,7 @@ if (maintenanceUnderway == false)
 			</tr>
 			<tr>
 				<td class="description"><nobr>Document identifier match:</nobr></td>
-				<td class="value" colspan="3"><input type="text" name="statusidentifiermatch" size="40" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(identifierMatch)%>'/></td>
+				<td class="value" colspan="3"><input type="text" name="statusidentifiermatch" size="40" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(identifierMatch)%>'/></td>
 			</tr>
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
@@ -394,7 +394,7 @@ if (maintenanceUnderway == false)
 %>
 		<input type="hidden" name="clickcolumn" value=""/>
 		<input type="hidden" name="startrow" value='<%=Integer.toString(startRow)%>'/>
-		<input type="hidden" name="sortorder" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(sortOrder.toString())%>'/>
+		<input type="hidden" name="sortorder" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(sortOrder.toString())%>'/>
 
 		<table class="displaytable">
 		    <tr class="headerrow">
@@ -419,11 +419,11 @@ if (maintenanceUnderway == false)
 		    // Note that the actual hard work of translating things to human-readable strings largely is done by the query itself; this is because
 		    // we want to sort on the columns, so it has to be that way.
 		    
-		    String[] identifierBreakdown = com.metacarta.ui.util.Formatter.formatString(row.getValue("identifier").toString(),64,true,true);
+		    String[] identifierBreakdown = org.apache.lcf.ui.util.Formatter.formatString(row.getValue("identifier").toString(),64,true,true);
 		    Long scheduleTime = (Long)row.getValue("scheduled");
 		    String scheduleTimeString = "";
 		    if (scheduleTime != null)
-			scheduleTimeString = com.metacarta.ui.util.Formatter.formatTime(scheduleTime.longValue());
+			scheduleTimeString = org.apache.lcf.ui.util.Formatter.formatTime(scheduleTime.longValue());
 		    String scheduledActionString = (String)row.getValue("action");
 		    if (scheduledActionString == null)
 		        scheduledActionString = "";
@@ -434,7 +434,7 @@ if (maintenanceUnderway == false)
 		    Long retryLimit = (Long)row.getValue("retrylimit");
 		    String retryLimitString = "";
 		    if (retryLimit != null)
-		        retryLimitString = com.metacarta.ui.util.Formatter.formatTime(retryLimit.longValue());
+		        retryLimitString = org.apache.lcf.ui.util.Formatter.formatTime(retryLimit.longValue());
 			
 %>
 		    <tr <%="class=\""+((zz%2==0)?"evendatarow":"odddatarow")+"\""%>>
@@ -444,18 +444,18 @@ if (maintenanceUnderway == false)
 		    while (q < identifierBreakdown.length)
 		    {
 %>
-				<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(identifierBreakdown[q++])%></nobr><br/>
+				<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(identifierBreakdown[q++])%></nobr><br/>
 <%
 		    }
 %>
 			</td>
-			<td class="reportcolumncell"><%=com.metacarta.ui.util.Encoder.bodyEscape(row.getValue("job").toString())%></td>
-			<td class="reportcolumncell"><%=com.metacarta.ui.util.Encoder.bodyEscape(row.getValue("state").toString())%></td>
-			<td class="reportcolumncell"><%=com.metacarta.ui.util.Encoder.bodyEscape(row.getValue("status").toString())%></td>
-			<td class="reportcolumncell"><%=com.metacarta.ui.util.Encoder.bodyEscape(scheduleTimeString)%></td>
-			<td class="reportcolumncell"><%=com.metacarta.ui.util.Encoder.bodyEscape(scheduledActionString)%></td>
-			<td class="reportcolumncell"><%=com.metacarta.ui.util.Encoder.bodyEscape(retryCountString)%></td>
-			<td class="reportcolumncell"><%=com.metacarta.ui.util.Encoder.bodyEscape(retryLimitString)%></td>
+			<td class="reportcolumncell"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(row.getValue("job").toString())%></td>
+			<td class="reportcolumncell"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(row.getValue("state").toString())%></td>
+			<td class="reportcolumncell"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(row.getValue("status").toString())%></td>
+			<td class="reportcolumncell"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(scheduleTimeString)%></td>
+			<td class="reportcolumncell"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(scheduledActionString)%></td>
+			<td class="reportcolumncell"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(retryCountString)%></td>
+			<td class="reportcolumncell"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(retryLimitString)%></td>
 		    </tr>
 <%
 			zz++;

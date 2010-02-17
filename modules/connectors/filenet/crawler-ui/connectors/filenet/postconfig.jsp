@@ -38,50 +38,50 @@
 
 	String serverprotocol = variableContext.getParameter("serverprotocol");
 	if (serverprotocol != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_SERVERPROTOCOL,serverprotocol);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_SERVERPROTOCOL,serverprotocol);
 
 	String serverhostname = variableContext.getParameter("serverhostname");
 	if (serverhostname != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_SERVERHOSTNAME,serverhostname);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_SERVERHOSTNAME,serverhostname);
 
 	String serverport = variableContext.getParameter("serverport");
 	if (serverport != null && serverport.length() > 0)
-		parameters.setParameter(com.metacarta.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_SERVERPORT,serverport);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_SERVERPORT,serverport);
 
 	String serverwsilocation = variableContext.getParameter("serverwsilocation");
 	if (serverwsilocation != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_SERVERWSILOCATION,serverwsilocation);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_SERVERWSILOCATION,serverwsilocation);
 
 	String urlprotocol = variableContext.getParameter("urlprotocol");
 	if (urlprotocol != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_URLPROTOCOL,urlprotocol);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_URLPROTOCOL,urlprotocol);
 
 	String urlhostname = variableContext.getParameter("urlhostname");
 	if (urlhostname != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_URLHOSTNAME,urlhostname);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_URLHOSTNAME,urlhostname);
 
 	String urlport = variableContext.getParameter("urlport");
 	if (urlport != null && urlport.length() > 0)
-		parameters.setParameter(com.metacarta.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_URLPORT,urlport);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_URLPORT,urlport);
 
 	String urllocation = variableContext.getParameter("urllocation");
 	if (urllocation != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_URLLOCATION,urllocation);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_URLLOCATION,urllocation);
 
 	String userID = variableContext.getParameter("userid");
 	if (userID != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_USERID,userID);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_USERID,userID);
 
 	String password = variableContext.getParameter("password");
 	if (password != null)
-		parameters.setObfuscatedParameter(com.metacarta.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_PASSWORD,password);
+		parameters.setObfuscatedParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_PASSWORD,password);
 
 	String filenetdomain = variableContext.getParameter("filenetdomain");
 	if (filenetdomain != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_FILENETDOMAIN,filenetdomain);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_FILENETDOMAIN,filenetdomain);
 
 	String objectstore = variableContext.getParameter("objectstore");
 	if (objectstore != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_OBJECTSTORE,objectstore);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_OBJECTSTORE,objectstore);
 
 %>

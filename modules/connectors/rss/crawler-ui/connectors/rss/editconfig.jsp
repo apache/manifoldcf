@@ -37,37 +37,37 @@
 	if (tabName == null)
 		out.println("No tab name!");
 
-	String email = parameters.getParameter(com.metacarta.crawler.connectors.rss.RSSConnector.emailParameter);
+	String email = parameters.getParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.emailParameter);
 	if (email == null)
 		email = "";
-	String robotsUsage = parameters.getParameter(com.metacarta.crawler.connectors.rss.RSSConnector.robotsUsageParameter);
+	String robotsUsage = parameters.getParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.robotsUsageParameter);
 	if (robotsUsage == null)
 		robotsUsage = "all";
-	String bandwidth = parameters.getParameter(com.metacarta.crawler.connectors.rss.RSSConnector.bandwidthParameter);
+	String bandwidth = parameters.getParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.bandwidthParameter);
 	if (bandwidth == null)
 		bandwidth = "";
-	String connections = parameters.getParameter(com.metacarta.crawler.connectors.rss.RSSConnector.maxOpenParameter);
+	String connections = parameters.getParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.maxOpenParameter);
 	if (connections == null)
 		connections = "10";
-	String fetches = parameters.getParameter(com.metacarta.crawler.connectors.rss.RSSConnector.maxFetchesParameter);
+	String fetches = parameters.getParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.maxFetchesParameter);
 	if (fetches == null)
 		fetches = "";
-	String throttleGroup = parameters.getParameter(com.metacarta.crawler.connectors.rss.RSSConnector.throttleGroupParameter);
+	String throttleGroup = parameters.getParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.throttleGroupParameter);
 	if (throttleGroup == null)
 		throttleGroup = "";
-	String proxyHost = parameters.getParameter(com.metacarta.crawler.connectors.rss.RSSConnector.proxyHostParameter);
+	String proxyHost = parameters.getParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.proxyHostParameter);
 	if (proxyHost == null)
 		proxyHost = "";
-	String proxyPort = parameters.getParameter(com.metacarta.crawler.connectors.rss.RSSConnector.proxyPortParameter);
+	String proxyPort = parameters.getParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.proxyPortParameter);
 	if (proxyPort == null)
 		proxyPort = "";
-	String proxyAuthDomain = parameters.getParameter(com.metacarta.crawler.connectors.rss.RSSConnector.proxyAuthDomainParameter);
+	String proxyAuthDomain = parameters.getParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.proxyAuthDomainParameter);
 	if (proxyAuthDomain == null)
 		proxyAuthDomain = "";
-	String proxyAuthUsername = parameters.getParameter(com.metacarta.crawler.connectors.rss.RSSConnector.proxyAuthUsernameParameter);
+	String proxyAuthUsername = parameters.getParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.proxyAuthUsernameParameter);
 	if (proxyAuthUsername == null)
 		proxyAuthUsername = "";
-	String proxyAuthPassword = parameters.getObfuscatedParameter(com.metacarta.crawler.connectors.rss.RSSConnector.proxyAuthPasswordParameter);
+	String proxyAuthPassword = parameters.getObfuscatedParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.proxyAuthPasswordParameter);
 	if (proxyAuthPassword == null)
 		proxyAuthPassword = "";
 		
@@ -78,7 +78,7 @@
 <table class="displaytable">
 	<tr><td class="separator" colspan="2"><hr/></td></tr>
 	<tr>
-		<td class="description"><nobr>Email address to contact:</nobr></td><td class="value"><input type="text" size="32" name="email" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(email)%>'/></td>
+		<td class="description"><nobr>Email address to contact:</nobr></td><td class="value"><input type="text" size="32" name="email" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(email)%>'/></td>
 	</tr>
 </table>
 <%
@@ -86,7 +86,7 @@
 	else
 	{
 %>
-<input type="hidden" name="email" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(email)%>'/>
+<input type="hidden" name="email" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(email)%>'/>
 <%
 	}
 
@@ -123,16 +123,16 @@
 <table class="displaytable">
 	<tr><td class="separator" colspan="2"><hr/></td></tr>
 	<tr>
-		<td class="description"><nobr>Max KBytes per second per server:</nobr></td><td class="value"><input type="text" size="6" name="bandwidth" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(bandwidth)%>'/></td>
+		<td class="description"><nobr>Max KBytes per second per server:</nobr></td><td class="value"><input type="text" size="6" name="bandwidth" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(bandwidth)%>'/></td>
 	</tr>
 	<tr>
-		<td class="description"><nobr>Max connections per server:</nobr></td><td class="value"><input type="text" size="4" name="connections" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(connections)%>'/></td>
+		<td class="description"><nobr>Max connections per server:</nobr></td><td class="value"><input type="text" size="4" name="connections" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(connections)%>'/></td>
 	</tr>
 	<tr>
-		<td class="description"><nobr>Max fetches per minute per server:</nobr></td><td class="value"><input type="text" size="4" name="fetches" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(fetches)%>'/></td>
+		<td class="description"><nobr>Max fetches per minute per server:</nobr></td><td class="value"><input type="text" size="4" name="fetches" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(fetches)%>'/></td>
 	</tr>
 	<tr>
-		<td class="description"><nobr>Throttle group name:</nobr></td><td class="value"><input type="text" size="32" name="throttlegroup" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(throttleGroup)%>'/></td>
+		<td class="description"><nobr>Throttle group name:</nobr></td><td class="value"><input type="text" size="32" name="throttlegroup" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(throttleGroup)%>'/></td>
 	</tr>
 </table>
 <%
@@ -140,10 +140,10 @@
 	else
 	{
 %>
-<input type="hidden" name="bandwidth" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(bandwidth)%>'/>
-<input type="hidden" name="connections" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(connections)%>'/>
-<input type="hidden" name="fetches" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(fetches)%>'/>
-<input type="hidden" name="throttlegroup" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(throttleGroup)%>'/>
+<input type="hidden" name="bandwidth" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(bandwidth)%>'/>
+<input type="hidden" name="connections" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(connections)%>'/>
+<input type="hidden" name="fetches" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(fetches)%>'/>
+<input type="hidden" name="throttlegroup" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(throttleGroup)%>'/>
 <%
 	}
 	
@@ -154,19 +154,19 @@
 <table class="displaytable">
 	<tr><td class="separator" colspan="2"><hr/></td></tr>
 	<tr>
-		<td class="description"><nobr>Proxy host:</nobr></td><td class="value"><input type="text" size="40" name="proxyhost" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(proxyHost)%>'/></td>
+		<td class="description"><nobr>Proxy host:</nobr></td><td class="value"><input type="text" size="40" name="proxyhost" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(proxyHost)%>'/></td>
 	</tr>
 	<tr>
-		<td class="description"><nobr>Proxy port:</nobr></td><td class="value"><input type="text" size="5" name="proxyport" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(proxyPort)%>'/></td>
+		<td class="description"><nobr>Proxy port:</nobr></td><td class="value"><input type="text" size="5" name="proxyport" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(proxyPort)%>'/></td>
 	</tr>
 	<tr>
-		<td class="description"><nobr>Proxy authentication domain:</nobr></td><td class="value"><input type="text" size="32" name="proxyauthdomain" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(proxyAuthDomain)%>'/></td>
+		<td class="description"><nobr>Proxy authentication domain:</nobr></td><td class="value"><input type="text" size="32" name="proxyauthdomain" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(proxyAuthDomain)%>'/></td>
 	</tr>
 	<tr>
-		<td class="description"><nobr>Proxy authentication user name:</nobr></td><td class="value"><input type="text" size="32" name="proxyauthusername" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(proxyAuthUsername)%>'/></td>
+		<td class="description"><nobr>Proxy authentication user name:</nobr></td><td class="value"><input type="text" size="32" name="proxyauthusername" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(proxyAuthUsername)%>'/></td>
 	</tr>
 	<tr>
-		<td class="description"><nobr>Proxy authentication password:</nobr></td><td class="value"><input type="password" size="16" name="proxyauthpassword" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(proxyAuthPassword)%>'/></td>
+		<td class="description"><nobr>Proxy authentication password:</nobr></td><td class="value"><input type="password" size="16" name="proxyauthpassword" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(proxyAuthPassword)%>'/></td>
 	</tr>
 </table>
 <%
@@ -175,11 +175,11 @@
 	else
 	{
 %>
-<input type="hidden" name="proxyhost" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(proxyHost)%>'/>
-<input type="hidden" name="proxyport" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(proxyPort)%>'/>
-<input type="hidden" name="proxyauthusername" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(proxyAuthUsername)%>'/>
-<input type="hidden" name="proxyauthdomain" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(proxyAuthDomain)%>'/>
-<input type="hidden" name="proxyauthpassword" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(proxyAuthPassword)%>'/>
+<input type="hidden" name="proxyhost" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(proxyHost)%>'/>
+<input type="hidden" name="proxyport" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(proxyPort)%>'/>
+<input type="hidden" name="proxyauthusername" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(proxyAuthUsername)%>'/>
+<input type="hidden" name="proxyauthdomain" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(proxyAuthDomain)%>'/>
+<input type="hidden" name="proxyauthpassword" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(proxyAuthPassword)%>'/>
 <%
 	}
 %>

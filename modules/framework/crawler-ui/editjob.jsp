@@ -666,7 +666,7 @@
 	  <input type="hidden" name="op" value="Continue"/>
 	  <input type="hidden" name="type" value="job"/>
 	  <input type="hidden" name="index" value=""/>
-	  <input type="hidden" name="tabname" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(tabName)%>'/>
+	  <input type="hidden" name="tabname" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(tabName)%>'/>
 <%
 	if (jobID != null)
 	{
@@ -685,13 +685,13 @@
 		if (tab.equals(tabName))
 		{
 %>
-		      <td class="activetab"><nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(tab)%></nobr></td>
+		      <td class="activetab"><nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(tab)%></nobr></td>
 <%
 		}
 		else
 		{
 %>
-		      <td class="passivetab"><nobr><a href="javascript:void(0);" alt='<%=com.metacarta.ui.util.Encoder.attributeEscape(tab+" tab")%>' onclick='<%="javascript:SelectTab(\""+tab+"\");return false;"%>'><%=com.metacarta.ui.util.Encoder.bodyEscape(tab)%></a></nobr></td>
+		      <td class="passivetab"><nobr><a href="javascript:void(0);" alt='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(tab+" tab")%>' onclick='<%="javascript:SelectTab(\""+tab+"\");return false;"%>'><%=org.apache.lcf.ui.util.Encoder.bodyEscape(tab)%></a></nobr></td>
 <%
 		}
 	}
@@ -701,7 +701,7 @@
 	if (description.length() > 0)
 	{
 %>
-			  <nobr>Edit job '<%=com.metacarta.ui.util.Encoder.bodyEscape(description)%>'</nobr>
+			  <nobr>Edit job '<%=org.apache.lcf.ui.util.Encoder.bodyEscape(description)%>'</nobr>
 <%
 	}
 	else
@@ -728,7 +728,7 @@
 			</tr>
 			<tr>
 				<td class="description" colspan="1"><nobr>Name:</nobr></td><td class="value" colspan="3">
-					<input type="text" size="50" name="description" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(description)%>'/>
+					<input type="text" size="50" name="description" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(description)%>'/>
 				</td>
 			</tr>
 		  </table>
@@ -737,7 +737,7 @@
 	else
 	{
 %>
-		  <input type="hidden" name="description" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(description)%>'/>
+		  <input type="hidden" name="description" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(description)%>'/>
 <%
 	}
 
@@ -762,9 +762,9 @@
 				mapField = mapValue.toString();
 %>
 			<tr>
-				<td class="description" colspan="1"><nobr>Maximum hop count for type '<%=com.metacarta.ui.util.Encoder.bodyEscape(relationshipType)%>':</nobr></td>
+				<td class="description" colspan="1"><nobr>Maximum hop count for type '<%=org.apache.lcf.ui.util.Encoder.bodyEscape(relationshipType)%>':</nobr></td>
 				<td class="value" colspan="3" >
-					<input name='<%="hopmax_"+com.metacarta.ui.util.Encoder.attributeEscape(relationshipType)%>' type="text" size="5" value='<%=mapField%>'/>
+					<input name='<%="hopmax_"+org.apache.lcf.ui.util.Encoder.attributeEscape(relationshipType)%>' type="text" size="5" value='<%=mapField%>'/>
 				</td>
 			</tr>
 <%
@@ -799,7 +799,7 @@
 			if (mapValue != null)
 				mapField = mapValue.toString();
 %>
-	<input name='<%="hopmax_"+com.metacarta.ui.util.Encoder.attributeEscape(relationshipType)%>' type="hidden" value='<%=mapField%>'/>
+	<input name='<%="hopmax_"+org.apache.lcf.ui.util.Encoder.attributeEscape(relationshipType)%>' type="hidden" value='<%=mapField%>'/>
 	<input name="hopcountmode" type="hidden" value='<%=Integer.toString(hopcountMode)%>'/>
 <%
 		}
@@ -829,7 +829,7 @@
 		{
 			IOutputConnection conn = outputList[j++];
 %>
-						<option <%=conn.getName().equals(outputName)?"selected=\"selected\"":""%> value='<%=com.metacarta.ui.util.Encoder.attributeEscape(conn.getName())%>'><%=com.metacarta.ui.util.Encoder.bodyEscape(conn.getName())%></option>
+						<option <%=conn.getName().equals(outputName)?"selected=\"selected\"":""%> value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(conn.getName())%>'><%=org.apache.lcf.ui.util.Encoder.bodyEscape(conn.getName())%></option>
 <%
 		}
 %>
@@ -841,7 +841,7 @@
 	    {
 %>
 				<td class="description"><nobr>Output connection:</nobr></td>
-				<td class="value"><input type="hidden" name="outputname" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(outputName)%>'/><%=com.metacarta.ui.util.Encoder.bodyEscape(outputName)%></td>
+				<td class="value"><input type="hidden" name="outputname" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(outputName)%>'/><%=org.apache.lcf.ui.util.Encoder.bodyEscape(outputName)%></td>
 <%
 	    }
 %>
@@ -860,7 +860,7 @@
 		{
 			IRepositoryConnection conn = connList[j++];
 %>
-						<option <%=conn.getName().equals(connectionName)?"selected=\"selected\"":""%> value='<%=com.metacarta.ui.util.Encoder.attributeEscape(conn.getName())%>'><%=com.metacarta.ui.util.Encoder.bodyEscape(conn.getName())%></option>
+						<option <%=conn.getName().equals(connectionName)?"selected=\"selected\"":""%> value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(conn.getName())%>'><%=org.apache.lcf.ui.util.Encoder.bodyEscape(conn.getName())%></option>
 <%
 		}
 %>
@@ -872,7 +872,7 @@
 	    {
 %>
 				<td class="description"><nobr>Repository connection:</nobr></td>
-				<td class="value"><input type="hidden" name="connectionname" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(connectionName)%>'/><%=com.metacarta.ui.util.Encoder.bodyEscape(connectionName)%></td>
+				<td class="value"><input type="hidden" name="connectionname" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(connectionName)%>'/><%=org.apache.lcf.ui.util.Encoder.bodyEscape(connectionName)%></td>
 <%
 	    }
 %>
@@ -908,8 +908,8 @@
 	else
 	{
 %>
-		  <input type="hidden" name="outputname" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(outputName)%>'/>
-		  <input type="hidden" name="connectionname" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(connectionName)%>'/>
+		  <input type="hidden" name="outputname" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(outputName)%>'/>
+		  <input type="hidden" name="connectionname" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
 		  <input type="hidden" name="startmethod" value='<%=startMethod%>'/>
 <%
 	}

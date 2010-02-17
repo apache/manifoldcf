@@ -127,19 +127,19 @@
 		<td class="description"><nobr>Document webservice server protocol:</nobr></td><td class="value"><select name="dmwsServerProtocol"><option value="http" <%=((dmwsServerProtocol.equals("http"))?"selected=\"true\"":"")%>>http</option><option value="https" <%=(dmwsServerProtocol.equals("https")?"selected=\"true\"":"")%>>https</option></select></td>
 	</tr>
 	<tr>
-		<td class="description"><nobr>Document webservice server name:</nobr></td><td class="value"><input type="text" size="64" name="dmwsServerName" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(dmwsServerName)%>'/></td>
+		<td class="description"><nobr>Document webservice server name:</nobr></td><td class="value"><input type="text" size="64" name="dmwsServerName" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(dmwsServerName)%>'/></td>
 	</tr>
         <tr>
 		<td class="description"><nobr>Document webservice server port:</nobr></td><td class="value"><input type="text" size="5" name="dmwsServerPort" value='<%=dmwsServerPort%>'/></td>
 	</tr>
         <tr>
-		<td class="description"><nobr>Document webservice location:</nobr></td><td class="value"><input type="text" size="64" name="dmwsLocation" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(dmwsLocation)%>'/></td>
+		<td class="description"><nobr>Document webservice location:</nobr></td><td class="value"><input type="text" size="64" name="dmwsLocation" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(dmwsLocation)%>'/></td>
 	</tr>
 	<tr>
 		<td class="separator" colspan="2"><hr/></td>
 	</tr>
 	<tr>
-		<td class="description"><nobr>Document webservice server proxy host:</nobr></td><td class="value"><input type="text" size="64" name="dmwsProxyHost" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(dmwsProxyHost)%>'/></td>
+		<td class="description"><nobr>Document webservice server proxy host:</nobr></td><td class="value"><input type="text" size="64" name="dmwsProxyHost" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(dmwsProxyHost)%>'/></td>
 	</tr>
 	<tr>
 		<td class="description"><nobr>Document webservice server proxy port:</nobr></td><td class="value"><input type="text" size="5" name="dmwsProxyPort" value='<%=dmwsProxyPort%>'/></td>
@@ -152,10 +152,10 @@
 		// Hiddens for the Document Server tab.
 %>
 <input type="hidden" name="dmwsServerProtocol" value='<%=dmwsServerProtocol%>'/>
-<input type="hidden" name="dmwsServerName" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(dmwsServerName)%>'/>
+<input type="hidden" name="dmwsServerName" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(dmwsServerName)%>'/>
 <input type="hidden" name="dmwsServerPort" value='<%=dmwsServerPort%>'/>
-<input type="hidden" name="dmwsLocation" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(dmwsLocation)%>'/>
-<input type="hidden" name="dmwsProxyHost" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(dmwsProxyHost)%>'/>
+<input type="hidden" name="dmwsLocation" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(dmwsLocation)%>'/>
+<input type="hidden" name="dmwsProxyHost" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(dmwsProxyHost)%>'/>
 <input type="hidden" name="dmwsProxyPort" value='<%=dmwsProxyPort%>'/>
 <%
 	}
@@ -170,19 +170,19 @@
 		<td class="description"><nobr>Record webservice server protocol:</nobr></td><td class="value"><select name="rmwsServerProtocol"><option value="http" <%=((rmwsServerProtocol.equals("http"))?"selected=\"true\"":"")%>>http</option><option value="https" <%=(rmwsServerProtocol.equals("https")?"selected=\"true\"":"")%>>https</option></select></td>
 	</tr>
 	<tr>
-		<td class="description"><nobr>Record webservice server name:</nobr></td><td class="value"><input type="text" size="64" name="rmwsServerName" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(rmwsServerName)%>'/></td>
+		<td class="description"><nobr>Record webservice server name:</nobr></td><td class="value"><input type="text" size="64" name="rmwsServerName" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(rmwsServerName)%>'/></td>
 	</tr>
         <tr>
 		<td class="description"><nobr>Record webservice server port:</nobr></td><td class="value"><input type="text" size="5" name="rmwsServerPort" value='<%=rmwsServerPort%>'/></td>
 	</tr>
         <tr>
-		<td class="description"><nobr>Record webservice location:</nobr></td><td class="value"><input type="text" size="64" name="rmwsLocation" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(rmwsLocation)%>'/></td>
+		<td class="description"><nobr>Record webservice location:</nobr></td><td class="value"><input type="text" size="64" name="rmwsLocation" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(rmwsLocation)%>'/></td>
 	</tr>
 	<tr>
 		<td class="separator" colspan="2"><hr/></td>
 	</tr>
 	<tr>
-		<td class="description"><nobr>Record webservice server proxy host:</nobr></td><td class="value"><input type="text" size="64" name="rmwsProxyHost" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(rmwsProxyHost)%>'/></td>
+		<td class="description"><nobr>Record webservice server proxy host:</nobr></td><td class="value"><input type="text" size="64" name="rmwsProxyHost" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(rmwsProxyHost)%>'/></td>
 	</tr>
 	<tr>
 		<td class="description"><nobr>Record webservice server proxy port:</nobr></td><td class="value"><input type="text" size="5" name="rmwsProxyPort" value='<%=rmwsProxyPort%>'/></td>
@@ -195,10 +195,10 @@
 		// Hiddens for the Records Server tab.
 %>
 <input type="hidden" name="rmwsServerProtocol" value='<%=rmwsServerProtocol%>'/>
-<input type="hidden" name="rmwsServerName" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(rmwsServerName)%>'/>
+<input type="hidden" name="rmwsServerName" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(rmwsServerName)%>'/>
 <input type="hidden" name="rmwsServerPort" value='<%=rmwsServerPort%>'/>
-<input type="hidden" name="rmwsLocation" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(rmwsLocation)%>'/>
-<input type="hidden" name="rmwsProxyHost" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(rmwsProxyHost)%>'/>
+<input type="hidden" name="rmwsLocation" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(rmwsLocation)%>'/>
+<input type="hidden" name="rmwsProxyHost" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(rmwsProxyHost)%>'/>
 <input type="hidden" name="rmwsProxyPort" value='<%=rmwsProxyPort%>'/>
 <%
 	}
@@ -213,19 +213,19 @@
 		<td class="description"><nobr>MetaCarta webservice server protocol:</nobr></td><td class="value"><select name="metacartawsServerProtocol"><option value="http" <%=((metacartawsServerProtocol.equals("http"))?"selected=\"true\"":"")%>>http</option><option value="https" <%=(metacartawsServerProtocol.equals("https")?"selected=\"true\"":"")%>>https</option></select></td>
 	</tr>
 	<tr>
-		<td class="description"><nobr>MetaCarta webservice server name:</nobr></td><td class="value"><input type="text" size="64" name="metacartawsServerName" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(metacartawsServerName)%>'/></td>
+		<td class="description"><nobr>MetaCarta webservice server name:</nobr></td><td class="value"><input type="text" size="64" name="metacartawsServerName" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(metacartawsServerName)%>'/></td>
 	</tr>
         <tr>
 		<td class="description"><nobr>MetaCarta webservice server port:</nobr></td><td class="value"><input type="text" size="5" name="metacartawsServerPort" value='<%=metacartawsServerPort%>'/></td>
 	</tr>
         <tr>
-		<td class="description"><nobr>MetaCarta webservice location:</nobr></td><td class="value"><input type="text" size="64" name="metacartawsLocation" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(metacartawsLocation)%>'/></td>
+		<td class="description"><nobr>MetaCarta webservice location:</nobr></td><td class="value"><input type="text" size="64" name="metacartawsLocation" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(metacartawsLocation)%>'/></td>
 	</tr>
 	<tr>
 		<td class="separator" colspan="2"><hr/></td>
 	</tr>
 	<tr>
-		<td class="description"><nobr>MetaCarta webservice server proxy host:</nobr></td><td class="value"><input type="text" size="64" name="metacartawsProxyHost" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(metacartawsProxyHost)%>'/></td>
+		<td class="description"><nobr>MetaCarta webservice server proxy host:</nobr></td><td class="value"><input type="text" size="64" name="metacartawsProxyHost" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(metacartawsProxyHost)%>'/></td>
 	</tr>
 	<tr>
 		<td class="description"><nobr>MetaCarta webservice server proxy port:</nobr></td><td class="value"><input type="text" size="5" name="metacartawsProxyPort" value='<%=metacartawsProxyPort%>'/></td>
@@ -238,10 +238,10 @@
 		// Hiddens for the MetaCarta Service Server tab.
 %>
 <input type="hidden" name="metacartawsServerProtocol" value='<%=metacartawsServerProtocol%>'/>
-<input type="hidden" name="metacartawsServerName" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(metacartawsServerName)%>'/>
+<input type="hidden" name="metacartawsServerName" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(metacartawsServerName)%>'/>
 <input type="hidden" name="metacartawsServerPort" value='<%=metacartawsServerPort%>'/>
-<input type="hidden" name="metacartawsLocation" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(metacartawsLocation)%>'/>
-<input type="hidden" name="metacartawsProxyHost" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(metacartawsProxyHost)%>'/>
+<input type="hidden" name="metacartawsLocation" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(metacartawsLocation)%>'/>
+<input type="hidden" name="metacartawsProxyHost" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(metacartawsProxyHost)%>'/>
 <input type="hidden" name="metacartawsProxyPort" value='<%=metacartawsProxyPort%>'/>
 <%
 	}
@@ -251,7 +251,7 @@
 	if (meridioKeystore != null)
 	{
 %>
-<input type="hidden" name="keystoredata" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(meridioKeystore)%>'/>
+<input type="hidden" name="keystoredata" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(meridioKeystore)%>'/>
 <%
 	}
 
@@ -261,10 +261,10 @@
 <table class="displaytable">
 	<tr><td class="separator" colspan="2"><hr/></td></tr>
         <tr>
-		<td class="description"><nobr>User name:</nobr></td><td class="value"><input type="text" size="32" name="userName" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(userName)%>'/></td>
+		<td class="description"><nobr>User name:</nobr></td><td class="value"><input type="text" size="32" name="userName" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(userName)%>'/></td>
 	</tr>
         <tr>
-		<td class="description"><nobr>Password:</nobr></td><td class="value"><input type="password" size="32" name="password" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(password)%>'/></td>
+		<td class="description"><nobr>Password:</nobr></td><td class="value"><input type="password" size="32" name="password" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(password)%>'/></td>
 	</tr>
 	<tr>
 		<td class="description"><nobr>SSL certificate list:</nobr></td>
@@ -293,8 +293,8 @@
 					description = description.substring(0,125) + "...";
 %>
 			<tr>
-				<td class="value"><input type="button" onclick='<%="Javascript:DeleteCertificate(\""+com.metacarta.ui.util.Encoder.attributeJavascriptEscape(alias)+"\")"%>' alt='<%="Delete cert "+com.metacarta.ui.util.Encoder.attributeEscape(alias)%>' value="Delete"/></td>
-				<td><%=com.metacarta.ui.util.Encoder.bodyEscape(description)%></td>
+				<td class="value"><input type="button" onclick='<%="Javascript:DeleteCertificate(\""+org.apache.lcf.ui.util.Encoder.attributeJavascriptEscape(alias)+"\")"%>' alt='<%="Delete cert "+org.apache.lcf.ui.util.Encoder.attributeEscape(alias)%>' value="Delete"/></td>
+				<td><%=org.apache.lcf.ui.util.Encoder.bodyEscape(description)%></td>
 			</tr>
 <%
 
@@ -314,8 +314,8 @@
 	{
 		// Hiddens for the "Credentials" tab
 %>
-<input type="hidden" name="userName" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(userName)%>'/>
-<input type="hidden" name="password" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(password)%>'/>
+<input type="hidden" name="userName" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(userName)%>'/>
+<input type="hidden" name="password" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(password)%>'/>
 <%
 	}
 

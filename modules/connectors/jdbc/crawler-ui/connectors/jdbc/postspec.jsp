@@ -50,12 +50,12 @@
 		int i = 0;
 		while (i < ds.getChildCount())
 		{
-			if (ds.getChild(i).getType().equals(com.metacarta.crawler.connectors.jdbc.JDBCConstants.idQueryNode))
+			if (ds.getChild(i).getType().equals(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.idQueryNode))
 				ds.removeChild(i);
 			else
 				i++;
 		}
-		sn = new SpecificationNode(com.metacarta.crawler.connectors.jdbc.JDBCConstants.idQueryNode);
+		sn = new SpecificationNode(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.idQueryNode);
 		sn.setValue(idQuery);
 		ds.addChild(ds.getChildCount(),sn);
 	}
@@ -64,12 +64,12 @@
 		int i = 0;
 		while (i < ds.getChildCount())
 		{
-			if (ds.getChild(i).getType().equals(com.metacarta.crawler.connectors.jdbc.JDBCConstants.versionQueryNode))
+			if (ds.getChild(i).getType().equals(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.versionQueryNode))
 				ds.removeChild(i);
 			else
 				i++;
 		}
-		sn = new SpecificationNode(com.metacarta.crawler.connectors.jdbc.JDBCConstants.versionQueryNode);
+		sn = new SpecificationNode(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.versionQueryNode);
 		sn.setValue(versionQuery);
 		ds.addChild(ds.getChildCount(),sn);
 	}
@@ -78,12 +78,12 @@
 		int i = 0;
 		while (i < ds.getChildCount())
 		{
-			if (ds.getChild(i).getType().equals(com.metacarta.crawler.connectors.jdbc.JDBCConstants.dataQueryNode))
+			if (ds.getChild(i).getType().equals(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.dataQueryNode))
 				ds.removeChild(i);
 			else
 				i++;
 		}
-		sn = new SpecificationNode(com.metacarta.crawler.connectors.jdbc.JDBCConstants.dataQueryNode);
+		sn = new SpecificationNode(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.dataQueryNode);
 		sn.setValue(dataQuery);
 		ds.addChild(ds.getChildCount(),sn);
 	}

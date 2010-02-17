@@ -20,7 +20,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-boolean maintenanceUnderway = com.metacarta.crawler.system.Metacarta.checkMaintenanceUnderway();
+boolean maintenanceUnderway = org.apache.lcf.crawler.system.Metacarta.checkMaintenanceUnderway();
 
 %>
 
@@ -409,7 +409,7 @@ if (maintenanceUnderway == false)
 		if (thisDescription == null || thisDescription.length() == 0)
 			thisDescription = thisConnectionName;
 %>
-						<option <%=(thisConnectionName.equals(reportConnection))?"selected=\"selected\"":""%> value='<%=com.metacarta.ui.util.Encoder.attributeEscape(thisConnectionName)%>'><%=com.metacarta.ui.util.Encoder.bodyEscape(thisDescription)%></option>
+						<option <%=(thisConnectionName.equals(reportConnection))?"selected=\"selected\"":""%> value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(thisConnectionName)%>'><%=org.apache.lcf.ui.util.Encoder.bodyEscape(thisDescription)%></option>
 <%
 	}
 %>
@@ -427,7 +427,7 @@ if (maintenanceUnderway == false)
 	    {
 		String activity = activityList[i++];
 %>
-						<option <%=((selectedActivities.get(activity)==null)?"":"selected=\"selected\"")%> value='<%=com.metacarta.ui.util.Encoder.attributeEscape(activity)%>'><%=com.metacarta.ui.util.Encoder.bodyEscape(activity)%></option>
+						<option <%=((selectedActivities.get(activity)==null)?"":"selected=\"selected\"")%> value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(activity)%>'><%=org.apache.lcf.ui.util.Encoder.bodyEscape(activity)%></option>
 <%
 	    }
 %>
@@ -642,9 +642,9 @@ if (maintenanceUnderway == false)
 			</tr>
 			<tr>
 				<td class="description"><nobr>Entity match:</nobr></td>
-				<td class="value"><input type="text" name="reportentitymatch" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(entityMatch)%>'/></td>
+				<td class="value"><input type="text" name="reportentitymatch" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(entityMatch)%>'/></td>
 				<td class="description"><nobr>Result code match:</nobr></td>
-				<td class="value"><input type="text" name="reportresultcodematch" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(resultCodeMatch)%>'/></td>
+				<td class="value"><input type="text" name="reportresultcodematch" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(resultCodeMatch)%>'/></td>
 			</tr>
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
@@ -652,9 +652,9 @@ if (maintenanceUnderway == false)
 
 			<tr>
 				<td class="description"><nobr>Identifier class description:</nobr></td>
-				<td class="value"><input type="text" name="reportbucketdesc" size="20" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(reportBucketDesc)%>'/></td>
+				<td class="value"><input type="text" name="reportbucketdesc" size="20" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(reportBucketDesc)%>'/></td>
 				<td class="description"><nobr>Sliding window size (minutes):</nobr></td>
-				<td class="value"><input type="text" name="reportinterval" size="5" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(Integer.toString(interval))%>'/></td>
+				<td class="value"><input type="text" name="reportinterval" size="5" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(Integer.toString(interval))%>'/></td>
 			</tr>
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
@@ -728,7 +728,7 @@ if (maintenanceUnderway == false)
 %>
 		<input type="hidden" name="clickcolumn" value=""/>
 		<input type="hidden" name="startrow" value='<%=Integer.toString(startRow)%>'/>
-		<input type="hidden" name="sortorder" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(sortOrder.toString())%>'/>
+		<input type="hidden" name="sortorder" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(sortOrder.toString())%>'/>
 <%
 		long count = connMgr.countHistoryRows(reportConnection,criteria);
 		boolean hasMoreRows;
@@ -769,17 +769,17 @@ if (maintenanceUnderway == false)
 			    else
 				idBucketString = idBucketObject.toString();
 
-			    String startTimeString = com.metacarta.ui.util.Formatter.formatTime(((Long)row.getValue("starttime")).longValue());
-			    String endTimeString = com.metacarta.ui.util.Formatter.formatTime(((Long)row.getValue("endtime")).longValue());
+			    String startTimeString = org.apache.lcf.ui.util.Formatter.formatTime(((Long)row.getValue("starttime")).longValue());
+			    String endTimeString = org.apache.lcf.ui.util.Formatter.formatTime(((Long)row.getValue("endtime")).longValue());
 			    double activityCount = ((Double)row.getValue("activitycount")).doubleValue();
 			    double activityRate = activityCount * 60000.0 / intervalMilliseconds;
 
 %>
 		    <tr <%="class=\""+((zz%2==0)?"evendatarow":"odddatarow")+"\""%>>
-		        <td class="reportcolumncell"><nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(idBucketString)%></nobr></td>
+		        <td class="reportcolumncell"><nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(idBucketString)%></nobr></td>
 		        <td class="reportcolumncell"><%=new Double(activityRate).toString()%></td>
-		        <td class="reportcolumncell"><nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(startTimeString)%></nobr></td>
-		        <td class="reportcolumncell"><nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(endTimeString)%></nobr></td>
+		        <td class="reportcolumncell"><nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(startTimeString)%></nobr></td>
+		        <td class="reportcolumncell"><nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(endTimeString)%></nobr></td>
 		    </tr>
 <%
 				zz++;

@@ -38,43 +38,43 @@
 	if (tabName == null)
 		out.println("No tab name!");
 
-	String protocol = parameters.getParameter(com.metacarta.agents.output.lucene.LuceneConfig.PARAM_PROTOCOL);
+	String protocol = parameters.getParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_PROTOCOL);
 	if (protocol == null)
 		protocol = "http";
 		
-	String server = parameters.getParameter(com.metacarta.agents.output.lucene.LuceneConfig.PARAM_SERVER);
+	String server = parameters.getParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_SERVER);
 	if (server == null)
 		server = "localhost";
 
-	String port = parameters.getParameter(com.metacarta.agents.output.lucene.LuceneConfig.PARAM_PORT);
+	String port = parameters.getParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_PORT);
 	if (port == null)
 		port = "8983";
 
-	String webapp = parameters.getParameter(com.metacarta.agents.output.lucene.LuceneConfig.PARAM_WEBAPPNAME);
+	String webapp = parameters.getParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_WEBAPPNAME);
 	if (webapp == null)
 		webapp = "solr";
 
-	String updatePath = parameters.getParameter(com.metacarta.agents.output.lucene.LuceneConfig.PARAM_UPDATEPATH);
+	String updatePath = parameters.getParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_UPDATEPATH);
 	if (updatePath == null)
 		updatePath = "/update/extract";
 
-	String removePath = parameters.getParameter(com.metacarta.agents.output.lucene.LuceneConfig.PARAM_REMOVEPATH);
+	String removePath = parameters.getParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_REMOVEPATH);
 	if (removePath == null)
 		removePath = "/update";
 
-	String statusPath = parameters.getParameter(com.metacarta.agents.output.lucene.LuceneConfig.PARAM_STATUSPATH);
+	String statusPath = parameters.getParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_STATUSPATH);
 	if (statusPath == null)
 		statusPath = "/admin/ping";
 
-	String realm = parameters.getParameter(com.metacarta.agents.output.lucene.LuceneConfig.PARAM_REALM);
+	String realm = parameters.getParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_REALM);
 	if (realm == null)
 		realm = "";
 
-	String userID = parameters.getParameter(com.metacarta.agents.output.lucene.LuceneConfig.PARAM_USERID);
+	String userID = parameters.getParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_USERID);
 	if (userID == null)
 		userID = "";
 		
-	String password = parameters.getObfuscatedParameter(com.metacarta.agents.output.lucene.LuceneConfig.PARAM_PASSWORD);
+	String password = parameters.getObfuscatedParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_PASSWORD);
 	if (password == null)
 		password = "";
 		
@@ -95,57 +95,57 @@
 	<tr>
 		<td class="description"><nobr>Server name:</nobr></td>
 		<td class="value">
-			<input name="servername" type="text" size="32" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(server)%>'/>
+			<input name="servername" type="text" size="32" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(server)%>'/>
 		</td>
 	</tr>
 	<tr>
 		<td class="description"><nobr>Port:</nobr></td>
 		<td class="value">
-			<input name="serverport" type="text" size="5" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(port)%>'/>
+			<input name="serverport" type="text" size="5" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(port)%>'/>
 		</td>
 	</tr>
 	<tr><td colspan="2" class="separator"><hr/></td></tr>
 	<tr>
 		<td class="description"><nobr>Web application  name:</nobr></td>
 		<td class="value">
-			<input name="webappname" type="text" size="16" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(webapp)%>'/>
+			<input name="webappname" type="text" size="16" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(webapp)%>'/>
 		</td>
 	</tr>
 	<tr>
 		<td class="description"><nobr>Update handler:</nobr></td>
 		<td class="value">
-			<input name="updatepath" type="text" size="32" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(updatePath)%>'/>
+			<input name="updatepath" type="text" size="32" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(updatePath)%>'/>
 		</td>
 	</tr>
 	<tr>
 		<td class="description"><nobr>Remove handler:</nobr></td>
 		<td class="value">
-			<input name="removepath" type="text" size="32" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(removePath)%>'/>
+			<input name="removepath" type="text" size="32" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(removePath)%>'/>
 		</td>
 	</tr>
 	<tr>
 		<td class="description"><nobr>Status handler:</nobr></td>
 		<td class="value">
-			<input name="statuspath" type="text" size="32" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(statusPath)%>'/>
+			<input name="statuspath" type="text" size="32" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(statusPath)%>'/>
 		</td>
 	</tr>
 	<tr><td colspan="2" class="separator"><hr/></td></tr>
 	<tr>
 		<td class="description"><nobr>Realm:</nobr></td>
 		<td class="value">
-			<input name="realm" type="text" size="32" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(realm)%>'/>
+			<input name="realm" type="text" size="32" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(realm)%>'/>
 		</td>
 	</tr>
 	<tr>
 		<td class="description"><nobr>User ID:</nobr></td>
 		<td class="value">
-			<input name="userid" type="text" size="32" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(userID)%>'/>
+			<input name="userid" type="text" size="32" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(userID)%>'/>
 		</td>
 	</tr>
 	<tr>
 		<td class="description"><nobr>Password:</nobr></td>
 		<td class="value">
-			<input type="password" size="32" name="password" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(password)%>'/>
+			<input type="password" size="32" name="password" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(password)%>'/>
 		</td>
 	</tr>
 </table>
@@ -155,16 +155,16 @@
 	{
 		// Lucene tab hiddens
 %>
-<input type="hidden" name="serverprotocol" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(protocol)%>'/>
-<input type="hidden" name="servername" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(server)%>'/>
-<input type="hidden" name="serverport" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(port)%>'/>
-<input type="hidden" name="webappname" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(webapp)%>'/>
-<input type="hidden" name="updatepath" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(updatePath)%>'/>
-<input type="hidden" name="removepath" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(removePath)%>'/>
-<input type="hidden" name="statuspath" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(statusPath)%>'/>
-<input type="hidden" name="realm" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(realm)%>'/>
-<input type="hidden" name="userid" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(userID)%>'/>
-<input type="hidden" name="password" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(password)%>'/>
+<input type="hidden" name="serverprotocol" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(protocol)%>'/>
+<input type="hidden" name="servername" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(server)%>'/>
+<input type="hidden" name="serverport" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(port)%>'/>
+<input type="hidden" name="webappname" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(webapp)%>'/>
+<input type="hidden" name="updatepath" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(updatePath)%>'/>
+<input type="hidden" name="removepath" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(removePath)%>'/>
+<input type="hidden" name="statuspath" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(statusPath)%>'/>
+<input type="hidden" name="realm" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(realm)%>'/>
+<input type="hidden" name="userid" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(userID)%>'/>
+<input type="hidden" name="password" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(password)%>'/>
 <%
 	}
 %>

@@ -20,7 +20,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-boolean maintenanceUnderway = com.metacarta.crawler.system.Metacarta.checkMaintenanceUnderway();
+boolean maintenanceUnderway = org.apache.lcf.crawler.system.Metacarta.checkMaintenanceUnderway();
 
 %>
 

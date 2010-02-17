@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-package com.metacarta.core;
+package org.apache.lcf.core;
 
-import com.metacarta.core.interfaces.*;
-import com.metacarta.core.system.Metacarta;
+import org.apache.lcf.core.interfaces.*;
+import org.apache.lcf.core.system.Metacarta;
 
 public class UILockSpinner
 {

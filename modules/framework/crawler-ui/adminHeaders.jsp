@@ -28,18 +28,18 @@ response.setContentType("text/html;charset=utf-8");
 %>
 
 <%@ page language="java" %>
-<%@ page import="com.metacarta.core.interfaces.*" %>
-<%@ page import="com.metacarta.agents.interfaces.*" %>
-<%@ page import="com.metacarta.crawler.interfaces.*" %>
-<%@ page import="com.metacarta.authorities.interfaces.*" %>
+<%@ page import="org.apache.lcf.core.interfaces.*" %>
+<%@ page import="org.apache.lcf.agents.interfaces.*" %>
+<%@ page import="org.apache.lcf.crawler.interfaces.*" %>
+<%@ page import="org.apache.lcf.authorities.interfaces.*" %>
 <%@ page import="java.util.*" %>
 
 <%
-	com.metacarta.crawler.system.Metacarta.initializeEnvironment();
+	org.apache.lcf.crawler.system.Metacarta.initializeEnvironment();
 %>
 
-<jsp:useBean id="thread" class="com.metacarta.ui.beans.ThreadContext" scope="request"/>
-<jsp:useBean id="adminprofile" class="com.metacarta.ui.beans.AdminProfile" scope="session"/>
+<jsp:useBean id="thread" class="org.apache.lcf.ui.beans.ThreadContext" scope="request"/>
+<jsp:useBean id="adminprofile" class="org.apache.lcf.ui.beans.AdminProfile" scope="session"/>
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jstl/core" %>
 <%@ taglib prefix="x" uri="http://java.sun.com/jstl/xml" %>
@@ -49,10 +49,10 @@ response.setContentType("text/html;charset=utf-8");
 
 <%
 	IThreadContext threadContext = thread.getThreadContext();
-	com.metacarta.ui.multipart.MultipartWrapper variableContext = (com.metacarta.ui.multipart.MultipartWrapper)threadContext.get("__WRAPPER__");
+	org.apache.lcf.ui.multipart.MultipartWrapper variableContext = (org.apache.lcf.ui.multipart.MultipartWrapper)threadContext.get("__WRAPPER__");
 	if (variableContext == null)
 	{
-		variableContext = new com.metacarta.ui.multipart.MultipartWrapper(request);
+		variableContext = new org.apache.lcf.ui.multipart.MultipartWrapper(request);
 		threadContext.save("__WRAPPER__",variableContext);
 	}
 %>

@@ -47,13 +47,13 @@
 	while (i < os.getChildCount())
 	{
 		SpecificationNode sn = os.getChild(i++);
-		if (sn.getType().equals(com.metacarta.agents.output.gts.GTSConfig.NODE_COLLECTION))
+		if (sn.getType().equals(org.apache.lcf.agents.output.gts.GTSConfig.NODE_COLLECTION))
 		{
-			collectionName = sn.getAttributeValue(com.metacarta.agents.output.gts.GTSConfig.ATTRIBUTE_VALUE);
+			collectionName = sn.getAttributeValue(org.apache.lcf.agents.output.gts.GTSConfig.ATTRIBUTE_VALUE);
 		}
-		else if (sn.getType().equals(com.metacarta.agents.output.gts.GTSConfig.NODE_DOCUMENTTEMPLATE))
+		else if (sn.getType().equals(org.apache.lcf.agents.output.gts.GTSConfig.NODE_DOCUMENTTEMPLATE))
 		{
-			documentTemplate = sn.getAttributeValue(com.metacarta.agents.output.gts.GTSConfig.ATTRIBUTE_VALUE);
+			documentTemplate = sn.getAttributeValue(org.apache.lcf.agents.output.gts.GTSConfig.ATTRIBUTE_VALUE);
 		}
 	}
 	if (collectionName == null)
@@ -70,7 +70,7 @@
 	<tr>
 		<td class="description"><nobr>Collection name:</nobr></td>
 		<td class="value">
-			<input name="gts_collectionname" type="text" size="32" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(collectionName)%>'/>
+			<input name="gts_collectionname" type="text" size="32" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(collectionName)%>'/>
 		</td>
 	</tr>
 </table>
@@ -80,7 +80,7 @@
 	{
 		// Hiddens for collections
 %>
-<input type="hidden" name="gts_collectionname" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(collectionName)%>'/>
+<input type="hidden" name="gts_collectionname" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(collectionName)%>'/>
 <%
 	}
 
@@ -93,7 +93,7 @@
 	<tr>
 		<td class="description"><nobr>Document template:</nobr></td>
 		<td class="value">
-			<textarea rows="10" cols="96" name="gts_documenttemplate"><%=com.metacarta.ui.util.Encoder.bodyEscape(documentTemplate)%></textarea>
+			<textarea rows="10" cols="96" name="gts_documenttemplate"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(documentTemplate)%></textarea>
 		</td>
 	</tr>
 </table>
@@ -103,7 +103,7 @@
 	{
 		// Hiddens for document template
 %>
-<input type="hidden" name="gts_documenttemplate" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(documentTemplate)%>'/>
+<input type="hidden" name="gts_documenttemplate" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(documentTemplate)%>'/>
 <%
 	}
 %>

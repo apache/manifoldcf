@@ -55,7 +55,7 @@
 				seenAny = true;
 			}
 %>
-			<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(sn.getAttributeValue("url"))%></nobr><br/>
+			<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(sn.getAttributeValue("url"))%></nobr><br/>
 <%
 		}
 	}
@@ -123,8 +123,8 @@
 				allowBVSessionRemoval = "no";
 %>
 				<tr class='<%=((l % 2)==0)?"evenformrow":"oddformrow"%>'>
-					<td class="formcolumncell"><nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(regexpString)%></nobr></td>
-					<td class="formcolumncell"><%=com.metacarta.ui.util.Encoder.bodyEscape(description)%></td>
+					<td class="formcolumncell"><nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(regexpString)%></nobr></td>
+					<td class="formcolumncell"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(description)%></td>
 					<td class="formcolumncell"><nobr><%=allowReorder%></nobr></td>
 					<td class="formcolumncell"><nobr><%=allowJavaSessionRemoval%></nobr></td>
 					<td class="formcolumncell"><nobr><%=allowASPSessionRemoval%></nobr></td>
@@ -172,12 +172,12 @@
 			String match = sn.getAttributeValue("match");
 			String map = sn.getAttributeValue("map");
 %>
-			<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(match)%></nobr>
+			<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(match)%></nobr>
 <%
 			if (map != null && map.length() > 0)
 			{
 %>
-				&nbsp;--&gt;&nbsp;<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(map)%></nobr>
+				&nbsp;--&gt;&nbsp;<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(map)%></nobr>
 <%
 			}
 %>
@@ -240,30 +240,30 @@
 %>
 	    <tr>
 		<td class="description"><nobr>Feed connection timeout (seconds):</nobr></td>
-		<td class="value"><%=com.metacarta.ui.util.Encoder.bodyEscape(feedTimeoutValue)%></td>
+		<td class="value"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(feedTimeoutValue)%></td>
 	    </tr>
 	    <tr>
 		<td class="description"><nobr>Default feed rescan interval (minutes):</nobr></td>
-		<td class="value"><%=com.metacarta.ui.util.Encoder.bodyEscape(feedRefetchValue)%></td>
+		<td class="value"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(feedRefetchValue)%></td>
 	    </tr>
 	    <tr>
 		<td class="description"><nobr>Minimum feed rescan interval (minutes):</nobr></td>
-		<td class="value"><%=com.metacarta.ui.util.Encoder.bodyEscape(minFeedRefetchValue)%></td>
+		<td class="value"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(minFeedRefetchValue)%></td>
 	    </tr>
 	    <tr>
 		<td class="description"><nobr>Bad feed rescan interval (minutes):</nobr></td>
-		<td class="value"><%=((badFeedRefetchValue==null)?"(Default feed rescan value)":com.metacarta.ui.util.Encoder.bodyEscape(badFeedRefetchValue))%></td>
+		<td class="value"><%=((badFeedRefetchValue==null)?"(Default feed rescan value)":org.apache.lcf.ui.util.Encoder.bodyEscape(badFeedRefetchValue))%></td>
 	    </tr>
 	    
 	    <tr><td class="separator" colspan="2"><hr/></td></tr>
 
 	    <tr>
 		<td class="description"><nobr>Dechromed content source:</nobr></td>
-		<td class="value"><%=com.metacarta.ui.util.Encoder.bodyEscape(dechromedMode)%></td>
+		<td class="value"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(dechromedMode)%></td>
 	    </tr>
 	    <tr>
 		<td class="description"><nobr>Chromed content:</nobr></td>
-		<td class="value"><%=com.metacarta.ui.util.Encoder.bodyEscape(chromedMode)%></td>
+		<td class="value"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(chromedMode)%></td>
 	    </tr>
 
 	    <tr><td class="separator" colspan="2"><hr/></td></tr>
@@ -287,7 +287,7 @@
 			}
 			String token = sn.getAttributeValue("token");
 %>
-				<%=com.metacarta.ui.util.Encoder.bodyEscape(token)%><br/>
+				<%=org.apache.lcf.ui.util.Encoder.bodyEscape(token)%><br/>
 <%		}
 	}
 
@@ -328,7 +328,7 @@
 			String name = sn.getAttributeValue("name");
 			String value = sn.getAttributeValue("value");
 %>
-				<%=com.metacarta.ui.util.Encoder.bodyEscape(name)%>&nbsp;=&nbsp;<%=com.metacarta.ui.util.Encoder.bodyEscape(value)%><br/>
+				<%=org.apache.lcf.ui.util.Encoder.bodyEscape(name)%>&nbsp;=&nbsp;<%=org.apache.lcf.ui.util.Encoder.bodyEscape(value)%><br/>
 <%		}
 	}
 

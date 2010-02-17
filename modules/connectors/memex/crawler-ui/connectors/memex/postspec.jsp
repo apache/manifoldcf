@@ -48,7 +48,7 @@
 		while (i < ds.getChildCount())
 		{
 			SpecificationNode sn = ds.getChild(i);
-			if (sn.getType().equals(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_NODE_ENTITY))
+			if (sn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_ENTITY))
 				ds.removeChild(i);
 			else
 				i++;
@@ -65,15 +65,15 @@
 			if (primaryFields != null && primaryFields.length > 0)
 			{
 				// At least one primary field was selected for this entity type!
-				SpecificationNode node = new SpecificationNode(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_NODE_ENTITY);
-				node.setAttribute(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_NAME,entityType);
-				node.setAttribute(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_DESCRIPTION,displayName);
+				SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_ENTITY);
+				node.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_NAME,entityType);
+				node.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_DESCRIPTION,displayName);
 				
 				int k = 0;
 				while (k < primaryFields.length)
 				{
-					SpecificationNode primaryNode = new SpecificationNode(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_NODE_PRIMARYFIELD);
-					primaryNode.setAttribute(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_NAME,primaryFields[k++]);
+					SpecificationNode primaryNode = new SpecificationNode(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_PRIMARYFIELD);
+					primaryNode.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_NAME,primaryFields[k++]);
 					node.addChild(node.getChildCount(),primaryNode);
 				}
 				
@@ -83,8 +83,8 @@
 					k = 0;
 					while (k < z.length)
 					{
-						SpecificationNode attrNode = new SpecificationNode(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_NODE_METAFIELD);
-						attrNode.setAttribute(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_NAME,z[k++]);
+						SpecificationNode attrNode = new SpecificationNode(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_METAFIELD);
+						attrNode.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_NAME,z[k++]);
 						node.addChild(node.getChildCount(),attrNode);
 					}
 				}
@@ -103,7 +103,7 @@
 		while (i < ds.getChildCount())
 		{
 			SpecificationNode sn = ds.getChild(i);
-			if (sn.getType().equals(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_NODE_SPECIFICATIONRULE))
+			if (sn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_SPECIFICATIONRULE))
 				ds.removeChild(i);
 			else
 				i++;
@@ -141,19 +141,19 @@
 			}
 			else
 			{
-				SpecificationNode sn = new SpecificationNode(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_NODE_SPECIFICATIONRULE);
+				SpecificationNode sn = new SpecificationNode(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_SPECIFICATIONRULE);
 				if (virtualServer.length() > 0)
-					sn.setAttribute(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_VIRTUALSERVER,virtualServer);
+					sn.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_VIRTUALSERVER,virtualServer);
 				if (entityPrefix.length() > 0)
-					sn.setAttribute(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_ENTITY,entityPrefix);
+					sn.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_ENTITY,entityPrefix);
 				if (entityDescription.length() > 0)
-					sn.setAttribute(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_DESCRIPTION,entityDescription);
+					sn.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_DESCRIPTION,entityDescription);
 				if (fieldName.length() > 0)
-					sn.setAttribute(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_FIELDNAME,fieldName);
+					sn.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_FIELDNAME,fieldName);
 				if (operation.length() > 0)
-					sn.setAttribute(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_OPERATION,operation);
+					sn.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_OPERATION,operation);
 				if (fieldValue.length() > 0)
-					sn.setAttribute(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_FIELDVALUE,fieldValue);
+					sn.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_FIELDVALUE,fieldValue);
 				ds.addChild(ds.getChildCount(),sn);
 			}
 			i++;
@@ -184,19 +184,19 @@
 		if (globalOpcode != null && globalOpcode.equals("Add"))
 		{
 			// Add the specified rule to the end of the list, and clear out all the rule parameters.
-			SpecificationNode sn = new SpecificationNode(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_NODE_SPECIFICATIONRULE);
+			SpecificationNode sn = new SpecificationNode(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_SPECIFICATIONRULE);
 			if (ruleVirtualServer.length() > 0)
-				sn.setAttribute(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_VIRTUALSERVER,ruleVirtualServer);
+				sn.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_VIRTUALSERVER,ruleVirtualServer);
 			if (ruleEntityPrefix.length() > 0)
-				sn.setAttribute(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_ENTITY,ruleEntityPrefix);
+				sn.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_ENTITY,ruleEntityPrefix);
 			if (ruleEntityDescription.length() > 0)
-				sn.setAttribute(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_DESCRIPTION,ruleEntityDescription);
+				sn.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_DESCRIPTION,ruleEntityDescription);
 			if (ruleFieldName.length() > 0)
-				sn.setAttribute(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_FIELDNAME,ruleFieldName);
+				sn.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_FIELDNAME,ruleFieldName);
 			if (ruleOperation.length() > 0)
-				sn.setAttribute(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_OPERATION,ruleOperation);
+				sn.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_OPERATION,ruleOperation);
 			if (ruleFieldValue.length() > 0)
-				sn.setAttribute(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_FIELDVALUE,ruleFieldValue);
+				sn.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_FIELDVALUE,ruleFieldValue);
 			ds.addChild(ds.getChildCount(),sn);
 			ruleVirtualServer = "";
 			ruleEntityPrefix = "";
@@ -223,14 +223,14 @@
 		while (i < ds.getChildCount())
 		{
 			SpecificationNode sn = ds.getChild(i);
-			if (sn.getType().equals(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_NODE_SECURITY))
+			if (sn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_SECURITY))
 				ds.removeChild(i);
 			else
 				i++;
 		}
 
-		SpecificationNode node = new SpecificationNode(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_NODE_SECURITY);
-		node.setAttribute(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_VALUE,xc);
+		SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_SECURITY);
+		node.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_VALUE,xc);
 		ds.addChild(ds.getChildCount(),node);
 
 	}
@@ -243,7 +243,7 @@
 		while (i < ds.getChildCount())
 		{
 			SpecificationNode sn = ds.getChild(i);
-			if (sn.getType().equals(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_NODE_ACCESS))
+			if (sn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_ACCESS))
 				ds.removeChild(i);
 			else
 				i++;
@@ -264,8 +264,8 @@
 			}
 			// Get the stuff we need
 			String accessSpec = variableContext.getParameter("spectoken"+accessDescription);
-			SpecificationNode node = new SpecificationNode(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_NODE_ACCESS);
-			node.setAttribute(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_TOKEN,accessSpec);
+			SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_ACCESS);
+			node.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_TOKEN,accessSpec);
 			ds.addChild(ds.getChildCount(),node);
 			i++;
 		}
@@ -274,8 +274,8 @@
 		if (op != null && op.equals("Add"))
 		{
 			String accessspec = variableContext.getParameter("spectoken");
-			SpecificationNode node = new SpecificationNode(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_NODE_ACCESS);
-			node.setAttribute(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_TOKEN,accessspec);
+			SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_ACCESS);
+			node.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_TOKEN,accessspec);
 			ds.addChild(ds.getChildCount(),node);
 		}
 	}

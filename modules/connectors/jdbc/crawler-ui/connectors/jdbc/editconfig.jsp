@@ -38,19 +38,19 @@
 	if (tabName == null)
 		out.println("No tab name!");
 
-	String jdbcProvider = parameters.getParameter(com.metacarta.crawler.connectors.jdbc.JDBCConstants.providerParameter);
+	String jdbcProvider = parameters.getParameter(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.providerParameter);
 	if (jdbcProvider == null)
 		jdbcProvider = "oracle:thin:@";
-	String host = parameters.getParameter(com.metacarta.crawler.connectors.jdbc.JDBCConstants.hostParameter);
+	String host = parameters.getParameter(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.hostParameter);
 	if (host == null)
 		host = "localhost";
-	String databaseName = parameters.getParameter(com.metacarta.crawler.connectors.jdbc.JDBCConstants.databaseNameParameter);
+	String databaseName = parameters.getParameter(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.databaseNameParameter);
 	if (databaseName == null)
 		databaseName = "database";
-	String databaseUser = parameters.getParameter(com.metacarta.crawler.connectors.jdbc.JDBCConstants.databaseUserName);
+	String databaseUser = parameters.getParameter(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.databaseUserName);
 	if (databaseUser == null)
 		databaseUser = "";
-	String databasePassword = parameters.getObfuscatedParameter(com.metacarta.crawler.connectors.jdbc.JDBCConstants.databasePassword);
+	String databasePassword = parameters.getObfuscatedParameter(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.databasePassword);
 	if (databasePassword == null)
 		databasePassword = "";
 
@@ -86,10 +86,10 @@
 <table class="displaytable">
 	<tr><td class="separator" colspan="2"><hr/></td></tr>
 	<tr>
-		<td class="description"><nobr>Database host and port:</nobr></td><td class="value"><input type="text" size="64" name="databasehost" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(host)%>'/></td>
+		<td class="description"><nobr>Database host and port:</nobr></td><td class="value"><input type="text" size="64" name="databasehost" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(host)%>'/></td>
 	</tr>
 	<tr>
-		<td class="description"><nobr>Database service name or instance/database:</nobr></td><td class="value"><input type="text" size="32" name="databasename" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(databaseName)%>'/></td>
+		<td class="description"><nobr>Database service name or instance/database:</nobr></td><td class="value"><input type="text" size="32" name="databasename" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(databaseName)%>'/></td>
 	</tr>
 </table>
 <%
@@ -97,8 +97,8 @@
 	else
 	{
 %>
-<input type="hidden" name="databasehost" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(host)%>'/>
-<input type="hidden" name="databasename" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(databaseName)%>'/>
+<input type="hidden" name="databasehost" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(host)%>'/>
+<input type="hidden" name="databasename" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(databaseName)%>'/>
 <%
 	}
 
@@ -109,10 +109,10 @@
 <table class="displaytable">
 	<tr><td class="separator" colspan="2"><hr/></td></tr>
         <tr>
-		<td class="description"><nobr>User name:</nobr></td><td class="value"><input type="text" size="32" name="username" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(databaseUser)%>'/></td>
+		<td class="description"><nobr>User name:</nobr></td><td class="value"><input type="text" size="32" name="username" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(databaseUser)%>'/></td>
 	</tr>
         <tr>
-		<td class="description"><nobr>Password:</nobr></td><td class="value"><input type="password" size="32" name="password" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(databasePassword)%>'/></td>
+		<td class="description"><nobr>Password:</nobr></td><td class="value"><input type="password" size="32" name="password" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(databasePassword)%>'/></td>
 	</tr>
 </table>
 <%
@@ -120,8 +120,8 @@
 	else
 	{
 %>
-<input type="hidden" name="username" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(databaseUser)%>'/>
-<input type="hidden" name="password" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(databasePassword)%>'/>
+<input type="hidden" name="username" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(databaseUser)%>'/>
+<input type="hidden" name="password" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(databasePassword)%>'/>
 <%
 	}
 %>

@@ -37,13 +37,13 @@
 	if (tabName == null)
 		out.println("No tab name!");
 
-	String server   = parameters.getParameter(com.metacarta.crawler.connectors.sharedrive.SharedDriveParameters.server);
+	String server   = parameters.getParameter(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveParameters.server);
 	if (server==null) server = "";
-	String domain = parameters.getParameter(com.metacarta.crawler.connectors.sharedrive.SharedDriveParameters.domain);
+	String domain = parameters.getParameter(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveParameters.domain);
 	if (domain==null) domain = "";
-	String username = parameters.getParameter(com.metacarta.crawler.connectors.sharedrive.SharedDriveParameters.username);
+	String username = parameters.getParameter(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveParameters.username);
 	if (username==null) username = "";
-	String password = parameters.getObfuscatedParameter(com.metacarta.crawler.connectors.sharedrive.SharedDriveParameters.password);
+	String password = parameters.getObfuscatedParameter(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveParameters.password);
 	if (password==null) password = "";
 
 	// "Server" tab
@@ -53,16 +53,16 @@
 <table class="displaytable">
 	<tr><td class="separator" colspan="2"><hr/></td></tr>
         <tr>
-                <td class="description"><nobr>Server:</nobr></td><td class="value"><input type="text" size="32" name="server" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(server)%>'/></td>
+                <td class="description"><nobr>Server:</nobr></td><td class="value"><input type="text" size="32" name="server" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(server)%>'/></td>
         </tr>
         <tr>
-                <td class="description"><nobr>Authentication domain (optional):</nobr></td><td class="value"><input type="text" size="32" name="domain" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(domain)%>'/></td>
+                <td class="description"><nobr>Authentication domain (optional):</nobr></td><td class="value"><input type="text" size="32" name="domain" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(domain)%>'/></td>
         </tr>
         <tr>
-                <td class="description"><nobr>User name:</nobr></td><td class="value"><input type="text" size="32" name="username" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(username)%>'/></td>
+                <td class="description"><nobr>User name:</nobr></td><td class="value"><input type="text" size="32" name="username" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(username)%>'/></td>
         </tr>
         <tr>
-                <td class="description"><nobr>Password:</nobr></td><td class="value"><input type="password" size="32" name="password" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(password)%>'/></td>
+                <td class="description"><nobr>Password:</nobr></td><td class="value"><input type="password" size="32" name="password" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(password)%>'/></td>
         </tr>
 </table>
 <%
@@ -70,10 +70,10 @@
 	else
 	{
 %>
-<input type="hidden" name="server" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(server)%>'/>
-<input type="hidden" name="domain" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(domain)%>'/>
-<input type="hidden" name="username" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(username)%>'/>
-<input type="hidden" name="password" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(password)%>'/>
+<input type="hidden" name="server" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(server)%>'/>
+<input type="hidden" name="domain" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(domain)%>'/>
+<input type="hidden" name="username" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(username)%>'/>
+<input type="hidden" name="password" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(password)%>'/>
 <%
 	}
 %>

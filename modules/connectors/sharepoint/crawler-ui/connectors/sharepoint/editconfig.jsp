@@ -78,7 +78,7 @@
 	if (keystore != null)
 	{
 %>
-<input type="hidden" name="keystoredata" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(keystore)%>'/>
+<input type="hidden" name="keystoredata" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(keystore)%>'/>
 <%
 	}
 
@@ -98,19 +98,19 @@
 		<td class="description"><nobr>Server protocol:</nobr></td><td class="value"><select name="serverProtocol"><option value="http" <%=((serverProtocol.equals("http"))?"selected=\"true\"":"")%>>http</option><option value="https" <%=(serverProtocol.equals("https")?"selected=\"true\"":"")%>>https</option></select></td>
 	</tr>
 	<tr>
-		<td class="description"><nobr>Server name:</nobr></td><td class="value"><input type="text" size="64" name="serverName" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(serverName)%>'/></td>
+		<td class="description"><nobr>Server name:</nobr></td><td class="value"><input type="text" size="64" name="serverName" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(serverName)%>'/></td>
 	</tr>
         <tr>
 		<td class="description"><nobr>Server port:</nobr></td><td class="value"><input type="text" size="5" name="serverPort" value='<%=serverPort%>'/></td>
 	</tr>
 	<tr>
-		<td class="description"><nobr>Site path:</nobr></td><td class="value"><input type="text" size="64" name="serverLocation" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(serverLocation)%>'/></td>
+		<td class="description"><nobr>Site path:</nobr></td><td class="value"><input type="text" size="64" name="serverLocation" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(serverLocation)%>'/></td>
 	</tr>
         <tr>
-		<td class="description"><nobr>User name:</nobr></td><td class="value"><input type="text" size="32" name="userName" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(userName)%>'/></td>
+		<td class="description"><nobr>User name:</nobr></td><td class="value"><input type="text" size="32" name="userName" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(userName)%>'/></td>
 	</tr>
         <tr>
-		<td class="description"><nobr>Password:</nobr></td><td class="value"><input type="password" size="32" name="password" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(password)%>'/></td>
+		<td class="description"><nobr>Password:</nobr></td><td class="value"><input type="password" size="32" name="password" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(password)%>'/></td>
 	</tr>
 	<tr>
 		<td class="description"><nobr>SSL certificate list:</nobr></td>
@@ -140,8 +140,8 @@
 					description = description.substring(0,125) + "...";
 %>
 			<tr>
-				<td class="value"><input type="button" onclick='<%="Javascript:ShpDeleteCertificate(\""+com.metacarta.ui.util.Encoder.attributeJavascriptEscape(alias)+"\")"%>' alt='<%="Delete cert "+com.metacarta.ui.util.Encoder.attributeEscape(alias)%>' value="Delete"/></td>
-				<td><%=com.metacarta.ui.util.Encoder.bodyEscape(description)%></td>
+				<td class="value"><input type="button" onclick='<%="Javascript:ShpDeleteCertificate(\""+org.apache.lcf.ui.util.Encoder.attributeJavascriptEscape(alias)+"\")"%>' alt='<%="Delete cert "+org.apache.lcf.ui.util.Encoder.attributeEscape(alias)%>' value="Delete"/></td>
+				<td><%=org.apache.lcf.ui.util.Encoder.bodyEscape(description)%></td>
 			</tr>
 <%
 
@@ -162,11 +162,11 @@
 		// Server tab hiddens
 %>
 <input type="hidden" name="serverProtocol" value='<%=serverProtocol%>'/>
-<input type="hidden" name="serverName" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(serverName)%>'/>
+<input type="hidden" name="serverName" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(serverName)%>'/>
 <input type="hidden" name="serverPort" value='<%=serverPort%>'/>
-<input type="hidden" name="serverLocation" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(serverLocation)%>'/>
-<input type="hidden" name="userName" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(userName)%>'/>
-<input type="hidden" name="password" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(password)%>'/>
+<input type="hidden" name="serverLocation" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(serverLocation)%>'/>
+<input type="hidden" name="userName" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(userName)%>'/>
+<input type="hidden" name="password" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(password)%>'/>
 <%
 	}
 %>

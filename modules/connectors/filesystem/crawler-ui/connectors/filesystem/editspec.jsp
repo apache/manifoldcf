@@ -67,8 +67,8 @@
 		<tr>
 		    <td class="description">
 			<input type="hidden" name='<%=pathOpName%>' value=""/>
-			<input type="hidden" name='<%="specpath"+pathDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(sn.getAttributeValue("path"))%>'/>
-			<%=com.metacarta.ui.util.Encoder.bodyEscape(sn.getAttributeValue("path"))%> 
+			<input type="hidden" name='<%="specpath"+pathDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(sn.getAttributeValue("path"))%>'/>
+			<%=org.apache.lcf.ui.util.Encoder.bodyEscape(sn.getAttributeValue("path"))%> 
 			<a name='<%="path_"+Integer.toString(k)%>'><input type="button" value="Delete" onClick='<%="Javascript:SpecOp(\""+
 				pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")"%>' alt='<%="Delete path #"+Integer.toString(k)%>'/></a>
 		    </td>
@@ -94,12 +94,12 @@
 					<input type="hidden" name='<%="specop"+instanceDescription%>' value=""/>
 					<input type="hidden" name='<%="specfl"+instanceDescription%>' value='<%=nodeFlavor%>'/>
 					<input type="hidden" name='<%="specty"+instanceDescription%>' value='<%=nodeType%>'/>
-					<input type="hidden" name='<%="specma"+instanceDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(nodeMatch)%>'/>
+					<input type="hidden" name='<%="specma"+instanceDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(nodeMatch)%>'/>
 					<%=(nodeFlavor.equals("include"))?"Include ":""%>
 					<%=(nodeFlavor.equals("exclude"))?"Exclude ":""%>
 					<%=(nodeType.equals("file"))?"file ":""%>
 					<%=(nodeType.equals("directory"))?"directory ":""%>
-					<%=com.metacarta.ui.util.Encoder.bodyEscape(nodeMatch)%>:
+					<%=org.apache.lcf.ui.util.Encoder.bodyEscape(nodeMatch)%>:
 					<a name='<%="match_"+Integer.toString(k)+"_"+Integer.toString(j)%>'><input type="button" value="Delete" onClick='<%="Javascript:SpecOp(\""+
 						"specop"+instanceDescription+"\",\"Delete\",\"match_"+Integer.toString(k)+"_"+Integer.toString(j)+"\")"%>' alt='<%="Delete path #"+Integer.toString(k)+
 						", match spec #"+Integer.toString(j)%>'/></a>
@@ -190,7 +190,7 @@
 		{
 		    String pathDescription = "_"+Integer.toString(k);
 %>
-	<input type="hidden" name='<%="specpath"+pathDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(sn.getAttributeValue("path"))%>'/>
+	<input type="hidden" name='<%="specpath"+pathDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(sn.getAttributeValue("path"))%>'/>
         <input type="hidden" name='<%="specchildcount"+pathDescription%>' value='<%=Integer.toString(sn.getChildCount())%>'/>
 <%
 
@@ -206,7 +206,7 @@
 %>
 	<input type="hidden" name='<%="specfl"+instanceDescription%>' value='<%=nodeFlavor%>'/>
 	<input type="hidden" name='<%="specty"+instanceDescription%>' value='<%=nodeType%>'/>
-	<input type="hidden" name='<%="specma"+instanceDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(nodeMatch)%>'/>
+	<input type="hidden" name='<%="specma"+instanceDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(nodeMatch)%>'/>
 <%
 			j++;
 		    }

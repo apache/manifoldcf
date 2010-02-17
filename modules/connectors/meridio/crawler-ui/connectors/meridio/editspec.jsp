@@ -66,12 +66,12 @@
 	<tr>
 		<td class="description">
 			<input type="hidden" name='<%="specpathop_"+Integer.toString(k)%>' value="Continue"/>
-			<input type="hidden" name='<%="specpath_"+Integer.toString(k)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(pathString)%>'/>
+			<input type="hidden" name='<%="specpath_"+Integer.toString(k)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(pathString)%>'/>
 			<a name='<%="SpecPath_"+Integer.toString(k)%>'>
 				<input type="button" value="Delete" onclick='<%="javascript:SpecDeletePath("+Integer.toString(k)+");"%>' alt='<%="Delete path #"+Integer.toString(k)%>'/>
 			</a>
 		</td>
-		<td class="value"><nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(pathString)%></nobr></td>
+		<td class="value"><nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(pathString)%></nobr></td>
 	</tr>
 <%
 				k++;
@@ -100,7 +100,7 @@
 		if (idsSoFar == null)
 			idsSoFar = "0";
 		if (containerType == null)
-			containerType = new Integer(com.metacarta.crawler.connectors.meridio.MeridioClassContents.CLASS);
+			containerType = new Integer(org.apache.lcf.crawler.connectors.meridio.MeridioClassContents.CLASS);
 
 		int currentInt = 0;
 		if (idsSoFar.length() > 0)
@@ -112,8 +112,8 @@
 		// Grab next folder/project list
 		try
 		{
-	  	    com.metacarta.crawler.connectors.meridio.MeridioClassContents[] childList;
-		    if (containerType.intValue() == com.metacarta.crawler.connectors.meridio.MeridioClassContents.CLASS)
+	  	    org.apache.lcf.crawler.connectors.meridio.MeridioClassContents[] childList;
+		    if (containerType.intValue() == org.apache.lcf.crawler.connectors.meridio.MeridioClassContents.CLASS)
 		    {
 	    		IRepositoryConnector connector = RepositoryConnectorFactory.grab(threadContext,
 				repositoryConnection.getClassName(),
@@ -121,7 +121,7 @@
 				repositoryConnection.getMaxConnections());
 	    		try
 	    		{
-				com.metacarta.crawler.connectors.meridio.MeridioConnector c = (com.metacarta.crawler.connectors.meridio.MeridioConnector)connector;
+				org.apache.lcf.crawler.connectors.meridio.MeridioConnector c = (org.apache.lcf.crawler.connectors.meridio.MeridioConnector)connector;
 				childList = c.getClassOrFolderContents(currentInt);
 			}
 			finally
@@ -130,18 +130,18 @@
 			}
 		    }
 		    else
-			childList = new com.metacarta.crawler.connectors.meridio.MeridioClassContents[0];
+			childList = new org.apache.lcf.crawler.connectors.meridio.MeridioClassContents[0];
 %>
 		<td class="description">
 			<input type="hidden" name="specpathop" value="Continue"/>
-			<input type="hidden" name="specpathbase" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(pathSoFar)%>'/>
+			<input type="hidden" name="specpathbase" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(pathSoFar)%>'/>
 			<input type="hidden" name="specidsbase" value='<%=idsSoFar%>'/>
 			<input type="hidden" name="spectype" value='<%=containerType.toString()%>'/>
 			<a name="SpecPathAdd"><input type="button" value="Add" onclick="javascript:SpecAddPath();" alt="Add path"/></a>
 		</td>
 		<td class="value">
 			<nobr>
-				<%=com.metacarta.ui.util.Encoder.bodyEscape(pathSoFar)%>
+				<%=org.apache.lcf.ui.util.Encoder.bodyEscape(pathSoFar)%>
 <%
 		    if (pathSoFar.length() > 1)
 		    {
@@ -162,8 +162,8 @@
 				// The option selected needs to include both the id and the name, since I have no way
 				// to get to the name from the id.  So, put the id first, then a semicolon, then the name.
 %>
-					<option value='<%=Integer.toString(childList[j].classOrFolderId)+";"+Integer.toString(childList[j].containerType)+";"+com.metacarta.ui.util.Encoder.attributeEscape(childList[j].classOrFolderName)%>'>
-						<%=com.metacarta.ui.util.Encoder.bodyEscape(childList[j].classOrFolderName)%>
+					<option value='<%=Integer.toString(childList[j].classOrFolderId)+";"+Integer.toString(childList[j].containerType)+";"+org.apache.lcf.ui.util.Encoder.attributeEscape(childList[j].classOrFolderName)%>'>
+						<%=org.apache.lcf.ui.util.Encoder.bodyEscape(childList[j].classOrFolderName)%>
 					</option>
 <%
 				j++;
@@ -182,14 +182,14 @@
 		{
 			e.printStackTrace();
 %>
-		<td class="message" colspan="2">Service interruption: <%=com.metacarta.ui.util.Encoder.bodyEscape(e.getMessage())%></td>
+		<td class="message" colspan="2">Service interruption: <%=org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())%></td>
 <%
 		}
 		catch (MetacartaException e)
 		{
 			e.printStackTrace();
 %>
-		<td class="message" colspan="2"><%=com.metacarta.ui.util.Encoder.bodyEscape(e.getMessage())%></td>
+		<td class="message" colspan="2"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())%></td>
 <%
 		}
 %>
@@ -211,7 +211,7 @@
 				// body data, so I'm going to presume it's a value attribute.
 				String pathString = sn.getAttributeValue("path");
 %>
-<input type="hidden" name='<%="specpath_"+Integer.toString(k)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(pathString)%>'/>
+<input type="hidden" name='<%="specpath_"+Integer.toString(k)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(pathString)%>'/>
 <%
 				k++;
 			}
@@ -308,8 +308,8 @@
 		{
 			String mimeType = allowedMimeTypes[i++];
 %>
-			<nobr><input type="checkbox" name="specmimetypes" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(mimeType)%>' <%=((mimeTypeMap.get(mimeType)!=null)?"checked=\"true\"":"")%>>
-				<%=com.metacarta.ui.util.Encoder.bodyEscape(mimeType)%>
+			<nobr><input type="checkbox" name="specmimetypes" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(mimeType)%>' <%=((mimeTypeMap.get(mimeType)!=null)?"checked=\"true\"":"")%>>
+				<%=org.apache.lcf.ui.util.Encoder.bodyEscape(mimeType)%>
 			</input></nobr>
 			<br/>
 <%
@@ -328,7 +328,7 @@
 		{
 			String mimeType = (String)iter.next();
 %>
-<input type="hidden" name="specmimetypes" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(mimeType)%>'/>
+<input type="hidden" name="specmimetypes" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(mimeType)%>'/>
 <%
 		}
 	}
@@ -364,7 +364,7 @@
 				repositoryConnection.getMaxConnections());
 	    		try
 	    		{
-				com.metacarta.crawler.connectors.meridio.MeridioConnector c = (com.metacarta.crawler.connectors.meridio.MeridioConnector)connector;
+				org.apache.lcf.crawler.connectors.meridio.MeridioConnector c = (org.apache.lcf.crawler.connectors.meridio.MeridioConnector)connector;
 				categoryList = c.getMeridioCategories();
 			}
 			finally
@@ -380,8 +380,8 @@
 			{
 				String category = categoryList[k++];
 %>
-			<nobr><input type="checkbox" name="speccategories" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(category)%>' <%=((categoriesMap.get(category)!=null)?"checked=\"true\"":"")%>>
-				<%=com.metacarta.ui.util.Encoder.bodyEscape(category)%>
+			<nobr><input type="checkbox" name="speccategories" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(category)%>' <%=((categoriesMap.get(category)!=null)?"checked=\"true\"":"")%>>
+				<%=org.apache.lcf.ui.util.Encoder.bodyEscape(category)%>
 			</input></nobr>
 			<br/>
 <%
@@ -394,14 +394,14 @@
 		{
 			e.printStackTrace();
 %>
-		<td class="message" colspan="2">Service interruption: <%=com.metacarta.ui.util.Encoder.bodyEscape(e.getMessage())%></td>
+		<td class="message" colspan="2">Service interruption: <%=org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())%></td>
 <%
 		}
 		catch (MetacartaException e)
 		{
 			e.printStackTrace();
 %>
-		<td class="message" colspan="2"><%=com.metacarta.ui.util.Encoder.bodyEscape(e.getMessage())%></td>
+		<td class="message" colspan="2"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())%></td>
 <%
 		}
 
@@ -418,7 +418,7 @@
 		{
 			String category = (String)iter.next();
 %>
-<input type="hidden" name="speccategories" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(category)%>'/>
+<input type="hidden" name="speccategories" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(category)%>'/>
 <%
 		}
 	}
@@ -503,11 +503,11 @@
 	<tr>
 		<td class="description">
 			<input type="hidden" name='<%=accessOpName%>' value=""/>
-			<input type="hidden" name='<%="spectoken"+accessDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(token)%>'/>
+			<input type="hidden" name='<%="spectoken"+accessDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(token)%>'/>
 			<a name='<%="token_"+Integer.toString(k)%>'><input type="button" value="Delete" onClick='<%="Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")"%>' alt='<%="Delete token #"+Integer.toString(k)%>'/></a>&nbsp;
 		</td>
 		<td class="value">
-			<%=com.metacarta.ui.util.Encoder.bodyEscape(token)%>
+			<%=org.apache.lcf.ui.util.Encoder.bodyEscape(token)%>
 		</td>
 	</tr>
 <%
@@ -553,7 +553,7 @@
 			String accessDescription = "_"+Integer.toString(k);
 			String token = sn.getAttributeValue("token");
 %>
-<input type="hidden" name='<%="spectoken"+accessDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(token)%>'/>
+<input type="hidden" name='<%="spectoken"+accessDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(token)%>'/>
 <%
 			k++;
 		}
@@ -579,7 +579,7 @@
 
 	// Find the path-value mapping data
 	i = 0;
-	com.metacarta.crawler.connectors.meridio.MatchMap matchMap = new com.metacarta.crawler.connectors.meridio.MatchMap();
+	org.apache.lcf.crawler.connectors.meridio.MatchMap matchMap = new org.apache.lcf.crawler.connectors.meridio.MatchMap();
 	while (i < ds.getChildCount())
 	{
 		SpecificationNode sn = ds.getChild(i++);
@@ -652,7 +652,7 @@
 				repositoryConnection.getMaxConnections());
 	    		try
 	    		{
-				com.metacarta.crawler.connectors.meridio.MeridioConnector c = (com.metacarta.crawler.connectors.meridio.MeridioConnector)connector;
+				org.apache.lcf.crawler.connectors.meridio.MeridioConnector c = (org.apache.lcf.crawler.connectors.meridio.MeridioConnector)connector;
 				propertyList = c.getMeridioDocumentProperties();
 			}
 			finally
@@ -669,8 +669,8 @@
 			{
 				String descriptor = propertyList[k++];
 %>
-			<nobr><input type="checkbox" name="specproperties" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(descriptor)%>' <%=((metadataSelected.get(descriptor)!=null)?"checked=\"true\"":"")%>>
-				<%=com.metacarta.ui.util.Encoder.bodyEscape(descriptor)%>
+			<nobr><input type="checkbox" name="specproperties" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(descriptor)%>' <%=((metadataSelected.get(descriptor)!=null)?"checked=\"true\"":"")%>>
+				<%=org.apache.lcf.ui.util.Encoder.bodyEscape(descriptor)%>
 			</input></nobr>
 			<br/>
 <%
@@ -683,14 +683,14 @@
 		{
 			e.printStackTrace();
 %>
-		<td class="message" colspan="4">Service interruption: <%=com.metacarta.ui.util.Encoder.bodyEscape(e.getMessage())%></td>
+		<td class="message" colspan="4">Service interruption: <%=org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())%></td>
 <%
 		}
 		catch (MetacartaException e)
 		{
 			e.printStackTrace();
 %>
-		<td class="message" colspan="4"><%=com.metacarta.ui.util.Encoder.bodyEscape(e.getMessage())%></td>
+		<td class="message" colspan="4"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())%></td>
 <%
 		}
 
@@ -700,7 +700,7 @@
 	<tr>
 		<td class="description"><nobr>Path attribute metadata name:</nobr></td>
 		<td class="value" colspan="3"><nobr>
-			<input type="text" size="16" name="specpathnameattribute" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(pathNameAttribute)%>'/></nobr>
+			<input type="text" size="16" name="specpathnameattribute" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(pathNameAttribute)%>'/></nobr>
 		</td>
 	</tr>
 	<tr><td class="separator" colspan="4"><hr/></td></tr>
@@ -713,9 +713,9 @@
 %>
 	<tr>
 		<td class="description"><input type="hidden" name='<%="specmappingop_"+Integer.toString(i)%>' value=""/><a name='<%="mapping_"+Integer.toString(i)%>'><input type="button" onClick='<%="Javascript:SpecDeleteMapping(Integer.toString(i),\"mapping_"+Integer.toString(i)+"\")"%>' alt='<%="Delete mapping #"+Integer.toString(i)%>' value="Delete"/></a></td>
-		<td class="value"><input type="hidden" name='<%="specmatch_"+Integer.toString(i)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(matchString)%>'/><%=com.metacarta.ui.util.Encoder.bodyEscape(matchString)%></td>
+		<td class="value"><input type="hidden" name='<%="specmatch_"+Integer.toString(i)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(matchString)%>'/><%=org.apache.lcf.ui.util.Encoder.bodyEscape(matchString)%></td>
 		<td class="value">==></td>
-		<td class="value"><input type="hidden" name='<%="specreplace_"+Integer.toString(i)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(replaceString)%>'/><%=com.metacarta.ui.util.Encoder.bodyEscape(replaceString)%></td>
+		<td class="value"><input type="hidden" name='<%="specreplace_"+Integer.toString(i)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(replaceString)%>'/><%=org.apache.lcf.ui.util.Encoder.bodyEscape(replaceString)%></td>
 	</tr>
 <%
 		i++;
@@ -747,12 +747,12 @@
 		{
 			String descriptor = (String)iter.next();
 %>
-<input type="hidden" name="specproperties" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(descriptor)%>'/>
+<input type="hidden" name="specproperties" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(descriptor)%>'/>
 <%
 		}
 %>
 <input type="hidden" name="allmetadata" value='<%=(allMetadata?"true":"false")%>'/>
-<input type="hidden" name="specpathnameattribute" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(pathNameAttribute)%>'/>
+<input type="hidden" name="specpathnameattribute" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(pathNameAttribute)%>'/>
 <input type="hidden" name="specmappingcount" value='<%=Integer.toString(matchMap.getMatchCount())%>'/>
 <%
 		i = 0;
@@ -761,8 +761,8 @@
 			String matchString = matchMap.getMatchString(i);
 			String replaceString = matchMap.getReplaceString(i);
 %>
-<input type="hidden" name='<%="specmatch_"+Integer.toString(i)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(matchString)%>'/>
-<input type="hidden" name='<%="specreplace_"+Integer.toString(i)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(replaceString)%>'/>
+<input type="hidden" name='<%="specmatch_"+Integer.toString(i)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(matchString)%>'/>
+<input type="hidden" name='<%="specreplace_"+Integer.toString(i)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(replaceString)%>'/>
 <%
 			i++;
 		}

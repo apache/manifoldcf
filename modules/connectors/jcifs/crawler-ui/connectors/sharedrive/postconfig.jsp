@@ -38,18 +38,18 @@
 		
 	String server = variableContext.getParameter("server");
 	if (server != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.sharedrive.SharedDriveParameters.server,server);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveParameters.server,server);
 	
 	String domain = variableContext.getParameter("domain");
 	if (domain != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.sharedrive.SharedDriveParameters.domain,domain);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveParameters.domain,domain);
 	
 	String username = variableContext.getParameter("username");
 	if (username != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.sharedrive.SharedDriveParameters.username,username);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveParameters.username,username);
 		
 	String password = variableContext.getParameter("password");
 	if (password != null)
-		parameters.setObfuscatedParameter(com.metacarta.crawler.connectors.sharedrive.SharedDriveParameters.password,password);
+		parameters.setObfuscatedParameter(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveParameters.password,password);
 
 %>

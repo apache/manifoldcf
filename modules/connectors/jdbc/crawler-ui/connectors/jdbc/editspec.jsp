@@ -52,11 +52,11 @@
 	while (i < ds.getChildCount())
 	{
 		SpecificationNode sn = ds.getChild(i++);
-		if (sn.getType().equals(com.metacarta.crawler.connectors.jdbc.JDBCConstants.idQueryNode))
+		if (sn.getType().equals(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.idQueryNode))
 			idQuery = sn.getValue();
-		else if (sn.getType().equals(com.metacarta.crawler.connectors.jdbc.JDBCConstants.versionQueryNode))
+		else if (sn.getType().equals(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.versionQueryNode))
 			versionQuery = sn.getValue();
-		else if (sn.getType().equals(com.metacarta.crawler.connectors.jdbc.JDBCConstants.dataQueryNode))
+		else if (sn.getType().equals(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.dataQueryNode))
 			dataQuery = sn.getValue();
 	}
 
@@ -77,15 +77,15 @@
 		<tr><td class="separator" colspan="2"><hr/></td></tr>
 		<tr>
 			<td class="description"><nobr>Seeding query:</nobr><br/><nobr>(return ids that need to be checked)</nobr></td>
-			<td class="value"><textarea name="idquery" cols="64" rows="6"><%=com.metacarta.ui.util.Encoder.bodyEscape(idQuery)%></textarea></td>
+			<td class="value"><textarea name="idquery" cols="64" rows="6"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(idQuery)%></textarea></td>
 		</tr>
 		<tr>
 			<td class="description"><nobr>Version check query:</nobr><br/><nobr>(return ids and versions for a set of documents;</nobr><br/><nobr>leave blank if no versioning capability)</nobr></td>
-			<td class="value"><textarea name="versionquery" cols="64" rows="6"><%=com.metacarta.ui.util.Encoder.bodyEscape(versionQuery)%></textarea></td>
+			<td class="value"><textarea name="versionquery" cols="64" rows="6"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(versionQuery)%></textarea></td>
 		</tr>
 		<tr>
 			<td class="description"><nobr>Data query:</nobr><br/><nobr>(return ids, urls, and data for a set of documents)</nobr></td>
-			<td class="value"><textarea name="dataquery" cols="64" rows="6"><%=com.metacarta.ui.util.Encoder.bodyEscape(dataQuery)%></textarea></td>
+			<td class="value"><textarea name="dataquery" cols="64" rows="6"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(dataQuery)%></textarea></td>
 		</tr>
 	</table>
 <%
@@ -93,9 +93,9 @@
 	else
 	{
 %>
-	<input type="hidden" name="idquery" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(idQuery)%>'/>
-	<input type="hidden" name="versionquery" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(versionQuery)%>'/>
-	<input type="hidden" name="dataquery" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(dataQuery)%>'/>
+	<input type="hidden" name="idquery" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(idQuery)%>'/>
+	<input type="hidden" name="versionquery" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(versionQuery)%>'/>
+	<input type="hidden" name="dataquery" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(dataQuery)%>'/>
 <%
 	}
 	
@@ -124,11 +124,11 @@
 			<tr>
 				<td class="description">
 					<input type="hidden" name='<%=accessOpName%>' value=""/>
-					<input type="hidden" name='<%="spectoken"+accessDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(token)%>'/>
+					<input type="hidden" name='<%="spectoken"+accessDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(token)%>'/>
 					<a name='<%="token_"+Integer.toString(k)%>'><input type="button" value="Delete" onClick='<%="Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")"%>' alt='<%="Delete token #"+Integer.toString(k)%>'/></a>&nbsp;
 				</td>
 				<td class="value">
-					<%=com.metacarta.ui.util.Encoder.bodyEscape(token)%>
+					<%=org.apache.lcf.ui.util.Encoder.bodyEscape(token)%>
 				</td>
 			</tr>
 <%
@@ -171,7 +171,7 @@
 			String accessDescription = "_"+Integer.toString(k);
 			String token = sn.getAttributeValue("token");
 %>
-	<input type="hidden" name='<%="spectoken"+accessDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(token)%>'/>
+	<input type="hidden" name='<%="spectoken"+accessDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(token)%>'/>
 <%
 			k++;
 		}

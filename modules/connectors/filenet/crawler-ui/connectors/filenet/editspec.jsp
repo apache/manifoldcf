@@ -49,11 +49,11 @@ i = 0;
 while (i < ds.getChildCount())
 {
 	SpecificationNode sn = ds.getChild(i++);
-	if (sn.getType().equals(com.metacarta.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_DOCUMENTCLASS))
+	if (sn.getType().equals(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_DOCUMENTCLASS))
 	{
-		String value = sn.getAttributeValue(com.metacarta.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE);
+		String value = sn.getAttributeValue(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE);
 		// Now, scan for metadata etc.
-		com.metacarta.crawler.connectors.filenet.DocClassSpec spec = new com.metacarta.crawler.connectors.filenet.DocClassSpec(sn);
+		org.apache.lcf.crawler.connectors.filenet.DocClassSpec spec = new org.apache.lcf.crawler.connectors.filenet.DocClassSpec(sn);
 		documentClasses.put(value,spec);
 	}
 }
@@ -66,7 +66,7 @@ if (tabName.equals("Document Classes"))
 	<tr><td class="separator" colspan="2"><hr/></td></tr>
 <%
 	// Fetch the list of valid document classes from the connector
-	com.metacarta.crawler.common.filenet.DocumentClassDefinition[] documentClassArray = null;
+	org.apache.lcf.crawler.common.filenet.DocumentClassDefinition[] documentClassArray = null;
 	HashMap documentClassFields = new HashMap();
 	String message = null;
 	try
@@ -77,13 +77,13 @@ if (tabName.equals("Document Classes"))
 			repositoryConnection.getMaxConnections());
 		try
 		{
-			com.metacarta.crawler.connectors.filenet.FilenetConnector c = (com.metacarta.crawler.connectors.filenet.FilenetConnector)connector;
+			org.apache.lcf.crawler.connectors.filenet.FilenetConnector c = (org.apache.lcf.crawler.connectors.filenet.FilenetConnector)connector;
 			documentClassArray = c.getDocumentClassesDetails();
 			int j = 0;
 			while (j < documentClassArray.length)
 			{
 				String documentClass = documentClassArray[j++].getSymbolicName();
-				com.metacarta.crawler.common.filenet.MetadataFieldDefinition[] metaFields = c.getDocumentClassMetadataFieldsDetails(documentClass);
+				org.apache.lcf.crawler.common.filenet.MetadataFieldDefinition[] metaFields = c.getDocumentClassMetadataFieldsDetails(documentClass);
 				documentClassFields.put(documentClass,metaFields);
 			}
 		}
@@ -104,7 +104,7 @@ if (tabName.equals("Document Classes"))
 	if (message != null)
 	{
 %>
-	<tr><td class="message" colspan="2"><%=com.metacarta.ui.util.Encoder.bodyEscape(message)%></td></tr>
+	<tr><td class="message" colspan="2"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(message)%></td></tr>
 <%
 	}
 	else
@@ -112,14 +112,14 @@ if (tabName.equals("Document Classes"))
 		i = 0;
 		while (i < documentClassArray.length)
 		{
-			com.metacarta.crawler.common.filenet.DocumentClassDefinition def = documentClassArray[i++];
+			org.apache.lcf.crawler.common.filenet.DocumentClassDefinition def = documentClassArray[i++];
 			String documentClass = def.getSymbolicName();
 			String displayName = def.getDisplayName();
-			com.metacarta.crawler.connectors.filenet.DocClassSpec spec = (com.metacarta.crawler.connectors.filenet.DocClassSpec)documentClasses.get(documentClass);
+			org.apache.lcf.crawler.connectors.filenet.DocClassSpec spec = (org.apache.lcf.crawler.connectors.filenet.DocClassSpec)documentClasses.get(documentClass);
 %>
 	<tr>
 		<td class="description">
-			<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(documentClass+" ("+displayName+")")%>:</nobr>
+			<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(documentClass+" ("+displayName+")")%>:</nobr>
 		</td>
 		<td class="boxcell">
 			<table class="displaytable">
@@ -128,7 +128,7 @@ if (tabName.equals("Document Classes"))
 						<nobr>Include?</nobr>
 					</td>
 					<td class="value">
-						<nobr><input type="checkbox" name="documentclasses" <%=((spec != null)?"checked=\"true\"":"")%> value="<%=com.metacarta.ui.util.Encoder.attributeEscape(documentClass)%>"></input></nobr>
+						<nobr><input type="checkbox" name="documentclasses" <%=((spec != null)?"checked=\"true\"":"")%> value="<%=org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)%>"></input></nobr>
 					</td>
 				</tr>
 				<tr>
@@ -138,13 +138,13 @@ if (tabName.equals("Document Classes"))
 					<td class="boxcell">
 						<table class="displaytable">
 <%
-			com.metacarta.crawler.common.filenet.MetadataFieldDefinition[] fields = (com.metacarta.crawler.common.filenet.MetadataFieldDefinition[])documentClassFields.get(documentClass);
+			org.apache.lcf.crawler.common.filenet.MetadataFieldDefinition[] fields = (org.apache.lcf.crawler.common.filenet.MetadataFieldDefinition[])documentClassFields.get(documentClass);
 			String[] fieldArray = new String[fields.length];
 			HashMap fieldMap = new HashMap();
 			int j = 0;
 			while (j < fieldArray.length)
 			{
-				com.metacarta.crawler.common.filenet.MetadataFieldDefinition field = fields[j];
+				org.apache.lcf.crawler.common.filenet.MetadataFieldDefinition field = fields[j];
 				fieldArray[j++] = field.getSymbolicName();
 				fieldMap.put(field.getSymbolicName(),field.getDisplayName());
 			}
@@ -157,8 +157,8 @@ if (tabName.equals("Document Classes"))
 				String matchType = spec.getMatchType(q);
 				String matchField = spec.getMatchField(q);
 				String matchValue = spec.getMatchValue(q);
-				String opName = "matchop_" + com.metacarta.ui.util.Encoder.attributeEscape(documentClass) + "_" +Integer.toString(q);
-				String labelName = "match_"+com.metacarta.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q);
+				String opName = "matchop_" + org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass) + "_" +Integer.toString(q);
+				String labelName = "match_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q);
 %>
 							<tr>
 								<td class="description">
@@ -168,16 +168,16 @@ if (tabName.equals("Document Classes"))
 									</a>
 								</td>
 								<td class="value">
-									<input type="hidden" name='<%="matchfield_" + com.metacarta.ui.util.Encoder.attributeEscape(documentClass) + "_" + Integer.toString(q)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(matchField)%>'/>
-									<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(matchField)%></nobr>
+									<input type="hidden" name='<%="matchfield_" + org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass) + "_" + Integer.toString(q)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(matchField)%>'/>
+									<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(matchField)%></nobr>
 								</td>
 								<td class="value">
-									<input type="hidden" name='<%="matchtype_" + com.metacarta.ui.util.Encoder.attributeEscape(documentClass) + "_" + Integer.toString(q)%>' value='<%=matchType%>'/>
+									<input type="hidden" name='<%="matchtype_" + org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass) + "_" + Integer.toString(q)%>' value='<%=matchType%>'/>
 									<nobr><%=matchType%></nobr>
 								</td>
 								<td class="value">
-									<input type="hidden" name='<%="matchvalue_" + com.metacarta.ui.util.Encoder.attributeEscape(documentClass) + "_" + Integer.toString(q)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(matchValue)%>'/>
-									<nobr>'<%=com.metacarta.ui.util.Encoder.bodyEscape(matchValue)%>'</nobr>
+									<input type="hidden" name='<%="matchvalue_" + org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass) + "_" + Integer.toString(q)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(matchValue)%>'/>
+									<nobr>'<%=org.apache.lcf.ui.util.Encoder.bodyEscape(matchValue)%>'</nobr>
 								</td>
 							</tr>
 <%
@@ -189,21 +189,21 @@ if (tabName.equals("Document Classes"))
 							<tr><td class="message" colspan="4"><nobr>(No criteria specified - all documents will be taken)</nobr></td></tr>
 <%
 			}
-			String addLabelName = "match_"+com.metacarta.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q);
-			String addOpName = "matchop_"+com.metacarta.ui.util.Encoder.attributeEscape(documentClass);
+			String addLabelName = "match_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q);
+			String addOpName = "matchop_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass);
 %>
 							<tr><td class="lightseparator" colspan="4"><hr/></td></tr>
 							<tr>
 								<td class="description">
-									<input type="hidden" name='<%="matchcount_"+com.metacarta.ui.util.Encoder.attributeEscape(documentClass)%>' value='<%=Integer.toString(matchCount)%>'/>
+									<input type="hidden" name='<%="matchcount_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)%>' value='<%=Integer.toString(matchCount)%>'/>
 									<input type="hidden" name='<%=addOpName%>' value=""/>
 									<a name='<%=addLabelName%>'>
-										<input type="button" value="Add" alt='<%="Add match for "+com.metacarta.ui.util.Encoder.attributeEscape(documentClass)%>'
-											onClick='<%="Javascript:SpecAddMatch(\""+com.metacarta.ui.util.Encoder.attributeEscape(documentClass)+"\",\"match_"+com.metacarta.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q+1)+"\")"%>'/>
+										<input type="button" value="Add" alt='<%="Add match for "+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)%>'
+											onClick='<%="Javascript:SpecAddMatch(\""+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)+"\",\"match_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q+1)+"\")"%>'/>
 									</a>
 								</td>
 								<td class="value">
-									<select name='<%="matchfield_"+com.metacarta.ui.util.Encoder.attributeEscape(documentClass)%>' size="5">
+									<select name='<%="matchfield_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)%>' size="5">
 <%
 			q = 0;
 			while (q < fieldArray.length)
@@ -211,21 +211,21 @@ if (tabName.equals("Document Classes"))
 				String field = fieldArray[q++];
 				String dName = (String)fieldMap.get(field);
 %>
-										<option value='<%=com.metacarta.ui.util.Encoder.attributeEscape(field)%>'><%=com.metacarta.ui.util.Encoder.bodyEscape(field+" ("+dName+")")%></option>
+										<option value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(field)%>'><%=org.apache.lcf.ui.util.Encoder.bodyEscape(field+" ("+dName+")")%></option>
 <%
 			}
 %>
 									</select>
 								</td>
 								<td class="value">
-									<select name='<%="matchtype_"+com.metacarta.ui.util.Encoder.attributeEscape(documentClass)%>'>
+									<select name='<%="matchtype_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)%>'>
 										<option value="=">Equals</option>
 										<option value="!=">Not equals</option>
 										<option value="LIKE">'Like' (with % wildcards)</option>
 									</select>
 								</td>
 								<td class="value">
-									<input name='<%="matchvalue_"+com.metacarta.ui.util.Encoder.attributeEscape(documentClass)%>' type="text" size="32" value=""/>
+									<input name='<%="matchvalue_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)%>' type="text" size="32" value=""/>
 								</td>
 							</tr>
 						</table>
@@ -236,7 +236,7 @@ if (tabName.equals("Document Classes"))
 						<nobr>Ingest all metadata fields?</nobr>
 					</td>
 					<td class="value">
-						<nobr><input type="checkbox" name='<%="allmetadata_"+com.metacarta.ui.util.Encoder.attributeEscape(documentClass)%>' value="true" <%=((spec != null && spec.getAllMetadata())?"checked=\"\"":"")%>></input></nobr><br/>
+						<nobr><input type="checkbox" name='<%="allmetadata_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)%>' value="true" <%=((spec != null && spec.getAllMetadata())?"checked=\"\"":"")%>></input></nobr><br/>
 					</td>
 				</tr>
 				<tr>
@@ -245,7 +245,7 @@ if (tabName.equals("Document Classes"))
 					</td>
 					<td class="value">
 						<nobr>
-							<select name='<%="metadatafield_"+com.metacarta.ui.util.Encoder.attributeEscape(documentClass)%>' multiple="true" size="5">
+							<select name='<%="metadatafield_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)%>' multiple="true" size="5">
 <%
 			j = 0;
 			while (j < fieldArray.length)
@@ -253,7 +253,7 @@ if (tabName.equals("Document Classes"))
 				String field = fieldArray[j++];
 				String dName = (String)fieldMap.get(field);
 %>
-								<option value='<%=com.metacarta.ui.util.Encoder.attributeEscape(field)%>' <%=((spec!=null && spec.getAllMetadata() == false && spec.checkMetadataIncluded(field))?"selected=\"true\"":"")%>><%=com.metacarta.ui.util.Encoder.bodyEscape(field+" ("+dName+")")%></option>
+								<option value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(field)%>' <%=((spec!=null && spec.getAllMetadata() == false && spec.checkMetadataIncluded(field))?"selected=\"true\"":"")%>><%=org.apache.lcf.ui.util.Encoder.bodyEscape(field+" ("+dName+")")%></option>
 <%
 			}
 %>
@@ -281,11 +281,11 @@ else
 	while (iter.hasNext())
 	{
 		String documentClass = (String)iter.next();
-		com.metacarta.crawler.connectors.filenet.DocClassSpec spec = (com.metacarta.crawler.connectors.filenet.DocClassSpec)documentClasses.get(documentClass);
+		org.apache.lcf.crawler.connectors.filenet.DocClassSpec spec = (org.apache.lcf.crawler.connectors.filenet.DocClassSpec)documentClasses.get(documentClass);
 		if (spec.getAllMetadata())
 		{
 %>
-<input type="hidden" name='<%="allmetadata_"+com.metacarta.ui.util.Encoder.attributeEscape(documentClass)%>' value="true"/>
+<input type="hidden" name='<%="allmetadata_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)%>' value="true"/>
 <%
 		}
 		else
@@ -296,7 +296,7 @@ else
 			{
 				String field = metadataFields[q++];
 %>
-<input type="hidden" name='<%="metadatafield_"+com.metacarta.ui.util.Encoder.attributeEscape(documentClass)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(field)%>'/>
+<input type="hidden" name='<%="metadatafield_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(field)%>'/>
 <%
 			}
 		}
@@ -310,15 +310,15 @@ else
 			String matchField = spec.getMatchField(q);
 			String matchValue = spec.getMatchValue(q);
 %>
-<input type="hidden" name='<%="matchfield_"+com.metacarta.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(matchField)%>'/>
-<input type="hidden" name='<%="matchtype_"+com.metacarta.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q)%>' value='<%=matchType%>'/>
-<input type="hidden" name='<%="matchvalue_"+com.metacarta.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(matchValue)%>'/>
+<input type="hidden" name='<%="matchfield_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(matchField)%>'/>
+<input type="hidden" name='<%="matchtype_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q)%>' value='<%=matchType%>'/>
+<input type="hidden" name='<%="matchvalue_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(matchValue)%>'/>
 <%
 			q++;
 		}
 %>
-<input type="hidden" name='<%="matchcount_"+com.metacarta.ui.util.Encoder.attributeEscape(documentClass)%>' value='<%=Integer.toString(matchCount)%>'/>
-<input type="hidden" name="documentclasses" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(documentClass)%>'/>
+<input type="hidden" name='<%="matchcount_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)%>' value='<%=Integer.toString(matchCount)%>'/>
+<input type="hidden" name="documentclasses" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)%>'/>
 <%
 	}
 }
@@ -329,9 +329,9 @@ i = 0;
 while (i < ds.getChildCount())
 {
         SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals(com.metacarta.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_MIMETYPE))
+        if (sn.getType().equals(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_MIMETYPE))
         {
-                String value = sn.getAttributeValue(com.metacarta.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE);
+                String value = sn.getAttributeValue(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE);
                 if (mimeTypes == null)
 			mimeTypes = new HashMap();
 		mimeTypes.put(value,value);
@@ -356,7 +356,7 @@ if (tabName.equals("Mime Types"))
 			repositoryConnection.getMaxConnections());
 		try
 		{
-			com.metacarta.crawler.connectors.filenet.FilenetConnector c = (com.metacarta.crawler.connectors.filenet.FilenetConnector)connector;
+			org.apache.lcf.crawler.connectors.filenet.FilenetConnector c = (org.apache.lcf.crawler.connectors.filenet.FilenetConnector)connector;
 			mimeTypesArray = c.getMimeTypes();
 		}
 		finally
@@ -378,7 +378,7 @@ if (tabName.equals("Mime Types"))
 	if (message != null)
 	{
 %>
-		<td class="message" colspan="2"><%=com.metacarta.ui.util.Encoder.bodyEscape(message)%></td>
+		<td class="message" colspan="2"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(message)%></td>
 <%
 	}
 	else
@@ -395,16 +395,16 @@ if (tabName.equals("Mime Types"))
 			if (mimeTypes == null || mimeTypes.get(mimeType) != null)
 			{
 %>
-				<option value='<%=com.metacarta.ui.util.Encoder.attributeEscape(mimeType)%>' selected="true">
-					<%=com.metacarta.ui.util.Encoder.bodyEscape(mimeType)%>
+				<option value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(mimeType)%>' selected="true">
+					<%=org.apache.lcf.ui.util.Encoder.bodyEscape(mimeType)%>
 				</option>
 <%
 			}
 			else
 			{
 %>
-				<option value='<%=com.metacarta.ui.util.Encoder.attributeEscape(mimeType)%>'>
-					<%=com.metacarta.ui.util.Encoder.bodyEscape(mimeType)%>
+				<option value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(mimeType)%>'>
+					<%=org.apache.lcf.ui.util.Encoder.bodyEscape(mimeType)%>
 				</option>
 <%
 			}
@@ -431,7 +431,7 @@ else
 		{
 			String mimeType = (String)iter.next();
 %>
-<input type="hidden" name="mimetypes" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(mimeType)%>'/>
+<input type="hidden" name="mimetypes" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(mimeType)%>'/>
 <%
 		}
 	}
@@ -484,11 +484,11 @@ if (tabName.equals("Security"))
 	  <tr>
 		<td class="description">
 			<input type="hidden" name='<%=accessOpName%>' value=""/>
-			<input type="hidden" name='<%="spectoken"+accessDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(token)%>'/>
+			<input type="hidden" name='<%="spectoken"+accessDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(token)%>'/>
 			<a name='<%="token_"+Integer.toString(k)%>'><input type="button" value="Delete" alt='<%="Delete access token #"+Integer.toString(k)%>' onClick='<%="Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")"%>'/></a>
 		</td>
 		<td class="value">
-			<%=com.metacarta.ui.util.Encoder.bodyEscape(token)%>
+			<%=org.apache.lcf.ui.util.Encoder.bodyEscape(token)%>
 		</td>
 	  </tr>
 <%
@@ -534,7 +534,7 @@ else
 			String accessDescription = "_"+Integer.toString(k);
 			String token = sn.getAttributeValue("token");
 %>
-	<input type="hidden" name='<%="spectoken"+accessDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(token)%>'/>
+	<input type="hidden" name='<%="spectoken"+accessDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(token)%>'/>
 <%
 			k++;
 		}

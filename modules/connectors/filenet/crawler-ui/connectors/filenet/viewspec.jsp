@@ -54,10 +54,10 @@
 	while (i < ds.getChildCount())
 	{
 		SpecificationNode sn = ds.getChild(i++);
-		if (sn.getType().equals(com.metacarta.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_DOCUMENTCLASS))
+		if (sn.getType().equals(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_DOCUMENTCLASS))
 		{
-			String value = sn.getAttributeValue(com.metacarta.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE);
-			com.metacarta.crawler.connectors.filenet.DocClassSpec spec = new com.metacarta.crawler.connectors.filenet.DocClassSpec(sn);
+			String value = sn.getAttributeValue(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE);
+			org.apache.lcf.crawler.connectors.filenet.DocClassSpec spec = new org.apache.lcf.crawler.connectors.filenet.DocClassSpec(sn);
 			documentClasses.put(value,spec);
 		}
 	}
@@ -89,14 +89,14 @@
 			String docclass = sortedDocumentClasses[i++];
 %>
 				<tr>
-					<td class="description"><nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(docclass)%></nobr></td>
+					<td class="description"><nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(docclass)%></nobr></td>
 					<td class="boxcell">
 						<table class="displaytable">
 							<tr>
 								<td class="description"><nobr>Metadata:</nobr></td>
 								<td class="value">
 <%
-			com.metacarta.crawler.connectors.filenet.DocClassSpec fieldValues = (com.metacarta.crawler.connectors.filenet.DocClassSpec)documentClasses.get(docclass);
+			org.apache.lcf.crawler.connectors.filenet.DocClassSpec fieldValues = (org.apache.lcf.crawler.connectors.filenet.DocClassSpec)documentClasses.get(docclass);
 			if (fieldValues.getAllMetadata())
 			{
 %>
@@ -112,7 +112,7 @@
 				{
 					String value = valuesList[j++];
 %>
-									<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(value)%></nobr><br/>
+									<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(value)%></nobr><br/>
 <%
 				}
 			}
@@ -132,14 +132,14 @@
 				String matchValue = fieldValues.getMatchValue(q);
 				q++;
 %>
-									<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(matchField)%> <%=matchType%> '<%=com.metacarta.ui.util.Encoder.bodyEscape(matchValue)%>'</nobr><br/>
+									<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(matchField)%> <%=matchType%> '<%=org.apache.lcf.ui.util.Encoder.bodyEscape(matchValue)%>'</nobr><br/>
 <%
 			}
 			
 			if (q == 0)
 			{
 %>
-									<nobr>(All documents in class '<%=com.metacarta.ui.util.Encoder.bodyEscape(docclass)%>')</nobr>
+									<nobr>(All documents in class '<%=org.apache.lcf.ui.util.Encoder.bodyEscape(docclass)%>')</nobr>
 <%
 			}
 %>
@@ -166,9 +166,9 @@
 	while (i < ds.getChildCount())
 	{
 		SpecificationNode sn = ds.getChild(i++);
-		if (sn.getType().equals(com.metacarta.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_MIMETYPE))
+		if (sn.getType().equals(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_MIMETYPE))
 		{
-			String value = sn.getAttributeValue(com.metacarta.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE);
+			String value = sn.getAttributeValue(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE);
 			if (mimeTypes == null)
 				mimeTypes = new HashMap();
 			mimeTypes.put(value,value);
@@ -195,7 +195,7 @@
 		{
 			String value = sortedMimeTypes[i++];
 %>
-			<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(value)%></nobr><br/>
+			<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(value)%></nobr><br/>
 <%
 		}
 %>
@@ -254,7 +254,7 @@
 			}
 			String token = sn.getAttributeValue("token");
 %>
-				<%=com.metacarta.ui.util.Encoder.bodyEscape(token)%><br/>
+				<%=org.apache.lcf.ui.util.Encoder.bodyEscape(token)%><br/>
 <%		}
 	}
 

@@ -111,7 +111,7 @@
 		}
 		catch (MetacartaException e)
 		{
-			connectionStatus = "Threw exception: '"+com.metacarta.ui.util.Encoder.bodyEscape(e.getMessage())+"'";
+			connectionStatus = "Threw exception: '"+org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())+"'";
 		}
 %>
 		<table class="displaytable">
@@ -119,15 +119,15 @@
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description" colspan="1"><nobr>Name:</nobr></td><td class="value" colspan="1"><%="<!--connection="+com.metacarta.ui.util.Encoder.bodyEscape(connectionName)+"-->"%><nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(connectionName)%></nobr></td>
-				<td class="description" colspan="1"><nobr>Description:</nobr></td><td class="value" colspan="1"><%=com.metacarta.ui.util.Encoder.bodyEscape(description)%></td>
+				<td class="description" colspan="1"><nobr>Name:</nobr></td><td class="value" colspan="1"><%="<!--connection="+org.apache.lcf.ui.util.Encoder.bodyEscape(connectionName)+"-->"%><nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(connectionName)%></nobr></td>
+				<td class="description" colspan="1"><nobr>Description:</nobr></td><td class="value" colspan="1"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(description)%></td>
 			</tr>
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description" colspan="1"><nobr>Connection type:</nobr></td><td class="value" colspan="1"><nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(connectorName)%></nobr></td>
-				<td class="description" colspan="1"><nobr>Max connections:</nobr></td><td class="value" colspan="1"><%=com.metacarta.ui.util.Encoder.bodyEscape(Integer.toString(maxCount))%></td>
+				<td class="description" colspan="1"><nobr>Connection type:</nobr></td><td class="value" colspan="1"><nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(connectorName)%></nobr></td>
+				<td class="description" colspan="1"><nobr>Max connections:</nobr></td><td class="value" colspan="1"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(Integer.toString(maxCount))%></td>
 			</tr>
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
@@ -148,12 +148,12 @@
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description" colspan="1"><nobr>Connection status:</nobr></td><td class="value" colspan="3"><%=com.metacarta.ui.util.Encoder.bodyEscape(connectionStatus)%></td>
+				<td class="description" colspan="1"><nobr>Connection status:</nobr></td><td class="value" colspan="3"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(connectionStatus)%></td>
 			</tr>
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
-		<tr><td class="message" colspan="4"><a href='<%="viewoutput.jsp?connname="+java.net.URLEncoder.encode(connectionName,"UTF-8")%>' alt="Refresh">Refresh</a>&nbsp;<a href='<%="editoutput.jsp?connname="+java.net.URLEncoder.encode(connectionName,"UTF-8")%>' alt="Edit this output connection">Edit</a>&nbsp;<a href="javascript:void()" onclick='<%="javascript:Delete(\""+com.metacarta.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>' alt="Delete this output connection">Delete</a>
+		<tr><td class="message" colspan="4"><a href='<%="viewoutput.jsp?connname="+java.net.URLEncoder.encode(connectionName,"UTF-8")%>' alt="Refresh">Refresh</a>&nbsp;<a href='<%="editoutput.jsp?connname="+java.net.URLEncoder.encode(connectionName,"UTF-8")%>' alt="Edit this output connection">Edit</a>&nbsp;<a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.lcf.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>' alt="Delete this output connection">Delete</a>
 		</td></tr>
 		</table>
 

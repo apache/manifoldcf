@@ -38,19 +38,19 @@
 	if (tabName == null)
 		out.println("No tab name!");
 
-	String ingestURI = parameters.getParameter(com.metacarta.agents.output.gts.GTSConfig.PARAM_INGESTURI);
+	String ingestURI = parameters.getParameter(org.apache.lcf.agents.output.gts.GTSConfig.PARAM_INGESTURI);
 	if (ingestURI == null)
 		ingestURI = "http://localhost:7031/HTTPIngest";
 
-	String realm = parameters.getParameter(com.metacarta.agents.output.gts.GTSConfig.PARAM_REALM);
+	String realm = parameters.getParameter(org.apache.lcf.agents.output.gts.GTSConfig.PARAM_REALM);
 	if (realm == null)
 		realm = "";
 
-	String userID = parameters.getParameter(com.metacarta.agents.output.gts.GTSConfig.PARAM_USERID);
+	String userID = parameters.getParameter(org.apache.lcf.agents.output.gts.GTSConfig.PARAM_USERID);
 	if (userID == null)
 		userID = "";
 		
-	String password = parameters.getObfuscatedParameter(com.metacarta.agents.output.gts.GTSConfig.PARAM_PASSWORD);
+	String password = parameters.getObfuscatedParameter(org.apache.lcf.agents.output.gts.GTSConfig.PARAM_PASSWORD);
 	if (password == null)
 		password = "";
 		
@@ -62,25 +62,25 @@
 	<tr>
 		<td class="description"><nobr>Ingest URI:</nobr></td>
 		<td class="value">
-			<input name="ingesturi" type="text" size="32" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(ingestURI)%>'/>
+			<input name="ingesturi" type="text" size="32" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(ingestURI)%>'/>
 		</td>
 	</tr>
 	<tr>
 		<td class="description"><nobr>Realm:</nobr></td>
 		<td class="value">
-			<input name="realm" type="text" size="32" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(realm)%>'/>
+			<input name="realm" type="text" size="32" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(realm)%>'/>
 		</td>
 	</tr>
 	<tr>
 		<td class="description"><nobr>User ID:</nobr></td>
 		<td class="value">
-			<input name="userid" type="text" size="32" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(userID)%>'/>
+			<input name="userid" type="text" size="32" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(userID)%>'/>
 		</td>
 	</tr>
 	<tr>
 		<td class="description"><nobr>Password:</nobr></td>
 		<td class="value">
-			<input type="password" size="32" name="password" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(password)%>'/>
+			<input type="password" size="32" name="password" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(password)%>'/>
 		</td>
 	</tr>
 </table>
@@ -90,9 +90,9 @@
 	{
 		// Appliance tab hiddens
 %>
-<input type="hidden" name="ingesturi" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(ingestURI)%>'/>
-<input type="hidden" name="userid" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(userID)%>'/>
-<input type="hidden" name="password" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(password)%>'/>
+<input type="hidden" name="ingesturi" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(ingestURI)%>'/>
+<input type="hidden" name="userid" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(userID)%>'/>
+<input type="hidden" name="password" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(password)%>'/>
 <%
 	}
 %>

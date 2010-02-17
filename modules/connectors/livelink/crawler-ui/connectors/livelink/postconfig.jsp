@@ -38,49 +38,49 @@
 
 	String serverName = variableContext.getParameter("servername");
 	if (serverName != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.serverName,serverName);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.serverName,serverName);
 	String serverPort = variableContext.getParameter("serverport");
 	if (serverPort != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.serverPort,serverPort);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.serverPort,serverPort);
 	String ingestProtocol = variableContext.getParameter("ingestprotocol");
 	if (ingestProtocol != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.ingestProtocol,ingestProtocol);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.ingestProtocol,ingestProtocol);
 	String ingestPort = variableContext.getParameter("ingestport");
 	if (ingestPort != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.ingestPort,ingestPort);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.ingestPort,ingestPort);
 	String ingestCgiPath = variableContext.getParameter("ingestcgipath");
 	if (ingestCgiPath != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.ingestCgiPath,ingestCgiPath);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.ingestCgiPath,ingestCgiPath);
 	String viewProtocol = variableContext.getParameter("viewprotocol");
 	if (viewProtocol != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.viewProtocol,viewProtocol);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.viewProtocol,viewProtocol);
 	String viewServerName = variableContext.getParameter("viewservername");
 	if (viewServerName != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.viewServerName,viewServerName);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.viewServerName,viewServerName);
 	String viewPort = variableContext.getParameter("viewport");
 	if (viewPort != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.viewPort,viewPort);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.viewPort,viewPort);
 	String viewCgiPath = variableContext.getParameter("viewcgipath");
 	if (viewCgiPath != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.viewCgiPath,viewCgiPath);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.viewCgiPath,viewCgiPath);
 	String serverUserName = variableContext.getParameter("serverusername");
 	if (serverUserName != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.serverUsername,serverUserName);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.serverUsername,serverUserName);
 	String serverPassword = variableContext.getParameter("serverpassword");
 	if (serverPassword != null)
-		parameters.setObfuscatedParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.serverPassword,serverPassword);
+		parameters.setObfuscatedParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.serverPassword,serverPassword);
 	String ntlmDomain = variableContext.getParameter("ntlmdomain");
 	if (ntlmDomain != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.ntlmDomain,ntlmDomain);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.ntlmDomain,ntlmDomain);
 	String ntlmUsername = variableContext.getParameter("ntlmusername");
 	if (ntlmUsername != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.ntlmUsername,ntlmUsername);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.ntlmUsername,ntlmUsername);
 	String ntlmPassword = variableContext.getParameter("ntlmpassword");
 	if (ntlmPassword != null)
-		parameters.setObfuscatedParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.ntlmPassword,ntlmPassword);
+		parameters.setObfuscatedParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.ntlmPassword,ntlmPassword);
 	String keystoreValue = variableContext.getParameter("keystoredata");
 	if (keystoreValue != null)
-		parameters.setParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.livelinkKeystore,keystoreValue);
+		parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.livelinkKeystore,keystoreValue);
 
 	String configOp = variableContext.getParameter("configop");
 	if (configOp != null)
@@ -88,20 +88,20 @@
 		if (configOp.equals("Delete"))
 		{
 			String alias = variableContext.getParameter("llkeystorealias");
-			keystoreValue = parameters.getParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.livelinkKeystore);
+			keystoreValue = parameters.getParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.livelinkKeystore);
 			IKeystoreManager mgr;
 			if (keystoreValue != null)
 				mgr = KeystoreManagerFactory.make("",keystoreValue);
 			else
 				mgr = KeystoreManagerFactory.make("");
 			mgr.remove(alias);
-			parameters.setParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.livelinkKeystore,mgr.getString());
+			parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.livelinkKeystore,mgr.getString());
 		}
 		else if (configOp.equals("Add"))
 		{
 			String alias = variableContext.getParameter("llkeystorealias");
 			byte[] certificateValue = variableContext.getBinaryBytes("llcertificate");
-			keystoreValue = parameters.getParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.livelinkKeystore);
+			keystoreValue = parameters.getParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.livelinkKeystore);
 			IKeystoreManager mgr;
 			if (keystoreValue != null)
 				mgr = KeystoreManagerFactory.make("",keystoreValue);
@@ -131,7 +131,7 @@
 	<jsp:forward page="../../error.jsp"/>
 <%
 			}
-			parameters.setParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.livelinkKeystore,mgr.getString());
+			parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.livelinkKeystore,mgr.getString());
 		}
 	}
 

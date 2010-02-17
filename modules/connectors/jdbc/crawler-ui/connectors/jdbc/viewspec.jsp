@@ -43,11 +43,11 @@
 	while (i < ds.getChildCount())
 	{
 		SpecificationNode sn = ds.getChild(i++);
-		if (sn.getType().equals(com.metacarta.crawler.connectors.jdbc.JDBCConstants.idQueryNode))
+		if (sn.getType().equals(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.idQueryNode))
 			idQuery = sn.getValue();
-		else if (sn.getType().equals(com.metacarta.crawler.connectors.jdbc.JDBCConstants.versionQueryNode))
+		else if (sn.getType().equals(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.versionQueryNode))
 			versionQuery = sn.getValue();
-		else if (sn.getType().equals(com.metacarta.crawler.connectors.jdbc.JDBCConstants.dataQueryNode))
+		else if (sn.getType().equals(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.dataQueryNode))
 			dataQuery = sn.getValue();
 	}
 
@@ -62,15 +62,15 @@
 	<table class="displaytable">
 		<tr>
 			<td class="description"><nobr>Seeding query:</nobr></td>
-			<td class="value"><%=com.metacarta.ui.util.Encoder.bodyEscape(idQuery)%></td>
+			<td class="value"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(idQuery)%></td>
 		</tr>
 		<tr>
 			<td class="description"><nobr>Version check query:</nobr></td>
-			<td class="value"><%=com.metacarta.ui.util.Encoder.bodyEscape(versionQuery)%></td>
+			<td class="value"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(versionQuery)%></td>
 		</tr>
 		<tr>
 			<td class="description"><nobr>Data query:</nobr></td>
-			<td class="value"><%=com.metacarta.ui.util.Encoder.bodyEscape(dataQuery)%></td>
+			<td class="value"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(dataQuery)%></td>
 		</tr>
 		
 		<tr><td class="separator" colspan="2"><hr/></td></tr>
@@ -94,7 +94,7 @@
 			}
 			String token = sn.getAttributeValue("token");
 %>
-				<%=com.metacarta.ui.util.Encoder.bodyEscape(token)%><br/>
+				<%=org.apache.lcf.ui.util.Encoder.bodyEscape(token)%><br/>
 <%		}
 	}
 

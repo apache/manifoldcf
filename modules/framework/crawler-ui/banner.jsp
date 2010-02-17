@@ -32,7 +32,7 @@
     <tr><td class="headerimage"><img src="LCF-logo.png"/></td>
           <td>
 	    <table class="headertable">
-		<tr><td class="headerdate"><%=com.metacarta.ui.util.Encoder.bodyEscape(dateString)%></td></tr>
+		<tr><td class="headerdate"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(dateString)%></td></tr>
 	          <tr><td class="header">Document Ingestion</td></tr>
 	    </table>
 	</td>

@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import com.metacarta.core.interfaces.*;
-import com.metacarta.core.system.Metacarta;
+import org.apache.lcf.core.interfaces.*;
+import org.apache.lcf.core.system.Metacarta;
 
 public class ThreadLockSpinner
 {

@@ -46,13 +46,13 @@
 	while (i < os.getChildCount())
 	{
 		SpecificationNode sn = os.getChild(i++);
-		if (sn.getType().equals(com.metacarta.agents.output.gts.GTSConfig.NODE_COLLECTION))
+		if (sn.getType().equals(org.apache.lcf.agents.output.gts.GTSConfig.NODE_COLLECTION))
 		{
-			collectionName = sn.getAttributeValue(com.metacarta.agents.output.gts.GTSConfig.ATTRIBUTE_VALUE);
+			collectionName = sn.getAttributeValue(org.apache.lcf.agents.output.gts.GTSConfig.ATTRIBUTE_VALUE);
 		}
-		else if (sn.getType().equals(com.metacarta.agents.output.gts.GTSConfig.NODE_DOCUMENTTEMPLATE))
+		else if (sn.getType().equals(org.apache.lcf.agents.output.gts.GTSConfig.NODE_DOCUMENTTEMPLATE))
 		{
-			documentTemplate = sn.getAttributeValue(com.metacarta.agents.output.gts.GTSConfig.ATTRIBUTE_VALUE);
+			documentTemplate = sn.getAttributeValue(org.apache.lcf.agents.output.gts.GTSConfig.ATTRIBUTE_VALUE);
 		}
 	}
 	if (collectionName == null)
@@ -66,7 +66,7 @@
 	<tr>
 		<td class="description"><nobr>Collection:</nobr></td>
 		<td class="value">
-			<%=com.metacarta.ui.util.Encoder.bodyEscape(collectionName)%>
+			<%=org.apache.lcf.ui.util.Encoder.bodyEscape(collectionName)%>
 		</td>
 	</tr>
 	<tr>
@@ -78,7 +78,7 @@
 	else
 	{
 %>
-			<textarea name="documenttemplate" cols="96" rows="5" readonly="true"><%=com.metacarta.ui.util.Encoder.bodyEscape(documentTemplate)%></textarea>
+			<textarea name="documenttemplate" cols="96" rows="5" readonly="true"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(documentTemplate)%></textarea>
 <%
 	}
 %>

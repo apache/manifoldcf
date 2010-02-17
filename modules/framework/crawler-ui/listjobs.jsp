@@ -104,9 +104,9 @@
 		    <td class="columncell">
 			<a href='<%="viewjob.jsp?jobid="+jd.getID()%>' alt='<%="View job "+jd.getID()%>'>View</a>&nbsp;<a href='<%="editjob.jsp?jobid="+jd.getID()%>' alt='<%="Edit job "+jd.getID()%>'>Edit</a>&nbsp;<a href='<%="javascript:Delete(\""+jd.getID()+"\")"%>' alt='<%="Delete job "+jd.getID()%>'>Delete</a>&nbsp;<a href='<%="editjob.jsp?origjobid="+jd.getID()%>' alt='<%="Copy job "+jd.getID()%>'>Copy</a>
 		    </td>
-		    <td class="columncell"><%=com.metacarta.ui.util.Encoder.bodyEscape(jd.getDescription())%></td>
-		    <td class="columncell"><%=com.metacarta.ui.util.Encoder.bodyEscape(jd.getOutputConnectionName())%></td>
-		    <td class="columncell"><%=com.metacarta.ui.util.Encoder.bodyEscape(jd.getConnectionName())%></td>
+		    <td class="columncell"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(jd.getDescription())%></td>
+		    <td class="columncell"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(jd.getOutputConnectionName())%></td>
+		    <td class="columncell"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(jd.getConnectionName())%></td>
 		    <td class="columncell"><%=jobType%></td>
 		</tr>
 <%

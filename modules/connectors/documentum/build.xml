@@ -57,16 +57,16 @@
         </copy>
         <!-- The ant version I have doesn't seem to handle class specifications based on file names, so this is the best I could come up with -->
         <antcall target="rmic-build">
-            <param name="classname" value="com.metacarta.crawler.common.DCTM.DocumentumFactoryImpl"/>
+            <param name="classname" value="org.apache.lcf.crawler.common.DCTM.DocumentumFactoryImpl"/>
         </antcall>
         <antcall target="rmic-build">
-            <param name="classname" value="com.metacarta.crawler.common.DCTM.DocumentumImpl"/>
+            <param name="classname" value="org.apache.lcf.crawler.common.DCTM.DocumentumImpl"/>
         </antcall>
         <antcall target="rmic-build">
-            <param name="classname" value="com.metacarta.crawler.common.DCTM.DocumentumObjectImpl"/>
+            <param name="classname" value="org.apache.lcf.crawler.common.DCTM.DocumentumObjectImpl"/>
         </antcall>
         <antcall target="rmic-build">
-            <param name="classname" value="com.metacarta.crawler.common.DCTM.DocumentumResultImpl"/>
+            <param name="classname" value="org.apache.lcf.crawler.common.DCTM.DocumentumResultImpl"/>
         </antcall>
         <mkdir dir="build/rmiskel/classes"/>
         <copy todir="build/rmiskel/classes">

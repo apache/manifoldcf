@@ -49,24 +49,24 @@
 	while (i < ds.getChildCount())
 	{
 		SpecificationNode sn = ds.getChild(i++);
-		if (sn.getType().equals(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_NODE_SPECIFICATIONRULE))
+		if (sn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_SPECIFICATIONRULE))
 		{
-			String virtualServer = sn.getAttributeValue(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_VIRTUALSERVER);
+			String virtualServer = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_VIRTUALSERVER);
 			if (virtualServer == null)
 				virtualServer = "";
-			String entityPrefix = sn.getAttributeValue(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_ENTITY);
+			String entityPrefix = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_ENTITY);
 			if (entityPrefix == null)
 				entityPrefix = "";
-			String entityDescription = sn.getAttributeValue(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_DESCRIPTION);
+			String entityDescription = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_DESCRIPTION);
 			if (entityDescription == null)
 				entityDescription = "";
-			String fieldName = sn.getAttributeValue(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_FIELDNAME);
+			String fieldName = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_FIELDNAME);
 			if (fieldName == null)
 				fieldName = "";
-			String operation = sn.getAttributeValue(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_OPERATION);
+			String operation = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_OPERATION);
 			if (operation == null)
 				operation = "";
-			String fieldValue = sn.getAttributeValue(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_FIELDVALUE);
+			String fieldValue = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_FIELDVALUE);
 			if (fieldValue == null)
 				fieldValue = "";
                         
@@ -88,9 +88,9 @@
 			}
 %>
 					<tr class='<%=((l % 2)==0)?"evenformrow":"oddformrow"%>'>
-						<td class="formcolumncell"><nobr><%=(virtualServer.length()==0)?"(all)":com.metacarta.ui.util.Encoder.bodyEscape(virtualServer)%></nobr></td>
-						<td class="formcolumncell"><nobr><%=(entityPrefix.length()==0)?"(all)":com.metacarta.ui.util.Encoder.bodyEscape(entityDescription)%></nobr></td>
-						<td class="formcolumncell"><nobr><%=(fieldName.length()==0)?"(all)":com.metacarta.ui.util.Encoder.bodyEscape(fieldName+" "+operation+" "+fieldValue)%></nobr></td>
+						<td class="formcolumncell"><nobr><%=(virtualServer.length()==0)?"(all)":org.apache.lcf.ui.util.Encoder.bodyEscape(virtualServer)%></nobr></td>
+						<td class="formcolumncell"><nobr><%=(entityPrefix.length()==0)?"(all)":org.apache.lcf.ui.util.Encoder.bodyEscape(entityDescription)%></nobr></td>
+						<td class="formcolumncell"><nobr><%=(fieldName.length()==0)?"(all)":org.apache.lcf.ui.util.Encoder.bodyEscape(fieldName+" "+operation+" "+fieldValue)%></nobr></td>
 					</tr>
 <%
                         l++;
@@ -123,7 +123,7 @@
 	while (i < ds.getChildCount())
 	{
 		SpecificationNode sn = ds.getChild(i++);
-		if (sn.getType().equals(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_NODE_ENTITY))
+		if (sn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_ENTITY))
 		{
 			if (seenAny == false)
 			{
@@ -139,13 +139,13 @@
 <%
 				seenAny = true;
 			}
-			String strEntityName = sn.getAttributeValue(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_NAME);
-			String strEntityDescription = sn.getAttributeValue(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_DESCRIPTION);
+			String strEntityName = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_NAME);
+			String strEntityDescription = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_DESCRIPTION);
 			
 %>
 					<tr class='<%=((z % 2)==0)?"evenformrow":"oddformrow"%>'>
 						<td class="formcolumncell">
-							<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(strEntityDescription)%></nobr>
+							<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(strEntityDescription)%></nobr>
 						</td>
 						<td class="formcolumncell">
 <%
@@ -153,11 +153,11 @@
 			while (k < sn.getChildCount())
 			{
 				SpecificationNode dsn = sn.getChild(k++);
-				if (dsn.getType().equals(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_NODE_PRIMARYFIELD))
+				if (dsn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_PRIMARYFIELD))
 				{
-					String attrName = dsn.getAttributeValue(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_NAME);
+					String attrName = dsn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_NAME);
 %>
-							<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(attrName)%></nobr><br/>
+							<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(attrName)%></nobr><br/>
 <%
 				}
 			}
@@ -170,11 +170,11 @@
 			while (k < sn.getChildCount())
 			{
 				SpecificationNode dsn = sn.getChild(k++);
-				if (dsn.getType().equals(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_NODE_METAFIELD))
+				if (dsn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_METAFIELD))
 				{
-					String attrName = dsn.getAttributeValue(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_NAME);
+					String attrName = dsn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_NAME);
 %>
-							<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(attrName)%></nobr><br/>
+							<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(attrName)%></nobr><br/>
 <%
 
 					l++;
@@ -215,12 +215,12 @@
 	while (i < ds.getChildCount())
 	{
 		SpecificationNode sn = ds.getChild(i++);
-		if (sn.getType().equals(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_NODE_SECURITY))
+		if (sn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_SECURITY))
 		{
-			String securityValue = sn.getAttributeValue(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_VALUE);
-			if (securityValue.equals(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_VALUE_OFF))
+			String securityValue = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_VALUE);
+			if (securityValue.equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_VALUE_OFF))
 				securityOn = false;
-			else if (securityValue.equals(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_VALUE_ON))
+			else if (securityValue.equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_VALUE_ON))
 				securityOn = true;
 		}
 	}
@@ -240,7 +240,7 @@
 	while (i < ds.getChildCount())
 	{
 		SpecificationNode sn = ds.getChild(i++);
-		if (sn.getType().equals(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_NODE_ACCESS))
+		if (sn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_ACCESS))
 		{
 			if (seenAny == false)
 			{
@@ -251,9 +251,9 @@
 <%
 				seenAny = true;
 			}
-			String token = sn.getAttributeValue(com.metacarta.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_TOKEN);
+			String token = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_TOKEN);
 %>
-				<%=com.metacarta.ui.util.Encoder.bodyEscape(token)%><br/>
+				<%=org.apache.lcf.ui.util.Encoder.bodyEscape(token)%><br/>
 <%		}
 	}
 

@@ -47,11 +47,11 @@
 	while (i < ds.getChildCount())
 	{
 		SpecificationNode sn = ds.getChild(i++);
-		if (sn.getType().equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_SEEDS))
+		if (sn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_SEEDS))
 			seeds = sn.getValue();
-		else if (sn.getType().equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_INCLUDES))
+		else if (sn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_INCLUDES))
 			inclusions = sn.getValue();
-		else if (sn.getType().equals(com.metacarta.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_EXCLUDES))
+		else if (sn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_EXCLUDES))
 			exclusions = sn.getValue();
 	}
 %>
@@ -104,7 +104,7 @@
 					if (nextString.length() == 0)
 						continue;
 %>
-		<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(nextString)%></nobr><br/>
+		<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(nextString)%></nobr><br/>
 <%
 				}
 			}
@@ -174,8 +174,8 @@
 				allowBVSessionRemoval = "no";
 %>
 			<tr class='<%=((l % 2)==0)?"evenformrow":"oddformrow"%>'>
-				<td class="formcolumncell"><nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(regexpString)%></nobr></td>
-				<td class="formcolumncell"><%=com.metacarta.ui.util.Encoder.bodyEscape(description)%></td>
+				<td class="formcolumncell"><nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(regexpString)%></nobr></td>
+				<td class="formcolumncell"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(description)%></td>
 				<td class="formcolumncell"><nobr><%=allowReorder%></nobr></td>
 				<td class="formcolumncell"><nobr><%=allowJavaSessionRemoval%></nobr></td>
 				<td class="formcolumncell"><nobr><%=allowASPSessionRemoval%></nobr></td>
@@ -224,7 +224,7 @@
 					if (nextString.length() == 0)
 						continue;
 %>
-		<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(nextString)%></nobr><br/>
+		<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(nextString)%></nobr><br/>
 <%
 				}
 			}
@@ -266,7 +266,7 @@
 					if (nextString.length() == 0)
 						continue;
 %>
-		<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(nextString)%></nobr><br/>
+		<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(nextString)%></nobr><br/>
 <%
 				}
 			}
@@ -309,7 +309,7 @@
 			}
 			String token = sn.getAttributeValue("token");
 %>
-		<%=com.metacarta.ui.util.Encoder.bodyEscape(token)%><br/>
+		<%=org.apache.lcf.ui.util.Encoder.bodyEscape(token)%><br/>
 <%		}
 	}
 
@@ -350,7 +350,7 @@
 			String name = sn.getAttributeValue("name");
 			String value = sn.getAttributeValue("value");
 %>
-				<%=com.metacarta.ui.util.Encoder.bodyEscape(name)%>&nbsp;=&nbsp;<%=com.metacarta.ui.util.Encoder.bodyEscape(value)%><br/>
+				<%=org.apache.lcf.ui.util.Encoder.bodyEscape(name)%>&nbsp;=&nbsp;<%=org.apache.lcf.ui.util.Encoder.bodyEscape(value)%><br/>
 <%		}
 	}
 

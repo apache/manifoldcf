@@ -373,7 +373,7 @@
 	<form class="standardform" name="editconnection" action="execute.jsp" method="POST" enctype="multipart/form-data">
 	  <input type="hidden" name="op" value="Continue"/>
 	  <input type="hidden" name="type" value="connection"/>
-	  <input type="hidden" name="tabname" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(tabName)%>'/>
+	  <input type="hidden" name="tabname" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(tabName)%>'/>
 	    <table class="tabtable">
 	      <tr class="tabrow">
 <%
@@ -384,13 +384,13 @@
 		if (tab.equals(tabName))
 		{
 %>
-		      <td class="activetab"><nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(tab)%></nobr></td>
+		      <td class="activetab"><nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(tab)%></nobr></td>
 <%
 		}
 		else
 		{
 %>
-		      <td class="passivetab"><nobr><a href="javascript:void(0);" alt='<%=com.metacarta.ui.util.Encoder.attributeEscape(tab+" tab")%>' onclick='<%="javascript:SelectTab(\""+tab+"\");return false;"%>'><%=com.metacarta.ui.util.Encoder.bodyEscape(tab)%></a></nobr></td>
+		      <td class="passivetab"><nobr><a href="javascript:void(0);" alt='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(tab+" tab")%>' onclick='<%="javascript:SelectTab(\""+tab+"\");return false;"%>'><%=org.apache.lcf.ui.util.Encoder.bodyEscape(tab)%></a></nobr></td>
 <%
 		}
 	  }
@@ -400,7 +400,7 @@
 	  if (description.length() > 0)
 	  {
 %>
-			  <nobr>Edit connection '<%=com.metacarta.ui.util.Encoder.bodyEscape(description)%>'</nobr>
+			  <nobr>Edit connection '<%=org.apache.lcf.ui.util.Encoder.bodyEscape(description)%>'</nobr>
 <%
 	  }
 	  else
@@ -429,14 +429,14 @@
 	    if (connection == null)
 	    {
 %>
-					<input type="text" size="32" name="connname" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(connectionName)%>'/>
+					<input type="text" size="32" name="connname" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
 <%
 	    }
 	    else
 	    {
 %>
-					<%=com.metacarta.ui.util.Encoder.bodyEscape(connectionName)%>
-					<input type="hidden" name="connname" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(connectionName)%>'/>
+					<%=org.apache.lcf.ui.util.Encoder.bodyEscape(connectionName)%>
+					<input type="hidden" name="connname" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
 <%
 	    }
 %>
@@ -444,7 +444,7 @@
 			</tr>
 			<tr>
 				<td class="description"><nobr>Description:</nobr></td><td class="value" colspan="4">
-					<input type="text" size="50" name="description" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(description)%>'/>
+					<input type="text" size="50" name="description" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(description)%>'/>
 				</td>
 			</tr>
 		    </table>
@@ -454,8 +454,8 @@
 	  {
 		// Hiddens for the Name tab
 %>
-		    <input type="hidden" name="connname" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(connectionName)%>'/>
-		    <input type="hidden" name="description" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(description)%>'/>
+		    <input type="hidden" name="connname" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
+		    <input type="hidden" name="description" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(description)%>'/>
 <%
 	  }
 
@@ -475,17 +475,17 @@
 		if (value == null)
 		{
 %>
-					<nobr>UNREGISTERED <%=com.metacarta.ui.util.Encoder.bodyEscape(className)%></nobr>
+					<nobr>UNREGISTERED <%=org.apache.lcf.ui.util.Encoder.bodyEscape(className)%></nobr>
 <%
 		}
 		else
 		{
 %>
-					<%=com.metacarta.ui.util.Encoder.bodyEscape(value)%>
+					<%=org.apache.lcf.ui.util.Encoder.bodyEscape(value)%>
 <%
 		}
 %>
-					<input type="hidden" name="classname" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(className)%>'/>
+					<input type="hidden" name="classname" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(className)%>'/>
 <%
 	    }
 	    else
@@ -500,8 +500,8 @@
 			String thisClassName = row.getValue("classname").toString();
 			String thisDescription = row.getValue("description").toString();
 %>
-						<option value='<%=com.metacarta.ui.util.Encoder.attributeEscape(thisClassName)%>'
-							<%=className.equals(thisClassName)?"selected=\"selected\"":""%>><%=com.metacarta.ui.util.Encoder.bodyEscape(thisDescription)%></option>
+						<option value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(thisClassName)%>'
+							<%=className.equals(thisClassName)?"selected=\"selected\"":""%>><%=org.apache.lcf.ui.util.Encoder.bodyEscape(thisDescription)%></option>
 <%
 		}
 %>
@@ -529,8 +529,8 @@
 		if (thisDescription == null || thisDescription.length() == 0)
 			thisDescription = thisAuthorityName;
 %>
-						<option value='<%=com.metacarta.ui.util.Encoder.attributeEscape(thisAuthorityName)%>'
-							<%=(authorityName!=null&&authorityName.equals(thisAuthorityName))?"selected=\"selected\"":""%>><%=com.metacarta.ui.util.Encoder.bodyEscape(thisDescription)%></option>
+						<option value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(thisAuthorityName)%>'
+							<%=(authorityName!=null&&authorityName.equals(thisAuthorityName))?"selected=\"selected\"":""%>><%=org.apache.lcf.ui.util.Encoder.bodyEscape(thisDescription)%></option>
 <%
 	    }
 %>
@@ -544,8 +544,8 @@
 	  {
 		// Hiddens for the "Type" tab
 %>
-		    <input type="hidden" name="classname" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(className)%>'/>
-		    <input type="hidden" name="authorityname" value='<%=(authorityName==null)?"_none_":com.metacarta.ui.util.Encoder.attributeEscape(authorityName)%>'/>
+		    <input type="hidden" name="classname" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(className)%>'/>
+		    <input type="hidden" name="authorityname" value='<%=(authorityName==null)?"_none_":org.apache.lcf.ui.util.Encoder.attributeEscape(authorityName)%>'/>
 <%
 	  }
 
@@ -590,19 +590,19 @@
 			Long value = (Long)map.get("value");
 %>
 					    <tr class='<%=((k % 2)==0)?"evenformrow":"oddformrow"%>'>
-						<td class="formcolumncell"><input type="button" value="Delete" alt='<%="Delete throttle "+com.metacarta.ui.util.Encoder.attributeEscape(regexp)%>' onclick='<%="javascript:DeleteThrottle("+Integer.toString(k)+");"%>'/></td>
+						<td class="formcolumncell"><input type="button" value="Delete" alt='<%="Delete throttle "+org.apache.lcf.ui.util.Encoder.attributeEscape(regexp)%>' onclick='<%="javascript:DeleteThrottle("+Integer.toString(k)+");"%>'/></td>
 						<td class="formcolumncell">
-						    <input type="hidden" name='<%="throttle_"+Integer.toString(k)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(regexp)%>'/>
-						    <input type="hidden" name='<%="throttledesc_"+Integer.toString(k)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(desc)%>'/>
+						    <input type="hidden" name='<%="throttle_"+Integer.toString(k)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(regexp)%>'/>
+						    <input type="hidden" name='<%="throttledesc_"+Integer.toString(k)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(desc)%>'/>
 						    <input type="hidden" name='<%="throttlevalue_"+Integer.toString(k)%>' value='<%=value.toString()%>'/>
-						    <nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(regexp)%></nobr>
+						    <nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(regexp)%></nobr>
 						</td>
 						<td class="formcolumncell">
 <%
 			if (desc.length() > 0)
 			{
 %>
-							<%=com.metacarta.ui.util.Encoder.bodyEscape(desc)%>
+							<%=org.apache.lcf.ui.util.Encoder.bodyEscape(desc)%>
 <%
 			}
 %>
@@ -648,8 +648,8 @@
 				desc = "";
 			Long value = (Long)map.get("value");
 %>
-		    <input type="hidden" name='<%="throttle_"+Integer.toString(k)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(regexp)%>'/>
-		    <input type="hidden" name='<%="throttledesc_"+Integer.toString(k)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(desc)%>'/>
+		    <input type="hidden" name='<%="throttle_"+Integer.toString(k)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(regexp)%>'/>
+		    <input type="hidden" name='<%="throttledesc_"+Integer.toString(k)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(desc)%>'/>
 		    <input type="hidden" name='<%="throttlevalue_"+Integer.toString(k)%>' value='<%=value.toString()%>'/>
 <%
 			k++;

@@ -29,7 +29,7 @@
   // under the name "RepositoryConnection".
   // The coder can presume that this jsp is executed within a body section, and within a form.
   DocumentSpecification ds = (DocumentSpecification) threadContext.get("DocumentSpecification");
-  //com.metacarta.crawler.connectors.DCTM.DCTM repositoryConnection = (com.metacarta.crawler.connectors.DCTM.DCTM)threadContext.get("RepositoryConnection");
+  //org.apache.lcf.crawler.connectors.DCTM.DCTM repositoryConnection = (org.apache.lcf.crawler.connectors.DCTM.DCTM)threadContext.get("RepositoryConnection");
   IRepositoryConnection repositoryConnection = (IRepositoryConnection) threadContext.get("RepositoryConnection");
   String scheduleCount = (String)threadContext.get("ScheduleCount");
   String tabName = (String)threadContext.get("TabName");
@@ -60,7 +60,7 @@
    while (i < ds.getChildCount())
    {
     SpecificationNode sn = ds.getChild(i++);
-    if (sn.getType().equals(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_LOCATION))
+    if (sn.getType().equals(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_LOCATION))
     {
       String pathDescription = "_" + Integer.toString(k);
       String pathOpName = "pathop" + pathDescription;
@@ -72,7 +72,7 @@
 			<a name='<%="path_"+Integer.toString(k)%>'><input type="button" value="Delete" onClick='<%="Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")"%>' alt='<%="Delete path #"+Integer.toString(k)%>'/></a>&nbsp;
 		</td>
 		<td class="value">
-			<%=com.metacarta.ui.util.Encoder.bodyEscape(sn.getAttributeValue("path"))%>
+			<%=org.apache.lcf.ui.util.Encoder.bodyEscape(sn.getAttributeValue("path"))%>
 		</td>
 	  </tr>
 <%
@@ -108,7 +108,7 @@
 		repositoryConnection.getMaxConnections());
 	    try
 	    {
-		com.metacarta.crawler.connectors.DCTM.DCTM c = (com.metacarta.crawler.connectors.DCTM.DCTM)connector;
+		org.apache.lcf.crawler.connectors.DCTM.DCTM c = (org.apache.lcf.crawler.connectors.DCTM.DCTM)connector;
 		childList = c.getChildFolderNames(pathSoFar);
 		if (childList == null)
 		{
@@ -126,13 +126,13 @@
 	
 %>
 		    <a name='<%="path_"+Integer.toString(k)%>'>
-			<input type="hidden" name="specpath" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(pathSoFar)%>'/>
+			<input type="hidden" name="specpath" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(pathSoFar)%>'/>
 			<input type="hidden" name="pathop" value=""/>
 			<input type="button" value="Add" alt="Add path" onClick='<%="Javascript:SpecOp(\"pathop\",\"Add\",\"path_"+Integer.toString(k+1)+"\")"%>'/>&nbsp;
 		    </a>
 		</td>
 		<td class="value">
-			<%=com.metacarta.ui.util.Encoder.bodyEscape(pathSoFar)%>
+			<%=org.apache.lcf.ui.util.Encoder.bodyEscape(pathSoFar)%>
 <%
 	    if (pathSoFar.length() > 1)
 	    {
@@ -151,7 +151,7 @@
 		while (j < childList.length)
 		{
 %>
-				<option value='<%=com.metacarta.ui.util.Encoder.attributeEscape(childList[j])%>'><%=com.metacarta.ui.util.Encoder.bodyEscape(childList[j])%></option>
+				<option value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(childList[j])%>'><%=org.apache.lcf.ui.util.Encoder.bodyEscape(childList[j])%></option>
 <%
 			j++;
 		}
@@ -163,7 +163,7 @@
 	}
 	catch (MetacartaException e)
 	{
-		out.println(com.metacarta.ui.util.Encoder.bodyEscape(e.getMessage()));
+		out.println(org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage()));
 	}
 	catch (ServiceInterruption e)
 	{
@@ -183,7 +183,7 @@
    while (i < ds.getChildCount())
    {
     SpecificationNode sn = ds.getChild(i++);
-    if (sn.getType().equals(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_LOCATION))
+    if (sn.getType().equals(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_LOCATION))
     {
       String pathDescription = "_" + Integer.toString(k);
 %>
@@ -243,11 +243,11 @@
 	  <tr>
 		<td class="description">
 			<input type="hidden" name='<%=accessOpName%>' value=""/>
-			<input type="hidden" name='<%="spectoken"+accessDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(token)%>'/>
+			<input type="hidden" name='<%="spectoken"+accessDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(token)%>'/>
 			<a name='<%="token_"+Integer.toString(k)%>'><input type="button" value="Delete" alt='<%="Delete access token #"+Integer.toString(k)%>' onClick='<%="Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")"%>'/></a>
 		</td>
 		<td class="value">
-			<%=com.metacarta.ui.util.Encoder.bodyEscape(token)%>
+			<%=org.apache.lcf.ui.util.Encoder.bodyEscape(token)%>
 		</td>
 	  </tr>
 <%
@@ -293,7 +293,7 @@
 			String accessDescription = "_"+Integer.toString(k);
 			String token = sn.getAttributeValue("token");
 %>
-	<input type="hidden" name='<%="spectoken"+accessDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(token)%>'/>
+	<input type="hidden" name='<%="spectoken"+accessDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(token)%>'/>
 <%
 			k++;
 		}
@@ -311,7 +311,7 @@
   while (i < ds.getChildCount())
   {
     SpecificationNode sn = ds.getChild(i++);
-    if (sn.getType().equals(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_OBJECTTYPE))
+    if (sn.getType().equals(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_OBJECTTYPE))
     {
       String token = sn.getAttributeValue("token");
       if (token != null && token.length() > 0)
@@ -327,7 +327,7 @@
 	while (kk < sn.getChildCount())
 	{
 	  SpecificationNode dsn = sn.getChild(kk++);
-	  if (dsn.getType().equals(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_ATTRIBUTENAME))
+	  if (dsn.getType().equals(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_ATTRIBUTENAME))
 	  {
 	    String attr = dsn.getAttributeValue("attrname");
 	    attrMap.put(attr,attr);
@@ -354,7 +354,7 @@
 		repositoryConnection.getMaxConnections());
     try
     {
-        com.metacarta.crawler.connectors.DCTM.DCTM DctmConnector = (com.metacarta.crawler.connectors.DCTM.DCTM) connector;
+        org.apache.lcf.crawler.connectors.DCTM.DCTM DctmConnector = (org.apache.lcf.crawler.connectors.DCTM.DCTM) connector;
         String[] strarrObjTypes = DctmConnector.getObjectTypes();
 	int ii = 0;
         while (ii < strarrObjTypes.length)
@@ -370,13 +370,13 @@
 		if (o == null)
 		{
 %>
-      		<input type="checkbox" name="specfiletype" value="<%=com.metacarta.ui.util.Encoder.attributeEscape(strObjectType)%>"><%=com.metacarta.ui.util.Encoder.bodyEscape(strObjectType)%></input>
+      		<input type="checkbox" name="specfiletype" value="<%=org.apache.lcf.ui.util.Encoder.attributeEscape(strObjectType)%>"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(strObjectType)%></input>
 <%
 		}
 		else
 		{
 %>
-     		<input type="checkbox" name="specfiletype" checked="" value="<%=com.metacarta.ui.util.Encoder.attributeEscape(strObjectType)%>"><%=com.metacarta.ui.util.Encoder.bodyEscape(strObjectType)%></input>
+     		<input type="checkbox" name="specfiletype" checked="" value="<%=org.apache.lcf.ui.util.Encoder.attributeEscape(strObjectType)%>"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(strObjectType)%></input>
 <%
 
 		}
@@ -397,8 +397,8 @@
 			attrMap = (HashMap)o;
 		}
 %>
-		<input type="checkbox" name='<%=com.metacarta.ui.util.Encoder.attributeEscape("specfileallattrs_"+strObjectType)%>' value="true" <%=(isAll?"checked=\"\"":"")%>/>&nbsp;All metadata<br/>
-		<select multiple="true" name='<%=com.metacarta.ui.util.Encoder.attributeEscape("specfileattrs_"+strObjectType)%>' size="3">
+		<input type="checkbox" name='<%=org.apache.lcf.ui.util.Encoder.attributeEscape("specfileallattrs_"+strObjectType)%>' value="true" <%=(isAll?"checked=\"\"":"")%>/>&nbsp;All metadata<br/>
+		<select multiple="true" name='<%=org.apache.lcf.ui.util.Encoder.attributeEscape("specfileattrs_"+strObjectType)%>' size="3">
 <%
 		// Get the attributes for this data type
 		String[] values = DctmConnector.getIngestableAttributes(strObjectType);
@@ -410,14 +410,14 @@
 			{
 				// Selected
 %>
-			<option selected="" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(option)%>'><%=com.metacarta.ui.util.Encoder.bodyEscape(option)%></option>
+			<option selected="" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(option)%>'><%=org.apache.lcf.ui.util.Encoder.bodyEscape(option)%></option>
 <%
 			}
 			else
 			{
 				// Unselected
 %>
-			<option value='<%=com.metacarta.ui.util.Encoder.attributeEscape(option)%>'><%=com.metacarta.ui.util.Encoder.bodyEscape(option)%></option>
+			<option value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(option)%>'><%=org.apache.lcf.ui.util.Encoder.bodyEscape(option)%></option>
 <%
 			}
 		}
@@ -438,7 +438,7 @@
    {
 %>
 	  <tr><td class="message" colspan="2">
-		<%=com.metacarta.ui.util.Encoder.bodyEscape(e.getMessage())%>
+		<%=org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())%>
 	  </td></tr>
 <%
    }
@@ -462,13 +462,13 @@
 		String strObjectType = (String)iter.next();
 		Object o = dtMap.get(strObjectType);
 %>
-	<input type="hidden" name="specfiletype" value="<%=com.metacarta.ui.util.Encoder.attributeEscape(strObjectType)%>"/>
+	<input type="hidden" name="specfiletype" value="<%=org.apache.lcf.ui.util.Encoder.attributeEscape(strObjectType)%>"/>
 <%
 		if (o instanceof Boolean)
 		{
 			Boolean b = (Boolean)o;
 %>
-	<input type="hidden" name='<%=com.metacarta.ui.util.Encoder.attributeEscape("specfileallattrs_"+strObjectType)%>' value='<%=b.booleanValue()?"true":"false"%>'/>
+	<input type="hidden" name='<%=org.apache.lcf.ui.util.Encoder.attributeEscape("specfileallattrs_"+strObjectType)%>' value='<%=b.booleanValue()?"true":"false"%>'/>
 <%
 		}
 		else
@@ -479,7 +479,7 @@
 			{
 				String attrName = (String)iter2.next();
 %>
-	<input type="hidden" name='<%=com.metacarta.ui.util.Encoder.attributeEscape("specfileattrs_"+strObjectType)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(attrName)%>'/>
+	<input type="hidden" name='<%=org.apache.lcf.ui.util.Encoder.attributeEscape("specfileattrs_"+strObjectType)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(attrName)%>'/>
 <%
 			}
 		}
@@ -494,7 +494,7 @@
   while (i < ds.getChildCount())
   {
     SpecificationNode sn = ds.getChild(i++);
-    if (sn.getType().equals(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_FORMAT))
+    if (sn.getType().equals(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_FORMAT))
     {
       String token = sn.getAttributeValue("value");
       if (token != null && token.length() > 0)
@@ -520,7 +520,7 @@
 		repositoryConnection.getMaxConnections());
     try
     {
-        com.metacarta.crawler.connectors.DCTM.DCTM DctmConnector = (com.metacarta.crawler.connectors.DCTM.DCTM) connector;
+        org.apache.lcf.crawler.connectors.DCTM.DCTM DctmConnector = (org.apache.lcf.crawler.connectors.DCTM.DCTM) connector;
         String[] strarrMimeTypes = DctmConnector.getContentTypes();
 	int ii = 0;
         while (ii < strarrMimeTypes.length)
@@ -535,19 +535,19 @@
 		if (ctMap == null || ctMap.get(strMimeType) != null)
 		{
 %>
-			<input type="checkbox" name="specmimetype" checked="" value="<%=com.metacarta.ui.util.Encoder.attributeEscape(strMimeType)%>"></input>
+			<input type="checkbox" name="specmimetype" checked="" value="<%=org.apache.lcf.ui.util.Encoder.attributeEscape(strMimeType)%>"></input>
 <%
 		}
 		else
 		{
 %>
-			<input type="checkbox" name="specmimetype" value="<%=com.metacarta.ui.util.Encoder.attributeEscape(strMimeType)%>"></input>
+			<input type="checkbox" name="specmimetype" value="<%=org.apache.lcf.ui.util.Encoder.attributeEscape(strMimeType)%>"></input>
 <%
 		}
 %>
 		</td>
 		<td class="value">
-			<%=com.metacarta.ui.util.Encoder.bodyEscape(strMimeType)%>
+			<%=org.apache.lcf.ui.util.Encoder.bodyEscape(strMimeType)%>
 		</td>
 	  </tr>
 <%
@@ -563,7 +563,7 @@
    {
 %>
 	  <tr><td class="message" colspan="2">
-		<%=com.metacarta.ui.util.Encoder.bodyEscape(e.getMessage())%>
+		<%=org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())%>
 	  </td></tr>
 <%
    }
@@ -588,7 +588,7 @@
 	{
 		String strMimeType = (String)iter.next();
 %>
-	<input type="hidden" name="specmimetype" value="<%=com.metacarta.ui.util.Encoder.attributeEscape(strMimeType)%>"/>
+	<input type="hidden" name="specmimetype" value="<%=org.apache.lcf.ui.util.Encoder.attributeEscape(strMimeType)%>"/>
 <%
 	}
     }
@@ -603,7 +603,7 @@
   while (i < ds.getChildCount())
   {
     SpecificationNode sn = ds.getChild(i++);
-    if (sn.getType().equals(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_MAXLENGTH))
+    if (sn.getType().equals(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_MAXLENGTH))
     {
       maxDocLength = sn.getAttributeValue("value");
     }
@@ -639,7 +639,7 @@
   while (i < ds.getChildCount())
   {
 	SpecificationNode sn = ds.getChild(i++);
-	if (sn.getType().equals(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_PATHNAMEATTRIBUTE))
+	if (sn.getType().equals(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_PATHNAMEATTRIBUTE))
 	{
 		pathNameAttribute = sn.getAttributeValue("value");
 	}
@@ -647,11 +647,11 @@
 
   // Find the path-value mapping data
   i = 0;
-  com.metacarta.crawler.connectors.DCTM.MatchMap matchMap = new com.metacarta.crawler.connectors.DCTM.MatchMap();
+  org.apache.lcf.crawler.connectors.DCTM.MatchMap matchMap = new org.apache.lcf.crawler.connectors.DCTM.MatchMap();
   while (i < ds.getChildCount())
   {
 	SpecificationNode sn = ds.getChild(i++);
-	if (sn.getType().equals(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_PATHMAP))
+	if (sn.getType().equals(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_PATHMAP))
 	{
 		String pathMatch = sn.getAttributeValue("match");
 		String pathReplace = sn.getAttributeValue("replace");
@@ -670,7 +670,7 @@
 	  <tr>
 		<td class="description" colspan="1"><nobr>Path attribute name:</nobr></td>
 		<td class="value" colspan="3">
-			<input type="text" name="specpathnameattribute" size="20" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(pathNameAttribute)%>'/>
+			<input type="text" name="specpathnameattribute" size="20" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(pathNameAttribute)%>'/>
 		</td>
 	  </tr>
 	  <tr><td class="separator" colspan="4"><hr/></td></tr>
@@ -683,9 +683,9 @@
 %>
 	  <tr>
 		<td class="description"><input type="hidden" name='<%="specmappingop_"+Integer.toString(i)%>' value=""/><a name='<%="mapping_"+Integer.toString(i)%>'><input type="button" onClick='<%="Javascript:SpecOp(\"specmappingop_"+Integer.toString(i)+"\",\"Delete\",\"mapping_"+Integer.toString(i)+"\")"%>' alt='<%="Delete mapping #"+Integer.toString(i)%>' value="Delete"/></a></td>
-		<td class="value"><input type="hidden" name='<%="specmatch_"+Integer.toString(i)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(matchString)%>'/><%=com.metacarta.ui.util.Encoder.bodyEscape(matchString)%></td>
+		<td class="value"><input type="hidden" name='<%="specmatch_"+Integer.toString(i)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(matchString)%>'/><%=org.apache.lcf.ui.util.Encoder.bodyEscape(matchString)%></td>
 		<td class="value">==></td>
-		<td class="value"><input type="hidden" name='<%="specreplace_"+Integer.toString(i)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(replaceString)%>'/><%=com.metacarta.ui.util.Encoder.bodyEscape(replaceString)%></td>
+		<td class="value"><input type="hidden" name='<%="specreplace_"+Integer.toString(i)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(replaceString)%>'/><%=org.apache.lcf.ui.util.Encoder.bodyEscape(replaceString)%></td>
 	  </tr>
 <%
 		i++;
@@ -712,7 +712,7 @@
   {
 %>
 	<input type="hidden" name="specmappingcount" value='<%=Integer.toString(matchMap.getMatchCount())%>'/>
-	<input type="hidden" name="specpathnameattribute" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(pathNameAttribute)%>'/>
+	<input type="hidden" name="specpathnameattribute" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(pathNameAttribute)%>'/>
 <%
 	i = 0;
 	while (i < matchMap.getMatchCount())
@@ -720,8 +720,8 @@
 		String matchString = matchMap.getMatchString(i);
 		String replaceString = matchMap.getReplaceString(i);
 %>
-	<input type="hidden" name='<%="specmatch_"+Integer.toString(i)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(matchString)%>'/>
-	<input type="hidden" name='<%="specreplace_"+Integer.toString(i)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(replaceString)%>'/>
+	<input type="hidden" name='<%="specmatch_"+Integer.toString(i)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(matchString)%>'/>
+	<input type="hidden" name='<%="specreplace_"+Integer.toString(i)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(replaceString)%>'/>
 <%
 		i++;
 	}

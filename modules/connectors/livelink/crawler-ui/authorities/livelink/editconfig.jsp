@@ -37,34 +37,34 @@
 	if (tabName == null)
 		out.println("No tab name!");
 
-	String serverName = parameters.getParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.serverName);
+	String serverName = parameters.getParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.serverName);
 	if (serverName == null)
 		serverName = "localhost";
-	String serverPort = parameters.getParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.serverPort);
+	String serverPort = parameters.getParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.serverPort);
 	if (serverPort == null)
 		serverPort = "2099";
-	String serverUserName = parameters.getParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.serverUsername);
+	String serverUserName = parameters.getParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.serverUsername);
 	if (serverUserName == null)
 		serverUserName = "";
-	String serverPassword = parameters.getObfuscatedParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.serverPassword);
+	String serverPassword = parameters.getObfuscatedParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.serverPassword);
 	if (serverPassword == null)
 		serverPassword = "";
-	com.metacarta.crawler.connectors.livelink.MatchMap matchMap = null;
-	String usernameRegexp = parameters.getParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.userNameRegexp);
-	String livelinkUserExpr = parameters.getParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.livelinkNameSpec);
+	org.apache.lcf.crawler.connectors.livelink.MatchMap matchMap = null;
+	String usernameRegexp = parameters.getParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.userNameRegexp);
+	String livelinkUserExpr = parameters.getParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.livelinkNameSpec);
 	if (usernameRegexp != null && usernameRegexp.length() > 0 && livelinkUserExpr != null)
 	{
 		// Old-style configuration.  Convert to the new.
-		matchMap = new com.metacarta.crawler.connectors.livelink.MatchMap();
+		matchMap = new org.apache.lcf.crawler.connectors.livelink.MatchMap();
 		matchMap.appendOldstyleMatchPair(usernameRegexp,livelinkUserExpr);
 	}
 	else
 	{
 		// New style configuration.
-		String userNameMapping = parameters.getParameter(com.metacarta.crawler.connectors.livelink.LiveLinkParameters.userNameMapping);
+		String userNameMapping = parameters.getParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.userNameMapping);
 		if (userNameMapping == null)
 			userNameMapping = "^(.*)\\\\@([A-Z|a-z|0-9|_|-]*)\\\\.(.*)$=$(2)\\\\$(1l)";
-		matchMap = new com.metacarta.crawler.connectors.livelink.MatchMap(userNameMapping);
+		matchMap = new org.apache.lcf.crawler.connectors.livelink.MatchMap(userNameMapping);
 	}
 
 	usernameRegexp = matchMap.getMatchString(0);
@@ -78,7 +78,7 @@
 	<tr><td class="separator" colspan="2"><hr/></td></tr>
 	<tr>
 		<td class="description"><nobr>Server name:</nobr></td>
-		<td class="value"><input type="text" size="64" name="servername" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(serverName)%>'/></td>
+		<td class="value"><input type="text" size="64" name="servername" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(serverName)%>'/></td>
 	</tr>
 	<tr>
 		<td class="description"><nobr>Server port:</nobr></td>
@@ -86,11 +86,11 @@
 	</tr>
 	<tr>
 		<td class="description"><nobr>Server user name:</nobr></td>
-		<td class="value"><input type="text" size="32" name="serverusername" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(serverUserName)%>'/></td>
+		<td class="value"><input type="text" size="32" name="serverusername" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(serverUserName)%>'/></td>
 	</tr>
 	<tr>
 		<td class="description"><nobr>Server password:</nobr></td>
-		<td class="value"><input type="password" size="32" name="serverpassword" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(serverPassword)%>'/></td>
+		<td class="value"><input type="password" size="32" name="serverpassword" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(serverPassword)%>'/></td>
 	</tr>
 </table>
 <%
@@ -99,10 +99,10 @@
 	{
 		// Hiddens for Server tab
 %>
-	<input type="hidden" name="servername" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(serverName)%>'/>
+	<input type="hidden" name="servername" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(serverName)%>'/>
 	<input type="hidden" name="serverport" value='<%=serverPort%>'/>
-	<input type="hidden" name="serverusername" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(serverUserName)%>'/>
-	<input type="hidden" name="serverpassword" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(serverPassword)%>'/>
+	<input type="hidden" name="serverusername" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(serverUserName)%>'/>
+	<input type="hidden" name="serverpassword" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(serverPassword)%>'/>
 <%
 	}
 
@@ -114,11 +114,11 @@
 	<tr><td class="separator" colspan="2"><hr/></td></tr>
 	<tr>
 		<td class="description"><nobr>User name regular expression:</nobr></td>
-		<td class="value"><input type="text" size="40" name="usernameregexp" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(usernameRegexp)%>'/></td>
+		<td class="value"><input type="text" size="40" name="usernameregexp" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(usernameRegexp)%>'/></td>
 	</tr>
 	<tr>
 		<td class="description"><nobr>Livelink user expression:</nobr></td>
-		<td class="value"><input type="text" size="40" name="livelinkuserexpr" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(livelinkUserExpr)%>'/></td>
+		<td class="value"><input type="text" size="40" name="livelinkuserexpr" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(livelinkUserExpr)%>'/></td>
 	</tr>
 </table>
 <%
@@ -127,8 +127,8 @@
 	{
 		// Hiddens for "User Mapping" tab
 %>
-	<input type="hidden" name="usernameregexp" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(usernameRegexp)%>'/>
-	<input type="hidden" name="livelinkuserexpr" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(livelinkUserExpr)%>'/>
+	<input type="hidden" name="usernameregexp" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(usernameRegexp)%>'/>
+	<input type="hidden" name="livelinkuserexpr" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(livelinkUserExpr)%>'/>
 <%
 	}
 %>

@@ -57,7 +57,7 @@
 <%
 			}
 %>
-			<tr><td class="description"><%=com.metacarta.ui.util.Encoder.bodyEscape(sn.getAttributeValue("path"))+":"%></td>
+			<tr><td class="description"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(sn.getAttributeValue("path"))+":"%></td>
 			<td class="value">
 <%
 			int j = 0;
@@ -69,7 +69,7 @@
 				<%=(excludeNode.getType().equals("exclude"))?"Exclude ":""%>
 				<%=(excludeNode.getAttributeValue("type").equals("file"))?"file ":""%>
 				<%=(excludeNode.getAttributeValue("type").equals("directory"))?"directory ":""%>
-				<%=com.metacarta.ui.util.Encoder.bodyEscape(excludeNode.getAttributeValue("match"))%><br/>
+				<%=org.apache.lcf.ui.util.Encoder.bodyEscape(excludeNode.getAttributeValue("match"))%><br/>
 <%
 			}
 %>

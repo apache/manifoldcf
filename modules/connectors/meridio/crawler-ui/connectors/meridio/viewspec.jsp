@@ -60,7 +60,7 @@
 				seenAny = true;
 			}
 %>
-		<%=com.metacarta.ui.util.Encoder.bodyEscape(sn.getAttributeValue("path"))%><br/>
+		<%=org.apache.lcf.ui.util.Encoder.bodyEscape(sn.getAttributeValue("path"))%><br/>
 <%
 		}
 	}
@@ -135,7 +135,7 @@
 	{
 		String category = sortArray[i++];
 %>
-		<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(category)%></nobr><br/>
+		<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(category)%></nobr><br/>
 <%
 	}
 %>
@@ -170,7 +170,7 @@
 	{
 		String mimeType = sortArray[i++];
 %>
-		<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(mimeType)%></nobr><br/>
+		<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(mimeType)%></nobr><br/>
 <%
 	}
 %>
@@ -224,7 +224,7 @@
 			}
 			String token = sn.getAttributeValue("token");
 %>
-				<%=com.metacarta.ui.util.Encoder.bodyEscape(token)%><br/>
+				<%=org.apache.lcf.ui.util.Encoder.bodyEscape(token)%><br/>
 <%		}
 	}
 
@@ -305,7 +305,7 @@
         {
                 String descriptor = sortArray[i++];
 %>
-		<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(descriptor)%></nobr><br/>
+		<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(descriptor)%></nobr><br/>
 <%
         }
 %>
@@ -340,7 +340,7 @@
 	{
 %>
 	<td class="description"><nobr>Path-name metadata attribute:</nobr></td>
-	<td class="value"><nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(pathNameAttribute)%></nobr></td>
+	<td class="value"><nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(pathNameAttribute)%></nobr></td>
 <%
 	}
 	else
@@ -359,7 +359,7 @@
 <%
 	// Find the path-value mapping data
 	i = 0;
-	com.metacarta.crawler.connectors.meridio.MatchMap matchMap = new com.metacarta.crawler.connectors.meridio.MatchMap();
+	org.apache.lcf.crawler.connectors.meridio.MatchMap matchMap = new org.apache.lcf.crawler.connectors.meridio.MatchMap();
 	while (i < ds.getChildCount())
 	{
 		SpecificationNode sn = ds.getChild(i++);
@@ -383,7 +383,7 @@
 		String matchString = matchMap.getMatchString(i);
 		String replaceString = matchMap.getReplaceString(i);
 %>
-	    <tr><td class="value"><%=com.metacarta.ui.util.Encoder.bodyEscape(matchString)%></td><td class="value">--></td><td class="value"><%=com.metacarta.ui.util.Encoder.bodyEscape(replaceString)%></td></tr>
+	    <tr><td class="value"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(matchString)%></td><td class="value">--></td><td class="value"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(replaceString)%></td></tr>
 <%
 		i++;
 	    }

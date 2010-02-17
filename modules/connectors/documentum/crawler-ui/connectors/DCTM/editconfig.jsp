@@ -37,19 +37,19 @@
 	if (tabName == null)
 		out.println("No tab name!");
 
-	String docbaseName = parameters.getParameter(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_DOCBASE);
+	String docbaseName = parameters.getParameter(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_DOCBASE);
 	if (docbaseName == null)
 		docbaseName = "";
-	String docbaseUserName = parameters.getParameter(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_USERNAME);
+	String docbaseUserName = parameters.getParameter(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_USERNAME);
 	if (docbaseUserName == null)
 		docbaseUserName = "";
-	String docbasePassword = parameters.getObfuscatedParameter(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_PASSWORD);
+	String docbasePassword = parameters.getObfuscatedParameter(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_PASSWORD);
 	if (docbasePassword == null)
 		docbasePassword = "";
-	String docbaseDomain = parameters.getParameter(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_DOMAIN);
+	String docbaseDomain = parameters.getParameter(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_DOMAIN);
 	if (docbaseDomain == null)
 		docbaseDomain = "";
-	String webtopBaseUrl = parameters.getParameter(com.metacarta.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_WEBTOPBASEURL);
+	String webtopBaseUrl = parameters.getParameter(org.apache.lcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_WEBTOPBASEURL);
 	if (webtopBaseUrl == null)
 		webtopBaseUrl = "http://localhost/webtop/";
 
@@ -60,16 +60,16 @@
 <table class="displaytable">
 	<tr><td class="separator" colspan="2"><hr/></td></tr>
 	<tr>
-		<td class="description"><nobr>Docbase name:</nobr></td><td class="value"><input type="text" size="32" name="docbasename" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(docbaseName)%>'/></td>
+		<td class="description"><nobr>Docbase name:</nobr></td><td class="value"><input type="text" size="32" name="docbasename" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(docbaseName)%>'/></td>
 	</tr>
 	<tr>
-		<td class="description"><nobr>Docbase user name:</nobr></td><td class="value"><input type="text" size="32" name="docbaseusername" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(docbaseUserName)%>'/></td>
+		<td class="description"><nobr>Docbase user name:</nobr></td><td class="value"><input type="text" size="32" name="docbaseusername" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(docbaseUserName)%>'/></td>
 	</tr>
 	<tr>
-		<td class="description"><nobr>Docbase password:</nobr></td><td class="value"><input type="password" size="32" name="docbasepassword" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(docbasePassword)%>'/></td>
+		<td class="description"><nobr>Docbase password:</nobr></td><td class="value"><input type="password" size="32" name="docbasepassword" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(docbasePassword)%>'/></td>
 	</tr>
 	<tr>
-		<td class="description"><nobr>Docbase domain:</nobr></td><td class="value"><input type="text" size="32" name="docbasedomain" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(docbaseDomain)%>'/></td>
+		<td class="description"><nobr>Docbase domain:</nobr></td><td class="value"><input type="text" size="32" name="docbasedomain" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(docbaseDomain)%>'/></td>
 	</tr>
 </table>
 <%
@@ -78,10 +78,10 @@
 	{
 		// Hiddens for Docbase tab
 %>
-<input type="hidden" name="docbasename" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(docbaseName)%>'/>
-<input type="hidden" name="docbaseusername" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(docbaseUserName)%>'/>
-<input type="hidden" name="docbasepassword" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(docbasePassword)%>'/>
-<input type="hidden" name="docbasedomain" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(docbaseDomain)%>'/>
+<input type="hidden" name="docbasename" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(docbaseName)%>'/>
+<input type="hidden" name="docbaseusername" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(docbaseUserName)%>'/>
+<input type="hidden" name="docbasepassword" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(docbasePassword)%>'/>
+<input type="hidden" name="docbasedomain" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(docbaseDomain)%>'/>
 <%
 	}
 
@@ -92,7 +92,7 @@
 <table class="displaytable">
 	<tr><td class="separator" colspan="2"><hr/></td></tr>
 	<tr>
-		<td class="description"><nobr>Webtop Base URL:</nobr></td><td class="value"><input type="text" size="64" name="webtopbaseurl" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(webtopBaseUrl)%>'/></td>
+		<td class="description"><nobr>Webtop Base URL:</nobr></td><td class="value"><input type="text" size="64" name="webtopbaseurl" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(webtopBaseUrl)%>'/></td>
 	</tr>
 </table>
 <%
@@ -101,7 +101,7 @@
 	{
 		// Hiddens for Webtop tab
 %>
-<input type="hidden" name="webtopbaseurl" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(webtopBaseUrl)%>'/>
+<input type="hidden" name="webtopbaseurl" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(webtopBaseUrl)%>'/>
 <%
 	}
 %>

@@ -50,8 +50,8 @@
 	while (i < ds.getChildCount())
 	{
 		SpecificationNode sn = ds.getChild(i++);
-		if (sn.getType().equals(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_MAXLENGTH))
-			maxLength = sn.getAttributeValue(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_VALUE);
+		if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_MAXLENGTH))
+			maxLength = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_VALUE);
 	}
 	if (maxLength == null)
 		maxLength = "";
@@ -90,11 +90,11 @@
 	  while (i < ds.getChildCount())
 	  {
 		SpecificationNode sn = ds.getChild(i++);
-		if (sn.getType().equals(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_STARTPOINT))
+		if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_STARTPOINT))
 		{
 			String pathDescription = "_"+Integer.toString(k);
 			String pathOpName = "pathop"+pathDescription;
-			String startPath = sn.getAttributeValue(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_PATH);
+			String startPath = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_PATH);
 %>
 			<tr>
 				<td class="value">
@@ -104,9 +104,9 @@
 				    <table class="displaytable">
 				    <tr>
 					<td class="value">
-					    <input type="hidden" name='<%="specpath"+pathDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(sn.getAttributeValue(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_PATH))%>'/>
+					    <input type="hidden" name='<%="specpath"+pathDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_PATH))%>'/>
 					    <input type="hidden" name='<%=pathOpName%>' value=""/>
-					    <nobr><%=(startPath.length() == 0)?"(root)":com.metacarta.ui.util.Encoder.bodyEscape(startPath)%></nobr>
+					    <nobr><%=(startPath.length() == 0)?"(root)":org.apache.lcf.ui.util.Encoder.bodyEscape(startPath)%></nobr>
 					</td>
 				    </tr>
 				    <tr>
@@ -123,11 +123,11 @@
 				String instanceOpName = "specop" + instanceDescription;
 
 				String nodeFlavor = excludeNode.getType();
-				String nodeType = excludeNode.getAttributeValue(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TYPE);
+				String nodeType = excludeNode.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TYPE);
 				if (nodeType == null)
 					nodeType = "";
-				String filespec = excludeNode.getAttributeValue(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_FILESPEC);
-				String indexable = excludeNode.getAttributeValue(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_INDEXABLE);
+				String filespec = excludeNode.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_FILESPEC);
+				String indexable = excludeNode.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_INDEXABLE);
 				if (indexable == null)
 					indexable = "";
 %>
@@ -163,8 +163,8 @@
 							<input type="hidden" name='<%="specfl"+instanceDescription%>' value='<%=nodeFlavor%>'/>
 							<input type="hidden" name='<%="specty"+instanceDescription%>' value='<%=nodeType%>'/>
 							<input type="hidden" name='<%="specin"+instanceDescription%>' value='<%=indexable%>'/>
-							<input type="hidden" name='<%="specfile"+instanceDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(filespec)%>'/>
-							<%=Integer.toString(j+1)%>.&nbsp;<%=(nodeFlavor.equals("include"))?"Include":""%><%=(nodeFlavor.equals("exclude"))?"Exclude":""%><%=(indexable.equals("yes"))?"&nbsp;indexable":""%><%=(indexable.equals("no"))?"&nbsp;un-indexable":""%><%=(nodeType.equals("file"))?"&nbsp;file(s)":""%><%=(nodeType.equals("directory"))?"&nbsp;directory(s)":""%><%=(nodeType.equals(""))?"&nbsp;file(s)&nbsp;or&nbsp;directory(s)":""%>&nbsp;matching&nbsp;<%=com.metacarta.ui.util.Encoder.bodyEscape(filespec)%>
+							<input type="hidden" name='<%="specfile"+instanceDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(filespec)%>'/>
+							<%=Integer.toString(j+1)%>.&nbsp;<%=(nodeFlavor.equals("include"))?"Include":""%><%=(nodeFlavor.equals("exclude"))?"Exclude":""%><%=(indexable.equals("yes"))?"&nbsp;indexable":""%><%=(indexable.equals("no"))?"&nbsp;un-indexable":""%><%=(nodeType.equals("file"))?"&nbsp;file(s)":""%><%=(nodeType.equals("directory"))?"&nbsp;directory(s)":""%><%=(nodeType.equals(""))?"&nbsp;file(s)&nbsp;or&nbsp;directory(s)":""%>&nbsp;matching&nbsp;<%=org.apache.lcf.ui.util.Encoder.bodyEscape(filespec)%>
 						</nobr></td>
 					    </tr>
 <%
@@ -239,7 +239,7 @@
 		repositoryConnection.getMaxConnections());
 	    try
 	    {
-			com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector c = (com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector)connector;
+			org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector c = (org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector)connector;
 			childList = c.getChildFolderNames(pathSoFar);
 			if (childList == null)
 			{
@@ -253,7 +253,7 @@
 			RepositoryConnectorFactory.release(connector);
 	    }
 %>
-				<input type="hidden" name="specpath" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(pathSoFar)%>'/>
+				<input type="hidden" name="specpath" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(pathSoFar)%>'/>
 				<input type="hidden" name="pathop" value=""/>
 				<input type="button" value="Add" alt="Add path" onClick='<%="Javascript:SpecOp(\"pathop\",\"Add\",\"path_"+Integer.toString(k+1)+"\")"%>'/>&nbsp;
 				<%=(pathSoFar.length()==0)?"(root)":pathSoFar%>	
@@ -274,7 +274,7 @@
 		int j = 0;
 		while (j < childList.length)
 		{
-			String folder = com.metacarta.ui.util.Encoder.attributeEscape(childList[j]);
+			String folder = org.apache.lcf.ui.util.Encoder.attributeEscape(childList[j]);
 %>
 					<option value='<%=folder%>'><%=folder%></option>
 <%
@@ -289,7 +289,7 @@
 	  catch (MetacartaException e)
 	  {
 		e.printStackTrace();
-		out.println(com.metacarta.ui.util.Encoder.bodyEscape(e.getMessage()));
+		out.println(org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage()));
 	  }
 %>
 				</a>
@@ -306,12 +306,12 @@
 	  while (i < ds.getChildCount())
 	  {
 		SpecificationNode sn = ds.getChild(i++);
-		if (sn.getType().equals(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_STARTPOINT))
+		if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_STARTPOINT))
 		{
 			String pathDescription = "_"+Integer.toString(k);
-			String startPath = sn.getAttributeValue(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_PATH);
+			String startPath = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_PATH);
 %>
-	<input type="hidden" name='<%="specpath"+pathDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(startPath)%>'/>
+	<input type="hidden" name='<%="specpath"+pathDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(startPath)%>'/>
 <%
 			// Now go through the include/exclude children of this node.
 			int j = 0;
@@ -321,18 +321,18 @@
 				String instanceDescription = "_"+Integer.toString(k)+"_"+Integer.toString(j);
 
 				String nodeFlavor = excludeNode.getType();
-				String nodeType = excludeNode.getAttributeValue(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TYPE);
+				String nodeType = excludeNode.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TYPE);
 				if (nodeType == null)
 					nodeType = "";
-				String filespec = excludeNode.getAttributeValue(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_FILESPEC);
-				String indexable = excludeNode.getAttributeValue(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_INDEXABLE);
+				String filespec = excludeNode.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_FILESPEC);
+				String indexable = excludeNode.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_INDEXABLE);
 				if (indexable == null)
 					indexable = "";
 %>
 	<input type="hidden" name='<%="specfl"+instanceDescription%>' value='<%=nodeFlavor%>'/>
 	<input type="hidden" name='<%="specty"+instanceDescription%>' value='<%=nodeType%>'/>
 	<input type="hidden" name='<%="specin"+instanceDescription%>' value='<%=indexable%>'/>
-	<input type="hidden" name='<%="specfile"+instanceDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(filespec)%>'/>
+	<input type="hidden" name='<%="specfile"+instanceDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(filespec)%>'/>
 <%
 				j++;
 			}
@@ -357,17 +357,17 @@
 	while (i < ds.getChildCount())
 	{
 		SpecificationNode sn = ds.getChild(i++);
-		if (sn.getType().equals(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_SECURITY))
+		if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_SECURITY))
 		{
-			String securityValue = sn.getAttributeValue(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_VALUE);
+			String securityValue = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_VALUE);
 			if (securityValue.equals("off"))
 				securityOn = false;
 			else if (securityValue.equals("on"))
 				securityOn = true;
 		}
-		if (sn.getType().equals(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_SHARESECURITY))
+		if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_SHARESECURITY))
 		{
-			String securityValue = sn.getAttributeValue(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_VALUE);
+			String securityValue = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_VALUE);
 			if (securityValue.equals("off"))
 				shareSecurityOn = false;
 			else if (securityValue.equals("on"))
@@ -398,20 +398,20 @@
 	  while (i < ds.getChildCount())
 	  {
 		SpecificationNode sn = ds.getChild(i++);
-		if (sn.getType().equals(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_ACCESS))
+		if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_ACCESS))
 		{
 			String accessDescription = "_"+Integer.toString(k);
 			String accessOpName = "accessop"+accessDescription;
-			String token = sn.getAttributeValue(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TOKEN);
+			String token = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TOKEN);
 %>
 			<tr>
 				<td class="description" colspan="1">
 					<input type="hidden" name='<%=accessOpName%>' value=""/>
-					<input type="hidden" name='<%="spectoken"+accessDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(token)%>'/>
+					<input type="hidden" name='<%="spectoken"+accessDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(token)%>'/>
 					<a name='<%="token_"+Integer.toString(k)%>'><input type="button" value="Delete" alt='<%="Delete token #"+Integer.toString(k)%>' onClick='<%="Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")"%>'/></a>
 				</td>
 				<td class="value" colspan="3">
-					<nobr><%=com.metacarta.ui.util.Encoder.bodyEscape(token)%></nobr>
+					<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(token)%></nobr>
 				</td>
 			</tr>
 <%
@@ -463,12 +463,12 @@
 	  while (i < ds.getChildCount())
 	  {
 		SpecificationNode sn = ds.getChild(i++);
-		if (sn.getType().equals(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_ACCESS))
+		if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_ACCESS))
 		{
 			String accessDescription = "_"+Integer.toString(k);
-			String token = sn.getAttributeValue(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TOKEN);
+			String token = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TOKEN);
 %>
-	<input type="hidden" name='<%="spectoken"+accessDescription%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(token)%>'/>
+	<input type="hidden" name='<%="spectoken"+accessDescription%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(token)%>'/>
 <%
 			k++;
 		}
@@ -487,18 +487,18 @@
 	// Find the path-value mapping data
 	i = 0;
 	String pathNameAttribute = "";
-	com.metacarta.crawler.connectors.sharedrive.MatchMap matchMap = new com.metacarta.crawler.connectors.sharedrive.MatchMap();
+	org.apache.lcf.crawler.connectors.sharedrive.MatchMap matchMap = new org.apache.lcf.crawler.connectors.sharedrive.MatchMap();
 	while (i < ds.getChildCount())
 	{
 		SpecificationNode sn = ds.getChild(i++);
-		if (sn.getType().equals(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_PATHNAMEATTRIBUTE))
+		if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_PATHNAMEATTRIBUTE))
 		{
-			pathNameAttribute = sn.getAttributeValue(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_VALUE);
+			pathNameAttribute = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_VALUE);
 		}
-		else if (sn.getType().equals(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_PATHMAP))
+		else if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_PATHMAP))
 		{
-			String pathMatch = sn.getAttributeValue(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH);
-			String pathReplace = sn.getAttributeValue(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE);
+			String pathMatch = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH);
+			String pathReplace = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE);
 			matchMap.appendMatchPair(pathMatch,pathReplace);
 		}
 	}
@@ -514,7 +514,7 @@
 		    <tr>
 			<td class="description" colspan="1"><nobr>Path attribute name:</nobr></td>
 			<td class="value" colspan="3">
-				<input type="text" name="specpathnameattribute" size="20" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(pathNameAttribute)%>'/>
+				<input type="text" name="specpathnameattribute" size="20" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(pathNameAttribute)%>'/>
 			</td>
 		    </tr>
 
@@ -529,9 +529,9 @@
 %>
 		    <tr>
 			<td class="value"><input type="hidden" name='<%="specmappingop_"+Integer.toString(i)%>' value=""/><a name='<%="mapping_"+Integer.toString(i)%>'><input type="button" onClick='<%="Javascript:SpecOp(\"specmappingop_"+Integer.toString(i)+"\",\"Delete\",\"mapping_"+Integer.toString(i)+"\")"%>' alt='<%="Delete mapping #"+Integer.toString(i)%>' value="Delete"/></a></td>
-			<td class="value"><input type="hidden" name='<%="specmatch_"+Integer.toString(i)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(matchString)%>'/><%=com.metacarta.ui.util.Encoder.bodyEscape(matchString)%></td>
+			<td class="value"><input type="hidden" name='<%="specmatch_"+Integer.toString(i)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(matchString)%>'/><%=org.apache.lcf.ui.util.Encoder.bodyEscape(matchString)%></td>
 			<td class="value">==></td>
-			<td class="value"><input type="hidden" name='<%="specreplace_"+Integer.toString(i)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(replaceString)%>'/><%=com.metacarta.ui.util.Encoder.bodyEscape(replaceString)%></td>
+			<td class="value"><input type="hidden" name='<%="specreplace_"+Integer.toString(i)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(replaceString)%>'/><%=org.apache.lcf.ui.util.Encoder.bodyEscape(replaceString)%></td>
 		    </tr>
 <%
 		i++;
@@ -557,7 +557,7 @@
 	else
 	{
 %>
-	<input type="hidden" name="specpathnameattribute" value='<%=com.metacarta.ui.util.Encoder.attributeEscape(pathNameAttribute)%>'/>
+	<input type="hidden" name="specpathnameattribute" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(pathNameAttribute)%>'/>
 	<input type="hidden" name="specmappingcount" value='<%=Integer.toString(matchMap.getMatchCount())%>'/>
 <%
 	  i = 0;
@@ -566,8 +566,8 @@
 		String matchString = matchMap.getMatchString(i);
 		String replaceString = matchMap.getReplaceString(i);
 %>
-	<input type="hidden" name='<%="specmatch_"+Integer.toString(i)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(matchString)%>'/>
-	<input type="hidden" name='<%="specreplace_"+Integer.toString(i)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(replaceString)%>'/>
+	<input type="hidden" name='<%="specmatch_"+Integer.toString(i)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(matchString)%>'/>
+	<input type="hidden" name='<%="specreplace_"+Integer.toString(i)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(replaceString)%>'/>
 <%
 		i++;
 	  }
@@ -577,22 +577,22 @@
 	
 	// Find the filename mapping data
 	// Find the URL mapping data
-	com.metacarta.crawler.connectors.sharedrive.MatchMap fileMap = new com.metacarta.crawler.connectors.sharedrive.MatchMap();
-	com.metacarta.crawler.connectors.sharedrive.MatchMap uriMap = new com.metacarta.crawler.connectors.sharedrive.MatchMap();
+	org.apache.lcf.crawler.connectors.sharedrive.MatchMap fileMap = new org.apache.lcf.crawler.connectors.sharedrive.MatchMap();
+	org.apache.lcf.crawler.connectors.sharedrive.MatchMap uriMap = new org.apache.lcf.crawler.connectors.sharedrive.MatchMap();
 	i = 0;
 	while (i < ds.getChildCount())
 	{
 		SpecificationNode sn = ds.getChild(i++);
-		if (sn.getType().equals(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_FILEMAP))
+		if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_FILEMAP))
 		{
-			String pathMatch = sn.getAttributeValue(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH);
-			String pathReplace = sn.getAttributeValue(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE);
+			String pathMatch = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH);
+			String pathReplace = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE);
 			fileMap.appendMatchPair(pathMatch,pathReplace);
 		}
-		else if (sn.getType().equals(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.NODE_URIMAP))
+		else if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_URIMAP))
 		{
-			String pathMatch = sn.getAttributeValue(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH);
-			String pathReplace = sn.getAttributeValue(com.metacarta.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE);
+			String pathMatch = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH);
+			String pathReplace = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE);
 			uriMap.appendMatchPair(pathMatch,pathReplace);
 		}
 	}
@@ -613,9 +613,9 @@
 %>
 		    <tr>
 			<td class="value"><input type="hidden" name='<%="specfmapop_"+Integer.toString(i)%>' value=""/><a name='<%="fmap_"+Integer.toString(i)%>'><input type="button" onClick='<%="Javascript:SpecOp(\"specfmapop_"+Integer.toString(i)+"\",\"Delete\",\"fmap_"+Integer.toString(i)+"\")"%>' alt='<%="Delete file mapping #"+Integer.toString(i)%>' value="Delete"/></a></td>
-			<td class="value"><input type="hidden" name='<%="specfmapmatch_"+Integer.toString(i)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(matchString)%>'/><%=com.metacarta.ui.util.Encoder.bodyEscape(matchString)%></td>
+			<td class="value"><input type="hidden" name='<%="specfmapmatch_"+Integer.toString(i)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(matchString)%>'/><%=org.apache.lcf.ui.util.Encoder.bodyEscape(matchString)%></td>
 			<td class="value">==></td>
-			<td class="value"><input type="hidden" name='<%="specfmapreplace_"+Integer.toString(i)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(replaceString)%>'/><%=com.metacarta.ui.util.Encoder.bodyEscape(replaceString)%></td>
+			<td class="value"><input type="hidden" name='<%="specfmapreplace_"+Integer.toString(i)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(replaceString)%>'/><%=org.apache.lcf.ui.util.Encoder.bodyEscape(replaceString)%></td>
 		    </tr>
 <%
 		i++;
@@ -649,8 +649,8 @@
 		String matchString = fileMap.getMatchString(i);
 		String replaceString = fileMap.getReplaceString(i);
 %>
-	<input type="hidden" name='<%="specfmapmatch_"+Integer.toString(i)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(matchString)%>'/>
-	<input type="hidden" name='<%="specfmapreplace_"+Integer.toString(i)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(replaceString)%>'/>
+	<input type="hidden" name='<%="specfmapmatch_"+Integer.toString(i)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(matchString)%>'/>
+	<input type="hidden" name='<%="specfmapreplace_"+Integer.toString(i)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(replaceString)%>'/>
 <%
 		i++;
 	  }
@@ -672,9 +672,9 @@
 %>
 		    <tr>
 			<td class="value"><input type="hidden" name='<%="specumapop_"+Integer.toString(i)%>' value=""/><a name='<%="umap_"+Integer.toString(i)%>'><input type="button" onClick='<%="Javascript:SpecOp(\"specumapop_"+Integer.toString(i)+"\",\"Delete\",\"umap_"+Integer.toString(i)+"\")"%>' alt='<%="Delete url mapping #"+Integer.toString(i)%>' value="Delete"/></a></td>
-			<td class="value"><input type="hidden" name='<%="specumapmatch_"+Integer.toString(i)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(matchString)%>'/><%=com.metacarta.ui.util.Encoder.bodyEscape(matchString)%></td>
+			<td class="value"><input type="hidden" name='<%="specumapmatch_"+Integer.toString(i)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(matchString)%>'/><%=org.apache.lcf.ui.util.Encoder.bodyEscape(matchString)%></td>
 			<td class="value">==></td>
-			<td class="value"><input type="hidden" name='<%="specumapreplace_"+Integer.toString(i)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(replaceString)%>'/><%=com.metacarta.ui.util.Encoder.bodyEscape(replaceString)%></td>
+			<td class="value"><input type="hidden" name='<%="specumapreplace_"+Integer.toString(i)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(replaceString)%>'/><%=org.apache.lcf.ui.util.Encoder.bodyEscape(replaceString)%></td>
 		    </tr>
 <%
 		i++;
@@ -708,8 +708,8 @@
 		String matchString = uriMap.getMatchString(i);
 		String replaceString = uriMap.getReplaceString(i);
 %>
-	<input type="hidden" name='<%="specumapmatch_"+Integer.toString(i)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(matchString)%>'/>
-	<input type="hidden" name='<%="specumapreplace_"+Integer.toString(i)%>' value='<%=com.metacarta.ui.util.Encoder.attributeEscape(replaceString)%>'/>
+	<input type="hidden" name='<%="specumapmatch_"+Integer.toString(i)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(matchString)%>'/>
+	<input type="hidden" name='<%="specumapreplace_"+Integer.toString(i)%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(replaceString)%>'/>
 <%
 		i++;
 	  }

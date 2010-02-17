@@ -49,7 +49,7 @@
 		i = 0;
 		while (i < ds.getChildCount())
 		{
-			if (ds.getChild(i).getType().equals(com.metacarta.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_DOCUMENTCLASS))
+			if (ds.getChild(i).getType().equals(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_DOCUMENTCLASS))
 				ds.removeChild(i);
 			else
 				i++;
@@ -61,14 +61,14 @@
 		    while (i < x.length)
 		    {
 			String value = x[i++];
-			SpecificationNode node = new SpecificationNode(com.metacarta.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_DOCUMENTCLASS);
-			node.setAttribute(com.metacarta.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE,value);
+			SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_DOCUMENTCLASS);
+			node.setAttribute(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE,value);
 			// Get the allmetadata value for this document class
 			String allmetadata = variableContext.getParameter("allmetadata_"+value);
 			if (allmetadata == null)
 				allmetadata = "false";
 			if (allmetadata.equals("true"))
-				node.setAttribute(com.metacarta.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_ALLMETADATA,allmetadata);
+				node.setAttribute(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_ALLMETADATA,allmetadata);
 			else
 			{
 				String[] fields = variableContext.getParameterValues("metadatafield_"+value);
@@ -78,8 +78,8 @@
 					while (j < fields.length)
 					{
 						String field = fields[j++];
-						SpecificationNode sp2 = new SpecificationNode(com.metacarta.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_METADATAFIELD);
-						sp2.setAttribute(com.metacarta.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE,field);
+						SpecificationNode sp2 = new SpecificationNode(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_METADATAFIELD);
+						sp2.setAttribute(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE,field);
 						node.addChild(node.getChildCount(),sp2);
 					}
 				}
@@ -97,12 +97,12 @@
 				String matchValue = variableContext.getParameter("matchvalue_"+value+"_"+Integer.toString(q));
 				if (matchOp == null || !matchOp.equals("Delete"))
 				{
-					SpecificationNode matchNode = new SpecificationNode(com.metacarta.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_MATCH);
-					matchNode.setAttribute(com.metacarta.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_MATCHTYPE,matchType);
-					matchNode.setAttribute(com.metacarta.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_FIELDNAME,matchField);
+					SpecificationNode matchNode = new SpecificationNode(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_MATCH);
+					matchNode.setAttribute(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_MATCHTYPE,matchType);
+					matchNode.setAttribute(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_FIELDNAME,matchField);
 					if (matchValue == null)
 						matchValue = "";
-					matchNode.setAttribute(com.metacarta.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE,matchValue);
+					matchNode.setAttribute(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE,matchValue);
 					node.addChild(node.getChildCount(),matchNode);
 				}
 				q++;
@@ -116,12 +116,12 @@
 				String matchType = variableContext.getParameter("matchtype_"+value);
 				String matchField = variableContext.getParameter("matchfield_"+value);
 				String matchValue = variableContext.getParameter("matchvalue_"+value);
-				SpecificationNode matchNode = new SpecificationNode(com.metacarta.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_MATCH);
-				matchNode.setAttribute(com.metacarta.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_MATCHTYPE,matchType);
-				matchNode.setAttribute(com.metacarta.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_FIELDNAME,matchField);
+				SpecificationNode matchNode = new SpecificationNode(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_MATCH);
+				matchNode.setAttribute(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_MATCHTYPE,matchType);
+				matchNode.setAttribute(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_FIELDNAME,matchField);
 				if (matchValue == null)
 					matchValue = "";
-				matchNode.setAttribute(com.metacarta.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE,matchValue);
+				matchNode.setAttribute(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE,matchValue);
 				node.addChild(node.getChildCount(),matchNode);
 			}
 			
@@ -134,7 +134,7 @@
 		i = 0;
 		while (i < ds.getChildCount())
 		{
-			if (ds.getChild(i).getType().equals(com.metacarta.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_MIMETYPE))
+			if (ds.getChild(i).getType().equals(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_MIMETYPE))
 				ds.removeChild(i);
 			else
 				i++;
@@ -146,8 +146,8 @@
 		    while (i < x.length)
 		    {
 			String value = x[i++];
-			SpecificationNode node = new SpecificationNode(com.metacarta.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_MIMETYPE);
-			node.setAttribute(com.metacarta.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE,value);
+			SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_MIMETYPE);
+			node.setAttribute(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE,value);
 			ds.addChild(ds.getChildCount(),node);
 		    }
 		}
