@@ -93,6 +93,8 @@
     <target name="webapp-connector-ui" depends="compile-crawler-ui,jar-connector,precompile-check" if="canBuild">
         <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-jcifs-connector.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="jcifs/jcifs.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/jakarta-poi.jar"/>
         <mkdir dir="build/webapp/crawler-ui"/>
         <copy todir="build/webapp/crawler-ui">
             <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>

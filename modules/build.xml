@@ -216,7 +216,7 @@
         <copy todir="connectors/meridio/lib" file="lib/axis.jar"/>
         <copy todir="connectors/meridio/lib" file="lib/jaxrpc.jar"/>
         <copy todir="connectors/meridio/lib" file="lib/saaj.jar"/>
-        <copy todir="connectors/meridio/lib" file="lib/w2dl4j.jar"/>
+        <copy todir="connectors/meridio/lib" file="lib/wsdl4j.jar"/>
         <copy todir="connectors/meridio/lib" file="lib/castor-1.0.5-commons.jar"/>
         <copy todir="connectors/meridio/lib" file="lib/castor-1.0.5.jar"/>
         <copy todir="connectors/meridio/lib" file="lib/castor-1.0.5-xml.jar"/>
@@ -269,7 +269,7 @@
         <copy todir="connectors/sharepoint/lib" file="lib/axis.jar"/>
         <copy todir="connectors/sharepoint/lib" file="lib/jaxrpc.jar"/>
         <copy todir="connectors/sharepoint/lib" file="lib/saaj.jar"/>
-        <copy todir="connectors/sharepoint/lib" file="lib/w2dl4j.jar"/>
+        <copy todir="connectors/sharepoint/lib" file="lib/wsdl4j.jar"/>
         <copy todir="connectors/sharepoint/lib" file="lib/commons-discovery.jar"/>
 
         <copy todir="connectors/sharepoint/lib">

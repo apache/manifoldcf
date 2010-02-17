@@ -157,6 +157,11 @@
         <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-sharepoint-connector.jar"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-sharepoint-wsdlstub.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/axis.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/jaxrpc.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/wsdl4j.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/saaj.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-discovery.jar"/>
         <mkdir dir="build/webapp/crawler-ui"/>
         <copy todir="build/webapp/crawler-ui">
             <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>

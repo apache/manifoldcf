@@ -10,6 +10,8 @@
         <available file="wsdls/DMDataSet.xsd" property="DMDataSetStatus"/>
         <available file="wsdls/RMDataSet.xsd" property="RMDataSetStatus"/>
         <available file="wsdls/RMClassificationDataSet.xsd" property="RMClassificationDataSetStatus"/>
+        <available file="sun/activation.jar" property="activationStatus"/>
+        <available file="sun/mailapi.jar" property="mailapiStatus"/>
         <condition property="canBuild">
             <and>
                 <isset property="meridioDMWS_axisStatus"/>
@@ -17,12 +19,14 @@
                 <isset property="DMDataSetStatus"/>
                 <isset property="RMDataSetStatus"/>
                 <isset property="RMClassificationDataSetStatus"/>
+                <isset property="activationStatus"/>
+                <isset property="mailapiStatus"/>
             </and>
         </condition>
     </target>
 
     <target name="precompile-check" depends="calculate-condition" unless="canBuild">
-        <echo message="Meridio Connector cannot be built without MeridioDMWS_axis.wsdl, MeridioRMWS_axis.wsdl, DMDataSet.xsd, RMDataSet.xsd, and RMClassificationDataSet.xsd"/>
+        <echo message="Meridio Connector cannot be built without MeridioDMWS_axis.wsdl, MeridioRMWS_axis.wsdl, DMDataSet.xsd, RMDataSet.xsd, RMClassificationDataSet.xsd, activation.jar, and mailapi.jar"/>
     </target>
 
     <target name="classcreate-wsdl">
@@ -90,12 +94,12 @@
 
     <target name="compile-xsds" depends="classcreate-xsds,precompile-check" if="canBuild">
         <mkdir dir="build/xsdclasses"/>
-        <javac srcdir="build/xsdjava" destdir="build/xsdclasses" classpath="lib/log4j-1.2.jar:lib/commons-logging.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:lib/mailapi.jar:lib/castor-1.0.5-commons.jar:lib/castor-1.0.5.jar:lib/castor-1.0.5-xml.jar" target="1.5" source="1.4"/>
+        <javac srcdir="build/xsdjava" destdir="build/xsdclasses" classpath="lib/log4j-1.2.jar:lib/commons-logging.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:lib/mailapi.jar:lib/castor-1.0.5-commons.jar:lib/castor-1.0.5.jar:lib/castor-1.0.5-xml.jar:sun/activation.jar" target="1.5" source="1.4"/>
     </target>
 
     <target name="compile-connector" depends="compile-wsdls,compile-xsds,precompile-check" if="canBuild">
         <mkdir dir="build/connector/classes"/>
-        <javac srcdir="connector" destdir="build/connector/classes" classpath="lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:lib/mailapi.jar:lib/castor-1.0.5-commons.jar:lib/castor-1.0.5.jar:lib/castor-1.0.5-xml.jar:lib/axis.jar:build/wsdlclasses:build/xsdclasses:lib/activation.jar:lib/jaxrpc.jar:lib/saaj.jar" target="1.5" source="1.4"/>
+        <javac srcdir="connector" destdir="build/connector/classes" classpath="lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:lib/mailapi.jar:lib/castor-1.0.5-commons.jar:lib/castor-1.0.5.jar:lib/castor-1.0.5-xml.jar:sun/activation.jar:lib/axis.jar:build/wsdlclasses:build/xsdclasses:lib/activation.jar:lib/jaxrpc.jar:lib/saaj.jar" target="1.5" source="1.4"/>
     </target>
 
     <target name="compile-crawler-ui" depends="compile-connector,compile-wsdls,compile-xsds,precompile-check" if="canBuild">
@@ -136,6 +140,9 @@
                 <fileset dir="lib"> 
                     <include name="*.jar"/> 
                 </fileset> 
+                <fileset dir="sun"> 
+                    <include name="*.jar"/> 
+                </fileset>
                 <pathelement location="build/crawler-war/WEB-INF/lib/jstl.jar"/>
                 <pathelement location="build/crawler-war/WEB-INF/lib/standard.jar"/>
                 <pathelement location="build/connector/classes"/>
@@ -150,6 +157,9 @@
             <classpath id="classpath">
                 <pathelement location="${java.home}/../lib/tools.jar"/>
                 <fileset dir="lib"> 
+                    <include name="*.jar"/> 
+                </fileset>
+                <fileset dir="sun"> 
                     <include name="*.jar"/> 
                 </fileset>
                 <pathelement location="build/crawler-war/WEB-INF/lib/jstl.jar"/>
@@ -181,6 +191,17 @@
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-meridio-connector.jar"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-meridio-wsdlstub.jar"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-meridio-xsdstub.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/axis.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/jaxrpc.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/wsdl4j.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/saaj.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-discovery.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/castor-1.0.5-commons.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/castor-1.0.5.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/castor-1.0.5-xml.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib">
+            <fileset dir="sun" includes="*.jar"/>
+        </copy>
         <mkdir dir="build/webapp/crawler-ui"/>
         <copy todir="build/webapp/crawler-ui">
             <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
