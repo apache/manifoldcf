@@ -35,6 +35,6 @@ public interface IOutputAddActivity extends IOutputHistoryActivity
         *@return the properly qualified access token.
         */
         public String qualifyAccessToken(String authorityNameString, String accessToken)
-                throws MetacartaException;
+                throws LCFException;
     
 }

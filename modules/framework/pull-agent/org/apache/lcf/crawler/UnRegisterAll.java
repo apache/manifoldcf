@@ -42,12 +42,12 @@ public class UnRegisterAll
 
 		try
 		{
-			Metacarta.initializeEnvironment();
+			LCF.initializeEnvironment();
 			IThreadContext tc = ThreadContextFactory.make();
 			IDBInterface database = DBInterfaceFactory.make(tc,
-				Metacarta.getMasterDatabaseName(),
-				Metacarta.getMasterDatabaseUsername(),
-				Metacarta.getMasterDatabasePassword());
+				LCF.getMasterDatabaseName(),
+				LCF.getMasterDatabaseUsername(),
+				LCF.getMasterDatabasePassword());
 			IConnectorManager mgr = ConnectorManagerFactory.make(tc);
 			IJobManager jobManager = JobManagerFactory.make(tc);
 			IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(tc);
@@ -68,7 +68,7 @@ public class UnRegisterAll
 				// Now that all jobs have been placed into an appropriate state, actually do the deregistration itself.
 				mgr.unregisterConnector(className);
 			    }
-			    catch (MetacartaException e)
+			    catch (LCFException e)
 			    {
 				database.signalRollback();
 				throw e;
@@ -85,7 +85,7 @@ public class UnRegisterAll
 			}
 			System.err.println("Successfully unregistered all connectors");
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			e.printStackTrace();
 			System.exit(1);

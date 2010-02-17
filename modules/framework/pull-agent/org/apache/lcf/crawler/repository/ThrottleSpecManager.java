@@ -41,7 +41,7 @@ public class ThrottleSpecManager extends org.apache.lcf.core.database.BaseTable
 	*@param database is the database instance.
 	*/
 	public ThrottleSpecManager(IDBInterface database)
-		throws MetacartaException
+		throws LCFException
 	{
 		super(database,"throttlespec");
 	}
@@ -51,7 +51,7 @@ public class ThrottleSpecManager extends org.apache.lcf.core.database.BaseTable
 	*@param owningTablePrimaryKey is the primary key of the owning table.
 	*/
 	public void install(String ownerTable, String owningTablePrimaryKey)
-		throws MetacartaException
+		throws LCFException
 	{
 		beginTransaction();
 		try
@@ -72,7 +72,7 @@ public class ThrottleSpecManager extends org.apache.lcf.core.database.BaseTable
 				addTableIndex(false,list);
 			}
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -91,7 +91,7 @@ public class ThrottleSpecManager extends org.apache.lcf.core.database.BaseTable
 	/** Uninstall.
 	*/
 	public void deinstall()
-		throws MetacartaException
+		throws LCFException
 	{
 		performDrop(null);
 	}
@@ -101,7 +101,7 @@ public class ThrottleSpecManager extends org.apache.lcf.core.database.BaseTable
 	*@param return a list, with columns: "description", "match", and "value".
 	*/
 	public IResultSet readRows(String name)
-		throws MetacartaException
+		throws LCFException
 	{
 		ArrayList list = new ArrayList();
 		list.add(name);
@@ -116,7 +116,7 @@ public class ThrottleSpecManager extends org.apache.lcf.core.database.BaseTable
 	*@param ownerNameParams is the corresponding set of connection name parameters.
 	*/
 	public void getRows(IRepositoryConnection[] connections, Map indexMap, String ownerNameList, ArrayList ownerNameParams)
-		throws MetacartaException
+		throws LCFException
 	{
 		IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+ownerNameField+" IN ("+ownerNameList+")",ownerNameParams,
 			null,null);
@@ -139,7 +139,7 @@ public class ThrottleSpecManager extends org.apache.lcf.core.database.BaseTable
 	*@param connection is the connection to write throttle specs for.
 	*/
 	public void writeRows(String owner, IRepositoryConnection connection)
-		throws MetacartaException
+		throws LCFException
 	{
 		beginTransaction();
 		try
@@ -161,7 +161,7 @@ public class ThrottleSpecManager extends org.apache.lcf.core.database.BaseTable
 				performInsert(map,null);
 			}
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -181,7 +181,7 @@ public class ThrottleSpecManager extends org.apache.lcf.core.database.BaseTable
 	*@param owner is the owner whose rows to delete.
 	*/
 	public void deleteRows(String owner)
-		throws MetacartaException
+		throws LCFException
 	{
 		ArrayList list = new ArrayList();
 		list.add(owner);

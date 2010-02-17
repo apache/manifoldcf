@@ -49,13 +49,13 @@ public class GetJobSchedule
 		
 		try
 		{
-		        Metacarta.initializeEnvironment();
+		        LCF.initializeEnvironment();
 			IThreadContext tc = ThreadContextFactory.make();
 			IJobManager jobManager = JobManagerFactory.make(tc);
 			
 			IJobDescription job = jobManager.load(new Long(jobID));
 			if (job == null)
-				throw new MetacartaException("No such job: "+jobID);
+				throw new LCFException("No such job: "+jobID);
 			
 			int i = 0;
 			while (i < job.getScheduleRecordCount())

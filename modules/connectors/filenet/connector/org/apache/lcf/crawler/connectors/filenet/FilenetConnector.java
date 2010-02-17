@@ -140,30 +140,30 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 	/** Get a DFC session.  This will be done every time it is needed.
 	*/
 	protected void getSession()
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		if (session == null)
 		{
 			// Check for parameter validity
 			if (userID == null || userID.length() < 1)
-				throw new MetacartaException("Parameter "+CONFIG_PARAM_USERID+" required but not set");
+				throw new LCFException("Parameter "+CONFIG_PARAM_USERID+" required but not set");
 
 			if (Logging.connectors.isDebugEnabled())
 				Logging.connectors.debug("FileNet: UserID = '" + userID + "'");
 
 			if (password == null || password.length() < 1)
-				throw new MetacartaException("Parameter "+CONFIG_PARAM_PASSWORD+" required but not set");
+				throw new LCFException("Parameter "+CONFIG_PARAM_PASSWORD+" required but not set");
 
 			Logging.connectors.debug("FileNet: Password exists");
 
 			if (objectStore == null || objectStore.length() < 1)
-				throw new MetacartaException("Parameter "+CONFIG_PARAM_OBJECTSTORE+" required but not set");
+				throw new LCFException("Parameter "+CONFIG_PARAM_OBJECTSTORE+" required but not set");
 			
 			if (serverProtocol == null || serverProtocol.length() < 1)
-				throw new MetacartaException("Parameter "+CONFIG_PARAM_SERVERPROTOCOL+" required but not set");
+				throw new LCFException("Parameter "+CONFIG_PARAM_SERVERPROTOCOL+" required but not set");
 			
 			if (serverHostname == null || serverHostname.length() < 1)
-				throw new MetacartaException("Parameter "+CONFIG_PARAM_SERVERHOSTNAME+" required but not set");
+				throw new LCFException("Parameter "+CONFIG_PARAM_SERVERHOSTNAME+" required but not set");
 
 			if (serverPort != null && serverPort.length() < 1)
 				serverPort = null;
@@ -172,10 +172,10 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 				Logging.connectors.debug("FileNet: Server URI is '"+serverWSIURI+"'");
 
 			if (docUrlServerProtocol == null || docUrlServerProtocol.length() == 0)
-				throw new MetacartaException("Parameter "+CONFIG_PARAM_URLPROTOCOL+" required but not set");
+				throw new LCFException("Parameter "+CONFIG_PARAM_URLPROTOCOL+" required but not set");
 			
 			if (docUrlServerName == null || docUrlServerName.length() == 0)
-				throw new MetacartaException("Parameter "+CONFIG_PARAM_URLHOSTNAME+" required but not set");
+				throw new LCFException("Parameter "+CONFIG_PARAM_URLHOSTNAME+" required but not set");
 			
 			if (Logging.connectors.isDebugEnabled())
 				Logging.connectors.debug("FileNet: Document base URI is '"+docURIPrefix+"'");
@@ -204,11 +204,11 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 			catch (InterruptedException e)
 			{
 				t.interrupt();
-				throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 			}
 			catch (java.net.MalformedURLException e)
 			{
-				throw new MetacartaException(e.getMessage(),e);
+				throw new LCFException(e.getMessage(),e);
 			}
 			catch (NotBoundException e)
 			{
@@ -221,7 +221,7 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 			{
 				Throwable e2 = e.getCause();
 				if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-					throw new MetacartaException(e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+					throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
 				// Treat this as a transient problem
 				Logging.connectors.warn("FileNet: Transient remote exception creating session: "+e.getMessage(),e);
 				currentTime = System.currentTimeMillis();
@@ -236,7 +236,7 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 					currentTime = System.currentTimeMillis();
 					throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L,currentTime + 12 * 60 * 60000L,-1,true);
 				}
-				throw new MetacartaException(e.getMessage(),e);
+				throw new LCFException(e.getMessage(),e);
 			}
 		}
 		
@@ -278,7 +278,7 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 	/** Release the session, if it's time.
 	*/
 	protected void releaseCheck()
-		throws MetacartaException
+		throws LCFException
 	{
 		if (lastSessionFetch == -1L)
 			return;
@@ -307,13 +307,13 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 			catch (InterruptedException e)
 			{
 				t.interrupt();
-				throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 			}
 			catch (RemoteException e)
 			{
 				Throwable e2 = e.getCause();
 				if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-					throw new MetacartaException(e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+					throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
 				session = null;
 				lastSessionFetch = -1L;
 				// Treat this as a transient problem
@@ -431,7 +431,7 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 	*@return the connection's status as a displayable string.
 	*/
 	public String check()
-			throws MetacartaException
+			throws LCFException
 	{
 		try
 		{
@@ -446,14 +446,14 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 				if (e.getType() == FilenetException.TYPE_SERVICEINTERRUPTION)
 					throw new ServiceInterruption(e.getMessage(),0L);
 				else
-					throw new MetacartaException(e.getMessage(),e);
+					throw new LCFException(e.getMessage(),e);
 			}
 		}
 		catch (ServiceInterruption e)
 		{
 			return "Connection temporarily failed: "+e.getMessage();
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			return "Connection failed: "+e.getMessage();
 		}
@@ -463,7 +463,7 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 	* in active use.
 	*/
 	public void poll()
-			throws MetacartaException
+			throws LCFException
 	{
 		releaseCheck();
 	}
@@ -471,7 +471,7 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 	/** Disconnect from Filenet.
 	*/
 	public void disconnect()
-		throws MetacartaException
+		throws LCFException
 	{
 		if (session != null)
 		{
@@ -496,13 +496,13 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 			catch (InterruptedException e)
 			{
 				t.interrupt();
-				throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 			}
 			catch (RemoteException e)
 			{
 				Throwable e2 = e.getCause();
 				if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-					throw new MetacartaException(e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+					throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
 				session = null;
 				lastSessionFetch = -1L;
 				// Treat this as a transient problem
@@ -540,7 +540,7 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 	*/
 	public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
 		long startTime, long endTime)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		Logging.connectors.debug("FileNet: Inside addSeedDocuments");
 
@@ -646,7 +646,7 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 					if (e.getType() == FilenetException.TYPE_SERVICEINTERRUPTION)
 						throw new ServiceInterruption(e.getMessage(),e,currentTime+300000L,currentTime+12*60*60000L,-1,true);
 					else
-						throw new MetacartaException(e.getMessage(),e);
+						throw new LCFException(e.getMessage(),e);
 				}
 			}
 			
@@ -736,7 +736,7 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 	*/
 	public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activity,
 		DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		Logging.connectors.debug("FileNet: Inside getDocumentVersions");
 
@@ -952,7 +952,7 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 						rval[i] = null;
 					}
 					else
-						throw new MetacartaException(e.getMessage(),e);
+						throw new LCFException(e.getMessage(),e);
 				}
 			}
 			else
@@ -1002,7 +1002,7 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 	*/
 	public void processDocuments(String[] documentIdentifiers, String[] documentVersions,
 		IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		Logging.connectors.debug("FileNet: Inside processDocuments");
 
@@ -1035,7 +1035,7 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 					}
 					catch (NumberFormatException e)
 					{
-						throw new MetacartaException("Bad number in identifier: "+documentIdentifier,e);
+						throw new LCFException("Bad number in identifier: "+documentIdentifier,e);
 					}
 
 					// Unpack the information in the document version
@@ -1099,7 +1099,7 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 								{
 									activities.recordActivity(new Long(startTime),ACTIVITY_FETCH,
 										null,documentIdentifier,"Miscellaneous error",e.getMessage(),null);
-									throw new MetacartaException(e.getMessage(),e);
+									throw new LCFException(e.getMessage(),e);
 								}
 							}
 
@@ -1162,7 +1162,7 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 								}
 								catch (InterruptedIOException e)
 								{
-									throw new MetacartaException(e.getMessage(),e,MetacartaException.INTERRUPTED);
+									throw new LCFException(e.getMessage(),e,LCFException.INTERRUPTED);
 								}
 								catch (IOException e)
 								{
@@ -1178,12 +1178,12 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 					}
 					catch (InterruptedIOException e)
 					{
-						throw new MetacartaException(e.getMessage(),e,MetacartaException.INTERRUPTED);
+						throw new LCFException(e.getMessage(),e,LCFException.INTERRUPTED);
 					}
 					catch (IOException e)
 					{
 						Logging.connectors.error("FileNet: IO Exception ingesting document '"+documentIdentifier+"': "+e.getMessage(),e);
-						throw new MetacartaException("IO Exception ingesting document '"+documentIdentifier+"': "+e.getMessage(),e);
+						throw new LCFException("IO Exception ingesting document '"+documentIdentifier+"': "+e.getMessage(),e);
 					}
 				}
 			}
@@ -1238,7 +1238,7 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 					}
 					else
 					{
-						throw new MetacartaException(e.getMessage(),e);
+						throw new LCFException(e.getMessage(),e);
 					}
 				}
 			}
@@ -1255,7 +1255,7 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 	*@param versions is the corresponding set of version identifiers (individual identifiers may be null).
 	*/
 	public void releaseDocumentVersions(String[] documentIdentifiers, String[] versions)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Nothing to do
 	}
@@ -1270,7 +1270,7 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 	
 	/** Get the set of available document classes, with details */
 	public DocumentClassDefinition[] getDocumentClassesDetails()
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		long currentTime;
 		try
@@ -1284,13 +1284,13 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 			if (e.getType() == FilenetException.TYPE_SERVICEINTERRUPTION)
 				throw new ServiceInterruption(e.getMessage(),e,currentTime+300000L,currentTime+12*60*60000L,-1,true);
 			else
-				throw new MetacartaException(e.getMessage(),e);
+				throw new LCFException(e.getMessage(),e);
 		}
 	}
 
 	/** Get the set of available metadata fields per document class */
 	public MetadataFieldDefinition[] getDocumentClassMetadataFieldsDetails(String documentClassName)
-		throws ServiceInterruption, MetacartaException
+		throws ServiceInterruption, LCFException
 	{
 		long currentTime;
 		try
@@ -1304,13 +1304,13 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 			if (e.getType() == FilenetException.TYPE_SERVICEINTERRUPTION)
 				throw new ServiceInterruption(e.getMessage(),e,currentTime+300000L,currentTime+12*60*60000L,-1,true);
 			else
-				throw new MetacartaException(e.getMessage(),e);
+				throw new LCFException(e.getMessage(),e);
 		}
 	}
 	
 	/** Get the set of available mime types */
 	public String[] getMimeTypes()
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		// For now, return the list of mime types we know about
 		return new String[]
@@ -1404,7 +1404,7 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 
 	/** Check connection, with appropriate retries */
 	protected void checkConnection()
-		throws FilenetException, MetacartaException, ServiceInterruption
+		throws FilenetException, LCFException, ServiceInterruption
 	{
 		while (true)
 		{
@@ -1431,13 +1431,13 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 			catch (InterruptedException e)
 			{
 				t.interrupt();
-				throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 			}
 			catch (RemoteException e)
 			{
 				Throwable e2 = e.getCause();
 				if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-					throw new MetacartaException(e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+					throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
 				if (noSession)
 				{
 					currentTime = System.currentTimeMillis();
@@ -1486,7 +1486,7 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 
 	/** Get document class details, with appropriate retries */
 	protected DocumentClassDefinition[] getDocumentClassesInfo()
-		throws FilenetException, MetacartaException, ServiceInterruption
+		throws FilenetException, LCFException, ServiceInterruption
 	{
 		while (true)
 		{
@@ -1513,13 +1513,13 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 			catch (InterruptedException e)
 			{
 				t.interrupt();
-				throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 			}
 			catch (RemoteException e)
 			{
 				Throwable e2 = e.getCause();
 				if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-					throw new MetacartaException(e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+					throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
 				if (noSession)
 				{
 					currentTime = System.currentTimeMillis();
@@ -1570,7 +1570,7 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 
 	/** Get document class metadata fields details, with appropriate retries */
 	protected MetadataFieldDefinition[] getDocumentClassMetadataFieldsInfo(String documentClassName)
-		throws FilenetException, MetacartaException, ServiceInterruption
+		throws FilenetException, LCFException, ServiceInterruption
 	{
 		while (true)
 		{
@@ -1597,13 +1597,13 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 			catch (InterruptedException e)
 			{
 				t.interrupt();
-				throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 			}
 			catch (RemoteException e)
 			{
 				Throwable e2 = e.getCause();
 				if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-					throw new MetacartaException(e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+					throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
 				if (noSession)
 				{
 					currentTime = System.currentTimeMillis();
@@ -1655,7 +1655,7 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 	
 	/** Get matching object id's for a given query */
 	protected String[] doGetMatchingObjectIds(String sql)
-		throws FilenetException, MetacartaException, ServiceInterruption
+		throws FilenetException, LCFException, ServiceInterruption
 	{
 		while (true)
 		{
@@ -1682,13 +1682,13 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 			catch (InterruptedException e)
 			{
 				t.interrupt();
-				throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 			}
 			catch (RemoteException e)
 			{
 				Throwable e2 = e.getCause();
 				if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-					throw new MetacartaException(e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+					throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
 				if (noSession)
 				{
 					currentTime = System.currentTimeMillis();
@@ -1739,7 +1739,7 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 	}
 
 	protected Integer doGetDocumentContentCount(String documentIdentifier)
-		throws FilenetException, MetacartaException, ServiceInterruption
+		throws FilenetException, LCFException, ServiceInterruption
 	{
 		while (true)
 		{
@@ -1766,13 +1766,13 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 			catch (InterruptedException e)
 			{
 				t.interrupt();
-				throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 			}
 			catch (RemoteException e)
 			{
 				Throwable e2 = e.getCause();
 				if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-					throw new MetacartaException(e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+					throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
 				if (noSession)
 				{
 					currentTime = System.currentTimeMillis();
@@ -1827,7 +1827,7 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 
 	/** Get document info */
 	protected FileInfo doGetDocumentInformation(String docId, HashMap metadataFields)
-		throws FilenetException, MetacartaException, ServiceInterruption
+		throws FilenetException, LCFException, ServiceInterruption
 	{
 		while (true)
 		{
@@ -1854,13 +1854,13 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 			catch (InterruptedException e)
 			{
 				t.interrupt();
-				throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 			}
 			catch (RemoteException e)
 			{
 				Throwable e2 = e.getCause();
 				if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-					throw new MetacartaException(e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+					throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
 				if (noSession)
 				{
 					currentTime = System.currentTimeMillis();
@@ -1910,7 +1910,7 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 
 	/** Get document contents */
 	protected void doGetDocumentContents(String docId, int elementNumber, String tempFileName)
-		throws FilenetException, MetacartaException, ServiceInterruption
+		throws FilenetException, LCFException, ServiceInterruption
 	{
 		while (true)
 		{
@@ -1937,13 +1937,13 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 			catch (InterruptedException e)
 			{
 				t.interrupt();
-				throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 			}
 			catch (RemoteException e)
 			{
 				Throwable e2 = e.getCause();
 				if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-					throw new MetacartaException(e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+					throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
 				if (noSession)
 				{
 					currentTime = System.currentTimeMillis();

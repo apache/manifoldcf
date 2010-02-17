@@ -24,7 +24,7 @@ import org.apache.lcf.crawler.interfaces.*;
 import java.util.*;
 import java.util.regex.*;
 import org.apache.lcf.crawler.system.Logging;
-import org.apache.lcf.crawler.system.Metacarta;
+import org.apache.lcf.crawler.system.LCF;
 
 /** This is the main job manager.  It provides methods that support both job definition, and the threads that execute the jobs.
 */
@@ -54,7 +54,7 @@ public class JobManager implements IJobManager
         *@param database is the database.
         */
         public JobManager(IThreadContext threadContext, IDBInterface database)
-                throws MetacartaException
+                throws LCFException
         {
                 this.database = database;
                 this.threadContext = threadContext;
@@ -72,7 +72,7 @@ public class JobManager implements IJobManager
         /** Install.
         */
         public void install()
-                throws MetacartaException
+                throws LCFException
         {
                 jobs.install(outputMgr.getTableName(),outputMgr.getConnectionNameColumn(),connectionMgr.getTableName(),connectionMgr.getConnectionNameColumn());
                 jobQueue.install(jobs.getTableName(),jobs.idField);
@@ -84,7 +84,7 @@ public class JobManager implements IJobManager
         /** Uninstall.
         */
         public void deinstall()
-                throws MetacartaException
+                throws LCFException
         {
                 eventManager.deinstall();
                 carryDown.deinstall();
@@ -95,35 +95,35 @@ public class JobManager implements IJobManager
 
         /** Export configuration */
         public void exportConfiguration(java.io.OutputStream os)
-                throws java.io.IOException, MetacartaException
+                throws java.io.IOException, LCFException
         {
                 // Write a version indicator
-                Metacarta.writeDword(os,2);
+                LCF.writeDword(os,2);
                 // Get the job list
                 IJobDescription[] list = getAllJobs();
                 // Write the number of authorities
-                Metacarta.writeDword(os,list.length);
+                LCF.writeDword(os,list.length);
                 // Loop through the list and write the individual repository connection info
                 int i = 0;
                 while (i < list.length)
                 {
                         IJobDescription job = list[i++];
-                        Metacarta.writeString(os,job.getConnectionName());
-                        Metacarta.writeString(os,job.getOutputConnectionName());
-                        Metacarta.writeString(os,job.getDescription());
-                        Metacarta.writeDword(os,job.getType());
-                        Metacarta.writeDword(os,job.getStartMethod());
-                        Metacarta.writeLong(os,job.getInterval());
-                        Metacarta.writeLong(os,job.getExpiration());
-                        Metacarta.writeLong(os,job.getReseedInterval());
-                        Metacarta.writeDword(os,job.getPriority());
-                        Metacarta.writeDword(os,job.getHopcountMode());
-                        Metacarta.writeString(os,job.getSpecification().toXML());
-                        Metacarta.writeString(os,job.getOutputSpecification().toXML());
+                        LCF.writeString(os,job.getConnectionName());
+                        LCF.writeString(os,job.getOutputConnectionName());
+                        LCF.writeString(os,job.getDescription());
+                        LCF.writeDword(os,job.getType());
+                        LCF.writeDword(os,job.getStartMethod());
+                        LCF.writeLong(os,job.getInterval());
+                        LCF.writeLong(os,job.getExpiration());
+                        LCF.writeLong(os,job.getReseedInterval());
+                        LCF.writeDword(os,job.getPriority());
+                        LCF.writeDword(os,job.getHopcountMode());
+                        LCF.writeString(os,job.getSpecification().toXML());
+                        LCF.writeString(os,job.getOutputSpecification().toXML());
                         
                         // Write schedule
                         int recCount = job.getScheduleRecordCount();
-                        Metacarta.writeDword(os,recCount);
+                        LCF.writeDword(os,recCount);
                         int j = 0;
                         while (j < recCount)
                         {
@@ -134,20 +134,20 @@ public class JobManager implements IJobManager
                                 writeEnumeratedValues(os,sr.getYear());
                                 writeEnumeratedValues(os,sr.getHourOfDay());
                                 writeEnumeratedValues(os,sr.getMinutesOfHour());
-                                Metacarta.writeString(os,sr.getTimezone());
-                                Metacarta.writeLong(os,sr.getDuration());
+                                LCF.writeString(os,sr.getTimezone());
+                                LCF.writeLong(os,sr.getDuration());
                         }
                         
                         // Write hop count filters
                         Map filters = job.getHopCountFilters();
-                        Metacarta.writeDword(os,filters.size());
+                        LCF.writeDword(os,filters.size());
                         Iterator iter = filters.keySet().iterator();
                         while (iter.hasNext())
                         {
                                 String linkType = (String)iter.next();
                                 Long hopcount = (Long)filters.get(linkType);
-                                Metacarta.writeString(os,linkType);
-                                Metacarta.writeLong(os,hopcount);
+                                LCF.writeString(os,linkType);
+                                LCF.writeLong(os,hopcount);
                         }
                 }
         }
@@ -156,42 +156,42 @@ public class JobManager implements IJobManager
                 throws java.io.IOException
         {
                 int size = ev.size();
-                Metacarta.writeDword(os,size);
+                LCF.writeDword(os,size);
                 Iterator iter = ev.getValues();
                 while (iter.hasNext())
                 {
-                        Metacarta.writeDword(os,((Integer)iter.next()).intValue());
+                        LCF.writeDword(os,((Integer)iter.next()).intValue());
                 }
         }
         
         /** Import configuration */
         public void importConfiguration(java.io.InputStream is)
-                throws java.io.IOException, MetacartaException
+                throws java.io.IOException, LCFException
         {
-                int version = Metacarta.readDword(is);
+                int version = LCF.readDword(is);
                 if (version != 2)
                         throw new java.io.IOException("Unknown job configuration version: "+Integer.toString(version));
-                int count = Metacarta.readDword(is);
+                int count = LCF.readDword(is);
                 int i = 0;
                 while (i < count)
                 {
                         IJobDescription job = createJob();
 
-                        job.setConnectionName(Metacarta.readString(is));
-                        job.setOutputConnectionName(Metacarta.readString(is));
-                        job.setDescription(Metacarta.readString(is));
-                        job.setType(Metacarta.readDword(is));
-                        job.setStartMethod(Metacarta.readDword(is));
-                        job.setInterval(Metacarta.readLong(is));
-                        job.setExpiration(Metacarta.readLong(is));
-                        job.setReseedInterval(Metacarta.readLong(is));
-                        job.setPriority(Metacarta.readDword(is));
-                        job.setHopcountMode(Metacarta.readDword(is));
-                        job.getSpecification().fromXML(Metacarta.readString(is));
-                        job.getOutputSpecification().fromXML(Metacarta.readString(is));
+                        job.setConnectionName(LCF.readString(is));
+                        job.setOutputConnectionName(LCF.readString(is));
+                        job.setDescription(LCF.readString(is));
+                        job.setType(LCF.readDword(is));
+                        job.setStartMethod(LCF.readDword(is));
+                        job.setInterval(LCF.readLong(is));
+                        job.setExpiration(LCF.readLong(is));
+                        job.setReseedInterval(LCF.readLong(is));
+                        job.setPriority(LCF.readDword(is));
+                        job.setHopcountMode(LCF.readDword(is));
+                        job.getSpecification().fromXML(LCF.readString(is));
+                        job.getOutputSpecification().fromXML(LCF.readString(is));
                         
                         // Read schedule
-                        int recCount = Metacarta.readDword(is);
+                        int recCount = LCF.readDword(is);
                         int j = 0;
                         while (j < recCount)
                         {
@@ -201,8 +201,8 @@ public class JobManager implements IJobManager
                                 EnumeratedValues year = readEnumeratedValues(is);
                                 EnumeratedValues hourOfDay = readEnumeratedValues(is);
                                 EnumeratedValues minutesOfHour = readEnumeratedValues(is);
-                                String timezone = Metacarta.readString(is);
-                                Long duration = Metacarta.readLong(is);
+                                String timezone = LCF.readString(is);
+                                Long duration = LCF.readLong(is);
                                 
                                 ScheduleRecord sr = new ScheduleRecord(dayOfWeek, monthOfYear, dayOfMonth, year,
                                         hourOfDay, minutesOfHour, timezone, duration);
@@ -211,12 +211,12 @@ public class JobManager implements IJobManager
                         }
 
                         // Read hop count filters
-                        int hopFilterCount = Metacarta.readDword(is);
+                        int hopFilterCount = LCF.readDword(is);
                         j = 0;
                         while (j < hopFilterCount)
                         {
-                                String linkType = Metacarta.readString(is);
-                                Long hopcount = Metacarta.readLong(is);
+                                String linkType = LCF.readString(is);
+                                Long hopcount = LCF.readLong(is);
                                 job.addHopCountFilter(linkType,hopcount);
                                 j++;
                         }
@@ -230,12 +230,12 @@ public class JobManager implements IJobManager
         protected EnumeratedValues readEnumeratedValues(java.io.InputStream is)
                 throws java.io.IOException
         {
-                int size = Metacarta.readDword(is);
+                int size = LCF.readDword(is);
                 int[] values = new int[size];
                 int i = 0;
                 while (i < size)
                 {
-                        values[i++] = Metacarta.readDword(is);
+                        values[i++] = LCF.readDword(is);
                 }
                 return new EnumeratedValues(values);
         }
@@ -246,7 +246,7 @@ public class JobManager implements IJobManager
         *@param connectionNames is the set of connection names.
         */
         public void noteConnectorDeregistration(String[] connectionNames)
-                throws MetacartaException
+                throws LCFException
         {
                 // For each connection, find the corresponding list of jobs.  From these jobs, we want the job id and the status.
                 StringBuffer sb = new StringBuffer();
@@ -277,7 +277,7 @@ public class JobManager implements IJobManager
         /** Note deregistration for a batch of connection names.
         */
         protected void noteConnectionDeregistration(String query, ArrayList list)
-                throws MetacartaException
+                throws LCFException
         {
                 //System.out.println("Query is "+query);
                 // Query for the matching jobs, and then for each job potentially adjust the state
@@ -300,7 +300,7 @@ public class JobManager implements IJobManager
         *@param connectionNames is the set of connection names.
         */
         public void noteConnectorRegistration(String[] connectionNames)
-                throws MetacartaException
+                throws LCFException
         {
                 // For each connection, find the corresponding list of jobs.  From these jobs, we want the job id and the status.
                 StringBuffer sb = new StringBuffer();
@@ -331,7 +331,7 @@ public class JobManager implements IJobManager
         /** Note registration for a batch of connection names.
         */
         protected void noteConnectionRegistration(String query, ArrayList list)
-                throws MetacartaException
+                throws LCFException
         {
                 // Query for the matching jobs, and then for each job potentially adjust the state
                 IResultSet set = database.performQuery("SELECT "+jobs.idField+","+jobs.statusField+" FROM "+
@@ -353,7 +353,7 @@ public class JobManager implements IJobManager
         *@param connectionNames is the set of connection names.
         */
         public void noteOutputConnectorDeregistration(String[] connectionNames)
-                throws MetacartaException
+                throws LCFException
         {
                 // MHL
         }
@@ -364,7 +364,7 @@ public class JobManager implements IJobManager
         *@param connectionNames is the set of connection names.
         */
         public void noteOutputConnectorRegistration(String[] connectionNames)
-                throws MetacartaException
+                throws LCFException
         {
                 // MHL
         }
@@ -373,7 +373,7 @@ public class JobManager implements IJobManager
         *@return the list, sorted by description.
         */
         public IJobDescription[] getAllJobs()
-                throws MetacartaException
+                throws LCFException
         {
                 return jobs.getAll();
         }
@@ -382,7 +382,7 @@ public class JobManager implements IJobManager
         *@return the new job.
         */
         public IJobDescription createJob()
-                throws MetacartaException
+                throws LCFException
         {
                 return jobs.create();
         }
@@ -400,7 +400,7 @@ public class JobManager implements IJobManager
         * well as remove all documents indexed by the job from the index.
         */
         public void deleteJob(Long id)
-                throws MetacartaException
+                throws LCFException
         {
                 database.beginTransaction();
                 try
@@ -411,19 +411,19 @@ public class JobManager implements IJobManager
                         IResultSet set = database.performQuery("SELECT "+jobs.statusField+" FROM "+
                                 jobs.getTableName()+" WHERE "+jobs.idField+"=? FOR UPDATE",list,null,null);
                         if (set.getRowCount() == 0)
-                                throw new MetacartaException("Attempting to delete a job that doesn't exist: "+id);
+                                throw new LCFException("Attempting to delete a job that doesn't exist: "+id);
                         IResultRow row = set.getRow(0);
                         int status = jobs.stringToStatus(row.getValue(jobs.statusField).toString());
                         if (status == jobs.STATUS_ACTIVE || status == jobs.STATUS_ACTIVESEEDING ||
                                 status == jobs.STATUS_ACTIVE_UNINSTALLED || status == jobs.STATUS_ACTIVESEEDING_UNINSTALLED)
-                                throw new MetacartaException("Job "+id+" is active; you must shut it down before deleting it");
+                                throw new LCFException("Job "+id+" is active; you must shut it down before deleting it");
                         if (status != jobs.STATUS_INACTIVE)
-                                throw new MetacartaException("Job "+id+" is busy; you must wait and/or shut it down before deleting it");
+                                throw new LCFException("Job "+id+" is busy; you must wait and/or shut it down before deleting it");
                         jobs.writeStatus(id,jobs.STATUS_READYFORDELETE);
                         if (Logging.jobs.isDebugEnabled())
                                 Logging.jobs.debug("Job "+id+" marked for deletion");
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         database.signalRollback();
                         throw e;
@@ -445,7 +445,7 @@ public class JobManager implements IJobManager
         *@return null if the job doesn't exist.
         */
         public IJobDescription load(Long id)
-                throws MetacartaException
+                throws LCFException
         {
                 return jobs.load(id,false);
         }
@@ -456,7 +456,7 @@ public class JobManager implements IJobManager
         *@return null if the job doesn't exist.
         */
         public IJobDescription load(Long id, boolean readOnly)
-                throws MetacartaException
+                throws LCFException
         {
                 return jobs.load(id,readOnly);
         }
@@ -465,9 +465,9 @@ public class JobManager implements IJobManager
         *@param jobDescription is the job description.
         */
         public void save(IJobDescription jobDescription)
-                throws MetacartaException
+                throws LCFException
         {
-                Metacarta.noteConfigurationChange();
+                LCF.noteConfigurationChange();
                 jobs.save(jobDescription);
         }
 
@@ -476,7 +476,7 @@ public class JobManager implements IJobManager
         *@return true if there is a reference, false otherwise.
         */
         public boolean checkIfReference(String connectionName)
-                throws MetacartaException
+                throws LCFException
         {
                 return jobs.checkIfReference(connectionName);
         }
@@ -486,7 +486,7 @@ public class JobManager implements IJobManager
         *@return true if there is a reference, false otherwise.
         */
         public boolean checkIfOutputReference(String connectionName)
-                throws MetacartaException
+                throws LCFException
         {
                 return jobs.checkIfOutputReference(connectionName);
         }
@@ -496,7 +496,7 @@ public class JobManager implements IJobManager
         *@return the set of job id's associated with that connection.
         */
         public IJobDescription[] findJobsForConnection(String connectionName)
-                throws MetacartaException
+                throws LCFException
         {
                 return jobs.findJobsForConnection(connectionName);
         }
@@ -514,7 +514,7 @@ public class JobManager implements IJobManager
         * (which is now dead), then we have to set that status back to previous value.
         */
         public void prepareForStart()
-                throws MetacartaException
+                throws LCFException
         {
                 Logging.jobs.debug("Resetting due to restart");
                 while (true)
@@ -536,7 +536,7 @@ public class JobManager implements IJobManager
                                 Logging.jobs.debug("Reset complete");
                                 break;
                         }
-                        catch (MetacartaException e)
+                        catch (LCFException e)
                         {
                                 database.signalRollback();
                                 if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -565,7 +565,7 @@ public class JobManager implements IJobManager
         /** Reset as part of restoring document worker threads.
         */
         public void resetDocumentWorkerStatus()
-                throws MetacartaException
+                throws LCFException
         {
                 Logging.jobs.debug("Resetting document active status");
                 while (true)
@@ -577,7 +577,7 @@ public class JobManager implements IJobManager
                                 jobQueue.resetDocumentWorkerStatus();
                                 break;
                         }
-                        catch (MetacartaException e)
+                        catch (LCFException e)
                         {
                                 database.signalRollback();
                                 if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -607,7 +607,7 @@ public class JobManager implements IJobManager
         /** Reset as part of restoring seeding threads.
         */
         public void resetSeedingWorkerStatus()
-                throws MetacartaException
+                throws LCFException
         {
                 Logging.jobs.debug("Resetting seeding status");
                 jobs.resetSeedingWorkerStatus();
@@ -618,7 +618,7 @@ public class JobManager implements IJobManager
         /** Reset as part of restoring doc delete threads.
         */
         public void resetDocDeleteWorkerStatus()
-                throws MetacartaException
+                throws LCFException
         {
                 Logging.jobs.debug("Resetting doc deleting status");
                 jobQueue.resetDocDeleteWorkerStatus();
@@ -629,7 +629,7 @@ public class JobManager implements IJobManager
         /** Reset as part of restoring startup threads.
         */
         public void resetStartupWorkerStatus()
-                throws MetacartaException
+                throws LCFException
         {
                 Logging.jobs.debug("Resetting job starting up status");
                 jobs.resetStartupWorkerStatus();
@@ -645,7 +645,7 @@ public class JobManager implements IJobManager
         *@param identifiers is the set of document identifiers.
         */
         public void deleteIngestedDocumentIdentifiers(DocumentDescription[] identifiers)
-                throws MetacartaException
+                throws LCFException
         {
                 jobQueue.deleteIngestedDocumentIdentifiers(identifiers);
                 // Hopcount rows get removed when the job itself is removed.
@@ -661,7 +661,7 @@ public class JobManager implements IJobManager
         *@return the document descriptions for these documents.
         */
         public DocumentDescription[] getNextDeletableDocuments(int maxCount)
-                throws MetacartaException
+                throws LCFException
         {
                 // The query will be built here, because it joins the jobs table against the jobqueue
                 // table.
@@ -840,7 +840,7 @@ public class JobManager implements IJobManager
                         database.signalRollback();
                         throw e;
                     }
-                    catch (MetacartaException e)
+                    catch (LCFException e)
                     {
                         database.signalRollback();
                         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -868,7 +868,7 @@ public class JobManager implements IJobManager
         *@return the set of documents which should be removed from the index.
         */
         protected String[] getUnindexableDocumentIdentifiers(DocumentDescription[] documentIdentifiers, String connectionName)
-                throws MetacartaException
+                throws LCFException
         {
                 // This is where we will count the individual document id's
                 HashMap countMap = new HashMap();
@@ -976,7 +976,7 @@ public class JobManager implements IJobManager
         *@return the document descriptions.
         */
         public DocumentDescription[] getNextAlreadyProcessedReprioritizationDocuments(long currentTime, int n)
-                throws MetacartaException
+                throws LCFException
         {
                 StringBuffer sb = new StringBuffer();
                 ArrayList list = new ArrayList();
@@ -1019,7 +1019,7 @@ public class JobManager implements IJobManager
         *@return the document descriptions.
         */
         public DocumentDescription[] getNextNotYetProcessedReprioritizationDocuments(long currentTime, int n)
-                throws MetacartaException
+                throws LCFException
         {
                 StringBuffer sb = new StringBuffer();
                 ArrayList list = new ArrayList();
@@ -1083,7 +1083,7 @@ public class JobManager implements IJobManager
         *@param priorities are the desired priorities.
         */
         public void writeDocumentPriorities(long currentTime, DocumentDescription[] documentDescriptions, double[] priorities)
-                throws MetacartaException
+                throws LCFException
         {
                 
                 // Retry loop - in case we get a deadlock despite our best efforts
@@ -1118,7 +1118,7 @@ public class JobManager implements IJobManager
                                         String docIDHash = docIDHashes[i];
                                         Integer x = (Integer)indexMap.remove(docIDHash);
                                         if (x == null)
-                                                throw new MetacartaException("Assertion failure: duplicate document identifier jobid/hash detected!");
+                                                throw new LCFException("Assertion failure: duplicate document identifier jobid/hash detected!");
                                         int index = x.intValue();
                                         DocumentDescription dd = documentDescriptions[index];
                                         double priority = priorities[index];
@@ -1129,7 +1129,7 @@ public class JobManager implements IJobManager
                                 }
                                 break;
                         }
-                        catch (MetacartaException e)
+                        catch (LCFException e)
                         {
                                 database.signalRollback();
                                 if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -1165,7 +1165,7 @@ public class JobManager implements IJobManager
         *@return the array of document descriptions to expire.
         */
         public DocumentDescription[] getExpiredDocuments(int n, long currentTime)
-                throws MetacartaException
+                throws LCFException
         {
                 // Screening query
                 // Moved outside of transaction, so there's less chance of keeping jobstatus cache key tied up
@@ -1297,7 +1297,7 @@ public class JobManager implements IJobManager
                                 i++;
                         }
                     }
-                    catch (MetacartaException e)
+                    catch (LCFException e)
                     {
                         database.signalRollback();
                         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -1353,7 +1353,7 @@ public class JobManager implements IJobManager
         public DocumentDescription[] getNextDocuments(int n, long currentTime, long interval,
                 BlockingDocuments blockingDocuments, PerformanceStatistics statistics,
                 DepthStatistics scanRecord)
-                throws MetacartaException
+                throws LCFException
         {
                 // NOTE WELL: Jobs that are throttled must control the number of documents that are fetched in
                 // a given interval.  Therefore, the returned result has the following constraints on it:
@@ -1621,7 +1621,7 @@ public class JobManager implements IJobManager
         }
 
         protected void addDocumentCriteria(StringBuffer sb, ArrayList list, Long currentTimeValue, Long currentPriorityValue)
-                throws MetacartaException
+                throws LCFException
         {
                 list.add(currentTimeValue);
                 list.add(jobQueue.actionToString(JobQueue.ACTION_RESCAN));
@@ -1658,7 +1658,7 @@ public class JobManager implements IJobManager
         /** Fetch and process documents matching the passed-in criteria */
         protected void fetchAndProcessDocuments(ArrayList answers, Long currentTimeValue, Long currentPriorityValue,
                 ThrottleLimit vList, IRepositoryConnection[] connections)
-                throws MetacartaException
+                throws LCFException
         {
             
                 // Note well: This query does not do "FOR UPDATE".  The reason is that only one thread can possibly change the document's state to active.
@@ -1797,7 +1797,7 @@ public class JobManager implements IJobManager
                         }
                         break;
                       }
-                      catch (MetacartaException e)
+                      catch (LCFException e)
                       {
                         database.signalRollback();
                         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -1835,14 +1835,14 @@ public class JobManager implements IJobManager
         *@return true if the job is in one of the "active" states.
         */
         public boolean checkJobActive(Long jobID)
-                throws MetacartaException
+                throws LCFException
         {
                 return jobs.checkJobActive(jobID);
         }
 
         /** Verify if a job is still processing documents, or no longer has any outstanding active documents */
         public boolean checkJobBusy(Long jobID)
-                throws MetacartaException
+                throws LCFException
         {
                 return jobQueue.checkJobBusy(jobID);
         }
@@ -1852,7 +1852,7 @@ public class JobManager implements IJobManager
         *@param documentDescriptions are the description objects for the documents that were processed.
         */
         public void markDocumentCompletedMultiple(DocumentDescription[] documentDescriptions)
-                throws MetacartaException
+                throws LCFException
         {
                 // Before we can change a document status, we need to know the *current* status.  Therefore, a SELECT xxx FOR UPDATE/UPDATE
                 // transaction is needed in order to complete these documents correctly.
@@ -1911,7 +1911,7 @@ public class JobManager implements IJobManager
                                 }
                                 break;
                         }
-                        catch (MetacartaException e)
+                        catch (LCFException e)
                         {
                                 database.signalRollback();
                                 if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -1944,7 +1944,7 @@ public class JobManager implements IJobManager
         *@param documentDescription is the description object for the document that was processed.
         */
         public void markDocumentCompleted(DocumentDescription documentDescription)
-                throws MetacartaException
+                throws LCFException
         {
                 markDocumentCompletedMultiple(new DocumentDescription[]{documentDescription});
         }
@@ -1957,7 +1957,7 @@ public class JobManager implements IJobManager
         */
         public DocumentDescription[] markDocumentDeletedMultiple(Long jobID, String[] legalLinkTypes, DocumentDescription[] documentDescriptions,
                 int hopcountMethod)
-                throws MetacartaException
+                throws LCFException
         {
             if (documentDescriptions.length == 0)
                 return new DocumentDescription[0];
@@ -2027,7 +2027,7 @@ public class JobManager implements IJobManager
                                         " docs and clean up hopcount for job "+jobID.toString());
                         break;
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         database.signalRollback();
                         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -2058,7 +2058,7 @@ public class JobManager implements IJobManager
         /** Helper method: Find the document descriptions that will be affected due to carrydown row deletions.
         */
         protected DocumentDescription[] calculateAffectedDeleteCarrydownChildren(Long jobID, String[] docIDHashes)
-                throws MetacartaException
+                throws LCFException
         {
                 // Break the request into pieces, as needed, and throw everything into a hash for uniqueness.
                 // We are going to need to break up this query into a number of subqueries, each covering a subset of parent id hashes.
@@ -2105,7 +2105,7 @@ public class JobManager implements IJobManager
         /** Helper method: look up rows affected by a deleteRecords operation.
         */
         protected void processDeleteHashSet(Long jobID, HashMap resultHash, String queryPart, ArrayList list)
-                throws MetacartaException
+                throws LCFException
         {
                 // The query here mirrors the carrydown.restoreRecords() delete query!  However, it also fetches enough information to build a DocumentDescription
                 // object for return, and so a join is necessary against the jobqueue table.
@@ -2136,7 +2136,7 @@ public class JobManager implements IJobManager
         */
         public DocumentDescription[] markDocumentDeleted(Long jobID, String[] legalLinkTypes, DocumentDescription documentDescription,
                 int hopcountMethod)
-                throws MetacartaException
+                throws LCFException
         {
                 return markDocumentDeletedMultiple(jobID,legalLinkTypes,new DocumentDescription[]{documentDescription},hopcountMethod);
         }
@@ -2152,7 +2152,7 @@ public class JobManager implements IJobManager
         */
         public void requeueDocumentMultiple(DocumentDescription[] documentDescriptions, Long[] executeTimes,
                 int[] actions)
-                throws MetacartaException
+                throws LCFException
         {
                 String[] docIDHashes = new String[documentDescriptions.length];
                 Long[] ids = new Long[documentDescriptions.length];
@@ -2179,7 +2179,7 @@ public class JobManager implements IJobManager
                         String docIDHash = docIDHashes[i];
                         Integer x = (Integer)indexMap.remove(docIDHash);
                         if (x == null)
-                                throw new MetacartaException("Assertion failure: duplicate document identifier jobid/hash detected!");
+                                throw new LCFException("Assertion failure: duplicate document identifier jobid/hash detected!");
                         int index = x.intValue();
                         ids[i] = documentDescriptions[index].getID();
                         executeTimesNew[i] = executeTimes[index];
@@ -2208,7 +2208,7 @@ public class JobManager implements IJobManager
                                 database.signalRollback();
                                 throw e;
                         }
-                        catch (MetacartaException e)
+                        catch (LCFException e)
                         {
                                 database.signalRollback();
                                 if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -2237,7 +2237,7 @@ public class JobManager implements IJobManager
         *@param action is what should be done when the time arrives.  Choices include ACTION_RESCAN or ACTION_REMOVE.
         */
         public void requeueDocument(DocumentDescription documentDescription, Long executeTime, int action)
-                throws MetacartaException
+                throws LCFException
         {
                 requeueDocumentMultiple(new DocumentDescription[]{documentDescription},new Long[]{executeTime},new int[]{action});
         }
@@ -2255,7 +2255,7 @@ public class JobManager implements IJobManager
         */
         public void resetDocumentMultiple(DocumentDescription[] documentDescriptions, long executeTime,
                 int action, long failTime, int failCount)
-                throws MetacartaException
+                throws LCFException
         {
                 Long executeTimeLong = new Long(executeTime);
                 Long[] ids = new Long[documentDescriptions.length];
@@ -2285,7 +2285,7 @@ public class JobManager implements IJobManager
                         String docIDHash = docIDHashes[i];
                         Integer x = (Integer)indexMap.remove(docIDHash);
                         if (x == null)
-                                throw new MetacartaException("Assertion failure: duplicate document identifier jobid/hash detected!");
+                                throw new LCFException("Assertion failure: duplicate document identifier jobid/hash detected!");
                         int index = x.intValue();
                         ids[i] = documentDescriptions[index].getID();
                         executeTimes[i] = executeTimeLong;
@@ -2330,7 +2330,7 @@ public class JobManager implements IJobManager
                                 database.signalRollback();
                                 throw e;
                         }
-                        catch (MetacartaException e)
+                        catch (LCFException e)
                         {
                                 database.signalRollback();
                                 if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -2359,7 +2359,7 @@ public class JobManager implements IJobManager
         *@param documentDescriptions is the set of description objects for the document that was processed.
         */
         public void resetDeletingDocumentMultiple(DocumentDescription[] documentDescriptions)
-                throws MetacartaException
+                throws LCFException
         {
                 Long[] ids = new Long[documentDescriptions.length];
                 String[] docIDHashes = new String[documentDescriptions.length];
@@ -2384,7 +2384,7 @@ public class JobManager implements IJobManager
                         String docIDHash = docIDHashes[i];
                         Integer x = (Integer)indexMap.remove(docIDHash);
                         if (x == null)
-                                throw new MetacartaException("Assertion failure: duplicate document identifier jobid/hash detected!");
+                                throw new LCFException("Assertion failure: duplicate document identifier jobid/hash detected!");
                         int index = x.intValue();
                         ids[i] = documentDescriptions[index].getID();
                         i++;
@@ -2407,7 +2407,7 @@ public class JobManager implements IJobManager
 
                                 break;
                         }
-                        catch (MetacartaException e)
+                        catch (LCFException e)
                         {
                                 database.signalRollback();
                                 if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -2436,7 +2436,7 @@ public class JobManager implements IJobManager
           * This gets done when a deleting thread sees a service interruption, etc., from the ingestion system.
           */
         public void resetDeletingDocument(DocumentDescription documentDescription)
-                throws MetacartaException
+                throws LCFException
         {
                 resetDeletingDocumentMultiple(new DocumentDescription[]{documentDescription});
         }
@@ -2454,7 +2454,7 @@ public class JobManager implements IJobManager
         */
         public void resetDocument(DocumentDescription documentDescription, long executeTime, int action, long failTime,
                 int failCount)
-                throws MetacartaException
+                throws LCFException
         {
                 resetDocumentMultiple(new DocumentDescription[]{documentDescription},executeTime,action,failTime,failCount);
         }
@@ -2529,7 +2529,7 @@ public class JobManager implements IJobManager
                 String[] docIDHashes, String[] docIDs, boolean overrideSchedule,
                 int hopcountMethod, long currentTime, double[] documentPriorities,
                 String[][] prereqEventNames)
-                throws MetacartaException
+                throws LCFException
         {
             if (docIDHashes.length == 0)
                 return new boolean[0];
@@ -2646,7 +2646,7 @@ public class JobManager implements IJobManager
 
                         return rval;
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         database.signalRollback();
                         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -2683,7 +2683,7 @@ public class JobManager implements IJobManager
         */
         public void addRemainingDocumentsInitial(Long jobID, String[] legalLinkTypes, String[] docIDHashes,
                 int hopcountMethod)
-                throws MetacartaException
+                throws LCFException
         {
             if (docIDHashes.length == 0)
                 return;
@@ -2718,7 +2718,7 @@ public class JobManager implements IJobManager
                                         " remaining docs and hopcounts for job "+jobID.toString());
                         
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         database.signalRollback();
                         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -2755,7 +2755,7 @@ public class JobManager implements IJobManager
         */
         public void doneDocumentsInitial(Long jobID, String[] legalLinkTypes, boolean isPartial,
                 int hopcountMethod)
-                throws MetacartaException
+                throws LCFException
         {
             long startTime = 0L;
             if (Logging.perf.isDebugEnabled())
@@ -2790,7 +2790,7 @@ public class JobManager implements IJobManager
                                         " ms to finish initial docs and hopcounts for job "+jobID.toString());
                         break;
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         database.signalRollback();
                         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -2827,13 +2827,13 @@ public class JobManager implements IJobManager
         */
         public boolean[] findHopCounts(Long jobID, String[] legalLinkTypes, String[] docIDHashes, String linkType, int limit,
                 int hopcountMethod)
-                throws MetacartaException
+                throws LCFException
         {
             if (docIDHashes.length == 0)
                 return new boolean[0];
 
             if (legalLinkTypes.length == 0)
-                throw new MetacartaException("Nonsensical request; asking for hopcounts where none are kept");
+                throw new LCFException("Nonsensical request; asking for hopcounts where none are kept");
 
             // The idea is to delay queue processing as much as possible, because that avoids having to wait
             // on locks and having to repeat our evaluations.
@@ -2949,7 +2949,7 @@ public class JobManager implements IJobManager
                         // Definitive answers found; continue through.
                         distances = hopCount.findHopCounts(jobID,askDocIDHashes,linkType);
                     }
-                    catch (MetacartaException e)
+                    catch (LCFException e)
                     {
                         database.signalRollback();
                         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -3004,7 +3004,7 @@ public class JobManager implements IJobManager
         *@return the document identifiers that are currently considered to be seeds.
         */
         public String[] getAllSeeds(Long jobID)
-                throws MetacartaException
+                throws LCFException
         {
                 return jobQueue.getAllSeeds(jobID);
         }
@@ -3033,7 +3033,7 @@ public class JobManager implements IJobManager
                 int hopcountMethod, String[][] dataNames, Object[][][] dataValues,
                 long currentTime, double[] documentPriorities,
                 String[][] prereqEventNames)
-                throws MetacartaException
+                throws LCFException
         {
                 if (docIDs.length == 0)
                         return new boolean[0];
@@ -3081,7 +3081,7 @@ public class JobManager implements IJobManager
                                     else
                                     {
                                         // It better be a String.
-                                        valueHash = Metacarta.hash((String)values[y]);
+                                        valueHash = LCF.hash((String)values[y]);
                                     }
                                     valueMap.put(valueHash,values[y]);
                                     y++;
@@ -3247,7 +3247,7 @@ public class JobManager implements IJobManager
 
                                 return rval;
                         }
-                        catch (MetacartaException e)
+                        catch (LCFException e)
                         {
                                 database.signalRollback();
                                 if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -3295,7 +3295,7 @@ public class JobManager implements IJobManager
                 String parentIdentifierHash, String relationshipType,
                 int hopcountMethod, String[] dataNames, Object[][] dataValues,
                 long currentTime, double priority, String[] prereqEventNames)
-                throws MetacartaException
+                throws LCFException
         {
                 return addDocuments(jobID,legalLinkTypes,
                         new String[]{docIDHash},new String[]{docID},
@@ -3313,7 +3313,7 @@ public class JobManager implements IJobManager
         *  to be requeued as a result of the change.
         */
         public DocumentDescription[] finishDocuments(Long jobID, String[] legalLinkTypes, String[] parentIdentifierHashes, int hopcountMethod)
-                throws MetacartaException
+                throws LCFException
         {
             if (parentIdentifierHashes.length == 0)
                 return new DocumentDescription[0];
@@ -3335,7 +3335,7 @@ public class JobManager implements IJobManager
                                 carryDown.restoreRecords(jobID,parentIdentifierHashes);
                                 break;
                         }
-                        catch (MetacartaException e)
+                        catch (LCFException e)
                         {
                                 database.signalRollback();
                                 if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -3393,7 +3393,7 @@ public class JobManager implements IJobManager
                                                 Integer.toString(parentIdentifierHashes.length)+" doc hopcounts for job "+jobID.toString());
                                 break;
                         }
-                        catch (MetacartaException e)
+                        catch (LCFException e)
                         {
                                 database.signalRollback();
                                 if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -3425,7 +3425,7 @@ public class JobManager implements IJobManager
         /** Helper method: Calculate the unique set of affected carrydown children resulting from a "restoreRecords" operation.
         */
         protected DocumentDescription[] calculateAffectedRestoreCarrydownChildren(Long jobID, String[] parentIDHashes)
-                throws MetacartaException
+                throws LCFException
         {
                 // We are going to need to break up this query into a number of subqueries, each covering a subset of parent id hashes.
                 // The goal is to throw all the children into a hash, to make them unique at the end.
@@ -3471,7 +3471,7 @@ public class JobManager implements IJobManager
         /** Helper method: look up rows affected by a restoreRecords operation.
         */
         protected void processParentHashSet(Long jobID, HashMap resultHash, String queryPart, ArrayList list)
-                throws MetacartaException
+                throws LCFException
         {
                 // The query here mirrors the carrydown.restoreRecords() delete query!  However, it also fetches enough information to build a DocumentDescription
                 // object for return, and so a join is necessary against the jobqueue table.
@@ -3500,14 +3500,14 @@ public class JobManager implements IJobManager
         *@return true if the event could be created, or false if it's already there.
         */
         public boolean beginEventSequence(String eventName)
-                throws MetacartaException
+                throws LCFException
         {
                 try
                 {
                         eventManager.createEvent(eventName);
                         return true;
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
                                 return false;
@@ -3519,7 +3519,7 @@ public class JobManager implements IJobManager
         *@param eventName is the name of the event.
         */
         public void completeEventSequence(String eventName)
-                throws MetacartaException
+                throws LCFException
         {
                 eventManager.destroyEvent(eventName);
         }
@@ -3533,7 +3533,7 @@ public class JobManager implements IJobManager
         *@return a flag for each document priority, true if it was used, false otherwise.
         */
         public boolean[] carrydownChangeDocumentMultiple(DocumentDescription[] documentDescriptions, long currentTime, double[] docPriorities)
-                throws MetacartaException
+                throws LCFException
         {
                 if (documentDescriptions.length == 0)
                         return new boolean[0];
@@ -3616,7 +3616,7 @@ public class JobManager implements IJobManager
                                 }
                                 break;
                         }
-                        catch (MetacartaException e)
+                        catch (LCFException e)
                         {
                                 database.signalRollback();
                                 if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -3651,7 +3651,7 @@ public class JobManager implements IJobManager
         *@return a flag for the document priority, true if it was used, false otherwise.
         */
         public boolean carrydownChangeDocument(DocumentDescription documentDescription, long currentTime, double docPriority)
-                throws MetacartaException
+                throws LCFException
         {
                 return carrydownChangeDocumentMultiple(new DocumentDescription[]{documentDescription},currentTime,new double[]{docPriority})[0];
         }
@@ -3665,18 +3665,18 @@ public class JobManager implements IJobManager
         }
         
         protected void sleepFor(long amt)
-                throws MetacartaException
+                throws LCFException
         {
                 if (amt == 0L)
                         return;
                 
                 try
                 {
-                        Metacarta.sleep(amt);
+                        LCF.sleep(amt);
                 }
                 catch (InterruptedException e)
                 {
-                        throw new MetacartaException("Interrupted",e,MetacartaException.INTERRUPTED);
+                        throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
                 }
         }
 
@@ -3687,7 +3687,7 @@ public class JobManager implements IJobManager
         *@return the unique data values.
         */
         public String[] retrieveParentData(Long jobID, String docIDHash, String dataName)
-                throws MetacartaException
+                throws LCFException
         {
                 return carryDown.getDataValues(jobID,docIDHash,dataName);
         }
@@ -3699,7 +3699,7 @@ public class JobManager implements IJobManager
         *@return the unique data values.
         */
         public CharacterInput[] retrieveParentDataAsFiles(Long jobID, String docIDHash, String dataName)
-                throws MetacartaException
+                throws LCFException
         {
                 return carryDown.getDataValuesAsFiles(jobID,docIDHash,dataName);
         }
@@ -3720,7 +3720,7 @@ public class JobManager implements IJobManager
         *@param unwaitList is filled in with the set of job ID objects that were resumed.
         */
         public void startJobs(long currentTime, ArrayList unwaitList)
-                throws MetacartaException
+                throws LCFException
         {
                 // This method should compare the lasttime field against the current time, for all
                 // "not active" jobs, and see if a job should be started.
@@ -3931,7 +3931,7 @@ public class JobManager implements IJobManager
 
                         }
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         database.signalRollback();
                         throw e;
@@ -3952,7 +3952,7 @@ public class JobManager implements IJobManager
         *@param waitList is filled in with the set of job ID's that were put into a wait state.
         */
         public void waitJobs(long currentTime, ArrayList waitList)
-                throws MetacartaException
+                throws LCFException
         {
                 // This method assesses jobs that are ACTIVE or PAUSED to see if they should be
                 // converted to ACTIVEWAIT or PAUSEDWAIT.  This would happen if the current time exceeded
@@ -4025,7 +4025,7 @@ public class JobManager implements IJobManager
 
                         }
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         database.signalRollback();
                         throw e;
@@ -4046,7 +4046,7 @@ public class JobManager implements IJobManager
         *@param jobID is the job identifier.
         */
         public void resetJobSchedule(Long jobID)
-                throws MetacartaException
+                throws LCFException
         {
                 // Note:  This is problematic; the expected behavior is for the job to start if "we are within the window",
                 // but not to start if the transition to active status was long enough ago.
@@ -4260,7 +4260,7 @@ public class JobManager implements IJobManager
         *@param jobID is the ID of the job to start.
         */
         public void manualStart(Long jobID)
-                throws MetacartaException
+                throws LCFException
         {
                 database.beginTransaction();
                 try
@@ -4273,12 +4273,12 @@ public class JobManager implements IJobManager
                                 " FROM "+jobs.getTableName()+" WHERE "+
                                 jobs.idField+"=? FOR UPDATE",list,null,null);
                         if (set.getRowCount() < 1)
-                                throw new MetacartaException("No such job: "+jobID);
+                                throw new LCFException("No such job: "+jobID);
 
                         IResultRow row = set.getRow(0);
                         int status = jobs.stringToStatus(row.getValue(jobs.statusField).toString());
                         if (status != Jobs.STATUS_INACTIVE)
-                                throw new MetacartaException("Job "+jobID+" is already running");
+                                throw new LCFException("Job "+jobID+" is already running");
 
                         IJobDescription jobDescription = jobs.load(jobID,true);
                         if (Logging.jobs.isDebugEnabled())
@@ -4294,7 +4294,7 @@ public class JobManager implements IJobManager
                         }
 
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         database.signalRollback();
                         throw e;
@@ -4315,7 +4315,7 @@ public class JobManager implements IJobManager
         *@param startTime is the job start time.
         */
         public void noteJobStarted(Long jobID, long startTime)
-                throws MetacartaException
+                throws LCFException
         {
                 jobs.noteJobStarted(jobID,startTime);
                 if (Logging.jobs.isDebugEnabled())
@@ -4327,7 +4327,7 @@ public class JobManager implements IJobManager
         *@param seedTime is the job seed time.
         */
         public void noteJobSeeded(Long jobID, long seedTime)
-                throws MetacartaException
+                throws LCFException
         {
                 jobs.noteJobSeeded(jobID,seedTime);
                 if (Logging.jobs.isDebugEnabled())
@@ -4339,7 +4339,7 @@ public class JobManager implements IJobManager
         *@param hopcountMethod describes how to handle deletions for hopcount purposes.
         */
         public void prepareFullScan(Long jobID, String[] legalLinkTypes, int hopcountMethod)
-                throws MetacartaException
+                throws LCFException
         {
             while (true)
             {
@@ -4358,7 +4358,7 @@ public class JobManager implements IJobManager
                         jobQueue.prepareFullScan(jobID);
                         break;
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         database.signalRollback();
                         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -4388,7 +4388,7 @@ public class JobManager implements IJobManager
         *@param hopcountMethod describes how to handle deletions for hopcount purposes.
         */
         public void prepareIncrementalScan(Long jobID, String[] legalLinkTypes, int hopcountMethod)
-                throws MetacartaException
+                throws LCFException
         {
                 jobQueue.prepareIncrementalScan(jobID);
         }
@@ -4398,7 +4398,7 @@ public class JobManager implements IJobManager
         *@param jobID is the job to abort.
         */
         public void manualAbort(Long jobID)
-                throws MetacartaException
+                throws LCFException
         {
                 // Just whack status back to "INACTIVE".  The active documents will continue to be processed until done,
                 // but that's fine.  There will be no finishing stage, obviously.
@@ -4418,7 +4418,7 @@ public class JobManager implements IJobManager
         *@param jobID is the job to abort.
         */
         public void manualAbortRestart(Long jobID)
-                throws MetacartaException
+                throws LCFException
         {
                 if (Logging.jobs.isDebugEnabled())
                 {
@@ -4437,7 +4437,7 @@ public class JobManager implements IJobManager
         *@return true if this is the first logged abort request for this job.
         */
         public boolean errorAbort(Long jobID, String errorText)
-                throws MetacartaException
+                throws LCFException
         {
                 // Just whack status back to "INACTIVE".  The active documents will continue to be processed until done,
                 // but that's fine.  There will be no finishing stage, obviously.
@@ -4457,7 +4457,7 @@ public class JobManager implements IJobManager
         *@param jobID is the job identifier to pause.
         */
         public void pauseJob(Long jobID)
-                throws MetacartaException
+                throws LCFException
         {
                 if (Logging.jobs.isDebugEnabled())
                 {
@@ -4475,7 +4475,7 @@ public class JobManager implements IJobManager
         *@param jobID is the job identifier to restart.
         */
         public void restartJob(Long jobID)
-                throws MetacartaException
+                throws LCFException
         {
                 if (Logging.jobs.isDebugEnabled())
                 {
@@ -4488,7 +4488,7 @@ public class JobManager implements IJobManager
                         jobs.restartJob(jobID);
                         jobQueue.clearFailTimes(jobID);
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         database.signalRollback();
                         throw e;
@@ -4515,7 +4515,7 @@ public class JobManager implements IJobManager
         * based on what the connector says should be added to the queue.
         */
         public JobStartRecord[] getJobsReadyForSeeding(long currentTime)
-                throws MetacartaException
+                throws LCFException
         {
                 while (true)
                 {
@@ -4564,7 +4564,7 @@ public class JobManager implements IJobManager
                                 }
                                 return rval;
                         }
-                        catch (MetacartaException e)
+                        catch (LCFException e)
                         {
                                 database.signalRollback();
                                 if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -4593,7 +4593,7 @@ public class JobManager implements IJobManager
         *@return jobs that were in the "readyforstartup" state.  These will be marked as being in the "starting up" state.
         */
         public JobStartRecord[] getJobsReadyForStartup()
-                throws MetacartaException
+                throws LCFException
         {
                 while (true)
                 {
@@ -4629,7 +4629,7 @@ public class JobManager implements IJobManager
                                 }
                                 return rval;
                         }
-                        catch (MetacartaException e)
+                        catch (LCFException e)
                         {
                                 database.signalRollback();
                                 if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -4658,7 +4658,7 @@ public class JobManager implements IJobManager
         *@param jobID is the job id.
         */
         public void resetStartupJob(Long jobID)
-                throws MetacartaException
+                throws LCFException
         {
                 while (true)
                 {
@@ -4672,7 +4672,7 @@ public class JobManager implements IJobManager
                                 IResultSet set = database.performQuery("SELECT "+jobs.statusField+" FROM "+jobs.getTableName()+
                                         " WHERE "+jobs.idField+"=? FOR UPDATE",list,null,null);
                                 if (set.getRowCount() == 0)
-                                        throw new MetacartaException("No such job: "+jobID);
+                                        throw new LCFException("No such job: "+jobID);
                                 IResultRow row = set.getRow(0);
                                 int status = jobs.stringToStatus((String)row.getValue(jobs.statusField));
 
@@ -4702,11 +4702,11 @@ public class JobManager implements IJobManager
                                         // ok
                                         break;
                                 default:
-                                        throw new MetacartaException("Unexpected job status: "+Integer.toString(status));
+                                        throw new LCFException("Unexpected job status: "+Integer.toString(status));
                                 }
                                 return;
                         }
-                        catch (MetacartaException e)
+                        catch (LCFException e)
                         {
                                 database.signalRollback();
                                 if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -4735,7 +4735,7 @@ public class JobManager implements IJobManager
         *@param jobID is the job id.
         */
         public void resetSeedJob(Long jobID)
-                throws MetacartaException
+                throws LCFException
         {
                 while (true)
                 {
@@ -4749,7 +4749,7 @@ public class JobManager implements IJobManager
                                 IResultSet set = database.performQuery("SELECT "+jobs.statusField+" FROM "+jobs.getTableName()+
                                         " WHERE "+jobs.idField+"=? FOR UPDATE",list,null,null);
                                 if (set.getRowCount() == 0)
-                                        throw new MetacartaException("No such job: "+jobID);
+                                        throw new LCFException("No such job: "+jobID);
                                 IResultRow row = set.getRow(0);
                                 int status = jobs.stringToStatus((String)row.getValue(jobs.statusField));
                                 switch (status)
@@ -4815,11 +4815,11 @@ public class JobManager implements IJobManager
                                         // ok
                                         break;
                                 default:
-                                        throw new MetacartaException("Unexpected job status: "+Integer.toString(status));
+                                        throw new LCFException("Unexpected job status: "+Integer.toString(status));
                                 }
                                 return;
                         }
-                        catch (MetacartaException e)
+                        catch (LCFException e)
                         {
                                 database.signalRollback();
                                 if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -4850,7 +4850,7 @@ public class JobManager implements IJobManager
         *@return the set of jobs that are ready to be deleted.
         */
         public void deleteJobsReadyForDelete()
-                throws MetacartaException
+                throws LCFException
         {
                 while (true)
                 {
@@ -4906,7 +4906,7 @@ public class JobManager implements IJobManager
                                         if (confirmSet.getRowCount() > 0)
                                                 continue;
                                         
-                                        Metacarta.noteConfigurationChange();
+                                        LCF.noteConfigurationChange();
                                         // Remove documents from job queue
                                         jobQueue.deleteAllJobRecords(jobID);
                                         // Remove carrydowns for the job
@@ -4921,7 +4921,7 @@ public class JobManager implements IJobManager
                                 }
                                 return;
                         }
-                        catch (MetacartaException e)
+                        catch (LCFException e)
                         {
                                 database.signalRollback();
                                 if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -4950,7 +4950,7 @@ public class JobManager implements IJobManager
         * decides if it is time to issue an ANALYZE request.
         */
         protected void conditionallyAnalyzeTables()
-                throws MetacartaException
+                throws LCFException
         {
                 while (true)
                 {
@@ -4961,7 +4961,7 @@ public class JobManager implements IJobManager
                                 jobQueue.conditionallyAnalyzeTables();
                                 break;
                         }
-                        catch (MetacartaException e)
+                        catch (LCFException e)
                         {
                                 if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
                                 {
@@ -4983,7 +4983,7 @@ public class JobManager implements IJobManager
         *@param finishList is filled in with the set of IJobDescription objects that were completed.
         */
         public void finishJobs(ArrayList finishList)
-                throws MetacartaException
+                throws LCFException
         {
                 while (true)
                 {
@@ -5058,7 +5058,7 @@ public class JobManager implements IJobManager
                                 }
                                 return;
                         }
-                        catch (MetacartaException e)
+                        catch (LCFException e)
                         {
                                 database.signalRollback();
                                 if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -5088,7 +5088,7 @@ public class JobManager implements IJobManager
         *@param abortJobs is the set of IJobDescription objects that were aborted (and stopped).
         */
         public void finishJobAborts(long timestamp, ArrayList abortJobs)
-                throws MetacartaException
+                throws LCFException
         {
                 while (true)
                 {
@@ -5155,12 +5155,12 @@ public class JobManager implements IJobManager
                                                 }
                                                 break;
                                         default:
-                                                throw new MetacartaException("Unexpected value for job status: "+Integer.toString(status));
+                                                throw new LCFException("Unexpected value for job status: "+Integer.toString(status));
                                         }
                                 }
                                 return;
                         }
-                        catch (MetacartaException e)
+                        catch (LCFException e)
                         {
                                 database.signalRollback();
                                 if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -5190,7 +5190,7 @@ public class JobManager implements IJobManager
         *@param currentTime is the current time in milliseconds since epoch.
         */
         public void resetJobs(long currentTime)
-                throws MetacartaException
+                throws LCFException
         {
                 while (true)
                 {
@@ -5242,7 +5242,7 @@ public class JobManager implements IJobManager
                                 }
                                 return;
                         }
-                        catch (MetacartaException e)
+                        catch (LCFException e)
                         {
                                 database.signalRollback();
                                 if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -5274,7 +5274,7 @@ public class JobManager implements IJobManager
         *@return the status object for the specified job.
         */
         public JobStatus getStatus(Long jobID)
-                throws MetacartaException
+                throws LCFException
         {
                 String whereClause = Jobs.idField+"="+jobID.toString();
                 JobStatus[] records = makeJobStatus(whereClause);
@@ -5288,7 +5288,7 @@ public class JobManager implements IJobManager
         *@return an ordered array of job status objects.
         */
         public JobStatus[] getAllStatus()
-                throws MetacartaException
+                throws LCFException
         {
                 String whereClause = null;
                 return makeJobStatus(whereClause);
@@ -5299,7 +5299,7 @@ public class JobManager implements IJobManager
         *@return an array of the job status objects.
         */
         public JobStatus[] getRunningJobs()
-                throws MetacartaException
+                throws LCFException
         {
                 String whereClause =
                         Jobs.statusField+" IN ("+
@@ -5321,7 +5321,7 @@ public class JobManager implements IJobManager
         *@return an array of the job status objects.
         */
         public JobStatus[] getFinishedJobs()
-                throws MetacartaException
+                throws LCFException
         {
                 String whereClause = 
                         Jobs.statusField+"="+database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_INACTIVE))+" AND "+
@@ -5337,7 +5337,7 @@ public class JobManager implements IJobManager
         *@return the status array.
         */
         protected JobStatus[] makeJobStatus(String whereClause)
-                throws MetacartaException
+                throws LCFException
         {
                 IResultSet set = database.performQuery("SELECT t0."+
                         Jobs.idField+",t0."+
@@ -5509,7 +5509,7 @@ public class JobManager implements IJobManager
         */
         public IResultSet genDocumentStatus(String connectionName, StatusFilterCriteria filterCriteria, SortOrder sortOrder,
                 int startRow, int rowCount)
-                throws MetacartaException
+                throws LCFException
         {
                 // Build the query.
                 Long currentTime = new Long(System.currentTimeMillis());
@@ -5613,7 +5613,7 @@ public class JobManager implements IJobManager
         */
         public IResultSet genQueueStatus(String connectionName, StatusFilterCriteria filterCriteria, SortOrder sortOrder,
                 BucketDescription idBucketDescription, int startRow, int rowCount)
-                throws MetacartaException
+                throws LCFException
         {
                 // SELECT substring(docid FROM '<id_regexp>') AS idbucket,
                 //	  substring(entityidentifier FROM '<id_regexp>') AS idbucket,
@@ -5734,7 +5734,7 @@ public class JobManager implements IJobManager
         /** Add criteria clauses to query.
         */
         protected boolean addCriteria(StringBuffer sb, String fieldPrefix, String connectionName, StatusFilterCriteria criteria, boolean whereEmitted)
-                throws MetacartaException
+                throws LCFException
         {
                 Long[] matchingJobs = criteria.getJobs();
                 
@@ -6077,7 +6077,7 @@ public class JobManager implements IJobManager
                 *@param connectionName is the connection name.
                 */
                 public void addConnectionName(String connectionName, IRepositoryConnector connectorInstance)
-                        throws MetacartaException
+                        throws LCFException
                 {
                         activeConnections.put(connectionName,connectorInstance);
                         int setSize = connectorInstance.getMaxDocumentRequest();
@@ -6196,7 +6196,7 @@ public class JobManager implements IJobManager
                 *@return true if it should be included, false otherwise.
                 */
                 public boolean checkInclude(IResultRow row)
-                        throws MetacartaException
+                        throws LCFException
                 {
                         // Note: This method does two things: First, it insures that the number of documents per job per bin does
                         // not exceed the calculated throttle number.  Second, it keeps track of how many document queue items
@@ -6248,7 +6248,7 @@ public class JobManager implements IJobManager
 
                         // Figure out what the right bins are, given the data we have.
                         // This will involve a call to the connector.
-                        String[] binNames = Metacarta.calculateBins(connectorInstance,docID);
+                        String[] binNames = LCF.calculateBins(connectorInstance,docID);
                         // Keep the running count, so we can abort without going through the whole set.
                         documentsProcessed++;
                         //scanRecord.addBins(binNames);
@@ -6302,7 +6302,7 @@ public class JobManager implements IJobManager
                 *@return true if we need to keep going, or false if we are done.
                 */
                 public boolean checkContinue()
-                        throws MetacartaException
+                        throws LCFException
                 {
                         if (documentsProcessed >= EXTRA_FACTOR * n * maxSetSize)
                                 return false;

@@ -20,7 +20,7 @@ package org.apache.lcf.authorityservice.servlet;
 
 import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.authorities.interfaces.*;
-import org.apache.lcf.authorities.system.Metacarta;
+import org.apache.lcf.authorities.system.LCF;
 import org.apache.lcf.authorities.system.Logging;
 import org.apache.lcf.authorities.system.RequestQueue;
 import org.apache.lcf.authorities.system.AuthRequest;
@@ -63,11 +63,11 @@ public class UserACLServlet extends HttpServlet
 		try
 		{
 			// Set up the environment
-			Metacarta.initializeEnvironment();
+			LCF.initializeEnvironment();
 			IThreadContext itc = ThreadContextFactory.make();
-			Metacarta.startSystem(itc);
+			LCF.startSystem(itc);
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			Logging.misc.error("Error starting authority service: "+e.getMessage(),e);
 			throw new ServletException("Error starting authority service: "+e.getMessage(),e);
@@ -82,11 +82,11 @@ public class UserACLServlet extends HttpServlet
 		try
 		{
 			// Set up the environment
-			Metacarta.initializeEnvironment();
+			LCF.initializeEnvironment();
 			IThreadContext itc = ThreadContextFactory.make();
-			Metacarta.stopSystem(itc);
+			LCF.stopSystem(itc);
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			Logging.misc.error("Error shutting down authority service: "+e.getMessage(),e);
 		}
@@ -99,7 +99,7 @@ public class UserACLServlet extends HttpServlet
 		throws ServletException, IOException
 	{
 		// Set up the environment
-		Metacarta.initializeEnvironment();
+		LCF.initializeEnvironment();
 
 		Logging.authorityService.debug("Received request");
 
@@ -137,11 +137,11 @@ public class UserACLServlet extends HttpServlet
 
 		try
 		{
-			RequestQueue queue = Metacarta.getRequestQueue();
+			RequestQueue queue = LCF.getRequestQueue();
 			if (queue == null)
 			{
 				// System wasn't started; return unauthorized
-				throw new MetacartaException("System improperly initialized");
+				throw new LCFException("System improperly initialized");
 			}
 			
 			IThreadContext itc = ThreadContextFactory.make();
@@ -195,8 +195,8 @@ public class UserACLServlet extends HttpServlet
 				if (exception != null)
 				{
 					// Exceptions are always bad now
-					// The MetacartaException here must disable access to the UI without causing a generic badness thing to happen, so use 403.
-					if (exception instanceof MetacartaException)
+					// The LCFException here must disable access to the UI without causing a generic badness thing to happen, so use 403.
+					if (exception instanceof LCFException)
 						response.sendError(response.SC_FORBIDDEN,"From "+ar.getIdentifyingString()+": "+exception.getMessage());
 					else
 						response.sendError(response.SC_INTERNAL_SERVER_ERROR,"From "+ar.getIdentifyingString()+": "+exception.getMessage());
@@ -265,7 +265,7 @@ public class UserACLServlet extends HttpServlet
 			Logging.authorityService.error("Unsupported encoding: "+e.getMessage(),e);
 			throw new ServletException("Fatal error occurred: "+e.getMessage(),e);
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			Logging.authorityService.error("User ACL servlet error: "+e.getMessage(),e);
 			response.sendError(response.SC_INTERNAL_SERVER_ERROR,e.getMessage());

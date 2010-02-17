@@ -46,7 +46,7 @@ public class CheckConfigured
 
 		try
 		{
-		        Metacarta.initializeEnvironment();
+		        LCF.initializeEnvironment();
 			IThreadContext tc = ThreadContextFactory.make();
 			IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(tc);
 			if (connManager.getAllConnections().length > 0)

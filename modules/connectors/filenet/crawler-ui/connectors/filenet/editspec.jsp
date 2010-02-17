@@ -92,7 +92,7 @@ if (tabName.equals("Document Classes"))
 			RepositoryConnectorFactory.release(connector);
 		}
 	}
-	catch (MetacartaException e)
+	catch (LCFException e)
 	{
 		message = e.getMessage();
 	}
@@ -364,7 +364,7 @@ if (tabName.equals("Mime Types"))
 			RepositoryConnectorFactory.release(connector);
 		}
 	}
-	catch (MetacartaException e)
+	catch (LCFException e)
 	{
 		message = e.getMessage();
 	}

@@ -63,7 +63,7 @@ public interface IOutputConnector
         *@param threadContext is the current thread context.
         */
         public void install(IThreadContext threadContext)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Uninstall the connector.
         * This method is called to remove persistent storage for the connector, such as database tables etc.
@@ -71,7 +71,7 @@ public interface IOutputConnector
         *@param threadContext is the current thread context.
         */
         public void deinstall(IThreadContext threadContext)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Return the path for the UI interface JSP elements.
         * These JSP's must be provided to allow the connector to be configured, and to
@@ -100,18 +100,18 @@ public interface IOutputConnector
         *@return the connection's status as a displayable string.
         */
         public String check()
-                throws MetacartaException;
+                throws LCFException;
 
         /** This method is periodically called for all connectors that are connected but not
         * in active use.
         */
         public void poll()
-                throws MetacartaException;
+                throws LCFException;
 
         /** Close the connection.  Call this before discarding the repository connector.
         */
         public void disconnect()
-                throws MetacartaException;
+                throws LCFException;
 
         /** Clear out any state information specific to a given thread.
         * This method is called when this object is returned to the connection pool.
@@ -140,7 +140,7 @@ public interface IOutputConnector
         * the document will not need to be sent again to the output data store.
         */
         public String getOutputDescription(OutputSpecification spec)
-                throws MetacartaException;
+                throws LCFException;
                 
         /** Add (or replace) a document in the output data store using the connector.
         * This method presumes that the connector object has been configured, and it is thus able to communicate with the output data store should that be
@@ -157,7 +157,7 @@ public interface IOutputConnector
         *@return the document status (accepted or permanently rejected).
         */
         public int addOrReplaceDocument(String documentURI, String outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
-                throws MetacartaException, ServiceInterruption;
+                throws LCFException, ServiceInterruption;
                 
         /** Remove a document using the connector.
         * Note that the last outputDescription is included, since it may be necessary for the connector to use such information to know how to properly remove the document.
@@ -167,7 +167,7 @@ public interface IOutputConnector
         *@activities is the handle to an object that the implementer of an output connector may use to perform operations, such as logging processing activity.
         */
         public void removeDocument(String documentURI, String outputDescription, IOutputRemoveActivity activities)
-                throws MetacartaException, ServiceInterruption;
+                throws LCFException, ServiceInterruption;
                 
 }
 

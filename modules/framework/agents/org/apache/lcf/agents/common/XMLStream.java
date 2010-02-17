@@ -47,7 +47,7 @@ public class XMLStream
 	/** Constructor.  This does NOT actually execute the parse yet, because we need the object before that makes any sense.
 	*/
 	public XMLStream(boolean laxChecking)
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
@@ -68,49 +68,49 @@ public class XMLStream
 		catch (SAXException e)
 		{
 			Exception e2 = e.getException();
-			if (e2 != null && e2 instanceof MetacartaException)
-				throw (MetacartaException)e2;
-			throw new MetacartaException("Error setting up parser: "+e.getMessage(),e);
+			if (e2 != null && e2 instanceof LCFException)
+				throw (LCFException)e2;
+			throw new LCFException("Error setting up parser: "+e.getMessage(),e);
 		}
 	}
 	
         /** Default constructor */
         public XMLStream()
-                throws MetacartaException
+                throws LCFException
         {
                 this(true);
         }
 
 	public void parse(InputStream xmlInputStream)
-		throws MetacartaException, ServiceInterruption, IOException
+		throws LCFException, ServiceInterruption, IOException
 	{
 		try
 		{
 			InputSource is = new InputSource(xmlInputStream);
 			xr.parse(is);
 			if (parseException != null)
-				throw new MetacartaException("XML parse error: "+parseException.getMessage(),parseException);
+				throw new LCFException("XML parse error: "+parseException.getMessage(),parseException);
 		}
 		catch (SAXException e)
 		{
 			Exception e2 = e.getException();
-			if (e2 != null && e2 instanceof MetacartaException)
-				throw (MetacartaException)e2;
+			if (e2 != null && e2 instanceof LCFException)
+				throw (LCFException)e2;
 			if (e2 != null && e2 instanceof ServiceInterruption)
 				throw (ServiceInterruption)e2;
-			throw new MetacartaException("Error setting up parser: "+e.getMessage(),e);
+			throw new LCFException("Error setting up parser: "+e.getMessage(),e);
 		}
 		catch (RuntimeException e)
 		{
 			// Xerces is unfortunately not constructed in such a way that it doesn't occasionally completely barf on a malformed file.
 			// So, we catch runtime exceptions and treat them as parse errors.
-			throw new MetacartaException("XML parse error: "+e.getMessage(),e);
+			throw new LCFException("XML parse error: "+e.getMessage(),e);
 		}
 	}
 	
 	/** Call this method to clean up completely after a parse attempt, whether successful or failure. */
 	public void cleanup()
-		throws MetacartaException
+		throws LCFException
 	{
 		// This sets currentContext == null as a side effect, unless an error occurs during cleanup!!
 		currentContext.cleanup();

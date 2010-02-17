@@ -47,7 +47,7 @@ public class GetSeedList
 
 		try
 		{
-		        Metacarta.initializeEnvironment();
+		        LCF.initializeEnvironment();
 			IThreadContext tc = ThreadContextFactory.make();
 			IJobManager jobManager = JobManagerFactory.make(tc);
 			IJobDescription desc = jobManager.load(new Long(jobString));

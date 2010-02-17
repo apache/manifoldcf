@@ -43,7 +43,7 @@ public class SynchronizeAuthorities
 
 		try
 		{
-			Metacarta.initializeEnvironment();
+			LCF.initializeEnvironment();
 			IThreadContext tc = ThreadContextFactory.make();
 			IAuthorityConnectorManager mgr = AuthorityConnectorManagerFactory.make(tc);
 			IResultSet classNames = mgr.getConnectors();
@@ -56,14 +56,14 @@ public class SynchronizeAuthorities
 			    {
 				AuthorityConnectorFactory.getConnectorNoCheck(classname);
 			    }
-			    catch (MetacartaException e)
+			    catch (LCFException e)
 			    {
 				mgr.removeConnector(classname);
 			    }
 			}
 			System.err.println("Successfully synchronized all authorities");
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			e.printStackTrace();
 			System.exit(1);

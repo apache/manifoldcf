@@ -42,12 +42,12 @@ public class SynchronizeOutputs
 
                 try
                 {
-                        Metacarta.initializeEnvironment();
+                        LCF.initializeEnvironment();
                         IThreadContext tc = ThreadContextFactory.make();
                         IDBInterface database = DBInterfaceFactory.make(tc,
-                                Metacarta.getMasterDatabaseName(),
-                                Metacarta.getMasterDatabaseUsername(),
-                                Metacarta.getMasterDatabasePassword());
+                                LCF.getMasterDatabaseName(),
+                                LCF.getMasterDatabaseUsername(),
+                                LCF.getMasterDatabasePassword());
                         IOutputConnectorManager mgr = OutputConnectorManagerFactory.make(tc);
                         IOutputConnectionManager connManager = OutputConnectionManagerFactory.make(tc);
                         IResultSet classNames = mgr.getConnectors();
@@ -60,7 +60,7 @@ public class SynchronizeOutputs
                             {
                                 OutputConnectorFactory.getConnectorNoCheck(className);
                             }
-                            catch (MetacartaException e)
+                            catch (LCFException e)
                             {
                                 // Deregistration should be done in a transaction
                                 database.beginTransaction();
@@ -73,7 +73,7 @@ public class SynchronizeOutputs
                                         // Now that all jobs have been placed into an appropriate state, actually do the deregistration itself.
                                         mgr.removeConnector(className);
                                 }
-                                catch (MetacartaException e2)
+                                catch (LCFException e2)
                                 {
                                         database.signalRollback();
                                         throw e2;
@@ -91,7 +91,7 @@ public class SynchronizeOutputs
                         }
                         System.err.println("Successfully synchronized all outputs");
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         e.printStackTrace();
                         System.exit(1);

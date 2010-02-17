@@ -296,7 +296,7 @@
                                         if (domain == null)
                                                 domain = "";
                                         String userName = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_USERNAME);
-                                        String password = org.apache.lcf.crawler.system.Metacarta.deobfuscate(cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD));
+                                        String password = org.apache.lcf.crawler.system.LCF.deobfuscate(cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD));
                                         
                                         // It's prefix will be...
                                         String prefix = "acredential_" + Integer.toString(accessCounter);
@@ -486,7 +486,7 @@
 												<nobr><input type="text" size="15" name='<%=authParamPrefix+"_value"%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(value)%>'/></nobr>
 											</td>
 											<td class="formcolumncell">
-												<nobr><input type="password" size="15" name='<%=authParamPrefix+"_password"%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(org.apache.lcf.crawler.system.Metacarta.deobfuscate(password))%>'/></nobr>
+												<nobr><input type="password" size="15" name='<%=authParamPrefix+"_password"%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(org.apache.lcf.crawler.system.LCF.deobfuscate(password))%>'/></nobr>
 											</td>
 										</tr>
 <%
@@ -607,7 +607,7 @@
 					if (domain == null)
 						domain = "";
 					String userName = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_USERNAME);
-					String password = org.apache.lcf.crawler.system.Metacarta.deobfuscate(cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD));
+					String password = org.apache.lcf.crawler.system.LCF.deobfuscate(cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD));
 
 					// It's prefix will be...
 					String prefix = "acredential_" + Integer.toString(accessCounter);
@@ -685,7 +685,7 @@
 %>
 <input type="hidden" name='<%=authParamPrefix+"_param"%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(param)%>'/>
 <input type="hidden" name='<%=authParamPrefix+"_value"%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(value)%>'/>
-<input type="hidden" name='<%=authParamPrefix+"_password"%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(org.apache.lcf.crawler.system.Metacarta.deobfuscate(password))%>'/>
+<input type="hidden" name='<%=authParamPrefix+"_password"%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(org.apache.lcf.crawler.system.LCF.deobfuscate(password))%>'/>
 <%
 										paramCounter++;
 									}

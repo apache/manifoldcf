@@ -94,7 +94,7 @@ public class HttpPoster
         {
                 secureSocketFactory = getSecureSocketFactory();
         }
-        catch (MetacartaException e)
+        catch (LCFException e)
         {
                 // If we can't create, print and fail
                 e.printStackTrace();
@@ -109,7 +109,7 @@ public class HttpPoster
      */
     public HttpPoster(String protocol, String server, int port, String webappName, String updatePath, String removePath, String statusPath,
         String realm, String userID, String password)
-        throws MetacartaException
+        throws LCFException
     {
         this.host = server;
         this.port = port;
@@ -123,7 +123,7 @@ public class HttpPoster
                 }
                 catch (java.io.UnsupportedEncodingException e)
                 {
-                        throw new MetacartaException("Couldn't convert to utf-8 bytes: "+e.getMessage(),e);
+                        throw new LCFException("Couldn't convert to utf-8 bytes: "+e.getMessage(),e);
                 }
                 this.realm = realm;
         }
@@ -138,16 +138,16 @@ public class HttpPoster
         postRemoveAction = webappName + removePath;
         postStatusAction = webappName + statusPath;
         
-        String x = Metacarta.getProperty(Metacarta.ingestBufferSizeProperty);
+        String x = LCF.getProperty(LCF.ingestBufferSizeProperty);
         if (x != null && x.length() > 0)
                 buffersize = new Integer(x).intValue();
-        x = Metacarta.getProperty(Metacarta.ingestResponseRetryCount);
+        x = LCF.getProperty(LCF.ingestResponseRetryCount);
         if (x != null && x.length() > 0)
                 responseRetries = new Integer(x).intValue();
-        x = Metacarta.getProperty(Metacarta.ingestResponseRetryInterval);
+        x = LCF.getProperty(LCF.ingestResponseRetryInterval);
         if (x != null && x.length() > 0)
                 responseRetryWait = new Long(x).longValue();
-        x = Metacarta.getProperty(Metacarta.ingestRescheduleInterval);
+        x = LCF.getProperty(LCF.ingestRescheduleInterval);
         if (x != null && x.length() > 0)
                 interruptionRetryTime = new Long(x).longValue();
     }
@@ -157,11 +157,11 @@ public class HttpPoster
      * @param documentURI is the document's uri.
      * @param document is the document structure to ingest.
      * @return true if the ingestion was successful, or false if the ingestion is illegal.
-     * @throws MetacartaException, ServiceInterruption
+     * @throws LCFException, ServiceInterruption
      */
     public boolean indexPost(String documentURI,
         RepositoryDocument document, IOutputAddActivity activities)
-        throws MetacartaException, ServiceInterruption
+        throws LCFException, ServiceInterruption
     {
         if (Logging.ingest.isDebugEnabled())
                 Logging.ingest.debug("indexPost(): '" + documentURI + "'");
@@ -192,8 +192,8 @@ public class HttpPoster
                     {
                         if (thr instanceof ServiceInterruption)
                             throw (ServiceInterruption)thr;
-                        if (thr instanceof MetacartaException)
-                            throw (MetacartaException)thr;
+                        if (thr instanceof LCFException)
+                            throw (LCFException)thr;
                         if (thr instanceof IOException)
                             throw (IOException)thr;
                         if (thr instanceof RuntimeException)
@@ -206,7 +206,7 @@ public class HttpPoster
 		catch (InterruptedException e)
 		{
                     t.interrupt();
-                    throw new MetacartaException("Interrupted: "+e.getMessage(),MetacartaException.INTERRUPTED);
+                    throw new LCFException("Interrupted: "+e.getMessage(),LCFException.INTERRUPTED);
                 }
             }
             catch (java.net.SocketTimeoutException ioe)
@@ -241,11 +241,11 @@ public class HttpPoster
             // Sleep for a time, and retry
             try
             {
-                Metacarta.sleep(10000L);
+                LCF.sleep(10000L);
             }
             catch (InterruptedException e)
             {
-                throw new MetacartaException("Interrupted: "+e.getMessage(),MetacartaException.INTERRUPTED);
+                throw new LCFException("Interrupted: "+e.getMessage(),LCFException.INTERRUPTED);
             }
             ioErrorRetry--;
             
@@ -258,7 +258,7 @@ public class HttpPoster
     /** Post a check request.
     */
     public void checkPost()
-        throws MetacartaException, ServiceInterruption
+        throws LCFException, ServiceInterruption
     {
         if (Logging.ingest.isDebugEnabled())
                 Logging.ingest.debug("checkPost()");
@@ -280,8 +280,8 @@ public class HttpPoster
                     {
                         if (thr instanceof ServiceInterruption)
                             throw (ServiceInterruption)thr;
-                        if (thr instanceof MetacartaException)
-                            throw (MetacartaException)thr;
+                        if (thr instanceof LCFException)
+                            throw (LCFException)thr;
                         if (thr instanceof IOException)
                             throw (IOException)thr;
                         if (thr instanceof RuntimeException)
@@ -294,7 +294,7 @@ public class HttpPoster
 		catch (InterruptedException e)
 		{
                     t.interrupt();
-                    throw new MetacartaException("Interrupted: "+e.getMessage(),MetacartaException.INTERRUPTED);
+                    throw new LCFException("Interrupted: "+e.getMessage(),LCFException.INTERRUPTED);
                 }
             }
             catch (IOException ioe)
@@ -315,11 +315,11 @@ public class HttpPoster
             // Sleep for a time, and retry
             try
             {
-                Metacarta.sleep(10000L);
+                LCF.sleep(10000L);
             }
             catch (InterruptedException e)
             {
-                throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+                throw new LCFException("Interrupted",LCFException.INTERRUPTED);
             }
             ioErrorRetry--;
               
@@ -331,7 +331,7 @@ public class HttpPoster
     *@param documentURI is the document's URI.
     */
     public void deletePost(String documentURI, IOutputRemoveActivity activities)
-        throws MetacartaException, ServiceInterruption
+        throws LCFException, ServiceInterruption
     {
         if (Logging.ingest.isDebugEnabled())
                 Logging.ingest.debug("deletePost(): '" + documentURI + "'");
@@ -356,8 +356,8 @@ public class HttpPoster
                     {
                         if (thr instanceof ServiceInterruption)
                             throw (ServiceInterruption)thr;
-                        if (thr instanceof MetacartaException)
-                            throw (MetacartaException)thr;
+                        if (thr instanceof LCFException)
+                            throw (LCFException)thr;
                         if (thr instanceof IOException)
                             throw (IOException)thr;
                         if (thr instanceof RuntimeException)
@@ -370,7 +370,7 @@ public class HttpPoster
 		catch (InterruptedException e)
 		{
                     t.interrupt();
-                    throw new MetacartaException("Interrupted: "+e.getMessage(),MetacartaException.INTERRUPTED);
+                    throw new LCFException("Interrupted: "+e.getMessage(),LCFException.INTERRUPTED);
                 }
             }
             catch (IOException ioe)
@@ -392,11 +392,11 @@ public class HttpPoster
             // Sleep for a time, and retry
             try
             {
-                Metacarta.sleep(10000L);
+                LCF.sleep(10000L);
             }
             catch (InterruptedException e)
             {
-                throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+                throw new LCFException("Interrupted",LCFException.INTERRUPTED);
             }
             
             ioErrorRetry--;
@@ -431,9 +431,9 @@ public class HttpPoster
      * Get the response code of the post
      * @param stream the stream the response is going to come from
      * @return the response string
-     * @throws MetacartaException
+     * @throws LCFException
      */
-    protected CodeDetails getResponse(InputStream in) throws MetacartaException, ServiceInterruption
+    protected CodeDetails getResponse(InputStream in) throws LCFException, ServiceInterruption
     {
         Logging.ingest.debug("Waiting for response stream");
                         
@@ -478,7 +478,7 @@ public class HttpPoster
                 {
                         doc = new XMLDoc(in);
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         // Syntax errors should be eaten; we'll just return a null doc in that case.
                         e.printStackTrace();
@@ -500,7 +500,7 @@ public class HttpPoster
         }
         catch (InterruptedIOException e)
         {
-                throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+                throw new LCFException("Interrupted",LCFException.INTERRUPTED);
         }
         catch (java.net.ConnectException e)
         {
@@ -553,7 +553,7 @@ public class HttpPoster
     /** Build a secure socket factory based on no keystore and a lax trust manager.
     * This allows use of SSL for privacy but not identification. */
     protected static javax.net.ssl.SSLSocketFactory getSecureSocketFactory()
-        throws MetacartaException
+        throws LCFException
     {
             try
             {
@@ -566,18 +566,18 @@ public class HttpPoster
             }
             catch (java.security.NoSuchAlgorithmException e)
             {
-                throw new MetacartaException("No such algorithm: "+e.getMessage(),e);
+                throw new LCFException("No such algorithm: "+e.getMessage(),e);
             }
             catch (java.security.KeyManagementException e)
             {
-                throw new MetacartaException("Key management exception: "+e.getMessage(),e);
+                throw new LCFException("Key management exception: "+e.getMessage(),e);
             }
     }
 
     /** Create a socket in a manner consistent with all of our specified parameters.
     */
     protected Socket createSocket(long responseRetryCount)
-            throws IOException, MetacartaException
+            throws IOException, LCFException
     {
             Socket socket;
             if (protocol.equals("https"))
@@ -593,7 +593,7 @@ public class HttpPoster
                     }
                     catch (IOException e)
                     {
-                            throw new MetacartaException("Couldn't set up SSL connection to ingestion API: "+e.getMessage(),e);
+                            throw new LCFException("Couldn't set up SSL connection to ingestion API: "+e.getMessage(),e);
                     }
             }
             else
@@ -1026,7 +1026,7 @@ public class HttpPoster
                                         
                                         // A negative number means http error of some kind.
                                         if (codeValue < 0)
-                                                throw new MetacartaException("Http protocol error");
+                                                throw new LCFException("Http protocol error");
 
                                         // 200 means we got a status document back
                                         if (codeValue == 200)
@@ -1044,11 +1044,11 @@ public class HttpPoster
                                         //    If the situation is (2), then we CAN'T retry if we already read any of the stream; therefore
                                         //    we are forced to throw a "service interrupted" exception, and let the caller reschedule
                                         //    the ingestion.
-                                        // 3) Something is wrong with the setup, e.g. bad credentials.  In this case we chuck a MetacartaException,
+                                        // 3) Something is wrong with the setup, e.g. bad credentials.  In this case we chuck a LCFException,
                                         //    since this will abort the current activity entirely.
 
                                         if (codeValue == 401)
-                                                throw new MetacartaException("Bad credentials for ingestion",MetacartaException.SETUP_ERROR);
+                                                throw new LCFException("Bad credentials for ingestion",LCFException.SETUP_ERROR);
 
                                         if (codeValue >= 400 && codeValue < 500)
                                         {
@@ -1059,7 +1059,7 @@ public class HttpPoster
                                         // If this continues, we should indeed abort the job.  Retries should not go on indefinitely either; 2 hours is plenty
                                         long currentTime = System.currentTimeMillis();
                                         throw new ServiceInterruption("Error "+Integer.toString(codeValue)+" from ingestion request; ingestion will be retried again later",
-                                                new MetacartaException("Ingestion HTTP error code "+Integer.toString(codeValue)),
+                                                new LCFException("Ingestion HTTP error code "+Integer.toString(codeValue)),
                                                 currentTime + interruptionRetryTime,
                                                 currentTime + 2L * 60L * 60000L,
                                                 -1,
@@ -1094,7 +1094,7 @@ public class HttpPoster
                 }
                 catch (UnsupportedEncodingException ioe)
                 {
-                        throw new MetacartaException("Fatal ingestion error: "+ioe.getMessage(),ioe);
+                        throw new LCFException("Fatal ingestion error: "+ioe.getMessage(),ioe);
                 }
                 catch (java.net.SocketTimeoutException ioe)
                 {
@@ -1264,7 +1264,7 @@ public class HttpPoster
                                         int codeValue = cd.getCodeValue();
                                         
                                         if (codeValue < 0)
-                                                throw new MetacartaException("Http protocol error");
+                                                throw new LCFException("Http protocol error");
 
                                         // 200 means we got an xml document back
                                         if (codeValue == 200)
@@ -1276,13 +1276,13 @@ public class HttpPoster
 
                                         // We ignore everything in the range from 400-500 now
                                         if (codeValue == 401)
-                                                throw new MetacartaException("Bad credentials for ingestion",MetacartaException.SETUP_ERROR);
+                                                throw new LCFException("Bad credentials for ingestion",LCFException.SETUP_ERROR);
 
                                         if (codeValue >= 400 && codeValue < 500)
                                                 return;
 
                                         // Anything else means the document didn't delete.  Throw the error.
-                                        throw new MetacartaException("Error deleting document: '"+cd.getDescription()+"'");
+                                        throw new LCFException("Error deleting document: '"+cd.getDescription()+"'");
                                 }
                                 finally
                                 {
@@ -1313,7 +1313,7 @@ public class HttpPoster
                 }
                 catch (UnsupportedEncodingException ioe)
                 {
-                        throw new MetacartaException("Fatal ingestion error: "+ioe.getMessage(),ioe);
+                        throw new LCFException("Fatal ingestion error: "+ioe.getMessage(),ioe);
                 }
                 catch (InterruptedIOException ioe)
                 {
@@ -1410,7 +1410,7 @@ public class HttpPoster
 
                                         int codeValue = cd.getCodeValue();
                                         if (codeValue < 0)
-                                                throw new MetacartaException("Http protocol error");
+                                                throw new LCFException("Http protocol error");
 
                                         // 200 means everything went OK
                                         if (codeValue == 200)
@@ -1421,10 +1421,10 @@ public class HttpPoster
 
                                         // We ignore everything in the range from 400-500 now
                                         if (codeValue == 401)
-                                                throw new MetacartaException("Bad credentials for ingestion",MetacartaException.SETUP_ERROR);
+                                                throw new LCFException("Bad credentials for ingestion",LCFException.SETUP_ERROR);
 
                                         // Anything else means the info request failed.
-                                        throw new MetacartaException("Error connecting to ingestion API: '"+cd.getDescription()+"'");
+                                        throw new LCFException("Error connecting to ingestion API: '"+cd.getDescription()+"'");
                                 }
                                 finally
                                 {
@@ -1455,7 +1455,7 @@ public class HttpPoster
                 }
                 catch (UnsupportedEncodingException ioe)
                 {
-                        throw new MetacartaException("Fatal ingestion error: "+ioe.getMessage(),ioe);
+                        throw new LCFException("Fatal ingestion error: "+ioe.getMessage(),ioe);
                 }
                 catch (InterruptedIOException ioe)
                 {
@@ -1541,13 +1541,13 @@ public class HttpPoster
         }
         
         public String getDescription()
-            throws MetacartaException
+            throws LCFException
         {
             return res + "\r\n" + ((returnDoc!=null)?returnDoc.getXML():"");
         }
         
         public void parseIngestionResponse()
-            throws MetacartaException
+            throws LCFException
         {
             // Look at response XML
             String statusValue = "unknown";
@@ -1596,20 +1596,20 @@ public class HttpPoster
                 if (statusValue.equals("0"))
                     return;
                 
-                throw new MetacartaException("Ingestion returned error: "+statusValue);
+                throw new LCFException("Ingestion returned error: "+statusValue);
             }
             else
-                throw new MetacartaException("XML parsing error on response");
+                throw new LCFException("XML parsing error on response");
         }
         
         public void parseRemovalResponse()
-            throws MetacartaException
+            throws LCFException
         {
             parseIngestionResponse();
         }
         
         public void parseStatusResponse()
-            throws MetacartaException
+            throws LCFException
         {
             // Look at response XML
             String statusValue = "unknown";
@@ -1645,10 +1645,10 @@ public class HttpPoster
                 if (statusValue.equals("OK"))
                     return;
                 
-                throw new MetacartaException("Status error: "+statusValue);
+                throw new LCFException("Status error: "+statusValue);
             }
             else
-                throw new MetacartaException("XML parsing error on response");
+                throw new LCFException("XML parsing error on response");
         }
     }
     

@@ -54,7 +54,7 @@ public class DocumentDeleteThread extends Thread
         *@param id is the worker thread id.
         */
         public DocumentDeleteThread(String id, DocumentDeleteQueue documentDeleteQueue, DocDeleteResetManager resetManager)
-                throws MetacartaException
+                throws LCFException
         {
                 super();
                 this.id = id;
@@ -187,7 +187,7 @@ public class DocumentDeleteThread extends Thread
                                                                         long waittime = amt-now;
                                                                         if (waittime <= 0L)
                                                                                 waittime = 300000L;
-                                                                        Metacarta.sleep(waittime);
+                                                                        LCF.sleep(waittime);
                                                                 }
                                                         }
                                                         
@@ -233,12 +233,12 @@ public class DocumentDeleteThread extends Thread
                                         }
                                     }
                                 }
-                                catch (MetacartaException e)
+                                catch (LCFException e)
                                 {
-                                        if (e.getErrorCode() == MetacartaException.INTERRUPTED)
+                                        if (e.getErrorCode() == LCFException.INTERRUPTED)
                                                 break;
 
-                                        if (e.getErrorCode() == MetacartaException.DATABASE_CONNECTION_ERROR)
+                                        if (e.getErrorCode() == LCFException.DATABASE_CONNECTION_ERROR)
                                         {
                                                 resetManager.noteEvent();
                                                 documentDeleteQueue.reset();
@@ -247,7 +247,7 @@ public class DocumentDeleteThread extends Thread
                                                 try
                                                 {
                                                         // Give the database a chance to catch up/wake up
-                                                        Metacarta.sleep(10000L);
+                                                        LCF.sleep(10000L);
                                                 }
                                                 catch (InterruptedException se)
                                                 {
@@ -259,7 +259,7 @@ public class DocumentDeleteThread extends Thread
                                         // Log it, but keep the thread alive
                                         Logging.threads.error("Exception tossed: "+e.getMessage(),e);
 
-                                        if (e.getErrorCode() == MetacartaException.SETUP_ERROR)
+                                        if (e.getErrorCode() == LCFException.SETUP_ERROR)
                                         {
                                                 // Shut the whole system down!
                                                 System.exit(1);
@@ -328,9 +328,9 @@ public class DocumentDeleteThread extends Thread
                 */
                 public void recordActivity(Long startTime, String activityType, Long dataSize,
                         String entityURI, String resultCode, String resultDescription)
-                        throws MetacartaException
+                        throws LCFException
                 {
-                        connMgr.recordHistory(connectionName,startTime,Metacarta.qualifyOutputActivityName(activityType,outputConnectionName),dataSize,entityURI,resultCode,
+                        connMgr.recordHistory(connectionName,startTime,LCF.qualifyOutputActivityName(activityType,outputConnectionName),dataSize,entityURI,resultCode,
                                 resultDescription,null);
                 }
         }

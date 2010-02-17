@@ -39,7 +39,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 	protected ArrayList tablesToReindex = new ArrayList();
 
 	public DBInterfacePostgreSQL(IThreadContext tc, String databaseName, String userName, String password)
-		throws MetacartaException
+		throws LCFException
 	{
 		if (databaseName == null)
 			databaseName = "template1";
@@ -75,7 +75,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 	*@param tableName is the name of the table.
 	*/
 	public void performLock(String tableName)
-		throws MetacartaException
+		throws LCFException
 	{
 		performModification("LOCK TABLE "+tableName+" IN EXCLUSIVE MODE",null,null);
 	}
@@ -87,7 +87,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 	*@param parameterMap is the map of column name/values to write.
 	*/
 	public void performInsert(String tableName, Map parameterMap, StringSet invalidateKeys)
-		throws MetacartaException
+		throws LCFException
 	{
 		ArrayList paramArray = new ArrayList();
 
@@ -140,7 +140,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 	*@param whereParameters are the parameters that come with the where clause, if any.
 	*/
 	public void performUpdate(String tableName, Map parameterMap, String whereClause, ArrayList whereParameters, StringSet invalidateKeys)
-		throws MetacartaException
+		throws LCFException
 	{
 		ArrayList paramArray = new ArrayList();
 
@@ -205,7 +205,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 	*@param whereParameters are the parameters that come with the where clause, if any.
 	*/
 	public void performDelete(String tableName, String whereClause, ArrayList whereParameters, StringSet invalidateKeys)
-		throws MetacartaException
+		throws LCFException
 	{
 		StringBuffer bf = new StringBuffer();
 		bf.append("DELETE FROM ");
@@ -231,7 +231,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 	*@param invalidateKeys are the cache keys that should be invalidated, if any.
 	*/
 	public void performCreate(String tableName, Map columnMap, StringSet invalidateKeys)
-		throws MetacartaException
+		throws LCFException
 	{
 		StringBuffer queryBuffer = new StringBuffer("CREATE TABLE ");
 		queryBuffer.append(tableName);
@@ -291,7 +291,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 	*/
 	public void performAlter(String tableName, Map columnMap, Map columnModifyMap, ArrayList columnDeleteList,
 		StringSet invalidateKeys)
-		throws MetacartaException
+		throws LCFException
 	{
 		beginTransaction(TRANSACTION_ENCLOSING);
 		try
@@ -345,7 +345,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 				}
 			}
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -383,7 +383,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 	* in the index, in order.
 	*/
 	public void addTableIndex(String tableName, boolean unique, ArrayList columnList)
-		throws MetacartaException
+		throws LCFException
 	{
 		String[] columns = new String[columnList.size()];
 		int i = 0;
@@ -401,7 +401,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 	*@param description is the index description.
 	*/
 	public void performAddIndex(String indexName, String tableName, IndexDescription description)
-		throws MetacartaException
+		throws LCFException
 	{
 		String[] columnNames = description.getColumnNames();
 		if (columnNames.length == 0)
@@ -436,7 +436,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 	*@param indexName is the name of the index to remove.
 	*/
 	public void performRemoveIndex(String indexName)
-		throws MetacartaException
+		throws LCFException
 	{
 		performModification("DROP INDEX "+indexName,null,null);
 	}
@@ -445,7 +445,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 	*@param tableName is the name of the table to analyze/calculate statistics for.
 	*/
 	public void analyzeTable(String tableName)
-		throws MetacartaException
+		throws LCFException
 	{
 		if (getTransactionID() == null)
 			performModification("ANALYZE "+tableName,null,null);
@@ -457,7 +457,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 	*@param tableName is the name of the table to rebuild indexes for.
 	*/
 	public void reindexTable(String tableName)
-		throws MetacartaException
+		throws LCFException
 	{
 		if (getTransactionID() == null)
 			performModification("REINDEX TABLE "+tableName,null,null);
@@ -470,7 +470,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 	*@param invalidateKeys are the cache keys that should be invalidated, if any.
 	*/
 	public void performDrop(String tableName, StringSet invalidateKeys)
-		throws MetacartaException
+		throws LCFException
 	{
 		performModification("DROP TABLE "+tableName,null,invalidateKeys);
 	}
@@ -480,7 +480,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 	*@return true if the user exists.
 	*/
 	public boolean lookupUser(String userName, StringSet cacheKeys, String queryClass)
-		throws MetacartaException
+		throws LCFException
 	{
 		ArrayList params = new ArrayList();
 		params.add(userName);
@@ -495,7 +495,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 	*@param password is the user's password.
 	*/
 	public void performCreateUser(String userName, String password)
-		throws MetacartaException
+		throws LCFException
 	{
 		performModification("CREATE USER "+userName+" PASSWORD "+
 			quoteSQLString(password),null,null);
@@ -505,7 +505,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 	*@param userName is the user name.
 	*/
 	public void performDropUser(String userName)
-		throws MetacartaException
+		throws LCFException
 	{
 		performModification("DROP USER "+userName,null,null);
 	}
@@ -516,7 +516,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 	*@return true if the database exists.
 	*/
 	public boolean lookupDatabase(String databaseName, StringSet cacheKeys, String queryClass)
-		throws MetacartaException
+		throws LCFException
 	{
 		ArrayList params = new ArrayList();
 		params.add(databaseName);
@@ -534,7 +534,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 	*/
 	public void performCreateDatabase(String databaseName, String databaseUser, String databasePassword,
 		StringSet invalidateKeys)
-		throws MetacartaException
+		throws LCFException
 	{
 		performModification("CREATE DATABASE "+databaseName+" OWNER="+
 			databaseUser+" ENCODING="+
@@ -546,7 +546,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 	*@param invalidateKeys are the cache keys that should be invalidated, if any.
 	*/
 	public void performDropDatabase(String databaseName, StringSet invalidateKeys)
-		throws MetacartaException
+		throws LCFException
 	{
 		performModification("DROP DATABASE "+databaseName,null,invalidateKeys);
 	}
@@ -556,11 +556,11 @@ public class DBInterfacePostgreSQL implements IDBInterface
 	*@param theException is the exception to reinterpret
 	*@return the reinterpreted exception to throw.
 	*/
-	protected MetacartaException reinterpretException(MetacartaException theException)
+	protected LCFException reinterpretException(LCFException theException)
 	{
 		if (Logging.db.isDebugEnabled())
 			Logging.db.debug("Reinterpreting exception '"+theException.getMessage()+"'.  The exception type is "+Integer.toString(theException.getErrorCode()));
-		if (theException.getErrorCode() != MetacartaException.DATABASE_CONNECTION_ERROR)
+		if (theException.getErrorCode() != LCFException.DATABASE_CONNECTION_ERROR)
 			return theException;
 		Throwable e = theException.getCause();
 		if (!(e instanceof java.sql.SQLException))
@@ -569,14 +569,14 @@ public class DBInterfacePostgreSQL implements IDBInterface
 			Logging.db.debug("Exception "+theException.getMessage()+" is possibly a transaction abort signal");
 		String message = e.getMessage();
 		if (message.indexOf("deadlock detected") != -1)
-			return new MetacartaException(message,e,MetacartaException.DATABASE_TRANSACTION_ABORT);
+			return new LCFException(message,e,LCFException.DATABASE_TRANSACTION_ABORT);
 		if (message.indexOf("could not serialize") != -1)
-			return new MetacartaException(message,e,MetacartaException.DATABASE_TRANSACTION_ABORT);
+			return new LCFException(message,e,LCFException.DATABASE_TRANSACTION_ABORT);
 		// Note well: We also have to treat 'duplicate key' as a transaction abort, since this is what you get when two threads attempt to
 		// insert the same row.  (Everything only works, then, as long as there is a unique constraint corresponding to every bad insert that
 		// one could make.)
 		if (message.indexOf("duplicate key") != -1)
-			return new MetacartaException(message,e,MetacartaException.DATABASE_TRANSACTION_ABORT);
+			return new LCFException(message,e,LCFException.DATABASE_TRANSACTION_ABORT);
 		if (Logging.db.isDebugEnabled())
 			Logging.db.debug("Exception "+theException.getMessage()+" is NOT a transaction abort signal");
 		return theException;
@@ -588,13 +588,13 @@ public class DBInterfacePostgreSQL implements IDBInterface
 	*@param invalidateKeys are the cache keys to invalidate.
 	*/
 	public void performModification(String query, ArrayList params, StringSet invalidateKeys)
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
 			database.executeQuery(query,params,null,invalidateKeys,null,false,0,null,null);
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			throw reinterpretException(e);
 		}
@@ -608,7 +608,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 	* table doesn't exist.
 	*/
 	public Map getTableSchema(String tableName, StringSet cacheKeys, String queryClass)
-		throws MetacartaException
+		throws LCFException
 	{
 		StringBuffer query = new StringBuffer();
 		query.append("SELECT pg_attribute.attname AS \"Field\",");
@@ -650,7 +650,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 	*@return a map of index names and IndexDescription objects, describing the indexes.
 	*/
 	public Map getTableIndexes(String tableName, StringSet cacheKeys, String queryClass)
-		throws MetacartaException
+		throws LCFException
 	{
 		Map rval = new HashMap();
 
@@ -673,7 +673,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 			{
 				beforeMatch = indexdef.indexOf("CREATE INDEX ",parsePosition);
 				if (beforeMatch == -1)
-					throw new MetacartaException("Cannot parse index description: '"+indexdef+"'");
+					throw new LCFException("Cannot parse index description: '"+indexdef+"'");
 				isUnique = false;
 				parsePosition += "CREATE INDEX ".length();
 			}
@@ -685,12 +685,12 @@ public class DBInterfacePostgreSQL implements IDBInterface
 			
 			int afterMatch = indexdef.indexOf(" ON",parsePosition);
 			if (afterMatch == -1)
-				throw new MetacartaException("Cannot parse index description: '"+indexdef+"'");
+				throw new LCFException("Cannot parse index description: '"+indexdef+"'");
 			String indexName = indexdef.substring(parsePosition,afterMatch);
 			parsePosition = afterMatch + " ON".length();
 			int parenPosition = indexdef.indexOf("(",parsePosition);
 			if (parenPosition == -1)
-				throw new MetacartaException("Cannot parse index description: '"+indexdef+"'");
+				throw new LCFException("Cannot parse index description: '"+indexdef+"'");
 			parsePosition = parenPosition + 1;
 			ArrayList columns = new ArrayList();
 			while (true)
@@ -700,7 +700,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 				if (nextIndex == -1)
 					nextIndex = nextParenIndex;
 				if (nextIndex == -1)
-					throw new MetacartaException("Cannot parse index description: '"+indexdef+"'");
+					throw new LCFException("Cannot parse index description: '"+indexdef+"'");
 				if (nextParenIndex != -1 && nextParenIndex < nextIndex)
 					nextIndex = nextParenIndex;
 				
@@ -731,7 +731,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 	*@return the set of tables.
 	*/
 	public StringSet getAllTables(StringSet cacheKeys, String queryClass)
-		throws MetacartaException
+		throws LCFException
 	{
 		IResultSet set = performQuery("SELECT relname FROM pg_class",null,cacheKeys,queryClass);
 		StringSetBuffer ssb = new StringSetBuffer();
@@ -756,13 +756,13 @@ public class DBInterfacePostgreSQL implements IDBInterface
 	*@return a resultset.
 	*/
 	public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass)
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
 			return database.executeQuery(query,params,cacheKeys,null,queryClass,true,-1,null,null);
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			throw reinterpretException(e);
 		}
@@ -780,13 +780,13 @@ public class DBInterfacePostgreSQL implements IDBInterface
 	*/
 	public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass,
 		int maxResults, ILimitChecker returnLimit)
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
 			return database.executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,null,returnLimit);
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			throw reinterpretException(e);
 		}
@@ -805,13 +805,13 @@ public class DBInterfacePostgreSQL implements IDBInterface
 	*/
 	public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass,
 		int maxResults, ResultSpecification resultSpec, ILimitChecker returnLimit)
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
 			return database.executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,resultSpec,returnLimit);
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			throw reinterpretException(e);
 		}
@@ -871,7 +871,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 	* signalRollback() method, and rethrow the exception.  Then, after that a finally{} block which calls endTransaction().
 	*/
 	public void beginTransaction()
-		throws MetacartaException
+		throws LCFException
 	{
 		beginTransaction(TRANSACTION_ENCLOSING);
 	}
@@ -886,7 +886,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 	*@param transactionType is the kind of transaction desired.
 	*/
 	public void beginTransaction(int transactionType)
-		throws MetacartaException
+		throws LCFException
 	{
 		if (database.getCurrentTransactionType() == database.TRANSACTION_SERIALIZED)
 		{
@@ -906,7 +906,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 				transactionType = TRANSACTION_SERIALIZED;
 				break;
 			default:
-				throw new MetacartaException("Unknown transaction type");
+				throw new LCFException("Unknown transaction type");
 		        }
 		}
 		
@@ -927,7 +927,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 				database.endTransaction();
 				throw e;
 			}
-			catch (MetacartaException e)
+			catch (LCFException e)
 			{
 				database.signalRollback();
 				database.endTransaction();
@@ -935,7 +935,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 			}
 			break;
 		default:
-			throw new MetacartaException("Bad transaction type");
+			throw new LCFException("Bad transaction type");
 		}
 	}
 
@@ -951,7 +951,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 	* signalRollback() was called within the transaction).
 	*/
 	public void endTransaction()
-		throws MetacartaException
+		throws LCFException
 	{
 		if (serializableDepth > 0)
 		{

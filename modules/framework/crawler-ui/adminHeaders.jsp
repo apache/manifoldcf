@@ -35,7 +35,7 @@ response.setContentType("text/html;charset=utf-8");
 <%@ page import="java.util.*" %>
 
 <%
-	org.apache.lcf.crawler.system.Metacarta.initializeEnvironment();
+	org.apache.lcf.crawler.system.LCF.initializeEnvironment();
 %>
 
 <jsp:useBean id="thread" class="org.apache.lcf.ui.beans.ThreadContext" scope="request"/>

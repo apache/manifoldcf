@@ -42,7 +42,7 @@ public class MultipartWrapper
 	/** Constructor.
 	*/
 	public MultipartWrapper(HttpServletRequest request)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Check that we have a file upload request
 		boolean isMultipart = FileUpload.isMultipartContent(request);
@@ -82,14 +82,14 @@ public class MultipartWrapper
 				else
 				{
 					if (((FileItem)list.get(0)).isFormField() != item.isFormField())
-						throw new MetacartaException("Illegal form data; posted form has the same name for different data types ('"+name+"')!");
+						throw new LCFException("Illegal form data; posted form has the same name for different data types ('"+name+"')!");
 				}
 				list.add(item);
 			}
 		}
 		catch (FileUploadException e)
 		{
-			throw new MetacartaException("Problem uploading file: "+e.getMessage(),e);
+			throw new LCFException("Problem uploading file: "+e.getMessage(),e);
 		}
 	}
 
@@ -169,7 +169,7 @@ public class MultipartWrapper
 	/** Get a file parameter, as a binary input.
 	*/
 	public BinaryInput getBinaryStream(String name)
-		throws MetacartaException
+		throws LCFException
 	{
 		if (request != null)
 			return null;
@@ -200,7 +200,7 @@ public class MultipartWrapper
 		}
 		catch (IOException e)
 		{
-			throw new MetacartaException("Error creating file binary stream",e);
+			throw new LCFException("Error creating file binary stream",e);
 		}
 	}
 

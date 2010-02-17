@@ -41,7 +41,7 @@ public class OutputConnectorManager extends org.apache.lcf.core.database.BaseTab
         *@param database is the database handle.
         */
         public OutputConnectorManager(IThreadContext threadContext, IDBInterface database)
-                throws MetacartaException
+                throws LCFException
         {
                 super(database,"outputconnectors");
                 this.threadContext = threadContext;
@@ -51,7 +51,7 @@ public class OutputConnectorManager extends org.apache.lcf.core.database.BaseTab
         /** Install or upgrade.
         */
         public void install()
-                throws MetacartaException
+                throws LCFException
         {
                 beginTransaction();
                 try
@@ -71,7 +71,7 @@ public class OutputConnectorManager extends org.apache.lcf.core.database.BaseTab
                                 addTableIndex(true,list);
                         }
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         signalRollback();
                         throw e;
@@ -91,7 +91,7 @@ public class OutputConnectorManager extends org.apache.lcf.core.database.BaseTab
         /** Uninstall.  This also unregisters all connectors.
         */
         public void deinstall()
-                throws MetacartaException
+                throws LCFException
         {
                 StringSet invKeys = new StringSet(getCacheKey());
 
@@ -110,7 +110,7 @@ public class OutputConnectorManager extends org.apache.lcf.core.database.BaseTab
                         }
                         performDrop(invKeys);
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         signalRollback();
                         throw e;
@@ -132,7 +132,7 @@ public class OutputConnectorManager extends org.apache.lcf.core.database.BaseTab
         *@param className is the class name.
         */
         public void registerConnector(String description, String className)
-                throws MetacartaException
+                throws LCFException
         {
                 StringSet invKeys = new StringSet(getCacheKey());
                 beginTransaction();
@@ -159,7 +159,7 @@ public class OutputConnectorManager extends org.apache.lcf.core.database.BaseTab
                         // Either way, we must do the install/upgrade itself.
                         OutputConnectorFactory.install(threadContext,className);
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         signalRollback();
                         throw e;
@@ -180,7 +180,7 @@ public class OutputConnectorManager extends org.apache.lcf.core.database.BaseTab
         *@param description is the description to unregister.
         */
         public void unregisterConnector(String className)
-                throws MetacartaException
+                throws LCFException
         {
                 StringSet invKeys = new StringSet(getCacheKey());
                 beginTransaction();
@@ -191,7 +191,7 @@ public class OutputConnectorManager extends org.apache.lcf.core.database.BaseTab
 
                         removeConnector(className);
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         signalRollback();
                         throw e;
@@ -213,7 +213,7 @@ public class OutputConnectorManager extends org.apache.lcf.core.database.BaseTab
         *@param className is the connector class to remove.
         */
         public void removeConnector(String className)
-                throws MetacartaException
+                throws LCFException
         {
                 StringSet invKeys = new StringSet(getCacheKey());
                 ArrayList list = new ArrayList();
@@ -226,7 +226,7 @@ public class OutputConnectorManager extends org.apache.lcf.core.database.BaseTab
         * These will be ordered by description.
         */
         public IResultSet getConnectors()
-                throws MetacartaException
+                throws LCFException
         {
                 StringSet invKeys = new StringSet(getCacheKey());
 
@@ -239,7 +239,7 @@ public class OutputConnectorManager extends org.apache.lcf.core.database.BaseTab
         *@return the description, or null if the class is not registered.
         */
         public String getDescription(String className)
-                throws MetacartaException
+                throws LCFException
         {
                 StringSet invKeys = new StringSet(getCacheKey());
 
@@ -258,7 +258,7 @@ public class OutputConnectorManager extends org.apache.lcf.core.database.BaseTab
         *@return true if installed, false otherwise.
         */
         public boolean isInstalled(String className)
-                throws MetacartaException
+                throws LCFException
         {
                 // Use the global table key; that's good enough because we don't expect stuff to change out from under very often.
                 StringSet invKeys = new StringSet(getCacheKey());

@@ -46,7 +46,7 @@ public class RepositoryHistoryManager extends org.apache.lcf.core.database.BaseT
 	*@param database is the database instance.
 	*/
 	public RepositoryHistoryManager(IDBInterface database)
-		throws MetacartaException
+		throws LCFException
 	{
 		super(database,"repohistory");
 	}
@@ -56,7 +56,7 @@ public class RepositoryHistoryManager extends org.apache.lcf.core.database.BaseT
 	*@param parentField is the parent field.
 	*/
 	public void install(String parentTable, String parentField)
-		throws MetacartaException
+		throws LCFException
 	{
 		beginTransaction();
 		try
@@ -92,7 +92,7 @@ public class RepositoryHistoryManager extends org.apache.lcf.core.database.BaseT
 
 			}
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -111,7 +111,7 @@ public class RepositoryHistoryManager extends org.apache.lcf.core.database.BaseT
 	/** Uninstall the table.
 	*/
 	public void deinstall()
-		throws MetacartaException
+		throws LCFException
 	{
 		performDrop(null);
 	}
@@ -121,7 +121,7 @@ public class RepositoryHistoryManager extends org.apache.lcf.core.database.BaseT
 	*@param invKeys are the invalidation keys.
 	*/
 	public void deleteOwner(String owner, StringSet invKeys)
-		throws MetacartaException
+		throws LCFException
 	{
 		ArrayList params = new ArrayList();
 		params.add(owner);
@@ -132,7 +132,7 @@ public class RepositoryHistoryManager extends org.apache.lcf.core.database.BaseT
 	*/
 	public Long addRow(String connectionName, long startTime, long endTime, long dataSize, String activityType,
 		String entityIdentifier, String resultCode, String resultDescription)
-		throws MetacartaException
+		throws LCFException
 	{
 		Long id = new Long(IDFactory.make());
 		HashMap map = new HashMap();
@@ -228,7 +228,7 @@ public class RepositoryHistoryManager extends org.apache.lcf.core.database.BaseT
 	* The resultset returned should have the following columns: "activity","starttime","elapsedtime","resultcode","resultdesc","bytes","identifier".
 	*/
 	public IResultSet simpleReport(String connectionName, FilterCriteria criteria, SortOrder sort, int startRow, int maxRowCount)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Build the query.
 		StringBuffer sb = new StringBuffer("SELECT ");
@@ -250,14 +250,14 @@ public class RepositoryHistoryManager extends org.apache.lcf.core.database.BaseT
 	*@return the number of rows included by the criteria.
 	*/
 	public long countHistoryRows(String connectionName, FilterCriteria criteria)
-		throws MetacartaException
+		throws LCFException
 	{
 		StringBuffer sb = new StringBuffer("SELECT COUNT(*) AS countcol FROM ");
 		sb.append(getTableName());
 		addCriteria(sb,"",connectionName,criteria,false);
 		IResultSet set = performQuery(sb.toString(),null,null,null);
 		if (set.getRowCount() < 1)
-			throw new MetacartaException("Expected at least one row");
+			throw new LCFException("Expected at least one row");
 		IResultRow row = set.getRow(0);
 		Long value = (Long)row.getValue("countcol");
 		return value.longValue();
@@ -270,7 +270,7 @@ public class RepositoryHistoryManager extends org.apache.lcf.core.database.BaseT
 	*/
 	public IResultSet maxActivityCountReport(String connectionName, FilterCriteria filterCriteria, SortOrder sort, BucketDescription idBucket,
 		long interval, int startRow, int maxRowCount)
-		throws MetacartaException
+		throws LCFException
 	{
 		// The query we will generate here looks like this:
 		// SELECT *
@@ -357,7 +357,7 @@ public class RepositoryHistoryManager extends org.apache.lcf.core.database.BaseT
 	*/
 	public IResultSet maxByteCountReport(String connectionName, FilterCriteria filterCriteria, SortOrder sort, BucketDescription idBucket,
 		long interval, int startRow, int maxRowCount)
-		throws MetacartaException
+		throws LCFException
 	{
 		// The query we will generate here looks like this:
 		// SELECT *
@@ -445,7 +445,7 @@ public class RepositoryHistoryManager extends org.apache.lcf.core.database.BaseT
 	*/
 	public IResultSet resultCodesReport(String connectionName, FilterCriteria filterCriteria, SortOrder sort,
 		BucketDescription resultCodeBucket, BucketDescription idBucket, int startRow, int maxRowCount)
-		throws MetacartaException
+		throws LCFException
 	{
 		// The query we'll use here will be:
 		//
@@ -625,7 +625,7 @@ public class RepositoryHistoryManager extends org.apache.lcf.core.database.BaseT
 	/** Conditionally do analyze operation.
 	*/
 	protected void conditionallyAnalyzeInsert()
-		throws MetacartaException
+		throws LCFException
 	{
 		synchronized (tracker)
 		{

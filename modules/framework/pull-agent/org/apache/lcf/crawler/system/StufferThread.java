@@ -55,7 +55,7 @@ public class StufferThread extends Thread
 	*/
 	public StufferThread(DocumentQueue documentQueue, int n, WorkerResetManager resetManager, QueueTracker qt,
 		BlockingDocuments blockingDocuments, float lowWaterFactor, float stuffSizeFactor)
-		throws MetacartaException
+		throws LCFException
 	{
 		super();
 		this.documentQueue = documentQueue;
@@ -118,7 +118,7 @@ public class StufferThread extends Thread
 				try
 				{
 					if (Thread.currentThread().isInterrupted())
-						throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+						throw new LCFException("Interrupted",LCFException.INTERRUPTED);
 
 					// Check if we're okay
 					resetManager.waitForReset(threadContext);
@@ -128,7 +128,7 @@ public class StufferThread extends Thread
 					boolean isEmpty = documentQueue.checkIfEmpty(lowWaterMark);
 					if (isEmpty == false)
 					{
-						Metacarta.sleep(1000L);
+						LCF.sleep(1000L);
 						continue;
 					}
 					long queueNeededTime = System.currentTimeMillis();
@@ -160,7 +160,7 @@ public class StufferThread extends Thread
 					lastQueueFullResults = (descs.length == stuffAmt);
 					
 					if (Thread.currentThread().isInterrupted())
-						throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+						throw new LCFException("Interrupted",LCFException.INTERRUPTED);
 
 					queueTracker.assessMinimumDepth(depthStatistics.getBins());
 					
@@ -175,7 +175,7 @@ public class StufferThread extends Thread
 					// The theory is that we need to allow stuff to accumulate.
 					if (descs.length == 0)
 					{
-						Metacarta.sleep(2000L);	// 2 seconds
+						LCF.sleep(2000L);	// 2 seconds
 						continue;
 					}
 
@@ -269,15 +269,15 @@ public class StufferThread extends Thread
 								}
 							}
 						}
-						catch (MetacartaException e)
+						catch (LCFException e)
 						{
 							// If we were interrupted, then we are allowed to leave, because the process is terminating, but that's the only exception to the rule
-							if (e.getErrorCode() == MetacartaException.INTERRUPTED)
+							if (e.getErrorCode() == LCFException.INTERRUPTED)
 								throw e;
 
 							// Note: We really should never leave this block by throwing an exception, since that could easily leave dangling
 							// active jobqueue entries around.  Instead, log the error and continue IN ALL CASES.
-							Logging.threads.error("Stuffer thread Metacarta Exception thrown: "+e.getMessage()+" - continuing",
+							Logging.threads.error("Stuffer thread LCF Exception thrown: "+e.getMessage()+" - continuing",
 								e);
 							maxDocuments = 1;
 							binNames = new String[]{""};
@@ -345,12 +345,12 @@ public class StufferThread extends Thread
 					// If we don't wait here, the other threads don't seem to have a chance to queue anything else up.
 					//Thread.yield();
 				}
-				catch (MetacartaException e)
+				catch (LCFException e)
 				{
-					if (e.getErrorCode() == MetacartaException.INTERRUPTED)
+					if (e.getErrorCode() == LCFException.INTERRUPTED)
 						break;
 
-					if (e.getErrorCode() == MetacartaException.DATABASE_CONNECTION_ERROR)
+					if (e.getErrorCode() == LCFException.DATABASE_CONNECTION_ERROR)
 					{
 						resetManager.noteEvent();
 						documentQueue.reset();
@@ -359,7 +359,7 @@ public class StufferThread extends Thread
 						try
 						{
 							// Give the database a chance to catch up/wake up
-							Metacarta.sleep(10000L);
+							LCF.sleep(10000L);
 						}
 						catch (InterruptedException se)
 						{
@@ -371,7 +371,7 @@ public class StufferThread extends Thread
 					// Log it, but keep the thread alive
 					Logging.threads.error("Exception tossed: "+e.getMessage(),e);
 
-					if (e.getErrorCode() == MetacartaException.SETUP_ERROR)
+					if (e.getErrorCode() == LCFException.SETUP_ERROR)
 					{
 						System.exit(1);
 					}

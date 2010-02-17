@@ -228,7 +228,7 @@ public class XMLDoc
 	* @return xml raw text
 	*/
 	public String getXML()
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
@@ -236,7 +236,7 @@ public class XMLDoc
 		}
 		catch (UnsupportedEncodingException e)
 		{
-			throw new MetacartaException(e.getMessage(),e);
+			throw new LCFException(e.getMessage(),e);
 		}
 	}
 
@@ -244,7 +244,7 @@ public class XMLDoc
 	* @return xml in byte array
 	*/
 	public byte[] toByteArray()
-		throws MetacartaException
+		throws LCFException
 	{
 		ByteArrayOutputStream os = new ByteArrayOutputStream(_blocksiz);
 		dumpOutput(os);
@@ -255,7 +255,7 @@ public class XMLDoc
 	/** Creates the empty doc
 	*/
 	public XMLDoc()
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
@@ -266,7 +266,7 @@ public class XMLDoc
 		}
 		catch (Exception e)
 		{
-			throw new MetacartaException("Error setting up parser: "+e.getMessage(),e);
+			throw new LCFException("Error setting up parser: "+e.getMessage(),e);
 		}
 	}
 
@@ -275,7 +275,7 @@ public class XMLDoc
 	* @param data xml to parse
 	*/
 	public XMLDoc(String data)
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
@@ -284,7 +284,7 @@ public class XMLDoc
 		}
 		catch (UnsupportedEncodingException e)
 		{
-			throw new MetacartaException(e.getMessage(),e);
+			throw new LCFException(e.getMessage(),e);
 		}
 	}
 
@@ -293,7 +293,7 @@ public class XMLDoc
 	* @param data xml to parse
 	*/
 	public XMLDoc(StringBuffer data)
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
@@ -303,7 +303,7 @@ public class XMLDoc
 		}
 		catch (UnsupportedEncodingException e)
 		{
-			throw new MetacartaException(e.getMessage(),e);
+			throw new LCFException(e.getMessage(),e);
 		}
 	}
 
@@ -312,7 +312,7 @@ public class XMLDoc
 	* @param is InputStream of xml to parse
 	*/
 	public XMLDoc(InputStream is)
-		throws MetacartaException
+		throws LCFException
 	{
 		_doc = init(is);
 	}
@@ -320,7 +320,7 @@ public class XMLDoc
 	/** Construct a document from all the children of an existing element object from another document.
 	*/
 	public XMLDoc(XMLDoc oldDoc, Object parent)
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
@@ -346,12 +346,12 @@ public class XMLDoc
 		}
 		catch (Exception e)
 		{
-			throw new MetacartaException("Error setting up parser: "+e.getMessage(),e);
+			throw new LCFException("Error setting up parser: "+e.getMessage(),e);
 		}
 	}
 
 	private Document init(InputStream is)
-		throws MetacartaException
+		throws LCFException
 	{
 		Document doc = null;
 		try {
@@ -366,7 +366,7 @@ public class XMLDoc
 		}
 		catch (Exception e)
 		{
-			throw new MetacartaException("XML parsing error: "+e.getMessage(),e);
+			throw new LCFException("XML parsing error: "+e.getMessage(),e);
 		}
 
 		return doc;
@@ -686,7 +686,7 @@ public class XMLDoc
 
 	// Transform the output for serialization
 	private void dumpOutput(OutputStream os)
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
@@ -699,7 +699,7 @@ public class XMLDoc
 		}
 		catch (Exception e)
 		{
-			throw new MetacartaException("Error dumping output: "+e.getMessage(),e);
+			throw new LCFException("Error dumping output: "+e.getMessage(),e);
 		}
 	}
 	

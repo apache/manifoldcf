@@ -38,7 +38,7 @@ public class JobResetThread extends Thread
 	/** Constructor.
 	*/
 	public JobResetThread(QueueTracker queueTracker)
-		throws MetacartaException
+		throws LCFException
 	{
 		super();
 		setName("Job reset thread");
@@ -110,7 +110,7 @@ public class JobResetThread extends Thread
 									break;
 								
 								// Calculate new priorities for all these documents
-								Metacarta.writeDocumentPriorities(threadContext,connectionManager,jobManager,docs,connectionMap,jobDescriptionMap,queueTracker,currentTime);
+								LCF.writeDocumentPriorities(threadContext,connectionManager,jobManager,docs,connectionMap,jobDescriptionMap,queueTracker,currentTime);
 								
 								Logging.threads.debug("Reprioritized "+Integer.toString(docs.length)+" not-yet-processed documents in "+new Long(System.currentTimeMillis()-startTime)+" ms");
 							}
@@ -124,20 +124,20 @@ public class JobResetThread extends Thread
 
 					}
 
-					Metacarta.sleep(10000L);
+					LCF.sleep(10000L);
 				}
-				catch (MetacartaException e)
+				catch (LCFException e)
 				{
-					if (e.getErrorCode() == MetacartaException.INTERRUPTED)
+					if (e.getErrorCode() == LCFException.INTERRUPTED)
 						break;
 
-					if (e.getErrorCode() == MetacartaException.DATABASE_CONNECTION_ERROR)
+					if (e.getErrorCode() == LCFException.DATABASE_CONNECTION_ERROR)
 					{
 						Logging.threads.error("Job reset thread aborting and restarting due to database connection reset: "+e.getMessage(),e);
 						try
 						{
 							// Give the database a chance to catch up/wake up
-							Metacarta.sleep(10000L);
+							LCF.sleep(10000L);
 						}
 						catch (InterruptedException se)
 						{
@@ -149,7 +149,7 @@ public class JobResetThread extends Thread
 					// Log it, but keep the thread alive
 					Logging.threads.error("Exception tossed: "+e.getMessage(),e);
 
-					if (e.getErrorCode() == MetacartaException.SETUP_ERROR)
+					if (e.getErrorCode() == LCFException.SETUP_ERROR)
 					{
 						// Shut the whole system down!
 						System.exit(1);

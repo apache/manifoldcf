@@ -19,7 +19,7 @@
 package org.apache.lcf.core.lockmanager;
 
 import org.apache.lcf.core.interfaces.*;
-import org.apache.lcf.core.system.Metacarta;
+import org.apache.lcf.core.system.LCF;
 import org.apache.lcf.core.system.Logging;
 import java.io.*;
 
@@ -77,7 +77,7 @@ public class LockObject
 	
 	private static String createFileName(Object lockKey)
 	{
-		return "lock-"+Metacarta.safeFileName(lockKey.toString());
+		return "lock-"+LCF.safeFileName(lockKey.toString());
 	}
 
 	/** This method WILL NOT BE CALLED UNLESS we are actually committing a write lock for the
@@ -116,7 +116,7 @@ public class LockObject
 		catch (LockException le2)
 		{
 			// Cross JVM lock; sleep!
-			Metacarta.sleep(10);
+			LCF.sleep(10);
 		}
 	    }
 	}
@@ -220,7 +220,7 @@ public class LockObject
 			}
 			catch (LockException le)
 			{
-				Metacarta.sleep(10);
+				LCF.sleep(10);
 				// Loop around
 			}
 		}
@@ -257,7 +257,7 @@ public class LockObject
 		catch (LockException le2)
 		{
 			// Cross JVM lock; sleep!
-			Metacarta.sleep(10);
+			LCF.sleep(10);
 		}
 	    }
 	}
@@ -373,7 +373,7 @@ public class LockObject
 			}
 			catch (LockException le)
 			{
-				Metacarta.sleep(10);
+				LCF.sleep(10);
 				// Loop around
 			}
 		}
@@ -412,7 +412,7 @@ public class LockObject
 			}
 			catch (LockException le)
 			{
-				Metacarta.sleep(10);
+				LCF.sleep(10);
 				// Loop around
 			}
 		}
@@ -531,7 +531,7 @@ public class LockObject
 			}
 			catch (LockException le)
 			{
-				Metacarta.sleep(10);
+				LCF.sleep(10);
 				// Loop around
 			}
 		}
@@ -567,7 +567,7 @@ public class LockObject
 					e.printStackTrace();
 				}
 				// Winnt sometimes throws an exception when you can't do the lock
-				Metacarta.sleep(100);
+				LCF.sleep(100);
 				continue;
 			}
 		}
@@ -610,7 +610,7 @@ public class LockObject
 					e.printStackTrace();
 				}
 				ie = e;
-				Metacarta.sleep(100);
+				LCF.sleep(100);
 				continue;
 			}
 			catch (RuntimeException e)
@@ -629,7 +629,7 @@ public class LockObject
 					e.printStackTrace();
 				}
 				ie = e;
-				Metacarta.sleep(100);
+				LCF.sleep(100);
 				continue;
 			}
 		}

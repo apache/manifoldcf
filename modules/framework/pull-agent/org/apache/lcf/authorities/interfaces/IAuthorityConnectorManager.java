@@ -28,12 +28,12 @@ public interface IAuthorityConnectorManager
 	/** Install.
 	*/
 	public void install()
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Uninstall.  This also unregisters all connectors.
 	*/
 	public void deinstall()
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Register a new connector.
 	* The connector's install method will also be called.
@@ -41,41 +41,41 @@ public interface IAuthorityConnectorManager
 	*@param className is the class name.
 	*/
 	public void registerConnector(String description, String className)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Unregister a connector.
 	* The connector's deinstall method will also be called.
 	*@param className is the connector class to unregister.
 	*/
 	public void unregisterConnector(String className)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Remove a connector.
 	* Call this when the connector cannot be instantiated.
 	*@param className is the connector class to remove.
 	*/
 	public void removeConnector(String className)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Get ordered list of connectors.
 	*@return a resultset with the columns "description" and "classname".
 	* These will be ordered by description.
 	*/
 	public IResultSet getConnectors()
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Get a description given a class name.
 	*@param className is the class name.
 	*@return the description, or null if the class is not registered.
 	*/
 	public String getDescription(String className)
-		throws MetacartaException;
+		throws LCFException;
 		
 	/** Check if a particular connector is installed or not.
 	*@param className is the class name of the connector.
 	*@return true if installed, false otherwise.
 	*/
 	public boolean isInstalled(String className)
-		throws MetacartaException;
+		throws LCFException;
 
 }

@@ -38,16 +38,16 @@ public class OutputConnectorManagerFactory
         *@return the output connector manager handle.
         */
         public static IOutputConnectorManager make(IThreadContext tc)
-                throws MetacartaException
+                throws LCFException
         {
                 Object o = tc.get(connMgr);
                 if (o == null || !(o instanceof IOutputConnectorManager))
                 {
 
                         IDBInterface database = DBInterfaceFactory.make(tc,
-                                Metacarta.getMasterDatabaseName(),
-                                Metacarta.getMasterDatabaseUsername(),
-                                Metacarta.getMasterDatabasePassword());
+                                LCF.getMasterDatabaseName(),
+                                LCF.getMasterDatabaseUsername(),
+                                LCF.getMasterDatabasePassword());
 
                         o = new org.apache.lcf.agents.outputconnmgr.OutputConnectorManager(tc,database);
                         tc.save(connMgr,o);

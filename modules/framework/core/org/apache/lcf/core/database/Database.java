@@ -52,7 +52,7 @@ public class Database implements IDatabase
 	protected final static String ROLLBACK_TRANSACTION = "ROLLBACK";
 
 	public Database(IThreadContext context, String databaseName, String userName, String password)
-		throws MetacartaException
+		throws LCFException
 	{
 		this.context = context;
 		this.databaseName = databaseName;
@@ -107,7 +107,7 @@ public class Database implements IDatabase
 	*/
 	public IResultSet executeQuery(String query, ArrayList params, StringSet cacheKeys, StringSet invalidateKeys,
 		String queryClass, boolean needResult, int maxReturn, ResultSpecification spec, ILimitChecker returnLimits)
-		throws MetacartaException
+		throws LCFException
 	{
 		// System.out.println("Query: "+query);
 		if (Logging.db.isDebugEnabled())
@@ -158,7 +158,7 @@ public class Database implements IDatabase
 	*@param transactionType describes the type of the transaction.
 	*/
 	public void beginTransaction(int transactionType)
-		throws MetacartaException
+		throws LCFException
 	{
 		if (Logging.db.isDebugEnabled())
 			Logging.db.debug("Beginning transaction of type "+Integer.toString(transactionType));
@@ -177,7 +177,7 @@ public class Database implements IDatabase
 	/** Synchronize internal transactions.
 	*/
 	protected void synchronizeTransactions()
-		throws MetacartaException
+		throws LCFException
 	{
 		while (delayedTransactionDepth > 0)
 		{
@@ -191,7 +191,7 @@ public class Database implements IDatabase
 	/** Perform actual transaction begin.
 	*/
 	protected void internalTransactionBegin()
-		throws MetacartaException
+		throws LCFException
 	{
 		// Get a semipermanent connection
 		if (connection == null)
@@ -206,9 +206,9 @@ public class Database implements IDatabase
 			{
 				// Don't do anything else other than drop the connection on the floor
 				connection = null;
-				throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 			}
-			catch (MetacartaException e)
+			catch (LCFException e)
 			{
 				ConnectionFactory.releaseConnection(connection);
 				connection = null;
@@ -231,7 +231,7 @@ public class Database implements IDatabase
 			{
 				// Don't do anything else other than drop the connection on the floor
 				connection = null;
-				throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 			}
 		}
 	}
@@ -248,11 +248,11 @@ public class Database implements IDatabase
 	* signalRollback() was called within the transaction).
 	*/
 	public void endTransaction()
-		throws MetacartaException
+		throws LCFException
 	{
 		Logging.db.debug("Ending transaction");
 		if (th == null)
-			throw new MetacartaException("End transaction without begin!",MetacartaException.GENERAL_ERROR);
+			throw new LCFException("End transaction without begin!",LCFException.GENERAL_ERROR);
 
 		TransactionHandle parentTransaction = th.getParent();
 		// If the database throws up on the commit or the rollback, above us there
@@ -284,7 +284,7 @@ public class Database implements IDatabase
 				{
 					// Drop the connection on the floor, so it cannot be reused.
 					connection = null;
-					throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+					throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 				}
 				finally
 				{
@@ -364,7 +364,7 @@ public class Database implements IDatabase
 	/** Do query execution via a subthread, so the primary thread can be interrupted */
 	protected IResultSet executeViaThread(Connection connection, String query, ArrayList params, boolean bResults, int maxResults,
 		ResultSpecification spec, ILimitChecker returnLimit)
-		throws MetacartaException, InterruptedException
+		throws LCFException, InterruptedException
 	{
 		if (connection == null)
 			// This probably means that the thread was interrupted and the connection was abandoned.  Just return null.
@@ -378,11 +378,11 @@ public class Database implements IDatabase
 			Throwable thr = t.getException();
 			if (thr != null)
 			{
-				if (thr instanceof MetacartaException)
+				if (thr instanceof LCFException)
 				{
 					// Nest the exceptions so there is a hope we actually see the context, while preserving the kind of error it is
-					MetacartaException me = (MetacartaException)thr;
-					throw new MetacartaException("Database exception: "+me.getMessage(),me.getCause(),me.getErrorCode());
+					LCFException me = (LCFException)thr;
+					throw new LCFException("Database exception: "+me.getMessage(),me.getCause(),me.getErrorCode());
 				}
 				else
 					throw (Error)thr;
@@ -403,7 +403,7 @@ public class Database implements IDatabase
 	*/
 	protected IResultSet executeUncachedQuery(String query, ArrayList params, boolean bResults, int maxResults,
 		ResultSpecification spec, ILimitChecker returnLimit)
-		throws MetacartaException
+		throws LCFException
 	{
 
 		if (connection != null)
@@ -416,7 +416,7 @@ public class Database implements IDatabase
 			{
 				// drop the connection object on the floor, so it cannot possibly be reused
 				connection = null;
-				throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 			}
 		}
 		else
@@ -431,7 +431,7 @@ public class Database implements IDatabase
 			{
 				// drop the connection object on the floor, so it cannot possibly be reused
 				tempConnection = null;
-				throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 			}
 			finally
 			{
@@ -452,7 +452,7 @@ public class Database implements IDatabase
 	*/
 	protected IResultSet execute(Connection connection, String query, ArrayList params, boolean bResults, int maxResults,
 		ResultSpecification spec, ILimitChecker returnLimit)
-		throws MetacartaException
+		throws LCFException
 	{
 		IResultSet rval = null;
 		try
@@ -541,7 +541,7 @@ public class Database implements IDatabase
 			{
 				// There are a lot of different sorts of error that can be embedded here.  Unfortunately, it's database dependent how
 				// to interpret the error.  So toss a generic error, and let the caller figure out if it needs to treat it differently.
-				throw new MetacartaException("Exception doing query: "+e.getMessage(),e,MetacartaException.DATABASE_CONNECTION_ERROR);
+				throw new LCFException("Exception doing query: "+e.getMessage(),e,LCFException.DATABASE_CONNECTION_ERROR);
 			}
 		}
 		finally
@@ -555,7 +555,7 @@ public class Database implements IDatabase
 
 	// Read data from a resultset
 	protected IResultSet getData(ResultSet rs, boolean bResults, int maxResults, ResultSpecification spec, ILimitChecker returnLimit)
-		throws MetacartaException
+		throws LCFException
 	{
 	    RSet results = new RSet();  // might be empty but not an error
 	    try
@@ -590,7 +590,7 @@ public class Database implements IDatabase
 					{
 						// This is an error situation; if a result with no columns is
 						// necessary, bResults must be false!!!
-						throw new MetacartaException("Empty query, no columns returned",MetacartaException.GENERAL_ERROR);
+						throw new LCFException("Empty query, no columns returned",LCFException.GENERAL_ERROR);
 					}
 
 					while (rs.next() && (maxResults == -1 || maxResults > 0) && (returnLimit == null || returnLimit.checkContinue()))
@@ -644,7 +644,7 @@ public class Database implements IDatabase
 		}
 		catch (java.sql.SQLException e)
 		{
-			throw new MetacartaException("Resultset error: "+e.getMessage(),e,MetacartaException.DATABASE_CONNECTION_ERROR);
+			throw new LCFException("Resultset error: "+e.getMessage(),e,LCFException.DATABASE_CONNECTION_ERROR);
 		}
 	    }
 	    catch (Throwable e)
@@ -666,8 +666,8 @@ public class Database implements IDatabase
 					((CharacterInput)o).discard();
 			}
 		}
-		if (e instanceof MetacartaException)
-			throw (MetacartaException)e;
+		if (e instanceof LCFException)
+			throw (LCFException)e;
 		if (e instanceof RuntimeException)
 			throw (RuntimeException)e;
 		if (e instanceof Error)
@@ -679,7 +679,7 @@ public class Database implements IDatabase
 
 	// pass params to preparedStatement
 	protected static void loadPS(PreparedStatement ps, ArrayList data)
-		throws java.sql.SQLException, MetacartaException
+		throws java.sql.SQLException, LCFException
 	{
 		if (data!=null)
 		{
@@ -738,7 +738,7 @@ public class Database implements IDatabase
 	/** Clean up parameters after query has been triggered.
 	*/
 	protected static void cleanupParameters(ArrayList data)
-		throws MetacartaException
+		throws LCFException
 	{
 		if (data != null)
 		{
@@ -760,7 +760,7 @@ public class Database implements IDatabase
 	}
 		
 	protected int findColumn(ResultSet rs, String name)
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
@@ -772,12 +772,12 @@ public class Database implements IDatabase
 		}
 		catch (Exception e)
 		{
-			throw new MetacartaException("Error finding " + name + " in resultset: "+e.getMessage(),e,MetacartaException.DATABASE_ERROR);
+			throw new LCFException("Error finding " + name + " in resultset: "+e.getMessage(),e,LCFException.DATABASE_ERROR);
 		}
 	}
 
 	protected Blob getBLOB(ResultSet rs, int col)
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
@@ -785,16 +785,16 @@ public class Database implements IDatabase
 		}
 		catch (java.sql.SQLException sqle)
 		{
-			throw new MetacartaException("Error in getBlob",sqle,MetacartaException.DATABASE_CONNECTION_ERROR);
+			throw new LCFException("Error in getBlob",sqle,LCFException.DATABASE_CONNECTION_ERROR);
 		}
 		catch (Exception sqle)
 		{
-			throw new MetacartaException("Error in getBlob",sqle,MetacartaException.DATABASE_ERROR);
+			throw new LCFException("Error in getBlob",sqle,LCFException.DATABASE_ERROR);
 		}
 	}
 
 	protected boolean isBLOB(ResultSetMetaData rsmd, int col)
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
@@ -803,16 +803,16 @@ public class Database implements IDatabase
 		}
 		catch (java.sql.SQLException sqle)
 		{
-			throw new MetacartaException("Error in isBlob("+col+"): "+sqle.getMessage(),sqle,MetacartaException.DATABASE_CONNECTION_ERROR);
+			throw new LCFException("Error in isBlob("+col+"): "+sqle.getMessage(),sqle,LCFException.DATABASE_CONNECTION_ERROR);
 		}
 		catch (Exception sqle)
 		{
-			throw new MetacartaException("Error in isBlob("+col+"): "+sqle.getMessage(),sqle,MetacartaException.DATABASE_ERROR);
+			throw new LCFException("Error in isBlob("+col+"): "+sqle.getMessage(),sqle,LCFException.DATABASE_ERROR);
 		}
 	}
 
 	protected boolean isBinary(ResultSetMetaData rsmd, int col)
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
@@ -822,16 +822,16 @@ public class Database implements IDatabase
 		}
 		catch (java.sql.SQLException sqle)
 		{
-			throw new MetacartaException("Error in isBinary("+col+"): "+sqle.getMessage(),sqle,MetacartaException.DATABASE_CONNECTION_ERROR);
+			throw new LCFException("Error in isBinary("+col+"): "+sqle.getMessage(),sqle,LCFException.DATABASE_CONNECTION_ERROR);
 		}
 		catch (Exception sqle)
 		{
-			throw new MetacartaException("Error in isBinary("+col+"): "+sqle.getMessage(),sqle,MetacartaException.DATABASE_ERROR);
+			throw new LCFException("Error in isBinary("+col+"): "+sqle.getMessage(),sqle,LCFException.DATABASE_ERROR);
 		}
 	}
 
 	protected Object getObject(ResultSet rs, ResultSetMetaData rsmd, int col, int desiredForm)
-		throws MetacartaException
+		throws LCFException
 	{
 		Object result = null;
 
@@ -927,7 +927,7 @@ public class Database implements IDatabase
 						break;
 
 					case java.sql.Types.BLOB:
-						throw new MetacartaException("BLOB is not a string, column = " + col,MetacartaException.GENERAL_ERROR);
+						throw new LCFException("BLOB is not a string, column = " + col,LCFException.GENERAL_ERROR);
 
 					default :
 						switch (desiredForm)
@@ -940,7 +940,7 @@ public class Database implements IDatabase
 							result = new TempFileCharacterInput(rs.getCharacterStream(col));
 							break;
 						default:
-							throw new MetacartaException("Illegal form requested for column "+Integer.toString(col)+": "+Integer.toString(desiredForm));
+							throw new LCFException("Illegal form requested for column "+Integer.toString(col)+": "+Integer.toString(desiredForm));
 						}
 						break;
 					}
@@ -954,7 +954,7 @@ public class Database implements IDatabase
 			}
 			catch (java.sql.SQLException e)
 			{
-				throw new MetacartaException("Exception in getObject(): "+e.getMessage(),e,MetacartaException.DATABASE_CONNECTION_ERROR);
+				throw new LCFException("Exception in getObject(): "+e.getMessage(),e,LCFException.DATABASE_CONNECTION_ERROR);
 			}
 		}
 		catch (Throwable e)
@@ -963,8 +963,8 @@ public class Database implements IDatabase
 				((CharacterInput)result).discard();
 			else if (result instanceof BinaryInput)
 				((BinaryInput)result).discard();
-			if (e instanceof MetacartaException)
-				throw (MetacartaException)e;
+			if (e instanceof LCFException)
+				throw (LCFException)e;
 			if (e instanceof RuntimeException)
 				throw (RuntimeException)e;
 			if (e instanceof Error)
@@ -1011,7 +1011,7 @@ public class Database implements IDatabase
 	* @param objectDescriptions are the unique identifiers of the objects.
 	* @return the newly created objects to cache, or null, if any object cannot be created.
 	*/
-	public Object[] create(ICacheDescription[] objectDescriptions) throws MetacartaException
+	public Object[] create(ICacheDescription[] objectDescriptions) throws LCFException
 	{
 		// Perform the requested query, within the appropriate transaction object.
 		// Call the database object to do this
@@ -1062,7 +1062,7 @@ public class Database implements IDatabase
 					}
 					Logging.db.warn("");
 				}
-				catch (MetacartaException e)
+				catch (LCFException e)
 				{
 					Logging.db.error("Explain failed with error "+e.getMessage(),e);
 				}
@@ -1081,7 +1081,7 @@ public class Database implements IDatabase
 	* @param objectDescription is the unique identifier of the object.
 	* @param cachedObject is the cached object.
 	*/
-	public void exists(ICacheDescription objectDescription, Object cachedObject) throws MetacartaException
+	public void exists(ICacheDescription objectDescription, Object cachedObject) throws LCFException
 	{
 		// System.out.println("Object created or found: "+objectDescription.getCriticalSectionName());
 		// Save the resultset for return
@@ -1091,7 +1091,7 @@ public class Database implements IDatabase
 	/** Perform the desired operation.  This method is called after either createGetObject()
 	* or exists() is called for every requested object.
 	*/
-	public void execute() throws MetacartaException
+	public void execute() throws LCFException
 	{
 		// Does nothing at all; the query would already have been done
 	}

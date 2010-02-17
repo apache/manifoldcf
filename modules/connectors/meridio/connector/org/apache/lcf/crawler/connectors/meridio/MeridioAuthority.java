@@ -117,7 +117,7 @@ public class MeridioAuthority extends org.apache.lcf.authorities.authorities.Bas
         
         /** Set up connection before attempting to use it */
         protected void attemptToConnect()
-                throws MetacartaException
+                throws LCFException
         {
                 if (meridio_ == null)
                 {
@@ -130,7 +130,7 @@ public class MeridioAuthority extends org.apache.lcf.authorities.authorities.Bas
 
                         String DMWSProtocol = params.getParameter("DMWSServerProtocol");
                         if (DMWSProtocol == null)
-                                throw new MetacartaException("Missing required configuration parameter: DMWSServerProtocol");
+                                throw new LCFException("Missing required configuration parameter: DMWSServerProtocol");
                         String DMWSPort = params.getParameter("DMWSServerPort");
                         if (DMWSPort == null || DMWSPort.length() == 0)
                                 DMWSPort = "";
@@ -144,7 +144,7 @@ public class MeridioAuthority extends org.apache.lcf.authorities.authorities.Bas
                                 
                         String RMWSProtocol = params.getParameter("RMWSServerProtocol");
                         if (RMWSProtocol == null)
-                                throw new MetacartaException("Missing required configuration parameter: RMWSServerProtocol");
+                                throw new LCFException("Missing required configuration parameter: RMWSServerProtocol");
                         String RMWSPort = params.getParameter("RMWSServerPort");
                         if (RMWSPort == null || RMWSPort.length() == 0)
                                 RMWSPort = "";
@@ -158,14 +158,14 @@ public class MeridioAuthority extends org.apache.lcf.authorities.authorities.Bas
                                 
                         String MetaCartaWSProtocol = params.getParameter("MetaCartaWSServerProtocol");
                         if (MetaCartaWSProtocol == null)
-                                throw new MetacartaException("Missing required configuration parameter: MetaCartaWSServerProtocol");
+                                throw new LCFException("Missing required configuration parameter: MetaCartaWSServerProtocol");
                         String MetaCartaWSPort = params.getParameter("MetaCartaWSServerPort");
                         if (MetaCartaWSPort == null || MetaCartaWSPort.length() == 0)
                                 MetaCartaWSPort = "";
                         else
                                 MetaCartaWSPort = ":" + MetaCartaWSPort;
 
-                        String MetacartaWSUrlString = MetaCartaWSProtocol + "://" +
+                        String LCFWSUrlString = MetaCartaWSProtocol + "://" +
                                 params.getParameter("MetaCartaWSServerName") +
                                 MetaCartaWSPort +
                                 params.getParameter("MetaCartaWSLocation");
@@ -187,7 +187,7 @@ public class MeridioAuthority extends org.apache.lcf.authorities.authorities.Bas
                         {								
                                 DmwsURL = new URL(DMWSUrlString);						
                                 RmwsURL = new URL(RMWSUrlString);			       		 
-                                MetaCartawsURL = new URL(MetacartaWSUrlString);
+                                MetaCartawsURL = new URL(LCFWSUrlString);
                                 
                                 if (Logging.authorityConnectors.isDebugEnabled())
                                 {
@@ -199,7 +199,7 @@ public class MeridioAuthority extends org.apache.lcf.authorities.authorities.Bas
                         }
                         catch (MalformedURLException malformedURLException)
                         {			
-                                throw new MetacartaException("Meridio: Could not construct the URL for either " +
+                                throw new LCFException("Meridio: Could not construct the URL for either " +
                                         "the Meridio DM, Meridio RM, or MetaCarta Meridio Web Service: "+malformedURLException, malformedURLException);
                         }
                         
@@ -218,7 +218,7 @@ public class MeridioAuthority extends org.apache.lcf.authorities.authorities.Bas
                         }
                         catch (UnknownHostException unknownHostException)
                         {
-                                throw new MetacartaException("Meridio: A Unknown Host Exception occurred while " +
+                                throw new LCFException("Meridio: A Unknown Host Exception occurred while " +
                                         "connecting - is a network software and hardware configuration: "+unknownHostException.getMessage(), unknownHostException);
                         }
                         catch (org.apache.axis.AxisFault e)
@@ -231,23 +231,23 @@ public class MeridioAuthority extends org.apache.lcf.authorities.authorities.Bas
                                         {
                                                 elem.normalize();
                                                 String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-                                                throw new MetacartaException("Unexpected http error code "+httpErrorCode+" accessing Meridio: "+e.getMessage(),e);
+                                                throw new LCFException("Unexpected http error code "+httpErrorCode+" accessing Meridio: "+e.getMessage(),e);
                                         }
-                                        throw new MetacartaException("Unknown http error occurred while connecting: "+e.getMessage(),e);
+                                        throw new LCFException("Unknown http error occurred while connecting: "+e.getMessage(),e);
                                 }
                                 if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server.userException")))
                                 {
                                         String exceptionName = e.getFaultString();
                                         if (exceptionName.equals("java.lang.InterruptedException"))
-                                                throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+                                                throw new LCFException("Interrupted",LCFException.INTERRUPTED);
                                 }
                                 if (Logging.authorityConnectors.isDebugEnabled())
                                         Logging.authorityConnectors.debug("Meridio: Got an unknown remote exception connecting - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString()+" - retrying",e);
-                                throw new MetacartaException("Remote procedure exception: "+e.getMessage(),e);
+                                throw new LCFException("Remote procedure exception: "+e.getMessage(),e);
                         }
                         catch (RemoteException remoteException)
                         {			
-                                throw new MetacartaException("Meridio: An unknown remote exception occurred while " +
+                                throw new LCFException("Meridio: An unknown remote exception occurred while " +
                                         "connecting: "+remoteException.getMessage(), remoteException);
                         }
 
@@ -261,7 +261,7 @@ public class MeridioAuthority extends org.apache.lcf.authorities.authorities.Bas
         /** Check connection for sanity.
         */
         public String check()
-                throws MetacartaException
+                throws LCFException
         {
                 Logging.authorityConnectors.debug("Meridio: Entering 'check' method");
                 attemptToConnect();
@@ -322,7 +322,7 @@ public class MeridioAuthority extends org.apache.lcf.authorities.authorities.Bas
                         {
                                 String exceptionName = e.getFaultString();
                                 if (exceptionName.equals("java.lang.InterruptedException"))
-                                        throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+                                        throw new LCFException("Interrupted",LCFException.INTERRUPTED);
                         }
                         if (Logging.authorityConnectors.isDebugEnabled())
                                 Logging.authorityConnectors.debug("Meridio: Got an unknown remote exception checking - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString()+" - retrying",e);
@@ -356,7 +356,7 @@ public class MeridioAuthority extends org.apache.lcf.authorities.authorities.Bas
         /** Close the connection.  Call this before discarding the repository connector.
         */
         public void disconnect()
-                throws MetacartaException
+                throws LCFException
         {		
                 Logging.authorityConnectors.debug("Meridio: Entering 'disconnect' method");
                 try
@@ -386,7 +386,7 @@ public class MeridioAuthority extends org.apache.lcf.authorities.authorities.Bas
                         {
                                 String exceptionName = e.getFaultString();
                                 if (exceptionName.equals("java.lang.InterruptedException"))
-                                        throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+                                        throw new LCFException("Interrupted",LCFException.INTERRUPTED);
                         }
                         if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server")))
                         {
@@ -433,7 +433,7 @@ public class MeridioAuthority extends org.apache.lcf.authorities.authorities.Bas
         * (Should throws an exception only when a condition cannot be properly described within the authorization response object.)
         */
         public AuthorizationResponse getAuthorizationResponse(String userName)
-                throws MetacartaException
+                throws LCFException
         {
                 if (Logging.authorityConnectors.isDebugEnabled())
                         Logging.authorityConnectors.debug("Meridio: Authentication user name = '" + userName + "'");	
@@ -552,15 +552,15 @@ public class MeridioAuthority extends org.apache.lcf.authorities.authorities.Bas
                                         {
                                                 elem.normalize();
                                                 String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-                                                throw new MetacartaException("Unexpected http error code "+httpErrorCode+" accessing Meridio: "+e.getMessage(),e);
+                                                throw new LCFException("Unexpected http error code "+httpErrorCode+" accessing Meridio: "+e.getMessage(),e);
                                         }
-                                        throw new MetacartaException("Unknown http error occurred while getting doc versions: "+e.getMessage(),e);
+                                        throw new LCFException("Unknown http error occurred while getting doc versions: "+e.getMessage(),e);
                                 }
                                 if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server.userException")))
                                 {
                                         String exceptionName = e.getFaultString();
                                         if (exceptionName.equals("java.lang.InterruptedException"))
-                                                throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+                                                throw new LCFException("Interrupted",LCFException.INTERRUPTED);
                                 }
                                 if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server")))
                                 {
@@ -574,18 +574,18 @@ public class MeridioAuthority extends org.apache.lcf.authorities.authorities.Bas
 
                                 if (Logging.authorityConnectors.isDebugEnabled())
                                         Logging.authorityConnectors.debug("Meridio: Got an unknown remote exception getting user tokens - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString()+" - retrying",e);
-                                throw new MetacartaException("Axis fault: "+e.getMessage(),  e);
+                                throw new LCFException("Axis fault: "+e.getMessage(),  e);
                         }
                         catch (RemoteException remoteException)
                         {
-                                throw new MetacartaException("Meridio: A remote exception occurred while getting user tokens: " +
+                                throw new LCFException("Meridio: A remote exception occurred while getting user tokens: " +
                                         remoteException.getMessage(), remoteException);
                         }
                         catch (MeridioDataSetException meridioDataSetException)
                         {
                                 Logging.authorityConnectors.error("Meridio: A provlem occurred manipulating the Web Service XML: " +
                                         meridioDataSetException.getMessage(), meridioDataSetException);
-                                throw new MetacartaException("Meridio: A problem occurred manipulating the Web " +
+                                throw new LCFException("Meridio: A problem occurred manipulating the Web " +
                                         "Service XML: "+meridioDataSetException.getMessage(), meridioDataSetException);
                         }
                 }

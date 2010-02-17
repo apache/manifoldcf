@@ -20,7 +20,7 @@ package org.apache.lcf.core.lockmanager;
 
 import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.core.system.Logging;
-import org.apache.lcf.core.system.Metacarta;
+import org.apache.lcf.core.system.LCF;
 import java.util.*;
 
 /** The lock manager manages locks across all threads and JVMs and cluster members.  There should be no more than ONE
@@ -47,9 +47,9 @@ public class LockManager implements ILockManager
 	protected String synchDirectory = null;
 
 	public LockManager()
-		throws MetacartaException
+		throws LCFException
 	{
-		synchDirectory = Metacarta.getProperty(Metacarta.synchDirectoryProperty);
+		synchDirectory = LCF.getProperty(LCF.synchDirectoryProperty);
 	}
 
 	protected LocalLock getLocalLock(String lockKey)
@@ -87,7 +87,7 @@ public class LockManager implements ILockManager
 	/** Wait for a time before retrying a lock.
 	*/
 	public void timedWait(int time)
-		throws MetacartaException
+		throws LCFException
 	{
 
 		if (Logging.lock.isDebugEnabled())
@@ -97,11 +97,11 @@ public class LockManager implements ILockManager
 
 		try
 		{
-			Metacarta.sleep(time);
+			LCF.sleep(time);
 		}
 		catch (InterruptedException e)
 		{
-			throw new MetacartaException("Interrupted",e,MetacartaException.INTERRUPTED);
+			throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
 		}
 	}
 
@@ -112,7 +112,7 @@ public class LockManager implements ILockManager
 	* interfere with one another (use of another, standard, write lock per item can guarantee this).
 	*/
 	public void enterNonExWriteLock(String lockKey)
-		throws MetacartaException
+		throws LCFException
 	{
 
 		if (Logging.lock.isDebugEnabled())
@@ -135,7 +135,7 @@ public class LockManager implements ILockManager
 		// Check for illegalities
 		if (ll.hasReadLock())
 		{
-			throw new MetacartaException("Illegal lock sequence: NonExWrite lock can't be within read lock",MetacartaException.GENERAL_ERROR);
+			throw new LCFException("Illegal lock sequence: NonExWrite lock can't be within read lock",LCFException.GENERAL_ERROR);
 		}
 
 		// We don't own a local non-ex write lock.  Get one.  The global lock will need
@@ -150,7 +150,7 @@ public class LockManager implements ILockManager
 			}
 			catch (InterruptedException e)
 			{
-				throw new MetacartaException("Interrupted",e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
 			}
 			catch (ExpiredObjectException e)
 			{
@@ -162,7 +162,7 @@ public class LockManager implements ILockManager
 	}
 
 	public void enterNonExWriteLockNoWait(String lockKey)
-		throws MetacartaException, LockException
+		throws LCFException, LockException
 	{
 
 		if (Logging.lock.isDebugEnabled())
@@ -185,7 +185,7 @@ public class LockManager implements ILockManager
 		// Check for illegalities
 		if (ll.hasReadLock())
 		{
-			throw new MetacartaException("Illegal lock sequence: NonExWrite lock can't be within read lock",MetacartaException.GENERAL_ERROR);
+			throw new LCFException("Illegal lock sequence: NonExWrite lock can't be within read lock",LCFException.GENERAL_ERROR);
 		}
 
 		// We don't own a local non-ex write lock.  Get one.  The global lock will need
@@ -214,7 +214,7 @@ public class LockManager implements ILockManager
 			}
 			catch (InterruptedException e)
 			{
-				throw new MetacartaException("Interrupted",e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
 			}
 			catch (ExpiredObjectException e)
 			{
@@ -228,7 +228,7 @@ public class LockManager implements ILockManager
 	/** Leave a non-exclusive write lock.
 	*/
 	public void leaveNonExWriteLock(String lockKey)
-		throws MetacartaException
+		throws LCFException
 	{
 
 		if (Logging.lock.isDebugEnabled())
@@ -258,17 +258,17 @@ public class LockManager implements ILockManager
 					try
 					{
 						lo.leaveNonExWriteLock();
-						throw new MetacartaException("Interrupted",e,MetacartaException.INTERRUPTED);
+						throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
 					}
 					catch (InterruptedException e2)
 					{
 						ll.incrementNonExWriteLocks();
-						throw new MetacartaException("Interrupted",e2,MetacartaException.INTERRUPTED);
+						throw new LCFException("Interrupted",e2,LCFException.INTERRUPTED);
 					}
 					catch (ExpiredObjectException e2)
 					{
 						ll.incrementNonExWriteLocks();
-						throw new MetacartaException("Interrupted",e,MetacartaException.INTERRUPTED);
+						throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
 					}
 				}
 				catch (ExpiredObjectException e)
@@ -285,7 +285,7 @@ public class LockManager implements ILockManager
 	* NOTE: Can't enter until all readers have left.
 	*/
 	public void enterWriteLock(String lockKey)
-		throws MetacartaException
+		throws LCFException
 	{
 
 		if (Logging.lock.isDebugEnabled())
@@ -307,7 +307,7 @@ public class LockManager implements ILockManager
 		// Check for illegalities
 		if (ll.hasReadLock() || ll.hasNonExWriteLock())
 		{
-			throw new MetacartaException("Illegal lock sequence: Write lock can't be within read lock or non-ex write lock",MetacartaException.GENERAL_ERROR);
+			throw new LCFException("Illegal lock sequence: Write lock can't be within read lock or non-ex write lock",LCFException.GENERAL_ERROR);
 		}
 
 		// We don't own a local write lock.  Get one.  The global lock will need
@@ -323,7 +323,7 @@ public class LockManager implements ILockManager
 			}
 			catch (InterruptedException e)
 			{
-				throw new MetacartaException("Interrupted",e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
 			}
 			catch (ExpiredObjectException e)
 			{
@@ -335,7 +335,7 @@ public class LockManager implements ILockManager
 	}
 
 	public void enterWriteLockNoWait(String lockKey)
-		throws MetacartaException, LockException
+		throws LCFException, LockException
 	{
 
 		if (Logging.lock.isDebugEnabled())
@@ -357,7 +357,7 @@ public class LockManager implements ILockManager
 		// Check for illegalities
 		if (ll.hasReadLock() || ll.hasNonExWriteLock())
 		{
-			throw new MetacartaException("Illegal lock sequence: Write lock can't be within read lock or non-ex write lock",MetacartaException.GENERAL_ERROR);
+			throw new LCFException("Illegal lock sequence: Write lock can't be within read lock or non-ex write lock",LCFException.GENERAL_ERROR);
 		}
 
 		// We don't own a local write lock.  Get one.  The global lock will need
@@ -386,7 +386,7 @@ public class LockManager implements ILockManager
 			}
 			catch (InterruptedException e)
 			{
-				throw new MetacartaException("Interrupted",e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
 			}
 			catch (ExpiredObjectException e)
 			{
@@ -399,7 +399,7 @@ public class LockManager implements ILockManager
 	}
 
 	public void leaveWriteLock(String lockKey)
-		throws MetacartaException
+		throws LCFException
 	{
 
 		if (Logging.lock.isDebugEnabled())
@@ -426,17 +426,17 @@ public class LockManager implements ILockManager
 					try
 					{
 						lo.leaveWriteLock();
-						throw new MetacartaException("Interrupted",e,MetacartaException.INTERRUPTED);
+						throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
 					}
 					catch (InterruptedException e2)
 					{
 						ll.incrementWriteLocks();
-						throw new MetacartaException("Interrupted",e2,MetacartaException.INTERRUPTED);
+						throw new LCFException("Interrupted",e2,LCFException.INTERRUPTED);
 					}
 					catch (ExpiredObjectException e2)
 					{
 						ll.incrementWriteLocks();
-						throw new MetacartaException("Interrupted",e,MetacartaException.INTERRUPTED);
+						throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
 					}
 				}
 				catch (ExpiredObjectException e)
@@ -452,7 +452,7 @@ public class LockManager implements ILockManager
 	/** Enter a read-only locked area (i.e., block ONLY if there's a writer)
 	*/
 	public void enterReadLock(String lockKey)
-		throws MetacartaException
+		throws LCFException
 	{
 
 		if (Logging.lock.isDebugEnabled())
@@ -483,7 +483,7 @@ public class LockManager implements ILockManager
 			}
 			catch (InterruptedException e)
 			{
-				throw new MetacartaException("Interrupted",e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
 			}
 			catch (ExpiredObjectException e)
 			{
@@ -495,7 +495,7 @@ public class LockManager implements ILockManager
 	}
 
 	public void enterReadLockNoWait(String lockKey)
-		throws MetacartaException, LockException
+		throws LCFException, LockException
 	{
 
 		if (Logging.lock.isDebugEnabled())
@@ -538,7 +538,7 @@ public class LockManager implements ILockManager
 			}
 			catch (InterruptedException e)
 			{
-				throw new MetacartaException("Interrupted",e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
 			}
 			catch (ExpiredObjectException e)
 			{
@@ -551,7 +551,7 @@ public class LockManager implements ILockManager
 	}
 
 	public void leaveReadLock(String lockKey)
-		throws MetacartaException
+		throws LCFException
 	{
 
 		if (Logging.lock.isDebugEnabled())
@@ -578,17 +578,17 @@ public class LockManager implements ILockManager
 					try
 					{
 						lo.leaveReadLock();
-						throw new MetacartaException("Interrupted",e,MetacartaException.INTERRUPTED);
+						throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
 					}
 					catch (InterruptedException e2)
 					{
 						ll.incrementReadLocks();
-						throw new MetacartaException("Interrupted",e2,MetacartaException.INTERRUPTED);
+						throw new LCFException("Interrupted",e2,LCFException.INTERRUPTED);
 					}
 					catch (ExpiredObjectException e2)
 					{
 						ll.incrementReadLocks();
-						throw new MetacartaException("Interrupted",e,MetacartaException.INTERRUPTED);
+						throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
 					}
 				}
 				catch (ExpiredObjectException e)
@@ -601,7 +601,7 @@ public class LockManager implements ILockManager
 	}
 
 	public void clearLocks()
-		throws MetacartaException
+		throws LCFException
 	{
 
 		if (Logging.lock.isDebugEnabled())
@@ -627,7 +627,7 @@ public class LockManager implements ILockManager
 	/** Enter multiple locks
 	*/
 	public void enterLocks(String[] readLocks, String[] nonExWriteLocks, String[] writeLocks)
-		throws MetacartaException
+		throws LCFException
 	{
 
 		if (Logging.lock.isDebugEnabled())
@@ -680,7 +680,7 @@ public class LockManager implements ILockManager
 					// Check for illegalities
 					if ((ll.hasReadLock() || ll.hasNonExWriteLock()) && !ll.hasWriteLock())
 					{
-						throw new MetacartaException("Illegal lock sequence: Write lock can't be within read lock or non-ex write lock",MetacartaException.GENERAL_ERROR);
+						throw new LCFException("Illegal lock sequence: Write lock can't be within read lock or non-ex write lock",LCFException.GENERAL_ERROR);
 					}
 
 					// See if we already own the write lock for the object
@@ -708,7 +708,7 @@ public class LockManager implements ILockManager
 					// Check for illegalities
 					if (ll.hasReadLock() && !(ll.hasNonExWriteLock() || ll.hasWriteLock()))
 					{
-						throw new MetacartaException("Illegal lock sequence: NonExWrite lock can't be within read lock",MetacartaException.GENERAL_ERROR);
+						throw new LCFException("Illegal lock sequence: NonExWrite lock can't be within read lock",LCFException.GENERAL_ERROR);
 					}
 
 					// See if we already own the write lock for the object
@@ -762,7 +762,7 @@ public class LockManager implements ILockManager
 		catch (Throwable ex)
 		{
 			// No matter what, undo the locks we've taken
-			MetacartaException ae = null;
+			LCFException ae = null;
 			int errno = 0;
 
 			while (--locksProcessed >= 0)
@@ -785,7 +785,7 @@ public class LockManager implements ILockManager
 						break;
 					}
 				}
-				catch (MetacartaException e)
+				catch (LCFException e)
 				{
 					ae = e;
 				}
@@ -795,14 +795,14 @@ public class LockManager implements ILockManager
 			{
 				throw ae;
 			}
-			if (ex instanceof MetacartaException)
+			if (ex instanceof LCFException)
 			{
-				throw (MetacartaException)ex;
+				throw (LCFException)ex;
 			}
 			if (ex instanceof InterruptedException)
 			{
 				// It's InterruptedException
-				throw new MetacartaException("Interrupted",ex,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted",ex,LCFException.INTERRUPTED);
 			}
 			if (!(ex instanceof Error))
 			{
@@ -813,7 +813,7 @@ public class LockManager implements ILockManager
 	}
 
 	public void enterLocksNoWait(String[] readLocks, String[] nonExWriteLocks, String[] writeLocks)
-		throws MetacartaException, LockException
+		throws LCFException, LockException
 	{
 
 		if (Logging.lock.isDebugEnabled())
@@ -866,7 +866,7 @@ public class LockManager implements ILockManager
 					// Check for illegalities
 					if ((ll.hasReadLock() || ll.hasNonExWriteLock()) && !ll.hasWriteLock())
 					{
-						throw new MetacartaException("Illegal lock sequence: Write lock can't be within read lock or non-ex write lock",MetacartaException.GENERAL_ERROR);
+						throw new LCFException("Illegal lock sequence: Write lock can't be within read lock or non-ex write lock",LCFException.GENERAL_ERROR);
 					}
 
 					// See if we already own the write lock for the object
@@ -897,7 +897,7 @@ public class LockManager implements ILockManager
 					// Check for illegalities
 					if (ll.hasReadLock() && !(ll.hasNonExWriteLock() || ll.hasWriteLock()))
 					{
-						throw new MetacartaException("Illegal lock sequence: NonExWrite lock can't be within read lock",MetacartaException.GENERAL_ERROR);
+						throw new LCFException("Illegal lock sequence: NonExWrite lock can't be within read lock",LCFException.GENERAL_ERROR);
 					}
 
 					// See if we already own the write lock for the object
@@ -957,7 +957,7 @@ public class LockManager implements ILockManager
 		catch (Throwable ex)
 		{
 			// No matter what, undo the locks we've taken
-			MetacartaException ae = null;
+			LCFException ae = null;
 			int errno = 0;
 
 			while (--locksProcessed >= 0)
@@ -980,7 +980,7 @@ public class LockManager implements ILockManager
 						break;
 					}
 				}
-				catch (MetacartaException e)
+				catch (LCFException e)
 				{
 					ae = e;
 				}
@@ -990,9 +990,9 @@ public class LockManager implements ILockManager
 			{
 				throw ae;
 			}
-			if (ex instanceof MetacartaException)
+			if (ex instanceof LCFException)
 			{
-				throw (MetacartaException)ex;
+				throw (LCFException)ex;
 			}
 			if (ex instanceof LockException || ex instanceof LocalLockException)
 			{
@@ -1002,7 +1002,7 @@ public class LockManager implements ILockManager
 			}
 			if (ex instanceof InterruptedException)
 			{
-				throw new MetacartaException("Interrupted",ex,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted",ex,LCFException.INTERRUPTED);
 			}
 			if (!(ex instanceof Error))
 			{
@@ -1017,11 +1017,11 @@ public class LockManager implements ILockManager
 	/** Leave multiple locks
 	*/
 	public void leaveLocks(String[] readLocks, String[] writeNonExLocks, String[] writeLocks)
-		throws MetacartaException
+		throws LCFException
 	{
 		LockDescription[] lds = getSortedUniqueLocks(readLocks,writeNonExLocks,writeLocks);
 		// Free them all... one at a time is fine
-		MetacartaException ae = null;
+		LCFException ae = null;
 		int i = lds.length;
 		while (--i >= 0)
 		{
@@ -1043,7 +1043,7 @@ public class LockManager implements ILockManager
 					break;
 				}
 			}
-			catch (MetacartaException e)
+			catch (LCFException e)
 			{
 				ae = e;
 			}
@@ -1061,7 +1061,7 @@ public class LockManager implements ILockManager
 	* section at a time.
 	*/
 	public void enterReadCriticalSection(String sectionKey)
-		throws MetacartaException
+		throws LCFException
 	{
 		LocalLock ll = getLocalSection(sectionKey);
 
@@ -1084,7 +1084,7 @@ public class LockManager implements ILockManager
 			}
 			catch (InterruptedException e)
 			{
-				throw new MetacartaException("Interrupted",e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
 			}
 			catch (ExpiredObjectException e)
 			{
@@ -1100,7 +1100,7 @@ public class LockManager implements ILockManager
 	* section at a time.
 	*/
 	public void leaveReadCriticalSection(String sectionKey)
-		throws MetacartaException
+		throws LCFException
 	{
 		LocalLock ll = getLocalSection(sectionKey);
 
@@ -1121,17 +1121,17 @@ public class LockManager implements ILockManager
 					try
 					{
 						lo.leaveReadLock();
-						throw new MetacartaException("Interrupted",e,MetacartaException.INTERRUPTED);
+						throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
 					}
 					catch (InterruptedException e2)
 					{
 						ll.incrementReadLocks();
-						throw new MetacartaException("Interrupted",e2,MetacartaException.INTERRUPTED);
+						throw new LCFException("Interrupted",e2,LCFException.INTERRUPTED);
 					}
 					catch (ExpiredObjectException e2)
 					{
 						ll.incrementReadLocks();
-						throw new MetacartaException("Interrupted",e,MetacartaException.INTERRUPTED);
+						throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
 					}
 				}
 				catch (ExpiredObjectException e)
@@ -1150,7 +1150,7 @@ public class LockManager implements ILockManager
 	* section at a time.
 	*/
 	public void enterNonExWriteCriticalSection(String sectionKey)
-		throws MetacartaException
+		throws LCFException
 	{
 		LocalLock ll = getLocalSection(sectionKey);
 
@@ -1166,7 +1166,7 @@ public class LockManager implements ILockManager
 		// Check for illegalities
 		if (ll.hasReadLock())
 		{
-			throw new MetacartaException("Illegal lock sequence: NonExWrite critical section can't be within read critical section",MetacartaException.GENERAL_ERROR);
+			throw new LCFException("Illegal lock sequence: NonExWrite critical section can't be within read critical section",LCFException.GENERAL_ERROR);
 		}
 
 		// We don't own a local non-ex write lock.  Get one.  The global lock will need
@@ -1181,7 +1181,7 @@ public class LockManager implements ILockManager
 			}
 			catch (InterruptedException e)
 			{
-				throw new MetacartaException("Interrupted",e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
 			}
 			catch (ExpiredObjectException e)
 			{
@@ -1197,7 +1197,7 @@ public class LockManager implements ILockManager
 	* section at a time.
 	*/
 	public void leaveNonExWriteCriticalSection(String sectionKey)
-		throws MetacartaException
+		throws LCFException
 	{
 		LocalLock ll = getLocalSection(sectionKey);
 
@@ -1221,17 +1221,17 @@ public class LockManager implements ILockManager
 					try
 					{
 						lo.leaveNonExWriteLock();
-						throw new MetacartaException("Interrupted",e,MetacartaException.INTERRUPTED);
+						throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
 					}
 					catch (InterruptedException e2)
 					{
 						ll.incrementNonExWriteLocks();
-						throw new MetacartaException("Interrupted",e2,MetacartaException.INTERRUPTED);
+						throw new LCFException("Interrupted",e2,LCFException.INTERRUPTED);
 					}
 					catch (ExpiredObjectException e2)
 					{
 						ll.incrementNonExWriteLocks();
-						throw new MetacartaException("Interrupted",e,MetacartaException.INTERRUPTED);
+						throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
 					}
 				}
 				catch (ExpiredObjectException e)
@@ -1250,7 +1250,7 @@ public class LockManager implements ILockManager
 	* section at a time.
 	*/
 	public void enterWriteCriticalSection(String sectionKey)
-		throws MetacartaException
+		throws LCFException
 	{
 		LocalLock ll = getLocalSection(sectionKey);
 
@@ -1265,7 +1265,7 @@ public class LockManager implements ILockManager
 		// Check for illegalities
 		if (ll.hasReadLock() || ll.hasNonExWriteLock())
 		{
-			throw new MetacartaException("Illegal lock sequence: Write lock can't be within read lock or non-ex write lock",MetacartaException.GENERAL_ERROR);
+			throw new LCFException("Illegal lock sequence: Write lock can't be within read lock or non-ex write lock",LCFException.GENERAL_ERROR);
 		}
 
 		// We don't own a local write lock.  Get one.  The global lock will need
@@ -1281,7 +1281,7 @@ public class LockManager implements ILockManager
 			}
 			catch (InterruptedException e)
 			{
-				throw new MetacartaException("Interrupted",e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
 			}
 			catch (ExpiredObjectException e)
 			{
@@ -1298,7 +1298,7 @@ public class LockManager implements ILockManager
 	* section at a time.
 	*/
 	public void leaveWriteCriticalSection(String sectionKey)
-		throws MetacartaException
+		throws LCFException
 	{
 		LocalLock ll = getLocalSection(sectionKey);
 
@@ -1319,17 +1319,17 @@ public class LockManager implements ILockManager
 					try
 					{
 						lo.leaveWriteLock();
-						throw new MetacartaException("Interrupted",e,MetacartaException.INTERRUPTED);
+						throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
 					}
 					catch (InterruptedException e2)
 					{
 						ll.incrementWriteLocks();
-						throw new MetacartaException("Interrupted",e2,MetacartaException.INTERRUPTED);
+						throw new LCFException("Interrupted",e2,LCFException.INTERRUPTED);
 					}
 					catch (ExpiredObjectException e2)
 					{
 						ll.incrementWriteLocks();
-						throw new MetacartaException("Interrupted",e,MetacartaException.INTERRUPTED);
+						throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
 					}
 				}
 				catch (ExpiredObjectException e)
@@ -1348,7 +1348,7 @@ public class LockManager implements ILockManager
 	*@param writeSectionKeys is an array of write section descriptors, or null if there are none desired.
 	*/
 	public void enterCriticalSections(String[] readSectionKeys, String[] nonExSectionKeys, String[] writeSectionKeys)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Sort the locks.  This improves the chances of making it through the locking process without
 		// contention!
@@ -1369,7 +1369,7 @@ public class LockManager implements ILockManager
 					// Check for illegalities
 					if ((ll.hasReadLock() || ll.hasNonExWriteLock()) && !ll.hasWriteLock())
 					{
-						throw new MetacartaException("Illegal lock sequence: Write critical section can't be within read critical section or non-ex write critical section",MetacartaException.GENERAL_ERROR);
+						throw new LCFException("Illegal lock sequence: Write critical section can't be within read critical section or non-ex write critical section",LCFException.GENERAL_ERROR);
 					}
 
 					// See if we already own the write lock for the object
@@ -1397,7 +1397,7 @@ public class LockManager implements ILockManager
 					// Check for illegalities
 					if (ll.hasReadLock() && !(ll.hasNonExWriteLock() || ll.hasWriteLock()))
 					{
-						throw new MetacartaException("Illegal lock sequence: NonExWrite critical section can't be within read critical section",MetacartaException.GENERAL_ERROR);
+						throw new LCFException("Illegal lock sequence: NonExWrite critical section can't be within read critical section",LCFException.GENERAL_ERROR);
 					}
 
 					// See if we already own the write lock for the object
@@ -1450,7 +1450,7 @@ public class LockManager implements ILockManager
 		catch (Throwable ex)
 		{
 			// No matter what, undo the locks we've taken
-			MetacartaException ae = null;
+			LCFException ae = null;
 			int errno = 0;
 
 			while (--locksProcessed >= 0)
@@ -1473,7 +1473,7 @@ public class LockManager implements ILockManager
 						break;
 					}
 				}
-				catch (MetacartaException e)
+				catch (LCFException e)
 				{
 					ae = e;
 				}
@@ -1483,14 +1483,14 @@ public class LockManager implements ILockManager
 			{
 				throw ae;
 			}
-			if (ex instanceof MetacartaException)
+			if (ex instanceof LCFException)
 			{
-				throw (MetacartaException)ex;
+				throw (LCFException)ex;
 			}
 			if (ex instanceof InterruptedException)
 			{
 				// It's InterruptedException
-				throw new MetacartaException("Interrupted",ex,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted",ex,LCFException.INTERRUPTED);
 			}
 			if (!(ex instanceof Error))
 			{
@@ -1506,11 +1506,11 @@ public class LockManager implements ILockManager
 	*@param writeSectionKeys is an array of write section descriptors, or null if there are none desired.
 	*/
 	public void leaveCriticalSections(String[] readSectionKeys, String[] nonExSectionKeys, String[] writeSectionKeys)
-		throws MetacartaException
+		throws LCFException
 	{
 		LockDescription[] lds = getSortedUniqueLocks(readSectionKeys,nonExSectionKeys,writeSectionKeys);
 		// Free them all... one at a time is fine
-		MetacartaException ae = null;
+		LCFException ae = null;
 		int i = lds.length;
 		while (--i >= 0)
 		{
@@ -1532,7 +1532,7 @@ public class LockManager implements ILockManager
 					break;
 				}
 			}
-			catch (MetacartaException e)
+			catch (LCFException e)
 			{
 				ae = e;
 			}

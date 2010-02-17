@@ -79,7 +79,7 @@ public class Base64
     *@return false if end-of-stream encountered, true otherwise
     */
     public boolean decodeNextWord(Reader inputBuffer, OutputStream outputBuffer)
-	throws MetacartaException
+	throws LCFException
     {
 	try
 	{
@@ -91,7 +91,7 @@ public class Base64
 			if (character == -1)
 			{
 				if (bufferIndex != 0)
-					throw new MetacartaException("Unexpected end of base64 input");
+					throw new LCFException("Unexpected end of base64 input");
 				return false;
 			}
 			char ch = (char)character;
@@ -99,7 +99,7 @@ public class Base64
 				characterBuffer[bufferIndex++] = ch;
 
 			// else
-			//	throw new MetacartaException("Illegal Base64 character: '"+ch+"'");
+			//	throw new LCFException("Illegal Base64 character: '"+ch+"'");
 		}
 
 		// We have the data; do the conversion.
@@ -132,7 +132,7 @@ public class Base64
     	}
 	catch (IOException e)
 	{
-		throw new MetacartaException("IO error converting from base 64",e);
+		throw new LCFException("IO error converting from base 64",e);
 	}
     }
 
@@ -141,7 +141,7 @@ public class Base64
     *@param outputBuffer is the binary output stream.
     */
     public void decodeStream(Reader inputBuffer, OutputStream outputBuffer)
-	throws MetacartaException
+	throws LCFException
     {
 	// Just loop until done.
 	// It may be efficient to replace this with a "bulk" method, but probably not much.
@@ -155,7 +155,7 @@ public class Base64
     *@return a corresponding byte array.
     */
     public byte[] decodeString(String inputString)
-	throws MetacartaException
+	throws LCFException
     {
 	try
 	{
@@ -184,7 +184,7 @@ public class Base64
 	}
 	catch (IOException e)
 	{
-		throw new MetacartaException("Error streaming through base64 decoder",e);
+		throw new LCFException("Error streaming through base64 decoder",e);
 	}
     }
 
@@ -194,7 +194,7 @@ public class Base64
     *@return false if end-of-stream encountered, true otherwise.
     */
     public boolean encodeNextWord(InputStream inputStream, Writer outputWriter)
-	throws MetacartaException
+	throws LCFException
     {
 	try
 	{
@@ -206,7 +206,7 @@ public class Base64
 		switch (actualLength)
 		{
 		case 0:
-			throw new MetacartaException("Read 0 bytes!");
+			throw new LCFException("Read 0 bytes!");
 		case 1:
             		i = byteBuffer[0]&0xff;
             		outputWriter.write(base64CharacterArray[i>>2]);
@@ -240,7 +240,7 @@ public class Base64
 	}
 	catch (IOException e)
 	{
-		throw new MetacartaException("IO error encoding in base64",e);
+		throw new LCFException("IO error encoding in base64",e);
 	}
     }
 
@@ -249,7 +249,7 @@ public class Base64
     *@param outputWriter is the output writer.
     */
     public void encodeStream(InputStream inputStream, Writer outputWriter)
-	throws MetacartaException
+	throws LCFException
     {
 	while (encodeNextWord(inputStream,outputWriter))
 	{
@@ -261,7 +261,7 @@ public class Base64
     *@return the encoded string.
     */
     public String encodeByteArray(byte[] inputByteArray)
-	throws MetacartaException
+	throws LCFException
     {
 	try
 	{
@@ -287,7 +287,7 @@ public class Base64
 	}
 	catch (IOException e)
 	{
-		throw new MetacartaException("Error streaming through base64 encoder",e);
+		throw new LCFException("Error streaming through base64 encoder",e);
 	}
     }
 

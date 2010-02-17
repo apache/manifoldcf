@@ -21,7 +21,7 @@ package org.apache.lcf.core.interfaces;
 import org.apache.lcf.core.interfaces.*;
 import java.util.*;
 import java.io.*;
-import org.apache.lcf.core.system.Metacarta;
+import org.apache.lcf.core.system.LCF;
 import org.apache.lcf.core.common.XMLDoc;
 
 /** This class represents a set of configuration parameters, with structure, which is a generalized hierarchy of nodes that
@@ -70,7 +70,7 @@ public class ConfigParams
 	*@param xml is the input XML.
 	*/
 	public ConfigParams(String xml)
-		throws MetacartaException
+		throws LCFException
 	{
 		fromXML(xml);
 	}
@@ -79,7 +79,7 @@ public class ConfigParams
 	*@return the xml corresponding to these ConfigParams.
 	*/
 	public String toXML()
-		throws MetacartaException
+		throws LCFException
 	{
 		XMLDoc doc = new XMLDoc();
 		// name of root node in definition
@@ -101,7 +101,7 @@ public class ConfigParams
 	*@param node is the node.
 	*/
 	protected static void writeNode(XMLDoc doc, Object parent, ConfigNode node)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Get the type
 		String type = node.getType();
@@ -131,7 +131,7 @@ public class ConfigParams
 	*@param xml is the input XML.
 	*/
 	public void fromXML(String xml)
-		throws MetacartaException
+		throws LCFException
 	{
 		children.clear();
 		params.clear();
@@ -141,11 +141,11 @@ public class ConfigParams
 
 		if (list.size() != 1)
 		{
-			throw new MetacartaException("Bad xml - missing outer 'configuration' node - there are "+Integer.toString(list.size())+" nodes");
+			throw new LCFException("Bad xml - missing outer 'configuration' node - there are "+Integer.toString(list.size())+" nodes");
 		}
 		Object parent = list.get(0);
 		if (!doc.getNodeName(parent).equals("configuration"))
-			throw new MetacartaException("Bad xml - outer node is not 'configuration'");
+			throw new LCFException("Bad xml - outer node is not 'configuration'");
 
 		list.clear();
 		doc.processPath(list, "*", parent);
@@ -174,7 +174,7 @@ public class ConfigParams
 	*@return the specification node.
 	*/
 	protected static ConfigNode readNode(XMLDoc doc, Object object)
-		throws MetacartaException
+		throws LCFException
 	{
 		String type = doc.getNodeName(object);
 		ConfigNode rval = new ConfigNode(type);
@@ -222,9 +222,9 @@ public class ConfigParams
 			return rval;
 		try
 		{
-			return Metacarta.deobfuscate(rval);
+			return LCF.deobfuscate(rval);
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			// Ignore this exception, and return an empty string.
 			return "";
@@ -275,9 +275,9 @@ public class ConfigParams
 		{
 			try
 			{
-				value = Metacarta.obfuscate(value);
+				value = LCF.obfuscate(value);
 			}
-			catch (MetacartaException e)
+			catch (LCFException e)
 			{
 				// Ignore this exception, and set "" to be the value
 				value = "";

@@ -67,7 +67,7 @@ public class FPSEPublish
 
 	public FPSEPublish(String serverProtocol, String serverName, int serverPort, String serverLocation,
 		String userName, String password, String domainName)
-		throws MetacartaException
+		throws LCFException
 	{
 		this.serverProtocol = serverProtocol;
 		this.serverName = serverName;
@@ -82,7 +82,7 @@ public class FPSEPublish
 	}
 
 	public void close()
-		throws MetacartaException
+		throws LCFException
 	{
 	}
 
@@ -103,7 +103,7 @@ public class FPSEPublish
 	}
 
 	protected void UrlToWebUrl(String uri)
-		throws MetacartaException
+		throws LCFException
 	{
 		String actualURL = getBaseUrl() + "/" + uri;
 		try
@@ -117,20 +117,20 @@ public class FPSEPublish
 
 			webUrl = GetReturnValue(response, "webUrl").replaceAll(" ","%20");
 			if (webUrl == null)
-				throw new MetacartaException("Null web url for document described by '"+uri+"'");
+				throw new LCFException("Null web url for document described by '"+uri+"'");
 			fileUrl = GetReturnValue(response, "fileUrl");
 			if (fileUrl == null)
-				throw new MetacartaException("Null file url for document described by '"+uri+"'");
+				throw new LCFException("Null file url for document described by '"+uri+"'");
 			// System.out.println("File url = "+fileUrl);
 		}
 		catch (MalformedURLException e)
 		{
-			throw new MetacartaException("Malformed URL: '"+actualURL+"'",e);
+			throw new LCFException("Malformed URL: '"+actualURL+"'",e);
 		}
 	}
 
 	public void removeDocument(String url)
-		throws MetacartaException
+		throws LCFException
 	{
 	    try
 	    {
@@ -152,16 +152,16 @@ public class FPSEPublish
 	    }
 	    catch (UnsupportedEncodingException e)
 	    {
-		throw new MetacartaException("Unsupported encoding",e);
+		throw new LCFException("Unsupported encoding",e);
 	    }
 	    catch (IOException e)
 	    {
-		throw new MetacartaException("IO exception",e);
+		throw new LCFException("IO exception",e);
 	    }
 	}
 
 	public void writeDocument(String url, String fileName, String metaInfo)
-		throws MetacartaException
+		throws LCFException
 	{
 	    try
 	    {
@@ -215,20 +215,20 @@ public class FPSEPublish
 	    }
 	    catch (FileNotFoundException e)
 	    {
-		throw new MetacartaException("File not found",e);
+		throw new LCFException("File not found",e);
 	    }
 	    catch (UnsupportedEncodingException e)
 	    {
-		throw new MetacartaException("Unsupported encoding",e);
+		throw new LCFException("Unsupported encoding",e);
 	    }
 	    catch (IOException e)
 	    {
-		throw new MetacartaException("IO exception",e);
+		throw new LCFException("IO exception",e);
 	    }
 	}
 
 	public void checkinDocument(String uri)
-		throws MetacartaException
+		throws LCFException
 	{
 		UrlToWebUrl(uri);
 
@@ -241,13 +241,13 @@ public class FPSEPublish
 		}
 		catch (UnsupportedEncodingException e)
 		{
-			throw new MetacartaException("Unsupported encoding",e);
+			throw new LCFException("Unsupported encoding",e);
 		}
 
 	}
 
     	public void addUser( String siteUrl, String lib, String user)
-		throws MetacartaException
+		throws LCFException
     	{
 		try
 		{
@@ -258,16 +258,16 @@ public class FPSEPublish
 		}
 		catch (org.apache.axis.AxisFault e)
 		{
-			throw new MetacartaException("Error adding user '"+user+"' to '"+siteUrl+"' library '"+lib+"'; axis fault: "+e.dumpToString(),e);
+			throw new LCFException("Error adding user '"+user+"' to '"+siteUrl+"' library '"+lib+"'; axis fault: "+e.dumpToString(),e);
 		}
 		catch (Exception e)
 		{
-			throw new MetacartaException("Error adding user '"+user+"' to '"+siteUrl+"' library '"+lib+"'",e);
+			throw new LCFException("Error adding user '"+user+"' to '"+siteUrl+"' library '"+lib+"'",e);
 		}
     	}
     
     	public void delUser( String siteUrl, String lib, String user)
-		throws MetacartaException
+		throws LCFException
     	{
 		try
 		{
@@ -278,16 +278,16 @@ public class FPSEPublish
 		}
 		catch (org.apache.axis.AxisFault e)
 		{
-			throw new MetacartaException("Error removing user '"+user+"' to '"+siteUrl+"' library '"+lib+"'; axis fault: "+e.dumpToString(),e);
+			throw new LCFException("Error removing user '"+user+"' to '"+siteUrl+"' library '"+lib+"'; axis fault: "+e.dumpToString(),e);
 		}
 		catch (Exception e)
 		{
-			throw new MetacartaException("Error removing user '"+user+"' from '"+siteUrl+"' library '"+lib+"'",e);
+			throw new LCFException("Error removing user '"+user+"' from '"+siteUrl+"' library '"+lib+"'",e);
 		}
     	}
 
 	public void addSiteUser( String siteUrl, String alias, String displayName, String email, String group)
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
@@ -306,18 +306,18 @@ public class FPSEPublish
 				}
 				catch (org.apache.axis.AxisFault e)
 				{
-					throw new MetacartaException("Error adding site user '"+alias+"' to site '"+siteUrl+"' in group '" + group + "'; axis fault: "+e.dumpToString(),e);
+					throw new LCFException("Error adding site user '"+alias+"' to site '"+siteUrl+"' in group '" + group + "'; axis fault: "+e.dumpToString(),e);
 				}
 			}
 		}
 		catch (Exception e)
 		{
-			throw new MetacartaException("Error adding site user '"+alias+"' to '"+siteUrl,e);
+			throw new LCFException("Error adding site user '"+alias+"' to '"+siteUrl,e);
 		}
         }
     
 	public void delSiteUser( String siteUrl, String alias )
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
@@ -328,17 +328,17 @@ public class FPSEPublish
 		}
 		catch (org.apache.axis.AxisFault e)
 		{
-			throw new MetacartaException("Error removing site user '"+alias+"' from '"+siteUrl+"'; axis fault: "+e.dumpToString(),e);
+			throw new LCFException("Error removing site user '"+alias+"' from '"+siteUrl+"'; axis fault: "+e.dumpToString(),e);
 		}
 		catch (Exception e)
 		{
-			throw new MetacartaException("Error removing site user '"+alias+"' from '"+siteUrl+"'",e);
+			throw new LCFException("Error removing site user '"+alias+"' from '"+siteUrl+"'",e);
 		}
 
     	}
 
 	public void setDocsMetaInfo(String uri, String metaInfo)
-		throws MetacartaException
+		throws LCFException
 	{
 	    try
 	    {
@@ -351,12 +351,12 @@ public class FPSEPublish
 	    }
 	    catch (UnsupportedEncodingException e)
 	    {
-		throw new MetacartaException("Unsupported encoding",e);
+		throw new LCFException("Unsupported encoding",e);
 	    }
 	}
 
 	private String SendRequest(String uri, String postBody)
-		throws MetacartaException
+		throws LCFException
 	{
 
 		try
@@ -380,7 +380,7 @@ public class FPSEPublish
 		}
 		catch (Exception e)
 		{
-			throw new MetacartaException("Error sending request to '"+uri+"'",e);
+			throw new LCFException("Error sending request to '"+uri+"'",e);
 		}
 
 	}

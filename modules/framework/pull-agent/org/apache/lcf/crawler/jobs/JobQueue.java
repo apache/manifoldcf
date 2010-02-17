@@ -21,7 +21,7 @@ package org.apache.lcf.crawler.jobs;
 import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.crawler.interfaces.*;
 import org.apache.lcf.crawler.system.Logging;
-import org.apache.lcf.crawler.system.Metacarta;
+import org.apache.lcf.crawler.system.LCF;
 import java.util.*;
 
 /** This is the job queue manager class.  It is responsible for managing the jobqueue database table.
@@ -136,7 +136,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
         *@param database is the database handle.
         */
         public JobQueue(IDBInterface database)
-                throws MetacartaException
+                throws LCFException
         {
                 super(database,"jobqueue");
                 prereqEventManager = new PrereqEventManager(database);
@@ -145,7 +145,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
         /** Install or upgrade.
         */
         public void install(String jobsTable, String jobsColumn)
-                throws MetacartaException
+                throws LCFException
         {
                 // It is possible that we will fail to properly create the unique index, so structure the code to retry after fixup should this occur...
                 while (true)
@@ -222,7 +222,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
                                         }
                                 }
                         }
-                        catch (MetacartaException e)
+                        catch (LCFException e)
                         {
                                 signalRollback();
                                 throw e;
@@ -307,7 +307,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
                                 {
                                         performAddIndex(null,uniqueIndex);
                                 }
-                                catch (MetacartaException e)
+                                catch (LCFException e)
                                 {
                                         if (e.getMessage().indexOf("could not create unique index") == -1)
                                                 throw e;
@@ -325,7 +325,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
         
         /** Remove duplicates, as part of upgrade */
         protected void removeDuplicates()
-                throws MetacartaException
+                throws LCFException
         {
                 // If we get here it means we could not create the unique index on this table.
                 // We therefore need to remove duplicate rows, finish the job of creating the index, and try again.
@@ -350,7 +350,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
                 }
                 catch (NumberFormatException e)
                 {
-                        throw new MetacartaException(e.getMessage(),e);
+                        throw new LCFException(e.getMessage(),e);
                 }
 
                 // Now, amass a list of duplicates
@@ -394,7 +394,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
 
         /** Analyze job tables due to major event */
         public void unconditionallyAnalyzeTables()
-                throws MetacartaException
+                throws LCFException
         {
                 try
                 {
@@ -412,7 +412,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
 	/** Analyze job tables that need analysis.
 	*/
 	public void conditionallyAnalyzeTables()
-		throws MetacartaException
+		throws LCFException
 	{
 		if (tracker.checkAnalyze())
 		{
@@ -438,7 +438,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
         /** Uninstall.
         */
         public void deinstall()
-                throws MetacartaException
+                throws LCFException
         {
                 beginTransaction();
                 try
@@ -446,7 +446,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
                         prereqEventManager.deinstall();
                         performDrop(null);
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         signalRollback();
                         throw e;
@@ -467,7 +467,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
         * reasonable, so the jobs can be restarted and work properly to completion.
         */
         public void restart()
-                throws MetacartaException
+                throws LCFException
         {
                 // Map ACTIVE back to PENDING.
                 HashMap map = new HashMap();
@@ -513,7 +513,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
         *@param jobID is the job identifier.
         */
         public void clearFailTimes(Long jobID)
-                throws MetacartaException
+                throws LCFException
         {
                 ArrayList list = new ArrayList();
                 list.add(jobID);
@@ -528,7 +528,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
         * resets any active documents back to the right state (waiting for stuffing).
         */
         public void resetDocumentWorkerStatus()
-                throws MetacartaException
+                throws LCFException
         {
                 // Map ACTIVE back to PENDING.
                 HashMap map = new HashMap();
@@ -549,7 +549,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
         /** Reset doc delete worker status.
         */
         public void resetDocDeleteWorkerStatus()
-                throws MetacartaException
+                throws LCFException
         {
                 HashMap map = new HashMap();
                 ArrayList list = new ArrayList();
@@ -569,7 +569,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
         *@param jobID is the job identifier.
         */
         public void prepareFullScan(Long jobID)
-                throws MetacartaException
+                throws LCFException
         {
                 // Delete PENDING and ACTIVE entries
                 ArrayList list = new ArrayList();
@@ -611,7 +611,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
 	*@param jobID is the job identifier.
 	*/
 	public void prepareIncrementalScan(Long jobID)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Delete PENDING and ACTIVE entries
 		ArrayList list = new ArrayList();
@@ -640,7 +640,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
         *@param identifiers is the set of document identifiers.
         */
         public void deleteIngestedDocumentIdentifiers(DocumentDescription[] identifiers)
-                throws MetacartaException
+                throws LCFException
         {
                 ArrayList list = new ArrayList();
                 StringBuffer sb = new StringBuffer();
@@ -659,7 +659,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
 
         /** Check if there are any outstanding active documents for a job */
         public boolean checkJobBusy(Long jobID)
-                throws MetacartaException
+                throws LCFException
         {
                 ArrayList list = new ArrayList();
                 list.add(jobID);
@@ -676,7 +676,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
         *@param jobID is the job identifier.
         */
         public void deleteAllJobRecords(Long jobID)
-                throws MetacartaException
+                throws LCFException
         {
                 ArrayList list = new ArrayList();
                 list.add(jobID);
@@ -688,7 +688,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
 
         /** Write out a document priority */
         public void writeDocPriority(long currentTime, Long rowID, double priority)
-                throws MetacartaException
+                throws LCFException
         {
                 HashMap map = new HashMap();
                 map.put(prioritySetField,new Long(currentTime));
@@ -702,7 +702,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
         /** Set the "completed" status for a record.
         */
         public void updateCompletedRecord(Long recID, int currentStatus)
-                throws MetacartaException
+                throws LCFException
         {
                 int newStatus;
                 String actionFieldValue;
@@ -722,7 +722,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
                         checkTimeValue = new Long(0L);
                         break;
                 default:
-                        throw new MetacartaException("Unexpected jobqueue status - record id "+recID.toString()+", expecting active status");
+                        throw new LCFException("Unexpected jobqueue status - record id "+recID.toString()+", expecting active status");
                 }
                 
                 HashMap map = new HashMap();
@@ -745,7 +745,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
         *@param currentStatus is the current status
         */
         public void updateActiveRecord(Long id, int currentStatus)
-                throws MetacartaException
+                throws LCFException
         {
                 int newStatus;
                 switch (currentStatus)
@@ -757,7 +757,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
                         newStatus = STATUS_ACTIVEPURGATORY;
                         break;
                 default:
-                        throw new MetacartaException("Unexpected status value for jobqueue record "+id.toString()+"; got "+Integer.toString(currentStatus));
+                        throw new LCFException("Unexpected status value for jobqueue record "+id.toString()+"; got "+Integer.toString(currentStatus));
                 }
 
                 ArrayList list = new ArrayList();
@@ -775,7 +775,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
         */
         public void setStatus(Long id, int status,
                 Long checkTime, int action, long failTime, int failCount)
-                throws MetacartaException
+                throws LCFException
         {
                 ArrayList list = new ArrayList();
                 list.add(id);
@@ -800,7 +800,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
         /** Set the status of a document to "being deleted".
         */
         public void setDeletingStatus(Long id)
-                throws MetacartaException
+                throws LCFException
         {
                 ArrayList list = new ArrayList();
                 list.add(id);
@@ -812,7 +812,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
 
         /** Set the status of a document to be "no longer deleting" */
         public void setUndeletingStatus(Long id)
-                throws MetacartaException
+                throws LCFException
         {
                 HashMap map = new HashMap();
                 map.put(statusField,statusToString(STATUS_COMPLETE));
@@ -829,7 +829,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
         *@param ids is the set of job queue id's
         */
         public void deleteRecordMultiple(Long[] ids)
-                throws MetacartaException
+                throws LCFException
         {
                 // Delete in chunks
                 int maxInClause = getMaxInClause();
@@ -860,7 +860,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
         /** Do a batch of deletes.
         */
         protected void doDeletes(ArrayList list, String queryPart)
-                throws MetacartaException
+                throws LCFException
         {
                 // Clean out prereqevents table first
                 prereqEventManager.deleteRows(queryPart,list);
@@ -871,7 +871,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
         *@param id is the job queue id.
         */
         public void deleteRecord(Long id)
-                throws MetacartaException
+                throws LCFException
         {
                 deleteRecordMultiple(new Long[]{id});
         }
@@ -881,7 +881,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
         */
         public boolean updateExistingRecordInitial(Long recordID, int currentStatus, Long checkTimeValue,
                 long desiredExecuteTime, long currentTime, double desiredPriority, String[] prereqEvents)
-                throws MetacartaException
+                throws LCFException
         {
                 // The general rule here is:
                 // If doesn't exist, make a PENDING entry.
@@ -973,7 +973,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
         */
         public void insertNewRecordInitial(Long jobID, String docHash, String docID, double desiredDocPriority,
                 long desiredExecuteTime, long currentTime, String[] prereqEvents)
-                throws MetacartaException
+                throws LCFException
         {
                 // No prerequisites should be possible at this point.
                 HashMap map = new HashMap();
@@ -1001,7 +1001,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
         * doneDocumentsInitial() method does not clean up seeds from previous runs wrongly.
         */
         public void addRemainingDocumentsInitial(Long jobID, String[] docIDHashes)
-                throws MetacartaException
+                throws LCFException
         {
                 if (docIDHashes.length == 0)
                         return;
@@ -1079,7 +1079,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
 
         /** Process the specified set of documents. */
         protected void processRemainingDocuments(Map idMap, String query, ArrayList list, Map inSet)
-                throws MetacartaException
+                throws LCFException
         {
                 IResultSet set = performQuery("SELECT "+idField+","+docHashField+" FROM "+getTableName()+
                         " WHERE "+query+" FOR UPDATE",list,null,null);
@@ -1098,7 +1098,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
 
         /** Update the specified set of documents to be "NEWSEED" */
         protected void updateRemainingDocuments(String query, ArrayList list)
-                throws MetacartaException
+                throws LCFException
         {
                 HashMap map = new HashMap();
                 map.put(isSeedField,seedstatusToString(SEEDSTATUS_NEWSEED));
@@ -1113,7 +1113,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
         *@param isPartial is true of the passed list of seeds is not complete.
         */
         public void doneDocumentsInitial(Long jobID, boolean isPartial)
-                throws MetacartaException
+                throws LCFException
         {
                 ArrayList list = new ArrayList();
                 HashMap map = new HashMap();
@@ -1137,7 +1137,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
         *@return the document identifier hashes that are currently considered to be seeds.
         */
         public String[] getAllSeeds(Long jobID)
-                throws MetacartaException
+                throws LCFException
         {
                 ArrayList list = new ArrayList();
                 list.add(jobID);
@@ -1160,7 +1160,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
         public boolean updateExistingRecord(Long recordID, int currentStatus, Long checkTimeValue,
                 long desiredExecuteTime, long currentTime, boolean otherChangesSeen, double desiredPriority,
                 String[] prereqEvents)
-                throws MetacartaException
+                throws LCFException
         {
                 boolean rval = false;
                 HashMap map = new HashMap();
@@ -1287,7 +1287,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
         */
         public void insertNewRecord(Long jobID, String docIDHash, String docID, double desiredDocPriority, long desiredExecuteTime,
                 long currentTime, String[] prereqEvents)
-                throws MetacartaException
+                throws LCFException
         {
                 HashMap map = new HashMap();
                 Long recordID = new Long(IDFactory.make());
@@ -1311,7 +1311,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
         /** Convert seedstatus value to a string.
         */
         public static String seedstatusToString(int status)
-                throws MetacartaException
+                throws LCFException
         {
                 switch (status)
                 {
@@ -1322,37 +1322,37 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
                 case SEEDSTATUS_NEWSEED:
                         return "N";
                 default:
-                        throw new MetacartaException("Invalid seed status: "+Integer.toString(status));
+                        throw new LCFException("Invalid seed status: "+Integer.toString(status));
                 }
         }
 
         /** Convert seedstatus field value to a boolean.
         */
         public static int stringToSeedstatus(String x)
-                throws MetacartaException
+                throws LCFException
         {
                 if (x == null || x.length() == 0)
                         return SEEDSTATUS_NOTSEED;
                 Integer y = (Integer)seedstatusMap.get(x);
                 if (y == null)
-                        throw new MetacartaException("Unknown seed status code: "+x);
+                        throw new LCFException("Unknown seed status code: "+x);
                 return y.intValue();
         }
 
         /** Convert action field value to integer.
         */
         public static int stringToAction(String value)
-                throws MetacartaException
+                throws LCFException
         {
                 Integer x = (Integer)actionMap.get(value);
                 if (x == null)
-                        throw new MetacartaException("Unknown action string: '"+value+"'");
+                        throw new LCFException("Unknown action string: '"+value+"'");
                 return x.intValue();
         }
         
         /** Convert integer to action string */
         public static String actionToString(int action)
-                throws MetacartaException
+                throws LCFException
         {
                 switch (action)
                 {
@@ -1361,7 +1361,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
                 case ACTION_REMOVE:
                         return "D";
                 default:
-                        throw new MetacartaException("Bad action value: "+Integer.toString(action));
+                        throw new LCFException("Bad action value: "+Integer.toString(action));
                 }
         }
                 
@@ -1370,11 +1370,11 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
         *@return the integer.
         */
         public static int stringToStatus(String value)
-                throws MetacartaException
+                throws LCFException
         {
                 Integer x = (Integer)statusMap.get(value);
                 if (x == null)
-                        throw new MetacartaException("Unknown status string: '"+value+"'");
+                        throw new LCFException("Unknown status string: '"+value+"'");
                 return x.intValue();
         }
 
@@ -1383,7 +1383,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
         *@return the database string.
         */
         public static String statusToString(int status)
-                throws MetacartaException
+                throws LCFException
         {
                 switch (status)
                 {
@@ -1406,7 +1406,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
                 case STATUS_ACTIVENEEDRESCANPURGATORY:
                         return "f";
                 default:
-                        throw new MetacartaException("Bad status value: "+Integer.toString(status));
+                        throw new LCFException("Bad status value: "+Integer.toString(status));
                 }
 
         }
@@ -1417,9 +1417,9 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
         *@return the hash code.
         */
         public static String getHashCode(String documentIdentifier)
-                throws MetacartaException
+                throws LCFException
         {
-                return Metacarta.hash(documentIdentifier);
+                return LCF.hash(documentIdentifier);
         }
 
         /** Analyze tracker class.
@@ -1530,7 +1530,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
                 *@return true if it should be included, false otherwise.
                 */
                 public boolean checkInclude(IResultRow row)
-                        throws MetacartaException
+                        throws LCFException
                 {
                         Long jobID = (Long)row.getValue(jobIDField);
                         String docIDHash = (String)row.getValue(docHashField);
@@ -1546,7 +1546,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
                 *@return true if we need to keep going, or false if we are done.
                 */
                 public boolean checkContinue()
-                        throws MetacartaException
+                        throws LCFException
                 {
                         return true;
                 }

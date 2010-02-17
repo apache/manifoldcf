@@ -18,7 +18,7 @@
 */
 package org.apache.lcf.core.interfaces;
 
-public class MetacartaException extends Exception
+public class LCFException extends Exception
 {
 	public static final String _rcsid = "@(#)$Id$";
 
@@ -33,37 +33,37 @@ public class MetacartaException extends Exception
 
 	protected int errcode;
 
-	public MetacartaException(String errString)
+	public LCFException(String errString)
 	{
 		super(errString);
 		this.errcode = GENERAL_ERROR;
 	}
 
-	public MetacartaException(String errString, int errcode)
+	public LCFException(String errString, int errcode)
 	{
 		super(errString);
 		this.errcode = errcode;
 	}
 
-	public MetacartaException(String errString, Throwable cause, int errcode)
+	public LCFException(String errString, Throwable cause, int errcode)
 	{
 		super(errString,cause);
 		this.errcode = errcode;
 	}
 
-	public MetacartaException(String errString, Throwable cause)
+	public LCFException(String errString, Throwable cause)
 	{
 		super(errString,cause);
 		this.errcode = GENERAL_ERROR;
 	}
 
-	public MetacartaException(Throwable cause, int errcode)
+	public LCFException(Throwable cause, int errcode)
 	{
 		super(cause);
 		this.errcode = errcode;
 	}
 
-	public MetacartaException(Throwable cause)
+	public LCFException(Throwable cause)
 	{
 		super(cause);
 		this.errcode = GENERAL_ERROR;

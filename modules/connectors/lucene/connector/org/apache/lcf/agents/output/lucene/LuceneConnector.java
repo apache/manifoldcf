@@ -78,7 +78,7 @@ public class LuceneConnector extends org.apache.lcf.agents.output.BaseOutputConn
         /** Close the connection.  Call this before discarding the connection.
         */
         public void disconnect()
-                throws MetacartaException
+                throws LCFException
         {
                 poster = null;
                 super.disconnect();
@@ -86,17 +86,17 @@ public class LuceneConnector extends org.apache.lcf.agents.output.BaseOutputConn
 
         /** Set up a session */
         protected void getSession()
-                throws MetacartaException
+                throws LCFException
         {
                 if (poster == null)
                 {
                         String protocol = params.getParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_PROTOCOL);
                         if (protocol == null || protocol.length() == 0)
-                                throw new MetacartaException("Missing parameter: "+org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_PROTOCOL);
+                                throw new LCFException("Missing parameter: "+org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_PROTOCOL);
                                 
                         String server = params.getParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_SERVER);
                         if (server == null || server.length() == 0)
-                                throw new MetacartaException("Missing parameter: "+org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_SERVER);
+                                throw new LCFException("Missing parameter: "+org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_SERVER);
 
                         String port = params.getParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_PORT);
                         if (port == null || port.length() == 0)
@@ -127,7 +127,7 @@ public class LuceneConnector extends org.apache.lcf.agents.output.BaseOutputConn
                         }
                         catch (NumberFormatException e)
                         {
-                                throw new MetacartaException(e.getMessage());
+                                throw new LCFException(e.getMessage());
                         }
                 }
         }
@@ -136,7 +136,7 @@ public class LuceneConnector extends org.apache.lcf.agents.output.BaseOutputConn
         *@return the connection's status as a displayable string.
         */
         public String check()
-                throws MetacartaException
+                throws LCFException
         {
                 try
                 {
@@ -162,7 +162,7 @@ public class LuceneConnector extends org.apache.lcf.agents.output.BaseOutputConn
         * the document will not need to be sent again to the output data store.
         */
         public String getOutputDescription(OutputSpecification spec)
-                throws MetacartaException
+                throws LCFException
         {
                 // No output description data at this time.
                 return "";
@@ -183,7 +183,7 @@ public class LuceneConnector extends org.apache.lcf.agents.output.BaseOutputConn
         *@return the document status (accepted or permanently rejected).
         */
         public int addOrReplaceDocument(String documentURI, String outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
                 // Establish a session
                 getSession();
@@ -202,7 +202,7 @@ public class LuceneConnector extends org.apache.lcf.agents.output.BaseOutputConn
         *@activities is the handle to an object that the implementer of an output connector may use to perform operations, such as logging processing activity.
         */
         public void removeDocument(String documentURI, String outputDescription, IOutputRemoveActivity activities)
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
                 // Establish a session
                 getSession();

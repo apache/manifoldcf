@@ -44,13 +44,13 @@ public class UnRegister
 
 		try
 		{
-			Metacarta.initializeEnvironment();
+			LCF.initializeEnvironment();
 			IThreadContext tc = ThreadContextFactory.make();
 			IAgentManager mgr = AgentManagerFactory.make(tc);
 			mgr.unregisterAgent(className);
 			System.err.println("Successfully unregistered agent '"+className+"'");
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			e.printStackTrace();
 			System.exit(1);

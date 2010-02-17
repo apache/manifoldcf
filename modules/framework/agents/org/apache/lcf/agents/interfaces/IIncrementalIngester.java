@@ -45,28 +45,28 @@ public interface IIncrementalIngester
 	/** Install the incremental ingestion manager.
 	*/
 	public void install()
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Uninstall the incremental ingestion manager.
 	*/
 	public void deinstall()
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Come up with a maximum time (in minutes) for re-analyzing tables.
 	*@Return the time, in minutes.
 	*/
 	public int getAnalyzeTime()
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Analyze database tables.
 	*/
 	public void analyzeTables()
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Flush all knowledge of what was ingested before.
 	*/
 	public void clearAll()
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Record a document version, but don't ingest it.
 	* The purpose of this method is to keep track of the frequency at which ingestion "attempts" take place.
@@ -82,7 +82,7 @@ public interface IIncrementalIngester
                 String identifierClass, String identifierHash,
 		String documentVersion, long recordTime,
 		IOutputActivity activities)
-		throws MetacartaException, ServiceInterruption;
+		throws LCFException, ServiceInterruption;
 
 	/** Ingest a document.
 	* This ingests the document, and notes it.  If this is a repeat ingestion of the document, this
@@ -109,7 +109,7 @@ public interface IIncrementalIngester
 		RepositoryDocument data,
 		long ingestTime, String documentURI,
 		IOutputActivity activities)
-		throws MetacartaException, ServiceInterruption;
+		throws LCFException, ServiceInterruption;
 
 	/** Note the fact that we checked a document (and found that it did not need to be ingested, because the
 	* versions agreed).
@@ -121,7 +121,7 @@ public interface IIncrementalIngester
 	public void documentCheckMultiple(String outputConnectionName,
 		String[] identifierClasses, String[] identifierHashes,
 		long checkTime)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Note the fact that we checked a document (and found that it did not need to be ingested, because the
 	* versions agreed).
@@ -133,7 +133,7 @@ public interface IIncrementalIngester
 	public void documentCheck(String outputConnectionName,
 		String identifierClass, String identifierHash,
 		long checkTime)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Delete multiple documents from the search engine index.
 	*@param outputConnectionNames are the names of the output connections associated with this action.
@@ -144,7 +144,7 @@ public interface IIncrementalIngester
 	public void documentDeleteMultiple(String[] outputConnectionNames,
 		String[] identifierClasses, String[] identifierHashes,
 		IOutputRemoveActivity activities)
-		throws MetacartaException, ServiceInterruption;
+		throws LCFException, ServiceInterruption;
 
 	/** Delete multiple documents from the search engine index.
 	*@param outputConnectionName is the name of the output connection associated with this action.
@@ -155,7 +155,7 @@ public interface IIncrementalIngester
 	public void documentDeleteMultiple(String outputConnectionName,
 		String[] identifierClasses, String[] identifierHashes,
 		IOutputRemoveActivity activities)
-		throws MetacartaException, ServiceInterruption;
+		throws LCFException, ServiceInterruption;
 
 	/** Delete a document from the search engine index.
 	*@param outputConnectionName is the name of the output connection associated with this action.
@@ -166,7 +166,7 @@ public interface IIncrementalIngester
 	public void documentDelete(String outputConnectionName,
 		String identifierClass, String identifierHash,
 		IOutputRemoveActivity activities)
-		throws MetacartaException, ServiceInterruption;
+		throws LCFException, ServiceInterruption;
 
 	/** Look up ingestion data for a SET of documents.
 	*@param outputConnectionNames are the names of the output connections associated with this action.
@@ -177,7 +177,7 @@ public interface IIncrementalIngester
 	*/
 	public DocumentIngestStatus[] getDocumentIngestDataMultiple(String[] outputConnectionNames,
 		String[] identifierClasses, String[] identifierHashes)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Look up ingestion data for a SET of documents.
 	*@param outputConnectionName is the names of the output connection associated with this action.
@@ -188,7 +188,7 @@ public interface IIncrementalIngester
 	*/
 	public DocumentIngestStatus[] getDocumentIngestDataMultiple(String outputConnectionName,
 		String[] identifierClasses, String[] identifierHashes)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Look up ingestion data for a documents.
 	*@param outputConnectionName is the name of the output connection associated with this action.
@@ -198,7 +198,7 @@ public interface IIncrementalIngester
 	*/
 	public DocumentIngestStatus getDocumentIngestData(String outputConnectionName,
 		String identifierClass, String identifierHash)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Calculate the average time interval between changes for a document.
 	* This is based on the data gathered for the document.
@@ -209,7 +209,7 @@ public interface IIncrementalIngester
 	*/
 	public long[] getDocumentUpdateIntervalMultiple(String outputConnectionName,
 		String[] identifierClasses, String[] identifierHashes)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Calculate the average time interval between changes for a document.
 	* This is based on the data gathered for the document.
@@ -220,7 +220,7 @@ public interface IIncrementalIngester
 	*/
 	public long getDocumentUpdateInterval(String outputConnectionName,
 		String identifierClass, String identifierHash)
-		throws MetacartaException;
+		throws LCFException;
 
 
 }

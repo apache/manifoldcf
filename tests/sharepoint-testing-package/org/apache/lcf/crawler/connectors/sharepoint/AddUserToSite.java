@@ -50,7 +50,7 @@ public class AddUserToSite
 			}
 			System.err.println("Successfully added user to site");
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			e.printStackTrace(System.err);
 			System.exit(2);

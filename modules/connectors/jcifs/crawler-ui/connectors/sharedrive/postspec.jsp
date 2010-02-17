@@ -241,7 +241,7 @@
 						RepositoryConnectorFactory.release(connector);
 					}
 				}
-				catch (MetacartaException e)
+				catch (LCFException e)
 				{
 					// Effectively, this just means we can't add a typein to the path right now.
 				}

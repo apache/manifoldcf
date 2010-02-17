@@ -29,10 +29,10 @@ import com.memex.mie.*;
  *
  * @author mxadmin
  */
-class MetacartaMemexConnection{
+class LCFMemexConnection{
 
     /**Class to extend the regular MemexConnection to deal with
-     * the fact the Metacarta connect method doesn't report authentication
+     * the fact the LCF connect method doesn't report authentication
      * failure immediately.
      */
 
@@ -43,7 +43,7 @@ class MetacartaMemexConnection{
     protected long checkExpireTime = -1L;
   
 
-    MetacartaMemexConnection(){
+    LCFMemexConnection(){
 
     }
 

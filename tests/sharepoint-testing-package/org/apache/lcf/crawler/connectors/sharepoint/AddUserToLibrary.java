@@ -50,7 +50,7 @@ public class AddUserToLibrary
 			}
 			System.err.println("Successfully added user");
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			e.printStackTrace(System.err);
 			System.exit(2);

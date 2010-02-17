@@ -24,7 +24,7 @@ import java.util.Map;
 import javax.xml.soap.*;
 
 import org.apache.lcf.core.common.XMLDoc;
-import org.apache.lcf.core.interfaces.MetacartaException;
+import org.apache.lcf.core.interfaces.LCFException;
 import org.apache.lcf.agents.interfaces.ServiceInterruption;
 import org.apache.lcf.crawler.system.Logging;
 
@@ -45,8 +45,8 @@ import org.apache.axis.configuration.FileProvider;
 public class SPSProxyHelper {
 
 
-	public static final String PROTOCOL_FACTORY_PROPERTY = "Metacarta_Protocol_Factory";
-	public static final String CONNECTION_MANAGER_PROPERTY = "Metacarta_Connection_Manager";
+	public static final String PROTOCOL_FACTORY_PROPERTY = "LCF_Protocol_Factory";
+	public static final String CONNECTION_MANAGER_PROPERTY = "LCF_Connection_Manager";
 
 	private String serverUrl;
 	private String serverLocation;
@@ -88,7 +88,7 @@ public class SPSProxyHelper {
 	 * @throws Exception
 	 */
 	public String[] getACLs(String site, String docLib )
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 	    long currentTime;
 	    try
@@ -109,18 +109,18 @@ public class SPSProxyHelper {
 		doc.processPath(nodeList, "*", null);
 		if (nodeList.size() != 1)
 		{
-			throw new MetacartaException("Bad xml - missing outer 'ns1:GetPermissionCollection' node - there are "+Integer.toString(nodeList.size())+" nodes");
+			throw new LCFException("Bad xml - missing outer 'ns1:GetPermissionCollection' node - there are "+Integer.toString(nodeList.size())+" nodes");
 		}
 		Object parent = nodeList.get(0);
 		if (!doc.getNodeName(parent).equals("ns1:GetPermissionCollection"))
-			throw new MetacartaException("Bad xml - outer node is not 'ns1:GetPermissionCollection'");
+			throw new LCFException("Bad xml - outer node is not 'ns1:GetPermissionCollection'");
 
 		nodeList.clear();
 		doc.processPath(nodeList, "*", parent);
 		
 		if ( nodeList.size() != 1 )
 		{
-			throw new MetacartaException( " No results found." );
+			throw new LCFException( " No results found." );
 		}
 		parent = nodeList.get(0);
 		nodeList.clear();
@@ -172,7 +172,7 @@ public class SPSProxyHelper {
 	    }
             catch (java.net.MalformedURLException e)
             {
-                    throw new MetacartaException("Bad SharePoint url: "+e.getMessage(),e);
+                    throw new LCFException("Bad SharePoint url: "+e.getMessage(),e);
             }
             catch (javax.xml.rpc.ServiceException e)
             {
@@ -207,11 +207,11 @@ public class SPSProxyHelper {
 					return null;
 				}
 				else if (httpErrorCode.equals("403"))
-					throw new MetacartaException("Http error "+httpErrorCode+" while reading from "+baseUrl+site+" - check IIS and SharePoint security settings! "+e.getMessage(),e);
+					throw new LCFException("Http error "+httpErrorCode+" while reading from "+baseUrl+site+" - check IIS and SharePoint security settings! "+e.getMessage(),e);
 				else
-					throw new MetacartaException("Unexpected http error code "+httpErrorCode+" accessing SharePoint at "+baseUrl+site+": "+e.getMessage(),e);
+					throw new LCFException("Unexpected http error code "+httpErrorCode+" accessing SharePoint at "+baseUrl+site+": "+e.getMessage(),e);
 			}
-			throw new MetacartaException("Unknown http error occurred: "+e.getMessage(),e);
+			throw new LCFException("Unknown http error occurred: "+e.getMessage(),e);
 		}
 		else if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server")))
 		{
@@ -252,7 +252,7 @@ public class SPSProxyHelper {
 		{
 			String exceptionName = e.getFaultString();
 			if (exceptionName.equals("java.lang.InterruptedException"))
-				throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted",LCFException.INTERRUPTED);
 		}
 
 		if (Logging.connectors.isDebugEnabled())
@@ -266,7 +266,7 @@ public class SPSProxyHelper {
 		// So, fail hard if we see it.
 		if (Logging.connectors.isDebugEnabled())
 			Logging.connectors.debug("SharePoint: Got an unexpected remote exception getting the acls for site "+site+" library "+docLib,e);
-		throw new MetacartaException("Unexpected remote procedure exception: "+e.getMessage(), e);
+		throw new LCFException("Unexpected remote procedure exception: "+e.getMessage(), e);
             }
 	}
 
@@ -279,7 +279,7 @@ public class SPSProxyHelper {
 	 * @throws Exception
 	 */
 	public String[] getDocumentACLs(String site, String file)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 	    long currentTime;
 	    try
@@ -313,18 +313,18 @@ public class SPSProxyHelper {
 		doc.processPath(nodeList, "*", null);
 		if (nodeList.size() != 1)
 		{
-			throw new MetacartaException("Bad xml - missing outer 'ns1:GetPermissionCollection' node - there are "+Integer.toString(nodeList.size())+" nodes");
+			throw new LCFException("Bad xml - missing outer 'ns1:GetPermissionCollection' node - there are "+Integer.toString(nodeList.size())+" nodes");
 		}
 		Object parent = nodeList.get(0);
 		if (!doc.getNodeName(parent).equals("GetPermissionCollection"))
-			throw new MetacartaException("Bad xml - outer node is not 'GetPermissionCollection'");
+			throw new LCFException("Bad xml - outer node is not 'GetPermissionCollection'");
 
 		nodeList.clear();
 		doc.processPath(nodeList, "*", parent);
 		
 		if ( nodeList.size() != 1 )
 		{
-			throw new MetacartaException( " No results found." );
+			throw new LCFException( " No results found." );
 		}
 		parent = nodeList.get(0);
 		nodeList.clear();
@@ -376,7 +376,7 @@ public class SPSProxyHelper {
 	    }
             catch (java.net.MalformedURLException e)
             {
-                    throw new MetacartaException("Bad SharePoint url: "+e.getMessage(),e);
+                    throw new LCFException("Bad SharePoint url: "+e.getMessage(),e);
             }
             catch (javax.xml.rpc.ServiceException e)
             {
@@ -411,11 +411,11 @@ public class SPSProxyHelper {
 					return null;
 				}
 				else if (httpErrorCode.equals("403"))
-					throw new MetacartaException("Http error "+httpErrorCode+" while reading from "+baseUrl+site+" - check IIS and SharePoint security settings! "+e.getMessage(),e);
+					throw new LCFException("Http error "+httpErrorCode+" while reading from "+baseUrl+site+" - check IIS and SharePoint security settings! "+e.getMessage(),e);
 				else
-					throw new MetacartaException("Unexpected http error code "+httpErrorCode+" accessing SharePoint at "+baseUrl+site+": "+e.getMessage(),e);
+					throw new LCFException("Unexpected http error code "+httpErrorCode+" accessing SharePoint at "+baseUrl+site+": "+e.getMessage(),e);
 			}
-			throw new MetacartaException("Unknown http error occurred: "+e.getMessage(),e);
+			throw new LCFException("Unknown http error occurred: "+e.getMessage(),e);
 		}
 		else if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server")))
 		{
@@ -456,7 +456,7 @@ public class SPSProxyHelper {
 		{
 			String exceptionName = e.getFaultString();
 			if (exceptionName.equals("java.lang.InterruptedException"))
-				throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted",LCFException.INTERRUPTED);
 		}
 
 		if (Logging.connectors.isDebugEnabled())
@@ -470,7 +470,7 @@ public class SPSProxyHelper {
 		// So, fail hard if we see it.
 		if (Logging.connectors.isDebugEnabled())
 			Logging.connectors.debug("SharePoint: Got an unexpected remote exception getting the acls for site "+site+" file "+file,e);
-		throw new MetacartaException("Unexpected remote procedure exception: "+e.getMessage(), e);
+		throw new LCFException("Unexpected remote procedure exception: "+e.getMessage(), e);
             }
 	}
 
@@ -479,10 +479,10 @@ public class SPSProxyHelper {
 	 * @param site
 	 * @param docLibrary
 	 * @return
-	 * @throws MetacartaException
+	 * @throws LCFException
 	 */
 	public XMLDoc getDocuments(String site, String docLibrary)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		long currentTime;
 		try
@@ -525,27 +525,27 @@ public class SPSProxyHelper {
 			doc.processPath(nodeList, "*", null);
 			if (nodeList.size() != 1)
 			{
-				throw new MetacartaException("Bad xml - missing outer 'ns1:dsQueryResponse' node - there are "+Integer.toString(nodeList.size())+" nodes");
+				throw new LCFException("Bad xml - missing outer 'ns1:dsQueryResponse' node - there are "+Integer.toString(nodeList.size())+" nodes");
 			}
 			
 			Object parent = nodeList.get(0);
 			//System.out.println( "Outer NodeName = " + doc.getNodeName(parent) );
 			if (!doc.getNodeName(parent).equals("ns1:dsQueryResponse"))
-				throw new MetacartaException("Bad xml - outer node is not 'ns1:dsQueryResponse'");
+				throw new LCFException("Bad xml - outer node is not 'ns1:dsQueryResponse'");
 	
 			nodeList.clear();
 			doc.processPath(nodeList, "*", parent);
 			
 			if ( nodeList.size() != 2 )
 			{
-				throw new MetacartaException( " No results found." );
+				throw new LCFException( " No results found." );
 			}
 	
 			return doc;
 		}
 		catch (java.net.MalformedURLException e)
 		{
-                    throw new MetacartaException("Bad SharePoint url: "+e.getMessage(),e);
+                    throw new LCFException("Bad SharePoint url: "+e.getMessage(),e);
 		}
 		catch (javax.xml.rpc.ServiceException e)
 		{
@@ -580,11 +580,11 @@ public class SPSProxyHelper {
 						return null;
 					}
 					else if (httpErrorCode.equals("403"))
-						throw new MetacartaException("Http error "+httpErrorCode+" while reading from "+baseUrl+site+" - check IIS and SharePoint security settings! "+e.getMessage(),e);
+						throw new LCFException("Http error "+httpErrorCode+" while reading from "+baseUrl+site+" - check IIS and SharePoint security settings! "+e.getMessage(),e);
 					else
-						throw new MetacartaException("Unexpected http error code "+httpErrorCode+" accessing SharePoint at "+baseUrl+site+": "+e.getMessage(),e);
+						throw new LCFException("Unexpected http error code "+httpErrorCode+" accessing SharePoint at "+baseUrl+site+": "+e.getMessage(),e);
 				}
-				throw new MetacartaException("Unknown http error occurred: "+e.getMessage(),e);
+				throw new LCFException("Unknown http error occurred: "+e.getMessage(),e);
 			}
 			else if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server")))
 			{
@@ -625,7 +625,7 @@ public class SPSProxyHelper {
 			{
 				String exceptionName = e.getFaultString();
 				if (exceptionName.equals("java.lang.InterruptedException"))
-					throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+					throw new LCFException("Interrupted",LCFException.INTERRUPTED);
 			}
 
 			if (Logging.connectors.isDebugEnabled())
@@ -639,7 +639,7 @@ public class SPSProxyHelper {
 			// So, fail hard if we see it.
 			if (Logging.connectors.isDebugEnabled())
 				Logging.connectors.debug("SharePoint: Got an unexpected remote exception getting child documents for site "+site+" library "+docLibrary,e);
-			throw new MetacartaException("Unexpected remote procedure exception: "+e.getMessage(), e);
+			throw new LCFException("Unexpected remote procedure exception: "+e.getMessage(), e);
 		}
 	}
 	
@@ -651,7 +651,7 @@ public class SPSProxyHelper {
 	 * @throws Exception
 	 */
 	public String getDocLibID(String parentSite, String parentSiteDecoded, String docLibrary)
-		throws ServiceInterruption, MetacartaException
+		throws ServiceInterruption, LCFException
 	{
 	    long currentTime;
 	    try
@@ -680,11 +680,11 @@ public class SPSProxyHelper {
 		doc.processPath(nodeList, "*", null);
 		if (nodeList.size() != 1)
 		{
-			throw new MetacartaException("Bad xml - missing outer 'ns1:Lists' node - there are "+Integer.toString(nodeList.size())+" nodes");
+			throw new LCFException("Bad xml - missing outer 'ns1:Lists' node - there are "+Integer.toString(nodeList.size())+" nodes");
 		}
 		Object parent = nodeList.get(0);
 		if (!doc.getNodeName(parent).equals("ns1:Lists"))
-			throw new MetacartaException("Bad xml - outer node is not 'ns1:Lists'");
+			throw new LCFException("Bad xml - outer node is not 'ns1:Lists'");
 
 		nodeList.clear();
 		doc.processPath(nodeList, "*", parent);  // <ns1:Lists>
@@ -708,14 +708,14 @@ public class SPSProxyHelper {
 				if (urlPath != null && urlPath.length() > 0)
 				{
 					if (urlPath.length() < chuckIndex)
-						throw new MetacartaException("View url is not in the expected form: '"+urlPath+"'");
+						throw new LCFException("View url is not in the expected form: '"+urlPath+"'");
 					urlPath = urlPath.substring(chuckIndex);
 					if (!urlPath.startsWith("/"))
-						throw new MetacartaException("View url without site is not in the expected form: '"+urlPath+"'");
+						throw new LCFException("View url without site is not in the expected form: '"+urlPath+"'");
 					// We're at the library name.  Figure out where the end of it is.
 					int index = urlPath.indexOf("/",1);
 					if (index == -1)
-						throw new MetacartaException("Bad view url without site: '"+urlPath+"'");
+						throw new LCFException("Bad view url without site: '"+urlPath+"'");
 					String pathpart = urlPath.substring(1,index);
 
 					if ( pathpart.equals(docLibrary) )
@@ -733,7 +733,7 @@ public class SPSProxyHelper {
 	    }
             catch (java.net.MalformedURLException e)
             {
-                    throw new MetacartaException("Bad SharePoint url: "+e.getMessage(),e);
+                    throw new LCFException("Bad SharePoint url: "+e.getMessage(),e);
             }
             catch (javax.xml.rpc.ServiceException e)
             {
@@ -768,11 +768,11 @@ public class SPSProxyHelper {
 					return null;
 				}
 				else if (httpErrorCode.equals("403"))
-					throw new MetacartaException("Http error "+httpErrorCode+" while reading from "+baseUrl+parentSite+" - check IIS and SharePoint security settings! "+e.getMessage(),e);
+					throw new LCFException("Http error "+httpErrorCode+" while reading from "+baseUrl+parentSite+" - check IIS and SharePoint security settings! "+e.getMessage(),e);
 				else
-					throw new MetacartaException("Unexpected http error code "+httpErrorCode+" accessing SharePoint at "+baseUrl+parentSite+": "+e.getMessage(),e);
+					throw new LCFException("Unexpected http error code "+httpErrorCode+" accessing SharePoint at "+baseUrl+parentSite+": "+e.getMessage(),e);
 			}
-			throw new MetacartaException("Unknown http error occurred: "+e.getMessage(),e);
+			throw new LCFException("Unknown http error occurred: "+e.getMessage(),e);
 		}
 		else if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server")))
 		{
@@ -813,7 +813,7 @@ public class SPSProxyHelper {
 		{
 			String exceptionName = e.getFaultString();
 			if (exceptionName.equals("java.lang.InterruptedException"))
-				throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted",LCFException.INTERRUPTED);
 		}
 
 		if (Logging.connectors.isDebugEnabled())
@@ -827,7 +827,7 @@ public class SPSProxyHelper {
 		// So, fail hard if we see it.
 		if (Logging.connectors.isDebugEnabled())
 			Logging.connectors.debug("SharePoint: Got an unexpected remote exception getting library ID for site "+parentSite+" library "+docLibrary,e);
-		throw new MetacartaException("Unexpected remote procedure exception: "+e.getMessage(), e);
+		throw new LCFException("Unexpected remote procedure exception: "+e.getMessage(), e);
             }
 	}
 	
@@ -839,7 +839,7 @@ public class SPSProxyHelper {
 	 * @throws Exception
 	 */
 	public XMLDoc getVersions( String site, String docPath)
-		throws ServiceInterruption, MetacartaException
+		throws ServiceInterruption, LCFException
 	{
 	    long currentTime;
 	    try
@@ -859,18 +859,18 @@ public class SPSProxyHelper {
 		
 		if (nodeList.size() != 1)
 		{
-			throw new MetacartaException("Bad xml - missing outer 'results' node - there are "+Integer.toString(nodeList.size())+" nodes");
+			throw new LCFException("Bad xml - missing outer 'results' node - there are "+Integer.toString(nodeList.size())+" nodes");
 		}
 
 		Object parent = nodeList.get(0);
 		if (!doc.getNodeName(parent).equals("results"))
-			throw new MetacartaException("Bad xml - outer node is not 'results'");
+			throw new LCFException("Bad xml - outer node is not 'results'");
 		
 		return doc;
 	    }
             catch (java.net.MalformedURLException e)
             {
-                    throw new MetacartaException("Bad SharePoint url: "+e.getMessage(),e);
+                    throw new LCFException("Bad SharePoint url: "+e.getMessage(),e);
             }
             catch (javax.xml.rpc.ServiceException e)
             {
@@ -905,11 +905,11 @@ public class SPSProxyHelper {
 					return null;
 				}
 				else if (httpErrorCode.equals("403"))
-					throw new MetacartaException("Http error "+httpErrorCode+" while reading from "+baseUrl+site+" - check IIS and SharePoint security settings! "+e.getMessage(),e);
+					throw new LCFException("Http error "+httpErrorCode+" while reading from "+baseUrl+site+" - check IIS and SharePoint security settings! "+e.getMessage(),e);
 				else
-					throw new MetacartaException("Unexpected http error code "+httpErrorCode+" accessing SharePoint at "+baseUrl+site+": "+e.getMessage(),e);
+					throw new LCFException("Unexpected http error code "+httpErrorCode+" accessing SharePoint at "+baseUrl+site+": "+e.getMessage(),e);
 			}
-			throw new MetacartaException("Unknown http error occurred: "+e.getMessage(),e);
+			throw new LCFException("Unknown http error occurred: "+e.getMessage(),e);
 		}
 		else if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server")))
 		{
@@ -950,7 +950,7 @@ public class SPSProxyHelper {
 		{
 			String exceptionName = e.getFaultString();
 			if (exceptionName.equals("java.lang.InterruptedException"))
-				throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted",LCFException.INTERRUPTED);
 		}
 
 		if (Logging.connectors.isDebugEnabled())
@@ -964,7 +964,7 @@ public class SPSProxyHelper {
 		// So, fail hard if we see it.
 		if (Logging.connectors.isDebugEnabled())
 			Logging.connectors.debug("SharePoint: Got an unexpected remote exception getting versions for site "+site+" docpath "+docPath,e);
-		throw new MetacartaException("Unexpected remote procedure exception: "+e.getMessage(), e);
+		throw new LCFException("Unexpected remote procedure exception: "+e.getMessage(), e);
             }
 	}
 	
@@ -976,7 +976,7 @@ public class SPSProxyHelper {
 	 * @throws Exception
 	 */
 	private String getSidForUser(com.microsoft.schemas.sharepoint.soap.directory.UserGroupSoap userCall, String userLogin )
-		throws MetacartaException, java.net.MalformedURLException, javax.xml.rpc.ServiceException,
+		throws LCFException, java.net.MalformedURLException, javax.xml.rpc.ServiceException,
 			java.rmi.RemoteException
 	{
 		com.microsoft.schemas.sharepoint.soap.directory.GetUserInfoResponseGetUserInfoResult userResp = userCall.getUserInfo( userLogin );
@@ -988,18 +988,18 @@ public class SPSProxyHelper {
 		doc.processPath(nodeList, "*", null);
 		if (nodeList.size() != 1)
 		{
-			throw new MetacartaException("Bad xml - missing outer 'ns1:GetUserInfo' node - there are "+Integer.toString(nodeList.size())+" nodes");
+			throw new LCFException("Bad xml - missing outer 'ns1:GetUserInfo' node - there are "+Integer.toString(nodeList.size())+" nodes");
 		}
 		Object parent = nodeList.get(0);
 		if (!doc.getNodeName(parent).equals("ns1:GetUserInfo"))
-			throw new MetacartaException("Bad xml - outer node is not 'ns1:GetUserInfo'");
+			throw new LCFException("Bad xml - outer node is not 'ns1:GetUserInfo'");
 
 		nodeList.clear();
 		doc.processPath(nodeList, "*", parent);  // ns1:User
 		
 		if ( nodeList.size() != 1 )
 		{
-			throw new MetacartaException( " No User found." );
+			throw new LCFException( " No User found." );
 		}
 		parent = nodeList.get(0);
 		nodeList.clear();
@@ -1015,7 +1015,7 @@ public class SPSProxyHelper {
 	 * @throws Exception
 	 */
 	private String[] getSidsForGroup(com.microsoft.schemas.sharepoint.soap.directory.UserGroupSoap userCall, String groupName)
-		throws MetacartaException, java.net.MalformedURLException, javax.xml.rpc.ServiceException, java.rmi.RemoteException
+		throws LCFException, java.net.MalformedURLException, javax.xml.rpc.ServiceException, java.rmi.RemoteException
 	{
 		com.microsoft.schemas.sharepoint.soap.directory.GetUserCollectionFromGroupResponseGetUserCollectionFromGroupResult roleResp = userCall.getUserCollectionFromGroup(groupName);
 		org.apache.axis.message.MessageElement[] roleList = roleResp.get_any();
@@ -1026,19 +1026,19 @@ public class SPSProxyHelper {
 		doc.processPath(nodeList, "*", null);
 		if (nodeList.size() != 1)
 		{
-			throw new MetacartaException("Bad xml - missing outer 'ns1:GetUserCollectionFromGroup' node - there are "
+			throw new LCFException("Bad xml - missing outer 'ns1:GetUserCollectionFromGroup' node - there are "
 					+ Integer.toString(nodeList.size()) + " nodes");
 		}
 		Object parent = nodeList.get(0);
 		if (!doc.getNodeName(parent).equals("ns1:GetUserCollectionFromGroup"))
-			throw new MetacartaException("Bad xml - outer node is not 'ns1:GetUserCollectionFromGroup'");
+			throw new LCFException("Bad xml - outer node is not 'ns1:GetUserCollectionFromGroup'");
 
 		nodeList.clear();
 		doc.processPath(nodeList, "*", parent); // <ns1:Users>
 
 		if (nodeList.size() != 1)
 		{
-			throw new MetacartaException(" No Users collection found.");
+			throw new LCFException(" No Users collection found.");
 		}
 		parent = nodeList.get(0);
 		nodeList.clear();
@@ -1064,7 +1064,7 @@ public class SPSProxyHelper {
 	 * @throws Exception
 	 */
 	private String[] getSidsForRole( com.microsoft.schemas.sharepoint.soap.directory.UserGroupSoap userCall, String roleName )
-		throws MetacartaException, java.net.MalformedURLException, javax.xml.rpc.ServiceException,
+		throws LCFException, java.net.MalformedURLException, javax.xml.rpc.ServiceException,
 			java.rmi.RemoteException
 	{
 		
@@ -1077,18 +1077,18 @@ public class SPSProxyHelper {
 		doc.processPath(nodeList, "*", null);
 		if (nodeList.size() != 1)
 		{
-			throw new MetacartaException("Bad xml - missing outer 'ns1:GetUserCollectionFromRole' node - there are "+Integer.toString(nodeList.size())+" nodes");
+			throw new LCFException("Bad xml - missing outer 'ns1:GetUserCollectionFromRole' node - there are "+Integer.toString(nodeList.size())+" nodes");
 		}
 		Object parent = nodeList.get(0);
 		if (!doc.getNodeName(parent).equals("ns1:GetUserCollectionFromRole"))
-			throw new MetacartaException("Bad xml - outer node is not 'ns1:GetUserCollectionFromRole'");
+			throw new LCFException("Bad xml - outer node is not 'ns1:GetUserCollectionFromRole'");
 
 		nodeList.clear();
 		doc.processPath(nodeList, "*", parent);  // <ns1:Users>
 		
 		if ( nodeList.size() != 1 )
 		{
-			throw new MetacartaException( " No Users collection found." );
+			throw new LCFException( " No Users collection found." );
 		}
 		parent = nodeList.get(0);
 		nodeList.clear();
@@ -1114,7 +1114,7 @@ public class SPSProxyHelper {
 	 * @throws java.rmi.RemoteException
 	 */
 	public boolean checkConnection( String site, boolean sps30 )
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 	    long currentTime;
 	    try
@@ -1147,7 +1147,7 @@ public class SPSProxyHelper {
 	    }
             catch (java.net.MalformedURLException e)
             {
-                    throw new MetacartaException("Bad SharePoint url: "+e.getMessage(),e);
+                    throw new LCFException("Bad SharePoint url: "+e.getMessage(),e);
             }
             catch (javax.xml.rpc.ServiceException e)
             {
@@ -1169,16 +1169,16 @@ public class SPSProxyHelper {
 				if (httpErrorCode.equals("404"))
 				{
 					// Page did not exist
-					throw new MetacartaException("The site at "+baseUrl+site+" did not exist");
+					throw new LCFException("The site at "+baseUrl+site+" did not exist");
 				}
 				else if (httpErrorCode.equals("401"))
-					throw new MetacartaException("Crawl user did not authenticate properly, or has insufficient permissions to access "+baseUrl+site+": "+e.getMessage(),e);
+					throw new LCFException("Crawl user did not authenticate properly, or has insufficient permissions to access "+baseUrl+site+": "+e.getMessage(),e);
 				else if (httpErrorCode.equals("403"))
-					throw new MetacartaException("Http error "+httpErrorCode+" while reading from "+baseUrl+site+" - check IIS and SharePoint security settings! "+e.getMessage(),e);
+					throw new LCFException("Http error "+httpErrorCode+" while reading from "+baseUrl+site+" - check IIS and SharePoint security settings! "+e.getMessage(),e);
 				else
-					throw new MetacartaException("Unexpected http error code "+httpErrorCode+" accessing SharePoint at "+baseUrl+site+": "+e.getMessage(),e);
+					throw new LCFException("Unexpected http error code "+httpErrorCode+" accessing SharePoint at "+baseUrl+site+": "+e.getMessage(),e);
 			}
-			throw new MetacartaException("Unknown http error occurred: "+e.getMessage(),e);
+			throw new LCFException("Unknown http error occurred: "+e.getMessage(),e);
 		}
 		else if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server")))
 		{
@@ -1192,25 +1192,25 @@ public class SPSProxyHelper {
 				if (elem != null)
 					errorString = elem2.getFirstChild().getNodeValue().trim();
 
-				throw new MetacartaException("Accessing site "+site+" failed with unexpected SharePoint error code "+sharepointErrorCode+": "+errorString,e);
+				throw new LCFException("Accessing site "+site+" failed with unexpected SharePoint error code "+sharepointErrorCode+": "+errorString,e);
 			}
-			throw new MetacartaException("Unknown SharePoint server error accessing site "+site+" - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString(),e);
+			throw new LCFException("Unknown SharePoint server error accessing site "+site+" - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString(),e);
 		}
 
 		if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server.userException")))
 		{
 			String exceptionName = e.getFaultString();
 			if (exceptionName.equals("java.lang.InterruptedException"))
-				throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted",LCFException.INTERRUPTED);
 		}
 
-		throw new MetacartaException("Got an unknown remote exception accessing site "+site+" - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString(),e);
+		throw new LCFException("Got an unknown remote exception accessing site "+site+" - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString(),e);
 	    }
             catch (java.rmi.RemoteException e)
             {
 		// We expect the axis exception to be thrown, not this generic one!
 		// So, fail hard if we see it.
-		throw new MetacartaException("Got an unexpected remote exception accessing site "+site+": "+e.getMessage(),e);
+		throw new LCFException("Got an unexpected remote exception accessing site "+site+": "+e.getMessage(),e);
             }
 	}
 
@@ -1221,7 +1221,7 @@ public class SPSProxyHelper {
      * @return list of the fields
      */
 	public Map getFieldList( String site, String docLibrary )
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 	    long currentTime;
 	    try
@@ -1246,19 +1246,19 @@ public class SPSProxyHelper {
 		doc.processPath(nodeList, "*", null);
 		if (nodeList.size() != 1)
 		{
-			throw new MetacartaException("Bad xml - missing outer node - there are "+Integer.toString(nodeList.size())+" nodes");
+			throw new LCFException("Bad xml - missing outer node - there are "+Integer.toString(nodeList.size())+" nodes");
 		}
 
 		Object parent = nodeList.get(0);
 		if (!doc.getNodeName(parent).equals("ns1:List"))
-			throw new MetacartaException("Bad xml - outer node is '" + doc.getNodeName(parent) + "' not 'ns1:List'");
+			throw new LCFException("Bad xml - outer node is '" + doc.getNodeName(parent) + "' not 'ns1:List'");
 	
 		nodeList.clear();
 		doc.processPath(nodeList, "*", parent);  // <ns1:Fields>
 		
 		Object fields = nodeList.get(0);
 		if ( !doc.getNodeName(fields).equals("ns1:Fields") )
-			throw new MetacartaException( "Bad xml - child node 0 '" + doc.getNodeName(fields) + "' is not 'ns1:Fields'");
+			throw new LCFException( "Bad xml - child node 0 '" + doc.getNodeName(fields) + "' is not 'ns1:Fields'");
 		
 		nodeList.clear();
 		doc.processPath(nodeList, "*", fields);  
@@ -1285,7 +1285,7 @@ public class SPSProxyHelper {
 	    }
             catch (java.net.MalformedURLException e)
             {
-                    throw new MetacartaException("Bad SharePoint url: "+e.getMessage(),e);
+                    throw new LCFException("Bad SharePoint url: "+e.getMessage(),e);
             }
             catch (javax.xml.rpc.ServiceException e)
             {
@@ -1307,23 +1307,23 @@ public class SPSProxyHelper {
 				if (httpErrorCode.equals("404"))
 					return null;
 				else if (httpErrorCode.equals("403"))
-					throw new MetacartaException("Remote procedure exception: "+e.getMessage(),e);
+					throw new LCFException("Remote procedure exception: "+e.getMessage(),e);
 				else if (httpErrorCode.equals("401"))
 				{
 					if (Logging.connectors.isDebugEnabled())
 						Logging.connectors.debug("SharePoint: Crawl user does not have sufficient privileges to get field list for site "+site+" library "+docLibrary+" - skipping",e);
 					return null;
 				}
-				throw new MetacartaException("Unexpected http error code "+httpErrorCode+" accessing SharePoint at "+baseUrl+site+": "+e.getMessage(),e);
+				throw new LCFException("Unexpected http error code "+httpErrorCode+" accessing SharePoint at "+baseUrl+site+": "+e.getMessage(),e);
 			}
-			throw new MetacartaException("Unknown http error occurred: "+e.getMessage(),e);
+			throw new LCFException("Unknown http error occurred: "+e.getMessage(),e);
 		}
 
 		if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server.userException")))
 		{
 			String exceptionName = e.getFaultString();
 			if (exceptionName.equals("java.lang.InterruptedException"))
-				throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted",LCFException.INTERRUPTED);
 		}
 
 		// I don't know if this is what you get when the library is missing, but here's hoping.
@@ -1338,7 +1338,7 @@ public class SPSProxyHelper {
 	    }
             catch (java.rmi.RemoteException e)
             {
-		throw new MetacartaException("Unexpected remote exception occurred: "+e.getMessage(),e);
+		throw new LCFException("Unexpected remote exception occurred: "+e.getMessage(),e);
             }
 	}
 	
@@ -1350,7 +1350,7 @@ public class SPSProxyHelper {
      * @return set of the field values
      */
 	public Map getFieldValues( ArrayList fieldNames, String site, String docLibrary, String docId )
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		long currentTime;
 		try
@@ -1439,13 +1439,13 @@ public class SPSProxyHelper {
 			doc.processPath(nodeList, "*", null);
 			if (nodeList.size() != 1)
 			{
-				throw new MetacartaException("Bad xml - missing outer 'ns1:dsQueryResponse' node - there are "+Integer.toString(nodeList.size())+" nodes");
+				throw new LCFException("Bad xml - missing outer 'ns1:dsQueryResponse' node - there are "+Integer.toString(nodeList.size())+" nodes");
 			}
 			
 			Object parent = nodeList.get(0);
 			//System.out.println( "Outer NodeName = " + doc.getNodeName(parent) );
 			if (!doc.getNodeName(parent).equals("ns1:dsQueryResponse"))
-				throw new MetacartaException("Bad xml - outer node is not 'ns1:dsQueryResponse'");
+				throw new LCFException("Bad xml - outer node is not 'ns1:dsQueryResponse'");
 	
 			nodeList.clear();
 			doc.processPath(nodeList, "*", parent);
@@ -1479,11 +1479,11 @@ public class SPSProxyHelper {
 		}
 		catch (javax.xml.soap.SOAPException e)
 		{
-		    throw new MetacartaException("Soap exception: "+e.getMessage(),e);
+		    throw new LCFException("Soap exception: "+e.getMessage(),e);
 		}
 		catch (java.net.MalformedURLException e)
 		{
-                    throw new MetacartaException("Bad SharePoint url: "+e.getMessage(),e);
+                    throw new LCFException("Bad SharePoint url: "+e.getMessage(),e);
 		}
 		catch (javax.xml.rpc.ServiceException e)
 		{
@@ -1505,23 +1505,23 @@ public class SPSProxyHelper {
 					if (httpErrorCode.equals("404"))
 						return null;
 					else if (httpErrorCode.equals("403"))
-						throw new MetacartaException("Remote procedure exception: "+e.getMessage(),e);
+						throw new LCFException("Remote procedure exception: "+e.getMessage(),e);
 					else if (httpErrorCode.equals("401"))
 					{
 						if (Logging.connectors.isDebugEnabled())
 							Logging.connectors.debug("SharePoint: Crawl user does not have sufficient privileges to get field values for site "+site+" library "+docLibrary+" - skipping",e);
 						return null;
 					}
-					throw new MetacartaException("Unexpected http error code "+httpErrorCode+" accessing SharePoint at "+baseUrl+site+": "+e.getMessage(),e);
+					throw new LCFException("Unexpected http error code "+httpErrorCode+" accessing SharePoint at "+baseUrl+site+": "+e.getMessage(),e);
 				}
-				throw new MetacartaException("Unknown http error occurred: "+e.getMessage(),e);
+				throw new LCFException("Unknown http error occurred: "+e.getMessage(),e);
 			}
 			
 			if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server.userException")))
 			{
 				String exceptionName = e.getFaultString();
 				if (exceptionName.equals("java.lang.InterruptedException"))
-					throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+					throw new LCFException("Interrupted",LCFException.INTERRUPTED);
 			}
 
 			// I don't know if this is what you get when the library is missing, but here's hoping.
@@ -1536,7 +1536,7 @@ public class SPSProxyHelper {
 		}
 		catch (java.rmi.RemoteException e)
 		{
-			throw new MetacartaException("Unexpected remote exception occurred: "+e.getMessage(),e);
+			throw new LCFException("Unexpected remote exception occurred: "+e.getMessage(),e);
 		}
 	}
 	
@@ -1546,7 +1546,7 @@ public class SPSProxyHelper {
 	 * @return lists of sites as an arraylist of NameValue objects
 	 */
 	public ArrayList getSites( String parentSite )
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 	    long currentTime;
 	    try
@@ -1566,11 +1566,11 @@ public class SPSProxyHelper {
 		doc.processPath(nodeList, "*", null);
 		if (nodeList.size() != 1)
 		{
-			throw new MetacartaException("Bad xml - missing outer 'ns1:Webs' node - there are "+Integer.toString(nodeList.size())+" nodes");
+			throw new LCFException("Bad xml - missing outer 'ns1:Webs' node - there are "+Integer.toString(nodeList.size())+" nodes");
 		}
 		Object parent = nodeList.get(0);
 		if (!doc.getNodeName(parent).equals("ns1:Webs"))
-			throw new MetacartaException("Bad xml - outer node is not 'ns1:Webs'");
+			throw new LCFException("Bad xml - outer node is not 'ns1:Webs'");
 
 		nodeList.clear();
 		doc.processPath(nodeList, "*", parent);  // <ns1:Webs>
@@ -1610,7 +1610,7 @@ public class SPSProxyHelper {
 	    }
             catch (java.net.MalformedURLException e)
             {
-                    throw new MetacartaException("Bad SharePoint url: "+e.getMessage(),e);
+                    throw new LCFException("Bad SharePoint url: "+e.getMessage(),e);
             }
             catch (javax.xml.rpc.ServiceException e)
             {
@@ -1632,23 +1632,23 @@ public class SPSProxyHelper {
 				if (httpErrorCode.equals("404"))
 					return null;
 				else if (httpErrorCode.equals("403"))
-					throw new MetacartaException("Remote procedure exception: "+e.getMessage(),e);
+					throw new LCFException("Remote procedure exception: "+e.getMessage(),e);
 				else if (httpErrorCode.equals("401"))
 				{
 					if (Logging.connectors.isDebugEnabled())
 						Logging.connectors.debug("SharePoint: Crawl user does not have sufficient privileges to get subsites of site "+parentSite+" - skipping",e);
 					return null;
 				}
-				throw new MetacartaException("Unexpected http error code "+httpErrorCode+" accessing SharePoint at "+baseUrl+parentSite+": "+e.getMessage(),e);
+				throw new LCFException("Unexpected http error code "+httpErrorCode+" accessing SharePoint at "+baseUrl+parentSite+": "+e.getMessage(),e);
 			}
-			throw new MetacartaException("Unknown http error occurred: "+e.getMessage(),e);
+			throw new LCFException("Unknown http error occurred: "+e.getMessage(),e);
 		}
 
 		if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server.userException")))
 		{
 			String exceptionName = e.getFaultString();
 			if (exceptionName.equals("java.lang.InterruptedException"))
-				throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted",LCFException.INTERRUPTED);
 		}
 
 		if (Logging.connectors.isDebugEnabled())
@@ -1659,7 +1659,7 @@ public class SPSProxyHelper {
 	    }
             catch (java.rmi.RemoteException e)
             {
-		throw new MetacartaException("Unexpected remote exception occurred: "+e.getMessage(),e);
+		throw new LCFException("Unexpected remote exception occurred: "+e.getMessage(),e);
             }
 
 	}
@@ -1670,7 +1670,7 @@ public class SPSProxyHelper {
 	 * @return lists of NameValue objects, representing document libraries
 	 */
 	public ArrayList getDocumentLibraries( String parentSite, String parentSiteDecoded )
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 	    long currentTime;
 	    try
@@ -1699,11 +1699,11 @@ public class SPSProxyHelper {
 		doc.processPath(nodeList, "*", null);
 		if (nodeList.size() != 1)
 		{
-			throw new MetacartaException("Bad xml - missing outer 'ns1:Lists' node - there are "+Integer.toString(nodeList.size())+" nodes");
+			throw new LCFException("Bad xml - missing outer 'ns1:Lists' node - there are "+Integer.toString(nodeList.size())+" nodes");
 		}
 		Object parent = nodeList.get(0);
 		if (!doc.getNodeName(parent).equals("ns1:Lists"))
-			throw new MetacartaException("Bad xml - outer node is not 'ns1:Lists'");
+			throw new LCFException("Bad xml - outer node is not 'ns1:Lists'");
 
 		nodeList.clear();
 		doc.processPath(nodeList, "*", parent);  // <ns1:Lists>
@@ -1733,14 +1733,14 @@ public class SPSProxyHelper {
 				if (urlPath != null && urlPath.length() > 0)
 				{
 					if (urlPath.length() < chuckIndex)
-						throw new MetacartaException("View url is not in the expected form: '"+urlPath+"'");
+						throw new LCFException("View url is not in the expected form: '"+urlPath+"'");
 					urlPath = urlPath.substring(chuckIndex);
 					if (!urlPath.startsWith("/"))
-						throw new MetacartaException("View url without site is not in the expected form: '"+urlPath+"'");
+						throw new LCFException("View url without site is not in the expected form: '"+urlPath+"'");
 					// We're at the library name.  Figure out where the end of it is.
 					int index = urlPath.indexOf("/",1);
 					if (index == -1)
-						throw new MetacartaException("Bad view url without site: '"+urlPath+"'");
+						throw new LCFException("Bad view url without site: '"+urlPath+"'");
 					String pathpart = urlPath.substring(1,index);
 
 					if ( pathpart.length() != 0 && !pathpart.equals("_catalogs"))
@@ -1757,7 +1757,7 @@ public class SPSProxyHelper {
 	    }
             catch (java.net.MalformedURLException e)
             {
-                    throw new MetacartaException("Bad SharePoint url: "+e.getMessage(),e);
+                    throw new LCFException("Bad SharePoint url: "+e.getMessage(),e);
             }
             catch (javax.xml.rpc.ServiceException e)
             {
@@ -1779,22 +1779,22 @@ public class SPSProxyHelper {
 				if (httpErrorCode.equals("404"))
 					return null;
 				else if (httpErrorCode.equals("403"))
-					throw new MetacartaException("Remote procedure exception: "+e.getMessage(),e);
+					throw new LCFException("Remote procedure exception: "+e.getMessage(),e);
 				else if (httpErrorCode.equals("401"))
 				{
 					if (Logging.connectors.isDebugEnabled())
 						Logging.connectors.debug("SharePoint: Crawl user does not have sufficient privileges to read document libraries for site "+parentSite+" - skipping",e);
 					return null;
 				}
-				throw new MetacartaException("Unexpected http error code "+httpErrorCode+" accessing SharePoint at "+baseUrl+parentSite+": "+e.getMessage(),e);
+				throw new LCFException("Unexpected http error code "+httpErrorCode+" accessing SharePoint at "+baseUrl+parentSite+": "+e.getMessage(),e);
 			}
-			throw new MetacartaException("Unknown http error occurred: "+e.getMessage(),e);
+			throw new LCFException("Unknown http error occurred: "+e.getMessage(),e);
 		}
 		if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server.userException")))
 		{
 			String exceptionName = e.getFaultString();
 			if (exceptionName.equals("java.lang.InterruptedException"))
-				throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted",LCFException.INTERRUPTED);
 		}
 		if (Logging.connectors.isDebugEnabled())
 			Logging.connectors.debug("SharePoint: Got a remote exception reading document libraries for site "+parentSite+" - retrying",e);
@@ -1804,7 +1804,7 @@ public class SPSProxyHelper {
 	    }
             catch (java.rmi.RemoteException e)
             {
-		throw new MetacartaException("Unexpected remote exception occurred: "+e.getMessage(),e);
+		throw new LCFException("Unexpected remote exception occurred: "+e.getMessage(),e);
             }		
 	}
 	

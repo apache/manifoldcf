@@ -42,7 +42,7 @@ public abstract class CharacterInput
 	}
 
 	public Reader getStream()
-		throws MetacartaException
+		throws LCFException
 	{
 		if (stream == null)
 			openStream();
@@ -50,14 +50,14 @@ public abstract class CharacterInput
 	}
 
 	public void doneWithStream()
-		throws MetacartaException
+		throws LCFException
 	{
 		if (stream != null)
 			closeStream();
 	}
 
 	public long getCharacterLength()
-		throws MetacartaException
+		throws LCFException
 	{
 		if (charLength == -1L)
 			calculateLength();
@@ -65,7 +65,7 @@ public abstract class CharacterInput
 	}
 	
 	public String getHashValue()
-		throws MetacartaException
+		throws LCFException
 	{
 		if (hashValue == null)
 			calculateHashValue();
@@ -74,14 +74,14 @@ public abstract class CharacterInput
 	
 	/** Open a Utf8 stream directly */
 	public abstract InputStream getUtf8Stream()
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Transfer to a new object; this causes the current object to become "already discarded" */
 	public abstract CharacterInput transfer();
 	
 	/** Discard this object permanently */
 	public void discard()
-		throws MetacartaException
+		throws LCFException
 	{
 		doneWithStream();
 	}
@@ -90,11 +90,11 @@ public abstract class CharacterInput
 	
 	/** Open a reader, for use by a caller, until closeStream is called */
 	protected abstract void openStream()
-		throws MetacartaException;
+		throws LCFException;
 	
 	/** Close any open reader */
 	protected void closeStream()
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
@@ -103,20 +103,20 @@ public abstract class CharacterInput
 		}
 		catch (InterruptedIOException e)
 		{
-			throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+			throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 		}
 		catch (IOException e)
 		{
-			throw new MetacartaException("Error closing stream: "+e.getMessage(),e,MetacartaException.GENERAL_ERROR);
+			throw new LCFException("Error closing stream: "+e.getMessage(),e,LCFException.GENERAL_ERROR);
 		}
 	}
 	
 	/** Calculate the datum's length in characters */
 	protected abstract void calculateLength()
-		throws MetacartaException;
+		throws LCFException;
 	
 	/** Calculate the datum's hash value */
 	protected abstract void calculateHashValue()
-		throws MetacartaException;
+		throws LCFException;
 	
 }

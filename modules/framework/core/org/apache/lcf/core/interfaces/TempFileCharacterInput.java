@@ -19,7 +19,7 @@
 package org.apache.lcf.core.interfaces;
 
 import java.io.*;
-import org.apache.lcf.core.system.Metacarta;
+import org.apache.lcf.core.system.LCF;
 
 /** This class represents a temporary file character input
 * stream.  Call the "done" method to clean up the
@@ -42,7 +42,7 @@ public class TempFileCharacterInput extends CharacterInput
 	*	   and hash value for the data.
 	*/
 	public TempFileCharacterInput(Reader is)
-		throws MetacartaException
+		throws LCFException
 	{
 		super();
 		try
@@ -52,12 +52,12 @@ public class TempFileCharacterInput extends CharacterInput
 			try
 			{
 				// Register the file for autodeletion, using our infrastructure.
-				Metacarta.addFile(outfile);
+				LCF.addFile(outfile);
 				// deleteOnExit() causes memory leakage!
 				// outfile.deleteOnExit();
 				
 				// Set up hash digest and character length counter before we start anything.
-				java.security.MessageDigest md = Metacarta.startHash();
+				java.security.MessageDigest md = LCF.startHash();
 				
 				FileOutputStream outStream = new FileOutputStream(outfile);
 				// Create a Writer corresponding to the file output stream, and encode using utf-8
@@ -74,12 +74,12 @@ public class TempFileCharacterInput extends CharacterInput
 						if (readsize == -1)
 							break;
 						outWriter.write(buffer,0,readsize);
-						Metacarta.addToHash(md,new String(buffer,0,readsize));
+						LCF.addToHash(md,new String(buffer,0,readsize));
 						totalMoved += readsize;
 					}
 					
 					charLength = totalMoved;
-					hashValue = Metacarta.getHashValue(md);
+					hashValue = LCF.getHashValue(md);
 				}
 				finally
 				{
@@ -95,7 +95,7 @@ public class TempFileCharacterInput extends CharacterInput
 			{
 				// Delete the temp file we created on any error condition
 				// outfile.delete();
-				Metacarta.deleteFile(outfile);
+				LCF.deleteFile(outfile);
 				if (e instanceof Error)
 					throw (Error)e;
 				if (e instanceof RuntimeException)
@@ -107,11 +107,11 @@ public class TempFileCharacterInput extends CharacterInput
 		}
 		catch (InterruptedIOException e)
 		{
-			throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+			throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 		}
 		catch (Exception e)
 		{
-			throw new MetacartaException("Cannot write temporary file: "+e.getMessage(),e,MetacartaException.GENERAL_ERROR);
+			throw new LCFException("Cannot write temporary file: "+e.getMessage(),e,LCFException.GENERAL_ERROR);
 		}
 
 	}
@@ -123,7 +123,7 @@ public class TempFileCharacterInput extends CharacterInput
 	{
 		super();
 		file = tempFile;
-		Metacarta.addFile(file);
+		LCF.addFile(file);
 		// deleteOnExit() causes memory leakage; better to leak files on hard shutdown than memory.
 		// file.deleteOnExit();
 	}
@@ -135,7 +135,7 @@ public class TempFileCharacterInput extends CharacterInput
 
 	/** Open a Utf8 stream directly from the backing file */
 	public InputStream getUtf8Stream()
-		throws MetacartaException
+		throws LCFException
 	{
 		if (file != null)
 		{
@@ -145,14 +145,14 @@ public class TempFileCharacterInput extends CharacterInput
 			}
 			catch (FileNotFoundException e)
 			{
-				throw new MetacartaException("No such file: "+e.getMessage(),e,MetacartaException.GENERAL_ERROR);
+				throw new LCFException("No such file: "+e.getMessage(),e,LCFException.GENERAL_ERROR);
 			}
 		}
 		return null;
 	}
 
 	protected void openStream()
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
@@ -162,11 +162,11 @@ public class TempFileCharacterInput extends CharacterInput
 		}
 		catch (FileNotFoundException e)
 		{
-			throw new MetacartaException("Can't create stream: "+e.getMessage(),e,MetacartaException.GENERAL_ERROR);
+			throw new LCFException("Can't create stream: "+e.getMessage(),e,LCFException.GENERAL_ERROR);
 		}
 		catch (UnsupportedEncodingException e)
 		{
-			throw new MetacartaException("Can't create stream: "+e.getMessage(),e,MetacartaException.GENERAL_ERROR);
+			throw new LCFException("Can't create stream: "+e.getMessage(),e,LCFException.GENERAL_ERROR);
 		}
 	}
 
@@ -187,33 +187,33 @@ public class TempFileCharacterInput extends CharacterInput
 	}
 
 	public void discard()
-		throws MetacartaException
+		throws LCFException
 	{
 		super.discard();
 		// Delete the underlying file
 		if (file != null)
 		{
-			Metacarta.deleteFile(file);
+			LCF.deleteFile(file);
 			file = null;
 		}
 	}
 
 	/** Calculate the datum's length in characters */
 	protected void calculateLength()
-		throws MetacartaException
+		throws LCFException
 	{
 		scanFile();
 	}
 	
 	/** Calculate the datum's hash value */
 	protected void calculateHashValue()
-		throws MetacartaException
+		throws LCFException
 	{
 		scanFile();
 	}
 
 	private void scanFile()
-		throws MetacartaException
+		throws LCFException
 	{
 		// Scan the file in order to figure out the hash value and the character length
 		try
@@ -224,7 +224,7 @@ public class TempFileCharacterInput extends CharacterInput
 			try
 			{
 				// Set up hash digest and character length counter before we start anything.
-				java.security.MessageDigest md = Metacarta.startHash();
+				java.security.MessageDigest md = LCF.startHash();
 				char[] buffer = new char[CHUNK_SIZE];
 				long totalMoved = 0;
 				while (true)
@@ -234,12 +234,12 @@ public class TempFileCharacterInput extends CharacterInput
 					int readsize = reader.read(buffer,0,moveAmount);
 					if (readsize == -1)
 						break;
-					Metacarta.addToHash(md,new String(buffer,0,readsize));
+					LCF.addToHash(md,new String(buffer,0,readsize));
 					totalMoved += readsize;
 				}
 					
 				charLength = totalMoved;
-				hashValue = Metacarta.getHashValue(md);
+				hashValue = LCF.getHashValue(md);
 			}
 			finally
 			{
@@ -248,11 +248,11 @@ public class TempFileCharacterInput extends CharacterInput
 		}
 		catch (InterruptedIOException e)
 		{
-			throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+			throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 		}
 		catch (IOException e)
 		{
-			throw new MetacartaException("Can't scan file: "+e.getMessage(),e,MetacartaException.GENERAL_ERROR);
+			throw new LCFException("Can't scan file: "+e.getMessage(),e,LCFException.GENERAL_ERROR);
 		}
 	}
 	

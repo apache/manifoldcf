@@ -42,7 +42,7 @@ public class XMLOutputStreamContext extends XMLWriterContext
 	
 	/** Full constructor.  Used for individual tags. */
 	public XMLOutputStreamContext(XMLStream theStream, String namespaceURI, String localname, String qname, Attributes theseAttributes, OutputStream os)
-		throws MetacartaException, UnsupportedEncodingException
+		throws LCFException, UnsupportedEncodingException
 	{
 		// Construct an appropriate writer
 		super(theStream,namespaceURI,localname,qname,theseAttributes,new OutputStreamWriter(os,"utf-8"));
@@ -52,7 +52,7 @@ public class XMLOutputStreamContext extends XMLWriterContext
 	
 	/** Flush the data to the underlying output stream */
 	public void flush()
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
@@ -65,21 +65,21 @@ public class XMLOutputStreamContext extends XMLWriterContext
 		}
 		catch (java.net.SocketTimeoutException e)
 		{
-			throw new MetacartaException("Socket timeout exception: "+e.getMessage(),e);
+			throw new LCFException("Socket timeout exception: "+e.getMessage(),e);
 		}
 		catch (InterruptedIOException e)
 		{
-			throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+			throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 		}
 		catch (IOException e)
 		{
-			throw new MetacartaException("IO exception: "+e.getMessage(),e);
+			throw new LCFException("IO exception: "+e.getMessage(),e);
 		}
 	}
 	
 	/** Close the underlying stream. */
 	public void close()
-		throws MetacartaException
+		throws LCFException
 	{
 		// Now, close.
 		try
@@ -92,15 +92,15 @@ public class XMLOutputStreamContext extends XMLWriterContext
 		}
 		catch (java.net.SocketTimeoutException e)
 		{
-			throw new MetacartaException("Socket timeout exception: "+e.getMessage(),e);
+			throw new LCFException("Socket timeout exception: "+e.getMessage(),e);
 		}
 		catch (InterruptedIOException e)
 		{
-			throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+			throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 		}
 		catch (IOException e)
 		{
-			throw new MetacartaException("IO exception: "+e.getMessage(),e);
+			throw new LCFException("IO exception: "+e.getMessage(),e);
 		}
 	}
 

@@ -45,13 +45,13 @@ public class RegisterAuthority
 
 		try
 		{
-			Metacarta.initializeEnvironment();
+			LCF.initializeEnvironment();
 			IThreadContext tc = ThreadContextFactory.make();
 			IAuthorityConnectorManager mgr = AuthorityConnectorManagerFactory.make(tc);
 			mgr.registerConnector(description,className);
 			System.err.println("Successfully registered connector '"+className+"'");
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			e.printStackTrace();
 			System.exit(1);

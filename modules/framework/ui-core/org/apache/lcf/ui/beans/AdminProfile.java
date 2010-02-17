@@ -100,9 +100,9 @@ public class AdminProfile implements HttpSessionBindingListener
 			if (userID != null)
 			{
 				IDBInterface database = DBInterfaceFactory.make(threadContext,
-					Metacarta.getMasterDatabaseName(),
-					Metacarta.getMasterDatabaseUsername(),
-					Metacarta.getMasterDatabasePassword());
+					LCF.getMasterDatabaseName(),
+					LCF.getMasterDatabaseUsername(),
+					LCF.getMasterDatabasePassword());
 				// MHL to actually log in (when we figure out what to use as an authority)
 				if (userID.equals("admin") &&  userPassword.equals("admin"))
 				{
@@ -112,7 +112,7 @@ public class AdminProfile implements HttpSessionBindingListener
 				}
 			}
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			Logging.misc.fatal("Exception logging in!",e);
 		}

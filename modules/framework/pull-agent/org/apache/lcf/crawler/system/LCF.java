@@ -25,7 +25,7 @@ import org.apache.lcf.authorities.interfaces.*;
 import java.io.*;
 import java.util.*;
 
-public class Metacarta extends org.apache.lcf.agents.system.Metacarta
+public class LCF extends org.apache.lcf.agents.system.LCF
 {
 	public static final String _rcsid = "@(#)$Id$";
 
@@ -77,13 +77,13 @@ public class Metacarta extends org.apache.lcf.agents.system.Metacarta
 	*/
 	public static synchronized void initializeEnvironment()
 	{
-		org.apache.lcf.authorities.system.Metacarta.initializeEnvironment();
+		org.apache.lcf.authorities.system.LCF.initializeEnvironment();
 
 		if (isInitialized != null)
 			return;
 
 		isInitialized = new Integer(0);
-		org.apache.lcf.agents.system.Metacarta.initializeEnvironment();
+		org.apache.lcf.agents.system.LCF.initializeEnvironment();
 		Logging.initializeLoggers();
 		Logging.setLogLevels();
 
@@ -94,12 +94,12 @@ public class Metacarta extends org.apache.lcf.agents.system.Metacarta
 	*@param threadcontext is the thread context.
 	*/
 	public static void installSystemTables(IThreadContext threadcontext)
-		throws MetacartaException
+		throws LCFException
 	{
 		IConnectorManager repConnMgr = ConnectorManagerFactory.make(threadcontext);
 		IRepositoryConnectionManager repCon = RepositoryConnectionManagerFactory.make(threadcontext);
 		IJobManager jobManager = JobManagerFactory.make(threadcontext);
-                org.apache.lcf.authorities.system.Metacarta.installSystemTables(threadcontext);
+                org.apache.lcf.authorities.system.LCF.installSystemTables(threadcontext);
                 repConnMgr.install();
                 repCon.install();
                 jobManager.install();
@@ -109,9 +109,9 @@ public class Metacarta extends org.apache.lcf.agents.system.Metacarta
 	*@param threadcontext is the thread context.
 	*/
 	public static void deinstallSystemTables(IThreadContext threadcontext)
-		throws MetacartaException
+		throws LCFException
 	{
-		MetacartaException se = null;
+		LCFException se = null;
 
 		IConnectorManager repConnMgr = ConnectorManagerFactory.make(threadcontext);
 		IRepositoryConnectionManager repCon = RepositoryConnectionManagerFactory.make(threadcontext);
@@ -119,7 +119,7 @@ public class Metacarta extends org.apache.lcf.agents.system.Metacarta
                 jobManager.deinstall();
                 repCon.deinstall();
                 repConnMgr.deinstall();
-                org.apache.lcf.authorities.system.Metacarta.deinstallSystemTables(threadcontext);
+                org.apache.lcf.authorities.system.LCF.deinstallSystemTables(threadcontext);
 		if (se != null)
 			throw se;
 	}
@@ -128,7 +128,7 @@ public class Metacarta extends org.apache.lcf.agents.system.Metacarta
 	/** Start everything.
 	*/
 	public static void startSystem(IThreadContext threadContext)
-		throws MetacartaException
+		throws LCFException
 	{
 
 		// Now, start all the threads
@@ -137,7 +137,7 @@ public class Metacarta extends org.apache.lcf.agents.system.Metacarta
 			maxThreads = "100";
 		numWorkerThreads = new Integer(maxThreads).intValue();
 		if (numWorkerThreads < 1 || numWorkerThreads > 300)
-			throw new MetacartaException("Illegal value for the number of worker threads");
+			throw new LCFException("Illegal value for the number of worker threads");
 		String maxDeleteThreads = getProperty(deleteThreadCountProperty);
 		if (maxDeleteThreads == null)
 			maxDeleteThreads = "10";
@@ -146,22 +146,22 @@ public class Metacarta extends org.apache.lcf.agents.system.Metacarta
 			maxExpireThreads = "10";
 		numDeleteThreads = new Integer(maxDeleteThreads).intValue();
 		if (numDeleteThreads < 1 || numDeleteThreads > 300)
-			throw new MetacartaException("Illegal value for the number of delete threads");
+			throw new LCFException("Illegal value for the number of delete threads");
 		numExpireThreads = new Integer(maxExpireThreads).intValue();
 		if (numExpireThreads < 1 || numExpireThreads > 300)
-			throw new MetacartaException("Illegal value for the number of expire threads");
+			throw new LCFException("Illegal value for the number of expire threads");
 		String lowWaterFactorString = getProperty(lowWaterFactorProperty);
 		if (lowWaterFactorString == null)
 			lowWaterFactorString = "5";
 		lowWaterFactor = new Float(lowWaterFactorString).floatValue();
 		if (lowWaterFactor < 1.0 || lowWaterFactor > 1000.0)
-			throw new MetacartaException("Illegal value for the low water factor");
+			throw new LCFException("Illegal value for the low water factor");
 		String stuffAmtFactorString = getProperty(stuffAmtFactorProperty);
 		if (stuffAmtFactorString == null)
 			stuffAmtFactorString = "2";
 		stuffAmtFactor = new Float(stuffAmtFactorString).floatValue();
 		if (stuffAmtFactor < 0.1 || stuffAmtFactor > 1000.0)
-			throw new MetacartaException("Illegal value for the stuffing amount factor");
+			throw new LCFException("Illegal value for the stuffing amount factor");
 
 		
 		// Create the threads and objects.  This MUST be completed before there is any chance of "shutdownSystem" getting called.
@@ -314,10 +314,10 @@ public class Metacarta extends org.apache.lcf.agents.system.Metacarta
 			catch (Throwable e)
 			{
 				// Severe error on initialization
-				if (e instanceof MetacartaException)
+				if (e instanceof LCFException)
 				{
 					// Deal with interrupted exception gracefully, because it means somebody is trying to shut us down before we got started.
-					if (((MetacartaException)e).getErrorCode() == MetacartaException.INTERRUPTED)
+					if (((LCFException)e).getErrorCode() == LCFException.INTERRUPTED)
 						return;
 				}
 				System.err.println("metacarta-agents could not start - please contact MetaCarta Customer Support");
@@ -330,7 +330,7 @@ public class Metacarta extends org.apache.lcf.agents.system.Metacarta
 	/** Stop the system.
 	*/
 	public static void stopSystem(IThreadContext threadContext)
-		throws MetacartaException
+		throws LCFException
 	{
 
 		while (initializationThread != null || jobDeleteThread != null || startupThread != null || jobStartThread != null || stufferThread != null ||
@@ -423,7 +423,7 @@ public class Metacarta extends org.apache.lcf.agents.system.Metacarta
 			// Now, wait for all threads to die.
 			try
 			{
-				Metacarta.sleep(1000L);
+				LCF.sleep(1000L);
 			}
 			catch (InterruptedException e)
 			{
@@ -560,14 +560,14 @@ public class Metacarta extends org.apache.lcf.agents.system.Metacarta
 
 	/** Atomically export the crawler configuration */
 	public static void exportConfiguration(IThreadContext threadContext, String exportFilename)
-		throws MetacartaException
+		throws LCFException
 	{
 		// The basic idea here is that we open a zip stream, into which we dump all the pertinent information in a transactionally-consistent manner.
 		// First, we need a database handle...
 		IDBInterface database = DBInterfaceFactory.make(threadContext,
-			Metacarta.getMasterDatabaseName(),
-			Metacarta.getMasterDatabaseUsername(),
-			Metacarta.getMasterDatabasePassword());
+			LCF.getMasterDatabaseName(),
+			LCF.getMasterDatabaseUsername(),
+			LCF.getMasterDatabasePassword());
 		// Also create the following managers, which will handle the actual details of writing configuration data
 		IOutputConnectionManager outputManager = OutputConnectionManagerFactory.make(threadContext);
 		IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(threadContext);
@@ -617,7 +617,7 @@ public class Metacarta extends org.apache.lcf.agents.system.Metacarta
 
 						// All done
 					}
-					catch (MetacartaException e)
+					catch (LCFException e)
 					{
 						database.signalRollback();
 						throw e;
@@ -647,19 +647,19 @@ public class Metacarta extends org.apache.lcf.agents.system.Metacarta
 			// On error, delete any file we created
 			outputFile.delete();
 			// Convert I/O error into metacarta exception
-			throw new MetacartaException("Error creating configuration file: "+e.getMessage(),e);
+			throw new LCFException("Error creating configuration file: "+e.getMessage(),e);
 		}
 	}
 	
 	/** Atomically import a crawler configuration */
 	public static void importConfiguration(IThreadContext threadContext, String importFilename)
-		throws MetacartaException
+		throws LCFException
 	{
 		// First, we need a database handle...
 		IDBInterface database = DBInterfaceFactory.make(threadContext,
-			Metacarta.getMasterDatabaseName(),
-			Metacarta.getMasterDatabaseUsername(),
-			Metacarta.getMasterDatabasePassword());
+			LCF.getMasterDatabaseName(),
+			LCF.getMasterDatabaseUsername(),
+			LCF.getMasterDatabasePassword());
 		// Also create the following managers, which will handle the actual details of reading configuration data
 		IOutputConnectionManager outputManager = OutputConnectionManagerFactory.make(threadContext);
 		IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(threadContext);
@@ -699,13 +699,13 @@ public class Metacarta extends org.apache.lcf.agents.system.Metacarta
 							else if (name.equals("jobs"))
 								jobManager.importConfiguration(zis);
 							else
-								throw new MetacartaException("Configuration file has an entry named '"+name+"' that I do not recognize");
+								throw new LCFException("Configuration file has an entry named '"+name+"' that I do not recognize");
 							zis.closeEntry();
 							
 						}
 						// All done!!
 					}
-					catch (MetacartaException e)
+					catch (LCFException e)
 					{
 						database.signalRollback();
 						throw e;
@@ -733,7 +733,7 @@ public class Metacarta extends org.apache.lcf.agents.system.Metacarta
 		catch (java.io.IOException e)
 		{
 			// Convert I/O error into metacarta exception
-			throw new MetacartaException("Error reading configuration file: "+e.getMessage(),e);
+			throw new LCFException("Error reading configuration file: "+e.getMessage(),e);
 		}
 	}
 	
@@ -763,7 +763,7 @@ public class Metacarta extends org.apache.lcf.agents.system.Metacarta
 	*/
 	public static void requeueDocumentsDueToCarrydown(IJobManager jobManager, DocumentDescription[] requeueCandidates,
 		IRepositoryConnector connector, IRepositoryConnection connection, QueueTracker queueTracker, long currentTime)
-		throws MetacartaException
+		throws LCFException
 	{
 		// A list of document descriptions from finishDocuments() above represents those documents that may need to be requeued, for the
 		// reason that carrydown information for those documents has changed.  In order to requeue, we need to calculate document priorities, however.
@@ -840,7 +840,7 @@ public class Metacarta extends org.apache.lcf.agents.system.Metacarta
 	}
 
 	public static void writeDocumentPriorities(IThreadContext threadContext, IRepositoryConnectionManager mgr, IJobManager jobManager, DocumentDescription[] descs, HashMap connectionMap, HashMap jobDescriptionMap, QueueTracker queueTracker, long currentTime)
-		throws MetacartaException
+		throws LCFException
 	{
 		if (Logging.scheduling.isDebugEnabled())
 			Logging.scheduling.debug("Reprioritizing "+Integer.toString(descs.length)+" documents");
@@ -888,9 +888,9 @@ public class Metacarta extends org.apache.lcf.agents.system.Metacarta
 					RepositoryConnectorFactory.release(connector);
 				}
 			}
-			catch (MetacartaException e)
+			catch (LCFException e)
 			{
-				if (e.getErrorCode() == MetacartaException.REPOSITORY_CONNECTION_ERROR)
+				if (e.getErrorCode() == LCFException.REPOSITORY_CONNECTION_ERROR)
 				{
 					binNames = new String[]{""};
 				}
@@ -917,7 +917,7 @@ public class Metacarta extends org.apache.lcf.agents.system.Metacarta
 	*@return true if the connection is in use, false otherwise.
 	*/
 	public static boolean isOutputConnectionInUse(IThreadContext threadContext, String connName)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Check with job manager.
 		IJobManager jobManager = JobManagerFactory.make(threadContext);
@@ -929,7 +929,7 @@ public class Metacarta extends org.apache.lcf.agents.system.Metacarta
 	*@param connectionNames are the names of the connections being deregistered.
 	*/
 	public static void noteOutputConnectorDeregistration(IThreadContext threadContext, String[] connectionNames)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Notify job manager
 		IJobManager jobManager = JobManagerFactory.make(threadContext);
@@ -941,7 +941,7 @@ public class Metacarta extends org.apache.lcf.agents.system.Metacarta
 	*@param connectionNames are the names of the connections being registered.
 	*/
 	public static void noteOutputConnectorRegistration(IThreadContext threadContext, String[] connectionNames)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Notify job manager
 		IJobManager jobManager = JobManagerFactory.make(threadContext);

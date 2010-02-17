@@ -51,7 +51,7 @@ public class LookupDoc
 			}
 			System.err.println("Successfully looked up");
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			e.printStackTrace(System.err);
 			System.exit(2);

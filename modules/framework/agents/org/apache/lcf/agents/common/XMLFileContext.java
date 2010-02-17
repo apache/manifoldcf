@@ -41,7 +41,7 @@ public class XMLFileContext extends XMLOutputStreamContext
 	
 	/** Full constructor.  Used for individual tags. */
 	public XMLFileContext(XMLStream theStream, String namespaceURI, String localname, String qname, Attributes theseAttributes, File f)
-		throws MetacartaException, UnsupportedEncodingException, FileNotFoundException
+		throws LCFException, UnsupportedEncodingException, FileNotFoundException
 	{
 		// Construct an appropriate writer
 		super(theStream,namespaceURI,localname,qname,theseAttributes,new FileOutputStream(f));
@@ -51,7 +51,7 @@ public class XMLFileContext extends XMLOutputStreamContext
 	
 	/** Get file object, flushing it, closing it, and clearing it.  (This prevents the file from being deleted during cleanup of this context.) */
 	public File getCompletedFile()
-		throws MetacartaException
+		throws LCFException
 	{
 		flush();
 		close();
@@ -62,7 +62,7 @@ public class XMLFileContext extends XMLOutputStreamContext
 	
 	/** Cleanup whatever is left over */
 	public void tagCleanup()
-		throws MetacartaException
+		throws LCFException
 	{
 		if (outputFile != null)
 		{

@@ -19,7 +19,7 @@
 package org.apache.lcf.crawler.connectors.webcrawler;
 
 import org.apache.lcf.core.interfaces.*;
-import org.apache.lcf.crawler.system.Metacarta;
+import org.apache.lcf.crawler.system.LCF;
 import java.util.*;
 import java.util.regex.*;
 
@@ -47,7 +47,7 @@ public class TrustsDescription
 
 	/** Constructor.  Build the description from the ConfigParams. */
 	public TrustsDescription(ConfigParams configData)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Scan, looking for bin description nodes
 		int i = 0;
@@ -68,7 +68,7 @@ public class TrustsDescription
 					}
 					catch (java.util.regex.PatternSyntaxException e)
 					{
-						throw new MetacartaException("Trust regular expression '"+urlDescription+"' is illegal: "+e.getMessage(),e);
+						throw new LCFException("Trust regular expression '"+urlDescription+"' is illegal: "+e.getMessage(),e);
 					}
 					if (trustEverything != null && trustEverything.equals("true"))
 					{
@@ -84,7 +84,7 @@ public class TrustsDescription
 				}
 				catch (PatternSyntaxException e)
 				{
-					throw new MetacartaException("Bad pattern syntax in '"+urlDescription+"': "+e.getMessage(),e);
+					throw new LCFException("Bad pattern syntax in '"+urlDescription+"': "+e.getMessage(),e);
 				}
 			}
 		}
@@ -93,7 +93,7 @@ public class TrustsDescription
 	/** Given a URL, build the right trust certificate store, or return null if all certs should be accepted.
 	*/
 	public IKeystoreManager getTrustStore(String url)
-		throws MetacartaException
+		throws LCFException
 	{
 		IKeystoreManager rval = KeystoreManagerFactory.make("");
 		
@@ -131,7 +131,7 @@ public class TrustsDescription
 
 		/** Constructor. */
 		public TrustsItem(Pattern p, String trustStoreString)
-			throws MetacartaException
+			throws LCFException
 		{
 			pattern = p;
 			if (trustStoreString != null)

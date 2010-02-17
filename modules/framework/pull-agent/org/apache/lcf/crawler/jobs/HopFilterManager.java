@@ -40,7 +40,7 @@ public class HopFilterManager extends org.apache.lcf.core.database.BaseTable
 	*@param database is the database instance.
 	*/
 	public HopFilterManager(IThreadContext threadContext, IDBInterface database)
-		throws MetacartaException
+		throws LCFException
 	{
 		super(database,"jobhopfilters");
 	}
@@ -50,7 +50,7 @@ public class HopFilterManager extends org.apache.lcf.core.database.BaseTable
 	*@param owningTablePrimaryKey is the primary key of the owning table.
 	*/
 	public void install(String ownerTable, String owningTablePrimaryKey)
-		throws MetacartaException
+		throws LCFException
 	{
 		beginTransaction();
 		try
@@ -71,7 +71,7 @@ public class HopFilterManager extends org.apache.lcf.core.database.BaseTable
 				addTableIndex(true,list);
 			}
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -90,7 +90,7 @@ public class HopFilterManager extends org.apache.lcf.core.database.BaseTable
 	/** Uninstall.
 	*/
 	public void deinstall()
-		throws MetacartaException
+		throws LCFException
 	{
 		performDrop(null);
 	}
@@ -100,7 +100,7 @@ public class HopFilterManager extends org.apache.lcf.core.database.BaseTable
 	*@return a map of link type to max hop count (as a Long).
 	*/
 	public Map readRows(Long id)
-		throws MetacartaException
+		throws LCFException
 	{
 		ArrayList list = new ArrayList();
 		list.add(id);
@@ -127,7 +127,7 @@ public class HopFilterManager extends org.apache.lcf.core.database.BaseTable
 	*@param ownerIDParams is the corresponding set of owner id parameters.
 	*/
 	public void getRows(Map returnValues, String ownerIDList, ArrayList ownerIDParams)
-		throws MetacartaException
+		throws LCFException
 	{
 		IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+ownerIDField+" IN ("+ownerIDList+")",ownerIDParams,
 			null,null);
@@ -148,7 +148,7 @@ public class HopFilterManager extends org.apache.lcf.core.database.BaseTable
 	*@param list is the job description to write hopcount filters for.
 	*/
 	public void writeRows(Long ownerID, IJobDescription list)
-		throws MetacartaException
+		throws LCFException
 	{
 		beginTransaction();
 		try
@@ -168,7 +168,7 @@ public class HopFilterManager extends org.apache.lcf.core.database.BaseTable
 				performInsert(map,null);
 			}
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -188,7 +188,7 @@ public class HopFilterManager extends org.apache.lcf.core.database.BaseTable
 	*@param ownerID is the owner whose rows to delete.
 	*/
 	public void deleteRows(Long ownerID)
-		throws MetacartaException
+		throws LCFException
 	{
 		ArrayList list = new ArrayList();
 		list.add(ownerID);

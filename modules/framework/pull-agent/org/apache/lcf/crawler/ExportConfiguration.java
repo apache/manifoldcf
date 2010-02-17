@@ -47,9 +47,9 @@ public class ExportConfiguration
 
 		try
 		{
-		        Metacarta.initializeEnvironment();
+		        LCF.initializeEnvironment();
 			IThreadContext tc = ThreadContextFactory.make();
-			Metacarta.exportConfiguration(tc,exportFilename);
+			LCF.exportConfiguration(tc,exportFilename);
 			System.err.println("Configuration exported");
 		}
 		catch (Exception e)

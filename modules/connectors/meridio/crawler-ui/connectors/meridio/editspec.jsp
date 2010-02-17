@@ -185,7 +185,7 @@
 		<td class="message" colspan="2">Service interruption: <%=org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())%></td>
 <%
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			e.printStackTrace();
 %>
@@ -397,7 +397,7 @@
 		<td class="message" colspan="2">Service interruption: <%=org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())%></td>
 <%
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			e.printStackTrace();
 %>
@@ -686,7 +686,7 @@
 		<td class="message" colspan="4">Service interruption: <%=org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())%></td>
 <%
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			e.printStackTrace();
 %>

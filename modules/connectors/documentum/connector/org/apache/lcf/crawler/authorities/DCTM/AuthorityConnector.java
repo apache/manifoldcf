@@ -103,25 +103,25 @@ public class AuthorityConnector extends org.apache.lcf.authorities.authorities.B
 	/** Get a DFC session.  This will be done every time it is needed.
 	*/
 	protected void getSession()
-		throws MetacartaException
+		throws LCFException
 	{
 		if (session == null)
 		{
 			// This is the stuff that used to be in connect()
 			if (docbaseName == null || docbaseName.length() < 1)
-				throw new MetacartaException("Parameter "+CONFIG_PARAM_DOCBASE+" required but not set");
+				throw new LCFException("Parameter "+CONFIG_PARAM_DOCBASE+" required but not set");
 
 			if (Logging.authorityConnectors.isDebugEnabled())
 				Logging.authorityConnectors.debug("DCTM: Docbase = '" + docbaseName + "'");
 
 			if (userName == null || userName.length() < 1)
-				throw new MetacartaException("Parameter "+CONFIG_PARAM_USERNAME+" required but not set");
+				throw new LCFException("Parameter "+CONFIG_PARAM_USERNAME+" required but not set");
 
 			if (Logging.authorityConnectors.isDebugEnabled())
 				Logging.authorityConnectors.debug("DCTM: Username = '" + userName + "'");
 
 			if (password == null || password.length() < 1)
-				throw new MetacartaException("Parameter "+CONFIG_PARAM_PASSWORD+" required but not set");
+				throw new LCFException("Parameter "+CONFIG_PARAM_PASSWORD+" required but not set");
 
 			Logging.authorityConnectors.debug("DCTM: Password exists");
 
@@ -168,35 +168,35 @@ public class AuthorityConnector extends org.apache.lcf.authorities.authorities.B
 			catch (InterruptedException e)
 			{
 				t.interrupt();
-				throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 			}
 			catch (java.net.MalformedURLException e)
 			{
-				throw new MetacartaException(e.getMessage(),e);
+				throw new LCFException(e.getMessage(),e);
 			}
 			catch (NotBoundException e)
 			{
 				// Transient problem: Server not available at the moment.
-				throw new MetacartaException("Server not up at the moment: "+e.getMessage(),e);
+				throw new LCFException("Server not up at the moment: "+e.getMessage(),e);
 			}
 			catch (RemoteException e)
 			{
 				Throwable e2 = e.getCause();
 				if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-					throw new MetacartaException(e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+					throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
 				session = null;
 				lastSessionFetch = -1L;
 				// Treat this as a transient problem
-				throw new MetacartaException("Transient remote exception creating session: "+e.getMessage(),e);
+				throw new LCFException("Transient remote exception creating session: "+e.getMessage(),e);
 			}
 			catch (DocumentumException e)
 			{
 				// Base our treatment on the kind of error it is.
 				if (e.getType() == DocumentumException.TYPE_SERVICEINTERRUPTION)
 				{
-					throw new MetacartaException("Remote service interruption creating session: "+e.getMessage(),e);
+					throw new LCFException("Remote service interruption creating session: "+e.getMessage(),e);
 				}
-				throw new MetacartaException(e.getMessage(),e);
+				throw new LCFException(e.getMessage(),e);
 			}
 		}
 		
@@ -207,7 +207,7 @@ public class AuthorityConnector extends org.apache.lcf.authorities.authorities.B
 
 	/** Perform a DQL query, with appropriate reset on a remote exception */
 	protected IDocumentumResult performDQLQuery(String query)
-		throws DocumentumException, MetacartaException
+		throws DocumentumException, LCFException
 	{
 		while (true)
 		{
@@ -220,7 +220,7 @@ public class AuthorityConnector extends org.apache.lcf.authorities.authorities.B
 			catch (RemoteException e)
 			{
 				if (noSession)
-					throw new MetacartaException("Transient error connecting to documentum service",e);
+					throw new LCFException("Transient error connecting to documentum service",e);
 				session = null;
 				lastSessionFetch = -1L;
 				continue;
@@ -259,7 +259,7 @@ public class AuthorityConnector extends org.apache.lcf.authorities.authorities.B
 
 	/** Check connection, with appropriate retries */
 	protected void checkConnection()
-		throws DocumentumException, MetacartaException
+		throws DocumentumException, LCFException
 	{
 		while (true)
 		{
@@ -285,15 +285,15 @@ public class AuthorityConnector extends org.apache.lcf.authorities.authorities.B
 			catch (InterruptedException e)
 			{
 				t.interrupt();
-				throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 			}
 			catch (RemoteException e)
 			{
 				Throwable e2 = e.getCause();
 				if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-					throw new MetacartaException(e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+					throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
 				if (noSession)
-					throw new MetacartaException("Transient error connecting to documentum service",e);
+					throw new LCFException("Transient error connecting to documentum service",e);
 				session = null;
 				lastSessionFetch = -1L;
 				continue;
@@ -303,7 +303,7 @@ public class AuthorityConnector extends org.apache.lcf.authorities.authorities.B
 
 	/** Perform getObjectByQualification, with appropriate reset */
 	protected IDocumentumObject getObjectByQualification(String qualification)
-		throws DocumentumException, MetacartaException
+		throws DocumentumException, LCFException
 	{
 		while (true)
 		{
@@ -316,7 +316,7 @@ public class AuthorityConnector extends org.apache.lcf.authorities.authorities.B
 			catch (RemoteException e)
 			{
 				if (noSession)
-					throw new MetacartaException("Transient error connecting to documentum service",e);
+					throw new LCFException("Transient error connecting to documentum service",e);
 				session = null;
 				lastSessionFetch = -1L;
 				continue;
@@ -327,7 +327,7 @@ public class AuthorityConnector extends org.apache.lcf.authorities.authorities.B
 
 	/** Get server version, with appropriate retries */
 	protected String getServerVersion()
-		throws DocumentumException, MetacartaException
+		throws DocumentumException, LCFException
 	{
 		while (true)
 		{
@@ -340,7 +340,7 @@ public class AuthorityConnector extends org.apache.lcf.authorities.authorities.B
 			catch (RemoteException e)
 			{
 				if (noSession)
-					throw new MetacartaException("Transient error connecting to documentum service",e);
+					throw new LCFException("Transient error connecting to documentum service",e);
 				session = null;
 				lastSessionFetch = -1L;
 				continue;
@@ -383,7 +383,7 @@ public class AuthorityConnector extends org.apache.lcf.authorities.authorities.B
 	/** Release the session, if it's time.
 	*/
 	protected void releaseCheck()
-		throws MetacartaException
+		throws LCFException
 	{
 		if (lastSessionFetch == -1L)
 			return;
@@ -412,13 +412,13 @@ public class AuthorityConnector extends org.apache.lcf.authorities.authorities.B
 			catch (InterruptedException e)
 			{
 				t.interrupt();
-				throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 			}
 			catch (RemoteException e)
 			{
 				Throwable e2 = e.getCause();
 				if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-					throw new MetacartaException(e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+					throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
 				session = null;
 				lastSessionFetch = -1L;
 				// Treat this as a transient problem
@@ -577,7 +577,7 @@ public class AuthorityConnector extends org.apache.lcf.authorities.authorities.B
 	* (Should throws an exception only when a condition cannot be properly described within the authorization response object.)
 	*/
 	public AuthorizationResponse getAuthorizationResponse(String strUserNamePassedIn)
-		throws MetacartaException
+		throws LCFException
 	{
 
 		if (Logging.authorityConnectors.isDebugEnabled())
@@ -627,13 +627,13 @@ public class AuthorityConnector extends org.apache.lcf.authorities.authorities.B
 			catch (InterruptedException e)
 			{
 				t.interrupt();
-				throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 			}
 			catch (RemoteException e)
 			{
 				Throwable e2 = e.getCause();
 				if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-					throw new MetacartaException(e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+					throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
 				if (noSession)
 				{
 					Logging.authorityConnectors.warn("DCTM: Transient error checking authorization: "+e.getMessage(),e);
@@ -704,13 +704,13 @@ public class AuthorityConnector extends org.apache.lcf.authorities.authorities.B
 			catch (InterruptedException e)
 			{
 				t.interrupt();
-				throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 			}
 			catch (RemoteException e)
 			{
 				Throwable e2 = e.getCause();
 				if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-					throw new MetacartaException(e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+					throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
 				if (noSession)
 				{
 					Logging.authorityConnectors.warn("DCTM: Transient error checking authorization: "+e.getMessage(),e);
@@ -731,7 +731,7 @@ public class AuthorityConnector extends org.apache.lcf.authorities.authorities.B
 				// Transient: Treat as if user does not exist, not like credentials invalid.
 				return unreachableResponse;
 			}
-			throw new MetacartaException(e.getMessage(),e);
+			throw new LCFException(e.getMessage(),e);
 		}
 	}
 
@@ -778,7 +778,7 @@ public class AuthorityConnector extends org.apache.lcf.authorities.authorities.B
 	*@return the connection's status as a displayable string.
 	*/
 	public String check()
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
@@ -796,7 +796,7 @@ public class AuthorityConnector extends org.apache.lcf.authorities.authorities.B
 					return "Connection failed: "+e.getMessage();
 			}
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			return "Connection failed: "+e.getMessage();
 		}
@@ -839,7 +839,7 @@ public class AuthorityConnector extends org.apache.lcf.authorities.authorities.B
 	/** Disconnect from Documentum.
 	*/
 	public void disconnect()
-		throws MetacartaException
+		throws LCFException
 	{
 		if (session != null)
 		{
@@ -864,13 +864,13 @@ public class AuthorityConnector extends org.apache.lcf.authorities.authorities.B
 			catch (InterruptedException e)
 			{
 				t.interrupt();
-				throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 			}
 			catch (RemoteException e)
 			{
 				Throwable e2 = e.getCause();
 				if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-					throw new MetacartaException(e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+					throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
 				session = null;
 				lastSessionFetch = -1L;
 				// Treat this as a transient problem
@@ -904,7 +904,7 @@ public class AuthorityConnector extends org.apache.lcf.authorities.authorities.B
 	* in active use.
 	*/
 	public void poll()
-		throws MetacartaException
+		throws LCFException
 	{
 		releaseCheck();
 	}

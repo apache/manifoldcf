@@ -72,7 +72,7 @@ public class RunMaxActivityHistory
 
 		try
 		{
-		        Metacarta.initializeEnvironment();
+		        LCF.initializeEnvironment();
 			IThreadContext tc = ThreadContextFactory.make();
 			IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(tc);
 	

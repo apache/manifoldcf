@@ -63,13 +63,13 @@ public class AddScheduledTime
 
 		try
 		{
-		        Metacarta.initializeEnvironment();
+		        LCF.initializeEnvironment();
 			IThreadContext tc = ThreadContextFactory.make();
 			IJobManager jobManager = JobManagerFactory.make(tc);
 
 			IJobDescription desc = jobManager.load(new Long(jobID));
 			if (desc == null)
-				throw new MetacartaException("No such job: '"+jobID+"'");
+				throw new LCFException("No such job: '"+jobID+"'");
 
 			ScheduleRecord sr = new ScheduleRecord(
 				parseDayOfWeek(dayOfWeekList),
@@ -134,7 +134,7 @@ public class AddScheduledTime
 			return 5;
 		if (day.equals("saturday"))
 			return 6;
-		throw new MetacartaException("Bad day of week: '"+day+"'");
+		throw new LCFException("Bad day of week: '"+day+"'");
 	}
 
 	protected static EnumeratedValues parseMonthOfYear(String list)
@@ -190,7 +190,7 @@ public class AddScheduledTime
 		if (day.equals("december"))
 			return 11;
 
-		throw new MetacartaException("Bad month: '"+day+"'");
+		throw new LCFException("Bad month: '"+day+"'");
 	}
 
 	protected static EnumeratedValues parseDayOfMonth(String list)

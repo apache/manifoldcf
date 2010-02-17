@@ -45,12 +45,12 @@ public class DBCreate
 			password = args[1];
 		try
 		{
-			Metacarta.initializeEnvironment();
+			LCF.initializeEnvironment();
 			IThreadContext tc = ThreadContextFactory.make();
-			Metacarta.createSystemDatabase(tc,null,userName,password);
-			System.err.println("Metacarta database created");
+			LCF.createSystemDatabase(tc,null,userName,password);
+			System.err.println("LCF database created");
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			e.printStackTrace();
 			System.exit(1);

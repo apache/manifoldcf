@@ -23,7 +23,7 @@ import java.util.*;
 import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.crawler.interfaces.*;
 import org.apache.lcf.crawler.system.Logging;
-import org.apache.lcf.crawler.system.Metacarta;
+import org.apache.lcf.crawler.system.LCF;
 
 /** This class manages the table that keeps track of hop count, and algorithmically determines this value
 * for a document identifier upon request.
@@ -142,7 +142,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 	*@param database is the database handle.
 	*/
 	public HopCount(IDBInterface database)
-		throws MetacartaException
+		throws LCFException
 	{
 		super(database,"hopcount");
 		intrinsicLinkManager = new IntrinsicLink(database);
@@ -152,7 +152,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 	/** Install or upgrade.
 	*/
 	public void install(String jobsTable, String jobsColumn)
-		throws MetacartaException
+		throws LCFException
 	{
                 // Do schema first
 		beginTransaction();
@@ -185,7 +185,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 				}
 			}
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -240,7 +240,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 	/** Uninstall.
 	*/
 	public void deinstall()
-		throws MetacartaException
+		throws LCFException
 	{
 		beginTransaction();
 		try
@@ -249,7 +249,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 			intrinsicLinkManager.deinstall();
 			performDrop(null);
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -271,11 +271,11 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 	*@return the status value.
 	*/
 	public static int stringToMark(String value)
-		throws MetacartaException
+		throws LCFException
 	{
 		Integer x = (Integer)markMap.get(value);
 		if (x == null)
-			throw new MetacartaException("Bad mark value: '"+value+"'");
+			throw new LCFException("Bad mark value: '"+value+"'");
 		return x.intValue();
 	}
 
@@ -284,7 +284,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 	*@return the string.
 	*/
 	public static String markToString(int mark)
-		throws MetacartaException
+		throws LCFException
 	{
 		switch (mark)
 		{
@@ -295,14 +295,14 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 		case MARK_DELETING:
 			return "D";
 		default:
-			throw new MetacartaException("Bad mark value");
+			throw new LCFException("Bad mark value");
 		}
 	}
 
 	/** Delete an owner (and clean up the corresponding hopcount rows).
 	*/
 	public void deleteOwner(Long jobID)
-		throws MetacartaException
+		throws LCFException
 	{
 		beginTransaction();
 		try
@@ -319,7 +319,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 			performDelete("WHERE "+jobIDField+"=?",list,null);
 			reindexTracker.noteInsert();
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -338,14 +338,14 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 	/** Reset, at startup time.
 	*/
 	public void reset()
-		throws MetacartaException
+		throws LCFException
 	{
 		beginTransaction();
 		try
 		{
 			intrinsicLinkManager.reset();
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -365,7 +365,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 	* will have a null linktype.
 	*/
 	public void recordSeedReferences(Long jobID, String[] legalLinkTypes, String[] targetDocumentIDHashes, int hopcountMethod)
-		throws MetacartaException
+		throws LCFException
 	{
 		doRecord(jobID,legalLinkTypes,"",targetDocumentIDHashes,"",hopcountMethod);
 	}
@@ -373,7 +373,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 	/** Finish seed references.  Seed references are special in that the only source is the root.
 	*/
 	public void finishSeedReferences(Long jobID, String[] legalLinkTypes, int hopcountMethod)
-		throws MetacartaException
+		throws LCFException
 	{
 		doFinish(jobID,legalLinkTypes,new String[]{""},hopcountMethod);
 	}
@@ -382,7 +382,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 	*/
 	public void recordReference(Long jobID, String[] legalLinkTypes, String sourceDocumentIDHash, String targetDocumentIDHash, String linkType,
 		int hopcountMethod)
-		throws MetacartaException
+		throws LCFException
 	{
 		doRecord(jobID,legalLinkTypes,sourceDocumentIDHash,new String[]{targetDocumentIDHash},linkType,hopcountMethod);
 	}
@@ -391,7 +391,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 	*/
 	public void recordReferences(Long jobID, String[] legalLinkTypes, String sourceDocumentIDHash, String[] targetDocumentIDHashes, String linkType,
 		int hopcountMethod)
-		throws MetacartaException
+		throws LCFException
 	{
 		doRecord(jobID,legalLinkTypes,sourceDocumentIDHash,targetDocumentIDHashes,linkType,hopcountMethod);
 	}
@@ -400,7 +400,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 	* or "existing" will be removed.  At the completion of this pass, the links will have their "new" flag cleared.
 	*/
 	public void finishParents(Long jobID, String[] legalLinkTypes, String[] sourceDocumentHashes, int hopcountMethod)
-		throws MetacartaException
+		throws LCFException
 	{
 		doFinish(jobID,legalLinkTypes,sourceDocumentHashes,hopcountMethod);
 	}
@@ -408,7 +408,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 	/** Do the work of recording source-target references. */
 	protected void doRecord(Long jobID, String[] legalLinkTypes, String sourceDocumentIDHash, String[] targetDocumentIDHashes, String linkType,
 		int hopcountMethod)
-		throws MetacartaException
+		throws LCFException
 	{
 
 		// We have to both add the reference, AND invalidate appropriate cached hopcounts (if it is a NEW
@@ -515,7 +515,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 					Logging.hopcount.debug("Done queueing "+Integer.toString(targetDocumentIDHashes.length)+" documents");
 			}
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -537,7 +537,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 	public void deleteMatchingDocuments(Long jobID, String[] legalLinkTypes,
 		String sourceTableName,
 		String sourceTableIDColumn, String sourceTableJobColumn, String sourceTableCriteria, int hopcountMethod)
-		throws MetacartaException
+		throws LCFException
 	{
 		// This should work similarly to deleteDocumentIdentifiers() except that the identifiers
 		// come from a subquery rather than a list.
@@ -553,7 +553,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 			}
 
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -575,7 +575,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 	* identifier hashes as sources, as well as invalidating cached hop counts that depend on them.
 	*/
 	public void deleteDocumentIdentifiers(Long jobID, String[] legalLinkTypes, String[] sourceDocumentHashes, int hopcountMethod)
-		throws MetacartaException
+		throws LCFException
 	{
 		beginTransaction();
 		try
@@ -595,7 +595,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 				doDeleteInvalidation(jobID,legalLinkTypes,false,sourceDocumentHashes,null,null,null,null);
 
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -615,7 +615,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 	* the queue has recently been processed (via processQueue below).  -1 will be returned to indicate "infinity".
 	*/
 	public int[] findHopCounts(Long jobID, String[] parentIdentifierHashes, String linkType)
-		throws MetacartaException
+		throws LCFException
 	{
 		// No transaction, since we can happily interpret whatever comes back.
 		StringBuffer sb = new StringBuffer();
@@ -662,7 +662,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 	/** Process a portion of a find request for hopcount information.
 	*/
 	protected void processFind(int[] rval, Map rvalMap, String query, ArrayList list)
-		throws MetacartaException
+		throws LCFException
 	{
 		IResultSet set = performQuery("SELECT "+distanceField+","+parentIDHashField+" FROM "+getTableName()+" WHERE "+query,list,null,null);
 		int i = 0;
@@ -680,7 +680,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 	*@return true if the queue is empty.
 	*/
 	public boolean processQueue(Long jobID, String[] legalLinkTypes, int hopcountMethod)
-		throws MetacartaException
+		throws LCFException
 	{
 		// We can't instantiate the DocumentHash object here, because it will wind up having
 		// cached in it the answers from the previous round of calculation.  That round had
@@ -734,7 +734,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 	/** Limited find for missing records.
 	*/
 	protected void performFindMissingRecords(String query, ArrayList list, Map matchMap)
-		throws MetacartaException
+		throws LCFException
 	{
 		// The naive query is this - but postgres does not find the index this way:
 		//IResultSet set = performQuery("SELECT "+parentIDField+","+linkTypeField+" FROM "+getTableName()+" WHERE "+
@@ -774,7 +774,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 	*/
 	protected void addToProcessingQueue(Long jobID, String[] affectedLinkTypes, String[] documentIDHashes,
 		Answer[] startingAnswers, String sourceDocumentIDHash, String linkType, int hopcountMethod)
-		throws MetacartaException
+		throws LCFException
 	{
 		// If we're given the source hopcount distances, we should write the derived target values into the NEW
 		// hopcount records we create, because it will save much database access in the long run, and handles the
@@ -1002,7 +1002,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 			// A minimal path, not THE minimal path.
 
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -1021,7 +1021,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 
 	/** Do the work of marking add-dep-dependent links in the hopcount table. */
 	protected void performMarkAddDeps(String query, ArrayList list)
-		throws MetacartaException
+		throws LCFException
 	{
 		HashMap map = new HashMap();
 		map.put(markForDeathField,markToString(MARK_QUEUED));
@@ -1031,7 +1031,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 
 	/** Method that does the work of "finishing" a set of child references. */
 	protected void doFinish(Long jobID, String[] legalLinkTypes, String[] sourceDocumentHashes, int hopcountMethod)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Go into a transaction!
 		beginTransaction();
@@ -1056,7 +1056,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 			// Make all new and existing links become just "base" again.
 			intrinsicLinkManager.restoreLinks(jobID,sourceDocumentHashes);
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -1080,7 +1080,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 	protected void doDeleteInvalidation(Long jobID, String[] legalLinkTypes, boolean existingOnly,
 		String[] sourceDocumentHashes, String sourceTableName,
 		String sourceTableIDColumn, String sourceTableJobColumn, String sourceTableCriteria)
-		throws MetacartaException
+		throws LCFException
 	{
 		
 		String commonNewExpression = null;
@@ -1228,7 +1228,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 	}
 
 	protected void markForDelete(String query, ArrayList list, String commonNewExpression)
-		throws MetacartaException
+		throws LCFException
 	{
 		StringBuffer sb = new StringBuffer("WHERE ");
 		sb.append(idField).append(" IN(SELECT ").append(deleteDepsManager.ownerIDField).append(" FROM ")
@@ -1255,7 +1255,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 	*@return rows that contain the children.  Column names are 'linktype','childidentifier'.
 	*/
 	protected IResultSet getDocumentChildren(Long jobID, String documentIDHash)
-		throws MetacartaException
+		throws LCFException
 	{
 		return intrinsicLinkManager.getDocumentChildren(jobID,documentIDHash);
 	}
@@ -1269,7 +1269,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 	*@return the corresponding list of nodes, taking into account unknown distances.
 	*/
 	protected DocumentNode[] readCachedNodes(Long jobID, Question[] unansweredQuestions)
-		throws MetacartaException
+		throws LCFException
 	{
 	    // This all goes in a transaction; we want to insure that the data we grab is self-consistent.
 	    beginTransaction();
@@ -1368,7 +1368,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 
 		return rval;
 	    }
-	    catch (MetacartaException e)
+	    catch (LCFException e)
 	    {
 		signalRollback();
 		throw e;
@@ -1386,7 +1386,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 
 	/** Do a limited fetch of cached distance dependencies */
 	protected void performGetCachedDistanceDeps(Map depsMap, String query, ArrayList list)
-		throws MetacartaException
+		throws LCFException
 	{
 		IResultSet set = performQuery("SELECT "+deleteDepsManager.ownerIDField+","+
 			deleteDepsManager.linkTypeField+","+
@@ -1450,7 +1450,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 
 	/** Do a limited fetch of cached distances */
 	protected void performGetCachedDistances(DocumentNode[] rval, Map indexMap, Map depsMap, String query, ArrayList list)
-		throws MetacartaException
+		throws LCFException
 	{
 		IResultSet set = performQuery("SELECT "+idField+","+parentIDHashField+","+linkTypeField+","+distanceField+","+markForDeathField+
 			" FROM "+getTableName()+" WHERE "+query,list,null,null);
@@ -1495,7 +1495,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 				else
 				{
 					Logging.hopcount.error("Document '"+parentIDHash+"' linktype '"+linkType+"' is labeled with 'DELETING'!");
-					throw new MetacartaException("Algorithm transaction error!");
+					throw new LCFException("Algorithm transaction error!");
 				}
 			}
 
@@ -1521,7 +1521,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 	/** Write a distance into the cache.
 	*/
 	protected void writeCachedDistance(Long jobID, String[] legalLinkTypes, DocumentNode dn, int hopcountMethod)
-		throws MetacartaException
+		throws LCFException
 	{
 		Question q = dn.getQuestion();
 		String linkType = q.getLinkType();
@@ -1573,7 +1573,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 					// Since infinity is not a reduction of any kind, we're done here.
 					return;
 				}
-				catch (MetacartaException e)
+				catch (LCFException e)
 				{
 					signalRollback();
 					throw e;
@@ -1595,7 +1595,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 			{
 				Logging.hopcount.error("Existing distance "+Integer.toString(existingDistance)+" better than new distance "+
 					Integer.toString(answerValue)+" for '"+parentIDHash+"' linktype '"+linkType+"'");
-				throw new MetacartaException("Existing distance is better than new distance! Failure.");
+				throw new LCFException("Existing distance is better than new distance! Failure.");
 			}
 
 			// If the new distance is exactly the same as the old, we can leave everything as is.
@@ -1633,14 +1633,14 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 					
 						IResultSet set = performQuery("SHOW TRANSACTION ISOLATION LEVEL",null, null,null);
 						if (set.getRowCount() != 1)
-							throw new MetacartaException("Unexpected return: no rows");
+							throw new LCFException("Unexpected return: no rows");
 						IResultRow row = set.getRow(0);
 						if (row.getColumnCount() != 1)
-							throw new MetacartaException("Unexpected return: no columns");
+							throw new LCFException("Unexpected return: no columns");
 						Iterator itera = row.getColumns();
 						String columnName = (String)itera.next();
 						if (row.getValue(columnName).toString().indexOf("serializ") == -1)
-							throw new MetacartaException("Not in a serializable transaction! "+row.getValue(columnName).toString());
+							throw new LCFException("Not in a serializable transaction! "+row.getValue(columnName).toString());
 						*/
 					
 						// Drop these into a hash map.
@@ -1715,7 +1715,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 
 					addToProcessingQueue(jobID,new String[]{linkType},targetDocumentIDHashes,new Answer[]{answer},parentIDHash,linkType,hopcountMethod);
 				}
-				catch (MetacartaException e)
+				catch (LCFException e)
 				{
 					signalRollback();
 					throw e;
@@ -1789,7 +1789,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 			}
 
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -1808,7 +1808,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 	/** Conditionally do analyze operation.
 	*/
 	public void conditionallyAnalyzeTables()
-		throws MetacartaException
+		throws LCFException
 	{
 		if (tracker.checkAnalyze())
 		{
@@ -2574,7 +2574,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 
 		/** Throw in some questions, and prepare for the answers. */
 		public int[] askQuestions(Question[] questions)
-			throws MetacartaException
+			throws LCFException
 		{
 			if (Logging.hopcount.isDebugEnabled())
 			{
@@ -2624,7 +2624,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 			while (true)
 			{
 				if (Thread.currentThread().isInterrupted())
-					throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+					throw new LCFException("Interrupted",LCFException.INTERRUPTED);
 
 				// Early decision!
 				// For each question, see if there's a completed answer yet
@@ -2713,7 +2713,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 		/** Evaluate a node from the evaluation queue.
 		*/
 		protected void evaluateNode(DocumentNode node)
-			throws MetacartaException
+			throws LCFException
 		{
 			if (Logging.hopcount.isDebugEnabled())
 			{
@@ -2875,7 +2875,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 		/** Fetch a the children of a bunch of nodes, and initialize all of the nodes appropriately.
 		*/
 		protected void getNodeChildren(DocumentNode[] nodes)
-			throws MetacartaException
+			throws LCFException
 		{
 			if (Logging.hopcount.isDebugEnabled())
 			{
@@ -3143,7 +3143,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 		/** Get the children of a bunch of nodes.
 		*/
 		protected void findChildren(Map referenceMap, String query, ArrayList list)
-			throws MetacartaException
+			throws LCFException
 		{
 			// Grab the appropriate rows from the intrinsic link table.
 			IResultSet set = performQuery("SELECT "+intrinsicLinkManager.childIDHashField+","+intrinsicLinkManager.linkTypeField+","+
@@ -3190,7 +3190,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 		* if appropriate.
 		*/
 		protected void makeNodeComplete(DocumentNode node)
-			throws MetacartaException
+			throws LCFException
 		{
 			node.makeComplete();
 			// Clean up children.
@@ -3210,7 +3210,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
 		*@param questions are the set of questions.
 		*/
 		protected DocumentNode[] queueQuestions(Question[] questions)
-			throws MetacartaException
+			throws LCFException
 		{
 		    DocumentNode[] rval = new DocumentNode[questions.length];
 

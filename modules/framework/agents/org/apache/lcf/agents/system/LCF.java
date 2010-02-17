@@ -23,7 +23,7 @@ import org.apache.lcf.agents.interfaces.*;
 import java.io.*;
 import java.util.*;
 
-public class Metacarta extends org.apache.lcf.core.system.Metacarta
+public class LCF extends org.apache.lcf.core.system.LCF
 {
 	public static final String _rcsid = "@(#)$Id$";
 
@@ -52,7 +52,7 @@ public class Metacarta extends org.apache.lcf.core.system.Metacarta
 			return;
 
 		// System.out.println("Initializing");
-		org.apache.lcf.core.system.Metacarta.initializeEnvironment();
+		org.apache.lcf.core.system.LCF.initializeEnvironment();
 		Logging.initializeLoggers();
 		Logging.setLogLevels();
 		initialized = true;
@@ -64,7 +64,7 @@ public class Metacarta extends org.apache.lcf.core.system.Metacarta
 	*@param threadcontext is the thread context.
 	*/
 	public static void installTables(IThreadContext threadcontext)
-		throws MetacartaException
+		throws LCFException
 	{
 		IAgentManager mgr = AgentManagerFactory.make(threadcontext);
 		IIncrementalIngester igstmgr = IncrementalIngesterFactory.make(threadcontext);
@@ -80,7 +80,7 @@ public class Metacarta extends org.apache.lcf.core.system.Metacarta
 	*@param threadcontext is the thread context.
 	*/
 	public static void deinstallTables(IThreadContext threadcontext)
-		throws MetacartaException
+		throws LCFException
 	{
 		IAgentManager mgr = AgentManagerFactory.make(threadcontext);
 		IIncrementalIngester igstmgr = IncrementalIngesterFactory.make(threadcontext);
@@ -97,7 +97,7 @@ public class Metacarta extends org.apache.lcf.core.system.Metacarta
 	*@param threadContext is the thread context.
 	*/
 	public static void startAgents(IThreadContext threadContext)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Get agent manager
 		IAgentManager manager = AgentManagerFactory.make(threadContext);
@@ -126,7 +126,7 @@ public class Metacarta extends org.apache.lcf.core.system.Metacarta
 	*@param threadContext is the thread context
 	*/
 	public static void stopAgents(IThreadContext threadContext)
-		throws MetacartaException
+		throws LCFException
 	{
 		synchronized (runningHash)
 		{

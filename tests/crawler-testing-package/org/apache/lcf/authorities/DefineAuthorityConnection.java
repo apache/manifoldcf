@@ -51,7 +51,7 @@ public class DefineAuthorityConnection
 
 		try
 		{
-		        Metacarta.initializeEnvironment();
+		        LCF.initializeEnvironment();
 			IThreadContext tc = ThreadContextFactory.make();
 			IAuthorityConnectionManager mgr = AuthorityConnectionManagerFactory.make(tc);
 			IAuthorityConnection conn = mgr.create();
@@ -67,7 +67,7 @@ public class DefineAuthorityConnection
 				// Parse
 				int pos = arg.indexOf("=");
 				if (pos == -1)
-					throw new MetacartaException("Argument missing =");
+					throw new LCFException("Argument missing =");
 				String name = arg.substring(0,pos);
 				String value = arg.substring(pos+1);
 				if (name.endsWith("assword"))

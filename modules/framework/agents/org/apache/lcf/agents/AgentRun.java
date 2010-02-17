@@ -41,10 +41,10 @@ public class AgentRun
 			System.exit(1);
 		}
 
-		Metacarta.initializeEnvironment();
+		LCF.initializeEnvironment();
 
 		// Create a file to indicate that we're running
-		String synchDirectory = Metacarta.getProperty(Metacarta.synchDirectoryProperty);
+		String synchDirectory = LCF.getProperty(LCF.synchDirectoryProperty);
 		File synchFile = null;
 		if (synchDirectory != null)
 		{
@@ -65,11 +65,11 @@ public class AgentRun
 					break;
 
 				// Start whatever agents need to be started
-				Metacarta.startAgents(tc);
+				LCF.startAgents(tc);
 
 				try
 				{
-					Metacarta.sleep(5000);
+					LCF.sleep(5000);
 				}
 				catch (InterruptedException e)
 				{
@@ -80,10 +80,10 @@ public class AgentRun
 			}
 			finally
 			{
-				Metacarta.stopAgents(tc);
+				LCF.stopAgents(tc);
 			}
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			Logging.root.error("Exception: "+e.getMessage(),e);
 			e.printStackTrace();

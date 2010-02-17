@@ -31,7 +31,7 @@ import javax.sql.*;
 import java.io.*;
 import java.util.*;
 
-/** This interface describes an instance of a connection between a repository and Metacarta's
+/** This interface describes an instance of a connection between a repository and LCF's
 * standard "pull" ingestion agent.
 *
 * Each instance of this interface is used in only one thread at a time.  Connection Pooling
@@ -90,14 +90,14 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
 
 	/** Set up a session */
 	protected void getSession()
-		throws MetacartaException
+		throws LCFException
 	{
 		if (connection == null)
 		{
 			if (jdbcProvider == null || jdbcProvider.length() == 0)
-				throw new MetacartaException("Missing parameter '"+JDBCConstants.providerParameter+"'");
+				throw new LCFException("Missing parameter '"+JDBCConstants.providerParameter+"'");
 			if (host == null || host.length() == 0)
-				throw new MetacartaException("Missing parameter '"+JDBCConstants.hostParameter+"'");
+				throw new LCFException("Missing parameter '"+JDBCConstants.hostParameter+"'");
 
 			connection = new JDBCConnection(jdbcProvider,host,databaseName,userName,password);
 		}
@@ -149,7 +149,7 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
 	/** Check status of connection.
 	*/
 	public String check()
-		throws MetacartaException
+		throws LCFException
 	{
                 try
                 {
@@ -169,7 +169,7 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
 	/** Close the connection.  Call this before discarding the repository connector.
 	*/
 	public void disconnect()
-		throws MetacartaException
+		throws LCFException
 	{
 		connection = null;
 		host = null;
@@ -223,7 +223,7 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
 	*/
 	public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
 		long startTime, long endTime, int jobMode)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
         {
                 getSession();
             
@@ -255,7 +255,7 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
                                 createQueryString(queryText,paramList), "ERROR", e.getMessage(), null);
                         throw e;
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         // If failure, record the failure.
                         activities.recordActivity(new Long(startQueryTime), ACTIVITY_EXTERNAL_QUERY, null,
@@ -276,7 +276,7 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
                                         break;
                                 Object o = row.getValue(JDBCConstants.idReturnColumnName);
                                 if (o == null)
-                                        throw new MetacartaException("Bad seed query; doesn't return 'id' column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\".");
+                                        throw new LCFException("Bad seed query; doesn't return 'id' column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\".");
                                 String idValue = o.toString();
                                 activities.addSeedDocument(idValue);
                         }
@@ -306,7 +306,7 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
 	*/
 	public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
 		DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		getSession();
 		TableSpec ts = new TableSpec(spec);
@@ -363,7 +363,7 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
 		{
 			result = connection.executeUncachedQuery(queryText,paramList,-1);
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			// If failure, record the failure.
 			activities.recordActivity(new Long(startTime), ACTIVITY_EXTERNAL_QUERY, null,
@@ -383,7 +383,7 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
 					break;
 				Object o = row.getValue(JDBCConstants.idReturnColumnName);
 				if (o == null)
-					throw new MetacartaException("Bad version query; doesn't return 'id' column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\".");
+					throw new LCFException("Bad version query; doesn't return 'id' column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\".");
 				String idValue = o.toString();
 				o = row.getValue(JDBCConstants.versionReturnColumnName);
 				String versionValue;
@@ -432,7 +432,7 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
 	* should only find other references, and should not actually call the ingestion methods.
 	*/
 	public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		getSession();
 		TableSpec ts = new TableSpec(spec);
@@ -476,7 +476,7 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
 		{
 			result = connection.executeUncachedQuery(queryText,paramList,-1);
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			// If failure, record the failure.
 			activities.recordActivity(new Long(startTime), ACTIVITY_EXTERNAL_QUERY, null,
@@ -496,7 +496,7 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
 				break;
 			Object o = row.getValue(JDBCConstants.idReturnColumnName);
 			if (o == null)
-			    throw new MetacartaException("Bad document query; doesn't return 'id' column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\".");
+			    throw new LCFException("Bad document query; doesn't return 'id' column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\".");
 			String id = readAsString(o);
 			String version = (String)map.get(id);
 			if (version != null)
@@ -598,15 +598,15 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
 					}
 					catch (java.net.SocketTimeoutException e)
 					{
-						throw new MetacartaException("Socket timeout reading database data: "+e.getMessage(),e);
+						throw new LCFException("Socket timeout reading database data: "+e.getMessage(),e);
 					}
 					catch (InterruptedIOException e)
 					{
-						throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+						throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 					}
 					catch (IOException e)
 					{
-						throw new MetacartaException("Error reading database data: "+e.getMessage(),e);
+						throw new LCFException("Error reading database data: "+e.getMessage(),e);
 					}
 					finally
 					{
@@ -635,11 +635,11 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
 					}
 					catch (InterruptedIOException e)
 					{
-						throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+						throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 					}
 					catch (IOException e)
 					{
-						throw new MetacartaException("Error reading database data: "+e.getMessage(),e);
+						throw new LCFException("Error reading database data: "+e.getMessage(),e);
 					}
 				    }
 				  }
@@ -744,7 +744,7 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
 	* Each variable substitutes the string, and it also substitutes zero or more query parameters.
 	*/
 	protected static void substituteQuery(String inputString, VariableMap inputMap, StringBuffer outputQuery, ArrayList outputParams)
-		throws MetacartaException
+		throws LCFException
 	{
 		// We are looking for strings that look like this: $(something)
 		// Right at the moment we don't care even about quotes, so we just want to look for $(.
@@ -766,7 +766,7 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
 			String variableName = inputString.substring(nextIndex+2,endIndex);
 			VariableMapItem item = inputMap.getVariable(variableName);
 			if (item == null)
-				throw new MetacartaException("No such substitution variable: $("+variableName+")");
+				throw new LCFException("No such substitution variable: $("+variableName+")");
 			outputQuery.append(inputString.substring(startIndex,nextIndex));
 			outputQuery.append(item.getValue());
 			ArrayList inputParams = item.getParameters();
@@ -961,7 +961,7 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
 	
 	/** Make sure we read this field as a string */
 	protected static String readAsString(Object o)
-	    throws MetacartaException
+	    throws LCFException
 	{
 		if (o instanceof BinaryInput)
 		{
@@ -990,7 +990,7 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
 			}
 			catch (IOException e)
 			{
-				throw new MetacartaException(e.getMessage(),e);
+				throw new LCFException(e.getMessage(),e);
 			}
 			finally
 			{

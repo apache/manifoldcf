@@ -42,7 +42,7 @@ public class SynchronizeAll
 
 		try
 		{
-			Metacarta.initializeEnvironment();
+			LCF.initializeEnvironment();
 			IThreadContext tc = ThreadContextFactory.make();
 			IAgentManager mgr = AgentManagerFactory.make(tc);
 			String[] classnames = mgr.getAllAgents();
@@ -54,7 +54,7 @@ public class SynchronizeAll
 				{
 					AgentFactory.make(tc,classname);
 				}
-				catch (MetacartaException e)
+				catch (LCFException e)
 				{
 					// Couldn't instantiate the agent: Remove from database table
 					mgr.removeAgent(classname);
@@ -62,7 +62,7 @@ public class SynchronizeAll
 			}
 			System.err.println("Successfully synchronized all agents");
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			e.printStackTrace();
 			System.exit(1);

@@ -50,7 +50,7 @@ public class RemoveUserFromSite
 			}
 			System.err.println("Successfully removed site user");
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			e.printStackTrace(System.err);
 			System.exit(2);

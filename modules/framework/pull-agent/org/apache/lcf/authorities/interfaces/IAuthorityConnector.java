@@ -35,7 +35,7 @@ public interface IAuthorityConnector
 	*@param threadContext is the current thread context.
 	*/
 	public void install(IThreadContext threadContext)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Uninstall the connector.
 	* This method is called to remove persistent storage for the connector, such as database tables etc.
@@ -43,7 +43,7 @@ public interface IAuthorityConnector
 	*@param threadContext is the current thread context.
 	*/
 	public void deinstall(IThreadContext threadContext)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Return the path for the UI interface JSP elements.
 	* These JSP's must be provided to allow the connector to be configured.
@@ -65,18 +65,18 @@ public interface IAuthorityConnector
 	*@return the connection's status as a displayable string.
 	*/
 	public String check()
-		throws MetacartaException;
+		throws LCFException;
 
 	/** This method is periodically called for all connectors that are connected but not
 	* in active use.
 	*/
 	public void poll()
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Close the connection.  Call this before discarding the repository connector.
 	*/
 	public void disconnect()
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Get configuration information.
 	*@return the configuration information for this class.
@@ -99,7 +99,7 @@ public interface IAuthorityConnector
 	* (Should throws an exception only when a condition cannot be properly described within the authorization response object.)
 	*/
 	public AuthorizationResponse getAuthorizationResponse(String userName)
-		throws MetacartaException;
+		throws LCFException;
 	
 	/** Obtain the default access tokens for a given user name.
 	*@param userName is the user name or identifier.

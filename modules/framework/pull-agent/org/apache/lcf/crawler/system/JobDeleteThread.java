@@ -39,7 +39,7 @@ public class JobDeleteThread extends Thread
 	/** Constructor.
 	*/
 	public JobDeleteThread()
-		throws MetacartaException
+		throws LCFException
 	{
 		super();
 		setName("Job delete thread");
@@ -72,20 +72,20 @@ public class JobDeleteThread extends Thread
 					jobManager.deleteJobsReadyForDelete();
 
 					// Sleep for the retry interval.
-					Metacarta.sleep(waitTime);
+					LCF.sleep(waitTime);
 				}
-				catch (MetacartaException e)
+				catch (LCFException e)
 				{
-					if (e.getErrorCode() == MetacartaException.INTERRUPTED)
+					if (e.getErrorCode() == LCFException.INTERRUPTED)
 						break;
 
-					if (e.getErrorCode() == MetacartaException.DATABASE_CONNECTION_ERROR)
+					if (e.getErrorCode() == LCFException.DATABASE_CONNECTION_ERROR)
 					{
 						Logging.threads.error("Job delete thread aborting and restarting due to database connection reset: "+e.getMessage(),e);
 						try
 						{
 							// Give the database a chance to catch up/wake up
-							Metacarta.sleep(10000L);
+							LCF.sleep(10000L);
 						}
 						catch (InterruptedException se)
 						{
@@ -97,7 +97,7 @@ public class JobDeleteThread extends Thread
 					// Log it, but keep the thread alive
 					Logging.threads.error("Exception tossed: "+e.getMessage(),e);
 
-					if (e.getErrorCode() == MetacartaException.SETUP_ERROR)
+					if (e.getErrorCode() == LCFException.SETUP_ERROR)
 					{
 						// Shut the whole system down!
 						System.exit(1);

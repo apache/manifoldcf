@@ -38,16 +38,16 @@ public class ConnectorManagerFactory
 	*@return the connector manager handle.
 	*/
 	public static IConnectorManager make(IThreadContext tc)
-		throws MetacartaException
+		throws LCFException
 	{
 		Object o = tc.get(connMgr);
 		if (o == null || !(o instanceof IConnectorManager))
 		{
 
 			IDBInterface database = DBInterfaceFactory.make(tc,
-				Metacarta.getMasterDatabaseName(),
-				Metacarta.getMasterDatabaseUsername(),
-				Metacarta.getMasterDatabasePassword());
+				LCF.getMasterDatabaseName(),
+				LCF.getMasterDatabaseUsername(),
+				LCF.getMasterDatabasePassword());
 
 			o = new org.apache.lcf.crawler.connmgr.ConnectorManager(tc,database);
 			tc.save(connMgr,o);

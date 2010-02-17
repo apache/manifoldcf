@@ -42,7 +42,7 @@ public class DocDeleteResetManager extends ResetManager
 
 	/** Reset */
 	protected void performResetLogic(IThreadContext tc)
-		throws MetacartaException
+		throws LCFException
 	{
 		IJobManager jobManager = JobManagerFactory.make(tc);
 		jobManager.resetDocDeleteWorkerStatus();

@@ -22,7 +22,7 @@ import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.agents.interfaces.*;
 import org.apache.lcf.crawler.interfaces.*;
 import org.apache.lcf.crawler.system.Logging;
-import org.apache.lcf.crawler.system.Metacarta;
+import org.apache.lcf.crawler.system.LCF;
 import java.util.*;
 import java.io.*;
 import java.net.*;
@@ -92,7 +92,7 @@ public class ThrottledFetcher
                 IKeystoreManager trustStore,
                 ThrottleDescription throttleDescription, String[] binNames,
                 int connectionLimit)
-                throws MetacartaException
+                throws LCFException
         {
                 // First, create a protocol factory object, if we can
                 ProtocolFactory myFactory = new ProtocolFactory();
@@ -310,8 +310,8 @@ public class ThrottledFetcher
 
                                         if (e instanceof Error)
                                                 throw (Error)e;
-                                        if (e instanceof MetacartaException)
-                                                throw (MetacartaException)e;
+                                        if (e instanceof LCFException)
+                                                throw (LCFException)e;
 
                                         if (e instanceof WaitException)
                                         {
@@ -341,7 +341,7 @@ public class ThrottledFetcher
                                                 continue;
                                         }
                                         
-                                        throw new MetacartaException("Unexpected exception encountered: "+e.getMessage(),e);
+                                        throw new LCFException("Unexpected exception encountered: "+e.getMessage(),e);
                                 }
 
                                 if (Logging.connectors.isDebugEnabled())
@@ -356,7 +356,7 @@ public class ThrottledFetcher
                     }
                     catch (InterruptedException e)
                     {
-                        throw new MetacartaException(e.getMessage(),MetacartaException.INTERRUPTED);
+                        throw new LCFException(e.getMessage(),LCFException.INTERRUPTED);
                     }
                 }
         }
@@ -364,7 +364,7 @@ public class ThrottledFetcher
 
         /** Flush connections that have timed out from inactivity. */
         public static void flushIdleConnections()
-                throws MetacartaException
+                throws LCFException
         {
             synchronized (poolLock)
             {
@@ -781,7 +781,7 @@ public class ThrottledFetcher
                                 if (Logging.connectors.isDebugEnabled())
                                         Logging.connectors.debug("WEB: Performing a read wait on bin '"+binName+"' of "+
                                                 new Long(waitTime).toString()+" ms.");
-                                Metacarta.sleep(waitTime);
+                                LCF.sleep(waitTime);
                         }
 
                 }
@@ -847,14 +847,14 @@ public class ThrottledFetcher
                 }
                 
                 public DataSession getSession(String url)
-                        throws MetacartaException
+                        throws LCFException
                 {
                         return new DataSession(this,url);
                 }
                 
                 /** Atomically write resultlog record, returning data file name to use */
                 public synchronized String writeResponseRecord(String url, int responseCode, ArrayList headerNames, ArrayList headerValues)
-                        throws MetacartaException
+                        throws LCFException
                 {
                         // Open log file
                         try
@@ -889,7 +889,7 @@ public class ThrottledFetcher
                         }
                         catch (IOException e)
                         {
-                                throw new MetacartaException("Error recording file info: "+e.getMessage(),e);
+                                throw new LCFException("Error recording file info: "+e.getMessage(),e);
                         }
                                 
                 }
@@ -925,7 +925,7 @@ public class ThrottledFetcher
                 }
                 
                 public void endHeader()
-                        throws MetacartaException
+                        throws LCFException
                 {
                         documentName = dr.writeResponseRecord(url,responseCode,headerNames,headerValues);
                 }
@@ -1184,7 +1184,7 @@ public class ThrottledFetcher
                 *	 is used solely for logging purposes.
                 */
                 public void beginFetch(String fetchType)
-                        throws MetacartaException
+                        throws LCFException
                 {
                     try
                     {
@@ -1213,7 +1213,7 @@ public class ThrottledFetcher
                     }
                     catch (InterruptedException e)
                     {
-                        throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+                        throw new LCFException("Interrupted",LCFException.INTERRUPTED);
                     }
                 }
 
@@ -1261,7 +1261,7 @@ public class ThrottledFetcher
                 /** Execute the fetch and get the return code.  This method uses the
                 * standard logging mechanism to keep track of the fetch attempt.  It also
                 * signals the following conditions: ServiceInterruption (if a dynamic
-                * error occurs), or MetacartaException if a fatal error occurs, or nothing if
+                * error occurs), or LCFException if a fatal error occurs, or nothing if
                 * a standard protocol error occurs.
                 * Note that, for proxies etc, the idea is for this fetch request to handle whatever
                 * redirections are needed to support proxies.
@@ -1277,7 +1277,7 @@ public class ThrottledFetcher
                 public void executeFetch(String urlPath, String userAgent, String from, int connectionTimeoutMilliseconds,
                         int socketTimeoutMilliseconds, boolean redirectOK, String host, FormData formData,
                         LoginCookies loginCookies)
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                     StringBuffer sb = new StringBuffer(protocol);
                     sb.append("://").append(server);
@@ -1410,7 +1410,7 @@ public class ThrottledFetcher
                                 fetchMethod = postMethod;
                                 break;
                         default:
-                                throw new MetacartaException("Illegal method type: "+Integer.toString(pageFetchMethod));
+                                throw new LCFException("Illegal method type: "+Integer.toString(pageFetchMethod));
                         }
                         
                         // Set all appropriate headers and parameters
@@ -1494,7 +1494,7 @@ public class ThrottledFetcher
                                         // Temporary service interruption
                                         // May want to make the retry time a parameter someday
                                         long currentTime = System.currentTimeMillis();
-                                        throw new ServiceInterruption("Http response temporary error on '"+myUrl+"': "+Integer.toString(statusCode),new MetacartaException("Service unavailable (code "+Integer.toString(statusCode)+")"),
+                                        throw new ServiceInterruption("Http response temporary error on '"+myUrl+"': "+Integer.toString(statusCode),new LCFException("Service unavailable (code "+Integer.toString(statusCode)+")"),
                                                 currentTime + TIME_2HRS, currentTime + TIME_1DAY, -1, false);
                                 case HttpStatus.SC_UNAUTHORIZED:
                                 case HttpStatus.SC_USE_PROXY:
@@ -1527,9 +1527,9 @@ public class ThrottledFetcher
                         catch (InterruptedIOException e)
                         {
                                 //Logging.connectors.warn("IO interruption seen",e);
-                                throwable = new MetacartaException("Interrupted: "+e.getMessage(),e);
+                                throwable = new LCFException("Interrupted: "+e.getMessage(),e);
                                 statusCode = FETCH_INTERRUPTED;
-                                throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+                                throw new LCFException("Interrupted",LCFException.INTERRUPTED);
                         }
                         catch (org.apache.commons.httpclient.RedirectException e)
                         {
@@ -1570,13 +1570,13 @@ public class ThrottledFetcher
                         // Drop the current connection, and in fact the whole pool, on the floor.
                         fetchMethod = null;
                         connManager = null;
-                        throwable = new MetacartaException("Interrupted: "+e.getMessage(),e);
+                        throwable = new LCFException("Interrupted: "+e.getMessage(),e);
                         statusCode = FETCH_INTERRUPTED;
-                        throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+                        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
                     }
                     catch (IllegalArgumentException e)
                     {
-                        throwable = new MetacartaException("Illegal URI: '"+myUrl+"'",e);
+                        throwable = new LCFException("Illegal URI: '"+myUrl+"'",e);
                         statusCode = FETCH_BAD_URI;
                         if (recordEverything)
                                 dataSession.setResponseCode(statusCode);
@@ -1584,7 +1584,7 @@ public class ThrottledFetcher
                     }
                     catch (IllegalStateException e)
                     {
-                        throwable = new MetacartaException("Illegal state while fetching URI: '"+myUrl+"'",e);
+                        throwable = new LCFException("Illegal state while fetching URI: '"+myUrl+"'",e);
                         statusCode = FETCH_SEQUENCE_ERROR;
                         if (recordEverything)
                                 dataSession.setResponseCode(statusCode);
@@ -1594,7 +1594,7 @@ public class ThrottledFetcher
                     {
                         throw e;
                     }
-                    catch (MetacartaException e)
+                    catch (LCFException e)
                     {
                         throw e;
                     }
@@ -1614,7 +1614,7 @@ public class ThrottledFetcher
                 *@return the response code.  This is either an HTTP response code, or one of the codes above.
                 */
                 public int getResponseCode()
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         return statusCode;
                 }
@@ -1623,7 +1623,7 @@ public class ThrottledFetcher
                 *@return the cookies now in effect from the last fetch.
                 */
                 public LoginCookies getLastFetchCookies()
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         return lastFetchCookies;
                 }
@@ -1633,7 +1633,7 @@ public class ThrottledFetcher
                 *@return the header value, or null if it doesn't exist.
                 */
                 public String getResponseHeader(String headerName)
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         Header h = fetchMethod.getResponseHeader(headerName);
                         if (h == null)
@@ -1647,10 +1647,10 @@ public class ThrottledFetcher
                 * to close this stream when done.
                 */
                 public InputStream getResponseBodyStream()
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         if (fetchMethod == null)
-                                throw new MetacartaException("Attempt to get a response when there is no method");
+                                throw new LCFException("Attempt to get a response when there is no method");
                         try
                         {
                                 if (recordEverything)
@@ -1676,7 +1676,7 @@ public class ThrottledFetcher
                         catch (InterruptedIOException e)
                         {
                                 //Logging.connectors.warn("IO interruption seen: "+e.getMessage(),e);
-                                throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+                                throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
                         }
                         catch (IOException e)
                         {
@@ -1696,7 +1696,7 @@ public class ThrottledFetcher
                 {
                         if (statusCode > 0)
                         {
-                                throwable = new MetacartaException("Interrupted: "+e.getMessage(),e);
+                                throwable = new LCFException("Interrupted: "+e.getMessage(),e);
                                 statusCode = FETCH_INTERRUPTED;
                         }
                 }
@@ -1705,7 +1705,7 @@ public class ThrottledFetcher
                 * describing what was done.
                 */
                 public void doneFetch(IVersionActivity activities)
-                        throws MetacartaException
+                        throws LCFException
                 {
                         if (fetchType != null)
                         {
@@ -1760,7 +1760,7 @@ public class ThrottledFetcher
                 /** Close the connection.  Call this to end this server connection.
                 */
                 public void close()
-                        throws MetacartaException
+                        throws LCFException
                 {
                         synchronized (poolLock)
                         {

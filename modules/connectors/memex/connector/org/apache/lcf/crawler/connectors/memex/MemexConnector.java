@@ -23,7 +23,7 @@ import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.agents.interfaces.*;
 import org.apache.lcf.crawler.interfaces.*;
 import org.apache.lcf.crawler.system.Logging;
-import org.apache.lcf.crawler.system.Metacarta;
+import org.apache.lcf.crawler.system.LCF;
 import java.util.*;
 import java.io.*;
 import org.w3c.dom.*;
@@ -99,9 +99,9 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
         protected String webServerPort = null;
 
         //mieConnection is the connection to the main Configuration Server.
-        //There will be further MetacartaMemexConnection objects for each
+        //There will be further LCFMemexConnection objects for each
         //physical server accessed through the physicalServers collection.
-        private MetacartaMemexConnection mieConnection = null;
+        private LCFMemexConnection mieConnection = null;
         private MemexConnectionPool miePool = new MemexConnectionPool();
 
         //Collection describing the logical servers making up this system
@@ -109,7 +109,7 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
         private Hashtable<String, LogicalServer> logicalServersByPrefix = null;
 
         //Collection describing the physical servers making up this system
-        private Hashtable<String, MetacartaMemexConnection> physicalServers = null;
+        private Hashtable<String, LCFMemexConnection> physicalServers = null;
 
         //Two collections describing the entities in the set-up - one keyed by the entities' name, the other
         //by their label - generally speaking, we should use labels for anything being presented to the users
@@ -199,7 +199,7 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
                     }
                     return new String[]{""};
                 }
-                catch(MetacartaException e){
+                catch(LCFException e){
                     Logging.connectors.warn("Memex connection error: "+e.getMessage(),e);
                     return new String[]{""};
                 }
@@ -249,7 +249,7 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
         *@return the connection's status as a displayable string.
         */
         public String check()
-                throws MetacartaException
+                throws LCFException
         {
                 try{
                     this.setupConnection();
@@ -264,7 +264,7 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
         * in active use.
         */
         public void poll()
-                throws MetacartaException
+                throws LCFException
         {
                 // Is the connection still valid?
                 if (this.physicalServers != null && !this.physicalServers.isEmpty())
@@ -283,7 +283,7 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
         /** Disconnect from Memex.
         */
         public void disconnect()
-                throws MetacartaException
+                throws LCFException
         {
                 this.cleanUpConnections();
                 userName = null;
@@ -339,7 +339,7 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
         */
         public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
                 long startTime, long endTime)
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
                 //start by making sure we have a connection
                 this.setupConnection();
@@ -525,11 +525,11 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
                             {
                                 try
                                 {
-                                    Metacarta.sleep(100L);
+                                    LCF.sleep(100L);
                                 }
                                 catch (InterruptedException e)
                                 {
-                                    throw new MetacartaException(e.getMessage(),e,MetacartaException.INTERRUPTED);
+                                    throw new LCFException(e.getMessage(),e,LCFException.INTERRUPTED);
                                 }
                             }
                         }
@@ -546,7 +546,7 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
         }
 
         protected static boolean checkCriteria(Map<String,DecodedField> fields, List<CrawlMatchDescription> specificMatchCriteria)
-                throws MetacartaException
+                throws LCFException
         {
                 // An empty array means EVERYTHING.
                 if (specificMatchCriteria.size() == 0)
@@ -594,7 +594,7 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
                                         return true;
                                 }
                                 else
-                                    throw new MetacartaException("Bad operator value: "+operator);
+                                    throw new LCFException("Bad operator value: "+operator);
                         }
                 }
                 return false;
@@ -602,7 +602,7 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
         
         protected void doDecode(ArrayList fieldListX, List<Map<String,DecodedField>> fieldsPerRecord, List<CrawlMatchDescription> specificMatchCriteria,
                 LogicalServer ls, ISeedingActivity activities)
-                throws MemexException, MetacartaException
+                throws MemexException, LCFException
         {
                 // First, do the decode
                 ls.getMIE().mie.mxie_decode_fields(fieldListX);
@@ -699,7 +699,7 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
         */
         public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activity,
                 DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
                 String[] newVersions = new String[documentIdentifiers.length];
                 // Build a hash of the indices for each document identifier
@@ -1130,7 +1130,7 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
         */
         public void processDocuments(String[] documentIdentifiers, String[] documentVersions,
                 IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
 
                 // First, create the CrawlDescription object
@@ -1162,7 +1162,7 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
                                 Hashtable currentRec = lookupCachedRecord(recordURN);
                                 if (currentRec == null)
                                     // This should never happen!!
-                                    throw new MetacartaException("Process request for a record whose version was never requested!!");
+                                    throw new LCFException("Process request for a record whose version was never requested!!");
 
                                 // Now, unpack the version string to obtain what fields we should ingest etc.
                                 ArrayList<String> primaryList = new ArrayList<String>();
@@ -1320,7 +1320,7 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
                         }
                     }
                 }catch(java.io.UnsupportedEncodingException e){
-                    throw new MetacartaException("Unsupported encoding: "+e.getMessage(),e);
+                    throw new LCFException("Unsupported encoding: "+e.getMessage(),e);
                 }
 
         }
@@ -1373,7 +1373,7 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
         *@param versions is the corresponding set of version identifiers (individual identifiers may be null).
         */
         public void releaseDocumentVersions(String[] documentIdentifiers, String[] versions)
-                throws MetacartaException
+                throws LCFException
         {
                 // Clean up our part of the cache.
                 for (int i = 0; i < documentIdentifiers.length; i++)
@@ -1393,7 +1393,7 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
 
         /** Return a list of databases (instances of an entity type) on a given virtual server*/
         public NameDescription[] listDatabasesForVirtualServer(String virtualServerName)
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
                 //Start by making sure we're connected
                 this.setupConnection();
@@ -1402,11 +1402,11 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
                 if(!(logicalServers.containsKey(virtualServerName))){
                     //If we can't find the virtual server, its unlikely we can
                     //recover
-                    throw new MetacartaException("Memex error: Virtual server "+virtualServerName+" not found");
+                    throw new LCFException("Memex error: Virtual server "+virtualServerName+" not found");
                 }
                 LogicalServer ls = logicalServers.get(virtualServerName);
                 if (ls == null)
-                    throw new MetacartaException("Memex error: Virtual server "+virtualServerName+" not found");
+                    throw new LCFException("Memex error: Virtual server "+virtualServerName+" not found");
 
                 ArrayList<String> dblist = new ArrayList<String>();
                 for(int i = 0; i < ls.getDatabaseCount(); i++){
@@ -1435,7 +1435,7 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
 
         /** Return a list of virtual servers for the connection, in sorted alphabetic order */
         public String[] listVirtualServers()
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
                 //Start by making sure we're connected
                 this.setupConnection();
@@ -1468,7 +1468,7 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
 
         /** Return a list of the entity types there are for the connection, in sorted alphabetic order */
         public NameDescription[] listEntityTypes()
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
                 //Start by making sure we're connected
                 this.setupConnection();
@@ -1505,7 +1505,7 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
 
         /** Return a list of the field names for the entity prefix in the implied connection, in sorted alphabetic order */
         public String[] listFieldNames(String entityPrefix)
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
                 //Start by making sure we're connected
                 this.setupConnection();
@@ -1515,12 +1515,12 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
                     if (entity != null)
                         return entity.getFields();
                 }
-                throw new MetacartaException("Entity type '"+entityPrefix+"' does not exist");
+                throw new LCFException("Entity type '"+entityPrefix+"' does not exist");
         }
 
         /** Return a list of the field names that mie can directly fetch from a record (for document specification) */
         public String[] listMatchableFieldNames(String entityPrefix)
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
                 String[] candidates = listFieldNames(entityPrefix);
                 if (candidates == null)
@@ -1666,7 +1666,7 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
         //
         ///////////////////////////////////////////////////////////////////////
         private void setupConnection()
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
 
                 boolean connected = false;
@@ -1675,7 +1675,7 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
                     connected = true;
                     for(Enumeration serverkeys = physicalServers.keys(); serverkeys.hasMoreElements();){
                         String serverkey = (String)serverkeys.nextElement();
-                        MetacartaMemexConnection pserver = physicalServers.get(serverkey);
+                        LCFMemexConnection pserver = physicalServers.get(serverkey);
                         if(!(pserver.isConnected())){
                             connected = false;
                         }
@@ -1695,10 +1695,10 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
                         miePool.setCharset(characterEncoding);
 
                         //Initialise data structures
-                        mieConnection = new MetacartaMemexConnection();
+                        mieConnection = new LCFMemexConnection();
                         logicalServers = new Hashtable<String, LogicalServer>();
                         logicalServersByPrefix = new Hashtable<String, LogicalServer>();
-                        physicalServers = new Hashtable<String, MetacartaMemexConnection>();
+                        physicalServers = new Hashtable<String, LCFMemexConnection>();
                         entitiesByName = new Hashtable<String, MemexEntity>();
                         entitiesByLabel = new Hashtable<String, MemexEntity>();
                         entitiesByPrefix = new Hashtable<String, MemexEntity>();
@@ -1726,7 +1726,7 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
 
                     }
                     catch(PoolAuthenticationException e){
-                        throw new MetacartaException("Authentication failure connecting to Memex Server " + miePool.getHostname() + ":" + Integer.toString(miePool.getPort())+": "+e.getMessage(),e);
+                        throw new LCFException("Authentication failure connecting to Memex Server " + miePool.getHostname() + ":" + Integer.toString(miePool.getPort())+": "+e.getMessage(),e);
                     }
                     catch(PoolException e){
                         Logging.connectors.warn("Memex: Pool error connecting to Memex Server " + miePool.getHostname() + ":" + Integer.toString(miePool.getPort()) + " - " + e.getMessage() + " - retrying",e);
@@ -1766,7 +1766,7 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
                     while (i < serverKeyArray.length)
                     {
                         String serverkey = serverKeyArray[i++];
-                        MetacartaMemexConnection currentMIE = physicalServers.get(serverkey);
+                        LCFMemexConnection currentMIE = physicalServers.get(serverkey);
                         try{
                             // Remove history directories belonging to this session
                             physicalServers.remove(serverkey);
@@ -1796,7 +1796,7 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
         /**Creates an alphabetically ordered list of entity objects.
         */
         private void getEntities()
-                throws MemexException, MetacartaException, ServiceInterruption
+                throws MemexException, LCFException, ServiceInterruption
         {
                 String mxEntityPath = null;
                 String[] entityReturn = new String[1];
@@ -1866,11 +1866,11 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
                                             // Parse it!
                                             entityForm = db.parse(formStream);
                                         }catch(ParserConfigurationException e){
-                                            throw new MetacartaException("Can't find a valid parser: "+e.getMessage(),e);
+                                            throw new LCFException("Can't find a valid parser: "+e.getMessage(),e);
                                         }catch(SAXException e){
-                                            throw new MetacartaException("XML had parse errors: "+e.getMessage(),e);
+                                            throw new LCFException("XML had parse errors: "+e.getMessage(),e);
                                         }catch(InterruptedIOException e){
-                                            throw new MetacartaException(e.getMessage(),e,MetacartaException.INTERRUPTED);
+                                            throw new LCFException(e.getMessage(),e,LCFException.INTERRUPTED);
                                         }catch(IOException e){
                                             // I/O problem; treat as  a service interruption
                                             long currentTime = System.currentTimeMillis();
@@ -1885,11 +1885,11 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
                                             }
                                             catch (InterruptedIOException e)
                                             {
-                                                throw new MetacartaException(e.getMessage(),e,MetacartaException.INTERRUPTED);
+                                                throw new LCFException(e.getMessage(),e,LCFException.INTERRUPTED);
                                             }
                                             catch (IOException e)
                                             {
-                                                throw new MetacartaException("Error reading memex form data: "+e.getMessage(),e);
+                                                throw new LCFException("Error reading memex form data: "+e.getMessage(),e);
                                             }
                                         }
                                     }catch(MemexException e){
@@ -1969,7 +1969,7 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
                                 serverFields.add(serversource);
                                 //mieConnection.mie.mxie_goto_record(hist, x);
                                 mieConnection.mie.mxie_decode_fields(serverFields);
-                                MetacartaMemexConnection mie;
+                                LCFMemexConnection mie;
                                 if(serversource.getText().equals("configuration-server")){
                                     mie = mieConnection;
                                 }else{
@@ -1990,14 +1990,14 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
                 }
         }
 
-        private MetacartaMemexConnection getPhysicalServer(String server, int port){
+        private LCFMemexConnection getPhysicalServer(String server, int port){
 
                 String key = server + ":" + Integer.toString(port);
 
                 if(physicalServers.containsKey(key)){
-                    return (MetacartaMemexConnection)physicalServers.get(key);
+                    return (LCFMemexConnection)physicalServers.get(key);
                 }else{
-                    MetacartaMemexConnection newServer = new MetacartaMemexConnection();
+                    LCFMemexConnection newServer = new LCFMemexConnection();
                     try{
                         MemexConnection newMIE = miePool.getConnection(server, port);
                         newServer.mie = newMIE;
@@ -2120,7 +2120,7 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
         * @return - the hash table representation of the record. Null if its not found
         */
         private Hashtable getmxRecordObj(LogicalServer ls, int histno, int recnum)
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
                 Hashtable mxRecord = null;
                 try{
@@ -2289,7 +2289,7 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
                     }
                     catch (InterruptedIOException eek)
                     {
-                        throw new MetacartaException(eek.getMessage(),eek,MetacartaException.INTERRUPTED);
+                        throw new LCFException(eek.getMessage(),eek,LCFException.INTERRUPTED);
                     }
                     catch (IOException eek) {
                         // Treat this as a service interruption
@@ -2313,15 +2313,15 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
                 }
                 catch (UnsupportedEncodingException e){
                         Logging.connectors.error("Memex: "+e.getMessage(),e);
-                        throw new MetacartaException(e.getMessage(),e);
+                        throw new LCFException(e.getMessage(),e);
                 }
                 catch (InterruptedIOException e)
                 {
-                        throw new MetacartaException(e.getMessage(),e,MetacartaException.INTERRUPTED);
+                        throw new LCFException(e.getMessage(),e,LCFException.INTERRUPTED);
                 }
                 catch (IOException e)
                 {
-                        throw new MetacartaException(e.getMessage(),e);
+                        throw new LCFException(e.getMessage(),e);
                 }
         }
 

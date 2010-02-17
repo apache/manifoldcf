@@ -23,7 +23,7 @@ import java.util.*;
 import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.crawler.interfaces.*;
 import org.apache.lcf.crawler.system.Logging;
-import org.apache.lcf.crawler.system.Metacarta;
+import org.apache.lcf.crawler.system.LCF;
 
 /** This class manages the table that keeps track of intrinsic relationships between documents.
 */
@@ -70,7 +70,7 @@ public class IntrinsicLink extends org.apache.lcf.core.database.BaseTable
 	*@param database is the database handle.
 	*/
 	public IntrinsicLink(IDBInterface database)
-		throws MetacartaException
+		throws LCFException
 	{
 		super(database,"intrinsiclink");
 	}
@@ -78,7 +78,7 @@ public class IntrinsicLink extends org.apache.lcf.core.database.BaseTable
 	/** Install or upgrade.
 	*/
 	public void install(String jobsTable, String jobsColumn)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Creating a unique index as part of upgrading could well fail, so we must have the ability to fix things up and retry if that happens.
 		while (true)
@@ -113,7 +113,7 @@ public class IntrinsicLink extends org.apache.lcf.core.database.BaseTable
 					}
 				}
 			}
-			catch (MetacartaException e)
+			catch (LCFException e)
 			{
 				signalRollback();
 				throw e;
@@ -165,7 +165,7 @@ public class IntrinsicLink extends org.apache.lcf.core.database.BaseTable
 				{
 					performAddIndex(null,uniqueIndex);
 				}
-				catch (MetacartaException e)
+				catch (LCFException e)
 				{
 					if (e.getMessage().indexOf("could not create unique index") == -1)
 						throw e;
@@ -182,7 +182,7 @@ public class IntrinsicLink extends org.apache.lcf.core.database.BaseTable
 	
 	/** Remove duplicates, as part of upgrade */
 	protected void removeDuplicates()
-		throws MetacartaException
+		throws LCFException
 	{
 		// If we get here, it's because we couldn't create the necessary unique table constraint.  Fix this by removing undesired duplicates.
 			
@@ -206,7 +206,7 @@ public class IntrinsicLink extends org.apache.lcf.core.database.BaseTable
 		}
 		catch (NumberFormatException e)
 		{
-			throw new MetacartaException(e.getMessage(),e);
+			throw new LCFException(e.getMessage(),e);
 		}
 
 		// Now, amass a list of duplicates
@@ -268,7 +268,7 @@ public class IntrinsicLink extends org.apache.lcf.core.database.BaseTable
 						
 				performInsert(map,null);
 			}
-			catch (MetacartaException e)
+			catch (LCFException e)
 			{
 				signalRollback();
 				throw e;
@@ -294,7 +294,7 @@ public class IntrinsicLink extends org.apache.lcf.core.database.BaseTable
 	/** Uninstall.
 	*/
 	public void deinstall()
-		throws MetacartaException
+		throws LCFException
 	{
 		performDrop(null);
 	}
@@ -302,7 +302,7 @@ public class IntrinsicLink extends org.apache.lcf.core.database.BaseTable
 	/** Analyze job tables that need analysis.
 	*/
 	public void analyzeTables()
-		throws MetacartaException
+		throws LCFException
 	{
 		long startTime = System.currentTimeMillis();
 		Logging.perf.debug("Beginning to analyze intrinsiclink table");
@@ -313,7 +313,7 @@ public class IntrinsicLink extends org.apache.lcf.core.database.BaseTable
 	/** Delete an owner (and clean up the corresponding hopcount rows).
 	*/
 	public void deleteOwner(Long jobID)
-		throws MetacartaException
+		throws LCFException
 	{
 		ArrayList list = new ArrayList();
 		list.add(jobID);
@@ -327,7 +327,7 @@ public class IntrinsicLink extends org.apache.lcf.core.database.BaseTable
 	* is processed, the links will be updated properly.
 	*/
 	public void reset()
-		throws MetacartaException
+		throws LCFException
 	{
 		HashMap map = new HashMap();
 		ArrayList list = new ArrayList();
@@ -341,7 +341,7 @@ public class IntrinsicLink extends org.apache.lcf.core.database.BaseTable
 	*@return the target document ID's that are considered "new".
 	*/
 	public String[] recordReferences(Long jobID, String sourceDocumentIDHash, String[] targetDocumentIDHashes, String linkType)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Need to go into a transaction because we need to distinguish between update and insert.
 		beginTransaction();
@@ -433,7 +433,7 @@ public class IntrinsicLink extends org.apache.lcf.core.database.BaseTable
 			}
 			return newReferences;
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -452,7 +452,7 @@ public class IntrinsicLink extends org.apache.lcf.core.database.BaseTable
 
 	/** Do the exists check, in batch. */
 	protected void performExistsCheck(Map presentMap, String query, ArrayList list)
-		throws MetacartaException
+		throws LCFException
 	{
 		IResultSet result = performQuery("SELECT "+parentIDHashField+" FROM "+getTableName()+" WHERE "+query+" FOR UPDATE",list,null,null);
 		int i = 0;
@@ -470,7 +470,7 @@ public class IntrinsicLink extends org.apache.lcf.core.database.BaseTable
 	public void removeLinks(Long jobID, String commonNewExpression, String[] sourceDocumentIDHashes,
 		String sourceTableName,
 		String sourceTableIDColumn, String sourceTableJobColumn, String sourceTableCriteria)
-		throws MetacartaException
+		throws LCFException
 	{
 		beginTransaction();
 		try
@@ -517,7 +517,7 @@ public class IntrinsicLink extends org.apache.lcf.core.database.BaseTable
 				reindexTracker.noteInsert();
 			}
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -535,7 +535,7 @@ public class IntrinsicLink extends org.apache.lcf.core.database.BaseTable
 	}
 
 	protected void performRemoveLinks(String query, ArrayList list, String commonNewExpression)
-		throws MetacartaException
+		throws LCFException
 	{
 		StringBuffer sb = new StringBuffer("WHERE (");
 		sb.append(query).append(")");
@@ -547,7 +547,7 @@ public class IntrinsicLink extends org.apache.lcf.core.database.BaseTable
 	/** Return all target links of the specified source documents to their base state.
 	*/
 	public void restoreLinks(Long jobID, String[] sourceDocumentIDHashes)
-		throws MetacartaException
+		throws LCFException
 	{
 		beginTransaction();
 		try
@@ -579,7 +579,7 @@ public class IntrinsicLink extends org.apache.lcf.core.database.BaseTable
 			if (k > 0)
 				performRestoreLinks(sb.toString(),list);
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -597,7 +597,7 @@ public class IntrinsicLink extends org.apache.lcf.core.database.BaseTable
 	}
 
 	protected void performRestoreLinks(String query, ArrayList list)
-		throws MetacartaException
+		throws LCFException
 	{
 		StringBuffer sb = new StringBuffer("WHERE (");
 		sb.append(query).append(") AND (").append(newField).append("=? OR ").append(newField).append("=?)");
@@ -612,7 +612,7 @@ public class IntrinsicLink extends org.apache.lcf.core.database.BaseTable
 	*@return rows that contain the children.  Column names are 'linktype','childidentifier'.
 	*/
 	public IResultSet getDocumentChildren(Long jobID, String parentIDHash)
-		throws MetacartaException
+		throws LCFException
 	{
 		ArrayList list = new ArrayList();
 		list.add(jobID);
@@ -625,7 +625,7 @@ public class IntrinsicLink extends org.apache.lcf.core.database.BaseTable
 	*@return a set of document identifier hashes that constitute parents of the specified identifier.
 	*/
 	public String[] getDocumentUniqueParents(Long jobID, String childIDHash)
-		throws MetacartaException
+		throws LCFException
 	{
 		ArrayList list = new ArrayList();
 		list.add(jobID);
@@ -668,7 +668,7 @@ public class IntrinsicLink extends org.apache.lcf.core.database.BaseTable
 	/** Conditionally do analyze operation.
 	*/
 	public void conditionallyAnalyzeTables()
-		throws MetacartaException
+		throws LCFException
 	{
 		if (tracker.checkAnalyze())
 		{
@@ -816,7 +816,7 @@ public class IntrinsicLink extends org.apache.lcf.core.database.BaseTable
 		*@return true if it should be included, false otherwise.
 		*/
 		public boolean checkInclude(IResultRow row)
-			throws MetacartaException
+			throws LCFException
 		{
 			Long jobID = (Long)row.getValue(jobIDField);
 			String linkType = (String)row.getValue(linkTypeField);
@@ -841,7 +841,7 @@ public class IntrinsicLink extends org.apache.lcf.core.database.BaseTable
 		*@return true if we need to keep going, or false if we are done.
 		*/
 		public boolean checkContinue()
-			throws MetacartaException
+			throws LCFException
 		{
 			return true;
 		}

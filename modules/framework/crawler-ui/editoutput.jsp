@@ -484,7 +484,7 @@
 
 <%
     }
-    catch (MetacartaException e)
+    catch (LCFException e)
     {
 	e.printStackTrace();
 	variableContext.setParameter("text",e.getMessage());

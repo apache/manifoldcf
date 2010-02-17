@@ -22,7 +22,7 @@ import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.agents.interfaces.*;
 import org.apache.lcf.crawler.interfaces.*;
 import org.apache.lcf.crawler.system.Logging;
-import org.apache.lcf.crawler.system.Metacarta;
+import org.apache.lcf.crawler.system.LCF;
 import org.apache.lcf.core.common.*;
 
 import java.io.*;
@@ -105,7 +105,7 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
 
 	/** Set up a session */
 	protected void getSession()
-		throws MetacartaException
+		throws LCFException
 	{
 		if (proxy == null)
 		{
@@ -132,7 +132,7 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
 			}
 			catch (NumberFormatException e)
 			{
-				throw new MetacartaException(e.getMessage(),e);
+				throw new LCFException(e.getMessage(),e);
 			}
 			serverLocation = params.getParameter("serverLocation");
 			if (serverLocation == null)
@@ -153,7 +153,7 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
 				ntlmDomain = userName.substring(0,index);
 			}
 			else
-				throw new MetacartaException("Invalid user name - need <domain>\\<name>");
+				throw new LCFException("Invalid user name - need <domain>\\<name>");
 
 			serverUrl = serverProtocol + "://" + serverName;
 			if (serverProtocol.equals("https"))
@@ -223,7 +223,7 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
 	/** Close the connection.  Call this before discarding the repository connector.
 	*/
 	public void disconnect()
-		throws MetacartaException
+		throws LCFException
 	{
 		serverUrl = null;
 		fileBaseUrl = null;
@@ -276,7 +276,7 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
 	*@return the connection's status as a displayable string.
 	*/
 	public String check()
-		throws MetacartaException
+		throws LCFException
 	{
 		getSession();
 		try
@@ -296,7 +296,7 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
 		{
 			return "SharePoint temporarily unavailable: "+e.getMessage();
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			return e.getMessage();
 		}
@@ -308,7 +308,7 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
 	* in active use.
 	*/
 	public void poll()
-		throws MetacartaException
+		throws LCFException
 	{
 		if (connectionManager != null)
 			connectionManager.closeIdleConnections(60000L);
@@ -342,7 +342,7 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
 	*/
 	public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
 		long startTime, long endTime, int jobMode)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		// Check the session
 		getSession();
@@ -370,7 +370,7 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
 	*/
 	public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
 		DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		getSession();
 		
@@ -676,7 +676,7 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
 					}
 				}
 				else
-					throw new MetacartaException("Invalid document identifier discovered: '"+documentIdentifier+"'");
+					throw new LCFException("Invalid document identifier discovered: '"+documentIdentifier+"'");
 				i++;
 		}
 		return rval;
@@ -735,7 +735,7 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
 	* should only find other references, and should not actually call the ingestion methods.
 	*/
 	public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		getSession();
 		
@@ -854,7 +854,7 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
 								{
 									// Unexpected processing error; the path to the folder or document did not start with the location
 									// offset, so throw up.
-									throw new MetacartaException("Internal error: Relative path '"+relPath+"' was expected to start with '"+
+									throw new LCFException("Internal error: Relative path '"+relPath+"' was expected to start with '"+
 										serverLocation+"'");
 								}
 						
@@ -996,7 +996,7 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
 											{
 												activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
 													null,documentIdentifier,"Error","Http status "+Integer.toString(returnCode),null);
-												throw new MetacartaException("Error fetching document '"+fileUrl+"': "+Integer.toString(returnCode));
+												throw new LCFException("Error fetching document '"+fileUrl+"': "+Integer.toString(returnCode));
 											}
 							
 											// int contentSize = (int)method.getResponseContentLength();
@@ -1028,7 +1028,7 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
 												}
 												catch (InterruptedIOException e)
 												{
-													throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+													throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 												}
 												catch (IOException e)
 												{
@@ -1048,7 +1048,7 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
 									}
 									catch (InterruptedException e)
 									{
-										throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+										throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 									}
 									catch (java.net.SocketTimeoutException e)
 									{
@@ -1070,14 +1070,14 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
 									}
 									catch (InterruptedIOException e)
 									{
-										throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+										throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 									}
 									catch (IllegalArgumentException e)
 									{
 										Logging.connectors.error("SharePoint: Illegal argument", e);
 											activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
 											new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
-										throw new MetacartaException("SharePoint: Illegal argument: "+e.getMessage(),e);
+										throw new LCFException("SharePoint: Illegal argument: "+e.getMessage(),e);
 									}
 									catch (HttpException e) 
 									{  
@@ -1217,7 +1217,7 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
 									}
 									catch (InterruptedIOException e)
 									{
-										throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+										throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 									}
 									catch (IOException e)
 									{
@@ -1233,25 +1233,25 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
 						}
 						catch (java.net.SocketTimeoutException e)
 						{
-							throw new MetacartaException("Socket timeout error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
+							throw new LCFException("Socket timeout error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
 						}
 						catch (org.apache.commons.httpclient.ConnectTimeoutException e)
 						{
-							throw new MetacartaException("Connect timeout error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
+							throw new LCFException("Connect timeout error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
 						}
 						catch (InterruptedIOException e)
 						{
-							throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+							throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 						}
 						catch (IOException e)
 						{
-							throw new MetacartaException("IO error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
+							throw new LCFException("IO error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
 						}
 					}
 				}
 			}
 			else
-				throw new MetacartaException("Found illegal document identifier in processDocuments: '"+documentIdentifier+"'");
+				throw new LCFException("Found illegal document identifier in processDocuments: '"+documentIdentifier+"'");
 			
 			i++;
 		}
@@ -1265,7 +1265,7 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
 	* @return list of the fields
 	*/
 	public Map getFieldList( String parentSite, String docLibrary )
-		throws ServiceInterruption, MetacartaException
+		throws ServiceInterruption, LCFException
 	{
 		getSession();
 		return proxy.getFieldList( encodePath(parentSite), proxy.getDocLibID( encodePath(parentSite), parentSite, docLibrary) );
@@ -1277,7 +1277,7 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
 	* @return list of the sites
 	*/
 	public ArrayList getSites( String parentSite )
-		throws ServiceInterruption, MetacartaException
+		throws ServiceInterruption, LCFException
 	{
 		getSession();
 		return proxy.getSites( encodePath(parentSite) );
@@ -1289,7 +1289,7 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
 	* @return list of the libraries
 	*/
 	public ArrayList getDocLibsBySite( String parentSite )
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		getSession();
 		return proxy.getDocumentLibraries( encodePath(parentSite), parentSite );
@@ -2128,7 +2128,7 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
 
 		/** Constructor */
 		public SystemMetadataDescription(DocumentSpecification spec)
-			throws MetacartaException
+			throws LCFException
 		{
 			pathAttributeName = null;
 			int i = 0;
@@ -2157,7 +2157,7 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
 		/** Given an identifier, get the translated string that goes into the metadata.
 		*/
 		public String getPathAttributeValue(String documentIdentifier)
-			throws MetacartaException
+			throws LCFException
 		{
 			String path = getPathString(documentIdentifier);
 			return matchMap.translate(path);
@@ -2168,7 +2168,7 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
 		* is easy to calculate.
 		*/
 		public String getPathString(String documentIdentifier)
-			throws MetacartaException
+			throws LCFException
 		{
 			// There will be a "//" somewhere in the string.  Remove it!
 			int dslashIndex = documentIdentifier.indexOf("//");
@@ -2188,7 +2188,7 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
 		/** Constructor.  Pass the keystore.
 		*/
 		public MySSLSocketFactory(IKeystoreManager keystore)
-			throws MetacartaException
+			throws LCFException
 		{
 			this.keystore = keystore;
 			thisSocketFactory = keystore.getSecureSocketFactory();
@@ -2269,7 +2269,7 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
 			{
 				return keystore.getString().equals(other.keystore.getString());
 			}
-			catch (MetacartaException e)
+			catch (LCFException e)
 			{
 				return false;
 			}
@@ -2281,7 +2281,7 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
 			{
 				return keystore.getString().hashCode();
 			}
-			catch (MetacartaException e)
+			catch (LCFException e)
 			{
 				return 0;
 			}

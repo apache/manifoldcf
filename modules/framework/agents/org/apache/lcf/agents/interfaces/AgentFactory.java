@@ -39,7 +39,7 @@ public class AgentFactory
 	*@return the agent.
 	*/
 	public static IAgent make(IThreadContext tc, String className)
-		throws MetacartaException
+		throws LCFException
 	{
 	    String agentName = agentIdentifier+className;
 	    Object o = tc.get(agentName);
@@ -56,7 +56,7 @@ public class AgentFactory
 			arguments[0] = tc;
 			o = c.newInstance(arguments);
 			if (!(o instanceof IAgent))
-				throw new MetacartaException("Class '"+className+"' does not implement IAgent.");
+				throw new LCFException("Class '"+className+"' does not implement IAgent.");
 			tc.save(agentName,o);
 		}
 		catch (InvocationTargetException e)
@@ -65,42 +65,42 @@ public class AgentFactory
 			if (z instanceof Error)
 				throw (Error)z;
 			else
-				throw (MetacartaException)z;
+				throw (LCFException)z;
 		}
 		catch (ClassNotFoundException e)
 		{
-			throw new MetacartaException("No class implementing IAgent called '"+
+			throw new LCFException("No class implementing IAgent called '"+
 				className+"'.",
 				e);
 		}
 		catch (NoSuchMethodException e)
 		{
-			throw new MetacartaException("No appropriate constructor for IAgent implementation '"+
+			throw new LCFException("No appropriate constructor for IAgent implementation '"+
 				className+"'.  Need xxx(ConfigParams).",
 				e);
 		}
 		catch (SecurityException e)
 		{
-			throw new MetacartaException("Protected constructor for IAgent implementation '"+className+"'",
+			throw new LCFException("Protected constructor for IAgent implementation '"+className+"'",
 				e);
 		}
 		catch (IllegalAccessException e)
 		{
-			throw new MetacartaException("Unavailable constructor for IAgent implementation '"+className+"'",
+			throw new LCFException("Unavailable constructor for IAgent implementation '"+className+"'",
 				e);
 		}
 		catch (IllegalArgumentException e)
 		{
-			throw new MetacartaException("Shouldn't happen!!!",e);
+			throw new LCFException("Shouldn't happen!!!",e);
 		}
 		catch (InstantiationException e)
 		{
-			throw new MetacartaException("InstantiationException for IAgent implementation '"+className+"'",
+			throw new LCFException("InstantiationException for IAgent implementation '"+className+"'",
 				e);
 		}
 		catch (ExceptionInInitializerError e)
 		{
-			throw new MetacartaException("ExceptionInInitializerError for IAgent implementation '"+className+"'",
+			throw new LCFException("ExceptionInInitializerError for IAgent implementation '"+className+"'",
 				e);
 		}
 	    }

@@ -19,7 +19,7 @@
 package org.apache.lcf.core.interfaces;
 
 import java.io.*;
-import org.apache.lcf.core.system.Metacarta;
+import org.apache.lcf.core.system.LCF;
 
 /** This class represents a temporary file data input
 * stream.  Call the "done" method to clean up the
@@ -42,7 +42,7 @@ public class TempFileInput extends BinaryInput
 	*@param is is the input stream to use to construct the temporary file.
 	*/
 	public TempFileInput(InputStream is)
-		throws MetacartaException
+		throws LCFException
 	{
 		this(is,-1L);
 	}
@@ -52,7 +52,7 @@ public class TempFileInput extends BinaryInput
 	*@param length is the maximum number of bytes to transfer, or -1 if no limit.
 	*/
 	public TempFileInput(InputStream is, long length)
-		throws MetacartaException
+		throws LCFException
 	{
 		super();
 		try
@@ -62,7 +62,7 @@ public class TempFileInput extends BinaryInput
 			try
 			{
 				// Register the file for autodeletion, using our infrastructure.
-				Metacarta.addFile(outfile);
+				LCF.addFile(outfile);
 				// deleteOnExit() causes memory leakage!
 				// outfile.deleteOnExit();
 				FileOutputStream outStream = new FileOutputStream(outfile);
@@ -103,7 +103,7 @@ public class TempFileInput extends BinaryInput
 			{
 				// Delete the temp file we created on any error condition
 				// outfile.delete();
-				Metacarta.deleteFile(outfile);
+				LCF.deleteFile(outfile);
 				if (e instanceof Error)
 					throw (Error)e;
 				if (e instanceof RuntimeException)
@@ -115,11 +115,11 @@ public class TempFileInput extends BinaryInput
 		}
 		catch (InterruptedIOException e)
 		{
-			throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+			throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 		}
 		catch (Exception e)
 		{
-			throw new MetacartaException("Cannot write temporary file",e,MetacartaException.GENERAL_ERROR);
+			throw new LCFException("Cannot write temporary file",e,LCFException.GENERAL_ERROR);
 		}
 
 	}
@@ -131,7 +131,7 @@ public class TempFileInput extends BinaryInput
 	{
 		super();
 		file = tempFile;
-		Metacarta.addFile(file);
+		LCF.addFile(file);
 		// deleteOnExit() causes memory leakage; better to leak files on hard shutdown than memory.
 		// file.deleteOnExit();
 	}
@@ -155,18 +155,18 @@ public class TempFileInput extends BinaryInput
 	}
 
 	public void discard()
-		throws MetacartaException
+		throws LCFException
 	{
 		super.discard();
 		if (file != null)
 		{
-			Metacarta.deleteFile(file);
+			LCF.deleteFile(file);
 			file = null;
 		}
 	}
 
 	protected void openStream()
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
@@ -175,12 +175,12 @@ public class TempFileInput extends BinaryInput
 		}
 		catch (FileNotFoundException e)
 		{
-			throw new MetacartaException("Can't create stream: "+e.getMessage(),e,MetacartaException.GENERAL_ERROR);
+			throw new LCFException("Can't create stream: "+e.getMessage(),e,LCFException.GENERAL_ERROR);
 		}
 	}
 	
 	protected void calculateLength()
-		throws MetacartaException
+		throws LCFException
 	{
 		this.length = file.length();
 	}

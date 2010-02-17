@@ -21,7 +21,7 @@ package org.apache.lcf.core.cachemanager;
 import org.apache.lcf.core.interfaces.*;
 import java.util.*;
 import org.apache.lcf.core.system.Logging;
-import org.apache.lcf.core.system.Metacarta;
+import org.apache.lcf.core.system.LCF;
 import java.io.*;
 
 /** This class implements the cache manager interface, and provides generic cache management
@@ -46,10 +46,10 @@ public class CacheManager implements ICacheManager
 	protected HashMap transactionHash = new HashMap();
 
 	public CacheManager(IThreadContext context)
-		throws MetacartaException
+		throws LCFException
 	{
 		lockManager = LockManagerFactory.make(context);
-		synchDirectory = Metacarta.getProperty(Metacarta.synchDirectoryProperty);
+		synchDirectory = LCF.getProperty(LCF.synchDirectoryProperty);
 	}
 
 	/** Locate or create a set of objects in the cached object pool, and/or destroy and invalidate
@@ -80,7 +80,7 @@ public class CacheManager implements ICacheManager
 	*/
 	public void findObjectsAndExecute(ICacheDescription[] locateObjectDescriptions, StringSet invalidateKeys,
 		ICacheExecutor execObject, String transactionID)
-		throws MetacartaException
+		throws LCFException
 	{
 		// There is some clever engineering involved here.  The lock manager is used to control synchronization
 		// around usage and invalidation of objects.  However, there is ANOTHER lock condition that needs to be
@@ -202,7 +202,7 @@ public class CacheManager implements ICacheManager
 	*/
 	public ICacheHandle enterCache(ICacheDescription[] locateObjectDescriptions, StringSet invalidateKeys,
 		String transactionID)
-		throws MetacartaException
+		throws LCFException
 	{
 		if (Logging.cache.isDebugEnabled())
 		{
@@ -287,7 +287,7 @@ public class CacheManager implements ICacheManager
 			CacheTransactionHandle handle = (CacheTransactionHandle)transactionHash.get(transactionID);
 			if (handle == null)
 			{
-				MetacartaException ex = new MetacartaException("Illegal transaction ID: '"+transactionID+"'",MetacartaException.GENERAL_ERROR);
+				LCFException ex = new LCFException("Illegal transaction ID: '"+transactionID+"'",LCFException.GENERAL_ERROR);
 				Logging.cache.error(Thread.currentThread().toString()+": enterCache: "+transactionID+": "+this.toString()+": Transaction hash = "+transactionHash.toString(),ex);
 				throw ex;
 			}
@@ -317,7 +317,7 @@ public class CacheManager implements ICacheManager
 	*@param handle is the cache handle.
 	*/
 	public ICacheCreateHandle enterCreateSection(ICacheHandle handle)
-		throws MetacartaException
+		throws LCFException
 	{
 
 		if (Logging.cache.isDebugEnabled())
@@ -332,8 +332,8 @@ public class CacheManager implements ICacheManager
 		// stop multiple creation.
 		ICacheDescription[] locateObjectDescriptions = handle.getObjectDescriptions();
 		if (locateObjectDescriptions == null)
-			throw new MetacartaException("Can't enter create section without objects to create",
-				MetacartaException.GENERAL_ERROR);
+			throw new LCFException("Can't enter create section without objects to create",
+				LCFException.GENERAL_ERROR);
 		int i = 0;
 		ArrayList writeCriticalSectionArray = new ArrayList();
 		while (i < locateObjectDescriptions.length)
@@ -376,11 +376,11 @@ public class CacheManager implements ICacheManager
 	*@return the object, or null if not found.
 	*/
 	public Object lookupObject(ICacheCreateHandle handle, ICacheDescription objectDescription)
-		throws MetacartaException
+		throws LCFException
 	{
 		if (handle == null)
-			throw new MetacartaException("Can't do lookup outside of create section",
-				MetacartaException.GENERAL_ERROR);
+			throw new LCFException("Can't do lookup outside of create section",
+				LCFException.GENERAL_ERROR);
 
 		if (Logging.cache.isDebugEnabled())
 		{
@@ -402,7 +402,7 @@ public class CacheManager implements ICacheManager
 			CacheTransactionHandle transactionHandle = (CacheTransactionHandle)transactionHash.get(transactionID);
 			if (transactionHandle == null)
 			{
-				MetacartaException ex = new MetacartaException("Illegal transaction id",MetacartaException.GENERAL_ERROR);
+				LCFException ex = new LCFException("Illegal transaction id",LCFException.GENERAL_ERROR);
 				Logging.cache.error(Thread.currentThread().toString()+": lookupObject: "+transactionID+": "+this.toString()+": Transaction hash = "+transactionHash.toString(),ex);
 				throw ex;
 			}
@@ -461,7 +461,7 @@ public class CacheManager implements ICacheManager
 	*@return true if expired, false otherwise.
 	*/
 	protected boolean hasExpired(String key, long createTime)
-		throws MetacartaException
+		throws LCFException
 	{
 
 		File fileDescription = new File(makeFilePath(key),makeFileName(key));
@@ -493,7 +493,7 @@ public class CacheManager implements ICacheManager
 	*/
 	protected static String makeFileName(String key)
 	{
-		return "cache-"+Metacarta.safeFileName(key);
+		return "cache-"+LCF.safeFileName(key);
 	}
 
 	/** Set object's expiration and LRU.
@@ -526,11 +526,11 @@ public class CacheManager implements ICacheManager
 	*/
 	public void saveObject(ICacheCreateHandle handle, ICacheDescription objectDescription,
 		Object object)
-		throws MetacartaException
+		throws LCFException
 	{
 		if (handle == null)
-			throw new MetacartaException("Can't do save outside of create section",
-				MetacartaException.GENERAL_ERROR);
+			throw new LCFException("Can't do save outside of create section",
+				LCFException.GENERAL_ERROR);
 
 		if (Logging.cache.isDebugEnabled())
 		{
@@ -578,7 +578,7 @@ public class CacheManager implements ICacheManager
 				CacheTransactionHandle transactionHandle = (CacheTransactionHandle)transactionHash.get(transactionID);
 				if (transactionHandle == null)
 				{
-					MetacartaException ex = new MetacartaException("Bad transaction handle",MetacartaException.GENERAL_ERROR);
+					LCFException ex = new LCFException("Bad transaction handle",LCFException.GENERAL_ERROR);
 					Logging.cache.error(Thread.currentThread().toString()+": saveObject: "+transactionID+": "+this.toString()+": Transaction hash = "+transactionHash.toString(),ex);
 					throw ex;
 				}
@@ -591,7 +591,7 @@ public class CacheManager implements ICacheManager
 	*@param handle is the handle created by the corresponding enterCreateSection() method.
 	*/
 	public void leaveCreateSection(ICacheCreateHandle handle)
-		throws MetacartaException
+		throws LCFException
 	{
 
 		if (Logging.cache.isDebugEnabled())
@@ -606,7 +606,7 @@ public class CacheManager implements ICacheManager
 	*@param handle is the cache handle.  Does nothing if a null set of keys was passed in.
 	*/
 	public void invalidateKeys(ICacheHandle handle)
-		throws MetacartaException
+		throws LCFException
 	{
 
 		if (Logging.cache.isDebugEnabled())
@@ -627,7 +627,7 @@ public class CacheManager implements ICacheManager
 			CacheTransactionHandle transactionHandle = (CacheTransactionHandle)transactionHash.get(transactionID);
 			if (transactionHandle == null)
 			{
-				MetacartaException ex = new MetacartaException("Bad transaction ID!",MetacartaException.GENERAL_ERROR);
+				LCFException ex = new LCFException("Bad transaction ID!",LCFException.GENERAL_ERROR);
 				Logging.cache.error(Thread.currentThread().toString()+": invalidateKeys: "+transactionID+": "+this.toString()+": Transaction hash = "+transactionHash.toString(),ex);
 				throw ex;
 			}
@@ -641,7 +641,7 @@ public class CacheManager implements ICacheManager
 	*@param keys is the set of keys to invalidate.
 	*/
 	protected void performInvalidation(StringSet keys)
-		throws MetacartaException
+		throws LCFException
 	{
 
 		// Finally, perform the invalidation.  When support is added for
@@ -674,7 +674,7 @@ public class CacheManager implements ICacheManager
 	*@param handle is the handle of the cache we are leaving.
 	*/
 	public void leaveCache(ICacheHandle handle)
-		throws MetacartaException
+		throws LCFException
 	{
 
 		if (Logging.cache.isDebugEnabled())
@@ -693,7 +693,7 @@ public class CacheManager implements ICacheManager
 	*@param enclosingTransactionID is the id of the transaction that is in effect, or null.
 	*/
 	public void startTransaction(String startingTransactionID, String enclosingTransactionID)
-		throws MetacartaException
+		throws LCFException
 	{
 
 		if (Logging.cache.isDebugEnabled())
@@ -709,8 +709,8 @@ public class CacheManager implements ICacheManager
 			parent = (CacheTransactionHandle)transactionHash.get(enclosingTransactionID);
 			if (parent == null)
 			{
-				MetacartaException ex = new MetacartaException("Illegal parent transaction ID: "+enclosingTransactionID,
-					MetacartaException.GENERAL_ERROR);
+				LCFException ex = new LCFException("Illegal parent transaction ID: "+enclosingTransactionID,
+					LCFException.GENERAL_ERROR);
 				Logging.cache.error(Thread.currentThread().toString()+": startTransaction: "+this.toString()+": Transaction hash = "+transactionHash.toString(),ex);
 				throw ex;
 			}
@@ -731,7 +731,7 @@ public class CacheManager implements ICacheManager
 	* held open will be released.
 	*/
 	public void commitTransaction(String transactionID)
-		throws MetacartaException
+		throws LCFException
 	{
 
 		if (Logging.cache.isDebugEnabled())
@@ -741,7 +741,7 @@ public class CacheManager implements ICacheManager
 
 		CacheTransactionHandle handle = (CacheTransactionHandle)transactionHash.get(transactionID);
 		if (handle == null)
-			throw new MetacartaException("Cache manager: commit transaction without start!",MetacartaException.GENERAL_ERROR);
+			throw new LCFException("Cache manager: commit transaction without start!",LCFException.GENERAL_ERROR);
 
 		// First, move all the locally cached entries into the global cache.
 		// This is safe to do because we know that the transaction belongs to a single thread.
@@ -807,7 +807,7 @@ public class CacheManager implements ICacheManager
 	* held for the transaction.
 	*/
 	public void rollbackTransaction(String transactionID)
-		throws MetacartaException
+		throws LCFException
 	{
 
 		if (Logging.cache.isDebugEnabled())
@@ -817,7 +817,7 @@ public class CacheManager implements ICacheManager
 
 		CacheTransactionHandle handle = (CacheTransactionHandle)transactionHash.get(transactionID);
 		if (handle == null)
-			throw new MetacartaException("Cache manager: rollback transaction without start!",MetacartaException.GENERAL_ERROR);
+			throw new LCFException("Cache manager: rollback transaction without start!",LCFException.GENERAL_ERROR);
 
 		// End all of the locks
 		// We always end the write locks before the read locks.
@@ -844,7 +844,7 @@ public class CacheManager implements ICacheManager
 	*@param currentTimestamp is the current time in milliseconds since epoch.
 	*/
 	public void expireObjects(long currentTimestamp)
-		throws MetacartaException
+		throws LCFException
 	{
 		// This is a local JVM operation; we will not need to do any locks.  We just
 		// need to blow expired objects from the cache.
@@ -859,7 +859,7 @@ public class CacheManager implements ICacheManager
 	*@return the invalidation time, or 0 if none.
 	*/
 	protected static long readFile(File fileDescriptor)
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
@@ -881,7 +881,7 @@ public class CacheManager implements ICacheManager
 				}
 				catch (InterruptedIOException e)
 				{
-					throw new MetacartaException("Interrupted",e,MetacartaException.INTERRUPTED);
+					throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
 				}
 				catch (IOException e)
 				{
@@ -896,7 +896,7 @@ public class CacheManager implements ICacheManager
 			}
 			catch (InterruptedIOException e)
 			{
-				throw new MetacartaException("Interrupted",e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
 			}
 			catch (IOException e)
 			{
@@ -911,7 +911,7 @@ public class CacheManager implements ICacheManager
 		}
 		catch (InterruptedIOException e)
 		{
-			throw new MetacartaException("Interrupted",e,MetacartaException.INTERRUPTED);
+			throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
 		}
 		catch (IOException e)
 		{
@@ -925,7 +925,7 @@ public class CacheManager implements ICacheManager
 	*@param value is the invalidation timestamp.
 	*/
 	protected static void writeFile(File fileDescriptor, long value)
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
@@ -954,12 +954,12 @@ public class CacheManager implements ICacheManager
 		}
 		catch (InterruptedIOException e)
 		{
-			throw new MetacartaException("Interrupted",e,MetacartaException.INTERRUPTED);
+			throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
 		}
 		catch (IOException e)
 		{
 			// Hard failure is called for
-			throw new MetacartaException("Cache system failure",e);
+			throw new LCFException("Cache system failure",e);
 		}
 	}
 
@@ -1260,7 +1260,7 @@ public class CacheManager implements ICacheManager
 		*@return the array of write locks we still need to throw.
 		*/
 		public StringSet getRemainingWriteLocks(StringSet cacheKeys, StringSet keys)
-			throws MetacartaException
+			throws LCFException
 		{
 			// If any of these keys are read locks but not yet write locks, we throw an exception!
 			// (There is currently no ability to promote a read lock to a write lock.)

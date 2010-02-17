@@ -54,7 +54,7 @@ public interface ICacheManager
 	*/
 	public void findObjectsAndExecute(ICacheDescription[] locateObjectDescriptions, StringSet invalidateKeys,
 		ICacheExecutor execObject, String transactionID)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Second way of doing cache management.
 	* Basically, this approach breaks the findObjectsAndExecute() method down into bite-sized chunks.
@@ -74,7 +74,7 @@ public interface ICacheManager
 	*/
 	public ICacheHandle enterCache(ICacheDescription[] locateObjectDescriptions, StringSet invalidateKeys,
 		String transactionID)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Enter a creation critical section.  This insures that only one thread is
 	* creating the specified objects at a time.  This MUST be paired with
@@ -82,7 +82,7 @@ public interface ICacheManager
 	*@param handle is the cache handle.
 	*/
 	public ICacheCreateHandle enterCreateSection(ICacheHandle handle)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Lookup an object.  Returns null if object not found.  If it is found,
 	* object's LRU and expiration info are updated.  The objectDescription passed
@@ -91,7 +91,7 @@ public interface ICacheManager
 	*@param objectDescription is the description of the object to look up.
 	*/
 	public Object lookupObject(ICacheCreateHandle handle, ICacheDescription objectDescription)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Save a newly created object.  The object MUST be one of those identified in the
 	* enterCache() method.
@@ -101,25 +101,25 @@ public interface ICacheManager
 	*/
 	public void saveObject(ICacheCreateHandle handle, ICacheDescription objectDescription,
 		Object object)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Leave the create section.
 	*@param handle is the handle created by the corresponding enterCreateSection() method.
 	*/
 	public void leaveCreateSection(ICacheCreateHandle handle)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Invalidate keys.  The keys invalidated are what got passed to the enterCache() method.
 	*@param handle is the cache handle.  Does nothing if a null set of keys was passed in.
 	*/
 	public void invalidateKeys(ICacheHandle handle)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Leave the cache.  Must be paired with enterCache, above.
 	*@param handle is the handle of the cache we are leaving.
 	*/
 	public void leaveCache(ICacheHandle handle)
-		throws MetacartaException;
+		throws LCFException;
 
 	// The following methods are used to communicate transaction information to the cache.
 
@@ -129,7 +129,7 @@ public interface ICacheManager
 	*@param enclosingTransactionID is the id of the transaction that is in effect, or null.
 	*/
 	public void startTransaction(String startingTransactionID, String enclosingTransactionID)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Commit a cache transaction.
 	* This method MUST be called when a transaction successfully ends, or open locks will not be closed!!!
@@ -138,7 +138,7 @@ public interface ICacheManager
 	*@param transactionID is the id of the transaction that is ending.
 	*/
 	public void commitTransaction(String transactionID)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Roll back a cache transaction.
 	* This method releases all objects cached against the ending transaction ID, and releases all locks
@@ -146,7 +146,7 @@ public interface ICacheManager
 	*@param transactionID is the id of the transaction that is ending.
 	*/
 	public void rollbackTransaction(String transactionID)
-		throws MetacartaException;
+		throws LCFException;
 
 	// This is a maintenance method; call it when convenient.
 
@@ -154,6 +154,6 @@ public interface ICacheManager
 	*@param currentTimestamp is the current time in milliseconds since epoch.
 	*/
 	public void expireObjects(long currentTimestamp)
-		throws MetacartaException;
+		throws LCFException;
 
 }

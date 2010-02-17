@@ -22,7 +22,7 @@ import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.agents.interfaces.*;
 import org.apache.lcf.crawler.interfaces.*;
 import org.apache.lcf.crawler.system.Logging;
-import org.apache.lcf.crawler.system.Metacarta;
+import org.apache.lcf.crawler.system.LCF;
 import java.util.*;
 import java.io.*;
 
@@ -55,7 +55,7 @@ public class DataCache
 	*@return a "checksum" value, to use as a version string.
 	*/
 	public String addData(IVersionActivity activities, String documentIdentifier, IThrottledConnection connection)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		// Grab the response code, and the content-type header
 		int responseCode = connection.getResponseCode();
@@ -79,7 +79,7 @@ public class DataCache
 				// after it's removed.  So disable this and live with the occasional
 				// dangling file left as a result of shutdown or error. :-(
 				// tempFile.deleteOnExit();
-				Metacarta.addFile(tempFile);
+				LCF.addFile(tempFile);
 
 				// Transfer data to temporary file
 				long checkSum = 0L;
@@ -111,7 +111,7 @@ public class DataCache
 						catch (InterruptedIOException e)
 						{
 							//Logging.connectors.warn("IO interruption seen",e);
-							throw new MetacartaException("Interrupted: "+e.getMessage(),MetacartaException.INTERRUPTED);
+							throw new LCFException("Interrupted: "+e.getMessage(),LCFException.INTERRUPTED);
 						}
 						catch (IOException e)
 						{
@@ -150,22 +150,22 @@ public class DataCache
 			}
 			catch (IOException e)
 			{
-				Metacarta.deleteFile(tempFile);
+				LCF.deleteFile(tempFile);
 				throw e;
 			}
-			catch (MetacartaException e)
+			catch (LCFException e)
 			{
-				Metacarta.deleteFile(tempFile);
+				LCF.deleteFile(tempFile);
 				throw e;
 			}
 			catch (ServiceInterruption e)
 			{
-				Metacarta.deleteFile(tempFile);
+				LCF.deleteFile(tempFile);
 				throw e;
 			}
 			catch (Error e)
 			{
-				Metacarta.deleteFile(tempFile);
+				LCF.deleteFile(tempFile);
 				throw e;
 			}
 		    }
@@ -197,20 +197,20 @@ public class DataCache
 		}
 		catch (java.net.SocketTimeoutException e)
 		{
-			throw new MetacartaException("Socket timeout exception creating temporary file: "+e.getMessage(),e);
+			throw new LCFException("Socket timeout exception creating temporary file: "+e.getMessage(),e);
 		}
 		catch (org.apache.commons.httpclient.ConnectTimeoutException e)
 		{
-			throw new MetacartaException("Socket connect timeout exception creating temporary file: "+e.getMessage(),e);
+			throw new LCFException("Socket connect timeout exception creating temporary file: "+e.getMessage(),e);
 		}
 		catch (InterruptedIOException e)
 		{
 			//Logging.connectors.warn("IO interruption seen",e);
-			throw new MetacartaException("Interrupted: "+e.getMessage(),MetacartaException.INTERRUPTED);
+			throw new LCFException("Interrupted: "+e.getMessage(),LCFException.INTERRUPTED);
 		}
 		catch (IOException e)
 		{
-			throw new MetacartaException("IO exception creating temporary file: "+e.getMessage(),e);
+			throw new LCFException("IO exception creating temporary file: "+e.getMessage(),e);
 		}
 	}
 
@@ -267,7 +267,7 @@ public class DataCache
 	*@return a binary data stream.
 	*/
 	public synchronized InputStream getData(String documentIdentifier)
-		throws MetacartaException
+		throws LCFException
 	{
 		DocumentData dd = (DocumentData)cacheData.get(documentIdentifier);
 		if (dd == null)
@@ -278,7 +278,7 @@ public class DataCache
 		}
 		catch (FileNotFoundException e)
 		{
-			throw new MetacartaException("File not found exception opening data: "+e.getMessage(),e);
+			throw new LCFException("File not found exception opening data: "+e.getMessage(),e);
 		}
 	}
 
@@ -290,7 +290,7 @@ public class DataCache
 		DocumentData dd = (DocumentData)cacheData.remove(documentIdentifier);
 		if (dd != null)
 		{
-			Metacarta.deleteFile(dd.getData());
+			LCF.deleteFile(dd.getData());
 		}
 	}
 

@@ -70,7 +70,7 @@ public class RunSimpleHistory
 
 		try
 		{
-		        Metacarta.initializeEnvironment();
+		        LCF.initializeEnvironment();
 			IThreadContext tc = ThreadContextFactory.make();
 			IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(tc);
 	

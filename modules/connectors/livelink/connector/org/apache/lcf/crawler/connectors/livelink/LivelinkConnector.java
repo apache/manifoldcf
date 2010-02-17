@@ -22,7 +22,7 @@ import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.agents.interfaces.*;
 import org.apache.lcf.crawler.interfaces.*;
 import org.apache.lcf.crawler.system.Logging;
-import org.apache.lcf.crawler.system.Metacarta;
+import org.apache.lcf.crawler.system.LCF;
 
 import java.io.*;
 import java.util.*;
@@ -207,7 +207,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 					LLENTWK_VOL = entinfo.toInteger("VolumeID");
 				}
 				else
-					throw new MetacartaException("Error accessing enterprise workspace: "+status);
+					throw new LCFException("Error accessing enterprise workspace: "+status);
 
 				entinfo = new LLValue().setAssoc();
 				status = LLDocs.AccessCategoryWS(entinfo);
@@ -217,7 +217,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 					LLCATWK_VOL = entinfo.toInteger("VolumeID");
 				}
 				else
-					throw new MetacartaException("Error accessing category workspace: "+status);
+					throw new LCFException("Error accessing category workspace: "+status);
 			}
 			catch (Throwable e)
 			{
@@ -247,7 +247,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	}
 	
 	protected void getSession()
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		if (hasBeenSetup == false)
 		{
@@ -303,7 +303,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 			}
 			catch (NumberFormatException e)
 			{
-				throw new MetacartaException("Bad ingest port: "+e.getMessage(),e);
+				throw new LCFException("Bad ingest port: "+e.getMessage(),e);
 			}
 			
 			String viewPortString;
@@ -324,7 +324,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 			}
 			catch (NumberFormatException e)
 			{
-				throw new MetacartaException("Bad view port: "+e.getMessage(),e);
+				throw new LCFException("Bad view port: "+e.getMessage(),e);
 			}
 
 			if (viewCgiPath == null || viewCgiPath.length() == 0)
@@ -395,8 +395,8 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 					{
 						if (thr instanceof RuntimeException)
 							throw (RuntimeException)thr;
-						else if (thr instanceof MetacartaException)
-							throw (MetacartaException)thr;
+						else if (thr instanceof LCFException)
+							throw (LCFException)thr;
 						else
 							throw (Error)thr;
 					}
@@ -410,7 +410,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 				catch (InterruptedException e)
 				{
 					t.interrupt();
-					throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+					throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 				}
 				catch (RuntimeException e2)
 				{
@@ -495,7 +495,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	/** Check status of connection.
 	*/
 	public String check()
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
@@ -538,7 +538,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 			    {
 				// Drop the connection on the floor
 				method = null;
-				throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 			    }
 			    catch (java.net.SocketTimeoutException e)
 			    {
@@ -558,7 +558,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 			    }
 			    catch (InterruptedIOException e)
 			    {
-				throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 			    }
 			    catch (IOException e)
 			    {
@@ -579,9 +579,9 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 		{
 			return "Transient error: "+e.getMessage();
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
-			if (e.getErrorCode() == MetacartaException.INTERRUPTED)
+			if (e.getErrorCode() == LCFException.INTERRUPTED)
 				throw e;
 			return "Error: "+e.getMessage();
 		}
@@ -591,7 +591,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	* in active use.
 	*/
 	public void poll()
-		throws MetacartaException
+		throws LCFException
 	{
 		if (connectionManager != null)
 			connectionManager.closeIdleConnections(60000L);
@@ -600,7 +600,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	/** Close the connection.  Call this before discarding the repository connector.
 	*/
 	public void disconnect()
-		throws MetacartaException
+		throws LCFException
 	{
 		llServer.disconnect();
 		hasBeenSetup = false;
@@ -653,7 +653,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	*@return the relative document uri.
 	*/
 	protected String convertToIngestURI(String documentIdentifier)
-		throws MetacartaException
+		throws LCFException
 	{
 		// The document identifier is the string form of the object ID for this connector.
 		if (!documentIdentifier.startsWith("D"))
@@ -672,7 +672,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	*@return the document uri.
 	*/
 	protected String convertToViewURI(String documentIdentifier)
-		throws MetacartaException
+		throws LCFException
 	{
 		// The document identifier is the string form of the object ID for this connector.
 		if (!documentIdentifier.startsWith("D"))
@@ -689,7 +689,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	*@return the object id, or -1 if documentIdentifier does not describe a document.
 	*/
 	protected static int convertToObjectID(String documentIdentifier)
-		throws MetacartaException
+		throws LCFException
 	{
 		if (!documentIdentifier.startsWith("D"))
 			return -1;
@@ -703,7 +703,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 		}
 		catch (NumberFormatException e)
 		{
-			throw new MetacartaException("Bad document identifier: "+e.getMessage(),e);
+			throw new LCFException("Bad document identifier: "+e.getMessage(),e);
 		}
 	}
 
@@ -717,7 +717,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	*/
 	public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
 		long startTime, long endTime)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		getSession();
 
@@ -727,7 +727,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 		{
 			// If we get here, it HAS to be a bad network/transient problem.
 			Logging.connectors.warn("Livelink: Could not look up root workspace object during seeding!  Retrying -");
-			throw new ServiceInterruption("Service interruption during seeding",new MetacartaException("Could not looking root workspace object during seeding"),System.currentTimeMillis()+60000L,
+			throw new ServiceInterruption("Service interruption during seeding",new LCFException("Could not looking root workspace object during seeding"),System.currentTimeMillis()+60000L,
 				System.currentTimeMillis()+600000L,-1,true);
 		}
 
@@ -784,7 +784,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	*/
 	public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
 		DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		getSession();
 		
@@ -1080,7 +1080,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 				int status = LLDocs.ListObjects(vol, objID, null, filterString, LAPI_DOCUMENTS.PERM_SEECONTENTS, childrenDocs);
 				if (status != 0)
 				{
-					throw new MetacartaException("Error retrieving contents of folder "+Integer.toString(vol)+":"+Integer.toString(objID)+" : Status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
+					throw new LCFException("Error retrieving contents of folder "+Integer.toString(vol)+":"+Integer.toString(objID)+" : Status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
 				}
 				rval = childrenDocs;
 			}
@@ -1113,7 +1113,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	* should only find other references, and should not actually call the ingestion methods.
 	*/
 	public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		getSession();
 		
@@ -1168,9 +1168,9 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 				    {
 					if (thr instanceof RuntimeException)
 						throw (RuntimeException)thr;
-					else if (thr instanceof MetacartaException)
+					else if (thr instanceof LCFException)
 					{
-						sanityRetryCount = assessRetry(sanityRetryCount,(MetacartaException)thr);
+						sanityRetryCount = assessRetry(sanityRetryCount,(LCFException)thr);
 						continue;
 					}
 					else
@@ -1238,7 +1238,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 				  catch (InterruptedException e)
 				  {
 					t.interrupt();
-					throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+					throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 				  }
 				  catch (RuntimeException e)
 				  {
@@ -1304,7 +1304,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	*@return a list of workspace names.
 	*/
 	public String[] getWorkspaceNames()
-		throws MetacartaException
+		throws LCFException
 	{
 		return new String[]{CATEGORY_NAME,ENTWKSPACE_NAME};
 	}
@@ -1314,7 +1314,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	*@return a list of folder and project names, in sorted order, or null if the path was invalid.
 	*/
 	public String[] getChildFolderNames(String pathString)
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
@@ -1323,7 +1323,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 		}
 		catch (ServiceInterruption e)
 		{
-			throw new MetacartaException("Livelink server seems to be down: "+e.getMessage());
+			throw new LCFException("Livelink server seems to be down: "+e.getMessage());
 		}
 	}
 
@@ -1333,7 +1333,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	*@return a list of category names, in sorted order, or null if the path was invalid.
 	*/
 	public String[] getChildCategoryNames(String pathString)
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
@@ -1341,7 +1341,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 		}
 		catch (ServiceInterruption e)
 		{
-			throw new MetacartaException("Livelink server seems to be down: "+e.getMessage());
+			throw new LCFException("Livelink server seems to be down: "+e.getMessage());
 		}
 	}
 
@@ -1350,7 +1350,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	*@return a list of attribute names, in sorted order, or null of the path was invalid.
 	*/
 	public String[] getCategoryAttributes(String pathString)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		getSession();
 
@@ -1374,7 +1374,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	/** Create the login URI.  This must be a relative URI.
 	*/
 	protected String createLivelinkLoginURI()
-		throws MetacartaException
+		throws LCFException
 	{
 	    try
 	    {
@@ -1392,7 +1392,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	    }
 	    catch (UnsupportedEncodingException e)
 	    {
-		throw new MetacartaException("Login URI setup error: "+e.getMessage(),e);
+		throw new LCFException("Login URI setup error: "+e.getMessage(),e);
 	    }
 	}
 	
@@ -1462,7 +1462,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	protected void ingestFromLiveLink(String documentIdentifier, String version,
 		IProcessActivity activities,
 		MetadataDescription desc, SystemMetadataDescription sDesc)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 
 		String contextMsg = "for '"+documentIdentifier+"'";
@@ -1595,7 +1595,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 			case 500:
 			case 502:
 			    Logging.connectors.warn("Livelink: Service interruption during fetch "+contextMsg+" with Livelink HTTP Server, retrying...");
-			    throw new ServiceInterruption("Service interruption during fetch",new MetacartaException(Integer.toString(statusCode)+" error while fetching"),System.currentTimeMillis()+60000L,
+			    throw new ServiceInterruption("Service interruption during fetch",new LCFException(Integer.toString(statusCode)+" error while fetching"),System.currentTimeMillis()+60000L,
 				System.currentTimeMillis()+600000L,-1,true);
 
 		        case HttpStatus.SC_UNAUTHORIZED:
@@ -1670,11 +1670,11 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 				    }
 				    catch (InterruptedException e)
 				    {
-					throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+					throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 				    }
 				    catch (InterruptedIOException e)
 				    {
-					throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+					throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 				    }
 				    catch (IOException e)
 				    {
@@ -1696,12 +1696,12 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 		        case HttpStatus.SC_USE_PROXY:
 		        case HttpStatus.SC_GONE:
 			    resultCode = "ERROR "+Integer.toString(statusCode);
-			    throw new MetacartaException("Unrecoverable request failure; error = "+Integer.toString(statusCode));
+			    throw new LCFException("Unrecoverable request failure; error = "+Integer.toString(statusCode));
 		        default:
 			    resultCode = "UNKNOWN";
 			    Logging.connectors.warn("Livelink: Attempt to retrieve document from '"+ingestHttpAddress+"' received a response of "+Integer.toString(statusCode)+"; retrying in one minute");
 			    currentTime = System.currentTimeMillis();
-			    throw new ServiceInterruption("Fetch failed; retrying in 1 minute",new MetacartaException("Fetch failed with unknown code "+Integer.toString(statusCode)),
+			    throw new ServiceInterruption("Fetch failed; retrying in 1 minute",new LCFException("Fetch failed with unknown code "+Integer.toString(statusCode)),
 				currentTime+60000L,currentTime+600000L,-1,true);
 		        }
 		    }
@@ -1709,7 +1709,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 		    {
 			// Drop the connection on the floor
 			method = null;
-			throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+			throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 		    }
 		    catch (java.net.SocketTimeoutException e)
 		    {
@@ -1745,13 +1745,13 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 		    }
 		    catch (InterruptedIOException e)
 		    {
-			throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+			throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 		    }
 		    catch (IOException e)
 		    {
 			resultCode = "EXCEPTION";
 			resultDescription = e.getMessage();
-			throw new MetacartaException("Exception getting response "+contextMsg+": "+e.getMessage(), e);
+			throw new LCFException("Exception getting response "+contextMsg+": "+e.getMessage(), e);
 		    }
 		    finally
 		    {
@@ -1765,7 +1765,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 		catch (IllegalStateException e)
 		{
 			Logging.connectors.error("Livelink: State exception dealing with '"+ingestHttpAddress+"': "+e.getMessage(),e);
-			throw new MetacartaException("State exception dealing with '"+ingestHttpAddress+"': "+e.getMessage(),e);
+			throw new LCFException("State exception dealing with '"+ingestHttpAddress+"': "+e.getMessage(),e);
 		}
 	}
 
@@ -1781,7 +1781,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	
 	/** Initialize a livelink client connection */
 	protected HttpClient getInitializedClient(String contextMsg)
-		throws ServiceInterruption, MetacartaException
+		throws ServiceInterruption, LCFException
 	{
         	HttpClient client = new HttpClient(connectionManager);
 		client.getParams().setParameter(org.apache.commons.httpclient.params.HttpClientParams.PROTOCOL_FACTORY,myFactory);
@@ -1815,7 +1815,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 				{
 					Logging.connectors.warn("Livelink: Service interruption during authentication "+contextMsg+" with Livelink HTTP Server, retrying...");
 					currentTime = System.currentTimeMillis();
-					throw new ServiceInterruption("502 error during authentication",new MetacartaException("502 error while authenticating"),
+					throw new ServiceInterruption("502 error during authentication",new LCFException("502 error while authenticating"),
 						currentTime+60000L,currentTime+600000L,-1,true);
 				}
 				if (statusCode != HttpStatus.SC_OK)
@@ -1823,9 +1823,9 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 					Logging.connectors.error("Livelink: Failed to authenticate "+contextMsg+" against Livelink HTTP Server; Status code: " + statusCode);
 					// Ok, so we didn't get in - simply do not ingest
 					if (statusCode == HttpStatus.SC_UNAUTHORIZED)
-						throw new MetacartaException("Session authorization failed with a 401 code; are credentials correct?");
+						throw new LCFException("Session authorization failed with a 401 code; are credentials correct?");
 					else
-						throw new MetacartaException("Session authorization failed with code "+Integer.toString(statusCode));
+						throw new LCFException("Session authorization failed with code "+Integer.toString(statusCode));
 				}
 				if (Logging.connectors.isDebugEnabled())
 					Logging.connectors.debug("Livelink: Retrieving authentication response "+contextMsg+"");
@@ -1838,7 +1838,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 			{
 				// Drop the connection on the floor
 				authget = null;
-				throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 			}
 			catch (java.net.SocketTimeoutException e)
 			{
@@ -1866,12 +1866,12 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 			}
 			catch (InterruptedIOException e)
 			{
-				throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 			}
 			catch (IOException e)
 			{
         			Logging.connectors.error("Livelink: IO exception when authenticating to the Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
-        			throw new MetacartaException("Unable to communicate with the Livelink HTTP Server: "+e.getMessage(), e);
+        			throw new LCFException("Unable to communicate with the Livelink HTTP Server: "+e.getMessage(), e);
         	
 			}
 			finally
@@ -1883,7 +1883,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 		catch (IllegalStateException e)
 		{
 			Logging.connectors.error("Livelink: State exception dealing with '"+createLivelinkLoginURI()+"'",e);
-			throw new MetacartaException("State exception dealing with login URI: "+e.getMessage(),e);
+			throw new LCFException("State exception dealing with login URI: "+e.getMessage(),e);
 		}
 
 		return client;
@@ -2018,7 +2018,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	*@return a list of folder and project names, in sorted order, or null if the path was invalid.
 	*/
 	protected String[] getChildFolders(String pathString)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 	  RootValue rv = new RootValue(pathString);
 
@@ -2043,9 +2043,9 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 		{
 			if (thr instanceof RuntimeException)
 				throw (RuntimeException)thr;
-			else if (thr instanceof MetacartaException)
+			else if (thr instanceof LCFException)
 			{
-				sanityRetryCount = assessRetry(sanityRetryCount,(MetacartaException)thr);
+				sanityRetryCount = assessRetry(sanityRetryCount,(LCFException)thr);
 				continue;
 			}
 			else
@@ -2066,7 +2066,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	    catch (InterruptedException e)
 	    {
 		t.interrupt();
-		throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+		throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 	    }
 	    catch (RuntimeException e)
 	    {
@@ -2082,7 +2082,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	*@return a list of category names, in sorted order, or null if the path was invalid.
 	*/
 	protected String[] getChildCategories(String pathString)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 	  // Start at root
 	  RootValue rv = new RootValue(pathString);
@@ -2108,9 +2108,9 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 		{
 			if (thr instanceof RuntimeException)
 				throw (RuntimeException)thr;
-			else if (thr instanceof MetacartaException)
+			else if (thr instanceof LCFException)
 			{
-				sanityRetryCount = assessRetry(sanityRetryCount,(MetacartaException)thr);
+				sanityRetryCount = assessRetry(sanityRetryCount,(LCFException)thr);
 				continue;
 			}
 			else
@@ -2131,7 +2131,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	    catch (InterruptedException e)
 	    {
 		t.interrupt();
-		throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+		throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 	    }
 	    catch (RuntimeException e)
 	    {
@@ -2169,14 +2169,14 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 					return;
 				if (status != 0)
 				{
-					throw new MetacartaException("Error getting category version: "+Integer.toString(status));
+					throw new LCFException("Error getting category version: "+Integer.toString(status));
 				}
 
 				LLValue children = new LLValue();
 				status = LLAttributes.AttrListNames(catVersion,null,children);
 				if (status != 0)
 				{
-					throw new MetacartaException("Error getting attribute names: "+Integer.toString(status));
+					throw new LCFException("Error getting attribute names: "+Integer.toString(status));
 				}
 				rval = children;
 			}
@@ -2203,7 +2203,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	*@return a list of attribute names, in sorted order, or null of the path was invalid.
 	*/
 	protected String[] getCategoryAttributes(int catObjectID)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 	  int sanityRetryCount = FAILURE_RETRY_COUNT;
 	  while (true)
@@ -2218,9 +2218,9 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 		{
 			if (thr instanceof RuntimeException)
 				throw (RuntimeException)thr;
-			else if (thr instanceof MetacartaException)
+			else if (thr instanceof LCFException)
 			{
-				sanityRetryCount = assessRetry(sanityRetryCount,(MetacartaException)thr);
+				sanityRetryCount = assessRetry(sanityRetryCount,(LCFException)thr);
 				continue;
 			}
 			else
@@ -2246,7 +2246,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	    catch (InterruptedException e)
 	    {
 		t.interrupt();
-		throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+		throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 	    }
 	    catch (RuntimeException e)
 	    {
@@ -2296,7 +2296,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 
 				if (status != 0)
 				{
-					throw new MetacartaException("Error retrieving category version: "+Integer.toString(status)+": "+llServer.getErrors());
+					throw new LCFException("Error retrieving category version: "+Integer.toString(status)+": "+llServer.getErrors());
 				}
 
 				rval = rvalue;
@@ -2322,7 +2322,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	/** Get a category version for document.
 	*/
 	protected LLValue getCatVersion(int objID, int catID)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 	  int sanityRetryCount = FAILURE_RETRY_COUNT;
 	  while (true)
@@ -2337,9 +2337,9 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 		{
 			if (thr instanceof RuntimeException)
 				throw (RuntimeException)thr;
-			else if (thr instanceof MetacartaException)
+			else if (thr instanceof LCFException)
 			{
-				sanityRetryCount = assessRetry(sanityRetryCount,(MetacartaException)thr);
+				sanityRetryCount = assessRetry(sanityRetryCount,(LCFException)thr);
 				continue;
 			}
 			else
@@ -2350,7 +2350,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	    catch (InterruptedException e)
 	    {
 		t.interrupt();
-		throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+		throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 	    }
 	    catch (NullPointerException npe)
 	    {
@@ -2402,7 +2402,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 
 				if (status != 0)
 				{
-					throw new MetacartaException("Error retrieving attribute value: "+Integer.toString(status)+": "+llServer.getErrors());
+					throw new LCFException("Error retrieving attribute value: "+Integer.toString(status)+": "+llServer.getErrors());
 				}
 				rval = children;
 			}
@@ -2426,7 +2426,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	/** Get an attribute value from a category version.
 	*/
 	protected String[] getAttributeValue(LLValue categoryVersion, String attributeName)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 	  int sanityRetryCount = FAILURE_RETRY_COUNT;
 	  while (true)
@@ -2441,9 +2441,9 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 		{
 			if (thr instanceof RuntimeException)
 				throw (RuntimeException)thr;
-			else if (thr instanceof MetacartaException)
+			else if (thr instanceof LCFException)
 			{
-				sanityRetryCount = assessRetry(sanityRetryCount,(MetacartaException)thr);
+				sanityRetryCount = assessRetry(sanityRetryCount,(LCFException)thr);
 				continue;
 			}
 			else
@@ -2467,7 +2467,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	    catch (InterruptedException e)
 	    {
 		t.interrupt();
-		throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+		throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 	    }
 	    catch (RuntimeException e)
 	    {
@@ -2504,7 +2504,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 
 				if (status != 0)
 				{
-					throw new MetacartaException("Error retrieving document rights: "+Integer.toString(status)+": "+llServer.getErrors());
+					throw new LCFException("Error retrieving document rights: "+Integer.toString(status)+": "+llServer.getErrors());
 				}
 
 				rval = childrenObjects;
@@ -2533,7 +2533,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	*@return the array.
 	*/
 	protected int[] getObjectRights(int vol, int objID)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 	  int sanityRetryCount = FAILURE_RETRY_COUNT;
 	  while (true)
@@ -2548,9 +2548,9 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 		{
 			if (thr instanceof RuntimeException)
 				throw (RuntimeException)thr;
-			else if (thr instanceof MetacartaException)
+			else if (thr instanceof LCFException)
 			{
-				sanityRetryCount = assessRetry(sanityRetryCount,(MetacartaException)thr);
+				sanityRetryCount = assessRetry(sanityRetryCount,(LCFException)thr);
 				continue;
 			}
 			else
@@ -2603,7 +2603,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	    catch (InterruptedException e)
 	    {
 		t.interrupt();
-		throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+		throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 	    }
 	    catch (RuntimeException e)
 	    {
@@ -2651,7 +2651,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 					Logging.connectors.warn("Livelink: Interpreting LAPI error 103102 while fetching object "+Integer.toString(vol)+":"+Integer.toString(id)+" as a service interruption - retrying.");
 					long currentTime = System.currentTimeMillis();
 					throw new ServiceInterruption("Service interruption fetching object "+Integer.toString(vol)+":"+Integer.toString(id),
-						new MetacartaException("Could not read object "+Integer.toString(vol)+":"+Integer.toString(id)),currentTime+60000L,
+						new LCFException("Could not read object "+Integer.toString(vol)+":"+Integer.toString(id)),currentTime+60000L,
 						currentTime+600000L,-1,false);
 				}
 				
@@ -2665,7 +2665,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 
 				if (status != 0)
 				{
-					throw new MetacartaException("Error retrieving document object "+Integer.toString(vol)+":"+Integer.toString(id)+": status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
+					throw new LCFException("Error retrieving document object "+Integer.toString(vol)+":"+Integer.toString(id)+": status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
 				}
 				rval = objinfo;
 			}
@@ -2694,7 +2694,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	* @return LLValue the LAPI value object, or null if object has been deleted (or doesn't exist)
 	*/
 	protected LLValue getObjectInfo(int vol, int id)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 	  int sanityRetryCount = FAILURE_RETRY_COUNT;
 	  while (true)
@@ -2711,9 +2711,9 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 				throw (RuntimeException)thr;
 			else if (thr instanceof ServiceInterruption)
 				throw (ServiceInterruption)thr;
-			else if (thr instanceof MetacartaException)
+			else if (thr instanceof LCFException)
 			{
-				sanityRetryCount = assessRetry(sanityRetryCount,(MetacartaException)thr);
+				sanityRetryCount = assessRetry(sanityRetryCount,(LCFException)thr);
 				continue;
 			}
 			else
@@ -2724,7 +2724,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	    catch (InterruptedException e)
 	    {
 		t.interrupt();
-		throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+		throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 	    }
 	    catch (RuntimeException e)
 	    {
@@ -2736,7 +2736,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 
 	/** Build a set of actual acls given a set of rights */
 	protected String[] lookupTokens(int[] rights, int vol, int objID)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		String[] convertedAcls = new String[rights.length];
 
@@ -2807,7 +2807,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	/** Get an object's standard path, given its ID.
 	*/
 	protected String getObjectPath(int id)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		int objectId = id;
 		String path = null;
@@ -2887,7 +2887,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 
 				if (status != 0)
 				{
-					throw new MetacartaException("Error retrieving document categories for "+Integer.toString(vol)+":"+Integer.toString(id)+": status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
+					throw new LCFException("Error retrieving document categories for "+Integer.toString(vol)+":"+Integer.toString(id)+": status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
 				}
 				rval = catIDList;
 			}
@@ -2914,7 +2914,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	* @return an array of integers containing category identifiers, or null if the object is not found.
 	*/
 	protected int[] getObjectCategoryIDs(int vol, int id)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 	  int sanityRetryCount = FAILURE_RETRY_COUNT;
 	  while (true)
@@ -2929,9 +2929,9 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 		{
 			if (thr instanceof RuntimeException)
 				throw (RuntimeException)thr;
-			else if (thr instanceof MetacartaException)
+			else if (thr instanceof LCFException)
 			{
-				sanityRetryCount = assessRetry(sanityRetryCount,(MetacartaException)thr);
+				sanityRetryCount = assessRetry(sanityRetryCount,(LCFException)thr);
 				continue;
 			}
 			else
@@ -2986,7 +2986,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	    catch (InterruptedException e)
 	    {
 		t.interrupt();
-		throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+		throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 	    }
 	    catch (RuntimeException e)
 	    {
@@ -2999,7 +2999,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	/** RootValue version of getPathId.
 	*/
 	protected VolumeAndId getPathId(RootValue rv)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		return getPathId(rv.getRootValue(),rv.getRemainderPath());
 	}
@@ -3010,7 +3010,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	* @param startPath is the folder name (a string with dots as separators)
 	*/		
 	protected VolumeAndId getPathId(LLValue objInfo, String startPath)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		// Grab the volume ID and starting object
 		int obj = objInfo.toInteger("ID");
@@ -3054,9 +3054,9 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 					{
 						if (thr instanceof RuntimeException)
 							throw (RuntimeException)thr;
-						else if (thr instanceof MetacartaException)
+						else if (thr instanceof LCFException)
 						{
-							sanityRetryCount = assessRetry(sanityRetryCount,(MetacartaException)thr);
+							sanityRetryCount = assessRetry(sanityRetryCount,(LCFException)thr);
 							continue;
 						}
 						else
@@ -3090,7 +3090,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 				catch (InterruptedException e)
 				{
 					t.interrupt();
-					throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+					throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 				}
 				catch (RuntimeException e)
 				{
@@ -3107,7 +3107,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	/** Rootvalue version of getCategoryId.
 	*/
 	protected int getCategoryId(RootValue rv)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		return getCategoryId(rv.getRootValue(),rv.getRemainderPath());
 	}
@@ -3118,7 +3118,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	* @param startPath is the folder name, ending in a category name (a string with slashes as separators)
 	*/		
 	protected int getCategoryId(LLValue objInfo, String startPath)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		// Grab the volume ID and starting object
 		int obj = objInfo.toInteger("ID");
@@ -3171,9 +3171,9 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 					{
 						if (thr instanceof RuntimeException)
 							throw (RuntimeException)thr;
-						else if (thr instanceof MetacartaException)
+						else if (thr instanceof LCFException)
 						{
-							sanityRetryCount = assessRetry(sanityRetryCount,(MetacartaException)thr);
+							sanityRetryCount = assessRetry(sanityRetryCount,(LCFException)thr);
 							continue;
 						}
 						else
@@ -3207,7 +3207,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 				catch (InterruptedException e)
 				{
 					t.interrupt();
-					throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+					throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 				}
 				catch (RuntimeException e)
 				{
@@ -3316,7 +3316,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	*@return true if it should be included.
 	*/
 	protected static boolean checkInclude(String filename, DocumentSpecification documentSpecification)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Scan includes to insure we match
 		int i = 0;
@@ -3360,7 +3360,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	*@param documentSpecification is the specification.
 	*/
 	protected boolean checkIngest(int objID, DocumentSpecification documentSpecification)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Since the only exclusions at this point are not based on file contents, this is a no-op.
 		return true;
@@ -3555,7 +3555,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 
 		/** Constructor */
 		public SystemMetadataDescription(DocumentSpecification spec)
-			throws MetacartaException
+			throws LCFException
 		{
 			pathAttributeName = null;
 			int i = 0;
@@ -3584,7 +3584,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 		/** Given an identifier, get the translated string that goes into the metadata.
 		*/
 		public String getPathAttributeValue(String documentIdentifier)
-			throws MetacartaException, ServiceInterruption
+			throws LCFException, ServiceInterruption
 		{
 			String path = getNodePathString(documentIdentifier);
 			if (path == null)
@@ -3595,7 +3595,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 		/** For a given node, get its path.
 		*/
 		public String getNodePathString(String documentIdentifier)
-			throws MetacartaException, ServiceInterruption
+			throws LCFException, ServiceInterruption
 		{
 			if (Logging.connectors.isDebugEnabled())
 				Logging.connectors.debug("Looking up path for '"+documentIdentifier+"'");
@@ -3631,7 +3631,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 				}
 				catch (NumberFormatException e)
 				{
-					throw new MetacartaException("Bad document identifier: "+e.getMessage(),e);
+					throw new LCFException("Bad document identifier: "+e.getMessage(),e);
 				}
 
 				// Load the object
@@ -3687,7 +3687,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 		*@return an iterator over MetadataItem objects.
 		*/
 		public Iterator getItems(ArrayList metadataItems)
-			throws MetacartaException, ServiceInterruption
+			throws LCFException, ServiceInterruption
 		{
 			// This is the map that will be iterated over for a return value.
 			// It gets built out of (hopefully cached) data from categoryMap.
@@ -3766,7 +3766,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 
 		/** Get a specified set of packed category paths with attribute names, given the category identifiers */
 		public String[] getCategoryPathsAttributeNames(int[] catIDs)
-			throws MetacartaException, ServiceInterruption
+			throws LCFException, ServiceInterruption
 		{
 			HashMap set = new HashMap();
 			int i = 0;
@@ -3813,14 +3813,14 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 
 		/** Find a category path given a category ID */
 		protected String findPath(int catID)
-			throws MetacartaException, ServiceInterruption
+			throws LCFException, ServiceInterruption
 		{
 			return getObjectPath(catID);
 		}
 
 		/** Find a set of attributes given a category ID */
 		protected String[] findAttributes(int catID)
-			throws MetacartaException, ServiceInterruption
+			throws LCFException, ServiceInterruption
 		{
 			return getCategoryAttributes(catID);
 		}
@@ -3868,7 +3868,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 		*@return the root node.
 		*/
 		public LLValue getRootValue()
-			throws MetacartaException, ServiceInterruption
+			throws LCFException, ServiceInterruption
 		{
 			if (rootValue == null)
 			{
@@ -3877,12 +3877,12 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 				else if (workspaceName.equals(ENTWKSPACE_NAME))
 					rootValue = getObjectInfo(LLENTWK_VOL,LLENTWK_ID);
 				else
-					throw new MetacartaException("Bad workspace name: "+workspaceName);
+					throw new LCFException("Bad workspace name: "+workspaceName);
 				if (rootValue == null)
 				{
 					Logging.connectors.warn("Livelink: Could not get workspace/volume ID!  Retrying...");
 					// This cannot mean a real failure; it MUST mean that we have had an intermittent communication hiccup.  So, pass it off as a service interruption.
-					throw new ServiceInterruption("Service interruption getting root value",new MetacartaException("Could not get workspace/volume id"),System.currentTimeMillis()+60000L,
+					throw new ServiceInterruption("Service interruption getting root value",new LCFException("Could not get workspace/volume id"),System.currentTimeMillis()+60000L,
 						System.currentTimeMillis()+600000L,-1,true);
 				}
 			}
@@ -4004,7 +4004,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	*@param failIfTimeout is true if, for transient conditions, we want to signal failure if the timeout condition is acheived.
 	*/
 	protected int handleLivelinkRuntimeException(RuntimeException e, int sanityRetryCount, boolean failIfTimeout)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		if (
 			e instanceof com.opentext.api.LLHTTPAccessDeniedException ||
@@ -4018,7 +4018,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 		   )
 		{
 			String details = llServer.getErrors();
-			throw new MetacartaException("Livelink API error: "+e.getMessage()+((details==null)?"":"; "+details),e,MetacartaException.REPOSITORY_CONNECTION_ERROR);
+			throw new LCFException("Livelink API error: "+e.getMessage()+((details==null)?"":"; "+details),e,LCFException.REPOSITORY_CONNECTION_ERROR);
 		}
 		else if (
 			e instanceof com.opentext.api.LLBadServerCertificateException ||
@@ -4033,14 +4033,14 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 		{
 
 			String details = llServer.getErrors();
-			throw new MetacartaException("Livelink API error: "+e.getMessage()+((details==null)?"":"; "+details),e);
+			throw new LCFException("Livelink API error: "+e.getMessage()+((details==null)?"":"; "+details),e);
 		}
 		else if (e instanceof com.opentext.api.LLIllegalOperationException)
 		{
 			// This usually means that LAPI has had a minor communication difficulty but hasn't reported it accurately.
 			// We *could* throw a ServiceInterruption, but OpenText recommends to just retry almost immediately.
 			String details = llServer.getErrors();
-			return assessRetry(sanityRetryCount,new MetacartaException("Livelink API illegal operation error: "+e.getMessage()+((details==null)?"":"; "+details),e));
+			return assessRetry(sanityRetryCount,new LCFException("Livelink API illegal operation error: "+e.getMessage()+((details==null)?"":"; "+details),e));
 		}
 		else if (e instanceof com.opentext.api.LLIOException)
 		{
@@ -4054,7 +4054,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 			}
 			catch (UnknownHostException e2)
 			{
-				throw new MetacartaException("Server name '"+serverName+"' cannot be resolved",e2);
+				throw new LCFException("Server name '"+serverName+"' cannot be resolved",e2);
 			}
 			
 			long currentTime = System.currentTimeMillis();
@@ -4066,8 +4066,8 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 	
 	/** Do a retry, or throw an exception if the retry count has been exhausted
 	*/
-	protected static int assessRetry(int sanityRetryCount, MetacartaException e)
-		throws MetacartaException
+	protected static int assessRetry(int sanityRetryCount, LCFException e)
+		throws LCFException
 	{
 		if (sanityRetryCount == 0)
 		{
@@ -4078,11 +4078,11 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 
 		try
 		{
-			Metacarta.sleep(1000L);
+			LCF.sleep(1000L);
 		}
 		catch (InterruptedException e2)
 		{
-			throw new MetacartaException(e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+			throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
 		}
 		// Exit the method
 		return sanityRetryCount;

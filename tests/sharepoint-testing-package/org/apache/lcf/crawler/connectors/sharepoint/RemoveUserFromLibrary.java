@@ -50,7 +50,7 @@ public class RemoveUserFromLibrary
 			}
 			System.err.println("Successfully removed user");
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			e.printStackTrace(System.err);
 			System.exit(2);

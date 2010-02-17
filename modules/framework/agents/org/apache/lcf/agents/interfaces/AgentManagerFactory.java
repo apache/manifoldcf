@@ -38,15 +38,15 @@ public class AgentManagerFactory
 	*@return the manager.
 	*/
 	public static IAgentManager make(IThreadContext threadContext)
-		throws MetacartaException
+		throws LCFException
 	{
 		Object o = threadContext.get(agentManager);
 		if (o == null || !(o instanceof IAgentManager))
 		{
 			IDBInterface database = DBInterfaceFactory.make(threadContext,
-				Metacarta.getMasterDatabaseName(),
-				Metacarta.getMasterDatabaseUsername(),
-				Metacarta.getMasterDatabasePassword());
+				LCF.getMasterDatabaseName(),
+				LCF.getMasterDatabaseUsername(),
+				LCF.getMasterDatabasePassword());
 
 			o = new org.apache.lcf.agents.agentmanager.AgentManager(threadContext,database);
 			threadContext.save(agentManager,o);
@@ -60,7 +60,7 @@ public class AgentManagerFactory
 	*@return true if the connection is in use, false otherwise.
 	*/
 	public static boolean isOutputConnectionInUse(IThreadContext threadContext, String connName)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Instantiate the list of IAgent objects
 		IAgent[] theAgents = instantiateAllAgents(threadContext);
@@ -79,7 +79,7 @@ public class AgentManagerFactory
 	*@param connectionNames is the set of connection names.
 	*/
 	public static void noteOutputConnectorDeregistration(IThreadContext threadContext, String[] connectionNames)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Instantiate the list of IAgent objects
 		IAgent[] theAgents = instantiateAllAgents(threadContext);
@@ -97,7 +97,7 @@ public class AgentManagerFactory
 	*@param connectionNames is the set of connection names.
 	*/
 	public static void noteOutputConnectorRegistration(IThreadContext threadContext, String[] connectionNames)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Instantiate the list of IAgent objects
 		IAgent[] theAgents = instantiateAllAgents(threadContext);
@@ -113,7 +113,7 @@ public class AgentManagerFactory
 	*@return the array of such objects.
 	*/
 	public static IAgent[] instantiateAllAgents(IThreadContext threadContext)
-		throws MetacartaException
+		throws LCFException
 	{
 		IAgentManager manager = make(threadContext);
 		String[] allAgents = manager.getAllAgents();

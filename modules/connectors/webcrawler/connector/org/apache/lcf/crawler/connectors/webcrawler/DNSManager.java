@@ -24,7 +24,7 @@ import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.crawler.interfaces.*;
 import org.apache.lcf.authorities.interfaces.*;
 import org.apache.lcf.crawler.interfaces.CacheKeyFactory;
-import org.apache.lcf.crawler.system.Metacarta;
+import org.apache.lcf.crawler.system.LCF;
 import org.apache.lcf.crawler.system.Logging;
 
 
@@ -55,7 +55,7 @@ public class DNSManager extends org.apache.lcf.core.database.BaseTable
 	*@param database is the database handle.
 	*/
 	public DNSManager(IThreadContext tc, IDBInterface database)
-		throws MetacartaException
+		throws LCFException
 	{
 		super(database,"dnsdata");
 		cacheManager = CacheManagerFactory.make(tc);
@@ -64,7 +64,7 @@ public class DNSManager extends org.apache.lcf.core.database.BaseTable
 	/** Install the manager.
 	*/
 	public void install()
-		throws MetacartaException
+		throws LCFException
 	{
 		beginTransaction();
 		try
@@ -86,7 +86,7 @@ public class DNSManager extends org.apache.lcf.core.database.BaseTable
 				// addTableIndex(false,list);
 			}
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -105,7 +105,7 @@ public class DNSManager extends org.apache.lcf.core.database.BaseTable
 	/** Uninstall the manager.
 	*/
 	public void deinstall()
-		throws MetacartaException
+		throws LCFException
 	{
 		performDrop(null);
 	}
@@ -114,7 +114,7 @@ public class DNSManager extends org.apache.lcf.core.database.BaseTable
 	*@return null if there is no available cached version of this info.
 	*/
 	public DNSInfo lookup(String hostName, long currentTime)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Build description objects
 		HostDescription[] objectDescriptions = new HostDescription[1];
@@ -139,7 +139,7 @@ public class DNSManager extends org.apache.lcf.core.database.BaseTable
 	*@param expirationTime is the time this data should expire.
 	*/
 	public void writeDNSData(String hostName, String fqdn, String ipaddress, long expirationTime)
-		throws MetacartaException
+		throws LCFException
 	{
 		StringSetBuffer ssb = new StringSetBuffer();
 		ssb.add(getDNSKey(hostName));
@@ -179,7 +179,7 @@ public class DNSManager extends org.apache.lcf.core.database.BaseTable
 			}
 			cacheManager.invalidateKeys(ch);
 		    }
-		    catch (MetacartaException e)
+		    catch (LCFException e)
 		    {
 			signalRollback();
 			throw e;
@@ -215,7 +215,7 @@ public class DNSManager extends org.apache.lcf.core.database.BaseTable
 	*@return null if the data doesn't exist at all.  Return DNS data if it does.
 	*/
 	protected DNSInfo readDNSInfo(String hostName)
-		throws MetacartaException
+		throws LCFException
 	{
 		ArrayList list = new ArrayList();
 		list.add(hostName);
@@ -409,7 +409,7 @@ public class DNSManager extends org.apache.lcf.core.database.BaseTable
 		* @return the newly created objects to cache, or null, if any object cannot be created.
 		*  The order of the returned objects must correspond to the order of the object descriptinos.
 		*/
-		public Object[] create(ICacheDescription[] objectDescriptions) throws MetacartaException
+		public Object[] create(ICacheDescription[] objectDescriptions) throws LCFException
 		{
 			// I'm not expecting multiple values to be request, so it's OK to walk through the objects
 			// and do a request at a time.
@@ -436,7 +436,7 @@ public class DNSManager extends org.apache.lcf.core.database.BaseTable
 		* @param objectDescription is the unique identifier of the object.
 		* @param cachedObject is the cached object.
 		*/
-		public void exists(ICacheDescription objectDescription, Object cachedObject) throws MetacartaException
+		public void exists(ICacheDescription objectDescription, Object cachedObject) throws LCFException
 		{
 			// Cast what came in as what it really is
 			HostDescription objectDesc = (HostDescription)objectDescription;
@@ -448,7 +448,7 @@ public class DNSManager extends org.apache.lcf.core.database.BaseTable
 		/** Perform the desired operation.  This method is called after either createGetObject()
 		* or exists() is called for every requested object.
 		*/
-		public void execute() throws MetacartaException
+		public void execute() throws LCFException
 		{
 			// Does nothing; we only want to fetch objects in this cacher.
 		}

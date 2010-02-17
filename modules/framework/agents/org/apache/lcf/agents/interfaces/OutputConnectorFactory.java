@@ -43,7 +43,7 @@ public class OutputConnectorFactory
         *@param className is the class name.
         */
         public static void install(IThreadContext threadContext, String className)
-                throws MetacartaException
+                throws LCFException
         {
                 IOutputConnector connector = getConnectorNoCheck(className);
                 connector.install(threadContext);
@@ -53,7 +53,7 @@ public class OutputConnectorFactory
         *@param className is the class name.
         */
         public static void deinstall(IThreadContext threadContext, String className)
-                throws MetacartaException
+                throws LCFException
         {
                 IOutputConnector connector = getConnectorNoCheck(className);
                 connector.deinstall(threadContext);
@@ -64,7 +64,7 @@ public class OutputConnectorFactory
         *@return the list of activities.
         */
         public static String[] getActivitiesList(IThreadContext threadContext, String className)
-                throws MetacartaException
+                throws LCFException
         {
                 IOutputConnector connector = getConnector(threadContext, className);
                 if (connector == null)
@@ -79,7 +79,7 @@ public class OutputConnectorFactory
         *@return the folder string.
         */
         public static String getJSPFolder(IThreadContext threadContext, String className)
-                throws MetacartaException
+                throws LCFException
         {
                 IOutputConnector connector = getConnector(threadContext, className);
                 if (connector == null)
@@ -92,7 +92,7 @@ public class OutputConnectorFactory
         *@return the instance.
         */
         public static IOutputConnector getConnectorNoCheck(String className)
-                throws MetacartaException
+                throws LCFException
         {
                 try
                 {
@@ -103,7 +103,7 @@ public class OutputConnectorFactory
                         Object[] arguments = new Object[0];
                         Object o = c.newInstance(arguments);
                         if (!(o instanceof IOutputConnector))
-                                throw new MetacartaException("Class '"+className+"' does not implement IOutputConnector.");
+                                throw new LCFException("Class '"+className+"' does not implement IOutputConnector.");
                         return (IOutputConnector)o;
                 }
                 catch (InvocationTargetException e)
@@ -112,42 +112,42 @@ public class OutputConnectorFactory
                         if (z instanceof Error)
                                 throw (Error)z;
                         else
-                                throw (MetacartaException)z;
+                                throw (LCFException)z;
                 }
                 catch (ClassNotFoundException e)
                 {
-                        throw new MetacartaException("No class implementing IOutputConnector called '"+
+                        throw new LCFException("No class implementing IOutputConnector called '"+
                                 className+"'.",
                                 e);
                 }
                 catch (NoSuchMethodException e)
                 {
-                        throw new MetacartaException("No appropriate constructor for IOutputConnector implementation '"+
+                        throw new LCFException("No appropriate constructor for IOutputConnector implementation '"+
                                 className+"'.  Need xxx(ConfigParams).",
                                 e);
                 }
                 catch (SecurityException e)
                 {
-                        throw new MetacartaException("Protected constructor for IOutputConnector implementation '"+className+"'",
+                        throw new LCFException("Protected constructor for IOutputConnector implementation '"+className+"'",
                                 e);
                 }
                 catch (IllegalAccessException e)
                 {
-                        throw new MetacartaException("Unavailable constructor for IOutputConnector implementation '"+className+"'",
+                        throw new LCFException("Unavailable constructor for IOutputConnector implementation '"+className+"'",
                                 e);
                 }
                 catch (IllegalArgumentException e)
                 {
-                        throw new MetacartaException("Shouldn't happen!!!",e);
+                        throw new LCFException("Shouldn't happen!!!",e);
                 }
                 catch (InstantiationException e)
                 {
-                        throw new MetacartaException("InstantiationException for IOutputConnector implementation '"+className+"'",
+                        throw new LCFException("InstantiationException for IOutputConnector implementation '"+className+"'",
                                 e);
                 }
                 catch (ExceptionInInitializerError e)
                 {
-                        throw new MetacartaException("ExceptionInInitializerError for IOutputConnector implementation '"+className+"'",
+                        throw new LCFException("ExceptionInInitializerError for IOutputConnector implementation '"+className+"'",
                                 e);
                 }
 
@@ -158,7 +158,7 @@ public class OutputConnectorFactory
         *@return the instance.
         */
         protected static IOutputConnector getConnector(IThreadContext threadContext, String className)
-                throws MetacartaException
+                throws LCFException
         {
                 IOutputConnectorManager connMgr = OutputConnectorManagerFactory.make(threadContext);
                 if (connMgr.isInstalled(className) == false)
@@ -173,7 +173,7 @@ public class OutputConnectorFactory
                         Object[] arguments = new Object[0];
                         Object o = c.newInstance(arguments);
                         if (!(o instanceof IOutputConnector))
-                                throw new MetacartaException("Class '"+className+"' does not implement IOutputConnector.");
+                                throw new LCFException("Class '"+className+"' does not implement IOutputConnector.");
                         return (IOutputConnector)o;
                 }
                 catch (InvocationTargetException e)
@@ -182,7 +182,7 @@ public class OutputConnectorFactory
                         if (z instanceof Error)
                                 throw (Error)z;
                         else
-                                throw (MetacartaException)z;
+                                throw (LCFException)z;
                 }
                 catch (ClassNotFoundException e)
                 {
@@ -191,38 +191,38 @@ public class OutputConnectorFactory
                         if (connMgr.isInstalled(className) == false)
                                 return null;
 
-                        throw new MetacartaException("No class implementing IOutputConnector called '"+
+                        throw new LCFException("No class implementing IOutputConnector called '"+
                                 className+"'.",
                                 e);
                 }
                 catch (NoSuchMethodException e)
                 {
-                        throw new MetacartaException("No appropriate constructor for IOutputConnector implementation '"+
+                        throw new LCFException("No appropriate constructor for IOutputConnector implementation '"+
                                 className+"'.  Need xxx(ConfigParams).",
                                 e);
                 }
                 catch (SecurityException e)
                 {
-                        throw new MetacartaException("Protected constructor for IOutputConnector implementation '"+className+"'",
+                        throw new LCFException("Protected constructor for IOutputConnector implementation '"+className+"'",
                                 e);
                 }
                 catch (IllegalAccessException e)
                 {
-                        throw new MetacartaException("Unavailable constructor for IOutputConnector implementation '"+className+"'",
+                        throw new LCFException("Unavailable constructor for IOutputConnector implementation '"+className+"'",
                                 e);
                 }
                 catch (IllegalArgumentException e)
                 {
-                        throw new MetacartaException("Shouldn't happen!!!",e);
+                        throw new LCFException("Shouldn't happen!!!",e);
                 }
                 catch (InstantiationException e)
                 {
-                        throw new MetacartaException("InstantiationException for IOutputConnector implementation '"+className+"'",
+                        throw new LCFException("InstantiationException for IOutputConnector implementation '"+className+"'",
                                 e);
                 }
                 catch (ExceptionInInitializerError e)
                 {
-                        throw new MetacartaException("ExceptionInInitializerError for IOutputConnector implementation '"+className+"'",
+                        throw new LCFException("ExceptionInInitializerError for IOutputConnector implementation '"+className+"'",
                                 e);
                 }
 
@@ -233,7 +233,7 @@ public class OutputConnectorFactory
         */
         public static IOutputConnector[] grabMultiple(IThreadContext threadContext,
                 String[] orderingKeys, String[] classNames, ConfigParams[] configInfos, int[] maxPoolSizes)
-                throws MetacartaException
+                throws LCFException
         {
                 IOutputConnector[] rval = new IOutputConnector[classNames.length];
                 HashMap orderMap = new HashMap();
@@ -241,7 +241,7 @@ public class OutputConnectorFactory
                 while (i < orderingKeys.length)
                 {
                         if (orderMap.get(orderingKeys[i]) != null)
-                            throw new MetacartaException("Found duplicate order key");
+                            throw new LCFException("Found duplicate order key");
                         orderMap.put(orderingKeys[i],new Integer(i));
                         i++;
                 }
@@ -270,13 +270,13 @@ public class OutputConnectorFactory
                                         {
                                                 release(rval[index]);
                                         }
-                                        catch (MetacartaException e2)
+                                        catch (LCFException e2)
                                         {
                                         }
                                 }
-                                if (e instanceof MetacartaException)
+                                if (e instanceof LCFException)
                                 {
-                                        throw (MetacartaException)e;
+                                        throw (LCFException)e;
                                 }
                                 throw (Error)e;
                         }
@@ -294,7 +294,7 @@ public class OutputConnectorFactory
         */
         public static IOutputConnector grab(IThreadContext threadContext,
                 String className, ConfigParams configInfo, int maxPoolSize)
-                throws MetacartaException
+                throws LCFException
         {
                 // We want to get handles off the pool and use them.  But the
                 // handles we fetch have to have the right config information.
@@ -324,10 +324,10 @@ public class OutputConnectorFactory
         /** Release multiple output connectors.
         */
         public static void releaseMultiple(IOutputConnector[] connectors)
-                throws MetacartaException
+                throws LCFException
         {
                 int i = 0;
-                MetacartaException currentException = null;
+                LCFException currentException = null;
                 while (i < connectors.length)
                 {
                         IOutputConnector c = connectors[i++];
@@ -335,7 +335,7 @@ public class OutputConnectorFactory
                         {
                                 release(c);
                         }
-                        catch (MetacartaException e)
+                        catch (LCFException e)
                         {
                                 if (currentException == null)
                                         currentException = e;
@@ -349,7 +349,7 @@ public class OutputConnectorFactory
         *@param connector is the connector to release.
         */
         public static void release(IOutputConnector connector)
-                throws MetacartaException
+                throws LCFException
         {
                 // If the connector is null, skip the release, because we never really got the connector in the first place.
                 if (connector == null)
@@ -376,7 +376,7 @@ public class OutputConnectorFactory
         * This method polls all inactive handles.
         */
         public static void pollAllConnectors(IThreadContext threadContext)
-                throws MetacartaException
+                throws LCFException
         {
                 // System.out.println("Pool stats:");
                 
@@ -401,7 +401,7 @@ public class OutputConnectorFactory
         *@param threadContext is the local thread context.
         */
         public static void closeAllConnectors(IThreadContext threadContext)
-                throws MetacartaException
+                throws LCFException
         {
                 // Go through the whole pool and clean it out
                 synchronized (poolHash)
@@ -493,7 +493,7 @@ public class OutputConnectorFactory
                 *@return the connector, or null if no connector could be connected.
                 */
                 public synchronized IOutputConnector getConnector(IThreadContext threadContext)
-                        throws MetacartaException
+                        throws LCFException
                 {
                         while (numFree == 0)
                         {
@@ -503,7 +503,7 @@ public class OutputConnectorFactory
                                 }
                                 catch (InterruptedException e)
                                 {
-                                        throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+                                        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
                                 }
                         }
 
@@ -526,7 +526,7 @@ public class OutputConnectorFactory
                                         Object[] arguments = new Object[0];
                                         Object o = c.newInstance(arguments);
                                         if (!(o instanceof IOutputConnector))
-                                                throw new MetacartaException("Class '"+className+"' does not implement IOutputConnector.");
+                                                throw new LCFException("Class '"+className+"' does not implement IOutputConnector.");
                                         rc = (IOutputConnector)o;
                                         rc.connect(configParams);
                                 }
@@ -536,7 +536,7 @@ public class OutputConnectorFactory
                                         if (z instanceof Error)
                                                 throw (Error)z;
                                         else
-                                                throw (MetacartaException)z;
+                                                throw (LCFException)z;
                                 }
                                 catch (ClassNotFoundException e)
                                 {
@@ -546,38 +546,38 @@ public class OutputConnectorFactory
                                         if (connMgr.isInstalled(className) == false)
                                                 return null;
                                         
-                                        throw new MetacartaException("No class implementing IOutputConnector called '"+
+                                        throw new LCFException("No class implementing IOutputConnector called '"+
                                                 className+"'.",
                                                 e);
                                 }
                                 catch (NoSuchMethodException e)
                                 {
-                                        throw new MetacartaException("No appropriate constructor for IOutputConnector implementation '"+
+                                        throw new LCFException("No appropriate constructor for IOutputConnector implementation '"+
                                                 className+"'.  Need xxx(ConfigParams).",
                                                 e);
                                 }
                                 catch (SecurityException e)
                                 {
-                                        throw new MetacartaException("Protected constructor for IOutputConnector implementation '"+className+"'",
+                                        throw new LCFException("Protected constructor for IOutputConnector implementation '"+className+"'",
                                                 e);
                                 }
                                 catch (IllegalAccessException e)
                                 {
-                                        throw new MetacartaException("Unavailable constructor for IOutputConnector implementation '"+className+"'",
+                                        throw new LCFException("Unavailable constructor for IOutputConnector implementation '"+className+"'",
                                                 e);
                                 }
                                 catch (IllegalArgumentException e)
                                 {
-                                        throw new MetacartaException("Shouldn't happen!!!",e);
+                                        throw new LCFException("Shouldn't happen!!!",e);
                                 }
                                 catch (InstantiationException e)
                                 {
-                                        throw new MetacartaException("InstantiationException for IOutputConnector implementation '"+className+"'",
+                                        throw new LCFException("InstantiationException for IOutputConnector implementation '"+className+"'",
                                                 e);
                                 }
                                 catch (ExceptionInInitializerError e)
                                 {
-                                        throw new MetacartaException("ExceptionInInitializerError for IOutputConnector implementation '"+className+"'",
+                                        throw new LCFException("ExceptionInInitializerError for IOutputConnector implementation '"+className+"'",
                                                 e);
                                 }
                         }
@@ -594,7 +594,7 @@ public class OutputConnectorFactory
                 *@param connector is the connector.
                 */
                 public synchronized void releaseConnector(IOutputConnector connector)
-                        throws MetacartaException
+                        throws LCFException
                 {
                         if (connector == null)
                                 return;
@@ -610,7 +610,7 @@ public class OutputConnectorFactory
                 /** Notify all free connectors.
                 */
                 public synchronized void pollAll(IThreadContext threadContext)
-                        throws MetacartaException
+                        throws LCFException
                 {
                         int i = 0;
                         while (i < stack.size())
@@ -626,7 +626,7 @@ public class OutputConnectorFactory
                 /** Release all free connectors.
                 */
                 public synchronized void releaseAll(IThreadContext threadContext)
-                        throws MetacartaException
+                        throws LCFException
                 {
                         while (stack.size() > 0)
                         {

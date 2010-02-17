@@ -42,9 +42,9 @@ public class Obfuscate
 		String string = args[0];
 		try
 		{
-			UTF8Stdout.println(Metacarta.obfuscate(string));
+			UTF8Stdout.println(LCF.obfuscate(string));
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			e.printStackTrace();
 			System.exit(1);

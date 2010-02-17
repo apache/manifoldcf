@@ -113,7 +113,7 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 
 	/** Set up the session with Meridio */
 	protected void getSession()
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		if (meridio_ == null)
 		{
@@ -179,8 +179,8 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 			}		
 			catch (MalformedURLException malformedURLException)
 			{			
-				throw new MetacartaException("Meridio: Could not construct the URL for either " +
-								 "the DM or RM Meridio Web Service", malformedURLException, MetacartaException.REPOSITORY_CONNECTION_ERROR);
+				throw new LCFException("Meridio: Could not construct the URL for either " +
+								 "the DM or RM Meridio Web Service", malformedURLException, LCFException.REPOSITORY_CONNECTION_ERROR);
 			}
 
 			// Do the second part (where we actually try to connect to the system)
@@ -205,7 +205,7 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 			}
 			catch (UnknownHostException unknownHostException)
 			{
-				throw new MetacartaException("Meridio: A Unknown Host Exception occurred while " +
+				throw new LCFException("Meridio: A Unknown Host Exception occurred while " +
 					"connecting - is a network software and hardware configuration: "+unknownHostException.getMessage(), unknownHostException);
 			}
 			catch (org.apache.axis.AxisFault e)
@@ -218,15 +218,15 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 					{
 						elem.normalize();
 						String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-						throw new MetacartaException("Unexpected http error code "+httpErrorCode+" accessing Meridio: "+e.getMessage(),e);
+						throw new LCFException("Unexpected http error code "+httpErrorCode+" accessing Meridio: "+e.getMessage(),e);
 					}
-					throw new MetacartaException("Unknown http error occurred while connecting: "+e.getMessage(),e);
+					throw new LCFException("Unknown http error occurred while connecting: "+e.getMessage(),e);
 				}
 				if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server.userException")))
 				{
 					String exceptionName = e.getFaultString();
 					if (exceptionName.equals("java.lang.InterruptedException"))
-						throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+						throw new LCFException("Interrupted",LCFException.INTERRUPTED);
 				}
 				if (Logging.connectors.isDebugEnabled())
 					Logging.connectors.debug("Meridio: Got an unknown remote exception connecting - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString()+" - retrying",e);
@@ -235,7 +235,7 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 			}
 			catch (RemoteException remoteException)
 			{			
-				throw new MetacartaException("Meridio: An unknown remote exception occurred while " +
+				throw new LCFException("Meridio: An unknown remote exception occurred while " +
 					"connecting: "+remoteException.getMessage(), remoteException);
 			}
 
@@ -262,7 +262,7 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 	*@return the connection's status as a displayable string.
 	*/
 	public String check()
-		throws MetacartaException
+		throws LCFException
 	{
 		Logging.connectors.debug("Meridio: Entering 'check' method");
 
@@ -276,7 +276,7 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 		{
 			return "Meridio temporarily unavailable: "+e.getMessage();
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			return e.getMessage();
 		}
@@ -332,7 +332,7 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 			{
 				String exceptionName = e.getFaultString();
 				if (exceptionName.equals("java.lang.InterruptedException"))
-					throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+					throw new LCFException("Interrupted",LCFException.INTERRUPTED);
 			}
 			if (Logging.connectors.isDebugEnabled())
 				Logging.connectors.debug("Meridio: Got an unknown remote exception checking - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString()+" - retrying",e);
@@ -383,7 +383,7 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 	/** Close the connection.  Call this before discarding the repository connector.
 	*/
 	public void disconnect()
-		throws MetacartaException
+		throws LCFException
 	{
 		Logging.connectors.debug("Meridio: Entering 'disconnect' method");
 		
@@ -414,7 +414,7 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 			{
 				String exceptionName = e.getFaultString();
 				if (exceptionName.equals("java.lang.InterruptedException"))
-					throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+					throw new LCFException("Interrupted",LCFException.INTERRUPTED);
 			}
 			if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server")))
 			{
@@ -472,7 +472,7 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 	*@return the stream of local document identifiers that should be added to the queue.
 	*/
 	public IDocumentIdentifierStream getDocumentIdentifiers(DocumentSpecification spec, long startTime, long endTime)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{				
 		Logging.connectors.debug("Meridio: Entering 'getDocumentIdentifiers' method");
 		
@@ -514,7 +514,7 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 	*/
 	public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
 		DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{			
 		Logging.connectors.debug("Meridio: Entering 'getDocumentVersions' method");
 
@@ -737,15 +737,15 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 					{
 						elem.normalize();
 						String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-						throw new MetacartaException("Unexpected http error code "+httpErrorCode+" accessing Meridio: "+e.getMessage(),e);
+						throw new LCFException("Unexpected http error code "+httpErrorCode+" accessing Meridio: "+e.getMessage(),e);
 					}
-					throw new MetacartaException("Unknown http error occurred while getting doc versions: "+e.getMessage(),e);
+					throw new LCFException("Unknown http error occurred while getting doc versions: "+e.getMessage(),e);
 				}
 				if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server.userException")))
 				{
 					String exceptionName = e.getFaultString();
 					if (exceptionName.equals("java.lang.InterruptedException"))
-						throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+						throw new LCFException("Interrupted",LCFException.INTERRUPTED);
 				}
 				if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server")))
 				{
@@ -764,12 +764,12 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 			}
 			catch (RemoteException remoteException)
 			{
-				throw new MetacartaException("Meridio: A remote exception occurred while getting doc versions: " +
+				throw new LCFException("Meridio: A remote exception occurred while getting doc versions: " +
 					remoteException.getMessage(), remoteException);
 			}
 			catch (MeridioDataSetException meridioDataSetException)
 			{
-				throw new MetacartaException("Meridio: A problem occurred manipulating the Web " +
+				throw new LCFException("Meridio: A problem occurred manipulating the Web " +
 					"Service XML: "+meridioDataSetException.getMessage(), meridioDataSetException);
 			}
 		}
@@ -789,7 +789,7 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 	* should only find other references, and should not actually call the ingestion methods.
 	*/
 	public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		Logging.connectors.debug("Meridio: Entering 'processDocuments' method");
 
@@ -1291,15 +1291,15 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 					}
 					catch (java.net.SocketTimeoutException ioex)
 					{
-						throw new MetacartaException("Socket timeout exception: "+ioex.getMessage(), ioex);
+						throw new LCFException("Socket timeout exception: "+ioex.getMessage(), ioex);
 					}
 					catch (org.apache.commons.httpclient.ConnectTimeoutException ioex)
 					{
-						throw new MetacartaException("Connect timeout exception: "+ioex.getMessage(), ioex);
+						throw new LCFException("Connect timeout exception: "+ioex.getMessage(), ioex);
 					}
 					catch (InterruptedIOException e)
 					{
-						throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+						throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 					}
 					catch (org.apache.axis.AxisFault e)
 					{
@@ -1311,12 +1311,12 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 					}
 					catch (SOAPException soapEx)
 					{
-						throw new MetacartaException("SOAP Exception encountered while retrieving document content: "+soapEx.getMessage(), 
+						throw new LCFException("SOAP Exception encountered while retrieving document content: "+soapEx.getMessage(), 
 								soapEx);
 					}
 					catch (IOException ioex)
 					{
-						throw new MetacartaException("Input stream failure: "+ioex.getMessage(), ioex);
+						throw new LCFException("Input stream failure: "+ioex.getMessage(), ioex);
 					}
 					i++;								
 				}
@@ -1334,15 +1334,15 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 					{
 						elem.normalize();
 						String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-						throw new MetacartaException("Unexpected http error code "+httpErrorCode+" accessing Meridio: "+e.getMessage(),e);
+						throw new LCFException("Unexpected http error code "+httpErrorCode+" accessing Meridio: "+e.getMessage(),e);
 					}
-					throw new MetacartaException("Unknown http error occurred while processing docs: "+e.getMessage(),e);
+					throw new LCFException("Unknown http error occurred while processing docs: "+e.getMessage(),e);
 				}
 				if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server.userException")))
 				{
 					String exceptionName = e.getFaultString();
 					if (exceptionName.equals("java.lang.InterruptedException"))
-						throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+						throw new LCFException("Interrupted",LCFException.INTERRUPTED);
 				}
 				if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server")))
 				{
@@ -1361,12 +1361,12 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 			}
 			catch (RemoteException remoteException)
 			{			
-				throw new MetacartaException("Meridio: A remote exception occurred while " +
+				throw new LCFException("Meridio: A remote exception occurred while " +
 					"processing a Meridio document: "+remoteException.getMessage(), remoteException);
 			}
 			catch (MeridioDataSetException meridioDataSetException)
 			{
-				throw new MetacartaException("Meridio: A DataSet exception occurred while  " +
+				throw new LCFException("Meridio: A DataSet exception occurred while  " +
 					"processing a Meridio document", meridioDataSetException);
 			}
 		}
@@ -2159,7 +2159,7 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 				long startTime,
 				long endTime
 		)
-		throws MetacartaException,ServiceInterruption
+		throws LCFException,ServiceInterruption
 		{			
 			Logging.connectors.debug("Meridio: Entering 'IdentifierStream' constructor");
 			while (true)
@@ -2189,15 +2189,15 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 						{
 							elem.normalize();
 							String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-							throw new MetacartaException("Unexpected http error code "+httpErrorCode+" accessing Meridio: "+e.getMessage(),e);
+							throw new LCFException("Unexpected http error code "+httpErrorCode+" accessing Meridio: "+e.getMessage(),e);
 						}
-						throw new MetacartaException("Unknown http error occurred while performing search: "+e.getMessage(),e);
+						throw new LCFException("Unknown http error occurred while performing search: "+e.getMessage(),e);
 					}
 					if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server.userException")))
 					{
 						String exceptionName = e.getFaultString();
 						if (exceptionName.equals("java.lang.InterruptedException"))
-							throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+							throw new LCFException("Interrupted",LCFException.INTERRUPTED);
 					}
 					if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server")))
 					{
@@ -2215,12 +2215,12 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 				}
 				catch (RemoteException remoteException)
 				{			
-					throw new MetacartaException("Meridio: A Remote Exception occurred while " +
+					throw new LCFException("Meridio: A Remote Exception occurred while " +
 						"performing a search: "+remoteException.getMessage(), remoteException);
 				}
 				catch (MeridioDataSetException meridioDataSetException)
 				{						
-					throw new MetacartaException("Meridio: A problem occurred manipulating the Web " +
+					throw new LCFException("Meridio: A problem occurred manipulating the Web " +
 						"Service XML: "+meridioDataSetException.getMessage(), meridioDataSetException);
 				}
 			}
@@ -2232,7 +2232,7 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 		*@return the next document identifier, or null if there are no more.
 		*/
 		public String getNextIdentifier()
-			throws MetacartaException, ServiceInterruption
+			throws LCFException, ServiceInterruption
 		{		
 			Logging.connectors.debug("Meridio: Entering 'getNextIdentifier' method");
 			
@@ -2268,15 +2268,15 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 								{
 									elem.normalize();
 									String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-									throw new MetacartaException("Unexpected http error code "+httpErrorCode+" performing search: "+e.getMessage());
+									throw new LCFException("Unexpected http error code "+httpErrorCode+" performing search: "+e.getMessage());
 								}
-								throw new MetacartaException("Unknown http error occurred while performing search: "+e.getMessage(),e);
+								throw new LCFException("Unknown http error occurred while performing search: "+e.getMessage(),e);
 							}
 							if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server.userException")))
 							{
 								String exceptionName = e.getFaultString();
 								if (exceptionName.equals("java.lang.InterruptedException"))
-									throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+									throw new LCFException("Interrupted",LCFException.INTERRUPTED);
 							}
 							if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server")))
 							{
@@ -2288,7 +2288,7 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 								}
 							}
 
-							throw new MetacartaException("Meridio: Got an unknown remote exception performing search - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString(),e);
+							throw new LCFException("Meridio: Got an unknown remote exception performing search - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString(),e);
 						}
 						catch (RemoteException remoteException)
 						{						
@@ -2299,7 +2299,7 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 						}
 						catch (MeridioDataSetException meridioDataSetException)
 						{						
-							throw new MetacartaException("Meridio: A problem occurred manipulating the Web " +
+							throw new LCFException("Meridio: A problem occurred manipulating the Web " +
 						     "Service XML: "+meridioDataSetException.getMessage(), meridioDataSetException);
 						}
 					}
@@ -2326,7 +2326,7 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 		/** Close the stream.
 		*/
 		public void close()
-			throws MetacartaException
+			throws LCFException
 		{
 			Logging.connectors.debug("Meridio: Entering 'IdentifierStream.close' method");
 			
@@ -2352,7 +2352,7 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 	*@return Sorted array of strings containing the category names
 	*/
 	public String [] getMeridioCategories ()
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		Logging.connectors.debug("Entering 'getMeridioCategories' method");
 		
@@ -2402,15 +2402,15 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 					{
 						elem.normalize();
 						String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-						throw new MetacartaException("Unexpected http error code "+httpErrorCode+" getting categories: "+e.getMessage());
+						throw new LCFException("Unexpected http error code "+httpErrorCode+" getting categories: "+e.getMessage());
 					}
-					throw new MetacartaException("Unknown http error occurred while getting categories: "+e.getMessage(),e);
+					throw new LCFException("Unknown http error occurred while getting categories: "+e.getMessage(),e);
 				}
 				if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server.userException")))
 				{
 					String exceptionName = e.getFaultString();
 					if (exceptionName.equals("java.lang.InterruptedException"))
-						throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+						throw new LCFException("Interrupted",LCFException.INTERRUPTED);
 				}
 				if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server")))
 				{
@@ -2422,16 +2422,16 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 					}
 				}
 
-				throw new MetacartaException("Meridio: Got an unknown remote exception getting categories - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString(),e);
+				throw new LCFException("Meridio: Got an unknown remote exception getting categories - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString(),e);
 			}
 			catch (RemoteException remoteException)
 			{			
-				throw new MetacartaException("Meridio: A Remote Exception occurred while " +
+				throw new LCFException("Meridio: A Remote Exception occurred while " +
 								     "retrieving the Meridio categories: "+remoteException.getMessage(), remoteException);
 			}
 			catch (MeridioDataSetException meridioDataSetException)
 			{			
-				throw new MetacartaException("Meridio: DataSet Exception occurred retrieving the Meridio categories: "+meridioDataSetException.getMessage(), 
+				throw new LCFException("Meridio: DataSet Exception occurred retrieving the Meridio categories: "+meridioDataSetException.getMessage(), 
 						meridioDataSetException);			
 			}
 		}
@@ -2440,7 +2440,7 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 	
 	
 	public String [] getMeridioDocumentProperties ()
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		Logging.connectors.debug("Entering 'getMeridioDocumentProperties' method");
 		
@@ -2511,15 +2511,15 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 					{
 						elem.normalize();
 						String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-						throw new MetacartaException("Unexpected http error code "+httpErrorCode+" getting document properties: "+e.getMessage());
+						throw new LCFException("Unexpected http error code "+httpErrorCode+" getting document properties: "+e.getMessage());
 					}
-					throw new MetacartaException("Unknown http error occurred while getting document properties: "+e.getMessage(),e);
+					throw new LCFException("Unknown http error occurred while getting document properties: "+e.getMessage(),e);
 				}
 				if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server.userException")))
 				{
 					String exceptionName = e.getFaultString();
 					if (exceptionName.equals("java.lang.InterruptedException"))
-						throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+						throw new LCFException("Interrupted",LCFException.INTERRUPTED);
 				}
 				if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server")))
 				{
@@ -2531,16 +2531,16 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 					}
 				}
 
-				throw new MetacartaException("Meridio: Got an unknown remote exception getting document properties - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString(),e);
+				throw new LCFException("Meridio: Got an unknown remote exception getting document properties - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString(),e);
 			}
 			catch (RemoteException remoteException)
 			{			
-				throw new MetacartaException("Meridio: A Remote Exception occurred while " +
+				throw new LCFException("Meridio: A Remote Exception occurred while " +
 								     "retrieving the Meridio document properties: "+remoteException.getMessage(), remoteException);
 			}
 			catch (MeridioDataSetException meridioDataSetException)
 			{			
-				throw new MetacartaException("Meridio: DataSet Exception occurred retrieving the Meridio document properties: "+meridioDataSetException.getMessage(), 
+				throw new LCFException("Meridio: DataSet Exception occurred retrieving the Meridio document properties: "+meridioDataSetException.getMessage(), 
 						meridioDataSetException);			
 			}
 		}
@@ -2552,7 +2552,7 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 	(
 		int classOrFolderId
 	)
-	throws MetacartaException, ServiceInterruption
+	throws LCFException, ServiceInterruption
 	{
 		Logging.connectors.debug("Entering 'getClassOrFolderContents' method");
 		
@@ -2619,15 +2619,15 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 					{
 						elem.normalize();
 						String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-						throw new MetacartaException("Unexpected http error code "+httpErrorCode+" getting class or folder contents: "+e.getMessage());
+						throw new LCFException("Unexpected http error code "+httpErrorCode+" getting class or folder contents: "+e.getMessage());
 					}
-					throw new MetacartaException("Unknown http error occurred while getting class or folder contents: "+e.getMessage(),e);
+					throw new LCFException("Unknown http error occurred while getting class or folder contents: "+e.getMessage(),e);
 				}
 				if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server.userException")))
 				{
 					String exceptionName = e.getFaultString();
 					if (exceptionName.equals("java.lang.InterruptedException"))
-						throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+						throw new LCFException("Interrupted",LCFException.INTERRUPTED);
 				}
 				if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server")))
 				{
@@ -2639,16 +2639,16 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
 					}
 				}
 
-				throw new MetacartaException("Meridio: Got an unknown remote exception getting class or folder contents - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString(),e);
+				throw new LCFException("Meridio: Got an unknown remote exception getting class or folder contents - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString(),e);
 			}
 			catch (RemoteException remoteException)
 			{			
-				throw new MetacartaException("Meridio: A Remote Exception occurred while " +
+				throw new LCFException("Meridio: A Remote Exception occurred while " +
 								     "retrieving class or folder contents: "+remoteException.getMessage(), remoteException);
 			}
 			catch (MeridioDataSetException meridioDataSetException)
 			{						
-				throw new MetacartaException("Meridio: A problem occurred manipulating the Web " +
+				throw new LCFException("Meridio: A problem occurred manipulating the Web " +
 			     "Service XML: "+meridioDataSetException.getMessage(), meridioDataSetException);
 			}
 		}

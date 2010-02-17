@@ -47,9 +47,9 @@ public class ImportConfiguration
 
 		try
 		{
-		        Metacarta.initializeEnvironment();
+		        LCF.initializeEnvironment();
 			IThreadContext tc = ThreadContextFactory.make();
-			Metacarta.importConfiguration(tc,importFilename);
+			LCF.importConfiguration(tc,importFilename);
 			System.err.println("Configuration imported");
 		}
 		catch (Exception e)

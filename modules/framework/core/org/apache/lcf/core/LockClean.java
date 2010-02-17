@@ -38,8 +38,8 @@ public class LockClean
 			System.exit(1);
 		}
 
-		Metacarta.initializeEnvironment();
-		String synchDir = Metacarta.getProperty(Metacarta.synchDirectoryProperty);
+		LCF.initializeEnvironment();
+		String synchDir = LCF.getProperty(LCF.synchDirectoryProperty);
 		if (synchDir != null)
 		{
 			// Recursively clean up the contents of the synch directory.

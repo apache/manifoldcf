@@ -31,7 +31,7 @@ public class DBInterfaceFactory
 	}
 
 	public static IDBInterface make(IThreadContext context, String databaseName, String userName, String password)
-		throws MetacartaException
+		throws LCFException
 	{
 		String dbName = dbinterfaceInstancePrefix + databaseName;
 		Object x = context.get(dbName);

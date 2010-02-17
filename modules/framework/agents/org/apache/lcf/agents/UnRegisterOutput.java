@@ -44,12 +44,12 @@ public class UnRegisterOutput
 
                 try
                 {
-                        Metacarta.initializeEnvironment();
+                        LCF.initializeEnvironment();
                         IThreadContext tc = ThreadContextFactory.make();
                         IDBInterface database = DBInterfaceFactory.make(tc,
-                                Metacarta.getMasterDatabaseName(),
-                                Metacarta.getMasterDatabaseUsername(),
-                                Metacarta.getMasterDatabasePassword());
+                                LCF.getMasterDatabaseName(),
+                                LCF.getMasterDatabaseUsername(),
+                                LCF.getMasterDatabasePassword());
                         IOutputConnectorManager mgr = OutputConnectorManagerFactory.make(tc);
                         IOutputConnectionManager connManager = OutputConnectionManagerFactory.make(tc);
                         // Deregistration should be done in a transaction
@@ -63,7 +63,7 @@ public class UnRegisterOutput
                                 // Now that all jobs have been placed into an appropriate state, actually do the deregistration itself.
                                 mgr.unregisterConnector(className);
                         }
-                        catch (MetacartaException e)
+                        catch (LCFException e)
                         {
                                 database.signalRollback();
                                 throw e;
@@ -79,7 +79,7 @@ public class UnRegisterOutput
                         }
                         System.err.println("Successfully unregistered output connector '"+className+"'");
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         e.printStackTrace();
                         System.exit(1);

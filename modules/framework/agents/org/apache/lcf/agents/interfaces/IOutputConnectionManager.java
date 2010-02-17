@@ -29,33 +29,33 @@ public interface IOutputConnectionManager
         /** Install the manager.
         */
         public void install()
-                throws MetacartaException;
+                throws LCFException;
 
         /** Uninstall the manager.
         */
         public void deinstall()
-                throws MetacartaException;
+                throws LCFException;
 
         /** Export configuration */
         public void exportConfiguration(java.io.OutputStream os)
-                throws java.io.IOException, MetacartaException;
+                throws java.io.IOException, LCFException;
         
         /** Import configuration */
         public void importConfiguration(java.io.InputStream is)
-                throws java.io.IOException, MetacartaException;
+                throws java.io.IOException, LCFException;
         
         /** Obtain a list of the output connections, ordered by name.
         *@return an array of connection objects.
         */
         public IOutputConnection[] getAllConnections()
-                throws MetacartaException;
+                throws LCFException;
 
         /** Load an output connection by name.
         *@param name is the name of the output connection.
         *@return the loaded connection object, or null if not found.
         */
         public IOutputConnection load(String name)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Load a set of output connections.
         *@param names are the names of the output connections.
@@ -63,40 +63,40 @@ public interface IOutputConnectionManager
         * values for those not found.
         */
         public IOutputConnection[] loadMultiple(String[] names)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Create a new output connection object.
         *@return the new object.
         */
         public IOutputConnection create()
-                throws MetacartaException;
+                throws LCFException;
 
         /** Save an output connection object.
         *@param object is the object to save.
         */
         public void save(IOutputConnection object)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Delete an output connection.
         *@param name is the name of the connection to delete.  If the
         * name does not exist, no error is returned.
         */
         public void delete(String name)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Get a list of output connections that share the same connector.
         *@param className is the class name of the connector.
         *@return the repository connections that use that connector.
         */
         public String[] findConnectionsForConnector(String className)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Check if underlying connector exists.
         *@param name is the name of the connection to check.
         *@return true if the underlying connector is registered.
         */
         public boolean checkConnectorExists(String name)
-                throws MetacartaException;
+                throws LCFException;
 
         // Schema related
 

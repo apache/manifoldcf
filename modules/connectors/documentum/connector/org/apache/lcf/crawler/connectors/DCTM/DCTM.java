@@ -103,30 +103,30 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 	/** Get a DFC session.  This will be done every time it is needed.
 	*/
 	protected void getSession()
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		if (session == null)
 		{
 			// Perform basic parameter checking, and debug output.
 			if (docbaseName == null || docbaseName.length() < 1)
-				throw new MetacartaException("Parameter "+CONFIG_PARAM_DOCBASE+" required but not set");
+				throw new LCFException("Parameter "+CONFIG_PARAM_DOCBASE+" required but not set");
 
 			if (Logging.connectors.isDebugEnabled())
 				Logging.connectors.debug("DCTM: Docbase = '" + docbaseName + "'");
 
 			if (userName == null || userName.length() < 1)
-				throw new MetacartaException("Parameter "+CONFIG_PARAM_USERNAME+" required but not set");
+				throw new LCFException("Parameter "+CONFIG_PARAM_USERNAME+" required but not set");
 
 			if (Logging.connectors.isDebugEnabled())
 				Logging.connectors.debug("DCTM: Username = '" + userName + "'");
 
 			if (password == null || password.length() < 1)
-				throw new MetacartaException("Parameter "+CONFIG_PARAM_PASSWORD+" required but not set");
+				throw new LCFException("Parameter "+CONFIG_PARAM_PASSWORD+" required but not set");
 
 			Logging.connectors.debug("DCTM: Password exists");
 
 			if (webtopBaseURL == null || webtopBaseURL.length() < 1)
-				throw new MetacartaException("Required parameter "+CONFIG_PARAM_WEBTOPBASEURL+" missing");
+				throw new LCFException("Required parameter "+CONFIG_PARAM_WEBTOPBASEURL+" missing");
 
 			if (domain == null)
 				// Empty domain is allowed
@@ -158,11 +158,11 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 			catch (InterruptedException e)
 			{
 				t.interrupt();
-				throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 			}
 			catch (java.net.MalformedURLException e)
 			{
-				throw new MetacartaException(e.getMessage(),e);
+				throw new LCFException(e.getMessage(),e);
 			}
 			catch (NotBoundException e)
 			{
@@ -175,7 +175,7 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 			{
 				Throwable e2 = e.getCause();
 				if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-					throw new MetacartaException(e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+					throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
 				// Treat this as a transient problem
 				Logging.connectors.warn("DCTM: Transient remote exception creating session: "+e.getMessage(),e);
 				currentTime = System.currentTimeMillis();
@@ -191,7 +191,7 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 					throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L,currentTime + 12*60*60000L,
 						-1,true);
 				}
-				throw new MetacartaException(e.getMessage(),e);
+				throw new LCFException(e.getMessage(),e);
 			}
 		}
 		
@@ -251,7 +251,7 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 	}
 
 	protected void getAttributesForType(ArrayList list, String typeName)
-		throws DocumentumException, MetacartaException, ServiceInterruption
+		throws DocumentumException, LCFException, ServiceInterruption
 	{
 		String strDQL = "select attr_name FROM dmi_dd_attr_info where type_name = '" + typeName + "'";
 
@@ -279,13 +279,13 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 			catch (InterruptedException e)
 			{
 				t.interrupt();
-				throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 			}
 			catch (RemoteException e)
 			{
 				Throwable e2 = e.getCause();
 				if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-					throw new MetacartaException(e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+					throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
 				if (noSession)
 				{
 					long currentTime = System.currentTimeMillis();
@@ -329,7 +329,7 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 
 	/** Check connection, with appropriate retries */
 	protected void checkConnection()
-		throws DocumentumException, MetacartaException, ServiceInterruption
+		throws DocumentumException, LCFException, ServiceInterruption
 	{
 		while (true)
 		{
@@ -355,13 +355,13 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 			catch (InterruptedException e)
 			{
 				t.interrupt();
-				throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 			}
 			catch (RemoteException e)
 			{
 				Throwable e2 = e.getCause();
 				if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-					throw new MetacartaException(e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+					throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
 				if (noSession)
 				{
 					long currentTime = System.currentTimeMillis();
@@ -412,7 +412,7 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 
 	/** Build date string with appropriate reset */
 	protected String buildDateString(long timevalue)
-		throws DocumentumException, MetacartaException, ServiceInterruption
+		throws DocumentumException, LCFException, ServiceInterruption
 	{
 		while (true)
 		{
@@ -438,13 +438,13 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 			catch (InterruptedException e)
 			{
 				t.interrupt();
-				throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 			}
 			catch (RemoteException e)
 			{
 				Throwable e2 = e.getCause();
 				if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-					throw new MetacartaException(e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+					throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
 				if (noSession)
 				{
 					long currentTime = System.currentTimeMillis();
@@ -489,7 +489,7 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 	/** Release the session, if it's time.
 	*/
 	protected void releaseCheck()
-		throws MetacartaException
+		throws LCFException
 	{
 		if (lastSessionFetch == -1L)
 			return;
@@ -518,13 +518,13 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 			catch (InterruptedException e)
 			{
 				t.interrupt();
-				throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 			}
 			catch (RemoteException e)
 			{
 				Throwable e2 = e.getCause();
 				if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-					throw new MetacartaException(e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+					throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
 				session = null;
 				lastSessionFetch = -1L;
 				// Treat this as a transient problem
@@ -581,7 +581,7 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 	*@return the connection's status as a displayable string.
 	*/
 	public String check()
-			throws MetacartaException
+			throws LCFException
 	{
 		try
 		{
@@ -596,14 +596,14 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 				if (e.getType() == DocumentumException.TYPE_SERVICEINTERRUPTION)
 					throw new ServiceInterruption(e.getMessage(),0L);
 				else
-					throw new MetacartaException(e.getMessage(),e);
+					throw new LCFException(e.getMessage(),e);
 			}
 		}
 		catch (ServiceInterruption e)
 		{
 			return "Connection temporarily failed: "+e.getMessage();
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			return "Connection failed: "+e.getMessage();
 		}
@@ -631,7 +631,7 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 	* in active use.
 	*/
 	public void poll()
-			throws MetacartaException
+			throws LCFException
 	{
 		releaseCheck();
 	}
@@ -639,7 +639,7 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 	/** Disconnect from Documentum.
 	*/
 	public void disconnect()
-		throws MetacartaException
+		throws LCFException
 	{
 		if (session != null)
 		{
@@ -664,13 +664,13 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 			catch (InterruptedException e)
 			{
 				t.interrupt();
-				throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 			}
 			catch (RemoteException e)
 			{
 				Throwable e2 = e.getCause();
 				if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-					throw new MetacartaException(e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+					throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
 				session = null;
 				lastSessionFetch = -1L;
 				// Treat this as a transient problem
@@ -700,7 +700,7 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 	/** Protected method for calculating the URI
 	*/
 	protected String convertToURI(String strObjectId, String objectType)
-		throws MetacartaException
+		throws LCFException
 	{
 		    String strWebtopBaseUrl = webtopBaseURL;
 
@@ -855,7 +855,7 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 	*/
 	public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
 		long startTime, long endTime)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		// First, build the query
 		
@@ -1022,7 +1022,7 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 							// It's ok to leave the thread still active; we'll be shutting down anyway.
 							throw e;
 						}
-						catch (MetacartaException e)
+						catch (LCFException e)
 						{
 							t.abort();
 							// We need the join, because we really don't want this documentum session to be
@@ -1042,7 +1042,7 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 						{
 							Throwable e2 = e.getCause();
 							if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-								throw new MetacartaException(e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+								throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
 							if (noSession)
 							{
 								long currentTime = System.currentTimeMillis();
@@ -1055,7 +1055,7 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 					}
 					catch (InterruptedException e)
 					{
-						throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+						throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 					}
 				}
 			}
@@ -1069,14 +1069,14 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 				Logging.connectors.warn("DCTM: Remote service interruption getting versions: "+e.getMessage(),e);
 				throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L, currentTime + 12 * 60 * 60000L,-1,true);
 			}
-			throw new MetacartaException(e.getMessage(),e);
+			throw new LCFException(e.getMessage(),e);
 		}
 
 	}
 
 	/** Do a query and read back the name column */
 	protected static String[] convertToDCTMTypes(ArrayList contentList)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		if (contentList != null && contentList.size() > 0)
 		{
@@ -1220,7 +1220,7 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 	*/
 	public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activity,
 		DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		Logging.connectors.debug("DCTM: Inside getDocumentVersions");
 
@@ -1275,7 +1275,7 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 							Logging.connectors.warn("DCTM: Remote service interruption listing attributes: "+e.getMessage(),e);
 							throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L,currentTime + 12 * 60 * 60000L,-1,true);
 						}
-						throw new MetacartaException(e.getMessage(),e);
+						throw new LCFException(e.getMessage(),e);
 					}
 
 				}
@@ -1375,13 +1375,13 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 				catch (InterruptedException e)
 				{
 					t.interrupt();
-					throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+					throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 				}
 				catch (RemoteException e)
 				{
 					Throwable e2 = e.getCause();
 					if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-						throw new MetacartaException(e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+						throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
 					if (noSession)
 					{
 						currentTime = System.currentTimeMillis();
@@ -1404,7 +1404,7 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 				Logging.connectors.warn("DCTM: Remote service interruption getting versions: "+e.getMessage(),e);
 				throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L,currentTime + 12 * 60 * 60000L,-1,true);
 			}
-			throw new MetacartaException(e.getMessage(),e);
+			throw new LCFException(e.getMessage(),e);
 		}
 	}
 
@@ -1605,7 +1605,7 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 	*/
 	public void processDocuments(String[] documentIdentifiers, String[] documentVersions,
 		IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		Logging.connectors.debug("DCTM: Inside processDocuments");
 
@@ -1651,8 +1651,8 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 									throw (RemoteException)thr;
 								else if (thr instanceof DocumentumException)
 									throw (DocumentumException)thr;
-                                                                else if (thr instanceof MetacartaException)
-                                                                        throw (MetacartaException)thr;
+                                                                else if (thr instanceof LCFException)
+                                                                        throw (LCFException)thr;
 								else
 									throw (Error)thr;
 							}
@@ -1688,13 +1688,13 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 						catch (InterruptedException e)
 						{
 							t.interrupt();
-							throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+							throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 						}
 						catch (RemoteException e)
 						{
 							Throwable e2 = e.getCause();
 							if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-								throw new MetacartaException(e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+								throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
 							if (noSession)
 							{
 								currentTime = System.currentTimeMillis();
@@ -1723,15 +1723,15 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 				Logging.connectors.warn("DCTM: Remote service interruption reading files: "+e.getMessage(),e);
 				throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L,currentTime + 12 * 60 * 60000L,-1,true);
 			}
-			throw new MetacartaException(e.getMessage(),e);
+			throw new LCFException(e.getMessage(),e);
 		}
 		catch (java.io.InterruptedIOException e)
 		{
-			throw new MetacartaException("Interrupted IO: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+			throw new LCFException("Interrupted IO: "+e.getMessage(),e,LCFException.INTERRUPTED);
 		}
 		catch (java.io.IOException e)
 		{
-			throw new MetacartaException("IO exception: "+e.getMessage(),e);
+			throw new LCFException("IO exception: "+e.getMessage(),e);
 		}
 	}
 
@@ -1743,7 +1743,7 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 	*@param versions is the corresponding set of version identifiers (individual identifiers may be null).
 	*/
 	public void releaseDocumentVersions(String[] documentIdentifiers, String[] versions)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Nothing to do
 	}
@@ -1752,7 +1752,7 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 	* This one returns the supported content types, which will be presented in the UI for selection.
 	*/
 	public String[] getContentTypes()
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		try
 		{
@@ -1789,13 +1789,13 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 				catch (InterruptedException e)
 				{
 					t.interrupt();
-					throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+					throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 				}
 				catch (RemoteException e)
 				{
 					Throwable e2 = e.getCause();
 					if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-						throw new MetacartaException(e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+						throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
 					if (noSession)
 					{
 						long currentTime = System.currentTimeMillis();
@@ -1816,14 +1816,14 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 				Logging.connectors.warn("DCTM: Remote service interruption reading content types: "+e.getMessage(),e);
 				throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L, 12 * 60 * 60000L,-1,true);
 			}
-			throw new MetacartaException(e.getMessage(),e);
+			throw new LCFException(e.getMessage(),e);
 		}
 	}
 
 	/** Documentum-specific method, for UI support.
 	*/
 	public String[] getObjectTypes()
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		try
 		{
@@ -1863,13 +1863,13 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 				catch (InterruptedException e)
 				{
 					t.interrupt();
-					throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+					throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 				}
 				catch (RemoteException e)
 				{
 					Throwable e2 = e.getCause();
 					if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-						throw new MetacartaException(e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+						throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
 					if (noSession)
 					{
 						long currentTime = System.currentTimeMillis();
@@ -1890,7 +1890,7 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 				Logging.connectors.warn("DCTM: Remote service interruption reading object types: "+e.getMessage(),e);
 				throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L, currentTime + 12 * 60 * 60000L,-1,true);
 			}
-			throw new MetacartaException(e.getMessage(),e);
+			throw new LCFException(e.getMessage(),e);
 		}
 	}
 
@@ -1986,7 +1986,7 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 	* use in constructing the starting folder for a job's document specification.
 	*/
 	public String[] getChildFolderNames(String strTheParentFolderPath)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		try
 		{
@@ -2014,13 +2014,13 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 				catch (InterruptedException e)
 				{
 					t.interrupt();
-					throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+					throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 				}
 				catch (RemoteException e)
 				{
 					Throwable e2 = e.getCause();
 					if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-						throw new MetacartaException(e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+						throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
 					if (noSession)
 					{
 						long currentTime = System.currentTimeMillis();
@@ -2041,7 +2041,7 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 				Logging.connectors.warn("DCTM: Remote service interruption reading child folders: "+e.getMessage(),e);
 				throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L,currentTime + 12 * 60 * 60000L,-1,true);
 			}
-			throw new MetacartaException(e.getMessage(),e);
+			throw new LCFException(e.getMessage(),e);
 		}
 
 	}
@@ -2053,7 +2053,7 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 	*@return the array of data attributes, in alphabetic order.
 	*/
 	public String[] getIngestableAttributes(String docType)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		try
 		{
@@ -2090,13 +2090,13 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 				catch (InterruptedException e)
 				{
 					t.interrupt();
-					throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+					throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 				}
 				catch (RemoteException e)
 				{
 					Throwable e2 = e.getCause();
 					if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-						throw new MetacartaException(e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+						throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
 					if (noSession)
 					{
 						long currentTime = System.currentTimeMillis();
@@ -2117,7 +2117,7 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 				Logging.connectors.warn("DCTM: Remote service interruption reading child folders: "+e.getMessage(),e);
 				throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L,currentTime + 12 * 60 * 60000L,-1,true);
 			}
-			throw new MetacartaException(e.getMessage(),e);
+			throw new LCFException(e.getMessage(),e);
 		}
 	}
 
@@ -2287,7 +2287,7 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 
 		/** Constructor */
 		public SystemMetadataDescription(DocumentSpecification spec)
-			throws MetacartaException
+			throws LCFException
 		{
 			pathAttributeName = null;
 			int i = 0;
@@ -2316,7 +2316,7 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 		/** Given an identifier, get the array of translated strings that goes into the metadata.
 		*/
 		public String[] getPathAttributeValue(IDocumentumObject object)
-			throws DocumentumException, RemoteException, MetacartaException
+			throws DocumentumException, RemoteException, LCFException
 		{
 			String[] paths = object.getFolderPaths(pathMap);
 			String[] rval = new String[paths.length];

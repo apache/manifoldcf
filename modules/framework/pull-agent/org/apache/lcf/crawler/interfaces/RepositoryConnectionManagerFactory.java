@@ -19,7 +19,7 @@
 package org.apache.lcf.crawler.interfaces;
 
 import org.apache.lcf.core.interfaces.*;
-import org.apache.lcf.crawler.system.Metacarta;
+import org.apache.lcf.crawler.system.LCF;
 
 /** Repository connection manager factory.
 */
@@ -39,15 +39,15 @@ public class RepositoryConnectionManagerFactory
 	*@return the handle.
 	*/
 	public static IRepositoryConnectionManager make(IThreadContext tc)
-		throws MetacartaException
+		throws LCFException
 	{
 		Object o = tc.get(objectName);
 		if (o == null || !(o instanceof IRepositoryConnectionManager))
 		{
 			IDBInterface database = DBInterfaceFactory.make(tc,
-				Metacarta.getMasterDatabaseName(),
-				Metacarta.getMasterDatabaseUsername(),
-				Metacarta.getMasterDatabasePassword());
+				LCF.getMasterDatabaseName(),
+				LCF.getMasterDatabaseUsername(),
+				LCF.getMasterDatabasePassword());
 
 			o = new org.apache.lcf.crawler.repository.RepositoryConnectionManager(tc,database);
 			tc.save(objectName,o);

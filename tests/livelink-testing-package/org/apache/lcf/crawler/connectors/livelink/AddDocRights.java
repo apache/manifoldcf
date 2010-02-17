@@ -50,7 +50,7 @@ public class AddDocRights
 			}
 			System.err.println("Successfully added rights");
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			e.printStackTrace(System.err);
 			System.exit(2);

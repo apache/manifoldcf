@@ -75,7 +75,7 @@ public interface IDatabase
 	*/
 	public IResultSet executeQuery(String query, ArrayList params, StringSet cacheKeys, StringSet invalidateKeys,
 		String queryClass, boolean needResult, int maxReturn, ResultSpecification spec, ILimitChecker returnLimits)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Begin a database transaction.  This method call MUST be paired with an endTransaction() call,
 	* or database handles will be lost.  If the transaction should be rolled back, then signalRollback() should
@@ -87,7 +87,7 @@ public interface IDatabase
 	*@param transactionType describes the type of the transaction.
 	*/
 	public void beginTransaction(int transactionType)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Signal that a rollback should occur on the next endTransaction().
 	*/
@@ -97,6 +97,6 @@ public interface IDatabase
 	* signalRollback() was called within the transaction).
 	*/
 	public void endTransaction()
-		throws MetacartaException;
+		throws LCFException;
 
 }

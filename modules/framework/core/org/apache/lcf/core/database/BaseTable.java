@@ -60,7 +60,7 @@ public class BaseTable
 	/** Perform a table lock operation.
 	*/
 	protected void performLock()
-		throws MetacartaException
+		throws LCFException
 	{
 		dbInterface.performLock(tableName);
 	}
@@ -71,7 +71,7 @@ public class BaseTable
 	*@param parameterMap is the map of column name/values to write.
 	*/
 	protected void performInsert(Map parameterMap, StringSet invalidateKeys)
-		throws MetacartaException
+		throws LCFException
 	{
 		dbInterface.performInsert(tableName,parameterMap,invalidateKeys);
 	}
@@ -83,7 +83,7 @@ public class BaseTable
 	*@param whereParameters are the parameters that come with the where clause, if any.
 	*/
 	protected void performUpdate(Map parameterMap, String whereClause, ArrayList whereParameters, StringSet invalidateKeys)
-		throws MetacartaException
+		throws LCFException
 	{
 		dbInterface.performUpdate(tableName,parameterMap,whereClause,whereParameters,invalidateKeys);
 	}
@@ -94,7 +94,7 @@ public class BaseTable
 	*@param whereParameters are the parameters that come with the where clause, if any.
 	*/
 	protected void performDelete(String whereClause, ArrayList whereParameters, StringSet invalidateKeys)
-		throws MetacartaException
+		throws LCFException
 	{
 		dbInterface.performDelete(tableName,whereClause,whereParameters,invalidateKeys);
 	}
@@ -106,7 +106,7 @@ public class BaseTable
 	*@param invalidateKeys are the cache keys that should be invalidated, if any.
 	*/
 	protected void performCreate(Map columnMap, StringSet invalidateKeys)
-		throws MetacartaException
+		throws LCFException
 	{
 		dbInterface.performCreate(tableName,columnMap,invalidateKeys);
 	}
@@ -121,7 +121,7 @@ public class BaseTable
 	*/
 	public void performAlter(Map columnMap, Map columnModifyMap, ArrayList columnDeleteList,
 		StringSet invalidateKeys)
-		throws MetacartaException
+		throws LCFException
 	{
 		dbInterface.performAlter(tableName,columnMap,columnModifyMap,columnDeleteList,invalidateKeys);
 	}
@@ -132,7 +132,7 @@ public class BaseTable
 	* in the index, in order.
 	*/
 	protected void addTableIndex(boolean unique, ArrayList columnList)
-		throws MetacartaException
+		throws LCFException
 	{
 		dbInterface.addTableIndex(tableName,unique,columnList);
 	}
@@ -142,7 +142,7 @@ public class BaseTable
 	*@param description is the index description.
 	*/
 	protected void performAddIndex(String indexName, IndexDescription description)
-		throws MetacartaException
+		throws LCFException
 	{
 		dbInterface.performAddIndex(indexName,tableName,description);
 	}
@@ -151,7 +151,7 @@ public class BaseTable
 	*@param indexName is the name of the index to remove.
 	*/
 	public void performRemoveIndex(String indexName)
-		throws MetacartaException
+		throws LCFException
 	{
 		dbInterface.performRemoveIndex(indexName);
 	}
@@ -159,7 +159,7 @@ public class BaseTable
 	/** Analyze this table.
 	*/
 	protected void analyzeTable()
-		throws MetacartaException
+		throws LCFException
 	{
 		dbInterface.analyzeTable(tableName);
 	}
@@ -167,7 +167,7 @@ public class BaseTable
 	/** Reindex this table.
 	*/
 	protected void reindexTable()
-		throws MetacartaException
+		throws LCFException
 	{
 		dbInterface.reindexTable(tableName);
 	}
@@ -176,7 +176,7 @@ public class BaseTable
 	*@param invalidateKeys are the cache keys that should be invalidated, if any.
 	*/
 	protected void performDrop(StringSet invalidateKeys)
-		throws MetacartaException
+		throws LCFException
 	{
 		dbInterface.performDrop(tableName,invalidateKeys);
 	}
@@ -188,7 +188,7 @@ public class BaseTable
 	*@return a map of column names & ColumnDescription's, or null.
 	*/
 	protected Map getTableSchema(StringSet invalidateKeys, String queryClass)
-		throws MetacartaException
+		throws LCFException
 	{
 		return dbInterface.getTableSchema(tableName,invalidateKeys,queryClass);
 	}
@@ -199,7 +199,7 @@ public class BaseTable
 	*@return a map of index names and IndexDescription objects, describing the indexes.
 	*/
 	protected Map getTableIndexes(StringSet invalidateKeys, String queryClass)
-		throws MetacartaException
+		throws LCFException
 	{
 		return dbInterface.getTableIndexes(tableName,invalidateKeys,queryClass);
 	}
@@ -210,7 +210,7 @@ public class BaseTable
 	*@param invalidateKeys are the cache keys to invalidate.
 	*/
 	protected void performModification(String query, ArrayList params, StringSet invalidateKeys)
-		throws MetacartaException
+		throws LCFException
 	{
 		dbInterface.performModification(query,params,invalidateKeys);
 	}
@@ -224,7 +224,7 @@ public class BaseTable
 	*@return a resultset.
 	*/
 	protected IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass)
-		throws MetacartaException
+		throws LCFException
 	{
 		return dbInterface.performQuery(query,params,cacheKeys,queryClass);
 	}
@@ -238,7 +238,7 @@ public class BaseTable
 	* signalRollback() method, and rethrow the exception.  Then, after that a finally{} block which calls endTransaction().
 	*/
 	protected void beginTransaction()
-		throws MetacartaException
+		throws LCFException
 	{
 		dbInterface.beginTransaction();
 	}
@@ -254,7 +254,7 @@ public class BaseTable
 	* signalRollback() was called within the transaction).
 	*/
 	protected void endTransaction()
-		throws MetacartaException
+		throws LCFException
 	{
 		dbInterface.endTransaction();
 	}

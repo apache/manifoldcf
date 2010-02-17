@@ -74,7 +74,7 @@
 	IJobDescription job = manager.load(new Long(jobID));
 	if (job == null)
 	{
-		throw new MetacartaException("No such job: "+jobID);
+		throw new LCFException("No such job: "+jobID);
 	}
 	else
 	{
@@ -581,7 +581,7 @@
 <%
 	}
     }
-    catch (MetacartaException e)
+    catch (LCFException e)
     {
 	e.printStackTrace();
 	variableContext.setParameter("text",e.getMessage());

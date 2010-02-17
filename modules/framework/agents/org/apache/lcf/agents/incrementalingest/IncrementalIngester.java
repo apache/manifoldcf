@@ -21,7 +21,7 @@ package org.apache.lcf.agents.incrementalingest;
 import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.agents.interfaces.*;
 import org.apache.lcf.agents.system.Logging;
-import org.apache.lcf.agents.system.Metacarta;
+import org.apache.lcf.agents.system.LCF;
 import java.util.*;
 
 /** Incremental ingestion API implementation.
@@ -63,7 +63,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 	/** Constructor.
 	*/
 	public IncrementalIngester(IThreadContext threadContext, IDBInterface database)
-		throws MetacartaException
+		throws LCFException
 	{
 		super(database,"ingeststatus");
 		this.threadContext = threadContext;
@@ -74,7 +74,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 	/** Install the incremental ingestion manager.
 	*/
 	public void install()
-		throws MetacartaException
+		throws LCFException
 	{
 		String outputConnectionTableName = connectionManager.getTableName();
 		String outputConnectionNameField = connectionManager.getConnectionNameColumn();
@@ -169,12 +169,12 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 								// Split the docID into class and doc id
 								int index = docID.indexOf(":");
 								if (index == -1)
-									throw new MetacartaException("Unexpected docID form during upgrade of ingeststatus: "+docID);
+									throw new LCFException("Unexpected docID form during upgrade of ingeststatus: "+docID);
 								String docClass = docID.substring(0,index);
 								String docIdentifier = docID.substring(index+1);
 			
 								HashMap newMap = new HashMap();
-								newMap.put(docKeyField,makeKey(docClass,Metacarta.hash(docIdentifier)));
+								newMap.put(docKeyField,makeKey(docClass,LCF.hash(docIdentifier)));
 								ArrayList newList = new ArrayList();
 								newList.add(id);
 								performUpdate(newMap,"WHERE "+idField+"=?",newList,null);
@@ -229,7 +229,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 								Long id = (Long)row.getValue(idField);
 								String docURI = (String)row.getValue(docURIField);
 								HashMap newMap = new HashMap();
-								newMap.put(uriHashField,Metacarta.hash(docURI));
+								newMap.put(uriHashField,LCF.hash(docURI));
 								ArrayList newList = new ArrayList();
 								newList.add(id);
 								performUpdate(newMap,"WHERE "+idField+"=?",newList,null);
@@ -255,7 +255,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 					}
 				}
 			}
-			catch (MetacartaException e)
+			catch (LCFException e)
 			{
 				signalRollback();
 				throw e;
@@ -324,7 +324,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 				{
                                         performAddIndex(null,keyIndex);
 				}
-				catch (MetacartaException e)
+				catch (LCFException e)
 				{
 					if (e.getMessage().indexOf("could not create unique index") == -1)
 						throw e;
@@ -341,7 +341,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 
 	/** Remove duplicates (as part of upgrade) */
 	protected void removeDuplicates()
-		throws MetacartaException
+		throws LCFException
 	{
 		// If we get here, it means we have to clean duplicates out of the table and try again.
 		// If there *are* duplicates for an ID, we basically don't know anything about it really, so we blindly get rid of all rows corresponding to
@@ -369,16 +369,16 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 	*@Return the time, in minutes.
 	*/
 	public int getAnalyzeTime()
-		throws MetacartaException
+		throws LCFException
 	{
 		// For this table, we base the wait time on the number of rows in it.
 		IResultSet set = performQuery("SELECT COUNT("+idField+") FROM "+getTableName(),null,null,null);
 		if (set.getRowCount() < 1)
-			throw new MetacartaException("Expected result with one row");
+			throw new LCFException("Expected result with one row");
 		IResultRow row = set.getRow(0);
 		Iterator columnNames = row.getColumns();
 		if (!columnNames.hasNext())
-			throw new MetacartaException("Expected result with one column");
+			throw new LCFException("Expected result with one column");
 		String columnName = (String)columnNames.next();
 		long value = new Long(row.getValue(columnName).toString()).longValue();
 		if (value < 10000L)
@@ -393,7 +393,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 	/** Analyze database tables.
 	*/
 	public void analyzeTables()
-		throws MetacartaException
+		throws LCFException
 	{
 		analyzeTable();
 	}
@@ -401,7 +401,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 	/** Uninstall the incremental ingestion manager.
 	*/
 	public void deinstall()
-		throws MetacartaException
+		throws LCFException
 	{
 		performDrop(null);
 	}
@@ -409,7 +409,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 	/** Flush all knowledge of what was ingested before.
 	*/
 	public void clearAll()
-		throws MetacartaException
+		throws LCFException
 	{
 		performDelete("",null,null);
 	}
@@ -428,7 +428,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
                 String identifierClass, String identifierHash,
 		String documentVersion,
 		long recordTime, IOutputActivity activities)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		IOutputConnection connection = connectionManager.load(outputConnectionName);
 	    
@@ -467,7 +467,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 		RepositoryDocument data,
 		long ingestTime, String documentURI,
 		IOutputActivity activities)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		IOutputConnection connection = connectionManager.load(outputConnectionName);
 	    
@@ -489,14 +489,14 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 		RepositoryDocument data,
 		long ingestTime, String documentURI,
 		IOutputActivity activities)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 	    // No transactions; not safe because post may take too much time
 
 	    // First, calculate a document uri hash value
 	    String documentURIHash = null;
 	    if (documentURI != null)
-		documentURIHash = Metacarta.hash(documentURI);
+		documentURIHash = LCF.hash(documentURI);
 
 	    // See what uri was used before for this doc, if any
 	    ArrayList list = new ArrayList();
@@ -607,7 +607,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 	public void documentCheckMultiple(String outputConnectionName,
 		String[] identifierClasses, String[] identifierHashes,
 		long checkTime)
-		throws MetacartaException
+		throws LCFException
 	{
 		beginTransaction();
 		try
@@ -675,7 +675,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 			if (j > 0)
 				updateRowIds(list,sb.toString(),checkTime);
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -701,7 +701,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 	public void documentCheck(String outputConnectionName,
 		String identifierClass, String identifierHash,
 		long checkTime)
-		throws MetacartaException
+		throws LCFException
 	{
 		documentCheckMultiple(outputConnectionName,new String[]{identifierClass},new String[]{identifierHash},checkTime);
 	}
@@ -709,7 +709,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 	/** Update a chunk of row ids.
 	*/
 	protected void updateRowIds(ArrayList list, String queryPart, long checkTime)
-		throws MetacartaException
+		throws LCFException
 	{
 		HashMap map = new HashMap();
 		map.put(lastIngestField,new Long(checkTime));
@@ -725,7 +725,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 	public void documentDeleteMultiple(String[] outputConnectionNames,
 		String[] identifierClasses, String[] identifierHashes,
 		IOutputRemoveActivity activities)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		// Segregate request by connection names
 		HashMap keyMap = new HashMap();
@@ -772,7 +772,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 	public void documentDeleteMultiple(String outputConnectionName,
 		String[] identifierClasses, String[] identifierHashes,
 		IOutputRemoveActivity activities)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		IOutputConnection connection = connectionManager.load(outputConnectionName);
 	    
@@ -852,7 +852,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 				while (j < validURIArray.length)
 				{
 					String docDBString = validURIArray[j++];
-					String docDBHashString = Metacarta.hash(docDBString);
+					String docDBHashString = LCF.hash(docDBString);
 					docURIValues.put(docDBString,docDBString);
 					docURIHashValues.put(docDBHashString,docDBHashString);
 				}
@@ -972,7 +972,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 					deleteRowIds(list,sb.toString());
 
 			}
-			catch (MetacartaException e)
+			catch (LCFException e)
 			{
 				signalRollback();
 				throw e;
@@ -998,7 +998,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 	*/
 	protected void findRowIdsForURIs(String outputConnectionName, HashMap rowIDSet, HashMap uris, ArrayList hashParamValues,
 		String paramList)
-		throws MetacartaException
+		throws LCFException
 	{
 		hashParamValues.add(outputConnectionName);
 		IResultSet set = performQuery("SELECT "+idField+","+docURIField+" FROM "+
@@ -1024,7 +1024,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 	*/
 	protected void findRowIdsForDocIds(String outputConnectionName, HashMap rowIDSet, ArrayList paramValues,
 		String paramList)
-		throws MetacartaException
+		throws LCFException
 	{
 		paramValues.add(outputConnectionName);
 		IResultSet set = performQuery("SELECT "+idField+" FROM "+
@@ -1041,7 +1041,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 	/** Delete a chunk of row ids.
 	*/
 	protected void deleteRowIds(ArrayList list, String queryPart)
-		throws MetacartaException
+		throws LCFException
 	{
 		performDelete("WHERE "+idField+" IN ("+queryPart+")",list,null);
 	}
@@ -1055,7 +1055,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 	public void documentDelete(String outputConnectionName,
 		String identifierClass, String identifierHash,
 		IOutputRemoveActivity activities)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		documentDeleteMultiple(outputConnectionName,new String[]{identifierClass},new String[]{identifierHash},activities);
 	}
@@ -1066,7 +1066,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 	* that don't exist in the index.
 	*/
 	protected DeleteInfo[] getDocumentURIMultiple(String outputConnectionName, String[] identifierClasses, String[] identifierHashes)
-		throws MetacartaException
+		throws LCFException
 	{
 		DeleteInfo[] rval = new DeleteInfo[identifierHashes.length];
 		HashMap map = new HashMap();
@@ -1105,7 +1105,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 				getDocumentURIChunk(rval,map,outputConnectionName,sb.toString(),list);
 			return rval;				
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -1130,7 +1130,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 	*/
 	public DocumentIngestStatus[] getDocumentIngestDataMultiple(String[] outputConnectionNames,
 		String[] identifierClasses, String[] identifierHashes)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Segregate request by connection names
 		HashMap keyMap = new HashMap();
@@ -1186,7 +1186,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 	*/
 	public DocumentIngestStatus[] getDocumentIngestDataMultiple(String outputConnectionName,
 		String[] identifierClasses, String[] identifierHashes)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Build the return array
 		DocumentIngestStatus[] rval = new DocumentIngestStatus[identifierHashes.length];
@@ -1228,7 +1228,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 				getDocumentIngestDataChunk(rval,indexMap,outputConnectionName,sb.toString(),list);
 			return rval;				
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -1252,7 +1252,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 	*/
 	public DocumentIngestStatus getDocumentIngestData(String outputConnectionName,
 		String identifierClass, String identifierHash)
-		throws MetacartaException
+		throws LCFException
 	{
 		return getDocumentIngestDataMultiple(outputConnectionName,new String[]{identifierClass},new String[]{identifierHash})[0];
 	}
@@ -1266,7 +1266,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 	*/
 	public long getDocumentUpdateInterval(String outputConnectionName,
 		String identifierClass, String identifierHash)
-		throws MetacartaException
+		throws LCFException
 	{
 		return getDocumentUpdateIntervalMultiple(outputConnectionName,new String[]{identifierClass},new String[]{identifierHash})[0];
 	}
@@ -1280,7 +1280,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 	*/
 	public long[] getDocumentUpdateIntervalMultiple(String outputConnectionName,
 		String[] identifierClasses, String[] identifierHashes)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Do these all at once!!
 		// First, create a return array
@@ -1339,7 +1339,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 	*@param returnMap is a mapping from document id to rval index.
 	*/
 	protected void getIntervals(long[] rval, String outputConnectionName, ArrayList list, String queryPart, HashMap returnMap)
-		throws MetacartaException
+		throws LCFException
 	{
 		list.add(outputConnectionName);
 		IResultSet set = performQuery("SELECT "+docKeyField+","+changeCountField+","+firstIngestField+","+lastIngestField+
@@ -1375,7 +1375,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 		String docKey, String documentVersion,
 		String outputVersion, String authorityNameString,
 		long ingestTime, String documentURI, String documentURIHash)
-		throws MetacartaException
+		throws LCFException
 	{
 		while (true)
 		{
@@ -1425,11 +1425,11 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 				conditionallyAnalyzeInsert();
 				return;
 			}
-			catch (MetacartaException e)
+			catch (LCFException e)
 			{
 				signalRollback();
 				// If this is simply a constraint violation, we just want to fall through and try the update!
-				if (e.getErrorCode() != MetacartaException.DATABASE_TRANSACTION_ABORT)
+				if (e.getErrorCode() != LCFException.DATABASE_TRANSACTION_ABORT)
 					throw e;
 				// Otherwise, exit transaction and fall through to 'update' attempt
 			}
@@ -1486,7 +1486,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 
 				// Update failed to find a matching record, so cycle back to retry the insert
 			}
-			catch (MetacartaException e)
+			catch (LCFException e)
 			{
 				signalRollback();
 				throw e;
@@ -1510,7 +1510,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 	*@param list is the parameter list for the query.
 	*/
 	protected void getDocumentURIChunk(DeleteInfo[] rval, Map map, String outputConnectionName, String clause, ArrayList list)
-		throws MetacartaException
+		throws LCFException
 	{
 		list.add(outputConnectionName);
 		IResultSet set = performQuery("SELECT "+docKeyField+","+docURIField+","+lastOutputVersionField+" FROM "+getTableName()+" WHERE "+
@@ -1540,7 +1540,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 	*@param list is the parameter list for the query.
 	*/
 	protected void getDocumentIngestDataChunk(DocumentIngestStatus[] rval, Map map, String outputConnectionName, String clause, ArrayList list)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Get the primary records associated with this hash value
 		list.add(outputConnectionName);
@@ -1570,7 +1570,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 	/** Add or replace document, using the specified output connection, via the standard pool.
 	*/
 	protected int addOrReplaceDocument(IOutputConnection connection, String documentURI, String outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
 	{
 		IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
 		if (connector == null)
@@ -1589,7 +1589,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 	/** Remove document, using the specified output connection, via the standard pool.
 	*/
 	protected void removeDocument(IOutputConnection connection, String documentURI, String outputDescription, IOutputRemoveActivity activities)
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
 	{
 		IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
 		if (connector == null)
@@ -1614,7 +1614,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 	/** Conditionally do analyze operation.
 	*/
 	protected void conditionallyAnalyzeInsert()
-		throws MetacartaException
+		throws LCFException
 	{
 		synchronized (tracker)
 		{

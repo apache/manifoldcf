@@ -23,7 +23,7 @@ import java.io.*;
 import java.util.*;
 import java.security.MessageDigest;
 
-public class Metacarta
+public class LCF
 {
 	public static final String _rcsid = "@(#)$Id$";
 
@@ -127,7 +127,7 @@ public class Metacarta
 					}
 					System.out.println("Done");
 				}
-				catch (MetacartaException e)
+				catch (LCFException e)
 				{
 					e.printStackTrace();
 				}
@@ -138,7 +138,7 @@ public class Metacarta
 			}
 		}
 	    }
-	    catch (MetacartaException e)
+	    catch (LCFException e)
 	    {
 		    e.printStackTrace();
 	    }
@@ -175,7 +175,7 @@ public class Metacarta
 				{
 					ensureFolder(configPath);
 				}
-				catch (MetacartaException e)
+				catch (LCFException e)
 				{
 					e.printStackTrace();
 				}
@@ -214,7 +214,7 @@ public class Metacarta
 			Logging.setLogLevels();
 
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			e.printStackTrace();
 		}
@@ -225,7 +225,7 @@ public class Metacarta
 	/** Reloads properties as needed.
 	*/
 	public static final void checkProperties()
-		throws MetacartaException
+		throws LCFException
 	{
 		File f = new File(getConfigPath(),propertyFileName);	// for re-read
 		try
@@ -247,7 +247,7 @@ public class Metacarta
 		}
 		catch (Exception e)
 		{
-			throw new MetacartaException("Could not read property file '"+f.toString()+"'",e);
+			throw new LCFException("Could not read property file '"+f.toString()+"'",e);
 		}
 	}
 
@@ -273,7 +273,7 @@ public class Metacarta
 	* @param path
 	*/
 	public static void ensureFolder(String path)
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
@@ -285,7 +285,7 @@ public class Metacarta
 		}
 		catch (Exception e)
 		{
-			throw new MetacartaException("Can't make folder",e,MetacartaException.GENERAL_ERROR);
+			throw new LCFException("Can't make folder",e,LCFException.GENERAL_ERROR);
 		}
 	}
 
@@ -392,7 +392,7 @@ public class Metacarta
 	 *  @return the encrypted string.
 	 *   */
 	public static String hash(String input)
-		throws MetacartaException
+		throws LCFException
 	{
 		return encrypt(input);
 	}
@@ -400,7 +400,7 @@ public class Metacarta
 	/** Start creating a hash
 	*/
 	public static MessageDigest startHash()
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
@@ -408,14 +408,14 @@ public class Metacarta
 		}
 		catch (Exception e)
 		{
-			throw new MetacartaException("Couldn't encrypt: "+e.getMessage(),e,MetacartaException.GENERAL_ERROR);
+			throw new LCFException("Couldn't encrypt: "+e.getMessage(),e,LCFException.GENERAL_ERROR);
 		}
 	}
 
 	/** Add to hash
 	*/
 	public static void addToHash(MessageDigest digest, String input)
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
@@ -424,14 +424,14 @@ public class Metacarta
 		}
 		catch (Exception e)
 		{
-			throw new MetacartaException("Couldn't encrypt: "+e.getMessage(),e,MetacartaException.GENERAL_ERROR);
+			throw new LCFException("Couldn't encrypt: "+e.getMessage(),e,LCFException.GENERAL_ERROR);
 		}
 	}
 	
 	/** Calculate final hash value
 	*/
 	public static String getHashValue(MessageDigest digest)
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
@@ -448,7 +448,7 @@ public class Metacarta
 		}
 		catch (Exception e)
 		{
-			throw new MetacartaException("Couldn't encrypt: "+e.getMessage(),e,MetacartaException.GENERAL_ERROR);
+			throw new LCFException("Couldn't encrypt: "+e.getMessage(),e,LCFException.GENERAL_ERROR);
 		}
 	}
 	
@@ -457,7 +457,7 @@ public class Metacarta
 	*@return the encrypted string.
 	*/
 	public static String encrypt(String input)
-		throws MetacartaException
+		throws LCFException
 	{
 		MessageDigest hash = startHash();
 		addToHash(hash,input);
@@ -469,7 +469,7 @@ public class Metacarta
 	*@return the output string.
 	*/
 	public static String obfuscate(String input)
-		throws MetacartaException
+		throws LCFException
 	{
 	    try
 	    {
@@ -505,7 +505,7 @@ public class Metacarta
 	    }
 	    catch (java.io.UnsupportedEncodingException e)
 	    {
-		throw new MetacartaException("UTF-8 not supported",e,MetacartaException.GENERAL_ERROR);
+		throw new LCFException("UTF-8 not supported",e,LCFException.GENERAL_ERROR);
 	    }
 	}
 
@@ -527,7 +527,7 @@ public class Metacarta
 	*@return the decoded string.
 	*/
 	public static String deobfuscate(String input)
-		throws MetacartaException
+		throws LCFException
 	{
 	    try
 	    {
@@ -537,7 +537,7 @@ public class Metacarta
 			return input;
 
 		if ((input.length() >> 1) * 2 != input.length())
-			throw new MetacartaException("Decoding error",MetacartaException.GENERAL_ERROR);
+			throw new LCFException("Decoding error",LCFException.GENERAL_ERROR);
 
 		byte[] bytes = new byte[input.length() >> 1];
 		int i = 0;
@@ -568,7 +568,7 @@ public class Metacarta
 	    }
 	    catch (java.io.UnsupportedEncodingException e)
 	    {
-		throw new MetacartaException("UTF-8 unsupported",e,MetacartaException.GENERAL_ERROR);
+		throw new LCFException("UTF-8 unsupported",e,LCFException.GENERAL_ERROR);
 	    }
 	}
 
@@ -577,14 +577,14 @@ public class Metacarta
 	*@return the value.
 	*/
 	protected static int readNibble(char value)
-		throws MetacartaException
+		throws LCFException
 	{
 		if (value >= 'A' && value <= 'F')
 			return (int)(value - 'A' + 10);
 		else if (value >= '0' && value <= '9')
 			return (int)(value - '0');
 		else
-			throw new MetacartaException("Bad hexadecimal value",MetacartaException.GENERAL_ERROR);
+			throw new LCFException("Bad hexadecimal value",LCFException.GENERAL_ERROR);
 	}
 
 
@@ -596,7 +596,7 @@ public class Metacarta
 	*/
 	public static void createSystemDatabase(IThreadContext threadcontext, String masterName,
 		String masterUsername, String masterPassword)
-		throws MetacartaException
+		throws LCFException
 	{
 		String databaseName = getMasterDatabaseName();
 		String databaseUsername = getMasterDatabaseUsername();
@@ -625,7 +625,7 @@ public class Metacarta
 	*/
 	public static void dropSystemDatabase(IThreadContext threadcontext, String masterName,
 		String masterUsername, String masterPassword)
-		throws MetacartaException
+		throws LCFException
 	{
 		IDBInterface master = DBInterfaceFactory.make(threadcontext,masterName,masterUsername,masterPassword);
 		master.performDropDatabase(getMasterDatabaseName(),null);
@@ -661,7 +661,7 @@ public class Metacarta
 	/** Note configuration change.
 	*/
 	public static void noteConfigurationChange()
-		throws MetacartaException
+		throws LCFException
 	{
 		String configChangeSignalCommand = getProperty(configSignalCommandProperty);
 		if (configChangeSignalCommand == null || configChangeSignalCommand.length() == 0)
@@ -785,7 +785,7 @@ public class Metacarta
 							break;
 						    sb.append(value).append("; ");
 						}
-						throw new MetacartaException("Shelled process '"+configChangeSignalCommand+"' failed with error "+Integer.toString(rval)+": "+sb.toString());
+						throw new LCFException("Shelled process '"+configChangeSignalCommand+"' failed with error "+Integer.toString(rval)+": "+sb.toString());
 					    }
 					    finally
 					    {
@@ -810,15 +810,15 @@ public class Metacarta
 		}
 		catch (InterruptedException e)
 		{
-			throw new MetacartaException("Process wait interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+			throw new LCFException("Process wait interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 		}
 		catch (InterruptedIOException e)
 		{
-			throw new MetacartaException("IO with subprocess interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+			throw new LCFException("IO with subprocess interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 		}
 		catch (IOException e)
 		{
-			throw new MetacartaException("IO exception signalling change: "+e.getMessage(),e);
+			throw new LCFException("IO exception signalling change: "+e.getMessage(),e);
 		}
 	}
 

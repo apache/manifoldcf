@@ -38,7 +38,7 @@ public class DocumentSpecification extends Specification
 	*@param xml is the input XML.
 	*/
 	public DocumentSpecification(String xml)
-		throws MetacartaException
+		throws LCFException
 	{
 		super(xml);
 	}

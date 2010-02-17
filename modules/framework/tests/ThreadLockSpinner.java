@@ -16,7 +16,7 @@
  */
 
 import org.apache.lcf.core.interfaces.*;
-import org.apache.lcf.core.system.Metacarta;
+import org.apache.lcf.core.system.LCF;
 
 public class ThreadLockSpinner
 {
@@ -26,7 +26,7 @@ public class ThreadLockSpinner
 	public static void main(String[] argv)
 		throws Exception
 	{
-		Metacarta.initializeEnvironment();
+		LCF.initializeEnvironment();
 		
 		// Start up multiple threads of each kind
 		int t1instanceCount = 25;

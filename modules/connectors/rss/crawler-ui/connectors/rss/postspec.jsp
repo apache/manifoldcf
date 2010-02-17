@@ -123,7 +123,7 @@
 		}
 		catch (java.io.IOException e)
 		{
-			throw new MetacartaException("IO error",e);
+			throw new LCFException("IO error",e);
 		}
 	}
 

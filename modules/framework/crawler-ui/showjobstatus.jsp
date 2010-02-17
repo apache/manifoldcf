@@ -20,7 +20,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-boolean maintenanceUnderway = org.apache.lcf.crawler.system.Metacarta.checkMaintenanceUnderway();
+boolean maintenanceUnderway = org.apache.lcf.crawler.system.LCF.checkMaintenanceUnderway();
 
 %>
 
@@ -213,7 +213,7 @@ if (maintenanceUnderway == false)
 
 <%
     }
-    catch (MetacartaException e)
+    catch (LCFException e)
     {
 	out.println("Error: "+e.getMessage());
 	e.printStackTrace();

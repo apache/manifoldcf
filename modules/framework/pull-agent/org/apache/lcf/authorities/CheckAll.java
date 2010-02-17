@@ -42,7 +42,7 @@ public class CheckAll
 			System.exit(1);
 		}
 
-	        Metacarta.initializeEnvironment();
+	        LCF.initializeEnvironment();
 		try
 		{
 			IThreadContext tc = ThreadContextFactory.make();
@@ -85,7 +85,7 @@ public class CheckAll
 					else
 					    connectionStatus = "Connector not installed";
 				}
-				catch (MetacartaException e)
+				catch (LCFException e)
 				{
 					connectionStatus = "Threw exception: '"+e.getMessage()+"'";
 				}

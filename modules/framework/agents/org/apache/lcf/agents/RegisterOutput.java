@@ -45,12 +45,12 @@ public class RegisterOutput
 
                 try
                 {
-                        Metacarta.initializeEnvironment();
+                        LCF.initializeEnvironment();
                         IThreadContext tc = ThreadContextFactory.make();
                         IDBInterface database = DBInterfaceFactory.make(tc,
-                                Metacarta.getMasterDatabaseName(),
-                                Metacarta.getMasterDatabaseUsername(),
-                                Metacarta.getMasterDatabasePassword());
+                                LCF.getMasterDatabaseName(),
+                                LCF.getMasterDatabaseUsername(),
+                                LCF.getMasterDatabasePassword());
                         IOutputConnectorManager mgr = OutputConnectorManagerFactory.make(tc);
                         IOutputConnectionManager connManager = OutputConnectionManagerFactory.make(tc);
                         // Deregistration should be done in a transaction
@@ -65,7 +65,7 @@ public class RegisterOutput
                                 // For all connection names, notify all agents of the registration
                                 AgentManagerFactory.noteOutputConnectorRegistration(tc,connectionNames);
                         }
-                        catch (MetacartaException e)
+                        catch (LCFException e)
                         {
                                 database.signalRollback();
                                 throw e;
@@ -82,7 +82,7 @@ public class RegisterOutput
 
                         System.err.println("Successfully registered output connector '"+className+"'");
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         e.printStackTrace();
                         System.exit(1);

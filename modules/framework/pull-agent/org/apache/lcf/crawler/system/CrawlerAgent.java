@@ -34,7 +34,7 @@ public class CrawlerAgent implements IAgent
 	*@param threadContext is the thread context.
 	*/
 	public CrawlerAgent(IThreadContext threadContext)
-		throws MetacartaException
+		throws LCFException
 	{
 		this.threadContext = threadContext;
 	}
@@ -42,38 +42,38 @@ public class CrawlerAgent implements IAgent
 	/** Install agent.  This usually installs the agent's database tables etc.
 	*/
 	public void install()
-		throws MetacartaException
+		throws LCFException
 	{
 		// Install the system tables for the crawler.
-		Metacarta.initializeEnvironment();
-		Metacarta.installSystemTables(threadContext);
+		LCF.initializeEnvironment();
+		LCF.installSystemTables(threadContext);
 	}
 
 	/** Uninstall agent.  This must clean up everything the agent is responsible for.
 	*/
 	public void deinstall()
-		throws MetacartaException
+		throws LCFException
 	{
-		Metacarta.initializeEnvironment();
-		Metacarta.deinstallSystemTables(threadContext);
+		LCF.initializeEnvironment();
+		LCF.deinstallSystemTables(threadContext);
 	}
 
 	/** Start the agent.  This method should spin up the agent threads, and
 	* then return.
 	*/
 	public void startAgent()
-		throws MetacartaException
+		throws LCFException
 	{
-		Metacarta.initializeEnvironment();
-		Metacarta.startSystem(threadContext);
+		LCF.initializeEnvironment();
+		LCF.startSystem(threadContext);
 	}
 
 	/** Stop the agent.  This should shut down the agent threads.
 	*/
 	public void stopAgent()
-		throws MetacartaException
+		throws LCFException
 	{
-		Metacarta.stopSystem(threadContext);
+		LCF.stopSystem(threadContext);
 	}
 
 	/** Request permission from agent to delete an output connection.
@@ -81,27 +81,27 @@ public class CrawlerAgent implements IAgent
 	*@return true if the connection is in use, false otherwise.
 	*/
 	public boolean isOutputConnectionInUse(String connName)
-		throws MetacartaException
+		throws LCFException
 	{
-		return Metacarta.isOutputConnectionInUse(threadContext,connName);
+		return LCF.isOutputConnectionInUse(threadContext,connName);
 	}
 		
 	/** Note the deregistration of a set of output connections.
 	*@param connectionNames are the names of the connections being deregistered.
 	*/
 	public void noteOutputConnectorDeregistration(String[] connectionNames)
-		throws MetacartaException
+		throws LCFException
 	{
-		Metacarta.noteOutputConnectorDeregistration(threadContext,connectionNames);
+		LCF.noteOutputConnectorDeregistration(threadContext,connectionNames);
 	}
 		
 	/** Note the registration of a set of output connections.
 	*@param connectionNames are the names of the connections being registered.
 	*/
 	public void noteOutputConnectorRegistration(String[] connectionNames)
-		throws MetacartaException
+		throws LCFException
 	{
-		Metacarta.noteOutputConnectorRegistration(threadContext,connectionNames);
+		LCF.noteOutputConnectorRegistration(threadContext,connectionNames);
 	}
 
 }

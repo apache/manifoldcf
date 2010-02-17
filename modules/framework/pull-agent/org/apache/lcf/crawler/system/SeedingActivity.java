@@ -86,7 +86,7 @@ public class SeedingActivity implements ISeedingActivity
         *@param prereqEventNames is the list of prerequisite events required for this document, or null if none.
         */
         public void addSeedDocument(String documentIdentifier, String[] prereqEventNames)
-                throws MetacartaException
+                throws LCFException
         {
                 if (documentCount == MAX_COUNT)
                 {
@@ -94,7 +94,7 @@ public class SeedingActivity implements ISeedingActivity
                         writeSeedDocuments(documentHashList,documentList,documentPrereqList);
                         documentCount = 0;
                 }
-                documentHashList[documentCount] = Metacarta.hash(documentIdentifier);
+                documentHashList[documentCount] = LCF.hash(documentIdentifier);
                 documentList[documentCount] = documentIdentifier;
                 if (prereqEventNames != null)
                         documentPrereqList[documentCount] = prereqEventNames;
@@ -117,7 +117,7 @@ public class SeedingActivity implements ISeedingActivity
         *@param documentIdentifier is the identifier of the document to add to the "pending" queue.
         */
         public void addSeedDocument(String documentIdentifier)
-                throws MetacartaException
+                throws LCFException
         {
                 addSeedDocument(documentIdentifier,null);
         }
@@ -134,7 +134,7 @@ public class SeedingActivity implements ISeedingActivity
         * "pending" queue.
         */
         public void addUnqueuedSeedDocument(String documentIdentifier)
-                throws MetacartaException
+                throws LCFException
         {
                 if (remainingDocumentCount == MAX_COUNT)
                 {
@@ -142,12 +142,12 @@ public class SeedingActivity implements ISeedingActivity
                         jobManager.addRemainingDocumentsInitial(jobID,legalLinkTypes,remainingDocumentHashList,hopcountMethod);
                         remainingDocumentCount = 0;
                 }
-                remainingDocumentHashList[remainingDocumentCount++] = Metacarta.hash(documentIdentifier);
+                remainingDocumentHashList[remainingDocumentCount++] = LCF.hash(documentIdentifier);
         }
 
         /** Finish a seeding pass */
         public void doneSeeding(boolean isPartial)
-                throws MetacartaException
+                throws LCFException
         {
                 if (documentCount > 0)
                 {
@@ -200,7 +200,7 @@ public class SeedingActivity implements ISeedingActivity
         */
         public void recordActivity(Long startTime, String activityType, Long dataSize,
                 String entityIdentifier, String resultCode, String resultDescription, String[] childIdentifiers)
-                throws MetacartaException
+                throws LCFException
         {
                 connManager.recordHistory(connectionName,startTime,activityType,dataSize,entityIdentifier,resultCode,
                         resultDescription,childIdentifiers);
@@ -208,7 +208,7 @@ public class SeedingActivity implements ISeedingActivity
 
         /** Write specified documents after calculating their priorities */
         protected void writeSeedDocuments(String[] docIDHashes, String[] docIDs, String[][] prereqEventNames)
-                throws MetacartaException
+                throws LCFException
         {
                 // First, prioritize the documents using the queue tracker
                 long prioritizationTime = System.currentTimeMillis();
@@ -252,7 +252,7 @@ public class SeedingActivity implements ISeedingActivity
         * caller, will signal that the current seeding activity remains incomplete and must be retried when the job is resumed.
         */
         public void checkJobStillActive()
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
                 if (jobManager.checkJobActive(jobID) == false)
                         throw new ServiceInterruption("Job no longer active",System.currentTimeMillis());
@@ -264,7 +264,7 @@ public class SeedingActivity implements ISeedingActivity
         */
         public String createGlobalString(String simpleString)
         {
-                return Metacarta.createGlobalString(simpleString);
+                return LCF.createGlobalString(simpleString);
         }
         
         /** Create a connection-specific string from a simple string.
@@ -273,7 +273,7 @@ public class SeedingActivity implements ISeedingActivity
         */
         public String createConnectionSpecificString(String simpleString)
         {
-                return Metacarta.createConnectionSpecificString(connection.getName(),simpleString);
+                return LCF.createConnectionSpecificString(connection.getName(),simpleString);
         }
         
         /** Create a job-based string from a simple string.
@@ -282,7 +282,7 @@ public class SeedingActivity implements ISeedingActivity
         */
         public String createJobSpecificString(String simpleString)
         {
-                return Metacarta.createJobSpecificString(jobID,simpleString);
+                return LCF.createJobSpecificString(jobID,simpleString);
         }
 
 }

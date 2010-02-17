@@ -36,6 +36,6 @@ public interface SequenceCredentials extends AuthenticationCredentials
         * the case where more than one matching rule is found.
         */
         public Iterator findLoginParameters(String documentIdentifier)
-                throws MetacartaException;
+                throws LCFException;
     
 }

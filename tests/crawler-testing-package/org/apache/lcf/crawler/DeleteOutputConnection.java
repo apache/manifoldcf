@@ -47,7 +47,7 @@ public class DeleteOutputConnection
 		String connectionName = args[0];
 		try
 		{
-		        Metacarta.initializeEnvironment();
+		        LCF.initializeEnvironment();
 			IThreadContext tc = ThreadContextFactory.make();
 			IOutputConnectionManager mgr = OutputConnectionManagerFactory.make(tc);
 			mgr.delete(connectionName);

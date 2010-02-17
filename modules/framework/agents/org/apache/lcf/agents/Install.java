@@ -43,12 +43,12 @@ public class Install
 
 		try
 		{
-			Metacarta.initializeEnvironment();
+			LCF.initializeEnvironment();
 			IThreadContext tc = ThreadContextFactory.make();
-			Metacarta.installTables(tc);
+			LCF.installTables(tc);
 			System.err.println("Agent tables installed");
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			e.printStackTrace();
 			System.exit(1);

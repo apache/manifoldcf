@@ -41,7 +41,7 @@ import jcifs.smb.SmbFileFilter;
 import org.apache.lcf.agents.interfaces.RepositoryDocument;
 import org.apache.lcf.agents.interfaces.ServiceInterruption;
 import org.apache.lcf.core.interfaces.ConfigParams;
-import org.apache.lcf.core.interfaces.MetacartaException;
+import org.apache.lcf.core.interfaces.LCFException;
 import org.apache.lcf.crawler.interfaces.DocumentSpecification;
 import org.apache.lcf.crawler.interfaces.IDocumentIdentifierStream;
 import org.apache.lcf.crawler.interfaces.IProcessActivity;
@@ -125,13 +125,13 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
 
         /** Establish a "session".  In the case of the jcifs connector, this just builds the appropriate smbconnectionPath string, and does the necessary checks. */
         protected void getSession()
-                throws MetacartaException
+                throws LCFException
         {
                 if (smbconnectionPath == null)
                 {
                         // Get the server
                         if (server == null || server.length() == 0)
-                                throw new MetacartaException("Missing parameter '"+SharedDriveParameters.server+"'");
+                                throw new LCFException("Missing parameter '"+SharedDriveParameters.server+"'");
 
                         // make the smb connection to the server
                         String authenticationString;
@@ -153,7 +153,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
                         catch (MalformedURLException e)
                         {
                                 Logging.connectors.error("Unable to access SMB/CIFS share: "+"smb://" + authenticationString.substring(0,authenticationString.indexOf(":")+1) + "<password>@" + server + "/\n" + e);
-                                throw new MetacartaException("Unable to access SMB/CIFS share: "+server, e, MetacartaException.REPOSITORY_CONNECTION_ERROR);
+                                throw new LCFException("Unable to access SMB/CIFS share: "+server, e, LCFException.REPOSITORY_CONNECTION_ERROR);
                         }	
                 }
         }
@@ -181,7 +181,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
         /** Close the connection.  Call this before discarding the repository connector.
         */
         public void disconnect()
-                throws MetacartaException
+                throws LCFException
         {
                 server = null;
                 domain = null;
@@ -255,7 +255,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
          * @return the document uri.
          */
         protected static String convertToURI(String documentIdentifier, MatchMap fileMap, MatchMap uriMap)
-                throws MetacartaException
+                throws LCFException
         {
                 //
                 // Note well: This MUST be a legal URI!!
@@ -302,7 +302,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
                         catch (java.io.UnsupportedEncodingException e)
                         {
                             // Should not happen...
-                            throw new MetacartaException(e.getMessage(),e);
+                            throw new LCFException(e.getMessage(),e);
                         }
                 }
                 else
@@ -354,7 +354,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
                         catch (java.io.UnsupportedEncodingException e)
                         {
                             // Should not happen...
-                            throw new MetacartaException(e.getMessage(),e);
+                            throw new LCFException(e.getMessage(),e);
                         }
                 }
         }
@@ -373,7 +373,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
         *@return the stream of local document identifiers that should be added to the queue.
         */
         public IDocumentIdentifierStream getDocumentIdentifiers(DocumentSpecification spec, long startTime, long endTime)
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
                 getSession();
                 return new IdentifierStream(spec);
@@ -399,7 +399,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
         */
         public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
                 DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
                 getSession();
                 // Read the forced acls.  A null return indicates that security is disabled!!!
@@ -546,7 +546,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
                     catch (MalformedURLException mue)
                     {
                         Logging.connectors.error("JCIFS: MalformedURLException thrown: "+mue.getMessage(),mue);
-                        throw new MetacartaException("MalformedURLException thrown: "+mue.getMessage(),mue);
+                        throw new LCFException("MalformedURLException thrown: "+mue.getMessage(),mue);
                     }
                     catch (SmbException se)
                     {
@@ -562,7 +562,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
                     }
                     catch (InterruptedIOException e)
                     {
-                        throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+                        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
                     }
                     catch (IOException e)
                     {
@@ -598,7 +598,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
          *            methods.
          */
         public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities,
-                    DocumentSpecification spec, boolean[] scanOnly) throws MetacartaException, ServiceInterruption
+                    DocumentSpecification spec, boolean[] scanOnly) throws LCFException, ServiceInterruption
         {
                 getSession();
                 
@@ -791,7 +791,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
                         Logging.connectors.error("MalformedURLException tossed",mue);
                         activities.recordActivity(null,ACTIVITY_ACCESS,
                                 null,documentIdentifier,"Error","Malformed URL: "+mue.getMessage(),null);
-                        throw new MetacartaException("MalformedURLException tossed: "+mue.getMessage(),mue);
+                        throw new LCFException("MalformedURLException tossed: "+mue.getMessage(),mue);
                     }
                     catch (jcifs.smb.SmbAuthException e)
                     {
@@ -812,7 +812,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
                                 // See if it's an interruption
                                 jcifs.util.transport.TransportException te = (jcifs.util.transport.TransportException)cause;
                                 if (te.getRootCause() != null && te.getRootCause() instanceof java.lang.InterruptedException)
-                                        throw new MetacartaException(te.getRootCause().getMessage(),te.getRootCause(),MetacartaException.INTERRUPTED);
+                                        throw new LCFException(te.getRootCause().getMessage(),te.getRootCause(),LCFException.INTERRUPTED);
 
                                 Logging.connectors.warn("JCIFS: Timeout processing document/directory "+documentIdentifier+": retrying...",se);
                                 activities.recordActivity(null,ACTIVITY_ACCESS,
@@ -873,7 +873,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
                                 Logging.connectors.error("JCIFS: SmbException tossed processing "+documentIdentifier,se);
                                 activities.recordActivity(null,ACTIVITY_ACCESS,
                                         null,documentIdentifier,"Error","Unknown: "+se.getMessage(),null);
-                                throw new MetacartaException("SmbException tossed: "+se.getMessage(),se);
+                                throw new LCFException("SmbException tossed: "+se.getMessage(),se);
                         }
                     }
                     catch (java.net.SocketTimeoutException e)
@@ -887,7 +887,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
                     }
                     catch (InterruptedIOException e)
                     {
-                        throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+                        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
                     }
                     catch (IOException e)
                     {
@@ -911,7 +911,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
         */
         protected void describeDocumentSecurity(StringBuffer description, SmbFile file, String[] forcedacls,
                 String[] forcedShareAcls)
-                throws MetacartaException, IOException
+                throws LCFException, IOException
         {
                 String[] shareAllowAcls;
                 String[] shareDenyAcls;
@@ -1084,7 +1084,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
 
 
         protected static void processSMBException(SmbException se, String documentIdentifier, String activity, String operation)
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
                 // At least some of these are transport errors, and should be treated as service
                 // interruptions.
@@ -1095,7 +1095,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
                         // See if it's an interruption
                         jcifs.util.transport.TransportException te = (jcifs.util.transport.TransportException)cause;
                         if (te.getRootCause() != null && te.getRootCause() instanceof java.lang.InterruptedException)
-                                throw new MetacartaException(te.getRootCause().getMessage(),te.getRootCause(),MetacartaException.INTERRUPTED);
+                                throw new LCFException(te.getRootCause().getMessage(),te.getRootCause(),LCFException.INTERRUPTED);
                         Logging.connectors.warn("JCIFS: Timeout "+activity+" for "+documentIdentifier+": retrying...",se);
                         // Transport exceptions no longer abort when they give up, so we can't get notified that there is a problem.
 
@@ -1142,12 +1142,12 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
                 else if (se.getMessage().indexOf("Incorrect function") != -1)
                 {
                         Logging.connectors.error("JCIFS: Server does not support a required operation ("+operation+"?) for "+documentIdentifier);
-                        throw new MetacartaException("Server does not support a required operation ("+operation+", possibly?) accessing document "+documentIdentifier,se);
+                        throw new LCFException("Server does not support a required operation ("+operation+", possibly?) accessing document "+documentIdentifier,se);
                 }
                 else
                 {
                         Logging.connectors.error("SmbException thrown "+activity+" for "+documentIdentifier,se);
-                        throw new MetacartaException("SmbException thrown: "+se.getMessage(),se);
+                        throw new LCFException("SmbException thrown: "+se.getMessage(),se);
                 }
         }
 
@@ -1209,7 +1209,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
         }
 
         protected static int setPathMetadata(RepositoryDocument rd, String version, int index)
-                throws MetacartaException
+                throws LCFException
         {
                 if (version.length() > index && version.charAt(index++) == '+')
                 {
@@ -1233,7 +1233,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
         /** Check status of connection.
         */
         public String check()
-                throws MetacartaException
+                throws LCFException
         {
             getSession();
             String serverURI = smbconnectionPath;
@@ -1265,7 +1265,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
                         }
                         catch (InterruptedIOException e)
                         {
-                                throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+                                throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
                         }
                         catch (IOException e)
                         {
@@ -1291,7 +1291,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
         *@return true if it should be included.
         */
         protected boolean checkInclude(SmbFile file, String fileName, DocumentSpecification documentSpecification)
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
             if (Logging.connectors.isDebugEnabled())
                 Logging.connectors.debug("JCIFS: In checkInclude for '"+fileName+"'");
@@ -1346,7 +1346,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
                                         }
                                         catch (NumberFormatException e)
                                         {
-                                                throw new MetacartaException("Bad number",e);
+                                                throw new LCFException("Bad number",e);
                                         }
                                 }
                         }
@@ -1476,15 +1476,15 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
             }
             catch (java.net.SocketTimeoutException e)
             {
-                throw new MetacartaException("Couldn't map to canonical path: "+e.getMessage(),e);
+                throw new LCFException("Couldn't map to canonical path: "+e.getMessage(),e);
             }
             catch (InterruptedIOException e)
             {
-                throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+                throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
             }
             catch (IOException e)
             {
-                throw new MetacartaException("Couldn't map to canonical path: "+e.getMessage(),e);
+                throw new LCFException("Couldn't map to canonical path: "+e.getMessage(),e);
             }
             finally
             {
@@ -1504,7 +1504,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
         */
         protected boolean wouldFileBeIncluded(String fileName, DocumentSpecification documentSpecification,
                 boolean pretendIndexable)
-                throws MetacartaException
+                throws LCFException
         {
             if (Logging.connectors.isDebugEnabled())
                 Logging.connectors.debug("JCIFS: In wouldFileBeIncluded for '"+fileName+"', pretendIndexable="+(pretendIndexable?"true":"false"));
@@ -1613,15 +1613,15 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
             }
             catch (java.net.SocketTimeoutException e)
             {
-                throw new MetacartaException("Couldn't map to canonical path: "+e.getMessage(),e);
+                throw new LCFException("Couldn't map to canonical path: "+e.getMessage(),e);
             }
             catch (InterruptedIOException e)
             {
-                throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+                throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
             }
             catch (IOException e)
             {
-                throw new MetacartaException("Couldn't map to canonical path: "+e.getMessage(),e);
+                throw new LCFException("Couldn't map to canonical path: "+e.getMessage(),e);
             }
             finally
             {
@@ -1637,7 +1637,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
         *@return true if the file needs to be fingerprinted.
         */
         protected boolean checkNeedFileData(String fileName, DocumentSpecification documentSpecification)
-                throws MetacartaException
+                throws LCFException
         {
             return wouldFileBeIncluded(fileName,documentSpecification,true) != wouldFileBeIncluded(fileName,documentSpecification,false);
         }
@@ -1651,7 +1651,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
         *@return true if the file should be ingested.
         */
         protected boolean checkIngest(File localFile, String fileName, DocumentSpecification documentSpecification)
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
             if (Logging.connectors.isDebugEnabled())
                 Logging.connectors.debug("JCIFS: In checkIngest for '"+fileName+"'");
@@ -1775,15 +1775,15 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
             }
             catch (java.net.SocketTimeoutException e)
             {
-                throw new MetacartaException("Couldn't map to canonical path: "+e.getMessage(),e);
+                throw new LCFException("Couldn't map to canonical path: "+e.getMessage(),e);
             }
             catch (InterruptedIOException e)
             {
-                throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+                throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
             }
             catch (IOException e)
             {
-                throw new MetacartaException("Couldn't map to canonical path: "+e.getMessage(),e);
+                throw new LCFException("Couldn't map to canonical path: "+e.getMessage(),e);
             }
             finally
             {
@@ -1986,7 +1986,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
         * The code here has been lifted algorithmically from products/ShareCrawler/Fingerprinter.pas.
         */
         protected static int fingerprint(File file)
-                throws MetacartaException
+                throws LCFException
         {
                 try
                 {
@@ -2060,7 +2060,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
                 }
                 catch (InterruptedIOException e)
                 {
-                        throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+                        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
                 }
                 catch (IOException e)
                 {
@@ -2223,7 +2223,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
         * does not seem to be an OLE compound document.
         */
         protected static String getAppName(File documentPath)
-                throws MetacartaException
+                throws LCFException
         {
             try
             {
@@ -2250,7 +2250,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
             }
             catch (InterruptedIOException e)
             {
-                throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+                throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
             }
             catch (Throwable e)
             {
@@ -2719,7 +2719,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
                 protected int currentIndex = 0;
 
                 public IdentifierStream(DocumentSpecification spec)
-                        throws MetacartaException
+                        throws LCFException
                 {
                     try
                     {
@@ -2756,15 +2756,15 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
                     }
                     catch (java.net.SocketTimeoutException e)
                     {
-                        throw new MetacartaException("Couldn't map to canonical path: "+e.getMessage(),e);
+                        throw new LCFException("Couldn't map to canonical path: "+e.getMessage(),e);
                     }
                     catch (InterruptedIOException e)
                     {
-                        throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+                        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
                     }
                     catch (IOException e)
                     {
-                        throw new MetacartaException("Could not get a canonical path: "+e.getMessage(),e);
+                        throw new LCFException("Could not get a canonical path: "+e.getMessage(),e);
                     }
                 }
 
@@ -2772,7 +2772,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
                 *@return the next document identifier, or null if there are no more.
                 */
                 public String getNextIdentifier()
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         if (currentIndex == ids.length)
                                 return null;
@@ -2782,7 +2782,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
                 /** Close the stream.
                 */
                 public void close()
-                        throws MetacartaException
+                        throws LCFException
                 {
                         ids = null;
                 }
@@ -2798,7 +2798,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
          * @return an array of SmbFile
          */
         public SmbFile[] getShareNames(String serverURI)
-                throws MetacartaException
+                throws LCFException
         {
             getSession();
             SmbFile server = null;
@@ -2808,7 +2808,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
             }
             catch (MalformedURLException e1)
             {
-                throw new MetacartaException("MalformedURLException tossed",e1);
+                throw new LCFException("MalformedURLException tossed",e1);
             }
             SmbFile[] shares = null;
             try
@@ -2821,7 +2821,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
             }
             catch (SmbException e)
             {
-                throw new MetacartaException("SmbException tossed: "+e.getMessage(),e);
+                throw new LCFException("SmbException tossed: "+e.getMessage(),e);
             }
             return shares;
         }
@@ -2830,9 +2830,9 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
         * Given a folder path, determine if the folder is in fact legal and accessible (and is a folder).
          * @param folder is the relative folder from the network root
          * @return the canonical folder name if valid, or null if not.
-         * @throws MetacartaException
+         * @throws LCFException
         */
-        public String validateFolderName(String folder) throws MetacartaException
+        public String validateFolderName(String folder) throws LCFException
         {
             getSession();
             //create new connection by appending to the old connection
@@ -2849,7 +2849,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
             }
             catch (MalformedURLException e1)
             {
-                throw new MetacartaException("validateFolderName: Can't get parent file: " + uri,e1);
+                throw new LCFException("validateFolderName: Can't get parent file: " + uri,e1);
             }
         
             try
@@ -2872,24 +2872,24 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
                 }
                 catch (ServiceInterruption si)
                 {
-                        throw new MetacartaException("Service interruption: "+si.getMessage(),si);
+                        throw new LCFException("Service interruption: "+si.getMessage(),si);
                 }
             }
             catch (MalformedURLException e)
             {
-                throw new MetacartaException("MalformedURLException tossed: "+e.getMessage(),e);
+                throw new LCFException("MalformedURLException tossed: "+e.getMessage(),e);
             }
             catch (java.net.SocketTimeoutException e)
             {
-                throw new MetacartaException("IOException tossed: "+e.getMessage(),e);
+                throw new LCFException("IOException tossed: "+e.getMessage(),e);
             }
             catch (InterruptedIOException e)
             {
-                throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+                throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
             }
             catch (IOException e)
             {
-                throw new MetacartaException("IOException tossed: "+e.getMessage(),e);
+                throw new LCFException("IOException tossed: "+e.getMessage(),e);
             }
 
         }
@@ -2899,9 +2899,9 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
          * 
          * @param folder is the relative folder from the network root
          * @return array of child folder names
-         * @throws MetacartaException
+         * @throws LCFException
          */
-        public String[] getChildFolderNames(String folder) throws MetacartaException
+        public String[] getChildFolderNames(String folder) throws LCFException
         {
             getSession();
             //create new connection by appending to the old connection
@@ -2918,7 +2918,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
             }
             catch (MalformedURLException e1)
             {
-                throw new MetacartaException("getChildFolderNames: Can't get parent file: " + uri,e1);
+                throw new LCFException("getChildFolderNames: Can't get parent file: " + uri,e1);
             }
         
             // add DFS support
@@ -2937,24 +2937,24 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
                 }
                 catch (ServiceInterruption si)
                 {
-                        throw new MetacartaException("Service interruption: "+si.getMessage(),si);
+                        throw new LCFException("Service interruption: "+si.getMessage(),si);
                 }
             }
             catch (MalformedURLException e)
             {
-                throw new MetacartaException("MalformedURLException tossed: "+e.getMessage(),e);
+                throw new LCFException("MalformedURLException tossed: "+e.getMessage(),e);
             }
             catch (java.net.SocketTimeoutException e)
             {
-                throw new MetacartaException("IOException tossed: "+e.getMessage(),e);
+                throw new LCFException("IOException tossed: "+e.getMessage(),e);
             }
             catch (InterruptedIOException e)
             {
-                throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+                throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
             }
             catch (IOException e)
             {
-                throw new MetacartaException("IOException tossed: "+e.getMessage(),e);
+                throw new LCFException("IOException tossed: "+e.getMessage(),e);
             }
 
             // populate a String array
@@ -3093,7 +3093,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
                 /** Document specification */
                 protected DocumentSpecification spec;
                 /** Exceptions that we saw.  These are saved here so that they can be rethrown when done */
-                protected MetacartaException metacartaException = null;
+                protected LCFException metacartaException = null;
                 protected ServiceInterruption serviceInterruption = null;
 
                 /** Constructor */
@@ -3143,7 +3143,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
 
                                 return false;
                         }
-                        catch (MetacartaException e)
+                        catch (LCFException e)
                         {
                                 if (metacartaException == null)
                                         metacartaException = e;
@@ -3159,7 +3159,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
 
                 /** Check for exception, and throw if there is one */
                 public void checkAndThrow()
-                        throws ServiceInterruption, MetacartaException
+                        throws ServiceInterruption, LCFException
                 {
                         if (metacartaException != null)
                                 throw metacartaException;

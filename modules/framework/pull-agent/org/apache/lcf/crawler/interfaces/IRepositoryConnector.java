@@ -24,7 +24,7 @@ import org.apache.lcf.agents.interfaces.*;
 import java.io.*;
 import java.util.*;
 
-/** This interface describes an instance of a connection between a repository and Metacarta's
+/** This interface describes an instance of a connection between a repository and LCF's
 * standard "pull" ingestion agent.
 *
 * Each instance of this interface is used in only one thread at a time.  Connection Pooling
@@ -97,7 +97,7 @@ public interface IRepositoryConnector
 	*@param threadContext is the current thread context.
 	*/
 	public void install(IThreadContext threadContext)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Uninstall the connector.
 	* This method is called to remove persistent storage for the connector, such as database tables etc.
@@ -105,7 +105,7 @@ public interface IRepositoryConnector
 	*@param threadContext is the current thread context.
 	*/
 	public void deinstall(IThreadContext threadContext)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Return the list of activities that this connector supports (i.e. writes into the log).
 	*@return the list.
@@ -139,18 +139,18 @@ public interface IRepositoryConnector
 	*@return the connection's status as a displayable string.
 	*/
 	public String check()
-		throws MetacartaException;
+		throws LCFException;
 
 	/** This method is periodically called for all connectors that are connected but not
 	* in active use.
 	*/
 	public void poll()
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Close the connection.  Call this before discarding the repository connector.
 	*/
 	public void disconnect()
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Clear out any state information specific to a given thread.
 	* This method is called when this object is returned to the connection pool.
@@ -207,7 +207,7 @@ public interface IRepositoryConnector
 	*/
 	public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
 		long startTime, long endTime, int jobMode)
-		throws MetacartaException, ServiceInterruption;
+		throws LCFException, ServiceInterruption;
 
 	/** Get document versions given an array of document identifiers.
 	* This method is called for EVERY document that is considered. It is
@@ -228,7 +228,7 @@ public interface IRepositoryConnector
 	*/
 	public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
 		DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-		throws MetacartaException, ServiceInterruption;
+		throws LCFException, ServiceInterruption;
 
 	/** Process a set of documents.
 	* This is the method that should cause each document to be fetched, processed, and the results either added
@@ -246,7 +246,7 @@ public interface IRepositoryConnector
 	*/
 	public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities,
 		DocumentSpecification spec, boolean[] scanOnly, int jobMode)
-		throws MetacartaException, ServiceInterruption;
+		throws LCFException, ServiceInterruption;
 
 	/** Free a set of documents.  This method is called for all documents whose versions have been fetched using
 	* the getDocumentVersions() method, including those that returned null versions.  It may be used to free resources
@@ -256,7 +256,7 @@ public interface IRepositoryConnector
 	*@param versions is the corresponding set of version identifiers (individual identifiers may be null).
 	*/
 	public void releaseDocumentVersions(String[] documentIdentifiers, String[] versions)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Get the maximum number of documents to amalgamate together into one batch, for this connector.
 	*@return the maximum number. 0 indicates "unlimited".

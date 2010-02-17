@@ -54,46 +54,46 @@ public interface IJobManager
         /** Install the job manager's tables.
         */
         public void install()
-                throws MetacartaException;
+                throws LCFException;
 
         /** Uninstall the job manager's tables.
         */
         public void deinstall()
-                throws MetacartaException;
+                throws LCFException;
 
         /** Export configuration */
         public void exportConfiguration(java.io.OutputStream os)
-                throws java.io.IOException, MetacartaException;
+                throws java.io.IOException, LCFException;
         
         /** Import configuration */
         public void importConfiguration(java.io.InputStream is)
-                throws java.io.IOException, MetacartaException;
+                throws java.io.IOException, LCFException;
 
         /** Load a sorted list of job descriptions.
         *@return the list, sorted by description.
         */
         public IJobDescription[] getAllJobs()
-                throws MetacartaException;
+                throws LCFException;
 
         /** Create a new job.
         *@return the new job.
         */
         public IJobDescription createJob()
-                throws MetacartaException;
+                throws LCFException;
 
         /** Delete a job.
         *@param id is the job's identifier.  This method will purge all the records belonging to the job from the database, as
         * well as remove all documents indexed by the job from the index.
         */
         public void deleteJob(Long id)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Load a job for editing.
         *@param id is the job's identifier.
         *@return null if the job doesn't exist.
         */
         public IJobDescription load(Long id)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Load a job.
         *@param id is the job's identifier.
@@ -101,34 +101,34 @@ public interface IJobManager
         *@return null if the job doesn't exist.
         */
         public IJobDescription load(Long id, boolean readOnly)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Save a job.
         *@param jobDescription is the job description.
         */
         public void save(IJobDescription jobDescription)
-                throws MetacartaException;
+                throws LCFException;
 
         /** See if there's a reference to a connection name.
         *@param connectionName is the name of the connection.
         *@return true if there is a reference, false otherwise.
         */
         public boolean checkIfReference(String connectionName)
-                throws MetacartaException;
+                throws LCFException;
 
         /** See if there's a reference to an output connection name.
         *@param connectionName is the name of the connection.
         *@return true if there is a reference, false otherwise.
         */
         public boolean checkIfOutputReference(String connectionName)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Get the job IDs associated with a given connection name.
         *@param connectionName is the name of the connection.
         *@return the set of job id's associated with that connection.
         */
         public IJobDescription[] findJobsForConnection(String connectionName)
-                throws MetacartaException;
+                throws LCFException;
                 
         // These methods cover activities that require interaction with the job queue.
         // The job queue is maintained underneath this interface, and all threads that perform
@@ -141,27 +141,27 @@ public interface IJobManager
         * state.
         */
         public void prepareForStart()
-                throws MetacartaException;
+                throws LCFException;
 
         /** Reset as part of restoring document worker threads.
         */
         public void resetDocumentWorkerStatus()
-                throws MetacartaException;
+                throws LCFException;
 
         /** Reset as part of restoring seeding threads.
         */
         public void resetSeedingWorkerStatus()
-                throws MetacartaException;
+                throws LCFException;
 
         /** Reset as part of restoring doc delete threads.
         */
         public void resetDocDeleteWorkerStatus()
-                throws MetacartaException;
+                throws LCFException;
 
         /** Reset as part of restoring startup threads.
         */
         public void resetStartupWorkerStatus()
-                throws MetacartaException;
+                throws LCFException;
 
         // These methods support the "set doc priority" thread
 
@@ -173,7 +173,7 @@ public interface IJobManager
         *@return the document descriptions.
         */
         public DocumentDescription[] getNextAlreadyProcessedReprioritizationDocuments(long currentTime, int n)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Get a list of not-yet-processed documents to reprioritize.  Documents in all jobs will be
         * returned by this method.  Up to n document descriptions will be returned.
@@ -183,7 +183,7 @@ public interface IJobManager
         *@return the document descriptions.
         */
         public DocumentDescription[] getNextNotYetProcessedReprioritizationDocuments(long currentTime, int n)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Save a set of document priorities.  In the case where a document was eligible to have its
         * priority set, but it no longer is eligible, then the provided priority will not be written.
@@ -192,7 +192,7 @@ public interface IJobManager
         *@param priorities are the desired priorities.
         */
         public void writeDocumentPriorities(long currentTime, DocumentDescription[] descriptions, double[] priorities)
-                throws MetacartaException;
+                throws LCFException;
 
         // This method supports the "expiration" thread
         
@@ -206,7 +206,7 @@ public interface IJobManager
         *@return the array of document descriptions to expire.
         */
         public DocumentDescription[] getExpiredDocuments(int n, long currentTime)
-                throws MetacartaException;
+                throws LCFException;
                 
         // This method supports the "queue stuffer" thread
 
@@ -229,7 +229,7 @@ public interface IJobManager
         public DocumentDescription[] getNextDocuments(int n, long currentTime, long interval,
                 BlockingDocuments blockingDocuments, PerformanceStatistics statistics,
                 DepthStatistics scanRecord)
-                throws MetacartaException;
+                throws LCFException;
 
         // These methods support the individual fetch/process threads.
 
@@ -239,25 +239,25 @@ public interface IJobManager
         *@return true if the job is in one of the "active" states.
         */
         public boolean checkJobActive(Long jobID)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Verify if a job is still processing documents, or no longer has any outstanding active documents */
         public boolean checkJobBusy(Long jobID)
-                throws MetacartaException;
+                throws LCFException;
                 
         /** Note completion of document processing by a job thread of a document.
         * This method causes the state of the document to be marked as "completed".
         *@param documentDescriptions are the description objects for the documents that were processed.
         */
         public void markDocumentCompletedMultiple(DocumentDescription[] documentDescriptions)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Note completion of document processing by a job thread of a document.
         * This method causes the state of the document to be marked as "completed".
         *@param documentDescription is the description object for the document that was processed.
         */
         public void markDocumentCompleted(DocumentDescription documentDescription)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Note deletion as result of document processing by a job thread of a document.
         *@param documentDescriptions are the set of description objects for the documents that were processed.
@@ -267,7 +267,7 @@ public interface IJobManager
         */
         public DocumentDescription[] markDocumentDeletedMultiple(Long jobID, String[] legalLinkTypes, DocumentDescription[] documentDescriptions,
                 int hopcountMethod)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Note deletion as result of document processing by a job thread of a document.
         *@param documentDescription is the description object for the document that was processed.
@@ -277,7 +277,7 @@ public interface IJobManager
         */
         public DocumentDescription[] markDocumentDeleted(Long jobID, String[] legalLinkTypes, DocumentDescription documentDescription,
                 int hopcountMethod)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Requeue a document set because of carrydown changes.
         * This method is called when carrydown data is modified for a set of documents.  The documents must be requeued for immediate reprocessing, even to the
@@ -287,7 +287,7 @@ public interface IJobManager
         *@return a flag for each document priority, true if it was used, false otherwise.
         */
         public boolean[] carrydownChangeDocumentMultiple(DocumentDescription[] documentDescriptions, long currentTime, double[] docPriorities)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Requeue a document because of carrydown changes.
         * This method is called when carrydown data is modified for a document.  The document must be requeued for immediate reprocessing, even to the
@@ -297,7 +297,7 @@ public interface IJobManager
         *@return a flag for the document priority, true if it was used, false otherwise.
         */
         public boolean carrydownChangeDocument(DocumentDescription documentDescription, long currentTime, double docPriority)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Requeue a document for further processing in the future.
         * This method is called after a document is processed, when the job is a "continuous" one.
@@ -309,7 +309,7 @@ public interface IJobManager
         */
         public void requeueDocumentMultiple(DocumentDescription[] documentDescriptions, Long[] executeTimes,
                 int[] actions)
-                throws MetacartaException;
+                throws LCFException;
 
 
         /** Requeue a document for further processing in the future.
@@ -322,7 +322,7 @@ public interface IJobManager
         */
         public void requeueDocument(DocumentDescription documentDescription, Long executeTime,
                 int action)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Reset documents for further processing in the future.
         * This method is called after a service interruption is thrown.
@@ -334,7 +334,7 @@ public interface IJobManager
         */
         public void resetDocumentMultiple(DocumentDescription[] documentDescriptions, long executeTime,
                 int action, long failTime, int failCount)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Reset an active document back to its former state.
         * This gets done when there's a service interruption and the document cannot be processed yet.
@@ -346,7 +346,7 @@ public interface IJobManager
         */
         public void resetDocument(DocumentDescription documentDescription, long executeTime, int action, long failTime,
                 int failCount)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Reset a set of deleting documents for further processing in the future.
         * This method is called after some unknown number of the documents were deleted, but then an ingestion service interruption occurred.
@@ -357,13 +357,13 @@ public interface IJobManager
         *@param documentDescriptions is the set of description objects for the document that was processed.
         */
         public void resetDeletingDocumentMultiple(DocumentDescription[] documentDescriptions)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Reset a deleting document back to its former state.
         * This gets done when a deleting thread sees a service interruption, etc., from the ingestion system.
         */
         public void resetDeletingDocument(DocumentDescription documentDescription)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Add an initial set of documents to the queue.
         * This method is called during job startup, when the queue is being loaded.
@@ -384,7 +384,7 @@ public interface IJobManager
                 String[] docIDHashes, String[] docIDs, boolean overrideSchedule,
                 int hopcountMethod, long currentTime, double[] documentPriorities,
                 String[][] prereqEventNames)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Add an initial set of remaining documents to the queue.
         * This method is called during job startup, when the queue is being loaded, to list documents that
@@ -398,7 +398,7 @@ public interface IJobManager
         public void addRemainingDocumentsInitial(Long jobID, String[] legalLinkTypes,
                 String[] docIDHashes,
                 int hopcountMethod)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Signal that a seeding pass has been done.
         * Call this method at the end of a seeding pass.  It is used to perform the bookkeeping necessary to
@@ -411,20 +411,20 @@ public interface IJobManager
         */
         public void doneDocumentsInitial(Long jobID, String[] legalLinkTypes, boolean isPartial,
                 int hopcountMethod)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Begin an event sequence.
         *@param eventName is the name of the event.
         *@return true if the event could be created, or false if it's already there.
         */
         public boolean beginEventSequence(String eventName)
-                throws MetacartaException;
+                throws LCFException;
                 
         /** Complete an event sequence.
         *@param eventName is the name of the event.
         */
         public void completeEventSequence(String eventName)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Get the specified hop counts, with the limit as described.
         *@param jobID is the job identifier.
@@ -438,7 +438,7 @@ public interface IJobManager
         */
         public boolean[] findHopCounts(Long jobID, String[] legalLinkTypes, String[] docIDHashes, String linkType, int limit,
                 int hopcountMethod)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Get all the current seeds.
         * Returns the seed document identifiers for a job.
@@ -446,7 +446,7 @@ public interface IJobManager
         *@return the document identifier hashes that are currently considered to be seeds.
         */
         public String[] getAllSeeds(Long jobID)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Add a document to the queue.
         * This method is called during document processing, when a document reference is discovered.
@@ -475,7 +475,7 @@ public interface IJobManager
                 String relationshipType,
                 int hopcountMethod, String[] dataNames, Object[][] dataValues,
                 long currentTime, double priority, String[] prereqEventNames)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Add documents to the queue in bulk.
         * This method is called during document processing, when a set of document references are discovered.
@@ -504,7 +504,7 @@ public interface IJobManager
                 int hopcountMethod, String[][] dataNames, Object[][][] dataValues,
                 long currentTime, double[] priorities,
                 String[][] prereqEventNames)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Complete adding child documents to the queue, for a set of documents.
         * This method is called at the end of document processing, to help the hopcount tracking engine do its bookkeeping.
@@ -517,7 +517,7 @@ public interface IJobManager
         */
         public DocumentDescription[] finishDocuments(Long jobID, String[] legalLinkTypes,
                 String[] parentIdentifierHashes, int hopcountMethod)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Retrieve specific parent data for a given document.
         *@param jobID is the job identifier.
@@ -526,7 +526,7 @@ public interface IJobManager
         *@return the unique data values.
         */
         public String[] retrieveParentData(Long jobID, String docIDHash, String dataName)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Retrieve specific parent data for a given document.
         *@param jobID is the job identifier.
@@ -535,7 +535,7 @@ public interface IJobManager
         *@return the unique data values.
         */
         public CharacterInput[] retrieveParentDataAsFiles(Long jobID, String docIDHash, String dataName)
-                throws MetacartaException;
+                throws LCFException;
 
         // These methods support the job threads (which start jobs and end jobs)
         // There is one thread that starts jobs.  It simply looks for jobs which are ready to
@@ -549,40 +549,40 @@ public interface IJobManager
         *@param jobID is the ID of the job to start.
         */
         public void manualStart(Long jobID)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Manually abort a running job.  The job will be permanently stopped, and will not run again until
         * automatically started based on schedule, or manually started.
         *@param jobID is the job to abort.
         */
         public void manualAbort(Long jobID)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Manually restart a running job.  The job will be stopped and restarted.  Any schedule affinity will be lost,
         * until the job finishes on its own.
         *@param jobID is the job to abort.
         */
         public void manualAbortRestart(Long jobID)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Pause a job.
         *@param jobID is the job identifier to pause.
         */
         public void pauseJob(Long jobID)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Restart a paused job.
         *@param jobID is the job identifier to restart.
         */
         public void restartJob(Long jobID)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Reset job schedule.  This re-evaluates whether the job should be started now.  This method would typically
         * be called after a job's scheduling window has been changed.
         *@param jobID is the job identifier.
         */
         public void resetJobSchedule(Long jobID)
-                throws MetacartaException;
+                throws LCFException;
 
         // These methods are called by automatic processes
 
@@ -593,7 +593,7 @@ public interface IJobManager
         *@param unwaitList is filled in with the set of job id's that were resumed (Long's).
         */
         public void startJobs(long currentTime, ArrayList unwaitList)
-                throws MetacartaException;
+                throws LCFException;
 
 
         /** Put active or paused jobs in wait state, if they've exceeded their window.
@@ -601,7 +601,7 @@ public interface IJobManager
         *@param waitList is filled in with the set of job id's that were put into a wait state (Long's).
         */
         public void waitJobs(long currentTime, ArrayList waitList)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Get the list of jobs that are ready for seeding.
         *@param currentTime is the current time in milliseconds since epoch.
@@ -609,54 +609,54 @@ public interface IJobManager
         * based on what the connector says should be added to the queue.
         */
         public JobStartRecord[] getJobsReadyForSeeding(long currentTime)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Reset a seeding job back to "active" state.
         *@param jobID is the job id.
         */
         public void resetSeedJob(Long jobID)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Get the list of jobs that are ready for startup.
         *@return jobs that were in the "readyforstartup" state.  These will be marked as being in the "starting up" state.
         */
         public JobStartRecord[] getJobsReadyForStartup()
-                throws MetacartaException;
+                throws LCFException;
 
 
         /** Reset a starting job back to "ready for startup" state.
         *@param jobID is the job id.
         */
         public void resetStartupJob(Long jobID)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Prepare for a full scan.
         *@param jobID is the job id.
         *@param hopcountMethod describes how to handle deletions for hopcount purposes.
         */
         public void prepareFullScan(Long jobID, String[] legalLinkTypes, int hopcountMethod)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Prepare for an incremental scan.
         *@param jobID is the job id.
         *@param hopcountMethod describes how to handle deletions for hopcount purposes.
         */
         public void prepareIncrementalScan(Long jobID, String[] legalLinkTypes, int hopcountMethod)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Note job started.
         *@param jobID is the job id.
         *@param startTime is the job start time.
         */
         public void noteJobStarted(Long jobID, long startTime)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Note job seeded.
         *@param jobID is the job id.
         *@param startTime is the job seed time.
         */
         public void noteJobSeeded(Long jobID, long startTime)
-                throws MetacartaException;
+                throws LCFException;
 
         /**  Note the deregistration of a connector used by the specified connections.
         * This method will be called when the connector is deregistered.  Jobs that use these connections
@@ -664,7 +664,7 @@ public interface IJobManager
         *@param connectionNames is the set of connection names.
         */
         public void noteConnectorDeregistration(String[] connectionNames)
-                throws MetacartaException;
+                throws LCFException;
                 
         /** Note the registration of a connector used by the specified connections.
         * This method will be called when a connector is registered, on which the specified
@@ -672,7 +672,7 @@ public interface IJobManager
         *@param connectionNames is the set of connection names.
         */
         public void noteConnectorRegistration(String[] connectionNames)
-                throws MetacartaException;
+                throws LCFException;
 
         /**  Note the deregistration of an output connector used by the specified connections.
         * This method will be called when the connector is deregistered.  Jobs that use these connections
@@ -680,7 +680,7 @@ public interface IJobManager
         *@param connectionNames is the set of connection names.
         */
         public void noteOutputConnectorDeregistration(String[] connectionNames)
-                throws MetacartaException;
+                throws LCFException;
                 
         /** Note the registration of an output connector used by the specified connections.
         * This method will be called when a connector is registered, on which the specified
@@ -688,13 +688,13 @@ public interface IJobManager
         *@param connectionNames is the set of connection names.
         */
         public void noteOutputConnectorRegistration(String[] connectionNames)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Delete jobs in need of being deleted (which are marked "ready for delete").
         * This method is meant to be called periodically to perform delete processing on jobs.
         */
         public void deleteJobsReadyForDelete()
-                throws MetacartaException;
+                throws LCFException;
 
         /** Get list of deletable document descriptions.  This list will take into account
         * multiple jobs that may own the same document.
@@ -702,7 +702,7 @@ public interface IJobManager
         *@return the document descriptions for these documents.
         */
         public DocumentDescription[] getNextDeletableDocuments(int n)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Delete ingested document identifiers (as part of deleting the owning job).
         * The number of identifiers specified is guaranteed to be less than the maxInClauseCount
@@ -710,7 +710,7 @@ public interface IJobManager
         *@param identifiers is the set of document identifiers.
         */
         public void deleteIngestedDocumentIdentifiers(DocumentDescription[] identifiers)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Abort a running job due to a fatal error condition.
         *@param jobID is the job to abort.
@@ -718,27 +718,27 @@ public interface IJobManager
         *@return true if this is the first abort for the job.
         */
         public boolean errorAbort(Long jobID, String errorText)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Complete the sequence that aborts jobs and makes them runnable again.
         *@param currentTime is the current time in milliseconds since epoch.
         *@param abortJobs is filled in with the set of IJobDescription objects that were aborted.
         */
         public void finishJobAborts(long timestamp, ArrayList abortJobs)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Put all eligible jobs in the "shutting down" state.
         *@param finishList is filled in with the set of IJobDescription objects that were completed.
         */
         public void finishJobs(ArrayList finishList)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Reset eligible jobs back to "inactive" state.  This method is used to pick up all jobs in the shutting down state
         * whose purgatory records have been all cleaned up.
         *@param currentTime is the current time in milliseconds since epoch.
         */
         public void resetJobs(long currentTime)
-                throws MetacartaException;
+                throws LCFException;
 
 
         // Status reports
@@ -747,25 +747,25 @@ public interface IJobManager
         *@return the status object for the specified job.
         */
         public JobStatus getStatus(Long jobID)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Get a list of all jobs, and their status information.
         *@return an ordered array of job status objects.
         */
         public JobStatus[] getAllStatus()
-                throws MetacartaException;
+                throws LCFException;
 
         /** Get a list of running jobs.  This is for status reporting.
         *@return an array of the job status objects.
         */
         public JobStatus[] getRunningJobs()
-                throws MetacartaException;
+                throws LCFException;
 
         /** Get a list of completed jobs, and their statistics.
         *@return an array of the job status objects.
         */
         public JobStatus[] getFinishedJobs()
-                throws MetacartaException;
+                throws LCFException;
 
         // The following commands generate reports based on the queue.
         
@@ -780,7 +780,7 @@ public interface IJobManager
         */
         public IResultSet genDocumentStatus(String connectionName, StatusFilterCriteria filterCriteria, SortOrder sortOrder,
                 int startRow, int rowCount)
-                throws MetacartaException;
+                throws LCFException;
                 
         /** Run a 'queue status' report.
         *@param connectionName is the name of the connection.
@@ -794,5 +794,5 @@ public interface IJobManager
         */
         public IResultSet genQueueStatus(String connectionName, StatusFilterCriteria filterCriteria, SortOrder sortOrder,
                 BucketDescription idBucketDescription, int startRow, int rowCount)
-                throws MetacartaException;
+                throws LCFException;
 }

@@ -120,7 +120,7 @@
 	}
 	catch (java.io.IOException e)
 	{
-		throw new MetacartaException("IO error: "+e.getMessage(),e);
+		throw new LCFException("IO error: "+e.getMessage(),e);
 	}
 %>
 	</td>
@@ -240,7 +240,7 @@
 	}
 	catch (java.io.IOException e)
 	{
-		throw new MetacartaException("IO error: "+e.getMessage(),e);
+		throw new LCFException("IO error: "+e.getMessage(),e);
 	}
 %>
 	</td>
@@ -282,7 +282,7 @@
 	}
 	catch (java.io.IOException e)
 	{
-		throw new MetacartaException("IO error: "+e.getMessage(),e);
+		throw new LCFException("IO error: "+e.getMessage(),e);
 	}
 %>
 	</td>

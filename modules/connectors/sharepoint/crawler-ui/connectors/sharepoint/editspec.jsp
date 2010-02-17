@@ -299,7 +299,7 @@
 				RepositoryConnectorFactory.release(connector);
 			}
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			e.printStackTrace();
 			message = e.getMessage();
@@ -915,7 +915,7 @@
 			RepositoryConnectorFactory.release(connector);
 		    }
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			e.printStackTrace();
 			message = e.getMessage();
@@ -973,7 +973,7 @@
 				RepositoryConnectorFactory.release(connector);
 			}
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			e.printStackTrace();
 			message = e.getMessage();

@@ -44,7 +44,7 @@ public class Specification
 	*@param xml is the input XML.
 	*/
 	public Specification(String xml)
-		throws MetacartaException
+		throws LCFException
 	{
 		fromXML(xml);
 	}
@@ -70,7 +70,7 @@ public class Specification
 	*@return the xml corresponding to this DocumentSpecification.
 	*/
 	public String toXML()
-		throws MetacartaException
+		throws LCFException
 	{
 		XMLDoc doc = new XMLDoc();
 		// name of root node in definition
@@ -92,7 +92,7 @@ public class Specification
 	*@param node is the node.
 	*/
 	protected static void writeNode(XMLDoc doc, Object parent, SpecificationNode node)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Get the type
 		String type = node.getType();
@@ -122,7 +122,7 @@ public class Specification
 	*@param xml is the input XML.
 	*/
 	public void fromXML(String xml)
-		throws MetacartaException
+		throws LCFException
 	{
 		if (readOnly)
 			throw new IllegalStateException("Attempt to change read-only object");
@@ -133,11 +133,11 @@ public class Specification
 
 		if (list.size() != 1)
 		{
-			throw new MetacartaException("Bad xml - missing outer 'specification' node - there are "+Integer.toString(list.size())+" nodes");
+			throw new LCFException("Bad xml - missing outer 'specification' node - there are "+Integer.toString(list.size())+" nodes");
 		}
 		Object parent = list.get(0);
 		if (!doc.getNodeName(parent).equals("specification"))
-			throw new MetacartaException("Bad xml - outer node is not 'specification'");
+			throw new LCFException("Bad xml - outer node is not 'specification'");
 
 		list.clear();
 		doc.processPath(list, "*", parent);
@@ -158,7 +158,7 @@ public class Specification
 	*@return the specification node.
 	*/
 	protected static SpecificationNode readNode(XMLDoc doc, Object object)
-		throws MetacartaException
+		throws LCFException
 	{
 		String type = doc.getNodeName(object);
 		SpecificationNode rval = new SpecificationNode(type);

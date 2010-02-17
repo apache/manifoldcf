@@ -49,14 +49,14 @@ public class WaitJobPaused
 
 		try
 		{
-		        Metacarta.initializeEnvironment();
+		        LCF.initializeEnvironment();
 			IThreadContext tc = ThreadContextFactory.make();
 			IJobManager jobManager = JobManagerFactory.make(tc);
 			while (true)
 			{
 				if (jobManager.checkJobBusy(new Long(jobID)))
 				{
-					Metacarta.sleep(5000);
+					LCF.sleep(5000);
 					continue;
 				}
 				break;

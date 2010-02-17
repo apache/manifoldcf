@@ -49,7 +49,7 @@ public class RestartJob
 
 		try
 		{
-		        Metacarta.initializeEnvironment();
+		        LCF.initializeEnvironment();
 			IThreadContext tc = ThreadContextFactory.make();
 			IJobManager jobManager = JobManagerFactory.make(tc);
 			jobManager.restartJob(new Long(jobID));

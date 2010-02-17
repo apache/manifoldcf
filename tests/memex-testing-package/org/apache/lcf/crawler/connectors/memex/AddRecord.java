@@ -53,7 +53,7 @@ public class AddRecord
 			}
 			System.err.println("Successfully added");
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			e.printStackTrace(System.err);
 			System.exit(2);

@@ -45,7 +45,7 @@ public class ResetAll
 
 		try
 		{
-		        Metacarta.initializeEnvironment();
+		        LCF.initializeEnvironment();
 			IThreadContext tc = ThreadContextFactory.make();
 			IJobManager jobManager = JobManagerFactory.make(tc);
 			IRepositoryConnectionManager connMgr = RepositoryConnectionManagerFactory.make(tc);
@@ -62,7 +62,7 @@ public class ResetAll
 				{
 					jobManager.manualAbort(desc.getID());
 				}
-				catch (MetacartaException e)
+				catch (LCFException e)
 				{
 					// This generally means that the job was not running
 				}
@@ -85,7 +85,7 @@ public class ResetAll
 						case JobStatus.JOBSTATUS_ERROR:
 							break;
 						default:
-							Metacarta.sleep(10000);
+							LCF.sleep(10000);
 							continue;
 						}
 					}
@@ -102,7 +102,7 @@ public class ResetAll
 				{
 					jobManager.deleteJob(desc.getID());
 				}
-				catch (MetacartaException e)
+				catch (LCFException e)
 				{
 					// This usually means that the job is already being deleted
 				}
@@ -118,7 +118,7 @@ public class ResetAll
 					JobStatus status = jobManager.getStatus(desc.getID());
 					if (status != null)
 					{
-						Metacarta.sleep(10000);
+						LCF.sleep(10000);
 						continue;
 					}
 					break;

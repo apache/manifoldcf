@@ -21,7 +21,7 @@ package org.apache.lcf.crawler.jobs;
 import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.crawler.interfaces.*;
 import org.apache.lcf.crawler.system.Logging;
-import org.apache.lcf.crawler.system.Metacarta;
+import org.apache.lcf.crawler.system.LCF;
 import java.util.*;
 
 /** This class manages the table that keeps track of link deletion dependencies for cached
@@ -50,7 +50,7 @@ public class HopDeleteDeps extends org.apache.lcf.core.database.BaseTable
 	*@param database is the database handle.
 	*/
 	public HopDeleteDeps(IDBInterface database)
-		throws MetacartaException
+		throws LCFException
 	{
 		super(database,"hopdeletedeps");
 	}
@@ -58,7 +58,7 @@ public class HopDeleteDeps extends org.apache.lcf.core.database.BaseTable
 	/** Install or upgrade.
 	*/
 	public void install(String jobsTable, String jobsColumn, String hopCountTable, String idColumn)
-		throws MetacartaException
+		throws LCFException
 	{
 		beginTransaction();
 		try
@@ -115,7 +115,7 @@ public class HopDeleteDeps extends org.apache.lcf.core.database.BaseTable
 			}
 			return;
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -134,7 +134,7 @@ public class HopDeleteDeps extends org.apache.lcf.core.database.BaseTable
 	/** Uninstall.
 	*/
 	public void deinstall()
-		throws MetacartaException
+		throws LCFException
 	{
 		performDrop(null);
 	}
@@ -142,7 +142,7 @@ public class HopDeleteDeps extends org.apache.lcf.core.database.BaseTable
 	/** Analyze job tables that need analysis.
 	*/
 	public void analyzeTables()
-		throws MetacartaException
+		throws LCFException
 	{
 		long startTime = System.currentTimeMillis();
 		Logging.perf.debug("Beginning to analyze hopdeletedeps table");
@@ -152,7 +152,7 @@ public class HopDeleteDeps extends org.apache.lcf.core.database.BaseTable
 
 	/** Delete a job. */
 	public void deleteJob(Long jobID)
-		throws MetacartaException
+		throws LCFException
 	{
 		ArrayList list = new ArrayList();
 		list.add(jobID);
@@ -164,7 +164,7 @@ public class HopDeleteDeps extends org.apache.lcf.core.database.BaseTable
 	/** Remove rows that correspond to specific hopcount records.
 	*/
 	public void removeMarkedRows(String parentTable, String parentIDHashField, String query, ArrayList queryList)
-		throws MetacartaException
+		throws LCFException
 	{
 		// This didn't perform very well.
 		//performDelete("WHERE EXISTS(SELECT 'x' FROM "+parentTable+" t0 WHERE t0."+parentIDField+"="+ownerIDField+
@@ -180,7 +180,7 @@ public class HopDeleteDeps extends org.apache.lcf.core.database.BaseTable
 	* size.
 	*/
 	public void deleteOwnerRows(Long[] ownerIDs)
-		throws MetacartaException
+		throws LCFException
 	{
 		StringBuffer sb = new StringBuffer("WHERE ");
 		sb.append(ownerIDField).append(" IN(");
@@ -202,7 +202,7 @@ public class HopDeleteDeps extends org.apache.lcf.core.database.BaseTable
 	*@return the links
 	*/
 	public DeleteDependency[] getDeleteDependencies(Long ownerID)
-		throws MetacartaException
+		throws LCFException
 	{
 		ArrayList list = new ArrayList();
 		list.add(ownerID);
@@ -223,7 +223,7 @@ public class HopDeleteDeps extends org.apache.lcf.core.database.BaseTable
 
 	/** Delete a dependency */
 	public void deleteDependency(Long ownerID, DeleteDependency dd)
-		throws MetacartaException
+		throws LCFException
 	{
 		ArrayList list = new ArrayList();
 		StringBuffer sb = new StringBuffer("WHERE ");
@@ -252,7 +252,7 @@ public class HopDeleteDeps extends org.apache.lcf.core.database.BaseTable
 	/** Write a delete dependency.
 	*/
 	public void writeDependency(Long ownerID, Long jobID, DeleteDependency dd)
-		throws MetacartaException
+		throws LCFException
 	{
 		HashMap map = new HashMap();
 		map.put(jobIDField,jobID);
@@ -272,7 +272,7 @@ public class HopDeleteDeps extends org.apache.lcf.core.database.BaseTable
 	/** Conditionally do analyze operation.
 	*/
 	public void conditionallyAnalyzeTables()
-		throws MetacartaException
+		throws LCFException
 	{
 		if (tracker.checkAnalyze())
 		{

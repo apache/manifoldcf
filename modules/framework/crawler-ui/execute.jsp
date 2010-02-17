@@ -81,7 +81,7 @@
 					{
 						job = manager.load(new Long(jobID));
 						if (job == null)
-							throw new MetacartaException("No such job: "+jobID);
+							throw new LCFException("No such job: "+jobID);
 					}
 
 					// Gather all the data from the form.
@@ -266,7 +266,7 @@
 <%
 
 				}
-				catch (MetacartaException e)
+				catch (LCFException e)
 				{
 					e.printStackTrace();
 					variableContext.setParameter("text",e.getMessage());
@@ -315,7 +315,7 @@
 					<jsp:forward page="viewoutput.jsp"/>
 <%
 				}
-				catch (MetacartaException e)
+				catch (LCFException e)
 				{
 					e.printStackTrace();
 					variableContext.setParameter("text",e.getMessage());
@@ -409,7 +409,7 @@
 					<jsp:forward page="viewconnection.jsp"/>
 <%
 				}
-				catch (MetacartaException e)
+				catch (LCFException e)
 				{
 					e.printStackTrace();
 					variableContext.setParameter("text",e.getMessage());
@@ -458,7 +458,7 @@
 					<jsp:forward page="viewauthority.jsp"/>
 <%
 				}
-				catch (MetacartaException e)
+				catch (LCFException e)
 				{
 					e.printStackTrace();
 					variableContext.setParameter("text",e.getMessage());
@@ -538,13 +538,13 @@
 				{
 					String jobID = variableContext.getParameter("jobid");
 					if (jobID == null)
-						throw new MetacartaException("Missing job parameter");
+						throw new LCFException("Missing job parameter");
 					manager.deleteJob(new Long(jobID));
 %>
 					<jsp:forward page="listjobs.jsp"/>
 <%
 				}
-				catch (MetacartaException e)
+				catch (LCFException e)
 				{
 					e.printStackTrace();
 					variableContext.setParameter("text",e.getMessage());
@@ -560,13 +560,13 @@
 				{
 					String connectionName = variableContext.getParameter("connname");
 					if (connectionName == null)
-						throw new MetacartaException("Missing connection parameter");
+						throw new LCFException("Missing connection parameter");
 					outputManager.delete(connectionName);
 %>
 					<jsp:forward page="listoutputs.jsp"/>
 <%
 				}
-				catch (MetacartaException e)
+				catch (LCFException e)
 				{
 					e.printStackTrace();
 					variableContext.setParameter("text",e.getMessage());
@@ -582,13 +582,13 @@
 				{
 					String connectionName = variableContext.getParameter("connname");
 					if (connectionName == null)
-						throw new MetacartaException("Missing connection parameter");
+						throw new LCFException("Missing connection parameter");
 					connManager.delete(connectionName);
 %>
 					<jsp:forward page="listconnections.jsp"/>
 <%
 				}
-				catch (MetacartaException e)
+				catch (LCFException e)
 				{
 					e.printStackTrace();
 					variableContext.setParameter("text",e.getMessage());
@@ -604,13 +604,13 @@
 				{
 					String connectionName = variableContext.getParameter("connname");
 					if (connectionName == null)
-						throw new MetacartaException("Missing connection parameter");
+						throw new LCFException("Missing connection parameter");
 					authConnManager.delete(connectionName);
 %>
 					<jsp:forward page="listauthorities.jsp"/>
 <%
 				}
-				catch (MetacartaException e)
+				catch (LCFException e)
 				{
 					e.printStackTrace();
 					variableContext.setParameter("text",e.getMessage());
@@ -769,7 +769,7 @@
 		<jsp:forward page="index.jsp"/>
 <%
 	}
-	catch (MetacartaException e)
+	catch (LCFException e)
 	{
 		e.printStackTrace();
 		variableContext.setParameter("text",e.getMessage());

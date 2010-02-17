@@ -52,7 +52,7 @@ public class ModifyRecord
 			}
 			System.err.println("Successfully modified");
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			e.printStackTrace(System.err);
 			System.exit(2);

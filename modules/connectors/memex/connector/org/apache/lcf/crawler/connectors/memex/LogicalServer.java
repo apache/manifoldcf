@@ -34,13 +34,13 @@ class LogicalServer{
 
     private String servername;
     private String prefix;
-    private MetacartaMemexConnection mie;
+    private LCFMemexConnection mie;
     private RegistryEntry[] databases;
     private boolean active = false;
     private Map<String,RegistryEntry> databasesByName = new HashMap<String,RegistryEntry>();
     private Map<String,Map<String,DatabaseField>> fieldsByDatabaseName = new HashMap<String,Map<String,DatabaseField>>();
 
-    public LogicalServer(String name, String urnPrefix, MetacartaMemexConnection serverMIE, Map<String,MemexEntity> entitiesByName)
+    public LogicalServer(String name, String urnPrefix, LCFMemexConnection serverMIE, Map<String,MemexEntity> entitiesByName)
         throws MemexException
     {
         servername = name;
@@ -93,7 +93,7 @@ class LogicalServer{
         return prefix;
     }
     
-    public MetacartaMemexConnection getMIE()
+    public LCFMemexConnection getMIE()
     {
         return mie;
     }

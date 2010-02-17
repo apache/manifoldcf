@@ -23,7 +23,7 @@ import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.crawler.interfaces.*;
 import org.apache.lcf.authorities.interfaces.*;
 import org.apache.lcf.crawler.interfaces.CacheKeyFactory;
-import org.apache.lcf.crawler.system.Metacarta;
+import org.apache.lcf.crawler.system.LCF;
 
 
 /** This class is the manager of the repository connection description.  Inside, multiple database tables are managed,
@@ -60,7 +60,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 	*@param threadContext is the thread context.
 	*/
 	public RepositoryConnectionManager(IThreadContext threadContext, IDBInterface database)
-		throws MetacartaException
+		throws LCFException
 	{
 		super(database,"repoconnections");
 
@@ -73,7 +73,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 	/** Install the manager.
 	*/
 	public void install()
-		throws MetacartaException
+		throws LCFException
 	{
 		// First, get the authority manager table name and name column
 		IAuthorityConnectionManager authMgr = AuthorityConnectionManagerFactory.make(threadContext);
@@ -138,7 +138,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 			historyManager.install(getTableName(),nameField);
 			throttleSpecManager.install(getTableName(),nameField);
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -157,7 +157,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 	/** Uninstall the manager.
 	*/
 	public void deinstall()
-		throws MetacartaException
+		throws LCFException
 	{
 		beginTransaction();
 		try
@@ -166,7 +166,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 			historyManager.deinstall();
 			performDrop(null);
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -184,62 +184,62 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 
 	/** Export configuration */
 	public void exportConfiguration(java.io.OutputStream os)
-		throws java.io.IOException, MetacartaException
+		throws java.io.IOException, LCFException
 	{
 		// Write a version indicator
-		Metacarta.writeDword(os,1);
+		LCF.writeDword(os,1);
 		// Get the authority list
 		IRepositoryConnection[] list = getAllConnections();
 		// Write the number of authorities
-		Metacarta.writeDword(os,list.length);
+		LCF.writeDword(os,list.length);
 		// Loop through the list and write the individual repository connection info
 		int i = 0;
 		while (i < list.length)
 		{
 			IRepositoryConnection conn = list[i++];
-			Metacarta.writeString(os,conn.getName());
-			Metacarta.writeString(os,conn.getDescription());
-			Metacarta.writeString(os,conn.getClassName());
-			Metacarta.writeString(os,conn.getConfigParams().toXML());
-			Metacarta.writeString(os,conn.getACLAuthority());
-			Metacarta.writeDword(os,conn.getMaxConnections());
+			LCF.writeString(os,conn.getName());
+			LCF.writeString(os,conn.getDescription());
+			LCF.writeString(os,conn.getClassName());
+			LCF.writeString(os,conn.getConfigParams().toXML());
+			LCF.writeString(os,conn.getACLAuthority());
+			LCF.writeDword(os,conn.getMaxConnections());
 			String[] throttles = conn.getThrottles();
-			Metacarta.writeDword(os,throttles.length);
+			LCF.writeDword(os,throttles.length);
 			int j = 0;
 			while (j < throttles.length)
 			{
 				String throttleName = throttles[j++];
-				Metacarta.writeString(os,throttleName);
-				Metacarta.writeString(os,conn.getThrottleDescription(throttleName));
-				Metacarta.writefloat(os,conn.getThrottleValue(throttleName));
+				LCF.writeString(os,throttleName);
+				LCF.writeString(os,conn.getThrottleDescription(throttleName));
+				LCF.writefloat(os,conn.getThrottleValue(throttleName));
 			}
 		}
 	}
 	
 	/** Import configuration */
 	public void importConfiguration(java.io.InputStream is)
-		throws java.io.IOException, MetacartaException
+		throws java.io.IOException, LCFException
 	{
-		int version = Metacarta.readDword(is);
+		int version = LCF.readDword(is);
 		if (version != 1)
 			throw new java.io.IOException("Unknown repository connection configuration version: "+Integer.toString(version));
-		int count = Metacarta.readDword(is);
+		int count = LCF.readDword(is);
 		int i = 0;
 		while (i < count)
 		{
 			IRepositoryConnection conn = create();
-			conn.setName(Metacarta.readString(is));
-			conn.setDescription(Metacarta.readString(is));
-			conn.setClassName(Metacarta.readString(is));
-			conn.getConfigParams().fromXML(Metacarta.readString(is));
-			conn.setACLAuthority(Metacarta.readString(is));
-			conn.setMaxConnections(Metacarta.readDword(is));
-			int throttleCount = Metacarta.readDword(is);
+			conn.setName(LCF.readString(is));
+			conn.setDescription(LCF.readString(is));
+			conn.setClassName(LCF.readString(is));
+			conn.getConfigParams().fromXML(LCF.readString(is));
+			conn.setACLAuthority(LCF.readString(is));
+			conn.setMaxConnections(LCF.readDword(is));
+			int throttleCount = LCF.readDword(is);
 			int j = 0;
 			while (j < throttleCount)
 			{
-				String throttleName = Metacarta.readString(is);
-				conn.addThrottleValue(throttleName,Metacarta.readString(is),Metacarta.readfloat(is));
+				String throttleName = LCF.readString(is);
+				conn.addThrottleValue(throttleName,LCF.readString(is),LCF.readfloat(is));
 				j++;
 			}
 			// Attempt to save this connection
@@ -252,7 +252,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 	*@return an array of connection objects.
 	*/
 	public IRepositoryConnection[] getAllConnections()
-		throws MetacartaException
+		throws LCFException
 	{
 		beginTransaction();
 		try
@@ -273,7 +273,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 			}
 			return loadMultiple(names);
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -294,7 +294,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 	*@return the loaded connection object, or null if not found.
 	*/
 	public IRepositoryConnection load(String name)
-		throws MetacartaException
+		throws LCFException
 	{
 		return loadMultiple(new String[]{name})[0];
 	}
@@ -304,7 +304,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 	*@return the loaded connection objects.
 	*/
 	public IRepositoryConnection[] loadMultiple(String[] names)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Build description objects
 		RepositoryConnectionDescription[] objectDescriptions = new RepositoryConnectionDescription[names.length];
@@ -327,7 +327,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 	*@return the new object.
 	*/
 	public IRepositoryConnection create()
-		throws MetacartaException
+		throws LCFException
 	{
 		RepositoryConnection rval = new RepositoryConnection();
 		return rval;
@@ -337,7 +337,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 	*@param object is the object to save.
 	*/
 	public void save(IRepositoryConnection object)
-		throws MetacartaException
+		throws LCFException
 	{
 		StringSetBuffer ssb = new StringSetBuffer();
 		ssb.add(getRepositoryConnectionsKey());
@@ -351,7 +351,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 		    {
 			performLock();
 			// Notify of a change to the configuration
-			Metacarta.noteConfigurationChange();
+			LCF.noteConfigurationChange();
 			// See whether the instance exists
 			ArrayList params = new ArrayList();
 			params.add(object.getName());
@@ -385,7 +385,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 
 			cacheManager.invalidateKeys(ch);
 		    }
-		    catch (MetacartaException e)
+		    catch (LCFException e)
 		    {
 			signalRollback();
 			throw e;
@@ -411,7 +411,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 	* name does not exist, no error is returned.
 	*/
 	public void delete(String name)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Grab a job manager handle.  We will need to check if any jobs refer to this connection.
 		IJobManager jobManager = JobManagerFactory.make(threadContext);
@@ -428,8 +428,8 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 			{
 				// Check if any jobs refer to this connection name
 				if (jobManager.checkIfReference(name))
-					throw new MetacartaException("Can't delete repository connection '"+name+"': existing jobs refer to it");
-				Metacarta.noteConfigurationChange();
+					throw new LCFException("Can't delete repository connection '"+name+"': existing jobs refer to it");
+				LCF.noteConfigurationChange();
 				throttleSpecManager.deleteRows(name);
 				historyManager.deleteOwner(name,null);
 				ArrayList params = new ArrayList();
@@ -437,7 +437,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 				performDelete("WHERE "+nameField+"=?",params,null);
 				cacheManager.invalidateKeys(ch);
 			}
-			catch (MetacartaException e)
+			catch (LCFException e)
 			{
 				signalRollback();
 				throw e;
@@ -464,7 +464,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 	*@return true if referenced, false otherwise.
 	*/
 	public boolean isReferenced(String authorityName)
-		throws MetacartaException
+		throws LCFException
 	{
 		StringSetBuffer ssb = new StringSetBuffer();
 		ssb.add(getRepositoryConnectionsKey());
@@ -481,7 +481,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 	*@return the repository connections that use that connector.
 	*/
 	public String[] findConnectionsForConnector(String className)
-		throws MetacartaException
+		throws LCFException
 	{
 		StringSetBuffer ssb = new StringSetBuffer();
 		ssb.add(getRepositoryConnectionsKey());
@@ -507,7 +507,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 	*@return true if the underlying connector is registered.
 	*/
 	public boolean checkConnectorExists(String name)
-		throws MetacartaException
+		throws LCFException
 	{
 		beginTransaction();
 		try
@@ -520,13 +520,13 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 			IResultSet set = performQuery("SELECT "+classNameField+" FROM "+getTableName()+" WHERE "+nameField+"=?",params,
 				localCacheKeys,null);
 			if (set.getRowCount() == 0)
-				throw new MetacartaException("No such connection: '"+name+"'");
+				throw new LCFException("No such connection: '"+name+"'");
 			IResultRow row = set.getRow(0);
 			String className = (String)row.getValue(classNameField);
 			IConnectorManager cm = ConnectorManagerFactory.make(threadContext);
 			return cm.isInstalled(className);
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -578,7 +578,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 	*/
 	public void recordHistory(String connectionName, Long startTime, String activityType, Long dataSize,
 		String entityIdentifier, String resultCode, String resultDescription, String[] childIdentifiers)
-		throws MetacartaException
+		throws LCFException
 	{
 		long endTimeValue = System.currentTimeMillis();
 		long startTimeValue;
@@ -610,7 +610,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 	*@return the number of rows included by the criteria.
 	*/
 	public long countHistoryRows(String connectionName, FilterCriteria criteria)
-		throws MetacartaException
+		throws LCFException
 	{
 		return historyManager.countHistoryRows(connectionName,criteria);
 	}
@@ -626,7 +626,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 	*@param is the maximum number of rows to include.
 	*/
 	public IResultSet genHistorySimple(String connectionName, FilterCriteria criteria, SortOrder sort, int startRow, int maxRowCount)
-		throws MetacartaException
+		throws LCFException
 	{
 		return historyManager.simpleReport(connectionName,criteria,sort,startRow,maxRowCount);
 	}
@@ -649,7 +649,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 	*/
 	public IResultSet genHistoryActivityCount(String connectionName, FilterCriteria criteria, SortOrder sort, BucketDescription idBucket,
 		long interval, int startRow, int maxRowCount)
-		throws MetacartaException
+		throws LCFException
 	{
 		return historyManager.maxActivityCountReport(connectionName,criteria,sort,idBucket,interval,startRow,maxRowCount);
 	}
@@ -672,7 +672,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 	*/
 	public IResultSet genHistoryByteCount(String connectionName, FilterCriteria criteria, SortOrder sort, BucketDescription idBucket,
 		long interval, int startRow, int maxRowCount)
-		throws MetacartaException
+		throws LCFException
 	{
 		return historyManager.maxByteCountReport(connectionName,criteria,sort,idBucket,interval,startRow,maxRowCount);
 	}
@@ -694,7 +694,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 	*/
 	public IResultSet genHistoryResultCodes(String connectionName, FilterCriteria criteria, SortOrder sort,
 		BucketDescription resultCodeBucket, BucketDescription idBucket, int startRow, int maxRowCount)
-		throws MetacartaException
+		throws LCFException
 	{
 		return historyManager.resultCodesReport(connectionName,criteria,sort,resultCodeBucket,idBucket,startRow,maxRowCount);
 	}
@@ -726,7 +726,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 	*@return the corresponding repository connection objects.
 	*/
 	protected RepositoryConnection[] getRepositoryConnectionsMultiple(String[] connectionNames)
-		throws MetacartaException
+		throws LCFException
 	{
 		RepositoryConnection[] rval = new RepositoryConnection[connectionNames.length];
 		HashMap returnIndex = new HashMap();
@@ -770,7 +770,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 			signalRollback();
 			throw e;
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -788,7 +788,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 	*@param params is the set of parameters.
 	*/
 	protected void getRepositoryConnectionsChunk(RepositoryConnection[] rval, Map returnIndex, String idList, ArrayList params)
-		throws MetacartaException
+		throws LCFException
 	{
 		IResultSet set;
 		set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
@@ -913,7 +913,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 		* @return the newly created objects to cache, or null, if any object cannot be created.
 		*  The order of the returned objects must correspond to the order of the object descriptinos.
 		*/
-		public Object[] create(ICacheDescription[] objectDescriptions) throws MetacartaException
+		public Object[] create(ICacheDescription[] objectDescriptions) throws LCFException
 		{
 			// Turn the object descriptions into the parameters for the ToolInstance requests
 			String[] connectionNames = new String[objectDescriptions.length];
@@ -936,7 +936,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 		* @param objectDescription is the unique identifier of the object.
 		* @param cachedObject is the cached object.
 		*/
-		public void exists(ICacheDescription objectDescription, Object cachedObject) throws MetacartaException
+		public void exists(ICacheDescription objectDescription, Object cachedObject) throws LCFException
 		{
 			// Cast what came in as what it really is
 			RepositoryConnectionDescription objectDesc = (RepositoryConnectionDescription)objectDescription;
@@ -954,7 +954,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 		/** Perform the desired operation.  This method is called after either createGetObject()
 		* or exists() is called for every requested object.
 		*/
-		public void execute() throws MetacartaException
+		public void execute() throws LCFException
 		{
 			// Does nothing; we only want to fetch objects in this cacher.
 		}

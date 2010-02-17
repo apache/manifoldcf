@@ -75,14 +75,14 @@ public class NullConnector extends org.apache.lcf.agents.output.BaseOutputConnec
         /** Close the connection.  Call this before discarding the connection.
         */
         public void disconnect()
-                throws MetacartaException
+                throws LCFException
         {
                 super.disconnect();
         }
 
         /** Set up a session */
         protected void getSession()
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
         }
         
@@ -90,7 +90,7 @@ public class NullConnector extends org.apache.lcf.agents.output.BaseOutputConnec
         *@return the connection's status as a displayable string.
         */
         public String check()
-                throws MetacartaException
+                throws LCFException
         {
                 try
                 {
@@ -115,7 +115,7 @@ public class NullConnector extends org.apache.lcf.agents.output.BaseOutputConnec
         * the document will not need to be sent again to the output data store.
         */
         public String getOutputDescription(OutputSpecification spec)
-                throws MetacartaException
+                throws LCFException
         {
                 return "";
         }
@@ -135,7 +135,7 @@ public class NullConnector extends org.apache.lcf.agents.output.BaseOutputConnec
         *@return the document status (accepted or permanently rejected).
         */
         public int addOrReplaceDocument(String documentURI, String outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
                 // Establish a session
                 getSession();
@@ -151,7 +151,7 @@ public class NullConnector extends org.apache.lcf.agents.output.BaseOutputConnec
         *@activities is the handle to an object that the implementer of an output connector may use to perform operations, such as logging processing activity.
         */
         public void removeDocument(String documentURI, String outputDescription, IOutputRemoveActivity activities)
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
                 // Establish a session
                 getSession();

@@ -105,7 +105,7 @@ public class FileConnector extends org.apache.lcf.crawler.connectors.BaseReposit
 	*@return the document uri.
 	*/
 	protected String convertToURI(String documentIdentifier)
-		throws MetacartaException
+		throws LCFException
 	{
 		//
 		// Note well:  This MUST be a legal URI!!!
@@ -115,7 +115,7 @@ public class FileConnector extends org.apache.lcf.crawler.connectors.BaseReposit
 		}
 		catch (java.io.IOException e)
 		{
-			throw new MetacartaException("Bad url",e);
+			throw new LCFException("Bad url",e);
 		}
 	}
 
@@ -133,7 +133,7 @@ public class FileConnector extends org.apache.lcf.crawler.connectors.BaseReposit
 	*@return the stream of local document identifiers that should be added to the queue.
 	*/
 	public IDocumentIdentifierStream getDocumentIdentifiers(DocumentSpecification spec, long startTime, long endTime)
-		throws MetacartaException
+		throws LCFException
 	{
 		return new IdentifierStream(spec);
 	}
@@ -148,7 +148,7 @@ public class FileConnector extends org.apache.lcf.crawler.connectors.BaseReposit
 	* will always be processed.
 	*/
 	public String[] getDocumentVersions(String[] documentIdentifiers, DocumentSpecification spec)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		String[] rval = new String[documentIdentifiers.length];
 		int i = 0;
@@ -198,7 +198,7 @@ public class FileConnector extends org.apache.lcf.crawler.connectors.BaseReposit
 	* should only find other references, and should not actually call the ingestion methods.
 	*/
 	public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		int i = 0;
 		while (i < documentIdentifiers.length)
@@ -235,7 +235,7 @@ public class FileConnector extends org.apache.lcf.crawler.connectors.BaseReposit
 						{
 							errorCode = "IO ERROR";
 							errorDesc = e.getMessage();
-							throw new MetacartaException("IO Error: "+e.getMessage(),e);
+							throw new LCFException("IO Error: "+e.getMessage(),e);
 						}
 					}
 					finally
@@ -283,7 +283,7 @@ public class FileConnector extends org.apache.lcf.crawler.connectors.BaseReposit
 								{
 									errorCode = "IO ERROR";
 									errorDesc = e.getMessage();
-									throw new MetacartaException("IO Error: "+e.getMessage(),e);
+									throw new LCFException("IO Error: "+e.getMessage(),e);
 								}
 							}
 							finally
@@ -308,7 +308,7 @@ public class FileConnector extends org.apache.lcf.crawler.connectors.BaseReposit
 	*@return true if it should be included.
 	*/
 	protected static boolean checkInclude(File file, String fileName, DocumentSpecification documentSpecification)
-		throws MetacartaException
+		throws LCFException
 	{
 	    if (Logging.connectors.isDebugEnabled())
 	    {
@@ -403,7 +403,7 @@ public class FileConnector extends org.apache.lcf.crawler.connectors.BaseReposit
 	    }
 	    catch (IOException e)
 	    {
-		throw new MetacartaException("IO Error",e);
+		throw new LCFException("IO Error",e);
 	    }
 	}
 
@@ -413,7 +413,7 @@ public class FileConnector extends org.apache.lcf.crawler.connectors.BaseReposit
 	*@param documentSpecification is the specification.
 	*/
 	protected static boolean checkIngest(File file, DocumentSpecification documentSpecification)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Since the only exclusions at this point are not based on file contents, this is a no-op.
 		// MHL
@@ -527,7 +527,7 @@ public class FileConnector extends org.apache.lcf.crawler.connectors.BaseReposit
 		protected int currentIndex = 0;
 
 		public IdentifierStream(DocumentSpecification spec)
-			throws MetacartaException
+			throws LCFException
 		{
 		    try
 		    {
@@ -563,7 +563,7 @@ public class FileConnector extends org.apache.lcf.crawler.connectors.BaseReposit
 		    }
 		    catch (IOException e)
 		    {
-			throw new MetacartaException("Could not get a canonical path",e);
+			throw new LCFException("Could not get a canonical path",e);
 		    }
 		}
 
@@ -571,7 +571,7 @@ public class FileConnector extends org.apache.lcf.crawler.connectors.BaseReposit
 		*@return the next document identifier, or null if there are no more.
 		*/
 		public String getNextIdentifier()
-			throws MetacartaException, ServiceInterruption
+			throws LCFException, ServiceInterruption
 		{
 			if (currentIndex == ids.length)
 				return null;
@@ -581,7 +581,7 @@ public class FileConnector extends org.apache.lcf.crawler.connectors.BaseReposit
 		/** Close the stream.
 		*/
 		public void close()
-			throws MetacartaException
+			throws LCFException
 		{
 			ids = null;
 		}

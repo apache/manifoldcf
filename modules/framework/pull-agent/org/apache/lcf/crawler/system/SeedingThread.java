@@ -47,7 +47,7 @@ public class SeedingThread extends Thread
 	/** Constructor.
 	*/
 	public SeedingThread(QueueTracker queueTracker)
-		throws MetacartaException
+		throws LCFException
 	{
 		super();
 		setName("Seeding thread");
@@ -67,9 +67,9 @@ public class SeedingThread extends Thread
 			IRepositoryConnectionManager connectionMgr = RepositoryConnectionManagerFactory.make(threadContext);
 
 			IDBInterface database = DBInterfaceFactory.make(threadContext,
-				Metacarta.getMasterDatabaseName(),
-				Metacarta.getMasterDatabaseUsername(),
-				Metacarta.getMasterDatabasePassword());
+				LCF.getMasterDatabaseName(),
+				LCF.getMasterDatabaseUsername(),
+				LCF.getMasterDatabasePassword());
 
 			String[] identifiers = new String[MAX_COUNT];
 			// Loop
@@ -102,7 +102,7 @@ public class SeedingThread extends Thread
 					    if (seedJobs.length == 0)
 					    {
 						Logging.threads.debug("Seeding thread found nothing to do");
-						Metacarta.sleep(waitTime);
+						LCF.sleep(waitTime);
 						continue;
 					    }
 
@@ -183,13 +183,13 @@ public class SeedingThread extends Thread
 						    jsr.noteStarted();
 
 						}
-						catch (MetacartaException e)
+						catch (LCFException e)
 						{
-							if (e.getErrorCode() == MetacartaException.INTERRUPTED)
+							if (e.getErrorCode() == LCFException.INTERRUPTED)
 								throw new InterruptedException();
-							if (e.getErrorCode() == MetacartaException.DATABASE_CONNECTION_ERROR)
+							if (e.getErrorCode() == LCFException.DATABASE_CONNECTION_ERROR)
 								throw e;
-							if (e.getErrorCode() == MetacartaException.REPOSITORY_CONNECTION_ERROR)
+							if (e.getErrorCode() == LCFException.REPOSITORY_CONNECTION_ERROR)
 							{
 								Logging.threads.warn("Seeding thread: Ignoring connection error: "+e.getMessage(),e);
 								continue;
@@ -204,7 +204,7 @@ public class SeedingThread extends Thread
 					finally
 					{
 						// Clean up all jobs that did not seed
-						MetacartaException exception = null;
+						LCFException exception = null;
 						int i = 0;
 						while (i < seedJobs.length)
 						{
@@ -219,7 +219,7 @@ public class SeedingThread extends Thread
 								{
 									jobManager.resetSeedJob(jsr.getJobID());
 								}
-								catch (MetacartaException e)
+								catch (LCFException e)
 								{
 									exception = e;
 								}
@@ -230,14 +230,14 @@ public class SeedingThread extends Thread
 					}
 
 					// Sleep for the retry interval.
-					Metacarta.sleep(waitTime);
+					LCF.sleep(waitTime);
 				}
-				catch (MetacartaException e)
+				catch (LCFException e)
 				{
-					if (e.getErrorCode() == MetacartaException.INTERRUPTED)
+					if (e.getErrorCode() == LCFException.INTERRUPTED)
 						break;
 
-					if (e.getErrorCode() == MetacartaException.DATABASE_CONNECTION_ERROR)
+					if (e.getErrorCode() == LCFException.DATABASE_CONNECTION_ERROR)
 					{
 						resetManager.noteEvent();
 
@@ -245,7 +245,7 @@ public class SeedingThread extends Thread
 						try
 						{
 							// Give the database a chance to catch up/wake up
-							Metacarta.sleep(10000L);
+							LCF.sleep(10000L);
 						}
 						catch (InterruptedException se)
 						{
@@ -257,7 +257,7 @@ public class SeedingThread extends Thread
 					// Log it, but keep the thread alive
 					Logging.threads.error("Exception tossed: "+e.getMessage(),e);
 
-					if (e.getErrorCode() == MetacartaException.SETUP_ERROR)
+					if (e.getErrorCode() == LCFException.SETUP_ERROR)
 					{
 						// Shut the whole system down!
 						System.exit(1);
@@ -307,7 +307,7 @@ public class SeedingThread extends Thread
 
 		/** Reset */
 		protected void performResetLogic(IThreadContext tc)
-			throws MetacartaException
+			throws LCFException
 		{
 			IJobManager jobManager = JobManagerFactory.make(tc);
 			jobManager.resetSeedingWorkerStatus();

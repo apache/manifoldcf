@@ -36,7 +36,7 @@ public class TransactionHandle
 	protected int transactionType;
 
 	public TransactionHandle(TransactionHandle previousTransaction, int transactionType)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Grab a unique ID
 		transactionID = IDFactory.make();

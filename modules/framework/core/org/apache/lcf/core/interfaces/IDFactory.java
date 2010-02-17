@@ -18,7 +18,7 @@
 */
 package org.apache.lcf.core.interfaces;
 
-import org.apache.lcf.core.system.Metacarta;
+import org.apache.lcf.core.system.LCF;
 import org.apache.lcf.core.system.Logging;
 import java.io.*;
 import java.util.*;
@@ -43,13 +43,13 @@ public class IDFactory
 	}
 
 	public static String make()
-		throws MetacartaException
+		throws LCFException
 	{
 		synchronized (_proplock)
 		{
 			if (propertyChecked == false)
 			{
-				String synchDirectory = Metacarta.getProperty(Metacarta.synchDirectoryProperty);
+				String synchDirectory = LCF.getProperty(LCF.synchDirectoryProperty);
 				if (synchDirectory != null)
 				{
 					idFile = new File(synchDirectory,"idfile.file");
@@ -80,18 +80,18 @@ public class IDFactory
 					}
 					catch (InterruptedIOException e)
 					{
-						throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+						throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 					}
 					catch (IOException e)
 					{
 						// same as returning false above.
 					}
-					Metacarta.sleep(10);
+					LCF.sleep(10);
 				}
 			    }
 			    catch (InterruptedException e)
 			    {
-				throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 			    }
 
 			}
@@ -126,7 +126,7 @@ public class IDFactory
 				    		}
 						catch (IOException e)
 						{
-							throw new MetacartaException("Could not read from id file: '"+idFile.toString()+"'",e);
+							throw new LCFException("Could not read from id file: '"+idFile.toString()+"'",e);
 						}
 						finally
 						{
@@ -135,7 +135,7 @@ public class IDFactory
 					}
 					catch (IOException e)
 					{
-						throw new MetacartaException("Could not read from id file: '"+idFile.toString()+"'",e);
+						throw new LCFException("Could not read from id file: '"+idFile.toString()+"'",e);
 					}
 					finally
 					{
@@ -187,7 +187,7 @@ public class IDFactory
 				    catch (IOException e)
 				    {
 					// Hard failure
-					throw new MetacartaException("Can't write id file",e);
+					throw new LCFException("Can't write id file",e);
 				    }
 
 				}

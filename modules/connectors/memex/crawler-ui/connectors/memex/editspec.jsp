@@ -217,7 +217,7 @@ if (tabName.equals("Entities"))
 			RepositoryConnectorFactory.release(connector);
 		}
 	}
-	catch (MetacartaException e)
+	catch (LCFException e)
 	{
 %>
 		<tr>
@@ -486,7 +486,7 @@ if (tabName.equals("Record Criteria"))
 				RepositoryConnectorFactory.release(connector);
 			}
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 %>
 							<%=org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())%>
@@ -551,7 +551,7 @@ if (tabName.equals("Record Criteria"))
 					RepositoryConnectorFactory.release(connector);
 				}
 			}
-			catch (MetacartaException e)
+			catch (LCFException e)
 			{
 %>
 							<%=org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())%>
@@ -630,7 +630,7 @@ if (tabName.equals("Record Criteria"))
 					RepositoryConnectorFactory.release(connector);
 				}
 			}
-			catch (MetacartaException e)
+			catch (LCFException e)
 			{
 %>
 							<%=org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())%>

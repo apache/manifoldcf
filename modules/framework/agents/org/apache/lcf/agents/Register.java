@@ -43,13 +43,13 @@ public class Register
 		String className = args[0];
 		try
 		{
-			Metacarta.initializeEnvironment();
+			LCF.initializeEnvironment();
 			IThreadContext tc = ThreadContextFactory.make();
 			IAgentManager mgr = AgentManagerFactory.make(tc);
 			mgr.registerAgent(className);
 			System.err.println("Successfully registered agent '"+className+"'");
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			e.printStackTrace();
 			System.exit(1);

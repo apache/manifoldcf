@@ -35,7 +35,7 @@ public class DatabaseFactory
 	/** Grab or create the correct instance of a database manager.
 	*/
 	public static IDatabase make(IThreadContext context, String databaseName, String userName, String password)
-		throws MetacartaException
+		throws LCFException
 	{
 		String dbName = databaseInstancePrefix + databaseName;
 		Object x = context.get(dbName);

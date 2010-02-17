@@ -73,7 +73,7 @@ public class RunResultHistory
 
 		try
 		{
-		        Metacarta.initializeEnvironment();
+		        LCF.initializeEnvironment();
 			IThreadContext tc = ThreadContextFactory.make();
 			IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(tc);
 	

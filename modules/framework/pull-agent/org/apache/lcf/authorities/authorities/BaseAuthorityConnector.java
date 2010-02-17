@@ -43,7 +43,7 @@ public abstract class BaseAuthorityConnector implements IAuthorityConnector
 	*@param threadContext is the current thread context.
 	*/
 	public void install(IThreadContext threadContext)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Base version does nothing.
 	}
@@ -55,7 +55,7 @@ public abstract class BaseAuthorityConnector implements IAuthorityConnector
 	*@param threadContext is the current thread context.
 	*/
 	public void deinstall(IThreadContext threadContext)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Base version does nothing.
 	}
@@ -76,7 +76,7 @@ public abstract class BaseAuthorityConnector implements IAuthorityConnector
 	*@return the connection's status as a displayable string.
 	*/
 	public String check()
-		throws MetacartaException
+		throws LCFException
 	{
 		return "Connection working";
 	}
@@ -85,7 +85,7 @@ public abstract class BaseAuthorityConnector implements IAuthorityConnector
 	* in active use.
 	*/
 	public void poll()
-		throws MetacartaException
+		throws LCFException
 	{
 		// Base version does nothing.
 	}
@@ -93,7 +93,7 @@ public abstract class BaseAuthorityConnector implements IAuthorityConnector
 	/** Close the connection.  Call this before discarding the repository connector.
 	*/
 	public void disconnect()
-		throws MetacartaException
+		throws LCFException
 	{
 		params = null;
 	}
@@ -128,7 +128,7 @@ public abstract class BaseAuthorityConnector implements IAuthorityConnector
 	* (Should throws an exception only when a condition cannot be properly described within the authorization response object.)
 	*/
 	public AuthorizationResponse getAuthorizationResponse(String userName)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Implementation for old-style behavior.  Override this method for new-style behavior.
 		try
@@ -138,7 +138,7 @@ public abstract class BaseAuthorityConnector implements IAuthorityConnector
 				return new AuthorizationResponse(new String[0],AuthorizationResponse.RESPONSE_USERNOTFOUND);
 			return new AuthorizationResponse(accessTokens,AuthorizationResponse.RESPONSE_OK);
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			// There's an authorization failure of some kind.
 			String[] defaultAccessTokens = getDefaultAccessTokens(userName);
@@ -170,7 +170,7 @@ public abstract class BaseAuthorityConnector implements IAuthorityConnector
 	* (Throw an exception if access is denied, usually because the authority is down).
 	*/
 	public String[] getAccessTokens(String userName)
-		throws MetacartaException
+		throws LCFException
 	{
 		return null;
 	}

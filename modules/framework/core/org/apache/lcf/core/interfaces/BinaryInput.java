@@ -42,7 +42,7 @@ public abstract class BinaryInput
 
 	/** Obtain the stream to pass to JDBC */
 	public InputStream getStream()
-		throws MetacartaException
+		throws LCFException
 	{
 		if (stream == null)
 			openStream();
@@ -51,7 +51,7 @@ public abstract class BinaryInput
 
 	/** Obtain the length to pass to JDBC */
 	public long getLength()
-		throws MetacartaException
+		throws LCFException
 	{
 		if (length == -1L)
 			calculateLength();
@@ -60,7 +60,7 @@ public abstract class BinaryInput
 
 	/** Close the stream we passed to JDBC */
 	public void doneWithStream()
-		throws MetacartaException
+		throws LCFException
 	{
 		if (stream != null)
 			closeStream();
@@ -71,7 +71,7 @@ public abstract class BinaryInput
 
 	/** Discard the object */
 	public void discard()
-		throws MetacartaException
+		throws LCFException
 	{
 		doneWithStream();
 	}
@@ -79,14 +79,14 @@ public abstract class BinaryInput
 	// Protected methods
 	
 	protected abstract void openStream()
-		throws MetacartaException;
+		throws LCFException;
 	
 	protected abstract void calculateLength()
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Close the stream */
 	protected void closeStream()
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
@@ -95,11 +95,11 @@ public abstract class BinaryInput
 		}
 		catch (InterruptedIOException e)
 		{
-			throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+			throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 		}
 		catch (IOException e)
 		{
-			throw new MetacartaException("IO exception closing stream: "+e.getMessage(),e,MetacartaException.GENERAL_ERROR);
+			throw new LCFException("IO exception closing stream: "+e.getMessage(),e,LCFException.GENERAL_ERROR);
 		}
 	}
 	

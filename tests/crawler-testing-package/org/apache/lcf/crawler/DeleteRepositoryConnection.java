@@ -46,7 +46,7 @@ public class DeleteRepositoryConnection
 		String connectionName = args[0];
 		try
 		{
-		        Metacarta.initializeEnvironment();
+		        LCF.initializeEnvironment();
 			IThreadContext tc = ThreadContextFactory.make();
 			IRepositoryConnectionManager mgr = RepositoryConnectionManagerFactory.make(tc);
 			mgr.delete(connectionName);

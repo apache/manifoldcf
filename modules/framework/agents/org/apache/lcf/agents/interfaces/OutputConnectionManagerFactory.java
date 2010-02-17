@@ -19,7 +19,7 @@
 package org.apache.lcf.agents.interfaces;
 
 import org.apache.lcf.core.interfaces.*;
-import org.apache.lcf.agents.system.Metacarta;
+import org.apache.lcf.agents.system.LCF;
 
 import java.util.*;
 
@@ -41,15 +41,15 @@ public class OutputConnectionManagerFactory
         *@return the handle.
         */
         public static IOutputConnectionManager make(IThreadContext tc)
-                throws MetacartaException
+                throws LCFException
         {
                 Object o = tc.get(objectName);
                 if (o == null || !(o instanceof IOutputConnectionManager))
                 {
                         IDBInterface database = DBInterfaceFactory.make(tc,
-                                Metacarta.getMasterDatabaseName(),
-                                Metacarta.getMasterDatabaseUsername(),
-                                Metacarta.getMasterDatabasePassword());
+                                LCF.getMasterDatabaseName(),
+                                LCF.getMasterDatabaseUsername(),
+                                LCF.getMasterDatabasePassword());
 
                         o = new org.apache.lcf.agents.outputconnection.OutputConnectionManager(tc,database);
                         tc.save(objectName,o);
@@ -62,7 +62,7 @@ public class OutputConnectionManagerFactory
         *@return the sorted list of output connection activities.
         */
         public static String[] getAllOutputActivities(IThreadContext tc)
-                throws MetacartaException
+                throws LCFException
         {
                 IOutputConnectionManager manager = make(tc);
                 IOutputConnection[] connections = manager.getAllConnections();

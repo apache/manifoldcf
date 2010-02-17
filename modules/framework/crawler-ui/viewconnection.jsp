@@ -72,7 +72,7 @@
 	IRepositoryConnection connection = connManager.load(connectionName);
 	if (connection == null)
 	{
-		throw new MetacartaException("No such connection: '"+connectionName+"'");
+		throw new LCFException("No such connection: '"+connectionName+"'");
 	}
 	else
 	{
@@ -113,7 +113,7 @@
 				}
 			}
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			connectionStatus = "Threw exception: '"+org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())+"'";
 		}
@@ -216,7 +216,7 @@
 <%
 	}
     }
-    catch (MetacartaException e)
+    catch (LCFException e)
     {
 	e.printStackTrace();
 	variableContext.setParameter("text",e.getMessage());

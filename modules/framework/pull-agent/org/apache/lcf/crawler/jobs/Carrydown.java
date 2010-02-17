@@ -23,7 +23,7 @@ import java.util.*;
 import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.crawler.interfaces.*;
 import org.apache.lcf.crawler.system.Logging;
-import org.apache.lcf.crawler.system.Metacarta;
+import org.apache.lcf.crawler.system.LCF;
 
 /** This class manages the table that keeps track of intrinsic relationships between documents.
 */
@@ -65,7 +65,7 @@ public class Carrydown extends org.apache.lcf.core.database.BaseTable
 	*@param database is the database handle.
 	*/
 	public Carrydown(IDBInterface database)
-		throws MetacartaException
+		throws LCFException
 	{
 		super(database,"carrydown");
 	}
@@ -73,7 +73,7 @@ public class Carrydown extends org.apache.lcf.core.database.BaseTable
 	/** Install or upgrade.
 	*/
 	public void install(String jobsTable, String jobsColumn)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Since adding a unique constraint may not work, we need the possibility of retrying.
 		while (true)
@@ -146,7 +146,7 @@ public class Carrydown extends org.apache.lcf.core.database.BaseTable
 								String dataValue = (String)row.getValue(dataValueField);
 								
 								HashMap newMap = new HashMap();
-								newMap.put(dataValueHashField,Metacarta.hash(dataValue));
+								newMap.put(dataValueHashField,LCF.hash(dataValue));
 								ArrayList newList = new ArrayList();
 								newList.add(jobID);
 								if (parentIDHash != null && parentIDHash.length() > 0)
@@ -170,7 +170,7 @@ public class Carrydown extends org.apache.lcf.core.database.BaseTable
 					}
 				}
 			}
-			catch (MetacartaException e)
+			catch (LCFException e)
 			{
 				signalRollback();
 				throw e;
@@ -231,7 +231,7 @@ public class Carrydown extends org.apache.lcf.core.database.BaseTable
 				{
 					performAddIndex(null,uniqueIndex);
 				}
-				catch (MetacartaException e)
+				catch (LCFException e)
 				{
 					if (e.getMessage().indexOf("could not create unique index") == -1)
 						throw e;
@@ -252,7 +252,7 @@ public class Carrydown extends org.apache.lcf.core.database.BaseTable
 	
 	/** Remove duplicates (as part of upgrade */
 	protected void removeDuplicates()
-		throws MetacartaException
+		throws LCFException
 	{
 		// If we got here, it means adding the unique constraint failed.  Fix things up!
 		Logging.jobs.warn("Carrydown has duplicate jobid,parent,child,dataname,datavalue tuples!  Cleaning up...");
@@ -275,7 +275,7 @@ public class Carrydown extends org.apache.lcf.core.database.BaseTable
 		}
 		catch (NumberFormatException e)
 		{
-			throw new MetacartaException(e.getMessage(),e);
+			throw new LCFException(e.getMessage(),e);
 		}
 
 		// Now, amass a list of duplicates
@@ -352,7 +352,7 @@ public class Carrydown extends org.apache.lcf.core.database.BaseTable
 				// Now, insert the proper row
 				performInsert(map,null);
 			}
-			catch (MetacartaException e)
+			catch (LCFException e)
 			{
 				signalRollback();
 				throw e;
@@ -376,7 +376,7 @@ public class Carrydown extends org.apache.lcf.core.database.BaseTable
 	/** Uninstall.
 	*/
 	public void deinstall()
-		throws MetacartaException
+		throws LCFException
 	{
 		performDrop(null);
 	}
@@ -384,7 +384,7 @@ public class Carrydown extends org.apache.lcf.core.database.BaseTable
 	/** Analyze job tables that need analysis.
 	*/
 	public void analyzeTables()
-		throws MetacartaException
+		throws LCFException
 	{
 		long startTime = System.currentTimeMillis();
 		Logging.perf.debug("Beginning to analyze carrydown table");
@@ -395,7 +395,7 @@ public class Carrydown extends org.apache.lcf.core.database.BaseTable
 	/** Delete an owning job (and clean up the corresponding carrydown rows).
 	*/
 	public void deleteOwner(Long jobID)
-		throws MetacartaException
+		throws LCFException
 	{
 		ArrayList list = new ArrayList();
 		list.add(jobID);
@@ -415,7 +415,7 @@ public class Carrydown extends org.apache.lcf.core.database.BaseTable
 	/** Reset, at startup time. 
 	*/
 	public void reset()
-		throws MetacartaException
+		throws LCFException
 	{
 		// Delete "new" rows
 		HashMap map = new HashMap();
@@ -436,7 +436,7 @@ public class Carrydown extends org.apache.lcf.core.database.BaseTable
 	*/
 	public boolean recordCarrydownData(Long jobID, String parentDocumentIDHash, String childDocumentIDHash,
 		String[] documentDataNames, String[][] documentDataValueHashes, Object[][] documentDataValues)
-		throws MetacartaException
+		throws LCFException
 	{
 		return recordCarrydownDataMultiple(jobID,parentDocumentIDHash,new String[]{childDocumentIDHash},
 			new String[][]{documentDataNames},new String[][][]{documentDataValueHashes},new Object[][][]{documentDataValues})[0];
@@ -446,7 +446,7 @@ public class Carrydown extends org.apache.lcf.core.database.BaseTable
 	*/
 	public boolean[] recordCarrydownDataMultiple(Long jobID, String parentDocumentIDHash, String[] childDocumentIDHashes,
 		String[][] dataNames, String[][][] dataValueHashes, Object[][][] dataValues)
-		throws MetacartaException
+		throws LCFException
 	{
 		
 		// Need to go into a transaction because we need to distinguish between update and insert.
@@ -607,7 +607,7 @@ public class Carrydown extends org.apache.lcf.core.database.BaseTable
 	
 	/** Do the exists check, in batch. */
 	protected void performExistsCheck(Map presentMap, String query, ArrayList list)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Note well: presentMap is only checked for the *existence* of a record, so we do not need to populate the datavalue field!
 		// This is crucial, because otherwise we'd either be using an undetermined amount of memory, or we'd need to read into a temporary file.
@@ -629,7 +629,7 @@ public class Carrydown extends org.apache.lcf.core.database.BaseTable
 	* and delete the old (eliminated) child records.
 	*/
 	public void restoreRecords(Long jobID, String[] parentDocumentIDHashes)
-		throws MetacartaException
+		throws LCFException
 	{
 		beginTransaction();
 		try
@@ -661,7 +661,7 @@ public class Carrydown extends org.apache.lcf.core.database.BaseTable
 			if (k > 0)
 				performRestoreRecords(sb.toString(),list);
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -678,7 +678,7 @@ public class Carrydown extends org.apache.lcf.core.database.BaseTable
 	}
 
 	protected void performRestoreRecords(String query, ArrayList list)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Delete
 		StringBuffer sb = new StringBuffer("WHERE (");
@@ -700,7 +700,7 @@ public class Carrydown extends org.apache.lcf.core.database.BaseTable
 	/** Delete all records that mention a particular set of document identifiers.
 	*/
 	public void deleteRecords(Long jobID, String[] documentIDHashes)
-		throws MetacartaException
+		throws LCFException
 	{
 		beginTransaction();
 		try
@@ -747,7 +747,7 @@ public class Carrydown extends org.apache.lcf.core.database.BaseTable
 
 			
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -765,7 +765,7 @@ public class Carrydown extends org.apache.lcf.core.database.BaseTable
 	}
 
 	protected void performDeleteRecords(String query, String query2, ArrayList list, ArrayList list2)
-		throws MetacartaException
+		throws LCFException
 	{
 		performDelete("WHERE "+query,list,null);
 		performDelete("WHERE "+query2,list2,null);
@@ -773,7 +773,7 @@ public class Carrydown extends org.apache.lcf.core.database.BaseTable
 
 	/** Get unique values given a document identifier, data name, an job identifier */
 	public String[] getDataValues(Long jobID, String documentIdentifierHash, String dataName)
-		throws MetacartaException
+		throws LCFException
 	{
 		ArrayList list = new ArrayList();
 		list.add(jobID);
@@ -798,7 +798,7 @@ public class Carrydown extends org.apache.lcf.core.database.BaseTable
 	
 	/** Get unique values given a document identifier, data name, an job identifier */
 	public CharacterInput[] getDataValuesAsFiles(Long jobID, String documentIdentifierHash, String dataName)
-		throws MetacartaException
+		throws LCFException
 	{
 		ArrayList list = new ArrayList();
 		list.add(jobID);
@@ -847,7 +847,7 @@ public class Carrydown extends org.apache.lcf.core.database.BaseTable
 	/** Conditionally do analyze operation.
 	*/
 	public void conditionallyAnalyzeTables()
-		throws MetacartaException
+		throws LCFException
 	{
 		if (tracker.checkAnalyze())
 		{
@@ -901,7 +901,7 @@ public class Carrydown extends org.apache.lcf.core.database.BaseTable
 		*@return true if it should be included, false otherwise.
 		*/
 		public boolean checkInclude(IResultRow row)
-			throws MetacartaException
+			throws LCFException
 		{
 			// Check to be sure that this row is different from the last; only then agree to include it.
 			String value = (String)row.getValue(dataValueHashField);
@@ -919,7 +919,7 @@ public class Carrydown extends org.apache.lcf.core.database.BaseTable
 		*@return true if we need to keep going, or false if we are done.
 		*/
 		public boolean checkContinue()
-			throws MetacartaException
+			throws LCFException
 		{
 			return true;
 		}
@@ -1091,7 +1091,7 @@ public class Carrydown extends org.apache.lcf.core.database.BaseTable
 		*@return true if it should be included, false otherwise.
 		*/
 		public boolean checkInclude(IResultRow row)
-			throws MetacartaException
+			throws LCFException
 		{
 			Long jobID = (Long)row.getValue(jobIDField);
 			String parentIDHash = (String)row.getValue(parentIDHashField);
@@ -1120,7 +1120,7 @@ public class Carrydown extends org.apache.lcf.core.database.BaseTable
 		*@return true if we need to keep going, or false if we are done.
 		*/
 		public boolean checkContinue()
-			throws MetacartaException
+			throws LCFException
 		{
 			return true;
 		}

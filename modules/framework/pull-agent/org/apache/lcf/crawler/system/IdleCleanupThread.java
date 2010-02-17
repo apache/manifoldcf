@@ -38,7 +38,7 @@ public class IdleCleanupThread extends Thread
 	/** Constructor.
 	*/
 	public IdleCleanupThread()
-		throws MetacartaException
+		throws LCFException
 	{
 		super();
 		setName("Idle cleanup thread");
@@ -64,20 +64,20 @@ public class IdleCleanupThread extends Thread
 					OutputConnectorFactory.pollAllConnectors(threadContext);
                                     
 					// Sleep for the retry interval.
-					Metacarta.sleep(15000L);
+					LCF.sleep(15000L);
 				}
-				catch (MetacartaException e)
+				catch (LCFException e)
 				{
-					if (e.getErrorCode() == MetacartaException.INTERRUPTED)
+					if (e.getErrorCode() == LCFException.INTERRUPTED)
 						break;
 
-					if (e.getErrorCode() == MetacartaException.DATABASE_CONNECTION_ERROR)
+					if (e.getErrorCode() == LCFException.DATABASE_CONNECTION_ERROR)
 					{
 						Logging.threads.error("Idle cleanup thread aborting and restarting due to database connection reset: "+e.getMessage(),e);
 						try
 						{
 							// Give the database a chance to catch up/wake up
-							Metacarta.sleep(10000L);
+							LCF.sleep(10000L);
 						}
 						catch (InterruptedException se)
 						{
@@ -89,7 +89,7 @@ public class IdleCleanupThread extends Thread
 					// Log it, but keep the thread alive
 					Logging.threads.error("Exception tossed: "+e.getMessage(),e);
 
-					if (e.getErrorCode() == MetacartaException.SETUP_ERROR)
+					if (e.getErrorCode() == LCFException.SETUP_ERROR)
 					{
 						// Shut the whole system down!
 						System.exit(1);

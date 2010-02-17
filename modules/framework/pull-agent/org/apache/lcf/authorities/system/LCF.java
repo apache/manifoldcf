@@ -23,7 +23,7 @@ import org.apache.lcf.authorities.interfaces.*;
 import java.io.*;
 import java.util.*;
 
-public class Metacarta extends org.apache.lcf.core.system.Metacarta
+public class LCF extends org.apache.lcf.core.system.LCF
 {
         protected static boolean needInit = true;
 
@@ -46,7 +46,7 @@ public class Metacarta extends org.apache.lcf.core.system.Metacarta
                 if (needInit == false)
                         return;
 
-                org.apache.lcf.core.system.Metacarta.initializeEnvironment();
+                org.apache.lcf.core.system.LCF.initializeEnvironment();
                 Logging.initializeLoggers();
                 Logging.setLogLevels();
                 needInit = false;
@@ -58,12 +58,12 @@ public class Metacarta extends org.apache.lcf.core.system.Metacarta
         *@param threadcontext is the thread context.
         */
         public static void installSystemTables(IThreadContext threadcontext)
-                throws MetacartaException
+                throws LCFException
         {
                 IDBInterface mainDatabase = DBInterfaceFactory.make(threadcontext,
-                        Metacarta.getMasterDatabaseName(),
-                        Metacarta.getMasterDatabaseUsername(),
-                        Metacarta.getMasterDatabasePassword());
+                        LCF.getMasterDatabaseName(),
+                        LCF.getMasterDatabaseUsername(),
+                        LCF.getMasterDatabasePassword());
 
                 IAuthorityConnectorManager connMgr = AuthorityConnectorManagerFactory.make(threadcontext);
                 IAuthorityConnectionManager authConnMgr = AuthorityConnectionManagerFactory.make(threadcontext);
@@ -74,7 +74,7 @@ public class Metacarta extends org.apache.lcf.core.system.Metacarta
                         connMgr.install();
                         authConnMgr.install();
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         mainDatabase.signalRollback();
                         throw e;
@@ -95,14 +95,14 @@ public class Metacarta extends org.apache.lcf.core.system.Metacarta
         *@param threadcontext is the thread context.
         */
         public static void deinstallSystemTables(IThreadContext threadcontext)
-                throws MetacartaException
+                throws LCFException
         {
                 IDBInterface mainDatabase = DBInterfaceFactory.make(threadcontext,
-                        Metacarta.getMasterDatabaseName(),
-                        Metacarta.getMasterDatabaseUsername(),
-                        Metacarta.getMasterDatabasePassword());
+                        LCF.getMasterDatabaseName(),
+                        LCF.getMasterDatabaseUsername(),
+                        LCF.getMasterDatabasePassword());
 
-                MetacartaException se = null;
+                LCFException se = null;
 
                 IAuthorityConnectorManager connMgr = AuthorityConnectorManagerFactory.make(threadcontext);
                 IAuthorityConnectionManager authConnMgr = AuthorityConnectionManagerFactory.make(threadcontext);
@@ -113,7 +113,7 @@ public class Metacarta extends org.apache.lcf.core.system.Metacarta
                         authConnMgr.deinstall();
                         connMgr.deinstall();
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         mainDatabase.signalRollback();
                         throw e;
@@ -135,7 +135,7 @@ public class Metacarta extends org.apache.lcf.core.system.Metacarta
         /** Start the authority system.
         */
         public static void startSystem(IThreadContext threadContext)
-                throws MetacartaException
+                throws LCFException
         {
                 // Read any parameters
                 String maxThreads = getProperty(authCheckThreadCountProperty);
@@ -143,7 +143,7 @@ public class Metacarta extends org.apache.lcf.core.system.Metacarta
                         maxThreads = "10";
                 numAuthCheckThreads = new Integer(maxThreads).intValue();
                 if (numAuthCheckThreads < 1 || numAuthCheckThreads > 100)
-                        throw new MetacartaException("Illegal value for the number of auth check threads");
+                        throw new LCFException("Illegal value for the number of auth check threads");
 
                 // Start up threads
                 idleCleanupThread = new IdleCleanupThread();
@@ -164,7 +164,7 @@ public class Metacarta extends org.apache.lcf.core.system.Metacarta
         /** Shut down the authority system.
         */
         public static void stopSystem(IThreadContext threadContext)
-                throws MetacartaException
+                throws LCFException
         {
 
                 while (idleCleanupThread != null || authCheckThreads != null)
@@ -211,7 +211,7 @@ public class Metacarta extends org.apache.lcf.core.system.Metacarta
 
                         try
                         {
-                                Metacarta.sleep(1000);
+                                LCF.sleep(1000);
                         }
                         catch (InterruptedException e)
                         {

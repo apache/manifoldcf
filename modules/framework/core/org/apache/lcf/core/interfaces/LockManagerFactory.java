@@ -33,7 +33,7 @@ public class LockManagerFactory
 	* thread).
 	*/
 	public static ILockManager make(IThreadContext context)
-		throws MetacartaException
+		throws LCFException
 	{
 		Object x = context.get(lockManager);
 		if (x == null || !(x instanceof ILockManager))

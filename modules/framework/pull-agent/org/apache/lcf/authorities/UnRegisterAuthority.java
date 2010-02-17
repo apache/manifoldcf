@@ -44,13 +44,13 @@ public class UnRegisterAuthority
 
 		try
 		{
-			Metacarta.initializeEnvironment();
+			LCF.initializeEnvironment();
 			IThreadContext tc = ThreadContextFactory.make();
 			IAuthorityConnectorManager mgr = AuthorityConnectorManagerFactory.make(tc);
 			mgr.unregisterConnector(className);
 			System.err.println("Successfully unregistered connector '"+className+"'");
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			e.printStackTrace();
 			System.exit(1);

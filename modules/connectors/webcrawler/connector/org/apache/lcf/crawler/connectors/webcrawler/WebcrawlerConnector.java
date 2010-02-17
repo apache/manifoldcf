@@ -22,7 +22,7 @@ import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.agents.interfaces.*;
 import org.apache.lcf.crawler.interfaces.*;
 import org.apache.lcf.crawler.system.Logging;
-import org.apache.lcf.crawler.system.Metacarta;
+import org.apache.lcf.crawler.system.LCF;
 
 import org.xml.sax.Attributes;
 
@@ -291,13 +291,13 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
         *@param threadContext is the current thread context.
         */
         public void install(IThreadContext threadContext)
-                throws MetacartaException
+                throws LCFException
         {
                 // Install
                 IDBInterface mainDatabase = DBInterfaceFactory.make(threadContext,
-                        Metacarta.getMasterDatabaseName(),
-                        Metacarta.getMasterDatabaseUsername(),
-                        Metacarta.getMasterDatabasePassword());
+                        LCF.getMasterDatabaseName(),
+                        LCF.getMasterDatabaseUsername(),
+                        LCF.getMasterDatabasePassword());
 
                 RobotsManager rm = new RobotsManager(threadContext,mainDatabase);
                 DNSManager dns = new DNSManager(threadContext,mainDatabase);
@@ -309,7 +309,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                         dns.install();
                         cm.install();
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         mainDatabase.signalRollback();
                         throw e;
@@ -332,13 +332,13 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
         *@param threadContext is the current thread context.
         */
         public void deinstall(IThreadContext threadContext)
-                throws MetacartaException
+                throws LCFException
         {
                 // Uninstall
                 IDBInterface mainDatabase = DBInterfaceFactory.make(threadContext,
-                        Metacarta.getMasterDatabaseName(),
-                        Metacarta.getMasterDatabaseUsername(),
-                        Metacarta.getMasterDatabasePassword());
+                        LCF.getMasterDatabaseName(),
+                        LCF.getMasterDatabaseUsername(),
+                        LCF.getMasterDatabasePassword());
 
                 RobotsManager rm = new RobotsManager(threadContext,mainDatabase);
                 DNSManager dns = new DNSManager(threadContext,mainDatabase);
@@ -350,7 +350,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                         rm.deinstall();
                         dns.deinstall();
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         mainDatabase.signalRollback();
                         throw e;
@@ -396,15 +396,15 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
 
         /** Start a session */
         protected void getSession()
-                throws MetacartaException
+                throws LCFException
         {
                 // Handle the stuff that requires a thread context
                 if (robotsManager == null || dnsManager == null || cookieManager == null)
                 {
                         IDBInterface databaseHandle = DBInterfaceFactory.make(currentContext,
-                                Metacarta.getMasterDatabaseName(),
-                                Metacarta.getMasterDatabaseUsername(),
-                                Metacarta.getMasterDatabasePassword());
+                                LCF.getMasterDatabaseName(),
+                                LCF.getMasterDatabaseUsername(),
+                                LCF.getMasterDatabasePassword());
 
                         robotsManager = new RobotsManager(currentContext,databaseHandle);
                         dnsManager = new DNSManager(currentContext,databaseHandle);
@@ -418,7 +418,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
 
                         String emailAddress = params.getParameter(WebcrawlerConfig.PARAMETER_EMAIL);
                         if (emailAddress == null)
-                                throw new MetacartaException("Missing email address");
+                                throw new LCFException("Missing email address");
                         userAgent = "ApacheLCFWebCrawler; "+emailAddress+")";
                         from = emailAddress;
 
@@ -446,7 +446,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
         * in active use.
         */
         public void poll()
-                throws MetacartaException
+                throws LCFException
         {
                 ThrottledFetcher.flushIdleConnections();
         }
@@ -454,7 +454,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
 	/** Check status of connection.
 	*/
 	public String check()
-		throws MetacartaException
+		throws LCFException
 	{
 		getSession();
 		return super.check();
@@ -463,7 +463,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
 	/** Close the connection.  Call this before discarding the repository connector.
 	*/
 	public void disconnect()
-		throws MetacartaException
+		throws LCFException
 	{
 		throttleDescription = null;
 		credentialsDescription = null;
@@ -525,7 +525,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
         */
         public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
                 long startTime, long endTime)
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
                 getSession();
                 
@@ -593,7 +593,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
         */
         public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
                 DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
                 getSession();
                 
@@ -795,7 +795,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                                                                     activityResultCode = null;
                                                             }
                                                     }
-                                                    catch (MetacartaException e)
+                                                    catch (LCFException e)
                                                     {
                                                             connection.noteInterrupted(e);
                                                             throw e;
@@ -1144,7 +1144,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                                     rval[i] = null;
                                     break;
                                 default:
-                                    throw new MetacartaException("Unexpected value for result signal: "+Integer.toString(resultSignal));
+                                    throw new LCFException("Unexpected value for result signal: "+Integer.toString(resultSignal));
                                 }
                             }
                             finally
@@ -1181,7 +1181,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
         * should only find other references, and should not actually call the ingestion methods.
         */
         public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
                 getSession();
                 
@@ -1297,20 +1297,20 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                                                 }
                                                 catch (java.net.SocketException e)
                                                 {
-                                                        throw new MetacartaException("Socket timeout error closing stream: "+e.getMessage(),e);
+                                                        throw new LCFException("Socket timeout error closing stream: "+e.getMessage(),e);
                                                 }
                                                 catch (org.apache.commons.httpclient.ConnectTimeoutException e)
                                                 {
-                                                        throw new MetacartaException("Socket connect timeout error closing stream: "+e.getMessage(),e);
+                                                        throw new LCFException("Socket connect timeout error closing stream: "+e.getMessage(),e);
                                                 }
                                                 catch (InterruptedIOException e)
                                                 {
                                                         //Logging.connectors.warn("IO interruption seen",e);
-                                                        throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+                                                        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
                                                 }
                                                 catch (IOException e)
                                                 {
-                                                        throw new MetacartaException("IO error closing stream: "+e.getMessage(),e);
+                                                        throw new LCFException("IO error closing stream: "+e.getMessage(),e);
                                                 }
                                         }
                                     }
@@ -1340,7 +1340,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
         *@param versions is the corresponding set of version identifiers (individual identifiers may be null).
         */
         public void releaseDocumentVersions(String[] documentIdentifiers, String[] versions)
-                throws MetacartaException
+                throws LCFException
         {
                 int i = 0;
                 while (i < documentIdentifiers.length)
@@ -1386,7 +1386,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
         *@return appropriate status.
         */
         protected int lookupIPAddress(String documentIdentifier, IVersionActivity activities, String hostName, long currentTime, StringBuffer ipAddressBuffer)
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
                 String eventName = makeDNSEventName(activities,hostName);
                 DNSManager.DNSInfo info = dnsManager.lookup(hostName,currentTime);
@@ -1464,7 +1464,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
         */
         protected int checkFetchAllowed(String documentIdentifier, String protocol, String hostIPAddress, int port, PageCredentials credential,
                 IKeystoreManager trustStore, String hostName, String[] binNames, long currentTime, String pathString, IVersionActivity versionActivities, int connectionLimit)
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
                 // hostNameAndPort is the key for looking up the robots file in the database
                 String hostNameAndPort = makeRobotsKey(protocol,hostName,port);
@@ -1560,7 +1560,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                                                 catch (InterruptedIOException e2)
                                                 {
                                                         //Logging.connectors.warn("IO interruption seen",e2);
-                                                        throw new MetacartaException("Interrupted: "+e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+                                                        throw new LCFException("Interrupted: "+e2.getMessage(),e2,LCFException.INTERRUPTED);
                                                 }
                                                 catch (IOException e2)
                                                 {
@@ -1588,7 +1588,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                                                 catch (InterruptedIOException e2)
                                                 {
                                                         //Logging.connectors.warn("IO interruption seen",e2);
-                                                        throw new MetacartaException("Interrupted: "+e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+                                                        throw new LCFException("Interrupted: "+e2.getMessage(),e2,LCFException.INTERRUPTED);
                                                 }
                                                 catch (IOException e2)
                                                 {
@@ -1598,7 +1598,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                                         catch (InterruptedIOException e)
                                         {
                                                 //Logging.connectors.warn("IO interruption seen",e);
-                                                throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+                                                throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
                                         }
                                         catch (IOException e)
                                         {
@@ -1621,7 +1621,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                                                 catch (InterruptedIOException e2)
                                                 {
                                                         //Logging.connectors.warn("IO interruption seen",e2);
-                                                        throw new MetacartaException("Interrupted: "+e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+                                                        throw new LCFException("Interrupted: "+e2.getMessage(),e2,LCFException.INTERRUPTED);
                                                 }
                                                 catch (IOException e2)
                                                 {
@@ -1666,7 +1666,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
         *@return the canonical URL (the document identifier), or null if the url was illegal.
         */
         protected String makeDocumentIdentifier(String parentIdentifier, String rawURL, DocumentURLFilter filter)
-                throws MetacartaException
+                throws LCFException
         {
                 try
                 {
@@ -1746,7 +1746,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
         /** Code to canonicalize a URL.  If URL cannot be canonicalized (and is illegal) return null.
         */
         protected String doCanonicalization(DocumentURLFilter filter, java.net.URI url)
-                throws MetacartaException, java.net.URISyntaxException
+                throws LCFException, java.net.URISyntaxException
         {
                 // First, we have to figure out what the canonicalization policy is.
                 // To do that, we need to do a regexp match against the COMPLETE raw url.
@@ -1961,7 +1961,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
         /** Code to check if data is interesting, based on response code and content type.
         */
         protected boolean isContentInteresting(String documentIdentifier, int response, String contentType)
-                throws MetacartaException
+                throws LCFException
         {
                 // Additional filtering only done if it's a 200 response
                 if (response != 200)
@@ -1987,7 +1987,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
         /** Code to check if an already-fetched document should be ingested.
         */
         protected boolean isDataIngestable(String documentIdentifier)
-                throws MetacartaException
+                throws LCFException
         {
                 if (cache.getResponseCode(documentIdentifier) != 200)
                         return false;
@@ -2024,7 +2024,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
 
         /** Find a redirection URI, if it exists */
         protected String findRedirectionURI(String currentURI)
-                throws MetacartaException
+                throws LCFException
         {
                 FindRedirectionHandler handler = new FindRedirectionHandler(currentURI);
                 handleRedirects(currentURI,handler);
@@ -2033,7 +2033,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
         
         /** Find matching HTML form data, if present.  Return null if not. */
         protected FormData findHTMLForm(String currentURI, LoginParameters lp)
-                throws MetacartaException
+                throws LCFException
         {
                 if (lp == null || lp.getFormNamePattern() == null)
                         return null;
@@ -2051,7 +2051,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
 
         /** Find a preferred redirection URI, if it exists */
         protected String findPreferredRedirectionURI(String currentURI, LoginParameters lp)
-                throws MetacartaException
+                throws LCFException
         {
                 if (lp == null || lp.getPreferredRedirectionPattern() == null)
                         return null;
@@ -2063,7 +2063,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
 
         /** Find HTML link URI, if present, making sure specified preference is matched. */
         protected String findHTMLLinkURI(String currentURI, LoginParameters lp)
-                throws MetacartaException
+                throws LCFException
         {
                 if (lp == null || lp.getPreferredLinkPattern() == null)
                         return null;
@@ -2096,7 +2096,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
 
                 /** Override noteDiscoveredLink */
                 public void noteDiscoveredLink(String rawURL)
-                        throws MetacartaException
+                        throws LCFException
                 {
                     if (targetURI == null)
                     {
@@ -2151,7 +2151,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
 
                 /** Note the start of a form */
                 public void noteFormStart(Map formAttributes)
-                        throws MetacartaException
+                        throws LCFException
                 {
                         if (Logging.connectors.isDebugEnabled())
                                 Logging.connectors.debug("WEB: Saw form with name "+((formAttributes.get("name")==null)?"null":"'"+formAttributes.get("name")+"'"));
@@ -2197,7 +2197,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
             
                 /** Note an input tag */
                 public void noteFormInput(Map inputAttributes)
-                        throws MetacartaException
+                        throws LCFException
                 {
                         if (Logging.connectors.isDebugEnabled())
                             Logging.connectors.debug("WEB: Saw form element of type '"+inputAttributes.get("type")+"' name '"+inputAttributes.get("name")+"'");
@@ -2207,7 +2207,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
             
                 /** Note the end of a form */
                 public void noteFormEnd()
-                        throws MetacartaException
+                        throws LCFException
                 {
                         if (currentFormData != null)
                         {
@@ -2218,25 +2218,25 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
 
                 /** Note discovered href */
                 public void noteAHREF(String rawURL)
-                        throws MetacartaException
+                        throws LCFException
                 {
                 }
 
                 /** Note discovered href */
                 public void noteLINKHREF(String rawURL)
-                        throws MetacartaException
+                        throws LCFException
                 {
                 }
 
                 /** Note discovered IMG SRC */
                 public void noteIMGSRC(String rawURL)
-                        throws MetacartaException
+                        throws LCFException
                 {
                 }
 
                 /** Note discovered FRAME SRC */
                 public void noteFRAMESRC(String rawURL)
-                        throws MetacartaException
+                        throws LCFException
                 {
                 }
 
@@ -2533,25 +2533,25 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
 
                 /** Note the start of a form */
                 public void noteFormStart(Map formAttributes)
-                        throws MetacartaException
+                        throws LCFException
                 {
                 }
             
                 /** Note an input tag */
                 public void noteFormInput(Map inputAttributes)
-                        throws MetacartaException
+                        throws LCFException
                 {
                 }
             
                 /** Note the end of a form */
                 public void noteFormEnd()
-                        throws MetacartaException
+                        throws LCFException
                 {
                 }
 
                 /** Override noteDiscoveredLink */
                 public void noteDiscoveredLink(String rawURL)
-                        throws MetacartaException
+                        throws LCFException
                 {
                     if (targetURI == null)
                     {
@@ -2581,27 +2581,27 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                 
                 /** Note discovered href */
                 public void noteAHREF(String rawURL)
-                        throws MetacartaException
+                        throws LCFException
                 {
                     noteDiscoveredLink(rawURL);
                 }
                 
                 /** Note discovered href */
                 public void noteLINKHREF(String rawURL)
-                        throws MetacartaException
+                        throws LCFException
                 {
                     noteDiscoveredLink(rawURL);
                 }
 
                 /** Note discovered IMG SRC */
                 public void noteIMGSRC(String rawURL)
-                        throws MetacartaException
+                        throws LCFException
                 {
                 }
 
                 /** Note discovered FRAME SRC */
                 public void noteFRAMESRC(String rawURL)
-                        throws MetacartaException
+                        throws LCFException
                 {
                     noteDiscoveredLink(rawURL);
                 }
@@ -2623,7 +2623,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                 *@param rawURL is the raw discovered url.  This may be relative, malformed, or otherwise unsuitable for use until final form is acheived.
                 */
                 public void noteDiscoveredLink(String rawURL)
-                        throws MetacartaException
+                        throws LCFException
                 {
                         // Build a complete url, but don't filter or anything
                         try
@@ -2694,7 +2694,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
 
         /** Code to extract links from an already-fetched document. */
         protected void extractLinks(String documentIdentifier, IProcessActivity activities, DocumentURLFilter filter)
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
                 handleRedirects(documentIdentifier,new ProcessActivityRedirectionHandler(documentIdentifier,activities,filter));
                 // For html, we don't want any actions, because we don't do form submission.
@@ -2727,7 +2727,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                 *@param rawURL is the raw discovered url.  This may be relative, malformed, or otherwise unsuitable for use until final form is acheived.
                 */
                 public void noteDiscoveredLink(String rawURL)
-                        throws MetacartaException
+                        throws LCFException
                 {
                         String newIdentifier = makeDocumentIdentifier(documentIdentifier,rawURL,filter);
                         if (newIdentifier != null)
@@ -2766,46 +2766,46 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                 
                 /** Note the start of a form */
                 public void noteFormStart(Map formAttributes)
-                        throws MetacartaException
+                        throws LCFException
                 {
                 }
             
                 /** Note an input tag */
                 public void noteFormInput(Map inputAttributes)
-                        throws MetacartaException
+                        throws LCFException
                 {
                 }
                 
                 /** Note the end of a form */
                 public void noteFormEnd()
-                        throws MetacartaException
+                        throws LCFException
                 {
                 }
 
                 /** Note discovered href */
                 public void noteAHREF(String rawURL)
-                        throws MetacartaException
+                        throws LCFException
                 {
                         noteDiscoveredLink(rawURL);
                 }
 
                 /** Note discovered href */
                 public void noteLINKHREF(String rawURL)
-                        throws MetacartaException
+                        throws LCFException
                 {
                         noteDiscoveredLink(rawURL);
                 }
 
                 /** Note discovered IMG SRC */
                 public void noteIMGSRC(String rawURL)
-                        throws MetacartaException
+                        throws LCFException
                 {
                         noteDiscoveredLink(rawURL);
                 }
 
                 /** Note discovered FRAME SRC */
                 public void noteFRAMESRC(String rawURL)
-                        throws MetacartaException
+                        throws LCFException
                 {
                         noteDiscoveredLink(rawURL);
                 }
@@ -2825,7 +2825,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                 *@param rawTtlValue is the raw discovered ttl value.  Null indicates we should set the default.
                 */
                 public void noteDiscoveredTtlValue(String rawTtlValue)
-                        throws MetacartaException
+                        throws LCFException
                 {
                         long currentTime = System.currentTimeMillis();
                         Long rescanTime = null;
@@ -2856,7 +2856,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
 
         /** Handle extracting the redirect link from a redirect response. */
         protected void handleRedirects(String documentURI, IRedirectionHandler handler)
-                throws MetacartaException
+                throws LCFException
         {
                 int responseCode = cache.getResponseCode(documentURI);
                 if (responseCode == 302 || responseCode == 301)
@@ -2878,7 +2878,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
 
         /** Handle document references from XML.  Right now we only understand RSS. */
         protected void handleXML(String documentURI, IXMLHandler handler)
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
             try
             {
@@ -2955,7 +2955,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                                 x.cleanup();
                         }
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         // Ignore XML parsing errors.  These should probably have their own error code, but that requires a core change.
                         if (e.getMessage().indexOf("pars") >= 0)
@@ -2973,21 +2973,21 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
             }
             catch (java.net.SocketTimeoutException e)
             {
-                throw new MetacartaException("Socket timeout exception: "+e.getMessage(),e);
+                throw new LCFException("Socket timeout exception: "+e.getMessage(),e);
             }
             catch (org.apache.commons.httpclient.ConnectTimeoutException e)
             {
-                throw new MetacartaException("Socket connect timeout exception: "+e.getMessage(),e);
+                throw new LCFException("Socket connect timeout exception: "+e.getMessage(),e);
             }
             catch (InterruptedIOException e)
             {
                 //Logging.connectors.warn("IO interruption seen",e);
 
-                throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+                throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
             }
             catch (IOException e)
             {
-                throw new MetacartaException("IO error: "+e.getMessage(),e);
+                throw new LCFException("IO error: "+e.getMessage(),e);
             }
         }
 
@@ -3020,7 +3020,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                 
                 /** Handle the tag beginning to set the correct second-level parsing context */
                 protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         if (qName.equals("rss"))
                         {
@@ -3049,7 +3049,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
 
                 /** Handle the tag ending */
                 protected void endTag()
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         XMLContext context = theStream.getContext();
                         String tagName = context.getQname();
@@ -3082,7 +3082,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                 }
                 
                 protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         // Handle each channel
                         if (qName.equals("channel"))
@@ -3096,7 +3096,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                 }
 
                 protected void endTag()
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         // If it's our channel tag, process global channel information
                         XMLContext context = theStream.getContext();
@@ -3128,7 +3128,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                 }
 
                 protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         // The tags we care about are "ttl" and "item", nothing else.
                         if (qName.equals("ttl"))
@@ -3146,7 +3146,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                 }
                 
                 protected void endTag()
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         XMLContext theContext = theStream.getContext();
                         String theTag = theContext.getQname();
@@ -3176,7 +3176,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                 
                 /** Process this data */
                 protected void process()
-                        throws MetacartaException
+                        throws LCFException
                 {
                         // Deal with the ttlvalue, if it was found
                         // Use the ttl value as a signal for when we ought to look at this feed again.  If not present, use the default.
@@ -3195,7 +3195,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                 }
                 
                 protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         // The tags we care about are "ttl" and "item", nothing else.
                         if (qName.equals("link"))
@@ -3217,7 +3217,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                 
                 /** Convert the individual sub-fields of the item context into their final forms */
                 protected void endTag()
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         XMLContext theContext = theStream.getContext();
                         String theTag = theContext.getQname();
@@ -3237,7 +3237,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                 
                 /** Process the data accumulated for this item */
                 public void process(IXMLHandler handler)
-                        throws MetacartaException
+                        throws LCFException
                 {
                         if (linkField == null || linkField.length() == 0)
                                 linkField = guidField;
@@ -3274,7 +3274,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                 }
 
                 protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         // The tags we care about are "ttl" and "item", nothing else.
                         if (qName.equals("ttl"))
@@ -3292,7 +3292,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                 }
                 
                 protected void endTag()
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         XMLContext theContext = theStream.getContext();
                         String theTag = theContext.getQname();
@@ -3319,7 +3319,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                 
                 /** Process this data */
                 protected void process()
-                        throws MetacartaException
+                        throws LCFException
                 {
                         // Deal with the ttlvalue, if it was found
                         handler.noteDiscoveredTtlValue(ttlValue);
@@ -3336,7 +3336,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                 }
                 
                 protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         // The tags we care about are "ttl" and "item", nothing else.
                         if (qName.equals("link"))
@@ -3353,7 +3353,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                 
                 /** Convert the individual sub-fields of the item context into their final forms */
                 protected void endTag()
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         XMLContext theContext = theStream.getContext();
                         String theTag = theContext.getQname();
@@ -3369,7 +3369,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                 
                 /** Process the data accumulated for this item */
                 public void process(IXMLHandler handler)
-                        throws MetacartaException
+                        throws LCFException
                 {
                         if (linkField != null && linkField.length() > 0)
                         {
@@ -3403,7 +3403,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                 }
 
                 protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         // The tags we care about are "ttl" and "item", nothing else.
                         if (qName.equals("ttl"))
@@ -3421,7 +3421,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                 }
                 
                 protected void endTag()
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         XMLContext theContext = theStream.getContext();
                         String theTag = theContext.getQname();
@@ -3448,7 +3448,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                 
                 /** Process this data */
                 protected void process()
-                        throws MetacartaException
+                        throws LCFException
                 {
                         // Deal with the ttlvalue, if it was found
                         // Use the ttl value as a signal for when we ought to look at this feed again.  If not present, use the default.
@@ -3466,7 +3466,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                 }
                 
                 protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         // The tags we care about are "ttl" and "item", nothing else.
                         if (qName.equals("link"))
@@ -3484,7 +3484,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                 
                 /** Process the data accumulated for this item */
                 public void process(IXMLHandler handler)
-                        throws MetacartaException
+                        throws LCFException
                 {
                         if (linkField != null && linkField.length() > 0)
                         {
@@ -3502,7 +3502,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
 
         /** Handle document references from HTML */
         protected void handleHTML(String documentURI, IHTMLHandler handler)
-                throws MetacartaException
+                throws LCFException
         {
             int responseCode = cache.getResponseCode(documentURI);
             if (responseCode != 200)
@@ -3610,21 +3610,21 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
             }
             catch (SocketTimeoutException e)
             {
-                throw new MetacartaException("Socket timeout exception: "+e.getMessage(),e);
+                throw new LCFException("Socket timeout exception: "+e.getMessage(),e);
             }
             catch (org.apache.commons.httpclient.ConnectTimeoutException e)
             {
-                throw new MetacartaException("Socket connect timeout exception: "+e.getMessage(),e);
+                throw new LCFException("Socket connect timeout exception: "+e.getMessage(),e);
             }
             catch (InterruptedIOException e)
             {
                 //Logging.connectors.warn("IO interruption seen",e);
 
-                throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+                throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
             }
             catch (IOException e)
             {
-                throw new MetacartaException("IO error: "+e.getMessage(),e);
+                throw new LCFException("IO error: "+e.getMessage(),e);
             }
         }
 
@@ -3657,7 +3657,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
         }
 
         protected void extractLinksFromLine(String line, IHTMLHandler handler, int tagMask)
-                throws MetacartaException
+                throws LCFException
         {
                 String lowerLine = line.toLowerCase();
                 int index = 0;
@@ -3716,7 +3716,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
         
         /** Is the document text, as far as we can tell? */
         protected boolean isDocumentText(String documentURI)
-                throws MetacartaException
+                throws LCFException
         {
             try
             {
@@ -3751,21 +3751,21 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
             }
             catch (SocketTimeoutException e)
             {
-                throw new MetacartaException("Socket timeout exception accessing cached document: "+e.getMessage(),e);
+                throw new LCFException("Socket timeout exception accessing cached document: "+e.getMessage(),e);
             }
             catch (org.apache.commons.httpclient.ConnectTimeoutException e)
             {
-                throw new MetacartaException("Socket timeout exception accessing cached document: "+e.getMessage(),e);
+                throw new LCFException("Socket timeout exception accessing cached document: "+e.getMessage(),e);
             }
             catch (InterruptedIOException e)
             {
                 //Logging.connectors.warn("IO interruption seen",e);
 
-                throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+                throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
             }
             catch (IOException e)
             {
-                throw new MetacartaException("IO exception accessing cached document: "+e.getMessage(),e);
+                throw new LCFException("IO exception accessing cached document: "+e.getMessage(),e);
             }
         }
 
@@ -3850,7 +3850,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
         * list.
         */
         protected static void compileList(ArrayList output, ArrayList input)
-                throws MetacartaException
+                throws LCFException
         {
                 int i = 0;
                 while (i < input.size())
@@ -3862,7 +3862,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                         }
                         catch (PatternSyntaxException e)
                         {
-                                throw new MetacartaException("Mapping regular expression '"+inputString+"' is illegal: "+e.getMessage(),e);
+                                throw new LCFException("Mapping regular expression '"+inputString+"' is illegal: "+e.getMessage(),e);
                         }
                 }
         }
@@ -3881,7 +3881,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
         
         /** Get the trust store for a given document identifier (URL) */
         protected IKeystoreManager getTrustStore(String documentIdentifier)
-                throws MetacartaException
+                throws LCFException
         {
                 return trustsDescription.getTrustStore(documentIdentifier);
         }
@@ -3916,7 +3916,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
 
         /** Read a document specification to yield a map of name/value pairs for metadata */
         protected static ArrayList findMetadata(DocumentSpecification spec)
-                throws MetacartaException
+                throws LCFException
         {
                 ArrayList rval = new ArrayList();
                 int i = 0;
@@ -4197,7 +4197,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                 * will thus cause the include or exclude regexp to be skipped.
                 */
                 public DocumentURLFilter(DocumentSpecification spec)
-                        throws MetacartaException
+                        throws LCFException
                 {
                         String includes = "";
                         String excludes = "";
@@ -4280,7 +4280,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                                         }
                                         catch (java.util.regex.PatternSyntaxException e)
                                         {
-                                                throw new MetacartaException("Canonicalization regular expression '"+urlRegexp+"' is illegal: "+e.getMessage(),e);
+                                                throw new LCFException("Canonicalization regular expression '"+urlRegexp+"' is illegal: "+e.getMessage(),e);
                                         }
                                 }
                         }
@@ -4346,7 +4346,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                 *@param rawURL is the raw discovered url.  This may be relative, malformed, or otherwise unsuitable for use until final form is acheived.
                 */
                 public void noteDiscoveredLink(String rawURL)
-                        throws MetacartaException;
+                        throws LCFException;
         }
 
         /** This interface describes the functionality needed by an redirection processor in order to handle a redirection.
@@ -4363,7 +4363,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                 *@param rawTtlValue is the raw discovered ttl value.
                 */
                 public void noteDiscoveredTtlValue(String rawTtlValue)
-                        throws MetacartaException;
+                        throws LCFException;
 
         }
         
@@ -4373,31 +4373,31 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
         {
                 /** Note the start of a form */
                 public void noteFormStart(Map formAttributes)
-                        throws MetacartaException;
+                        throws LCFException;
             
                 /** Note an input tag */
                 public void noteFormInput(Map inputAttributes)
-                        throws MetacartaException;
+                        throws LCFException;
             
                 /** Note the end of a form */
                 public void noteFormEnd()
-                        throws MetacartaException;
+                        throws LCFException;
             
                 /** Note discovered href */
                 public void noteAHREF(String rawURL)
-                        throws MetacartaException;
+                        throws LCFException;
             
                 /** Note discovered href */
                 public void noteLINKHREF(String rawURL)
-                        throws MetacartaException;
+                        throws LCFException;
 
                 /** Note discovered IMG SRC */
                 public void noteIMGSRC(String rawURL)
-                        throws MetacartaException;
+                        throws LCFException;
 
                 /** Note discovered FRAME SRC */
                 public void noteFRAMESRC(String rawURL)
-                        throws MetacartaException;
+                        throws LCFException;
         }
         
         // HTML parsing classes and constants
@@ -4497,7 +4497,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
             
             /** Deal with a character.  No exceptions are allowed, since those would represent syntax errors, and we don't want those to cause difficulty. */
             public void dealWithCharacter(char thisChar)
-                throws MetacartaException
+                throws LCFException
             {
                 // At this level we want basic lexical analysis - that is, we deal with identifying tags and comments, that's it.
                 char thisCharLower = Character.toLowerCase(thisChar);
@@ -4785,24 +4785,24 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                         currentValueBuffer.append(thisChar);
                     break;
                 default:
-                    throw new MetacartaException("Invalid state: "+Integer.toString(currentState));
+                    throw new LCFException("Invalid state: "+Integer.toString(currentState));
                 }
             }
             
             protected void noteTag(String tagName, Map attributes)
-                throws MetacartaException
+                throws LCFException
             {
                 Logging.connectors.debug(" Saw tag '"+tagName+"'");
             }
             
             protected void noteEndTag(String tagName)
-                throws MetacartaException
+                throws LCFException
             {
                 Logging.connectors.debug(" Saw end tag '"+tagName+"'");
             }
             
             public void finishUp()
-                    throws MetacartaException
+                    throws LCFException
             {
                     // Does nothing
             }
@@ -4827,7 +4827,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
             // Override methods having to do with notification of tag discovery
             
             protected void noteTag(String tagName, Map attributes)
-                throws MetacartaException
+                throws LCFException
             {
                 super.noteTag(tagName,attributes);
                 switch (scriptParseState)
@@ -4842,12 +4842,12 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                     // Skip all tags until we see the end script one.
                     break;
                 default:
-                    throw new MetacartaException("Unknown script parse state: "+Integer.toString(scriptParseState));
+                    throw new LCFException("Unknown script parse state: "+Integer.toString(scriptParseState));
                 }
             }
             
             protected void noteEndTag(String tagName)
-                throws MetacartaException
+                throws LCFException
             {
                 super.noteEndTag(tagName);
                 switch (scriptParseState)
@@ -4866,12 +4866,12 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
             }
             
             protected void noteNonscriptTag(String tagName, Map attributes)
-                throws MetacartaException
+                throws LCFException
             {
             }
             
             protected void noteNonscriptEndTag(String tagName)
-                throws MetacartaException
+                throws LCFException
             {
             }
 
@@ -4890,7 +4890,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
             }
             
             protected void noteNonscriptTag(String tagName, Map attributes)
-                    throws MetacartaException
+                    throws LCFException
             {
                 super.noteNonscriptTag(tagName,attributes);
                 String lowerTagName = tagName.toLowerCase();
@@ -4944,7 +4944,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
             // Override methods having to do with notification of tag discovery
             
             protected void noteNonscriptTag(String tagName, Map attributes)
-                    throws MetacartaException
+                    throws LCFException
             {
                 super.noteNonscriptTag(tagName,attributes);
                 switch (formParseState)
@@ -5011,12 +5011,12 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                 case FORMPARSESTATE_IN_TEXTAREA:
                     break;
                 default:
-                    throw new MetacartaException("Unknown form parse state: "+Integer.toString(formParseState));
+                    throw new LCFException("Unknown form parse state: "+Integer.toString(formParseState));
                 }
             }
             
             protected void noteNonscriptEndTag(String tagName)
-                    throws MetacartaException
+                    throws LCFException
             {
                 super.noteNonscriptEndTag(tagName);
                 switch (formParseState)
@@ -5039,7 +5039,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                     formParseState = FORMPARSESTATE_IN_FORM;
                     break;
                 default:
-                    throw new MetacartaException("Unknown form parse state: "+Integer.toString(formParseState));
+                    throw new LCFException("Unknown form parse state: "+Integer.toString(formParseState));
                 }
             }
 

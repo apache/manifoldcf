@@ -72,7 +72,7 @@ public class Logging
 		// Initialize the logger
 		PropertyConfigurator.configure(logConfigFile);
 
-		//System.err.println("Metacarta logger setup complete");
+		//System.err.println("LCF logger setup complete");
 	}
 
 	/** Set up loggers used by core package.
@@ -107,7 +107,7 @@ public class Logging
 			String loggername = (String)e.getKey();
 
 			// logger level
-			String level = Metacarta.getProperty(loggername);
+			String level = LCF.getProperty(loggername);
 
 			Level loglevel = null;
 			if (level != null && level.length() > 0)

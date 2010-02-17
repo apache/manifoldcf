@@ -35,7 +35,7 @@ public interface IVersionActivity extends IHistoryActivity, IEventActivity, IAbo
         *@return an array containing the unique data values passed from ALL parents.  Note that these are in no particular order, and there will not be any duplicates.
         */
         public String[] retrieveParentData(String localIdentifier, String dataName)
-                throws MetacartaException;
+                throws LCFException;
 
         /** Retrieve data passed from parents to a specified child document.
         *@param localIdentifier is the document identifier of the document we want the recorded data for.
@@ -43,6 +43,6 @@ public interface IVersionActivity extends IHistoryActivity, IEventActivity, IAbo
         *@return an array containing the unique data values passed from ALL parents.  Note that these are in no particular order, and there will not be any duplicates.
         */
         public CharacterInput[] retrieveParentDataAsFiles(String localIdentifier, String dataName)
-                throws MetacartaException;
+                throws LCFException;
 
 }

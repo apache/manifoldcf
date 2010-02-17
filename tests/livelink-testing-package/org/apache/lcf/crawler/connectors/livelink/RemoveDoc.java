@@ -50,7 +50,7 @@ public class RemoveDoc
 			}
 			System.err.println("Successfully deleted");
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			e.printStackTrace(System.err);
 			System.exit(2);

@@ -261,7 +261,7 @@ public class MatchMap
 	/** Perform a translation.
 	*/
 	public String translate(String input)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Build pattern vector if not already there
 		if (matchPatterns == null)
@@ -278,7 +278,7 @@ public class MatchMap
 				catch (java.util.regex.PatternSyntaxException e)
 				{
 					matchPatterns = null;
-					throw new MetacartaException("For match expression '"+regexp+"', found pattern syntax error: "+e.getMessage(),e);
+					throw new LCFException("For match expression '"+regexp+"', found pattern syntax error: "+e.getMessage(),e);
 				}
 				i++;
 			}

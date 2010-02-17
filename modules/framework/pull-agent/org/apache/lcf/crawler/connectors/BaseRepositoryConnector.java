@@ -25,7 +25,7 @@ import org.apache.lcf.crawler.interfaces.*;
 import java.io.*;
 import java.util.*;
 
-/** This base class describes an instance of a connection between a repository and Metacarta's
+/** This base class describes an instance of a connection between a repository and LCF's
 * standard "pull" ingestion agent.
 *
 * Each instance of this interface is used in only one thread at a time.  Connection Pooling
@@ -82,7 +82,7 @@ public abstract class BaseRepositoryConnector implements IRepositoryConnector
 	*@param threadContext is the current thread context.
 	*/
 	public void install(IThreadContext threadContext)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Base install does nothing
 	}
@@ -93,7 +93,7 @@ public abstract class BaseRepositoryConnector implements IRepositoryConnector
 	*@param threadContext is the current thread context.
 	*/
 	public void deinstall(IThreadContext threadContext)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Base uninstall does nothing
 	}
@@ -130,7 +130,7 @@ public abstract class BaseRepositoryConnector implements IRepositoryConnector
 	*@return the connection's status as a displayable string.
 	*/
 	public String check()
-		throws MetacartaException
+		throws LCFException
 	{
 		// Base version returns "OK" status.
 		return "Connection working";
@@ -140,7 +140,7 @@ public abstract class BaseRepositoryConnector implements IRepositoryConnector
 	* in active use.
 	*/
 	public void poll()
-		throws MetacartaException
+		throws LCFException
 	{
 		// Base version does nothing
 	}
@@ -148,7 +148,7 @@ public abstract class BaseRepositoryConnector implements IRepositoryConnector
 	/** Close the connection.  Call this before discarding the repository connector.
 	*/
 	public void disconnect()
-		throws MetacartaException
+		throws LCFException
 	{
 		params = null;
 	}
@@ -223,7 +223,7 @@ public abstract class BaseRepositoryConnector implements IRepositoryConnector
 	*/
 	public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
 		long startTime, long endTime, int jobMode)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		addSeedDocuments(activities,spec,startTime,endTime);
 	}
@@ -255,7 +255,7 @@ public abstract class BaseRepositoryConnector implements IRepositoryConnector
 	*/
 	public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
 		long startTime, long endTime)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		// Call the old-style methods that get document identifiers, and then queue
 		// them using the new activities-based methods
@@ -304,7 +304,7 @@ public abstract class BaseRepositoryConnector implements IRepositoryConnector
 	*/
 	public IDocumentIdentifierStream getDocumentIdentifiers(ISeedingActivity activities, DocumentSpecification spec,
 		long startTime, long endTime)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		return getDocumentIdentifiers(spec,startTime,endTime);
 	}
@@ -317,7 +317,7 @@ public abstract class BaseRepositoryConnector implements IRepositoryConnector
 	*/
 	public IDocumentIdentifierStream getDocumentIdentifiers(DocumentSpecification spec,
 		long startTime, long endTime)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		// Something provided here so we can override either one.
 		return null;
@@ -340,7 +340,7 @@ public abstract class BaseRepositoryConnector implements IRepositoryConnector
 	*/
 	public IDocumentIdentifierStream getRemainingDocumentIdentifiers(ISeedingActivity activities, DocumentSpecification spec,
 		long startTime, long endTime)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		// Usually we don't need to worry about this.
 		return null;
@@ -365,7 +365,7 @@ public abstract class BaseRepositoryConnector implements IRepositoryConnector
 	*/
 	public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
 		DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		return getDocumentVersions(documentIdentifiers,oldVersions,activities,spec,jobMode);
 	}
@@ -388,7 +388,7 @@ public abstract class BaseRepositoryConnector implements IRepositoryConnector
 	*/
 	public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
 		DocumentSpecification spec, int jobMode)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		return getDocumentVersions(documentIdentifiers,oldVersions,activities,spec);
 	}
@@ -409,7 +409,7 @@ public abstract class BaseRepositoryConnector implements IRepositoryConnector
 	* will always be processed.
 	*/
 	public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities, DocumentSpecification spec)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		return getDocumentVersions(documentIdentifiers,activities,spec);
 	}
@@ -428,7 +428,7 @@ public abstract class BaseRepositoryConnector implements IRepositoryConnector
 	* will always be processed.
 	*/
 	public String[] getDocumentVersions(String[] documentIdentifiers, IVersionActivity activities, DocumentSpecification spec)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		return getDocumentVersions(documentIdentifiers,spec);
 	}
@@ -446,7 +446,7 @@ public abstract class BaseRepositoryConnector implements IRepositoryConnector
 	* will always be processed.
 	*/
 	public String[] getDocumentVersions(String[] documentIdentifiers, DocumentSpecification spec)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		// Return unknown versions
 		String[] rval = new String[documentIdentifiers.length];
@@ -466,7 +466,7 @@ public abstract class BaseRepositoryConnector implements IRepositoryConnector
 	*@param versions is the corresponding set of version identifiers (individual identifiers may be null).
 	*/
 	public void releaseDocumentVersions(String[] documentIdentifiers, String[] versions)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Base implementation does nothing
 	}
@@ -496,7 +496,7 @@ public abstract class BaseRepositoryConnector implements IRepositoryConnector
 	*/
 	public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities,
 		DocumentSpecification spec, boolean[] scanOnly, int jobMode)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		processDocuments(documentIdentifiers,versions,activities,spec,scanOnly);
 	}
@@ -516,7 +516,7 @@ public abstract class BaseRepositoryConnector implements IRepositoryConnector
 	*/
 	public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities,
 		DocumentSpecification spec, boolean[] scanOnly)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		// Does nothing; override to make something happen
 	}

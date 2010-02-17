@@ -247,7 +247,7 @@
 				pathSoFar = "";
 				childList = c.getChildFolderNames("");
 				if (childList == null)
-					throw new MetacartaException("Can't find any children for root folder");
+					throw new LCFException("Can't find any children for root folder");
 			}
 	    } finally {
 			RepositoryConnectorFactory.release(connector);
@@ -286,7 +286,7 @@
 <%
 	    }
 	  }
-	  catch (MetacartaException e)
+	  catch (LCFException e)
 	  {
 		e.printStackTrace();
 		out.println(org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage()));

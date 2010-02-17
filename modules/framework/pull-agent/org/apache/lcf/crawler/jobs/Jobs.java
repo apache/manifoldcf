@@ -178,7 +178,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@param database is the database handle.
         */
         public Jobs(IThreadContext threadContext, IDBInterface database)
-                throws MetacartaException
+                throws LCFException
         {
                 super(database,"jobs");
                 scheduleManager = new ScheduleManager(threadContext,database);
@@ -192,7 +192,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         /** Install or upgrade this table.
         */
         public void install(String outputTableName, String outputNameField, String connectionTableName, String connectionNameField)
-                throws MetacartaException
+                throws LCFException
         {
                 beginTransaction();
                 try
@@ -304,7 +304,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                         scheduleManager.install(getTableName(),idField);
                         hopFilterManager.install(getTableName(),idField);
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         signalRollback();
                         throw e;
@@ -323,7 +323,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         /** Uninstall.
         */
         public void deinstall()
-                throws MetacartaException
+                throws LCFException
         {
                 beginTransaction();
                 try
@@ -332,7 +332,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                         scheduleManager.deinstall();
                         performDrop(null);
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         signalRollback();
                         throw e;
@@ -352,7 +352,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@Return the time, in minutes.
         */
         public int getAnalyzeTime()
-                throws MetacartaException
+                throws LCFException
         {
                 // Since we never expect jobs to grow rapidly, every 24hrs should always be fine
                 return 24 * 60;
@@ -361,7 +361,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         /** Analyze job tables that need analysis.
         */
         public void analyzeTables()
-                throws MetacartaException
+                throws LCFException
         {
                 analyzeTable();
         }
@@ -369,7 +369,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         /** Read schedule records for a specified set of jobs.  Cannot use caching!
         */
         public ScheduleRecord[][] readScheduleRecords(Long[] jobIDs)
-                throws MetacartaException
+                throws LCFException
         {
                 Map uniqueIDs = new HashMap();
                 int i = 0;
@@ -411,7 +411,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                         signalRollback();
                         throw e;
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         signalRollback();
                         throw e;
@@ -450,7 +450,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@return the array of all jobs.
         */
         public IJobDescription[] getAll()
-                throws MetacartaException
+                throws LCFException
         {
                 // Begin transaction
                 beginTransaction();
@@ -477,7 +477,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                         }
                         return loadMultiple(ids,readOnlies);
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         signalRollback();
                         throw e;
@@ -497,7 +497,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@return a resultset with "jobid" and "connectionname" fields.
         */
         public IResultSet getActiveJobConnections()
-                throws MetacartaException
+                throws LCFException
         {
                 return performQuery("SELECT "+idField+" AS jobid,"+connectionNameField+" AS connectionname FROM "+getTableName()+" WHERE "+
                         statusField+" IN ("+
@@ -509,7 +509,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@return the array of connection names corresponding to active jobs.
         */
         public String[] getActiveConnectionNames()
-                throws MetacartaException
+                throws LCFException
         {
                 IResultSet set = performQuery("SELECT DISTINCT "+connectionNameField+" FROM "+getTableName()+" WHERE "+
                         statusField+" IN ("+
@@ -528,7 +528,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
 
         /** Count the number of jobs that have a specified priority level */
         public int countPriorityJobs(int priority)
-                throws MetacartaException
+                throws LCFException
         {
                 IResultSet set = performQuery("SELECT COUNT(*) AS countvar FROM "+getTableName()+" WHERE "+priorityField+"="+Integer.toString(priority)+
                         " AND "+
@@ -542,7 +542,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         /** Create a job.
         */
         public IJobDescription create()
-                throws MetacartaException
+                throws LCFException
         {
                 JobDescription rval = new JobDescription();
                 rval.setIsNew(true);
@@ -554,7 +554,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@param id is the job id.
         */
         public void delete(Long id)
-                throws MetacartaException
+                throws LCFException
         {
                 StringSetBuffer ssb = new StringSetBuffer();
                 ssb.add(getJobsKey());
@@ -570,7 +570,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                         params.add(id);
                         performDelete("WHERE "+idField+"=?",params,cacheKeys);
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         signalRollback();
                         throw e;
@@ -591,7 +591,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@return the editable job description.
         */
         public IJobDescription load(Long id, boolean readOnly)
-                throws MetacartaException
+                throws LCFException
         {
                 return loadMultiple(new Long[]{id}, new boolean[]{readOnly})[0];
         }
@@ -602,7 +602,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@return the array of objects, in order.
         */
         public IJobDescription[] loadMultiple(Long[] ids, boolean[] readOnlies)
-                throws MetacartaException
+                throws LCFException
         {
                 // Build description objects
                 JobObjectDescription[] objectDescriptions = new JobObjectDescription[ids.length];
@@ -625,7 +625,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@param jobDescription is the job description.
         */
         public void save(IJobDescription jobDescription)
-                throws MetacartaException
+                throws LCFException
         {
                 // The invalidation keys for this are both the general and the specific.
                 Long id = jobDescription.getID();
@@ -719,7 +719,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
 
                         cacheManager.invalidateKeys(ch);
                     }
-                    catch (MetacartaException e)
+                    catch (LCFException e)
                     {
                         signalRollback();
                         throw e;
@@ -743,7 +743,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         /** This method is called on a restart.
         */
         public void restart()
-                throws MetacartaException
+                throws LCFException
         {
                 beginTransaction();
                 try
@@ -797,7 +797,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                         // No need to do anything to the queue; it looks like it can take care of
                         // itself.
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         signalRollback();
                         throw e;
@@ -818,7 +818,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@param oldStatusValue is the current status value for the job.
         */
         public void noteConnectorDeregistration(Long jobID, int oldStatusValue)
-                throws MetacartaException
+                throws LCFException
         {
                 int newStatusValue;
                 // The following states are special, in that when the underlying connector goes away, the jobs
@@ -856,7 +856,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@param oldStatusValue is the current status value for the job.
         */
         public void noteConnectorRegistration(Long jobID, int oldStatusValue)
-                throws MetacartaException
+                throws LCFException
         {
                 int newStatusValue;
                 // The following states are special, in that when the underlying connector returns, the jobs
@@ -888,7 +888,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         /** Check whether a job's status indicates that it is in ACTIVE or ACTIVESEEDING state.
         */
         public boolean checkJobActive(Long jobID)
-                throws MetacartaException
+                throws LCFException
         {
                 StringSet cacheKeys = new StringSet(getJobStatusKey());
                 ArrayList list = new ArrayList();
@@ -907,7 +907,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         /** Reset startup worker thread status.
         */
         public void resetStartupWorkerStatus()
-                throws MetacartaException
+                throws LCFException
         {
                 // We have to handle all states that the startup thread would resolve, and change them to something appropriate.
 
@@ -932,7 +932,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         /** Reset as part of restoring seeding worker threads.
         */
         public void resetSeedingWorkerStatus()
-                throws MetacartaException
+                throws LCFException
         {
                 beginTransaction();
                 try
@@ -971,7 +971,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                         performUpdate(map,"WHERE "+statusField+"=?",list,invKey);
 
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         signalRollback();
                         throw e;
@@ -994,7 +994,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@param windowEnd is the window end time, if any
         */
         public void startJob(Long jobID, Long windowEnd)
-                throws MetacartaException
+                throws LCFException
         {
                 ArrayList list = new ArrayList();
                 list.add(jobID);
@@ -1012,7 +1012,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@param startTime is the current time in milliseconds from start of epoch.
         */
         public void noteJobStarted(Long jobID, long startTime)
-                throws MetacartaException
+                throws LCFException
         {
                 beginTransaction();
                 try
@@ -1022,7 +1022,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                         IResultSet set = performQuery("SELECT "+statusField+","+connectionNameField+","+outputNameField+" FROM "+getTableName()+" WHERE "+
                                 idField+"=? FOR UPDATE",list,null,null);
                         if (set.getRowCount() == 0)
-                                throw new MetacartaException("Can't find job "+jobID.toString());
+                                throw new LCFException("Can't find job "+jobID.toString());
                         IResultRow row = set.getRow(0);
                         int status = stringToStatus((String)row.getValue(statusField));
                         int newStatus;
@@ -1042,7 +1042,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                                 break;
                         default:
                                 // Complain!
-                                throw new MetacartaException("Unexpected job status encountered: "+Integer.toString(status));
+                                throw new LCFException("Unexpected job status encountered: "+Integer.toString(status));
                         }
 
                         HashMap map = new HashMap();
@@ -1054,7 +1054,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                         map.put(lastCheckTimeField,new Long(startTime));
                         performUpdate(map,"WHERE "+idField+"=?",list,new StringSet(getJobStatusKey()));
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         signalRollback();
                         throw e;
@@ -1075,7 +1075,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@param seedTime is the job seed time.
         */
         public void noteJobSeeded(Long jobID, long seedTime)
-                throws MetacartaException
+                throws LCFException
         {
                 // We have to convert the current status to the non-seeding equivalent
                 beginTransaction();
@@ -1086,7 +1086,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                         IResultSet set = performQuery("SELECT "+statusField+" FROM "+getTableName()+" WHERE "+
                                 idField+"=? FOR UPDATE",list,null,null);
                         if (set.getRowCount() == 0)
-                                throw new MetacartaException("Can't find job "+jobID.toString());
+                                throw new LCFException("Can't find job "+jobID.toString());
                         IResultRow row = set.getRow(0);
                         int status = stringToStatus((String)row.getValue(statusField));
                         int newStatus;
@@ -1114,7 +1114,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                                 newStatus = STATUS_ABORTINGFORRESTART;
                                 break;
                         default:
-                                throw new MetacartaException("Unexpected job status encountered: "+Integer.toString(status));
+                                throw new LCFException("Unexpected job status encountered: "+Integer.toString(status));
                         }
                         HashMap map = new HashMap();
                         map.put(statusField,statusToString(newStatus));
@@ -1126,7 +1126,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                         signalRollback();
                         throw e;
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         signalRollback();
                         throw e;
@@ -1144,7 +1144,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@param windowEnd is the window end time, if any.
         */
         public void unwaitJob(Long jobID, int newStatus, Long windowEnd)
-                throws MetacartaException
+                throws LCFException
         {
                 ArrayList list = new ArrayList();
                 list.add(jobID);
@@ -1160,7 +1160,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *  STATUS_ACTIVEWAITSEEDING or STATUS_PAUSEDWAITSEEDING)
         */
         public void waitJob(Long jobID, int newStatus)
-                throws MetacartaException
+                throws LCFException
         {
                 ArrayList list = new ArrayList();
                 list.add(jobID);
@@ -1176,7 +1176,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@return true if there wasn't an abort already logged for this job.
         */
         public boolean abortJob(Long jobID, String errorText)
-                throws MetacartaException
+                throws LCFException
         {
                 beginTransaction();
                 try
@@ -1187,7 +1187,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                         IResultSet set = performQuery("SELECT "+statusField+" FROM "+getTableName()+
                                 " WHERE "+idField+"=? FOR UPDATE",list,null,null);
                         if (set.getRowCount() == 0)
-                                throw new MetacartaException("Job does not exist: "+jobID);
+                                throw new LCFException("Job does not exist: "+jobID);
                         IResultRow row = set.getRow(0);
                         int status = stringToStatus(row.getValue(statusField).toString());
                         if (status == STATUS_ABORTING || status == STATUS_ABORTINGSEEDING || status == STATUS_ABORTINGSTARTINGUP)
@@ -1217,7 +1217,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                                 newStatus = STATUS_ABORTINGSEEDING;
                                 break;
                         default:
-                                throw new MetacartaException("Job "+jobID+" is not active");
+                                throw new LCFException("Job "+jobID+" is not active");
                         }
                         // Pause the job
                         HashMap map = new HashMap();
@@ -1226,7 +1226,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                         performUpdate(map,"WHERE "+idField+"=?",list,new StringSet(getJobStatusKey()));
                         return true;
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         signalRollback();
                         throw e;
@@ -1246,7 +1246,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@param jobID is the job id.
         */
         public void abortRestartJob(Long jobID)
-                throws MetacartaException
+                throws LCFException
         {
                 beginTransaction();
                 try
@@ -1257,7 +1257,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                         IResultSet set = performQuery("SELECT "+statusField+" FROM "+getTableName()+
                                 " WHERE "+idField+"=? FOR UPDATE",list,null,null);
                         if (set.getRowCount() == 0)
-                                throw new MetacartaException("Job does not exist: "+jobID);
+                                throw new LCFException("Job does not exist: "+jobID);
                         IResultRow row = set.getRow(0);
                         int status = stringToStatus(row.getValue(statusField).toString());
                         if (status == STATUS_ABORTINGFORRESTART || status == STATUS_ABORTINGFORRESTARTSEEDING || status == STATUS_ABORTINGSTARTINGUPFORRESTART)
@@ -1284,14 +1284,14 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                                 newStatus = STATUS_ABORTINGFORRESTARTSEEDING;
                                 break;
                         default:
-                                throw new MetacartaException("Job "+jobID+" is not restartable");
+                                throw new LCFException("Job "+jobID+" is not restartable");
                         }
                         // reset the job
                         HashMap map = new HashMap();
                         map.put(statusField,statusToString(newStatus));
                         performUpdate(map,"WHERE "+idField+"=?",list,new StringSet(getJobStatusKey()));
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         signalRollback();
                         throw e;
@@ -1311,7 +1311,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@param jobID is the job id.
         */
         public void pauseJob(Long jobID)
-                throws MetacartaException
+                throws LCFException
         {
                 beginTransaction();
                 try
@@ -1322,7 +1322,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                         IResultSet set = performQuery("SELECT "+statusField+" FROM "+getTableName()+
                                 " WHERE "+idField+"=? FOR UPDATE",list,null,null);
                         if (set.getRowCount() == 0)
-                                throw new MetacartaException("Job does not exist: "+jobID);
+                                throw new LCFException("Job does not exist: "+jobID);
                         IResultRow row = set.getRow(0);
                         int status = stringToStatus(row.getValue(statusField).toString());
                         int newStatus;
@@ -1343,14 +1343,14 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                                 newStatus = STATUS_PAUSEDWAITSEEDING;
                                 break;
                         default:
-                                throw new MetacartaException("Job "+jobID+" is not active");
+                                throw new LCFException("Job "+jobID+" is not active");
                         }
                         // Pause the job
                         HashMap map = new HashMap();
                         map.put(statusField,statusToString(newStatus));
                         performUpdate(map,"WHERE "+idField+"=?",list,new StringSet(getJobStatusKey()));
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         signalRollback();
                         throw e;
@@ -1370,7 +1370,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@param jobID is the job id.
         */
         public void restartJob(Long jobID)
-                throws MetacartaException
+                throws LCFException
         {
                 beginTransaction();
                 try
@@ -1381,7 +1381,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                         IResultSet set = performQuery("SELECT "+statusField+","+connectionNameField+","+outputNameField+" FROM "+getTableName()+
                                 " WHERE "+idField+"=? FOR UPDATE",list,null,null);
                         if (set.getRowCount() == 0)
-                                throw new MetacartaException("Job does not exist: "+jobID);
+                                throw new LCFException("Job does not exist: "+jobID);
                         IResultRow row = set.getRow(0);
                         int status = stringToStatus(row.getValue(statusField).toString());
                         String connectionName = (String)row.getValue(connectionNameField);
@@ -1408,14 +1408,14 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                                 newStatus = STATUS_ACTIVEWAITSEEDING;
                                 break;
                         default:
-                                throw new MetacartaException("Job "+jobID+" is not paused");
+                                throw new LCFException("Job "+jobID+" is not paused");
                         }
                         // Pause the job
                         HashMap map = new HashMap();
                         map.put(statusField,statusToString(newStatus));
                         performUpdate(map,"WHERE "+idField+"=?",list,new StringSet(getJobStatusKey()));
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         signalRollback();
                         throw e;
@@ -1437,7 +1437,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@param reseedTime is the reseed time.
         */
         public void writeStatus(Long jobID, int status, Long reseedTime)
-                throws MetacartaException
+                throws LCFException
         {
                 ArrayList list = new ArrayList();
                 list.add(jobID);
@@ -1452,7 +1452,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@param status is the desired status.
         */
         public void writeStatus(Long jobID, int status)
-                throws MetacartaException
+                throws LCFException
         {
                 ArrayList list = new ArrayList();
                 list.add(jobID);
@@ -1466,7 +1466,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@param currentTime is the current time.
         */
         public void updateLastTime(Long jobID, long currentTime)
-                throws MetacartaException
+                throws LCFException
         {
                 ArrayList list = new ArrayList();
                 list.add(jobID);
@@ -1481,7 +1481,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@param finishTime is the finish time.
         */
         public void finishJob(Long jobID, long finishTime)
-                throws MetacartaException
+                throws LCFException
         {
                 ArrayList list = new ArrayList();
                 list.add(jobID);
@@ -1500,7 +1500,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@param jobID is the job id.
         */
         public void finishAbortJob(Long jobID, long abortTime)
-                throws MetacartaException
+                throws LCFException
         {
                 ArrayList list = new ArrayList();
                 list.add(jobID);
@@ -1519,7 +1519,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@return true if there is a reference, false otherwise.
         */
         public boolean checkIfReference(String connectionName)
-                throws MetacartaException
+                throws LCFException
         {
                 ArrayList list = new ArrayList();
                 list.add(connectionName);
@@ -1533,7 +1533,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@return true if there is a reference, false otherwise.
         */
         public boolean checkIfOutputReference(String connectionName)
-                throws MetacartaException
+                throws LCFException
         {
                 ArrayList list = new ArrayList();
                 list.add(connectionName);
@@ -1547,7 +1547,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@return the set of job id's associated with that connection.
         */
         public IJobDescription[] findJobsForConnection(String connectionName)
-                throws MetacartaException
+                throws LCFException
         {
                 // Begin transaction
                 beginTransaction();
@@ -1576,7 +1576,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                         }
                         return loadMultiple(ids,readOnlies);
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         signalRollback();
                         throw e;
@@ -1599,7 +1599,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@return true if such jobs exist.
         */
         public boolean deletingJobsPresent()
-                throws MetacartaException
+                throws LCFException
         {
                 IResultSet set = performQuery("SELECT "+idField+" FROM "+getTableName()+" WHERE "+
                         statusField+" IN ("+quoteSQLString(statusToString(STATUS_READYFORDELETE))+","+
@@ -1614,7 +1614,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@return true if such jobs exist.
         */
         public boolean activeJobsPresent()
-                throws MetacartaException
+                throws LCFException
         {
                 // To improve the postgres CPU usage of the system at rest, we do a *fast* check to be
                 // sure there are ANY jobs in an active state.
@@ -1633,11 +1633,11 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@return the status value.
         */
         public static int stringToStatus(String value)
-                throws MetacartaException
+                throws LCFException
         {
                 Integer x = (Integer)statusMap.get(value);
                 if (x == null)
-                        throw new MetacartaException("Bad status value: '"+value+"'");
+                        throw new LCFException("Bad status value: '"+value+"'");
                 return x.intValue();
         }
 
@@ -1646,7 +1646,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@return the string.
         */
         public static String statusToString(int status)
-                throws MetacartaException
+                throws LCFException
         {
                 switch (status)
                 {
@@ -1694,7 +1694,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                         return "r";
 
                 default:
-                        throw new MetacartaException("Bad status value: "+Integer.toString(status));
+                        throw new LCFException("Bad status value: "+Integer.toString(status));
                 }
         }
 
@@ -1703,11 +1703,11 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@return the type value.
         */
         public static int stringToType(String value)
-                throws MetacartaException
+                throws LCFException
         {
                 Integer x = (Integer)typeMap.get(value);
                 if (x == null)
-                        throw new MetacartaException("Bad type value: '"+value+"'");
+                        throw new LCFException("Bad type value: '"+value+"'");
                 return x.intValue();
         }
 
@@ -1716,7 +1716,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@return the string.
         */
         public static String typeToString(int type)
-                throws MetacartaException
+                throws LCFException
         {
                 switch (type)
                 {
@@ -1725,27 +1725,27 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                 case TYPE_SPECIFIED:
                         return "S";
                 default:
-                        throw new MetacartaException("Bad type: "+Integer.toString(type));
+                        throw new LCFException("Bad type: "+Integer.toString(type));
                 }
         }
 
         /** Go from string to hopcount mode.
         */
         public static int stringToHopcountMode(String value)
-                throws MetacartaException
+                throws LCFException
         {
                 if (value == null || value.length() == 0)
                         return HOPCOUNT_ACCURATE;
                 Integer x = (Integer)hopmodeMap.get(value);
                 if (x == null)
-                        throw new MetacartaException("Bad hopcount mode value: '"+value+"'");
+                        throw new LCFException("Bad hopcount mode value: '"+value+"'");
                 return x.intValue();
         }
 
         /** Go from hopcount mode to string.
         */
         public static String hopcountModeToString(int value)
-                throws MetacartaException
+                throws LCFException
         {
                 switch(value)
                 {
@@ -1756,7 +1756,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                 case HOPCOUNT_NEVERDELETE:
                         return "V";
                 default:
-                        throw new MetacartaException("Unknown hopcount mode value "+Integer.toString(value));
+                        throw new LCFException("Unknown hopcount mode value "+Integer.toString(value));
                 }
         }
 
@@ -1765,11 +1765,11 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@return the start method value.
         */
         public static int stringToStartMethod(String value)
-                throws MetacartaException
+                throws LCFException
         {
                 Integer x = (Integer)startMap.get(value);
                 if (x == null)
-                        throw new MetacartaException("Bad start method value: '"+value+"'");
+                        throw new LCFException("Bad start method value: '"+value+"'");
                 return x.intValue();
         }
 
@@ -1778,7 +1778,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@return a string.
         */
         public static String startMethodToString(int startMethod)
-                throws MetacartaException
+                throws LCFException
         {
                 switch(startMethod)
                 {
@@ -1789,7 +1789,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                 case START_DISABLE:
                         return "D";
                 default:
-                        throw new MetacartaException("Bad start method: "+Integer.toString(startMethod));
+                        throw new LCFException("Bad start method: "+Integer.toString(startMethod));
                 }
         }
 
@@ -1799,7 +1799,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@return the enumerated value.
         */
         public static EnumeratedValues stringToEnumeratedValue(String value)
-                throws MetacartaException
+                throws LCFException
         {
             if (value == null)
                 return null;
@@ -1825,7 +1825,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
             }
             catch (NumberFormatException e)
             {
-                throw new MetacartaException("Bad number: '"+value+"'",e);
+                throw new LCFException("Bad number: '"+value+"'",e);
             }
 
         }
@@ -1878,7 +1878,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@return the corresponding job descriptions.
         */
         protected JobDescription[] getJobsMultiple(Long[] ids)
-                throws MetacartaException
+                throws LCFException
         {
                 // Fetch all the jobs, but only once for each ID.  Then, assign each one by id into the final array.
                 HashMap uniqueIDs = new HashMap();
@@ -1920,7 +1920,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                         signalRollback();
                         throw e;
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         signalRollback();
                         throw e;
@@ -1951,7 +1951,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         *@param params is the set of parameters.
         */
         protected void getJobsChunk(Map returnValues, String idList, ArrayList params)
-                throws MetacartaException
+                throws LCFException
         {
             try
             {
@@ -1992,7 +1992,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
             }
             catch (NumberFormatException e)
             {
-                throw new MetacartaException("Bad number",e);
+                throw new LCFException("Bad number",e);
             }
         }
 
@@ -2099,7 +2099,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                 * @return the newly created objects to cache, or null, if any object cannot be created.
                 *  The order of the returned objects must correspond to the order of the object descriptinos.
                 */
-                public Object[] create(ICacheDescription[] objectDescriptions) throws MetacartaException
+                public Object[] create(ICacheDescription[] objectDescriptions) throws LCFException
                 {
                         // Turn the object descriptions into the parameters for the ToolInstance requests
                         Long[] ids = new Long[objectDescriptions.length];
@@ -2122,7 +2122,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                 * @param objectDescription is the unique identifier of the object.
                 * @param cachedObject is the cached object.
                 */
-                public void exists(ICacheDescription objectDescription, Object cachedObject) throws MetacartaException
+                public void exists(ICacheDescription objectDescription, Object cachedObject) throws LCFException
                 {
                         // Cast what came in as what it really is
                         JobObjectDescription objectDesc = (JobObjectDescription)objectDescription;
@@ -2138,7 +2138,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                 /** Perform the desired operation.  This method is called after either createGetObject()
                 * or exists() is called for every requested object.
                 */
-                public void execute() throws MetacartaException
+                public void execute() throws LCFException
                 {
                         // Does nothing; we only want to fetch objects in this cacher.
                 }

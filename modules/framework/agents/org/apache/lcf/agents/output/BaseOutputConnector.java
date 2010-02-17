@@ -57,7 +57,7 @@ public abstract class BaseOutputConnector implements IOutputConnector
         *@param threadContext is the current thread context.
         */
         public void install(IThreadContext threadContext)
-                throws MetacartaException
+                throws LCFException
         {
                 // Base install does nothing
         }
@@ -68,7 +68,7 @@ public abstract class BaseOutputConnector implements IOutputConnector
         *@param threadContext is the current thread context.
         */
         public void deinstall(IThreadContext threadContext)
-                throws MetacartaException
+                throws LCFException
         {
                 // Base uninstall does nothing
         }
@@ -96,7 +96,7 @@ public abstract class BaseOutputConnector implements IOutputConnector
         *@return the connection's status as a displayable string.
         */
         public String check()
-                throws MetacartaException
+                throws LCFException
         {
                 // Base version returns "OK" status.
                 return "Connection working";
@@ -106,7 +106,7 @@ public abstract class BaseOutputConnector implements IOutputConnector
         * in active use.
         */
         public void poll()
-                throws MetacartaException
+                throws LCFException
         {
                 // Base version does nothing
         }
@@ -114,7 +114,7 @@ public abstract class BaseOutputConnector implements IOutputConnector
         /** Close the connection.  Call this before discarding the repository connector.
         */
         public void disconnect()
-                throws MetacartaException
+                throws LCFException
         {
                 params = null;
         }

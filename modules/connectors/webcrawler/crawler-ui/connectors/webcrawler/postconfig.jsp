@@ -166,7 +166,7 @@
 				node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_DOMAIN,domain);
 				node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_USERNAME,userName);
 				node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD,
-					org.apache.lcf.crawler.system.Metacarta.obfuscate(password));
+					org.apache.lcf.crawler.system.LCF.obfuscate(password));
 				parameters.addChild(parameters.getChildCount(),node);
 			}
 			i++;
@@ -185,7 +185,7 @@
 			node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_DOMAIN,domain);
 			node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_USERNAME,userName);
 			node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD,
-				org.apache.lcf.crawler.system.Metacarta.obfuscate(password));
+				org.apache.lcf.crawler.system.LCF.obfuscate(password));
 			parameters.addChild(parameters.getChildCount(),node);
 		}
 	}
@@ -254,7 +254,7 @@
 									if (value != null && value.length() > 0)
 										paramNode.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,value);
 									if (password != null && password.length() > 0)
-										paramNode.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD,org.apache.lcf.crawler.system.Metacarta.obfuscate(password));
+										paramNode.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD,org.apache.lcf.crawler.system.LCF.obfuscate(password));
 									authPageNode.addChild(authPageNode.getChildCount(),paramNode);
 								}
 								z++;
@@ -272,7 +272,7 @@
 								if (value != null && value.length() > 0)
 									paramNode.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,value);
 								if (password != null && password.length() > 0)
-									paramNode.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD,org.apache.lcf.crawler.system.Metacarta.obfuscate(password));
+									paramNode.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD,org.apache.lcf.crawler.system.LCF.obfuscate(password));
 								authPageNode.addChild(authPageNode.getChildCount(),paramNode);
 							}
 						}

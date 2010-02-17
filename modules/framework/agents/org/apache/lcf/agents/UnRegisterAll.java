@@ -42,7 +42,7 @@ public class UnRegisterAll
 
 		try
 		{
-			Metacarta.initializeEnvironment();
+			LCF.initializeEnvironment();
 			IThreadContext tc = ThreadContextFactory.make();
 			IAgentManager mgr = AgentManagerFactory.make(tc);
 			String[] classnames = mgr.getAllAgents();
@@ -53,7 +53,7 @@ public class UnRegisterAll
 			}
 			System.err.println("Successfully unregistered all agents");
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			e.printStackTrace();
 			System.exit(1);

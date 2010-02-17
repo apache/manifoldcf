@@ -60,8 +60,8 @@ public class SetupAgentConnection
 				is.close();
 			}
 
-			p.setProperty(Metacarta.ingestURIProperty,args[1]);
-			p.setProperty(Metacarta.ingestUserProperty,args[2]);
+			p.setProperty(LCF.ingestURIProperty,args[1]);
+			p.setProperty(LCF.ingestUserProperty,args[2]);
 			String password;
 			if (args.length > 3)
 				password = args[3];
@@ -91,7 +91,7 @@ public class SetupAgentConnection
 				}
 			}
 			
-			p.setProperty(Metacarta.ingestPasswordProperty,Metacarta.obfuscate(password));
+			p.setProperty(LCF.ingestPasswordProperty,LCF.obfuscate(password));
 
 			// Write it out.
 			OutputStream os = new FileOutputStream(f);

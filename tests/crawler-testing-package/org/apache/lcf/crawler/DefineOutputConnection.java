@@ -52,7 +52,7 @@ public class DefineOutputConnection
 
 		try
 		{
-		        Metacarta.initializeEnvironment();
+		        LCF.initializeEnvironment();
 			IThreadContext tc = ThreadContextFactory.make();
 			IOutputConnectionManager mgr = OutputConnectionManagerFactory.make(tc);
 			IOutputConnection conn = mgr.create();
@@ -68,7 +68,7 @@ public class DefineOutputConnection
 				// Parse
 				int pos = arg.indexOf("=");
 				if (pos == -1)
-					throw new MetacartaException("Argument missing =");
+					throw new LCFException("Argument missing =");
 				String name = arg.substring(0,pos);
 				String value = arg.substring(pos+1);
 				if (name.endsWith("assword"))

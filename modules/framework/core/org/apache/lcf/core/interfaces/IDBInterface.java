@@ -58,7 +58,7 @@ public interface IDBInterface
 	*@param tableName is the name of the table.
 	*/
 	public void performLock(String tableName)
-		throws MetacartaException;
+		throws LCFException;
 		
 	/** Perform an insert operation.
 	*@param tableName is the name of the table.
@@ -67,7 +67,7 @@ public interface IDBInterface
 	*@param parameterMap is the map of column name/values to write.
 	*/
 	public void performInsert(String tableName, Map parameterMap, StringSet invalidateKeys)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Perform an update operation.
 	*@param tableName is the name of the table.
@@ -77,7 +77,7 @@ public interface IDBInterface
 	*@param whereParameters are the parameters that come with the where clause, if any.
 	*/
 	public void performUpdate(String tableName, Map parameterMap, String whereClause, ArrayList whereParameters, StringSet invalidateKeys)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Perform a delete operation.
 	*@param tableName is the name of the table to delete from.
@@ -86,7 +86,7 @@ public interface IDBInterface
 	*@param whereParameters are the parameters that come with the where clause, if any.
 	*/
 	public void performDelete(String tableName, String whereClause, ArrayList whereParameters, StringSet invalidateKeys)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Perform a table creation operation.
 	*@param tableName is the name of the table to create.
@@ -96,7 +96,7 @@ public interface IDBInterface
 	*@param invalidateKeys are the cache keys that should be invalidated, if any.
 	*/
 	public void performCreate(String tableName, Map columnMap, StringSet invalidateKeys)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Perform a table alter operation.
 	*@param tableName is the name of the table to alter.
@@ -110,7 +110,7 @@ public interface IDBInterface
 	*/
 	public void performAlter(String tableName, Map columnMap, Map columnModifyMap, ArrayList columnDeleteList,
 		StringSet invalidateKeys)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Add an index to a table.
 	*@param tableName is the name of the table to add the index for.
@@ -119,7 +119,7 @@ public interface IDBInterface
 	* in the index, in order.
 	*/
 	public void addTableIndex(String tableName, boolean unique, ArrayList columnList)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Add an index to a table.
 	*@param tableName is the name of the table to add the index for.
@@ -127,52 +127,52 @@ public interface IDBInterface
 	*@param description is the index description.
 	*/
 	public void performAddIndex(String indexName, String tableName, IndexDescription description)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Remove an index.
 	*@param indexName is the name of the index to remove.
 	*/
 	public void performRemoveIndex(String indexName)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Analyze a table.
 	*@param tableName is the name of the table to analyze/calculate statistics for.
 	*/
 	public void analyzeTable(String tableName)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Reindex a table.
 	*@param tableName is the name of the table to rebuild indexes for.
 	*/
 	public void reindexTable(String tableName)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Perform a table drop operation.
 	*@param tableName is the name of the table to drop.
 	*@param invalidateKeys are the cache keys that should be invalidated, if any.
 	*/
 	public void performDrop(String tableName, StringSet invalidateKeys)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Perform user lookup.
 	*@param userName is the user name to lookup.
 	*@return true if the user exists.
 	*/
 	public boolean lookupUser(String userName, StringSet cacheKeys, String queryClass)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Perform user create.
 	*@param userName is the user name.
 	*@param password is the user's password.
 	*/
 	public void performCreateUser(String userName, String password)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Perform user delete.
 	*@param userName is the user name.
 	*/
 	public void performDropUser(String userName)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Perform database lookup.
 	*@param databaseName is the database name.
@@ -180,7 +180,7 @@ public interface IDBInterface
 	*@return true if the database exists.
 	*/
 	public boolean lookupDatabase(String databaseName, StringSet cacheKeys, String queryClass)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Perform database create.
 	*@param databaseName is the database name.
@@ -190,14 +190,14 @@ public interface IDBInterface
 	*/
 	public void performCreateDatabase(String databaseName, String databaseUser, String databasePassword,
 		StringSet invalidateKeys)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Perform database drop.
 	*@param databaseName is the database name.
 	*@param invalidateKeys are the cache keys that should be invalidated, if any.
 	*/
 	public void performDropDatabase(String databaseName, StringSet invalidateKeys)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Get a table's schema.
 	*@param tableName is the name of the table.
@@ -206,7 +206,7 @@ public interface IDBInterface
 	*@return a map of column names and ColumnDescription objects, describing the schema.
 	*/
 	public Map getTableSchema(String tableName, StringSet cacheKeys, String queryClass)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Get a table's indexes.
 	*@param tableName is the name of the table.
@@ -215,7 +215,7 @@ public interface IDBInterface
 	*@return a map of index names and IndexDescription objects, describing the indexes.
 	*/
 	public Map getTableIndexes(String tableName, StringSet cacheKeys, String queryClass)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Get a database's tables.
 	*@param cacheKeys are the cache keys for the query, or null.
@@ -223,7 +223,7 @@ public interface IDBInterface
 	*@return the set of tables.
 	*/
 	public StringSet getAllTables(StringSet cacheKeys, String queryClass)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Perform a general database modification query.
 	*@param query is the query string.
@@ -231,7 +231,7 @@ public interface IDBInterface
 	*@param invalidateKeys are the cache keys to invalidate.
 	*/
 	public void performModification(String query, ArrayList params, StringSet invalidateKeys)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Perform a general "data fetch" query.
 	*@param query is the query string.
@@ -242,7 +242,7 @@ public interface IDBInterface
 	*@return a resultset.
 	*/
 	public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Perform a general "data fetch" query.
 	*@param query is the query string.
@@ -256,7 +256,7 @@ public interface IDBInterface
 	*/
 	public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass,
 		int maxResults, ILimitChecker returnLimit)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Perform a general "data fetch" query.
 	*@param query is the query string.
@@ -271,7 +271,7 @@ public interface IDBInterface
 	*/
 	public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass,
 		int maxResults, ResultSpecification resultSpec, ILimitChecker returnLimit)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Quote a sql string.
 	* This method quotes a sql string in the proper manner for the database in question.
@@ -307,7 +307,7 @@ public interface IDBInterface
 	* if not otherwise determined).
 	*/
 	public void beginTransaction()
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Begin a database transaction.  This method call MUST be paired with an endTransaction() call,
 	* or database handles will be lost.  If the transaction should be rolled back, then signalRollback() should
@@ -319,7 +319,7 @@ public interface IDBInterface
 	*@param transactionType is the kind of transaction desired.
 	*/
 	public void beginTransaction(int transactionType)
-		throws MetacartaException;
+		throws LCFException;
 
 	/** Signal that a rollback should occur on the next endTransaction().
 	*/
@@ -329,7 +329,7 @@ public interface IDBInterface
 	* signalRollback() was called within the transaction).
 	*/
 	public void endTransaction()
-		throws MetacartaException;
+		throws LCFException;
 
 }
 

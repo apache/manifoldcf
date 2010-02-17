@@ -78,7 +78,7 @@ public class GTSConnector extends org.apache.lcf.agents.output.BaseOutputConnect
         /** Close the connection.  Call this before discarding the connection.
         */
         public void disconnect()
-                throws MetacartaException
+                throws LCFException
         {
                 poster = null;
                 super.disconnect();
@@ -86,13 +86,13 @@ public class GTSConnector extends org.apache.lcf.agents.output.BaseOutputConnect
 
         /** Set up a session */
         protected void getSession()
-                throws MetacartaException
+                throws LCFException
         {
                 if (poster == null)
                 {
                         String ingestURI = params.getParameter(GTSConfig.PARAM_INGESTURI);
                         if (ingestURI == null)
-                                throw new MetacartaException("Missing parameter '"+GTSConfig.PARAM_INGESTURI+"'");
+                                throw new LCFException("Missing parameter '"+GTSConfig.PARAM_INGESTURI+"'");
                         String userID = params.getParameter(GTSConfig.PARAM_USERID);
                         String password = params.getObfuscatedParameter(GTSConfig.PARAM_PASSWORD);
                         String realm = params.getParameter(GTSConfig.PARAM_REALM);
@@ -104,7 +104,7 @@ public class GTSConnector extends org.apache.lcf.agents.output.BaseOutputConnect
         *@return the connection's status as a displayable string.
         */
         public String check()
-                throws MetacartaException
+                throws LCFException
         {
                 try
                 {
@@ -130,7 +130,7 @@ public class GTSConnector extends org.apache.lcf.agents.output.BaseOutputConnect
         * the document will not need to be sent again to the output data store.
         */
         public String getOutputDescription(OutputSpecification spec)
-                throws MetacartaException
+                throws LCFException
         {
                 // The information we want in this string is:
                 // (1) the collection name(s), in sorted order.
@@ -191,7 +191,7 @@ public class GTSConnector extends org.apache.lcf.agents.output.BaseOutputConnect
         *@return the document status (accepted or permanently rejected).
         */
         public int addOrReplaceDocument(String documentURI, String outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
                 // Establish a session
                 getSession();
@@ -224,7 +224,7 @@ public class GTSConnector extends org.apache.lcf.agents.output.BaseOutputConnect
         *@activities is the handle to an object that the implementer of an output connector may use to perform operations, such as logging processing activity.
         */
         public void removeDocument(String documentURI, String outputDescription, IOutputRemoveActivity activities)
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
                 // Establish a session
                 getSession();

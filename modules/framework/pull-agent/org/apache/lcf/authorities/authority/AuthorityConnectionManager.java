@@ -22,7 +22,7 @@ import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.authorities.interfaces.*;
 import java.util.*;
 import org.apache.lcf.authorities.interfaces.CacheKeyFactory;
-import org.apache.lcf.authorities.system.Metacarta;
+import org.apache.lcf.authorities.system.LCF;
 
 import org.apache.lcf.crawler.interfaces.IRepositoryConnectionManager;
 import org.apache.lcf.crawler.interfaces.RepositoryConnectionManagerFactory;
@@ -51,7 +51,7 @@ public class AuthorityConnectionManager extends org.apache.lcf.core.database.Bas
 	*@param threadContext is the thread context.
 	*/
 	public AuthorityConnectionManager(IThreadContext threadContext, IDBInterface database)
-		throws MetacartaException
+		throws LCFException
 	{
 		super(database,"authconnections");
 
@@ -62,7 +62,7 @@ public class AuthorityConnectionManager extends org.apache.lcf.core.database.Bas
 	/** Install the manager.
 	*/
 	public void install()
-		throws MetacartaException
+		throws LCFException
 	{
 		beginTransaction();
 		try
@@ -119,7 +119,7 @@ public class AuthorityConnectionManager extends org.apache.lcf.core.database.Bas
 				}
 			}
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -138,51 +138,51 @@ public class AuthorityConnectionManager extends org.apache.lcf.core.database.Bas
 	/** Uninstall the manager.
 	*/
 	public void deinstall()
-		throws MetacartaException
+		throws LCFException
 	{
 		performDrop(null);
 	}
 
 	/** Export configuration */
 	public void exportConfiguration(java.io.OutputStream os)
-		throws java.io.IOException, MetacartaException
+		throws java.io.IOException, LCFException
 	{
 		// Write a version indicator
-		Metacarta.writeDword(os,1);
+		LCF.writeDword(os,1);
 		// Get the authority list
 		IAuthorityConnection[] list = getAllConnections();
 		// Write the number of authorities
-		Metacarta.writeDword(os,list.length);
+		LCF.writeDword(os,list.length);
 		// Loop through the list and write the individual authority info
 		int i = 0;
 		while (i < list.length)
 		{
 			IAuthorityConnection conn = list[i++];
-			Metacarta.writeString(os,conn.getName());
-			Metacarta.writeString(os,conn.getDescription());
-			Metacarta.writeString(os,conn.getClassName());
-			Metacarta.writeString(os,conn.getConfigParams().toXML());
-			Metacarta.writeDword(os,conn.getMaxConnections());
+			LCF.writeString(os,conn.getName());
+			LCF.writeString(os,conn.getDescription());
+			LCF.writeString(os,conn.getClassName());
+			LCF.writeString(os,conn.getConfigParams().toXML());
+			LCF.writeDword(os,conn.getMaxConnections());
 		}
 	}
 	
 	/** Import configuration */
 	public void importConfiguration(java.io.InputStream is)
-		throws java.io.IOException, MetacartaException
+		throws java.io.IOException, LCFException
 	{
-		int version = Metacarta.readDword(is);
+		int version = LCF.readDword(is);
 		if (version != 1)
 			throw new java.io.IOException("Unknown authority configuration version: "+Integer.toString(version));
-		int count = Metacarta.readDword(is);
+		int count = LCF.readDword(is);
 		int i = 0;
 		while (i < count)
 		{
 			IAuthorityConnection conn = create();
-			conn.setName(Metacarta.readString(is));
-			conn.setDescription(Metacarta.readString(is));
-			conn.setClassName(Metacarta.readString(is));
-			conn.getConfigParams().fromXML(Metacarta.readString(is));
-			conn.setMaxConnections(Metacarta.readDword(is));
+			conn.setName(LCF.readString(is));
+			conn.setDescription(LCF.readString(is));
+			conn.setClassName(LCF.readString(is));
+			conn.getConfigParams().fromXML(LCF.readString(is));
+			conn.setMaxConnections(LCF.readDword(is));
 			// Attempt to save this connection
 			save(conn);
 			i++;
@@ -193,7 +193,7 @@ public class AuthorityConnectionManager extends org.apache.lcf.core.database.Bas
 	*@return an array of connection objects.
 	*/
 	public IAuthorityConnection[] getAllConnections()
-		throws MetacartaException
+		throws LCFException
 	{
 		beginTransaction();
 		try
@@ -214,7 +214,7 @@ public class AuthorityConnectionManager extends org.apache.lcf.core.database.Bas
 			}
 			return loadMultiple(names);
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -235,7 +235,7 @@ public class AuthorityConnectionManager extends org.apache.lcf.core.database.Bas
 	*@return the loaded connection object, or null if not found.
 	*/
 	public IAuthorityConnection load(String name)
-		throws MetacartaException
+		throws LCFException
 	{
 		return loadMultiple(new String[]{name})[0];
 	}
@@ -245,7 +245,7 @@ public class AuthorityConnectionManager extends org.apache.lcf.core.database.Bas
 	*@return the loaded connection objects.
 	*/
 	public IAuthorityConnection[] loadMultiple(String[] names)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Build description objects
 		AuthorityConnectionDescription[] objectDescriptions = new AuthorityConnectionDescription[names.length];
@@ -268,7 +268,7 @@ public class AuthorityConnectionManager extends org.apache.lcf.core.database.Bas
 	*@return the new object.
 	*/
 	public IAuthorityConnection create()
-		throws MetacartaException
+		throws LCFException
 	{
 		AuthorityConnection rval = new AuthorityConnection();
 		return rval;
@@ -278,7 +278,7 @@ public class AuthorityConnectionManager extends org.apache.lcf.core.database.Bas
 	*@param object is the object to save.
 	*/
 	public void save(IAuthorityConnection object)
-		throws MetacartaException
+		throws LCFException
 	{
 		StringSetBuffer ssb = new StringSetBuffer();
 		ssb.add(getAuthorityConnectionsKey());
@@ -291,7 +291,7 @@ public class AuthorityConnectionManager extends org.apache.lcf.core.database.Bas
 		    try
 		    {
 			performLock();
-			Metacarta.noteConfigurationChange();
+			LCF.noteConfigurationChange();
 			// See whether the instance exists
 			ArrayList params = new ArrayList();
 			params.add(object.getName());
@@ -320,7 +320,7 @@ public class AuthorityConnectionManager extends org.apache.lcf.core.database.Bas
 
 			cacheManager.invalidateKeys(ch);
 		    }
-		    catch (MetacartaException e)
+		    catch (LCFException e)
 		    {
 			signalRollback();
 			throw e;
@@ -346,7 +346,7 @@ public class AuthorityConnectionManager extends org.apache.lcf.core.database.Bas
 	* name does not exist, no error is returned.
 	*/
 	public void delete(String name)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Grab repository connection manager handle, to check on legality of deletion.
 		IRepositoryConnectionManager repoManager = RepositoryConnectionManagerFactory.make(threadContext);
@@ -363,14 +363,14 @@ public class AuthorityConnectionManager extends org.apache.lcf.core.database.Bas
 			{
 				// Check if anything refers to this connection name
 				if (repoManager.isReferenced(name))
-				 	throw new MetacartaException("Can't delete authority connection '"+name+"': existing repository connections refer to it");
-				Metacarta.noteConfigurationChange();
+				 	throw new LCFException("Can't delete authority connection '"+name+"': existing repository connections refer to it");
+				LCF.noteConfigurationChange();
 				ArrayList params = new ArrayList();
 				params.add(name);
 				performDelete("WHERE "+nameField+"=?",params,null);
 				cacheManager.invalidateKeys(ch);
 			}
-			catch (MetacartaException e)
+			catch (LCFException e)
 			{
 				signalRollback();
 				throw e;
@@ -427,7 +427,7 @@ public class AuthorityConnectionManager extends org.apache.lcf.core.database.Bas
 	*@return the corresponding repository connection objects.
 	*/
 	protected AuthorityConnection[] getAuthorityConnectionsMultiple(String[] connectionNames)
-		throws MetacartaException
+		throws LCFException
 	{
 		AuthorityConnection[] rval = new AuthorityConnection[connectionNames.length];
 		HashMap returnIndex = new HashMap();
@@ -471,7 +471,7 @@ public class AuthorityConnectionManager extends org.apache.lcf.core.database.Bas
 			signalRollback();
 			throw e;
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -489,7 +489,7 @@ public class AuthorityConnectionManager extends org.apache.lcf.core.database.Bas
 	*@param params is the set of parameters.
 	*/
 	protected void getAuthorityConnectionsChunk(AuthorityConnection[] rval, Map returnIndex, String idList, ArrayList params)
-		throws MetacartaException
+		throws LCFException
 	{
 		IResultSet set;
 		set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
@@ -610,7 +610,7 @@ public class AuthorityConnectionManager extends org.apache.lcf.core.database.Bas
 		* @return the newly created objects to cache, or null, if any object cannot be created.
 		*  The order of the returned objects must correspond to the order of the object descriptinos.
 		*/
-		public Object[] create(ICacheDescription[] objectDescriptions) throws MetacartaException
+		public Object[] create(ICacheDescription[] objectDescriptions) throws LCFException
 		{
 			// Turn the object descriptions into the parameters for the ToolInstance requests
 			String[] connectionNames = new String[objectDescriptions.length];
@@ -633,7 +633,7 @@ public class AuthorityConnectionManager extends org.apache.lcf.core.database.Bas
 		* @param objectDescription is the unique identifier of the object.
 		* @param cachedObject is the cached object.
 		*/
-		public void exists(ICacheDescription objectDescription, Object cachedObject) throws MetacartaException
+		public void exists(ICacheDescription objectDescription, Object cachedObject) throws LCFException
 		{
 			// Cast what came in as what it really is
 			AuthorityConnectionDescription objectDesc = (AuthorityConnectionDescription)objectDescription;
@@ -651,7 +651,7 @@ public class AuthorityConnectionManager extends org.apache.lcf.core.database.Bas
 		/** Perform the desired operation.  This method is called after either createGetObject()
 		* or exists() is called for every requested object.
 		*/
-		public void execute() throws MetacartaException
+		public void execute() throws LCFException
 		{
 			// Does nothing; we only want to fetch objects in this cacher.
 		}

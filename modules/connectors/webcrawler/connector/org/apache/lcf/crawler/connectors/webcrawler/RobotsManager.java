@@ -24,7 +24,7 @@ import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.crawler.interfaces.*;
 import org.apache.lcf.authorities.interfaces.*;
 import org.apache.lcf.crawler.interfaces.CacheKeyFactory;
-import org.apache.lcf.crawler.system.Metacarta;
+import org.apache.lcf.crawler.system.LCF;
 import org.apache.lcf.crawler.system.Logging;
 
 
@@ -53,7 +53,7 @@ public class RobotsManager extends org.apache.lcf.core.database.BaseTable
 	*@param database is the database handle.
 	*/
 	public RobotsManager(IThreadContext tc, IDBInterface database)
-		throws MetacartaException
+		throws LCFException
 	{
 		super(database,"robotsdata");
 		cacheManager = CacheManagerFactory.make(tc);
@@ -62,7 +62,7 @@ public class RobotsManager extends org.apache.lcf.core.database.BaseTable
 	/** Install the manager.
 	*/
 	public void install()
-		throws MetacartaException
+		throws LCFException
 	{
 		beginTransaction();
 		try
@@ -78,7 +78,7 @@ public class RobotsManager extends org.apache.lcf.core.database.BaseTable
 				performCreate(map,null);
 			}
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -97,7 +97,7 @@ public class RobotsManager extends org.apache.lcf.core.database.BaseTable
 	/** Uninstall the manager.
 	*/
 	public void deinstall()
-		throws MetacartaException
+		throws LCFException
 	{
 		performDrop(null);
 	}
@@ -110,7 +110,7 @@ public class RobotsManager extends org.apache.lcf.core.database.BaseTable
 	*/
 	public Boolean checkFetchAllowed(String userAgent, String hostName, long currentTime, String pathString,
 		IVersionActivity activities)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Build description objects
 		HostDescription[] objectDescriptions = new HostDescription[1];
@@ -135,7 +135,7 @@ public class RobotsManager extends org.apache.lcf.core.database.BaseTable
 	*@param data is the robots data stream.  May be null.
 	*/
 	public void writeRobotsData(String hostName, long expirationTime, InputStream data)
-		throws MetacartaException, IOException
+		throws LCFException, IOException
 	{
 		TempFileInput tfi = null;
 		try
@@ -146,9 +146,9 @@ public class RobotsManager extends org.apache.lcf.core.database.BaseTable
 				{
 					tfi = new TempFileInput(data);
 				}
-				catch (MetacartaException e)
+				catch (LCFException e)
 				{
-					if (e.getErrorCode() == MetacartaException.INTERRUPTED)
+					if (e.getErrorCode() == LCFException.INTERRUPTED)
 						throw e;
 					throw new IOException("Fetch failed: "+e.getMessage());
 				}
@@ -189,7 +189,7 @@ public class RobotsManager extends org.apache.lcf.core.database.BaseTable
 				}
 				cacheManager.invalidateKeys(ch);
 			    }
-			    catch (MetacartaException e)
+			    catch (LCFException e)
 			    {
 				signalRollback();
 				throw e;
@@ -231,7 +231,7 @@ public class RobotsManager extends org.apache.lcf.core.database.BaseTable
 	*@return null if the data doesn't exist at all.  Return robots data if it does.
 	*/
 	protected RobotsData readRobotsData(String hostName, IVersionActivity activities)
-		throws MetacartaException
+		throws LCFException
 	{
 	    try
 	    {
@@ -242,7 +242,7 @@ public class RobotsManager extends org.apache.lcf.core.database.BaseTable
 		if (set.getRowCount() == 0)
 			return null;
 		if (set.getRowCount() > 1)
-			throw new MetacartaException("Unexpected number of robotsdata rows matching '"+hostName+"': "+Integer.toString(set.getRowCount()));
+			throw new LCFException("Unexpected number of robotsdata rows matching '"+hostName+"': "+Integer.toString(set.getRowCount()));
 		IResultRow row = set.getRow(0);
 		long expiration = ((Long)row.getValue(expirationField)).longValue();
 		BinaryInput bi = (BinaryInput)row.getValue(robotsField);
@@ -260,11 +260,11 @@ public class RobotsManager extends org.apache.lcf.core.database.BaseTable
 	    }
 	    catch (InterruptedIOException e)
 	    {
-		throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+		throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
 	    }
 	    catch (IOException e)
 	    {
-		throw new MetacartaException("IO error reading robots data for "+hostName+": "+e.getMessage(),e);
+		throw new LCFException("IO error reading robots data for "+hostName+": "+e.getMessage(),e);
 	    }
 	}
 
@@ -297,7 +297,7 @@ public class RobotsManager extends org.apache.lcf.core.database.BaseTable
 
 		/** Constructor. */
 		public RobotsData(InputStream is, long expiration, String hostName, IVersionActivity activities)
-			throws IOException, MetacartaException
+			throws IOException, LCFException
 		{
 			this.expiration = expiration;
 			if (is == null)
@@ -404,7 +404,7 @@ public class RobotsManager extends org.apache.lcf.core.database.BaseTable
 		* Is NOT expected to close the stream.
 		*/
 		protected void parseRobotsTxt(BufferedReader r, String hostName, IVersionActivity activities)
-			throws IOException, MetacartaException
+			throws IOException, LCFException
 		{
 			boolean parseCompleted = false;
 			boolean robotsWasHtml = false;
@@ -788,7 +788,7 @@ public class RobotsManager extends org.apache.lcf.core.database.BaseTable
 		* @return the newly created objects to cache, or null, if any object cannot be created.
 		*  The order of the returned objects must correspond to the order of the object descriptinos.
 		*/
-		public Object[] create(ICacheDescription[] objectDescriptions) throws MetacartaException
+		public Object[] create(ICacheDescription[] objectDescriptions) throws LCFException
 		{
 			// I'm not expecting multiple values to be request, so it's OK to walk through the objects
 			// and do a request at a time.
@@ -815,7 +815,7 @@ public class RobotsManager extends org.apache.lcf.core.database.BaseTable
 		* @param objectDescription is the unique identifier of the object.
 		* @param cachedObject is the cached object.
 		*/
-		public void exists(ICacheDescription objectDescription, Object cachedObject) throws MetacartaException
+		public void exists(ICacheDescription objectDescription, Object cachedObject) throws LCFException
 		{
 			// Cast what came in as what it really is
 			HostDescription objectDesc = (HostDescription)objectDescription;
@@ -827,7 +827,7 @@ public class RobotsManager extends org.apache.lcf.core.database.BaseTable
 		/** Perform the desired operation.  This method is called after either createGetObject()
 		* or exists() is called for every requested object.
 		*/
-		public void execute() throws MetacartaException
+		public void execute() throws LCFException
 		{
 			// Does nothing; we only want to fetch objects in this cacher.
 		}

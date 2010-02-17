@@ -38,7 +38,7 @@ public class AuthorityConnectorFactory
 	*@param className is the class name.
 	*/
 	public static void install(IThreadContext threadContext, String className)
-		throws MetacartaException
+		throws LCFException
 	{
 		IAuthorityConnector connector = getConnectorNoCheck(className);
 		connector.install(threadContext);
@@ -48,7 +48,7 @@ public class AuthorityConnectorFactory
 	*@param className is the class name.
 	*/
 	public static void deinstall(IThreadContext threadContext, String className)
-		throws MetacartaException
+		throws LCFException
 	{
 		IAuthorityConnector connector = getConnectorNoCheck(className);
 		connector.deinstall(threadContext);
@@ -59,7 +59,7 @@ public class AuthorityConnectorFactory
 	*@return the folder string.
 	*/
 	public static String getJSPFolder(IThreadContext threadContext, String className)
-		throws MetacartaException
+		throws LCFException
 	{
 		IAuthorityConnector connector = getConnector(threadContext,className);
 		if (connector == null)
@@ -70,7 +70,7 @@ public class AuthorityConnectorFactory
 	/** Get the default response from a connector.  Called if the connection attempt fails.
 	*/
 	public static AuthorizationResponse getDefaultAuthorizationResponse(IThreadContext threadContext, String className, String userName)
-		throws MetacartaException
+		throws LCFException
 	{
 		IAuthorityConnector connector = getConnector(threadContext,className);
 		if (connector == null)
@@ -83,7 +83,7 @@ public class AuthorityConnectorFactory
 	*@return the instance.
 	*/
 	public static IAuthorityConnector getConnectorNoCheck(String className)
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
@@ -94,7 +94,7 @@ public class AuthorityConnectorFactory
 			Object[] arguments = new Object[0];
 			Object o = c.newInstance(arguments);
 			if (!(o instanceof IAuthorityConnector))
-				throw new MetacartaException("Class '"+className+"' does not implement IAuthorityConnector.");
+				throw new LCFException("Class '"+className+"' does not implement IAuthorityConnector.");
 			return (IAuthorityConnector)o;
 		}
 		catch (InvocationTargetException e)
@@ -103,42 +103,42 @@ public class AuthorityConnectorFactory
 			if (z instanceof Error)
 				throw (Error)z;
 			else
-				throw (MetacartaException)z;
+				throw (LCFException)z;
 		}
 		catch (ClassNotFoundException e)
 		{
-			throw new MetacartaException("No class implementing IAuthorityConnector called '"+
+			throw new LCFException("No class implementing IAuthorityConnector called '"+
 				className+"'.",
 				e);
 		}
 		catch (NoSuchMethodException e)
 		{
-			throw new MetacartaException("No appropriate constructor for IAuthorityConnector implementation '"+
+			throw new LCFException("No appropriate constructor for IAuthorityConnector implementation '"+
 				className+"'.  Need xxx().",
 				e);
 		}
 		catch (SecurityException e)
 		{
-			throw new MetacartaException("Protected constructor for IAuthorityConnector implementation '"+className+"'",
+			throw new LCFException("Protected constructor for IAuthorityConnector implementation '"+className+"'",
 				e);
 		}
 		catch (IllegalAccessException e)
 		{
-			throw new MetacartaException("Unavailable constructor for IAuthorityConnector implementation '"+className+"'",
+			throw new LCFException("Unavailable constructor for IAuthorityConnector implementation '"+className+"'",
 				e);
 		}
 		catch (IllegalArgumentException e)
 		{
-			throw new MetacartaException("Shouldn't happen!!!",e);
+			throw new LCFException("Shouldn't happen!!!",e);
 		}
 		catch (InstantiationException e)
 		{
-			throw new MetacartaException("InstantiationException for IAuthorityConnector implementation '"+className+"'",
+			throw new LCFException("InstantiationException for IAuthorityConnector implementation '"+className+"'",
 				e);
 		}
 		catch (ExceptionInInitializerError e)
 		{
-			throw new MetacartaException("ExceptionInInitializerError for IAuthorityConnector implementation '"+className+"'",
+			throw new LCFException("ExceptionInInitializerError for IAuthorityConnector implementation '"+className+"'",
 				e);
 		}
 
@@ -149,7 +149,7 @@ public class AuthorityConnectorFactory
 	*@return the instance.
 	*/
 	protected static IAuthorityConnector getConnector(IThreadContext threadContext, String className)
-		throws MetacartaException
+		throws LCFException
 	{
 		IAuthorityConnectorManager connMgr = AuthorityConnectorManagerFactory.make(threadContext);
 		if (connMgr.isInstalled(className) == false)
@@ -164,7 +164,7 @@ public class AuthorityConnectorFactory
 			Object[] arguments = new Object[0];
 			Object o = c.newInstance(arguments);
 			if (!(o instanceof IAuthorityConnector))
-				throw new MetacartaException("Class '"+className+"' does not implement IAuthorityConnector.");
+				throw new LCFException("Class '"+className+"' does not implement IAuthorityConnector.");
 			return (IAuthorityConnector)o;
 		}
 		catch (InvocationTargetException e)
@@ -173,7 +173,7 @@ public class AuthorityConnectorFactory
 			if (z instanceof Error)
 				throw (Error)z;
 			else
-				throw (MetacartaException)z;
+				throw (LCFException)z;
 		}
 		catch (ClassNotFoundException e)
 		{
@@ -181,38 +181,38 @@ public class AuthorityConnectorFactory
 			if (connMgr.isInstalled(className) == false)
 				return null;
 			
-			throw new MetacartaException("No class implementing IAuthorityConnector called '"+
+			throw new LCFException("No class implementing IAuthorityConnector called '"+
 				className+"'.",
 				e);
 		}
 		catch (NoSuchMethodException e)
 		{
-			throw new MetacartaException("No appropriate constructor for IAuthorityConnector implementation '"+
+			throw new LCFException("No appropriate constructor for IAuthorityConnector implementation '"+
 				className+"'.  Need xxx().",
 				e);
 		}
 		catch (SecurityException e)
 		{
-			throw new MetacartaException("Protected constructor for IAuthorityConnector implementation '"+className+"'",
+			throw new LCFException("Protected constructor for IAuthorityConnector implementation '"+className+"'",
 				e);
 		}
 		catch (IllegalAccessException e)
 		{
-			throw new MetacartaException("Unavailable constructor for IAuthorityConnector implementation '"+className+"'",
+			throw new LCFException("Unavailable constructor for IAuthorityConnector implementation '"+className+"'",
 				e);
 		}
 		catch (IllegalArgumentException e)
 		{
-			throw new MetacartaException("Shouldn't happen!!!",e);
+			throw new LCFException("Shouldn't happen!!!",e);
 		}
 		catch (InstantiationException e)
 		{
-			throw new MetacartaException("InstantiationException for IAuthorityConnector implementation '"+className+"'",
+			throw new LCFException("InstantiationException for IAuthorityConnector implementation '"+className+"'",
 				e);
 		}
 		catch (ExceptionInInitializerError e)
 		{
-			throw new MetacartaException("ExceptionInInitializerError for IAuthorityConnector implementation '"+className+"'",
+			throw new LCFException("ExceptionInInitializerError for IAuthorityConnector implementation '"+className+"'",
 				e);
 		}
 
@@ -227,7 +227,7 @@ public class AuthorityConnectorFactory
 	*/
 	public static IAuthorityConnector grab(IThreadContext threadContext,
 		String className, ConfigParams configInfo, int maxPoolSize)
-		throws MetacartaException
+		throws LCFException
 	{
 		// System.out.println("In AuthorityConnectorManager.grab()");
 
@@ -258,7 +258,7 @@ public class AuthorityConnectorFactory
 	*@param connector is the connector to release.
 	*/
 	public static void release(IAuthorityConnector connector)
-		throws MetacartaException
+		throws LCFException
 	{
 		if (connector == null)
 			return;
@@ -280,7 +280,7 @@ public class AuthorityConnectorFactory
 	* This method polls all inactive handles.
 	*/
 	public static void pollAllConnectors(IThreadContext threadContext)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Go through the whole pool and notify everyone
 		synchronized (poolHash)
@@ -301,7 +301,7 @@ public class AuthorityConnectorFactory
 	*@param threadContext is the local thread context.
 	*/
 	public static void closeAllConnectors(IThreadContext threadContext)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Go through the whole pool and clean it out
 		synchronized (poolHash)
@@ -393,7 +393,7 @@ public class AuthorityConnectorFactory
 		*@return the connector.
 		*/
 		public synchronized IAuthorityConnector getConnector(IThreadContext threadContext)
-			throws MetacartaException
+			throws LCFException
 		{
 			while (numFree == 0)
 			{
@@ -403,7 +403,7 @@ public class AuthorityConnectorFactory
 				}
 				catch (InterruptedException e)
 				{
-					throw new MetacartaException("Interrupted",e,MetacartaException.INTERRUPTED);
+					throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
 				}
 			}
 
@@ -426,7 +426,7 @@ public class AuthorityConnectorFactory
 					Object[] arguments = new Object[0];
 					Object o = c.newInstance(arguments);
 					if (!(o instanceof IAuthorityConnector))
-						throw new MetacartaException("Class '"+className+"' does not implement IAuthorityConnector.");
+						throw new LCFException("Class '"+className+"' does not implement IAuthorityConnector.");
 					// System.out.println("Authority connector instantiated");
 					rc = (IAuthorityConnector)o;
 					rc.connect(configParams);
@@ -438,7 +438,7 @@ public class AuthorityConnectorFactory
 					if (z instanceof Error)
 						throw (Error)z;
 					else
-						throw (MetacartaException)z;
+						throw (LCFException)z;
 				}
 				catch (ClassNotFoundException e)
 				{
@@ -446,38 +446,38 @@ public class AuthorityConnectorFactory
 					if (connMgr.isInstalled(className) == false)
 						return null;
 
-					throw new MetacartaException("No class implementing IAuthorityConnector called '"+
+					throw new LCFException("No class implementing IAuthorityConnector called '"+
 						className+"'.",
 						e);
 				}
 				catch (NoSuchMethodException e)
 				{
-					throw new MetacartaException("No appropriate constructor for IAuthorityConnector implementation '"+
+					throw new LCFException("No appropriate constructor for IAuthorityConnector implementation '"+
 						className+"'.  Need xxx(ConfigParams).",
 						e);
 				}
 				catch (SecurityException e)
 				{
-					throw new MetacartaException("Protected constructor for IAuthorityConnector implementation '"+className+"'",
+					throw new LCFException("Protected constructor for IAuthorityConnector implementation '"+className+"'",
 						e);
 				}
 				catch (IllegalAccessException e)
 				{
-					throw new MetacartaException("Unavailable constructor for IAuthorityConnector implementation '"+className+"'",
+					throw new LCFException("Unavailable constructor for IAuthorityConnector implementation '"+className+"'",
 						e);
 				}
 				catch (IllegalArgumentException e)
 				{
-					throw new MetacartaException("Shouldn't happen!!!",e);
+					throw new LCFException("Shouldn't happen!!!",e);
 				}
 				catch (InstantiationException e)
 				{
-					throw new MetacartaException("InstantiationException for IAuthorityConnector implementation '"+className+"'",
+					throw new LCFException("InstantiationException for IAuthorityConnector implementation '"+className+"'",
 						e);
 				}
 				catch (ExceptionInInitializerError e)
 				{
-					throw new MetacartaException("ExceptionInInitializerError for IAuthorityConnector implementation '"+className+"'",
+					throw new LCFException("ExceptionInInitializerError for IAuthorityConnector implementation '"+className+"'",
 						e);
 				}
 			}
@@ -497,7 +497,7 @@ public class AuthorityConnectorFactory
 		*@param connector is the connector.
 		*/
 		public synchronized void releaseConnector(IAuthorityConnector connector)
-			throws MetacartaException
+			throws LCFException
 		{
 			if (connector == null)
 				return;
@@ -513,7 +513,7 @@ public class AuthorityConnectorFactory
 		/** Notify all free connectors.
 		*/
 		public synchronized void pollAll(IThreadContext threadContext)
-			throws MetacartaException
+			throws LCFException
 		{
 			int i = 0;
 			while (i < stack.size())
@@ -529,7 +529,7 @@ public class AuthorityConnectorFactory
 		/** Release all free connectors.
 		*/
 		public synchronized void releaseAll(IThreadContext threadContext)
-			throws MetacartaException
+			throws LCFException
 		{
 			while (stack.size() > 0)
 			{

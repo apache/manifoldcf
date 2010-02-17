@@ -22,7 +22,7 @@ import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.agents.interfaces.*;
 import org.apache.lcf.authorities.interfaces.*;
 import org.apache.lcf.authorities.system.Logging;
-import org.apache.lcf.authorities.system.Metacarta;
+import org.apache.lcf.authorities.system.LCF;
 import com.memex.mie.*;
 import com.memex.mie.pool.*;
 import java.util.*;
@@ -69,9 +69,9 @@ public class MemexAuthority extends org.apache.lcf.authorities.authorities.BaseA
         protected String characterEncoding = null;
 
         //mieConnection is the connection to the main Configuration Server.
-        //There will be further MetacartaMemexConnection objects for each
+        //There will be further LCFMemexConnection objects for each
         //physical server accessed through the physicalServers collection.
-        private MetacartaMemexConnection mieConnection = null;
+        private LCFMemexConnection mieConnection = null;
         private MemexConnectionPool miePool = new MemexConnectionPool();
 
         //Collection describing the logical servers making up this system
@@ -79,7 +79,7 @@ public class MemexAuthority extends org.apache.lcf.authorities.authorities.BaseA
         private Hashtable<String, LogicalServer> logicalServersByPrefix = null;
 
         //Collection describing the physical servers making up this system
-        private Hashtable<String, MetacartaMemexConnection> physicalServers = null;
+        private Hashtable<String, LCFMemexConnection> physicalServers = null;
 
         //Two collections describing the entities in the set-up - one keyed by the entities' name, the other
         //by their label - generally speaking, we should use labels for anything being presented to the users
@@ -140,7 +140,7 @@ public class MemexAuthority extends org.apache.lcf.authorities.authorities.BaseA
         /** Check connection for sanity.
         */
         public String check()
-                throws MetacartaException
+                throws LCFException
         {
                 try{
                     this.setupConnection();
@@ -155,7 +155,7 @@ public class MemexAuthority extends org.apache.lcf.authorities.authorities.BaseA
         * in active use.
         */
         public void poll()
-                throws MetacartaException
+                throws LCFException
         {
                 // Is the connection still valid?
                 if (this.physicalServers != null && !this.physicalServers.isEmpty())
@@ -173,7 +173,7 @@ public class MemexAuthority extends org.apache.lcf.authorities.authorities.BaseA
         /** Close the connection.  Call this before discarding the repository connector.
         */
         public void disconnect()
-                throws MetacartaException
+                throws LCFException
         {
                 matchMap = null;
                 this.cleanUpConnections();
@@ -191,7 +191,7 @@ public class MemexAuthority extends org.apache.lcf.authorities.authorities.BaseA
         * (Should throws an exception only when a condition cannot be properly described within the authorization response object.)
         */
         public AuthorizationResponse getAuthorizationResponse(String userName)
-                throws MetacartaException
+                throws LCFException
         {
 
                 Hashtable<String,Hashtable<String, String>> userDBList = new Hashtable<String,Hashtable<String, String>>();
@@ -210,9 +210,9 @@ public class MemexAuthority extends org.apache.lcf.authorities.authorities.BaseA
                     this.setupConnection();
                 }
                 catch(ServiceInterruption mex){
-                    //something transient's gone wrong connecting.  Throw a MetacartaException (which will be caught, and the appropriate default behavior instigated).
+                    //something transient's gone wrong connecting.  Throw a LCFException (which will be caught, and the appropriate default behavior instigated).
                     Logging.authorityConnectors.warn("Memex: Transient authority error: "+mex.getMessage(),mex.getCause());
-                    throw new MetacartaException(mex.getMessage(),mex.getCause());
+                    throw new LCFException(mex.getMessage(),mex.getCause());
                 }
 
                 //Next - search for the user's record in the mxUserGroup database
@@ -250,7 +250,7 @@ public class MemexAuthority extends org.apache.lcf.authorities.authorities.BaseA
                                 //This shouldn't happen - should only be one entry per user
                                 if (Logging.authorityConnectors.isDebugEnabled())
                                         Logging.authorityConnectors.warn("Memex: Multiple entries found for '"+userName+"'!");
-                                throw new MetacartaException("Memex Error retrieving user information : multiple entries found for user " + userName);
+                                throw new LCFException("Memex Error retrieving user information : multiple entries found for user " + userName);
                             }else{
                                 //OK - we found the user - we need four fields from thier record - groups, servers, attributes and keys
                                 if (Logging.authorityConnectors.isDebugEnabled())
@@ -364,18 +364,18 @@ public class MemexAuthority extends org.apache.lcf.authorities.authorities.BaseA
                         }else{
                             //This is bad - we're connected, but we can't find the UserGroup database
                             Logging.authorityConnectors.error("Memex: Can't locate UserGroup database.");
-                            throw new MetacartaException("Memex Error: Can't locate the mxUserGroup Database");
+                            throw new LCFException("Memex Error: Can't locate the mxUserGroup Database");
                         }
                     }else{
                         //This is bad as well - we're connected but didn't find any registry entries
                         Logging.authorityConnectors.error("Memex: Configuration Server's registry appears to be null.");
-                        throw new MetacartaException("Memex Error: Configuration Server's registry is null");
+                        throw new LCFException("Memex Error: Configuration Server's registry is null");
                     }
                 }catch(MemexException me){
                     //something threw an error - most likely a connection issue.
-                    // MetacartaExceptions will be handled by getting the default authorization response instead.
+                    // LCFExceptions will be handled by getting the default authorization response instead.
                     Logging.authorityConnectors.warn("Memex: Unknown error calculating user access tokens: "+me.getMessage(),me);
-                    throw new MetacartaException("Memex transient error: "+me.getMessage(),me);
+                    throw new LCFException("Memex transient error: "+me.getMessage(),me);
                 }
         }
 
@@ -396,7 +396,7 @@ public class MemexAuthority extends org.apache.lcf.authorities.authorities.BaseA
         //
         ///////////////////////////////////////////////////////////////////////
         public void setupConnection()
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
                 boolean connected = false;
                 if((this.physicalServers != null) && !(this.physicalServers.isEmpty())){
@@ -404,7 +404,7 @@ public class MemexAuthority extends org.apache.lcf.authorities.authorities.BaseA
                     connected = true;
                     for(Enumeration serverkeys = physicalServers.keys(); serverkeys.hasMoreElements();){
                         String serverkey = (String)serverkeys.nextElement();
-                        MetacartaMemexConnection pserver = physicalServers.get(serverkey);
+                        LCFMemexConnection pserver = physicalServers.get(serverkey);
                         if(!(pserver.isConnected())){
                             connected = false;
                         }
@@ -424,10 +424,10 @@ public class MemexAuthority extends org.apache.lcf.authorities.authorities.BaseA
                         miePool.setCharset(characterEncoding);
 
                         //Initialise data structures
-                        mieConnection = new MetacartaMemexConnection();
+                        mieConnection = new LCFMemexConnection();
                         logicalServers = new Hashtable<String, LogicalServer>();
                         logicalServersByPrefix = new Hashtable<String, LogicalServer>();
-                        physicalServers = new Hashtable<String, MetacartaMemexConnection>();
+                        physicalServers = new Hashtable<String, LCFMemexConnection>();
                         entitiesByName = new Hashtable<String, MemexEntity>();
                         entitiesByLabel = new Hashtable<String, MemexEntity>();
                         entitiesByPrefix = new Hashtable<String, MemexEntity>();
@@ -460,7 +460,7 @@ public class MemexAuthority extends org.apache.lcf.authorities.authorities.BaseA
                         roleGroups = this.initialiseRoleGroups();
                     }
                     catch(PoolAuthenticationException e){
-                        throw new MetacartaException("Authentication failure connecting to Memex Server " + miePool.getHostname() + ":" + Integer.toString(miePool.getPort())+": "+e.getMessage(),e);
+                        throw new LCFException("Authentication failure connecting to Memex Server " + miePool.getHostname() + ":" + Integer.toString(miePool.getPort())+": "+e.getMessage(),e);
                     }
                     catch(PoolException e){
                         Logging.authorityConnectors.warn("Memex: Pool error connecting to Memex Server " + miePool.getHostname() + ":" + Integer.toString(miePool.getPort()) + " - " + e.getMessage() + " - retrying",e);
@@ -501,7 +501,7 @@ public class MemexAuthority extends org.apache.lcf.authorities.authorities.BaseA
                     while (i < serverKeyArray.length)
                     {
                         String serverkey = serverKeyArray[i++];
-                        MetacartaMemexConnection currentMIE = physicalServers.get(serverkey);
+                        LCFMemexConnection currentMIE = physicalServers.get(serverkey);
                         try{
                             // Remove history directories belonging to this session
                             physicalServers.remove(serverkey);
@@ -529,7 +529,7 @@ public class MemexAuthority extends org.apache.lcf.authorities.authorities.BaseA
 
                     for(Enumeration serverkeys = physicalServers.keys(); serverkeys.hasMoreElements();){
                         String serverkey = (String)serverkeys.nextElement();
-                        MetacartaMemexConnection currentMIE = physicalServers.get(serverkey);
+                        LCFMemexConnection currentMIE = physicalServers.get(serverkey);
                         try{
                             // Remove history directories belonging to this session
                             String histdir = currentMIE.mie.mxie_history_current();
@@ -669,7 +669,7 @@ public class MemexAuthority extends org.apache.lcf.authorities.authorities.BaseA
                         serverFields.add(serversource);
                         //mieConnection.mie.mxie_goto_record(hist, x);
                         mieConnection.mie.mxie_decode_fields(serverFields);
-                        MetacartaMemexConnection mie;
+                        LCFMemexConnection mie;
                         if(serversource.getText().equals("configuration-server")){
                             mie = mieConnection;
                         }else{
@@ -886,14 +886,14 @@ public class MemexAuthority extends org.apache.lcf.authorities.authorities.BaseA
 
 
 
-    private MetacartaMemexConnection getPhysicalServer(String server, int port){
+    private LCFMemexConnection getPhysicalServer(String server, int port){
 
         String key = server + ":" + Integer.toString(port);
 
         if(physicalServers.containsKey(key)){
-            return (MetacartaMemexConnection)physicalServers.get(key);
+            return (LCFMemexConnection)physicalServers.get(key);
         }else{
-            MetacartaMemexConnection newServer = new MetacartaMemexConnection();
+            LCFMemexConnection newServer = new LCFMemexConnection();
             try{
                 MemexConnection newMIE = miePool.getConnection(server, port);
                 newServer.mie = newMIE;

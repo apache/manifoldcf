@@ -22,7 +22,7 @@ import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.agents.interfaces.*;
 import org.apache.lcf.authorities.interfaces.*;
 import org.apache.lcf.authorities.system.Logging;
-import org.apache.lcf.authorities.system.Metacarta;
+import org.apache.lcf.authorities.system.LCF;
 
 import java.io.*;
 import java.util.*;
@@ -135,7 +135,7 @@ public class LivelinkAuthority extends org.apache.lcf.authorities.authorities.Ba
 	}
 	
 	protected void attemptToConnect()
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		if (LLUsers == null)
 		{
@@ -174,7 +174,7 @@ public class LivelinkAuthority extends org.apache.lcf.authorities.authorities.Ba
 	/** Check connection for sanity.
 	*/
 	public String check()
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
@@ -203,7 +203,7 @@ public class LivelinkAuthority extends org.apache.lcf.authorities.authorities.Ba
 		{
 			return "Temporary service interruption: "+e.getMessage();
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			return "Connection failed: "+e.getMessage();
 		}
@@ -212,7 +212,7 @@ public class LivelinkAuthority extends org.apache.lcf.authorities.authorities.Ba
 	/** Close the connection.  Call this before discarding the repository connector.
 	*/
 	public void disconnect()
-		throws MetacartaException
+		throws LCFException
 	{
 		if (llServer != null)
 		{
@@ -235,7 +235,7 @@ public class LivelinkAuthority extends org.apache.lcf.authorities.authorities.Ba
 	* (Should throws an exception only when a condition cannot be properly described within the authorization response object.)
 	*/
 	public AuthorizationResponse getAuthorizationResponse(String userName)
-		throws MetacartaException
+		throws LCFException
 	{
 		// First, do what's necessary to map the user name that comes in to a reasonable
 		// Livelink domain\\user combination.
@@ -397,7 +397,7 @@ public class LivelinkAuthority extends org.apache.lcf.authorities.authorities.Ba
 	*@param e is the RuntimeException caught
 	*/
 	protected int handleLivelinkRuntimeException(RuntimeException e, int sanityRetryCount)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		if (
 			e instanceof com.opentext.api.LLHTTPAccessDeniedException ||
@@ -411,7 +411,7 @@ public class LivelinkAuthority extends org.apache.lcf.authorities.authorities.Ba
 		   )
 		{
 			String details = llServer.getErrors();
-			throw new MetacartaException("Livelink API error: "+e.getMessage()+((details==null)?"":"; "+details),e,MetacartaException.REPOSITORY_CONNECTION_ERROR);
+			throw new LCFException("Livelink API error: "+e.getMessage()+((details==null)?"":"; "+details),e,LCFException.REPOSITORY_CONNECTION_ERROR);
 		}
 		else if (
 			e instanceof com.opentext.api.LLBadServerCertificateException ||
@@ -425,14 +425,14 @@ public class LivelinkAuthority extends org.apache.lcf.authorities.authorities.Ba
 			  )
 		{
 			String details = llServer.getErrors();
-			throw new MetacartaException("Livelink API error: "+e.getMessage()+((details==null)?"":"; "+details),e);
+			throw new LCFException("Livelink API error: "+e.getMessage()+((details==null)?"":"; "+details),e);
 		}
 		else if (e instanceof com.opentext.api.LLIllegalOperationException)
 		{
 			// This usually means that LAPI has had a minor communication difficulty but hasn't reported it accurately.
 			// We *could* throw a ServiceInterruption, but OpenText recommends to just retry almost immediately.
 			String details = llServer.getErrors();
-			return assessRetry(sanityRetryCount,new MetacartaException("Livelink API illegal operation error: "+e.getMessage()+((details==null)?"":"; "+details),e));
+			return assessRetry(sanityRetryCount,new LCFException("Livelink API illegal operation error: "+e.getMessage()+((details==null)?"":"; "+details),e));
 		}
 		else if (e instanceof com.opentext.api.LLIOException)
 		{
@@ -444,7 +444,7 @@ public class LivelinkAuthority extends org.apache.lcf.authorities.authorities.Ba
 			}
 			catch (UnknownHostException e2)
 			{
-				throw new MetacartaException("Server name '"+serverName+"' cannot be resolved",e2);
+				throw new LCFException("Server name '"+serverName+"' cannot be resolved",e2);
 			}
 
 			throw new ServiceInterruption("Transient error: "+e.getMessage(),e,System.currentTimeMillis()+5*60000L,System.currentTimeMillis()+12*60*60000L,-1,true);
@@ -455,8 +455,8 @@ public class LivelinkAuthority extends org.apache.lcf.authorities.authorities.Ba
 	
 	/** Do a retry, or throw an exception if the retry count has been exhausted
 	*/
-	protected static int assessRetry(int sanityRetryCount, MetacartaException e)
-		throws MetacartaException
+	protected static int assessRetry(int sanityRetryCount, LCFException e)
+		throws LCFException
 	{
 		if (sanityRetryCount == 0)
 		{
@@ -467,11 +467,11 @@ public class LivelinkAuthority extends org.apache.lcf.authorities.authorities.Ba
 
 		try
 		{
-			Metacarta.sleep(1000L);
+			LCF.sleep(1000L);
 		}
 		catch (InterruptedException e2)
 		{
-			throw new MetacartaException(e2.getMessage(),e2,MetacartaException.INTERRUPTED);
+			throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
 		}
 		// Exit the method
 		return sanityRetryCount;

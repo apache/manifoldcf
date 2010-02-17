@@ -42,12 +42,12 @@ public class SynchronizeConnectors
 
 		try
 		{
-			Metacarta.initializeEnvironment();
+			LCF.initializeEnvironment();
 			IThreadContext tc = ThreadContextFactory.make();
 			IDBInterface database = DBInterfaceFactory.make(tc,
-				Metacarta.getMasterDatabaseName(),
-				Metacarta.getMasterDatabaseUsername(),
-				Metacarta.getMasterDatabasePassword());
+				LCF.getMasterDatabaseName(),
+				LCF.getMasterDatabaseUsername(),
+				LCF.getMasterDatabasePassword());
 			IConnectorManager mgr = ConnectorManagerFactory.make(tc);
 			IJobManager jobManager = JobManagerFactory.make(tc);
 			IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(tc);
@@ -61,7 +61,7 @@ public class SynchronizeConnectors
 			    {
 				RepositoryConnectorFactory.getConnectorNoCheck(className);
 			    }
-			    catch (MetacartaException e)
+			    catch (LCFException e)
 			    {
 				// Deregistration should be done in a transaction
 				database.beginTransaction();
@@ -74,7 +74,7 @@ public class SynchronizeConnectors
 					// Now that all jobs have been placed into an appropriate state, actually do the deregistration itself.
 					mgr.removeConnector(className);
 				}
-				catch (MetacartaException e2)
+				catch (LCFException e2)
 				{
 					database.signalRollback();
 					throw e2;
@@ -92,7 +92,7 @@ public class SynchronizeConnectors
 			}
 			System.err.println("Successfully synchronized all connectors");
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
                         e.printStackTrace();
 			System.exit(1);

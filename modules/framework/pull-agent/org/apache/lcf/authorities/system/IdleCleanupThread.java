@@ -38,7 +38,7 @@ public class IdleCleanupThread extends Thread
 	/** Constructor.
 	*/
 	public IdleCleanupThread()
-		throws MetacartaException
+		throws LCFException
 	{
 		super();
 		setName("Idle cleanup thread");
@@ -60,17 +60,17 @@ public class IdleCleanupThread extends Thread
 				AuthorityConnectorFactory.pollAllConnectors(threadContext);
 
 				// Sleep for the retry interval.
-				Metacarta.sleep(15000L);
+				LCF.sleep(15000L);
 			}
-			catch (MetacartaException e)
+			catch (LCFException e)
 			{
-				if (e.getErrorCode() == MetacartaException.INTERRUPTED)
+				if (e.getErrorCode() == LCFException.INTERRUPTED)
 					break;
 
 				// Log it, but keep the thread alive
 				Logging.authorityService.error("Exception tossed",e);
 
-				if (e.getErrorCode() == MetacartaException.SETUP_ERROR)
+				if (e.getErrorCode() == LCFException.SETUP_ERROR)
 				{
 					// Shut the whole system down!
 					System.exit(1);

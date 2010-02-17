@@ -53,7 +53,7 @@ public class LookupRecord
 			}
 			System.err.println("Successfully located");
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			e.printStackTrace(System.err);
 			System.exit(2);

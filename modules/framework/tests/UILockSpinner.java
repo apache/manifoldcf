@@ -18,7 +18,7 @@
 package org.apache.lcf.core;
 
 import org.apache.lcf.core.interfaces.*;
-import org.apache.lcf.core.system.Metacarta;
+import org.apache.lcf.core.system.LCF;
 
 public class UILockSpinner
 {
@@ -28,7 +28,7 @@ public class UILockSpinner
 	public static void main(String[] argv)
 		throws Exception
 	{
-		Metacarta.initializeSystem();
+		LCF.initializeSystem();
 		
 
 		// Create a thread context object.

@@ -39,7 +39,7 @@ public class EventManager extends org.apache.lcf.core.database.BaseTable
         *@param database is the database handle.
         */
         public EventManager(IDBInterface database)
-                throws MetacartaException
+                throws LCFException
         {
                 super(database,"events");
         }
@@ -47,7 +47,7 @@ public class EventManager extends org.apache.lcf.core.database.BaseTable
         /** Install or upgrade this table.
         */
         public void install()
-                throws MetacartaException
+                throws LCFException
         {
                 beginTransaction();
                 try
@@ -64,7 +64,7 @@ public class EventManager extends org.apache.lcf.core.database.BaseTable
                                 // No upgrade is possible since this table has just been introduced.
                         }
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         signalRollback();
                         throw e;
@@ -83,14 +83,14 @@ public class EventManager extends org.apache.lcf.core.database.BaseTable
         /** Uninstall.
         */
         public void deinstall()
-                throws MetacartaException
+                throws LCFException
         {
                 beginTransaction();
                 try
                 {
                         performDrop(null);
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         signalRollback();
                         throw e;
@@ -109,7 +109,7 @@ public class EventManager extends org.apache.lcf.core.database.BaseTable
         /** Prepare for restart.
         */
         public void restart()
-                throws MetacartaException
+                throws LCFException
         {
                 // Delete all rows in this table.
                 performDelete("",null,null);
@@ -117,7 +117,7 @@ public class EventManager extends org.apache.lcf.core.database.BaseTable
         
         /** Atomically create an event - and return false if the event already exists */
         public void createEvent(String eventName)
-                throws MetacartaException
+                throws LCFException
         {
                 HashMap map = new HashMap();
                 map.put(eventNameField,eventName);
@@ -126,7 +126,7 @@ public class EventManager extends org.apache.lcf.core.database.BaseTable
         
         /** Destroy an event */
         public void destroyEvent(String eventName)
-                throws MetacartaException
+                throws LCFException
         {
                 ArrayList list = new ArrayList();
                 list.add(eventName);

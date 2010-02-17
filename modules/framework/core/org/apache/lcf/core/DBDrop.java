@@ -46,12 +46,12 @@ public class DBDrop
 
 		try
 		{
-			Metacarta.initializeEnvironment();
+			LCF.initializeEnvironment();
 			IThreadContext tc = ThreadContextFactory.make();
-			Metacarta.dropSystemDatabase(tc,null,userName,password);
-			System.err.println("Metacarta database dropped");
+			LCF.dropSystemDatabase(tc,null,userName,password);
+			System.err.println("LCF database dropped");
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			e.printStackTrace();
 			System.exit(1);

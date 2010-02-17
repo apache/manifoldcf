@@ -43,12 +43,12 @@ public class Uninstall
 
 		try
 		{
-			Metacarta.initializeEnvironment();
+			LCF.initializeEnvironment();
 			IThreadContext tc = ThreadContextFactory.make();
-			Metacarta.deinstallTables(tc);
+			LCF.deinstallTables(tc);
 			System.err.println("Agent tables uninstalled");
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			e.printStackTrace();
 			System.exit(1);

@@ -20,7 +20,7 @@ package org.apache.lcf.core.database;
 
 import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.core.system.Logging;
-import org.apache.lcf.core.system.Metacarta;
+import org.apache.lcf.core.system.LCF;
 
 import java.util.*;
 import java.sql.*;
@@ -53,7 +53,7 @@ public class ConnectionFactory
 	}
 
 	public static Connection getConnection(String database, String userName, String password)
-		throws MetacartaException
+		throws LCFException
 	{
 		String dburl = _url + database;
 		if (database.length() == 0)
@@ -74,11 +74,11 @@ public class ConnectionFactory
 			}
 			if (cp == null)
 			{
-				String handleMax = Metacarta.getProperty(Metacarta.databaseHandleMaxcountProperty);
+				String handleMax = LCF.getProperty(LCF.databaseHandleMaxcountProperty);
 				int maxDBConnections = defaultMaxDBConnections;
 				if (handleMax != null && handleMax.length() > 0)
 					maxDBConnections = Integer.parseInt(handleMax);
-				String timeoutValueString = Metacarta.getProperty(Metacarta.databaseHandleTimeoutProperty);
+				String timeoutValueString = LCF.getProperty(LCF.databaseHandleTimeoutProperty);
 				int timeoutValue = defaultTimeoutValue;
 				if (timeoutValueString != null && timeoutValueString.length() > 0)
 					timeoutValue = Integer.parseInt(timeoutValueString);
@@ -108,12 +108,12 @@ public class ConnectionFactory
 		}
 		catch (Exception e)
 		{
-			throw new MetacartaException("Error getting connection",e,MetacartaException.DATABASE_ERROR);
+			throw new LCFException("Error getting connection",e,LCFException.DATABASE_ERROR);
 		}
 	}
 
 	public static void releaseConnection(Connection c)
-		throws MetacartaException
+		throws LCFException
 	{
 		try
 		{
@@ -125,7 +125,7 @@ public class ConnectionFactory
 		}
 		catch (Exception e)
 		{
-			throw new MetacartaException("Error releasing connection",e,MetacartaException.DATABASE_ERROR);
+			throw new LCFException("Error releasing connection",e,LCFException.DATABASE_ERROR);
 		}
 	}
 
@@ -161,11 +161,11 @@ public class ConnectionFactory
 			try
 			{
 				// Ten seconds is a long time
-				Metacarta.sleep(10000L);
+				LCF.sleep(10000L);
 			}
 			catch (InterruptedException e)
 			{
-				throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+				throw new LCFException("Interrupted",LCFException.INTERRUPTED);
 			}
 		}
 
@@ -202,7 +202,7 @@ public class ConnectionFactory
 		}
 
 		public ConnectionPoolManager ensurePoolExists()
-			throws MetacartaException
+			throws LCFException
 		{
 			synchronized (poolExistenceLock)
 			{
@@ -214,11 +214,11 @@ public class ConnectionFactory
 				}
 				catch (Exception e)
 				{
-					throw new MetacartaException("Unable to load database driver: "+e.getMessage(),e,MetacartaException.SETUP_ERROR);
+					throw new LCFException("Unable to load database driver: "+e.getMessage(),e,LCFException.SETUP_ERROR);
 				}
 				try
 				{
-					String handleMax = Metacarta.getProperty(Metacarta.databaseHandleMaxcountProperty);
+					String handleMax = LCF.getProperty(LCF.databaseHandleMaxcountProperty);
 					int maxDBConnections = defaultMaxDBConnections;
 					if (handleMax != null && handleMax.length() > 0)
 						maxDBConnections = Integer.parseInt(handleMax);
@@ -227,7 +227,7 @@ public class ConnectionFactory
 				}
 				catch (Exception e)
 				{
-					throw new MetacartaException("Unable to initialize database handle pool: "+e.getMessage(),e,MetacartaException.SETUP_ERROR);
+					throw new LCFException("Unable to initialize database handle pool: "+e.getMessage(),e,LCFException.SETUP_ERROR);
 				}
 			}
 		}
@@ -296,7 +296,7 @@ public class ConnectionFactory
 				{
 					try
 					{
-						Metacarta.sleep(1000L);
+						LCF.sleep(1000L);
 						k++;
 						continue;
 					}

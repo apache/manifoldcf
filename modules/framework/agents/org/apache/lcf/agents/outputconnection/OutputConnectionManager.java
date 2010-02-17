@@ -22,7 +22,7 @@ import java.util.*;
 import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.agents.interfaces.*;
 import org.apache.lcf.agents.interfaces.CacheKeyFactory;
-import org.apache.lcf.agents.system.Metacarta;
+import org.apache.lcf.agents.system.LCF;
 
 
 /** This class is the manager of the outputconnection description.  Inside, a database table is managed,
@@ -53,7 +53,7 @@ public class OutputConnectionManager extends org.apache.lcf.core.database.BaseTa
         *@param threadContext is the thread context.
         */
         public OutputConnectionManager(IThreadContext threadContext, IDBInterface database)
-                throws MetacartaException
+                throws LCFException
         {
                 super(database,"outputconnections");
 
@@ -64,7 +64,7 @@ public class OutputConnectionManager extends org.apache.lcf.core.database.BaseTa
         /** Install the manager.
         */
         public void install()
-                throws MetacartaException
+                throws LCFException
         {
                 beginTransaction();
                 try
@@ -86,7 +86,7 @@ public class OutputConnectionManager extends org.apache.lcf.core.database.BaseTa
                                 // No upgrade needed yet, since rev 1 of the table is fine.
                         }
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         signalRollback();
                         throw e;
@@ -105,51 +105,51 @@ public class OutputConnectionManager extends org.apache.lcf.core.database.BaseTa
         /** Uninstall the manager.
         */
         public void deinstall()
-                throws MetacartaException
+                throws LCFException
         {
                 performDrop(null);
         }
 
         /** Export configuration */
         public void exportConfiguration(java.io.OutputStream os)
-                throws java.io.IOException, MetacartaException
+                throws java.io.IOException, LCFException
         {
                 // Write a version indicator
-                Metacarta.writeDword(os,1);
+                LCF.writeDword(os,1);
                 // Get the authority list
                 IOutputConnection[] list = getAllConnections();
                 // Write the number of authorities
-                Metacarta.writeDword(os,list.length);
+                LCF.writeDword(os,list.length);
                 // Loop through the list and write the individual repository connection info
                 int i = 0;
                 while (i < list.length)
                 {
                         IOutputConnection conn = list[i++];
-                        Metacarta.writeString(os,conn.getName());
-                        Metacarta.writeString(os,conn.getDescription());
-                        Metacarta.writeString(os,conn.getClassName());
-                        Metacarta.writeString(os,conn.getConfigParams().toXML());
-                        Metacarta.writeDword(os,conn.getMaxConnections());
+                        LCF.writeString(os,conn.getName());
+                        LCF.writeString(os,conn.getDescription());
+                        LCF.writeString(os,conn.getClassName());
+                        LCF.writeString(os,conn.getConfigParams().toXML());
+                        LCF.writeDword(os,conn.getMaxConnections());
                 }
         }
         
         /** Import configuration */
         public void importConfiguration(java.io.InputStream is)
-                throws java.io.IOException, MetacartaException
+                throws java.io.IOException, LCFException
         {
-                int version = Metacarta.readDword(is);
+                int version = LCF.readDword(is);
                 if (version != 1)
                         throw new java.io.IOException("Unknown repository connection configuration version: "+Integer.toString(version));
-                int count = Metacarta.readDword(is);
+                int count = LCF.readDword(is);
                 int i = 0;
                 while (i < count)
                 {
                         IOutputConnection conn = create();
-                        conn.setName(Metacarta.readString(is));
-                        conn.setDescription(Metacarta.readString(is));
-                        conn.setClassName(Metacarta.readString(is));
-                        conn.getConfigParams().fromXML(Metacarta.readString(is));
-                        conn.setMaxConnections(Metacarta.readDword(is));
+                        conn.setName(LCF.readString(is));
+                        conn.setDescription(LCF.readString(is));
+                        conn.setClassName(LCF.readString(is));
+                        conn.getConfigParams().fromXML(LCF.readString(is));
+                        conn.setMaxConnections(LCF.readDword(is));
                         // Attempt to save this connection
                         save(conn);
                         i++;
@@ -160,7 +160,7 @@ public class OutputConnectionManager extends org.apache.lcf.core.database.BaseTa
         *@return an array of connection objects.
         */
         public IOutputConnection[] getAllConnections()
-                throws MetacartaException
+                throws LCFException
         {
                 beginTransaction();
                 try
@@ -181,7 +181,7 @@ public class OutputConnectionManager extends org.apache.lcf.core.database.BaseTa
                         }
                         return loadMultiple(names);
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         signalRollback();
                         throw e;
@@ -202,7 +202,7 @@ public class OutputConnectionManager extends org.apache.lcf.core.database.BaseTa
         *@return the loaded connection object, or null if not found.
         */
         public IOutputConnection load(String name)
-                throws MetacartaException
+                throws LCFException
         {
                 return loadMultiple(new String[]{name})[0];
         }
@@ -212,7 +212,7 @@ public class OutputConnectionManager extends org.apache.lcf.core.database.BaseTa
         *@return the loaded connection objects.
         */
         public IOutputConnection[] loadMultiple(String[] names)
-                throws MetacartaException
+                throws LCFException
         {
                 // Build description objects
                 OutputConnectionDescription[] objectDescriptions = new OutputConnectionDescription[names.length];
@@ -235,7 +235,7 @@ public class OutputConnectionManager extends org.apache.lcf.core.database.BaseTa
         *@return the new object.
         */
         public IOutputConnection create()
-                throws MetacartaException
+                throws LCFException
         {
                 OutputConnection rval = new OutputConnection();
                 return rval;
@@ -245,7 +245,7 @@ public class OutputConnectionManager extends org.apache.lcf.core.database.BaseTa
         *@param object is the object to save.
         */
         public void save(IOutputConnection object)
-                throws MetacartaException
+                throws LCFException
         {
                 StringSetBuffer ssb = new StringSetBuffer();
                 ssb.add(getOutputConnectionsKey());
@@ -259,7 +259,7 @@ public class OutputConnectionManager extends org.apache.lcf.core.database.BaseTa
                     {
                         performLock();
                         // Notify of a change to the configuration
-                        Metacarta.noteConfigurationChange();
+                        LCF.noteConfigurationChange();
                         // See whether the instance exists
                         ArrayList params = new ArrayList();
                         params.add(object.getName());
@@ -288,7 +288,7 @@ public class OutputConnectionManager extends org.apache.lcf.core.database.BaseTa
 
                         cacheManager.invalidateKeys(ch);
                     }
-                    catch (MetacartaException e)
+                    catch (LCFException e)
                     {
                         signalRollback();
                         throw e;
@@ -314,7 +314,7 @@ public class OutputConnectionManager extends org.apache.lcf.core.database.BaseTa
         * name does not exist, no error is returned.
         */
         public void delete(String name)
-                throws MetacartaException
+                throws LCFException
         {
                 StringSetBuffer ssb = new StringSetBuffer();
                 ssb.add(getOutputConnectionsKey());
@@ -328,14 +328,14 @@ public class OutputConnectionManager extends org.apache.lcf.core.database.BaseTa
                         {
                                 // Check if anything refers to this connection name
                                 if (AgentManagerFactory.isOutputConnectionInUse(threadContext,name))
-                                        throw new MetacartaException("Can't delete output connection '"+name+"': existing entities refer to it");
-                                Metacarta.noteConfigurationChange();
+                                        throw new LCFException("Can't delete output connection '"+name+"': existing entities refer to it");
+                                LCF.noteConfigurationChange();
                                 ArrayList params = new ArrayList();
                                 params.add(name);
                                 performDelete("WHERE "+nameField+"=?",params,null);
                                 cacheManager.invalidateKeys(ch);
                         }
-                        catch (MetacartaException e)
+                        catch (LCFException e)
                         {
                                 signalRollback();
                                 throw e;
@@ -362,7 +362,7 @@ public class OutputConnectionManager extends org.apache.lcf.core.database.BaseTa
         *@return the repository connections that use that connector.
         */
         public String[] findConnectionsForConnector(String className)
-                throws MetacartaException
+                throws LCFException
         {
                 StringSetBuffer ssb = new StringSetBuffer();
                 ssb.add(getOutputConnectionsKey());
@@ -388,7 +388,7 @@ public class OutputConnectionManager extends org.apache.lcf.core.database.BaseTa
         *@return true if the underlying connector is registered.
         */
         public boolean checkConnectorExists(String name)
-                throws MetacartaException
+                throws LCFException
         {
                 beginTransaction();
                 try
@@ -401,13 +401,13 @@ public class OutputConnectionManager extends org.apache.lcf.core.database.BaseTa
                         IResultSet set = performQuery("SELECT "+classNameField+" FROM "+getTableName()+" WHERE "+nameField+"=?",params,
                                 localCacheKeys,null);
                         if (set.getRowCount() == 0)
-                                throw new MetacartaException("No such connection: '"+name+"'");
+                                throw new LCFException("No such connection: '"+name+"'");
                         IResultRow row = set.getRow(0);
                         String className = (String)row.getValue(classNameField);
                         IOutputConnectorManager cm = OutputConnectorManagerFactory.make(threadContext);
                         return cm.isInstalled(className);
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         signalRollback();
                         throw e;
@@ -459,7 +459,7 @@ public class OutputConnectionManager extends org.apache.lcf.core.database.BaseTa
         *@return the corresponding output connection objects.
         */
         protected OutputConnection[] getOutputConnectionsMultiple(String[] connectionNames)
-                throws MetacartaException
+                throws LCFException
         {
                 OutputConnection[] rval = new OutputConnection[connectionNames.length];
                 HashMap returnIndex = new HashMap();
@@ -503,7 +503,7 @@ public class OutputConnectionManager extends org.apache.lcf.core.database.BaseTa
                         signalRollback();
                         throw e;
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         signalRollback();
                         throw e;
@@ -521,7 +521,7 @@ public class OutputConnectionManager extends org.apache.lcf.core.database.BaseTa
         *@param params is the set of parameters.
         */
         protected void getOutputConnectionsChunk(OutputConnection[] rval, Map returnIndex, String idList, ArrayList params)
-                throws MetacartaException
+                throws LCFException
         {
                 IResultSet set;
                 set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
@@ -643,7 +643,7 @@ public class OutputConnectionManager extends org.apache.lcf.core.database.BaseTa
                 * @return the newly created objects to cache, or null, if any object cannot be created.
                 *  The order of the returned objects must correspond to the order of the object descriptinos.
                 */
-                public Object[] create(ICacheDescription[] objectDescriptions) throws MetacartaException
+                public Object[] create(ICacheDescription[] objectDescriptions) throws LCFException
                 {
                         // Turn the object descriptions into the parameters for the ToolInstance requests
                         String[] connectionNames = new String[objectDescriptions.length];
@@ -666,7 +666,7 @@ public class OutputConnectionManager extends org.apache.lcf.core.database.BaseTa
                 * @param objectDescription is the unique identifier of the object.
                 * @param cachedObject is the cached object.
                 */
-                public void exists(ICacheDescription objectDescription, Object cachedObject) throws MetacartaException
+                public void exists(ICacheDescription objectDescription, Object cachedObject) throws LCFException
                 {
                         // Cast what came in as what it really is
                         OutputConnectionDescription objectDesc = (OutputConnectionDescription)objectDescription;
@@ -684,7 +684,7 @@ public class OutputConnectionManager extends org.apache.lcf.core.database.BaseTa
                 /** Perform the desired operation.  This method is called after either createGetObject()
                 * or exists() is called for every requested object.
                 */
-                public void execute() throws MetacartaException
+                public void execute() throws LCFException
                 {
                         // Does nothing; we only want to fetch objects in this cacher.
                 }

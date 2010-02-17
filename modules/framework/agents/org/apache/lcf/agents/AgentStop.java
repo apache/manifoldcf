@@ -41,10 +41,10 @@ public class AgentStop
 			System.exit(1);
 		}
 
-		Metacarta.initializeEnvironment();
+		LCF.initializeEnvironment();
 
 		// Create a file to indicate that we're stopping
-		String synchDirectory = Metacarta.getProperty(Metacarta.synchDirectoryProperty);
+		String synchDirectory = LCF.getProperty(LCF.synchDirectoryProperty);
 		File synchFile = null;
 		if (synchDirectory != null)
 		{

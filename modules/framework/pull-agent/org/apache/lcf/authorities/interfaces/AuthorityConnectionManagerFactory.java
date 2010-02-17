@@ -20,7 +20,7 @@ package org.apache.lcf.authorities.interfaces;
 
 import org.apache.lcf.core.interfaces.*;
 import java.util.*;
-import org.apache.lcf.authorities.system.Metacarta;
+import org.apache.lcf.authorities.system.LCF;
 
 /** This is the factory class for authority connection manager objects.
 */
@@ -38,15 +38,15 @@ public class AuthorityConnectionManagerFactory
 	*@return the handle.
 	*/
 	public static IAuthorityConnectionManager make(IThreadContext tc)
-		throws MetacartaException
+		throws LCFException
 	{
 		Object o = tc.get(objectName);
 		if (o == null || !(o instanceof IAuthorityConnectionManager))
 		{
 			IDBInterface database = DBInterfaceFactory.make(tc,
-				Metacarta.getMasterDatabaseName(),
-				Metacarta.getMasterDatabaseUsername(),
-				Metacarta.getMasterDatabasePassword());
+				LCF.getMasterDatabaseName(),
+				LCF.getMasterDatabaseUsername(),
+				LCF.getMasterDatabasePassword());
 
 			o = new org.apache.lcf.authorities.authority.AuthorityConnectionManager(tc,database);
 			tc.save(objectName,o);

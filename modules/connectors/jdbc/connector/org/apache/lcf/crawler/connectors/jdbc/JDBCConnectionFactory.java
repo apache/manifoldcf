@@ -21,7 +21,7 @@ package org.apache.lcf.crawler.connectors.jdbc;
 import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.agents.interfaces.*;
 import org.apache.lcf.crawler.system.Logging;
-import org.apache.lcf.crawler.system.Metacarta;
+import org.apache.lcf.crawler.system.LCF;
 
 import java.util.*;
 import java.sql.*;
@@ -66,14 +66,14 @@ public class JDBCConnectionFactory
 
 
 	public static Connection getConnection(String providerName, String host, String database, String userName, String password)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		if (database.length() == 0)
 			database = "_root_";
 
 		String driverClassName = (String)driverMap.get(providerName);
 		if (driverClassName == null)
-			throw new MetacartaException("Unrecognized jdbc provider: '"+providerName+"'");
+			throw new LCFException("Unrecognized jdbc provider: '"+providerName+"'");
 
 		String instanceName = null;
 		// Special for MSSQL: Allow database spec to contain an instance name too, in form:
@@ -111,7 +111,7 @@ public class JDBCConnectionFactory
 				// Better include the credentials on the pool key, or we won't be able to change those and have it build new connections
 				// The password value is SHA-1 hashed, because the pool driver reports the password in many exceptions and we don't want it
 				// to be displayed.
-				poolKey += "/" + userName + "/" + Metacarta.hash(password);
+				poolKey += "/" + userName + "/" + LCF.hash(password);
 				
 				synchronized (_pool)
 				{
@@ -134,7 +134,7 @@ public class JDBCConnectionFactory
 					ConnectionPoolManager.URL_PREFIX + poolKey, null, null);
 			}
 			else
-				throw new MetacartaException("Can't get connection since pool driver did not initialize properly");
+				throw new LCFException("Can't get connection since pool driver did not initialize properly");
 		}
 		catch (java.sql.SQLException e)
 		{
@@ -153,7 +153,7 @@ public class JDBCConnectionFactory
 			}
 			catch (java.sql.SQLException e2)
 			{
-				throw new MetacartaException("Error getting connection: "+e2.getMessage(),e2,MetacartaException.SETUP_ERROR);
+				throw new LCFException("Error getting connection: "+e2.getMessage(),e2,LCFException.SETUP_ERROR);
 			}
                         // By definition, this must be a service interruption, because the direct route in setting up the connection succeeded.
                         long currentTime = System.currentTimeMillis();
@@ -161,20 +161,20 @@ public class JDBCConnectionFactory
 		}
 		catch (java.lang.ClassNotFoundException e)
 		{
-			throw new MetacartaException("Driver class not found: "+e.getMessage(),e,MetacartaException.SETUP_ERROR);
+			throw new LCFException("Driver class not found: "+e.getMessage(),e,LCFException.SETUP_ERROR);
 		}
 		catch (java.lang.InstantiationException e)
 		{
-			throw new MetacartaException("Driver class not instantiable: "+e.getMessage(),e,MetacartaException.SETUP_ERROR);
+			throw new LCFException("Driver class not instantiable: "+e.getMessage(),e,LCFException.SETUP_ERROR);
 		}
 		catch (java.lang.IllegalAccessException e)
 		{
-			throw new MetacartaException("Driver class not accessible: "+e.getMessage(),e,MetacartaException.SETUP_ERROR);
+			throw new LCFException("Driver class not accessible: "+e.getMessage(),e,LCFException.SETUP_ERROR);
 		}
 	}
 
 	public static void releaseConnection(Connection c)
-		throws MetacartaException, ServiceInterruption
+		throws LCFException, ServiceInterruption
 	{
 		try
 		{
@@ -182,7 +182,7 @@ public class JDBCConnectionFactory
 		}
 		catch (java.sql.SQLException e)
 		{
-			throw new MetacartaException("Error releasing connection: "+e.getMessage(),e);
+			throw new LCFException("Error releasing connection: "+e.getMessage(),e);
 		}
 	}
 

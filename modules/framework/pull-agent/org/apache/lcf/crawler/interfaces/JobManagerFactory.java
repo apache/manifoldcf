@@ -39,15 +39,15 @@ public class JobManagerFactory
 	*@return the handle.
 	*/
 	public static IJobManager make(IThreadContext threadContext)
-		throws MetacartaException
+		throws LCFException
 	{
 		Object o = threadContext.get(jobManagerName);
 		if (o == null || !(o instanceof IJobManager))
 		{
 			IDBInterface database = DBInterfaceFactory.make(threadContext,
-				Metacarta.getMasterDatabaseName(),
-				Metacarta.getMasterDatabaseUsername(),
-				Metacarta.getMasterDatabasePassword());
+				LCF.getMasterDatabaseName(),
+				LCF.getMasterDatabaseUsername(),
+				LCF.getMasterDatabasePassword());
 
 			o = new org.apache.lcf.crawler.jobs.JobManager(threadContext,database);
 			threadContext.save(jobManagerName,o);

@@ -34,10 +34,10 @@ public interface IDynamicResultSet
 	*@return the immutable row description, or null if there is no such row.
 	*/
 	public IResultRow getNextRow()
-		throws MetacartaException, ServiceInterruption;
+		throws LCFException, ServiceInterruption;
 
 	/** Close this resultset.
 	*/
 	public void close()
-		throws MetacartaException, ServiceInterruption;
+		throws LCFException, ServiceInterruption;
 }

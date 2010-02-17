@@ -43,7 +43,7 @@ public class UnRegisterAllAuthorities
 
 		try
 		{
-			Metacarta.initializeEnvironment();
+			LCF.initializeEnvironment();
 			IThreadContext tc = ThreadContextFactory.make();
 			IAuthorityConnectorManager mgr = AuthorityConnectorManagerFactory.make(tc);
 			IResultSet classNames = mgr.getConnectors();
@@ -55,7 +55,7 @@ public class UnRegisterAllAuthorities
 			}
 			System.err.println("Successfully unregistered all connectors");
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			e.printStackTrace();
 			System.exit(1);

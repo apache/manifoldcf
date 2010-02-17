@@ -29,7 +29,7 @@ public class DBInterfaceMySQL implements IDBInterface
 	protected String cacheKey;
 
 	public DBInterfaceMySQL(IThreadContext tc, String databaseName, String userName, String password)
-		throws MetacartaException
+		throws LCFException
 	{
 		if (databaseName == null)
 			databaseName = "mysql";
@@ -65,7 +65,7 @@ public class DBInterfaceMySQL implements IDBInterface
 	*@param tableName is the name of the table.
 	*/
 	public void performLock(String tableName)
-		throws MetacartaException
+		throws LCFException
 	{
 		performModification("LOCK TABLE "+tableName+" IN EXCLUSIVE MODE",null,null);
 	}
@@ -77,7 +77,7 @@ public class DBInterfaceMySQL implements IDBInterface
 	*@param parameterMap is the map of column name/values to write.
 	*/
 	public void performInsert(String tableName, Map parameterMap, StringSet invalidateKeys)
-		throws MetacartaException
+		throws LCFException
 	{
 		ArrayList paramArray = new ArrayList();
 
@@ -130,7 +130,7 @@ public class DBInterfaceMySQL implements IDBInterface
 	*@param whereParameters are the parameters that come with the where clause, if any.
 	*/
 	public void performUpdate(String tableName, Map parameterMap, String whereClause, ArrayList whereParameters, StringSet invalidateKeys)
-		throws MetacartaException
+		throws LCFException
 	{
 		ArrayList paramArray = new ArrayList();
 
@@ -195,7 +195,7 @@ public class DBInterfaceMySQL implements IDBInterface
 	*@param whereParameters are the parameters that come with the where clause, if any.
 	*/
 	public void performDelete(String tableName, String whereClause, ArrayList whereParameters, StringSet invalidateKeys)
-		throws MetacartaException
+		throws LCFException
 	{
 		StringBuffer bf = new StringBuffer();
 		bf.append("DELETE FROM ");
@@ -221,7 +221,7 @@ public class DBInterfaceMySQL implements IDBInterface
 	*@param invalidateKeys are the cache keys that should be invalidated, if any.
 	*/
 	public void performCreate(String tableName, Map columnMap, StringSet invalidateKeys)
-		throws MetacartaException
+		throws LCFException
 	{
 		StringBuffer queryBuffer = new StringBuffer("CREATE TABLE ");
 		queryBuffer.append(tableName);
@@ -276,7 +276,7 @@ public class DBInterfaceMySQL implements IDBInterface
 	*/
 	public void performAlter(String tableName, Map columnMap, Map columnModifyMap, ArrayList columnDeleteList,
 		StringSet invalidateKeys)
-		throws MetacartaException
+		throws LCFException
 	{
 		// MHL
 	}
@@ -288,7 +288,7 @@ public class DBInterfaceMySQL implements IDBInterface
 	* in the index, in order.
 	*/
 	public void addTableIndex(String tableName, boolean unique, ArrayList columnList)
-		throws MetacartaException
+		throws LCFException
 	{
 		String[] columns = new String[columnList.size()];
 		int i = 0;
@@ -306,7 +306,7 @@ public class DBInterfaceMySQL implements IDBInterface
 	*@param description is the index description.
 	*/
 	public void performAddIndex(String indexName, String tableName, IndexDescription description)
-		throws MetacartaException
+		throws LCFException
 	{
 		String[] columnNames = description.getColumnNames();
 		if (columnNames.length == 0)
@@ -341,7 +341,7 @@ public class DBInterfaceMySQL implements IDBInterface
 	*@param indexName is the name of the index to remove.
 	*/
 	public void performRemoveIndex(String indexName)
-		throws MetacartaException
+		throws LCFException
 	{
 		performModification("DROP INDEX "+indexName,null,null);
 	}
@@ -350,7 +350,7 @@ public class DBInterfaceMySQL implements IDBInterface
 	*@param tableName is the name of the table to analyze/calculate statistics for.
 	*/
 	public void analyzeTable(String tableName)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Does nothing
 	}
@@ -359,7 +359,7 @@ public class DBInterfaceMySQL implements IDBInterface
 	*@param tableName is the name of the table to rebuild indexes for.
 	*/
 	public void reindexTable(String tableName)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Does nothing
 	}
@@ -369,7 +369,7 @@ public class DBInterfaceMySQL implements IDBInterface
 	*@param invalidateKeys are the cache keys that should be invalidated, if any.
 	*/
 	public void performDrop(String tableName, StringSet invalidateKeys)
-		throws MetacartaException
+		throws LCFException
 	{
 		performModification("DROP TABLE "+tableName,null,invalidateKeys);
 	}
@@ -379,9 +379,9 @@ public class DBInterfaceMySQL implements IDBInterface
 	*@return true if the user exists.
 	*/
 	public boolean lookupUser(String userName, StringSet cacheKeys, String queryClass)
-		throws MetacartaException
+		throws LCFException
 	{
-		throw new MetacartaException("Not Supported");
+		throw new LCFException("Not Supported");
 	}
 
 	/** Perform user create.
@@ -389,7 +389,7 @@ public class DBInterfaceMySQL implements IDBInterface
 	*@param password is the user's password.
 	*/
 	public void performCreateUser(String userName, String password)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Does nothing for MySQL
 	}
@@ -398,7 +398,7 @@ public class DBInterfaceMySQL implements IDBInterface
 	*@param userName is the user name.
 	*/
 	public void performDropUser(String userName)
-		throws MetacartaException
+		throws LCFException
 	{
 		// Does nothing
 	}
@@ -409,9 +409,9 @@ public class DBInterfaceMySQL implements IDBInterface
 	*@return true if the database exists.
 	*/
 	public boolean lookupDatabase(String databaseName, StringSet cacheKeys, String queryClass)
-		throws MetacartaException
+		throws LCFException
 	{
-		throw new MetacartaException("Not Supported");
+		throw new LCFException("Not Supported");
 	}
 
 
@@ -423,7 +423,7 @@ public class DBInterfaceMySQL implements IDBInterface
 	*/
 	public void performCreateDatabase(String databaseName, String databaseUser, String databasePassword,
 		StringSet invalidateKeys)
-		throws MetacartaException
+		throws LCFException
 	{
 		beginTransaction();
 		try
@@ -438,7 +438,7 @@ public class DBInterfaceMySQL implements IDBInterface
 				quoteSQLString(databasePassword),null,invalidateKeys);
 			}
 		}
-		catch (MetacartaException e)
+		catch (LCFException e)
 		{
 			signalRollback();
 			throw e;
@@ -459,7 +459,7 @@ public class DBInterfaceMySQL implements IDBInterface
 	*@param invalidateKeys are the cache keys that should be invalidated, if any.
 	*/
 	public void performDropDatabase(String databaseName, StringSet invalidateKeys)
-		throws MetacartaException
+		throws LCFException
 	{
 		performModification("DROP DATABASE "+databaseName,null,invalidateKeys);
 	}
@@ -470,7 +470,7 @@ public class DBInterfaceMySQL implements IDBInterface
 	*@param invalidateKeys are the cache keys to invalidate.
 	*/
 	public void performModification(String query, ArrayList params, StringSet invalidateKeys)
-		throws MetacartaException
+		throws LCFException
 	{
 		database.executeQuery(query,params,null,invalidateKeys,null,false,0,null,null);
 	}
@@ -482,7 +482,7 @@ public class DBInterfaceMySQL implements IDBInterface
 	*@return a map of column names and ColumnDescription objects, describing the schema.
 	*/
 	public Map getTableSchema(String tableName, StringSet cacheKeys, String queryClass)
-		throws MetacartaException
+		throws LCFException
 	{
 		IResultSet set = performQuery("DESCRIBE "+tableName,null,cacheKeys,queryClass);
 		// Digest the result
@@ -508,7 +508,7 @@ public class DBInterfaceMySQL implements IDBInterface
 	*@return a map of index names and IndexDescription objects, describing the indexes.
 	*/
 	public Map getTableIndexes(String tableName, StringSet cacheKeys, String queryClass)
-		throws MetacartaException
+		throws LCFException
 	{
 		// MHL
 		return null;
@@ -520,7 +520,7 @@ public class DBInterfaceMySQL implements IDBInterface
 	*@return the set of tables.
 	*/
 	public StringSet getAllTables(StringSet cacheKeys, String queryClass)
-		throws MetacartaException
+		throws LCFException
 	{
 		IResultSet set = performQuery("SHOW TABLES",null,cacheKeys,queryClass);
 		StringSetBuffer ssb = new StringSetBuffer();
@@ -549,7 +549,7 @@ public class DBInterfaceMySQL implements IDBInterface
 	*@return a resultset.
 	*/
 	public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass)
-		throws MetacartaException
+		throws LCFException
 	{
 		return database.executeQuery(query,params,cacheKeys,null,queryClass,true,-1,null,null);
 	}
@@ -566,7 +566,7 @@ public class DBInterfaceMySQL implements IDBInterface
 	*/
 	public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass,
 		int maxResults, ILimitChecker returnLimit)
-		throws MetacartaException
+		throws LCFException
 	{
 		return database.executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,null,returnLimit);
 	}
@@ -584,7 +584,7 @@ public class DBInterfaceMySQL implements IDBInterface
 	*/
 	public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass,
 		int maxResults, ResultSpecification resultSpec, ILimitChecker returnLimit)
-		throws MetacartaException
+		throws LCFException
 	{
 		return database.executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,resultSpec,returnLimit);
 	}
@@ -643,7 +643,7 @@ public class DBInterfaceMySQL implements IDBInterface
 	* signalRollback() method, and rethrow the exception.  Then, after that a finally{} block which calls endTransaction().
 	*/
 	public void beginTransaction()
-		throws MetacartaException
+		throws LCFException
 	{
 		database.beginTransaction(database.TRANSACTION_READCOMMITTED);
 	}
@@ -658,7 +658,7 @@ public class DBInterfaceMySQL implements IDBInterface
 	*@param transactionType is the kind of transaction desired.
 	*/
 	public void beginTransaction(int transactionType)
-		throws MetacartaException
+		throws LCFException
 	{
 		database.beginTransaction(database.TRANSACTION_READCOMMITTED);
 	}
@@ -674,7 +674,7 @@ public class DBInterfaceMySQL implements IDBInterface
 	* signalRollback() was called within the transaction).
 	*/
 	public void endTransaction()
-		throws MetacartaException
+		throws LCFException
 	{
 		database.endTransaction();
 	}

@@ -22,7 +22,7 @@ import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.agents.interfaces.*;
 import org.apache.lcf.crawler.interfaces.*;
 import org.apache.lcf.crawler.system.Logging;
-import org.apache.lcf.crawler.system.Metacarta;
+import org.apache.lcf.crawler.system.LCF;
 
 
 /** Get a livelink connection's information in printed form.
@@ -50,15 +50,15 @@ public class GetConnectionInfo
 		
 		try
 		{
-		        Metacarta.initializeEnvironment();
+		        LCF.initializeEnvironment();
 			IThreadContext tc = ThreadContextFactory.make();
 			IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
 			IRepositoryConnection connection = connectionManager.load(connectionName);
 			if (connection == null)
-				throw new MetacartaException("Connection "+connectionName+" does not exist");
+				throw new LCFException("Connection "+connectionName+" does not exist");
 			
 			if (connection.getClassName() == null || !connection.getClassName().equals("org.apache.lcf.crawler.connectors.livelink.LivelinkConnector"))
-				throw new MetacartaException("Command can only be used on working Livelink connections.");
+				throw new LCFException("Command can only be used on working Livelink connections.");
 
 			ConfigParams cfg = connection.getConfigParams();
 			

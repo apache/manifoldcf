@@ -114,7 +114,7 @@
 			pathSoFar = "";
 			childList = c.getChildFolderNames("");
 			if (childList == null)
-				throw new MetacartaException("Can't find any children for root folder");
+				throw new LCFException("Can't find any children for root folder");
 		}
 	    }
 	    finally
@@ -157,7 +157,7 @@
 <%
 	    }
 	  }
-	  catch (MetacartaException e)
+	  catch (LCFException e)
 	  {
 		e.printStackTrace();
 		out.println(org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage()));
@@ -525,11 +525,11 @@
 				categorySoFar = "";
 				childList = c.getChildFolderNames("");
 				if (childList == null)
-					throw new MetacartaException("Can't find any children for root folder");
+					throw new LCFException("Can't find any children for root folder");
 			}
 			categoryList = c.getChildCategoryNames(categorySoFar);
 			if (categoryList == null)
-				throw new MetacartaException("Can't find any categories for root folder folder");
+				throw new LCFException("Can't find any categories for root folder folder");
 		    }
 		}
 	    }
@@ -650,7 +650,7 @@
 		}
 	    }
 	  }
-	  catch (MetacartaException e)
+	  catch (LCFException e)
 	  {
 		e.printStackTrace();
 		out.println(org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage()));

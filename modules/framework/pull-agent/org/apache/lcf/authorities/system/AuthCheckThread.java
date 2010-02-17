@@ -38,7 +38,7 @@ public class AuthCheckThread extends Thread
         /** Constructor.
         */
         public AuthCheckThread(String id, RequestQueue requestQueue)
-                throws MetacartaException
+                throws LCFException
         {
                 super();
                 this.requestQueue = requestQueue;
@@ -58,7 +58,7 @@ public class AuthCheckThread extends Thread
                         try
                         {
                                 if (Thread.currentThread().isInterrupted())
-                                        throw new MetacartaException("Interrupted",MetacartaException.INTERRUPTED);
+                                        throw new LCFException("Interrupted",LCFException.INTERRUPTED);
 
                                 // Wait for a request.
                                 AuthRequest theRequest = requestQueue.getRequest();
@@ -83,7 +83,7 @@ public class AuthCheckThread extends Thread
                                         try
                                         {
                                                 if (connector == null)
-                                                        exception = new MetacartaException("Authority connector "+theRequest.getClassName()+" is not registered.");
+                                                        exception = new LCFException("Authority connector "+theRequest.getClassName()+" is not registered.");
                                                 else
                                                 {
                                                         // Get the acl for the user
@@ -91,9 +91,9 @@ public class AuthCheckThread extends Thread
                                                         {
                                                                 response = connector.getAuthorizationResponse(theRequest.getUserID());
                                                         }
-                                                        catch (MetacartaException e)
+                                                        catch (LCFException e)
                                                         {
-                                                                if (e.getErrorCode() == MetacartaException.INTERRUPTED)
+                                                                if (e.getErrorCode() == LCFException.INTERRUPTED)
                                                                         throw e;
                                                                 Logging.authorityService.warn("Authority error: "+e.getMessage(),e);
                                                                 response = AuthorityConnectorFactory.getDefaultAuthorizationResponse(threadContext,theRequest.getClassName(),theRequest.getUserID());
@@ -106,9 +106,9 @@ public class AuthCheckThread extends Thread
                                                 AuthorityConnectorFactory.release(connector);
                                         }
                                 }
-                                catch (MetacartaException e)
+                                catch (LCFException e)
                                 {
-                                        if (e.getErrorCode() == MetacartaException.INTERRUPTED)
+                                        if (e.getErrorCode() == LCFException.INTERRUPTED)
                                                 throw e;
                                         Logging.authorityService.warn("Authority connection exception: "+e.getMessage(),e);
                                         response = AuthorityConnectorFactory.getDefaultAuthorizationResponse(threadContext,theRequest.getClassName(),theRequest.getUserID());
@@ -128,15 +128,15 @@ public class AuthCheckThread extends Thread
                                 
                                 // Repeat, and only go to sleep if there are no more requests.
                         }
-                        catch (MetacartaException e)
+                        catch (LCFException e)
                         {
-                                if (e.getErrorCode() == MetacartaException.INTERRUPTED)
+                                if (e.getErrorCode() == LCFException.INTERRUPTED)
                                         break;
 
                                 // Log it, but keep the thread alive
                                 Logging.authorityService.error("Exception tossed: "+e.getMessage(),e);
 
-                                if (e.getErrorCode() == MetacartaException.SETUP_ERROR)
+                                if (e.getErrorCode() == LCFException.SETUP_ERROR)
                                 {
                                         // Shut the whole system down!
                                         System.exit(1);

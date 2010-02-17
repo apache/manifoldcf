@@ -50,7 +50,7 @@ public class PrereqEventManager extends org.apache.lcf.core.database.BaseTable
         *@param database is the database handle.
         */
         public PrereqEventManager(IDBInterface database)
-                throws MetacartaException
+                throws LCFException
         {
                 super(database,"prereqevents");
         }
@@ -58,7 +58,7 @@ public class PrereqEventManager extends org.apache.lcf.core.database.BaseTable
         /** Install or upgrade this table.
         */
         public void install(String ownerTableName, String ownerColumn)
-                throws MetacartaException
+                throws LCFException
         {
                 beginTransaction();
                 try
@@ -81,7 +81,7 @@ public class PrereqEventManager extends org.apache.lcf.core.database.BaseTable
                                 // No upgrade is possible since this table has just been introduced.
                         }
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         signalRollback();
                         throw e;
@@ -100,14 +100,14 @@ public class PrereqEventManager extends org.apache.lcf.core.database.BaseTable
         /** Uninstall.
         */
         public void deinstall()
-                throws MetacartaException
+                throws LCFException
         {
                 beginTransaction();
                 try
                 {
                         performDrop(null);
                 }
-                catch (MetacartaException e)
+                catch (LCFException e)
                 {
                         signalRollback();
                         throw e;
@@ -125,7 +125,7 @@ public class PrereqEventManager extends org.apache.lcf.core.database.BaseTable
 
         /** Delete specified rows, based on jobqueue criteria. */
         public void deleteRows(String parentTableName, String joinField, String parentCriteria, ArrayList list)
-                throws MetacartaException
+                throws LCFException
         {
                 StringBuffer sb = new StringBuffer();
                 sb.append("WHERE EXISTS(SELECT 'x' FROM ").append(parentTableName).append(" WHERE ").append(joinField).append("=")
@@ -139,7 +139,7 @@ public class PrereqEventManager extends org.apache.lcf.core.database.BaseTable
 
         /** Delete specified rows, as directly specified without a join. */
         public void deleteRows(String ownerQueryPart, ArrayList list)
-                throws MetacartaException
+                throws LCFException
         {
                 performDelete("WHERE "+ownerField+" IN("+ownerQueryPart+")",list,null);
                 reindexTracker.noteEvent();
@@ -147,7 +147,7 @@ public class PrereqEventManager extends org.apache.lcf.core.database.BaseTable
         
         /** Delete rows pertaining to a single entry */
         public void deleteRows(Long recordID)
-                throws MetacartaException
+                throws LCFException
         {
                 ArrayList list = new ArrayList();
                 list.add(recordID);
@@ -157,7 +157,7 @@ public class PrereqEventManager extends org.apache.lcf.core.database.BaseTable
         
         /** Add rows pertaining to a single entry */
         public void addRows(Long recordID, String[] eventNames)
-                throws MetacartaException
+                throws LCFException
         {
                 if (eventNames != null)
                 {
@@ -176,7 +176,7 @@ public class PrereqEventManager extends org.apache.lcf.core.database.BaseTable
         /** Conditionally do analyze operation.
         */
         public void conditionallyMaintainTables()
-                throws MetacartaException
+                throws LCFException
         {
                 if (tracker.checkAction())
                 {

@@ -46,6 +46,6 @@ public interface IHistoryActivity
         */
         public void recordActivity(Long startTime, String activityType, Long dataSize,
                 String entityIdentifier, String resultCode, String resultDescription, String[] childIdentifiers)
-                throws MetacartaException;
+                throws LCFException;
 
 }

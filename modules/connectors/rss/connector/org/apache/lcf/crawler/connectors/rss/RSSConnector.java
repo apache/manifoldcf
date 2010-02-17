@@ -22,7 +22,7 @@ import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.agents.interfaces.*;
 import org.apache.lcf.crawler.interfaces.*;
 import org.apache.lcf.crawler.system.Logging;
-import org.apache.lcf.crawler.system.Metacarta;
+import org.apache.lcf.crawler.system.LCF;
 
 import org.xml.sax.Attributes;
 
@@ -220,7 +220,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
 
         /** Establish a session */
         protected void getSession()
-                throws MetacartaException
+                throws LCFException
         {
                 if (!isInitialized)
                 {
@@ -228,7 +228,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
 
                         String emailAddress = params.getParameter(emailParameter);
                         if (emailAddress == null)
-                                throw new MetacartaException("Missing email address");
+                                throw new LCFException("Missing email address");
                         userAgent = "ApacheLCFRSSFeedReader; "+((emailAddress==null)?"":emailAddress)+")";
                         from = emailAddress;
 
@@ -256,7 +256,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                                 }
                                 catch (NumberFormatException e)
                                 {
-                                        throw new MetacartaException(e.getMessage(),e);
+                                        throw new LCFException(e.getMessage(),e);
                                 }
                         }
                         
@@ -276,7 +276,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                                 }
                                 catch (NumberFormatException e)
                                 {
-                                        throw new MetacartaException("Bad number: "+e.getMessage(),e);
+                                        throw new LCFException("Bad number: "+e.getMessage(),e);
                                 }
                         }
                         
@@ -289,7 +289,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                                 }
                                 catch (NumberFormatException e)
                                 {
-                                        throw new MetacartaException("Bad number: "+e.getMessage(),e);
+                                        throw new LCFException("Bad number: "+e.getMessage(),e);
                                 }
                         }
                         
@@ -305,7 +305,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                                 }
                                 catch (NumberFormatException e)
                                 {
-                                        throw new MetacartaException("Bad number: "+e.getMessage(),e);
+                                        throw new LCFException("Bad number: "+e.getMessage(),e);
                                 }
 
                         }
@@ -372,7 +372,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
         * in active use.
         */
         public void poll()
-                throws MetacartaException
+                throws LCFException
         {
                 fetcher.poll();
                 robots.poll();
@@ -381,7 +381,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
 	/** Check status of connection.
 	*/
 	public String check()
-		throws MetacartaException
+		throws LCFException
 	{
                 getSession();
                 return super.check();
@@ -390,7 +390,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
         /** Close the connection.  Call this before discarding the repository connector.
         */
         public void disconnect()
-                throws MetacartaException
+                throws LCFException
         {
                 isInitialized = false;
                 
@@ -464,7 +464,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
         */
         public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
                 long startTime, long endTime)
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
                 getSession();
                 
@@ -488,7 +488,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
         *@return the canonical URL (the document identifier), or null if the url was illegal.
         */
         protected static String makeDocumentIdentifier(CanonicalizationPolicies policies, String parentIdentifier, String rawURL)
-                throws MetacartaException
+                throws LCFException
         {
                 try
                 {
@@ -587,7 +587,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
         /** Code to canonicalize a URL.  If URL cannot be canonicalized (and is illegal) return null.
         */
         protected static String doCanonicalization(CanonicalizationPolicy p, java.net.URI url)
-                throws MetacartaException, java.net.URISyntaxException
+                throws LCFException, java.net.URISyntaxException
         {
                 // Note well: The java.net.URI class mistreats the query part of the URI, near as I can tell, in the following ways:
                 // (1) It decodes the whole thing without regards to the argument interpretation, so the escaped ampersands etc in the arguments are converted
@@ -800,7 +800,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
         */
         public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
                 DocumentSpecification spec, int jobType, boolean usesDefaultAuthority)
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
                 getSession();
                 
@@ -947,19 +947,19 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                                                 }
                                                 catch (UnsupportedEncodingException e)
                                                 {
-                                                        throw new MetacartaException("Unsupported encoding: "+e.getMessage(),e);
+                                                        throw new LCFException("Unsupported encoding: "+e.getMessage(),e);
                                                 }
                                                 catch (java.net.SocketTimeoutException e)
                                                 {
-                                                        throw new MetacartaException("IO exception reading data from string: "+e.getMessage(),e);
+                                                        throw new LCFException("IO exception reading data from string: "+e.getMessage(),e);
                                                 }
                                                 catch (InterruptedIOException e)
                                                 {
-                                                        throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+                                                        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
                                                 }
                                                 catch (IOException e)
                                                 {
-                                                        throw new MetacartaException("IO exception reading data from string: "+e.getMessage(),e);
+                                                        throw new LCFException("IO exception reading data from string: "+e.getMessage(),e);
                                                 }
                                         }
                                         else
@@ -1206,7 +1206,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                                                                         }
                                                                         catch (InterruptedIOException e)
                                                                         {
-                                                                                throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+                                                                                throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
                                                                         }
                                                                         catch (IOException e)
                                                                         {
@@ -1275,7 +1275,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
         */
         public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities,
                 DocumentSpecification spec, boolean[] scanOnly, int jobType)
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
                 getSession();
                 
@@ -1517,15 +1517,15 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                                         }
                                         catch (java.net.SocketTimeoutException e)
                                         {
-                                                throw new MetacartaException("IO error closing stream: "+e.getMessage(),e);
+                                                throw new LCFException("IO error closing stream: "+e.getMessage(),e);
                                         }
                                         catch (InterruptedIOException e)
                                         {
-                                                throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+                                                throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
                                         }
                                         catch (IOException e)
                                         {
-                                                throw new MetacartaException("IO error closing stream: "+e.getMessage(),e);
+                                                throw new LCFException("IO error closing stream: "+e.getMessage(),e);
                                         }
                                 }
                             }
@@ -1549,7 +1549,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
         *@param versions is the corresponding set of version identifiers (individual identifiers may be null).
         */
         public void releaseDocumentVersions(String[] documentIdentifiers, String[] versions)
-                throws MetacartaException
+                throws LCFException
         {
                 int i = 0;
                 while (i < documentIdentifiers.length)
@@ -1566,7 +1566,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
 
         /** Handle an RSS feed document, using SAX to limit the memory impact */
         protected void handleRSSFeedSAX(String documentIdentifier, IProcessActivity activities, Filter filter)
-                throws MetacartaException, ServiceInterruption
+                throws LCFException, ServiceInterruption
         {
                 // The SAX model uses parsing events to control parsing, which allows me to manage memory usage much better.
                 // This is essential for when a feed contains dechromed content as well as links.
@@ -1593,7 +1593,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                                         {
                                                 x.parse(is);
                                         }
-                                        catch (MetacartaException e)
+                                        catch (LCFException e)
                                         {
                                                 // Ignore XML parsing errors.
                                                 if (e.getMessage().indexOf("pars") >= 0)
@@ -1623,19 +1623,19 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 }
                 catch (java.net.SocketTimeoutException e)
                 {
-                        throw new MetacartaException("Socket timeout error: "+e.getMessage(),e);
+                        throw new LCFException("Socket timeout error: "+e.getMessage(),e);
                 }
                 catch (org.apache.commons.httpclient.ConnectTimeoutException e)
                 {
-                        throw new MetacartaException("Socket connect timeout error: "+e.getMessage(),e);
+                        throw new LCFException("Socket connect timeout error: "+e.getMessage(),e);
                 }
                 catch (InterruptedIOException e)
                 {
-                        throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+                        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
                 }
                 catch (IOException e)
                 {
-                        throw new MetacartaException("IO error: "+e.getMessage(),e);
+                        throw new LCFException("IO error: "+e.getMessage(),e);
                 }
 
         }
@@ -1674,7 +1674,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 
                 /** Check if the rescan flag was set or not, and if not, make sure it gets set properly */
                 public void setDefaultRescanTimeIfNeeded()
-                        throws MetacartaException
+                        throws LCFException
                 {
                         if (rescanTimeSet == false)
                         {
@@ -1696,7 +1696,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 
                 /** Handle the tag beginning to set the correct second-level parsing context */
                 protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         if (qName.equals("rss"))
                         {
@@ -1725,7 +1725,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
 
                 /** Handle the tag ending */
                 protected void endTag()
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         XMLContext context = theStream.getContext();
                         String tagName = context.getQname();
@@ -1767,7 +1767,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 }
                 
                 protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         // Handle each channel
                         if (qName.equals("channel"))
@@ -1781,7 +1781,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 }
 
                 protected void endTag()
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         // If it's our channel tag, process global channel information
                         XMLContext context = theStream.getContext();
@@ -1796,7 +1796,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 
                 /** Process this data */
                 protected boolean process()
-                        throws MetacartaException
+                        throws LCFException
                 {
                         return rescanTimeSet;
                 }
@@ -1824,7 +1824,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 }
 
                 protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         // The tags we care about are "ttl" and "item", nothing else.
                         if (qName.equals("ttl"))
@@ -1842,7 +1842,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 }
                 
                 protected void endTag()
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         XMLContext theContext = theStream.getContext();
                         String theTag = theContext.getQname();
@@ -1872,7 +1872,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 
                 /** Process this data, return true if rescan time was set */
                 protected boolean process()
-                        throws MetacartaException
+                        throws LCFException
                 {
                         // Deal with the ttlvalue, if it was found
                         // Use the ttl value as a signal for when we ought to look at this feed again.  If not present, use the default.
@@ -1930,7 +1930,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 }
                 
                 protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         // The tags we care about are "ttl" and "item", nothing else.
                         if (qName.equals("link"))
@@ -1974,15 +1974,15 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                                                 }
                                                 catch (java.net.SocketTimeoutException e)
                                                 {
-                                                        throw new MetacartaException("IO exception creating temp file: "+e.getMessage(),e);
+                                                        throw new LCFException("IO exception creating temp file: "+e.getMessage(),e);
                                                 }
                                                 catch (InterruptedIOException e)
                                                 {
-                                                        throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+                                                        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
                                                 }
                                                 catch (IOException e)
                                                 {
-                                                        throw new MetacartaException("IO exception creating temp file: "+e.getMessage(),e);
+                                                        throw new LCFException("IO exception creating temp file: "+e.getMessage(),e);
                                                 }
                                         }
                                         break;
@@ -1996,15 +1996,15 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                                                 }
                                                 catch (java.net.SocketTimeoutException e)
                                                 {
-                                                        throw new MetacartaException("IO exception creating temp file: "+e.getMessage(),e);
+                                                        throw new LCFException("IO exception creating temp file: "+e.getMessage(),e);
                                                 }
                                                 catch (InterruptedIOException e)
                                                 {
-                                                        throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+                                                        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
                                                 }
                                                 catch (IOException e)
                                                 {
-                                                        throw new MetacartaException("IO exception creating temp file: "+e.getMessage(),e);
+                                                        throw new LCFException("IO exception creating temp file: "+e.getMessage(),e);
                                                 }
                                         }
                                         break;
@@ -2018,7 +2018,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 
                 /** Convert the individual sub-fields of the item context into their final forms */
                 protected void endTag()
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         XMLContext theContext = theStream.getContext();
                         String theTag = theContext.getQname();
@@ -2075,7 +2075,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 }
                 
                 protected void tagCleanup()
-                        throws MetacartaException
+                        throws LCFException
                 {
                         // Delete the contents file if it is there.
                         if (contentsFile != null)
@@ -2087,7 +2087,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 
                 /** Process the data accumulated for this item */
                 public void process(String documentIdentifier, IProcessActivity activities, Filter filter)
-                        throws MetacartaException
+                        throws LCFException
                 {
                         if (linkField == null || linkField.length() == 0)
                                 linkField = guidField;
@@ -2215,7 +2215,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 }
 
                 protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         // The tags we care about are "ttl" and "item", nothing else.
                         if (qName.equals("ttl"))
@@ -2233,7 +2233,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 }
                 
                 protected void endTag()
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         XMLContext theContext = theStream.getContext();
                         String theTag = theContext.getQname();
@@ -2263,7 +2263,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 
                 /** Process this data */
                 protected boolean process()
-                        throws MetacartaException
+                        throws LCFException
                 {
                         // Deal with the ttlvalue, if it was found
                         // Use the ttl value as a signal for when we ought to look at this feed again.  If not present, use the default.
@@ -2319,7 +2319,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 }
                 
                 protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         // The tags we care about are "ttl" and "item", nothing else.
                         if (qName.equals("link"))
@@ -2353,15 +2353,15 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                                                 }
                                                 catch (java.net.SocketTimeoutException e)
                                                 {
-                                                        throw new MetacartaException("IO exception creating temp file: "+e.getMessage(),e);
+                                                        throw new LCFException("IO exception creating temp file: "+e.getMessage(),e);
                                                 }
                                                 catch (InterruptedIOException e)
                                                 {
-                                                        throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+                                                        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
                                                 }
                                                 catch (IOException e)
                                                 {
-                                                        throw new MetacartaException("IO exception creating temp file: "+e.getMessage(),e);
+                                                        throw new LCFException("IO exception creating temp file: "+e.getMessage(),e);
                                                 }
                                         }
                                         break;
@@ -2375,15 +2375,15 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                                                 }
                                                 catch (java.net.SocketTimeoutException e)
                                                 {
-                                                        throw new MetacartaException("IO exception creating temp file: "+e.getMessage(),e);
+                                                        throw new LCFException("IO exception creating temp file: "+e.getMessage(),e);
                                                 }
                                                 catch (InterruptedIOException e)
                                                 {
-                                                        throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+                                                        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
                                                 }
                                                 catch (IOException e)
                                                 {
-                                                        throw new MetacartaException("IO exception creating temp file: "+e.getMessage(),e);
+                                                        throw new LCFException("IO exception creating temp file: "+e.getMessage(),e);
                                                 }
                                         }
                                         break;
@@ -2397,7 +2397,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 
                 /** Convert the individual sub-fields of the item context into their final forms */
                 protected void endTag()
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         XMLContext theContext = theStream.getContext();
                         String theTag = theContext.getQname();
@@ -2446,7 +2446,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 }
                 
                 protected void tagCleanup()
-                        throws MetacartaException
+                        throws LCFException
                 {
                         // Delete the contents file if it is there.
                         if (contentsFile != null)
@@ -2458,7 +2458,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 
                 /** Process the data accumulated for this item */
                 public void process(String documentIdentifier, IProcessActivity activities, Filter filter)
-                        throws MetacartaException
+                        throws LCFException
                 {
                         if (linkField != null && linkField.length() > 0)
                         {
@@ -2562,7 +2562,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 }
 
                 protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         // The tags we care about are "ttl" and "item", nothing else.
                         if (qName.equals("ttl"))
@@ -2580,7 +2580,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 }
                 
                 protected void endTag()
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         XMLContext theContext = theStream.getContext();
                         String theTag = theContext.getQname();
@@ -2610,7 +2610,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 
                 /** Process this data */
                 protected boolean process()
-                        throws MetacartaException
+                        throws LCFException
                 {
                         // Deal with the ttlvalue, if it was found
                         // Use the ttl value as a signal for when we ought to look at this feed again.  If not present, use the default.
@@ -2667,7 +2667,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 }
                 
                 protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         // The tags we care about are "ttl" and "item", nothing else.
                         if (qName.equals("link"))
@@ -2709,15 +2709,15 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                                                 }
                                                 catch (java.net.SocketTimeoutException e)
                                                 {
-                                                        throw new MetacartaException("IO exception creating temp file: "+e.getMessage(),e);
+                                                        throw new LCFException("IO exception creating temp file: "+e.getMessage(),e);
                                                 }
                                                 catch (InterruptedIOException e)
                                                 {
-                                                        throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+                                                        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
                                                 }
                                                 catch (IOException e)
                                                 {
-                                                        throw new MetacartaException("IO exception creating temp file: "+e.getMessage(),e);
+                                                        throw new LCFException("IO exception creating temp file: "+e.getMessage(),e);
                                                 }
                                         }
                                         break;
@@ -2731,15 +2731,15 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                                                 }
                                                 catch (java.net.SocketTimeoutException e)
                                                 {
-                                                        throw new MetacartaException("IO exception creating temp file: "+e.getMessage(),e);
+                                                        throw new LCFException("IO exception creating temp file: "+e.getMessage(),e);
                                                 }
                                                 catch (InterruptedIOException e)
                                                 {
-                                                        throw new MetacartaException("Interrupted: "+e.getMessage(),e,MetacartaException.INTERRUPTED);
+                                                        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
                                                 }
                                                 catch (IOException e)
                                                 {
-                                                        throw new MetacartaException("IO exception creating temp file: "+e.getMessage(),e);
+                                                        throw new LCFException("IO exception creating temp file: "+e.getMessage(),e);
                                                 }
                                         }
                                         break;
@@ -2753,7 +2753,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 
                 /** Convert the individual sub-fields of the item context into their final forms */
                 protected void endTag()
-                        throws MetacartaException, ServiceInterruption
+                        throws LCFException, ServiceInterruption
                 {
                         XMLContext theContext = theStream.getContext();
                         String theTag = theContext.getQname();
@@ -2798,7 +2798,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 }
                 
                 protected void tagCleanup()
-                        throws MetacartaException
+                        throws LCFException
                 {
                         // Delete the contents file if it is there.
                         if (contentsFile != null)
@@ -2810,7 +2810,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 
                 /** Process the data accumulated for this item */
                 public void process(String documentIdentifier, IProcessActivity activities, Filter filter)
-                        throws MetacartaException
+                        throws LCFException
                 {
                         if (linkField != null && linkField.length() > 0)
                         {
@@ -3281,7 +3281,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
         /** Code to check if data is interesting, based on response code and content type.
         */
         protected boolean isContentInteresting(String contentType)
-                throws MetacartaException
+                throws LCFException
         {
                 // Look at the content type and decide if it's a kind we want.  This is defined
                 // as something we think we can either ingest, or extract links from.
@@ -3544,7 +3544,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 /** Get current token.
                 */
                 public EvaluatorToken peek()
-                        throws MetacartaException
+                        throws LCFException
                 {
                         if (token == null)
                         {
@@ -3561,7 +3561,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 }
 
                 protected EvaluatorToken nextToken()
-                        throws MetacartaException
+                        throws LCFException
                 {
                         char x;
                         // Fetch the next token
@@ -3653,7 +3653,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                                 else if (modifier.startsWith("m"))
                                         style = EvaluatorToken.GROUPSTYLE_MIXED;
                                 else
-                                        throw new MetacartaException("Unknown style: "+modifier);
+                                        throw new LCFException("Unknown style: "+modifier);
                         }
                         return new EvaluatorToken(groupNumber,style);
                 }
@@ -3759,7 +3759,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 }
 
                 public String map(String url)
-                        throws MetacartaException
+                        throws LCFException
                 {
                         // Create a matcher, and attempt to do a match
                         Matcher matcher = matchPattern.matcher(url);
@@ -3807,7 +3807,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                                                 }
                                                 break;
                                         default:
-                                                throw new MetacartaException("Illegal group style");
+                                                throw new LCFException("Illegal group style");
                                         }
                                         break;
                                 case EvaluatorToken.TYPE_TEXT:
@@ -3815,7 +3815,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                                         sb.append(t.getTextValue());
                                         break;
                                 default:
-                                        throw new MetacartaException("Illegal token type");
+                                        throw new LCFException("Illegal token type");
                                 }
                         }
                         return sb.toString();
@@ -3853,7 +3853,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 }
                 
                 public String map(String url)
-                        throws MetacartaException
+                        throws LCFException
                 {
                         if (mappings.size() == 0)
                                 return url;
@@ -3890,7 +3890,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
 
                 /** Constructor. */
                 public Filter(DocumentSpecification spec, boolean warnOnBadSeed)
-                        throws MetacartaException
+                        throws LCFException
                 {
                         // To save allocation, preallocate the seeds map assuming that it will require 1.5x the number of nodes in the spec
                         int initialSize = spec.getChildCount();
@@ -3917,7 +3917,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                                                 }
                                                 catch (java.util.regex.PatternSyntaxException e)
                                                 {
-                                                        throw new MetacartaException("Regular expression '"+match+"' is illegal: "+e.getMessage(),e);
+                                                        throw new LCFException("Regular expression '"+match+"' is illegal: "+e.getMessage(),e);
                                                 }
                                                 if (map == null)
                                                         map = "";
@@ -3995,7 +3995,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                                         }
                                         catch (java.util.regex.PatternSyntaxException e)
                                         {
-                                                throw new MetacartaException("Canonicalization regular expression '"+urlRegexp+"' is illegal: "+e.getMessage(),e);
+                                                throw new LCFException("Canonicalization regular expression '"+urlRegexp+"' is illegal: "+e.getMessage(),e);
                                         }
                                 }
                         }
@@ -4045,7 +4045,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                                                 }
                                                 catch (NumberFormatException e)
                                                 {
-                                                        throw new MetacartaException("Bad number: "+e.getMessage(),e);
+                                                        throw new LCFException("Bad number: "+e.getMessage(),e);
                                                 }
                                         }
                                 }
@@ -4060,7 +4060,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                                                 }
                                                 catch (NumberFormatException e)
                                                 {
-                                                        throw new MetacartaException("Bad number: "+e.getMessage(),e);
+                                                        throw new LCFException("Bad number: "+e.getMessage(),e);
                                                 }
                                         }
                                 }
@@ -4075,7 +4075,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                                                 }
                                                 catch (NumberFormatException e)
                                                 {
-                                                        throw new MetacartaException("Bad number: "+e.getMessage(),e);
+                                                        throw new LCFException("Bad number: "+e.getMessage(),e);
                                                 }
                                         }
                                 }
@@ -4090,7 +4090,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                                                 }
                                                 catch (NumberFormatException e)
                                                 {
-                                                        throw new MetacartaException("Bad number: "+e.getMessage(),e);
+                                                        throw new LCFException("Bad number: "+e.getMessage(),e);
                                                 }
                                         }
                                 }
@@ -4209,7 +4209,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 * @return null if the url doesn't match or should not be ingested, or the new string if it does.
                 */
                 public String mapDocumentURL(String url)
-                        throws MetacartaException
+                        throws LCFException
                 {
                         if (seeds.get(url) != null)
                                 return null;
