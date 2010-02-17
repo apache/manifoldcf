@@ -221,6 +221,8 @@
         <copy todir="connectors/meridio/lib" file="lib/castor-1.0.5.jar"/>
         <copy todir="connectors/meridio/lib" file="lib/castor-1.0.5-xml.jar"/>
         <copy todir="connectors/meridio/lib" file="lib/commons-discovery.jar"/>
+        <copy todir="connectors/meridio/lib" file="lib/geronimo-activation_1.1_spec.jar"/>
+        <copy todir="connectors/meridio/lib" file="lib/geronimo-javamail_1.4_spec.jar"/>
         <copy todir="connectors/meridio/lib">
             <fileset dir="framework/lib"/>
         </copy>
