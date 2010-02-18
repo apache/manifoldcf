@@ -53,8 +53,8 @@ public class ConnectorManager extends org.apache.lcf.core.database.BaseTable imp
 	public void install()
 		throws LCFException
 	{
-		beginTransaction();
-		try
+		// Always do an outer loop, to support upgrade complexities
+		while (true)
 		{
 			Map existing = getTableSchema(null,null);
 			if (existing == null)
@@ -64,26 +64,31 @@ public class ConnectorManager extends org.apache.lcf.core.database.BaseTable imp
 				map.put(classNameField,new ColumnDescription("VARCHAR(255)",true,false,null,null,false));
 
 				performCreate(map,null);
-
-				// This index is here to enforce uniqueness
-				ArrayList list = new ArrayList();
-				list.add(descriptionField);
-				addTableIndex(true,list);
 			}
-		}
-		catch (LCFException e)
-		{
-			signalRollback();
-			throw e;
-		}
-		catch (Error e)
-		{
-			signalRollback();
-			throw e;
-		}
-		finally
-		{
-			endTransaction();
+			
+			// Index management
+			IndexDescription descriptionIndex = new IndexDescription(true,new String[]{descriptionField});
+                        
+			// Get rid of indexes that shouldn't be there
+			Map indexes = getTableIndexes(null,null);
+			Iterator iter = indexes.keySet().iterator();
+			while (iter.hasNext())
+			{
+				String indexName = (String)iter.next();
+				IndexDescription id = (IndexDescription)indexes.get(indexName);
+                            
+				if (descriptionIndex != null && id.equals(descriptionIndex))
+					descriptionIndex = null;
+				else if (indexName.indexOf("_pkey") == -1)
+					// This index shouldn't be here; drop it
+					performRemoveIndex(indexName);
+			}
+
+			// Add the ones we didn't find
+			if (descriptionIndex != null)
+				performAddIndex(null,descriptionIndex);
+
+			break;
 		}
 	}
 

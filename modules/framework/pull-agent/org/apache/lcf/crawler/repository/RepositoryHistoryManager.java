@@ -58,8 +58,8 @@ public class RepositoryHistoryManager extends org.apache.lcf.core.database.BaseT
 	public void install(String parentTable, String parentField)
 		throws LCFException
 	{
-		beginTransaction();
-		try
+		// Always have an outer loop, in case of upgrade
+		while (true)
 		{
 			Map existing = getTableSchema(null,null);
 			if (existing == null)
@@ -75,36 +75,51 @@ public class RepositoryHistoryManager extends org.apache.lcf.core.database.BaseT
 				map.put(resultCodeField,new ColumnDescription("VARCHAR(255)",false,true,null,null,false));
 				map.put(resultDescriptionField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
 				performCreate(map,null);
-
-				// Make indices
-				ArrayList list = new ArrayList();
-				list.add(ownerNameField);
-				addTableIndex(false,list);
-				list.clear();
-				list.add(startTimeField);
-				addTableIndex(false,list);
-				list.clear();
-				list.add(endTimeField);
-				addTableIndex(false,list);
-				list.clear();
-				list.add(activityTypeField);
-				addTableIndex(false,list);
-
 			}
-		}
-		catch (LCFException e)
-		{
-			signalRollback();
-			throw e;
-		}
-		catch (Error e)
-		{
-			signalRollback();
-			throw e;
-		}
-		finally
-		{
-			endTransaction();
+			else
+			{
+				// Upgrade code, if needed.
+			}
+
+			// Index management
+			IndexDescription ownerIndex = new IndexDescription(false,new String[]{ownerNameField});
+			IndexDescription startTimeIndex = new IndexDescription(false,new String[]{startTimeField});
+			IndexDescription endTimeIndex = new IndexDescription(false,new String[]{endTimeField});
+			IndexDescription activityTypeIndex = new IndexDescription(false,new String[]{activityTypeField});
+
+			// Get rid of indexes that shouldn't be there
+			Map indexes = getTableIndexes(null,null);
+			Iterator iter = indexes.keySet().iterator();
+			while (iter.hasNext())
+			{
+				String indexName = (String)iter.next();
+				IndexDescription id = (IndexDescription)indexes.get(indexName);
+                            
+				if (ownerIndex != null && id.equals(ownerIndex))
+					ownerIndex = null;
+				else if (startTimeIndex != null && id.equals(startTimeIndex))
+					startTimeIndex = null;
+				else if (endTimeIndex != null && id.equals(endTimeIndex))
+					endTimeIndex = null;
+				else if (activityTypeIndex == null && id.equals(activityTypeIndex))
+					activityTypeIndex = null;
+				else if (indexName.indexOf("_pkey") == -1)
+					// This index shouldn't be here; drop it
+					performRemoveIndex(indexName);
+			}
+
+			// Add the ones we didn't find
+                        if (ownerIndex != null)
+				performAddIndex(null,ownerIndex);
+                        if (startTimeIndex != null)
+				performAddIndex(null,startTimeIndex);
+                        if (endTimeIndex != null)
+				performAddIndex(null,endTimeIndex);
+                        if (activityTypeIndex != null)
+				performAddIndex(null,activityTypeIndex);
+
+			break;
+
 		}
 	}
 

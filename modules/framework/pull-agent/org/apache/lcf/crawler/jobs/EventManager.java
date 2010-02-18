@@ -49,8 +49,8 @@ public class EventManager extends org.apache.lcf.core.database.BaseTable
         public void install()
                 throws LCFException
         {
-                beginTransaction();
-                try
+                // Standard practice: outer loop for installs
+                while (true)
                 {
                         Map existing = getTableSchema(null,null);
                         if (existing == null)
@@ -61,22 +61,12 @@ public class EventManager extends org.apache.lcf.core.database.BaseTable
                         }
                         else
                         {
-                                // No upgrade is possible since this table has just been introduced.
+                                // Upgrade goes here if needed
                         }
-                }
-                catch (LCFException e)
-                {
-                        signalRollback();
-                        throw e;
-                }
-                catch (Error e)
-                {
-                        signalRollback();
-                        throw e;
-                }
-                finally
-                {
-                        endTransaction();
+                        
+                        // Index management goes here
+                        
+                        break;
                 }
         }
 

@@ -194,8 +194,8 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         public void install(String outputTableName, String outputNameField, String connectionTableName, String connectionNameField)
                 throws LCFException
         {
-                beginTransaction();
-                try
+                // Standard practice: Have a loop around everything, in case upgrade needs it.
+                while (true)
                 {
                         Map existing = getTableSchema(null,null);
                         if (existing == null)
@@ -223,100 +223,40 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                                 map.put(reseedTimeField,new ColumnDescription("BIGINT",false,true,null,null,false));
                                 map.put(hopcountModeField,new ColumnDescription("CHAR(1)",false,true,null,null,false));
                                 performCreate(map,null);
-
-                                // Set up index
-                                ArrayList list = new ArrayList();
-                                list.add(statusField);
-                                addTableIndex(false,list);
                         }
                         else
                         {
-                                // Need to add proper upgrade for: this.outputNameField
-                                // MHL
-                                // Here's a temporary bit o' code that will work ONLY if there are no actual jobs defined...
-                                if (existing.get(this.outputNameField) == null)
-                                {
-                                        // Upgrade: add on output name field
-                                        HashMap map = new HashMap();
-                                        map.put(this.outputNameField,new ColumnDescription("VARCHAR(32)",false,false,outputTableName,outputNameField,false));
-                                        performAlter(map,null,null,null);
-                                }
-                                
-                                if (existing.get(outputSpecField) == null)
-                                {
-                                        // Upgrade: add on document spec field
-                                        HashMap map = new HashMap();
-                                        map.put(outputSpecField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
-                                        performAlter(map,null,null,null);
-                                }
-                                if (existing.get("documenttemplate") != null)
-                                {
-                                        // Upgrade; remove document template field
-                                        ArrayList list = new ArrayList();
-                                        list.add("documenttemplate");
-                                        performAlter(null,null,list,null);
-                                }
-                                if (existing.get(reseedIntervalField) == null)
-                                {
-                                        // Upgrade; add on reseed interval and time fields
-                                        HashMap map = new HashMap();
-                                        map.put(reseedIntervalField,new ColumnDescription("BIGINT",false,true,null,null,false));
-                                        map.put(reseedTimeField,new ColumnDescription("BIGINT",false,true,null,null,false));
-                                        performAlter(map,null,null,null);
-                                }
-                                if (existing.get(hopcountModeField) == null)
-                                {
-                                        HashMap map = new HashMap();
-                                        map.put(hopcountModeField,new ColumnDescription("CHAR(1)",false,true,null,null,false));
-                                        performAlter(map,null,null,null);
-                                }
-                                if (existing.get(expirationField) == null)
-                                {
-                                        HashMap map = new HashMap();
-                                        map.put(expirationField,new ColumnDescription("BIGINT",false,true,null,null,false));
-                                        performAlter(map,null,null,null);
-                                }
-                                ColumnDescription cd = (ColumnDescription)existing.get(intervalField);
-                                if (cd.getIsNull() == false)
-                                {
-                                        HashMap map = new HashMap();
-                                        map.put(intervalField,new ColumnDescription("BIGINT",false,true,null,null,false));
-                                        performAlter(null,map,null,null);
-                                }
-                                if (existing.get("crawltype") != null)
-                                {
-                                        // Upgrade: get rid of crawltype field
-                                        ArrayList list = new ArrayList();
-                                        list.add("crawltype");
-                                        performAlter(null,null,list,null);
-                                }
-                                if (existing.get("throttle") != null)
-                                {
-                                        ArrayList list = new ArrayList();
-                                        list.add("throttle");
-                                        performAlter(null,null,list,null);
-                                }
+                                // Do any needed upgrades
                         }
 
-                        // If the table "jobcollections" is there, delete it.
-                        // MHL
-                        
+                        // Handle related tables
                         scheduleManager.install(getTableName(),idField);
                         hopFilterManager.install(getTableName(),idField);
-                }
-                catch (LCFException e)
-                {
-                        signalRollback();
-                        throw e;
-                }
-                catch (Error e)
-                {
-                        signalRollback();
-                        throw e;
-                }
-                finally
-                {
-                        endTransaction();
+
+                        // Index management
+                        IndexDescription statusIndex = new IndexDescription(false,new String[]{statusField});
+                        
+                        // Get rid of indexes that shouldn't be there
+                        Map indexes = getTableIndexes(null,null);
+                        Iterator iter = indexes.keySet().iterator();
+                        while (iter.hasNext())
+                        {
+                                String indexName = (String)iter.next();
+                                IndexDescription id = (IndexDescription)indexes.get(indexName);
+                            
+                                if (statusIndex != null && id.equals(statusIndex))
+                                        statusIndex = null;
+                                else if (indexName.indexOf("_pkey") == -1)
+                                        // This index shouldn't be here; drop it
+                                        performRemoveIndex(indexName);
+                        }
+
+                        // Add the ones we didn't find
+                        if (statusIndex != null)
+                                performAddIndex(null,statusIndex);
+
+                        break;
+
                 }
         }
 

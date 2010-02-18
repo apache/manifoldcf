@@ -66,8 +66,8 @@ public class OutputConnectionManager extends org.apache.lcf.core.database.BaseTa
         public void install()
                 throws LCFException
         {
-                beginTransaction();
-                try
+                // Always have an outer loop, in case retries required
+                while (true)
                 {
                         Map existing = getTableSchema(null,null);
                         if (existing == null)
@@ -83,22 +83,12 @@ public class OutputConnectionManager extends org.apache.lcf.core.database.BaseTa
                         }
                         else
                         {
-                                // No upgrade needed yet, since rev 1 of the table is fine.
+                                // Upgrade code, if needed, goes here.
                         }
-                }
-                catch (LCFException e)
-                {
-                        signalRollback();
-                        throw e;
-                }
-                catch (Error e)
-                {
-                        signalRollback();
-                        throw e;
-                }
-                finally
-                {
-                        endTransaction();
+                        
+                        // Index management code goes here.
+                        
+                        break;
                 }
         }
 

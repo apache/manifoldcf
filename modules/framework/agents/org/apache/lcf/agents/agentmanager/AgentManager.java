@@ -50,8 +50,8 @@ public class AgentManager extends org.apache.lcf.core.database.BaseTable impleme
 	public void install()
 		throws LCFException
 	{
-		beginTransaction();
-		try
+		// We always use an outer loop, in case the upgrade will need it.
+		while (true)
 		{
 			// Check if table is already present
 			Map existing = getTableSchema(null,null);
@@ -61,20 +61,14 @@ public class AgentManager extends org.apache.lcf.core.database.BaseTable impleme
 				map.put(classNameField,new ColumnDescription("VARCHAR(255)",true,false,null,null,false));
 				performCreate(map,null);
 			}
-		}
-		catch (LCFException e)
-		{
-			signalRollback();
-			throw e;
-		}
-		catch (Error e)
-		{
-			signalRollback();
-			throw e;
-		}
-		finally
-		{
-			endTransaction();
+			else
+			{
+				// Any required upgrade code goes here.
+			}
+			
+			// Any index creation goes here.
+			
+			break;
 		}
 	}
 

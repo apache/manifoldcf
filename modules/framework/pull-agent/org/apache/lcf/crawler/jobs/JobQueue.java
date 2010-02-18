@@ -147,95 +147,36 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
         public void install(String jobsTable, String jobsColumn)
                 throws LCFException
         {
-                // It is possible that we will fail to properly create the unique index, so structure the code to retry after fixup should this occur...
+                // Standard practice to use outer loop to allow retry in case of upgrade.
                 while (true)
                 {
                         // Handle schema
-                        beginTransaction();
-                        try
+                        Map existing = getTableSchema(null,null);
+                        if (existing == null)
                         {
-                                Map existing = getTableSchema(null,null);
-                                if (existing == null)
-                                {
-                                        HashMap map = new HashMap();
-                                        map.put(idField,new ColumnDescription("BIGINT",true,false,null,null,false));
-                                        map.put(jobIDField,new ColumnDescription("BIGINT",false,false,jobsTable,jobsColumn,false));
-                                        // this is the local document identifier.
-                                        map.put(docHashField,new ColumnDescription("VARCHAR(40)",false,false,null,null,false));
-                                        map.put(docIDField,new ColumnDescription("LONGTEXT",false,false,null,null,false));
-                                        map.put(checkTimeField,new ColumnDescription("BIGINT",false,true,null,null,false));
-                                        map.put(failTimeField,new ColumnDescription("BIGINT",false,true,null,null,false));
-                                        map.put(failCountField,new ColumnDescription("BIGINT",false,true,null,null,false));
-                                        map.put(statusField,new ColumnDescription("CHAR(1)",false,false,null,null,false));
-                                        map.put(isSeedField,new ColumnDescription("CHAR(1)",false,true,null,null,false));
-                                        map.put(docPriorityField,new ColumnDescription("FLOAT",false,true,null,null,false));
-                                        map.put(prioritySetField,new ColumnDescription("BIGINT",false,true,null,null,false));
-                                        map.put(checkActionField,new ColumnDescription("CHAR(1)",false,true,null,null,false));
-                                        performCreate(map,null);
-                                }
-                                else
-                                {
-                                        
-                                        if (existing.get(failTimeField) == null)
-                                        {
-                                                // Add the fail time field to the table
-                                                HashMap map = new HashMap();
-                                                map.put(failTimeField,new ColumnDescription("BIGINT",false,true,null,null,false));
-                                                map.put(failCountField,new ColumnDescription("BIGINT",false,true,null,null,false));
-                                                performAlter(map,null,null,null);
-                                        }
-                                        if (existing.get(isSeedField) == null)
-                                        {
-                                                // Add the isSeed field to the table
-                                                HashMap map = new HashMap();
-                                                map.put(isSeedField,new ColumnDescription("CHAR(1)",false,true,null,null,false));
-                                                performAlter(map,null,null,null);
-                                        }
-                                        
-                                        if (existing.get(docPriorityField) == null)
-                                        {
-                                                // Add document priority
-                                                HashMap map = new HashMap();
-                                                map.put(docPriorityField,new ColumnDescription("FLOAT",false,true,null,null,false));
-                                                map.put(prioritySetField,new ColumnDescription("BIGINT",false,true,null,null,false));
-                                                performAlter(map,null,null,null);
-                                                map.clear();
-                                                map.put(docPriorityField,new Double(1.0));
-                                                map.put(prioritySetField,new Long(0L));
-                                                performUpdate(map,"",null,null);
-                                        }
-                                        
-                                        if (existing.get(checkActionField) == null)
-                                        {
-                                                HashMap map = new HashMap();
-                                                map.put(checkActionField,new ColumnDescription("CHAR(1)",false,true,null,null,false));
-                                                performAlter(map,null,null,null);
-                                                
-                                        }
-                                        
-                                        if (existing.get("priority") != null)
-                                        {
-                                                // Get rid of old priority column.
-                                                ArrayList list = new ArrayList();
-                                                list.add("priority");
-                                                performAlter(null,null,list,null);
-                                        }
-                                }
+                                HashMap map = new HashMap();
+                                map.put(idField,new ColumnDescription("BIGINT",true,false,null,null,false));
+                                map.put(jobIDField,new ColumnDescription("BIGINT",false,false,jobsTable,jobsColumn,false));
+                                // this is the local document identifier.
+                                map.put(docHashField,new ColumnDescription("VARCHAR(40)",false,false,null,null,false));
+                                map.put(docIDField,new ColumnDescription("LONGTEXT",false,false,null,null,false));
+                                map.put(checkTimeField,new ColumnDescription("BIGINT",false,true,null,null,false));
+                                map.put(failTimeField,new ColumnDescription("BIGINT",false,true,null,null,false));
+                                map.put(failCountField,new ColumnDescription("BIGINT",false,true,null,null,false));
+                                map.put(statusField,new ColumnDescription("CHAR(1)",false,false,null,null,false));
+                                map.put(isSeedField,new ColumnDescription("CHAR(1)",false,true,null,null,false));
+                                map.put(docPriorityField,new ColumnDescription("FLOAT",false,true,null,null,false));
+                                map.put(prioritySetField,new ColumnDescription("BIGINT",false,true,null,null,false));
+                                map.put(checkActionField,new ColumnDescription("CHAR(1)",false,true,null,null,false));
+                                performCreate(map,null);
                         }
-                        catch (LCFException e)
+                        else
                         {
-                                signalRollback();
-                                throw e;
+                                // Upgrade code goes here, if needed
                         }
-                        catch (Error e)
-                        {
-                                signalRollback();
-                                throw e;
-                        }
-                        finally
-                        {
-                                endTransaction();
-                        }
+
+                        // Secondary table installation
+                        prereqEventManager.install(getTableName(),idField);
                         
                         // Handle indexes
                         IndexDescription uniqueIndex = new IndexDescription(true,new String[]{docHashField,jobIDField});
@@ -300,98 +241,13 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
                                 performAddIndex(null,docpriorityIndex);
 
                         if (uniqueIndex != null)
-                        {
-                                // This is the primary unique constraint on the table.  Only one row allowed per given docid and jobid.
-                                // This create can fail
-                                try
-                                {
-                                        performAddIndex(null,uniqueIndex);
-                                }
-                                catch (LCFException e)
-                                {
-                                        if (e.getMessage().indexOf("could not create unique index") == -1)
-                                                throw e;
-                                        removeDuplicates();
-                                        continue;
-                                }
-                        }
+                                performAddIndex(null,uniqueIndex);
 
-                        // Secondary table installation
-                        prereqEventManager.install(getTableName(),idField);
 
                         break;
                 }
         }
         
-        /** Remove duplicates, as part of upgrade */
-        protected void removeDuplicates()
-                throws LCFException
-        {
-                // If we get here it means we could not create the unique index on this table.
-                // We therefore need to remove duplicate rows, finish the job of creating the index, and try again.
-                        
-                Logging.jobs.warn("Jobqueue has duplicate jobid,dochash pairs!  Cleaning up...");
-                
-                // First, create a temporary non-unique index that we intend to remove at the end of this process.  We need this index in order to be able to
-                // order retrieval of rows by the proposed key order.
-                performAddIndex("temp_index_jobqueue",new IndexDescription(false,new String[]{jobIDField,docHashField}));
-                        
-                // The fastest way to eliminate duplicates is to read rows in sorted order, and delete those that are duplicates.  The index created above
-                // will be used and will guarantee that we don't use excessive postgresql server memory.  A client-side filter will be used to eliminate results
-                // that are not duplicates, which should prevent unbounded client memory usage as well.
-                
-                // Count the rows first
-                IResultSet countSet = performQuery("SELECT COUNT(*) AS countvar FROM "+getTableName(),null,null,null);
-                IResultRow countRow = countSet.getRow(0);
-                int count;
-                try
-                {
-                        count = Integer.parseInt(countRow.getValue("countvar").toString());
-                }
-                catch (NumberFormatException e)
-                {
-                        throw new LCFException(e.getMessage(),e);
-                }
-
-                // Now, amass a list of duplicates
-                ArrayList duplicateList = new ArrayList();
-                DuplicateFinder duplicateFinder = new DuplicateFinder();
-                int j = 0;
-                while (j < count)
-                {
-
-                        IResultSet resultSet = getDBInterface().performQuery("SELECT "+idField+","+jobIDField+","+docHashField+" FROM "+getTableName()+
-                                " ORDER BY "+jobIDField+" ASC,"+docHashField+" ASC OFFSET "+Integer.toString(j)+" LIMIT 10000",null,null,null,-1,new DuplicateFinder());
-                        
-                        int i = 0;
-                        while (i < resultSet.getRowCount())
-                        {
-                                IResultRow row = resultSet.getRow(i++);
-                                Long id = (Long)row.getValue(idField);
-                                Logging.jobs.warn("Duplicate entry detected in jobqueue table, id="+id);
-                                duplicateList.add(id);
-                        }
-                        
-                        j += 10000;
-                }
-                
-                // Go through the duplicatelist, and remove the duplicates
-                j = 0;
-                while (j < duplicateList.size())
-                {
-			Long id = (Long)duplicateList.get(j++);
-
-                        ArrayList list = new ArrayList();
-                        list.add(id);
-                        performDelete("WHERE "+idField+"=?",list,null);
-                }
-                        
-                // Drop the temporary index
-                performRemoveIndex("temp_index_jobqueue");
-                        
-                Logging.jobs.warn("Cleanup of jobqueue duplicate jobid,docid pairs completed.");
-        }
-
         /** Analyze job tables due to major event */
         public void unconditionallyAnalyzeTables()
                 throws LCFException

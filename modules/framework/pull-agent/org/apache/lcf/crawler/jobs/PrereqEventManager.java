@@ -60,8 +60,8 @@ public class PrereqEventManager extends org.apache.lcf.core.database.BaseTable
         public void install(String ownerTableName, String ownerColumn)
                 throws LCFException
         {
-                beginTransaction();
-                try
+                // Standard practice: Outer loop for upgrade support.
+                while (true)
                 {
                         Map existing = getTableSchema(null,null);
                         if (existing == null)
@@ -70,30 +70,35 @@ public class PrereqEventManager extends org.apache.lcf.core.database.BaseTable
                                 map.put(ownerField,new ColumnDescription("BIGINT",false,false,ownerTableName,ownerColumn,false));
                                 map.put(eventNameField,new ColumnDescription("VARCHAR(255)",false,false,null,null,false));
                                 performCreate(map,null);
-                            
-                                // Indexes
-                                ArrayList list = new ArrayList();
-                                list.add(ownerField);
-                                addTableIndex(false,list);
                         }
                         else
                         {
-                                // No upgrade is possible since this table has just been introduced.
+                                // Schema upgrade goes here, when needed.
                         }
-                }
-                catch (LCFException e)
-                {
-                        signalRollback();
-                        throw e;
-                }
-                catch (Error e)
-                {
-                        signalRollback();
-                        throw e;
-                }
-                finally
-                {
-                        endTransaction();
+                        
+			// Index management
+			IndexDescription ownerIndex = new IndexDescription(false,new String[]{ownerField});
+			
+			// Get rid of indexes that shouldn't be there
+			Map indexes = getTableIndexes(null,null);
+			Iterator iter = indexes.keySet().iterator();
+			while (iter.hasNext())
+			{
+				String indexName = (String)iter.next();
+				IndexDescription id = (IndexDescription)indexes.get(indexName);
+                            
+				if (ownerIndex != null && id.equals(ownerIndex))
+					ownerIndex = null;
+				else if (indexName.indexOf("_pkey") == -1)
+					// This index shouldn't be here; drop it
+					performRemoveIndex(indexName);
+			}
+
+			// Add the ones we didn't find
+                        if (ownerIndex != null)
+				performAddIndex(null,ownerIndex);
+
+                        break;
                 }
         }
 

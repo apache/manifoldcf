@@ -64,9 +64,9 @@ public class AuthorityConnectionManager extends org.apache.lcf.core.database.Bas
 	public void install()
 		throws LCFException
 	{
-		beginTransaction();
-		try
-		{
+                // Always do a loop, in case upgrade needs it.
+                while (true)
+                {
 			Map existing = getTableSchema(null,null);
 			if (existing == null)
 			{
@@ -81,57 +81,12 @@ public class AuthorityConnectionManager extends org.apache.lcf.core.database.Bas
 			}
 			else
 			{
-				if (existing.get(configField) == null)
-				{
-					// Add the configField column, and transfer data into it from the old configuration table
-					HashMap map = new HashMap();
-					map.put(configField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
-					performAlter(map,null,null,null);
-					IResultSet set = getDBInterface().performQuery("SELECT * FROM authconfigs",null,null,null);
-					int i = 0;
-					Map xmlMap = new HashMap();
-					while (i < set.getRowCount())
-					{
-						IResultRow row = set.getRow(i++);
-						String owner = (String)row.getValue("owner");
-						String name = (String)row.getValue("name");
-						String value = (String)row.getValue("value");
-						ConfigParams cp = (ConfigParams)xmlMap.get(owner);
-						if (cp == null)
-						{
-							cp = new ConfigParams();
-							xmlMap.put(owner,cp);
-						}
-						cp.setParameter(name,value);
-					}
-					getDBInterface().performDrop("authconfigs",null);
-					Iterator iter = xmlMap.keySet().iterator();
-					while (iter.hasNext())
-					{
-						String owner = (String)iter.next();
-						ConfigParams cp = (ConfigParams)xmlMap.get(owner);
-						map = new HashMap();
-						ArrayList list = new ArrayList();
-						list.add(owner);
-						map.put(configField,cp.toXML());
-						performUpdate(map,"WHERE "+nameField+"=?",list,null);
-					}
-				}
+                                // Upgrade code goes here
 			}
-		}
-		catch (LCFException e)
-		{
-			signalRollback();
-			throw e;
-		}
-		catch (Error e)
-		{
-			signalRollback();
-			throw e;
-		}
-		finally
-		{
-			endTransaction();
+                        
+                        // Index management goes here
+                        
+                        break;
 		}
 	}
 
