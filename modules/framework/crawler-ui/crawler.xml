@@ -1,2 +1,0 @@
-<Context path="/crawler" docBase="/etc/tomcat5.5/webapps/crawler" reloadable="true" crossContext="false" workDir="/etc/tomcat5/webapps/crawler/work" />
-
