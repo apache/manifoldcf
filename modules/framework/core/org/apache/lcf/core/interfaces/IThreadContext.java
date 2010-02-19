@@ -27,21 +27,21 @@ package org.apache.lcf.core.interfaces;
 */
 public interface IThreadContext
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	/** Set a named object into the context.
-	* @param key is the name of the object (usually a string)
-	* @param object is the object to save, or null if the object is to be
-	* destroyed instead.
-	*/
-	public void save(Object key, Object object);
+        /** Set a named object into the context.
+        * @param key is the name of the object (usually a string)
+        * @param object is the object to save, or null if the object is to be
+        * destroyed instead.
+        */
+        public void save(Object key, Object object);
 
-	/** Retrieve a named object from the context.
-	* Use an equivalent key to retrieve what was previously saved.
-	* If no such object exists, null will be returned.
-	* @param key is the object's key (usually a string)
-	* @return the object, or null.
-	*/
-	public Object get(Object key);
+        /** Retrieve a named object from the context.
+        * Use an equivalent key to retrieve what was previously saved.
+        * If no such object exists, null will be returned.
+        * @param key is the object's key (usually a string)
+        * @return the object, or null.
+        */
+        public Object get(Object key);
 
 }

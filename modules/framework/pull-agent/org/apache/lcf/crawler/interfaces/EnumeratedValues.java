@@ -24,92 +24,92 @@ import java.util.*;
 */
 public class EnumeratedValues
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	// Member variables
-	protected HashMap legalValues = new HashMap();
+        // Member variables
+        protected HashMap legalValues = new HashMap();
 
-	/** Create enumerated values.
-	*@param values is the set of legal values.
-	*/
-	public EnumeratedValues(int[] values)
-	{
-		int i = 0;
-		while (i < values.length)
-		{
-			Integer x = new Integer(values[i++]);
-			legalValues.put(x,x);
-		}
-	}
+        /** Create enumerated values.
+        *@param values is the set of legal values.
+        */
+        public EnumeratedValues(int[] values)
+        {
+                int i = 0;
+                while (i < values.length)
+                {
+                        Integer x = new Integer(values[i++]);
+                        legalValues.put(x,x);
+                }
+        }
 
-	/** Create from arraylist.
-	*@param values is the arraylist.
-	*/
-	public EnumeratedValues(ArrayList values)
-	{
-		int i = 0;
-		while (i < values.size())
-		{
-			Integer x = (Integer)values.get(i++);
-			legalValues.put(x,x);
-		}
-	}
+        /** Create from arraylist.
+        *@param values is the arraylist.
+        */
+        public EnumeratedValues(ArrayList values)
+        {
+                int i = 0;
+                while (i < values.size())
+                {
+                        Integer x = (Integer)values.get(i++);
+                        legalValues.put(x,x);
+                }
+        }
 
-	/** Create from a list of semicolon-separated strings.
-	*@param values are the values, as strings
-	*/
-	public EnumeratedValues(String[] values)
-	{
-		int i = 0;
-		while (i < values.length)
-		{
-			Integer val = new Integer(values[i++]);
-			legalValues.put(val,val);
-		}
-	}
+        /** Create from a list of semicolon-separated strings.
+        *@param values are the values, as strings
+        */
+        public EnumeratedValues(String[] values)
+        {
+                int i = 0;
+                while (i < values.length)
+                {
+                        Integer val = new Integer(values[i++]);
+                        legalValues.put(val,val);
+                }
+        }
 
-	/** Create for comma-separated list.
-	*/
-	public EnumeratedValues(String commaList)
-	{
-		int startIndex = 0;
-		while (true)
-		{
-			int pos = commaList.indexOf(",",startIndex);
-			if (pos == -1)
-			{
-				String endString = commaList.substring(startIndex).trim();
-				if (endString.length() > 0)
-				{
-					Integer x = new Integer(endString);
-					legalValues.put(x,x);
-				}
-				break;
-			}
-			String value = commaList.substring(startIndex,pos).trim();
-			startIndex = pos+1;
-			if (value.length() > 0)
-			{
-				Integer x = new Integer(value);
-				legalValues.put(x,x);
-			}
-		}
-	}
+        /** Create for comma-separated list.
+        */
+        public EnumeratedValues(String commaList)
+        {
+                int startIndex = 0;
+                while (true)
+                {
+                        int pos = commaList.indexOf(",",startIndex);
+                        if (pos == -1)
+                        {
+                                String endString = commaList.substring(startIndex).trim();
+                                if (endString.length() > 0)
+                                {
+                                        Integer x = new Integer(endString);
+                                        legalValues.put(x,x);
+                                }
+                                break;
+                        }
+                        String value = commaList.substring(startIndex,pos).trim();
+                        startIndex = pos+1;
+                        if (value.length() > 0)
+                        {
+                                Integer x = new Integer(value);
+                                legalValues.put(x,x);
+                        }
+                }
+        }
 
-	public boolean checkValue(int value)
-	{
-		return (legalValues.get(new Integer(value)) != null);
-	}
+        public boolean checkValue(int value)
+        {
+                return (legalValues.get(new Integer(value)) != null);
+        }
 
-	public Iterator getValues()
-	{
-		return legalValues.keySet().iterator();
-	}
+        public Iterator getValues()
+        {
+                return legalValues.keySet().iterator();
+        }
 
-	public int size()
-	{
-		return legalValues.size();
-	}
+        public int size()
+        {
+                return legalValues.size();
+        }
 
-		
+                
 }

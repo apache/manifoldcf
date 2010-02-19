@@ -28,61 +28,61 @@ import java.util.*;
 */
 public class WaitForJobInactive
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private WaitForJobInactive()
-	{
-	}
+        private WaitForJobInactive()
+        {
+        }
 
-	// Add: throttle, priority, recrawl interval
+        // Add: throttle, priority, recrawl interval
 
-	public static void main(String[] args)
-	{
-		if (args.length != 1)
-		{
-			System.err.println("Usage: WaitForJobInactive <jobid>");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 1)
+                {
+                        System.err.println("Usage: WaitForJobInactive <jobid>");
+                        System.exit(1);
+                }
 
-		String jobID = args[0];
+                String jobID = args[0];
 
 
-		try
-		{
-		        LCF.initializeEnvironment();
-			IThreadContext tc = ThreadContextFactory.make();
-			IJobManager jobManager = JobManagerFactory.make(tc);
+                try
+                {
+                        LCF.initializeEnvironment();
+                        IThreadContext tc = ThreadContextFactory.make();
+                        IJobManager jobManager = JobManagerFactory.make(tc);
 
-			while (true)
-			{
-				JobStatus status = jobManager.getStatus(new Long(jobID));
-				if (status == null)
-					throw new LCFException("No such job: '"+jobID+"'");
-				int statusValue = status.getStatus();
-				switch (statusValue)
-				{
-				case JobStatus.JOBSTATUS_NOTYETRUN:
-					System.out.println("Never run");
-					break;
-				case JobStatus.JOBSTATUS_COMPLETED:
-					System.out.println("OK");
-					break;
-				case JobStatus.JOBSTATUS_ERROR:
-					System.out.println("Error: "+status.getErrorText());
-					break;
-				default:
-					LCF.sleep(10000);
-					continue;
-				}
-				break;
-			}
+                        while (true)
+                        {
+                                JobStatus status = jobManager.getStatus(new Long(jobID));
+                                if (status == null)
+                                        throw new LCFException("No such job: '"+jobID+"'");
+                                int statusValue = status.getStatus();
+                                switch (statusValue)
+                                {
+                                case JobStatus.JOBSTATUS_NOTYETRUN:
+                                        System.out.println("Never run");
+                                        break;
+                                case JobStatus.JOBSTATUS_COMPLETED:
+                                        System.out.println("OK");
+                                        break;
+                                case JobStatus.JOBSTATUS_ERROR:
+                                        System.out.println("Error: "+status.getErrorText());
+                                        break;
+                                default:
+                                        LCF.sleep(10000);
+                                        continue;
+                                }
+                                break;
+                        }
 
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			System.exit(2);
-		}
-	}
-		
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace();
+                        System.exit(2);
+                }
+        }
+                
 }

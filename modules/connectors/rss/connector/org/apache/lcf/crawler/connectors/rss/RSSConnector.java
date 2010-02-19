@@ -378,11 +378,11 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                 robots.poll();
         }
 
-	/** Check status of connection.
-	*/
-	public String check()
-		throws LCFException
-	{
+        /** Check status of connection.
+        */
+        public String check()
+                throws LCFException
+        {
                 getSession();
                 return super.check();
         }
@@ -1026,7 +1026,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                                                 rval[i] = null;
                                             }
                                             else
-                                            {	
+                                            {   
 
                                                 // Now, use the fetcher, and get the file.
                                                 IThrottledConnection connection = fetcher.createConnection(hostName,
@@ -3776,7 +3776,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                         EvaluatorTokenStream et = new EvaluatorTokenStream(evalExpression);
 
                         while (true)
-                        {			
+                        {                       
                                 EvaluatorToken t = et.peek();
                                 if (t == null)
                                         break;

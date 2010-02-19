@@ -23,70 +23,70 @@ package org.apache.lcf.crawler.interfaces;
 */
 public class CacheKeyFactory extends org.apache.lcf.agents.interfaces.CacheKeyFactory
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	protected CacheKeyFactory()
-	{
-	}
+        protected CacheKeyFactory()
+        {
+        }
 
-	/** Construct a key which represents the general list of authority connectors.
-	*@return the cache key.
-	*/
-	public static String makeAuthorityConnectionsKey()
-	{
-		return "AUTHORITYCONNECTIONS";
-	}
+        /** Construct a key which represents the general list of authority connectors.
+        *@return the cache key.
+        */
+        public static String makeAuthorityConnectionsKey()
+        {
+                return "AUTHORITYCONNECTIONS";
+        }
 
-	/** Construct a key which represents an individual authority connection.
-	*@param connectionName is the name of the connection.
-	*@return the cache key.
-	*/
-	public static String makeAuthorityConnectionKey(String connectionName)
-	{
-		return "AUTHORITYCONNECTION_"+connectionName;
-	}
+        /** Construct a key which represents an individual authority connection.
+        *@param connectionName is the name of the connection.
+        *@return the cache key.
+        */
+        public static String makeAuthorityConnectionKey(String connectionName)
+        {
+                return "AUTHORITYCONNECTION_"+connectionName;
+        }
 
-	/** Construct a key which represents the general list of repository connectors.
-	*@return the cache key.
-	*/
-	public static String makeRepositoryConnectionsKey()
-	{
-		return "REPOSITORYCONNECTIONS";
-	}
+        /** Construct a key which represents the general list of repository connectors.
+        *@return the cache key.
+        */
+        public static String makeRepositoryConnectionsKey()
+        {
+                return "REPOSITORYCONNECTIONS";
+        }
 
-	/** Construct a key which represents an individual repository connection.
-	*@param connectionName is the name of the connector.
-	*@return the cache key.
-	*/
-	public static String makeRepositoryConnectionKey(String connectionName)
-	{
-		return "REPOSITORYCONNECTION_"+connectionName;
-	}
+        /** Construct a key which represents an individual repository connection.
+        *@param connectionName is the name of the connector.
+        *@return the cache key.
+        */
+        public static String makeRepositoryConnectionKey(String connectionName)
+        {
+                return "REPOSITORYCONNECTION_"+connectionName;
+        }
 
-	/** Construct a key which represents the general list of jobs - for queries
-	* that depend on the fixed kind of job data, not the dynamic data (e.g. status)
-	*@return the cache key.
-	*/
-	public static String makeJobsKey()
-	{
-		return "JOBS";
-	}
+        /** Construct a key which represents the general list of jobs - for queries
+        * that depend on the fixed kind of job data, not the dynamic data (e.g. status)
+        *@return the cache key.
+        */
+        public static String makeJobsKey()
+        {
+                return "JOBS";
+        }
 
-	/** Construct a key which represents the fixed kind of data for an individual job.
-	*@param jobID is the job identifier.
-	*@return the cache key.
-	*/
-	public static String makeJobIDKey(String jobID)
-	{
-		return "JOB_"+jobID;
-	}
+        /** Construct a key which represents the fixed kind of data for an individual job.
+        *@param jobID is the job identifier.
+        *@return the cache key.
+        */
+        public static String makeJobIDKey(String jobID)
+        {
+                return "JOB_"+jobID;
+        }
 
-	/** Construct a key which represents the collective statuses of all jobs.
-	*@return the cache key.
-	*/
-	public static String makeJobStatusKey()
-	{
-		return "JOBSTATUSES";
-	}
+        /** Construct a key which represents the collective statuses of all jobs.
+        *@return the cache key.
+        */
+        public static String makeJobStatusKey()
+        {
+                return "JOBSTATUSES";
+        }
 
 }

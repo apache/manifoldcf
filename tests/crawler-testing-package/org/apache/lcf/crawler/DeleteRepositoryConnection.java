@@ -28,38 +28,38 @@ import java.util.*;
 */
 public class DeleteRepositoryConnection
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private DeleteRepositoryConnection()
-	{
-	}
-
-
-	public static void main(String[] args)
-	{
-		if (args.length != 1)
-		{
-			System.err.println("Usage: DeleteRepositoryConnection <connection_name>");
-			System.exit(1);
-		}
-
-		String connectionName = args[0];
-		try
-		{
-		        LCF.initializeEnvironment();
-			IThreadContext tc = ThreadContextFactory.make();
-			IRepositoryConnectionManager mgr = RepositoryConnectionManagerFactory.make(tc);
-			mgr.delete(connectionName);
-
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			System.exit(2);
-		}
-	}
+        private DeleteRepositoryConnection()
+        {
+        }
 
 
+        public static void main(String[] args)
+        {
+                if (args.length != 1)
+                {
+                        System.err.println("Usage: DeleteRepositoryConnection <connection_name>");
+                        System.exit(1);
+                }
 
-		
+                String connectionName = args[0];
+                try
+                {
+                        LCF.initializeEnvironment();
+                        IThreadContext tc = ThreadContextFactory.make();
+                        IRepositoryConnectionManager mgr = RepositoryConnectionManagerFactory.make(tc);
+                        mgr.delete(connectionName);
+
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace();
+                        System.exit(2);
+                }
+        }
+
+
+
+                
 }

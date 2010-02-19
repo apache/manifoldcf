@@ -20,19 +20,19 @@ package org.apache.lcf.crawler.connectors.meridio.meridiowrapper;
 public class MeridioDataSetException extends Exception 
 {
 
-	public MeridioDataSetException(Throwable cause)
-	{
-		super(cause);
-	}
+        public MeridioDataSetException(Throwable cause)
+        {
+                super(cause);
+        }
 
-	public MeridioDataSetException(String errString, Throwable cause)
-	{
-		super(errString, cause);
-	}
-	
-	public MeridioDataSetException(String errString)
-	{
-		super(errString);
-	}
+        public MeridioDataSetException(String errString, Throwable cause)
+        {
+                super(errString, cause);
+        }
+        
+        public MeridioDataSetException(String errString)
+        {
+                super(errString);
+        }
 
 }

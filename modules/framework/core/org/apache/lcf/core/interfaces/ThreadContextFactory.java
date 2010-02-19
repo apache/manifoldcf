@@ -23,16 +23,16 @@ package org.apache.lcf.core.interfaces;
 */
 public class ThreadContextFactory
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private ThreadContextFactory()
-	{
-	}
+        private ThreadContextFactory()
+        {
+        }
 
-	/** Make a thread context.
-	*/
-	public static IThreadContext make()
-	{
-		return new org.apache.lcf.core.threadcontext.ThreadContext();
-	}
+        /** Make a thread context.
+        */
+        public static IThreadContext make()
+        {
+                return new org.apache.lcf.core.threadcontext.ThreadContext();
+        }
 }

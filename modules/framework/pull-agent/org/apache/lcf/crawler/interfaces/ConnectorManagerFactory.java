@@ -25,34 +25,34 @@ import org.apache.lcf.crawler.system.*;
 */
 public class ConnectorManagerFactory
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	protected static final String connMgr = "_ConnectorManager_";
+        protected static final String connMgr = "_ConnectorManager_";
 
-	private ConnectorManagerFactory()
-	{
-	}
+        private ConnectorManagerFactory()
+        {
+        }
 
-	/** Construct a connector manager.
-	*@param threadContext is the thread context.
-	*@return the connector manager handle.
-	*/
-	public static IConnectorManager make(IThreadContext tc)
-		throws LCFException
-	{
-		Object o = tc.get(connMgr);
-		if (o == null || !(o instanceof IConnectorManager))
-		{
+        /** Construct a connector manager.
+        *@param threadContext is the thread context.
+        *@return the connector manager handle.
+        */
+        public static IConnectorManager make(IThreadContext tc)
+                throws LCFException
+        {
+                Object o = tc.get(connMgr);
+                if (o == null || !(o instanceof IConnectorManager))
+                {
 
-			IDBInterface database = DBInterfaceFactory.make(tc,
-				LCF.getMasterDatabaseName(),
-				LCF.getMasterDatabaseUsername(),
-				LCF.getMasterDatabasePassword());
+                        IDBInterface database = DBInterfaceFactory.make(tc,
+                                LCF.getMasterDatabaseName(),
+                                LCF.getMasterDatabaseUsername(),
+                                LCF.getMasterDatabasePassword());
 
-			o = new org.apache.lcf.crawler.connmgr.ConnectorManager(tc,database);
-			tc.save(connMgr,o);
-		}
-		return (IConnectorManager)o;
-	}
+                        o = new org.apache.lcf.crawler.connmgr.ConnectorManager(tc,database);
+                        tc.save(connMgr,o);
+                }
+                return (IConnectorManager)o;
+        }
 
 }

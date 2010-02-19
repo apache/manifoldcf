@@ -24,176 +24,176 @@ import java.util.*;
 */
 public class StringSet
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	protected HashMap hashtable = new HashMap();
-	protected String descriptiveString = null;
+        protected HashMap hashtable = new HashMap();
+        protected String descriptiveString = null;
 
-	/** Create the empty stringset
-	*/
-	public StringSet()
-	{
-	}
+        /** Create the empty stringset
+        */
+        public StringSet()
+        {
+        }
 
-	/** Create the stringset from a stringsetbuffer
-	*/
-	public StringSet(StringSetBuffer buffer)
-	{
-		Iterator x = buffer.getKeys();
-		while (x.hasNext())
-		{
-			String key = (String)x.next();
-			hashtable.put(key,key);
-		}
-	}
+        /** Create the stringset from a stringsetbuffer
+        */
+        public StringSet(StringSetBuffer buffer)
+        {
+                Iterator x = buffer.getKeys();
+                while (x.hasNext())
+                {
+                        String key = (String)x.next();
+                        hashtable.put(key,key);
+                }
+        }
 
-	/** Create a stringset from a single string.
-	*/
-	public StringSet(String x)
-	{
-		hashtable.put(x,x);
-	}
+        /** Create a stringset from a single string.
+        */
+        public StringSet(String x)
+        {
+                hashtable.put(x,x);
+        }
 
-	/** Create the stringset from a string array
-	*/
-	public StringSet(String[] array)
-	{
-		int i = 0;
-		while (i < array.length)
-		{
-			String x = array[i++];
-			hashtable.put(x,x);
-		}
-	}
+        /** Create the stringset from a string array
+        */
+        public StringSet(String[] array)
+        {
+                int i = 0;
+                while (i < array.length)
+                {
+                        String x = array[i++];
+                        hashtable.put(x,x);
+                }
+        }
 
-	/** Create the stringset from a vector of strings
-	*/
-	public StringSet(Vector stringVector)
-	{
-		int i = 0;
-		while (i < stringVector.size())
-		{
-			String x = (String)stringVector.elementAt(i++);
-			hashtable.put(x,x);
-		}
-	}
+        /** Create the stringset from a vector of strings
+        */
+        public StringSet(Vector stringVector)
+        {
+                int i = 0;
+                while (i < stringVector.size())
+                {
+                        String x = (String)stringVector.elementAt(i++);
+                        hashtable.put(x,x);
+                }
+        }
 
-	/** Create the stringset from a Map of strings
-	*/
-	public StringSet(Map table)
-	{
-		Iterator x = table.values().iterator();
-		while (x.hasNext())
-		{
-			String key = (String)x.next();
-			hashtable.put(key,key);
-		}
-	}
+        /** Create the stringset from a Map of strings
+        */
+        public StringSet(Map table)
+        {
+                Iterator x = table.values().iterator();
+                while (x.hasNext())
+                {
+                        String key = (String)x.next();
+                        hashtable.put(key,key);
+                }
+        }
 
-	/** Check if a key is in the set
-	*/
-	public boolean contains(String key)
-	{
-		return hashtable.get(key) != null;
-	}
+        /** Check if a key is in the set
+        */
+        public boolean contains(String key)
+        {
+                return hashtable.get(key) != null;
+        }
 
-	public boolean contains(StringSet x)
-	{
-		Iterator iter = x.getKeys();
-		while (iter.hasNext())
-		{
-			String key = (String)iter.next();
-			if (contains(key))
-				return true;
-		}
-		return false;
-	}
+        public boolean contains(StringSet x)
+        {
+                Iterator iter = x.getKeys();
+                while (iter.hasNext())
+                {
+                        String key = (String)iter.next();
+                        if (contains(key))
+                                return true;
+                }
+                return false;
+        }
 
 
-	/** Enumerate through the keys
-	*/
-	public Iterator getKeys()
-	{
-		return hashtable.keySet().iterator();
-	}
+        /** Enumerate through the keys
+        */
+        public Iterator getKeys()
+        {
+                return hashtable.keySet().iterator();
+        }
 
-	/** Get number of keys
-	*/
-	public int size()
-	{
-		return hashtable.size();
-	}
+        /** Get number of keys
+        */
+        public int size()
+        {
+                return hashtable.size();
+        }
 
-	/** Get array of strings
-	*/
-	public String[] getArray(String prefix)
-	{
-		String[] rval = new String[hashtable.size()];
-		int i = 0;
-		Iterator enum = hashtable.keySet().iterator();
-		while (enum.hasNext())
-		{
-			String x = (String)enum.next();
-			if (prefix != null)
-				x = prefix + x;
-			rval[i++] = x;
-		}
-		return rval;
-	}
+        /** Get array of strings
+        */
+        public String[] getArray(String prefix)
+        {
+                String[] rval = new String[hashtable.size()];
+                int i = 0;
+                Iterator enum = hashtable.keySet().iterator();
+                while (enum.hasNext())
+                {
+                        String x = (String)enum.next();
+                        if (prefix != null)
+                                x = prefix + x;
+                        rval[i++] = x;
+                }
+                return rval;
+        }
 
-	/** Get a new stringset based on an old one plus a prefix.
-	*/
-	public StringSet(StringSet oldOne, String prefix)
-	{
-		Iterator enum = oldOne.hashtable.keySet().iterator();
-		while (enum.hasNext())
-		{
-			String x = (String)enum.next();
-			if (prefix != null)
-				x = prefix + x;
-			hashtable.put(x,x);
-		}
+        /** Get a new stringset based on an old one plus a prefix.
+        */
+        public StringSet(StringSet oldOne, String prefix)
+        {
+                Iterator enum = oldOne.hashtable.keySet().iterator();
+                while (enum.hasNext())
+                {
+                        String x = (String)enum.next();
+                        if (prefix != null)
+                                x = prefix + x;
+                        hashtable.put(x,x);
+                }
 
-	}
+        }
 
-	/** Calculate the hashcode
-	*/
-	public int hashCode()
-	{
-		return hashtable.hashCode();
-	}
+        /** Calculate the hashcode
+        */
+        public int hashCode()
+        {
+                return hashtable.hashCode();
+        }
 
-	/** Perform equals operation
-	*/
-	public boolean equals(Object o)
-	{
-		if (!(o instanceof StringSet))
-			return false;
-		StringSet set = (StringSet)o;
-		return hashtable.equals(set.hashtable);
-	}
+        /** Perform equals operation
+        */
+        public boolean equals(Object o)
+        {
+                if (!(o instanceof StringSet))
+                        return false;
+                StringSet set = (StringSet)o;
+                return hashtable.equals(set.hashtable);
+        }
 
-	/** Convert to a descriptive string.
-	*@return the descriptive string.
-	*/
-	public String getDescriptiveString()
-	{
-		if (descriptiveString == null)
-		{
-			// Get as array first
-			String[] array = getArray(null);
-			java.util.Arrays.sort(array);
-			StringBuffer sb = new StringBuffer();
-			int i = 0;
-			while (i < array.length)
-			{
-				if (i > 0)
-					sb.append(":");
-				sb.append(array[i++]);
-			}
-			descriptiveString = sb.toString();
-		}
-		return descriptiveString;
-	}
+        /** Convert to a descriptive string.
+        *@return the descriptive string.
+        */
+        public String getDescriptiveString()
+        {
+                if (descriptiveString == null)
+                {
+                        // Get as array first
+                        String[] array = getArray(null);
+                        java.util.Arrays.sort(array);
+                        StringBuffer sb = new StringBuffer();
+                        int i = 0;
+                        while (i < array.length)
+                        {
+                                if (i > 0)
+                                        sb.append(":");
+                                sb.append(array[i++]);
+                        }
+                        descriptiveString = sb.toString();
+                }
+                return descriptiveString;
+        }
 
 }

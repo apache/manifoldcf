@@ -25,23 +25,23 @@ import java.util.*;
 */
 public interface IResultSet
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	/** Get a specific row in the resultset.
-	*@param rowNumber is the number of the row.
-	*@return the immutable row description, or null if there is no such row.
-	*/
-	public IResultRow getRow(int rowNumber);
+        /** Get a specific row in the resultset.
+        *@param rowNumber is the number of the row.
+        *@return the immutable row description, or null if there is no such row.
+        */
+        public IResultRow getRow(int rowNumber);
 
-	/** Get the number of rows in this resultset.
-	*@return the number of rows the resultset contains.
-	*/
-	public int getRowCount();
+        /** Get the number of rows in this resultset.
+        *@return the number of rows the resultset contains.
+        */
+        public int getRowCount();
 
-	/** Get an array of all the rows.
-	* This method is NOT preferred because it requires a new
-	* array object to be constructed.
-	*@return the array.
-	*/
-	public IResultRow[] getRows();
+        /** Get an array of all the rows.
+        * This method is NOT preferred because it requires a new
+        * array object to be constructed.
+        *@return the array.
+        */
+        public IResultRow[] getRows();
 }

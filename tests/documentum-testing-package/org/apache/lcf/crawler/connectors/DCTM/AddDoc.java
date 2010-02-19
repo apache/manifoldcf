@@ -22,33 +22,33 @@ import org.apache.lcf.core.interfaces.*;
 
 public class AddDoc
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private AddDoc()
-	{
-	}
+        private AddDoc()
+        {
+        }
 
 
-	public static void main(String[] args)
-	{
-		if (args.length != 7)
-		{
-			System.err.println("Usage: AddDoc <docbase> <domain> <user> <password> <location> <name> <localpath>");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 7)
+                {
+                        System.err.println("Usage: AddDoc <docbase> <domain> <user> <password> <location> <name> <localpath>");
+                        System.exit(1);
+                }
 
-		try
-		{
-			DCTMAddRemove handle = new DCTMAddRemove(args[0],args[1],args[2],args[3],args[4]);
-			String idValue = handle.AddDoc(args[5],args[6]);
-			System.err.println("Successfully added");
-			UTF8Stdout.print(idValue);
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace(System.err);
-			System.exit(2);
-		}
-	}
+                try
+                {
+                        DCTMAddRemove handle = new DCTMAddRemove(args[0],args[1],args[2],args[3],args[4]);
+                        String idValue = handle.AddDoc(args[5],args[6]);
+                        System.err.println("Successfully added");
+                        UTF8Stdout.print(idValue);
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace(System.err);
+                        System.exit(2);
+                }
+        }
 
 }

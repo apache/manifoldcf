@@ -20,29 +20,29 @@ package org.apache.lcf.core.interfaces;
 
 public class LockManagerFactory
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private final static String lockManager = "_LockManager_";
+        private final static String lockManager = "_LockManager_";
 
-	private LockManagerFactory()
-	{
-	}
+        private LockManagerFactory()
+        {
+        }
 
-	/** Instantiate a lock manager.
-	* This should be thread specific (so that locks can nest properly in the same
-	* thread).
-	*/
-	public static ILockManager make(IThreadContext context)
-		throws LCFException
-	{
-		Object x = context.get(lockManager);
-		if (x == null || !(x instanceof ILockManager))
-		{
-			x = new org.apache.lcf.core.lockmanager.LockManager();
-			context.save(lockManager,x);
-		}
-		return (ILockManager)x;
-	}
+        /** Instantiate a lock manager.
+        * This should be thread specific (so that locks can nest properly in the same
+        * thread).
+        */
+        public static ILockManager make(IThreadContext context)
+                throws LCFException
+        {
+                Object x = context.get(lockManager);
+                if (x == null || !(x instanceof ILockManager))
+                {
+                        x = new org.apache.lcf.core.lockmanager.LockManager();
+                        context.save(lockManager,x);
+                }
+                return (ILockManager)x;
+        }
 
 }
 

@@ -25,34 +25,34 @@ import org.apache.lcf.crawler.system.LCF;
 */
 public class RepositoryConnectionManagerFactory
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	// name to use in thread context pool of objects
-	private final static String objectName = "_RepoConnectionMgr_";
+        // name to use in thread context pool of objects
+        private final static String objectName = "_RepoConnectionMgr_";
 
-	private RepositoryConnectionManagerFactory()
-	{
-	}
+        private RepositoryConnectionManagerFactory()
+        {
+        }
 
-	/** Make a repository connection manager handle.
-	*@param tc is the thread context.
-	*@return the handle.
-	*/
-	public static IRepositoryConnectionManager make(IThreadContext tc)
-		throws LCFException
-	{
-		Object o = tc.get(objectName);
-		if (o == null || !(o instanceof IRepositoryConnectionManager))
-		{
-			IDBInterface database = DBInterfaceFactory.make(tc,
-				LCF.getMasterDatabaseName(),
-				LCF.getMasterDatabaseUsername(),
-				LCF.getMasterDatabasePassword());
+        /** Make a repository connection manager handle.
+        *@param tc is the thread context.
+        *@return the handle.
+        */
+        public static IRepositoryConnectionManager make(IThreadContext tc)
+                throws LCFException
+        {
+                Object o = tc.get(objectName);
+                if (o == null || !(o instanceof IRepositoryConnectionManager))
+                {
+                        IDBInterface database = DBInterfaceFactory.make(tc,
+                                LCF.getMasterDatabaseName(),
+                                LCF.getMasterDatabaseUsername(),
+                                LCF.getMasterDatabasePassword());
 
-			o = new org.apache.lcf.crawler.repository.RepositoryConnectionManager(tc,database);
-			tc.save(objectName,o);
-		}
-		return (IRepositoryConnectionManager)o;
-	}
+                        o = new org.apache.lcf.crawler.repository.RepositoryConnectionManager(tc,database);
+                        tc.save(objectName,o);
+                }
+                return (IRepositoryConnectionManager)o;
+        }
 
 }

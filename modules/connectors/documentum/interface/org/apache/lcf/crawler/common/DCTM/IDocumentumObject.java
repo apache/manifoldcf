@@ -26,88 +26,88 @@ import java.util.*;
 */
 public interface IDocumentumObject extends Remote
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	/** Release the object */
-	public void release()
-		throws RemoteException;
+        /** Release the object */
+        public void release()
+                throws RemoteException;
 
-	/** Does the object exist? */
-	public boolean exists()
-		throws DocumentumException, RemoteException;
+        /** Does the object exist? */
+        public boolean exists()
+                throws DocumentumException, RemoteException;
 
-	/** Get the object identifier */
-	public String getObjectId()
-		throws DocumentumException, RemoteException;
+        /** Get the object identifier */
+        public String getObjectId()
+                throws DocumentumException, RemoteException;
 
-	/** Get the object name */
-	public String getObjectName()
-		throws DocumentumException, RemoteException;
+        /** Get the object name */
+        public String getObjectName()
+                throws DocumentumException, RemoteException;
 
-	/** Get the object's content type */
-	public String getContentType()
-		throws DocumentumException, RemoteException;
+        /** Get the object's content type */
+        public String getContentType()
+                throws DocumentumException, RemoteException;
 
-	/** Get the ACL domain */
-	public String getACLDomain()
-		throws DocumentumException, RemoteException;
+        /** Get the ACL domain */
+        public String getACLDomain()
+                throws DocumentumException, RemoteException;
 
-	/** Get the ACL name */
-	public String getACLName()
-		throws DocumentumException, RemoteException;
+        /** Get the ACL name */
+        public String getACLName()
+                throws DocumentumException, RemoteException;
 
-	/** Check if object is deleted */
-	public boolean isDeleted()
-		throws DocumentumException, RemoteException;
+        /** Check if object is deleted */
+        public boolean isDeleted()
+                throws DocumentumException, RemoteException;
 
-	/** Check if object is hidden */
-	public boolean isHidden()
-		throws DocumentumException, RemoteException;
+        /** Check if object is hidden */
+        public boolean isHidden()
+                throws DocumentumException, RemoteException;
 
-	/** Get object's permit level */
-	public int getPermit()
-		throws DocumentumException, RemoteException;
+        /** Get object's permit level */
+        public int getPermit()
+                throws DocumentumException, RemoteException;
 
-	/** Get object's content size */
-	public long getContentSize()
-		throws DocumentumException, RemoteException;
+        /** Get object's content size */
+        public long getContentSize()
+                throws DocumentumException, RemoteException;
 
-	/** Get object's page count */
-	public int getPageCount()
-		throws DocumentumException, RemoteException;
+        /** Get object's page count */
+        public int getPageCount()
+                throws DocumentumException, RemoteException;
 
-	/** Get the object's version label */
-	public String getVersionLabel()
-		throws DocumentumException, RemoteException;
+        /** Get the object's version label */
+        public String getVersionLabel()
+                throws DocumentumException, RemoteException;
 
-	/** Get object type name */
-	public String getTypeName()
-		throws DocumentumException, RemoteException;
+        /** Get object type name */
+        public String getTypeName()
+                throws DocumentumException, RemoteException;
 
-	/** Get the vstamp field for the object */
-	public String getVStamp()
-		throws DocumentumException, RemoteException;
+        /** Get the vstamp field for the object */
+        public String getVStamp()
+                throws DocumentumException, RemoteException;
 
-	/** Get the path set for the object.  This is the complete set of folder paths that lead to the object. */
-	public String[] getFolderPaths(Map pathMapCache)
-		throws DocumentumException, RemoteException;
+        /** Get the path set for the object.  This is the complete set of folder paths that lead to the object. */
+        public String[] getFolderPaths(Map pathMapCache)
+                throws DocumentumException, RemoteException;
 
-	/** Write the content of the object to a file path.
-	*@param path is where the content should be written.
-	*@return the file path where the content was written. */
-	public String getFile(String path)
-		throws DocumentumException, RemoteException;
+        /** Write the content of the object to a file path.
+        *@param path is where the content should be written.
+        *@return the file path where the content was written. */
+        public String getFile(String path)
+                throws DocumentumException, RemoteException;
 
-	/** Get all the values that an attribute has, including multiple ones if present */
-	public String[] getAttributeValues(String attribute)
-		throws DocumentumException, RemoteException;
+        /** Get all the values that an attribute has, including multiple ones if present */
+        public String[] getAttributeValues(String attribute)
+                throws DocumentumException, RemoteException;
 
-	/** Get a user state */
-	public int getUserState()
-		throws DocumentumException, RemoteException;
+        /** Get a user state */
+        public int getUserState()
+                throws DocumentumException, RemoteException;
 
-	/** Get a user's name */
-	public String getUserName()
-		throws DocumentumException, RemoteException;
+        /** Get a user's name */
+        public String getUserName()
+                throws DocumentumException, RemoteException;
 
 }

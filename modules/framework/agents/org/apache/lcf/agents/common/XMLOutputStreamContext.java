@@ -37,71 +37,71 @@ import org.apache.lcf.core.interfaces.*;
 */
 public class XMLOutputStreamContext extends XMLWriterContext
 {
-	/** The writer */
-	protected OutputStream outputStream;
-	
-	/** Full constructor.  Used for individual tags. */
-	public XMLOutputStreamContext(XMLStream theStream, String namespaceURI, String localname, String qname, Attributes theseAttributes, OutputStream os)
-		throws LCFException, UnsupportedEncodingException
-	{
-		// Construct an appropriate writer
-		super(theStream,namespaceURI,localname,qname,theseAttributes,new OutputStreamWriter(os,"utf-8"));
-		// Save the stream
-		outputStream = os;
-	}
-	
-	/** Flush the data to the underlying output stream */
-	public void flush()
-		throws LCFException
-	{
-		try
-		{
-			if (outputStream != null)
-			{
-				// Do the base class first - this flushes the Writer
-				super.flush();
-				outputStream.flush();
-			}
-		}
-		catch (java.net.SocketTimeoutException e)
-		{
-			throw new LCFException("Socket timeout exception: "+e.getMessage(),e);
-		}
-		catch (InterruptedIOException e)
-		{
-			throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
-		}
-		catch (IOException e)
-		{
-			throw new LCFException("IO exception: "+e.getMessage(),e);
-		}
-	}
-	
-	/** Close the underlying stream. */
-	public void close()
-		throws LCFException
-	{
-		// Now, close.
-		try
-		{
-			if (outputStream != null)
-			{
-				outputStream.close();
-				outputStream = null;
-			}
-		}
-		catch (java.net.SocketTimeoutException e)
-		{
-			throw new LCFException("Socket timeout exception: "+e.getMessage(),e);
-		}
-		catch (InterruptedIOException e)
-		{
-			throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
-		}
-		catch (IOException e)
-		{
-			throw new LCFException("IO exception: "+e.getMessage(),e);
-		}
-	}
+        /** The writer */
+        protected OutputStream outputStream;
+        
+        /** Full constructor.  Used for individual tags. */
+        public XMLOutputStreamContext(XMLStream theStream, String namespaceURI, String localname, String qname, Attributes theseAttributes, OutputStream os)
+                throws LCFException, UnsupportedEncodingException
+        {
+                // Construct an appropriate writer
+                super(theStream,namespaceURI,localname,qname,theseAttributes,new OutputStreamWriter(os,"utf-8"));
+                // Save the stream
+                outputStream = os;
+        }
+        
+        /** Flush the data to the underlying output stream */
+        public void flush()
+                throws LCFException
+        {
+                try
+                {
+                        if (outputStream != null)
+                        {
+                                // Do the base class first - this flushes the Writer
+                                super.flush();
+                                outputStream.flush();
+                        }
+                }
+                catch (java.net.SocketTimeoutException e)
+                {
+                        throw new LCFException("Socket timeout exception: "+e.getMessage(),e);
+                }
+                catch (InterruptedIOException e)
+                {
+                        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+                }
+                catch (IOException e)
+                {
+                        throw new LCFException("IO exception: "+e.getMessage(),e);
+                }
+        }
+        
+        /** Close the underlying stream. */
+        public void close()
+                throws LCFException
+        {
+                // Now, close.
+                try
+                {
+                        if (outputStream != null)
+                        {
+                                outputStream.close();
+                                outputStream = null;
+                        }
+                }
+                catch (java.net.SocketTimeoutException e)
+                {
+                        throw new LCFException("Socket timeout exception: "+e.getMessage(),e);
+                }
+                catch (InterruptedIOException e)
+                {
+                        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+                }
+                catch (IOException e)
+                {
+                        throw new LCFException("IO exception: "+e.getMessage(),e);
+                }
+        }
 
 }

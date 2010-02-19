@@ -24,24 +24,24 @@ import java.rmi.*;
 * query. */
 public interface IDocumentumResult extends Remote
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	/** Check if we are done with the resultset.
-	*@return true if there is still a valid row to read out of, or false if the list is done. */
-	public boolean isValidRow()
-		throws DocumentumException, RemoteException;
+        /** Check if we are done with the resultset.
+        *@return true if there is still a valid row to read out of, or false if the list is done. */
+        public boolean isValidRow()
+                throws DocumentumException, RemoteException;
 
-	/** Get a string result value */
-	public String getStringValue(String valueName)
-		throws DocumentumException, RemoteException;
+        /** Get a string result value */
+        public String getStringValue(String valueName)
+                throws DocumentumException, RemoteException;
 
-	/** Advance to the next row. */
-	public void nextRow()
-		throws DocumentumException, RemoteException;
+        /** Advance to the next row. */
+        public void nextRow()
+                throws DocumentumException, RemoteException;
 
-	/** Close and release the resources for this resultset.
-	*/
-	public void close()
-		throws DocumentumException, RemoteException;
+        /** Close and release the resources for this resultset.
+        */
+        public void close()
+                throws DocumentumException, RemoteException;
 
 }

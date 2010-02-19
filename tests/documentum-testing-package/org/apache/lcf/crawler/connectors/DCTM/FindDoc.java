@@ -22,35 +22,35 @@ import org.apache.lcf.core.interfaces.*;
 
 public class FindDoc
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private FindDoc()
-	{
-	}
+        private FindDoc()
+        {
+        }
 
 
-	public static void main(String[] args)
-	{
-		if (args.length != 6)
-		{
-			System.err.println("Usage: FindDoc <docbase> <domain> <user> <password> <location> <name>");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 6)
+                {
+                        System.err.println("Usage: FindDoc <docbase> <domain> <user> <password> <location> <name>");
+                        System.exit(1);
+                }
 
-		try
-		{
-			DCTMAddRemove handle = new DCTMAddRemove(args[0],args[1],args[2],args[3],args[4]);
-			String idValue = handle.FindDoc(args[5]);
-			if (idValue != null)
-				UTF8Stdout.print(idValue);
-			else
-				UTF8Stdout.print("");
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace(System.err);
-			System.exit(2);
-		}
-	}
+                try
+                {
+                        DCTMAddRemove handle = new DCTMAddRemove(args[0],args[1],args[2],args[3],args[4]);
+                        String idValue = handle.FindDoc(args[5]);
+                        if (idValue != null)
+                                UTF8Stdout.print(idValue);
+                        else
+                                UTF8Stdout.print("");
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace(System.err);
+                        System.exit(2);
+                }
+        }
 
 }

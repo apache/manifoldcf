@@ -22,39 +22,39 @@ import org.apache.lcf.core.interfaces.*;
 
 public class AddDoc
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private AddDoc()
-	{
-	}
+        private AddDoc()
+        {
+        }
 
 
-	public static void main(String[] args)
-	{
-		if (args.length != 10)
-		{
-			System.err.println("Usage: AddDoc <protocol> <servername> <port> <location> <username> <password> <domain> <sharepoint_path> <file_path> <meta_info>");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 10)
+                {
+                        System.err.println("Usage: AddDoc <protocol> <servername> <port> <location> <username> <password> <domain> <sharepoint_path> <file_path> <meta_info>");
+                        System.exit(1);
+                }
 
-		try
-		{
-			FPSEPublish handle = new FPSEPublish(args[0],args[1],new Integer(args[2]).intValue(),args[3],args[4],args[5],args[6]);
-			try
-			{
-				handle.writeDocument(args[7],args[8],args[9]);
-			}
-			finally
-			{
-				handle.close();
-			}
-			System.err.println("Successfully added");
-		}
-		catch (LCFException e)
-		{
-			e.printStackTrace(System.err);
-			System.exit(2);
-		}
-	}
+                try
+                {
+                        FPSEPublish handle = new FPSEPublish(args[0],args[1],new Integer(args[2]).intValue(),args[3],args[4],args[5],args[6]);
+                        try
+                        {
+                                handle.writeDocument(args[7],args[8],args[9]);
+                        }
+                        finally
+                        {
+                                handle.close();
+                        }
+                        System.err.println("Successfully added");
+                }
+                catch (LCFException e)
+                {
+                        e.printStackTrace(System.err);
+                        System.exit(2);
+                }
+        }
 
 }

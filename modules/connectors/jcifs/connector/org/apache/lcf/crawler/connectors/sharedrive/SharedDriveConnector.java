@@ -154,7 +154,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
                         {
                                 Logging.connectors.error("Unable to access SMB/CIFS share: "+"smb://" + authenticationString.substring(0,authenticationString.indexOf(":")+1) + "<password>@" + server + "/\n" + e);
                                 throw new LCFException("Unable to access SMB/CIFS share: "+server, e, LCFException.REPOSITORY_CONNECTION_ERROR);
-                        }	
+                        }       
                 }
         }
         
@@ -347,7 +347,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
                                     output.append("/");
                                     pos++;
                                 }
-				i = pos;
+                                i = pos;
                             }
                             return "file://///"+output.toString();
                         }
@@ -1845,7 +1845,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
                 String match, int matchIndex)
         {
                 // Logging.connectors.debug("Matching '"+sourceMatch+"' position "+Integer.toString(sourceIndex)+
-                // 	" against '"+match+"' position "+Integer.toString(matchIndex));
+                //      " against '"+match+"' position "+Integer.toString(matchIndex));
 
                 // Match up through the next * we encounter
                 while (true)

@@ -22,40 +22,40 @@ import org.apache.lcf.core.interfaces.*;
 
 public class LookupDoc
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private LookupDoc()
-	{
-	}
+        private LookupDoc()
+        {
+        }
 
 
-	public static void main(String[] args)
-	{
-		if (args.length != 5)
-		{
-			System.err.println("Usage: VersionDoc <servername> <port> <username> <password> <livelinkpath>");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 5)
+                {
+                        System.err.println("Usage: VersionDoc <servername> <port> <username> <password> <livelinkpath>");
+                        System.exit(1);
+                }
 
-		try
-		{
-			LiveLinkSupport handle = new LiveLinkSupport(args[0],new Integer(args[1]).intValue(),args[2],args[3]);
-			try
-			{
-				String id = handle.lookupDocument(args[4]);
-				UTF8Stdout.print(id);
-			}
-			finally
-			{
-				handle.close();
-			}
-			System.err.println("Successfully looked up");
-		}
-		catch (LCFException e)
-		{
-			e.printStackTrace(System.err);
-			System.exit(2);
-		}
-	}
+                try
+                {
+                        LiveLinkSupport handle = new LiveLinkSupport(args[0],new Integer(args[1]).intValue(),args[2],args[3]);
+                        try
+                        {
+                                String id = handle.lookupDocument(args[4]);
+                                UTF8Stdout.print(id);
+                        }
+                        finally
+                        {
+                                handle.close();
+                        }
+                        System.err.println("Successfully looked up");
+                }
+                catch (LCFException e)
+                {
+                        e.printStackTrace(System.err);
+                        System.exit(2);
+                }
+        }
 
 }

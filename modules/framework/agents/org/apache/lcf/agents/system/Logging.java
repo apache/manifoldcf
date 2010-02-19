@@ -28,26 +28,26 @@ import org.apache.log4j.Logger;
 */
 public class Logging extends org.apache.lcf.core.system.Logging
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	// Public logger objects
-	public static Logger agents = null;
-	public static Logger ingest = null;
+        // Public logger objects
+        public static Logger agents = null;
+        public static Logger ingest = null;
 
-	/** Initialize logger setup.
-	*/
-	public static synchronized void initializeLoggers()
-	{
-		org.apache.lcf.core.system.Logging.initializeLoggers();
+        /** Initialize logger setup.
+        */
+        public static synchronized void initializeLoggers()
+        {
+                org.apache.lcf.core.system.Logging.initializeLoggers();
 
-		if (agents != null)
-			return;
+                if (agents != null)
+                        return;
 
-		// package loggers
-		agents = newLogger("org.apache.lcf.agents");
-		ingest = newLogger("org.apache.lcf.ingest");
+                // package loggers
+                agents = newLogger("org.apache.lcf.agents");
+                ingest = newLogger("org.apache.lcf.ingest");
 
-	}
+        }
 
 
 }

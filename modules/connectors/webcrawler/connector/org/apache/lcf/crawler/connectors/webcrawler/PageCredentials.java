@@ -28,9 +28,9 @@ import org.apache.commons.httpclient.params.*;
 */
 public interface PageCredentials extends AuthenticationCredentials
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	/** Turn this instance into a Credentials object, given the specified target host name */
-	public Credentials makeCredentialsObject(String targetHostName)
-		throws LCFException;
+        /** Turn this instance into a Credentials object, given the specified target host name */
+        public Credentials makeCredentialsObject(String targetHostName)
+                throws LCFException;
 }

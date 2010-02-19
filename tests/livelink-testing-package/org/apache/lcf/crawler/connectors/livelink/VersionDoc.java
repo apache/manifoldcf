@@ -22,40 +22,40 @@ import org.apache.lcf.core.interfaces.*;
 
 public class VersionDoc
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private VersionDoc()
-	{
-	}
+        private VersionDoc()
+        {
+        }
 
 
-	public static void main(String[] args)
-	{
-		if (args.length != 6)
-		{
-			System.err.println("Usage: VersionDoc <servername> <port> <username> <password> <livelinkpath> <filepath>");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 6)
+                {
+                        System.err.println("Usage: VersionDoc <servername> <port> <username> <password> <livelinkpath> <filepath>");
+                        System.exit(1);
+                }
 
-		try
-		{
-			LiveLinkSupport handle = new LiveLinkSupport(args[0],new Integer(args[1]).intValue(),args[2],args[3]);
-			try
-			{
-				String id = handle.modifyDocument(args[4],args[5]);
-				UTF8Stdout.print(id);
-			}
-			finally
-			{
-				handle.close();
-			}
-			System.err.println("Successfully revised");
-		}
-		catch (LCFException e)
-		{
-			e.printStackTrace(System.err);
-			System.exit(2);
-		}
-	}
+                try
+                {
+                        LiveLinkSupport handle = new LiveLinkSupport(args[0],new Integer(args[1]).intValue(),args[2],args[3]);
+                        try
+                        {
+                                String id = handle.modifyDocument(args[4],args[5]);
+                                UTF8Stdout.print(id);
+                        }
+                        finally
+                        {
+                                handle.close();
+                        }
+                        System.err.println("Successfully revised");
+                }
+                catch (LCFException e)
+                {
+                        e.printStackTrace(System.err);
+                        System.exit(2);
+                }
+        }
 
 }

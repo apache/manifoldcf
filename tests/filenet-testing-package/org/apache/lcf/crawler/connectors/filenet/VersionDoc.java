@@ -22,34 +22,34 @@ import org.apache.lcf.core.interfaces.*;
 
 public class VersionDoc
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private VersionDoc()
-	{
-	}
+        private VersionDoc()
+        {
+        }
 
 
-	public static void main(String[] args)
-	{
-		if (args.length != 8)
-		{
-			System.err.println("Usage: AddDoc <wsiurl> <user> <password> <fndomain> <objectstore> <fnid> <fntitle> <file_name>");
-			System.exit(1);
-		}
-		
-		try
-		{
-			FilenetAddRemove handle = new FilenetAddRemove(args[1],args[2],args[3],args[4],args[0]);
-			String idValue = handle.modifyDocument(args[5],args[6],args[7]);
-			System.err.println("Successfully modified");
-			UTF8Stdout.print(idValue);
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace(System.err);
-			System.exit(2);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 8)
+                {
+                        System.err.println("Usage: AddDoc <wsiurl> <user> <password> <fndomain> <objectstore> <fnid> <fntitle> <file_name>");
+                        System.exit(1);
+                }
+                
+                try
+                {
+                        FilenetAddRemove handle = new FilenetAddRemove(args[1],args[2],args[3],args[4],args[0]);
+                        String idValue = handle.modifyDocument(args[5],args[6],args[7]);
+                        System.err.println("Successfully modified");
+                        UTF8Stdout.print(idValue);
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace(System.err);
+                        System.exit(2);
+                }
 
-	}
+        }
 
 }

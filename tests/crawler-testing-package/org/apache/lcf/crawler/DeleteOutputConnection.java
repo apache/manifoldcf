@@ -29,38 +29,38 @@ import java.util.*;
 */
 public class DeleteOutputConnection
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private DeleteOutputConnection()
-	{
-	}
-
-
-	public static void main(String[] args)
-	{
-		if (args.length != 1)
-		{
-			System.err.println("Usage: DeleteOutputConnection <connection_name>");
-			System.exit(1);
-		}
-
-		String connectionName = args[0];
-		try
-		{
-		        LCF.initializeEnvironment();
-			IThreadContext tc = ThreadContextFactory.make();
-			IOutputConnectionManager mgr = OutputConnectionManagerFactory.make(tc);
-			mgr.delete(connectionName);
-
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			System.exit(2);
-		}
-	}
+        private DeleteOutputConnection()
+        {
+        }
 
 
+        public static void main(String[] args)
+        {
+                if (args.length != 1)
+                {
+                        System.err.println("Usage: DeleteOutputConnection <connection_name>");
+                        System.exit(1);
+                }
 
-		
+                String connectionName = args[0];
+                try
+                {
+                        LCF.initializeEnvironment();
+                        IThreadContext tc = ThreadContextFactory.make();
+                        IOutputConnectionManager mgr = OutputConnectionManagerFactory.make(tc);
+                        mgr.delete(connectionName);
+
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace();
+                        System.exit(2);
+                }
+        }
+
+
+
+                
 }

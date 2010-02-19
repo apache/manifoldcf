@@ -27,90 +27,90 @@ import java.util.*;
 
 public class SetupAgentConnection
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private SetupAgentConnection()
-	{
-	}
+        private SetupAgentConnection()
+        {
+        }
 
 
-	public static void main(String[] args)
-	{
-		if (args.length < 3 || args.length > 4)
-		{
-			System.err.println("Usage: SetupAgentConnection <conf-file> <ingest_url> <username> [<password>]");
-			System.err.println("If <password> is not specified on command line, it is read from stdin");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length < 3 || args.length > 4)
+                {
+                        System.err.println("Usage: SetupAgentConnection <conf-file> <ingest_url> <username> [<password>]");
+                        System.err.println("If <password> is not specified on command line, it is read from stdin");
+                        System.exit(1);
+                }
 
-		try
-		{
-			String confFile = args[0];
+                try
+                {
+                        String confFile = args[0];
 
-			File f = new File(confFile);	// for re-read
-			Properties p = new Properties();
+                        File f = new File(confFile);    // for re-read
+                        Properties p = new Properties();
 
-			InputStream is = new FileInputStream(f);
-			try
-			{
-				p.load(is);
-			}
-			finally
-			{
-				is.close();
-			}
+                        InputStream is = new FileInputStream(f);
+                        try
+                        {
+                                p.load(is);
+                        }
+                        finally
+                        {
+                                is.close();
+                        }
 
-			p.setProperty(LCF.ingestURIProperty,args[1]);
-			p.setProperty(LCF.ingestUserProperty,args[2]);
-			String password;
-			if (args.length > 3)
-				password = args[3];
-			else
-			{
-				// Read the password from standard in, using default encoding
-				java.io.Reader str = new java.io.InputStreamReader(System.in);
-				try
-				{
-					java.io.BufferedReader is2 = new java.io.BufferedReader(str);
-					try
-					{
-						String thisString = is2.readLine();
-						if (thisString == null)
-							password = "";
-						else
-							password = thisString;
-					}
-					finally
-					{
-						is2.close();
-					}
-				}
-				finally
-				{
-					str.close();
-				}
-			}
-			
-			p.setProperty(LCF.ingestPasswordProperty,LCF.obfuscate(password));
+                        p.setProperty(LCF.ingestURIProperty,args[1]);
+                        p.setProperty(LCF.ingestUserProperty,args[2]);
+                        String password;
+                        if (args.length > 3)
+                                password = args[3];
+                        else
+                        {
+                                // Read the password from standard in, using default encoding
+                                java.io.Reader str = new java.io.InputStreamReader(System.in);
+                                try
+                                {
+                                        java.io.BufferedReader is2 = new java.io.BufferedReader(str);
+                                        try
+                                        {
+                                                String thisString = is2.readLine();
+                                                if (thisString == null)
+                                                        password = "";
+                                                else
+                                                        password = thisString;
+                                        }
+                                        finally
+                                        {
+                                                is2.close();
+                                        }
+                                }
+                                finally
+                                {
+                                        str.close();
+                                }
+                        }
+                        
+                        p.setProperty(LCF.ingestPasswordProperty,LCF.obfuscate(password));
 
-			// Write it out.
-			OutputStream os = new FileOutputStream(f);
-			try
-			{
-				p.store(os,"Agent Properties");
-			}
-			finally
-			{
-				os.close();
-			}
-			System.err.println("Done updating file "+confFile);
+                        // Write it out.
+                        OutputStream os = new FileOutputStream(f);
+                        try
+                        {
+                                p.store(os,"Agent Properties");
+                        }
+                        finally
+                        {
+                                os.close();
+                        }
+                        System.err.println("Done updating file "+confFile);
 
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			System.exit(1);
-		}
-	}
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace();
+                        System.exit(1);
+                }
+        }
 
 }

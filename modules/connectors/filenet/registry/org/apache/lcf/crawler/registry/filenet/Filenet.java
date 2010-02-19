@@ -27,33 +27,33 @@ import org.apache.lcf.crawler.common.filenet.RMILocalClientSocketFactory;
 */
 public class Filenet
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private Filenet()
-	{
-	}
+        private Filenet()
+        {
+        }
 
 
-	public static void main(String[] args)
-	{
-        	try
-		{
-			java.rmi.registry.Registry r = java.rmi.registry.LocateRegistry.createRegistry(8305,new RMILocalClientSocketFactory(),new RMILocalSocketFactory());
-			// Registry started OK
-            		System.out.println("FileNet Registry started and awaiting connections.");
-			// Sleep forever, until process is externally terminated
-			while (true)
-			{
-				Thread.sleep(10000L);
-			}
-        	}
-		catch (InterruptedException e)
-		{
-		}
-        	catch (RemoteException er)
-		{
-        		System.err.println("Remote exception in FileNet.main: " + er);
-			er.printStackTrace(System.err);
-		}
+        public static void main(String[] args)
+        {
+                try
+                {
+                        java.rmi.registry.Registry r = java.rmi.registry.LocateRegistry.createRegistry(8305,new RMILocalClientSocketFactory(),new RMILocalSocketFactory());
+                        // Registry started OK
+                        System.out.println("FileNet Registry started and awaiting connections.");
+                        // Sleep forever, until process is externally terminated
+                        while (true)
+                        {
+                                Thread.sleep(10000L);
+                        }
+                }
+                catch (InterruptedException e)
+                {
+                }
+                catch (RemoteException er)
+                {
+                        System.err.println("Remote exception in FileNet.main: " + er);
+                        er.printStackTrace(System.err);
+                }
         }
 }

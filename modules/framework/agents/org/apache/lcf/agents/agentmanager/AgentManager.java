@@ -26,195 +26,195 @@ import java.util.*;
 */
 public class AgentManager extends org.apache.lcf.core.database.BaseTable implements IAgentManager
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	// Fields
-	protected final static String classNameField = "classname";
+        // Fields
+        protected final static String classNameField = "classname";
 
-	// Thread context
-	protected IThreadContext threadContext;
+        // Thread context
+        protected IThreadContext threadContext;
 
-	/** Constructor.
-	*@param threadContext is the thread context.
-	*@param database is the database instance.
-	*/
-	public AgentManager(IThreadContext threadContext, IDBInterface database)
-		throws LCFException
-	{
-		super(database,"agents");
-		this.threadContext = threadContext;
-	}
+        /** Constructor.
+        *@param threadContext is the thread context.
+        *@param database is the database instance.
+        */
+        public AgentManager(IThreadContext threadContext, IDBInterface database)
+                throws LCFException
+        {
+                super(database,"agents");
+                this.threadContext = threadContext;
+        }
 
-	/** Install or upgrade.
-	*/
-	public void install()
-		throws LCFException
-	{
-		// We always use an outer loop, in case the upgrade will need it.
-		while (true)
-		{
-			// Check if table is already present
-			Map existing = getTableSchema(null,null);
-			if (existing == null)
-			{
-				HashMap map = new HashMap();
-				map.put(classNameField,new ColumnDescription("VARCHAR(255)",true,false,null,null,false));
-				performCreate(map,null);
-			}
-			else
-			{
-				// Any required upgrade code goes here.
-			}
-			
-			// Any index creation goes here.
-			
-			break;
-		}
-	}
+        /** Install or upgrade.
+        */
+        public void install()
+                throws LCFException
+        {
+                // We always use an outer loop, in case the upgrade will need it.
+                while (true)
+                {
+                        // Check if table is already present
+                        Map existing = getTableSchema(null,null);
+                        if (existing == null)
+                        {
+                                HashMap map = new HashMap();
+                                map.put(classNameField,new ColumnDescription("VARCHAR(255)",true,false,null,null,false));
+                                performCreate(map,null);
+                        }
+                        else
+                        {
+                                // Any required upgrade code goes here.
+                        }
+                        
+                        // Any index creation goes here.
+                        
+                        break;
+                }
+        }
 
-	/** Uninstall.  Also uninstalls all remaining agents.
-	*/
-	public void deinstall()
-		throws LCFException
-	{
-		// Since we are uninstalling agents, better do this inside a transaction
-		beginTransaction();
-		try
-		{
-			// Uninstall everything remaining
-			IResultSet set = performQuery("SELECT * FROM "+getTableName(),null,null,null);
-			int i = 0;
-			while (i < set.getRowCount())
-			{
-				IResultRow row = set.getRow(i++);
-				String className = row.getValue(classNameField).toString();
-				IAgent agent = AgentFactory.make(threadContext,className);
-				agent.deinstall();
-			}
-			performDrop(null);
-		}
-		catch (LCFException e)
-		{
-			signalRollback();
-			throw e;
-		}
-		catch (Error e)
-		{
-			signalRollback();
-			throw e;
-		}
-		finally
-		{
-			endTransaction();
-		}
+        /** Uninstall.  Also uninstalls all remaining agents.
+        */
+        public void deinstall()
+                throws LCFException
+        {
+                // Since we are uninstalling agents, better do this inside a transaction
+                beginTransaction();
+                try
+                {
+                        // Uninstall everything remaining
+                        IResultSet set = performQuery("SELECT * FROM "+getTableName(),null,null,null);
+                        int i = 0;
+                        while (i < set.getRowCount())
+                        {
+                                IResultRow row = set.getRow(i++);
+                                String className = row.getValue(classNameField).toString();
+                                IAgent agent = AgentFactory.make(threadContext,className);
+                                agent.deinstall();
+                        }
+                        performDrop(null);
+                }
+                catch (LCFException e)
+                {
+                        signalRollback();
+                        throw e;
+                }
+                catch (Error e)
+                {
+                        signalRollback();
+                        throw e;
+                }
+                finally
+                {
+                        endTransaction();
+                }
 
-	}
+        }
 
-	/** Register an agent.
-	*@param className is the class.
-	*/
-	public void registerAgent(String className)
-		throws LCFException
-	{
-		// Do in a transaction, so the installation is atomic
-		beginTransaction();
-		try
-		{
-			// See if already registered, if so just upgrade
-			ArrayList params = new ArrayList();
-			params.add(className);
-			IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+classNameField+"=?",params,null,null);
-			if (set.getRowCount() == 0)
-			{
-				// Try to add to the table first
-				HashMap map = new HashMap();
-				map.put(classNameField,className);
-				performInsert(map,null);
-			}
-			// In any case, call the install/upgrade method
-			IAgent agent = AgentFactory.make(threadContext,className);
-			agent.install();
-		}
-		catch (LCFException e)
-		{
-			signalRollback();
-			throw e;
-		}
-		catch (Error e)
-		{
-			signalRollback();
-			throw e;
-		}
-		finally
-		{
-			endTransaction();
-		}
-	}
+        /** Register an agent.
+        *@param className is the class.
+        */
+        public void registerAgent(String className)
+                throws LCFException
+        {
+                // Do in a transaction, so the installation is atomic
+                beginTransaction();
+                try
+                {
+                        // See if already registered, if so just upgrade
+                        ArrayList params = new ArrayList();
+                        params.add(className);
+                        IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+classNameField+"=?",params,null,null);
+                        if (set.getRowCount() == 0)
+                        {
+                                // Try to add to the table first
+                                HashMap map = new HashMap();
+                                map.put(classNameField,className);
+                                performInsert(map,null);
+                        }
+                        // In any case, call the install/upgrade method
+                        IAgent agent = AgentFactory.make(threadContext,className);
+                        agent.install();
+                }
+                catch (LCFException e)
+                {
+                        signalRollback();
+                        throw e;
+                }
+                catch (Error e)
+                {
+                        signalRollback();
+                        throw e;
+                }
+                finally
+                {
+                        endTransaction();
+                }
+        }
 
 
-	/** Unregister an agent.
-	*@param className is the class to unregister.
-	*/
-	public void unregisterAgent(String className)
-		throws LCFException
-	{
-		// Do in a transaction, so the installation is atomic
-		beginTransaction();
-		try
-		{
-			// First, deregister agent
-			IAgent agent = AgentFactory.make(threadContext,className);
-			agent.deinstall();
+        /** Unregister an agent.
+        *@param className is the class to unregister.
+        */
+        public void unregisterAgent(String className)
+                throws LCFException
+        {
+                // Do in a transaction, so the installation is atomic
+                beginTransaction();
+                try
+                {
+                        // First, deregister agent
+                        IAgent agent = AgentFactory.make(threadContext,className);
+                        agent.deinstall();
 
-			// Remove from table
-			removeAgent(className);
-		}
-		catch (LCFException e)
-		{
-			signalRollback();
-			throw e;
-		}
-		catch (Error e)
-		{
-			signalRollback();
-			throw e;
-		}
-		finally
-		{
-			endTransaction();
-		}
-	}
+                        // Remove from table
+                        removeAgent(className);
+                }
+                catch (LCFException e)
+                {
+                        signalRollback();
+                        throw e;
+                }
+                catch (Error e)
+                {
+                        signalRollback();
+                        throw e;
+                }
+                finally
+                {
+                        endTransaction();
+                }
+        }
 
-	/** Remove an agent.
-	* Use this when the agent cannot be invoked.  The agent becomes unavailable,
-	* but its schema is not cleaned up.
-	*@param className is the class to remove.
-	*/
-	public void removeAgent(String className)
-		throws LCFException
-	{
-		// Remove from table
-		ArrayList list = new ArrayList();
-		list.add(className);
-		performDelete("WHERE "+classNameField+"=?",list,null);
-	}
+        /** Remove an agent.
+        * Use this when the agent cannot be invoked.  The agent becomes unavailable,
+        * but its schema is not cleaned up.
+        *@param className is the class to remove.
+        */
+        public void removeAgent(String className)
+                throws LCFException
+        {
+                // Remove from table
+                ArrayList list = new ArrayList();
+                list.add(className);
+                performDelete("WHERE "+classNameField+"=?",list,null);
+        }
 
-	/** Get a list of all registered agent class names.
-	*@return the classnames in an array.
-	*/
-	public String[] getAllAgents()
-		throws LCFException
-	{
-		IResultSet set = performQuery("SELECT * FROM "+getTableName(),null,null,null);
-		String[] rval = new String[set.getRowCount()];
-		int i = 0;
-		while (i < set.getRowCount())
-		{
-			IResultRow row = set.getRow(i);
-			rval[i] = row.getValue(classNameField).toString();
-			i++;
-		}
-		return rval;
-	}
+        /** Get a list of all registered agent class names.
+        *@return the classnames in an array.
+        */
+        public String[] getAllAgents()
+                throws LCFException
+        {
+                IResultSet set = performQuery("SELECT * FROM "+getTableName(),null,null,null);
+                String[] rval = new String[set.getRowCount()];
+                int i = 0;
+                while (i < set.getRowCount())
+                {
+                        IResultRow row = set.getRow(i);
+                        rval[i] = row.getValue(classNameField).toString();
+                        i++;
+                }
+                return rval;
+        }
 
 }

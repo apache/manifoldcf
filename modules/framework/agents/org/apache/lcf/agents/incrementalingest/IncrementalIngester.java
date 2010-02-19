@@ -162,7 +162,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
                 else if (value < 100000L)
                         return 2*60;
                 else
-                        return 24*60;		
+                        return 24*60;           
 
         }
 
@@ -879,7 +879,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
                         }
                         if (j > 0)
                                 getDocumentURIChunk(rval,map,outputConnectionName,sb.toString(),list);
-                        return rval;				
+                        return rval;                            
                 }
                 catch (LCFException e)
                 {
@@ -1002,7 +1002,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
                         }
                         if (j > 0)
                                 getDocumentIngestDataChunk(rval,indexMap,outputConnectionName,sb.toString(),list);
-                        return rval;				
+                        return rval;                            
                 }
                 catch (LCFException e)
                 {

@@ -23,31 +23,31 @@ package org.apache.lcf.core.interfaces;
 */
 public interface ICacheHandle
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	/** Get the read lock strings.
-	*@return read lock string array.
-	*/
-	public String[] getReadLockStrings();
+        /** Get the read lock strings.
+        *@return read lock string array.
+        */
+        public String[] getReadLockStrings();
 
-	/** Get the write lock strings.
-	*@return write lock string array.
-	*/
-	public String[] getWriteLockStrings();
+        /** Get the write lock strings.
+        *@return write lock string array.
+        */
+        public String[] getWriteLockStrings();
 
-	/** Get the set of object descriptions.
-	*@return the object descriptions.
-	*/
-	public ICacheDescription[] getObjectDescriptions();
+        /** Get the set of object descriptions.
+        *@return the object descriptions.
+        */
+        public ICacheDescription[] getObjectDescriptions();
 
-	/** Get the invalidation keys.
-	*@return the invalidation key set.
-	*/
-	public StringSet getInvalidationKeys();
+        /** Get the invalidation keys.
+        *@return the invalidation key set.
+        */
+        public StringSet getInvalidationKeys();
 
-	/** Get the transaction ID.
-	*@return the transaction ID.
-	*/
-	public String getTransactionID();
+        /** Get the transaction ID.
+        *@return the transaction ID.
+        */
+        public String getTransactionID();
 
 }

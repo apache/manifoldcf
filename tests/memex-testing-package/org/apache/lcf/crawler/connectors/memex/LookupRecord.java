@@ -23,41 +23,41 @@ import java.util.*;
 
 public class LookupRecord
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private LookupRecord()
-	{
-	}
+        private LookupRecord()
+        {
+        }
 
 
-	public static void main(String[] args)
-	{
-		if (args.length != 8)
-		{
-			System.err.println("Usage: LookupRecord <servername> <port> <username> <password> <virtualserver> <database> <fieldname> <fieldvalue>");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 8)
+                {
+                        System.err.println("Usage: LookupRecord <servername> <port> <username> <password> <virtualserver> <database> <fieldname> <fieldvalue>");
+                        System.exit(1);
+                }
 
-		try
-		{
-			MemexSupport handle = new MemexSupport(args[2],args[3],args[0],args[1]);
-			try
-			{
-				String id = handle.lookupRecord(args[4],args[5],args[6],args[7]);
-				if (id != null)
-					UTF8Stdout.print(id);
-			}
-			finally
-			{
-				handle.close();
-			}
-			System.err.println("Successfully located");
-		}
-		catch (LCFException e)
-		{
-			e.printStackTrace(System.err);
-			System.exit(2);
-		}
-	}
+                try
+                {
+                        MemexSupport handle = new MemexSupport(args[2],args[3],args[0],args[1]);
+                        try
+                        {
+                                String id = handle.lookupRecord(args[4],args[5],args[6],args[7]);
+                                if (id != null)
+                                        UTF8Stdout.print(id);
+                        }
+                        finally
+                        {
+                                handle.close();
+                        }
+                        System.err.println("Successfully located");
+                }
+                catch (LCFException e)
+                {
+                        e.printStackTrace(System.err);
+                        System.exit(2);
+                }
+        }
 
 }

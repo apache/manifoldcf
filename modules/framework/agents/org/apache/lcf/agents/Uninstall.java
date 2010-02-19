@@ -26,33 +26,33 @@ import java.lang.reflect.*;
 
 public class Uninstall
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private Uninstall()
-	{
-	}
+        private Uninstall()
+        {
+        }
 
 
-	public static void main(String[] args)
-	{
-		if (args.length > 0)
-		{
-			System.err.println("Usage: Uninstall");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length > 0)
+                {
+                        System.err.println("Usage: Uninstall");
+                        System.exit(1);
+                }
 
-		try
-		{
-			LCF.initializeEnvironment();
-			IThreadContext tc = ThreadContextFactory.make();
-			LCF.deinstallTables(tc);
-			System.err.println("Agent tables uninstalled");
-		}
-		catch (LCFException e)
-		{
-			e.printStackTrace();
-			System.exit(1);
-		}
-	}
+                try
+                {
+                        LCF.initializeEnvironment();
+                        IThreadContext tc = ThreadContextFactory.make();
+                        LCF.deinstallTables(tc);
+                        System.err.println("Agent tables uninstalled");
+                }
+                catch (LCFException e)
+                {
+                        e.printStackTrace();
+                        System.exit(1);
+                }
+        }
 
 }

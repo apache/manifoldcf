@@ -26,20 +26,20 @@ import java.util.*;
 */
 public class DocumentumFactoryImpl extends UnicastRemoteObject implements IDocumentumFactory
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	/** Instantiate */
-	public DocumentumFactoryImpl()
-		throws RemoteException
-	{
-		super(0,new RMILocalClientSocketFactory(),new RMILocalSocketFactory());
-	}
+        /** Instantiate */
+        public DocumentumFactoryImpl()
+                throws RemoteException
+        {
+                super(0,new RMILocalClientSocketFactory(),new RMILocalSocketFactory());
+        }
 
-	/** Mint a new IDocumentum handle.
-	*/
-	public IDocumentum make()
-		throws RemoteException
-	{
-		return new DocumentumImpl();
-	}
+        /** Mint a new IDocumentum handle.
+        */
+        public IDocumentum make()
+                throws RemoteException
+        {
+                return new DocumentumImpl();
+        }
 }

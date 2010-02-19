@@ -28,35 +28,35 @@ import java.util.*;
 */
 public class ExportConfiguration
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private ExportConfiguration()
-	{
-	}
+        private ExportConfiguration()
+        {
+        }
 
-	public static void main(String[] args)
-	{
-		if (args.length != 1)
-		{
-			System.err.println("Usage: ExportConfiguration <filename>");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 1)
+                {
+                        System.err.println("Usage: ExportConfiguration <filename>");
+                        System.exit(1);
+                }
 
-		String exportFilename = args[0];
+                String exportFilename = args[0];
 
 
-		try
-		{
-		        LCF.initializeEnvironment();
-			IThreadContext tc = ThreadContextFactory.make();
-			LCF.exportConfiguration(tc,exportFilename);
-			System.err.println("Configuration exported");
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			System.exit(2);
-		}
-	}
-		
+                try
+                {
+                        LCF.initializeEnvironment();
+                        IThreadContext tc = ThreadContextFactory.make();
+                        LCF.exportConfiguration(tc,exportFilename);
+                        System.err.println("Configuration exported");
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace();
+                        System.exit(2);
+                }
+        }
+                
 }

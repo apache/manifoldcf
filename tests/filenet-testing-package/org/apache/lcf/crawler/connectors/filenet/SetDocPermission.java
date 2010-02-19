@@ -21,41 +21,41 @@ package org.apache.lcf.crawler.connectors.filenet;
 
 public class SetDocPermission
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private SetDocPermission()
-	{
-	}
+        private SetDocPermission()
+        {
+        }
 
 
-	public static void main(String[] args)
-	{
-		if (args.length < 7)
-		{
-			System.err.println("Usage: AddDoc <wsiurl> <user> <password> <fndomain> <objectstore> <fnid> <username_1> ... <username_n>");
-			System.exit(1);
-		}
-		
-		try
-		{
-			FilenetAddRemove handle = new FilenetAddRemove(args[1],args[2],args[3],args[4],args[0]);
-			String[] userIDs = new String[args.length - 6];
-			int i = 0;
-			while (i < userIDs.length)
-			{
-				userIDs[i] = args[6+i];
-				i++;
-			}
-			
-			handle.setDocumentPermissions(args[5],userIDs);
-			System.err.println("Successfully modified");
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace(System.err);
-			System.exit(2);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length < 7)
+                {
+                        System.err.println("Usage: AddDoc <wsiurl> <user> <password> <fndomain> <objectstore> <fnid> <username_1> ... <username_n>");
+                        System.exit(1);
+                }
+                
+                try
+                {
+                        FilenetAddRemove handle = new FilenetAddRemove(args[1],args[2],args[3],args[4],args[0]);
+                        String[] userIDs = new String[args.length - 6];
+                        int i = 0;
+                        while (i < userIDs.length)
+                        {
+                                userIDs[i] = args[6+i];
+                                i++;
+                        }
+                        
+                        handle.setDocumentPermissions(args[5],userIDs);
+                        System.err.println("Successfully modified");
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace(System.err);
+                        System.exit(2);
+                }
 
-	}
+        }
 
 }

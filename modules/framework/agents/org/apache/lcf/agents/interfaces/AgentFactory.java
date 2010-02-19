@@ -25,86 +25,86 @@ import java.lang.reflect.*;
 */
 public class AgentFactory
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	protected static final String agentIdentifier = "_Agent_";
+        protected static final String agentIdentifier = "_Agent_";
 
-	private AgentFactory()
-	{
-	}
+        private AgentFactory()
+        {
+        }
 
-	/** Make an agent, given a class name.
-	*@param threadContext is the thread context.
-	*@param className is the agent class name.
-	*@return the agent.
-	*/
-	public static IAgent make(IThreadContext tc, String className)
-		throws LCFException
-	{
-	    String agentName = agentIdentifier+className;
-	    Object o = tc.get(agentName);
-	    if (o == null || !(o instanceof IAgent))
-	    {
-		try
-		{
-			Class theClass = Class.forName(className);
-			Class[] argumentClasses = new Class[1];
-			argumentClasses[0] = IThreadContext.class;
-			// Look for a constructor
-			Constructor c = theClass.getConstructor(argumentClasses);
-			Object[] arguments = new Object[1];
-			arguments[0] = tc;
-			o = c.newInstance(arguments);
-			if (!(o instanceof IAgent))
-				throw new LCFException("Class '"+className+"' does not implement IAgent.");
-			tc.save(agentName,o);
-		}
-		catch (InvocationTargetException e)
-		{
-			Throwable z = e.getTargetException();
-			if (z instanceof Error)
-				throw (Error)z;
-			else
-				throw (LCFException)z;
-		}
-		catch (ClassNotFoundException e)
-		{
-			throw new LCFException("No class implementing IAgent called '"+
-				className+"'.",
-				e);
-		}
-		catch (NoSuchMethodException e)
-		{
-			throw new LCFException("No appropriate constructor for IAgent implementation '"+
-				className+"'.  Need xxx(ConfigParams).",
-				e);
-		}
-		catch (SecurityException e)
-		{
-			throw new LCFException("Protected constructor for IAgent implementation '"+className+"'",
-				e);
-		}
-		catch (IllegalAccessException e)
-		{
-			throw new LCFException("Unavailable constructor for IAgent implementation '"+className+"'",
-				e);
-		}
-		catch (IllegalArgumentException e)
-		{
-			throw new LCFException("Shouldn't happen!!!",e);
-		}
-		catch (InstantiationException e)
-		{
-			throw new LCFException("InstantiationException for IAgent implementation '"+className+"'",
-				e);
-		}
-		catch (ExceptionInInitializerError e)
-		{
-			throw new LCFException("ExceptionInInitializerError for IAgent implementation '"+className+"'",
-				e);
-		}
-	    }
-	    return (IAgent)o;
-	}
+        /** Make an agent, given a class name.
+        *@param threadContext is the thread context.
+        *@param className is the agent class name.
+        *@return the agent.
+        */
+        public static IAgent make(IThreadContext tc, String className)
+                throws LCFException
+        {
+            String agentName = agentIdentifier+className;
+            Object o = tc.get(agentName);
+            if (o == null || !(o instanceof IAgent))
+            {
+                try
+                {
+                        Class theClass = Class.forName(className);
+                        Class[] argumentClasses = new Class[1];
+                        argumentClasses[0] = IThreadContext.class;
+                        // Look for a constructor
+                        Constructor c = theClass.getConstructor(argumentClasses);
+                        Object[] arguments = new Object[1];
+                        arguments[0] = tc;
+                        o = c.newInstance(arguments);
+                        if (!(o instanceof IAgent))
+                                throw new LCFException("Class '"+className+"' does not implement IAgent.");
+                        tc.save(agentName,o);
+                }
+                catch (InvocationTargetException e)
+                {
+                        Throwable z = e.getTargetException();
+                        if (z instanceof Error)
+                                throw (Error)z;
+                        else
+                                throw (LCFException)z;
+                }
+                catch (ClassNotFoundException e)
+                {
+                        throw new LCFException("No class implementing IAgent called '"+
+                                className+"'.",
+                                e);
+                }
+                catch (NoSuchMethodException e)
+                {
+                        throw new LCFException("No appropriate constructor for IAgent implementation '"+
+                                className+"'.  Need xxx(ConfigParams).",
+                                e);
+                }
+                catch (SecurityException e)
+                {
+                        throw new LCFException("Protected constructor for IAgent implementation '"+className+"'",
+                                e);
+                }
+                catch (IllegalAccessException e)
+                {
+                        throw new LCFException("Unavailable constructor for IAgent implementation '"+className+"'",
+                                e);
+                }
+                catch (IllegalArgumentException e)
+                {
+                        throw new LCFException("Shouldn't happen!!!",e);
+                }
+                catch (InstantiationException e)
+                {
+                        throw new LCFException("InstantiationException for IAgent implementation '"+className+"'",
+                                e);
+                }
+                catch (ExceptionInInitializerError e)
+                {
+                        throw new LCFException("ExceptionInInitializerError for IAgent implementation '"+className+"'",
+                                e);
+                }
+            }
+            return (IAgent)o;
+        }
 
 }

@@ -41,22 +41,22 @@ public class Base64
     private static final byte[] mapArray;
     static
     {
-	mapArray = new byte[128];
+        mapArray = new byte[128];
 
-	// Initialize the array to 127's
-	int i = 0;
-	while (i < mapArray.length)
-	{
-		mapArray[i++] = Byte.MAX_VALUE;
-	}
+        // Initialize the array to 127's
+        int i = 0;
+        while (i < mapArray.length)
+        {
+                mapArray[i++] = Byte.MAX_VALUE;
+        }
 
-	// Now, build the reverse map
-	i = 0;
-	while (i < base64CharacterArray.length)
-	{
-		mapArray[base64CharacterArray[i]] = (byte)i;
-		i++;
-	}
+        // Now, build the reverse map
+        i = 0;
+        while (i < base64CharacterArray.length)
+        {
+                mapArray[base64CharacterArray[i]] = (byte)i;
+                i++;
+        }
     }
 
     private static final char base64PadCharacter = '=';
@@ -79,61 +79,61 @@ public class Base64
     *@return false if end-of-stream encountered, true otherwise
     */
     public boolean decodeNextWord(Reader inputBuffer, OutputStream outputBuffer)
-	throws LCFException
+        throws LCFException
     {
-	try
-	{
-		// First, fill character buffer accordingly
-		int bufferIndex = 0;
-		while (bufferIndex < characterBuffer.length)
-		{
-			int character = inputBuffer.read();
-			if (character == -1)
-			{
-				if (bufferIndex != 0)
-					throw new LCFException("Unexpected end of base64 input");
-				return false;
-			}
-			char ch = (char)character;
-			if (ch == base64PadCharacter || ch < mapArray.length && mapArray[ch] != Byte.MAX_VALUE)
-				characterBuffer[bufferIndex++] = ch;
+        try
+        {
+                // First, fill character buffer accordingly
+                int bufferIndex = 0;
+                while (bufferIndex < characterBuffer.length)
+                {
+                        int character = inputBuffer.read();
+                        if (character == -1)
+                        {
+                                if (bufferIndex != 0)
+                                        throw new LCFException("Unexpected end of base64 input");
+                                return false;
+                        }
+                        char ch = (char)character;
+                        if (ch == base64PadCharacter || ch < mapArray.length && mapArray[ch] != Byte.MAX_VALUE)
+                                characterBuffer[bufferIndex++] = ch;
 
-			// else
-			//	throw new LCFException("Illegal Base64 character: '"+ch+"'");
-		}
+                        // else
+                        //      throw new LCFException("Illegal Base64 character: '"+ch+"'");
+                }
 
-		// We have the data; do the conversion.
+                // We have the data; do the conversion.
 
-	        int outlen = 3;
-        	if (characterBuffer[3] == base64PadCharacter)  outlen = 2;
-        	if (characterBuffer[2] == base64PadCharacter)  outlen = 1;
-        	int b0 = mapArray[characterBuffer[0]];
-        	int b1 = mapArray[characterBuffer[1]];
-        	int b2 = mapArray[characterBuffer[2]];
-        	int b3 = mapArray[characterBuffer[3]];
-        	switch (outlen)
-		{
-          	case 1:
-            		outputBuffer.write((byte)(b0 << 2 & 0xfc | b1 >> 4 & 0x3));
-            		break;
-          	case 2:
-            		outputBuffer.write((byte)(b0 << 2 & 0xfc | b1 >> 4 & 0x3));
-            		outputBuffer.write((byte)(b1 << 4 & 0xf0 | b2 >> 2 & 0xf));
-			break;
-          	case 3:
-            		outputBuffer.write((byte)(b0 << 2 & 0xfc | b1 >> 4 & 0x3));
-            		outputBuffer.write((byte)(b1 << 4 & 0xf0 | b2 >> 2 & 0xf));
-            		outputBuffer.write((byte)(b2 << 6 & 0xc0 | b3 & 0x3f));
-            		break;
-          	default:
-            		throw new RuntimeException("Should never occur");
-        	}
-		return true;
-    	}
-	catch (IOException e)
-	{
-		throw new LCFException("IO error converting from base 64",e);
-	}
+                int outlen = 3;
+                if (characterBuffer[3] == base64PadCharacter)  outlen = 2;
+                if (characterBuffer[2] == base64PadCharacter)  outlen = 1;
+                int b0 = mapArray[characterBuffer[0]];
+                int b1 = mapArray[characterBuffer[1]];
+                int b2 = mapArray[characterBuffer[2]];
+                int b3 = mapArray[characterBuffer[3]];
+                switch (outlen)
+                {
+                case 1:
+                        outputBuffer.write((byte)(b0 << 2 & 0xfc | b1 >> 4 & 0x3));
+                        break;
+                case 2:
+                        outputBuffer.write((byte)(b0 << 2 & 0xfc | b1 >> 4 & 0x3));
+                        outputBuffer.write((byte)(b1 << 4 & 0xf0 | b2 >> 2 & 0xf));
+                        break;
+                case 3:
+                        outputBuffer.write((byte)(b0 << 2 & 0xfc | b1 >> 4 & 0x3));
+                        outputBuffer.write((byte)(b1 << 4 & 0xf0 | b2 >> 2 & 0xf));
+                        outputBuffer.write((byte)(b2 << 6 & 0xc0 | b3 & 0x3f));
+                        break;
+                default:
+                        throw new RuntimeException("Should never occur");
+                }
+                return true;
+        }
+        catch (IOException e)
+        {
+                throw new LCFException("IO error converting from base 64",e);
+        }
     }
 
     /** Decode an entire stream.
@@ -141,13 +141,13 @@ public class Base64
     *@param outputBuffer is the binary output stream.
     */
     public void decodeStream(Reader inputBuffer, OutputStream outputBuffer)
-	throws LCFException
+        throws LCFException
     {
-	// Just loop until done.
-	// It may be efficient to replace this with a "bulk" method, but probably not much.
-	while (decodeNextWord(inputBuffer,outputBuffer))
-	{
-	}
+        // Just loop until done.
+        // It may be efficient to replace this with a "bulk" method, but probably not much.
+        while (decodeNextWord(inputBuffer,outputBuffer))
+        {
+        }
     }
 
     /** Decode a string into a byte array.
@@ -155,37 +155,37 @@ public class Base64
     *@return a corresponding byte array.
     */
     public byte[] decodeString(String inputString)
-	throws LCFException
+        throws LCFException
     {
-	try
-	{
-		// Calculate the maximum size of the output array, and allocate it.  We'll copy it to the final
-		// place at the end.
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream((inputString.length()>>2)*3+3);
-		try
-		{
-			// Create an input stream from the string
-			Reader reader = new StringReader(inputString);
-			try
-			{
-				decodeStream(reader,outputStream);
-				outputStream.flush();
-				return outputStream.toByteArray();
-			}
-			finally
-			{
-				reader.close();
-			}
-		}
-		finally
-		{
-			outputStream.close();
-		}
-	}
-	catch (IOException e)
-	{
-		throw new LCFException("Error streaming through base64 decoder",e);
-	}
+        try
+        {
+                // Calculate the maximum size of the output array, and allocate it.  We'll copy it to the final
+                // place at the end.
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream((inputString.length()>>2)*3+3);
+                try
+                {
+                        // Create an input stream from the string
+                        Reader reader = new StringReader(inputString);
+                        try
+                        {
+                                decodeStream(reader,outputStream);
+                                outputStream.flush();
+                                return outputStream.toByteArray();
+                        }
+                        finally
+                        {
+                                reader.close();
+                        }
+                }
+                finally
+                {
+                        outputStream.close();
+                }
+        }
+        catch (IOException e)
+        {
+                throw new LCFException("Error streaming through base64 decoder",e);
+        }
     }
 
     /** Encode a single word.
@@ -194,54 +194,54 @@ public class Base64
     *@return false if end-of-stream encountered, true otherwise.
     */
     public boolean encodeNextWord(InputStream inputStream, Writer outputWriter)
-	throws LCFException
+        throws LCFException
     {
-	try
-	{
-		// Try to read up to 3 bytes from the input stream
-		int actualLength = inputStream.read(byteBuffer);
-		if (actualLength == -1)
-			return false;
-		int i;
-		switch (actualLength)
-		{
-		case 0:
-			throw new LCFException("Read 0 bytes!");
-		case 1:
-            		i = byteBuffer[0]&0xff;
-            		outputWriter.write(base64CharacterArray[i>>2]);
-            		outputWriter.write(base64CharacterArray[(i<<4)&0x3f]);
-            		outputWriter.write(base64PadCharacter);
-            		outputWriter.write(base64PadCharacter);
-			break;
+        try
+        {
+                // Try to read up to 3 bytes from the input stream
+                int actualLength = inputStream.read(byteBuffer);
+                if (actualLength == -1)
+                        return false;
+                int i;
+                switch (actualLength)
+                {
+                case 0:
+                        throw new LCFException("Read 0 bytes!");
+                case 1:
+                        i = byteBuffer[0]&0xff;
+                        outputWriter.write(base64CharacterArray[i>>2]);
+                        outputWriter.write(base64CharacterArray[(i<<4)&0x3f]);
+                        outputWriter.write(base64PadCharacter);
+                        outputWriter.write(base64PadCharacter);
+                        break;
 
-		case 2:
-            		i = ((byteBuffer[0]&0xff)<<8)+(byteBuffer[1]&0xff);
-            		outputWriter.write(base64CharacterArray[i>>10]);
-            		outputWriter.write(base64CharacterArray[(i>>4)&0x3f]);
-            		outputWriter.write(base64CharacterArray[(i<<2)&0x3f]);
-            		outputWriter.write(base64PadCharacter);
-			break;
+                case 2:
+                        i = ((byteBuffer[0]&0xff)<<8)+(byteBuffer[1]&0xff);
+                        outputWriter.write(base64CharacterArray[i>>10]);
+                        outputWriter.write(base64CharacterArray[(i>>4)&0x3f]);
+                        outputWriter.write(base64CharacterArray[(i<<2)&0x3f]);
+                        outputWriter.write(base64PadCharacter);
+                        break;
 
-		case 3:
-            		i = ((byteBuffer[0]&0xff)<<16)
-                		+((byteBuffer[1]&0xff)<<8)
-                		+(byteBuffer[2]&0xff);
-            		outputWriter.write(base64CharacterArray[i>>18]);
-            		outputWriter.write(base64CharacterArray[(i>>12)&0x3f]);
-            		outputWriter.write(base64CharacterArray[(i>>6)&0x3f]);
-            		outputWriter.write(base64CharacterArray[i&0x3f]);
-			break;
+                case 3:
+                        i = ((byteBuffer[0]&0xff)<<16)
+                                +((byteBuffer[1]&0xff)<<8)
+                                +(byteBuffer[2]&0xff);
+                        outputWriter.write(base64CharacterArray[i>>18]);
+                        outputWriter.write(base64CharacterArray[(i>>12)&0x3f]);
+                        outputWriter.write(base64CharacterArray[(i>>6)&0x3f]);
+                        outputWriter.write(base64CharacterArray[i&0x3f]);
+                        break;
 
-		default:
-			throw new RuntimeException("Should never get here");
-		}
-		return true;
-	}
-	catch (IOException e)
-	{
-		throw new LCFException("IO error encoding in base64",e);
-	}
+                default:
+                        throw new RuntimeException("Should never get here");
+                }
+                return true;
+        }
+        catch (IOException e)
+        {
+                throw new LCFException("IO error encoding in base64",e);
+        }
     }
 
     /** Encode a full stream, to the end.
@@ -249,11 +249,11 @@ public class Base64
     *@param outputWriter is the output writer.
     */
     public void encodeStream(InputStream inputStream, Writer outputWriter)
-	throws LCFException
+        throws LCFException
     {
-	while (encodeNextWord(inputStream,outputWriter))
-	{
-	}
+        while (encodeNextWord(inputStream,outputWriter))
+        {
+        }
     }
 
     /** Encode a byte array to a string.
@@ -261,34 +261,34 @@ public class Base64
     *@return the encoded string.
     */
     public String encodeByteArray(byte[] inputByteArray)
-	throws LCFException
+        throws LCFException
     {
-	try
-	{
-		Writer writer = new StringWriter((inputByteArray.length * 4) / 3 + 4);
-		try
-		{
-			InputStream is = new ByteArrayInputStream(inputByteArray);
-			try
-			{
-				encodeStream(is,writer);
-				writer.flush();
-				return writer.toString();
-			}
-			finally
-			{
-				is.close();
-			}
-		}
-		finally
-		{
-			writer.close();
-		}
-	}
-	catch (IOException e)
-	{
-		throw new LCFException("Error streaming through base64 encoder",e);
-	}
+        try
+        {
+                Writer writer = new StringWriter((inputByteArray.length * 4) / 3 + 4);
+                try
+                {
+                        InputStream is = new ByteArrayInputStream(inputByteArray);
+                        try
+                        {
+                                encodeStream(is,writer);
+                                writer.flush();
+                                return writer.toString();
+                        }
+                        finally
+                        {
+                                is.close();
+                        }
+                }
+                finally
+                {
+                        writer.close();
+                }
+        }
+        catch (IOException e)
+        {
+                throw new LCFException("Error streaming through base64 encoder",e);
+        }
     }
 
 

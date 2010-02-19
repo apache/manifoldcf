@@ -158,7 +158,7 @@ public class HopDeleteDeps extends org.apache.lcf.core.database.BaseTable
         {
                 // This didn't perform very well.
                 //performDelete("WHERE EXISTS(SELECT 'x' FROM "+parentTable+" t0 WHERE t0."+parentIDField+"="+ownerIDField+
-                //	" AND t0."+markField+"=?)",list,null);
+                //      " AND t0."+markField+"=?)",list,null);
                 performDelete("WHERE "+ownerIDField+" IN(SELECT "+parentIDHashField+" FROM "+parentTable+" WHERE "+query+")",
                         queryList,null);
                 // Log one event - it may not be enough, but it's the best we can do without overhead

@@ -27,34 +27,34 @@ import org.apache.lcf.core.interfaces.*;
 */
 public class BucketDescription
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	/** This is the regexp to match.  This will be Posix. */
-	protected String regexp;
-	/** Set to true if the match should be case sensitive, or false if insensitive. */
-	protected boolean isSensitive;
+        /** This is the regexp to match.  This will be Posix. */
+        protected String regexp;
+        /** Set to true if the match should be case sensitive, or false if insensitive. */
+        protected boolean isSensitive;
 
-	/** Constructor.
-	*/
-	public BucketDescription(String regexp, boolean isSensitive)
-	{
-		this.regexp = regexp;
-		this.isSensitive = isSensitive;
-	}
+        /** Constructor.
+        */
+        public BucketDescription(String regexp, boolean isSensitive)
+        {
+                this.regexp = regexp;
+                this.isSensitive = isSensitive;
+        }
 
-	/** Get the regexp value.
-	*/
-	public String getRegexp()
-	{
-		return regexp;
-	}
+        /** Get the regexp value.
+        */
+        public String getRegexp()
+        {
+                return regexp;
+        }
 
-	/** Is this case sensitive?
-	*/
-	public boolean isSensitive()
-	{
-		return isSensitive;
-	}
+        /** Is this case sensitive?
+        */
+        public boolean isSensitive()
+        {
+                return isSensitive;
+        }
 
 
 }

@@ -38,7 +38,7 @@ public interface IProcessActivity extends IHistoryActivity, IEventActivity, IAbo
         * "getRelationshipTypes()".  May be null.
         *@param dataNames is the list of carry-down data from the parent to the child.  May be null.  Each name is limited to 255 characters!
         *@param dataValues are the values that correspond to the data names in the dataNames parameter.  May be null only if dataNames is null.
-        *	   The type of each object must either be a String, or a CharacterInput.
+        *          The type of each object must either be a String, or a CharacterInput.
         *@param originationTime is the time, in ms since epoch, that the document originated.  Pass null if none or unknown.
         *@param prereqEventNames are the names of the prerequisite events which this document requires prior to processing.  Pass null if none.
         */
@@ -56,7 +56,7 @@ public interface IProcessActivity extends IHistoryActivity, IEventActivity, IAbo
         * "getRelationshipTypes()".  May be null.
         *@param dataNames is the list of carry-down data from the parent to the child.  May be null.  Each name is limited to 255 characters!
         *@param dataValues are the values that correspond to the data names in the dataNames parameter.  May be null only if dataNames is null.
-        *	   The type of each object must either be a String, or a CharacterInput.
+        *          The type of each object must either be a String, or a CharacterInput.
         *@param originationTime is the time, in ms since epoch, that the document originated.  Pass null if none or unknown.
         */
         public void addDocumentReference(String localIdentifier, String parentIdentifier, String relationshipType,
@@ -74,7 +74,7 @@ public interface IProcessActivity extends IHistoryActivity, IEventActivity, IAbo
         * "getRelationshipTypes()".  May be null.
         *@param dataNames is the list of carry-down data from the parent to the child.  May be null.  Each name is limited to 255 characters!
         *@param dataValues are the values that correspond to the data names in the dataNames parameter.  May be null only if dataNames is null.
-        *	   The type of each object must either be a String, or a CharacterInput.
+        *          The type of each object must either be a String, or a CharacterInput.
         */
         public void addDocumentReference(String localIdentifier, String parentIdentifier, String relationshipType,
                 String[] dataNames, Object[][] dataValues)

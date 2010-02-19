@@ -24,22 +24,22 @@ import java.util.*;
 */
 public interface IResultRow
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	/** Obtain the number of columns in the row.
-	*@return the number of columns that row contains.
-	*/
-	public int getColumnCount();
+        /** Obtain the number of columns in the row.
+        *@return the number of columns that row contains.
+        */
+        public int getColumnCount();
 
-	/** Obtain the set of columns for a row.
-	@return an iterator that will list all the (String) column names stored in that row.
-	*/
-	public Iterator getColumns();
+        /** Obtain the set of columns for a row.
+        @return an iterator that will list all the (String) column names stored in that row.
+        */
+        public Iterator getColumns();
 
-	/** Get the row value for a column.
-	*@param columnName is the name of the column.
-	*@return the value, or null if not present.
-	*/
-	public Object getValue(String columnName);
+        /** Get the row value for a column.
+        *@param columnName is the name of the column.
+        *@return the value, or null if not present.
+        */
+        public Object getValue(String columnName);
 
 }

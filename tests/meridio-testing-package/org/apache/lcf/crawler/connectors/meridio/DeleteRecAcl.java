@@ -27,66 +27,66 @@ import org.apache.lcf.crawler.connectors.meridio.DMDataSet.ACCESSCONTROL;
 
 public class DeleteRecAcl
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	protected static HashMap map;
-	static
-	{
-	    map = new HashMap();
-	    map.put("PROHIBIT",new Integer(0));
-	    map.put("READ",new Integer(1));
-	    map.put("AMEND",new Integer(2));
-	    map.put("MANAGE",new Integer(3));
-	}
+        protected static HashMap map;
+        static
+        {
+            map = new HashMap();
+            map.put("PROHIBIT",new Integer(0));
+            map.put("READ",new Integer(1));
+            map.put("AMEND",new Integer(2));
+            map.put("MANAGE",new Integer(3));
+        }
 
-	private DeleteRecAcl()
-	{
-	}
+        private DeleteRecAcl()
+        {
+        }
 
 
-	public static void main(String[] args)
-	{
-		if (args.length != 7)
-		{
-			System.err.println("Usage: DeleteRecAcl <docurl> <recurl> <username> <password> <docid> <username> <permission>");
-			System.err.println("where <permission> is 'PROHIBIT','READ','AMEND', or 'MANAGE'");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 7)
+                {
+                        System.err.println("Usage: DeleteRecAcl <docurl> <recurl> <username> <password> <docid> <username> <permission>");
+                        System.err.println("where <permission> is 'PROHIBIT','READ','AMEND', or 'MANAGE'");
+                        System.exit(1);
+                }
 
-		try
-		{
-    			MeridioTestWrapper handle = new MeridioTestWrapper(args[0],args[1],args[2],args[3]);
-			try
-			{
-				int docId = Integer.parseInt(args[4]);
-				Integer perm = (Integer)map.get(args[6]);
-				if (perm == null)
-				    throw new Exception("Unknown permission type: "+args[6]);
-				int permission = perm.intValue();
+                try
+                {
+                        MeridioTestWrapper handle = new MeridioTestWrapper(args[0],args[1],args[2],args[3]);
+                        try
+                        {
+                                int docId = Integer.parseInt(args[4]);
+                                Integer perm = (Integer)map.get(args[6]);
+                                if (perm == null)
+                                    throw new Exception("Unknown permission type: "+args[6]);
+                                int permission = perm.intValue();
 
-    				// Lookup the user
-				long userId = handle.getUserIdFromName(args[5]);
+                                // Lookup the user
+                                long userId = handle.getUserIdFromName(args[5]);
 
-				ACCESSCONTROL acl = new ACCESSCONTROL ();
-		
-				acl.setObjectId(docId);
-				acl.setPermission(new Integer(permission).shortValue());        
-				acl.setObjectType(new Integer(4).shortValue());		         // RECORD = 4, I think
-				acl.setUserId(userId);
+                                ACCESSCONTROL acl = new ACCESSCONTROL ();
+                
+                                acl.setObjectId(docId);
+                                acl.setPermission(new Integer(permission).shortValue());        
+                                acl.setObjectType(new Integer(4).shortValue());                  // RECORD = 4, I think
+                                acl.setUserId(userId);
 
-				handle.removeAclFromDocumentOrRecord(acl);
-			}
-			finally
-			{
-				handle.logout();
-			}
-			System.err.println("Successfully removed record acl");
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace(System.err);
-			System.exit(2);
-		}
-	}
+                                handle.removeAclFromDocumentOrRecord(acl);
+                        }
+                        finally
+                        {
+                                handle.logout();
+                        }
+                        System.err.println("Successfully removed record acl");
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace(System.err);
+                        System.exit(2);
+                }
+        }
 
 }

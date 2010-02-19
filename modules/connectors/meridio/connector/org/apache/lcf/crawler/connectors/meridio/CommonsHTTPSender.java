@@ -259,9 +259,9 @@ public class CommonsHTTPSender extends BasicHandler {
 
                     Credentials c = httpClient.getState().getCredentials(AuthScope.ANY);
                     //if (c instanceof NTCredentials)
-                    //	System.out.println("Credential host "+((NTCredentials)c).getHost());
+                    //  System.out.println("Credential host "+((NTCredentials)c).getHost());
                     //else
-                    //	System.out.println("Not NT credentials!");
+                    //  System.out.println("Not NT credentials!");
                     MessageRequestEntity requestEntity = null;
                     if (msgContext.isPropertyTrue(HTTPConstants.MC_GZIP_REQUEST)) {
                         requestEntity = new GzipMessageRequestEntity(method, reqMessage, httpChunkStream);
@@ -584,9 +584,9 @@ public class CommonsHTTPSender extends BasicHandler {
         if (port == -1)
         {
                 if(theProtocolString.equalsIgnoreCase("https")) {
-                        port = 443;		// default port for https being 443
+                        port = 443;             // default port for https being 443
                 } else { // it must be http
-                        port = 80;		// default port for http being 80
+                        port = 80;              // default port for http being 80
                 }
         }
 

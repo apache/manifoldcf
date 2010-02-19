@@ -28,80 +28,80 @@ import java.util.*;
 */
 public class SetSeedList
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private SetSeedList()
-	{
-	}
+        private SetSeedList()
+        {
+        }
 
-	public static void main(String[] args)
-	{
-		if (args.length != 1)
-		{
-			System.err.println("Usage: SetSeedList <job_id>");
-			System.err.println("(Reads a set of urls from stdin)");
-			System.exit(-1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 1)
+                {
+                        System.err.println("Usage: SetSeedList <job_id>");
+                        System.err.println("(Reads a set of urls from stdin)");
+                        System.exit(-1);
+                }
 
-		String jobString = args[0];
+                String jobString = args[0];
 
-		try
-		{
-		        LCF.initializeEnvironment();
-			IThreadContext tc = ThreadContextFactory.make();
-			IJobManager jobManager = JobManagerFactory.make(tc);
-			IJobDescription desc = jobManager.load(new Long(jobString));
+                try
+                {
+                        LCF.initializeEnvironment();
+                        IThreadContext tc = ThreadContextFactory.make();
+                        IJobManager jobManager = JobManagerFactory.make(tc);
+                        IJobDescription desc = jobManager.load(new Long(jobString));
 
-			// Edit the job specification
-			DocumentSpecification ds = desc.getSpecification();
+                        // Edit the job specification
+                        DocumentSpecification ds = desc.getSpecification();
 
-			// Delete all url specs first
-			int i = 0;
-			while (i < ds.getChildCount())
-			{
-				SpecificationNode sn = ds.getChild(i);
-				if (sn.getType().equals("feed"))
-					ds.removeChild(i);
-				else
-					i++;
-			}
+                        // Delete all url specs first
+                        int i = 0;
+                        while (i < ds.getChildCount())
+                        {
+                                SpecificationNode sn = ds.getChild(i);
+                                if (sn.getType().equals("feed"))
+                                        ds.removeChild(i);
+                                else
+                                        i++;
+                        }
 
-			java.io.Reader str = new java.io.InputStreamReader(System.in);
-			try
-			{
-				java.io.BufferedReader is = new java.io.BufferedReader(str);
-				try
-				{
-					while (true)
-					{
-						String nextString = is.readLine();
-						if (nextString == null)
-							break;
-						if (nextString.length() == 0)
-							continue;
-						SpecificationNode node = new SpecificationNode("feed");
-						node.setAttribute("url",nextString);
-						ds.addChild(ds.getChildCount(),node);
-					}
-				}
-				finally
-				{
-					is.close();
-				}
-			}
-			finally
-			{
-				str.close();
-			}
+                        java.io.Reader str = new java.io.InputStreamReader(System.in);
+                        try
+                        {
+                                java.io.BufferedReader is = new java.io.BufferedReader(str);
+                                try
+                                {
+                                        while (true)
+                                        {
+                                                String nextString = is.readLine();
+                                                if (nextString == null)
+                                                        break;
+                                                if (nextString.length() == 0)
+                                                        continue;
+                                                SpecificationNode node = new SpecificationNode("feed");
+                                                node.setAttribute("url",nextString);
+                                                ds.addChild(ds.getChildCount(),node);
+                                        }
+                                }
+                                finally
+                                {
+                                        is.close();
+                                }
+                        }
+                        finally
+                        {
+                                str.close();
+                        }
 
-			// Now, save
-			jobManager.save(desc);
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			System.exit(-2);
-		}
-	}
-		
+                        // Now, save
+                        jobManager.save(desc);
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace();
+                        System.exit(-2);
+                }
+        }
+                
 }

@@ -28,16 +28,16 @@ import org.apache.lcf.agents.interfaces.*;
 */
 public interface IDynamicResultSet
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	/** Get the next row from the resultset.
-	*@return the immutable row description, or null if there is no such row.
-	*/
-	public IResultRow getNextRow()
-		throws LCFException, ServiceInterruption;
+        /** Get the next row from the resultset.
+        *@return the immutable row description, or null if there is no such row.
+        */
+        public IResultRow getNextRow()
+                throws LCFException, ServiceInterruption;
 
-	/** Close this resultset.
-	*/
-	public void close()
-		throws LCFException, ServiceInterruption;
+        /** Close this resultset.
+        */
+        public void close()
+                throws LCFException, ServiceInterruption;
 }

@@ -24,7 +24,7 @@ public class DocumentClassDefinition extends NameDescription
 
     public DocumentClassDefinition(String displayName, String symbolicName)
     {
-	super(displayName,symbolicName);
+        super(displayName,symbolicName);
     }
     
 }

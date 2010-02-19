@@ -22,36 +22,36 @@ import org.apache.lcf.core.interfaces.*;
 
 public class LookupDoc
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private LookupDoc()
-	{
-	}
+        private LookupDoc()
+        {
+        }
 
 
-	public static void main(String[] args)
-	{
-		if (args.length != 7)
-		{
-			System.err.println("Usage: LookupDoc <wsiurl> <user> <password> <fndomain> <objectstore> <fntitle> <docclass>");
-			System.exit(1);
-		}
-		
-		try
-		{
-			FilenetAddRemove handle = new FilenetAddRemove(args[1],args[2],args[3],args[4],args[0]);
-			String idValue = handle.lookupDocument(args[5],args[6]);
-			if (idValue != null)
-				UTF8Stdout.print(idValue);
-			else
-				UTF8Stdout.print("");
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace(System.err);
-			System.exit(2);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 7)
+                {
+                        System.err.println("Usage: LookupDoc <wsiurl> <user> <password> <fndomain> <objectstore> <fntitle> <docclass>");
+                        System.exit(1);
+                }
+                
+                try
+                {
+                        FilenetAddRemove handle = new FilenetAddRemove(args[1],args[2],args[3],args[4],args[0]);
+                        String idValue = handle.lookupDocument(args[5],args[6]);
+                        if (idValue != null)
+                                UTF8Stdout.print(idValue);
+                        else
+                                UTF8Stdout.print("");
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace(System.err);
+                        System.exit(2);
+                }
 
-	}
+        }
 
 }

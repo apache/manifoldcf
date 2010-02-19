@@ -25,44 +25,44 @@ import org.apache.lcf.authorities.system.*;
 
 public class UnRegisterAllAuthorities
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private UnRegisterAllAuthorities()
-	{
-	}
-
-
-	public static void main(String[] args)
-	{
-		if (args.length > 0)
-		{
-			System.err.println("Usage: UnRegisterAllAuthorities");
-			System.exit(1);
-		}
+        private UnRegisterAllAuthorities()
+        {
+        }
 
 
-		try
-		{
-			LCF.initializeEnvironment();
-			IThreadContext tc = ThreadContextFactory.make();
-			IAuthorityConnectorManager mgr = AuthorityConnectorManagerFactory.make(tc);
-			IResultSet classNames = mgr.getConnectors();
-			int i = 0;
-			while (i < classNames.getRowCount())
-			{
-			    IResultRow row = classNames.getRow(i++);
-			    mgr.unregisterConnector((String)row.getValue("classname"));
-			}
-			System.err.println("Successfully unregistered all connectors");
-		}
-		catch (LCFException e)
-		{
-			e.printStackTrace();
-			System.exit(1);
-		}
-	}
+        public static void main(String[] args)
+        {
+                if (args.length > 0)
+                {
+                        System.err.println("Usage: UnRegisterAllAuthorities");
+                        System.exit(1);
+                }
+
+
+                try
+                {
+                        LCF.initializeEnvironment();
+                        IThreadContext tc = ThreadContextFactory.make();
+                        IAuthorityConnectorManager mgr = AuthorityConnectorManagerFactory.make(tc);
+                        IResultSet classNames = mgr.getConnectors();
+                        int i = 0;
+                        while (i < classNames.getRowCount())
+                        {
+                            IResultRow row = classNames.getRow(i++);
+                            mgr.unregisterConnector((String)row.getValue("classname"));
+                        }
+                        System.err.println("Successfully unregistered all connectors");
+                }
+                catch (LCFException e)
+                {
+                        e.printStackTrace();
+                        System.exit(1);
+                }
+        }
 
 
 
-		
+                
 }

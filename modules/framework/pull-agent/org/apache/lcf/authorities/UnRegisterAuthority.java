@@ -25,39 +25,39 @@ import org.apache.lcf.authorities.system.*;
 
 public class UnRegisterAuthority
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private UnRegisterAuthority()
-	{
-	}
-
-
-	public static void main(String[] args)
-	{
-		if (args.length != 1)
-		{
-			System.err.println("Usage: UnRegisterAuthority <classname>");
-			System.exit(1);
-		}
-
-		String className = args[0];
-
-		try
-		{
-			LCF.initializeEnvironment();
-			IThreadContext tc = ThreadContextFactory.make();
-			IAuthorityConnectorManager mgr = AuthorityConnectorManagerFactory.make(tc);
-			mgr.unregisterConnector(className);
-			System.err.println("Successfully unregistered connector '"+className+"'");
-		}
-		catch (LCFException e)
-		{
-			e.printStackTrace();
-			System.exit(1);
-		}
-	}
+        private UnRegisterAuthority()
+        {
+        }
 
 
+        public static void main(String[] args)
+        {
+                if (args.length != 1)
+                {
+                        System.err.println("Usage: UnRegisterAuthority <classname>");
+                        System.exit(1);
+                }
 
-		
+                String className = args[0];
+
+                try
+                {
+                        LCF.initializeEnvironment();
+                        IThreadContext tc = ThreadContextFactory.make();
+                        IAuthorityConnectorManager mgr = AuthorityConnectorManagerFactory.make(tc);
+                        mgr.unregisterConnector(className);
+                        System.err.println("Successfully unregistered connector '"+className+"'");
+                }
+                catch (LCFException e)
+                {
+                        e.printStackTrace();
+                        System.exit(1);
+                }
+        }
+
+
+
+                
 }

@@ -29,43 +29,43 @@ package org.apache.lcf.core.interfaces;
 */
 public interface ILimitChecker
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
 
-	/** See if this class can be legitimately compared against another of
-	* the same type.
-	*@return true if comparisons will ever return "true".
-	*/
-	public boolean doesCompareWork();
+        /** See if this class can be legitimately compared against another of
+        * the same type.
+        *@return true if comparisons will ever return "true".
+        */
+        public boolean doesCompareWork();
 
-	/** Create a duplicate of this class instance.  All current state should be preserved.
-	*@return the duplicate.
-	*/
-	public ILimitChecker duplicate();
+        /** Create a duplicate of this class instance.  All current state should be preserved.
+        *@return the duplicate.
+        */
+        public ILimitChecker duplicate();
 
-	/** Find the hashcode for this class.  This will only ever be used if
-	* doesCompareWork() returns true.
-	*@return the hashcode.
-	*/
-	public int hashCode();
+        /** Find the hashcode for this class.  This will only ever be used if
+        * doesCompareWork() returns true.
+        *@return the hashcode.
+        */
+        public int hashCode();
 
-	/** Compare two objects and see if equal.  This will only ever be used
-	* if doesCompareWork() returns true.
-	*@param object is the object to compare against.
-	*@return true if equal.
-	*/
-	public boolean equals(Object object);
+        /** Compare two objects and see if equal.  This will only ever be used
+        * if doesCompareWork() returns true.
+        *@param object is the object to compare against.
+        *@return true if equal.
+        */
+        public boolean equals(Object object);
 
-	/** See if a result row should be included in the final result set.
-	*@param row is the result row to check.
-	*@return true if it should be included, false otherwise.
-	*/
-	public boolean checkInclude(IResultRow row)
-		throws LCFException;
+        /** See if a result row should be included in the final result set.
+        *@param row is the result row to check.
+        *@return true if it should be included, false otherwise.
+        */
+        public boolean checkInclude(IResultRow row)
+                throws LCFException;
 
-	/** See if we should examine another row.
-	*@return true if we need to keep going, or false if we are done.
-	*/
-	public boolean checkContinue()
-		throws LCFException;
+        /** See if we should examine another row.
+        *@return true if we need to keep going, or false if we are done.
+        */
+        public boolean checkContinue()
+                throws LCFException;
 }

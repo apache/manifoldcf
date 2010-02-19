@@ -24,94 +24,94 @@ package org.apache.lcf.crawler.interfaces;
 */
 public class DocumentDescription
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	// Member variables
-	protected Long id;
-	protected Long jobID;
-	protected String documentIdentifierHash;
-	protected String documentIdentifier;
-	protected long failTime;
-	protected int failRetryCount;
+        // Member variables
+        protected Long id;
+        protected Long jobID;
+        protected String documentIdentifierHash;
+        protected String documentIdentifier;
+        protected long failTime;
+        protected int failRetryCount;
 
-	/** Constructor.
-	*@param id is the record id.
-	*@param jobID is the job identifier for a document to be processed.
-	*@param documentIdentifierHash is the document identifier hash (primary key).
-	*@param documentIdentifier is the document identifier.
-	*/
-	public DocumentDescription(Long id, Long jobID, String documentIdentifierHash, String documentIdentifier)
-	{
-		this.id = id;
-		this.jobID = jobID;
-		this.documentIdentifierHash = documentIdentifierHash;
-		this.documentIdentifier = documentIdentifier;
-		this.failTime = -1L;
-		this.failRetryCount = -1;
-	}
+        /** Constructor.
+        *@param id is the record id.
+        *@param jobID is the job identifier for a document to be processed.
+        *@param documentIdentifierHash is the document identifier hash (primary key).
+        *@param documentIdentifier is the document identifier.
+        */
+        public DocumentDescription(Long id, Long jobID, String documentIdentifierHash, String documentIdentifier)
+        {
+                this.id = id;
+                this.jobID = jobID;
+                this.documentIdentifierHash = documentIdentifierHash;
+                this.documentIdentifier = documentIdentifier;
+                this.failTime = -1L;
+                this.failRetryCount = -1;
+        }
 
-	/** Constructor.
-	*@param id is the record id.
-	*@param jobID is the job identifier for a document to be processed.
-	*@param documentIdentifierHash is the document identifier hash (primary key).
-	*@param documentIdentifier is the document identifier.
-	*@param failTime is the time beyond which a failed fetch will be considered a hard error.
-	*/
-	public DocumentDescription(Long id, Long jobID, String documentIdentifierHash, String documentIdentifier, long failTime, int failRetryCount)
-	{
-		this.id = id;
-		this.jobID = jobID;
-		this.documentIdentifierHash = documentIdentifierHash;
-		this.documentIdentifier = documentIdentifier;
-		this.failTime = failTime;
-		this.failRetryCount = failRetryCount;
-	}
+        /** Constructor.
+        *@param id is the record id.
+        *@param jobID is the job identifier for a document to be processed.
+        *@param documentIdentifierHash is the document identifier hash (primary key).
+        *@param documentIdentifier is the document identifier.
+        *@param failTime is the time beyond which a failed fetch will be considered a hard error.
+        */
+        public DocumentDescription(Long id, Long jobID, String documentIdentifierHash, String documentIdentifier, long failTime, int failRetryCount)
+        {
+                this.id = id;
+                this.jobID = jobID;
+                this.documentIdentifierHash = documentIdentifierHash;
+                this.documentIdentifier = documentIdentifier;
+                this.failTime = failTime;
+                this.failRetryCount = failRetryCount;
+        }
 
-	/** Get the job queue id.
-	*@return the id.
-	*/
-	public Long getID()
-	{
-		return id;
-	}
+        /** Get the job queue id.
+        *@return the id.
+        */
+        public Long getID()
+        {
+                return id;
+        }
 
-	/** Get the job identifier.
-	*@return the job id.
-	*/
-	public Long getJobID()
-	{
-		return jobID;
-	}
+        /** Get the job identifier.
+        *@return the job id.
+        */
+        public Long getJobID()
+        {
+                return jobID;
+        }
 
-	/** Get document identifier hash (primary key).
-	*/
-	public String getDocumentIdentifierHash()
-	{
-		return documentIdentifierHash;
-	}
-	
-	/** Get document identifier.
-	*@return the identifier.
-	*/
-	public String getDocumentIdentifier()
-	{
-		return documentIdentifier;
-	}
+        /** Get document identifier hash (primary key).
+        */
+        public String getDocumentIdentifierHash()
+        {
+                return documentIdentifierHash;
+        }
+        
+        /** Get document identifier.
+        *@return the identifier.
+        */
+        public String getDocumentIdentifier()
+        {
+                return documentIdentifier;
+        }
 
-	/** Get the hard fail time.
-	*@return the fail time in ms since epoch, or -1L if none.
-	*/
-	public long getFailTime()
-	{
-		return failTime;
-	}
+        /** Get the hard fail time.
+        *@return the fail time in ms since epoch, or -1L if none.
+        */
+        public long getFailTime()
+        {
+                return failTime;
+        }
 
-	/** Get the hard fail retry count.
-	*@return the fail retry count, or -1 if none.
-	*/
-	public int getFailRetryCount()
-	{
-		return failRetryCount;
-	}
+        /** Get the hard fail retry count.
+        *@return the fail retry count, or -1 if none.
+        */
+        public int getFailRetryCount()
+        {
+                return failRetryCount;
+        }
 
 }

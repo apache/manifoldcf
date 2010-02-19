@@ -24,7 +24,7 @@ public class MetadataFieldDefinition extends NameDescription
 
     public MetadataFieldDefinition(String displayName, String symbolicName)
     {
-	super(displayName,symbolicName);
+        super(displayName,symbolicName);
     }
     
 }

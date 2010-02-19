@@ -28,39 +28,39 @@ import java.util.*;
 */
 public class ResetAll
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private ResetAll()
-	{
-	}
+        private ResetAll()
+        {
+        }
 
-	public static void main(String[] args)
-	{
-		if (args.length != 0)
-		{
-			System.err.println("Usage: ResetAll");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 0)
+                {
+                        System.err.println("Usage: ResetAll");
+                        System.exit(1);
+                }
 
-		try
-		{
-		        LCF.initializeEnvironment();
-			IThreadContext tc = ThreadContextFactory.make();
-			// Now, get a list of the authority connections
-			IAuthorityConnectionManager mgr = AuthorityConnectionManagerFactory.make(tc);
-			IAuthorityConnection[] connections = mgr.getAllConnections();
-			int i = 0;
-			while (i < connections.length)
-			{
-				mgr.delete(connections[i++].getName());
-			}
-			System.err.println("Reset complete");
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			System.exit(2);
-		}
-	}
-		
+                try
+                {
+                        LCF.initializeEnvironment();
+                        IThreadContext tc = ThreadContextFactory.make();
+                        // Now, get a list of the authority connections
+                        IAuthorityConnectionManager mgr = AuthorityConnectionManagerFactory.make(tc);
+                        IAuthorityConnection[] connections = mgr.getAllConnections();
+                        int i = 0;
+                        while (i < connections.length)
+                        {
+                                mgr.delete(connections[i++].getName());
+                        }
+                        System.err.println("Reset complete");
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace();
+                        System.exit(2);
+                }
+        }
+                
 }

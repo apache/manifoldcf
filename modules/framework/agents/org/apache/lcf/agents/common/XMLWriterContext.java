@@ -36,146 +36,146 @@ import org.apache.lcf.agents.interfaces.*;
 */
 public class XMLWriterContext extends XMLContext
 {
-	/** The writer */
-	protected Writer theWriter;
-	
-	/** Full constructor.  Used for individual tags. */
-	public XMLWriterContext(XMLStream theStream, String namespaceURI, String localname, String qname, Attributes theseAttributes, Writer writer)
-		throws LCFException
-	{
-		super(theStream,namespaceURI,localname,qname,theseAttributes);
-		theWriter = writer;
-	}
-	
-	/** Flush the data to the underlying output stream */
-	public void flush()
-		throws LCFException
-	{
-		try
-		{
-			// Flush the data to the underlying output stream
-			theWriter.flush();
-		}
-		catch (java.net.SocketTimeoutException e)
-		{
-			throw new LCFException("Socket timeout exception: "+e.getMessage(),e);
-		}
-		catch (InterruptedIOException e)
-		{
-			throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
-		}
-		catch (IOException e)
-		{
-			throw new LCFException("IO exception: "+e.getMessage(),e);
-		}
-	}
-	
-	/** This method is meant to be extended by classes that extend this class */
-	protected void tagContents(char[] ch, int start, int length)
-		throws LCFException
-	{
-		try
-		{
-			theWriter.write(ch,start,length);
-		}
-		catch (java.net.SocketTimeoutException e)
-		{
-			throw new LCFException("Socket timeout exception: "+e.getMessage(),e);
-		}
-		catch (InterruptedIOException e)
-		{
-			throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
-		}
-		catch (IOException e)
-		{
-			throw new LCFException("IO exception: "+e.getMessage(),e);
-		}
-	}
+        /** The writer */
+        protected Writer theWriter;
+        
+        /** Full constructor.  Used for individual tags. */
+        public XMLWriterContext(XMLStream theStream, String namespaceURI, String localname, String qname, Attributes theseAttributes, Writer writer)
+                throws LCFException
+        {
+                super(theStream,namespaceURI,localname,qname,theseAttributes);
+                theWriter = writer;
+        }
+        
+        /** Flush the data to the underlying output stream */
+        public void flush()
+                throws LCFException
+        {
+                try
+                {
+                        // Flush the data to the underlying output stream
+                        theWriter.flush();
+                }
+                catch (java.net.SocketTimeoutException e)
+                {
+                        throw new LCFException("Socket timeout exception: "+e.getMessage(),e);
+                }
+                catch (InterruptedIOException e)
+                {
+                        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+                }
+                catch (IOException e)
+                {
+                        throw new LCFException("IO exception: "+e.getMessage(),e);
+                }
+        }
+        
+        /** This method is meant to be extended by classes that extend this class */
+        protected void tagContents(char[] ch, int start, int length)
+                throws LCFException
+        {
+                try
+                {
+                        theWriter.write(ch,start,length);
+                }
+                catch (java.net.SocketTimeoutException e)
+                {
+                        throw new LCFException("Socket timeout exception: "+e.getMessage(),e);
+                }
+                catch (InterruptedIOException e)
+                {
+                        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+                }
+                catch (IOException e)
+                {
+                        throw new LCFException("IO exception: "+e.getMessage(),e);
+                }
+        }
 
-	/** Start a child tag.
-	* The XMLWriterContext accepts all subtags in their text form.
-	*/
-	protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-		throws LCFException, ServiceInterruption
-	{
-		// First, write out the tag text.  We strip off the namespace.
-		try
-		{
-			theWriter.write("<"+localName);
-			int length = atts.getLength();
-			int i = 0;
-			while (i < length)
-			{
-				theWriter.write(" ");
-				theWriter.write(atts.getLocalName(i));
-				theWriter.write("=\"");
-				theWriter.write(escapeAttribute(atts.getValue(i)));
-				theWriter.write("\"");
-				i++;
-			}
-			theWriter.write(">");
-		}
-		catch (java.net.SocketTimeoutException e)
-		{
-			throw new LCFException("Socket timeout exception: "+e.getMessage(),e);
-		}
-		catch (InterruptedIOException e)
-		{
-			throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
-		}
-		catch (IOException e)
-		{
-			throw new LCFException("IO exception: "+e.getMessage(),e);
-		}
-		// Now, start a new context which is also a writer context.
-		super.beginTag(namespaceURI,localName,qName,atts);
-		return new XMLWriterContext(theStream,namespaceURI,localName,qName,atts,theWriter);
-	}
-	
-	/** End a child tag.
-	* The XMLWriterContext accepts all subtags in their text form.
-	*/
-	protected void endTag()
-		throws LCFException, ServiceInterruption
-	{
-		// First, write out the tag text.  We strip off the namespace.
-		try
-		{
-			XMLContext context = theStream.getContext();
-			String tagName = context.getLocalname();
+        /** Start a child tag.
+        * The XMLWriterContext accepts all subtags in their text form.
+        */
+        protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
+                throws LCFException, ServiceInterruption
+        {
+                // First, write out the tag text.  We strip off the namespace.
+                try
+                {
+                        theWriter.write("<"+localName);
+                        int length = atts.getLength();
+                        int i = 0;
+                        while (i < length)
+                        {
+                                theWriter.write(" ");
+                                theWriter.write(atts.getLocalName(i));
+                                theWriter.write("=\"");
+                                theWriter.write(escapeAttribute(atts.getValue(i)));
+                                theWriter.write("\"");
+                                i++;
+                        }
+                        theWriter.write(">");
+                }
+                catch (java.net.SocketTimeoutException e)
+                {
+                        throw new LCFException("Socket timeout exception: "+e.getMessage(),e);
+                }
+                catch (InterruptedIOException e)
+                {
+                        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+                }
+                catch (IOException e)
+                {
+                        throw new LCFException("IO exception: "+e.getMessage(),e);
+                }
+                // Now, start a new context which is also a writer context.
+                super.beginTag(namespaceURI,localName,qName,atts);
+                return new XMLWriterContext(theStream,namespaceURI,localName,qName,atts,theWriter);
+        }
+        
+        /** End a child tag.
+        * The XMLWriterContext accepts all subtags in their text form.
+        */
+        protected void endTag()
+                throws LCFException, ServiceInterruption
+        {
+                // First, write out the tag text.  We strip off the namespace.
+                try
+                {
+                        XMLContext context = theStream.getContext();
+                        String tagName = context.getLocalname();
 
-			theWriter.write("</"+tagName+">");
-		}
-		catch (java.net.SocketTimeoutException e)
-		{
-			throw new LCFException("Socket timeout exception: "+e.getMessage(),e);
-		}
-		catch (InterruptedIOException e)
-		{
-			throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
-		}
-		catch (IOException e)
-		{
-			throw new LCFException("IO exception: "+e.getMessage(),e);
-		}
-		super.endTag();
-	}
-	
-	/** Convert a string to a value that's safe to include inside an attribute value */
-	protected static String escapeAttribute(String value)
-	{
-		StringBuffer rval = new StringBuffer();
-		int i = 0;
-		while (i < value.length())
-		{
-			char x = value.charAt(i++);
-			if (x == '\'' || x == '"' || x == '<' || x == '>' || x == '&'|| (x < ' ' && x >= 0))
-			{
-				rval.append("&#").append(Integer.toString((int)x)).append(";");
-			}
-			else
-				rval.append(x);
-		}
-		return rval.toString();
-	}
+                        theWriter.write("</"+tagName+">");
+                }
+                catch (java.net.SocketTimeoutException e)
+                {
+                        throw new LCFException("Socket timeout exception: "+e.getMessage(),e);
+                }
+                catch (InterruptedIOException e)
+                {
+                        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+                }
+                catch (IOException e)
+                {
+                        throw new LCFException("IO exception: "+e.getMessage(),e);
+                }
+                super.endTag();
+        }
+        
+        /** Convert a string to a value that's safe to include inside an attribute value */
+        protected static String escapeAttribute(String value)
+        {
+                StringBuffer rval = new StringBuffer();
+                int i = 0;
+                while (i < value.length())
+                {
+                        char x = value.charAt(i++);
+                        if (x == '\'' || x == '"' || x == '<' || x == '>' || x == '&'|| (x < ' ' && x >= 0))
+                        {
+                                rval.append("&#").append(Integer.toString((int)x)).append(";");
+                        }
+                        else
+                                rval.append(x);
+                }
+                return rval.toString();
+        }
 }

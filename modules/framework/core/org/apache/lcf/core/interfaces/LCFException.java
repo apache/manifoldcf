@@ -20,59 +20,59 @@ package org.apache.lcf.core.interfaces;
 
 public class LCFException extends Exception
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	public final static int GENERAL_ERROR = 0;
-	public final static int DATABASE_ERROR = 1;
-	public final static int INTERRUPTED = 2;
-	public final static int SETUP_ERROR = 3;
-	public final static int DATABASE_CONNECTION_ERROR = 4;
-	public final static int REPOSITORY_CONNECTION_ERROR = 5;
-	public final static int DATABASE_TRANSACTION_ABORT = 6;
-	// MHL
+        public final static int GENERAL_ERROR = 0;
+        public final static int DATABASE_ERROR = 1;
+        public final static int INTERRUPTED = 2;
+        public final static int SETUP_ERROR = 3;
+        public final static int DATABASE_CONNECTION_ERROR = 4;
+        public final static int REPOSITORY_CONNECTION_ERROR = 5;
+        public final static int DATABASE_TRANSACTION_ABORT = 6;
+        // MHL
 
-	protected int errcode;
+        protected int errcode;
 
-	public LCFException(String errString)
-	{
-		super(errString);
-		this.errcode = GENERAL_ERROR;
-	}
+        public LCFException(String errString)
+        {
+                super(errString);
+                this.errcode = GENERAL_ERROR;
+        }
 
-	public LCFException(String errString, int errcode)
-	{
-		super(errString);
-		this.errcode = errcode;
-	}
+        public LCFException(String errString, int errcode)
+        {
+                super(errString);
+                this.errcode = errcode;
+        }
 
-	public LCFException(String errString, Throwable cause, int errcode)
-	{
-		super(errString,cause);
-		this.errcode = errcode;
-	}
+        public LCFException(String errString, Throwable cause, int errcode)
+        {
+                super(errString,cause);
+                this.errcode = errcode;
+        }
 
-	public LCFException(String errString, Throwable cause)
-	{
-		super(errString,cause);
-		this.errcode = GENERAL_ERROR;
-	}
+        public LCFException(String errString, Throwable cause)
+        {
+                super(errString,cause);
+                this.errcode = GENERAL_ERROR;
+        }
 
-	public LCFException(Throwable cause, int errcode)
-	{
-		super(cause);
-		this.errcode = errcode;
-	}
+        public LCFException(Throwable cause, int errcode)
+        {
+                super(cause);
+                this.errcode = errcode;
+        }
 
-	public LCFException(Throwable cause)
-	{
-		super(cause);
-		this.errcode = GENERAL_ERROR;
-	}
+        public LCFException(Throwable cause)
+        {
+                super(cause);
+                this.errcode = GENERAL_ERROR;
+        }
 
-	public int getErrorCode()
-	{
-		return errcode;
-	}
+        public int getErrorCode()
+        {
+                return errcode;
+        }
 
 
 }

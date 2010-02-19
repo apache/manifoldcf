@@ -32,64 +32,64 @@ import org.apache.lcf.crawler.interfaces.*;
 */
 public class QueuedDocument
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	/** The document description. */
-	protected DocumentDescription documentDescription;
-	/** The last ingested status, null meaning "never ingested". */
-	protected DocumentIngestStatus lastIngestedStatus;
-	/** The binnames for the document, according to the connector */
-	protected String[] binNames;
-	/** This flag indicates whether the document has been processed or not. */
-	protected boolean wasProcessed = false;
+        /** The document description. */
+        protected DocumentDescription documentDescription;
+        /** The last ingested status, null meaning "never ingested". */
+        protected DocumentIngestStatus lastIngestedStatus;
+        /** The binnames for the document, according to the connector */
+        protected String[] binNames;
+        /** This flag indicates whether the document has been processed or not. */
+        protected boolean wasProcessed = false;
 
-	/** Constructor.
-	*@param documentDescription is the document description.
-	*@param lastIngestedVersion is the last ingested version.
-	*/
-	public QueuedDocument(DocumentDescription documentDescription, DocumentIngestStatus lastIngestedStatus, String[] binNames)
-	{
-		this.documentDescription = documentDescription;
-		this.lastIngestedStatus = lastIngestedStatus;
-		this.binNames = binNames;
-	}
+        /** Constructor.
+        *@param documentDescription is the document description.
+        *@param lastIngestedVersion is the last ingested version.
+        */
+        public QueuedDocument(DocumentDescription documentDescription, DocumentIngestStatus lastIngestedStatus, String[] binNames)
+        {
+                this.documentDescription = documentDescription;
+                this.lastIngestedStatus = lastIngestedStatus;
+                this.binNames = binNames;
+        }
 
-	/** Get the document description.
-	*@return the document description.
-	*/
-	public DocumentDescription getDocumentDescription()
-	{
-		return documentDescription;
-	}
+        /** Get the document description.
+        *@return the document description.
+        */
+        public DocumentDescription getDocumentDescription()
+        {
+                return documentDescription;
+        }
 
-	/** Get the last ingested status.
-	*@return the last ingested status, or null if not ingested before.
-	*/
-	public DocumentIngestStatus getLastIngestedStatus()
-	{
-		return lastIngestedStatus;
-	}
+        /** Get the last ingested status.
+        *@return the last ingested status, or null if not ingested before.
+        */
+        public DocumentIngestStatus getLastIngestedStatus()
+        {
+                return lastIngestedStatus;
+        }
 
-	/** Get the bin names for this document */
-	public String[] getBinNames()
-	{
-		return binNames;
-	}
+        /** Get the bin names for this document */
+        public String[] getBinNames()
+        {
+                return binNames;
+        }
 
-	/** Check if document has been processed yet.
-	*@return true if processed, false if not.
-	*/
-	public boolean wasProcessed()
-	{
-		return wasProcessed;
-	}
+        /** Check if document has been processed yet.
+        *@return true if processed, false if not.
+        */
+        public boolean wasProcessed()
+        {
+                return wasProcessed;
+        }
 
-	/** Note that the document was processed in some way.
-	*/
-	public void setProcessed()
-	{
-		wasProcessed = true;
-	}
+        /** Note that the document was processed in some way.
+        */
+        public void setProcessed()
+        {
+                wasProcessed = true;
+        }
 
 }
 

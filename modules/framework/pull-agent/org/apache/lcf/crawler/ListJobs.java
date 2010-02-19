@@ -28,121 +28,121 @@ import java.util.*;
 */
 public class ListJobs
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private ListJobs()
-	{
-	}
+        private ListJobs()
+        {
+        }
 
-	public static void main(String[] args)
-	{
-		if (args.length != 0)
-		{
-			System.err.println("Usage: ListJobs");
-			System.err.println("");
-			System.err.println("The result will be printed to standard out, will be UTF-8 encoded, and will contain the following columns:");
-			System.err.println("    identifier,description,connection,outputconnection,startmode,runmode,hopcountmode,priority,rescaninterval,expirationinterval,reseedinterval,outputspecification");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 0)
+                {
+                        System.err.println("Usage: ListJobs");
+                        System.err.println("");
+                        System.err.println("The result will be printed to standard out, will be UTF-8 encoded, and will contain the following columns:");
+                        System.err.println("    identifier,description,connection,outputconnection,startmode,runmode,hopcountmode,priority,rescaninterval,expirationinterval,reseedinterval,outputspecification");
+                        System.exit(1);
+                }
 
-		try
-		{
-		        LCF.initializeEnvironment();
-			IThreadContext tc = ThreadContextFactory.make();
-			IJobManager jobManager = JobManagerFactory.make(tc);
-			IJobDescription[] jobs = jobManager.getAllJobs();
-			
-			int i = 0;
-			while (i < jobs.length)
-			{
-				IJobDescription job = jobs[i++];
-				
-				//identifier,description,connection,outputconnection,startmode,runmode,hopcountmode,priority,rescaninterval,expirationinterval,reseedinterval,outputspecification
+                try
+                {
+                        LCF.initializeEnvironment();
+                        IThreadContext tc = ThreadContextFactory.make();
+                        IJobManager jobManager = JobManagerFactory.make(tc);
+                        IJobDescription[] jobs = jobManager.getAllJobs();
+                        
+                        int i = 0;
+                        while (i < jobs.length)
+                        {
+                                IJobDescription job = jobs[i++];
+                                
+                                //identifier,description,connection,outputconnection,startmode,runmode,hopcountmode,priority,rescaninterval,expirationinterval,reseedinterval,outputspecification
 
-				UTF8Stdout.println(job.getID().toString()+","+
-					((job.getDescription()==null)?"":commaEscape(job.getDescription()))+","+
-					commaEscape(job.getConnectionName())+","+
-					commaEscape(job.getOutputConnectionName())+","+
-					startModeMap(job.getStartMethod())+","+
-					runModeMap(job.getType())+","+
-					hopcountModeMap(job.getHopcountMode())+","+
-					Integer.toString(job.getPriority())+","+
-					presentInterval(job.getInterval())+","+
-					presentInterval(job.getExpiration())+","+
-					presentInterval(job.getReseedInterval())+","+
-					((job.getOutputSpecification()==null)?"":commaEscape(job.getOutputSpecification().toXML())));
-			}
-			System.err.println("Job list done");
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			System.exit(2);
-		}
-	}
+                                UTF8Stdout.println(job.getID().toString()+","+
+                                        ((job.getDescription()==null)?"":commaEscape(job.getDescription()))+","+
+                                        commaEscape(job.getConnectionName())+","+
+                                        commaEscape(job.getOutputConnectionName())+","+
+                                        startModeMap(job.getStartMethod())+","+
+                                        runModeMap(job.getType())+","+
+                                        hopcountModeMap(job.getHopcountMode())+","+
+                                        Integer.toString(job.getPriority())+","+
+                                        presentInterval(job.getInterval())+","+
+                                        presentInterval(job.getExpiration())+","+
+                                        presentInterval(job.getReseedInterval())+","+
+                                        ((job.getOutputSpecification()==null)?"":commaEscape(job.getOutputSpecification().toXML())));
+                        }
+                        System.err.println("Job list done");
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace();
+                        System.exit(2);
+                }
+        }
 
-	protected static String presentInterval(Long interval)
-	{
-		if (interval == null)
-			return "infinite";
-		return interval.toString();
-	}
-	
-	protected static String startModeMap(int startMethod)
-	{
-		switch (startMethod)
-		{
-		case IJobDescription.START_WINDOWBEGIN:
-			return "schedule window start";
-		case IJobDescription.START_WINDOWINSIDE:
-			return "schedule window anytime";
-		case IJobDescription.START_DISABLE:
-			return "manual";
-		default:
-			return "unknown";
-		}
-	}
-	
-	protected static String runModeMap(int type)
-	{
-		switch (type)
-		{
-		case IJobDescription.TYPE_CONTINUOUS:
-			return "continuous";
-		case IJobDescription.TYPE_SPECIFIED:
-			return "scan once";
-		default:
-			return "unknown";
-		}
-	}
-	
-	protected static String hopcountModeMap(int mode)
-	{
-		switch (mode)
-		{
-		case IJobDescription.HOPCOUNT_ACCURATE:
-			return "accurate";
-		case IJobDescription.HOPCOUNT_NODELETE:
-			return "no delete";
-		case IJobDescription.HOPCOUNT_NEVERDELETE:
-			return "never delete";
-		default:
-			return "unknown";
-		}
-	}
-	
-	protected static String commaEscape(String input)
-	{
-		StringBuffer output = new StringBuffer();
-		int i = 0;
-		while (i < input.length())
-		{
-			char x = input.charAt(i++);
-			if (x == '\\' || x == ',')
-				output.append("\\");
-			output.append(x);
-		}
-		return output.toString();
-	}
+        protected static String presentInterval(Long interval)
+        {
+                if (interval == null)
+                        return "infinite";
+                return interval.toString();
+        }
+        
+        protected static String startModeMap(int startMethod)
+        {
+                switch (startMethod)
+                {
+                case IJobDescription.START_WINDOWBEGIN:
+                        return "schedule window start";
+                case IJobDescription.START_WINDOWINSIDE:
+                        return "schedule window anytime";
+                case IJobDescription.START_DISABLE:
+                        return "manual";
+                default:
+                        return "unknown";
+                }
+        }
+        
+        protected static String runModeMap(int type)
+        {
+                switch (type)
+                {
+                case IJobDescription.TYPE_CONTINUOUS:
+                        return "continuous";
+                case IJobDescription.TYPE_SPECIFIED:
+                        return "scan once";
+                default:
+                        return "unknown";
+                }
+        }
+        
+        protected static String hopcountModeMap(int mode)
+        {
+                switch (mode)
+                {
+                case IJobDescription.HOPCOUNT_ACCURATE:
+                        return "accurate";
+                case IJobDescription.HOPCOUNT_NODELETE:
+                        return "no delete";
+                case IJobDescription.HOPCOUNT_NEVERDELETE:
+                        return "never delete";
+                default:
+                        return "unknown";
+                }
+        }
+        
+        protected static String commaEscape(String input)
+        {
+                StringBuffer output = new StringBuffer();
+                int i = 0;
+                while (i < input.length())
+                {
+                        char x = input.charAt(i++);
+                        if (x == '\\' || x == ',')
+                                output.append("\\");
+                        output.append(x);
+                }
+                return output.toString();
+        }
 
 }

@@ -24,49 +24,49 @@ import java.util.*;
 */
 public class MultilineParser
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	/** Read a string as a sequence of individual expressions, urls, etc.
-	*/
-	public static ArrayList stringToArray(String input)
-	{
-		ArrayList list = new ArrayList();
-		try
-		{
-			java.io.Reader str = new java.io.StringReader(input);
-			try
-			{
-				java.io.BufferedReader is = new java.io.BufferedReader(str);
-				try
-				{
-					while (true)
-					{
-						String nextString = is.readLine();
-						if (nextString == null)
-							break;
-						if (nextString.length() == 0)
-							continue;
-						nextString.trim();
-						if (nextString.startsWith("#"))
-							continue;
-						list.add(nextString);
-					}
-				}
-				finally
-				{
-					is.close();
-				}
-			}
-			finally
-			{
-				str.close();
-			}
-		}
-		catch (java.io.IOException e)
-		{
-			return null;
-		}
-		return list;
-	}
+        /** Read a string as a sequence of individual expressions, urls, etc.
+        */
+        public static ArrayList stringToArray(String input)
+        {
+                ArrayList list = new ArrayList();
+                try
+                {
+                        java.io.Reader str = new java.io.StringReader(input);
+                        try
+                        {
+                                java.io.BufferedReader is = new java.io.BufferedReader(str);
+                                try
+                                {
+                                        while (true)
+                                        {
+                                                String nextString = is.readLine();
+                                                if (nextString == null)
+                                                        break;
+                                                if (nextString.length() == 0)
+                                                        continue;
+                                                nextString.trim();
+                                                if (nextString.startsWith("#"))
+                                                        continue;
+                                                list.add(nextString);
+                                        }
+                                }
+                                finally
+                                {
+                                        is.close();
+                                }
+                        }
+                        finally
+                        {
+                                str.close();
+                        }
+                }
+                catch (java.io.IOException e)
+                {
+                        return null;
+                }
+                return list;
+        }
 
 }

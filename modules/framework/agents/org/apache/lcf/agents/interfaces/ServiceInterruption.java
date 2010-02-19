@@ -25,79 +25,79 @@ import org.apache.lcf.core.interfaces.*;
 */
 public class ServiceInterruption extends java.lang.Exception
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	/** This is the time (in milliseconds since epoch) when to retry the request. */
-	protected long retryTime;
-	/** This is the time (in milliseconds since epoch) to FAIL if no successful read has yet occurred. */
-	protected long failTime;
-	/** This is the number of retries to permit before FAIL. -1 means infinite. */
-	protected int failRetryCount;
-	/** Should we abort the process if failure condition has been reached? */
-	protected boolean abortOnFail;
+        /** This is the time (in milliseconds since epoch) when to retry the request. */
+        protected long retryTime;
+        /** This is the time (in milliseconds since epoch) to FAIL if no successful read has yet occurred. */
+        protected long failTime;
+        /** This is the number of retries to permit before FAIL. -1 means infinite. */
+        protected int failRetryCount;
+        /** Should we abort the process if failure condition has been reached? */
+        protected boolean abortOnFail;
 
-	/** Constructor.
-	*@param message is the exact error condition.
-	*@param retryTime is the time to retry.
-	*/
-	public ServiceInterruption(String message, long retryTime)
-	{
-		super(message);
-		this.retryTime = retryTime;
-		this.failTime = -1L;
-		this.failRetryCount = -1;
-		this.abortOnFail = true;
-	}
+        /** Constructor.
+        *@param message is the exact error condition.
+        *@param retryTime is the time to retry.
+        */
+        public ServiceInterruption(String message, long retryTime)
+        {
+                super(message);
+                this.retryTime = retryTime;
+                this.failTime = -1L;
+                this.failRetryCount = -1;
+                this.abortOnFail = true;
+        }
 
-	/** Constructor.
-	*@param message is the exact error condition.
-	*@param failureCause is an exception that should be reported if it is decided to abort the process.
-	*@param retryTime is the time to retry.
-	*@param failTime is the time to fail.
-	*@param failRetryCount is the number of times to retry before declaring failure.
-	*@param abortOnFail signals what to do if failure.  Setting this to "true" will cause whatever process incurred the
-	* service interruption to stop immediately, if failure condition has been reached.
-	*/
-	public ServiceInterruption(String message, Throwable failureCause, long retryTime, long failTime, int failRetryCount,
-		boolean abortOnFail)
-	{
-		super(message,failureCause);
-		this.retryTime = retryTime;
-		this.failTime = failTime;
-		this.failRetryCount = failRetryCount;
-		this.abortOnFail = abortOnFail;
-	}
+        /** Constructor.
+        *@param message is the exact error condition.
+        *@param failureCause is an exception that should be reported if it is decided to abort the process.
+        *@param retryTime is the time to retry.
+        *@param failTime is the time to fail.
+        *@param failRetryCount is the number of times to retry before declaring failure.
+        *@param abortOnFail signals what to do if failure.  Setting this to "true" will cause whatever process incurred the
+        * service interruption to stop immediately, if failure condition has been reached.
+        */
+        public ServiceInterruption(String message, Throwable failureCause, long retryTime, long failTime, int failRetryCount,
+                boolean abortOnFail)
+        {
+                super(message,failureCause);
+                this.retryTime = retryTime;
+                this.failTime = failTime;
+                this.failRetryCount = failRetryCount;
+                this.abortOnFail = abortOnFail;
+        }
 
-	/** Get the retry time.
-	*@return the retry time.
-	*/
-	public long getRetryTime()
-	{
-		return retryTime;
-	}
+        /** Get the retry time.
+        *@return the retry time.
+        */
+        public long getRetryTime()
+        {
+                return retryTime;
+        }
 
-	/** Get the fail time.
-	*@return the fail time.  Returns -1L if there is no fail time.
-	*/
-	public long getFailTime()
-	{
-		return failTime;
-	}
+        /** Get the fail time.
+        *@return the fail time.  Returns -1L if there is no fail time.
+        */
+        public long getFailTime()
+        {
+                return failTime;
+        }
 
-	/** Get the number of error iterations needed before failure should be declared.
-	*@return the count, -1 if infinite.
-	*/
-	public int getFailRetryCount()
-	{
-		return failRetryCount;
-	}
+        /** Get the number of error iterations needed before failure should be declared.
+        *@return the count, -1 if infinite.
+        */
+        public int getFailRetryCount()
+        {
+                return failRetryCount;
+        }
 
-	/** On failure, should we abort?
-	*@return true if abort is requested when failure is declared.
-	*/
-	public boolean isAbortOnFail()
-	{
-		return abortOnFail;
-	}
+        /** On failure, should we abort?
+        *@return true if abort is requested when failure is declared.
+        */
+        public boolean isAbortOnFail()
+        {
+                return abortOnFail;
+        }
 
 }

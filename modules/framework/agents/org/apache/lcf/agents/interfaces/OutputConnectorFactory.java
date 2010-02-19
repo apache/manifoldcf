@@ -367,7 +367,7 @@ public class OutputConnectorFactory
                 
                 // synchronized (checkedOutConnectors)
                 // {
-                // 	checkedOutConnectors.remove(connector.toString());
+                //      checkedOutConnectors.remove(connector.toString());
                 // }
 
         }

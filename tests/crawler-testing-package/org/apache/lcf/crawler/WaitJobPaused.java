@@ -28,46 +28,46 @@ import java.util.*;
 */
 public class WaitJobPaused
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private WaitJobPaused()
-	{
-	}
+        private WaitJobPaused()
+        {
+        }
 
-	// Add: throttle, priority, recrawl interval
+        // Add: throttle, priority, recrawl interval
 
-	public static void main(String[] args)
-	{
-		if (args.length != 1)
-		{
-			System.err.println("Usage: WaitJobPaused <jobid>");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 1)
+                {
+                        System.err.println("Usage: WaitJobPaused <jobid>");
+                        System.exit(1);
+                }
 
-		String jobID = args[0];
+                String jobID = args[0];
 
 
-		try
-		{
-		        LCF.initializeEnvironment();
-			IThreadContext tc = ThreadContextFactory.make();
-			IJobManager jobManager = JobManagerFactory.make(tc);
-			while (true)
-			{
-				if (jobManager.checkJobBusy(new Long(jobID)))
-				{
-					LCF.sleep(5000);
-					continue;
-				}
-				break;
-			}
-			System.err.println("Job no longer busy");
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			System.exit(2);
-		}
-	}
-		
+                try
+                {
+                        LCF.initializeEnvironment();
+                        IThreadContext tc = ThreadContextFactory.make();
+                        IJobManager jobManager = JobManagerFactory.make(tc);
+                        while (true)
+                        {
+                                if (jobManager.checkJobBusy(new Long(jobID)))
+                                {
+                                        LCF.sleep(5000);
+                                        continue;
+                                }
+                                break;
+                        }
+                        System.err.println("Job no longer busy");
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace();
+                        System.exit(2);
+                }
+        }
+                
 }

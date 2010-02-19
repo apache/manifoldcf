@@ -19,10 +19,10 @@ package org.apache.lcf.crawler.connectors.meridio;
 
 public class MeridioClassContents 
 {
-	public static final int FOLDER = 0;
-	public static final int CLASS = 1; 
-	
-	public int classOrFolderId;
-	public String classOrFolderName;
-	public int containerType;
+        public static final int FOLDER = 0;
+        public static final int CLASS = 1; 
+        
+        public int classOrFolderId;
+        public String classOrFolderName;
+        public int containerType;
 }

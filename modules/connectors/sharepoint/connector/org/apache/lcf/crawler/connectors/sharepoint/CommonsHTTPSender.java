@@ -103,70 +103,70 @@ public class CommonsHTTPSender extends BasicHandler {
 
     protected void initialize() {
         this.clientProperties = CommonsHTTPClientPropertiesFactory.create();
-	synchronized (lockObject)
-	{
-		if (connectionManager == null)
-		{
-		        MultiThreadedHttpConnectionManager cm = new MultiThreadedHttpConnectionManager();
-			// I don't know where CommonsHTTPClientPropertiesFactory.create() gets its parameters, but it was too small
-			// by default.  Since we control
-			// the pool sizes at a higher level, these should be pretty much wide open at this level
-		        //cm.getParams().setDefaultMaxConnectionsPerHost(clientProperties.getMaximumConnectionsPerHost());
-		        //cm.getParams().setMaxTotalConnections(clientProperties.getMaximumTotalConnections());
-		        cm.getParams().setDefaultMaxConnectionsPerHost(1000);
-		        cm.getParams().setMaxTotalConnections(1000);
-		        // If defined, set the default timeouts
-		        // Can be overridden by the MessageContext
-		        if(this.clientProperties.getDefaultConnectionTimeout()>0) {
-		           cm.getParams().setConnectionTimeout(this.clientProperties.getDefaultConnectionTimeout());
-		        }
-		        if(this.clientProperties.getDefaultSoTimeout()>0) {
-		           cm.getParams().setSoTimeout(this.clientProperties.getDefaultSoTimeout());
-		        }
-		        connectionManager = cm;
-		}
-	}
+        synchronized (lockObject)
+        {
+                if (connectionManager == null)
+                {
+                        MultiThreadedHttpConnectionManager cm = new MultiThreadedHttpConnectionManager();
+                        // I don't know where CommonsHTTPClientPropertiesFactory.create() gets its parameters, but it was too small
+                        // by default.  Since we control
+                        // the pool sizes at a higher level, these should be pretty much wide open at this level
+                        //cm.getParams().setDefaultMaxConnectionsPerHost(clientProperties.getMaximumConnectionsPerHost());
+                        //cm.getParams().setMaxTotalConnections(clientProperties.getMaximumTotalConnections());
+                        cm.getParams().setDefaultMaxConnectionsPerHost(1000);
+                        cm.getParams().setMaxTotalConnections(1000);
+                        // If defined, set the default timeouts
+                        // Can be overridden by the MessageContext
+                        if(this.clientProperties.getDefaultConnectionTimeout()>0) {
+                           cm.getParams().setConnectionTimeout(this.clientProperties.getDefaultConnectionTimeout());
+                        }
+                        if(this.clientProperties.getDefaultSoTimeout()>0) {
+                           cm.getParams().setSoTimeout(this.clientProperties.getDefaultSoTimeout());
+                        }
+                        connectionManager = cm;
+                }
+        }
     }
 
     protected static class ExecuteMethodThread extends Thread
     {
-	protected HttpClient client;
-	protected HostConfiguration hostConfiguration;
-	protected HttpMethodBase executeMethod;
-	protected Throwable exception = null;
-	protected int rval = 0;
+        protected HttpClient client;
+        protected HostConfiguration hostConfiguration;
+        protected HttpMethodBase executeMethod;
+        protected Throwable exception = null;
+        protected int rval = 0;
 
-	public ExecuteMethodThread(HttpClient client, HostConfiguration hostConfiguration, HttpMethodBase executeMethod)
-	{
-		super();
-		setDaemon(true);
-		this.client = client;
-		this.hostConfiguration = hostConfiguration;
-		this.executeMethod = executeMethod;
-	}
-			
-	public void run()
-	{
-		try
-		{
-			// Call the execute method appropriately
-			rval = client.executeMethod(hostConfiguration,executeMethod,null);
-		}
-		catch (Throwable e)
-		{
-			this.exception = e;
-		}
-	}
-			
-	public Throwable getException()
-	{
-		return exception;
-	}
-			
-	public int getResponse()
-	{
-		return rval;
-	}
+        public ExecuteMethodThread(HttpClient client, HostConfiguration hostConfiguration, HttpMethodBase executeMethod)
+        {
+                super();
+                setDaemon(true);
+                this.client = client;
+                this.hostConfiguration = hostConfiguration;
+                this.executeMethod = executeMethod;
+        }
+                        
+        public void run()
+        {
+                try
+                {
+                        // Call the execute method appropriately
+                        rval = client.executeMethod(hostConfiguration,executeMethod,null);
+                }
+                catch (Throwable e)
+                {
+                        this.exception = e;
+                }
+        }
+                        
+        public Throwable getException()
+        {
+                return exception;
+        }
+                        
+        public int getResponse()
+        {
+                return rval;
+        }
     }
 
     /**
@@ -187,7 +187,7 @@ public class CommonsHTTPSender extends BasicHandler {
             URL targetURL =
                 new URL(msgContext.getStrProp(MessageContext.TRANS_URL));
 
-	    ProtocolFactory myFactory = (ProtocolFactory)msgContext.getProperty(SPSProxyHelper.PROTOCOL_FACTORY_PROPERTY);
+            ProtocolFactory myFactory = (ProtocolFactory)msgContext.getProperty(SPSProxyHelper.PROTOCOL_FACTORY_PROPERTY);
             // Allow caller to override the connection manager that we use.
             HttpConnectionManager localConnectionManager = (HttpConnectionManager)msgContext.getProperty(SPSProxyHelper.CONNECTION_MANAGER_PROPERTY);
             if (localConnectionManager == null)
@@ -200,11 +200,11 @@ public class CommonsHTTPSender extends BasicHandler {
             HttpClient httpClient = new HttpClient(localConnectionManager);
             // the timeout value for allocation of connections from the pool
             httpClient.getParams().setConnectionManagerTimeout(this.clientProperties.getConnectionPoolTimeout());
-	    // Set our protocol factory, in case there's a redirect
-	    if (myFactory != null)
-		httpClient.getParams().setParameter(org.apache.commons.httpclient.params.HttpClientParams.PROTOCOL_FACTORY,myFactory);
-	    // Allow circular redirections
-	    httpClient.getParams().setParameter(org.apache.commons.httpclient.params.HttpClientParams.ALLOW_CIRCULAR_REDIRECTS,new Boolean(true));
+            // Set our protocol factory, in case there's a redirect
+            if (myFactory != null)
+                httpClient.getParams().setParameter(org.apache.commons.httpclient.params.HttpClientParams.PROTOCOL_FACTORY,myFactory);
+            // Allow circular redirections
+            httpClient.getParams().setParameter(org.apache.commons.httpclient.params.HttpClientParams.ALLOW_CIRCULAR_REDIRECTS,new Boolean(true));
 
             HostConfiguration hostConfiguration = 
                 getHostConfiguration(httpClient, msgContext, targetURL, myFactory);
@@ -220,16 +220,16 @@ public class CommonsHTTPSender extends BasicHandler {
                 }
             }
 
-	    // Since the host configuration contains the host/port/protocol, we don't want to
-	    // have it overwritten.  So, we need the relative url.
-	    String relativeTargetURL = targetURL.toString();
-	    int slashindex = relativeTargetURL.indexOf("/");
-	    if (slashindex != 0 && slashindex != -1)
-	    {
-		slashindex = relativeTargetURL.indexOf("/",slashindex + 2);
-		if (slashindex != -1)
-			relativeTargetURL = relativeTargetURL.substring(slashindex);
-	    }
+            // Since the host configuration contains the host/port/protocol, we don't want to
+            // have it overwritten.  So, we need the relative url.
+            String relativeTargetURL = targetURL.toString();
+            int slashindex = relativeTargetURL.indexOf("/");
+            if (slashindex != 0 && slashindex != -1)
+            {
+                slashindex = relativeTargetURL.indexOf("/",slashindex + 2);
+                if (slashindex != -1)
+                        relativeTargetURL = relativeTargetURL.substring(slashindex);
+            }
 
             if (posting) {
                 method = new PostMethod(relativeTargetURL);
@@ -238,15 +238,15 @@ public class CommonsHTTPSender extends BasicHandler {
             }
 
 
-	    // The variable 'releaseMethod' is null if we no longer have to release the connection into the pool
-	    // on exit from this section.  Otherwise it remains set to the method, so that all exceptions cause
-	    // the release to occur.
-	    HttpMethodBase releaseMethod = method;
-	    try
-	    {
-		// This stuff all needs to be inside the try above
-	        if (posting)
-	        {
+            // The variable 'releaseMethod' is null if we no longer have to release the connection into the pool
+            // on exit from this section.  Otherwise it remains set to the method, so that all exceptions cause
+            // the release to occur.
+            HttpMethodBase releaseMethod = method;
+            try
+            {
+                // This stuff all needs to be inside the try above
+                if (posting)
+                {
                     Message reqMessage = msgContext.getRequestMessage();
 
                     // set false as default, addContetInfo can overwrite
@@ -257,14 +257,14 @@ public class CommonsHTTPSender extends BasicHandler {
 
                     MessageRequestEntity requestEntity = null;
                     if (msgContext.isPropertyTrue(HTTPConstants.MC_GZIP_REQUEST)) {
-                	requestEntity = new GzipMessageRequestEntity(method, reqMessage, httpChunkStream);
+                        requestEntity = new GzipMessageRequestEntity(method, reqMessage, httpChunkStream);
                     } else {
-                	requestEntity = new MessageRequestEntity(method, reqMessage, httpChunkStream);
+                        requestEntity = new MessageRequestEntity(method, reqMessage, httpChunkStream);
                     }
                     ((PostMethod)method).setRequestEntity(requestEntity);
                 }
-	        else
-	        {
+                else
+                {
                     addContextInfo(method, httpClient, msgContext, targetURL);
                 }
 
@@ -290,30 +290,30 @@ public class CommonsHTTPSender extends BasicHandler {
                     httpClient.setState(state);
                 }
 
-		int returnCode;
-		
-		ExecuteMethodThread t = new ExecuteMethodThread(httpClient,hostConfiguration,method);
-		try
-		{
-			t.start();
-			t.join();
-			Throwable thr = t.getException();
-			if (thr != null)
-			{
-				if (thr instanceof Exception)
-					throw (Exception)thr;
-				else
-					throw (Error)thr;
-			}
-			returnCode = t.getResponse();
-		}
-		catch (InterruptedException e)
-		{
-			t.interrupt();
-			// We need the caller to abandon any connections left around, so rethrow in a way that forces them to process the event properly.
-			releaseMethod = null;
-			throw e;
-		}
+                int returnCode;
+                
+                ExecuteMethodThread t = new ExecuteMethodThread(httpClient,hostConfiguration,method);
+                try
+                {
+                        t.start();
+                        t.join();
+                        Throwable thr = t.getException();
+                        if (thr != null)
+                        {
+                                if (thr instanceof Exception)
+                                        throw (Exception)thr;
+                                else
+                                        throw (Error)thr;
+                        }
+                        returnCode = t.getResponse();
+                }
+                catch (InterruptedException e)
+                {
+                        t.interrupt();
+                        // We need the caller to abandon any connections left around, so rethrow in a way that forces them to process the event properly.
+                        releaseMethod = null;
+                        throw e;
+                }
 
                 String contentType = 
                     getHeader(method, HTTPConstants.HEADER_CONTENT_TYPE);
@@ -353,28 +353,28 @@ public class CommonsHTTPSender extends BasicHandler {
                 // the connection back to the pool.
                 InputStream releaseConnectionOnCloseStream = 
                     createConnectionReleasingInputStream(method);
-		// If something goes wrong after this point and before this is safely
-		// saved in the msg, we'll have a dangling stream, so we need a 
-		// try/catch to guarantee that it doesn't hang around.
-		InputStream streamToClose = releaseConnectionOnCloseStream;
-		try
-		{
+                // If something goes wrong after this point and before this is safely
+                // saved in the msg, we'll have a dangling stream, so we need a 
+                // try/catch to guarantee that it doesn't hang around.
+                InputStream streamToClose = releaseConnectionOnCloseStream;
+                try
+                {
                     Header contentEncoding = 
-            	        method.getResponseHeader(HTTPConstants.HEADER_CONTENT_ENCODING);
+                        method.getResponseHeader(HTTPConstants.HEADER_CONTENT_ENCODING);
                     if (contentEncoding != null) {
-            	        if (contentEncoding.getValue().
-            			equalsIgnoreCase(HTTPConstants.COMPRESSION_GZIP)) {
-            		    releaseConnectionOnCloseStream = 
-            			new GZIPInputStream(releaseConnectionOnCloseStream);
-			    streamToClose = releaseConnectionOnCloseStream;
-            	        } else {
+                        if (contentEncoding.getValue().
+                                equalsIgnoreCase(HTTPConstants.COMPRESSION_GZIP)) {
+                            releaseConnectionOnCloseStream = 
+                                new GZIPInputStream(releaseConnectionOnCloseStream);
+                            streamToClose = releaseConnectionOnCloseStream;
+                        } else {
                             AxisFault fault = new AxisFault("HTTP",
                                 "unsupported content-encoding of '" 
-                    		+ contentEncoding.getValue()
+                                + contentEncoding.getValue()
                                 + "' found", null, null);
                             throw fault;
-            	        }
-            		
+                        }
+                        
                     }
                     Message outMsg = new Message(releaseConnectionOnCloseStream,
                                          false, contentType, contentLocation);
@@ -387,12 +387,12 @@ public class CommonsHTTPSender extends BasicHandler {
                                               responseHeader.getValue());
                     }
                     outMsg.setMessageType(Message.RESPONSE);
-		    // It's definitely not safe to not release the connection back to the pool until after the
-		    // successful execution of the following line (which, presumably, registers the
-		    // message in the msgcontext, where it will be closed if something goes wrong)
+                    // It's definitely not safe to not release the connection back to the pool until after the
+                    // successful execution of the following line (which, presumably, registers the
+                    // message in the msgcontext, where it will be closed if something goes wrong)
                     msgContext.setResponseMessage(outMsg);
-		    releaseMethod = null;
-		    streamToClose = null;
+                    releaseMethod = null;
+                    streamToClose = null;
                     if (log.isDebugEnabled()) {
                         if (null == contentLength) {
                             log.debug("\n"
@@ -421,24 +421,24 @@ public class CommonsHTTPSender extends BasicHandler {
                     // it was one way invocation
                     if (msgContext.isPropertyTrue("axis.one.way")) {
                         method.releaseConnection();
-		        releaseMethod = null;
+                        releaseMethod = null;
                     }
-		}
-		finally
-		{
-			if (streamToClose != null)
-			{
-				streamToClose.close();
-				releaseMethod = null;
-			}
-		}
+                }
+                finally
+                {
+                        if (streamToClose != null)
+                        {
+                                streamToClose.close();
+                                releaseMethod = null;
+                        }
+                }
             
-	    }
-	    finally
-	    {
-		if (releaseMethod != null)
-			releaseMethod.releaseConnection();
-	    }
+            }
+            finally
+            {
+                if (releaseMethod != null)
+                        releaseMethod.releaseConnection();
+            }
         } catch (Exception e) {
                 log.debug(e);
                 throw AxisFault.makeFault(e);
@@ -481,9 +481,9 @@ public class CommonsHTTPSender extends BasicHandler {
                     cookies.add(anOldCookie);
                 }
             } else {
-				String oldCookie = (String)oldCookies;
+                                String oldCookie = (String)oldCookies;
                 if (key != null && oldCookie.indexOf(key) == 0) { // same cookie key
-					oldCookie = cookie;             // update to new one
+                                        oldCookie = cookie;             // update to new one
                     alreadyExist = true;
                 }
                 cookies.add(oldCookie);
@@ -557,8 +557,8 @@ public class CommonsHTTPSender extends BasicHandler {
     protected HostConfiguration getHostConfiguration(HttpClient client, 
                                                      MessageContext context,
                                                      URL targetURL,
-						     ProtocolFactory myFactory) {
-							     
+                                                     ProtocolFactory myFactory) {
+                                                             
 
         TransportClientProperties tcp = 
             TransportClientPropertiesFactory.create(targetURL.getProtocol()); // http or https
@@ -569,25 +569,25 @@ public class CommonsHTTPSender extends BasicHandler {
         HostConfiguration config = new HostConfiguration();
         
         if (port == -1) {
-        	if(targetURL.getProtocol().equalsIgnoreCase("https")) {
-        		port = 443;		// default port for https being 443
-        	} else { // it must be http
-        		port = 80;		// default port for http being 80
-        	}
+                if(targetURL.getProtocol().equalsIgnoreCase("https")) {
+                        port = 443;             // default port for https being 443
+                } else { // it must be http
+                        port = 80;              // default port for http being 80
+                }
         }
         
         if(hostInNonProxyList){
-	    if (myFactory != null)
-		config.setHost(targetURL.getHost(), port, myFactory.getProtocol(targetURL.getProtocol()));
-	    else
-		config.setHost(targetURL.getHost(), port, Protocol.getProtocol(targetURL.getProtocol()));
+            if (myFactory != null)
+                config.setHost(targetURL.getHost(), port, myFactory.getProtocol(targetURL.getProtocol()));
+            else
+                config.setHost(targetURL.getHost(), port, Protocol.getProtocol(targetURL.getProtocol()));
         } else {
             if (tcp.getProxyHost().length() == 0 ||
                 tcp.getProxyPort().length() == 0) {
-		if (myFactory != null)
-			config.setHost(targetURL.getHost(), port, myFactory.getProtocol(targetURL.getProtocol()));
-		else
-			config.setHost(targetURL.getHost(), port, Protocol.getProtocol(targetURL.getProtocol()));
+                if (myFactory != null)
+                        config.setHost(targetURL.getHost(), port, myFactory.getProtocol(targetURL.getProtocol()));
+                else
+                        config.setHost(targetURL.getHost(), port, Protocol.getProtocol(targetURL.getProtocol()));
             } else {
                 if (tcp.getProxyUser().length() != 0) {
                     Credentials proxyCred = 
@@ -638,7 +638,7 @@ public class CommonsHTTPSender extends BasicHandler {
             httpClient.getHttpConnectionManager().getParams().setSoTimeout(msgContext.getTimeout());
             // timeout for initial connection
             // We don't set this because there's currently no good way to handle it in the SSL world
-	    //httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(msgContext.getTimeout());
+            //httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(msgContext.getTimeout());
         }
         
         // Get SOAPAction, default to ""
@@ -695,12 +695,12 @@ public class CommonsHTTPSender extends BasicHandler {
         
         // add compression headers if needed
         if (msgContext.isPropertyTrue(HTTPConstants.MC_ACCEPT_GZIP)) {
-        	method.addRequestHeader(HTTPConstants.HEADER_ACCEPT_ENCODING, 
-        			HTTPConstants.COMPRESSION_GZIP);
+                method.addRequestHeader(HTTPConstants.HEADER_ACCEPT_ENCODING, 
+                                HTTPConstants.COMPRESSION_GZIP);
         }
         if (msgContext.isPropertyTrue(HTTPConstants.MC_GZIP_REQUEST)) {
-        	method.addRequestHeader(HTTPConstants.HEADER_CONTENT_ENCODING, 
-        			HTTPConstants.COMPRESSION_GZIP);
+                method.addRequestHeader(HTTPConstants.HEADER_CONTENT_ENCODING, 
+                                HTTPConstants.COMPRESSION_GZIP);
         }
         
         // Transfer MIME headers of SOAPMessage to HTTP headers. 
@@ -998,7 +998,7 @@ public class CommonsHTTPSender extends BasicHandler {
         }
 
         protected boolean isContentLengthNeeded() {
-        	return this.method.getParams().getVersion() == HttpVersion.HTTP_1_0 || !httpChunkStream;
+                return this.method.getParams().getVersion() == HttpVersion.HTTP_1_0 || !httpChunkStream;
         }
         
         public long getContentLength() {
@@ -1019,52 +1019,52 @@ public class CommonsHTTPSender extends BasicHandler {
     
     private static class GzipMessageRequestEntity extends MessageRequestEntity {
 
-    	public GzipMessageRequestEntity(HttpMethodBase method, Message message) {
-    		super(method, message);
+        public GzipMessageRequestEntity(HttpMethodBase method, Message message) {
+                super(method, message);
         }
 
         public GzipMessageRequestEntity(HttpMethodBase method, Message message, boolean httpChunkStream) {
-        	super(method, message, httpChunkStream);
+                super(method, message, httpChunkStream);
         }
         
         public void writeRequest(OutputStream out) throws IOException {
-        	if (cachedStream != null) {
-        		cachedStream.writeTo(out);
-        	} else {
-        		GZIPOutputStream gzStream = new GZIPOutputStream(out);
-        		super.writeRequest(gzStream);
-        		gzStream.finish();
-        	}
+                if (cachedStream != null) {
+                        cachedStream.writeTo(out);
+                } else {
+                        GZIPOutputStream gzStream = new GZIPOutputStream(out);
+                        super.writeRequest(gzStream);
+                        gzStream.finish();
+                }
         }
         
         public long getContentLength() {
-        	if(isContentLengthNeeded()) {
-        		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        		try {
-        			writeRequest(baos);
-        			cachedStream = baos;
-        			return baos.size();
-        		}
-			catch (java.net.SocketTimeoutException e)
-			{
-        			// fall through to doing chunked.
-			}
-			catch (org.apache.commons.httpclient.ConnectTimeoutException e)
-			{
-        			// fall through to doing chunked.
-			}
-			catch (InterruptedIOException e)
-			{
-				// The thread was interrupted; preserve its interrupted status
-				Thread.currentThread().interrupt();
-				// fall through to doing chunked.
-			}
-			catch (IOException e)
-			{
-        			// fall through to doing chunked.
-        		}
-        	}
-        	return -1; // do chunked 
+                if(isContentLengthNeeded()) {
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        try {
+                                writeRequest(baos);
+                                cachedStream = baos;
+                                return baos.size();
+                        }
+                        catch (java.net.SocketTimeoutException e)
+                        {
+                                // fall through to doing chunked.
+                        }
+                        catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+                        {
+                                // fall through to doing chunked.
+                        }
+                        catch (InterruptedIOException e)
+                        {
+                                // The thread was interrupted; preserve its interrupted status
+                                Thread.currentThread().interrupt();
+                                // fall through to doing chunked.
+                        }
+                        catch (IOException e)
+                        {
+                                // fall through to doing chunked.
+                        }
+                }
+                return -1; // do chunked 
         }
         
         private ByteArrayOutputStream cachedStream;

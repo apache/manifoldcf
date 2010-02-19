@@ -29,64 +29,64 @@ import org.apache.lcf.crawler.system.LCF;
 */
 public class GetConnectionInfo
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private GetConnectionInfo()
-	{
-	}
+        private GetConnectionInfo()
+        {
+        }
 
-	public static void main(String[] args)
-	{
-		if (args.length != 1)
-		{
-			System.err.println("Usage: GetConnectionInfo <connection_name>");
-			System.err.println("");
-			System.err.println("The result will be printed to standard out, in UTF-8 encoding, and will contain the following columns:");
-			System.err.println("    livelink_server");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 1)
+                {
+                        System.err.println("Usage: GetConnectionInfo <connection_name>");
+                        System.err.println("");
+                        System.err.println("The result will be printed to standard out, in UTF-8 encoding, and will contain the following columns:");
+                        System.err.println("    livelink_server");
+                        System.exit(1);
+                }
 
-		String connectionName = args[0];
-		
-		try
-		{
-		        LCF.initializeEnvironment();
-			IThreadContext tc = ThreadContextFactory.make();
-			IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
-			IRepositoryConnection connection = connectionManager.load(connectionName);
-			if (connection == null)
-				throw new LCFException("Connection "+connectionName+" does not exist");
-			
-			if (connection.getClassName() == null || !connection.getClassName().equals("org.apache.lcf.crawler.connectors.livelink.LivelinkConnector"))
-				throw new LCFException("Command can only be used on working Livelink connections.");
+                String connectionName = args[0];
+                
+                try
+                {
+                        LCF.initializeEnvironment();
+                        IThreadContext tc = ThreadContextFactory.make();
+                        IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
+                        IRepositoryConnection connection = connectionManager.load(connectionName);
+                        if (connection == null)
+                                throw new LCFException("Connection "+connectionName+" does not exist");
+                        
+                        if (connection.getClassName() == null || !connection.getClassName().equals("org.apache.lcf.crawler.connectors.livelink.LivelinkConnector"))
+                                throw new LCFException("Command can only be used on working Livelink connections.");
 
-			ConfigParams cfg = connection.getConfigParams();
-			
-			UTF8Stdout.println(commaEscape(cfg.getParameter(LiveLinkParameters.serverName)));
-			
-			System.err.println("Connection info done");
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			System.exit(2);
-		}
+                        ConfigParams cfg = connection.getConfigParams();
+                        
+                        UTF8Stdout.println(commaEscape(cfg.getParameter(LiveLinkParameters.serverName)));
+                        
+                        System.err.println("Connection info done");
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace();
+                        System.exit(2);
+                }
 
-	}
-	
-	protected static String commaEscape(String input)
-	{
-		StringBuffer output = new StringBuffer();
-		int i = 0;
-		while (i < input.length())
-		{
-			char x = input.charAt(i++);
-			if (x == '\\' || x == ',')
-				output.append("\\");
-			output.append(x);
-		}
-		return output.toString();
-	}
+        }
+        
+        protected static String commaEscape(String input)
+        {
+                StringBuffer output = new StringBuffer();
+                int i = 0;
+                while (i < input.length())
+                {
+                        char x = input.charAt(i++);
+                        if (x == '\\' || x == ',')
+                                output.append("\\");
+                        output.append(x);
+                }
+                return output.toString();
+        }
 
 }
 

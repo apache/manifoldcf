@@ -22,39 +22,39 @@ import org.apache.lcf.core.interfaces.*;
 
 public class RemoveUserFromSite
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private RemoveUserFromSite()
-	{
-	}
+        private RemoveUserFromSite()
+        {
+        }
 
 
-	public static void main(String[] args)
-	{
-		if (args.length != 9)
-		{
-			System.err.println("Usage: RemoveUserFromLibrary <protocol> <servername> <port> <location> <username> <password> <domain> <site_url> <remove_user_alias>");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 9)
+                {
+                        System.err.println("Usage: RemoveUserFromLibrary <protocol> <servername> <port> <location> <username> <password> <domain> <site_url> <remove_user_alias>");
+                        System.exit(1);
+                }
 
-		try
-		{
-			FPSEPublish handle = new FPSEPublish(args[0],args[1],new Integer(args[2]).intValue(),args[3],args[4],args[5],args[6]);
-			try
-			{
-				handle.delSiteUser(args[7],args[8]);
-			}
-			finally
-			{
-				handle.close();
-			}
-			System.err.println("Successfully removed site user");
-		}
-		catch (LCFException e)
-		{
-			e.printStackTrace(System.err);
-			System.exit(2);
-		}
-	}
+                try
+                {
+                        FPSEPublish handle = new FPSEPublish(args[0],args[1],new Integer(args[2]).intValue(),args[3],args[4],args[5],args[6]);
+                        try
+                        {
+                                handle.delSiteUser(args[7],args[8]);
+                        }
+                        finally
+                        {
+                                handle.close();
+                        }
+                        System.err.println("Successfully removed site user");
+                }
+                catch (LCFException e)
+                {
+                        e.printStackTrace(System.err);
+                        System.exit(2);
+                }
+        }
 
 }

@@ -22,28 +22,28 @@ package org.apache.lcf.core.interfaces;
 */
 public class DBInterfaceFactory
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private final static String dbinterfaceInstancePrefix = "_DBInterface:";
+        private final static String dbinterfaceInstancePrefix = "_DBInterface:";
 
-	private DBInterfaceFactory()
-	{
-	}
+        private DBInterfaceFactory()
+        {
+        }
 
-	public static IDBInterface make(IThreadContext context, String databaseName, String userName, String password)
-		throws LCFException
-	{
-		String dbName = dbinterfaceInstancePrefix + databaseName;
-		Object x = context.get(dbName);
-		if (x == null || !(x instanceof IDBInterface))
-		{
-			// Create new database handle
-			// x = new org.apache.lcf.core.database.DBInterfaceMySQL(context,databaseName,userName,password);
-			x = new org.apache.lcf.core.database.DBInterfacePostgreSQL(context,databaseName,userName,password);
-			context.save(dbName,x);
-		}
-		return (IDBInterface)x;
+        public static IDBInterface make(IThreadContext context, String databaseName, String userName, String password)
+                throws LCFException
+        {
+                String dbName = dbinterfaceInstancePrefix + databaseName;
+                Object x = context.get(dbName);
+                if (x == null || !(x instanceof IDBInterface))
+                {
+                        // Create new database handle
+                        // x = new org.apache.lcf.core.database.DBInterfaceMySQL(context,databaseName,userName,password);
+                        x = new org.apache.lcf.core.database.DBInterfacePostgreSQL(context,databaseName,userName,password);
+                        context.save(dbName,x);
+                }
+                return (IDBInterface)x;
 
-	}
+        }
 
 }

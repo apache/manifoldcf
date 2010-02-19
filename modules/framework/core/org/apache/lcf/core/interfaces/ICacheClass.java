@@ -23,19 +23,19 @@ package org.apache.lcf.core.interfaces;
 */
 public interface ICacheClass
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	/** Get the name of the object class.
-	* This determines the set of objects that are treated in the same
-	* LRU pool.
-	*@return the class name.
-	*/
-	public String getClassName();
+        /** Get the name of the object class.
+        * This determines the set of objects that are treated in the same
+        * LRU pool.
+        *@return the class name.
+        */
+        public String getClassName();
 
-	/** Get the maximum LRU count of the object class.
-	*@return the maximum number of the objects of the particular class
-	* allowed.
-	*/
-	public int getMaxLRUCount();
+        /** Get the maximum LRU count of the object class.
+        *@return the maximum number of the objects of the particular class
+        * allowed.
+        */
+        public int getMaxLRUCount();
 }
 

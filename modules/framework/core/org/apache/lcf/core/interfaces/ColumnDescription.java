@@ -22,65 +22,65 @@ package org.apache.lcf.core.interfaces;
 */
 public class ColumnDescription
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	protected String typeString;
-	protected boolean isPrimaryKey;
-	protected boolean isNull;
-	protected String referenceTable;
-	protected String referenceColumn;
-	protected boolean referenceCascade;
+        protected String typeString;
+        protected boolean isPrimaryKey;
+        protected boolean isNull;
+        protected String referenceTable;
+        protected String referenceColumn;
+        protected boolean referenceCascade;
 
-	/** Create a column type description.
-	* Use the output of this method in the columnMap with performCreate().
-	*@param typeString is a type specification
-	*@param isPrimaryKey describes whether the column is a primary key
-	*@param isNull describes whether the column is nullable
-	*@param referenceTable describes the reference table, if any.
-	*@param referenceCascade is true if deletes should be cascaded.
-	*returns a column description object.
-	*/
-	public ColumnDescription(String typeString, boolean isPrimaryKey,
-		boolean isNull, String referenceTable, String referenceColumn,
-		boolean referenceCascade)
-	{
-		this.typeString = typeString;
-		this.isPrimaryKey = isPrimaryKey;
-		this.isNull = isNull;
-		this.referenceTable = referenceTable;
-		this.referenceColumn = referenceColumn;
-		this.referenceCascade = referenceCascade;
-	}
+        /** Create a column type description.
+        * Use the output of this method in the columnMap with performCreate().
+        *@param typeString is a type specification
+        *@param isPrimaryKey describes whether the column is a primary key
+        *@param isNull describes whether the column is nullable
+        *@param referenceTable describes the reference table, if any.
+        *@param referenceCascade is true if deletes should be cascaded.
+        *returns a column description object.
+        */
+        public ColumnDescription(String typeString, boolean isPrimaryKey,
+                boolean isNull, String referenceTable, String referenceColumn,
+                boolean referenceCascade)
+        {
+                this.typeString = typeString;
+                this.isPrimaryKey = isPrimaryKey;
+                this.isNull = isNull;
+                this.referenceTable = referenceTable;
+                this.referenceColumn = referenceColumn;
+                this.referenceCascade = referenceCascade;
+        }
 
-	public String getTypeString()
-	{
-		return typeString;
-	}
+        public String getTypeString()
+        {
+                return typeString;
+        }
 
-	public boolean getIsPrimaryKey()
-	{
-		return isPrimaryKey;
-	}
+        public boolean getIsPrimaryKey()
+        {
+                return isPrimaryKey;
+        }
 
-	public boolean getIsNull()
-	{
-		return isNull;
-	}
+        public boolean getIsNull()
+        {
+                return isNull;
+        }
 
-	public String getReferenceTable()
-	{
-		return referenceTable;
-	}
+        public String getReferenceTable()
+        {
+                return referenceTable;
+        }
 
-	public String getReferenceColumn()
-	{
-		return referenceColumn;
-	}
+        public String getReferenceColumn()
+        {
+                return referenceColumn;
+        }
 
-	public boolean getReferenceCascade()
-	{
-		return referenceCascade;
-	}
+        public boolean getReferenceCascade()
+        {
+                return referenceCascade;
+        }
 
 }
 

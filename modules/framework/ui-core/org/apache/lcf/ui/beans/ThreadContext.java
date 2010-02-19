@@ -24,27 +24,27 @@ import org.apache.lcf.core.interfaces.*;
 */
 public class ThreadContext
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	/** thread context interface
-	 */
-	private IThreadContext itc;
+        /** thread context interface
+         */
+        private IThreadContext itc;
 
-	/** Constructor 
-	 */
-	public ThreadContext()
-	{
+        /** Constructor 
+         */
+        public ThreadContext()
+        {
 
-		itc = ThreadContextFactory.make();
-	}
+                itc = ThreadContextFactory.make();
+        }
 
-	/** Get the thread context.
-	*@return the context.
-	*/
-	public IThreadContext getThreadContext()
-	{
-		return itc;
-	}
+        /** Get the thread context.
+        *@return the context.
+        */
+        public IThreadContext getThreadContext()
+        {
+                return itc;
+        }
 }
 
 

@@ -25,42 +25,42 @@ import org.apache.lcf.agents.system.*;
 
 public class UnRegisterAll
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private UnRegisterAll()
-	{
-	}
-
-
-	public static void main(String[] args)
-	{
-		if (args.length > 0)
-		{
-			System.err.println("Usage: UnRegisterAll");
-			System.exit(1);
-		}
-
-		try
-		{
-			LCF.initializeEnvironment();
-			IThreadContext tc = ThreadContextFactory.make();
-			IAgentManager mgr = AgentManagerFactory.make(tc);
-			String[] classnames = mgr.getAllAgents();
-			int i = 0;
-			while (i < classnames.length)
-			{
-			    mgr.unregisterAgent(classnames[i++]);
-			}
-			System.err.println("Successfully unregistered all agents");
-		}
-		catch (LCFException e)
-		{
-			e.printStackTrace();
-			System.exit(1);
-		}
-	}
+        private UnRegisterAll()
+        {
+        }
 
 
+        public static void main(String[] args)
+        {
+                if (args.length > 0)
+                {
+                        System.err.println("Usage: UnRegisterAll");
+                        System.exit(1);
+                }
 
-		
+                try
+                {
+                        LCF.initializeEnvironment();
+                        IThreadContext tc = ThreadContextFactory.make();
+                        IAgentManager mgr = AgentManagerFactory.make(tc);
+                        String[] classnames = mgr.getAllAgents();
+                        int i = 0;
+                        while (i < classnames.length)
+                        {
+                            mgr.unregisterAgent(classnames[i++]);
+                        }
+                        System.err.println("Successfully unregistered all agents");
+                }
+                catch (LCFException e)
+                {
+                        e.printStackTrace();
+                        System.exit(1);
+                }
+        }
+
+
+
+                
 }

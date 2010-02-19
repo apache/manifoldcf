@@ -22,34 +22,34 @@ import org.apache.lcf.core.interfaces.*;
 
 public class AddDoc
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private AddDoc()
-	{
-	}
+        private AddDoc()
+        {
+        }
 
 
-	public static void main(String[] args)
-	{
-		if (args.length != 9)
-		{
-			System.err.println("Usage: AddDoc <wsiurl> <user> <password> <fndomain> <objectstore> <fnfolder> <fntitle> <docclass> <file_name>");
-			System.exit(1);
-		}
-		
-		try
-		{
-			FilenetAddRemove handle = new FilenetAddRemove(args[1],args[2],args[3],args[4],args[0]);
-			String idValue = handle.addDoc(args[5],args[6],args[8],args[7]);
-			System.err.println("Successfully added");
-			UTF8Stdout.print(idValue);
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace(System.err);
-			System.exit(2);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 9)
+                {
+                        System.err.println("Usage: AddDoc <wsiurl> <user> <password> <fndomain> <objectstore> <fnfolder> <fntitle> <docclass> <file_name>");
+                        System.exit(1);
+                }
+                
+                try
+                {
+                        FilenetAddRemove handle = new FilenetAddRemove(args[1],args[2],args[3],args[4],args[0]);
+                        String idValue = handle.addDoc(args[5],args[6],args[8],args[7]);
+                        System.err.println("Successfully added");
+                        UTF8Stdout.print(idValue);
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace(System.err);
+                        System.exit(2);
+                }
 
-	}
+        }
 
 }

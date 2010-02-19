@@ -29,17 +29,17 @@ public class FileSeedInfo implements java.io.Serializable
 
     public FileSeedInfo(String docId, int elementCount)
     {
-	this.docId = docId;
-	this.elementCount = elementCount;
+        this.docId = docId;
+        this.elementCount = elementCount;
     }
     
     public String getDocId()
     {
-	return docId;
+        return docId;
     }
     
     public int getElementCount()
     {
-	return elementCount;
+        return elementCount;
     }
 }

@@ -28,37 +28,37 @@ package org.apache.lcf.core.interfaces;
 */
 public interface ICacheDescription
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	/** Get the cache keys for an object (which may or may not exist yet in
-	* the cache).  This method is called in order for cache manager to throw the correct locks.
-	* @return the object's cache keys, or null if the object should not
-	* be cached.
-	*/
-	public StringSet getObjectKeys();
+        /** Get the cache keys for an object (which may or may not exist yet in
+        * the cache).  This method is called in order for cache manager to throw the correct locks.
+        * @return the object's cache keys, or null if the object should not
+        * be cached.
+        */
+        public StringSet getObjectKeys();
 
-	/** Get the critical section name for this description object.
-	* This is used to synchronize creation of the described object,
-	* and thus is used only for objects that will be cached.  This
-	* method does not need to return decent results for objects that
-	* are never cached.
-	*@return the critical section name.
-	*/
-	public String getCriticalSectionName();
+        /** Get the critical section name for this description object.
+        * This is used to synchronize creation of the described object,
+        * and thus is used only for objects that will be cached.  This
+        * method does not need to return decent results for objects that
+        * are never cached.
+        *@return the critical section name.
+        */
+        public String getCriticalSectionName();
 
-	/** Get the object class for an object.  The object class is used to determine
-	* the group of objects treated in the same LRU manner.
-	* @return the newly created object's object class, or null if there is no
-	* such class, and LRU behavior is not desired.
-	*/
-	public ICacheClass getObjectClass();
+        /** Get the object class for an object.  The object class is used to determine
+        * the group of objects treated in the same LRU manner.
+        * @return the newly created object's object class, or null if there is no
+        * such class, and LRU behavior is not desired.
+        */
+        public ICacheClass getObjectClass();
 
-	/** Obtain an expiration time for an object, in milliseconds since epoch.
-	* The cache manager will call this method for all objects that are being operated on,
-	* so that their expiration timestamps get properly updated to a new time.
-	* @return a time in milliseconds since epoch for the object to expire, or -1 if there is no expiration
-	* desired.
-	*/
-	public long getObjectExpirationTime();
+        /** Obtain an expiration time for an object, in milliseconds since epoch.
+        * The cache manager will call this method for all objects that are being operated on,
+        * so that their expiration timestamps get properly updated to a new time.
+        * @return a time in milliseconds since epoch for the object to expire, or -1 if there is no expiration
+        * desired.
+        */
+        public long getObjectExpirationTime();
 
 }

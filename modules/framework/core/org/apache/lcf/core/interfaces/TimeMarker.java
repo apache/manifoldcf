@@ -22,20 +22,20 @@ package org.apache.lcf.core.interfaces;
 */
 public class TimeMarker
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	long timeValue;
+        long timeValue;
 
-	/** Constructor.
-	*@param timeValue is the time value.
-	*/
-	public TimeMarker(long timeValue)
-	{
-		this.timeValue = timeValue;
-	}
+        /** Constructor.
+        *@param timeValue is the time value.
+        */
+        public TimeMarker(long timeValue)
+        {
+                this.timeValue = timeValue;
+        }
 
-	public long longValue()
-	{
-		return timeValue;
-	}
+        public long longValue()
+        {
+                return timeValue;
+        }
 }

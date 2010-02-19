@@ -22,11 +22,11 @@ package org.apache.lcf.crawler.connectors.webcrawler;
 */
 public interface AuthenticationCredentials
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	/** Compare against another object */
-	public boolean equals(Object o);
-	
-	/** Calculate a hash function */
-	public int hashCode();
+        /** Compare against another object */
+        public boolean equals(Object o);
+        
+        /** Calculate a hash function */
+        public int hashCode();
 }

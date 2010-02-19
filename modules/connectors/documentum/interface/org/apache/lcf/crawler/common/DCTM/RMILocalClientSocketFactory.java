@@ -27,33 +27,33 @@ import java.io.IOException;
 */
 public class RMILocalClientSocketFactory implements RMIClientSocketFactory, java.io.Serializable
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	/** Constructor */
-	public RMILocalClientSocketFactory()
-	{
-	}
+        /** Constructor */
+        public RMILocalClientSocketFactory()
+        {
+        }
 
-	/** The method that mints a socket of the right kind.
-	*/
-	public Socket createSocket(String host, int port)
-		throws IOException
-	{
-		return new LocalClientSocket(port);
-	}
+        /** The method that mints a socket of the right kind.
+        */
+        public Socket createSocket(String host, int port)
+                throws IOException
+        {
+                return new LocalClientSocket(port);
+        }
 
-	/** The contract makes us implement equals and hashcode */
-	public boolean equals(Object o)
-	{
-		return (o instanceof RMILocalClientSocketFactory);
-	}
+        /** The contract makes us implement equals and hashcode */
+        public boolean equals(Object o)
+        {
+                return (o instanceof RMILocalClientSocketFactory);
+        }
 
-	/** Hashcode consistent with equals() */
-	public int hashCode()
-	{
-		// All classes of this kind have the same number (randomly picked)
-		return 258474;
-	}
+        /** Hashcode consistent with equals() */
+        public int hashCode()
+        {
+                // All classes of this kind have the same number (randomly picked)
+                return 258474;
+        }
 
 
 }

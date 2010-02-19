@@ -23,39 +23,39 @@ import java.util.*;
 
 public class RemoveRecord
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private RemoveRecord()
-	{
-	}
+        private RemoveRecord()
+        {
+        }
 
 
-	public static void main(String[] args)
-	{
-		if (args.length != 5)
-		{
-			System.err.println("Usage: RemoveRecord <servername> <port> <username> <password> <id>");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 5)
+                {
+                        System.err.println("Usage: RemoveRecord <servername> <port> <username> <password> <id>");
+                        System.exit(1);
+                }
 
-		try
-		{
-			MemexSupport handle = new MemexSupport(args[2],args[3],args[0],args[1]);
-			try
-			{
-				handle.removeRecord(args[4]);
-			}
-			finally
-			{
-				handle.close();
-			}
-			System.err.println("Successfully removed");
-		}
-		catch (LCFException e)
-		{
-			e.printStackTrace(System.err);
-			System.exit(2);
-		}
-	}
+                try
+                {
+                        MemexSupport handle = new MemexSupport(args[2],args[3],args[0],args[1]);
+                        try
+                        {
+                                handle.removeRecord(args[4]);
+                        }
+                        finally
+                        {
+                                handle.close();
+                        }
+                        System.err.println("Successfully removed");
+                }
+                catch (LCFException e)
+                {
+                        e.printStackTrace(System.err);
+                        System.exit(2);
+                }
+        }
 
 }

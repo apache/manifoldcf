@@ -26,54 +26,54 @@ import java.io.*;
 */
 public interface IKeystoreManager
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	/** Grab a list of the aliases in the key store.
-	*@return the list, as a string array.
-	*/
-	public String[] getContents()
-		throws LCFException;
+        /** Grab a list of the aliases in the key store.
+        *@return the list, as a string array.
+        */
+        public String[] getContents()
+                throws LCFException;
 
-	/** For an alias, get some descriptive information from the object in the keystore.
-	*@param alias is the alias name.
-	*@return a description of what's in the alias.
-	*/
-	public String getDescription(String alias)
-		throws LCFException;
+        /** For an alias, get some descriptive information from the object in the keystore.
+        *@param alias is the alias name.
+        *@return a description of what's in the alias.
+        */
+        public String getDescription(String alias)
+                throws LCFException;
 
-	/** Import a certificate or key into the list.  The data must be added as binary.
-	*@param alias is the name of the certificate.
-	*@param certData is the binary data for the certificate.
-	*/
-	public void importCertificate(String alias, InputStream certData)
-		throws LCFException;
+        /** Import a certificate or key into the list.  The data must be added as binary.
+        *@param alias is the name of the certificate.
+        *@param certData is the binary data for the certificate.
+        */
+        public void importCertificate(String alias, InputStream certData)
+                throws LCFException;
 
-	/** Remove a certificate.
-	*@param alias is the name of the certificate to remove.
-	*/
-	public void remove(String alias)
-		throws LCFException;
+        /** Remove a certificate.
+        *@param alias is the name of the certificate to remove.
+        */
+        public void remove(String alias)
+                throws LCFException;
 
-	/** Convert to a base64 string.
-	*@return the base64-encoded string.
-	*/
-	public String getString()
-		throws LCFException;
+        /** Convert to a base64 string.
+        *@return the base64-encoded string.
+        */
+        public String getString()
+                throws LCFException;
 
-	/** Read a certificate from the keystore.
-	*/
-	public java.security.cert.Certificate getCertificate(String alias)
-		throws LCFException;
+        /** Read a certificate from the keystore.
+        */
+        public java.security.cert.Certificate getCertificate(String alias)
+                throws LCFException;
 
-	/** Add a certificate to the keystore.
-	*/
-	public void addCertificate(String alias, java.security.cert.Certificate certificate)
-		throws LCFException;
+        /** Add a certificate to the keystore.
+        */
+        public void addCertificate(String alias, java.security.cert.Certificate certificate)
+                throws LCFException;
 
-	/** Build a secure socket factory based on this keystore.
-	*/
-	public javax.net.ssl.SSLSocketFactory getSecureSocketFactory()
-		throws LCFException;
+        /** Build a secure socket factory based on this keystore.
+        */
+        public javax.net.ssl.SSLSocketFactory getSecureSocketFactory()
+                throws LCFException;
 
 
 

@@ -35,176 +35,176 @@ import java.lang.reflect.*;
 */
 public class SetPriorityThread extends Thread
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	// Local data
-	// This is the queue tracker object.
-	protected QueueTracker queueTracker;
-	// This is the number of documents per cycle
-	protected int cycleCount;
-	// The blocking documents object
-	protected BlockingDocuments blockingDocuments;
-	
-	/** Constructor.
-	*@param qt is the queue tracker object.
-	*/
-	public SetPriorityThread(QueueTracker qt, int workerThreadCount, BlockingDocuments blockingDocuments)
-		throws LCFException
-	{
-		super();
-		this.queueTracker = qt;
-		this.blockingDocuments = blockingDocuments;
-		cycleCount = workerThreadCount * 10;
-		setName("Set priority thread");
-		setDaemon(true);
-		// This thread's priority is highest so that stuffer thread does not go wanting
-		setPriority(MAX_PRIORITY);
-	}
+        // Local data
+        // This is the queue tracker object.
+        protected QueueTracker queueTracker;
+        // This is the number of documents per cycle
+        protected int cycleCount;
+        // The blocking documents object
+        protected BlockingDocuments blockingDocuments;
+        
+        /** Constructor.
+        *@param qt is the queue tracker object.
+        */
+        public SetPriorityThread(QueueTracker qt, int workerThreadCount, BlockingDocuments blockingDocuments)
+                throws LCFException
+        {
+                super();
+                this.queueTracker = qt;
+                this.blockingDocuments = blockingDocuments;
+                cycleCount = workerThreadCount * 10;
+                setName("Set priority thread");
+                setDaemon(true);
+                // This thread's priority is highest so that stuffer thread does not go wanting
+                setPriority(MAX_PRIORITY);
+        }
 
-	public void run()
-	{
-		try
-		{
-			// Create a thread context object.
-			IThreadContext threadContext = ThreadContextFactory.make();
-			IRepositoryConnectionManager mgr = RepositoryConnectionManagerFactory.make(threadContext);
-			IJobManager jobManager = JobManagerFactory.make(threadContext);
+        public void run()
+        {
+                try
+                {
+                        // Create a thread context object.
+                        IThreadContext threadContext = ThreadContextFactory.make();
+                        IRepositoryConnectionManager mgr = RepositoryConnectionManagerFactory.make(threadContext);
+                        IJobManager jobManager = JobManagerFactory.make(threadContext);
 
-			Logging.threads.debug("Set priority thread coming up");
+                        Logging.threads.debug("Set priority thread coming up");
 
-			// Job description map (local) - designed to improve performance.
-			// Cleared and reloaded on every batch of documents.
-			HashMap jobDescriptionMap = new HashMap();
+                        // Job description map (local) - designed to improve performance.
+                        // Cleared and reloaded on every batch of documents.
+                        HashMap jobDescriptionMap = new HashMap();
 
-			// Repository connection map (local) - designed to improve performance.
-			// Cleared and reloaded on every batch of documents.
-			HashMap connectionMap = new HashMap();
+                        // Repository connection map (local) - designed to improve performance.
+                        // Cleared and reloaded on every batch of documents.
+                        HashMap connectionMap = new HashMap();
 
-			// Loop
-			while (true)
-			{
-				// Do another try/catch around everything in the loop
-				try
-				{
-					if (Thread.currentThread().isInterrupted())
-						throw new LCFException("Interrupted",LCFException.INTERRUPTED);
+                        // Loop
+                        while (true)
+                        {
+                                // Do another try/catch around everything in the loop
+                                try
+                                {
+                                        if (Thread.currentThread().isInterrupted())
+                                                throw new LCFException("Interrupted",LCFException.INTERRUPTED);
 
-					Logging.threads.debug("Set priority thread woke up");
+                                        Logging.threads.debug("Set priority thread woke up");
 
-					// We're going to go through all eligible documents.  We will pick them up in
-					// chunks however.
-					long currentTime = System.currentTimeMillis();
-					
-					// Note well:
-					// The priority that is given to a document is based on what priorities have been handed out in the past.  It is based
-					// on the documents that have been queued for action, what job they belong to, the throttling in effect for the job,
-					// and what the connection says that the document's throttling bins are.  
-					// Periodically, however, QueueTracker deliberately destroys the history.  My thinking here is that we need to "start over"
-					// periodically to guarantee that we respond appropriately to changes in the environment - specifically, starting and
-					// stopping jobs, changing throttling parameters, etc.
+                                        // We're going to go through all eligible documents.  We will pick them up in
+                                        // chunks however.
+                                        long currentTime = System.currentTimeMillis();
+                                        
+                                        // Note well:
+                                        // The priority that is given to a document is based on what priorities have been handed out in the past.  It is based
+                                        // on the documents that have been queued for action, what job they belong to, the throttling in effect for the job,
+                                        // and what the connection says that the document's throttling bins are.  
+                                        // Periodically, however, QueueTracker deliberately destroys the history.  My thinking here is that we need to "start over"
+                                        // periodically to guarantee that we respond appropriately to changes in the environment - specifically, starting and
+                                        // stopping jobs, changing throttling parameters, etc.
 
-					// Clear the job description map and connection map
-					jobDescriptionMap.clear();
-					connectionMap.clear();
+                                        // Clear the job description map and connection map
+                                        jobDescriptionMap.clear();
+                                        connectionMap.clear();
 
-					// Do up to cycleCount documents in a "block".  Beyond this number we reset everything and loop back around.
-					// This allows everything to restart, and higher priority documents can be found again.
-					int processedCount = 0;
-					while (true)
-					{
-						if (Thread.currentThread().isInterrupted())
-							throw new LCFException("Interrupted",LCFException.INTERRUPTED);
+                                        // Do up to cycleCount documents in a "block".  Beyond this number we reset everything and loop back around.
+                                        // This allows everything to restart, and higher priority documents can be found again.
+                                        int processedCount = 0;
+                                        while (true)
+                                        {
+                                                if (Thread.currentThread().isInterrupted())
+                                                        throw new LCFException("Interrupted",LCFException.INTERRUPTED);
 
-						if (processedCount >= cycleCount)
-						{
-							Logging.threads.debug("Done reprioritizing because exceeded cycle count");
-							break;
-						}
+                                                if (processedCount >= cycleCount)
+                                                {
+                                                        Logging.threads.debug("Done reprioritizing because exceeded cycle count");
+                                                        break;
+                                                }
 
-						// Cycle through the current list of stuffer-identified documents until we come to the end.  Reprioritize these
-						// first.
-						DocumentDescription desc = blockingDocuments.getBlockingDocument();
-						if (desc != null)
-						{
-							LCF.writeDocumentPriorities(threadContext,mgr,jobManager,new DocumentDescription[]{desc},connectionMap,jobDescriptionMap,queueTracker,currentTime);
-							processedCount++;
-							continue;
-						}
+                                                // Cycle through the current list of stuffer-identified documents until we come to the end.  Reprioritize these
+                                                // first.
+                                                DocumentDescription desc = blockingDocuments.getBlockingDocument();
+                                                if (desc != null)
+                                                {
+                                                        LCF.writeDocumentPriorities(threadContext,mgr,jobManager,new DocumentDescription[]{desc},connectionMap,jobDescriptionMap,queueTracker,currentTime);
+                                                        processedCount++;
+                                                        continue;
+                                                }
 /* no longer useful given current architecture; only need to reprioritize blocking documents
-						// Grab a list of document identifiers to set priority on.
-						// We may well wind up calculating priority for documents that wind up having their
-						// state changed before we can write back, but this is okay because update is only
-						// going to be permitted for rows that still have the right state.
-						// I found that a limit of 1000 causes postgresql to basically do a linear scan, while a limit of 20 does not!
-						DocumentDescription[] descs = jobManager.getNextReprioritizationDocuments(currentTime,20);
-						if (descs.length > 0)
-						{
-							writePriorities(threadContext,mgr,jobManager,descs,connectionMap,jobDescriptionMap,currentTime);
-							processedCount += descs.length;
-							continue;
-						}
+                                                // Grab a list of document identifiers to set priority on.
+                                                // We may well wind up calculating priority for documents that wind up having their
+                                                // state changed before we can write back, but this is okay because update is only
+                                                // going to be permitted for rows that still have the right state.
+                                                // I found that a limit of 1000 causes postgresql to basically do a linear scan, while a limit of 20 does not!
+                                                DocumentDescription[] descs = jobManager.getNextReprioritizationDocuments(currentTime,20);
+                                                if (descs.length > 0)
+                                                {
+                                                        writePriorities(threadContext,mgr,jobManager,descs,connectionMap,jobDescriptionMap,currentTime);
+                                                        processedCount += descs.length;
+                                                        continue;
+                                                }
 */
-						Logging.threads.debug("Done reprioritizing because no more documents to reprioritize");
-						LCF.sleep(30000L);
-						break;
+                                                Logging.threads.debug("Done reprioritizing because no more documents to reprioritize");
+                                                LCF.sleep(30000L);
+                                                break;
 
-					}
+                                        }
 
-				}
-				catch (LCFException e)
-				{
-					if (e.getErrorCode() == LCFException.INTERRUPTED)
-						break;
+                                }
+                                catch (LCFException e)
+                                {
+                                        if (e.getErrorCode() == LCFException.INTERRUPTED)
+                                                break;
 
-					if (e.getErrorCode() == LCFException.DATABASE_CONNECTION_ERROR)
-					{
-						Logging.threads.error("Set priority thread aborting and restarting due to database connection reset: "+e.getMessage(),e);
-						try
-						{
-							// Give the database a chance to catch up/wake up
-							LCF.sleep(10000L);
-						}
-						catch (InterruptedException se)
-						{
-							break;
-						}
-						continue;
-					}
+                                        if (e.getErrorCode() == LCFException.DATABASE_CONNECTION_ERROR)
+                                        {
+                                                Logging.threads.error("Set priority thread aborting and restarting due to database connection reset: "+e.getMessage(),e);
+                                                try
+                                                {
+                                                        // Give the database a chance to catch up/wake up
+                                                        LCF.sleep(10000L);
+                                                }
+                                                catch (InterruptedException se)
+                                                {
+                                                        break;
+                                                }
+                                                continue;
+                                        }
 
-					// Log it, but keep the thread alive
-					Logging.threads.error("Exception tossed: "+e.getMessage(),e);
+                                        // Log it, but keep the thread alive
+                                        Logging.threads.error("Exception tossed: "+e.getMessage(),e);
 
-					if (e.getErrorCode() == LCFException.SETUP_ERROR)
-					{
-						System.exit(1);
-					}
+                                        if (e.getErrorCode() == LCFException.SETUP_ERROR)
+                                        {
+                                                System.exit(1);
+                                        }
 
-				}
-				catch (InterruptedException e)
-				{
-					// We're supposed to quit
-					break;
-				}
-				catch (OutOfMemoryError e)
-				{
-					System.err.println("agents process ran out of memory - shutting down");
-					e.printStackTrace(System.err);
-					System.exit(-200);
-				}
-				catch (Throwable e)
-				{
-					// A more severe error - but stay alive
-					Logging.threads.fatal("Error tossed: "+e.getMessage(),e);
-				}
-			}
-		}
-		catch (Throwable e)
-		{
-			// Severe error on initialization
-			System.err.println("agents process could not start - shutting down");
-			Logging.threads.fatal("SetPriorityThread initialization error tossed: "+e.getMessage(),e);
-			System.exit(-300);
-		}
-	}
+                                }
+                                catch (InterruptedException e)
+                                {
+                                        // We're supposed to quit
+                                        break;
+                                }
+                                catch (OutOfMemoryError e)
+                                {
+                                        System.err.println("agents process ran out of memory - shutting down");
+                                        e.printStackTrace(System.err);
+                                        System.exit(-200);
+                                }
+                                catch (Throwable e)
+                                {
+                                        // A more severe error - but stay alive
+                                        Logging.threads.fatal("Error tossed: "+e.getMessage(),e);
+                                }
+                        }
+                }
+                catch (Throwable e)
+                {
+                        // Severe error on initialization
+                        System.err.println("agents process could not start - shutting down");
+                        Logging.threads.fatal("SetPriorityThread initialization error tossed: "+e.getMessage(),e);
+                        System.exit(-300);
+                }
+        }
 
 }

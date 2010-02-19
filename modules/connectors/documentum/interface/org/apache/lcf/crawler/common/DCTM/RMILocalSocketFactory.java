@@ -26,75 +26,75 @@ import java.io.IOException;
 */
 public class RMILocalSocketFactory implements RMIServerSocketFactory
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	protected static InetAddress loopbackAddress;
+        protected static InetAddress loopbackAddress;
 
-	static
-	{
-		try
-		{
-			loopbackAddress = InetAddress.getByAddress(new byte[]{127,0,0,1});
-		}
-		catch (UnknownHostException e)
-		{
-			e.printStackTrace();
-		}
-	}
+        static
+        {
+                try
+                {
+                        loopbackAddress = InetAddress.getByAddress(new byte[]{127,0,0,1});
+                }
+                catch (UnknownHostException e)
+                {
+                        e.printStackTrace();
+                }
+        }
 
-	/** Create a socket attached to the specified port.  0 means an anonymous port. */
-	public ServerSocket createServerSocket(int port)
-		throws IOException
-	{
-		return new LocalServerSocket(port);
-	}
+        /** Create a socket attached to the specified port.  0 means an anonymous port. */
+        public ServerSocket createServerSocket(int port)
+                throws IOException
+        {
+                return new LocalServerSocket(port);
+        }
 
-	/** The contract makes us implement equals and hashcode */
-	public boolean equals(Object o)
-	{
-		return (o instanceof RMILocalSocketFactory);
-	}
+        /** The contract makes us implement equals and hashcode */
+        public boolean equals(Object o)
+        {
+                return (o instanceof RMILocalSocketFactory);
+        }
 
-	/** Hashcode consistent with equals() */
-	public int hashCode()
-	{
-		// All classes of this kind have the same number (randomly picked)
-		return 258473;
-	}
+        /** Hashcode consistent with equals() */
+        public int hashCode()
+        {
+                // All classes of this kind have the same number (randomly picked)
+                return 258473;
+        }
 
-	/** This is a localhost-bound implementation of ServerSocket */
-	protected static class LocalServerSocket extends ServerSocket
-	{
-		protected int currentPort;
+        /** This is a localhost-bound implementation of ServerSocket */
+        protected static class LocalServerSocket extends ServerSocket
+        {
+                protected int currentPort;
 
-		/** Constructor.  We only use the one, so the rest are immaterial. */
-		public LocalServerSocket(int port)
-			throws IOException
-		{
-			super(port);
-			currentPort = port;
-		}
+                /** Constructor.  We only use the one, so the rest are immaterial. */
+                public LocalServerSocket(int port)
+                        throws IOException
+                {
+                        super(port);
+                        currentPort = port;
+                }
 
-		/** Override the bind operation, to make sure we only bind to localhost */
-		public void bind(java.net.SocketAddress endpoint)
-          		throws IOException
-		{
-			int thisPort = currentPort;
-                    	if (endpoint instanceof InetSocketAddress)
-                        	thisPort = ((InetSocketAddress)endpoint).getPort();
-			endpoint = new InetSocketAddress(loopbackAddress,thisPort);
-			super.bind(endpoint);
-		}
+                /** Override the bind operation, to make sure we only bind to localhost */
+                public void bind(java.net.SocketAddress endpoint)
+                        throws IOException
+                {
+                        int thisPort = currentPort;
+                        if (endpoint instanceof InetSocketAddress)
+                                thisPort = ((InetSocketAddress)endpoint).getPort();
+                        endpoint = new InetSocketAddress(loopbackAddress,thisPort);
+                        super.bind(endpoint);
+                }
 
-		/** Override the bind operation, to make sure we only bind to localhost */
-		public void bind(java.net.SocketAddress endpoint, int backlog)
-        		throws IOException
-		{
-			int thisPort = currentPort;
-                    	if (endpoint instanceof InetSocketAddress)
-                        	thisPort = ((InetSocketAddress)endpoint).getPort();
-			endpoint = new InetSocketAddress(loopbackAddress,thisPort);
-			super.bind(endpoint,backlog);
-		}
-	}
+                /** Override the bind operation, to make sure we only bind to localhost */
+                public void bind(java.net.SocketAddress endpoint, int backlog)
+                        throws IOException
+                {
+                        int thisPort = currentPort;
+                        if (endpoint instanceof InetSocketAddress)
+                                thisPort = ((InetSocketAddress)endpoint).getPort();
+                        endpoint = new InetSocketAddress(loopbackAddress,thisPort);
+                        super.bind(endpoint,backlog);
+                }
+        }
 }

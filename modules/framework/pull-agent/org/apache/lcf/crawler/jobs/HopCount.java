@@ -423,7 +423,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
                                 // would be interpreted.
 
                                 //if (!(linkType == null || linkType.length() == 0))
-                                //	legalLinkTypes = new String[]{linkType};
+                                //      legalLinkTypes = new String[]{linkType};
 
                                 // So, let's load what we have for hopcount and dependencies for sourceDocumentID.
 
@@ -561,8 +561,8 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
                         // What I want to do here is to first perform the invalidation of the cached hopcounts.
                         //
                         // UPDATE hopcount SET markfordeath='X' WHERE EXISTS(SELECT 'x' FROM hopdeletedeps t0 WHERE t0.ownerid=hopcount.id AND t0.jobid=<jobid>
-                        //	AND EXISTS(SELECT 'x' FROM intrinsiclinks t1 WHERE t1.linktype=t0.linktype AND t1.parentid=t0.parentid
-                        //		AND t1.childid=t0.childid AND t1.jobid=<jobid> AND t1.childid IN(<sourcedocs>)))
+                        //      AND EXISTS(SELECT 'x' FROM intrinsiclinks t1 WHERE t1.linktype=t0.linktype AND t1.parentid=t0.parentid
+                        //              AND t1.childid=t0.childid AND t1.jobid=<jobid> AND t1.childid IN(<sourcedocs>)))
                         //
                         // ... and then, re-evaluate all hopcount records and their dependencies that are marked for delete.
                         //
@@ -716,7 +716,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
         {
                 // The naive query is this - but postgres does not find the index this way:
                 //IResultSet set = performQuery("SELECT "+parentIDField+","+linkTypeField+" FROM "+getTableName()+" WHERE "+
-                //	parentIDField+" IN("+query+") AND "+jobIDField+"=?",list,null,null);
+                //      parentIDField+" IN("+query+") AND "+jobIDField+"=?",list,null,null);
                 IResultSet set = performQuery("SELECT "+parentIDHashField+","+linkTypeField+","+distanceField+" FROM "+getTableName()+" WHERE "+query,list,null,null);
                 int i = 0;
                 while (i < set.getRowCount())
@@ -1022,8 +1022,8 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
                                 // To do this, I'd the following queries to occur:
                                 //
                                 // UPDATE hopcount SET markfordeath='Q' WHERE EXISTS(SELECT 'x' FROM hopdeletedeps t0 WHERE t0.ownerid=hopcount.id AND t0.jobid=<jobid>
-                                //	AND EXISTS(SELECT 'x' FROM intrinsiclinks t1 WHERE t1.linktype=t0.linktype AND t1.parentid=t0.parentid
-                                //		AND t1.childid=t0.childid AND t1.jobid=<jobid> AND t1.isnew=<base> AND t1.childid IN(<sourcedocs>)))
+                                //      AND EXISTS(SELECT 'x' FROM intrinsiclinks t1 WHERE t1.linktype=t0.linktype AND t1.parentid=t0.parentid
+                                //              AND t1.childid=t0.childid AND t1.jobid=<jobid> AND t1.isnew=<base> AND t1.childid IN(<sourcedocs>)))
                                 //
                                 // ... and then, get rid of all hopcount records and their dependencies that are marked for delete.
 
@@ -1092,21 +1092,21 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
                                 //
                                 // UPDATE hopcount SET x=y WHERE id IN (SELECT ownerid FROM hopdeletedeps t0
                                 //   WHERE ((t0.jobid=? AND t0.childid=?)
-                                //	 OR (t0.jobid=? AND t0.childid=?)
-                                //	 ...
-                                //	 OR (t0.jobid=? AND t0.childid=?))
-                                //	 AND EXISTS(SELECT 'x' FROM intrinsiclink t1 WHERE t1.linktype=t0.linktype
-                                //		AND t1.parentid=t0.parentid AND t1.childid=t0.childid AND t1.jobid=t0.jobid AND t1.isnew='B'))
+                                //       OR (t0.jobid=? AND t0.childid=?)
+                                //       ...
+                                //       OR (t0.jobid=? AND t0.childid=?))
+                                //       AND EXISTS(SELECT 'x' FROM intrinsiclink t1 WHERE t1.linktype=t0.linktype
+                                //              AND t1.parentid=t0.parentid AND t1.childid=t0.childid AND t1.jobid=t0.jobid AND t1.isnew='B'))
                                 //
                                 // Here's a revised form that would take advantage of postgres's better ability to work with joins, if this should
                                 // turn out to be necessary:
                                 //
                                 // UPDATE hopcount SET x=y WHERE id IN (SELECT t0.ownerid FROM hopdeletedeps t0, intrinsiclink t1
-                                //	WHERE t1.childidhash=t0.childidhash AND t1.jobid=? AND t1.linktype=t0.linktype AND t1.parentid=t0.parentid AND t1.childid=t0.childid AND t1.isnew='B'
-                                //	AND ((t0.jobid=? AND t0.childidhash=? AND t0.childid=?)
-                                //	 OR (t0.jobid=? AND t0.childidhash=? AND t0.childid=?)
-                                //	 ...
-                                //	 OR (t0.jobid=? AND t0.childidhash=? AND t0.childid=?))
+                                //      WHERE t1.childidhash=t0.childidhash AND t1.jobid=? AND t1.linktype=t0.linktype AND t1.parentid=t0.parentid AND t1.childid=t0.childid AND t1.isnew='B'
+                                //      AND ((t0.jobid=? AND t0.childidhash=? AND t0.childid=?)
+                                //       OR (t0.jobid=? AND t0.childidhash=? AND t0.childid=?)
+                                //       ...
+                                //       OR (t0.jobid=? AND t0.childidhash=? AND t0.childid=?))
 
                                 int maxClause = 25;
                                 ArrayList list = new ArrayList();
@@ -1141,10 +1141,10 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
                                 // For this query, postgresql seems to not do the right thing unless the subclause is a three-way join:
                                 //
                                 // UPDATE hopcount SET x=y WHERE id IN(SELECT t0.ownerid FROM hopdeletedeps t0,jobqueue t99,intrinsiclink t1 WHERE
-                                // 	t0.jobid=? and t99.jobid=? and t1.jobid=? and
-                                // 	t0.childidhash=t99.dochash and t0.childid=t99.docid and t99.status='P' and
-                                //	t0.parentidhash=t1.parentidhash and t0.childidhash=t1.childidhash and t0.linktype=t1.linktype and 
-                                //	t0.parentid=t1.parentid and t0.childid=t1.childid)
+                                //      t0.jobid=? and t99.jobid=? and t1.jobid=? and
+                                //      t0.childidhash=t99.dochash and t0.childid=t99.docid and t99.status='P' and
+                                //      t0.parentidhash=t1.parentidhash and t0.childidhash=t1.childidhash and t0.linktype=t1.linktype and 
+                                //      t0.parentid=t1.parentid and t0.childid=t1.childid)
 
                                 StringBuffer sb = new StringBuffer("WHERE ");
                                 ArrayList list = new ArrayList();
@@ -1964,7 +1964,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
                                 DeleteDependency dep = (DeleteDependency)deleteDeps[i++];
                                 deleteDependencies.put(dep,dep);
                         }
-                }	
+                }       
 
                 /** Get the current answer value.
                 */
@@ -2100,7 +2100,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
                                 DeleteDependency dep = (DeleteDependency)deleteDeps[i++];
                                 deleteDependencies.put(dep,dep);
                         }
-                }	
+                }       
         }
 
         /** This class describes a document reference. */

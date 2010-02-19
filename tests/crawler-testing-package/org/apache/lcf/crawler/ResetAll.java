@@ -29,125 +29,125 @@ import java.util.*;
 */
 public class ResetAll
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private ResetAll()
-	{
-	}
+        private ResetAll()
+        {
+        }
 
-	public static void main(String[] args)
-	{
-		if (args.length != 0)
-		{
-			System.err.println("Usage: ResetAll");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 0)
+                {
+                        System.err.println("Usage: ResetAll");
+                        System.exit(1);
+                }
 
-		try
-		{
-		        LCF.initializeEnvironment();
-			IThreadContext tc = ThreadContextFactory.make();
-			IJobManager jobManager = JobManagerFactory.make(tc);
-			IRepositoryConnectionManager connMgr = RepositoryConnectionManagerFactory.make(tc);
-			IOutputConnectionManager outputMgr = OutputConnectionManagerFactory.make(tc);
+                try
+                {
+                        LCF.initializeEnvironment();
+                        IThreadContext tc = ThreadContextFactory.make();
+                        IJobManager jobManager = JobManagerFactory.make(tc);
+                        IRepositoryConnectionManager connMgr = RepositoryConnectionManagerFactory.make(tc);
+                        IOutputConnectionManager outputMgr = OutputConnectionManagerFactory.make(tc);
 
-			// Get a list of the current active jobs
-			IJobDescription[] jobs = jobManager.getAllJobs();
-			int i = 0;
-			while (i < jobs.length)
-			{
-				IJobDescription desc = jobs[i++];
-				// Abort this job, if it is running
-				try
-				{
-					jobManager.manualAbort(desc.getID());
-				}
-				catch (LCFException e)
-				{
-					// This generally means that the job was not running
-				}
-			}
-			i = 0;
-			while (i < jobs.length)
-			{
-				IJobDescription desc = jobs[i++];
-				// Wait for this job to stop
-				while (true)
-				{
-					JobStatus status = jobManager.getStatus(desc.getID());
-					if (status != null)
-					{
-						int statusValue = status.getStatus();
-						switch (statusValue)
-						{
-						case JobStatus.JOBSTATUS_NOTYETRUN:
-						case JobStatus.JOBSTATUS_COMPLETED:
-						case JobStatus.JOBSTATUS_ERROR:
-							break;
-						default:
-							LCF.sleep(10000);
-							continue;
-						}
-					}
-					break;
-				}
-			}
+                        // Get a list of the current active jobs
+                        IJobDescription[] jobs = jobManager.getAllJobs();
+                        int i = 0;
+                        while (i < jobs.length)
+                        {
+                                IJobDescription desc = jobs[i++];
+                                // Abort this job, if it is running
+                                try
+                                {
+                                        jobManager.manualAbort(desc.getID());
+                                }
+                                catch (LCFException e)
+                                {
+                                        // This generally means that the job was not running
+                                }
+                        }
+                        i = 0;
+                        while (i < jobs.length)
+                        {
+                                IJobDescription desc = jobs[i++];
+                                // Wait for this job to stop
+                                while (true)
+                                {
+                                        JobStatus status = jobManager.getStatus(desc.getID());
+                                        if (status != null)
+                                        {
+                                                int statusValue = status.getStatus();
+                                                switch (statusValue)
+                                                {
+                                                case JobStatus.JOBSTATUS_NOTYETRUN:
+                                                case JobStatus.JOBSTATUS_COMPLETED:
+                                                case JobStatus.JOBSTATUS_ERROR:
+                                                        break;
+                                                default:
+                                                        LCF.sleep(10000);
+                                                        continue;
+                                                }
+                                        }
+                                        break;
+                                }
+                        }
 
-			// Now, delete them all
-			i = 0;
-			while (i < jobs.length)
-			{
-				IJobDescription desc = jobs[i++];
-				try
-				{
-					jobManager.deleteJob(desc.getID());
-				}
-				catch (LCFException e)
-				{
-					// This usually means that the job is already being deleted
-				}
-			}
+                        // Now, delete them all
+                        i = 0;
+                        while (i < jobs.length)
+                        {
+                                IJobDescription desc = jobs[i++];
+                                try
+                                {
+                                        jobManager.deleteJob(desc.getID());
+                                }
+                                catch (LCFException e)
+                                {
+                                        // This usually means that the job is already being deleted
+                                }
+                        }
 
-			i = 0;
-			while (i < jobs.length)
-			{
-				IJobDescription desc = jobs[i++];
-				// Wait for this job to disappear
-				while (true)
-				{
-					JobStatus status = jobManager.getStatus(desc.getID());
-					if (status != null)
-					{
-						LCF.sleep(10000);
-						continue;
-					}
-					break;
-				}
-			}
+                        i = 0;
+                        while (i < jobs.length)
+                        {
+                                IJobDescription desc = jobs[i++];
+                                // Wait for this job to disappear
+                                while (true)
+                                {
+                                        JobStatus status = jobManager.getStatus(desc.getID());
+                                        if (status != null)
+                                        {
+                                                LCF.sleep(10000);
+                                                continue;
+                                        }
+                                        break;
+                                }
+                        }
 
-			// Now, get a list of the repository connections
-			IRepositoryConnection[] connections = connMgr.getAllConnections();
-			i = 0;
-			while (i < connections.length)
-			{
-				connMgr.delete(connections[i++].getName());
-			}
+                        // Now, get a list of the repository connections
+                        IRepositoryConnection[] connections = connMgr.getAllConnections();
+                        i = 0;
+                        while (i < connections.length)
+                        {
+                                connMgr.delete(connections[i++].getName());
+                        }
 
-			// Finally, get rid of output connections
-			IOutputConnection[] outputs = outputMgr.getAllConnections();
-			i = 0;
-			while (i < outputs.length)
-			{
-				outputMgr.delete(outputs[i++].getName());
-			}
+                        // Finally, get rid of output connections
+                        IOutputConnection[] outputs = outputMgr.getAllConnections();
+                        i = 0;
+                        while (i < outputs.length)
+                        {
+                                outputMgr.delete(outputs[i++].getName());
+                        }
 
-			System.out.println("Reset complete");
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			System.exit(2);
-		}
-	}
-		
+                        System.out.println("Reset complete");
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace();
+                        System.exit(2);
+                }
+        }
+                
 }

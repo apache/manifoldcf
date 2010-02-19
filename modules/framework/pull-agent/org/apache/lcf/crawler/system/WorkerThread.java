@@ -1152,18 +1152,18 @@ public class WorkerThread extends Thread
 
                 /** Record time-stamped information about the activity of the connector.
                 *@param startTime is either null or the time since the start of epoch in milliseconds (Jan 1, 1970).  Every
-                *	activity has an associated time; the startTime field records when the activity began.  A null value
-                *	indicates that the start time and the finishing time are the same.
+                *       activity has an associated time; the startTime field records when the activity began.  A null value
+                *       indicates that the start time and the finishing time are the same.
                 *@param activityType is a string which is fully interpretable only in the context of the connector involved, which is
-                *	used to categorize what kind of activity is being recorded.  For example, a web connector might record a
-                *	"fetch document" activity.  Cannot be null.
+                *       used to categorize what kind of activity is being recorded.  For example, a web connector might record a
+                *       "fetch document" activity.  Cannot be null.
                 *@param dataSize is the number of bytes of data involved in the activity, or null if not applicable.
                 *@param entityIdentifier is a (possibly long) string which identifies the object involved in the history record.
-                *	The interpretation of this field will differ from connector to connector.  May be null.
+                *       The interpretation of this field will differ from connector to connector.  May be null.
                 *@param resultCode contains a terse description of the result of the activity.  The description is limited in
-                *	size to 255 characters, and can be interpreted only in the context of the current connector.  May be null.
+                *       size to 255 characters, and can be interpreted only in the context of the current connector.  May be null.
                 *@param resultDescription is a (possibly long) human-readable string which adds detail, if required, to the result
-                *	described in the resultCode field.  This field is not meant to be queried on.  May be null.
+                *       described in the resultCode field.  This field is not meant to be queried on.  May be null.
                 *@param childIdentifiers is a set of child entity identifiers associated with this activity.  May be null.
                 */
                 public void recordActivity(Long startTime, String activityType, Long dataSize,
@@ -1355,7 +1355,7 @@ public class WorkerThread extends Thread
                 * "getRelationshipTypes()".  May be null.
                 *@param dataNames is the list of carry-down data from the parent to the child.  May be null.  Each name is limited to 255 characters!
                 *@param dataValues are the values that correspond to the data names in the dataNames parameter.  May be null only if dataNames is null.
-                *	   The type of each object must either be a String, or a CharacterInput.
+                *          The type of each object must either be a String, or a CharacterInput.
                 *@param originationTime is the time, in ms since epoch, that the document originated.  Pass null if none or unknown.
                 *@param prereqEventNames are the names of the prerequisite events which this document requires prior to processing.  Pass null if none.
                 */
@@ -1726,18 +1726,18 @@ public class WorkerThread extends Thread
 
                 /** Record time-stamped information about the activity of the connector.
                 *@param startTime is either null or the time since the start of epoch in milliseconds (Jan 1, 1970).  Every
-                *	activity has an associated time; the startTime field records when the activity began.  A null value
-                *	indicates that the start time and the finishing time are the same.
+                *       activity has an associated time; the startTime field records when the activity began.  A null value
+                *       indicates that the start time and the finishing time are the same.
                 *@param activityType is a string which is fully interpretable only in the context of the connector involved, which is
-                *	used to categorize what kind of activity is being recorded.  For example, a web connector might record a
-                *	"fetch document" activity.  Cannot be null.
+                *       used to categorize what kind of activity is being recorded.  For example, a web connector might record a
+                *       "fetch document" activity.  Cannot be null.
                 *@param dataSize is the number of bytes of data involved in the activity, or null if not applicable.
                 *@param entityIdentifier is a (possibly long) string which identifies the object involved in the history record.
-                *	The interpretation of this field will differ from connector to connector.  May be null.
+                *       The interpretation of this field will differ from connector to connector.  May be null.
                 *@param resultCode contains a terse description of the result of the activity.  The description is limited in
-                *	size to 255 characters, and can be interpreted only in the context of the current connector.  May be null.
+                *       size to 255 characters, and can be interpreted only in the context of the current connector.  May be null.
                 *@param resultDescription is a (possibly long) human-readable string which adds detail, if required, to the result
-                *	described in the resultCode field.  This field is not meant to be queried on.  May be null.
+                *       described in the resultCode field.  This field is not meant to be queried on.  May be null.
                 *@param childIdentifiers is a set of child entity identifiers associated with this activity.  May be null.
                 */
                 public void recordActivity(Long startTime, String activityType, Long dataSize,
@@ -1813,8 +1813,8 @@ public class WorkerThread extends Thread
 
                                         binNames[j] = bins;
                                         priorities[j] = queueTracker.calculatePriority(bins,connection);
-					if (Logging.scheduling.isDebugEnabled())
-					    Logging.scheduling.debug("Assigning '"+docids[j]+"' priority "+new Double(priorities[j]).toString());
+                                        if (Logging.scheduling.isDebugEnabled())
+                                            Logging.scheduling.debug("Assigning '"+docids[j]+"' priority "+new Double(priorities[j]).toString());
                                         
                                         // No longer used; the functionality is folded atomically into calculatePriority above:
                                         //queueTracker.notePrioritySet(currentTime,job.getID(),bins,connection);
@@ -2197,7 +2197,7 @@ public class WorkerThread extends Thread
                 protected String outputConnectionName;
 
                 /** Constructor */
-                public OutputActivity(String connectionName, IRepositoryConnectionManager connMgr, String outputConnectionName)	
+                public OutputActivity(String connectionName, IRepositoryConnectionManager connMgr, String outputConnectionName) 
                 {
                         this.connectionName = connectionName;
                         this.connMgr = connMgr;
@@ -2206,18 +2206,18 @@ public class WorkerThread extends Thread
 
                 /** Record time-stamped information about the activity of the output connector.
                 *@param startTime is either null or the time since the start of epoch in milliseconds (Jan 1, 1970).  Every
-                *	activity has an associated time; the startTime field records when the activity began.  A null value
-                *	indicates that the start time and the finishing time are the same.
+                *       activity has an associated time; the startTime field records when the activity began.  A null value
+                *       indicates that the start time and the finishing time are the same.
                 *@param activityType is a string which is fully interpretable only in the context of the connector involved, which is
-                *	used to categorize what kind of activity is being recorded.  For example, a web connector might record a
-                *	"fetch document" activity.  Cannot be null.
+                *       used to categorize what kind of activity is being recorded.  For example, a web connector might record a
+                *       "fetch document" activity.  Cannot be null.
                 *@param dataSize is the number of bytes of data involved in the activity, or null if not applicable.
                 *@param entityURI is a (possibly long) string which identifies the object involved in the history record.
-                *	The interpretation of this field will differ from connector to connector.  May be null.
+                *       The interpretation of this field will differ from connector to connector.  May be null.
                 *@param resultCode contains a terse description of the result of the activity.  The description is limited in
-                *	size to 255 characters, and can be interpreted only in the context of the current connector.  May be null.
+                *       size to 255 characters, and can be interpreted only in the context of the current connector.  May be null.
                 *@param resultDescription is a (possibly long) human-readable string which adds detail, if required, to the result
-                *	described in the resultCode field.  This field is not meant to be queried on.  May be null.
+                *       described in the resultCode field.  This field is not meant to be queried on.  May be null.
                 */
                 public void recordActivity(Long startTime, String activityType, Long dataSize,
                         String entityURI, String resultCode, String resultDescription)

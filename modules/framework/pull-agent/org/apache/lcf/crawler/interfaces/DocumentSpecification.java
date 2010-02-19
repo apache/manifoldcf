@@ -25,40 +25,40 @@ import org.apache.lcf.core.interfaces.*;
 */
 public class DocumentSpecification extends Specification
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	/** Constructor.
-	*/
-	public DocumentSpecification()
-	{
-		super();
-	}
+        /** Constructor.
+        */
+        public DocumentSpecification()
+        {
+                super();
+        }
 
-	/** Construct from XML.
-	*@param xml is the input XML.
-	*/
-	public DocumentSpecification(String xml)
-		throws LCFException
-	{
-		super(xml);
-	}
+        /** Construct from XML.
+        *@param xml is the input XML.
+        */
+        public DocumentSpecification(String xml)
+                throws LCFException
+        {
+                super(xml);
+        }
 
-	/** Duplicate.
-	*@return an exact duplicate
-	*/
-	public DocumentSpecification duplicate(boolean readOnly)
-	{
-		if (readOnly && this.readOnly)
-			return this;
-		DocumentSpecification rval = new DocumentSpecification();
-		int i = 0;
-		while (i < children.size())
-		{
-			SpecificationNode node = (SpecificationNode)children.get(i++);
-			rval.children.add(node.duplicate(readOnly));
-		}
-		rval.readOnly = readOnly;
-		return rval;
-	}
+        /** Duplicate.
+        *@return an exact duplicate
+        */
+        public DocumentSpecification duplicate(boolean readOnly)
+        {
+                if (readOnly && this.readOnly)
+                        return this;
+                DocumentSpecification rval = new DocumentSpecification();
+                int i = 0;
+                while (i < children.size())
+                {
+                        SpecificationNode node = (SpecificationNode)children.get(i++);
+                        rval.children.add(node.duplicate(readOnly));
+                }
+                rval.readOnly = readOnly;
+                return rval;
+        }
 
 }

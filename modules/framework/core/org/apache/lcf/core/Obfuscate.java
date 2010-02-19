@@ -24,31 +24,31 @@ import org.apache.lcf.core.system.*;
 
 public class Obfuscate
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private Obfuscate()
-	{
-	}
+        private Obfuscate()
+        {
+        }
 
 
-	public static void main(String[] args)
-	{
-		if (args.length != 1)
-		{
-			System.err.println("Usage: Obfuscate <string>");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 1)
+                {
+                        System.err.println("Usage: Obfuscate <string>");
+                        System.exit(1);
+                }
 
-		String string = args[0];
-		try
-		{
-			UTF8Stdout.println(LCF.obfuscate(string));
-		}
-		catch (LCFException e)
-		{
-			e.printStackTrace();
-			System.exit(1);
-		}
-	}
+                String string = args[0];
+                try
+                {
+                        UTF8Stdout.println(LCF.obfuscate(string));
+                }
+                catch (LCFException e)
+                {
+                        e.printStackTrace();
+                        System.exit(1);
+                }
+        }
 
 }

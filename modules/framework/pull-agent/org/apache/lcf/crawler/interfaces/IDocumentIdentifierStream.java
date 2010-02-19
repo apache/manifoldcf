@@ -31,17 +31,17 @@ import org.apache.lcf.agents.interfaces.*;
 */
 public interface IDocumentIdentifierStream
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	/** Get the next local document identifier.
-	*@return the next document identifier, or null if there are no more.
-	*/
-	public String getNextIdentifier()
-		throws LCFException, ServiceInterruption;
+        /** Get the next local document identifier.
+        *@return the next document identifier, or null if there are no more.
+        */
+        public String getNextIdentifier()
+                throws LCFException, ServiceInterruption;
 
-	/** Close the stream.
-	*/
-	public void close()
-		throws LCFException;
+        /** Close the stream.
+        */
+        public void close()
+                throws LCFException;
 
 }

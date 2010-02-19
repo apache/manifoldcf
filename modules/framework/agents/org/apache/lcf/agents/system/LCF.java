@@ -25,123 +25,123 @@ import java.util.*;
 
 public class LCF extends org.apache.lcf.core.system.LCF
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	protected static boolean initialized = false;
+        protected static boolean initialized = false;
 
-	/** Ingestion buffer size property. */
-	public static String ingestBufferSizeProperty = "org.apache.lcf.ingest.buffersize";
-	public static String ingestCredentialsRealm = "org.apache.lcf.ingest.credentialrealm";
-	public static String ingestResponseRetryCount = "org.apache.lcf.ingest.responseretrycount";
-	public static String ingestResponseRetryInterval = "org.apache.lcf.ingest.retryinterval";
-	public static String ingestRescheduleInterval = "org.apache.lcf.ingest.rescheduleinterval";
-	public static String ingestURIProperty = "org.apache.lcf.ingest.uri";
-	public static String ingestUserProperty = "org.apache.lcf.ingest.user";
-	public static String ingestPasswordProperty = "org.apache.lcf.ingest.password";
-	public static String ingestMaxConnectionsProperty = "org.apache.lcf.ingest.maxconnections";
+        /** Ingestion buffer size property. */
+        public static String ingestBufferSizeProperty = "org.apache.lcf.ingest.buffersize";
+        public static String ingestCredentialsRealm = "org.apache.lcf.ingest.credentialrealm";
+        public static String ingestResponseRetryCount = "org.apache.lcf.ingest.responseretrycount";
+        public static String ingestResponseRetryInterval = "org.apache.lcf.ingest.retryinterval";
+        public static String ingestRescheduleInterval = "org.apache.lcf.ingest.rescheduleinterval";
+        public static String ingestURIProperty = "org.apache.lcf.ingest.uri";
+        public static String ingestUserProperty = "org.apache.lcf.ingest.user";
+        public static String ingestPasswordProperty = "org.apache.lcf.ingest.password";
+        public static String ingestMaxConnectionsProperty = "org.apache.lcf.ingest.maxconnections";
 
-	/** This is the place we keep track of the agents we've started. */
-	protected static HashMap runningHash = new HashMap();
+        /** This is the place we keep track of the agents we've started. */
+        protected static HashMap runningHash = new HashMap();
 
-	/** Initialize environment.
-	*/
-	public static synchronized void initializeEnvironment()
-	{
-		// System.out.println(" In agents initializeEnvironment");
-		if (initialized)
-			return;
+        /** Initialize environment.
+        */
+        public static synchronized void initializeEnvironment()
+        {
+                // System.out.println(" In agents initializeEnvironment");
+                if (initialized)
+                        return;
 
-		// System.out.println("Initializing");
-		org.apache.lcf.core.system.LCF.initializeEnvironment();
-		Logging.initializeLoggers();
-		Logging.setLogLevels();
-		initialized = true;
-	}
+                // System.out.println("Initializing");
+                org.apache.lcf.core.system.LCF.initializeEnvironment();
+                Logging.initializeLoggers();
+                Logging.setLogLevels();
+                initialized = true;
+        }
 
 
-	/** Install the agent tables.  This is also responsible for upgrading the existing
-	* tables!!!
-	*@param threadcontext is the thread context.
-	*/
-	public static void installTables(IThreadContext threadcontext)
-		throws LCFException
-	{
-		IAgentManager mgr = AgentManagerFactory.make(threadcontext);
-		IIncrementalIngester igstmgr = IncrementalIngesterFactory.make(threadcontext);
-		IOutputConnectorManager outputConnMgr = OutputConnectorManagerFactory.make(threadcontext);
-		IOutputConnectionManager outputConnectionManager = OutputConnectionManagerFactory.make(threadcontext);
+        /** Install the agent tables.  This is also responsible for upgrading the existing
+        * tables!!!
+        *@param threadcontext is the thread context.
+        */
+        public static void installTables(IThreadContext threadcontext)
+                throws LCFException
+        {
+                IAgentManager mgr = AgentManagerFactory.make(threadcontext);
+                IIncrementalIngester igstmgr = IncrementalIngesterFactory.make(threadcontext);
+                IOutputConnectorManager outputConnMgr = OutputConnectorManagerFactory.make(threadcontext);
+                IOutputConnectionManager outputConnectionManager = OutputConnectionManagerFactory.make(threadcontext);
                 mgr.install();
-		outputConnMgr.install();
-		outputConnectionManager.install();
+                outputConnMgr.install();
+                outputConnectionManager.install();
                 igstmgr.install();
-	}
+        }
 
-	/** Uninstall all the crawler system tables.
-	*@param threadcontext is the thread context.
-	*/
-	public static void deinstallTables(IThreadContext threadcontext)
-		throws LCFException
-	{
-		IAgentManager mgr = AgentManagerFactory.make(threadcontext);
-		IIncrementalIngester igstmgr = IncrementalIngesterFactory.make(threadcontext);
-		IOutputConnectorManager outputConnMgr = OutputConnectorManagerFactory.make(threadcontext);
-		IOutputConnectionManager outputConnectionManager = OutputConnectionManagerFactory.make(threadcontext);
+        /** Uninstall all the crawler system tables.
+        *@param threadcontext is the thread context.
+        */
+        public static void deinstallTables(IThreadContext threadcontext)
+                throws LCFException
+        {
+                IAgentManager mgr = AgentManagerFactory.make(threadcontext);
+                IIncrementalIngester igstmgr = IncrementalIngesterFactory.make(threadcontext);
+                IOutputConnectorManager outputConnMgr = OutputConnectorManagerFactory.make(threadcontext);
+                IOutputConnectionManager outputConnectionManager = OutputConnectionManagerFactory.make(threadcontext);
                 igstmgr.deinstall();
-		outputConnectionManager.deinstall();
-		outputConnMgr.deinstall();
+                outputConnectionManager.deinstall();
+                outputConnMgr.deinstall();
                 mgr.deinstall();
-	}
+        }
 
 
-	/** Start agents.
-	*@param threadContext is the thread context.
-	*/
-	public static void startAgents(IThreadContext threadContext)
-		throws LCFException
-	{
-		// Get agent manager
-		IAgentManager manager = AgentManagerFactory.make(threadContext);
-		String[] classes = manager.getAllAgents();
-		int i = 0;
-		while (i < classes.length)
-		{
-			String className = classes[i++];
-			synchronized (runningHash)
-			{
-				if (runningHash.get(className) == null)
-				{
-					// Start this agent
-					IAgent agent = AgentFactory.make(threadContext,className);
-					// Start it
-					agent.startAgent();
-					// Successful
-					runningHash.put(className,agent);
-				}
-			}
-		}
-		// Done.
-	}
+        /** Start agents.
+        *@param threadContext is the thread context.
+        */
+        public static void startAgents(IThreadContext threadContext)
+                throws LCFException
+        {
+                // Get agent manager
+                IAgentManager manager = AgentManagerFactory.make(threadContext);
+                String[] classes = manager.getAllAgents();
+                int i = 0;
+                while (i < classes.length)
+                {
+                        String className = classes[i++];
+                        synchronized (runningHash)
+                        {
+                                if (runningHash.get(className) == null)
+                                {
+                                        // Start this agent
+                                        IAgent agent = AgentFactory.make(threadContext,className);
+                                        // Start it
+                                        agent.startAgent();
+                                        // Successful
+                                        runningHash.put(className,agent);
+                                }
+                        }
+                }
+                // Done.
+        }
 
-	/** Stop agents.
-	*@param threadContext is the thread context
-	*/
-	public static void stopAgents(IThreadContext threadContext)
-		throws LCFException
-	{
-		synchronized (runningHash)
-		{
-			HashMap iterHash = (HashMap)runningHash.clone();
-			Iterator iter = iterHash.keySet().iterator();
-			while (iter.hasNext())
-			{
-				String className = (String)iter.next();
-				IAgent agent = (IAgent)runningHash.get(className);
-				// Stop it
-				agent.stopAgent();
-				runningHash.remove(className);
-			}
-		}
-		// Done.
-	}
+        /** Stop agents.
+        *@param threadContext is the thread context
+        */
+        public static void stopAgents(IThreadContext threadContext)
+                throws LCFException
+        {
+                synchronized (runningHash)
+                {
+                        HashMap iterHash = (HashMap)runningHash.clone();
+                        Iterator iter = iterHash.keySet().iterator();
+                        while (iter.hasNext())
+                        {
+                                String className = (String)iter.next();
+                                IAgent agent = (IAgent)runningHash.get(className);
+                                // Stop it
+                                agent.stopAgent();
+                                runningHash.remove(className);
+                        }
+                }
+                // Done.
+        }
 }
 

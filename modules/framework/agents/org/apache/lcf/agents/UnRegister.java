@@ -25,39 +25,39 @@ import org.apache.lcf.agents.system.*;
 
 public class UnRegister
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private UnRegister()
-	{
-	}
-
-
-	public static void main(String[] args)
-	{
-		if (args.length != 1)
-		{
-			System.err.println("Usage: UnRegister <classname>");
-			System.exit(1);
-		}
-
-		String className = args[0];
-
-		try
-		{
-			LCF.initializeEnvironment();
-			IThreadContext tc = ThreadContextFactory.make();
-			IAgentManager mgr = AgentManagerFactory.make(tc);
-			mgr.unregisterAgent(className);
-			System.err.println("Successfully unregistered agent '"+className+"'");
-		}
-		catch (LCFException e)
-		{
-			e.printStackTrace();
-			System.exit(1);
-		}
-	}
+        private UnRegister()
+        {
+        }
 
 
+        public static void main(String[] args)
+        {
+                if (args.length != 1)
+                {
+                        System.err.println("Usage: UnRegister <classname>");
+                        System.exit(1);
+                }
 
-		
+                String className = args[0];
+
+                try
+                {
+                        LCF.initializeEnvironment();
+                        IThreadContext tc = ThreadContextFactory.make();
+                        IAgentManager mgr = AgentManagerFactory.make(tc);
+                        mgr.unregisterAgent(className);
+                        System.err.println("Successfully unregistered agent '"+className+"'");
+                }
+                catch (LCFException e)
+                {
+                        e.printStackTrace();
+                        System.exit(1);
+                }
+        }
+
+
+
+                
 }

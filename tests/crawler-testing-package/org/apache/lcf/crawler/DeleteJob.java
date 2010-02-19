@@ -28,36 +28,36 @@ import java.util.*;
 */
 public class DeleteJob
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private DeleteJob()
-	{
-	}
+        private DeleteJob()
+        {
+        }
 
-	public static void main(String[] args)
-	{
-		if (args.length != 1)
-		{
-			System.err.println("Usage: DeleteJob <jobid>");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 1)
+                {
+                        System.err.println("Usage: DeleteJob <jobid>");
+                        System.exit(1);
+                }
 
-		String jobID = args[0];
+                String jobID = args[0];
 
 
-		try
-		{
-		        LCF.initializeEnvironment();
-			IThreadContext tc = ThreadContextFactory.make();
-			IJobManager jobManager = JobManagerFactory.make(tc);
-			jobManager.deleteJob(new Long(jobID));
-			System.out.println("Job deleting");
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			System.exit(2);
-		}
-	}
-		
+                try
+                {
+                        LCF.initializeEnvironment();
+                        IThreadContext tc = ThreadContextFactory.make();
+                        IJobManager jobManager = JobManagerFactory.make(tc);
+                        jobManager.deleteJob(new Long(jobID));
+                        System.out.println("Job deleting");
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace();
+                        System.exit(2);
+                }
+        }
+                
 }

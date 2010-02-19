@@ -25,34 +25,34 @@ import org.apache.lcf.crawler.system.*;
 */
 public class JobManagerFactory
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	// Name
-	protected final static String jobManagerName = "_JobManager_";
+        // Name
+        protected final static String jobManagerName = "_JobManager_";
 
-	private JobManagerFactory()
-	{
-	}
+        private JobManagerFactory()
+        {
+        }
 
-	/** Create a job manager handle.
-	*@param threadContext is the thread context.
-	*@return the handle.
-	*/
-	public static IJobManager make(IThreadContext threadContext)
-		throws LCFException
-	{
-		Object o = threadContext.get(jobManagerName);
-		if (o == null || !(o instanceof IJobManager))
-		{
-			IDBInterface database = DBInterfaceFactory.make(threadContext,
-				LCF.getMasterDatabaseName(),
-				LCF.getMasterDatabaseUsername(),
-				LCF.getMasterDatabasePassword());
+        /** Create a job manager handle.
+        *@param threadContext is the thread context.
+        *@return the handle.
+        */
+        public static IJobManager make(IThreadContext threadContext)
+                throws LCFException
+        {
+                Object o = threadContext.get(jobManagerName);
+                if (o == null || !(o instanceof IJobManager))
+                {
+                        IDBInterface database = DBInterfaceFactory.make(threadContext,
+                                LCF.getMasterDatabaseName(),
+                                LCF.getMasterDatabaseUsername(),
+                                LCF.getMasterDatabasePassword());
 
-			o = new org.apache.lcf.crawler.jobs.JobManager(threadContext,database);
-			threadContext.save(jobManagerName,o);
-		}
-		return (IJobManager)o;
-	}
+                        o = new org.apache.lcf.crawler.jobs.JobManager(threadContext,database);
+                        threadContext.save(jobManagerName,o);
+                }
+                return (IJobManager)o;
+        }
 
 }

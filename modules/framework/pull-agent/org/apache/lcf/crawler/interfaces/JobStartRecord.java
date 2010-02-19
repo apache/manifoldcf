@@ -23,52 +23,52 @@ package org.apache.lcf.crawler.interfaces;
 */
 public class JobStartRecord
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	/** The job id. */
-	protected Long jobID;
-	/** The last synch time */
-	protected long synchTime;
-	/** Whether this job was started or not */
-	protected boolean wasStarted = false;
+        /** The job id. */
+        protected Long jobID;
+        /** The last synch time */
+        protected long synchTime;
+        /** Whether this job was started or not */
+        protected boolean wasStarted = false;
 
-	/** Constructor.
-	*/
-	public JobStartRecord(Long jobID, long synchTime)
-	{
-		this.jobID = jobID;
-		this.synchTime = synchTime;
-	}
+        /** Constructor.
+        */
+        public JobStartRecord(Long jobID, long synchTime)
+        {
+                this.jobID = jobID;
+                this.synchTime = synchTime;
+        }
 
-	/** Get the job ID.
-	*@return the id.
-	*/
-	public Long getJobID()
-	{
-		return jobID;
-	}
+        /** Get the job ID.
+        *@return the id.
+        */
+        public Long getJobID()
+        {
+                return jobID;
+        }
 
-	/** Get the synch time.
-	*@return the time.
-	*/
-	public long getSynchTime()
-	{
-		return synchTime;
-	}
+        /** Get the synch time.
+        *@return the time.
+        */
+        public long getSynchTime()
+        {
+                return synchTime;
+        }
 
-	/** Note that the job was started.
-	*/
-	public void noteStarted()
-	{
-		wasStarted = true;
-	}
+        /** Note that the job was started.
+        */
+        public void noteStarted()
+        {
+                wasStarted = true;
+        }
 
-	/** Check whether job was started.
-	*@return true if started.
-	*/
-	public boolean wasStarted()
-	{
-		return wasStarted;
-	}
+        /** Check whether job was started.
+        *@return true if started.
+        */
+        public boolean wasStarted()
+        {
+                return wasStarted;
+        }
 
 }

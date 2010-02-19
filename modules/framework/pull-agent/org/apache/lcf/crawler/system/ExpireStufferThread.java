@@ -129,7 +129,7 @@ public class ExpireStufferThread extends Thread
                                         // The theory is that we need to allow stuff to accumulate.
                                         if (descs.length == 0)
                                         {
-                                                LCF.sleep(60000L);	// 1 minute
+                                                LCF.sleep(60000L);      // 1 minute
                                                 continue;
                                         }
 

@@ -24,41 +24,41 @@ import org.apache.lcf.core.system.*;
 
 public class DBDrop
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private DBDrop()
-	{
-	}
-
-
-	public static void main(String[] args)
-	{
-		if (args.length != 1 && args.length != 2)
-		{
-			System.err.println("Usage: DBCreate <dbuser> [<dbpassword>]");
-			System.exit(1);
-		}
-
-		String userName = args[0];
-		String password = "";
-		if (args.length == 2)
-			password = args[1];
-
-		try
-		{
-			LCF.initializeEnvironment();
-			IThreadContext tc = ThreadContextFactory.make();
-			LCF.dropSystemDatabase(tc,null,userName,password);
-			System.err.println("LCF database dropped");
-		}
-		catch (LCFException e)
-		{
-			e.printStackTrace();
-			System.exit(1);
-		}
-	}
+        private DBDrop()
+        {
+        }
 
 
+        public static void main(String[] args)
+        {
+                if (args.length != 1 && args.length != 2)
+                {
+                        System.err.println("Usage: DBCreate <dbuser> [<dbpassword>]");
+                        System.exit(1);
+                }
 
-		
+                String userName = args[0];
+                String password = "";
+                if (args.length == 2)
+                        password = args[1];
+
+                try
+                {
+                        LCF.initializeEnvironment();
+                        IThreadContext tc = ThreadContextFactory.make();
+                        LCF.dropSystemDatabase(tc,null,userName,password);
+                        System.err.println("LCF database dropped");
+                }
+                catch (LCFException e)
+                {
+                        e.printStackTrace();
+                        System.exit(1);
+                }
+        }
+
+
+
+                
 }

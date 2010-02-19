@@ -24,64 +24,64 @@ import org.apache.lcf.core.interfaces.*;
 */
 public class StatusFilterCriteria
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	/** The set of jobs to match. */
-	protected Long[] ourJobs;
-	/** The lowest time of interest. */
-	protected long nowTime;
-	/** The regular expression string to match the doucment identifier. */
-	protected RegExpCriteria identifierMatchObject;
-	/** Matching states */
-	protected int[] matchingStates;
-	/** Matching statuses */
-	protected int[] matchingStatuses;
+        /** The set of jobs to match. */
+        protected Long[] ourJobs;
+        /** The lowest time of interest. */
+        protected long nowTime;
+        /** The regular expression string to match the doucment identifier. */
+        protected RegExpCriteria identifierMatchObject;
+        /** Matching states */
+        protected int[] matchingStates;
+        /** Matching statuses */
+        protected int[] matchingStatuses;
 
-	/** Constructor.
-	*/
-	public StatusFilterCriteria(Long[] ourJobs, long nowTime, RegExpCriteria identifierMatchObject,
-		int[] matchingStates, int[] matchingStatuses)
-	{
-		this.ourJobs = ourJobs;
-		this.nowTime = nowTime;
-		this.identifierMatchObject = identifierMatchObject;
-		this.matchingStates = matchingStates;
-		this.matchingStatuses = matchingStatuses;
-	}
+        /** Constructor.
+        */
+        public StatusFilterCriteria(Long[] ourJobs, long nowTime, RegExpCriteria identifierMatchObject,
+                int[] matchingStates, int[] matchingStatuses)
+        {
+                this.ourJobs = ourJobs;
+                this.nowTime = nowTime;
+                this.identifierMatchObject = identifierMatchObject;
+                this.matchingStates = matchingStates;
+                this.matchingStatuses = matchingStatuses;
+        }
 
-	/** Get the desired activities criteria.
-	*/
-	public Long[] getJobs()
-	{
-		return ourJobs;
-	}
+        /** Get the desired activities criteria.
+        */
+        public Long[] getJobs()
+        {
+                return ourJobs;
+        }
 
-	/** Get the "now" time
-	*/
-	public long getNowTime()
-	{
-		return nowTime;
-	}
-	
-	/** Get the regular expression to match the entity identifier.
-	*/
-	public RegExpCriteria getIdentifierMatch()
-	{
-		return identifierMatchObject;
-	}
+        /** Get the "now" time
+        */
+        public long getNowTime()
+        {
+                return nowTime;
+        }
+        
+        /** Get the regular expression to match the entity identifier.
+        */
+        public RegExpCriteria getIdentifierMatch()
+        {
+                return identifierMatchObject;
+        }
 
-	/** Get the match states
-	*/
-	public int[] getMatchingStates()
-	{
-		return matchingStates;
-	}
-	
-	/** Get the match statuses
-	*/
-	public int[] getMatchingStatuses()
-	{
-		return matchingStatuses;
-	}
+        /** Get the match states
+        */
+        public int[] getMatchingStates()
+        {
+                return matchingStates;
+        }
+        
+        /** Get the match statuses
+        */
+        public int[] getMatchingStatuses()
+        {
+                return matchingStatuses;
+        }
 
 }

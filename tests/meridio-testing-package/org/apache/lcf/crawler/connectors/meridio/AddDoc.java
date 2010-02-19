@@ -30,55 +30,55 @@ import com.meridio.www.MeridioRMWS.*;
 
 public class AddDoc
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private AddDoc()
-	{
-	}
+        private AddDoc()
+        {
+        }
 
 
-	public static void main(String[] args)
-	{
-		if (args.length < 8 || args.length > 9)
-		{
-			System.err.println("Usage: AddDoc <docurl> <recurl> <username> <password> <folder> <filepath> <filename> <filetitle> [<category>]");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length < 8 || args.length > 9)
+                {
+                        System.err.println("Usage: AddDoc <docurl> <recurl> <username> <password> <folder> <filepath> <filename> <filetitle> [<category>]");
+                        System.exit(1);
+                }
 
-		try
-		{
-    			MeridioTestWrapper handle = new MeridioTestWrapper(args[0],args[1],args[2],args[3]);
-			try
-			{
-				if (args[8] != null && args[8].length() > 0)
-				{
-					int categoryID = handle.findCategory(args[8]);
-					if (categoryID == 0)
-						throw new Exception("Unknown category '"+args[8]+"'");
-					
-					DOCUMENTS d = new DOCUMENTS();
-					d.setNewDocCategoryId(categoryID); 
-		
-					long id = handle.addDocumentToFolder(args[4],args[5],args[6],args[7],d,new DOCUMENT_CUSTOMPROPS[0]);
-					System.out.print(new Long(id).toString());
-				}
-				else
-				{
-					long id = handle.addDocumentToFolder(args[4],args[5],args[6],args[7]);
-					System.out.print(new Long(id).toString());
-				}
-			}
-			finally
-			{
-				handle.logout();
-			}
-			System.err.println("Successfully added");
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace(System.err);
-			System.exit(2);
-		}
-	}
+                try
+                {
+                        MeridioTestWrapper handle = new MeridioTestWrapper(args[0],args[1],args[2],args[3]);
+                        try
+                        {
+                                if (args[8] != null && args[8].length() > 0)
+                                {
+                                        int categoryID = handle.findCategory(args[8]);
+                                        if (categoryID == 0)
+                                                throw new Exception("Unknown category '"+args[8]+"'");
+                                        
+                                        DOCUMENTS d = new DOCUMENTS();
+                                        d.setNewDocCategoryId(categoryID); 
+                
+                                        long id = handle.addDocumentToFolder(args[4],args[5],args[6],args[7],d,new DOCUMENT_CUSTOMPROPS[0]);
+                                        System.out.print(new Long(id).toString());
+                                }
+                                else
+                                {
+                                        long id = handle.addDocumentToFolder(args[4],args[5],args[6],args[7]);
+                                        System.out.print(new Long(id).toString());
+                                }
+                        }
+                        finally
+                        {
+                                handle.logout();
+                        }
+                        System.err.println("Successfully added");
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace(System.err);
+                        System.exit(2);
+                }
+        }
 
 }

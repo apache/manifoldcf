@@ -32,9 +32,9 @@ import com.documentum.fc.common.*;
 public class DCTMAddRemove
         extends DFCSessionManagerEx
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	String strLocation = null;
+        String strLocation = null;
         String strObjectType = null;
         DfClient objDfClient = null;
 
@@ -42,25 +42,25 @@ public class DCTMAddRemove
         public DCTMAddRemove(String strDocbase, String strDomain, String strUsername, String strPassword, String strLocation)
             throws Exception
         {
-        	super();
+                super();
 
-		// Initialize the logger.  Hopefully nothing else will reset it.
-		PropertyConfigurator.configure("/etc/documentum/log4j.properties");
+                // Initialize the logger.  Hopefully nothing else will reset it.
+                PropertyConfigurator.configure("/etc/documentum/log4j.properties");
 
                 try
                 {
                     //--Do work...
-		    this.setDocbase(strDocbase);
-		    this.setUser(strUsername);
-		    this.setPassword(strPassword);
-		    this.setDomain(strDomain);
+                    this.setDocbase(strDocbase);
+                    this.setUser(strUsername);
+                    this.setPassword(strPassword);
+                    this.setDomain(strDomain);
 
                     System.err.println("Docbase = '" + strDocbase + "'");
                     System.err.println("Username = '" + strUsername + "'");
                     System.err.println("Password = '" + strPassword + "'");
                     System.err.println("Domain = '" + strDomain + "'");
 
-		    this.strLocation = strLocation;
+                    this.strLocation = strLocation;
                     if (this.strLocation == null || this.strLocation.length() < 1)
                     {
                         this.strLocation = "";
@@ -96,54 +96,54 @@ public class DCTMAddRemove
                 }
                 catch (Exception ex)
                 {
-			throw new Exception("Initialization error",ex);
+                        throw new Exception("Initialization error",ex);
                 }
         }
 
-	/** Lookup a document in the docbase.
-	*@return returns the object ID, or null if object not found.
-	*/
-	public String FindDoc(String strDocumentumName)
-	    throws Exception
-	{
+        /** Lookup a document in the docbase.
+        *@return returns the object ID, or null if object not found.
+        */
+        public String FindDoc(String strDocumentumName)
+            throws Exception
+        {
             try
             {
                 IDfSession objIDfSession = null;
                 objIDfSession = this.getIDfSession(this.getDocbase());
                 IDfSysObject objIDfSysObject = (IDfSysObject) objIDfSession.getObjectByQualification(strObjectType + "  where object_name='" + strDocumentumName + "' AND Folder('"+strLocation+"')");
-		if (objIDfSysObject == null)
-			return null;
-		return objIDfSysObject.getObjectId().toString();
+                if (objIDfSysObject == null)
+                        return null;
+                return objIDfSysObject.getObjectId().toString();
             }
             catch (Exception ex)
             {
-		throw new Exception("Exception in FindDoc",ex);
+                throw new Exception("Exception in FindDoc",ex);
             }
 
-	}
+        }
 
         /** Add a document to the docbase.  Will update an existing document if already present.
-	* Returns the object ID.
+        * Returns the object ID.
         */
         public String AddDoc(String strDocumentumName, String strLocalPath)
             throws Exception
         {
-	    int lastIndex = strLocalPath.lastIndexOf(".");
-	    String documentumType = "crtxt";
-	    if (lastIndex != -1)
-	    {
-		String ext = strLocalPath.substring(lastIndex+1).toLowerCase();
-		if (ext.equals("htm") || ext.equals("html") || ext.equals("xml") || ext.equals("txt"))
-			documentumType = "crtext";
-		else if (ext.equals("pdf"))
-			documentumType = "pdf";
-		else if (ext.equals("doc"))
-			documentumType = "msw8";
-		else if (ext.equals("xls"))
-			documentumType = "excel8Book";
-		else
-			throw new Exception("Unknown document extension: "+ext);
-	    }
+            int lastIndex = strLocalPath.lastIndexOf(".");
+            String documentumType = "crtxt";
+            if (lastIndex != -1)
+            {
+                String ext = strLocalPath.substring(lastIndex+1).toLowerCase();
+                if (ext.equals("htm") || ext.equals("html") || ext.equals("xml") || ext.equals("txt"))
+                        documentumType = "crtext";
+                else if (ext.equals("pdf"))
+                        documentumType = "pdf";
+                else if (ext.equals("doc"))
+                        documentumType = "msw8";
+                else if (ext.equals("xls"))
+                        documentumType = "excel8Book";
+                else
+                        throw new Exception("Unknown document extension: "+ext);
+            }
 
             try
             {
@@ -165,7 +165,7 @@ public class DCTMAddRemove
                     objIDfSysObject.useACL("FOLDER");
                 }
                 else
-		{
+                {
                     System.err.println("Located existing object with object ID=" + objIDfSysObject.getObjectId().toString());
                 }
 
@@ -175,23 +175,23 @@ public class DCTMAddRemove
                 System.err.println("About to save document");
                 objIDfSysObject.save();
                 if (!objIDfSysObject.isDirty())
-		{
+                {
                     System.err.println("Object has been saved");
                 }
                 else
-		{
+                {
                     System.err.println("Object not saved");
                 }
 
-		String objectID = objIDfSysObject.getObjectId().toString();
+                String objectID = objIDfSysObject.getObjectId().toString();
 
                 objIDfSysObject = null;
                 objIDfSession = null;
-		return objectID;
+                return objectID;
             }
             catch (Exception ex)
             {
-		throw new Exception("Exception in AddDoc",ex);
+                throw new Exception("Exception in AddDoc",ex);
             }
         }
 
@@ -248,7 +248,7 @@ public class DCTMAddRemove
                     System.err.println("Can not find document to version :" + strDocumentumName);
                 }
                 else
-		{
+                {
                     System.err.println("Located existing object with object ID=" + objIDfSysObject.getObjectId().toString());
                 }
 
@@ -256,11 +256,11 @@ public class DCTMAddRemove
                 IDfSysObject objNewSysObject = (IDfSysObject) objIDfSession.getObject(objIDfSysObject.checkin(false, ""));
                 System.out.println("Versioned document:" + strDocumentumName + " to version:" + objNewSysObject.getVersionPolicy().getSameLabel().toString());
 
-		String objectID = objIDfSysObject.getObjectId().toString();
+                String objectID = objIDfSysObject.getObjectId().toString();
                 objIDfSysObject = null;
                 objNewSysObject = null;
                 objIDfSession = null;
-		return objectID;
+                return objectID;
 
             }
             catch (Exception ex)

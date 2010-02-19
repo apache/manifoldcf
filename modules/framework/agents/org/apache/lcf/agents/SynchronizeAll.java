@@ -25,51 +25,51 @@ import org.apache.lcf.agents.system.*;
 
 public class SynchronizeAll
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private SynchronizeAll()
-	{
-	}
-
-
-	public static void main(String[] args)
-	{
-		if (args.length > 0)
-		{
-			System.err.println("Usage: SynchronizeAll");
-			System.exit(1);
-		}
-
-		try
-		{
-			LCF.initializeEnvironment();
-			IThreadContext tc = ThreadContextFactory.make();
-			IAgentManager mgr = AgentManagerFactory.make(tc);
-			String[] classnames = mgr.getAllAgents();
-			int i = 0;
-			while (i < classnames.length)
-			{
-				String classname = classnames[i++];
-				try
-				{
-					AgentFactory.make(tc,classname);
-				}
-				catch (LCFException e)
-				{
-					// Couldn't instantiate the agent: Remove from database table
-					mgr.removeAgent(classname);
-				}
-			}
-			System.err.println("Successfully synchronized all agents");
-		}
-		catch (LCFException e)
-		{
-			e.printStackTrace();
-			System.exit(1);
-		}
-	}
+        private SynchronizeAll()
+        {
+        }
 
 
+        public static void main(String[] args)
+        {
+                if (args.length > 0)
+                {
+                        System.err.println("Usage: SynchronizeAll");
+                        System.exit(1);
+                }
 
-		
+                try
+                {
+                        LCF.initializeEnvironment();
+                        IThreadContext tc = ThreadContextFactory.make();
+                        IAgentManager mgr = AgentManagerFactory.make(tc);
+                        String[] classnames = mgr.getAllAgents();
+                        int i = 0;
+                        while (i < classnames.length)
+                        {
+                                String classname = classnames[i++];
+                                try
+                                {
+                                        AgentFactory.make(tc,classname);
+                                }
+                                catch (LCFException e)
+                                {
+                                        // Couldn't instantiate the agent: Remove from database table
+                                        mgr.removeAgent(classname);
+                                }
+                        }
+                        System.err.println("Successfully synchronized all agents");
+                }
+                catch (LCFException e)
+                {
+                        e.printStackTrace();
+                        System.exit(1);
+                }
+        }
+
+
+
+                
 }

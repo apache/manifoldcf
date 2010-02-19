@@ -27,51 +27,51 @@ import java.util.*;
 */
 public class BaseObject
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	protected HashMap fields = new HashMap();
+        protected HashMap fields = new HashMap();
 
-	/** Construct an empty one.
-	*/
-	public BaseObject()
-	{
-	}
+        /** Construct an empty one.
+        */
+        public BaseObject()
+        {
+        }
 
-	/** Clear the current object.
-	*/
-	public void clear()
-	{
-		fields.clear();
-	}
+        /** Clear the current object.
+        */
+        public void clear()
+        {
+                fields.clear();
+        }
 
-	/** Get the list of fields that currently have
-	* values.
-	*@return an iterator of the current non-null fields.
-	*/
-	public Iterator listFields()
-	{
-		return fields.keySet().iterator();
-	}
+        /** Get the list of fields that currently have
+        * values.
+        *@return an iterator of the current non-null fields.
+        */
+        public Iterator listFields()
+        {
+                return fields.keySet().iterator();
+        }
 
-	/** Get a field by name.
-	*@param fieldName is the name of the field.
-	*@return the field value, or null if it is not set.
-	*/
-	public Object getValue(String fieldName)
-	{
-		return fields.get(fieldName);
-	}
+        /** Get a field by name.
+        *@param fieldName is the name of the field.
+        *@return the field value, or null if it is not set.
+        */
+        public Object getValue(String fieldName)
+        {
+                return fields.get(fieldName);
+        }
 
-	/** Set a field by name.
-	*@param fieldName is the name of the field.
-	*@param fieldValue is the value, or null if the field should be removed.
-	*/
-	public void setValue(String fieldName, Object fieldValue)
-	{
-		if (fieldValue == null)
-			fields.remove(fieldName);
-		else
-			fields.put(fieldName,fieldValue);
-	}
+        /** Set a field by name.
+        *@param fieldName is the name of the field.
+        *@param fieldValue is the value, or null if the field should be removed.
+        */
+        public void setValue(String fieldName, Object fieldValue)
+        {
+                if (fieldValue == null)
+                        fields.remove(fieldName);
+                else
+                        fields.put(fieldName,fieldValue);
+        }
 
 }

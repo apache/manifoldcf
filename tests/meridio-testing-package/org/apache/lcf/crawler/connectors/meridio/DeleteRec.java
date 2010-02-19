@@ -23,40 +23,40 @@ import org.apache.lcf.crawler.connectors.meridio.meridiowrapper.MeridioTestWrapp
 
 public class DeleteRec
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private DeleteRec()
-	{
-	}
+        private DeleteRec()
+        {
+        }
 
 
-	public static void main(String[] args)
-	{
-		if (args.length != 5)
-		{
-			System.err.println("Usage: DeleteRec <docurl> <recurl> <username> <password> <recid>");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 5)
+                {
+                        System.err.println("Usage: DeleteRec <docurl> <recurl> <username> <password> <recid>");
+                        System.exit(1);
+                }
 
-		try
-		{
-    			MeridioTestWrapper handle = new MeridioTestWrapper(args[0],args[1],args[2],args[3]);
-			try
-			{
-				int docId = Integer.parseInt(args[4]);
-				handle.deleteRecord(docId);
-			}
-			finally
-			{
-				handle.logout();
-			}
-			System.err.println("Successfully deleted");
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace(System.err);
-			System.exit(2);
-		}
-	}
+                try
+                {
+                        MeridioTestWrapper handle = new MeridioTestWrapper(args[0],args[1],args[2],args[3]);
+                        try
+                        {
+                                int docId = Integer.parseInt(args[4]);
+                                handle.deleteRecord(docId);
+                        }
+                        finally
+                        {
+                                handle.logout();
+                        }
+                        System.err.println("Successfully deleted");
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace(System.err);
+                        System.exit(2);
+                }
+        }
 
 }

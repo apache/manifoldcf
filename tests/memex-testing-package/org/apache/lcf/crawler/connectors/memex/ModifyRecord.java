@@ -23,52 +23,52 @@ import java.util.*;
 
 public class ModifyRecord
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private ModifyRecord()
-	{
-	}
+        private ModifyRecord()
+        {
+        }
 
 
-	public static void main(String[] args)
-	{
-		if (args.length < 5 && (args.length & 1) != 1)
-		{
-			System.err.println("Usage: ModifyRecord <servername> <port> <username> <password> <id> <name_1> <value_1> ... <name_N> <value_N>");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length < 5 && (args.length & 1) != 1)
+                {
+                        System.err.println("Usage: ModifyRecord <servername> <port> <username> <password> <id> <name_1> <value_1> ... <name_N> <value_N>");
+                        System.exit(1);
+                }
 
-		try
-		{
-			MemexSupport handle = new MemexSupport(args[2],args[3],args[0],args[1]);
-			try
-			{
-				Hashtable fields = setupFields(args,5);
-				handle.modifyRecord(args[4],fields);
-			}
-			finally
-			{
-				handle.close();
-			}
-			System.err.println("Successfully modified");
-		}
-		catch (LCFException e)
-		{
-			e.printStackTrace(System.err);
-			System.exit(2);
-		}
-	}
+                try
+                {
+                        MemexSupport handle = new MemexSupport(args[2],args[3],args[0],args[1]);
+                        try
+                        {
+                                Hashtable fields = setupFields(args,5);
+                                handle.modifyRecord(args[4],fields);
+                        }
+                        finally
+                        {
+                                handle.close();
+                        }
+                        System.err.println("Successfully modified");
+                }
+                catch (LCFException e)
+                {
+                        e.printStackTrace(System.err);
+                        System.exit(2);
+                }
+        }
 
-	protected static Hashtable setupFields(String[] args, int startingIndex)
-	{
-		Hashtable rval = new Hashtable();
-		while (startingIndex < args.length)
-		{
-			String name = args[startingIndex];
-			String value = args[startingIndex+1];
-			startingIndex += 2;
-			rval.put(name,value);
-		}
-		return rval;
-	}
+        protected static Hashtable setupFields(String[] args, int startingIndex)
+        {
+                Hashtable rval = new Hashtable();
+                while (startingIndex < args.length)
+                {
+                        String name = args[startingIndex];
+                        String value = args[startingIndex+1];
+                        startingIndex += 2;
+                        rval.put(name,value);
+                }
+                return rval;
+        }
 }

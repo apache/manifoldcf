@@ -23,42 +23,42 @@ import org.apache.lcf.crawler.connectors.meridio.meridiowrapper.MeridioTestWrapp
 
 public class UpdateDoc
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private UpdateDoc()
-	{
-	}
+        private UpdateDoc()
+        {
+        }
 
 
-	public static void main(String[] args)
-	{
-		if (args.length != 8)
-		{
-			System.err.println("Usage: UpdateDoc <docurl> <recurl> <username> <password> <docid> <filepath> <filename> <comment>");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 8)
+                {
+                        System.err.println("Usage: UpdateDoc <docurl> <recurl> <username> <password> <docid> <filepath> <filename> <comment>");
+                        System.exit(1);
+                }
 
-		try
-		{
-    			MeridioTestWrapper handle = new MeridioTestWrapper(args[0],args[1],args[2],args[3]);
-			try
-			{
-				int docId = Integer.parseInt(args[4]);
-                            	handle.lockDocument(docId,args[7]);
-				handle.addDocumentVersion(docId,args[5],args[6],args[7]);
-				handle.unlockDocument(docId);
-			}
-			finally
-			{
-				handle.logout();
-			}
-			System.err.println("Successfully updated");
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace(System.err);
-			System.exit(2);
-		}
-	}
+                try
+                {
+                        MeridioTestWrapper handle = new MeridioTestWrapper(args[0],args[1],args[2],args[3]);
+                        try
+                        {
+                                int docId = Integer.parseInt(args[4]);
+                                handle.lockDocument(docId,args[7]);
+                                handle.addDocumentVersion(docId,args[5],args[6],args[7]);
+                                handle.unlockDocument(docId);
+                        }
+                        finally
+                        {
+                                handle.logout();
+                        }
+                        System.err.println("Successfully updated");
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace(System.err);
+                        System.exit(2);
+                }
+        }
 
 }

@@ -20,32 +20,32 @@ package org.apache.lcf.crawler.connectors.DCTM;
 
 public class RemoveDoc
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private RemoveDoc()
-	{
-	}
+        private RemoveDoc()
+        {
+        }
 
 
-	public static void main(String[] args)
-	{
-		if (args.length != 6)
-		{
-			System.err.println("Usage: RemoveDoc <docbase> <domain> <user> <password> <location> <file>");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 6)
+                {
+                        System.err.println("Usage: RemoveDoc <docbase> <domain> <user> <password> <location> <file>");
+                        System.exit(1);
+                }
 
-		try
-		{
-			DCTMAddRemove handle = new DCTMAddRemove(args[0],args[1],args[2],args[3],args[4]);
-			handle.DeleteDoc(args[5]);
-			System.err.println("Successfully deleted");
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace(System.err);
-			System.exit(2);
-		}
-	}
+                try
+                {
+                        DCTMAddRemove handle = new DCTMAddRemove(args[0],args[1],args[2],args[3],args[4]);
+                        handle.DeleteDoc(args[5]);
+                        System.err.println("Successfully deleted");
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace(System.err);
+                        System.exit(2);
+                }
+        }
 
 }

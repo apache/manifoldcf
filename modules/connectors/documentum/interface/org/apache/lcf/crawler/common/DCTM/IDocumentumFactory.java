@@ -26,11 +26,11 @@ import java.rmi.*;
 */
 public interface IDocumentumFactory extends Remote
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	/** Mint a new IDocumentum handle.
-	*/
-	public IDocumentum make()
-		throws RemoteException;
+        /** Mint a new IDocumentum handle.
+        */
+        public IDocumentum make()
+                throws RemoteException;
 
 }

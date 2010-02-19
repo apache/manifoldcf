@@ -25,40 +25,40 @@ import org.apache.lcf.authorities.system.*;
 
 public class RegisterAuthority
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private RegisterAuthority()
-	{
-	}
-
-
-	public static void main(String[] args)
-	{
-		if (args.length != 2)
-		{
-			System.err.println("Usage: RegisterAuthority <classname> <description>");
-			System.exit(1);
-		}
-
-		String className = args[0];
-		String description = args[1];
-
-		try
-		{
-			LCF.initializeEnvironment();
-			IThreadContext tc = ThreadContextFactory.make();
-			IAuthorityConnectorManager mgr = AuthorityConnectorManagerFactory.make(tc);
-			mgr.registerConnector(description,className);
-			System.err.println("Successfully registered connector '"+className+"'");
-		}
-		catch (LCFException e)
-		{
-			e.printStackTrace();
-			System.exit(1);
-		}
-	}
+        private RegisterAuthority()
+        {
+        }
 
 
+        public static void main(String[] args)
+        {
+                if (args.length != 2)
+                {
+                        System.err.println("Usage: RegisterAuthority <classname> <description>");
+                        System.exit(1);
+                }
 
-		
+                String className = args[0];
+                String description = args[1];
+
+                try
+                {
+                        LCF.initializeEnvironment();
+                        IThreadContext tc = ThreadContextFactory.make();
+                        IAuthorityConnectorManager mgr = AuthorityConnectorManagerFactory.make(tc);
+                        mgr.registerConnector(description,className);
+                        System.err.println("Successfully registered connector '"+className+"'");
+                }
+                catch (LCFException e)
+                {
+                        e.printStackTrace();
+                        System.exit(1);
+                }
+        }
+
+
+
+                
 }

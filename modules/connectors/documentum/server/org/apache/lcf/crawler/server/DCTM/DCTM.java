@@ -26,38 +26,38 @@ import java.net.*;
 */
 public class DCTM
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private DCTM()
-	{
-	}
+        private DCTM()
+        {
+        }
 
-	public static void main(String[] args)
-	{
-        	try
-		{
-			DocumentumFactoryImpl factory = new DocumentumFactoryImpl();
-			Naming.rebind("//127.0.0.1:8300/documentum_factory", factory);
-			// sets the handle
-            		System.out.println("Documentum Server started and awaiting connections.");
-			while (true)
-			{
-				Thread.sleep(600000L);
-			}
-        	}
-		catch (InterruptedException e)
-		{
-		}
-        	catch (RemoteException er)
-		{
-        		System.err.println("Remote exception in DCTM.main: " + er);
-			er.printStackTrace(System.err);
-		}
-		catch (MalformedURLException er)
-		{
-        		System.err.println("Exception in DCTM.main: " + er);
-			er.printStackTrace(System.err);
-		}
+        public static void main(String[] args)
+        {
+                try
+                {
+                        DocumentumFactoryImpl factory = new DocumentumFactoryImpl();
+                        Naming.rebind("//127.0.0.1:8300/documentum_factory", factory);
+                        // sets the handle
+                        System.out.println("Documentum Server started and awaiting connections.");
+                        while (true)
+                        {
+                                Thread.sleep(600000L);
+                        }
+                }
+                catch (InterruptedException e)
+                {
+                }
+                catch (RemoteException er)
+                {
+                        System.err.println("Remote exception in DCTM.main: " + er);
+                        er.printStackTrace(System.err);
+                }
+                catch (MalformedURLException er)
+                {
+                        System.err.println("Exception in DCTM.main: " + er);
+                        er.printStackTrace(System.err);
+                }
 
         }
 }

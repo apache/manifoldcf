@@ -27,17 +27,17 @@ public class NameDescription implements java.io.Serializable
 
     public NameDescription(String displayName, String symbolicName)
     {
-	this.displayName = displayName;
-	this.symbolicName = symbolicName;
+        this.displayName = displayName;
+        this.symbolicName = symbolicName;
     }
     
     public String getDisplayName()
     {
-	return displayName;
+        return displayName;
     }
     
     public String getSymbolicName()
     {
-	return symbolicName;
+        return symbolicName;
     }
 }

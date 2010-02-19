@@ -28,35 +28,35 @@ import java.util.*;
 */
 public class CheckConfigured
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private CheckConfigured()
-	{
-	}
+        private CheckConfigured()
+        {
+        }
 
-	public static void main(String[] args)
-	{
-		if (args.length != 0)
-		{
-			System.err.println("Usage: CheckConfigured");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 0)
+                {
+                        System.err.println("Usage: CheckConfigured");
+                        System.exit(1);
+                }
 
-		try
-		{
-		        LCF.initializeEnvironment();
-			IThreadContext tc = ThreadContextFactory.make();
-			// Now, get a list of the authority connections
-			IAuthorityConnectionManager mgr = AuthorityConnectionManagerFactory.make(tc);
-			if (mgr.getAllConnections().length > 0)
-				System.out.println("CONFIGURED");
-			else
-				System.out.println("OK");
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			System.exit(2);
-		}
-	}
+                try
+                {
+                        LCF.initializeEnvironment();
+                        IThreadContext tc = ThreadContextFactory.make();
+                        // Now, get a list of the authority connections
+                        IAuthorityConnectionManager mgr = AuthorityConnectionManagerFactory.make(tc);
+                        if (mgr.getAllConnections().length > 0)
+                                System.out.println("CONFIGURED");
+                        else
+                                System.out.println("OK");
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace();
+                        System.exit(2);
+                }
+        }
 }

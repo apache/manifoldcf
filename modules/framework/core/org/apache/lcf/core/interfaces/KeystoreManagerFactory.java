@@ -26,69 +26,69 @@ import java.security.cert.*;
 */
 public class KeystoreManagerFactory
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	/** Mint a keystore manager.
-	*/
-	public static IKeystoreManager make(String passcode)
-		throws LCFException
-	{
-		return new KeystoreManager(passcode);
-	}
+        /** Mint a keystore manager.
+        */
+        public static IKeystoreManager make(String passcode)
+                throws LCFException
+        {
+                return new KeystoreManager(passcode);
+        }
 
-	/** Mint a keystore manager from a base-64 encoded string.
-	*/
-	public static IKeystoreManager make(String passcode, String base64String)
-		throws LCFException
-	{
-		return new KeystoreManager(passcode,base64String);
-	}
+        /** Mint a keystore manager from a base-64 encoded string.
+        */
+        public static IKeystoreManager make(String passcode, String base64String)
+                throws LCFException
+        {
+                return new KeystoreManager(passcode,base64String);
+        }
 
-	protected static javax.net.ssl.X509TrustManager[] openTrustManagerArray = new OpenTrustManager[]{new OpenTrustManager()};
+        protected static javax.net.ssl.X509TrustManager[] openTrustManagerArray = new OpenTrustManager[]{new OpenTrustManager()};
 
-	/** Build a secure socket factory that pays no attention to certificates in trust store, and just trusts everything.
-	*/
-	public static javax.net.ssl.SSLSocketFactory getTrustingSecureSocketFactory()
-		throws LCFException
-	{
-	    try
-	    {
-		java.security.SecureRandom secureRandom = java.security.SecureRandom.getInstance("SHA1PRNG");
+        /** Build a secure socket factory that pays no attention to certificates in trust store, and just trusts everything.
+        */
+        public static javax.net.ssl.SSLSocketFactory getTrustingSecureSocketFactory()
+                throws LCFException
+        {
+            try
+            {
+                java.security.SecureRandom secureRandom = java.security.SecureRandom.getInstance("SHA1PRNG");
 
-		// Create an SSL context
-		javax.net.ssl.SSLContext sslContext = javax.net.ssl.SSLContext.getInstance("SSL");
-		sslContext.init(null,openTrustManagerArray,secureRandom);
+                // Create an SSL context
+                javax.net.ssl.SSLContext sslContext = javax.net.ssl.SSLContext.getInstance("SSL");
+                sslContext.init(null,openTrustManagerArray,secureRandom);
 
-		return sslContext.getSocketFactory();
-	    }
-	    catch (java.security.NoSuchAlgorithmException e)
-	    {
-		throw new LCFException("No such algorithm: "+e.getMessage(),e);
-	    }
-	    catch (java.security.KeyManagementException e)
-	    {
-		throw new LCFException("Key management exception: "+e.getMessage(),e);
-	    }
-	}
+                return sslContext.getSocketFactory();
+            }
+            catch (java.security.NoSuchAlgorithmException e)
+            {
+                throw new LCFException("No such algorithm: "+e.getMessage(),e);
+            }
+            catch (java.security.KeyManagementException e)
+            {
+                throw new LCFException("Key management exception: "+e.getMessage(),e);
+            }
+        }
 
-	protected static class OpenTrustManager implements javax.net.ssl.X509TrustManager
-	{
-		public void checkClientTrusted(X509Certificate[] chain,
-			String authType)
+        protected static class OpenTrustManager implements javax.net.ssl.X509TrustManager
+        {
+                public void checkClientTrusted(X509Certificate[] chain,
+                        String authType)
                         throws CertificateException
-		{
-		}
-		
-		public void checkServerTrusted(X509Certificate[] chain,
-			String authType)
+                {
+                }
+                
+                public void checkServerTrusted(X509Certificate[] chain,
+                        String authType)
                         throws CertificateException
-		{
-		}
-		
-		public X509Certificate[] getAcceptedIssuers()
-		{
-			return new X509Certificate[0];
-		}
-	}
+                {
+                }
+                
+                public X509Certificate[] getAcceptedIssuers()
+                {
+                        return new X509Certificate[0];
+                }
+        }
 
 }

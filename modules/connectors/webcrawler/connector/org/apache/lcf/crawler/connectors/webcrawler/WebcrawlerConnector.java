@@ -451,29 +451,29 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                 ThrottledFetcher.flushIdleConnections();
         }
 
-	/** Check status of connection.
-	*/
-	public String check()
-		throws LCFException
-	{
-		getSession();
-		return super.check();
-	}
+        /** Check status of connection.
+        */
+        public String check()
+                throws LCFException
+        {
+                getSession();
+                return super.check();
+        }
 
-	/** Close the connection.  Call this before discarding the repository connector.
-	*/
-	public void disconnect()
-		throws LCFException
-	{
-		throttleDescription = null;
-		credentialsDescription = null;
-		trustsDescription = null;
-		userAgent = null;
-		from = null;
-		isInitialized = false;
-		
-		super.disconnect();
-	}
+        /** Close the connection.  Call this before discarding the repository connector.
+        */
+        public void disconnect()
+                throws LCFException
+        {
+                throttleDescription = null;
+                credentialsDescription = null;
+                trustsDescription = null;
+                userAgent = null;
+                from = null;
+                isInitialized = false;
+                
+                super.disconnect();
+        }
 
         /** Get the bin name string for a document identifier.  The bin name describes the queue to which the
         * document will be assigned for throttling purposes.  Throttling controls the rate at which items in a

@@ -22,28 +22,28 @@ package org.apache.lcf.core.interfaces;
 */
 public class CacheManagerFactory
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private final static String cacheManager = "_CacheManager_";
+        private final static String cacheManager = "_CacheManager_";
 
-	private CacheManagerFactory()
-	{
-	}
+        private CacheManagerFactory()
+        {
+        }
 
-	/** Return a cache manager instance that any client can use to obtain cache management services.
-	* This service will use the lock manager, so it needs to have a thread context.
-	* @return the proper cache manager instance.
-	*/
-	public static ICacheManager make(IThreadContext context)
-		throws LCFException
-	{
-		Object o = context.get(cacheManager);
-		if (o == null || !(o instanceof ICacheManager))
-		{
-			o = new org.apache.lcf.core.cachemanager.CacheManager(context);
-			context.save(cacheManager,o);
-		}
-		return (ICacheManager)o;
-	}
+        /** Return a cache manager instance that any client can use to obtain cache management services.
+        * This service will use the lock manager, so it needs to have a thread context.
+        * @return the proper cache manager instance.
+        */
+        public static ICacheManager make(IThreadContext context)
+                throws LCFException
+        {
+                Object o = context.get(cacheManager);
+                if (o == null || !(o instanceof ICacheManager))
+                {
+                        o = new org.apache.lcf.core.cachemanager.CacheManager(context);
+                        context.save(cacheManager,o);
+                }
+                return (ICacheManager)o;
+        }
 
 }

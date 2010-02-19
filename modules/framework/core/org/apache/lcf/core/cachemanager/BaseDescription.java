@@ -28,84 +28,84 @@ import java.util.*;
 */
 public abstract class BaseDescription implements ICacheDescription
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	protected ICacheClass cacheClass = null;
+        protected ICacheClass cacheClass = null;
 
-	protected final static Integer max_value = new Integer(Integer.MAX_VALUE);
+        protected final static Integer max_value = new Integer(Integer.MAX_VALUE);
 
-	public BaseDescription(String objectClassName)
-	{
-		if (objectClassName != null)
-			cacheClass = new LocalCacheClass(objectClassName);
-	}
+        public BaseDescription(String objectClassName)
+        {
+                if (objectClassName != null)
+                        cacheClass = new LocalCacheClass(objectClassName);
+        }
 
-	/** Get the object class for an object.  The object class is used to determine
-	* the group of objects treated in the same LRU manner.
-	* @return the newly created object's object class, or null if there is no
-	* such class, and LRU behavior is not desired.
-	*/
-	public ICacheClass getObjectClass()
-	{
-		return cacheClass;
-	}
+        /** Get the object class for an object.  The object class is used to determine
+        * the group of objects treated in the same LRU manner.
+        * @return the newly created object's object class, or null if there is no
+        * such class, and LRU behavior is not desired.
+        */
+        public ICacheClass getObjectClass()
+        {
+                return cacheClass;
+        }
 
-	/** Obtain an expiration time for an object, in milliseconds since epoch.
-	* The cache manager will call this method for all objects that are being operated on,
-	* so that their expiration timestamps get properly updated to a new time.
-	* @return a time in milliseconds for the object to expire, or -1 if there is no expiration
-	* desired.
-	*/
-	public long getObjectExpirationTime()
-	{
-		return -1;
-	}
+        /** Obtain an expiration time for an object, in milliseconds since epoch.
+        * The cache manager will call this method for all objects that are being operated on,
+        * so that their expiration timestamps get properly updated to a new time.
+        * @return a time in milliseconds for the object to expire, or -1 if there is no expiration
+        * desired.
+        */
+        public long getObjectExpirationTime()
+        {
+                return -1;
+        }
 
-	/** This is a cache class implementation that gets expiration and LRU info
-	* from .ini variables.
-	*/
-	protected class LocalCacheClass implements ICacheClass
-	{
-		protected String objectClassName;
-		protected Integer maxLRUCount = null;
+        /** This is a cache class implementation that gets expiration and LRU info
+        * from .ini variables.
+        */
+        protected class LocalCacheClass implements ICacheClass
+        {
+                protected String objectClassName;
+                protected Integer maxLRUCount = null;
 
-		public LocalCacheClass(String objectClassName)
-		{
-			this.objectClassName = objectClassName;
-		}
+                public LocalCacheClass(String objectClassName)
+                {
+                        this.objectClassName = objectClassName;
+                }
 
-		/** Get the name of the object class.
-		* This determines the set of objects that are treated in the same
-		* LRU pool.
-		*@return the class name.
-		*/
-		public String getClassName()
-		{
-			return objectClassName;
-		}
+                /** Get the name of the object class.
+                * This determines the set of objects that are treated in the same
+                * LRU pool.
+                *@return the class name.
+                */
+                public String getClassName()
+                {
+                        return objectClassName;
+                }
 
-		/** Get the maximum LRU count of the object class.
-		*@return the maximum number of the objects of the particular class
-		* allowed.
-		*/
-		public int getMaxLRUCount()
-		{
-			if (maxLRUCount == null)
-			{
-				try
-				{
-					String x = null; // JSKW.getProperty("cache."+objectClassName+".lrusize");
-					if (x == null)
-						maxLRUCount = max_value;
-					else
-						maxLRUCount = new Integer(x);
-				}
-				catch (Exception e)
-				{
-					maxLRUCount = max_value;
-				}
-			}
-			return maxLRUCount.intValue();
-		}
-	}
+                /** Get the maximum LRU count of the object class.
+                *@return the maximum number of the objects of the particular class
+                * allowed.
+                */
+                public int getMaxLRUCount()
+                {
+                        if (maxLRUCount == null)
+                        {
+                                try
+                                {
+                                        String x = null; // JSKW.getProperty("cache."+objectClassName+".lrusize");
+                                        if (x == null)
+                                                maxLRUCount = max_value;
+                                        else
+                                                maxLRUCount = new Integer(x);
+                                }
+                                catch (Exception e)
+                                {
+                                        maxLRUCount = max_value;
+                                }
+                        }
+                        return maxLRUCount.intValue();
+                }
+        }
 }

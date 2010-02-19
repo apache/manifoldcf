@@ -29,18 +29,18 @@ public interface IOutputHistoryActivity
 
         /** Record time-stamped information about the activity of the output connector.
         *@param startTime is either null or the time since the start of epoch in milliseconds (Jan 1, 1970).  Every
-        *	activity has an associated time; the startTime field records when the activity began.  A null value
-        *	indicates that the start time and the finishing time are the same.
+        *       activity has an associated time; the startTime field records when the activity began.  A null value
+        *       indicates that the start time and the finishing time are the same.
         *@param activityType is a string which is fully interpretable only in the context of the connector involved, which is
-        *	used to categorize what kind of activity is being recorded.  For example, a web connector might record a
-        *	"fetch document" activity.  Cannot be null.
+        *       used to categorize what kind of activity is being recorded.  For example, a web connector might record a
+        *       "fetch document" activity.  Cannot be null.
         *@param dataSize is the number of bytes of data involved in the activity, or null if not applicable.
         *@param entityURI is a (possibly long) string which identifies the object involved in the history record.
-        *	The interpretation of this field will differ from connector to connector.  May be null.
+        *       The interpretation of this field will differ from connector to connector.  May be null.
         *@param resultCode contains a terse description of the result of the activity.  The description is limited in
-        *	size to 255 characters, and can be interpreted only in the context of the current connector.  May be null.
+        *       size to 255 characters, and can be interpreted only in the context of the current connector.  May be null.
         *@param resultDescription is a (possibly long) human-readable string which adds detail, if required, to the result
-        *	described in the resultCode field.  This field is not meant to be queried on.  May be null.
+        *       described in the resultCode field.  This field is not meant to be queried on.  May be null.
         */
         public void recordActivity(Long startTime, String activityType, Long dataSize,
                 String entityURI, String resultCode, String resultDescription)

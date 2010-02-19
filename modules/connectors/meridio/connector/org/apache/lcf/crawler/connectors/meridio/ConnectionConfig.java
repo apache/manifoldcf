@@ -28,76 +28,76 @@ import java.util.Map;
 */
 public class ConnectionConfig
 {
-	public static final String _rcsid = "@(#)$Id$";
-	
-	protected ProtocolFactory protocolFactory;
-	protected HttpConnectionManager connectionManager;
-	protected String proxyHost;
-	protected Integer proxyPort;
-	protected String domain;
-	protected String userName;
-	protected String password;
+        public static final String _rcsid = "@(#)$Id$";
+        
+        protected ProtocolFactory protocolFactory;
+        protected HttpConnectionManager connectionManager;
+        protected String proxyHost;
+        protected Integer proxyPort;
+        protected String domain;
+        protected String userName;
+        protected String password;
 
-	/** Constructor. */
-	public ConnectionConfig(ProtocolFactory protocolFactory, HttpConnectionManager connectionManager, String proxyHost, Integer proxyPort, String domain,
-		String userName, String password)
-	{
-		this.protocolFactory = protocolFactory;
-		this.connectionManager = connectionManager;
-		this.proxyHost = proxyHost;
-		this.proxyPort = proxyPort;
-		this.domain = domain;
-		this.userName = userName;
-		this.password = password;
-	}
-	
-	/** Get the protocol factory to use for this connection */
-	public ProtocolFactory getProtocolFactory()
-	{
-		return protocolFactory;
-	}
-	
-	/** Get the protocol given a string protocol name */
-	public Protocol getProtocol(String protocolName)
-	{
-		return (Protocol)protocolFactory.getProtocol(protocolName);
-	}
-	
-	/** Get the connection manager */
-	public HttpConnectionManager getConnectionManager()
-	{
-		return connectionManager;
-	}
-	
-	/** Get the proxy host */
-	public String getProxyHost()
-	{
-		return proxyHost;
-	}
-	
-	/** Get the proxy port */
-	public Integer getProxyPort()
-	{
-		return proxyPort;
-	}
-	
-	/** Get the domain */
-	public String getDomain()
-	{
-		return domain;
-	}
-	
-	/** Get the user name */
-	public String getUserName()
-	{
-		return userName;
-	}
-	
-	/** Get the password */
-	public String getPassword()
-	{
-		return password;
-	}
+        /** Constructor. */
+        public ConnectionConfig(ProtocolFactory protocolFactory, HttpConnectionManager connectionManager, String proxyHost, Integer proxyPort, String domain,
+                String userName, String password)
+        {
+                this.protocolFactory = protocolFactory;
+                this.connectionManager = connectionManager;
+                this.proxyHost = proxyHost;
+                this.proxyPort = proxyPort;
+                this.domain = domain;
+                this.userName = userName;
+                this.password = password;
+        }
+        
+        /** Get the protocol factory to use for this connection */
+        public ProtocolFactory getProtocolFactory()
+        {
+                return protocolFactory;
+        }
+        
+        /** Get the protocol given a string protocol name */
+        public Protocol getProtocol(String protocolName)
+        {
+                return (Protocol)protocolFactory.getProtocol(protocolName);
+        }
+        
+        /** Get the connection manager */
+        public HttpConnectionManager getConnectionManager()
+        {
+                return connectionManager;
+        }
+        
+        /** Get the proxy host */
+        public String getProxyHost()
+        {
+                return proxyHost;
+        }
+        
+        /** Get the proxy port */
+        public Integer getProxyPort()
+        {
+                return proxyPort;
+        }
+        
+        /** Get the domain */
+        public String getDomain()
+        {
+                return domain;
+        }
+        
+        /** Get the user name */
+        public String getUserName()
+        {
+                return userName;
+        }
+        
+        /** Get the password */
+        public String getPassword()
+        {
+                return password;
+        }
 
 }
 

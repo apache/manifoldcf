@@ -23,20 +23,20 @@ package org.apache.lcf.core.interfaces;
 */
 public interface ICacheCreateHandle
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	/** Get the critical section names.
-	*@return the critical section names.
-	*/
-	public String[] getCriticalSectionNames();
+        /** Get the critical section names.
+        *@return the critical section names.
+        */
+        public String[] getCriticalSectionNames();
 
-	/** Get create start time.
-	*@return the time in milliseconds since epoch.
-	*/
-	public long getLookupTime();
+        /** Get create start time.
+        *@return the time in milliseconds since epoch.
+        */
+        public long getLookupTime();
 
-	/** Get the transaction ID.
-	*@return the transaction ID.
-	*/
-	public String getTransactionID();
+        /** Get the transaction ID.
+        *@return the transaction ID.
+        */
+        public String getTransactionID();
 }

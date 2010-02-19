@@ -22,39 +22,39 @@ import org.apache.lcf.core.interfaces.*;
 
 public class AddDocRights
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private AddDocRights()
-	{
-	}
+        private AddDocRights()
+        {
+        }
 
 
-	public static void main(String[] args)
-	{
-		if (args.length != 7)
-		{
-			System.err.println("Usage: AddDocRights <servername> <port> <username> <password> <livelinkpath> <username> <domainname>");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 7)
+                {
+                        System.err.println("Usage: AddDocRights <servername> <port> <username> <password> <livelinkpath> <username> <domainname>");
+                        System.exit(1);
+                }
 
-		try
-		{
-			LiveLinkSupport handle = new LiveLinkSupport(args[0],new Integer(args[1]).intValue(),args[2],args[3]);
-			try
-			{
-				handle.addDocumentRights(args[4],args[5],args[6]);
-			}
-			finally
-			{
-				handle.close();
-			}
-			System.err.println("Successfully added rights");
-		}
-		catch (LCFException e)
-		{
-			e.printStackTrace(System.err);
-			System.exit(2);
-		}
-	}
+                try
+                {
+                        LiveLinkSupport handle = new LiveLinkSupport(args[0],new Integer(args[1]).intValue(),args[2],args[3]);
+                        try
+                        {
+                                handle.addDocumentRights(args[4],args[5],args[6]);
+                        }
+                        finally
+                        {
+                                handle.close();
+                        }
+                        System.err.println("Successfully added rights");
+                }
+                catch (LCFException e)
+                {
+                        e.printStackTrace(System.err);
+                        System.exit(2);
+                }
+        }
 
 }

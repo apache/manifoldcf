@@ -44,232 +44,232 @@ import javax.servlet.http.*;
 */
 public class UserACLServlet extends HttpServlet
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	protected final static String AUTHORIZED_VALUE = "AUTHORIZED:";
-	protected final static String UNREACHABLE_VALUE = "UNREACHABLEAUTHORITY:";
-	protected final static String UNAUTHORIZED_VALUE = "UNAUTHORIZED:";
-	protected final static String USERNOTFOUND_VALUE = "USERNOTFOUND:";
+        protected final static String AUTHORIZED_VALUE = "AUTHORIZED:";
+        protected final static String UNREACHABLE_VALUE = "UNREACHABLEAUTHORITY:";
+        protected final static String UNAUTHORIZED_VALUE = "UNAUTHORIZED:";
+        protected final static String USERNOTFOUND_VALUE = "USERNOTFOUND:";
 
-	protected final static String ID_PREFIX = "ID:";
-	protected final static String TOKEN_PREFIX = "TOKEN:";
+        protected final static String ID_PREFIX = "ID:";
+        protected final static String TOKEN_PREFIX = "TOKEN:";
 
-	/** The init method.
-	*/
-	public void init(ServletConfig config)
-		throws ServletException
-	{
-		super.init(config);
-		try
-		{
-			// Set up the environment
-			LCF.initializeEnvironment();
-			IThreadContext itc = ThreadContextFactory.make();
-			LCF.startSystem(itc);
-		}
-		catch (LCFException e)
-		{
-			Logging.misc.error("Error starting authority service: "+e.getMessage(),e);
-			throw new ServletException("Error starting authority service: "+e.getMessage(),e);
-		}
+        /** The init method.
+        */
+        public void init(ServletConfig config)
+                throws ServletException
+        {
+                super.init(config);
+                try
+                {
+                        // Set up the environment
+                        LCF.initializeEnvironment();
+                        IThreadContext itc = ThreadContextFactory.make();
+                        LCF.startSystem(itc);
+                }
+                catch (LCFException e)
+                {
+                        Logging.misc.error("Error starting authority service: "+e.getMessage(),e);
+                        throw new ServletException("Error starting authority service: "+e.getMessage(),e);
+                }
 
-	}
+        }
 
-	/** The destroy method.
-	*/
-	public void destroy()
-	{
-		try
-		{
-			// Set up the environment
-			LCF.initializeEnvironment();
-			IThreadContext itc = ThreadContextFactory.make();
-			LCF.stopSystem(itc);
-		}
-		catch (LCFException e)
-		{
-			Logging.misc.error("Error shutting down authority service: "+e.getMessage(),e);
-		}
-		super.destroy();
-	}
+        /** The destroy method.
+        */
+        public void destroy()
+        {
+                try
+                {
+                        // Set up the environment
+                        LCF.initializeEnvironment();
+                        IThreadContext itc = ThreadContextFactory.make();
+                        LCF.stopSystem(itc);
+                }
+                catch (LCFException e)
+                {
+                        Logging.misc.error("Error shutting down authority service: "+e.getMessage(),e);
+                }
+                super.destroy();
+        }
 
-	/** The get method.
-	*/
-	protected void doGet(HttpServletRequest request, HttpServletResponse response)
-		throws ServletException, IOException
-	{
-		// Set up the environment
-		LCF.initializeEnvironment();
+        /** The get method.
+        */
+        protected void doGet(HttpServletRequest request, HttpServletResponse response)
+                throws ServletException, IOException
+        {
+                // Set up the environment
+                LCF.initializeEnvironment();
 
-		Logging.authorityService.debug("Received request");
+                Logging.authorityService.debug("Received request");
 
-		String userID = request.getParameter("username");
-		if (userID == null)
-		{
-			response.sendError(response.SC_BAD_REQUEST);
-			return;
-		}
+                String userID = request.getParameter("username");
+                if (userID == null)
+                {
+                        response.sendError(response.SC_BAD_REQUEST);
+                        return;
+                }
 
-		boolean idneeded = false;
-		boolean aclneeded = true;
+                boolean idneeded = false;
+                boolean aclneeded = true;
 
-		String idneededValue = request.getParameter("idneeded");
-		if (idneededValue != null)
-		{
-			if (idneededValue.equals("true"))
-				idneeded = true;
-			else if (idneededValue.equals("false"))
-				idneeded = false;
-		}
-		String aclneededValue = request.getParameter("aclneeded");
-		if (aclneededValue != null)
-		{
-			if (aclneededValue.equals("true"))
-				aclneeded = true;
-			else if (aclneededValue.equals("false"))
-				aclneeded = false;
-		}
+                String idneededValue = request.getParameter("idneeded");
+                if (idneededValue != null)
+                {
+                        if (idneededValue.equals("true"))
+                                idneeded = true;
+                        else if (idneededValue.equals("false"))
+                                idneeded = false;
+                }
+                String aclneededValue = request.getParameter("aclneeded");
+                if (aclneededValue != null)
+                {
+                        if (aclneededValue.equals("true"))
+                                aclneeded = true;
+                        else if (aclneededValue.equals("false"))
+                                aclneeded = false;
+                }
 
-		if (Logging.authorityService.isDebugEnabled())
-		{
-			Logging.authorityService.debug("Received authority request for user '"+userID+"'");
-		}
+                if (Logging.authorityService.isDebugEnabled())
+                {
+                        Logging.authorityService.debug("Received authority request for user '"+userID+"'");
+                }
 
-		try
-		{
-			RequestQueue queue = LCF.getRequestQueue();
-			if (queue == null)
-			{
-				// System wasn't started; return unauthorized
-				throw new LCFException("System improperly initialized");
-			}
-			
-			IThreadContext itc = ThreadContextFactory.make();
-			IAuthorityConnectionManager authConnManager = AuthorityConnectionManagerFactory.make(itc);
+                try
+                {
+                        RequestQueue queue = LCF.getRequestQueue();
+                        if (queue == null)
+                        {
+                                // System wasn't started; return unauthorized
+                                throw new LCFException("System improperly initialized");
+                        }
+                        
+                        IThreadContext itc = ThreadContextFactory.make();
+                        IAuthorityConnectionManager authConnManager = AuthorityConnectionManagerFactory.make(itc);
 
-			IAuthorityConnection[] connections = authConnManager.getAllConnections();
-			int i = 0;
-			
-			AuthRequest[] requests = new AuthRequest[connections.length];
-			
-			// Queue up all the requests
-			while (i < connections.length)
-			{
-				IAuthorityConnection ac = connections[i];
-				
-				String identifyingString = ac.getDescription();
-				if (identifyingString == null || identifyingString.length() == 0)
-					identifyingString = ac.getName();
-				
-				AuthRequest ar = new AuthRequest(userID,ac.getClassName(),identifyingString,ac.getConfigParams(),ac.getMaxConnections());
-				queue.addRequest(ar);
-				
-				requests[i++] = ar;
-			}
-			
-			// Now, work through the returning answers.
-			i = 0;
+                        IAuthorityConnection[] connections = authConnManager.getAllConnections();
+                        int i = 0;
+                        
+                        AuthRequest[] requests = new AuthRequest[connections.length];
+                        
+                        // Queue up all the requests
+                        while (i < connections.length)
+                        {
+                                IAuthorityConnection ac = connections[i];
+                                
+                                String identifyingString = ac.getDescription();
+                                if (identifyingString == null || identifyingString.length() == 0)
+                                        identifyingString = ac.getName();
+                                
+                                AuthRequest ar = new AuthRequest(userID,ac.getClassName(),identifyingString,ac.getConfigParams(),ac.getMaxConnections());
+                                queue.addRequest(ar);
+                                
+                                requests[i++] = ar;
+                        }
+                        
+                        // Now, work through the returning answers.
+                        i = 0;
 
-			// Ask all the registered authorities for their ACLs, and merge the final list together.
-			StringBuffer sb = new StringBuffer();
-			// Set response mime type
-			response.setContentType("text/plain; charset=ISO8859-1");
-			ServletOutputStream out = response.getOutputStream();
-			try
-			{
-			    while (i < connections.length)
-			    {
-				IAuthorityConnection ac = connections[i];
-				AuthRequest ar = requests[i++];
-				
-				if (Logging.authorityService.isDebugEnabled())
-					Logging.authorityService.debug("Waiting for answer from connector class '"+ac.getClassName()+"' for user '"+userID+"'");
-				
-				ar.waitForComplete();
-				
-				if (Logging.authorityService.isDebugEnabled())
-					Logging.authorityService.debug("Received answer from connector class '"+ac.getClassName()+"' for user '"+userID+"'");
+                        // Ask all the registered authorities for their ACLs, and merge the final list together.
+                        StringBuffer sb = new StringBuffer();
+                        // Set response mime type
+                        response.setContentType("text/plain; charset=ISO8859-1");
+                        ServletOutputStream out = response.getOutputStream();
+                        try
+                        {
+                            while (i < connections.length)
+                            {
+                                IAuthorityConnection ac = connections[i];
+                                AuthRequest ar = requests[i++];
+                                
+                                if (Logging.authorityService.isDebugEnabled())
+                                        Logging.authorityService.debug("Waiting for answer from connector class '"+ac.getClassName()+"' for user '"+userID+"'");
+                                
+                                ar.waitForComplete();
+                                
+                                if (Logging.authorityService.isDebugEnabled())
+                                        Logging.authorityService.debug("Received answer from connector class '"+ac.getClassName()+"' for user '"+userID+"'");
 
-				Throwable exception = ar.getAnswerException();
-				AuthorizationResponse reply = ar.getAnswerResponse();
-				if (exception != null)
-				{
-					// Exceptions are always bad now
-					// The LCFException here must disable access to the UI without causing a generic badness thing to happen, so use 403.
-					if (exception instanceof LCFException)
-						response.sendError(response.SC_FORBIDDEN,"From "+ar.getIdentifyingString()+": "+exception.getMessage());
-					else
-						response.sendError(response.SC_INTERNAL_SERVER_ERROR,"From "+ar.getIdentifyingString()+": "+exception.getMessage());
-					return;
-				}
-				
-				if (reply.getResponseStatus() == AuthorizationResponse.RESPONSE_UNREACHABLE)
-				{
-					Logging.authorityService.warn("Authority '"+ar.getIdentifyingString()+"' is unreachable for user '"+userID+"'");
-					sb.append(UNREACHABLE_VALUE).append(java.net.URLEncoder.encode(ar.getIdentifyingString(),"UTF-8")).append("\n");
-				}
-				else if (reply.getResponseStatus() == AuthorizationResponse.RESPONSE_USERUNAUTHORIZED)
-				{
-					if (Logging.authorityService.isDebugEnabled())
-						Logging.authorityService.debug("Authority '"+ar.getIdentifyingString()+"' does not authorize user '"+userID+"'");
-					sb.append(UNAUTHORIZED_VALUE).append(java.net.URLEncoder.encode(ar.getIdentifyingString(),"UTF-8")).append("\n");
-				}
-				else if (reply.getResponseStatus() == AuthorizationResponse.RESPONSE_USERNOTFOUND)
-				{
-					if (Logging.authorityService.isDebugEnabled())
-						Logging.authorityService.debug("User '"+userID+"' unknown to authority '"+ar.getIdentifyingString()+"'");
-					sb.append(USERNOTFOUND_VALUE).append(java.net.URLEncoder.encode(ar.getIdentifyingString(),"UTF-8")).append("\n");
-				}
-				else
-					sb.append(AUTHORIZED_VALUE).append(java.net.URLEncoder.encode(ar.getIdentifyingString(),"UTF-8")).append("\n");
-				
-				String[] acl = reply.getAccessTokens();
-				if (acl != null)
-				{
-				    if (aclneeded)
-				    {
-					int j = 0;
-					while (j < acl.length)
-					{
-						if (Logging.authorityService.isDebugEnabled())
-							Logging.authorityService.debug("  User '"+userID+"' has Acl = '"+acl[j]+"' from authority '"+ar.getIdentifyingString()+"'");
-						sb.append(TOKEN_PREFIX).append(java.net.URLEncoder.encode(ac.getName(),"UTF-8")).append(":").append(java.net.URLEncoder.encode(acl[j++],"UTF-8")).append("\n");
-					}
-				    }
-				}
-			    }
+                                Throwable exception = ar.getAnswerException();
+                                AuthorizationResponse reply = ar.getAnswerResponse();
+                                if (exception != null)
+                                {
+                                        // Exceptions are always bad now
+                                        // The LCFException here must disable access to the UI without causing a generic badness thing to happen, so use 403.
+                                        if (exception instanceof LCFException)
+                                                response.sendError(response.SC_FORBIDDEN,"From "+ar.getIdentifyingString()+": "+exception.getMessage());
+                                        else
+                                                response.sendError(response.SC_INTERNAL_SERVER_ERROR,"From "+ar.getIdentifyingString()+": "+exception.getMessage());
+                                        return;
+                                }
+                                
+                                if (reply.getResponseStatus() == AuthorizationResponse.RESPONSE_UNREACHABLE)
+                                {
+                                        Logging.authorityService.warn("Authority '"+ar.getIdentifyingString()+"' is unreachable for user '"+userID+"'");
+                                        sb.append(UNREACHABLE_VALUE).append(java.net.URLEncoder.encode(ar.getIdentifyingString(),"UTF-8")).append("\n");
+                                }
+                                else if (reply.getResponseStatus() == AuthorizationResponse.RESPONSE_USERUNAUTHORIZED)
+                                {
+                                        if (Logging.authorityService.isDebugEnabled())
+                                                Logging.authorityService.debug("Authority '"+ar.getIdentifyingString()+"' does not authorize user '"+userID+"'");
+                                        sb.append(UNAUTHORIZED_VALUE).append(java.net.URLEncoder.encode(ar.getIdentifyingString(),"UTF-8")).append("\n");
+                                }
+                                else if (reply.getResponseStatus() == AuthorizationResponse.RESPONSE_USERNOTFOUND)
+                                {
+                                        if (Logging.authorityService.isDebugEnabled())
+                                                Logging.authorityService.debug("User '"+userID+"' unknown to authority '"+ar.getIdentifyingString()+"'");
+                                        sb.append(USERNOTFOUND_VALUE).append(java.net.URLEncoder.encode(ar.getIdentifyingString(),"UTF-8")).append("\n");
+                                }
+                                else
+                                        sb.append(AUTHORIZED_VALUE).append(java.net.URLEncoder.encode(ar.getIdentifyingString(),"UTF-8")).append("\n");
+                                
+                                String[] acl = reply.getAccessTokens();
+                                if (acl != null)
+                                {
+                                    if (aclneeded)
+                                    {
+                                        int j = 0;
+                                        while (j < acl.length)
+                                        {
+                                                if (Logging.authorityService.isDebugEnabled())
+                                                        Logging.authorityService.debug("  User '"+userID+"' has Acl = '"+acl[j]+"' from authority '"+ar.getIdentifyingString()+"'");
+                                                sb.append(TOKEN_PREFIX).append(java.net.URLEncoder.encode(ac.getName(),"UTF-8")).append(":").append(java.net.URLEncoder.encode(acl[j++],"UTF-8")).append("\n");
+                                        }
+                                    }
+                                }
+                            }
 
-			    if (idneeded)
-				sb.append(ID_PREFIX).append(java.net.URLEncoder.encode(userID,"UTF-8")).append("\n");
+                            if (idneeded)
+                                sb.append(ID_PREFIX).append(java.net.URLEncoder.encode(userID,"UTF-8")).append("\n");
 
-			    byte[] responseValue = sb.toString().getBytes("ISO8859-1");
+                            byte[] responseValue = sb.toString().getBytes("ISO8859-1");
 
-			    response.setIntHeader("Content-Length", (int)responseValue.length);
-			    out.write(responseValue,0,responseValue.length);
-			    out.flush();
-		        }
-			finally
-			{
-				out.close();
-			}
-			
-			if (Logging.authorityService.isDebugEnabled())
-				Logging.authorityService.debug("Done with request for '"+userID+"'");
-		}
-		catch (InterruptedException e)
-		{
-			// Shut down and don't bother to respond
-		}
-		catch (java.io.UnsupportedEncodingException e)
-		{
-			Logging.authorityService.error("Unsupported encoding: "+e.getMessage(),e);
-			throw new ServletException("Fatal error occurred: "+e.getMessage(),e);
-		}
-		catch (LCFException e)
-		{
-			Logging.authorityService.error("User ACL servlet error: "+e.getMessage(),e);
-			response.sendError(response.SC_INTERNAL_SERVER_ERROR,e.getMessage());
-		}
-	}
+                            response.setIntHeader("Content-Length", (int)responseValue.length);
+                            out.write(responseValue,0,responseValue.length);
+                            out.flush();
+                        }
+                        finally
+                        {
+                                out.close();
+                        }
+                        
+                        if (Logging.authorityService.isDebugEnabled())
+                                Logging.authorityService.debug("Done with request for '"+userID+"'");
+                }
+                catch (InterruptedException e)
+                {
+                        // Shut down and don't bother to respond
+                }
+                catch (java.io.UnsupportedEncodingException e)
+                {
+                        Logging.authorityService.error("Unsupported encoding: "+e.getMessage(),e);
+                        throw new ServletException("Fatal error occurred: "+e.getMessage(),e);
+                }
+                catch (LCFException e)
+                {
+                        Logging.authorityService.error("User ACL servlet error: "+e.getMessage(),e);
+                        response.sendError(response.SC_INTERNAL_SERVER_ERROR,e.getMessage());
+                }
+        }
 
 }

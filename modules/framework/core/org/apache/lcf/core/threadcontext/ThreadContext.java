@@ -25,36 +25,36 @@ import java.util.*;
 */
 public class ThreadContext implements IThreadContext
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	protected Hashtable hashtable = new Hashtable();
+        protected Hashtable hashtable = new Hashtable();
 
-	public ThreadContext()
-	{
-	}
+        public ThreadContext()
+        {
+        }
 
-	/** Set a named object into the context.
-	* @param key is the name of the object (usually a string)
-	* @param object is the object to save, or null if the object is to be
-	* destroyed instead.
-	*/
-	public void save(Object key, Object object)
-	{
-		if (object == null)
-			hashtable.remove(key);
-		else
-			hashtable.put(key,object);
-	}
+        /** Set a named object into the context.
+        * @param key is the name of the object (usually a string)
+        * @param object is the object to save, or null if the object is to be
+        * destroyed instead.
+        */
+        public void save(Object key, Object object)
+        {
+                if (object == null)
+                        hashtable.remove(key);
+                else
+                        hashtable.put(key,object);
+        }
 
-	/** Retrieve a named object from the context.
-	* Use an equivalent key to retrieve what was previously saved.
-	* If no such object exists, null will be returned.
-	* @param key is the object's key (usually a string)
-	* @return the object, or null.
-	*/
-	public Object get(Object key)
-	{
-		return hashtable.get(key);
-	}
+        /** Retrieve a named object from the context.
+        * Use an equivalent key to retrieve what was previously saved.
+        * If no such object exists, null will be returned.
+        * @param key is the object's key (usually a string)
+        * @return the object, or null.
+        */
+        public Object get(Object key)
+        {
+                return hashtable.get(key);
+        }
 
 }

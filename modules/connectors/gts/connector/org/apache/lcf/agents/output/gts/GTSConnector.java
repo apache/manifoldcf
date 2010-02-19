@@ -235,111 +235,111 @@ public class GTSConnector extends org.apache.lcf.agents.output.BaseOutputConnect
 
         // Protected methods
         
-	/** Stuffer for packing a single string with an end delimiter */
-	protected static void pack(StringBuffer output, String value, char delimiter)
-	{
-		int i = 0;
-		while (i < value.length())
-		{
-			char x = value.charAt(i++);
-			if (x == '\\' || x == delimiter)
-				output.append('\\');
-			output.append(x);
-		}
-		output.append(delimiter);
-	}
+        /** Stuffer for packing a single string with an end delimiter */
+        protected static void pack(StringBuffer output, String value, char delimiter)
+        {
+                int i = 0;
+                while (i < value.length())
+                {
+                        char x = value.charAt(i++);
+                        if (x == '\\' || x == delimiter)
+                                output.append('\\');
+                        output.append(x);
+                }
+                output.append(delimiter);
+        }
 
-	/** Unstuffer for the above. */
-	protected static int unpack(StringBuffer sb, String value, int startPosition, char delimiter)
-	{
-		while (startPosition < value.length())
-		{
-			char x = value.charAt(startPosition++);
-			if (x == '\\')
-			{
-				if (startPosition < value.length())
-					x = value.charAt(startPosition++);
-			}
-			else if (x == delimiter)
-				break;
-			sb.append(x);
-		}
-		return startPosition;
-	}
+        /** Unstuffer for the above. */
+        protected static int unpack(StringBuffer sb, String value, int startPosition, char delimiter)
+        {
+                while (startPosition < value.length())
+                {
+                        char x = value.charAt(startPosition++);
+                        if (x == '\\')
+                        {
+                                if (startPosition < value.length())
+                                        x = value.charAt(startPosition++);
+                        }
+                        else if (x == delimiter)
+                                break;
+                        sb.append(x);
+                }
+                return startPosition;
+        }
 
-	/** Stuffer for packing lists of fixed length */
-	protected static void packFixedList(StringBuffer output, String[] values, char delimiter)
-	{
-		int i = 0;
-		while (i < values.length)
-		{
-			pack(output,values[i++],delimiter);
-		}
-	}
+        /** Stuffer for packing lists of fixed length */
+        protected static void packFixedList(StringBuffer output, String[] values, char delimiter)
+        {
+                int i = 0;
+                while (i < values.length)
+                {
+                        pack(output,values[i++],delimiter);
+                }
+        }
 
-	/** Unstuffer for unpacking lists of fixed length */
-	protected static int unpackFixedList(String[] output, String value, int startPosition, char delimiter)
-	{
-		StringBuffer sb = new StringBuffer();
-		int i = 0;
-		while (i < output.length)
-		{
-			sb.setLength(0);
-			startPosition = unpack(sb,value,startPosition,delimiter);
-			output[i++] = sb.toString();
-		}
-		return startPosition;
-	}
+        /** Unstuffer for unpacking lists of fixed length */
+        protected static int unpackFixedList(String[] output, String value, int startPosition, char delimiter)
+        {
+                StringBuffer sb = new StringBuffer();
+                int i = 0;
+                while (i < output.length)
+                {
+                        sb.setLength(0);
+                        startPosition = unpack(sb,value,startPosition,delimiter);
+                        output[i++] = sb.toString();
+                }
+                return startPosition;
+        }
 
-	/** Stuffer for packing lists of variable length */
-	protected static void packList(StringBuffer output, ArrayList values, char delimiter)
-	{
-		pack(output,Integer.toString(values.size()),delimiter);
-		int i = 0;
-		while (i < values.size())
-		{
-			pack(output,values.get(i++).toString(),delimiter);
-		}
-	}
+        /** Stuffer for packing lists of variable length */
+        protected static void packList(StringBuffer output, ArrayList values, char delimiter)
+        {
+                pack(output,Integer.toString(values.size()),delimiter);
+                int i = 0;
+                while (i < values.size())
+                {
+                        pack(output,values.get(i++).toString(),delimiter);
+                }
+        }
 
-	/** Another stuffer for packing lists of variable length */
-	protected static void packList(StringBuffer output, String[] values, char delimiter)
-	{
-		pack(output,Integer.toString(values.length),delimiter);
-		int i = 0;
-		while (i < values.length)
-		{
-			pack(output,values[i++],delimiter);
-		}
-	}
+        /** Another stuffer for packing lists of variable length */
+        protected static void packList(StringBuffer output, String[] values, char delimiter)
+        {
+                pack(output,Integer.toString(values.length),delimiter);
+                int i = 0;
+                while (i < values.length)
+                {
+                        pack(output,values[i++],delimiter);
+                }
+        }
 
-	/** Unstuffer for unpacking lists of variable length.
-	*@param value is the value to unpack.
-	*@param startPosition is the place to start the unpack.
-	*@param delimiter is the character to use between values.
-	*@param endChar is the character to use to mark the end.
-	*@return the next position beyond the end of the list.
-	*/
-	protected static int unpackList(ArrayList output, String value, int startPosition, char delimiter)
-	{
-		StringBuffer sb = new StringBuffer();
-		startPosition = unpack(sb,value,startPosition,delimiter);
-		try
-		{
-			int count = Integer.parseInt(sb.toString());
-			int i = 0;
-			while (i < count)
-			{
-				sb.setLength(0);
-				startPosition = unpack(sb,value,startPosition,delimiter);
-				output.add(sb.toString());
-				i++;
-			}
-		}
-		catch (NumberFormatException e)
-		{
-		}
-		return startPosition;
-	}
+        /** Unstuffer for unpacking lists of variable length.
+        *@param value is the value to unpack.
+        *@param startPosition is the place to start the unpack.
+        *@param delimiter is the character to use between values.
+        *@param endChar is the character to use to mark the end.
+        *@return the next position beyond the end of the list.
+        */
+        protected static int unpackList(ArrayList output, String value, int startPosition, char delimiter)
+        {
+                StringBuffer sb = new StringBuffer();
+                startPosition = unpack(sb,value,startPosition,delimiter);
+                try
+                {
+                        int count = Integer.parseInt(sb.toString());
+                        int i = 0;
+                        while (i < count)
+                        {
+                                sb.setLength(0);
+                                startPosition = unpack(sb,value,startPosition,delimiter);
+                                output.add(sb.toString());
+                                i++;
+                        }
+                }
+                catch (NumberFormatException e)
+                {
+                }
+                return startPosition;
+        }
 
 }

@@ -24,27 +24,27 @@ package org.apache.lcf.core.interfaces;
 */
 public class DatabaseFactory
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private final static String databaseInstancePrefix = "_Database:";
+        private final static String databaseInstancePrefix = "_Database:";
 
-	private DatabaseFactory()
-	{
-	}
+        private DatabaseFactory()
+        {
+        }
 
-	/** Grab or create the correct instance of a database manager.
-	*/
-	public static IDatabase make(IThreadContext context, String databaseName, String userName, String password)
-		throws LCFException
-	{
-		String dbName = databaseInstancePrefix + databaseName;
-		Object x = context.get(dbName);
-		if (x == null || !(x instanceof IDatabase))
-		{
-			// Create new database handle
-			x = new org.apache.lcf.core.database.Database(context,databaseName,userName,password);
-			context.save(dbName,x);
-		}
-		return (IDatabase)x;
-	}
+        /** Grab or create the correct instance of a database manager.
+        */
+        public static IDatabase make(IThreadContext context, String databaseName, String userName, String password)
+                throws LCFException
+        {
+                String dbName = databaseInstancePrefix + databaseName;
+                Object x = context.get(dbName);
+                if (x == null || !(x instanceof IDatabase))
+                {
+                        // Create new database handle
+                        x = new org.apache.lcf.core.database.Database(context,databaseName,userName,password);
+                        context.save(dbName,x);
+                }
+                return (IDatabase)x;
+        }
 }

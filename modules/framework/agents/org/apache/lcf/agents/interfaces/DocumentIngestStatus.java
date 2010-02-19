@@ -28,36 +28,36 @@ import java.util.*;
 */
 public class DocumentIngestStatus
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	protected String documentVersionString;
-	protected String outputVersionString;
-	protected String documentAuthorityNameString;
-	
-	/** Constructor */
-	public DocumentIngestStatus(String documentVersionString, String outputVersionString,
-		String documentAuthorityNameString)
-	{
-		this.documentVersionString = documentVersionString;
-		this.outputVersionString = outputVersionString;
-		this.documentAuthorityNameString = documentAuthorityNameString;
-	}
-	
-	/** Get the document version */
-	public String getDocumentVersion()
-	{
-		return documentVersionString;
-	}
-	
-	/** Get the output version */
-	public String getOutputVersion()
-	{
-		return outputVersionString;
-	}
-	
-	/** Get the document authority name string */
-	public String getDocumentAuthorityNameString()
-	{
-		return documentAuthorityNameString;
-	}
+        protected String documentVersionString;
+        protected String outputVersionString;
+        protected String documentAuthorityNameString;
+        
+        /** Constructor */
+        public DocumentIngestStatus(String documentVersionString, String outputVersionString,
+                String documentAuthorityNameString)
+        {
+                this.documentVersionString = documentVersionString;
+                this.outputVersionString = outputVersionString;
+                this.documentAuthorityNameString = documentAuthorityNameString;
+        }
+        
+        /** Get the document version */
+        public String getDocumentVersion()
+        {
+                return documentVersionString;
+        }
+        
+        /** Get the output version */
+        public String getOutputVersion()
+        {
+                return outputVersionString;
+        }
+        
+        /** Get the document authority name string */
+        public String getDocumentAuthorityNameString()
+        {
+                return documentAuthorityNameString;
+        }
 }

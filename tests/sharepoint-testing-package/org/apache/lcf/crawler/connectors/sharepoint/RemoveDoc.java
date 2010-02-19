@@ -22,39 +22,39 @@ import org.apache.lcf.core.interfaces.*;
 
 public class RemoveDoc
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private RemoveDoc()
-	{
-	}
+        private RemoveDoc()
+        {
+        }
 
 
-	public static void main(String[] args)
-	{
-		if (args.length != 8)
-		{
-			System.err.println("Usage: RemoveDoc <protocol> <servername> <port> <location> <username> <password> <domain> <sharepoint_path>");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 8)
+                {
+                        System.err.println("Usage: RemoveDoc <protocol> <servername> <port> <location> <username> <password> <domain> <sharepoint_path>");
+                        System.exit(1);
+                }
 
-		try
-		{
-			FPSEPublish handle = new FPSEPublish(args[0],args[1],new Integer(args[2]).intValue(),args[3],args[4],args[5],args[6]);
-			try
-			{
-				handle.removeDocument(args[7]);
-			}
-			finally
-			{
-				handle.close();
-			}
-			System.err.println("Successfully deleted");
-		}
-		catch (LCFException e)
-		{
-			e.printStackTrace(System.err);
-			System.exit(2);
-		}
-	}
+                try
+                {
+                        FPSEPublish handle = new FPSEPublish(args[0],args[1],new Integer(args[2]).intValue(),args[3],args[4],args[5],args[6]);
+                        try
+                        {
+                                handle.removeDocument(args[7]);
+                        }
+                        finally
+                        {
+                                handle.close();
+                        }
+                        System.err.println("Successfully deleted");
+                }
+                catch (LCFException e)
+                {
+                        e.printStackTrace(System.err);
+                        System.exit(2);
+                }
+        }
 
 }

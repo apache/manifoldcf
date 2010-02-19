@@ -24,48 +24,48 @@ import java.util.*;
 */
 public class IndexDescription
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	protected boolean isUnique;
-	protected String[] columnNames;
+        protected boolean isUnique;
+        protected String[] columnNames;
 
-	/** Create an index description.
-	* Use this object in addTableIndex()
-	*@param isUnique is true if the index is unique.
-	*@param columnNames are the column names desired for this index.
-	*/
-	public IndexDescription(boolean isUnique, String[] columnNames)
-	{
-		this.isUnique = isUnique;
-		this.columnNames = columnNames;
-	}
+        /** Create an index description.
+        * Use this object in addTableIndex()
+        *@param isUnique is true if the index is unique.
+        *@param columnNames are the column names desired for this index.
+        */
+        public IndexDescription(boolean isUnique, String[] columnNames)
+        {
+                this.isUnique = isUnique;
+                this.columnNames = columnNames;
+        }
 
-	public boolean getIsUnique()
-	{
-		return isUnique;
-	}
-	
-	public String[] getColumnNames()
-	{
-		return columnNames;
-	}
-	
-	public boolean equals(Object o)
-	{
-		if (!(o instanceof IndexDescription))
-			return false;
-		IndexDescription id = (IndexDescription)o;
-		if (id.isUnique != isUnique || id.columnNames.length != columnNames.length)
-			return false;
-		
-		int i = 0;
-		while (i < columnNames.length)
-		{
-			if (!columnNames[i].equals(id.columnNames[i]))
-				return false;
-			i++;
-		}
-		return true;
-	}
+        public boolean getIsUnique()
+        {
+                return isUnique;
+        }
+        
+        public String[] getColumnNames()
+        {
+                return columnNames;
+        }
+        
+        public boolean equals(Object o)
+        {
+                if (!(o instanceof IndexDescription))
+                        return false;
+                IndexDescription id = (IndexDescription)o;
+                if (id.isUnique != isUnique || id.columnNames.length != columnNames.length)
+                        return false;
+                
+                int i = 0;
+                while (i < columnNames.length)
+                {
+                        if (!columnNames[i].equals(id.columnNames[i]))
+                                return false;
+                        i++;
+                }
+                return true;
+        }
 }
 

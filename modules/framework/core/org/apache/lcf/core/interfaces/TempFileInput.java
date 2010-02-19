@@ -31,158 +31,158 @@ import org.apache.lcf.core.system.LCF;
 */
 public class TempFileInput extends BinaryInput
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	protected File file;
+        protected File file;
 
-	protected final static int CHUNK_SIZE = 65536;
+        protected final static int CHUNK_SIZE = 65536;
 
-	/** Construct from an input stream.
-	* This will also create a temporary, backing file.
-	*@param is is the input stream to use to construct the temporary file.
-	*/
-	public TempFileInput(InputStream is)
-		throws LCFException
-	{
-		this(is,-1L);
-	}
+        /** Construct from an input stream.
+        * This will also create a temporary, backing file.
+        *@param is is the input stream to use to construct the temporary file.
+        */
+        public TempFileInput(InputStream is)
+                throws LCFException
+        {
+                this(is,-1L);
+        }
 
-	/** Construct from a length-delimited input stream.
-	*@param is is the input stream.
-	*@param length is the maximum number of bytes to transfer, or -1 if no limit.
-	*/
-	public TempFileInput(InputStream is, long length)
-		throws LCFException
-	{
-		super();
-		try
-		{
-			// Create a temporary file to put the stuff in
-			File outfile = File.createTempFile("_MC_","");
-			try
-			{
-				// Register the file for autodeletion, using our infrastructure.
-				LCF.addFile(outfile);
-				// deleteOnExit() causes memory leakage!
-				// outfile.deleteOnExit();
-				FileOutputStream outStream = new FileOutputStream(outfile);
-				try
-				{
-					byte[] buffer = new byte[CHUNK_SIZE];
-					long totalMoved = 0;
-					while (true)
-					{
-						int moveAmount;
-						if (length == -1L || length-totalMoved > CHUNK_SIZE)
-							moveAmount = CHUNK_SIZE;
-						else
-							moveAmount = (int)(length-totalMoved);
-						if (moveAmount == 0)
-							break;
-						// Read binary data in 64K chunks
-						int readsize = is.read(buffer,0,moveAmount);
-						if (readsize == -1)
-							break;
-						outStream.write(buffer,0,readsize);
-						totalMoved += readsize;
-					}
-					// System.out.println(" Moved "+Long.toString(totalMoved));
-				}
-				finally
-				{
-					outStream.close();
-				}
+        /** Construct from a length-delimited input stream.
+        *@param is is the input stream.
+        *@param length is the maximum number of bytes to transfer, or -1 if no limit.
+        */
+        public TempFileInput(InputStream is, long length)
+                throws LCFException
+        {
+                super();
+                try
+                {
+                        // Create a temporary file to put the stuff in
+                        File outfile = File.createTempFile("_MC_","");
+                        try
+                        {
+                                // Register the file for autodeletion, using our infrastructure.
+                                LCF.addFile(outfile);
+                                // deleteOnExit() causes memory leakage!
+                                // outfile.deleteOnExit();
+                                FileOutputStream outStream = new FileOutputStream(outfile);
+                                try
+                                {
+                                        byte[] buffer = new byte[CHUNK_SIZE];
+                                        long totalMoved = 0;
+                                        while (true)
+                                        {
+                                                int moveAmount;
+                                                if (length == -1L || length-totalMoved > CHUNK_SIZE)
+                                                        moveAmount = CHUNK_SIZE;
+                                                else
+                                                        moveAmount = (int)(length-totalMoved);
+                                                if (moveAmount == 0)
+                                                        break;
+                                                // Read binary data in 64K chunks
+                                                int readsize = is.read(buffer,0,moveAmount);
+                                                if (readsize == -1)
+                                                        break;
+                                                outStream.write(buffer,0,readsize);
+                                                totalMoved += readsize;
+                                        }
+                                        // System.out.println(" Moved "+Long.toString(totalMoved));
+                                }
+                                finally
+                                {
+                                        outStream.close();
+                                }
 
-				// Now, create the input stream.
-				// Save the file name
-				file = outfile;
-				this.length = file.length();
+                                // Now, create the input stream.
+                                // Save the file name
+                                file = outfile;
+                                this.length = file.length();
 
-			}
-			catch (Throwable e)
-			{
-				// Delete the temp file we created on any error condition
-				// outfile.delete();
-				LCF.deleteFile(outfile);
-				if (e instanceof Error)
-					throw (Error)e;
-				if (e instanceof RuntimeException)
-					throw (RuntimeException)e;
-				if (e instanceof Exception)
-					throw (Exception)e;
-				throw new Exception("Unexpected throwable: "+e.getMessage(),e);
-			}
-		}
-		catch (InterruptedIOException e)
-		{
-			throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
-		}
-		catch (Exception e)
-		{
-			throw new LCFException("Cannot write temporary file",e,LCFException.GENERAL_ERROR);
-		}
+                        }
+                        catch (Throwable e)
+                        {
+                                // Delete the temp file we created on any error condition
+                                // outfile.delete();
+                                LCF.deleteFile(outfile);
+                                if (e instanceof Error)
+                                        throw (Error)e;
+                                if (e instanceof RuntimeException)
+                                        throw (RuntimeException)e;
+                                if (e instanceof Exception)
+                                        throw (Exception)e;
+                                throw new Exception("Unexpected throwable: "+e.getMessage(),e);
+                        }
+                }
+                catch (InterruptedIOException e)
+                {
+                        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+                }
+                catch (Exception e)
+                {
+                        throw new LCFException("Cannot write temporary file",e,LCFException.GENERAL_ERROR);
+                }
 
-	}
+        }
 
-	/** Construct from an existing temporary fle.
-	*@param tempFile is the existing temporary file.
-	*/
-	public TempFileInput(File tempFile)
-	{
-		super();
-		file = tempFile;
-		LCF.addFile(file);
-		// deleteOnExit() causes memory leakage; better to leak files on hard shutdown than memory.
-		// file.deleteOnExit();
-	}
+        /** Construct from an existing temporary fle.
+        *@param tempFile is the existing temporary file.
+        */
+        public TempFileInput(File tempFile)
+        {
+                super();
+                file = tempFile;
+                LCF.addFile(file);
+                // deleteOnExit() causes memory leakage; better to leak files on hard shutdown than memory.
+                // file.deleteOnExit();
+        }
 
-	protected TempFileInput()
-	{
-		super();
-	}
-	
-	/** Transfer to a new object; this causes the current object to become "already discarded" */
-	public BinaryInput transfer()
-	{
-		TempFileInput rval = new TempFileInput();
-		rval.file = file;
-		rval.stream = stream;
-		rval.length = length;
-		file = null;
-		stream = null;
-		length = -1L;
-		return rval;
-	}
+        protected TempFileInput()
+        {
+                super();
+        }
+        
+        /** Transfer to a new object; this causes the current object to become "already discarded" */
+        public BinaryInput transfer()
+        {
+                TempFileInput rval = new TempFileInput();
+                rval.file = file;
+                rval.stream = stream;
+                rval.length = length;
+                file = null;
+                stream = null;
+                length = -1L;
+                return rval;
+        }
 
-	public void discard()
-		throws LCFException
-	{
-		super.discard();
-		if (file != null)
-		{
-			LCF.deleteFile(file);
-			file = null;
-		}
-	}
+        public void discard()
+                throws LCFException
+        {
+                super.discard();
+                if (file != null)
+                {
+                        LCF.deleteFile(file);
+                        file = null;
+                }
+        }
 
-	protected void openStream()
-		throws LCFException
-	{
-		try
-		{
-			// Open the file and create a stream.
-			stream = new FileInputStream(file);
-		}
-		catch (FileNotFoundException e)
-		{
-			throw new LCFException("Can't create stream: "+e.getMessage(),e,LCFException.GENERAL_ERROR);
-		}
-	}
-	
-	protected void calculateLength()
-		throws LCFException
-	{
-		this.length = file.length();
-	}
-	
+        protected void openStream()
+                throws LCFException
+        {
+                try
+                {
+                        // Open the file and create a stream.
+                        stream = new FileInputStream(file);
+                }
+                catch (FileNotFoundException e)
+                {
+                        throw new LCFException("Can't create stream: "+e.getMessage(),e,LCFException.GENERAL_ERROR);
+                }
+        }
+        
+        protected void calculateLength()
+                throws LCFException
+        {
+                this.length = file.length();
+        }
+        
 }

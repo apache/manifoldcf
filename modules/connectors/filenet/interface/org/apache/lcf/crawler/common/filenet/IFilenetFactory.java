@@ -26,11 +26,11 @@ import java.rmi.*;
 */
 public interface IFilenetFactory extends Remote
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	/** Mint a new IFilenet handle.
-	*/
-	public IFilenet make()
-		throws RemoteException;
+        /** Mint a new IFilenet handle.
+        */
+        public IFilenet make()
+                throws RemoteException;
 
 }

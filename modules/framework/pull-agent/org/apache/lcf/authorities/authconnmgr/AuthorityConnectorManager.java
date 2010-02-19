@@ -163,7 +163,7 @@ public class AuthorityConnectorManager extends org.apache.lcf.core.database.Base
                         else
                         {
                                 performUpdate(map,"WHERE "+classNameField+"=?",params,invKeys);
-                        }				
+                        }                               
 
                         // Either way, we must do the install/upgrade itself.
                         AuthorityConnectorFactory.install(threadContext,className);

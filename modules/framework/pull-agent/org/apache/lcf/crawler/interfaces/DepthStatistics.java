@@ -28,36 +28,36 @@ import java.util.*;
 */
 public class DepthStatistics
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	// These are the bins used by all the documents scanned in a set.  Each element is a String[].
-	protected ArrayList scanSetBins = new ArrayList();
-	
-	/** Constructor */
-	public DepthStatistics()
-	{
-	}
-	
-	/** Add a document's bins to the set */
-	public synchronized void addBins(Double priority)
-	{
-		//System.out.println("Adding "+Integer.toString(binNames.length)+" bins to scan record");
-		scanSetBins.add(priority);
-	}
-	
-	/** Grab all the bins in a big array */
-	public synchronized Double[] getBins()
-	{
-		Double[] rval = new Double[scanSetBins.size()];
-		int i = 0;
-		while (i < scanSetBins.size())
-		{
-			rval[i] = (Double)scanSetBins.get(i);
-			//System.out.println(" Bin record "+Integer.toString(i)+" has "+Integer.toString(rval[i].length)+" bins");
-			i++;
-		}
-		//System.out.println("Returning "+Integer.toString(rval.length)+" individual bin records");
-		return rval;
-	}
+        // These are the bins used by all the documents scanned in a set.  Each element is a String[].
+        protected ArrayList scanSetBins = new ArrayList();
+        
+        /** Constructor */
+        public DepthStatistics()
+        {
+        }
+        
+        /** Add a document's bins to the set */
+        public synchronized void addBins(Double priority)
+        {
+                //System.out.println("Adding "+Integer.toString(binNames.length)+" bins to scan record");
+                scanSetBins.add(priority);
+        }
+        
+        /** Grab all the bins in a big array */
+        public synchronized Double[] getBins()
+        {
+                Double[] rval = new Double[scanSetBins.size()];
+                int i = 0;
+                while (i < scanSetBins.size())
+                {
+                        rval[i] = (Double)scanSetBins.get(i);
+                        //System.out.println(" Bin record "+Integer.toString(i)+" has "+Integer.toString(rval[i].length)+" bins");
+                        i++;
+                }
+                //System.out.println("Returning "+Integer.toString(rval.length)+" individual bin records");
+                return rval;
+        }
 
 }

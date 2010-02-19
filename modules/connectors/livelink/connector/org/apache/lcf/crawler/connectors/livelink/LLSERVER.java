@@ -38,149 +38,149 @@ import com.opentext.api.LLValue;
  */
 public class LLSERVER
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private String LLServer;
-	private int LLPort;
-	private String LLUser;
-	private String LLPwd;
-	private LLValue LLConfig;
-	private LLSession session;
-	
-	
-	public LLSERVER()
-	{
-		
-		session = null;
-	}
-	
-	public LLSERVER(String server, int port, String user, String pwd) 
-	{
-		LLServer = server;
-		LLPort = port;
-		LLUser = user;
-		LLPwd = pwd;	
-		
-		connect();
-	}
-	
-	private void connect()
-	{
-		session = new LLSession (this.LLServer, this.LLPort, "", this.LLUser, this.LLPwd, null);
-	}
-	
+        private String LLServer;
+        private int LLPort;
+        private String LLUser;
+        private String LLPwd;
+        private LLValue LLConfig;
+        private LLSession session;
+        
+        
+        public LLSERVER()
+        {
+                
+                session = null;
+        }
+        
+        public LLSERVER(String server, int port, String user, String pwd) 
+        {
+                LLServer = server;
+                LLPort = port;
+                LLUser = user;
+                LLPwd = pwd;    
+                
+                connect();
+        }
+        
+        private void connect()
+        {
+                session = new LLSession (this.LLServer, this.LLPort, "", this.LLUser, this.LLPwd, null);
+        }
+        
 
-	/**
-	 * Disconnects
-	 *
-	 */
-	public void disconnect()
-	{
-		
-		session = null;
-	}
-	
+        /**
+         * Disconnects
+         *
+         */
+        public void disconnect()
+        {
+                
+                session = null;
+        }
+        
 
-	/**
-	 * Returns the server name where the Livelink
-	 * Server has been installed on
-	 * 
-	 * @return the server name
-	 */
-	public String getHost()
-	{
-		
-		if (session != null)
-		{
-			return session.getHost();
-		}
-		
-		return null;	
-	}
-	
-	
-	/**
-	 * Returns the port Livelink is listening on
-	 * @return the port number
-	 */
-	public int getPort ()
-	{
-		
-		if (session != null)
-		{
-			 return session.getPort();
-		}
-		
-		return -1;
-	}
-	
-	
-	/**
-	 * Returns the Livelink user currently connected
-	 * to the Livelink Server
-	 * @return the user name
-	 */
-	public String getLLUser()
-	{
-		
-		return LLUser;	
-	}
-	
-	
-	
-	/**
-	 * Returns the password of the user currently connected
-	 * to the Livelink Server
-	 * @return the user password
-	 */
-	public String getLLPwd()
-	{
-		
-		return LLPwd;
-	}
-	
-	
-	/**
-	 * Returns the Livelink session
-	 * @return Livelink session
-	 */
-	public LLSession getLLSession()
-	{
-		
-		return session;
-	}	
+        /**
+         * Returns the server name where the Livelink
+         * Server has been installed on
+         * 
+         * @return the server name
+         */
+        public String getHost()
+        {
+                
+                if (session != null)
+                {
+                        return session.getHost();
+                }
+                
+                return null;    
+        }
+        
+        
+        /**
+         * Returns the port Livelink is listening on
+         * @return the port number
+         */
+        public int getPort ()
+        {
+                
+                if (session != null)
+                {
+                         return session.getPort();
+                }
+                
+                return -1;
+        }
+        
+        
+        /**
+         * Returns the Livelink user currently connected
+         * to the Livelink Server
+         * @return the user name
+         */
+        public String getLLUser()
+        {
+                
+                return LLUser;  
+        }
+        
+        
+        
+        /**
+         * Returns the password of the user currently connected
+         * to the Livelink Server
+         * @return the user password
+         */
+        public String getLLPwd()
+        {
+                
+                return LLPwd;
+        }
+        
+        
+        /**
+         * Returns the Livelink session
+         * @return Livelink session
+         */
+        public LLSession getLLSession()
+        {
+                
+                return session;
+        }       
 
-	/**
-	 * Get the current session errors as a string.
-	*/
-	public String getErrors()
-	{
-		if (session == null)
-			return null;
-		StringBuffer rval = new StringBuffer();
-		if (session.getStatus() != 0)
-			rval.append("LAPI status code: ").append(session.getStatus());
-		if (session.getApiError().length() > 0)
-		{
-			if (rval.length() > 0)
-				rval.append("; ");
-			rval.append("LAPI error detail: ").append(session.getApiError());
-		}
-		if (session.getErrMsg().length() > 0)
-		{
-			if (rval.length() > 0)
-				rval.append("; ");
-			rval.append("LAPI error message: ").append(session.getErrMsg());
-		}
-		if (session.getStatusMessage().length() > 0)
-		{
-			if (rval.length() > 0)
-				rval.append("; ");
-			rval.append("LAPI status message: ").append(session.getStatusMessage());
-		}
-		if (rval.length() > 0)
-			return rval.toString();
-		return null;
-	}
-	
+        /**
+         * Get the current session errors as a string.
+        */
+        public String getErrors()
+        {
+                if (session == null)
+                        return null;
+                StringBuffer rval = new StringBuffer();
+                if (session.getStatus() != 0)
+                        rval.append("LAPI status code: ").append(session.getStatus());
+                if (session.getApiError().length() > 0)
+                {
+                        if (rval.length() > 0)
+                                rval.append("; ");
+                        rval.append("LAPI error detail: ").append(session.getApiError());
+                }
+                if (session.getErrMsg().length() > 0)
+                {
+                        if (rval.length() > 0)
+                                rval.append("; ");
+                        rval.append("LAPI error message: ").append(session.getErrMsg());
+                }
+                if (session.getStatusMessage().length() > 0)
+                {
+                        if (rval.length() > 0)
+                                rval.append("; ");
+                        rval.append("LAPI status message: ").append(session.getStatusMessage());
+                }
+                if (rval.length() > 0)
+                        return rval.toString();
+                return null;
+        }
+        
 }

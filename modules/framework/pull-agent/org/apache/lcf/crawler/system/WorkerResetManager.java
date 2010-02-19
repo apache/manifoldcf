@@ -28,25 +28,25 @@ import java.util.*;
 */
 public class WorkerResetManager extends ResetManager
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	/** The document queue */
-	protected DocumentQueue dq;
+        /** The document queue */
+        protected DocumentQueue dq;
 
-	/** Constructor. */
-	public WorkerResetManager(DocumentQueue dq)
-	{
-		super();
-		this.dq = dq;
-	}
+        /** Constructor. */
+        public WorkerResetManager(DocumentQueue dq)
+        {
+                super();
+                this.dq = dq;
+        }
 
-	/** Reset */
-	protected void performResetLogic(IThreadContext tc)
-		throws LCFException
-	{
-		IJobManager jobManager = JobManagerFactory.make(tc);
-		jobManager.resetDocumentWorkerStatus();
-		dq.clear();
-	}
+        /** Reset */
+        protected void performResetLogic(IThreadContext tc)
+                throws LCFException
+        {
+                IJobManager jobManager = JobManagerFactory.make(tc);
+                jobManager.resetDocumentWorkerStatus();
+                dq.clear();
+        }
 }
 

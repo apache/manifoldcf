@@ -24,25 +24,25 @@ package org.apache.lcf.authorities.interfaces;
 public class CacheKeyFactory extends org.apache.lcf.core.interfaces.CacheKeyFactory
 {
 
-	protected CacheKeyFactory()
-	{
-	}
+        protected CacheKeyFactory()
+        {
+        }
 
-	/** Construct a key which represents the general list of authority connectors.
-	*@return the cache key.
-	*/
-	public static String makeAuthorityConnectionsKey()
-	{
-		return "AUTHORITYCONNECTIONS";
-	}
+        /** Construct a key which represents the general list of authority connectors.
+        *@return the cache key.
+        */
+        public static String makeAuthorityConnectionsKey()
+        {
+                return "AUTHORITYCONNECTIONS";
+        }
 
-	/** Construct a key which represents an individual authority connection.
-	*@param connectionName is the name of the connection.
-	*@return the cache key.
-	*/
-	public static String makeAuthorityConnectionKey(String connectionName)
-	{
-		return "AUTHORITYCONNECTION_"+connectionName;
-	}
+        /** Construct a key which represents an individual authority connection.
+        *@param connectionName is the name of the connection.
+        *@return the cache key.
+        */
+        public static String makeAuthorityConnectionKey(String connectionName)
+        {
+                return "AUTHORITYCONNECTION_"+connectionName;
+        }
 
 }

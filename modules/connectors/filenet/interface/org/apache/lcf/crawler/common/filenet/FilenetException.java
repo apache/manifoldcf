@@ -20,56 +20,56 @@ package org.apache.lcf.crawler.common.filenet;
 
 public class FilenetException extends Exception
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	// Classes of exception
-	public static final int TYPE_SERVICEINTERRUPTION = 0;
-	public static final int TYPE_BADCREDENTIALS = 1;
-	public static final int TYPE_BADCONNECTIONPARAMS = 2;
-	public static final int TYPE_NOTALLOWED = 3;
-	public static final int TYPE_GENERAL = 4;
+        // Classes of exception
+        public static final int TYPE_SERVICEINTERRUPTION = 0;
+        public static final int TYPE_BADCREDENTIALS = 1;
+        public static final int TYPE_BADCONNECTIONPARAMS = 2;
+        public static final int TYPE_NOTALLOWED = 3;
+        public static final int TYPE_GENERAL = 4;
 
-	protected int errType;
+        protected int errType;
 
-	public FilenetException(String errString)
-	{
-		super(errString);
-		errType = TYPE_GENERAL;
-	}
+        public FilenetException(String errString)
+        {
+                super(errString);
+                errType = TYPE_GENERAL;
+        }
 
-	public FilenetException(String errString, Throwable cause)
-	{
-		super(errString,cause);
-		errType = TYPE_GENERAL;
-	}
+        public FilenetException(String errString, Throwable cause)
+        {
+                super(errString,cause);
+                errType = TYPE_GENERAL;
+        }
 
-	public FilenetException(Throwable cause)
-	{
-		super(cause);
-		errType = TYPE_GENERAL;
-	}
+        public FilenetException(Throwable cause)
+        {
+                super(cause);
+                errType = TYPE_GENERAL;
+        }
 
-	public FilenetException(String errString, int errType)
-	{
-		super(errString);
-		this.errType = errType;
-	}
+        public FilenetException(String errString, int errType)
+        {
+                super(errString);
+                this.errType = errType;
+        }
 
-	public FilenetException(String errString, Throwable cause, int errType)
-	{
-		super(errString,cause);
-		this.errType = errType;
-	}
+        public FilenetException(String errString, Throwable cause, int errType)
+        {
+                super(errString,cause);
+                this.errType = errType;
+        }
 
-	public FilenetException(Throwable cause, int errType)
-	{
-		super(cause);
-		this.errType = errType;
-	}
+        public FilenetException(Throwable cause, int errType)
+        {
+                super(cause);
+                this.errType = errType;
+        }
 
-	public int getType()
-	{
-		return errType;
-	}
+        public int getType()
+        {
+                return errType;
+        }
 
 }

@@ -22,33 +22,33 @@ import org.apache.lcf.core.interfaces.*;
 
 public class VersionDoc
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private VersionDoc()
-	{
-	}
+        private VersionDoc()
+        {
+        }
 
 
-	public static void main(String[] args)
-	{
-		if (args.length != 6)
-		{
-			System.err.println("Usage: VersionDoc <docbase> <domain> <user> <password> <location> <file>");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 6)
+                {
+                        System.err.println("Usage: VersionDoc <docbase> <domain> <user> <password> <location> <file>");
+                        System.exit(1);
+                }
 
-		try
-		{
-			DCTMAddRemove handle = new DCTMAddRemove(args[0],args[1],args[2],args[3],args[4]);
-			String objectID = handle.VersionDoc(args[5]);
-			System.err.println("Successfully versioned");
-			UTF8Stdout.print(objectID);
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace(System.err);
-			System.exit(2);
-		}
-	}
+                try
+                {
+                        DCTMAddRemove handle = new DCTMAddRemove(args[0],args[1],args[2],args[3],args[4]);
+                        String objectID = handle.VersionDoc(args[5]);
+                        System.err.println("Successfully versioned");
+                        UTF8Stdout.print(objectID);
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace(System.err);
+                        System.exit(2);
+                }
+        }
 
 }

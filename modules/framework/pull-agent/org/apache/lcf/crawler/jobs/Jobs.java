@@ -31,24 +31,24 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         public static final String _rcsid = "@(#)$Id$";
 
         // Status field values
-        public static final int STATUS_INACTIVE = 0;				// Not running
-        public static final int STATUS_ACTIVE = 1;				// Active, within a valid window
-        public static final int STATUS_PAUSED = 2;				// Paused, but within a valid window
-        public static final int STATUS_SHUTTINGDOWN = 3;		// Done, except for process cleanup
-        public static final int STATUS_ACTIVEWAIT = 4;			// Active, but paused due to window expiration
-        public static final int STATUS_PAUSEDWAIT = 5;			// Paused, and outside of window expiration
-        public static final int STATUS_ABORTING = 6;				// Aborting (not yet aborted because documents still being processed)
-        public static final int STATUS_STARTINGUP = 7;			// Loading the queue (will go into ACTIVE if successful, or INACTIVE if not)
-        public static final int STATUS_ABORTINGSTARTINGUP = 8;	// Will abort once the queue loading is complete
-        public static final int STATUS_READYFORSTARTUP = 9;		// Job is marked for startup; startup thread has not taken it yet.
-        public static final int STATUS_READYFORDELETE = 10;		// Job is marked for delete; delete thread has not taken it yet.
-        public static final int STATUS_ACTIVESEEDING = 11;		// Same as active, but seeding process is currently active also.
-        public static final int STATUS_ABORTINGSEEDING = 12;		// Same as aborting, but seeding process is currently active also.
-        public static final int STATUS_PAUSEDSEEDING = 13;		// Same as paused, but seeding process is currently active also.
-        public static final int STATUS_ACTIVEWAITSEEDING = 14;	// Same as active wait, but seeding process is currently active also.
-        public static final int STATUS_PAUSEDWAITSEEDING = 15;	// Same as paused wait, but seeding process is currently active also.
-        public static final int STATUS_ABORTINGFORRESTART = 16;	// Same as aborting, except after abort is complete startup will happen.
-        public static final int STATUS_ABORTINGFORRESTARTSEEDING = 17;	// Seeding version of aborting for restart
+        public static final int STATUS_INACTIVE = 0;                            // Not running
+        public static final int STATUS_ACTIVE = 1;                              // Active, within a valid window
+        public static final int STATUS_PAUSED = 2;                              // Paused, but within a valid window
+        public static final int STATUS_SHUTTINGDOWN = 3;                // Done, except for process cleanup
+        public static final int STATUS_ACTIVEWAIT = 4;                  // Active, but paused due to window expiration
+        public static final int STATUS_PAUSEDWAIT = 5;                  // Paused, and outside of window expiration
+        public static final int STATUS_ABORTING = 6;                            // Aborting (not yet aborted because documents still being processed)
+        public static final int STATUS_STARTINGUP = 7;                  // Loading the queue (will go into ACTIVE if successful, or INACTIVE if not)
+        public static final int STATUS_ABORTINGSTARTINGUP = 8;  // Will abort once the queue loading is complete
+        public static final int STATUS_READYFORSTARTUP = 9;             // Job is marked for startup; startup thread has not taken it yet.
+        public static final int STATUS_READYFORDELETE = 10;             // Job is marked for delete; delete thread has not taken it yet.
+        public static final int STATUS_ACTIVESEEDING = 11;              // Same as active, but seeding process is currently active also.
+        public static final int STATUS_ABORTINGSEEDING = 12;            // Same as aborting, but seeding process is currently active also.
+        public static final int STATUS_PAUSEDSEEDING = 13;              // Same as paused, but seeding process is currently active also.
+        public static final int STATUS_ACTIVEWAITSEEDING = 14;  // Same as active wait, but seeding process is currently active also.
+        public static final int STATUS_PAUSEDWAITSEEDING = 15;  // Same as paused wait, but seeding process is currently active also.
+        public static final int STATUS_ABORTINGFORRESTART = 16; // Same as aborting, except after abort is complete startup will happen.
+        public static final int STATUS_ABORTINGFORRESTARTSEEDING = 17;  // Seeding version of aborting for restart
         public static final int STATUS_ABORTINGSTARTINGUPFORRESTART = 18; // Starting up version of aborting for restart
         
         // These statuses have to do with whether a job has an installed underlying connector or not.
@@ -60,7 +60,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         // But, since there is no indication in the jobs table of an uninstalled connector for such jobs, the code which starts
         // jobs up (or otherwise would enter any state that has a corresponding special state) must check to see if the underlying
         // connector exists before deciding what state to put the job into.
-        public static final int STATUS_ACTIVE_UNINSTALLED = 21;	// Special because we don't want these jobs to actually queue anything
+        public static final int STATUS_ACTIVE_UNINSTALLED = 21; // Special because we don't want these jobs to actually queue anything
         public static final int STATUS_ACTIVESEEDING_UNINSTALLED = 22; // Don't want job to queue documents
         
         // Type field values
@@ -988,7 +988,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
                         HashMap map = new HashMap();
                         map.put(statusField,statusToString(newStatus));
                         if (newStatus == STATUS_ACTIVE || newStatus == STATUS_ACTIVE_UNINSTALLED)
-                        {	
+                        {       
                                 map.put(startTimeField,new Long(startTime));
                         }
                         map.put(lastCheckTimeField,new Long(startTime));

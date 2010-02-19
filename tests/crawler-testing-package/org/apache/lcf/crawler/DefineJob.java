@@ -28,117 +28,117 @@ import java.util.*;
 */
 public class DefineJob
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private DefineJob()
-	{
-	}
+        private DefineJob()
+        {
+        }
 
-	public static void main(String[] args)
-	{
-		if (args.length != 13)
-		{
-			System.err.println("Usage: DefineJob <description> <connection_name> <output_name> <type> <start_method> <hopcount_method> <recrawl_interval> <expiration_interval> <reseed_interval> <job_priority> <hop_filters> <filespec_xml> <outputspec_xml>");
-			System.err.println("<type> is one of: continuous or specified");
-			System.err.println("<start_method> is one of: windowbegin, windowinside, disable");
-			System.err.println("<hopcount_method> is one of: accurate, nodelete, neverdelete");
-			System.err.println("<recrawl_interval> is the default document recrawl interval in minutes");
-			System.err.println("<expiration_interval> is the default document expiration interval in minutes");
-			System.err.println("<reseed_interval> is the default document reseed interval in minutes");
-			System.err.println("<job_priority> is the job priority (and integer between 0 and 10)");
-			System.err.println("<hop_filters> is a comma-separated list of tuples, of the form 'linktype=maxhops'");
-			System.err.println("<filespec_xml> is the document specification XML, its form dependent on the connection type");
-			System.err.println("<outputspec_xml> is the output specification XML, its form dependent on the output connection type");
-			System.exit(-1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 13)
+                {
+                        System.err.println("Usage: DefineJob <description> <connection_name> <output_name> <type> <start_method> <hopcount_method> <recrawl_interval> <expiration_interval> <reseed_interval> <job_priority> <hop_filters> <filespec_xml> <outputspec_xml>");
+                        System.err.println("<type> is one of: continuous or specified");
+                        System.err.println("<start_method> is one of: windowbegin, windowinside, disable");
+                        System.err.println("<hopcount_method> is one of: accurate, nodelete, neverdelete");
+                        System.err.println("<recrawl_interval> is the default document recrawl interval in minutes");
+                        System.err.println("<expiration_interval> is the default document expiration interval in minutes");
+                        System.err.println("<reseed_interval> is the default document reseed interval in minutes");
+                        System.err.println("<job_priority> is the job priority (and integer between 0 and 10)");
+                        System.err.println("<hop_filters> is a comma-separated list of tuples, of the form 'linktype=maxhops'");
+                        System.err.println("<filespec_xml> is the document specification XML, its form dependent on the connection type");
+                        System.err.println("<outputspec_xml> is the output specification XML, its form dependent on the output connection type");
+                        System.exit(-1);
+                }
 
-		String description = args[0];
-		String connectionName = args[1];
+                String description = args[0];
+                String connectionName = args[1];
                 String outputConnectionName = args[2];
-		String typeString = args[3];
-		String startString = args[4];
-		String hopcountString = args[5];
-		String recrawlInterval = args[6];
-		String expirationInterval = args[7];
-		String reseedInterval = args[8];
-		String jobPriority = args[9];
-		String hopFilters = args[10];
-		String filespecXML = args[11];
+                String typeString = args[3];
+                String startString = args[4];
+                String hopcountString = args[5];
+                String recrawlInterval = args[6];
+                String expirationInterval = args[7];
+                String reseedInterval = args[8];
+                String jobPriority = args[9];
+                String hopFilters = args[10];
+                String filespecXML = args[11];
                 String outputspecXML = args[12];
 
-		try
-		{
-		        LCF.initializeEnvironment();
-			IThreadContext tc = ThreadContextFactory.make();
-			IJobManager jobManager = JobManagerFactory.make(tc);
-			IJobDescription desc = jobManager.createJob();
+                try
+                {
+                        LCF.initializeEnvironment();
+                        IThreadContext tc = ThreadContextFactory.make();
+                        IJobManager jobManager = JobManagerFactory.make(tc);
+                        IJobDescription desc = jobManager.createJob();
 
-			desc.setDescription(description);
-			desc.setConnectionName(connectionName);
+                        desc.setDescription(description);
+                        desc.setConnectionName(connectionName);
                         desc.setOutputConnectionName(outputConnectionName);
 
-			if (typeString.equals("continuous"))
-				desc.setType(IJobDescription.TYPE_CONTINUOUS);
-			else if (typeString.equals("specified"))
-				desc.setType(IJobDescription.TYPE_SPECIFIED);
-			else
-				throw new LCFException("Unknown type: '"+typeString+"'");
-			if (startString.equals("windowbegin"))
-				desc.setStartMethod(IJobDescription.START_WINDOWBEGIN);
-			else if (startString.equals("windowinside"))
-				desc.setStartMethod(IJobDescription.START_WINDOWINSIDE);
-			else if (startString.equals("disable"))
-				desc.setStartMethod(IJobDescription.START_DISABLE);
-			else
-				throw new LCFException("Unknown start method: '"+startString+"'");
+                        if (typeString.equals("continuous"))
+                                desc.setType(IJobDescription.TYPE_CONTINUOUS);
+                        else if (typeString.equals("specified"))
+                                desc.setType(IJobDescription.TYPE_SPECIFIED);
+                        else
+                                throw new LCFException("Unknown type: '"+typeString+"'");
+                        if (startString.equals("windowbegin"))
+                                desc.setStartMethod(IJobDescription.START_WINDOWBEGIN);
+                        else if (startString.equals("windowinside"))
+                                desc.setStartMethod(IJobDescription.START_WINDOWINSIDE);
+                        else if (startString.equals("disable"))
+                                desc.setStartMethod(IJobDescription.START_DISABLE);
+                        else
+                                throw new LCFException("Unknown start method: '"+startString+"'");
 
-			if (hopcountString.equals("accurate"))
-				desc.setHopcountMode(IJobDescription.HOPCOUNT_ACCURATE);
-			else if (hopcountString.equals("nodelete"))
-				desc.setHopcountMode(IJobDescription.HOPCOUNT_NODELETE);
-			else if (hopcountString.equals("neverdelete"))
-				desc.setHopcountMode(IJobDescription.HOPCOUNT_NEVERDELETE);
-			else
-				throw new LCFException("Unknown hopcount mode: '"+hopcountString+"'");
-			
-			if (recrawlInterval.length() > 0)
-				desc.setInterval(new Long(recrawlInterval));
-			if (expirationInterval.length() > 0)
-				desc.setExpiration(new Long(expirationInterval));
-			if (reseedInterval.length() > 0)
-				desc.setReseedInterval(new Long(reseedInterval));
-			desc.setPriority(Integer.parseInt(jobPriority));
-			
-			String[] hopFilterSet = hopFilters.split(",");
-			int i = 0;
-			while (i < hopFilterSet.length)
-			{
-			        String hopFilter = hopFilterSet[i++];
-				if (hopFilter != null && hopFilter.length() > 0)
-				{
-				    String[] stuff = hopFilter.trim().split("=");
-				    if (stuff != null && stuff.length == 2)
-					desc.addHopCountFilter(stuff[0],((stuff[1].length()>0)?new Long(stuff[1]):null));
-				}
-			}
-			
-			desc.getSpecification().fromXML(filespecXML);
-			if (outputspecXML.length() > 0)
-				desc.getOutputSpecification().fromXML(outputspecXML);
+                        if (hopcountString.equals("accurate"))
+                                desc.setHopcountMode(IJobDescription.HOPCOUNT_ACCURATE);
+                        else if (hopcountString.equals("nodelete"))
+                                desc.setHopcountMode(IJobDescription.HOPCOUNT_NODELETE);
+                        else if (hopcountString.equals("neverdelete"))
+                                desc.setHopcountMode(IJobDescription.HOPCOUNT_NEVERDELETE);
+                        else
+                                throw new LCFException("Unknown hopcount mode: '"+hopcountString+"'");
                         
-			// Now, save
-			jobManager.save(desc);
+                        if (recrawlInterval.length() > 0)
+                                desc.setInterval(new Long(recrawlInterval));
+                        if (expirationInterval.length() > 0)
+                                desc.setExpiration(new Long(expirationInterval));
+                        if (reseedInterval.length() > 0)
+                                desc.setReseedInterval(new Long(reseedInterval));
+                        desc.setPriority(Integer.parseInt(jobPriority));
+                        
+                        String[] hopFilterSet = hopFilters.split(",");
+                        int i = 0;
+                        while (i < hopFilterSet.length)
+                        {
+                                String hopFilter = hopFilterSet[i++];
+                                if (hopFilter != null && hopFilter.length() > 0)
+                                {
+                                    String[] stuff = hopFilter.trim().split("=");
+                                    if (stuff != null && stuff.length == 2)
+                                        desc.addHopCountFilter(stuff[0],((stuff[1].length()>0)?new Long(stuff[1]):null));
+                                }
+                        }
+                        
+                        desc.getSpecification().fromXML(filespecXML);
+                        if (outputspecXML.length() > 0)
+                                desc.getOutputSpecification().fromXML(outputspecXML);
+                        
+                        // Now, save
+                        jobManager.save(desc);
 
-			System.out.print(desc.getID().toString());
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			System.exit(-2);
-		}
-	}
+                        System.out.print(desc.getID().toString());
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace();
+                        System.exit(-2);
+                }
+        }
 
 
 
-		
+                
 }

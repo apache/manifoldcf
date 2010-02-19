@@ -26,38 +26,38 @@ import java.net.*;
 */
 public class Filenet
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private Filenet()
-	{
-	}
+        private Filenet()
+        {
+        }
 
-	public static void main(String[] args)
-	{
-        	try
-		{
-			FilenetFactoryImpl factory = new FilenetFactoryImpl();
-			Naming.rebind("//127.0.0.1:8305/filenet_factory", factory);
-			// sets the handle
-            		System.out.println("FileNet Server started and awaiting connections.");
-			while (true)
-			{
-				Thread.sleep(600000L);
-			}
-        	}
-		catch (InterruptedException e)
-		{
-		}
-        	catch (RemoteException er)
-		{
-        		System.err.println("Remote exception in FileNet.main: " + er);
-			er.printStackTrace(System.err);
-		}
-		catch (MalformedURLException er)
-		{
-        		System.err.println("Exception in FileNet.main: " + er);
-			er.printStackTrace(System.err);
-		}
+        public static void main(String[] args)
+        {
+                try
+                {
+                        FilenetFactoryImpl factory = new FilenetFactoryImpl();
+                        Naming.rebind("//127.0.0.1:8305/filenet_factory", factory);
+                        // sets the handle
+                        System.out.println("FileNet Server started and awaiting connections.");
+                        while (true)
+                        {
+                                Thread.sleep(600000L);
+                        }
+                }
+                catch (InterruptedException e)
+                {
+                }
+                catch (RemoteException er)
+                {
+                        System.err.println("Remote exception in FileNet.main: " + er);
+                        er.printStackTrace(System.err);
+                }
+                catch (MalformedURLException er)
+                {
+                        System.err.println("Exception in FileNet.main: " + er);
+                        er.printStackTrace(System.err);
+                }
 
         }
 }

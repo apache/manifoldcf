@@ -22,40 +22,40 @@ import org.apache.lcf.core.interfaces.*;
 
 public class AddDoc
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private AddDoc()
-	{
-	}
+        private AddDoc()
+        {
+        }
 
 
-	public static void main(String[] args)
-	{
-		if (args.length != 7)
-		{
-			System.err.println("Usage: AddDoc <servername> <port> <username> <password> <livelinkpath> <livelinkname> <filepath>");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 7)
+                {
+                        System.err.println("Usage: AddDoc <servername> <port> <username> <password> <livelinkpath> <livelinkname> <filepath>");
+                        System.exit(1);
+                }
 
-		try
-		{
-			LiveLinkSupport handle = new LiveLinkSupport(args[0],new Integer(args[1]).intValue(),args[2],args[3]);
-			try
-			{
-				String id = handle.addDocument(args[4],args[5],args[6]);
-				UTF8Stdout.print(id);
-			}
-			finally
-			{
-				handle.close();
-			}
-			System.err.println("Successfully added");
-		}
-		catch (LCFException e)
-		{
-			e.printStackTrace(System.err);
-			System.exit(2);
-		}
-	}
+                try
+                {
+                        LiveLinkSupport handle = new LiveLinkSupport(args[0],new Integer(args[1]).intValue(),args[2],args[3]);
+                        try
+                        {
+                                String id = handle.addDocument(args[4],args[5],args[6]);
+                                UTF8Stdout.print(id);
+                        }
+                        finally
+                        {
+                                handle.close();
+                        }
+                        System.err.println("Successfully added");
+                }
+                catch (LCFException e)
+                {
+                        e.printStackTrace(System.err);
+                        System.exit(2);
+                }
+        }
 
 }

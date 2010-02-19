@@ -36,27 +36,27 @@ import org.apache.lcf.core.interfaces.*;
 */
 public class XMLStringContext extends XMLContext
 {
-	/** The string buffer */
-	protected StringBuffer value = new StringBuffer();
+        /** The string buffer */
+        protected StringBuffer value = new StringBuffer();
 
-	/** Full constructor.  Used for individual tags. */
-	public XMLStringContext(XMLStream theStream, String namespaceURI, String localname, String qname, Attributes theseAttributes)
-	{
-		super(theStream,namespaceURI,localname,qname,theseAttributes);
-	}
-	
-	/** Get the string value */
-	public String getValue()
-	{
-		return value.toString();
-	}
-	
-	/** This method is meant to be extended by classes that extend this class */
-	protected void tagContents(char[] ch, int start, int length)
-		throws LCFException
-	{
-		// Append the characters to the buffer
-		value.append(ch,start,length);
-	}
+        /** Full constructor.  Used for individual tags. */
+        public XMLStringContext(XMLStream theStream, String namespaceURI, String localname, String qname, Attributes theseAttributes)
+        {
+                super(theStream,namespaceURI,localname,qname,theseAttributes);
+        }
+        
+        /** Get the string value */
+        public String getValue()
+        {
+                return value.toString();
+        }
+        
+        /** This method is meant to be extended by classes that extend this class */
+        protected void tagContents(char[] ch, int start, int length)
+                throws LCFException
+        {
+                // Append the characters to the buffer
+                value.append(ch,start,length);
+        }
 
 }

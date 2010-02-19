@@ -23,43 +23,43 @@ import org.apache.lcf.core.system.LCF;
 public class UILockSpinner
 {
 
-	protected final static String lockName = "TESTLOCK";
-	
-	public static void main(String[] argv)
-		throws Exception
-	{
-		LCF.initializeSystem();
-		
+        protected final static String lockName = "TESTLOCK";
+        
+        public static void main(String[] argv)
+                throws Exception
+        {
+                LCF.initializeSystem();
+                
 
-		// Create a thread context object.
-		IThreadContext threadContext = ThreadContextFactory.make();
-		ILockManager lockManager = LockManagerFactory.make(threadContext);
+                // Create a thread context object.
+                IThreadContext threadContext = ThreadContextFactory.make();
+                ILockManager lockManager = LockManagerFactory.make(threadContext);
 
-		System.out.println("Starting test");
+                System.out.println("Starting test");
 
-		int i = 0;
-		while (i < 100000)
-		{
-			if ((i % 100) == 0)
-				System.out.println("UI iteration "+Integer.toString(i));
+                int i = 0;
+                while (i < 100000)
+                {
+                        if ((i % 100) == 0)
+                                System.out.println("UI iteration "+Integer.toString(i));
 
-			// This thread is a writer.
-			lockManager.enterWriteLock(lockName);
-			try
-			{
-				Thread.sleep(10);
-			}
-			finally
-			{
-				lockManager.leaveWriteLock(lockName);
-			}
-			
-			Thread.sleep(1000);
-			i++;
-		}
-		
-		System.out.println("Done test - no hang");
-		
-	}
-	
+                        // This thread is a writer.
+                        lockManager.enterWriteLock(lockName);
+                        try
+                        {
+                                Thread.sleep(10);
+                        }
+                        finally
+                        {
+                                lockManager.leaveWriteLock(lockName);
+                        }
+                        
+                        Thread.sleep(1000);
+                        i++;
+                }
+                
+                System.out.println("Done test - no hang");
+                
+        }
+        
 }

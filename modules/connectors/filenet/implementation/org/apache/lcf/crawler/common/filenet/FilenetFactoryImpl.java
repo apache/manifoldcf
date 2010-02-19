@@ -26,20 +26,20 @@ import java.util.*;
 */
 public class FilenetFactoryImpl extends UnicastRemoteObject implements IFilenetFactory
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	/** Instantiate */
-	public FilenetFactoryImpl()
-		throws RemoteException
-	{
-		super(0,new RMILocalClientSocketFactory(),new RMILocalSocketFactory());
-	}
+        /** Instantiate */
+        public FilenetFactoryImpl()
+                throws RemoteException
+        {
+                super(0,new RMILocalClientSocketFactory(),new RMILocalSocketFactory());
+        }
 
-	/** Mint a new IFilenet handle.
-	*/
-	public IFilenet make()
-		throws RemoteException
-	{
-		return new FilenetImpl();
-	}
+        /** Mint a new IFilenet handle.
+        */
+        public IFilenet make()
+                throws RemoteException
+        {
+                return new FilenetImpl();
+        }
 }

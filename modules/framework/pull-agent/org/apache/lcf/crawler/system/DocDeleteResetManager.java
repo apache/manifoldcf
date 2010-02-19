@@ -29,23 +29,23 @@ import java.util.*;
 */
 public class DocDeleteResetManager extends ResetManager
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	protected DocumentDeleteQueue ddq;
+        protected DocumentDeleteQueue ddq;
 
-	/** Constructor. */
-	public DocDeleteResetManager(DocumentDeleteQueue ddq)
-	{
-		super();
-		this.ddq = ddq;
-	}
+        /** Constructor. */
+        public DocDeleteResetManager(DocumentDeleteQueue ddq)
+        {
+                super();
+                this.ddq = ddq;
+        }
 
-	/** Reset */
-	protected void performResetLogic(IThreadContext tc)
-		throws LCFException
-	{
-		IJobManager jobManager = JobManagerFactory.make(tc);
-		jobManager.resetDocDeleteWorkerStatus();
-		ddq.clear();
-	}
+        /** Reset */
+        protected void performResetLogic(IThreadContext tc)
+                throws LCFException
+        {
+                IJobManager jobManager = JobManagerFactory.make(tc);
+                jobManager.resetDocDeleteWorkerStatus();
+                ddq.clear();
+        }
 }

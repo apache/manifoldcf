@@ -25,52 +25,52 @@ import org.apache.lcf.authorities.system.*;
 
 public class SynchronizeAuthorities
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private SynchronizeAuthorities()
-	{
-	}
-
-
-	public static void main(String[] args)
-	{
-		if (args.length > 0)
-		{
-			System.err.println("Usage: SynchronizeAuthorities");
-			System.exit(1);
-		}
+        private SynchronizeAuthorities()
+        {
+        }
 
 
-		try
-		{
-			LCF.initializeEnvironment();
-			IThreadContext tc = ThreadContextFactory.make();
-			IAuthorityConnectorManager mgr = AuthorityConnectorManagerFactory.make(tc);
-			IResultSet classNames = mgr.getConnectors();
-			int i = 0;
-			while (i < classNames.getRowCount())
-			{
-			    IResultRow row = classNames.getRow(i++);
-			    String classname = (String)row.getValue("classname");
-			    try
-			    {
-				AuthorityConnectorFactory.getConnectorNoCheck(classname);
-			    }
-			    catch (LCFException e)
-			    {
-				mgr.removeConnector(classname);
-			    }
-			}
-			System.err.println("Successfully synchronized all authorities");
-		}
-		catch (LCFException e)
-		{
-			e.printStackTrace();
-			System.exit(1);
-		}
-	}
+        public static void main(String[] args)
+        {
+                if (args.length > 0)
+                {
+                        System.err.println("Usage: SynchronizeAuthorities");
+                        System.exit(1);
+                }
+
+
+                try
+                {
+                        LCF.initializeEnvironment();
+                        IThreadContext tc = ThreadContextFactory.make();
+                        IAuthorityConnectorManager mgr = AuthorityConnectorManagerFactory.make(tc);
+                        IResultSet classNames = mgr.getConnectors();
+                        int i = 0;
+                        while (i < classNames.getRowCount())
+                        {
+                            IResultRow row = classNames.getRow(i++);
+                            String classname = (String)row.getValue("classname");
+                            try
+                            {
+                                AuthorityConnectorFactory.getConnectorNoCheck(classname);
+                            }
+                            catch (LCFException e)
+                            {
+                                mgr.removeConnector(classname);
+                            }
+                        }
+                        System.err.println("Successfully synchronized all authorities");
+                }
+                catch (LCFException e)
+                {
+                        e.printStackTrace();
+                        System.exit(1);
+                }
+        }
 
 
 
-		
+                
 }

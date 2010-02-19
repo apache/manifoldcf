@@ -26,50 +26,50 @@ import java.io.IOException;
 */
 public class LocalClientSocket extends Socket
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	protected static InetAddress loopbackAddress;
+        protected static InetAddress loopbackAddress;
 
-	static
-	{
-		try
-		{
-			loopbackAddress = InetAddress.getByAddress(new byte[]{127,0,0,1});
-		}
-		catch (UnknownHostException e)
-		{
-			e.printStackTrace();
-		}
-	}
+        static
+        {
+                try
+                {
+                        loopbackAddress = InetAddress.getByAddress(new byte[]{127,0,0,1});
+                }
+                catch (UnknownHostException e)
+                {
+                        e.printStackTrace();
+                }
+        }
 
-	protected int currentPort;
+        protected int currentPort;
 
-	/** Constructor */
-	public LocalClientSocket(int port)
-		throws IOException
-	{
-		super(loopbackAddress,port);
-		currentPort = port;
-	}
+        /** Constructor */
+        public LocalClientSocket(int port)
+                throws IOException
+        {
+                super(loopbackAddress,port);
+                currentPort = port;
+        }
 
-	public void connect(SocketAddress endpoint)
-		throws IOException
-	{
-		int thisPort = currentPort;
-               	if (endpoint instanceof InetSocketAddress)
-                       	thisPort = ((InetSocketAddress)endpoint).getPort();
-		endpoint = new InetSocketAddress(loopbackAddress,thisPort);
-		super.connect(endpoint);
-	}
+        public void connect(SocketAddress endpoint)
+                throws IOException
+        {
+                int thisPort = currentPort;
+                if (endpoint instanceof InetSocketAddress)
+                        thisPort = ((InetSocketAddress)endpoint).getPort();
+                endpoint = new InetSocketAddress(loopbackAddress,thisPort);
+                super.connect(endpoint);
+        }
 
-	public void connect(SocketAddress endpoint, int timeout)
-		throws IOException
-	{
-		int thisPort = currentPort;
-               	if (endpoint instanceof InetSocketAddress)
-                       	thisPort = ((InetSocketAddress)endpoint).getPort();
-		endpoint = new InetSocketAddress(loopbackAddress,thisPort);
-		super.connect(endpoint,timeout);
-	}
+        public void connect(SocketAddress endpoint, int timeout)
+                throws IOException
+        {
+                int thisPort = currentPort;
+                if (endpoint instanceof InetSocketAddress)
+                        thisPort = ((InetSocketAddress)endpoint).getPort();
+                endpoint = new InetSocketAddress(loopbackAddress,thisPort);
+                super.connect(endpoint,timeout);
+        }
 
 }

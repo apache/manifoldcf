@@ -28,38 +28,38 @@ import java.util.*;
 */
 public class DeleteAuthorityConnection
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private DeleteAuthorityConnection()
-	{
-	}
-
-
-	public static void main(String[] args)
-	{
-		if (args.length != 1)
-		{
-			System.err.println("Usage: DeleteAuthorityConnection <connection_name>");
-			System.exit(1);
-		}
-
-		String connectionName = args[0];
-		try
-		{
-		        LCF.initializeEnvironment();
-			IThreadContext tc = ThreadContextFactory.make();
-			IAuthorityConnectionManager mgr = AuthorityConnectionManagerFactory.make(tc);
-			mgr.delete(connectionName);
-
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace(System.err);
-			System.exit(2);
-		}
-	}
+        private DeleteAuthorityConnection()
+        {
+        }
 
 
+        public static void main(String[] args)
+        {
+                if (args.length != 1)
+                {
+                        System.err.println("Usage: DeleteAuthorityConnection <connection_name>");
+                        System.exit(1);
+                }
 
-		
+                String connectionName = args[0];
+                try
+                {
+                        LCF.initializeEnvironment();
+                        IThreadContext tc = ThreadContextFactory.make();
+                        IAuthorityConnectionManager mgr = AuthorityConnectionManagerFactory.make(tc);
+                        mgr.delete(connectionName);
+
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace(System.err);
+                        System.exit(2);
+                }
+        }
+
+
+
+                
 }

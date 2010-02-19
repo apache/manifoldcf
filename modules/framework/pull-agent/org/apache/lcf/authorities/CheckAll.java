@@ -28,99 +28,99 @@ import java.util.*;
 */
 public class CheckAll
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private CheckAll()
-	{
-	}
+        private CheckAll()
+        {
+        }
 
-	public static void main(String[] args)
-	{
-		if (args.length != 0)
-		{
-			System.err.println("Usage: CheckAll");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 0)
+                {
+                        System.err.println("Usage: CheckAll");
+                        System.exit(1);
+                }
 
-	        LCF.initializeEnvironment();
-		try
-		{
-			IThreadContext tc = ThreadContextFactory.make();
-			// Now, get a list of the authority connections
-			IAuthorityConnectionManager mgr = AuthorityConnectionManagerFactory.make(tc);
-			IAuthorityConnection[] connections = mgr.getAllConnections();
-			int i = 0;
-			while (i < connections.length)
-			{
-				// Grab the connection and perform a check operation.
-				// Check operations that return "connection working" are ignored.  
-				// Operations that return anything else stream stuff to standard error,
-				// in a form which is parseable.  This will be an escaped form of the authority identifying string, followed by ":",
-				// followed by the message and a newline
-				IAuthorityConnection connection = connections[i++];
-				String identifyingName = connection.getDescription();
-				if (identifyingName == null || identifyingName.length() == 0)
-					identifyingName = connection.getName();
+                LCF.initializeEnvironment();
+                try
+                {
+                        IThreadContext tc = ThreadContextFactory.make();
+                        // Now, get a list of the authority connections
+                        IAuthorityConnectionManager mgr = AuthorityConnectionManagerFactory.make(tc);
+                        IAuthorityConnection[] connections = mgr.getAllConnections();
+                        int i = 0;
+                        while (i < connections.length)
+                        {
+                                // Grab the connection and perform a check operation.
+                                // Check operations that return "connection working" are ignored.  
+                                // Operations that return anything else stream stuff to standard error,
+                                // in a form which is parseable.  This will be an escaped form of the authority identifying string, followed by ":",
+                                // followed by the message and a newline
+                                IAuthorityConnection connection = connections[i++];
+                                String identifyingName = connection.getDescription();
+                                if (identifyingName == null || identifyingName.length() == 0)
+                                        identifyingName = connection.getName();
 
-				String className = connection.getClassName();
-				int maxCount = connection.getMaxConnections();
-				ConfigParams parameters = connection.getConfigParams();
+                                String className = connection.getClassName();
+                                int maxCount = connection.getMaxConnections();
+                                ConfigParams parameters = connection.getConfigParams();
 
-				// Now, test the connection.
-				String connectionStatus;
-				try
-				{
-					IAuthorityConnector c = AuthorityConnectorFactory.grab(tc,className,parameters,maxCount);
-					if (c != null)
-					{
-					    try
-					    {
-						connectionStatus = c.check();
-					    }
-					    finally
-					    {
-						AuthorityConnectorFactory.release(c);
-					    }
-					}
-					else
-					    connectionStatus = "Connector not installed";
-				}
-				catch (LCFException e)
-				{
-					connectionStatus = "Threw exception: '"+e.getMessage()+"'";
-				}
+                                // Now, test the connection.
+                                String connectionStatus;
+                                try
+                                {
+                                        IAuthorityConnector c = AuthorityConnectorFactory.grab(tc,className,parameters,maxCount);
+                                        if (c != null)
+                                        {
+                                            try
+                                            {
+                                                connectionStatus = c.check();
+                                            }
+                                            finally
+                                            {
+                                                AuthorityConnectorFactory.release(c);
+                                            }
+                                        }
+                                        else
+                                            connectionStatus = "Connector not installed";
+                                }
+                                catch (LCFException e)
+                                {
+                                        connectionStatus = "Threw exception: '"+e.getMessage()+"'";
+                                }
 
-				if (connectionStatus.startsWith("Connection working"))
-					continue;
-				
-				UTF8Stdout.println(encode(identifyingName)+":"+encode(connectionStatus));
-			}
-			System.err.println("Done getting authority status");
-		}
-		catch (Exception e)
-		{
-			System.err.print(e.getMessage());
-			Logging.root.warn("Exception in CheckAll: "+e.getMessage(),e);
-			System.exit(2);
-		}
-	}
+                                if (connectionStatus.startsWith("Connection working"))
+                                        continue;
+                                
+                                UTF8Stdout.println(encode(identifyingName)+":"+encode(connectionStatus));
+                        }
+                        System.err.println("Done getting authority status");
+                }
+                catch (Exception e)
+                {
+                        System.err.print(e.getMessage());
+                        Logging.root.warn("Exception in CheckAll: "+e.getMessage(),e);
+                        System.exit(2);
+                }
+        }
 
-	/** Encode a string so that it doesn't have control characters, newlines, or colons in it */
-	protected static String encode(String input)
-	{
-		StringBuffer sb = new StringBuffer();
-		int i = 0;
-		while (i < input.length())
-		{
-			char x = input.charAt(i++);
-			if (x == ':')
-				sb.append('\\').append(x);
-			else if (x < ' ' && x >= 0)
-				sb.append(' ');
-			else
-			    sb.append(x);
-		}
-		return sb.toString();
-	}
-	
+        /** Encode a string so that it doesn't have control characters, newlines, or colons in it */
+        protected static String encode(String input)
+        {
+                StringBuffer sb = new StringBuffer();
+                int i = 0;
+                while (i < input.length())
+                {
+                        char x = input.charAt(i++);
+                        if (x == ':')
+                                sb.append('\\').append(x);
+                        else if (x < ' ' && x >= 0)
+                                sb.append(' ');
+                        else
+                            sb.append(x);
+                }
+                return sb.toString();
+        }
+        
 }

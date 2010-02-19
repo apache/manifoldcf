@@ -25,38 +25,38 @@ import org.apache.lcf.agents.system.*;
 
 public class Register
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private Register()
-	{
-	}
-
-
-	public static void main(String[] args)
-	{
-		if (args.length != 1)
-		{
-			System.err.println("Usage: Register <classname>");
-			System.exit(1);
-		}
-
-		String className = args[0];
-		try
-		{
-			LCF.initializeEnvironment();
-			IThreadContext tc = ThreadContextFactory.make();
-			IAgentManager mgr = AgentManagerFactory.make(tc);
-			mgr.registerAgent(className);
-			System.err.println("Successfully registered agent '"+className+"'");
-		}
-		catch (LCFException e)
-		{
-			e.printStackTrace();
-			System.exit(1);
-		}
-	}
+        private Register()
+        {
+        }
 
 
+        public static void main(String[] args)
+        {
+                if (args.length != 1)
+                {
+                        System.err.println("Usage: Register <classname>");
+                        System.exit(1);
+                }
 
-		
+                String className = args[0];
+                try
+                {
+                        LCF.initializeEnvironment();
+                        IThreadContext tc = ThreadContextFactory.make();
+                        IAgentManager mgr = AgentManagerFactory.make(tc);
+                        mgr.registerAgent(className);
+                        System.err.println("Successfully registered agent '"+className+"'");
+                }
+                catch (LCFException e)
+                {
+                        e.printStackTrace();
+                        System.exit(1);
+                }
+        }
+
+
+
+                
 }

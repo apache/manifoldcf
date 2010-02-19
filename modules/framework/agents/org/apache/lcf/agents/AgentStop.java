@@ -26,42 +26,42 @@ import java.lang.reflect.*;
 
 public class AgentStop
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private AgentStop()
-	{
-	}
-
-
-	public static void main(String[] args)
-	{
-		if (args.length > 0)
-		{
-			System.err.println("Usage: AgentStop");
-			System.exit(1);
-		}
-
-		LCF.initializeEnvironment();
-
-		// Create a file to indicate that we're stopping
-		String synchDirectory = LCF.getProperty(LCF.synchDirectoryProperty);
-		File synchFile = null;
-		if (synchDirectory != null)
-		{
-			synchFile = new File(synchDirectory,"agentrun.file");
-			try
-			{
-				synchFile.createNewFile();
-			}
-			catch (IOException e)
-			{
-				e.printStackTrace();
-				System.exit(1);
-			}
-		}
-	}
+        private AgentStop()
+        {
+        }
 
 
+        public static void main(String[] args)
+        {
+                if (args.length > 0)
+                {
+                        System.err.println("Usage: AgentStop");
+                        System.exit(1);
+                }
 
-		
+                LCF.initializeEnvironment();
+
+                // Create a file to indicate that we're stopping
+                String synchDirectory = LCF.getProperty(LCF.synchDirectoryProperty);
+                File synchFile = null;
+                if (synchDirectory != null)
+                {
+                        synchFile = new File(synchDirectory,"agentrun.file");
+                        try
+                        {
+                                synchFile.createNewFile();
+                        }
+                        catch (IOException e)
+                        {
+                                e.printStackTrace();
+                                System.exit(1);
+                        }
+                }
+        }
+
+
+
+                
 }

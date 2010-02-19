@@ -40,7 +40,7 @@ public interface IThrottledConnection
 
         /** Begin the fetch process.
         * @param fetchType is a short descriptive string describing the kind of fetch being requested.  This
-        *	 is used solely for logging purposes.
+        *        is used solely for logging purposes.
         */
         public void beginFetch(String fetchType)
                 throws LCFException;

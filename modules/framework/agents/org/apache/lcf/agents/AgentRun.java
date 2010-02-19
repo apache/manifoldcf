@@ -26,72 +26,72 @@ import java.lang.reflect.*;
 
 public class AgentRun
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private AgentRun()
-	{
-	}
-
-
-	public static void main(String[] args)
-	{
-		if (args.length > 0)
-		{
-			System.err.println("Usage: AgentRun");
-			System.exit(1);
-		}
-
-		LCF.initializeEnvironment();
-
-		// Create a file to indicate that we're running
-		String synchDirectory = LCF.getProperty(LCF.synchDirectoryProperty);
-		File synchFile = null;
-		if (synchDirectory != null)
-		{
-			synchFile = new File(synchDirectory,"agentrun.file");
-			// delete it if present
-			synchFile.delete();
-		}
-		try
-		{
-			IThreadContext tc = ThreadContextFactory.make();
-			System.err.println("Running...");
-			try
-			{
-			    while (true)
-			    {
-				// See if file still there
-				if (synchFile != null && synchFile.exists())
-					break;
-
-				// Start whatever agents need to be started
-				LCF.startAgents(tc);
-
-				try
-				{
-					LCF.sleep(5000);
-				}
-				catch (InterruptedException e)
-				{
-					break;
-				}
-			    }
-			    System.err.println("Shutting down...");
-			}
-			finally
-			{
-				LCF.stopAgents(tc);
-			}
-		}
-		catch (LCFException e)
-		{
-			Logging.root.error("Exception: "+e.getMessage(),e);
-			e.printStackTrace();
-			System.exit(1);
-		}
-	}
+        private AgentRun()
+        {
+        }
 
 
+        public static void main(String[] args)
+        {
+                if (args.length > 0)
+                {
+                        System.err.println("Usage: AgentRun");
+                        System.exit(1);
+                }
 
-		
+                LCF.initializeEnvironment();
+
+                // Create a file to indicate that we're running
+                String synchDirectory = LCF.getProperty(LCF.synchDirectoryProperty);
+                File synchFile = null;
+                if (synchDirectory != null)
+                {
+                        synchFile = new File(synchDirectory,"agentrun.file");
+                        // delete it if present
+                        synchFile.delete();
+                }
+                try
+                {
+                        IThreadContext tc = ThreadContextFactory.make();
+                        System.err.println("Running...");
+                        try
+                        {
+                            while (true)
+                            {
+                                // See if file still there
+                                if (synchFile != null && synchFile.exists())
+                                        break;
+
+                                // Start whatever agents need to be started
+                                LCF.startAgents(tc);
+
+                                try
+                                {
+                                        LCF.sleep(5000);
+                                }
+                                catch (InterruptedException e)
+                                {
+                                        break;
+                                }
+                            }
+                            System.err.println("Shutting down...");
+                        }
+                        finally
+                        {
+                                LCF.stopAgents(tc);
+                        }
+                }
+                catch (LCFException e)
+                {
+                        Logging.root.error("Exception: "+e.getMessage(),e);
+                        e.printStackTrace();
+                        System.exit(1);
+                }
+        }
+
+
+
+                
 }

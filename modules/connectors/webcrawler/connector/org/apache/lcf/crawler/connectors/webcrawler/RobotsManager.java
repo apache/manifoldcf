@@ -431,7 +431,7 @@ public class RobotsManager extends org.apache.lcf.core.database.BaseTable
                                                 if (record == null)
                                                         record = new Record();
 
-                                                String agentName = x.substring("User-agent:".length()).trim();	
+                                                String agentName = x.substring("User-agent:".length()).trim();  
                                                 record.addAgent(agentName);
                                         }
                                         else if (lowercaseLine.startsWith("user-agent"))
@@ -445,7 +445,7 @@ public class RobotsManager extends org.apache.lcf.core.database.BaseTable
                                                 if (record == null)
                                                         record = new Record();
 
-                                                String agentName = x.substring("User-agent".length()).trim();	
+                                                String agentName = x.substring("User-agent".length()).trim();   
                                                 record.addAgent(agentName);
                                         }
                                         else if (lowercaseLine.startsWith("disallow:"))

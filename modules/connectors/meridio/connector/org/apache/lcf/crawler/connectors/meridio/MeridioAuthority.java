@@ -47,8 +47,8 @@ public class MeridioAuthority extends org.apache.lcf.authorities.authorities.Bas
         private MeridioWrapper meridio_       = null;  // A handle to the Meridio Java API Wrapper
 
         // URLs initialized by 'connect' code
-        private URL DmwsURL = null;						
-        private URL RmwsURL = null;			       		 
+        private URL DmwsURL = null;                                             
+        private URL RmwsURL = null;                                      
         private URL MetaCartawsURL = null;
 
         private ProtocolFactory myFactory = null;
@@ -140,7 +140,7 @@ public class MeridioAuthority extends org.apache.lcf.authorities.authorities.Bas
                         String DMWSUrlString = DMWSProtocol + "://" +
                                 params.getParameter("DMWSServerName") +
                                 DMWSPort +
-                                params.getParameter("DMWSLocation");							
+                                params.getParameter("DMWSLocation");                                                    
                                 
                         String RMWSProtocol = params.getParameter("RMWSServerProtocol");
                         if (RMWSProtocol == null)
@@ -184,21 +184,21 @@ public class MeridioAuthority extends org.apache.lcf.authorities.authorities.Bas
                         }
 
                         try
-                        {								
-                                DmwsURL = new URL(DMWSUrlString);						
-                                RmwsURL = new URL(RMWSUrlString);			       		 
+                        {                                                               
+                                DmwsURL = new URL(DMWSUrlString);                                               
+                                RmwsURL = new URL(RMWSUrlString);                                        
                                 MetaCartawsURL = new URL(LCFWSUrlString);
                                 
                                 if (Logging.authorityConnectors.isDebugEnabled())
                                 {
-                                        Logging.authorityConnectors.debug("Meridio: Document Management Web Service (DMWS) URL is [" + DmwsURL + "]");				
+                                        Logging.authorityConnectors.debug("Meridio: Document Management Web Service (DMWS) URL is [" + DmwsURL + "]");                          
                                         Logging.authorityConnectors.debug("Meridio: Record Management Web Service (RMWS) URL is [" + RmwsURL + "]");
                                         Logging.authorityConnectors.debug("Meridio: MetaCarta Web Service (MCWS) URL is [" + MetaCartawsURL + "]");
                                 }
 
                         }
                         catch (MalformedURLException malformedURLException)
-                        {			
+                        {                       
                                 throw new LCFException("Meridio: Could not construct the URL for either " +
                                         "the Meridio DM, Meridio RM, or MetaCarta Meridio Web Service: "+malformedURLException, malformedURLException);
                         }
@@ -250,7 +250,7 @@ public class MeridioAuthority extends org.apache.lcf.authorities.authorities.Bas
                                 throw new LCFException("Remote procedure exception: "+e.getMessage(),e);
                         }
                         catch (RemoteException remoteException)
-                        {			
+                        {                       
                                 throw new LCFException("Meridio: An unknown remote exception occurred while " +
                                         "connecting: "+remoteException.getMessage(), remoteException);
                         }
@@ -274,13 +274,13 @@ public class MeridioAuthority extends org.apache.lcf.authorities.authorities.Bas
                         /*=================================================================
                         * Call a method in the Web Services API to get the Meridio system
                         * name back - just something simple to test the connection
-                        * end-to-end			
+                        * end-to-end                    
                         *================================================================*/
                         DMDataSet ds = meridio_.getStaticData();
                         if (null == ds)
                         {
-                                Logging.authorityConnectors.warn("Meridio: DM DataSet returned was null in 'check' method");				
-                                return "Connection Failed - Internal Error Contact Support";				
+                                Logging.authorityConnectors.warn("Meridio: DM DataSet returned was null in 'check' method");                            
+                                return "Connection Failed - Internal Error Contact Support";                            
                         }
                         if (Logging.authorityConnectors.isDebugEnabled())
                                 Logging.authorityConnectors.debug("Meridio System Name is [" + 
@@ -290,12 +290,12 @@ public class MeridioAuthority extends org.apache.lcf.authorities.authorities.Bas
                         /*=================================================================
                         * For completeness, we also call a method in the RM Web
                         * Service API
-                        *================================================================*/		
+                        *================================================================*/             
                         RMDataSet rmws = meridio_.getConfiguration();
                         if (null == rmws)
                         {
-                                Logging.authorityConnectors.warn("Meridio: RM DataSet returned was null in 'check' method");				
-                                return "Connection Failed - RM DataSet Error, contact Support";				
+                                Logging.authorityConnectors.warn("Meridio: RM DataSet returned was null in 'check' method");                            
+                                return "Connection Failed - RM DataSet Error, contact Support";                         
                         }
 
                         /*=================================================================
@@ -361,13 +361,13 @@ public class MeridioAuthority extends org.apache.lcf.authorities.authorities.Bas
         */
         public void disconnect()
                 throws LCFException
-        {		
+        {               
                 Logging.authorityConnectors.debug("Meridio: Entering 'disconnect' method");
                 try
-                {					
+                {                                       
                         if (meridio_ != null)
                         {
-                                meridio_.logout();	
+                                meridio_.logout();      
                         }
                 }
                 catch (org.apache.axis.AxisFault e)
@@ -414,8 +414,8 @@ public class MeridioAuthority extends org.apache.lcf.authorities.authorities.Bas
                 {
                         super.disconnect();
                         meridio_ = null;
-                        DmwsURL = null;						
-                        RmwsURL = null;			       		 
+                        DmwsURL = null;                                         
+                        RmwsURL = null;                                  
                         MetaCartawsURL = null;
                         myFactory = null;
                         DMWSProxyHost = null;
@@ -440,7 +440,7 @@ public class MeridioAuthority extends org.apache.lcf.authorities.authorities.Bas
                 throws LCFException
         {
                 if (Logging.authorityConnectors.isDebugEnabled())
-                        Logging.authorityConnectors.debug("Meridio: Authentication user name = '" + userName + "'");	
+                        Logging.authorityConnectors.debug("Meridio: Authentication user name = '" + userName + "'");    
 
                 while (true)
                 {
@@ -457,7 +457,7 @@ public class MeridioAuthority extends org.apache.lcf.authorities.authorities.Bas
                         ArrayList aclList = new ArrayList();
                         
                         try
-                        {				
+                        {                               
                                 /*=================================================================
                                 * Search for the user in Meridio to find their internal user ID.
                                 * The method returns 0 if the user is not found
@@ -499,7 +499,7 @@ public class MeridioAuthority extends org.apache.lcf.authorities.authorities.Bas
                                                                 "' Group Name '" + userGroups[i].getGroupName() + ">'");
                                                 aclList.add("G" + userGroups[i].getGroupID());
                                         }
-                                }	
+                                }       
 
                                 /*=================================================================
                                 * Protective markings

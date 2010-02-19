@@ -29,66 +29,66 @@ import java.util.*;
 */
 public class DefineOutputConnection
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private DefineOutputConnection()
-	{
-	}
-
-
-	public static void main(String[] args)
-	{
-		if (args.length < 4)
-		{
-			System.err.println("Usage: DefineOutputConnection <connection_name> <description> <connector_class> <pool_max> <param1>=<value1> ...");
-			System.exit(1);
-		}
-
-		String connectionName = args[0];
-		String description = args[1];
-		String connectorClass = args[2];
-		String poolMax = args[3];
+        private DefineOutputConnection()
+        {
+        }
 
 
-		try
-		{
-		        LCF.initializeEnvironment();
-			IThreadContext tc = ThreadContextFactory.make();
-			IOutputConnectionManager mgr = OutputConnectionManagerFactory.make(tc);
-			IOutputConnection conn = mgr.create();
-			conn.setName(connectionName);
-			conn.setDescription(description);
-			conn.setClassName(connectorClass);
-			conn.setMaxConnections(new Integer(poolMax).intValue());
-			ConfigParams x = conn.getConfigParams();
-			int i = 4;
-			while (i < args.length)
-			{
-				String arg = args[i++];
-				// Parse
-				int pos = arg.indexOf("=");
-				if (pos == -1)
-					throw new LCFException("Argument missing =");
-				String name = arg.substring(0,pos);
-				String value = arg.substring(pos+1);
-				if (name.endsWith("assword"))
-					x.setObfuscatedParameter(name,value);
-				else
-					x.setParameter(name,value);
-			}
+        public static void main(String[] args)
+        {
+                if (args.length < 4)
+                {
+                        System.err.println("Usage: DefineOutputConnection <connection_name> <description> <connector_class> <pool_max> <param1>=<value1> ...");
+                        System.exit(1);
+                }
 
-			// Now, save
-			mgr.save(conn);
-
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			System.exit(2);
-		}
-	}
+                String connectionName = args[0];
+                String description = args[1];
+                String connectorClass = args[2];
+                String poolMax = args[3];
 
 
+                try
+                {
+                        LCF.initializeEnvironment();
+                        IThreadContext tc = ThreadContextFactory.make();
+                        IOutputConnectionManager mgr = OutputConnectionManagerFactory.make(tc);
+                        IOutputConnection conn = mgr.create();
+                        conn.setName(connectionName);
+                        conn.setDescription(description);
+                        conn.setClassName(connectorClass);
+                        conn.setMaxConnections(new Integer(poolMax).intValue());
+                        ConfigParams x = conn.getConfigParams();
+                        int i = 4;
+                        while (i < args.length)
+                        {
+                                String arg = args[i++];
+                                // Parse
+                                int pos = arg.indexOf("=");
+                                if (pos == -1)
+                                        throw new LCFException("Argument missing =");
+                                String name = arg.substring(0,pos);
+                                String value = arg.substring(pos+1);
+                                if (name.endsWith("assword"))
+                                        x.setObfuscatedParameter(name,value);
+                                else
+                                        x.setParameter(name,value);
+                        }
 
-		
+                        // Now, save
+                        mgr.save(conn);
+
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace();
+                        System.exit(2);
+                }
+        }
+
+
+
+                
 }

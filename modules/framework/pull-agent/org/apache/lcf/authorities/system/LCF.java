@@ -69,7 +69,7 @@ public class LCF extends org.apache.lcf.core.system.LCF
                 IAuthorityConnectionManager authConnMgr = AuthorityConnectionManagerFactory.make(threadcontext);
 
                 mainDatabase.beginTransaction();
-                try	
+                try     
                 {
                         connMgr.install();
                         authConnMgr.install();
@@ -216,7 +216,7 @@ public class LCF extends org.apache.lcf.core.system.LCF
                         catch (InterruptedException e)
                         {
                         }
-                }	
+                }       
 
                 // Release all authority connectors
                 AuthorityConnectorFactory.closeAllConnectors(threadContext);

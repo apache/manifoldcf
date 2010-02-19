@@ -31,61 +31,61 @@ public class FileInfo implements java.io.Serializable
 
     public FileInfo(String docClass)
     {
-	this.docClass = docClass;
+        this.docClass = docClass;
     }
     
     public void addMetadataValue(String metadataName, String metadataValue)
     {
-	metadataValues.put(metadataName,metadataValue);
+        metadataValues.put(metadataName,metadataValue);
     }
     
     public void addAclValue(String aclValue)
     {
-	aclValues.put(aclValue,aclValue);
+        aclValues.put(aclValue,aclValue);
     }
 
     public void addDenyAclValue(String aclValue)
     {
-	denyAclValues.put(aclValue,aclValue);
+        denyAclValues.put(aclValue,aclValue);
     }
 
     public String getDocClass()
     {
-	return docClass;
+        return docClass;
     }
     
     public int getMetadataCount()
     {
-	return metadataValues.size();
+        return metadataValues.size();
     }
     
     public Iterator getMetadataIterator()
     {
-	return metadataValues.keySet().iterator();
+        return metadataValues.keySet().iterator();
     }
     
     public String getMetadataValue(String metadataName)
     {
-	return (String)metadataValues.get(metadataName);
+        return (String)metadataValues.get(metadataName);
     }
     
     public int getAclCount()
     {
-	return aclValues.size();
+        return aclValues.size();
     }
     
     public Iterator getAclIterator()
     {
-	return aclValues.keySet().iterator();
+        return aclValues.keySet().iterator();
     }
     
     public int getDenyAclCount()
     {
-	return denyAclValues.size();
+        return denyAclValues.size();
     }
     
     public Iterator getDenyAclIterator()
     {
-	return denyAclValues.keySet().iterator();
+        return denyAclValues.keySet().iterator();
     }
 }

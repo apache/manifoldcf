@@ -21,17 +21,17 @@ package org.apache.lcf.crawler.connectors.sharedrive;
 */
 public class SharedDriveParameters
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	/* SMB/CIFS share server */
-	public final static String server = "Server";
+        /* SMB/CIFS share server */
+        public final static String server = "Server";
 
-	/* Optional domain/realm */
-	public final static String domain = "Domain/Realm";
+        /* Optional domain/realm */
+        public final static String domain = "Domain/Realm";
 
-	/* username for the above server */
-	public final static String username = "User Name";
-	
-	/* password for the above server */
-	public final static String password = "Password";
+        /* username for the above server */
+        public final static String username = "User Name";
+        
+        /* password for the above server */
+        public final static String password = "Password";
 }

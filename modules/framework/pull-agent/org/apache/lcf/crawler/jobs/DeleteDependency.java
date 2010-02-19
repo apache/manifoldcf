@@ -26,56 +26,56 @@ import java.util.*;
 */
 public class DeleteDependency
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	// Data
-	protected String linkType;
-	protected String parentIDHash;
-	protected String childIDHash;
+        // Data
+        protected String linkType;
+        protected String parentIDHash;
+        protected String childIDHash;
 
-	/** Constructor. */
-	public DeleteDependency(String linkType, String parentIDHash, String childIDHash)
-	{
-		if (linkType == null)
-			linkType = "";
-		this.linkType = linkType;
-		this.parentIDHash = parentIDHash;
-		if (childIDHash == null)
-			childIDHash = "";
-		this.childIDHash = childIDHash;
-	}
+        /** Constructor. */
+        public DeleteDependency(String linkType, String parentIDHash, String childIDHash)
+        {
+                if (linkType == null)
+                        linkType = "";
+                this.linkType = linkType;
+                this.parentIDHash = parentIDHash;
+                if (childIDHash == null)
+                        childIDHash = "";
+                this.childIDHash = childIDHash;
+        }
 
-	/** Get linktype */
-	public String getLinkType()
-	{
-		return linkType;
-	}
+        /** Get linktype */
+        public String getLinkType()
+        {
+                return linkType;
+        }
 
-	/** Get parent identifier */
-	public String getParentIDHash()
-	{
-		return parentIDHash;
-	}
+        /** Get parent identifier */
+        public String getParentIDHash()
+        {
+                return parentIDHash;
+        }
 
-	/** Get child identifier */
-	public String getChildIDHash()
-	{
-		return childIDHash;
-	}
+        /** Get child identifier */
+        public String getChildIDHash()
+        {
+                return childIDHash;
+        }
 
-	/** hash */
-	public int hashCode()
-	{
-		return linkType.hashCode() + parentIDHash.hashCode() + childIDHash.hashCode();
-	}
+        /** hash */
+        public int hashCode()
+        {
+                return linkType.hashCode() + parentIDHash.hashCode() + childIDHash.hashCode();
+        }
 
-	/** Compare */
-	public boolean equals(Object o)
-	{
-		if (!(o instanceof DeleteDependency))
-			return false;
-		DeleteDependency d = (DeleteDependency)o;
-		return linkType.equals(d.linkType) && parentIDHash.equals(d.parentIDHash) && childIDHash.equals(d.childIDHash);
-	}
+        /** Compare */
+        public boolean equals(Object o)
+        {
+                if (!(o instanceof DeleteDependency))
+                        return false;
+                DeleteDependency d = (DeleteDependency)o;
+                return linkType.equals(d.linkType) && parentIDHash.equals(d.parentIDHash) && childIDHash.equals(d.childIDHash);
+        }
 
 }

@@ -29,43 +29,43 @@ import java.util.*;
 */
 public class FindJob
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private FindJob()
-	{
-	}
+        private FindJob()
+        {
+        }
 
-	public static void main(String[] args)
-	{
-		if (args.length != 1)
-		{
-			System.err.println("Usage: FindJob <job_name>");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 1)
+                {
+                        System.err.println("Usage: FindJob <job_name>");
+                        System.exit(1);
+                }
 
-		String jobName = args[0];
+                String jobName = args[0];
 
 
-		try
-		{
-		        LCF.initializeEnvironment();
-			IThreadContext tc = ThreadContextFactory.make();
-			IJobManager jobManager = JobManagerFactory.make(tc);
-			IJobDescription[] jobs = jobManager.getAllJobs();
-			int i = 0;
-			while (i < jobs.length)
-			{
-				IJobDescription jobDesc = jobs[i++];
-				if (jobDesc.getDescription().equals(jobName))
-					UTF8Stdout.println(jobDesc.getID().toString());
-			}
-			System.err.println("Job search done");
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			System.exit(2);
-		}
-	}
-		
+                try
+                {
+                        LCF.initializeEnvironment();
+                        IThreadContext tc = ThreadContextFactory.make();
+                        IJobManager jobManager = JobManagerFactory.make(tc);
+                        IJobDescription[] jobs = jobManager.getAllJobs();
+                        int i = 0;
+                        while (i < jobs.length)
+                        {
+                                IJobDescription jobDesc = jobs[i++];
+                                if (jobDesc.getDescription().equals(jobName))
+                                        UTF8Stdout.println(jobDesc.getID().toString());
+                        }
+                        System.err.println("Job search done");
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace();
+                        System.exit(2);
+                }
+        }
+                
 }

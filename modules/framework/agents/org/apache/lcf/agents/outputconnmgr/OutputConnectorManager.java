@@ -163,7 +163,7 @@ public class OutputConnectorManager extends org.apache.lcf.core.database.BaseTab
                         else
                         {
                                 performUpdate(map,"WHERE "+classNameField+"=?",params,invKeys);
-                        }				
+                        }                               
 
                         // Either way, we must do the install/upgrade itself.
                         OutputConnectorFactory.install(threadContext,className);

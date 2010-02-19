@@ -28,35 +28,35 @@ import java.util.*;
 */
 public class ImportConfiguration
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private ImportConfiguration()
-	{
-	}
+        private ImportConfiguration()
+        {
+        }
 
-	public static void main(String[] args)
-	{
-		if (args.length != 1)
-		{
-			System.err.println("Usage: ImportConfiguration <filename>");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 1)
+                {
+                        System.err.println("Usage: ImportConfiguration <filename>");
+                        System.exit(1);
+                }
 
-		String importFilename = args[0];
+                String importFilename = args[0];
 
 
-		try
-		{
-		        LCF.initializeEnvironment();
-			IThreadContext tc = ThreadContextFactory.make();
-			LCF.importConfiguration(tc,importFilename);
-			System.err.println("Configuration imported");
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			System.exit(2);
-		}
-	}
-		
+                try
+                {
+                        LCF.initializeEnvironment();
+                        IThreadContext tc = ThreadContextFactory.make();
+                        LCF.importConfiguration(tc,importFilename);
+                        System.err.println("Configuration imported");
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace();
+                        System.exit(2);
+                }
+        }
+                
 }

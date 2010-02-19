@@ -26,33 +26,33 @@ import java.lang.reflect.*;
 
 public class Install
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private Install()
-	{
-	}
+        private Install()
+        {
+        }
 
 
-	public static void main(String[] args)
-	{
-		if (args.length > 0)
-		{
-			System.err.println("Usage: Install");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length > 0)
+                {
+                        System.err.println("Usage: Install");
+                        System.exit(1);
+                }
 
-		try
-		{
-			LCF.initializeEnvironment();
-			IThreadContext tc = ThreadContextFactory.make();
-			LCF.installTables(tc);
-			System.err.println("Agent tables installed");
-		}
-		catch (LCFException e)
-		{
-			e.printStackTrace();
-			System.exit(1);
-		}
-	}
+                try
+                {
+                        LCF.initializeEnvironment();
+                        IThreadContext tc = ThreadContextFactory.make();
+                        LCF.installTables(tc);
+                        System.err.println("Agent tables installed");
+                }
+                catch (LCFException e)
+                {
+                        e.printStackTrace();
+                        System.exit(1);
+                }
+        }
 
 }

@@ -1102,7 +1102,7 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
                                                     if (Logging.connectors.isDebugEnabled())
                                                         Logging.connectors.debug("Memex: Failed to fetch history number "+Integer.toString(x)+" record number "+Integer.toString(currhist));
                                                 }
-                                            }	
+                                            }   
                                             //set the number of hits for this search to 0
                                             // so we don't process it again
                                             ss[i].setNumberOfHits(0);
@@ -1899,7 +1899,7 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
                                     // Get the entity's config, so we can map field names to indexes for it.  This needs the database path.
                                     RegistryEntry regEntry = registryMap.get(entityURNString);
                                     // We ONLY care about entities that have had their databases created.  All others we should ignore at this point.
-				    if (regEntry != null)
+                                    if (regEntry != null)
                                     {
                                         if (Logging.connectors.isDebugEnabled())
                                             Logging.connectors.debug("Memex: Found registry entry for '"+entityURNString+"'");

@@ -29,23 +29,23 @@ import org.apache.log4j.Logger;
 public class Logging extends org.apache.lcf.core.system.Logging
 {
 
-	// Public logger objects
-	public static Logger authorityService = null;
-	public static Logger authorityConnectors = null;
+        // Public logger objects
+        public static Logger authorityService = null;
+        public static Logger authorityConnectors = null;
 
-	/** Initialize logger setup.
-	*/
-	public static synchronized void initializeLoggers()
-	{
-		org.apache.lcf.core.system.Logging.initializeLoggers();
+        /** Initialize logger setup.
+        */
+        public static synchronized void initializeLoggers()
+        {
+                org.apache.lcf.core.system.Logging.initializeLoggers();
 
-		if (authorityService != null)
-			return;
+                if (authorityService != null)
+                        return;
 
-		// package loggers
-		authorityService = newLogger("org.apache.lcf.authorityservice");
-		authorityConnectors = newLogger("org.apache.lcf.authorityconnectors");
-	}
+                // package loggers
+                authorityService = newLogger("org.apache.lcf.authorityservice");
+                authorityConnectors = newLogger("org.apache.lcf.authorityconnectors");
+        }
 
 
 }

@@ -28,7 +28,7 @@ import java.io.OutputStreamWriter;
 */
 public final class UTF8Stdout
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
         private static PrintWriter out;
 

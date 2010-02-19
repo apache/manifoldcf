@@ -76,27 +76,27 @@ public class PrereqEventManager extends org.apache.lcf.core.database.BaseTable
                                 // Schema upgrade goes here, when needed.
                         }
                         
-			// Index management
-			IndexDescription ownerIndex = new IndexDescription(false,new String[]{ownerField});
-			
-			// Get rid of indexes that shouldn't be there
-			Map indexes = getTableIndexes(null,null);
-			Iterator iter = indexes.keySet().iterator();
-			while (iter.hasNext())
-			{
-				String indexName = (String)iter.next();
-				IndexDescription id = (IndexDescription)indexes.get(indexName);
+                        // Index management
+                        IndexDescription ownerIndex = new IndexDescription(false,new String[]{ownerField});
+                        
+                        // Get rid of indexes that shouldn't be there
+                        Map indexes = getTableIndexes(null,null);
+                        Iterator iter = indexes.keySet().iterator();
+                        while (iter.hasNext())
+                        {
+                                String indexName = (String)iter.next();
+                                IndexDescription id = (IndexDescription)indexes.get(indexName);
                             
-				if (ownerIndex != null && id.equals(ownerIndex))
-					ownerIndex = null;
-				else if (indexName.indexOf("_pkey") == -1)
-					// This index shouldn't be here; drop it
-					performRemoveIndex(indexName);
-			}
+                                if (ownerIndex != null && id.equals(ownerIndex))
+                                        ownerIndex = null;
+                                else if (indexName.indexOf("_pkey") == -1)
+                                        // This index shouldn't be here; drop it
+                                        performRemoveIndex(indexName);
+                        }
 
-			// Add the ones we didn't find
+                        // Add the ones we didn't find
                         if (ownerIndex != null)
-				performAddIndex(null,ownerIndex);
+                                performAddIndex(null,ownerIndex);
 
                         break;
                 }

@@ -107,7 +107,7 @@ public class DocumentDeleteStufferThread extends Thread
                                         if (descs.length == 0)
                                         {
                                                 Logging.threads.debug("Document delete stuffer thread found nothing to do");
-                                                LCF.sleep(1000L);	// 1 second
+                                                LCF.sleep(1000L);       // 1 second
                                                 continue;
                                         }
 

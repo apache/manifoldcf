@@ -25,32 +25,32 @@ import org.apache.lcf.agents.system.*;
 */
 public class IncrementalIngesterFactory
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	protected final static String ingestManager = "_IncrIngester_";
+        protected final static String ingestManager = "_IncrIngester_";
 
-	private IncrementalIngesterFactory()
-	{
-	}
+        private IncrementalIngesterFactory()
+        {
+        }
 
 
-	/** Get an appropriate incremental ingest manager handle.
-	*/
-	public static IIncrementalIngester make(IThreadContext threadContext)
-		throws LCFException
-	{
-		Object o = threadContext.get(ingestManager);
-		if (o == null || !(o instanceof IIncrementalIngester))
-		{
-			IDBInterface database = DBInterfaceFactory.make(threadContext,
-				LCF.getMasterDatabaseName(),
-				LCF.getMasterDatabaseUsername(),
-				LCF.getMasterDatabasePassword());
+        /** Get an appropriate incremental ingest manager handle.
+        */
+        public static IIncrementalIngester make(IThreadContext threadContext)
+                throws LCFException
+        {
+                Object o = threadContext.get(ingestManager);
+                if (o == null || !(o instanceof IIncrementalIngester))
+                {
+                        IDBInterface database = DBInterfaceFactory.make(threadContext,
+                                LCF.getMasterDatabaseName(),
+                                LCF.getMasterDatabaseUsername(),
+                                LCF.getMasterDatabasePassword());
 
-			o = new org.apache.lcf.agents.incrementalingest.IncrementalIngester(threadContext,database);
-			threadContext.save(ingestManager,o);
-		}
-		return (IIncrementalIngester)o;
-	}
+                        o = new org.apache.lcf.agents.incrementalingest.IncrementalIngester(threadContext,database);
+                        threadContext.save(ingestManager,o);
+                }
+                return (IIncrementalIngester)o;
+        }
 
 }

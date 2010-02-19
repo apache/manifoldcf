@@ -23,40 +23,40 @@ import org.apache.lcf.crawler.connectors.meridio.meridiowrapper.MeridioTestWrapp
 
 public class DeleteDoc
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private DeleteDoc()
-	{
-	}
+        private DeleteDoc()
+        {
+        }
 
 
-	public static void main(String[] args)
-	{
-		if (args.length != 5)
-		{
-			System.err.println("Usage: DeleteDoc <docurl> <recurl> <username> <password> <docid>");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 5)
+                {
+                        System.err.println("Usage: DeleteDoc <docurl> <recurl> <username> <password> <docid>");
+                        System.exit(1);
+                }
 
-		try
-		{
-    			MeridioTestWrapper handle = new MeridioTestWrapper(args[0],args[1],args[2],args[3]);
-			try
-			{
-				int docId = Integer.parseInt(args[4]);
-				handle.deleteDocument(docId);
-			}
-			finally
-			{
-				handle.logout();
-			}
-			System.err.println("Successfully deleted");
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace(System.err);
-			System.exit(2);
-		}
-	}
+                try
+                {
+                        MeridioTestWrapper handle = new MeridioTestWrapper(args[0],args[1],args[2],args[3]);
+                        try
+                        {
+                                int docId = Integer.parseInt(args[4]);
+                                handle.deleteDocument(docId);
+                        }
+                        finally
+                        {
+                                handle.logout();
+                        }
+                        System.err.println("Successfully deleted");
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace(System.err);
+                        System.exit(2);
+                }
+        }
 
 }

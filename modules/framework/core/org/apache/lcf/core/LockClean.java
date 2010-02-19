@@ -23,60 +23,60 @@ import org.apache.lcf.core.system.*;
 
 public class LockClean
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private LockClean()
-	{
-	}
-
-
-	public static void main(String[] args)
-	{
-		if (args.length != 0)
-		{
-			System.err.println("Usage: LockClean");
-			System.exit(1);
-		}
-
-		LCF.initializeEnvironment();
-		String synchDir = LCF.getProperty(LCF.synchDirectoryProperty);
-		if (synchDir != null)
-		{
-			// Recursively clean up the contents of the synch directory.
-			File dir = new File(synchDir);
-			if (dir.isDirectory())
-			{
-				File[] files = dir.listFiles();
-				int i = 0;
-				while (i < files.length)
-				{
-					if (files[i].isDirectory())
-						removeDirectory(files[i]);
-					else
-						files[i].delete();
-					i++;
-				}
-			}
-		}
-		System.err.println("Synchronization storage cleaned up");
-	}
+        private LockClean()
+        {
+        }
 
 
-	protected static void removeDirectory(File directory)
-	{
-		File[] files = directory.listFiles();
-		int i = 0;
-		while (i < files.length)
-		{
-			if (files[i].isDirectory())
-				removeDirectory(files[i]);
-			else
-				files[i].delete();
-			i++;
-		}
-		// Remove the directory itself
-		directory.delete();
-	}
+        public static void main(String[] args)
+        {
+                if (args.length != 0)
+                {
+                        System.err.println("Usage: LockClean");
+                        System.exit(1);
+                }
 
-		
+                LCF.initializeEnvironment();
+                String synchDir = LCF.getProperty(LCF.synchDirectoryProperty);
+                if (synchDir != null)
+                {
+                        // Recursively clean up the contents of the synch directory.
+                        File dir = new File(synchDir);
+                        if (dir.isDirectory())
+                        {
+                                File[] files = dir.listFiles();
+                                int i = 0;
+                                while (i < files.length)
+                                {
+                                        if (files[i].isDirectory())
+                                                removeDirectory(files[i]);
+                                        else
+                                                files[i].delete();
+                                        i++;
+                                }
+                        }
+                }
+                System.err.println("Synchronization storage cleaned up");
+        }
+
+
+        protected static void removeDirectory(File directory)
+        {
+                File[] files = directory.listFiles();
+                int i = 0;
+                while (i < files.length)
+                {
+                        if (files[i].isDirectory())
+                                removeDirectory(files[i]);
+                        else
+                                files[i].delete();
+                        i++;
+                }
+                // Remove the directory itself
+                directory.delete();
+        }
+
+                
 }

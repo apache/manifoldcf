@@ -28,32 +28,32 @@ import org.apache.log4j.Logger;
 */
 public class Logging extends org.apache.lcf.agents.system.Logging
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
 
-	// Public logger objects
-	public static Logger threads = null;
-	public static Logger jobs = null;
-	public static Logger connectors = null;
-	public static Logger hopcount = null;
-	public static Logger scheduling = null;
+        // Public logger objects
+        public static Logger threads = null;
+        public static Logger jobs = null;
+        public static Logger connectors = null;
+        public static Logger hopcount = null;
+        public static Logger scheduling = null;
 
-	/** Initialize logger setup.
-	*/
-	public static synchronized void initializeLoggers()
-	{
-		org.apache.lcf.agents.system.Logging.initializeLoggers();
+        /** Initialize logger setup.
+        */
+        public static synchronized void initializeLoggers()
+        {
+                org.apache.lcf.agents.system.Logging.initializeLoggers();
 
-		if (jobs != null)
-			return;
+                if (jobs != null)
+                        return;
 
-		// package loggers
-		threads = newLogger("org.apache.lcf.crawlerthreads");
-		jobs = newLogger("org.apache.lcf.jobs");
-		connectors = newLogger("org.apache.lcf.connectors");
-		hopcount = newLogger("org.apache.lcf.hopcount");
-		scheduling = newLogger("org.apache.lcf.scheduling");
-	}
+                // package loggers
+                threads = newLogger("org.apache.lcf.crawlerthreads");
+                jobs = newLogger("org.apache.lcf.jobs");
+                connectors = newLogger("org.apache.lcf.connectors");
+                hopcount = newLogger("org.apache.lcf.hopcount");
+                scheduling = newLogger("org.apache.lcf.scheduling");
+        }
 
 
 }

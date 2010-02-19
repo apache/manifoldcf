@@ -24,42 +24,42 @@ import org.apache.lcf.core.interfaces.*;
 */
 public interface IAgentManager
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	/** Install.
-	*/
-	public void install()
-		throws LCFException;
+        /** Install.
+        */
+        public void install()
+                throws LCFException;
 
-	/** Uninstall.  Also uninstalls all remaining agents.
-	*/
-	public void deinstall()
-		throws LCFException;
+        /** Uninstall.  Also uninstalls all remaining agents.
+        */
+        public void deinstall()
+                throws LCFException;
 
-	/** Register an agent.
-	*@param className is the class.
-	*/
-	public void registerAgent(String className)
-		throws LCFException;
+        /** Register an agent.
+        *@param className is the class.
+        */
+        public void registerAgent(String className)
+                throws LCFException;
 
-	/** Unregister an agent.
-	*@param className is the class to unregister.
-	*/
-	public void unregisterAgent(String className)
-		throws LCFException;
+        /** Unregister an agent.
+        *@param className is the class to unregister.
+        */
+        public void unregisterAgent(String className)
+                throws LCFException;
 
-	/** Remove an agent.
-	* Use this when the agent cannot be invoked.  The agent becomes unavailable,
-	* but its schema is not cleaned up.
-	*@param className is the class to remove.
-	*/
-	public void removeAgent(String className)
-		throws LCFException;
-		
-	/** Get a list of all registered agent class names.
-	*@return the classnames in an array.
-	*/
-	public String[] getAllAgents()
-		throws LCFException;
+        /** Remove an agent.
+        * Use this when the agent cannot be invoked.  The agent becomes unavailable,
+        * but its schema is not cleaned up.
+        *@param className is the class to remove.
+        */
+        public void removeAgent(String className)
+                throws LCFException;
+                
+        /** Get a list of all registered agent class names.
+        *@return the classnames in an array.
+        */
+        public String[] getAllAgents()
+                throws LCFException;
 
 }

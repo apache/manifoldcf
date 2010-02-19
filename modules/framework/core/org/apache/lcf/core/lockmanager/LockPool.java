@@ -22,24 +22,24 @@ import java.util.*;
 
 public class LockPool
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private HashMap myLocks = new HashMap();
+        private HashMap myLocks = new HashMap();
 
-	public synchronized LockObject getObject(Object lockKey, String synchDir)
-	{
-		LockObject lo = (LockObject)myLocks.get(lockKey);
-		if (lo == null)
-		{
-			lo = new LockObject(this,lockKey,synchDir);
-			myLocks.put(lockKey,lo);
-		}
-		return lo;
-	}
+        public synchronized LockObject getObject(Object lockKey, String synchDir)
+        {
+                LockObject lo = (LockObject)myLocks.get(lockKey);
+                if (lo == null)
+                {
+                        lo = new LockObject(this,lockKey,synchDir);
+                        myLocks.put(lockKey,lo);
+                }
+                return lo;
+        }
 
-	public synchronized void releaseObject(Object lockKey, LockObject lockObject)
-	{
-		lockObject.makeInvalid();
-		myLocks.remove(lockKey);
-	}
+        public synchronized void releaseObject(Object lockKey, LockObject lockObject)
+        {
+                lockObject.makeInvalid();
+                myLocks.remove(lockKey);
+        }
 }

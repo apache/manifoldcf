@@ -21,7 +21,7 @@ import org.apache.lcf.crawler.connectors.meridio.DMDataSet.*;
 
 public class DMSearchResults
 {
-	public DMDataSet dsDM;
-	public int totalHitsCount;
-	public int returnedHitsCount;
+        public DMDataSet dsDM;
+        public int totalHitsCount;
+        public int returnedHitsCount;
 }

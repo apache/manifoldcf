@@ -35,123 +35,123 @@ import org.apache.log4j.PropertyConfigurator;
 */
 public class Logging
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	// Public logger objects.  Initialized by initializeLoggers() method.
-	public static Logger root = null;
-	public static Logger misc = null;
-	public static Logger db = null;
-	public static Logger lock = null;
-	public static Logger cache = null;
-	public static Logger keystore = null;
-	public static Logger perf = null;
+        // Public logger objects.  Initialized by initializeLoggers() method.
+        public static Logger root = null;
+        public static Logger misc = null;
+        public static Logger db = null;
+        public static Logger lock = null;
+        public static Logger cache = null;
+        public static Logger keystore = null;
+        public static Logger perf = null;
 
-	private static HashMap loggerTable = null;
-	private static HashMap logLevelMap = null;
+        private static HashMap loggerTable = null;
+        private static HashMap logLevelMap = null;
 
-	/** Initialize logger setup.
-	*/
-	public static synchronized void initializeLoggingSystem(String logConfigFile)
-	{
-		if (logLevelMap != null)
-			return;
+        /** Initialize logger setup.
+        */
+        public static synchronized void initializeLoggingSystem(String logConfigFile)
+        {
+                if (logLevelMap != null)
+                        return;
 
 
-		// configuration: log map hash
-		logLevelMap = new HashMap();
-		logLevelMap.put("OFF", Level.OFF);
-		logLevelMap.put("FATAL", Level.FATAL);
-		logLevelMap.put("WARN", Level.WARN);
-		logLevelMap.put("ERROR", Level.ERROR);
-		logLevelMap.put("INFO", Level.INFO);
-		logLevelMap.put("DEBUG", Level.DEBUG);
-		logLevelMap.put("ALL", Level.ALL);
+                // configuration: log map hash
+                logLevelMap = new HashMap();
+                logLevelMap.put("OFF", Level.OFF);
+                logLevelMap.put("FATAL", Level.FATAL);
+                logLevelMap.put("WARN", Level.WARN);
+                logLevelMap.put("ERROR", Level.ERROR);
+                logLevelMap.put("INFO", Level.INFO);
+                logLevelMap.put("DEBUG", Level.DEBUG);
+                logLevelMap.put("ALL", Level.ALL);
 
-		loggerTable = new HashMap();
+                loggerTable = new HashMap();
 
-		// Initialize the logger
-		PropertyConfigurator.configure(logConfigFile);
+                // Initialize the logger
+                PropertyConfigurator.configure(logConfigFile);
 
-		//System.err.println("LCF logger setup complete");
-	}
+                //System.err.println("LCF logger setup complete");
+        }
 
-	/** Set up loggers used by core package.
-	*/
-	public static synchronized void initializeLoggers()
-	{
-		// package loggers
-		if (misc != null)
-			return;
+        /** Set up loggers used by core package.
+        */
+        public static synchronized void initializeLoggers()
+        {
+                // package loggers
+                if (misc != null)
+                        return;
 
-		root = newLogger("org.apache.lcf.root");
-		misc = newLogger("org.apache.lcf.misc");
-		db = newLogger("org.apache.lcf.db");
-		lock = newLogger("org.apache.lcf.lock");
-		cache = newLogger("org.apache.lcf.cache");
-		keystore = newLogger("org.apache.lcf.keystore");
-		perf = newLogger("org.apache.lcf.perf");
-	}
+                root = newLogger("org.apache.lcf.root");
+                misc = newLogger("org.apache.lcf.misc");
+                db = newLogger("org.apache.lcf.db");
+                lock = newLogger("org.apache.lcf.lock");
+                cache = newLogger("org.apache.lcf.cache");
+                keystore = newLogger("org.apache.lcf.keystore");
+                perf = newLogger("org.apache.lcf.perf");
+        }
 
-	/** Reset all loggers
-	*/
-	public static void setLogLevels()
-	{
-		// System.out.println("Setting log levels @ " + new Date().toString());
-		Iterator it = loggerTable.entrySet().iterator();
-		while (it.hasNext())
-		{
-			Map.Entry e = (Map.Entry)it.next();
-			Logger logger = (Logger)e.getValue();
+        /** Reset all loggers
+        */
+        public static void setLogLevels()
+        {
+                // System.out.println("Setting log levels @ " + new Date().toString());
+                Iterator it = loggerTable.entrySet().iterator();
+                while (it.hasNext())
+                {
+                        Map.Entry e = (Map.Entry)it.next();
+                        Logger logger = (Logger)e.getValue();
 
-			// logger name;
-			String loggername = (String)e.getKey();
+                        // logger name;
+                        String loggername = (String)e.getKey();
 
-			// logger level
-			String level = LCF.getProperty(loggername);
+                        // logger level
+                        String level = LCF.getProperty(loggername);
 
-			Level loglevel = null;
-			if (level != null && level.length() > 0)
-			{
-				loglevel = (Level)logLevelMap.get(level);
-			}
+                        Level loglevel = null;
+                        if (level != null && level.length() > 0)
+                        {
+                                loglevel = (Level)logLevelMap.get(level);
+                        }
 
-			if (loglevel==null)
-			{
-				loglevel = Level.WARN;
-			}
+                        if (loglevel==null)
+                        {
+                                loglevel = Level.WARN;
+                        }
 
-			try
-			{
-				logger.setLevel(loglevel);
-			}
-			catch (Exception ex)
-			{
-				System.err.println("Unable to set log level " + level +
-									" on logger " + loggername);
-				ex.printStackTrace();
-			}
-		}
-	}
+                        try
+                        {
+                                logger.setLevel(loglevel);
+                        }
+                        catch (Exception ex)
+                        {
+                                System.err.println("Unable to set log level " + level +
+                                                                        " on logger " + loggername);
+                                ex.printStackTrace();
+                        }
+                }
+        }
 
-	/** Get a logger given a logger name.
-	*@param loggerName is the logger name.
-	*@return the logger.
-	*/
-	public static final Logger getLogger(String loggerName)
-	{
-		return (Logger)loggerTable.get(loggerName);
-	}
+        /** Get a logger given a logger name.
+        *@param loggerName is the logger name.
+        *@return the logger.
+        */
+        public static final Logger getLogger(String loggerName)
+        {
+                return (Logger)loggerTable.get(loggerName);
+        }
 
-	/** Register a new logger.
-	*@param s is the logger name.
-	*@return the new logger.
-	*/
-	public static final Logger newLogger(String s)
-	{
-		Logger l = Logger.getLogger(s);
-		loggerTable.put(s, l);
-		return l;
-	}
+        /** Register a new logger.
+        *@param s is the logger name.
+        *@return the new logger.
+        */
+        public static final Logger newLogger(String s)
+        {
+                Logger l = Logger.getLogger(s);
+                loggerTable.put(s, l);
+                return l;
+        }
 
 
 }

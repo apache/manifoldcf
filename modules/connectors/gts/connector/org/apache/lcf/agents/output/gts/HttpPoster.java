@@ -53,7 +53,7 @@ public class HttpPoster
     private String protocol = null;
 
     private int buffersize = 32768;  // default buffer size
-    double sizeCoefficient = 0.0005;	// 20 ms additional timeout per 2000 bytes, pulled out of my butt
+    double sizeCoefficient = 0.0005;    // 20 ms additional timeout per 2000 bytes, pulled out of my butt
     /** the number of times we should poll for the response */
     int responseRetries = 9000;         // Long basic wait: 3 minutes.  This will also be added to by a term based on the size of the request.
     /** how long we should wait before checking for a new stream */
@@ -204,9 +204,9 @@ public class HttpPoster
                             throw (Error)thr;
                     }
                     return t.getRval();
-		}
-		catch (InterruptedException e)
-		{
+                }
+                catch (InterruptedException e)
+                {
                     t.interrupt();
                     throw new LCFException("Interrupted: "+e.getMessage(),LCFException.INTERRUPTED);
                 }
@@ -327,9 +327,9 @@ public class HttpPoster
                             throw (Error)thr;
                     }
                     return;
-		}
-		catch (InterruptedException e)
-		{
+                }
+                catch (InterruptedException e)
+                {
                     t.interrupt();
                     throw new LCFException("Interrupted: "+e.getMessage(),LCFException.INTERRUPTED);
                 }
@@ -403,9 +403,9 @@ public class HttpPoster
                             throw (Error)thr;
                     }
                     return;
-		}
-		catch (InterruptedException e)
-		{
+                }
+                catch (InterruptedException e)
+                {
                     t.interrupt();
                     throw new LCFException("Interrupted: "+e.getMessage(),LCFException.INTERRUPTED);
                 }
@@ -669,7 +669,7 @@ public class HttpPoster
             this.documentTemplate = documentTemplate;
             this.document = document;
         }
-			
+                        
         public void run()
         {
             long length = document.getBinaryLength();
@@ -1043,7 +1043,7 @@ public class HttpPoster
                 this.exception = e;
             }
         }
-			
+                        
         public Throwable getException()
         {
             return exception;
@@ -1101,7 +1101,7 @@ public class HttpPoster
             setDaemon(true);
             this.documentURI = documentURI;
         }
-			
+                        
         public void run()
         {
             try
@@ -1241,7 +1241,7 @@ public class HttpPoster
                 this.exception = e;
             }
         }
-			
+                        
         public Throwable getException()
         {
             return exception;
@@ -1278,7 +1278,7 @@ public class HttpPoster
             super();
             setDaemon(true);
         }
-			
+                        
         public void run()
         {
             try
@@ -1389,7 +1389,7 @@ public class HttpPoster
                 this.exception = e;
             }
         }
-			
+                        
         public Throwable getException()
         {
             return exception;

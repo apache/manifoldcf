@@ -189,33 +189,33 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
                         IndexDescription docpriorityIndex = new IndexDescription(false,new String[]{docPriorityField});
                         
                         // Get rid of unused indexes
-			Map indexes = getTableIndexes(null,null);
-			Iterator iter = indexes.keySet().iterator();
-			while (iter.hasNext())
-			{
-				String indexName = (String)iter.next();
-				IndexDescription id = (IndexDescription)indexes.get(indexName);
-			    
-				if (uniqueIndex != null && id.equals(uniqueIndex))
-					uniqueIndex = null;
-				else if (jobStatusIndex != null && id.equals(jobStatusIndex))
-					jobStatusIndex = null;
-				else if (jobSeedIndex != null && id.equals(jobSeedIndex))
-					jobSeedIndex = null;
-				else if (jobHashStatusIndex != null && id.equals(jobHashStatusIndex))
-					jobHashStatusIndex = null;
-				else if (statusIndex != null && id.equals(statusIndex))
-					statusIndex = null;
-				else if (actionTimeStatusIndex != null && id.equals(actionTimeStatusIndex))
-					actionTimeStatusIndex = null;
-				else if (prioritysetStatusIndex != null && id.equals(prioritysetStatusIndex))
-					prioritysetStatusIndex = null;
-				else if (docpriorityIndex != null && id.equals(docpriorityIndex))
-					docpriorityIndex = null;
-				else if (indexName.indexOf("_pkey") == -1)
-					// This index shouldn't be here; drop it
-					performRemoveIndex(indexName);
-			}
+                        Map indexes = getTableIndexes(null,null);
+                        Iterator iter = indexes.keySet().iterator();
+                        while (iter.hasNext())
+                        {
+                                String indexName = (String)iter.next();
+                                IndexDescription id = (IndexDescription)indexes.get(indexName);
+                            
+                                if (uniqueIndex != null && id.equals(uniqueIndex))
+                                        uniqueIndex = null;
+                                else if (jobStatusIndex != null && id.equals(jobStatusIndex))
+                                        jobStatusIndex = null;
+                                else if (jobSeedIndex != null && id.equals(jobSeedIndex))
+                                        jobSeedIndex = null;
+                                else if (jobHashStatusIndex != null && id.equals(jobHashStatusIndex))
+                                        jobHashStatusIndex = null;
+                                else if (statusIndex != null && id.equals(statusIndex))
+                                        statusIndex = null;
+                                else if (actionTimeStatusIndex != null && id.equals(actionTimeStatusIndex))
+                                        actionTimeStatusIndex = null;
+                                else if (prioritysetStatusIndex != null && id.equals(prioritysetStatusIndex))
+                                        prioritysetStatusIndex = null;
+                                else if (docpriorityIndex != null && id.equals(docpriorityIndex))
+                                        docpriorityIndex = null;
+                                else if (indexName.indexOf("_pkey") == -1)
+                                        // This index shouldn't be here; drop it
+                                        performRemoveIndex(indexName);
+                        }
 
                         // Build missing indexes
                                         
@@ -265,31 +265,31 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
                 }
         }
         
-	/** Analyze job tables that need analysis.
-	*/
-	public void conditionallyAnalyzeTables()
-		throws LCFException
-	{
-		if (tracker.checkAnalyze())
-		{
+        /** Analyze job tables that need analysis.
+        */
+        public void conditionallyAnalyzeTables()
+                throws LCFException
+        {
+                if (tracker.checkAnalyze())
+                {
                         unconditionallyAnalyzeTables();
-		}
-		if (reindexTracker.checkAnalyze())
-		{
-			try
-			{
-				long startTime = System.currentTimeMillis();
-				Logging.perf.debug("Beginning to reindex jobqueue table");
-				reindexTable();
-				Logging.perf.debug("Done reindexing jobqueue table in "+new Long(System.currentTimeMillis()-startTime)+" ms");
-			}
-			finally
-			{
-				// Simply reindex every n inserts
-				reindexTracker.doAnalyze(REINDEX_COUNT);
-			}
-		}
-	}
+                }
+                if (reindexTracker.checkAnalyze())
+                {
+                        try
+                        {
+                                long startTime = System.currentTimeMillis();
+                                Logging.perf.debug("Beginning to reindex jobqueue table");
+                                reindexTable();
+                                Logging.perf.debug("Done reindexing jobqueue table in "+new Long(System.currentTimeMillis()-startTime)+" ms");
+                        }
+                        finally
+                        {
+                                // Simply reindex every n inserts
+                                reindexTracker.doAnalyze(REINDEX_COUNT);
+                        }
+                }
+        }
         
         /** Uninstall.
         */
@@ -456,39 +456,39 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
                 reindexTracker.noteInsert(2);
                 // Do an analyze, otherwise our plans are going to be crap right off the bat
                 unconditionallyAnalyzeTables();
-	}
+        }
 
-	/** Prepare for an "incremental" job.  This is called ONLY when the job is inactive;
-	* that is, there should be no ACTIVE or ACTIVEPURGATORY entries at all.
-	*
-	* The preparation for starting an incremental job is to requeue all documents that are
-	* currently in the system that are marked "COMPLETE".  These get marked as "PENDINGPURGATORY",
-	* since the idea is to queue them in such a way that we know they were ingested before.
-	*@param jobID is the job identifier.
-	*/
-	public void prepareIncrementalScan(Long jobID)
-		throws LCFException
-	{
-		// Delete PENDING and ACTIVE entries
-		ArrayList list = new ArrayList();
-		list.add(jobID);
-		HashMap map = new HashMap();
-		map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
-		// Do not reset priorities.  This means, of course, that they may be out of date - but they are probably more accurate in their current form
-		// than being set back to some arbitrary value.
-		// The alternative, which would be to reprioritize all the documents at this point, is somewhat attractive, but let's see if we can get away
-		// without for now.
-		//map.put(docPriorityField,new Double(1.0));
-		map.put(checkTimeField,new Long(0L));
-		map.put(checkActionField,actionToString(ACTION_RESCAN));
-		map.put(failTimeField,null);
-		map.put(failCountField,null);
-		performUpdate(map,"WHERE "+jobIDField+"=? AND "+statusField+"="+
-			quoteSQLString(statusToString(STATUS_COMPLETE)),list,null);
-		reindexTracker.noteInsert();
+        /** Prepare for an "incremental" job.  This is called ONLY when the job is inactive;
+        * that is, there should be no ACTIVE or ACTIVEPURGATORY entries at all.
+        *
+        * The preparation for starting an incremental job is to requeue all documents that are
+        * currently in the system that are marked "COMPLETE".  These get marked as "PENDINGPURGATORY",
+        * since the idea is to queue them in such a way that we know they were ingested before.
+        *@param jobID is the job identifier.
+        */
+        public void prepareIncrementalScan(Long jobID)
+                throws LCFException
+        {
+                // Delete PENDING and ACTIVE entries
+                ArrayList list = new ArrayList();
+                list.add(jobID);
+                HashMap map = new HashMap();
+                map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
+                // Do not reset priorities.  This means, of course, that they may be out of date - but they are probably more accurate in their current form
+                // than being set back to some arbitrary value.
+                // The alternative, which would be to reprioritize all the documents at this point, is somewhat attractive, but let's see if we can get away
+                // without for now.
+                //map.put(docPriorityField,new Double(1.0));
+                map.put(checkTimeField,new Long(0L));
+                map.put(checkActionField,actionToString(ACTION_RESCAN));
+                map.put(failTimeField,null);
+                map.put(failCountField,null);
+                performUpdate(map,"WHERE "+jobIDField+"=? AND "+statusField+"="+
+                        quoteSQLString(statusToString(STATUS_COMPLETE)),list,null);
+                reindexTracker.noteInsert();
                 // Do an analyze, otherwise our plans are going to be crap right off the bat
                 unconditionallyAnalyzeTables();
-	}
+        }
 
         /** Delete ingested document identifiers (as part of deleting the owning job).
         * The number of identifiers specified is guaranteed to be less than the maxInClauseCount

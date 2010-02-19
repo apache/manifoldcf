@@ -22,39 +22,39 @@ import org.apache.lcf.core.interfaces.*;
 
 public class AddUserToSite
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private AddUserToSite()
-	{
-	}
+        private AddUserToSite()
+        {
+        }
 
 
-	public static void main(String[] args)
-	{
-		if (args.length != 12)
-		{
-			System.err.println("Usage: AddUserToSite <protocol> <servername> <port> <location> <username> <password> <domain> <site_url> <user_alias> <display_name> <email> <group>");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 12)
+                {
+                        System.err.println("Usage: AddUserToSite <protocol> <servername> <port> <location> <username> <password> <domain> <site_url> <user_alias> <display_name> <email> <group>");
+                        System.exit(1);
+                }
 
-		try
-		{
-			FPSEPublish handle = new FPSEPublish(args[0],args[1],new Integer(args[2]).intValue(),args[3],args[4],args[5],args[6]);
-			try
-			{
-				handle.addSiteUser(args[7],args[8],args[9],args[10],args[11]);
-			}
-			finally
-			{
-				handle.close();
-			}
-			System.err.println("Successfully added user to site");
-		}
-		catch (LCFException e)
-		{
-			e.printStackTrace(System.err);
-			System.exit(2);
-		}
-	}
+                try
+                {
+                        FPSEPublish handle = new FPSEPublish(args[0],args[1],new Integer(args[2]).intValue(),args[3],args[4],args[5],args[6]);
+                        try
+                        {
+                                handle.addSiteUser(args[7],args[8],args[9],args[10],args[11]);
+                        }
+                        finally
+                        {
+                                handle.close();
+                        }
+                        System.err.println("Successfully added user to site");
+                }
+                catch (LCFException e)
+                {
+                        e.printStackTrace(System.err);
+                        System.exit(2);
+                }
+        }
 
 }

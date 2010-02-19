@@ -30,64 +30,64 @@ import java.lang.reflect.*;
 */
 public class IdleCleanupThread extends Thread
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	// Local data
+        // Local data
 
 
-	/** Constructor.
-	*/
-	public IdleCleanupThread()
-		throws LCFException
-	{
-		super();
-		setName("Idle cleanup thread");
-		setDaemon(true);
-	}
+        /** Constructor.
+        */
+        public IdleCleanupThread()
+                throws LCFException
+        {
+                super();
+                setName("Idle cleanup thread");
+                setDaemon(true);
+        }
 
-	public void run()
-	{
-		// Create a thread context object.
-		IThreadContext threadContext = ThreadContextFactory.make();
+        public void run()
+        {
+                // Create a thread context object.
+                IThreadContext threadContext = ThreadContextFactory.make();
 
-		// Loop
-		while (true)
-		{
-			// Do another try/catch around everything in the loop
-			try
-			{
-				// Do the cleanup
-				AuthorityConnectorFactory.pollAllConnectors(threadContext);
+                // Loop
+                while (true)
+                {
+                        // Do another try/catch around everything in the loop
+                        try
+                        {
+                                // Do the cleanup
+                                AuthorityConnectorFactory.pollAllConnectors(threadContext);
 
-				// Sleep for the retry interval.
-				LCF.sleep(15000L);
-			}
-			catch (LCFException e)
-			{
-				if (e.getErrorCode() == LCFException.INTERRUPTED)
-					break;
+                                // Sleep for the retry interval.
+                                LCF.sleep(15000L);
+                        }
+                        catch (LCFException e)
+                        {
+                                if (e.getErrorCode() == LCFException.INTERRUPTED)
+                                        break;
 
-				// Log it, but keep the thread alive
-				Logging.authorityService.error("Exception tossed",e);
+                                // Log it, but keep the thread alive
+                                Logging.authorityService.error("Exception tossed",e);
 
-				if (e.getErrorCode() == LCFException.SETUP_ERROR)
-				{
-					// Shut the whole system down!
-					System.exit(1);
-				}
+                                if (e.getErrorCode() == LCFException.SETUP_ERROR)
+                                {
+                                        // Shut the whole system down!
+                                        System.exit(1);
+                                }
 
-			}
-			catch (InterruptedException e)
-			{
-				// We're supposed to quit
-				break;
-			}
-			catch (Throwable e)
-			{
-				// A more severe error - but stay alive
-				Logging.authorityService.fatal("Error tossed",e);
-			}
-		}
-	}
+                        }
+                        catch (InterruptedException e)
+                        {
+                                // We're supposed to quit
+                                break;
+                        }
+                        catch (Throwable e)
+                        {
+                                // A more severe error - but stay alive
+                                Logging.authorityService.fatal("Error tossed",e);
+                        }
+                }
+        }
 
 }

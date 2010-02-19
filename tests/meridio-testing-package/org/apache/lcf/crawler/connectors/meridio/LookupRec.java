@@ -23,43 +23,43 @@ import org.apache.lcf.crawler.connectors.meridio.meridiowrapper.MeridioTestWrapp
 
 public class LookupRec
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private LookupRec()
-	{
-	}
+        private LookupRec()
+        {
+        }
 
 
-	public static void main(String[] args)
-	{
-		if (args.length != 6)
-		{
-			System.err.println("Usage: LookupRec <docurl> <recurl> <username> <password> <folder> <filename>");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 6)
+                {
+                        System.err.println("Usage: LookupRec <docurl> <recurl> <username> <password> <folder> <filename>");
+                        System.exit(1);
+                }
 
-		try
-		{
-    			MeridioTestWrapper handle = new MeridioTestWrapper(args[0],args[1],args[2],args[3]);
-			try
-			{
-				Long id = handle.findRecordInFolder(args[4],args[5]);
-				if (id == null)
-				    UTF8Stdout.print("");
-				else
-				    UTF8Stdout.print(id.toString());
-			}
-			finally
-			{
-				handle.logout();
-			}
-			System.err.println("Successfully located");
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace(System.err);
-			System.exit(2);
-		}
-	}
+                try
+                {
+                        MeridioTestWrapper handle = new MeridioTestWrapper(args[0],args[1],args[2],args[3]);
+                        try
+                        {
+                                Long id = handle.findRecordInFolder(args[4],args[5]);
+                                if (id == null)
+                                    UTF8Stdout.print("");
+                                else
+                                    UTF8Stdout.print(id.toString());
+                        }
+                        finally
+                        {
+                                handle.logout();
+                        }
+                        System.err.println("Successfully located");
+                }
+                catch (Exception e)
+                {
+                        e.printStackTrace(System.err);
+                        System.exit(2);
+                }
+        }
 
 }

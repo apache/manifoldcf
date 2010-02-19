@@ -26,32 +26,32 @@ import org.apache.lcf.authorities.system.LCF;
 */
 public class AuthorityConnectionManagerFactory
 {
-	// name to use in thread context pool of objects
-	private final static String objectName = "_AuthConnectionMgr_";
+        // name to use in thread context pool of objects
+        private final static String objectName = "_AuthConnectionMgr_";
 
-	private AuthorityConnectionManagerFactory()
-	{
-	}
+        private AuthorityConnectionManagerFactory()
+        {
+        }
 
-	/** Make an authority connection manager handle.
-	*@param tc is the thread context.
-	*@return the handle.
-	*/
-	public static IAuthorityConnectionManager make(IThreadContext tc)
-		throws LCFException
-	{
-		Object o = tc.get(objectName);
-		if (o == null || !(o instanceof IAuthorityConnectionManager))
-		{
-			IDBInterface database = DBInterfaceFactory.make(tc,
-				LCF.getMasterDatabaseName(),
-				LCF.getMasterDatabaseUsername(),
-				LCF.getMasterDatabasePassword());
+        /** Make an authority connection manager handle.
+        *@param tc is the thread context.
+        *@return the handle.
+        */
+        public static IAuthorityConnectionManager make(IThreadContext tc)
+                throws LCFException
+        {
+                Object o = tc.get(objectName);
+                if (o == null || !(o instanceof IAuthorityConnectionManager))
+                {
+                        IDBInterface database = DBInterfaceFactory.make(tc,
+                                LCF.getMasterDatabaseName(),
+                                LCF.getMasterDatabaseUsername(),
+                                LCF.getMasterDatabasePassword());
 
-			o = new org.apache.lcf.authorities.authority.AuthorityConnectionManager(tc,database);
-			tc.save(objectName,o);
-		}
-		return (IAuthorityConnectionManager)o;
-	}
+                        o = new org.apache.lcf.authorities.authority.AuthorityConnectionManager(tc,database);
+                        tc.save(objectName,o);
+                }
+                return (IAuthorityConnectionManager)o;
+        }
 
 }

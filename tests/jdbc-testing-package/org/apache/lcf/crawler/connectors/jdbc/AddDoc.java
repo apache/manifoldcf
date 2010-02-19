@@ -25,77 +25,77 @@ import java.io.*;
 
 public class AddDoc
 {
-	public static final String _rcsid = "@(#)$Id$";
+        public static final String _rcsid = "@(#)$Id$";
 
-	private AddDoc()
-	{
-	}
+        private AddDoc()
+        {
+        }
 
 
-	public static void main(String[] args)
-	{
-		if (args.length != 14)
-		{
-			System.err.println("Usage: AddDoc <provider> <host> <databasename> <username> <password> <tablename> <idcolumn> <id> <urlcolumn> <url> <versioncolumn> <version> <contentcolumn> <content_file>");
-			System.exit(1);
-		}
+        public static void main(String[] args)
+        {
+                if (args.length != 14)
+                {
+                        System.err.println("Usage: AddDoc <provider> <host> <databasename> <username> <password> <tablename> <idcolumn> <id> <urlcolumn> <url> <versioncolumn> <version> <contentcolumn> <content_file>");
+                        System.exit(1);
+                }
 
-		try
-		{
-			JDBCConnection handle = new JDBCConnection(args[0],args[1],args[2],args[3],args[4]);
+                try
+                {
+                        JDBCConnection handle = new JDBCConnection(args[0],args[1],args[2],args[3],args[4]);
 
-			// Build query
-			StringBuffer sb = new StringBuffer();
-			ArrayList paramList = new ArrayList();
-			sb.append("INSERT INTO ").append(args[5]).append("(").append(args[6]).append(",");
-			if (args[8].length() > 0)
-				sb.append(args[8]).append(",");
-			if (args[10].length() > 0)
-				sb.append(args[10]).append(",");
-			sb.append(args[12]).append(") VALUES (?,");
-			paramList.add(args[7]);
-			if (args[8].length() > 0)
-			{
-				sb.append("?,");
-				paramList.add(args[9]);
-			}
-			if (args[10].length() > 0)
-			{
-				sb.append("?,");
-				paramList.add(args[11]);
-			}
-			sb.append("?)");
-			InputStream is = new FileInputStream(new File(args[13]));
-			try
-			{
-				BinaryInput bi = new TempFileInput(is);
-				paramList.add(bi);
+                        // Build query
+                        StringBuffer sb = new StringBuffer();
+                        ArrayList paramList = new ArrayList();
+                        sb.append("INSERT INTO ").append(args[5]).append("(").append(args[6]).append(",");
+                        if (args[8].length() > 0)
+                                sb.append(args[8]).append(",");
+                        if (args[10].length() > 0)
+                                sb.append(args[10]).append(",");
+                        sb.append(args[12]).append(") VALUES (?,");
+                        paramList.add(args[7]);
+                        if (args[8].length() > 0)
+                        {
+                                sb.append("?,");
+                                paramList.add(args[9]);
+                        }
+                        if (args[10].length() > 0)
+                        {
+                                sb.append("?,");
+                                paramList.add(args[11]);
+                        }
+                        sb.append("?)");
+                        InputStream is = new FileInputStream(new File(args[13]));
+                        try
+                        {
+                                BinaryInput bi = new TempFileInput(is);
+                                paramList.add(bi);
 
-			}
-			finally
-			{
-				is.close();
-			}
+                        }
+                        finally
+                        {
+                                is.close();
+                        }
  
-			handle.executeOperation(sb.toString(),paramList);
+                        handle.executeOperation(sb.toString(),paramList);
 
-			System.err.println("Successfully added");
-		}
-		catch (IOException e)
-		{
-			e.printStackTrace(System.err);
-			System.exit(2);
-		}
-		catch (LCFException e)
-		{
-			e.printStackTrace(System.err);
-			System.exit(2);
-		}
+                        System.err.println("Successfully added");
+                }
+                catch (IOException e)
+                {
+                        e.printStackTrace(System.err);
+                        System.exit(2);
+                }
+                catch (LCFException e)
+                {
+                        e.printStackTrace(System.err);
+                        System.exit(2);
+                }
                 catch (ServiceInterruption e)
                 {
                         e.printStackTrace(System.err);
                         System.exit(2);
                 }
-	}
+        }
 
 }

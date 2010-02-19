@@ -677,10 +677,10 @@ public class JobManager implements IJobManager
                 // different job id's.
                 //
                 // SELECT id,jobid,docid FROM jobqueue t0 WHERE ((t0.status IN ('C','P','G') AND EXISTS(SELECT 'x' FROM
-                //	jobs t1 WHERE t0.jobid=t1.id AND t1.status='D')) OR (t0.status='P' AND EXISTS(SELECT 'x' FROM
-                //		jobs t3 WHERE t0.jobid=t3.id AND t3.status='X')))
-                //	AND NOT EXISTS(SELECT 'x' FROM jobqueue t2 WHERE t0.hashval=t2.hashval AND t0.jobid!=t2.jobid
-                //		AND t2.status IN ('A','F','B'))
+                //      jobs t1 WHERE t0.jobid=t1.id AND t1.status='D')) OR (t0.status='P' AND EXISTS(SELECT 'x' FROM
+                //              jobs t3 WHERE t0.jobid=t3.id AND t3.status='X')))
+                //      AND NOT EXISTS(SELECT 'x' FROM jobqueue t2 WHERE t0.hashval=t2.hashval AND t0.jobid!=t2.jobid
+                //              AND t2.status IN ('A','F','B'))
                 //
 
                 // Do a simple preliminary query, since the big query is currently slow, so that we don't waste time during stasis or
@@ -1513,11 +1513,11 @@ public class JobManager implements IJobManager
                 //
                 // The query I want is:
                 // SELECT jobid,docid,status FROM jobqueue t0 WHERE status IN ('P','G') AND checktime <=xxx
-                //		AND EXISTS(SELECT 'x' FROM
-                //			jobs t1 WHERE t0.jobid=t1.id AND t1.status='A')
-                //		AND NOT EXISTS(SELECT 'x' FROM jobqueue t2 WHERE t0.hashval=t2.hashval AND t0.jobid!=t2.jobid
-                //			AND t2.status IN ('A','F','D'))
-                //		    ORDER BY docpriority ASC LIMIT xxx
+                //              AND EXISTS(SELECT 'x' FROM
+                //                      jobs t1 WHERE t0.jobid=t1.id AND t1.status='A')
+                //              AND NOT EXISTS(SELECT 'x' FROM jobqueue t2 WHERE t0.hashval=t2.hashval AND t0.jobid!=t2.jobid
+                //                      AND t2.status IN ('A','F','D'))
+                //                  ORDER BY docpriority ASC LIMIT xxx
                 //
 
                 // NOTE WELL: The above query did just fine until adaptive recrawling was seriously tried.  Then, because every
@@ -4194,7 +4194,7 @@ public class JobManager implements IJobManager
                                         int amtToAdd = c.getLeastMaximum(Calendar.DAY_OF_MONTH)+1-x;
                                         if (amtToAdd < 1)
                                             amtToAdd = 1;
-					c.add(Calendar.DAY_OF_MONTH,amtToAdd);
+                                        c.add(Calendar.DAY_OF_MONTH,amtToAdd);
                                         continue;
                                 }
                         }
@@ -4865,7 +4865,7 @@ public class JobManager implements IJobManager
                                 // The original query was:
                                 //
                                 // SELECT id FROM jobs t0 WHERE status='D' AND NOT EXISTS(SELECT 'x' FROM jobqueue t1 WHERE t0.id=t1.jobid AND
-                                //	t1.status IN ('C', 'F', 'G'))
+                                //      t1.status IN ('C', 'F', 'G'))
                                 //
                                 // However, this did not work well with Postgres when the tables got big.  So I revised things to do the following multi-stage process:
                                 // (1) The query should be broken up, such that n queries are done:
@@ -4996,7 +4996,7 @@ public class JobManager implements IJobManager
                         {
                                 // The query I used to emit was:
                                 // SELECT jobid FROM jobs t0 WHERE t0.status='A' AND NOT EXISTS(SELECT 'x' FROM jobqueue t1 WHERE
-                                //		t0.id=t1.jobid AND t1.status IN ('A','P','F','G'))
+                                //              t0.id=t1.jobid AND t1.status IN ('A','P','F','G'))
 
                                 // This did not get along well with Postgresql, so instead this is what is now done:
                                 // (1) The query should be broken up, such that n queries are done:
@@ -5098,7 +5098,7 @@ public class JobManager implements IJobManager
                         {
                                 // The query I used to emit was:
                                 // SELECT jobid FROM jobs t0 WHERE t0.status='X' AND NOT EXISTS(SELECT 'x' FROM jobqueue t1 WHERE
-                                //		t0.id=t1.jobid AND t1.status IN ('A','F'))
+                                //              t0.id=t1.jobid AND t1.status IN ('A','F'))
                                 // Now the query is broken up so that Postgresql behaves more efficiently.
 
                                 // Do the first query, getting the candidate jobs to be considered
@@ -5202,7 +5202,7 @@ public class JobManager implements IJobManager
                                 // The query used to look like:
                                 //
                                 // SELECT id FROM jobs t0 WHERE status='D' AND NOT EXISTS(SELECT 'x' FROM jobqueue t1 WHERE
-                                //	t0.id=t1.jobid AND t1.status='P')
+                                //      t0.id=t1.jobid AND t1.status='P')
                                 // 
                                 // Now, the query is broken up, for performance
 
@@ -5616,9 +5616,9 @@ public class JobManager implements IJobManager
                 throws LCFException
         {
                 // SELECT substring(docid FROM '<id_regexp>') AS idbucket,
-                //	  substring(entityidentifier FROM '<id_regexp>') AS idbucket,
-                //	  SUM(CASE WHEN status='C' then 1 else 0 end)) AS inactive FROM jobqueue WHERE <criteria>
-                //		GROUP BY idbucket
+                //        substring(entityidentifier FROM '<id_regexp>') AS idbucket,
+                //        SUM(CASE WHEN status='C' then 1 else 0 end)) AS inactive FROM jobqueue WHERE <criteria>
+                //              GROUP BY idbucket
 
                 Long currentTime = new Long(System.currentTimeMillis());
                 

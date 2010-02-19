@@ -36,39 +36,39 @@ import org.apache.lcf.core.interfaces.*;
 */
 public class XMLFileContext extends XMLOutputStreamContext
 {
-	/** The output file */
-	protected File outputFile;
-	
-	/** Full constructor.  Used for individual tags. */
-	public XMLFileContext(XMLStream theStream, String namespaceURI, String localname, String qname, Attributes theseAttributes, File f)
-		throws LCFException, UnsupportedEncodingException, FileNotFoundException
-	{
-		// Construct an appropriate writer
-		super(theStream,namespaceURI,localname,qname,theseAttributes,new FileOutputStream(f));
-		// Save the file
-		outputFile = f;
-	}
-	
-	/** Get file object, flushing it, closing it, and clearing it.  (This prevents the file from being deleted during cleanup of this context.) */
-	public File getCompletedFile()
-		throws LCFException
-	{
-		flush();
-		close();
-		File rval = outputFile;
-		outputFile = null;
-		return rval;
-	}
-	
-	/** Cleanup whatever is left over */
-	public void tagCleanup()
-		throws LCFException
-	{
-		if (outputFile != null)
-		{
-			close();
-			outputFile.delete();
-			outputFile = null;
-		}
-	}
+        /** The output file */
+        protected File outputFile;
+        
+        /** Full constructor.  Used for individual tags. */
+        public XMLFileContext(XMLStream theStream, String namespaceURI, String localname, String qname, Attributes theseAttributes, File f)
+                throws LCFException, UnsupportedEncodingException, FileNotFoundException
+        {
+                // Construct an appropriate writer
+                super(theStream,namespaceURI,localname,qname,theseAttributes,new FileOutputStream(f));
+                // Save the file
+                outputFile = f;
+        }
+        
+        /** Get file object, flushing it, closing it, and clearing it.  (This prevents the file from being deleted during cleanup of this context.) */
+        public File getCompletedFile()
+                throws LCFException
+        {
+                flush();
+                close();
+                File rval = outputFile;
+                outputFile = null;
+                return rval;
+        }
+        
+        /** Cleanup whatever is left over */
+        public void tagCleanup()
+                throws LCFException
+        {
+                if (outputFile != null)
+                {
+                        close();
+                        outputFile.delete();
+                        outputFile = null;
+                }
+        }
 }
