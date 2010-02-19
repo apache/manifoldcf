@@ -60,8 +60,13 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
   // But, since there is no indication in the jobs table of an uninstalled connector for such jobs, the code which starts
   // jobs up (or otherwise would enter any state that has a corresponding special state) must check to see if the underlying
   // connector exists before deciding what state to put the job into.
-  public static final int STATUS_ACTIVE_UNINSTALLED = 21; // Special because we don't want these jobs to actually queue anything
-  public static final int STATUS_ACTIVESEEDING_UNINSTALLED = 22; // Don't want job to queue documents
+  public static final int STATUS_ACTIVE_UNINSTALLED = 21;               // Active, but repository connector not installed
+  public static final int STATUS_ACTIVESEEDING_UNINSTALLED = 22;   // Active and seeding, but repository connector not installed
+  public static final int STATUS_ACTIVE_NOOUTPUT = 23;                  // Active, but output connector not installed
+  public static final int STATUS_ACTIVESEEDING_NOOUTPUT = 24;       // Active and seeding, but output connector not installed
+  public static final int STATUS_ACTIVE_NEITHER = 25;                     // Active, but neither repository connector nor output connector installed
+  public static final int STATUS_ACTIVESEEDING_NEITHER = 26;          // Active and seeding, but neither repository connector nor output connector installed
+  public static final int STATUS_READYFORDELETE_NOOUTPUT = 27;    // Job is being deleted but there's no output connector installed
 
   // Type field values
   public static final int TYPE_CONTINUOUS = IJobDescription.TYPE_CONTINUOUS;
@@ -150,7 +155,12 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
     // These are the uninstalled states.  The values, I'm afraid, are pretty random.
     statusMap.put("R",new Integer(STATUS_ACTIVE_UNINSTALLED));
     statusMap.put("r",new Integer(STATUS_ACTIVESEEDING_UNINSTALLED));
-
+    statusMap.put("O",new Integer(STATUS_ACTIVE_NOOUTPUT));
+    statusMap.put("o",new Integer(STATUS_ACTIVESEEDING_NOOUTPUT));
+    statusMap.put("U",new Integer(STATUS_ACTIVE_NEITHER));
+    statusMap.put("u",new Integer(STATUS_ACTIVESEEDING_NEITHER));
+    statusMap.put("D",new Integer(STATUS_READYFORDELETE_NOOUTPUT));
+    
     typeMap = new HashMap();
     typeMap.put("C",new Integer(TYPE_CONTINUOUS));
     typeMap.put("S",new Integer(TYPE_SPECIFIED));
@@ -404,6 +414,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
 
       IResultSet set = performQuery("SELECT "+idField+","+descriptionField+" FROM "+
         getTableName()+" WHERE "+statusField+"!="+quoteSQLString(statusToString(STATUS_READYFORDELETE))+
+        " AND "+statusField+"!="+quoteSQLString(statusToString(STATUS_READYFORDELETE_NOOUTPUT))+
         " ORDER BY "+descriptionField+" ASC",null,cacheKeys,null);
       // Convert to an array of id's, and then load them
       Long[] ids = new Long[set.getRowCount()];
@@ -733,6 +744,14 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
       list.add(statusToString(STATUS_ACTIVESEEDING_UNINSTALLED));
       map.put(statusField,statusToString(STATUS_ACTIVE_UNINSTALLED));
       performUpdate(map,"WHERE "+statusField+"=?",list,invKey);
+      list.clear();
+      list.add(statusToString(STATUS_ACTIVESEEDING_NOOUTPUT));
+      map.put(statusField,statusToString(STATUS_ACTIVE_NOOUTPUT));
+      performUpdate(map,"WHERE "+statusField+"=?",list,invKey);
+      list.clear();
+      list.add(statusToString(STATUS_ACTIVESEEDING_NEITHER));
+      map.put(statusField,statusToString(STATUS_ACTIVE_NEITHER));
+      performUpdate(map,"WHERE "+statusField+"=?",list,invKey);
 
       // No need to do anything to the queue; it looks like it can take care of
       // itself.
@@ -751,6 +770,96 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
     {
       endTransaction();
     }
+  }
+
+  /** Signal to a job that its underlying output connector has gone away.
+  *@param jobID is the identifier of the job.
+  *@param oldStatusValue is the current status value for the job.
+  */
+  public void noteOutputConnectorDeregistration(Long jobID, int oldStatusValue)
+    throws LCFException
+  {
+    int newStatusValue;
+    // The following states are special, in that when the underlying connector goes away, the jobs
+    // in such states are switched away to something else.  There are TWO reasons that a state may be in
+    // this category: EITHER we don't want the job in this state to be treated in the same way if its
+    // connector is uninstalled, OR we need feedback for the user interface.  If it's the latter situation,
+    // then all usages of the corresponding states will be identical - and that's in fact precisely where we
+    // start with in all the code.
+    switch (oldStatusValue)
+    {
+    case STATUS_ACTIVE:
+      newStatusValue = STATUS_ACTIVE_NOOUTPUT;
+      break;
+    case STATUS_ACTIVESEEDING:
+      newStatusValue = STATUS_ACTIVESEEDING_NOOUTPUT;
+      break;
+    case STATUS_ACTIVE_UNINSTALLED:
+      newStatusValue = STATUS_ACTIVE_NEITHER;
+      break;
+    case STATUS_ACTIVESEEDING_UNINSTALLED:
+      newStatusValue = STATUS_ACTIVESEEDING_NEITHER;
+      break;
+    case STATUS_READYFORDELETE:
+      newStatusValue = STATUS_READYFORDELETE_NOOUTPUT;
+      break;
+    default:
+      newStatusValue = oldStatusValue;
+      break;
+    }
+    if (newStatusValue == oldStatusValue)
+      return;
+
+    StringSet invKey = new StringSet(getJobStatusKey());
+
+    HashMap newValues = new HashMap();
+    newValues.put(statusField,statusToString(newStatusValue));
+    ArrayList list = new ArrayList();
+    list.add(jobID);
+    performUpdate(newValues,"WHERE "+idField+"=?",list,invKey);
+  }
+
+  /** Signal to a job that its underlying output connector has returned.
+  *@param jobID is the identifier of the job.
+  *@param oldStatusValue is the current status value for the job.
+  */
+  public void noteOutputConnectorRegistration(Long jobID, int oldStatusValue)
+    throws LCFException
+  {
+    int newStatusValue;
+    // The following states are special, in that when the underlying connector returns, the jobs
+    // in such states are switched back to their connector-installed value.
+    switch (oldStatusValue)
+    {
+    case STATUS_ACTIVE_NOOUTPUT:
+      newStatusValue = STATUS_ACTIVE;
+      break;
+    case STATUS_ACTIVESEEDING_NOOUTPUT:
+      newStatusValue = STATUS_ACTIVESEEDING;
+      break;
+    case STATUS_ACTIVE_NEITHER:
+      newStatusValue = STATUS_ACTIVE_UNINSTALLED;
+      break;
+    case STATUS_ACTIVESEEDING_NEITHER:
+      newStatusValue = STATUS_ACTIVESEEDING_UNINSTALLED;
+      break;
+    case STATUS_READYFORDELETE_NOOUTPUT:
+      newStatusValue = STATUS_READYFORDELETE;
+      break;
+    default:
+      newStatusValue = oldStatusValue;
+      break;
+    }
+    if (newStatusValue == oldStatusValue)
+      return;
+
+    StringSet invKey = new StringSet(getJobStatusKey());
+
+    HashMap newValues = new HashMap();
+    newValues.put(statusField,statusToString(newStatusValue));
+    ArrayList list = new ArrayList();
+    list.add(jobID);
+    performUpdate(newValues,"WHERE "+idField+"=?",list,invKey);
   }
 
   /** Signal to a job that its underlying connector has gone away.
@@ -774,6 +883,12 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
       break;
     case STATUS_ACTIVESEEDING:
       newStatusValue = STATUS_ACTIVESEEDING_UNINSTALLED;
+      break;
+    case STATUS_ACTIVE_NOOUTPUT:
+      newStatusValue = STATUS_ACTIVE_NEITHER;
+      break;
+    case STATUS_ACTIVESEEDING_NOOUTPUT:
+      newStatusValue = STATUS_ACTIVESEEDING_NEITHER;
       break;
     default:
       newStatusValue = oldStatusValue;
@@ -808,6 +923,12 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
       break;
     case STATUS_ACTIVESEEDING_UNINSTALLED:
       newStatusValue = STATUS_ACTIVESEEDING;
+      break;
+    case STATUS_ACTIVE_NEITHER:
+      newStatusValue = STATUS_ACTIVE_NOOUTPUT;
+      break;
+    case STATUS_ACTIVESEEDING_NEITHER:
+      newStatusValue = STATUS_ACTIVESEEDING_NOOUTPUT;
       break;
     default:
       newStatusValue = oldStatusValue;
@@ -909,6 +1030,14 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
       list.add(statusToString(STATUS_ACTIVESEEDING_UNINSTALLED));
       map.put(statusField,statusToString(STATUS_ACTIVE_UNINSTALLED));
       performUpdate(map,"WHERE "+statusField+"=?",list,invKey);
+      list.clear();
+      list.add(statusToString(STATUS_ACTIVESEEDING_NOOUTPUT));
+      map.put(statusField,statusToString(STATUS_ACTIVE_NOOUTPUT));
+      performUpdate(map,"WHERE "+statusField+"=?",list,invKey);
+      list.clear();
+      list.add(statusToString(STATUS_ACTIVESEEDING_NEITHER));
+      map.put(statusField,statusToString(STATUS_ACTIVE_NEITHER));
+      performUpdate(map,"WHERE "+statusField+"=?",list,invKey);
 
     }
     catch (LCFException e)
@@ -969,10 +1098,20 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
       switch (status)
       {
       case STATUS_STARTINGUP:
-        if (connectionMgr.checkConnectorExists((String)row.getValue(connectionNameField)) && outputMgr.checkConnectorExists((String)row.getValue(outputNameField)))
-          newStatus = STATUS_ACTIVE;
+        if (connectionMgr.checkConnectorExists((String)row.getValue(connectionNameField)))
+        {
+          if (outputMgr.checkConnectorExists((String)row.getValue(outputNameField)))
+            newStatus = STATUS_ACTIVE;
+          else
+            newStatus = STATUS_ACTIVE_NOOUTPUT;
+        }
         else
-          newStatus = STATUS_ACTIVE_UNINSTALLED;
+        {
+          if (outputMgr.checkConnectorExists((String)row.getValue(outputNameField)))
+            newStatus = STATUS_ACTIVE_UNINSTALLED;
+          else
+            newStatus = STATUS_ACTIVE_NEITHER;
+        }
         break;
       case STATUS_ABORTINGSTARTINGUP:
         newStatus = STATUS_ABORTING;
@@ -987,7 +1126,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
 
       HashMap map = new HashMap();
       map.put(statusField,statusToString(newStatus));
-      if (newStatus == STATUS_ACTIVE || newStatus == STATUS_ACTIVE_UNINSTALLED)
+      if (newStatus == STATUS_ACTIVE || newStatus == STATUS_ACTIVE_UNINSTALLED || newStatus == STATUS_ACTIVE_NOOUTPUT || newStatus == STATUS_ACTIVE_NEITHER)
       {
         map.put(startTimeField,new Long(startTime));
       }
@@ -1037,6 +1176,12 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         break;
       case STATUS_ACTIVESEEDING_UNINSTALLED:
         newStatus = STATUS_ACTIVE_UNINSTALLED;
+        break;
+      case STATUS_ACTIVESEEDING_NOOUTPUT:
+        newStatus = STATUS_ACTIVE_NOOUTPUT;
+        break;
+      case STATUS_ACTIVESEEDING_NEITHER:
+        newStatus = STATUS_ACTIVE_NEITHER;
         break;
       case STATUS_ACTIVEWAITSEEDING:
         newStatus = STATUS_ACTIVEWAIT;
@@ -1142,6 +1287,8 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
       case STATUS_READYFORSTARTUP:
       case STATUS_ACTIVE:
       case STATUS_ACTIVE_UNINSTALLED:
+      case STATUS_ACTIVE_NOOUTPUT:
+      case STATUS_ACTIVE_NEITHER:
       case STATUS_ACTIVEWAIT:
       case STATUS_PAUSED:
       case STATUS_PAUSEDWAIT:
@@ -1150,6 +1297,8 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         break;
       case STATUS_ACTIVESEEDING:
       case STATUS_ACTIVESEEDING_UNINSTALLED:
+      case STATUS_ACTIVESEEDING_NOOUTPUT:
+      case STATUS_ACTIVESEEDING_NEITHER:
       case STATUS_ACTIVEWAITSEEDING:
       case STATUS_PAUSEDSEEDING:
       case STATUS_PAUSEDWAITSEEDING:
@@ -1211,6 +1360,8 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
       case STATUS_READYFORSTARTUP:
       case STATUS_ACTIVE:
       case STATUS_ACTIVE_UNINSTALLED:
+      case STATUS_ACTIVE_NOOUTPUT:
+      case STATUS_ACTIVE_NEITHER:
       case STATUS_ACTIVEWAIT:
       case STATUS_PAUSED:
       case STATUS_PAUSEDWAIT:
@@ -1218,6 +1369,8 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         break;
       case STATUS_ACTIVESEEDING:
       case STATUS_ACTIVESEEDING_UNINSTALLED:
+      case STATUS_ACTIVESEEDING_NOOUTPUT:
+      case STATUS_ACTIVESEEDING_NEITHER:
       case STATUS_ACTIVEWAITSEEDING:
       case STATUS_PAUSEDSEEDING:
       case STATUS_PAUSEDWAITSEEDING:
@@ -1270,6 +1423,8 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
       {
       case STATUS_ACTIVE:
       case STATUS_ACTIVE_UNINSTALLED:
+      case STATUS_ACTIVE_NOOUTPUT:
+      case STATUS_ACTIVE_NEITHER:
         newStatus = STATUS_PAUSED;
         break;
       case STATUS_ACTIVEWAIT:
@@ -1277,6 +1432,8 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
         break;
       case STATUS_ACTIVESEEDING:
       case STATUS_ACTIVESEEDING_UNINSTALLED:
+      case STATUS_ACTIVESEEDING_NOOUTPUT:
+      case STATUS_ACTIVESEEDING_NEITHER:
         newStatus = STATUS_PAUSEDSEEDING;
         break;
       case STATUS_ACTIVEWAITSEEDING:
@@ -1330,19 +1487,39 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
       switch (status)
       {
       case STATUS_PAUSED:
-        if (connectionMgr.checkConnectorExists(connectionName) && outputMgr.checkConnectorExists(outputName))
-          newStatus = STATUS_ACTIVE;
+        if (connectionMgr.checkConnectorExists(connectionName))
+        {
+          if (outputMgr.checkConnectorExists(outputName))
+            newStatus = STATUS_ACTIVE;
+          else
+            newStatus = STATUS_ACTIVE_NOOUTPUT;
+        }
         else
-          newStatus = STATUS_ACTIVE_UNINSTALLED;
+        {
+          if (outputMgr.checkConnectorExists(outputName))
+            newStatus = STATUS_ACTIVE_UNINSTALLED;
+          else
+            newStatus = STATUS_ACTIVE_NEITHER;
+        }
         break;
       case STATUS_PAUSEDWAIT:
         newStatus = STATUS_ACTIVEWAIT;
         break;
       case STATUS_PAUSEDSEEDING:
-        if (connectionMgr.checkConnectorExists(connectionName) && outputMgr.checkConnectorExists(outputName))
-          newStatus = STATUS_ACTIVESEEDING;
+        if (connectionMgr.checkConnectorExists(connectionName))
+        {
+          if (outputMgr.checkConnectorExists(outputName))
+            newStatus = STATUS_ACTIVESEEDING;
+          else
+            newStatus = STATUS_ACTIVESEEDING_NOOUTPUT;
+        }
         else
-          newStatus = STATUS_ACTIVESEEDING_UNINSTALLED;
+        {
+          if (outputMgr.checkConnectorExists(outputName))
+            newStatus = STATUS_ACTIVESEEDING_UNINSTALLED;
+          else
+            newStatus = STATUS_ACTIVESEEDING_NEITHER;
+        }
         break;
       case STATUS_PAUSEDWAITSEEDING:
         newStatus = STATUS_ACTIVEWAITSEEDING;
@@ -1632,6 +1809,16 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
       return "R";
     case STATUS_ACTIVESEEDING_UNINSTALLED:
       return "r";
+    case STATUS_ACTIVE_NOOUTPUT:
+      return "O";
+    case STATUS_ACTIVESEEDING_NOOUTPUT:
+      return "o";
+    case STATUS_ACTIVE_NEITHER:
+      return "U";
+    case STATUS_ACTIVESEEDING_NEITHER:
+      return "u";
+    case STATUS_READYFORDELETE_NOOUTPUT:
+      return "D";
 
     default:
       throw new LCFException("Bad status value: "+Integer.toString(status));

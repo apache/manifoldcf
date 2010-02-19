@@ -355,7 +355,50 @@ public class JobManager implements IJobManager
   public void noteOutputConnectorDeregistration(String[] connectionNames)
     throws LCFException
   {
-    // MHL
+    // For each connection, find the corresponding list of jobs.  From these jobs, we want the job id and the status.
+    StringBuffer sb = new StringBuffer();
+    ArrayList list = new ArrayList();
+    int maxCount = database.getMaxInClause();
+    int currentCount = 0;
+    int i = 0;
+    while (i < connectionNames.length)
+    {
+      if (currentCount == maxCount)
+      {
+        noteOutputConnectionDeregistration(sb.toString(),list);
+        sb.setLength(0);
+        list.clear();
+        currentCount = 0;
+      }
+
+      if (currentCount > 0)
+        sb.append(",");
+      sb.append("?");
+      list.add(connectionNames[i++]);
+      currentCount++;
+    }
+    if (currentCount > 0)
+      noteOutputConnectionDeregistration(sb.toString(),list);
+  }
+
+  /** Note deregistration for a batch of output connection names.
+  */
+  protected void noteOutputConnectionDeregistration(String query, ArrayList list)
+    throws LCFException
+  {
+    //System.out.println("Query is "+query);
+    // Query for the matching jobs, and then for each job potentially adjust the state
+    IResultSet set = database.performQuery("SELECT "+jobs.idField+","+jobs.statusField+" FROM "+
+      jobs.getTableName()+" WHERE "+jobs.outputNameField+" IN ("+query+") FOR UPDATE",
+      list,null,null);
+    int i = 0;
+    while (i < set.getRowCount())
+    {
+      IResultRow row = set.getRow(i++);
+      Long jobID = (Long)row.getValue(jobs.idField);
+      int statusValue = jobs.stringToStatus((String)row.getValue(jobs.statusField));
+      jobs.noteOutputConnectorDeregistration(jobID,statusValue);
+    }
   }
 
   /** Note the registration of an output connector used by the specified connections.
@@ -366,7 +409,49 @@ public class JobManager implements IJobManager
   public void noteOutputConnectorRegistration(String[] connectionNames)
     throws LCFException
   {
-    // MHL
+    // For each connection, find the corresponding list of jobs.  From these jobs, we want the job id and the status.
+    StringBuffer sb = new StringBuffer();
+    ArrayList list = new ArrayList();
+    int maxCount = database.getMaxInClause();
+    int currentCount = 0;
+    int i = 0;
+    while (i < connectionNames.length)
+    {
+      if (currentCount == maxCount)
+      {
+        noteOutputConnectionRegistration(sb.toString(),list);
+        sb.setLength(0);
+        list.clear();
+        currentCount = 0;
+      }
+
+      if (currentCount > 0)
+        sb.append(",");
+      sb.append("?");
+      list.add(connectionNames[i++]);
+      currentCount++;
+    }
+    if (currentCount > 0)
+      noteOutputConnectionRegistration(sb.toString(),list);
+  }
+
+  /** Note registration for a batch of output connection names.
+  */
+  protected void noteOutputConnectionRegistration(String query, ArrayList list)
+    throws LCFException
+  {
+    // Query for the matching jobs, and then for each job potentially adjust the state
+    IResultSet set = database.performQuery("SELECT "+jobs.idField+","+jobs.statusField+" FROM "+
+      jobs.getTableName()+" WHERE "+jobs.outputNameField+" IN ("+query+") FOR UPDATE",
+      list,null,null);
+    int i = 0;
+    while (i < set.getRowCount())
+    {
+      IResultRow row = set.getRow(i++);
+      Long jobID = (Long)row.getValue(jobs.idField);
+      int statusValue = jobs.stringToStatus((String)row.getValue(jobs.statusField));
+      jobs.noteOutputConnectorRegistration(jobID,statusValue);
+    }
   }
 
   /** Load a sorted list of job descriptions.
@@ -408,18 +493,24 @@ public class JobManager implements IJobManager
       // If the job is running, throw an error
       ArrayList list = new ArrayList();
       list.add(id);
-      IResultSet set = database.performQuery("SELECT "+jobs.statusField+" FROM "+
+      IResultSet set = database.performQuery("SELECT "+jobs.statusField+","+jobs.outputNameField+" FROM "+
         jobs.getTableName()+" WHERE "+jobs.idField+"=? FOR UPDATE",list,null,null);
       if (set.getRowCount() == 0)
         throw new LCFException("Attempting to delete a job that doesn't exist: "+id);
       IResultRow row = set.getRow(0);
+      String outputName = (String)row.getValue(jobs.outputNameField);
       int status = jobs.stringToStatus(row.getValue(jobs.statusField).toString());
       if (status == jobs.STATUS_ACTIVE || status == jobs.STATUS_ACTIVESEEDING ||
-        status == jobs.STATUS_ACTIVE_UNINSTALLED || status == jobs.STATUS_ACTIVESEEDING_UNINSTALLED)
+        status == jobs.STATUS_ACTIVE_UNINSTALLED || status == jobs.STATUS_ACTIVESEEDING_UNINSTALLED ||
+        status == jobs.STATUS_ACTIVE_NOOUTPUT || status == jobs.STATUS_ACTIVESEEDING_NOOUTPUT ||
+        status == jobs.STATUS_ACTIVE_NEITHER || status == jobs.STATUS_ACTIVESEEDING_NEITHER)
       throw new LCFException("Job "+id+" is active; you must shut it down before deleting it");
       if (status != jobs.STATUS_INACTIVE)
         throw new LCFException("Job "+id+" is busy; you must wait and/or shut it down before deleting it");
-      jobs.writeStatus(id,jobs.STATUS_READYFORDELETE);
+      if (outputMgr.checkConnectorExists(outputName))
+        jobs.writeStatus(id,jobs.STATUS_READYFORDELETE);
+      else
+        jobs.writeStatus(id,jobs.STATUS_READYFORDELETE_NOOUTPUT);
       if (Logging.jobs.isDebugEnabled())
         Logging.jobs.debug("Job "+id+" marked for deletion");
     }
@@ -3751,6 +3842,7 @@ public class JobManager implements IJobManager
         jobs.lastTimeField+","+
         jobs.statusField+","+
         jobs.startMethodField+","+
+        jobs.outputNameField+","+
         jobs.connectionNameField+
         " FROM "+jobs.getTableName()+" WHERE "+
         jobs.statusField+" IN ("+
@@ -3782,6 +3874,7 @@ public class JobManager implements IJobManager
 
         Long jobID = (Long)row.getValue(jobs.idField);
         int startMethod = jobs.stringToStartMethod((String)row.getValue(jobs.startMethodField));
+        String outputName = (String)row.getValue(jobs.outputNameField);
         String connectionName = (String)row.getValue(jobs.connectionNameField);
         ScheduleRecord[] thisSchedule = srSet[i++];
 
@@ -3886,9 +3979,19 @@ public class JobManager implements IJobManager
         case Jobs.STATUS_ACTIVEWAIT:
           unwaitList.add(jobID);
           if (connectionMgr.checkConnectorExists(connectionName))
-            newJobState = jobs.STATUS_ACTIVE;
+          {
+            if (outputMgr.checkConnectorExists(outputName))
+              newJobState = jobs.STATUS_ACTIVE;
+            else
+              newJobState = jobs.STATUS_ACTIVE_NOOUTPUT;
+          }
           else
-            newJobState = jobs.STATUS_ACTIVE_UNINSTALLED;
+          {
+            if (outputMgr.checkConnectorExists(outputName))
+              newJobState = jobs.STATUS_ACTIVE_UNINSTALLED;
+            else
+              newJobState = jobs.STATUS_ACTIVE_NEITHER;
+          }
           jobs.unwaitJob(jobID,newJobState,windowEnd);
           jobQueue.clearFailTimes(jobID);
           if (Logging.jobs.isDebugEnabled())
@@ -3899,9 +4002,19 @@ public class JobManager implements IJobManager
         case Jobs.STATUS_ACTIVEWAITSEEDING:
           unwaitList.add(jobID);
           if (connectionMgr.checkConnectorExists(connectionName))
-            newJobState = jobs.STATUS_ACTIVESEEDING;
+          {
+            if (outputMgr.checkConnectorExists(outputName))
+              newJobState = jobs.STATUS_ACTIVESEEDING;
+            else
+              newJobState = jobs.STATUS_ACTIVESEEDING_NOOUTPUT;
+          }
           else
-            newJobState = jobs.STATUS_ACTIVESEEDING_UNINSTALLED;
+          {
+            if (outputMgr.checkConnectorExists(outputName))
+              newJobState = jobs.STATUS_ACTIVESEEDING_UNINSTALLED;
+            else
+              newJobState = jobs.STATUS_ACTIVESEEDING_NEITHER;
+          }
           jobs.unwaitJob(jobID,newJobState,windowEnd);
           jobQueue.clearFailTimes(jobID);
           if (Logging.jobs.isDebugEnabled())
@@ -3971,6 +4084,10 @@ public class JobManager implements IJobManager
         database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVESEEDING))+","+
         database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVE_UNINSTALLED))+","+
         database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVESEEDING_UNINSTALLED))+","+
+        database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVE_NOOUTPUT))+","+
+        database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVESEEDING_NOOUTPUT))+","+
+        database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVE_NEITHER))+","+
+        database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVESEEDING_NEITHER))+","+
         database.quoteSQLString(jobs.statusToString(jobs.STATUS_PAUSED))+","+
         database.quoteSQLString(jobs.statusToString(jobs.STATUS_PAUSEDSEEDING))+") AND "+
         jobs.windowEndField+"<"+(new Long(currentTime)).toString()+" FOR UPDATE",
@@ -3991,6 +4108,8 @@ public class JobManager implements IJobManager
         {
         case Jobs.STATUS_ACTIVE:
         case Jobs.STATUS_ACTIVE_UNINSTALLED:
+        case Jobs.STATUS_ACTIVE_NOOUTPUT:
+        case Jobs.STATUS_ACTIVE_NEITHER:
           jobs.waitJob(jobID,Jobs.STATUS_ACTIVEWAIT);
           if (Logging.jobs.isDebugEnabled())
           {
@@ -3999,6 +4118,8 @@ public class JobManager implements IJobManager
           break;
         case Jobs.STATUS_ACTIVESEEDING:
         case Jobs.STATUS_ACTIVESEEDING_UNINSTALLED:
+        case Jobs.STATUS_ACTIVESEEDING_NOOUTPUT:
+        case Jobs.STATUS_ACTIVESEEDING_NEITHER:
           jobs.waitJob(jobID,Jobs.STATUS_ACTIVEWAITSEEDING);
           if (Logging.jobs.isDebugEnabled())
           {
@@ -4761,6 +4882,20 @@ public class JobManager implements IJobManager
           // Set the state of the job back to "Active"
           jobs.writeStatus(jobID,jobs.STATUS_ACTIVE_UNINSTALLED);
           break;
+        case Jobs.STATUS_ACTIVESEEDING_NOOUTPUT:
+          if (Logging.jobs.isDebugEnabled())
+            Logging.jobs.debug("Setting job "+jobID+" back to 'Active_NoOutput' state");
+
+          // Set the state of the job back to "Active"
+          jobs.writeStatus(jobID,jobs.STATUS_ACTIVE_NOOUTPUT);
+          break;
+        case Jobs.STATUS_ACTIVESEEDING_NEITHER:
+          if (Logging.jobs.isDebugEnabled())
+            Logging.jobs.debug("Setting job "+jobID+" back to 'Active_Neither' state");
+
+          // Set the state of the job back to "Active"
+          jobs.writeStatus(jobID,jobs.STATUS_ACTIVE_NEITHER);
+          break;
         case Jobs.STATUS_ACTIVESEEDING:
           if (Logging.jobs.isDebugEnabled())
             Logging.jobs.debug("Setting job "+jobID+" back to 'Active' state");
@@ -4809,6 +4944,8 @@ public class JobManager implements IJobManager
         case Jobs.STATUS_ABORTINGFORRESTART:
         case Jobs.STATUS_ACTIVE:
         case Jobs.STATUS_ACTIVE_UNINSTALLED:
+        case Jobs.STATUS_ACTIVE_NOOUTPUT:
+        case Jobs.STATUS_ACTIVE_NEITHER:
         case Jobs.STATUS_PAUSED:
         case Jobs.STATUS_ACTIVEWAIT:
         case Jobs.STATUS_PAUSEDWAIT:
@@ -4876,8 +5013,9 @@ public class JobManager implements IJobManager
 
         // Do the first query, getting the candidate jobs to be considered
         IResultSet set = database.performQuery("SELECT "+jobs.idField+" FROM "+
-          jobs.getTableName()+" WHERE "+jobs.statusField+"="+
-          database.quoteSQLString(jobs.statusToString(jobs.STATUS_READYFORDELETE))+" FOR UPDATE",null,null,null);
+          jobs.getTableName()+" WHERE "+jobs.statusField+" IN("+
+          database.quoteSQLString(jobs.statusToString(jobs.STATUS_READYFORDELETE))+","+
+          database.quoteSQLString(jobs.statusToString(jobs.STATUS_READYFORDELETE_NOOUTPUT))+") FOR UPDATE",null,null,null);
 
         // Now, loop through this list.  For each one, verify that it's okay to delete it
         int i = 0;
@@ -5010,7 +5148,9 @@ public class JobManager implements IJobManager
           jobs.getTableName()+" WHERE "+jobs.statusField+" IN ("+
           database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVE))+","+
           database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVEWAIT))+","+
-          database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVE_UNINSTALLED))+") FOR UPDATE",null,null,null);
+          database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVE_UNINSTALLED))+","+
+          database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVE_NOOUTPUT))+","+
+          database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVE_NEITHER))+") FOR UPDATE",null,null,null);
 
         int i = 0;
         while (i < set.getRowCount())
@@ -5307,6 +5447,10 @@ public class JobManager implements IJobManager
       database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING))+","+
       database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_ACTIVE_UNINSTALLED))+","+
       database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING_UNINSTALLED))+","+
+      database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_ACTIVE_NOOUTPUT))+","+
+      database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING_NOOUTPUT))+","+
+      database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_ACTIVE_NEITHER))+","+
+      database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING_NEITHER))+","+
       database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_PAUSED))+","+
       database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_PAUSEDSEEDING))+","+
       database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_ACTIVEWAIT))+","+
@@ -5442,6 +5586,10 @@ public class JobManager implements IJobManager
         break;
       case Jobs.STATUS_ACTIVE_UNINSTALLED:
       case Jobs.STATUS_ACTIVESEEDING_UNINSTALLED:
+      case Jobs.STATUS_ACTIVE_NOOUTPUT:
+      case Jobs.STATUS_ACTIVESEEDING_NOOUTPUT:
+      case Jobs.STATUS_ACTIVE_NEITHER:
+      case Jobs.STATUS_ACTIVESEEDING_NEITHER:
         rstatus = JobStatus.JOBSTATUS_RUNNING_UNINSTALLED;
         break;
       case Jobs.STATUS_ACTIVE:
@@ -5478,6 +5626,7 @@ public class JobManager implements IJobManager
         rstatus = JobStatus.JOBSTATUS_STARTING;
         break;
       case Jobs.STATUS_READYFORDELETE:
+      case Jobs.STATUS_READYFORDELETE_NOOUTPUT:
         rstatus = JobStatus.JOBSTATUS_DESTRUCTING;
         break;
       default:
