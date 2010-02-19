@@ -7,9 +7,9 @@
 * The ASF licenses this file to You under the Apache License, Version 2.0
 * (the "License"); you may not use this file except in compliance with
 * the License. You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,34 +24,34 @@ import org.apache.lcf.core.interfaces.*;
 */
 public class RegExpCriteria
 {
-        public static final String _rcsid = "@(#)$Id$";
+  public static final String _rcsid = "@(#)$Id$";
 
-        /** If true, means the regexp is case insensitive. */
-        protected boolean isInsensitive;
-        /** The regexp string. */
-        protected String regExp;
+  /** If true, means the regexp is case insensitive. */
+  protected boolean isInsensitive;
+  /** The regexp string. */
+  protected String regExp;
 
-        /** Constructor.
-        */
-        public RegExpCriteria(String regExp, boolean isInsensitive)
-        {
-                this.regExp = regExp;
-                this.isInsensitive = isInsensitive;
-        }
+  /** Constructor.
+  */
+  public RegExpCriteria(String regExp, boolean isInsensitive)
+  {
+    this.regExp = regExp;
+    this.isInsensitive = isInsensitive;
+  }
 
-        /** Get regexp string.
-        */
-        public String getRegexpString()
-        {
-                return regExp;
-        }
+  /** Get regexp string.
+  */
+  public String getRegexpString()
+  {
+    return regExp;
+  }
 
-        /** Get whether case insensitive or not.
-        */
-        public boolean isInsensitive()
-        {
-                return isInsensitive;
-        }
+  /** Get whether case insensitive or not.
+  */
+  public boolean isInsensitive()
+  {
+    return isInsensitive;
+  }
 
 
 }

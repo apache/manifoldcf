@@ -7,9 +7,9 @@
 * The ASF licenses this file to You under the Apache License, Version 2.0
 * (the "License"); you may not use this file except in compliance with
 * the License. You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,125 +28,125 @@ import java.io.OutputStreamWriter;
 */
 public final class UTF8Stderr
 {
-        public static final String _rcsid = "@(#)$Id$";
+  public static final String _rcsid = "@(#)$Id$";
 
-        private static PrintWriter err;
+  private static PrintWriter err;
 
-        // this is called before invoking any methods
-        static
-        {
-            try
-            {
-                err = new PrintWriter(new OutputStreamWriter(System.err, "UTF-8"), true);
-            }
-            catch (UnsupportedEncodingException e)
-            {
-                System.err.println(e);
-            }
-        }
+  // this is called before invoking any methods
+  static
+  {
+    try
+    {
+      err = new PrintWriter(new OutputStreamWriter(System.err, "UTF-8"), true);
+    }
+    catch (UnsupportedEncodingException e)
+    {
+      System.err.println(e);
+    }
+  }
 
-        private UTF8Stderr()
-        {
-        }
+  private UTF8Stderr()
+  {
+  }
 
-        // Close (not required)
-        public static void close()
-        {
-            err.close();
-        }
+  // Close (not required)
+  public static void close()
+  {
+    err.close();
+  }
 
-        // println methods
-        public static void println()
-        {
-            err.println();
-        }
-        
-        public static void println(Object x)
-        {
-            err.println(x);
-        }
-        
-        public static void println(boolean x)
-        {
-            err.println(x);
-        }
-        
-        public static void println(char x)
-        {
-            err.println(x);
-        }
-        
-        public static void println(double x)
-        {
-            err.println(x);
-        }
-        
-        public static void println(float x)
-        {
-            err.println(x);
-        }
-        
-        public static void println(int x)
-        {
-            err.println(x);
-        }
-        
-        public static void println(long x)
-        {
-            err.println(x);
-        }
+  // println methods
+  public static void println()
+  {
+    err.println();
+  }
 
-        // print methods
-        public static void print()
-        {
-            err.flush();
-        }
-        
-        public static void print(Object x)
-        {
-            err.print(x);
-            err.flush();
-        }
-        
-        public static void print(boolean x)
-        {
-            err.print(x);
-            err.flush();
-        }
-        
-        public static void print(char x)
-        {
-            err.print(x);
-            err.flush();
-        }
-        
-        public static void print(double x)
-        {
-            err.print(x);
-            err.flush();
-        }
-        
-        public static void print(float x)
-        {
-            err.print(x);
-            err.flush();
-        }
-        
-        public static void print(int x)
-        {
-            err.print(x);
-            err.flush();
-        }
-        
-        public static void print(long x)
-        {
-            err.print(x);
-            err.flush();
-        }
+  public static void println(Object x)
+  {
+    err.println(x);
+  }
 
-        public static void printStackTrace(Throwable e)
-        {
-            e.printStackTrace(err);
-        }
-        
+  public static void println(boolean x)
+  {
+    err.println(x);
+  }
+
+  public static void println(char x)
+  {
+    err.println(x);
+  }
+
+  public static void println(double x)
+  {
+    err.println(x);
+  }
+
+  public static void println(float x)
+  {
+    err.println(x);
+  }
+
+  public static void println(int x)
+  {
+    err.println(x);
+  }
+
+  public static void println(long x)
+  {
+    err.println(x);
+  }
+
+  // print methods
+  public static void print()
+  {
+    err.flush();
+  }
+
+  public static void print(Object x)
+  {
+    err.print(x);
+    err.flush();
+  }
+
+  public static void print(boolean x)
+  {
+    err.print(x);
+    err.flush();
+  }
+
+  public static void print(char x)
+  {
+    err.print(x);
+    err.flush();
+  }
+
+  public static void print(double x)
+  {
+    err.print(x);
+    err.flush();
+  }
+
+  public static void print(float x)
+  {
+    err.print(x);
+    err.flush();
+  }
+
+  public static void print(int x)
+  {
+    err.print(x);
+    err.flush();
+  }
+
+  public static void print(long x)
+  {
+    err.print(x);
+    err.flush();
+  }
+
+  public static void printStackTrace(Throwable e)
+  {
+    e.printStackTrace(err);
+  }
+
 }

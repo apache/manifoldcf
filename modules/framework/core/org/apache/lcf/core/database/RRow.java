@@ -7,9 +7,9 @@
 * The ASF licenses this file to You under the Apache License, Version 2.0
 * (the "License"); you may not use this file except in compliance with
 * the License. You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,43 +25,43 @@ import java.util.*;
 */
 public class RRow implements IResultRow
 {
-        public static final String _rcsid = "@(#)$Id$";
+  public static final String _rcsid = "@(#)$Id$";
 
-        protected Map rowData = new HashMap();
+  protected Map rowData = new HashMap();
 
-        public RRow()
-        {
-        }
+  public RRow()
+  {
+  }
 
-        public void put(String name, Object value)
-        {
-                rowData.put(name,value);
-        }
+  public void put(String name, Object value)
+  {
+    rowData.put(name,value);
+  }
 
-        /** Obtain the number of columns in the row.
-        *@return the number of columns that row contains.
-        */
-        public int getColumnCount()
-        {
-                return rowData.size();
-        }
+  /** Obtain the number of columns in the row.
+  *@return the number of columns that row contains.
+  */
+  public int getColumnCount()
+  {
+    return rowData.size();
+  }
 
-        /** Obtain the set of columns for a row.
-        @return an iterator that will list all the (String) column names stored in that row.
-        */
-        public Iterator getColumns()
-        {
-                return rowData.keySet().iterator();
-        }
+  /** Obtain the set of columns for a row.
+  @return an iterator that will list all the (String) column names stored in that row.
+  */
+  public Iterator getColumns()
+  {
+    return rowData.keySet().iterator();
+  }
 
-        /** Get the row value for a column.
-        *@param columnName is the name of the column.
-        *@return the value, or null if not present.
-        */
-        public Object getValue(String columnName)
-        {
-                return rowData.get(columnName);
-        }
+  /** Get the row value for a column.
+  *@param columnName is the name of the column.
+  *@return the value, or null if not present.
+  */
+  public Object getValue(String columnName)
+  {
+    return rowData.get(columnName);
+  }
 
 
 }

@@ -7,9 +7,9 @@
 * The ASF licenses this file to You under the Apache License, Version 2.0
 * (the "License"); you may not use this file except in compliance with
 * the License. You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -32,103 +32,103 @@ import java.lang.reflect.*;
 */
 public class JobDeleteThread extends Thread
 {
-        public static final String _rcsid = "@(#)$Id$";
+  public static final String _rcsid = "@(#)$Id$";
 
-        // Local data
+  // Local data
 
-        /** Constructor.
-        */
-        public JobDeleteThread()
-                throws LCFException
+  /** Constructor.
+  */
+  public JobDeleteThread()
+    throws LCFException
+  {
+    super();
+    setName("Job delete thread");
+    setDaemon(true);
+  }
+
+  public void run()
+  {
+    try
+    {
+      // Create a thread context object.
+      IThreadContext threadContext = ThreadContextFactory.make();
+      IJobManager jobManager = JobManagerFactory.make(threadContext);
+      IRepositoryConnectionManager connectionMgr = RepositoryConnectionManagerFactory.make(threadContext);
+
+      // Loop
+      while (true)
+      {
+        // Do another try/catch around everything in the loop
+        try
         {
-                super();
-                setName("Job delete thread");
-                setDaemon(true);
-        }
+          // Accumulate the wait before doing the next check.
+          // We start with 10 seconds, which is the maximum.  If there's a service request
+          // that's faster than that, we'll adjust the time downward.
+          long waitTime = 10000L;
 
-        public void run()
+          // See if there are any starting jobs.
+          // Note: Since this following call changes the job state, we must be careful to reset it on any kind of failure.
+          Logging.threads.debug("Deleting jobs that need cleanup");
+          jobManager.deleteJobsReadyForDelete();
+
+          // Sleep for the retry interval.
+          LCF.sleep(waitTime);
+        }
+        catch (LCFException e)
         {
-                try
-                {
-                        // Create a thread context object.
-                        IThreadContext threadContext = ThreadContextFactory.make();
-                        IJobManager jobManager = JobManagerFactory.make(threadContext);
-                        IRepositoryConnectionManager connectionMgr = RepositoryConnectionManagerFactory.make(threadContext);
+          if (e.getErrorCode() == LCFException.INTERRUPTED)
+            break;
 
-                        // Loop
-                        while (true)
-                        {
-                                // Do another try/catch around everything in the loop
-                                try
-                                {
-                                        // Accumulate the wait before doing the next check.
-                                        // We start with 10 seconds, which is the maximum.  If there's a service request
-                                        // that's faster than that, we'll adjust the time downward.
-                                        long waitTime = 10000L;
+          if (e.getErrorCode() == LCFException.DATABASE_CONNECTION_ERROR)
+          {
+            Logging.threads.error("Job delete thread aborting and restarting due to database connection reset: "+e.getMessage(),e);
+            try
+            {
+              // Give the database a chance to catch up/wake up
+              LCF.sleep(10000L);
+            }
+            catch (InterruptedException se)
+            {
+              break;
+            }
+            continue;
+          }
 
-                                        // See if there are any starting jobs.
-                                        // Note: Since this following call changes the job state, we must be careful to reset it on any kind of failure.
-                                        Logging.threads.debug("Deleting jobs that need cleanup");
-                                        jobManager.deleteJobsReadyForDelete();
+          // Log it, but keep the thread alive
+          Logging.threads.error("Exception tossed: "+e.getMessage(),e);
 
-                                        // Sleep for the retry interval.
-                                        LCF.sleep(waitTime);
-                                }
-                                catch (LCFException e)
-                                {
-                                        if (e.getErrorCode() == LCFException.INTERRUPTED)
-                                                break;
+          if (e.getErrorCode() == LCFException.SETUP_ERROR)
+          {
+            // Shut the whole system down!
+            System.exit(1);
+          }
 
-                                        if (e.getErrorCode() == LCFException.DATABASE_CONNECTION_ERROR)
-                                        {
-                                                Logging.threads.error("Job delete thread aborting and restarting due to database connection reset: "+e.getMessage(),e);
-                                                try
-                                                {
-                                                        // Give the database a chance to catch up/wake up
-                                                        LCF.sleep(10000L);
-                                                }
-                                                catch (InterruptedException se)
-                                                {
-                                                        break;
-                                                }
-                                                continue;
-                                        }
-
-                                        // Log it, but keep the thread alive
-                                        Logging.threads.error("Exception tossed: "+e.getMessage(),e);
-
-                                        if (e.getErrorCode() == LCFException.SETUP_ERROR)
-                                        {
-                                                // Shut the whole system down!
-                                                System.exit(1);
-                                        }
-
-                                }
-                                catch (InterruptedException e)
-                                {
-                                        // We're supposed to quit
-                                        break;
-                                }
-                                catch (OutOfMemoryError e)
-                                {
-                                        System.err.println("agents process ran out of memory - shutting down");
-                                        e.printStackTrace(System.err);
-                                        System.exit(-200);
-                                }
-                                catch (Throwable e)
-                                {
-                                        // A more severe error - but stay alive
-                                        Logging.threads.fatal("Error tossed: "+e.getMessage(),e);
-                                }
-                        }
-                }
-                catch (Throwable e)
-                {
-                        // Severe error on initialization
-                        System.err.println("agents process could not start - shutting down");
-                        Logging.threads.fatal("JobDeleteThread initialization error tossed: "+e.getMessage(),e);
-                        System.exit(-300);
-                }
         }
+        catch (InterruptedException e)
+        {
+          // We're supposed to quit
+          break;
+        }
+        catch (OutOfMemoryError e)
+        {
+          System.err.println("agents process ran out of memory - shutting down");
+          e.printStackTrace(System.err);
+          System.exit(-200);
+        }
+        catch (Throwable e)
+        {
+          // A more severe error - but stay alive
+          Logging.threads.fatal("Error tossed: "+e.getMessage(),e);
+        }
+      }
+    }
+    catch (Throwable e)
+    {
+      // Severe error on initialization
+      System.err.println("agents process could not start - shutting down");
+      Logging.threads.fatal("JobDeleteThread initialization error tossed: "+e.getMessage(),e);
+      System.exit(-300);
+    }
+  }
 
 }

@@ -7,9 +7,9 @@
 * The ASF licenses this file to You under the Apache License, Version 2.0
 * (the "License"); you may not use this file except in compliance with
 * the License. You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,34 +29,34 @@ import java.util.*;
 */
 public class TransactionHandle
 {
-        public static final String _rcsid = "@(#)$Id$";
+  public static final String _rcsid = "@(#)$Id$";
 
-        protected TransactionHandle previousTransaction;
-        protected String transactionID;
-        protected int transactionType;
+  protected TransactionHandle previousTransaction;
+  protected String transactionID;
+  protected int transactionType;
 
-        public TransactionHandle(TransactionHandle previousTransaction, int transactionType)
-                throws LCFException
-        {
-                // Grab a unique ID
-                transactionID = IDFactory.make();
-                this.previousTransaction = previousTransaction;
-                this.transactionType = transactionType;
-        }
+  public TransactionHandle(TransactionHandle previousTransaction, int transactionType)
+    throws LCFException
+  {
+    // Grab a unique ID
+    transactionID = IDFactory.make();
+    this.previousTransaction = previousTransaction;
+    this.transactionType = transactionType;
+  }
 
-        public String getTransactionID()
-        {
-                return transactionID;
-        }
+  public String getTransactionID()
+  {
+    return transactionID;
+  }
 
-        public TransactionHandle getParent()
-        {
-                return previousTransaction;
-        }
+  public TransactionHandle getParent()
+  {
+    return previousTransaction;
+  }
 
-        public int getTransactionType()
-        {
-                return transactionType;
-        }
+  public int getTransactionType()
+  {
+    return transactionType;
+  }
 }
 

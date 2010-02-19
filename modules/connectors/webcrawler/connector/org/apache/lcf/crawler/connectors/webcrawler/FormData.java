@@ -7,9 +7,9 @@
 * The ASF licenses this file to You under the Apache License, Version 2.0
 * (the "License"); you may not use this file except in compliance with
 * the License. You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,19 +25,19 @@ import java.util.*;
 */
 public interface FormData
 {
-        public static final String _rcsid = "@(#)$Id$";
+  public static final String _rcsid = "@(#)$Id$";
 
-        // Submit methods
-        public final static int SUBMITMETHOD_GET = 0;
-        public final static int SUBMITMETHOD_POST = 1;
-    
-        /** Get the full action URI for this form. */
-        public String getActionURI();
+  // Submit methods
+  public final static int SUBMITMETHOD_GET = 0;
+  public final static int SUBMITMETHOD_POST = 1;
 
-        /** Get the submit method for this form. */
-        public int getSubmitMethod();
-    
-        /** Iterate over the active form data elements.  The returned iterator returns FormDataElement objects. */
-        public Iterator getElementIterator();
-    
+  /** Get the full action URI for this form. */
+  public String getActionURI();
+
+  /** Get the submit method for this form. */
+  public int getSubmitMethod();
+
+  /** Iterate over the active form data elements.  The returned iterator returns FormDataElement objects. */
+  public Iterator getElementIterator();
+
 }

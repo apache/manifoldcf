@@ -7,9 +7,9 @@
 * The ASF licenses this file to You under the Apache License, Version 2.0
 * (the "License"); you may not use this file except in compliance with
 * the License. You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -64,36 +64,36 @@ import java.util.*;
 */
 public interface IEventActivity extends INamingActivity
 {
-        public static final String _rcsid = "@(#)$Id$";
+  public static final String _rcsid = "@(#)$Id$";
 
-        /** Begin an event sequence.
-        * This method should be called by a connector when a sequencing event should enter the "pending" state.  If the event is already in that state,
-        * this method will return false, otherwise true.  The connector has the responsibility of appropriately managing sequencing given the response
-        * status.
-        *@param eventName is the event name.
-        *@return false if the event is already in the "pending" state.
-        */
-        public boolean beginEventSequence(String eventName)
-                throws LCFException;
+  /** Begin an event sequence.
+  * This method should be called by a connector when a sequencing event should enter the "pending" state.  If the event is already in that state,
+  * this method will return false, otherwise true.  The connector has the responsibility of appropriately managing sequencing given the response
+  * status.
+  *@param eventName is the event name.
+  *@return false if the event is already in the "pending" state.
+  */
+  public boolean beginEventSequence(String eventName)
+    throws LCFException;
 
-        /** Complete an event sequence.
-        * This method should be called to signal that an event is no longer in the "pending" state.  This can mean that the prerequisite processing is
-        * completed, but it can also mean that prerequisite processing was aborted or cannot be completed.
-        * Note well: This method should not be called unless the connector is CERTAIN that an event is in progress, and that the current thread has
-        * the sole right to complete it.  Otherwise, race conditions can develop which would be difficult to diagnose.
-        *@param eventName is the event name.
-        */
-        public void completeEventSequence(String eventName)
-                throws LCFException;
-                
-        /** Abort processing a document (for sequencing reasons).
-        * This method should be called in order to cause the specified document to be requeued for later processing.  While this is similar in some respects
-        * to the semantics of a ServiceInterruption, it is applicable to only one document at a time, and also does not specify any delay period, since it is
-        * presumed that the reason for the requeue is because of sequencing issues synchronized around an underlying event.
-        *@param localIdentifier is the document identifier to requeue
-        */
-        public void retryDocumentProcessing(String localIdentifier)
-                throws LCFException;
+  /** Complete an event sequence.
+  * This method should be called to signal that an event is no longer in the "pending" state.  This can mean that the prerequisite processing is
+  * completed, but it can also mean that prerequisite processing was aborted or cannot be completed.
+  * Note well: This method should not be called unless the connector is CERTAIN that an event is in progress, and that the current thread has
+  * the sole right to complete it.  Otherwise, race conditions can develop which would be difficult to diagnose.
+  *@param eventName is the event name.
+  */
+  public void completeEventSequence(String eventName)
+    throws LCFException;
 
-   
+  /** Abort processing a document (for sequencing reasons).
+  * This method should be called in order to cause the specified document to be requeued for later processing.  While this is similar in some respects
+  * to the semantics of a ServiceInterruption, it is applicable to only one document at a time, and also does not specify any delay period, since it is
+  * presumed that the reason for the requeue is because of sequencing issues synchronized around an underlying event.
+  *@param localIdentifier is the document identifier to requeue
+  */
+  public void retryDocumentProcessing(String localIdentifier)
+    throws LCFException;
+
+
 }

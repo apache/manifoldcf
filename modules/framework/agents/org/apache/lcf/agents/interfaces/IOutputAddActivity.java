@@ -7,9 +7,9 @@
 * The ASF licenses this file to You under the Apache License, Version 2.0
 * (the "License"); you may not use this file except in compliance with
 * the License. You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,15 +26,15 @@ when adding or replacing documents.
 */
 public interface IOutputAddActivity extends IOutputHistoryActivity
 {
-        public static final String _rcsid = "@(#)$Id$";
+  public static final String _rcsid = "@(#)$Id$";
 
-        /** Qualify an access token appropriately, to match access tokens as returned by mod_aa.  This method
-        * includes the authority name with the access token, if any, so that each authority may establish its own token space.
-        *@param authorityNameString is the name of the authority to use to qualify the access token.
-        *@param accessToken is the raw, repository access token.
-        *@return the properly qualified access token.
-        */
-        public String qualifyAccessToken(String authorityNameString, String accessToken)
-                throws LCFException;
-    
+  /** Qualify an access token appropriately, to match access tokens as returned by mod_aa.  This method
+  * includes the authority name with the access token, if any, so that each authority may establish its own token space.
+  *@param authorityNameString is the name of the authority to use to qualify the access token.
+  *@param accessToken is the raw, repository access token.
+  *@return the properly qualified access token.
+  */
+  public String qualifyAccessToken(String authorityNameString, String accessToken)
+    throws LCFException;
+
 }

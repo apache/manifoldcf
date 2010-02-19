@@ -7,9 +7,9 @@
 * The ASF licenses this file to You under the Apache License, Version 2.0
 * (the "License"); you may not use this file except in compliance with
 * the License. You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,30 +24,30 @@ import java.util.regex.*;
 */
 public interface LoginParameters
 {
-        public static final String _rcsid = "@(#)$Id$";
+  public static final String _rcsid = "@(#)$Id$";
 
-        /** Get the preferred redirection pattern.
-        */
-        public Pattern getPreferredRedirectionPattern();
-    
-        /** Get the preferred link pattern.
-        */
-        public Pattern getPreferredLinkPattern();
+  /** Get the preferred redirection pattern.
+  */
+  public Pattern getPreferredRedirectionPattern();
 
-        /** Get the form name pattern.
-        */
-        public Pattern getFormNamePattern();
-    
-        /** Get the number of parameters.
-        */
-        public int getParameterCount();
-    
-        /** Get the name of the i'th parameter.
-        */
-        public Pattern getParameterNamePattern(int index);
-    
-        /** Get the desired value of the i'th parameter.
-        */
-        public String getParameterValue(int index);
-        
+  /** Get the preferred link pattern.
+  */
+  public Pattern getPreferredLinkPattern();
+
+  /** Get the form name pattern.
+  */
+  public Pattern getFormNamePattern();
+
+  /** Get the number of parameters.
+  */
+  public int getParameterCount();
+
+  /** Get the name of the i'th parameter.
+  */
+  public Pattern getParameterNamePattern(int index);
+
+  /** Get the desired value of the i'th parameter.
+  */
+  public String getParameterValue(int index);
+
 }

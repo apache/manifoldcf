@@ -7,9 +7,9 @@
 * The ASF licenses this file to You under the Apache License, Version 2.0
 * (the "License"); you may not use this file except in compliance with
 * the License. You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -32,44 +32,44 @@ import org.apache.lcf.crawler.interfaces.*;
 */
 public class DeleteQueuedDocument
 {
-        public static final String _rcsid = "@(#)$Id$";
+  public static final String _rcsid = "@(#)$Id$";
 
-        /** The document description. */
-        protected DocumentDescription documentDescription;
-        /** This flag indicates whether the document has been processed or not. */
-        protected boolean wasProcessed = false;
+  /** The document description. */
+  protected DocumentDescription documentDescription;
+  /** This flag indicates whether the document has been processed or not. */
+  protected boolean wasProcessed = false;
 
-        /** Constructor.
-        *@param documentDescription is the document description.
-        *@param lastIngestedVersion is the last ingested version.
-        */
-        public DeleteQueuedDocument(DocumentDescription documentDescription)
-        {
-                this.documentDescription = documentDescription;
-        }
+  /** Constructor.
+  *@param documentDescription is the document description.
+  *@param lastIngestedVersion is the last ingested version.
+  */
+  public DeleteQueuedDocument(DocumentDescription documentDescription)
+  {
+    this.documentDescription = documentDescription;
+  }
 
-        /** Get the document description.
-        *@return the document description.
-        */
-        public DocumentDescription getDocumentDescription()
-        {
-                return documentDescription;
-        }
+  /** Get the document description.
+  *@return the document description.
+  */
+  public DocumentDescription getDocumentDescription()
+  {
+    return documentDescription;
+  }
 
-        /** Check if document has been processed yet.
-        *@return true if processed, false if not.
-        */
-        public boolean wasProcessed()
-        {
-                return wasProcessed;
-        }
+  /** Check if document has been processed yet.
+  *@return true if processed, false if not.
+  */
+  public boolean wasProcessed()
+  {
+    return wasProcessed;
+  }
 
-        /** Note that the document was processed in some way.
-        */
-        public void setProcessed()
-        {
-                wasProcessed = true;
-        }
+  /** Note that the document was processed in some way.
+  */
+  public void setProcessed()
+  {
+    wasProcessed = true;
+  }
 
 }
 

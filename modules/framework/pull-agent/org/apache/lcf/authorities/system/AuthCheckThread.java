@@ -7,9 +7,9 @@
 * The ASF licenses this file to You under the Apache License, Version 2.0
 * (the "License"); you may not use this file except in compliance with
 * the License. You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,130 +30,130 @@ import java.lang.reflect.*;
 */
 public class AuthCheckThread extends Thread
 {
-        public static final String _rcsid = "@(#)$Id$";
+  public static final String _rcsid = "@(#)$Id$";
 
-        // Local data
-        protected RequestQueue requestQueue;
+  // Local data
+  protected RequestQueue requestQueue;
 
-        /** Constructor.
-        */
-        public AuthCheckThread(String id, RequestQueue requestQueue)
-                throws LCFException
+  /** Constructor.
+  */
+  public AuthCheckThread(String id, RequestQueue requestQueue)
+    throws LCFException
+  {
+    super();
+    this.requestQueue = requestQueue;
+    setName("Auth check thread "+id);
+    setDaemon(true);
+  }
+
+  public void run()
+  {
+    // Create a thread context object.
+    IThreadContext threadContext = ThreadContextFactory.make();
+
+    // Loop
+    while (true)
+    {
+      // Do another try/catch around everything in the loop
+      try
+      {
+        if (Thread.currentThread().isInterrupted())
+          throw new LCFException("Interrupted",LCFException.INTERRUPTED);
+
+        // Wait for a request.
+        AuthRequest theRequest = requestQueue.getRequest();
+
+        // Try to fill the request before going back to sleep.
+        if (Logging.authorityService.isDebugEnabled())
         {
-                super();
-                this.requestQueue = requestQueue;
-                setName("Auth check thread "+id);
-                setDaemon(true);
+          Logging.authorityService.debug(" Calling connector class '"+theRequest.getClassName()+"'");
         }
 
-        public void run()
+        AuthorizationResponse response = null;
+        Throwable exception = null;
+
+        try
         {
-                // Create a thread context object.
-                IThreadContext threadContext = ThreadContextFactory.make();
+          IAuthorityConnector connector = AuthorityConnectorFactory.grab(threadContext,
+            theRequest.getClassName(),
+            theRequest.getConfigurationParams(),
+            theRequest.getMaxConnections());
+          // If this is null, we MUST treat this as an "unauthorized" condition!!
+          // We signal that by setting the exception value.
+          try
+          {
+            if (connector == null)
+              exception = new LCFException("Authority connector "+theRequest.getClassName()+" is not registered.");
+            else
+            {
+              // Get the acl for the user
+              try
+              {
+                response = connector.getAuthorizationResponse(theRequest.getUserID());
+              }
+              catch (LCFException e)
+              {
+                if (e.getErrorCode() == LCFException.INTERRUPTED)
+                  throw e;
+                Logging.authorityService.warn("Authority error: "+e.getMessage(),e);
+                response = AuthorityConnectorFactory.getDefaultAuthorizationResponse(threadContext,theRequest.getClassName(),theRequest.getUserID());
+              }
 
-                // Loop
-                while (true)
-                {
-                        // Do another try/catch around everything in the loop
-                        try
-                        {
-                                if (Thread.currentThread().isInterrupted())
-                                        throw new LCFException("Interrupted",LCFException.INTERRUPTED);
-
-                                // Wait for a request.
-                                AuthRequest theRequest = requestQueue.getRequest();
-                                
-                                // Try to fill the request before going back to sleep.
-                                if (Logging.authorityService.isDebugEnabled())
-                                {
-                                        Logging.authorityService.debug(" Calling connector class '"+theRequest.getClassName()+"'");
-                                }
-                                
-                                AuthorizationResponse response = null;
-                                Throwable exception = null;
-
-                                try
-                                {
-                                        IAuthorityConnector connector = AuthorityConnectorFactory.grab(threadContext,
-                                                theRequest.getClassName(),
-                                                theRequest.getConfigurationParams(),
-                                                theRequest.getMaxConnections());
-                                        // If this is null, we MUST treat this as an "unauthorized" condition!!
-                                        // We signal that by setting the exception value.
-                                        try
-                                        {
-                                                if (connector == null)
-                                                        exception = new LCFException("Authority connector "+theRequest.getClassName()+" is not registered.");
-                                                else
-                                                {
-                                                        // Get the acl for the user
-                                                        try
-                                                        {
-                                                                response = connector.getAuthorizationResponse(theRequest.getUserID());
-                                                        }
-                                                        catch (LCFException e)
-                                                        {
-                                                                if (e.getErrorCode() == LCFException.INTERRUPTED)
-                                                                        throw e;
-                                                                Logging.authorityService.warn("Authority error: "+e.getMessage(),e);
-                                                                response = AuthorityConnectorFactory.getDefaultAuthorizationResponse(threadContext,theRequest.getClassName(),theRequest.getUserID());
-                                                        }
-
-                                                }
-                                        }
-                                        finally
-                                        {
-                                                AuthorityConnectorFactory.release(connector);
-                                        }
-                                }
-                                catch (LCFException e)
-                                {
-                                        if (e.getErrorCode() == LCFException.INTERRUPTED)
-                                                throw e;
-                                        Logging.authorityService.warn("Authority connection exception: "+e.getMessage(),e);
-                                        response = AuthorityConnectorFactory.getDefaultAuthorizationResponse(threadContext,theRequest.getClassName(),theRequest.getUserID());
-                                        if (response == null)
-                                                exception = e;
-                                }
-                                catch (Throwable e)
-                                {
-                                        Logging.authorityService.warn("Authority connection error: "+e.getMessage(),e);
-                                        response = AuthorityConnectorFactory.getDefaultAuthorizationResponse(threadContext,theRequest.getClassName(),theRequest.getUserID());
-                                        if (response == null)
-                                                exception = e;
-                                }
-
-                                // The request is complete
-                                theRequest.completeRequest(response,exception);
-                                
-                                // Repeat, and only go to sleep if there are no more requests.
-                        }
-                        catch (LCFException e)
-                        {
-                                if (e.getErrorCode() == LCFException.INTERRUPTED)
-                                        break;
-
-                                // Log it, but keep the thread alive
-                                Logging.authorityService.error("Exception tossed: "+e.getMessage(),e);
-
-                                if (e.getErrorCode() == LCFException.SETUP_ERROR)
-                                {
-                                        // Shut the whole system down!
-                                        System.exit(1);
-                                }
-
-                        }
-                        catch (InterruptedException e)
-                        {
-                                // We're supposed to quit
-                                break;
-                        }
-                        catch (Throwable e)
-                        {
-                                // A more severe error - but stay alive
-                                Logging.authorityService.fatal("Error tossed: "+e.getMessage(),e);
-                        }
-                }
+            }
+          }
+          finally
+          {
+            AuthorityConnectorFactory.release(connector);
+          }
         }
+        catch (LCFException e)
+        {
+          if (e.getErrorCode() == LCFException.INTERRUPTED)
+            throw e;
+          Logging.authorityService.warn("Authority connection exception: "+e.getMessage(),e);
+          response = AuthorityConnectorFactory.getDefaultAuthorizationResponse(threadContext,theRequest.getClassName(),theRequest.getUserID());
+          if (response == null)
+            exception = e;
+        }
+        catch (Throwable e)
+        {
+          Logging.authorityService.warn("Authority connection error: "+e.getMessage(),e);
+          response = AuthorityConnectorFactory.getDefaultAuthorizationResponse(threadContext,theRequest.getClassName(),theRequest.getUserID());
+          if (response == null)
+            exception = e;
+        }
+
+        // The request is complete
+        theRequest.completeRequest(response,exception);
+
+        // Repeat, and only go to sleep if there are no more requests.
+      }
+      catch (LCFException e)
+      {
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          break;
+
+        // Log it, but keep the thread alive
+        Logging.authorityService.error("Exception tossed: "+e.getMessage(),e);
+
+        if (e.getErrorCode() == LCFException.SETUP_ERROR)
+        {
+          // Shut the whole system down!
+          System.exit(1);
+        }
+
+      }
+      catch (InterruptedException e)
+      {
+        // We're supposed to quit
+        break;
+      }
+      catch (Throwable e)
+      {
+        // A more severe error - but stay alive
+        Logging.authorityService.fatal("Error tossed: "+e.getMessage(),e);
+      }
+    }
+  }
 
 }

@@ -7,9 +7,9 @@
 * The ASF licenses this file to You under the Apache License, Version 2.0
 * (the "License"); you may not use this file except in compliance with
 * the License. You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -32,55 +32,55 @@ import java.util.*;
 */
 public interface IFilenet extends Remote
 {
-        public static final String _rcsid = "@(#)$Id$";
+  public static final String _rcsid = "@(#)$Id$";
 
-        /** Create a session.
-        *@param userID is the userID to use to establish the session.
-        *@param password is the password to use to establish the session.
-        *@param domain is the filenet domain of the user and password.
-        *@param objectStore is the object store to use to establish the session.
-        *@param serverWSIURI is the URI to use to get to the server's web services.
-        */
-        public void createSession(String userID, String password, String domain, String objectStore, String serverWSIURI)
-                throws FilenetException, RemoteException;
+  /** Create a session.
+  *@param userID is the userID to use to establish the session.
+  *@param password is the password to use to establish the session.
+  *@param domain is the filenet domain of the user and password.
+  *@param objectStore is the object store to use to establish the session.
+  *@param serverWSIURI is the URI to use to get to the server's web services.
+  */
+  public void createSession(String userID, String password, String domain, String objectStore, String serverWSIURI)
+    throws FilenetException, RemoteException;
 
-        /** Delete a session.
-        */
-        public void destroySession()
-                throws FilenetException, RemoteException;
+  /** Delete a session.
+  */
+  public void destroySession()
+    throws FilenetException, RemoteException;
 
-        /** Check if there is a working connection.
-        */
-        public void checkConnection()
-                throws FilenetException, RemoteException;
+  /** Check if there is a working connection.
+  */
+  public void checkConnection()
+    throws FilenetException, RemoteException;
 
-        /** Get the set of available document classes
-        */
-        public DocumentClassDefinition[] getDocumentClassesDetails()
-                throws FilenetException, RemoteException;
+  /** Get the set of available document classes
+  */
+  public DocumentClassDefinition[] getDocumentClassesDetails()
+    throws FilenetException, RemoteException;
 
-        /** Get the set of available metadata fields per document class
-        */
-        public MetadataFieldDefinition[] getDocumentClassMetadataFieldsDetails(String documentClassName)
-                throws FilenetException, RemoteException;
+  /** Get the set of available metadata fields per document class
+  */
+  public MetadataFieldDefinition[] getDocumentClassMetadataFieldsDetails(String documentClassName)
+    throws FilenetException, RemoteException;
 
-        /** Execute a sql statement against FileNet and return the matching object id's */
-        public String[] getMatchingObjectIds(String sql)
-                throws RemoteException, FilenetException;
+  /** Execute a sql statement against FileNet and return the matching object id's */
+  public String[] getMatchingObjectIds(String sql)
+    throws RemoteException, FilenetException;
 
-        /** Get the document content information given an object id.  Will return null if the version id is not a current document version id. */
-        public Integer getDocumentContentCount(String docId)
-                throws RemoteException, FilenetException;
+  /** Get the document content information given an object id.  Will return null if the version id is not a current document version id. */
+  public Integer getDocumentContentCount(String docId)
+    throws RemoteException, FilenetException;
 
-        /** Get document information for a given filenet document.  Will return null if the version id is not a current document version id.
-        * The metadataFields hashmap is keyed by document class, and contains as a value either null (meaning "all"), or a String[] that has the
-        * list of fields desired. */
-        public FileInfo getDocumentInformation(String docId, HashMap metadataFields)
-                throws FilenetException, RemoteException;
+  /** Get document information for a given filenet document.  Will return null if the version id is not a current document version id.
+  * The metadataFields hashmap is keyed by document class, and contains as a value either null (meaning "all"), or a String[] that has the
+  * list of fields desired. */
+  public FileInfo getDocumentInformation(String docId, HashMap metadataFields)
+    throws FilenetException, RemoteException;
 
-        /** Get document contents */
-        public void getDocumentContents(String docId, int elementNumber, String tempFileName)
-                throws FilenetException, RemoteException;
+  /** Get document contents */
+  public void getDocumentContents(String docId, int elementNumber, String tempFileName)
+    throws FilenetException, RemoteException;
 
 
 }

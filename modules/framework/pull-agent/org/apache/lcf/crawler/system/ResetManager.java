@@ -7,9 +7,9 @@
 * The ASF licenses this file to You under the Apache License, Version 2.0
 * (the "License"); you may not use this file except in compliance with
 * the License. You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,84 +35,84 @@ import org.apache.lcf.core.interfaces.*;
 */
 public abstract class ResetManager
 {
-        public static final String _rcsid = "@(#)$Id$";
+  public static final String _rcsid = "@(#)$Id$";
 
-        /** Boolean which describes whether an event requiring reset has occurred. */
-        protected boolean resetRequired = false;
-        /** This is the count of the threads that care about this resource. */
-        protected int involvedThreadCount = 0;
-        /** This is the number of threads that are waiting for the reset. */
-        protected int waitingThreads = 0;
+  /** Boolean which describes whether an event requiring reset has occurred. */
+  protected boolean resetRequired = false;
+  /** This is the count of the threads that care about this resource. */
+  protected int involvedThreadCount = 0;
+  /** This is the number of threads that are waiting for the reset. */
+  protected int waitingThreads = 0;
 
-        /** Constructor.
-        */
-        public ResetManager()
-        {
-        }
+  /** Constructor.
+  */
+  public ResetManager()
+  {
+  }
 
-        /** Register a thread with this reset manager.
-        */
-        public synchronized void registerMe()
-        {
-                involvedThreadCount++;
-        }
+  /** Register a thread with this reset manager.
+  */
+  public synchronized void registerMe()
+  {
+    involvedThreadCount++;
+  }
 
-        /** Note a resettable event.
-        */
-        public synchronized void noteEvent()
-        {
-                resetRequired = true;
-        }
+  /** Note a resettable event.
+  */
+  public synchronized void noteEvent()
+  {
+    resetRequired = true;
+  }
 
-        /** Enter "wait" state for current thread.
-        * This method is the main logic for the reset manager.  A thread
-        * calls this method, which may block until all other threads are
-        * waiting too.  Then, the reset method is called by exactly ONE
-        * of the waiting threads, and they all are released.
-        * @return false if no reset took place, or true if one did.
-        */
-        public synchronized boolean waitForReset(IThreadContext tc)
-                throws LCFException, InterruptedException
-        {
-                if (resetRequired == false)
-                        return false;
-                waitingThreads++;
+  /** Enter "wait" state for current thread.
+  * This method is the main logic for the reset manager.  A thread
+  * calls this method, which may block until all other threads are
+  * waiting too.  Then, the reset method is called by exactly ONE
+  * of the waiting threads, and they all are released.
+  * @return false if no reset took place, or true if one did.
+  */
+  public synchronized boolean waitForReset(IThreadContext tc)
+    throws LCFException, InterruptedException
+  {
+    if (resetRequired == false)
+      return false;
+    waitingThreads++;
 
-                // Check if this is the "Prince Charming" thread, who will wake up
-                // all the others.
-                if (waitingThreads == involvedThreadCount)
-                {
-                        // Kick off reset, and wake everyone up
-                        // There's a question of what to do if the reset fails.
-                        // Right now, my notion is that we throw the exception
-                        // in the current thread, and just make sure everything
-                        // is tracked.
-                        try
-                        {
-                                performResetLogic(tc);
-                        }
-                        finally
-                        {
-                                // MUST do all this in the finally block, because if the reset fails we'll wind up with
-                                // all threads blocked if we don't.  All waiting threads will be restarted, and will fail
-                                // again, but that's the only way we can retry.
-                                waitingThreads = 0;
-                                resetRequired = false;
-                                notifyAll();
-                        }
-                        return true;
-                }
+    // Check if this is the "Prince Charming" thread, who will wake up
+    // all the others.
+    if (waitingThreads == involvedThreadCount)
+    {
+      // Kick off reset, and wake everyone up
+      // There's a question of what to do if the reset fails.
+      // Right now, my notion is that we throw the exception
+      // in the current thread, and just make sure everything
+      // is tracked.
+      try
+      {
+        performResetLogic(tc);
+      }
+      finally
+      {
+        // MUST do all this in the finally block, because if the reset fails we'll wind up with
+        // all threads blocked if we don't.  All waiting threads will be restarted, and will fail
+        // again, but that's the only way we can retry.
+        waitingThreads = 0;
+        resetRequired = false;
+        notifyAll();
+      }
+      return true;
+    }
 
-                // Just go to sleep until kicked.
-                wait();
-                // If we were awakened, it's because reset was fired.
-                return true;
-        }
+    // Just go to sleep until kicked.
+    wait();
+    // If we were awakened, it's because reset was fired.
+    return true;
+  }
 
-        /** Do the reset logic.
-        */
-        protected abstract void performResetLogic(IThreadContext tc)
-                throws LCFException;
+  /** Do the reset logic.
+  */
+  protected abstract void performResetLogic(IThreadContext tc)
+    throws LCFException;
 
-        
+
 }

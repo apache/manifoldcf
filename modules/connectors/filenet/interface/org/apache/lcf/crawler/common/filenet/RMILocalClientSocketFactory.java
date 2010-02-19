@@ -7,9 +7,9 @@
 * The ASF licenses this file to You under the Apache License, Version 2.0
 * (the "License"); you may not use this file except in compliance with
 * the License. You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,33 +27,33 @@ import java.io.IOException;
 */
 public class RMILocalClientSocketFactory implements RMIClientSocketFactory, java.io.Serializable
 {
-        public static final String _rcsid = "@(#)$Id$";
+  public static final String _rcsid = "@(#)$Id$";
 
-        /** Constructor */
-        public RMILocalClientSocketFactory()
-        {
-        }
+  /** Constructor */
+  public RMILocalClientSocketFactory()
+  {
+  }
 
-        /** The method that mints a socket of the right kind.
-        */
-        public Socket createSocket(String host, int port)
-                throws IOException
-        {
-                return new LocalClientSocket(port);
-        }
+  /** The method that mints a socket of the right kind.
+  */
+  public Socket createSocket(String host, int port)
+    throws IOException
+  {
+    return new LocalClientSocket(port);
+  }
 
-        /** The contract makes us implement equals and hashcode */
-        public boolean equals(Object o)
-        {
-                return (o instanceof RMILocalClientSocketFactory);
-        }
+  /** The contract makes us implement equals and hashcode */
+  public boolean equals(Object o)
+  {
+    return (o instanceof RMILocalClientSocketFactory);
+  }
 
-        /** Hashcode consistent with equals() */
-        public int hashCode()
-        {
-                // All classes of this kind have the same number (randomly picked)
-                return 258475;
-        }
+  /** Hashcode consistent with equals() */
+  public int hashCode()
+  {
+    // All classes of this kind have the same number (randomly picked)
+    return 258475;
+  }
 
 
 }

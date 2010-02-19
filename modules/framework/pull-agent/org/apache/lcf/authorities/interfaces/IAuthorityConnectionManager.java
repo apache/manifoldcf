@@ -7,9 +7,9 @@
 * The ASF licenses this file to You under the Apache License, Version 2.0
 * (the "License"); you may not use this file except in compliance with
 * the License. You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,66 +27,66 @@ import java.util.*;
 */
 public interface IAuthorityConnectionManager
 {
-        /** Install the manager.
-        */
-        public void install()
-                throws LCFException;
+  /** Install the manager.
+  */
+  public void install()
+    throws LCFException;
 
-        /** Uninstall the manager.
-        */
-        public void deinstall()
-                throws LCFException;
+  /** Uninstall the manager.
+  */
+  public void deinstall()
+    throws LCFException;
 
-        /** Export configuration */
-        public void exportConfiguration(java.io.OutputStream os)
-                throws java.io.IOException, LCFException;
-        
-        /** Import configuration */
-        public void importConfiguration(java.io.InputStream is)
-                throws java.io.IOException, LCFException;
+  /** Export configuration */
+  public void exportConfiguration(java.io.OutputStream os)
+    throws java.io.IOException, LCFException;
 
-        /** Obtain a list of the authority connections, ordered by name.
-        *@return an array of connection objects.
-        */
-        public IAuthorityConnection[] getAllConnections()
-                throws LCFException;
+  /** Import configuration */
+  public void importConfiguration(java.io.InputStream is)
+    throws java.io.IOException, LCFException;
 
-        /** Load a authority connection by name.
-        *@param name is the name of the authority connection.
-        *@return the loaded connection object, or null if not found.
-        */
-        public IAuthorityConnection load(String name)
-                throws LCFException;
+  /** Obtain a list of the authority connections, ordered by name.
+  *@return an array of connection objects.
+  */
+  public IAuthorityConnection[] getAllConnections()
+    throws LCFException;
 
-        /** Create a new authority connection object.
-        *@return the new object.
-        */
-        public IAuthorityConnection create()
-                throws LCFException;
+  /** Load a authority connection by name.
+  *@param name is the name of the authority connection.
+  *@return the loaded connection object, or null if not found.
+  */
+  public IAuthorityConnection load(String name)
+    throws LCFException;
 
-        /** Save an authority connection object.
-        *@param object is the object to save.
-        */
-        public void save(IAuthorityConnection object)
-                throws LCFException;
+  /** Create a new authority connection object.
+  *@return the new object.
+  */
+  public IAuthorityConnection create()
+    throws LCFException;
 
-        /** Delete an authority connection.
-        *@param name is the name of the connection to delete.  If the
-        * name does not exist, no error is returned.
-        */
-        public void delete(String name)
-                throws LCFException;
+  /** Save an authority connection object.
+  *@param object is the object to save.
+  */
+  public void save(IAuthorityConnection object)
+    throws LCFException;
 
-        // Schema related
+  /** Delete an authority connection.
+  *@param name is the name of the connection to delete.  If the
+  * name does not exist, no error is returned.
+  */
+  public void delete(String name)
+    throws LCFException;
 
-        /** Get the authority connection table name.
-        *@return the table name.
-        */
-        public String getTableName();
+  // Schema related
 
-        /** Get the authority connection name column.
-        *@return the name column.
-        */
-        public String getAuthorityNameColumn();
+  /** Get the authority connection table name.
+  *@return the table name.
+  */
+  public String getTableName();
+
+  /** Get the authority connection name column.
+  *@return the name column.
+  */
+  public String getAuthorityNameColumn();
 
 }

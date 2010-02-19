@@ -7,9 +7,9 @@
 * The ASF licenses this file to You under the Apache License, Version 2.0
 * (the "License"); you may not use this file except in compliance with
 * the License. You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,64 +30,64 @@ import java.lang.reflect.*;
 */
 public class IdleCleanupThread extends Thread
 {
-        public static final String _rcsid = "@(#)$Id$";
+  public static final String _rcsid = "@(#)$Id$";
 
-        // Local data
+  // Local data
 
 
-        /** Constructor.
-        */
-        public IdleCleanupThread()
-                throws LCFException
+  /** Constructor.
+  */
+  public IdleCleanupThread()
+    throws LCFException
+  {
+    super();
+    setName("Idle cleanup thread");
+    setDaemon(true);
+  }
+
+  public void run()
+  {
+    // Create a thread context object.
+    IThreadContext threadContext = ThreadContextFactory.make();
+
+    // Loop
+    while (true)
+    {
+      // Do another try/catch around everything in the loop
+      try
+      {
+        // Do the cleanup
+        AuthorityConnectorFactory.pollAllConnectors(threadContext);
+
+        // Sleep for the retry interval.
+        LCF.sleep(15000L);
+      }
+      catch (LCFException e)
+      {
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          break;
+
+        // Log it, but keep the thread alive
+        Logging.authorityService.error("Exception tossed",e);
+
+        if (e.getErrorCode() == LCFException.SETUP_ERROR)
         {
-                super();
-                setName("Idle cleanup thread");
-                setDaemon(true);
+          // Shut the whole system down!
+          System.exit(1);
         }
 
-        public void run()
-        {
-                // Create a thread context object.
-                IThreadContext threadContext = ThreadContextFactory.make();
-
-                // Loop
-                while (true)
-                {
-                        // Do another try/catch around everything in the loop
-                        try
-                        {
-                                // Do the cleanup
-                                AuthorityConnectorFactory.pollAllConnectors(threadContext);
-
-                                // Sleep for the retry interval.
-                                LCF.sleep(15000L);
-                        }
-                        catch (LCFException e)
-                        {
-                                if (e.getErrorCode() == LCFException.INTERRUPTED)
-                                        break;
-
-                                // Log it, but keep the thread alive
-                                Logging.authorityService.error("Exception tossed",e);
-
-                                if (e.getErrorCode() == LCFException.SETUP_ERROR)
-                                {
-                                        // Shut the whole system down!
-                                        System.exit(1);
-                                }
-
-                        }
-                        catch (InterruptedException e)
-                        {
-                                // We're supposed to quit
-                                break;
-                        }
-                        catch (Throwable e)
-                        {
-                                // A more severe error - but stay alive
-                                Logging.authorityService.fatal("Error tossed",e);
-                        }
-                }
-        }
+      }
+      catch (InterruptedException e)
+      {
+        // We're supposed to quit
+        break;
+      }
+      catch (Throwable e)
+      {
+        // A more severe error - but stay alive
+        Logging.authorityService.fatal("Error tossed",e);
+      }
+    }
+  }
 
 }

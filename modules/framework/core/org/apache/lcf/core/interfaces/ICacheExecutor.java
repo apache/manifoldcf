@@ -7,9 +7,9 @@
 * The ASF licenses this file to You under the Apache License, Version 2.0
 * (the "License"); you may not use this file except in compliance with
 * the License. You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -39,32 +39,32 @@ package org.apache.lcf.core.interfaces;
 */
 public interface ICacheExecutor
 {
-        public static final String _rcsid = "@(#)$Id$";
+  public static final String _rcsid = "@(#)$Id$";
 
-        /** Create a set of new objects to operate on and cache.  This method is called only
-        * if the specified object(s) are NOT available in the cache.  The specified objects
-        * should be created and returned; if they are not created, it means that the
-        * execution cannot proceed, and the execute() method will not be called.
-        * @param objectDescriptions is the set of unique identifier of the object.
-        * @return the newly created objects to cache, or null, if any object cannot be created.
-        *  The order of the returned objects must correspond to the order of the object descriptinos.
-        */
-        public Object[] create(ICacheDescription[] objectDescriptions) throws LCFException;
-
-
-        /** Notify the implementing class of the existence of a cached version of the
-        * object.  The object is passed to this method so that the execute() method below
-        * will have it available to operate on.  This method is also called for all objects
-        * that are freshly created as well.
-        * @param objectDescription is the unique identifier of the object.
-        * @param cachedObject is the cached object.
-        */
-        public void exists(ICacheDescription objectDescription, Object cachedObject) throws LCFException;
+  /** Create a set of new objects to operate on and cache.  This method is called only
+  * if the specified object(s) are NOT available in the cache.  The specified objects
+  * should be created and returned; if they are not created, it means that the
+  * execution cannot proceed, and the execute() method will not be called.
+  * @param objectDescriptions is the set of unique identifier of the object.
+  * @return the newly created objects to cache, or null, if any object cannot be created.
+  *  The order of the returned objects must correspond to the order of the object descriptinos.
+  */
+  public Object[] create(ICacheDescription[] objectDescriptions) throws LCFException;
 
 
-        /** Perform the desired operation.  This method is called after either createGetObject()
-        * or exists() is called for every requested object.
-        */
-        public void execute() throws LCFException;
+  /** Notify the implementing class of the existence of a cached version of the
+  * object.  The object is passed to this method so that the execute() method below
+  * will have it available to operate on.  This method is also called for all objects
+  * that are freshly created as well.
+  * @param objectDescription is the unique identifier of the object.
+  * @param cachedObject is the cached object.
+  */
+  public void exists(ICacheDescription objectDescription, Object cachedObject) throws LCFException;
+
+
+  /** Perform the desired operation.  This method is called after either createGetObject()
+  * or exists() is called for every requested object.
+  */
+  public void execute() throws LCFException;
 }
 

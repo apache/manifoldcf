@@ -7,9 +7,9 @@
 * The ASF licenses this file to You under the Apache License, Version 2.0
 * (the "License"); you may not use this file except in compliance with
 * the License. You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,31 +24,31 @@ import org.apache.lcf.core.system.*;
 
 public class Obfuscate
 {
-        public static final String _rcsid = "@(#)$Id$";
+  public static final String _rcsid = "@(#)$Id$";
 
-        private Obfuscate()
-        {
-        }
+  private Obfuscate()
+  {
+  }
 
 
-        public static void main(String[] args)
-        {
-                if (args.length != 1)
-                {
-                        System.err.println("Usage: Obfuscate <string>");
-                        System.exit(1);
-                }
+  public static void main(String[] args)
+  {
+    if (args.length != 1)
+    {
+      System.err.println("Usage: Obfuscate <string>");
+      System.exit(1);
+    }
 
-                String string = args[0];
-                try
-                {
-                        UTF8Stdout.println(LCF.obfuscate(string));
-                }
-                catch (LCFException e)
-                {
-                        e.printStackTrace();
-                        System.exit(1);
-                }
-        }
+    String string = args[0];
+    try
+    {
+      UTF8Stdout.println(LCF.obfuscate(string));
+    }
+    catch (LCFException e)
+    {
+      e.printStackTrace();
+      System.exit(1);
+    }
+  }
 
 }

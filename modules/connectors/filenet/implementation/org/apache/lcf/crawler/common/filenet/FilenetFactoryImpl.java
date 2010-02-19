@@ -7,9 +7,9 @@
 * The ASF licenses this file to You under the Apache License, Version 2.0
 * (the "License"); you may not use this file except in compliance with
 * the License. You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,20 +26,20 @@ import java.util.*;
 */
 public class FilenetFactoryImpl extends UnicastRemoteObject implements IFilenetFactory
 {
-        public static final String _rcsid = "@(#)$Id$";
+  public static final String _rcsid = "@(#)$Id$";
 
-        /** Instantiate */
-        public FilenetFactoryImpl()
-                throws RemoteException
-        {
-                super(0,new RMILocalClientSocketFactory(),new RMILocalSocketFactory());
-        }
+  /** Instantiate */
+  public FilenetFactoryImpl()
+    throws RemoteException
+  {
+    super(0,new RMILocalClientSocketFactory(),new RMILocalSocketFactory());
+  }
 
-        /** Mint a new IFilenet handle.
-        */
-        public IFilenet make()
-                throws RemoteException
-        {
-                return new FilenetImpl();
-        }
+  /** Mint a new IFilenet handle.
+  */
+  public IFilenet make()
+    throws RemoteException
+  {
+    return new FilenetImpl();
+  }
 }

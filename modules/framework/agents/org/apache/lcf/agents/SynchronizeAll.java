@@ -7,9 +7,9 @@
 * The ASF licenses this file to You under the Apache License, Version 2.0
 * (the "License"); you may not use this file except in compliance with
 * the License. You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,51 +25,51 @@ import org.apache.lcf.agents.system.*;
 
 public class SynchronizeAll
 {
-        public static final String _rcsid = "@(#)$Id$";
+  public static final String _rcsid = "@(#)$Id$";
 
-        private SynchronizeAll()
+  private SynchronizeAll()
+  {
+  }
+
+
+  public static void main(String[] args)
+  {
+    if (args.length > 0)
+    {
+      System.err.println("Usage: SynchronizeAll");
+      System.exit(1);
+    }
+
+    try
+    {
+      LCF.initializeEnvironment();
+      IThreadContext tc = ThreadContextFactory.make();
+      IAgentManager mgr = AgentManagerFactory.make(tc);
+      String[] classnames = mgr.getAllAgents();
+      int i = 0;
+      while (i < classnames.length)
+      {
+        String classname = classnames[i++];
+        try
         {
+          AgentFactory.make(tc,classname);
         }
-
-
-        public static void main(String[] args)
+        catch (LCFException e)
         {
-                if (args.length > 0)
-                {
-                        System.err.println("Usage: SynchronizeAll");
-                        System.exit(1);
-                }
-
-                try
-                {
-                        LCF.initializeEnvironment();
-                        IThreadContext tc = ThreadContextFactory.make();
-                        IAgentManager mgr = AgentManagerFactory.make(tc);
-                        String[] classnames = mgr.getAllAgents();
-                        int i = 0;
-                        while (i < classnames.length)
-                        {
-                                String classname = classnames[i++];
-                                try
-                                {
-                                        AgentFactory.make(tc,classname);
-                                }
-                                catch (LCFException e)
-                                {
-                                        // Couldn't instantiate the agent: Remove from database table
-                                        mgr.removeAgent(classname);
-                                }
-                        }
-                        System.err.println("Successfully synchronized all agents");
-                }
-                catch (LCFException e)
-                {
-                        e.printStackTrace();
-                        System.exit(1);
-                }
+          // Couldn't instantiate the agent: Remove from database table
+          mgr.removeAgent(classname);
         }
+      }
+      System.err.println("Successfully synchronized all agents");
+    }
+    catch (LCFException e)
+    {
+      e.printStackTrace();
+      System.exit(1);
+    }
+  }
 
 
 
-                
+
 }

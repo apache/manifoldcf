@@ -7,9 +7,9 @@
 * The ASF licenses this file to You under the Apache License, Version 2.0
 * (the "License"); you may not use this file except in compliance with
 * the License. You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,26 +23,26 @@ package org.apache.lcf.agents.output.gts;
 */
 public class GTSConfig
 {
-        public static final String _rcsid = "@(#)$Id$";
+  public static final String _rcsid = "@(#)$Id$";
 
-        // Configuration parameters
-    
-        /** Ingest URI */
-        public static final String PARAM_INGESTURI = "Ingestion URI";
-        /** Optional realm */
-        public static final String PARAM_REALM = "Realm";
-        /** Optional user ID */
-        public static final String PARAM_USERID = "User ID";
-        /** Optional user password */
-        public static final String PARAM_PASSWORD = "Password";
+  // Configuration parameters
 
-        // Output specification
-    
-        /** Collection node */
-        public static final String NODE_COLLECTION = "collection";
-        /** Document template node */
-        public static final String NODE_DOCUMENTTEMPLATE = "documenttemplate";
-        /** Name attribute */
-        public static final String ATTRIBUTE_VALUE = "value";
+  /** Ingest URI */
+  public static final String PARAM_INGESTURI = "Ingestion URI";
+  /** Optional realm */
+  public static final String PARAM_REALM = "Realm";
+  /** Optional user ID */
+  public static final String PARAM_USERID = "User ID";
+  /** Optional user password */
+  public static final String PARAM_PASSWORD = "Password";
+
+  // Output specification
+
+  /** Collection node */
+  public static final String NODE_COLLECTION = "collection";
+  /** Document template node */
+  public static final String NODE_DOCUMENTTEMPLATE = "documenttemplate";
+  /** Name attribute */
+  public static final String ATTRIBUTE_VALUE = "value";
 
 }

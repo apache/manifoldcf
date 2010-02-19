@@ -7,9 +7,9 @@
 * The ASF licenses this file to You under the Apache License, Version 2.0
 * (the "License"); you may not use this file except in compliance with
 * the License. You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,40 +25,40 @@ import org.apache.lcf.core.interfaces.*;
 */
 public class DocumentSpecification extends Specification
 {
-        public static final String _rcsid = "@(#)$Id$";
+  public static final String _rcsid = "@(#)$Id$";
 
-        /** Constructor.
-        */
-        public DocumentSpecification()
-        {
-                super();
-        }
+  /** Constructor.
+  */
+  public DocumentSpecification()
+  {
+    super();
+  }
 
-        /** Construct from XML.
-        *@param xml is the input XML.
-        */
-        public DocumentSpecification(String xml)
-                throws LCFException
-        {
-                super(xml);
-        }
+  /** Construct from XML.
+  *@param xml is the input XML.
+  */
+  public DocumentSpecification(String xml)
+    throws LCFException
+  {
+    super(xml);
+  }
 
-        /** Duplicate.
-        *@return an exact duplicate
-        */
-        public DocumentSpecification duplicate(boolean readOnly)
-        {
-                if (readOnly && this.readOnly)
-                        return this;
-                DocumentSpecification rval = new DocumentSpecification();
-                int i = 0;
-                while (i < children.size())
-                {
-                        SpecificationNode node = (SpecificationNode)children.get(i++);
-                        rval.children.add(node.duplicate(readOnly));
-                }
-                rval.readOnly = readOnly;
-                return rval;
-        }
+  /** Duplicate.
+  *@return an exact duplicate
+  */
+  public DocumentSpecification duplicate(boolean readOnly)
+  {
+    if (readOnly && this.readOnly)
+      return this;
+    DocumentSpecification rval = new DocumentSpecification();
+    int i = 0;
+    while (i < children.size())
+    {
+      SpecificationNode node = (SpecificationNode)children.get(i++);
+      rval.children.add(node.duplicate(readOnly));
+    }
+    rval.readOnly = readOnly;
+    return rval;
+  }
 
 }

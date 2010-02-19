@@ -7,9 +7,9 @@
 * The ASF licenses this file to You under the Apache License, Version 2.0
 * (the "License"); you may not use this file except in compliance with
 * the License. You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,31 +20,31 @@ package org.apache.lcf.ui.beans;
 
 import org.apache.lcf.core.interfaces.*;
 
-/** Class to provide a threadcontext bean for every JSP page 
+/** Class to provide a threadcontext bean for every JSP page
 */
 public class ThreadContext
 {
-        public static final String _rcsid = "@(#)$Id$";
+  public static final String _rcsid = "@(#)$Id$";
 
-        /** thread context interface
-         */
-        private IThreadContext itc;
+  /** thread context interface
+  */
+  private IThreadContext itc;
 
-        /** Constructor 
-         */
-        public ThreadContext()
-        {
+  /** Constructor
+  */
+  public ThreadContext()
+  {
 
-                itc = ThreadContextFactory.make();
-        }
+    itc = ThreadContextFactory.make();
+  }
 
-        /** Get the thread context.
-        *@return the context.
-        */
-        public IThreadContext getThreadContext()
-        {
-                return itc;
-        }
+  /** Get the thread context.
+  *@return the context.
+  */
+  public IThreadContext getThreadContext()
+  {
+    return itc;
+  }
 }
 
 

@@ -7,9 +7,9 @@
 * The ASF licenses this file to You under the Apache License, Version 2.0
 * (the "License"); you may not use this file except in compliance with
 * the License. You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,45 +30,45 @@ import java.util.*;
 */
 public class RequestQueue
 {
-        public static final String _rcsid = "@(#)$Id$";
+  public static final String _rcsid = "@(#)$Id$";
 
-        // Since the queue has a maximum size, an ArrayList is a fine way to keep it
-        protected ArrayList queue = new ArrayList();
-        
-        /** Constructor.
-        */
-        public RequestQueue()
-        {
-        }
+  // Since the queue has a maximum size, an ArrayList is a fine way to keep it
+  protected ArrayList queue = new ArrayList();
 
-        /** Add a request to the queue.
-        *@param dd is the request.
-        */
-        public void addRequest(AuthRequest dd)
-        {
-                synchronized (queue)
-                {
-                        queue.add(dd);
-                        queue.notify();
-                }
-        }
+  /** Constructor.
+  */
+  public RequestQueue()
+  {
+  }
 
-        /** Pull the next request off the queue, but wait if there is
-        * nothing there.
-        *@return the request to be processed.
-        */
-        public AuthRequest getRequest()
-                throws InterruptedException
-        {
-                synchronized (queue)
-                {
-                        // If queue is empty, go to sleep
-                        while (queue.size() == 0)
-                                queue.wait();
-                        
-                        return (AuthRequest)queue.remove(queue.size()-1);
-                }
-        }
-                                
+  /** Add a request to the queue.
+  *@param dd is the request.
+  */
+  public void addRequest(AuthRequest dd)
+  {
+    synchronized (queue)
+    {
+      queue.add(dd);
+      queue.notify();
+    }
+  }
+
+  /** Pull the next request off the queue, but wait if there is
+  * nothing there.
+  *@return the request to be processed.
+  */
+  public AuthRequest getRequest()
+    throws InterruptedException
+  {
+    synchronized (queue)
+    {
+      // If queue is empty, go to sleep
+      while (queue.size() == 0)
+        queue.wait();
+
+      return (AuthRequest)queue.remove(queue.size()-1);
+    }
+  }
+
 
 }

@@ -7,9 +7,9 @@
 * The ASF licenses this file to You under the Apache License, Version 2.0
 * (the "License"); you may not use this file except in compliance with
 * the License. You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,34 +25,34 @@ import org.apache.lcf.agents.system.*;
 */
 public class OutputConnectorManagerFactory
 {
-        public static final String _rcsid = "@(#)$Id$";
+  public static final String _rcsid = "@(#)$Id$";
 
-        protected static final String connMgr = "_OutputConnectorManager_";
+  protected static final String connMgr = "_OutputConnectorManager_";
 
-        private OutputConnectorManagerFactory()
-        {
-        }
+  private OutputConnectorManagerFactory()
+  {
+  }
 
-        /** Construct an output connector manager.
-        *@param threadContext is the thread context.
-        *@return the output connector manager handle.
-        */
-        public static IOutputConnectorManager make(IThreadContext tc)
-                throws LCFException
-        {
-                Object o = tc.get(connMgr);
-                if (o == null || !(o instanceof IOutputConnectorManager))
-                {
+  /** Construct an output connector manager.
+  *@param threadContext is the thread context.
+  *@return the output connector manager handle.
+  */
+  public static IOutputConnectorManager make(IThreadContext tc)
+    throws LCFException
+  {
+    Object o = tc.get(connMgr);
+    if (o == null || !(o instanceof IOutputConnectorManager))
+    {
 
-                        IDBInterface database = DBInterfaceFactory.make(tc,
-                                LCF.getMasterDatabaseName(),
-                                LCF.getMasterDatabaseUsername(),
-                                LCF.getMasterDatabasePassword());
+      IDBInterface database = DBInterfaceFactory.make(tc,
+        LCF.getMasterDatabaseName(),
+        LCF.getMasterDatabaseUsername(),
+        LCF.getMasterDatabasePassword());
 
-                        o = new org.apache.lcf.agents.outputconnmgr.OutputConnectorManager(tc,database);
-                        tc.save(connMgr,o);
-                }
-                return (IOutputConnectorManager)o;
-        }
+      o = new org.apache.lcf.agents.outputconnmgr.OutputConnectorManager(tc,database);
+      tc.save(connMgr,o);
+    }
+    return (IOutputConnectorManager)o;
+  }
 
 }
