@@ -2,6 +2,7 @@
 
     <target name="clean">
         <delete dir="build"/>
+        <delete dir="dist"/>
     </target>
 
     <target name="precompile-check">
@@ -19,27 +20,27 @@
 
     <target name="compile-crawler-ui" depends="compile-connector,precompile-check" if="canBuild">
         <!-- Unpack the crawler war -->
-        <mkdir dir="build/crawler-war"/>
-        <unwar src="war/lcf-crawler-ui.war" dest="build/crawler-war"/>
+        <mkdir dir="build/crawler-ui-war"/>
+        <unwar src="war/lcf-crawler-ui.war" dest="build/crawler-ui-war"/>
         <!-- Create a copy of everything in the proper environment -->
         <mkdir dir="build/jsp-environment/WEB-INF/lib"/>
         <mkdir dir="build/jsp-environment/WEB-INF/jsp"/>
-        <copy todir="build/jsp-environment/WEB-INF" file="build/crawler-war/WEB-INF/web.xml"/>
-        <copy todir="build/jsp-environment" file="build/crawler-war/adminHeaders.jsp"/>
-        <copy todir="build/jsp-environment" file="build/crawler-war/adminDefaults.jsp"/>
-        <copy todir="build/jsp-environment" file="build/crawler-war/error.jsp"/>
-        <copy todir="build/jsp-environment" file="build/crawler-war/checkAdminLogin.jsp"/>
+        <copy todir="build/jsp-environment/WEB-INF" file="build/crawler-ui-war/WEB-INF/web.xml"/>
+        <copy todir="build/jsp-environment" file="build/crawler-ui-war/adminHeaders.jsp"/>
+        <copy todir="build/jsp-environment" file="build/crawler-ui-war/adminDefaults.jsp"/>
+        <copy todir="build/jsp-environment" file="build/crawler-ui-war/error.jsp"/>
+        <copy todir="build/jsp-environment" file="build/crawler-ui-war/checkAdminLogin.jsp"/>
 
         <copy todir="build/jsp-environment">
             <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
         </copy>
         <copy todir="build/jsp-environment/WEB-INF/lib">
-            <fileset dir="build/crawler-war/WEB-INF/lib">
+            <fileset dir="build/crawler-ui-war/WEB-INF/lib">
                 <include name="*.jar"/>
             </fileset>
         </copy>
         <copy todir="build/jsp-environment/WEB-INF/jsp">
-            <fileset dir="build/crawler-war/WEB-INF/jsp">
+            <fileset dir="build/crawler-ui-war/WEB-INF/jsp">
                 <include name="*.tld"/>
             </fileset>
         </copy>
@@ -58,8 +59,8 @@
                 <fileset dir="mxie-java"> 
                     <include name="*.jar"/> 
                 </fileset> 
-                <pathelement location="build/crawler-war/WEB-INF/lib/jstl.jar"/>
-                <pathelement location="build/crawler-war/WEB-INF/lib/standard.jar"/>
+                <pathelement location="build/crawler-ui-war/WEB-INF/lib/jstl.jar"/>
+                <pathelement location="build/crawler-ui-war/WEB-INF/lib/standard.jar"/>
                 <pathelement location="build/connector/classes"/>
             </classpath> 
         </taskdef> 
@@ -75,8 +76,8 @@
                 <fileset dir="mxie-java"> 
                     <include name="*.jar"/> 
                 </fileset> 
-                <pathelement location="build/crawler-war/WEB-INF/lib/jstl.jar"/>
-                <pathelement location="build/crawler-war/WEB-INF/lib/standard.jar"/>
+                <pathelement location="build/crawler-ui-war/WEB-INF/lib/jstl.jar"/>
+                <pathelement location="build/crawler-ui-war/WEB-INF/lib/standard.jar"/>
                 <pathelement location="build/connector/classes"/>
             </classpath>
         </javac>
@@ -87,20 +88,41 @@
         <jar destfile="build/jar/lcf-memex-connector.jar" basedir="build/connector/classes"/>
     </target>
 
-    <target name="webapp-connector-ui" depends="compile-crawler-ui,jar-connector,precompile-check" if="canBuild">
+    <target name="webapp-crawler-ui" depends="compile-crawler-ui,jar-connector,precompile-check" if="canBuild">
         <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-memex-connector.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib">
+            <fileset dir="mxie-java" includes="*.jar"/>
+        </copy>
         <mkdir dir="build/webapp/crawler-ui"/>
         <copy todir="build/webapp/crawler-ui">
             <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
         </copy>
     </target>
-    
-    <target name="iar-connector-ui" depends="webapp-connector-ui,precompile-check" if="canBuild">
-        <mkdir dir="build/iar"/>
-        <jar destfile="build/iar/lcf-memexconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
+
+    <target name="webapp-authority-service" depends="jar-connector,precompile-check" if="canBuild">
+        <mkdir dir="build/webapp/authority-service/WEB-INF/lib"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="build/jar/lcf-memex-connector.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib">
+            <fileset dir="mxie-java" includes="*.jar"/>
+        </copy>
     </target>
 
-    <target name="all" depends="jar-connector,iar-connector-ui"/>
+    <target name="iar-crawler-ui" depends="webapp-crawler-ui,precompile-check" if="canBuild">
+        <mkdir dir="dist/iar"/>
+        <jar destfile="dist/iar/lcf-memexconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
+    </target>
+
+    <target name="iar-authority-service" depends="webapp-authority-service,precompile-check" if="canBuild">
+        <mkdir dir="dist/iar"/>
+        <jar destfile="dist/iar/lcf-memexconnector-authority-service.iar" basedir="build/webapp/authority-service"/>
+    </target>
+
+    <target name="processes" depends="jar-connector,precompile-check" if="canBuild">
+        <mkdir dir="dist/processes"/>
+        <copy todir="dist/processes" file="build/jar/lcf-memex-connector.jar"/>
+    </target>
+
+    <target name="all" depends="processes,iar-crawler-ui,iar-authority-service"/>
     
 </project>

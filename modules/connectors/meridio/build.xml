@@ -2,14 +2,15 @@
 
     <target name="clean">
         <delete dir="build"/>
+        <delete dir="dist"/>
     </target>
 
     <target name="calculate-condition">
         <available file="wsdls/MeridioDMWS_axis.wsdl" property="meridioDMWS_axisStatus"/>
         <available file="wsdls/MeridioRMWS_axis.wsdl" property="meridioRMWS_axisStatus"/>
-        <available file="wsdls/DMDataSet.xsd" property="DMDataSetStatus"/>
-        <available file="wsdls/RMDataSet.xsd" property="RMDataSetStatus"/>
-        <available file="wsdls/RMClassificationDataSet.xsd" property="RMClassificationDataSetStatus"/>
+        <available file="wsdls/DMDataSet_castor.xsd" property="DMDataSetStatus"/>
+        <available file="wsdls/RMDataSet_castor.xsd" property="RMDataSetStatus"/>
+        <available file="wsdls/RMClassificationDataSet_castor.xsd" property="RMClassificationDataSetStatus"/>
         <condition property="canBuild">
             <and>
                 <isset property="meridioDMWS_axisStatus"/>
@@ -22,9 +23,19 @@
     </target>
 
     <target name="precompile-check" depends="calculate-condition" unless="canBuild">
-        <echo message="Meridio Connector cannot be built without MeridioDMWS_axis.wsdl, MeridioRMWS_axis.wsdl, DMDataSet.xsd, RMDataSet.xsd, RMClassificationDataSet.xsd, activation.jar, and mailapi.jar"/>
+        <echo message="Meridio Connector cannot be built without MeridioDMWS_axis.wsdl, MeridioRMWS_axis.wsdl, DMDataSet_castor.xsd, RMDataSet_castor.xsd, and RMClassificationDataSet_castor.xsd"/>
     </target>
 
+    <target name="copy-wsdls" depends="precompile-check" if="canBuild">
+        <mkdir dir="build/wsdls"/>
+        <copy tofile="build/wsdls/MeridioRMWS.wsdl" file="wsdls/MeridioRMWS_axis.wsdl"/>
+        <copy tofile="build/wsdls/MeridioDMWS.wsdl" file="wsdls/MeridioDMWS_axis.wsdl"/>
+        <copy tofile="build/wsdls/RMDataSet.xsd" file="wsdls/RMDataSet_castor.xsd"/>
+        <copy tofile="build/wsdls/DMDataSet.xsd" file="wsdls/DMDataSet_castor.xsd"/>
+        <copy tofile="build/wsdls/RMClassificationDataSet.xsd" file="wsdls/RMClassificationDataSet_castor.xsd"/>
+        <copy tofile="build/wsdls/MetaCartaWS.wsdl" file="wsdls/MetaCartaWS_axis.wsdl"/>
+    </target>
+    
     <target name="classcreate-wsdl">
         <mkdir dir="build/wsdljava"/>
         <java classname="org.apache.axis.wsdl.WSDL2Java" fork="true" classpath="lib/axis.jar:lib/commons-logging.jar:lib/commons-discovery.jar:lib/saaj.jar:lib/wsdl4j.jar:lib/jaxrpc.jar:lib/activation.jar:lib/xml-apis.jar:lib/xercesImpl.jar">
@@ -37,15 +48,15 @@
         </java>
     </target>
     
-    <target name="classcreate-wsdls" depends="precompile-check" if="canBuild">
+    <target name="classcreate-wsdls" depends="copy-wsdls,precompile-check" if="canBuild">
         <antcall target="classcreate-wsdl">
-            <param name="wsdlname" value="wsdls/MeridioDMWS_axis.wsdl"/>
+            <param name="wsdlname" value="build/wsdls/MeridioDMWS.wsdl"/>
         </antcall>
         <antcall target="classcreate-wsdl">
-            <param name="wsdlname" value="wsdls/MeridioRMWS_axis.wsdl"/>
+            <param name="wsdlname" value="build/wsdls/MeridioRMWS.wsdl"/>
         </antcall>
         <antcall target="classcreate-wsdl">
-            <param name="wsdlname" value="wsdls/MetaCartaWS_axis.wsdl"/>
+            <param name="wsdlname" value="build/wsdls/MetaCartaWS.wsdl"/>
         </antcall>
     </target>
     
@@ -70,15 +81,15 @@
     <target name="classcreate-xsds" depends="precompile-check" if="canBuild">
         <mkdir dir="build/xsdjava"/>
         <antcall target="classcreate-xsd">
-            <param name="xsdname" value="wsdls/DMDataSet.xsd"/>
+            <param name="xsdname" value="build/wsdls/DMDataSet.xsd"/>
             <param name="packagename" value="DMDataSet"/>
         </antcall>
         <antcall target="classcreate-xsd">
-            <param name="xsdname" value="wsdls/RMClassificationDataSet.xsd"/>
+            <param name="xsdname" value="build/wsdls/RMClassificationDataSet.xsd"/>
             <param name="packagename" value="RMClassificationDataSet"/>
         </antcall>
         <antcall target="classcreate-xsd">
-            <param name="xsdname" value="wsdls/RMDataSet.xsd"/>
+            <param name="xsdname" value="build/wsdls/RMDataSet.xsd"/>
             <param name="packagename" value="RMDataSet"/>
         </antcall>
     </target>
@@ -100,27 +111,27 @@
 
     <target name="compile-crawler-ui" depends="compile-connector,compile-wsdls,compile-xsds,precompile-check" if="canBuild">
         <!-- Unpack the crawler war -->
-        <mkdir dir="build/crawler-war"/>
-        <unwar src="war/lcf-crawler-ui.war" dest="build/crawler-war"/>
+        <mkdir dir="build/crawler-ui-war"/>
+        <unwar src="war/lcf-crawler-ui.war" dest="build/crawler-ui-war"/>
         <!-- Create a copy of everything in the proper environment -->
         <mkdir dir="build/jsp-environment/WEB-INF/lib"/>
         <mkdir dir="build/jsp-environment/WEB-INF/jsp"/>
-        <copy todir="build/jsp-environment/WEB-INF" file="build/crawler-war/WEB-INF/web.xml"/>
-        <copy todir="build/jsp-environment" file="build/crawler-war/adminHeaders.jsp"/>
-        <copy todir="build/jsp-environment" file="build/crawler-war/adminDefaults.jsp"/>
-        <copy todir="build/jsp-environment" file="build/crawler-war/error.jsp"/>
-        <copy todir="build/jsp-environment" file="build/crawler-war/checkAdminLogin.jsp"/>
+        <copy todir="build/jsp-environment/WEB-INF" file="build/crawler-ui-war/WEB-INF/web.xml"/>
+        <copy todir="build/jsp-environment" file="build/crawler-ui-war/adminHeaders.jsp"/>
+        <copy todir="build/jsp-environment" file="build/crawler-ui-war/adminDefaults.jsp"/>
+        <copy todir="build/jsp-environment" file="build/crawler-ui-war/error.jsp"/>
+        <copy todir="build/jsp-environment" file="build/crawler-ui-war/checkAdminLogin.jsp"/>
 
         <copy todir="build/jsp-environment">
             <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
         </copy>
         <copy todir="build/jsp-environment/WEB-INF/lib">
-            <fileset dir="build/crawler-war/WEB-INF/lib">
+            <fileset dir="build/crawler-ui-war/WEB-INF/lib">
                 <include name="*.jar"/>
             </fileset>
         </copy>
         <copy todir="build/jsp-environment/WEB-INF/jsp">
-            <fileset dir="build/crawler-war/WEB-INF/jsp">
+            <fileset dir="build/crawler-ui-war/WEB-INF/jsp">
                 <include name="*.tld"/>
             </fileset>
         </copy>
@@ -136,8 +147,8 @@
                 <fileset dir="lib"> 
                     <include name="*.jar"/> 
                 </fileset> 
-                <pathelement location="build/crawler-war/WEB-INF/lib/jstl.jar"/>
-                <pathelement location="build/crawler-war/WEB-INF/lib/standard.jar"/>
+                <pathelement location="build/crawler-ui-war/WEB-INF/lib/jstl.jar"/>
+                <pathelement location="build/crawler-ui-war/WEB-INF/lib/standard.jar"/>
                 <pathelement location="build/connector/classes"/>
                 <pathelement location="build/wsdlclasses"/>
                 <pathelement location="build/xsdclasses"/>
@@ -152,8 +163,8 @@
                 <fileset dir="lib"> 
                     <include name="*.jar"/> 
                 </fileset>
-                <pathelement location="build/crawler-war/WEB-INF/lib/jstl.jar"/>
-                <pathelement location="build/crawler-war/WEB-INF/lib/standard.jar"/>
+                <pathelement location="build/crawler-ui-war/WEB-INF/lib/jstl.jar"/>
+                <pathelement location="build/crawler-ui-war/WEB-INF/lib/standard.jar"/>
                 <pathelement location="build/connector/classes"/>
                 <pathelement location="build/wsdlclasses"/>
                 <pathelement location="build/xsdclasses"/>
@@ -176,7 +187,7 @@
         <jar destfile="build/jar/lcf-meridio-xsdstub.jar" basedir="build/xsdclasses"/>
     </target>
 
-    <target name="webapp-connector-ui" depends="compile-crawler-ui,jar-connector,jar-wsdls,jar-xsds,precompile-check" if="canBuild">
+    <target name="webapp-crawler-ui" depends="compile-crawler-ui,jar-connector,jar-wsdls,jar-xsds,precompile-check" if="canBuild">
         <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-meridio-connector.jar"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-meridio-wsdlstub.jar"/>
@@ -196,12 +207,62 @@
             <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
         </copy>
     </target>
-    
-    <target name="iar-connector-ui" depends="webapp-connector-ui,precompile-check" if="canBuild">
-        <mkdir dir="build/iar"/>
-        <jar destfile="build/iar/lcf-meridioconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
+
+    <target name="webapp-authority-service" depends="jar-connector,jar-wsdls,jar-xsds,precompile-check" if="canBuild">
+        <mkdir dir="build/webapp/authority-service/WEB-INF/lib"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="build/jar/lcf-meridio-connector.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="build/jar/lcf-meridio-wsdlstub.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="build/jar/lcf-meridio-xsdstub.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/axis.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/jaxrpc.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/wsdl4j.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/saaj.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/commons-discovery.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/castor-1.0.5-commons.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/castor-1.0.5.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/castor-1.0.5-xml.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/geronimo-activation_1.1_spec.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/geronimo-javamail_1.4_spec.jar"/>
     </target>
 
-    <target name="all" depends="jar-connector,jar-wsdls,jar-xsds,iar-connector-ui"/>
+    <target name="wsdd" depends="precompile-check" if="canBuild">
+        <mkdir dir="dist/wsdd"/>
+        <copy todir="dist/wsdd" file="meridio-client-config.wsdd"/>
+    </target>
+    
+    <target name="iar-wsdd" depends="precompile-check" if="canBuild">
+        <mkdir dir="dist/iar"/>
+        <copy todir="dist/iar" file="org.apache.lcf.meridio.wsddpath"/>
+    </target>
+    
+    <target name="iar-crawler-ui" depends="webapp-crawler-ui,precompile-check" if="canBuild">
+        <mkdir dir="dist/iar"/>
+        <jar destfile="dist/iar/lcf-meridioconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
+    </target>
+
+    <target name="iar-authority-service" depends="webapp-authority-service,precompile-check" if="canBuild">
+        <mkdir dir="dist/iar"/>
+        <jar destfile="dist/iar/lcf-meridioconnector-authority-service.iar" basedir="build/webapp/authority-service"/>
+    </target>
+
+    <target name="processes" depends="jar-connector,jar-wsdls,jar-xsds,precompile-check" if="canBuild">
+        <mkdir dir="dist/processes"/>
+        <copy todir="dist/processes" file="build/jar/lcf-meridio-connector.jar"/>
+        <copy todir="dist/processes" file="build/jar/lcf-meridio-wsdlstub.jar"/>
+        <copy todir="dist/processes" file="build/jar/lcf-meridio-xsdstub.jar"/>
+        <copy todir="dist/processes" file="lib/axis.jar"/>
+        <copy todir="dist/processes" file="lib/jaxrpc.jar"/>
+        <copy todir="dist/processes" file="lib/wsdl4j.jar"/>
+        <copy todir="dist/processes" file="lib/saaj.jar"/>
+        <copy todir="dist/processes" file="lib/commons-discovery.jar"/>
+        <copy todir="dist/processes" file="lib/castor-1.0.5-commons.jar"/>
+        <copy todir="dist/processes" file="lib/castor-1.0.5.jar"/>
+        <copy todir="dist/processes" file="lib/castor-1.0.5-xml.jar"/>
+        <copy todir="dist/processes" file="lib/geronimo-activation_1.1_spec.jar"/>
+        <copy todir="dist/processes" file="lib/geronimo-javamail_1.4_spec.jar"/>
+        <copy todir="dist/processes" file="org.apache.lcf.meridio.wsddpath"/>
+    </target>
+
+    <target name="all" depends="processes,wsdd,iar-crawler-ui,iar-authority-service,iar-wsdd"/>
     
 </project>

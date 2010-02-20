@@ -2,6 +2,7 @@
 
     <target name="clean">
         <delete dir="build"/>
+        <delete dir="dist"/>
     </target>
     
     <target name="compile-connector">
@@ -11,27 +12,27 @@
 
     <target name="compile-crawler-ui" depends="compile-connector">
         <!-- Unpack the crawler war -->
-        <mkdir dir="build/crawler-war"/>
-        <unwar src="war/lcf-crawler-ui.war" dest="build/crawler-war"/>
+        <mkdir dir="build/crawler-ui-war"/>
+        <unwar src="war/lcf-crawler-ui.war" dest="build/crawler-ui-war"/>
         <!-- Create a copy of everything in the proper environment -->
         <mkdir dir="build/jsp-environment/WEB-INF/lib"/>
         <mkdir dir="build/jsp-environment/WEB-INF/jsp"/>
-        <copy todir="build/jsp-environment/WEB-INF" file="build/crawler-war/WEB-INF/web.xml"/>
-        <copy todir="build/jsp-environment" file="build/crawler-war/adminHeaders.jsp"/>
-        <copy todir="build/jsp-environment" file="build/crawler-war/adminDefaults.jsp"/>
-        <copy todir="build/jsp-environment" file="build/crawler-war/error.jsp"/>
-        <copy todir="build/jsp-environment" file="build/crawler-war/checkAdminLogin.jsp"/>
+        <copy todir="build/jsp-environment/WEB-INF" file="build/crawler-ui-war/WEB-INF/web.xml"/>
+        <copy todir="build/jsp-environment" file="build/crawler-ui-war/adminHeaders.jsp"/>
+        <copy todir="build/jsp-environment" file="build/crawler-ui-war/adminDefaults.jsp"/>
+        <copy todir="build/jsp-environment" file="build/crawler-ui-war/error.jsp"/>
+        <copy todir="build/jsp-environment" file="build/crawler-ui-war/checkAdminLogin.jsp"/>
 
         <copy todir="build/jsp-environment">
             <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
         </copy>
         <copy todir="build/jsp-environment/WEB-INF/lib">
-            <fileset dir="build/crawler-war/WEB-INF/lib">
+            <fileset dir="build/crawler-ui-war/WEB-INF/lib">
                 <include name="*.jar"/>
             </fileset>
         </copy>
         <copy todir="build/jsp-environment/WEB-INF/jsp">
-            <fileset dir="build/crawler-war/WEB-INF/jsp">
+            <fileset dir="build/crawler-ui-war/WEB-INF/jsp">
                 <include name="*.tld"/>
             </fileset>
         </copy>
@@ -47,8 +48,8 @@
                 <fileset dir="lib"> 
                     <include name="*.jar"/> 
                 </fileset> 
-                <pathelement location="build/crawler-war/WEB-INF/lib/jstl.jar"/>
-                <pathelement location="build/crawler-war/WEB-INF/lib/standard.jar"/>
+                <pathelement location="build/crawler-ui-war/WEB-INF/lib/jstl.jar"/>
+                <pathelement location="build/crawler-ui-war/WEB-INF/lib/standard.jar"/>
                 <pathelement location="build/connector/classes"/>
             </classpath> 
         </taskdef> 
@@ -61,8 +62,8 @@
                 <fileset dir="lib"> 
                     <include name="*.jar"/> 
                 </fileset>
-                <pathelement location="build/crawler-war/WEB-INF/lib/jstl.jar"/>
-                <pathelement location="build/crawler-war/WEB-INF/lib/standard.jar"/>
+                <pathelement location="build/crawler-ui-war/WEB-INF/lib/jstl.jar"/>
+                <pathelement location="build/crawler-ui-war/WEB-INF/lib/standard.jar"/>
                 <pathelement location="build/connector/classes"/>
             </classpath>
         </javac>
@@ -73,7 +74,7 @@
         <jar destfile="build/jar/lcf-nulloutput-connector.jar" basedir="build/connector/classes"/>
     </target>
 
-    <target name="webapp-connector-ui" depends="compile-crawler-ui,jar-connector">
+    <target name="webapp-crawler-ui" depends="compile-crawler-ui,jar-connector">
         <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-nulloutput-connector.jar"/>
         <mkdir dir="build/webapp/crawler-ui"/>
@@ -82,11 +83,16 @@
         </copy>
     </target>
     
-    <target name="iar-connector-ui" depends="webapp-connector-ui">
-        <mkdir dir="build/iar"/>
-        <jar destfile="build/iar/lcf-nulloutputconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
+    <target name="iar-crawler-ui" depends="webapp-crawler-ui">
+        <mkdir dir="dist/iar"/>
+        <jar destfile="dist/iar/lcf-nulloutputconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
     </target>
 
-    <target name="all" depends="jar-connector,iar-connector-ui"/>
+    <target name="processes" depends="jar-connector">
+        <mkdir dir="dist/processes"/>
+        <copy todir="dist/processes" file="build/jar/lcf-nulloutput-connector.jar"/>
+    </target>
+
+    <target name="all" depends="processes,iar-crawler-ui"/>
     
 </project>

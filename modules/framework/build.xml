@@ -2,6 +2,7 @@
 
     <target name="clean">
         <delete dir="build"/>
+        <delete dir="dist"/>
     </target>
     
     <target name="compile-core">
@@ -24,9 +25,9 @@
         <javac srcdir="pull-agent" destdir="build/pull-agent/classes" classpath="lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar:build/core/classes:build/agents/classes" target="1.5" source="1.4"/>
     </target>
 
-    <target name="compile-authority-webapp" depends="compile-core,compile-agents,compile-pull-agent">
-        <mkdir dir="build/authority-webapp/classes"/>
-        <javac srcdir="authority-webapp" destdir="build/authority-webapp/classes" classpath="lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar:build/core/classes:build/agents/classes:build/pull-agent/classes" target="1.5" source="1.4"/>
+    <target name="compile-authority-service" depends="compile-core,compile-agents,compile-pull-agent">
+        <mkdir dir="build/authority-service/classes"/>
+        <javac srcdir="authority-service" destdir="build/authority-service/classes" classpath="lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar:build/core/classes:build/agents/classes:build/pull-agent/classes" target="1.5" source="1.4"/>
     </target>
 
 
@@ -87,24 +88,27 @@
         <jar destfile="build/jar/lcf-pull-agent.jar" basedir="build/pull-agent/classes"/>
     </target>
 
-    <target name="webapp-authority" depends="jar-core,jar-agents,jar-pull-agent,compile-authority-webapp">
-        <mkdir dir="build/webapp/authority/WEB-INF/lib"/>
-        <copy todir="build/webapp/authority/WEB-INF/lib" file="lib/jdbcpool-0.99.jar"/>
-        <copy todir="build/webapp/authority/WEB-INF/lib" file="lib/log4j-1.2.jar"/>
-        <copy todir="build/webapp/authority/WEB-INF/lib" file="lib/commons-logging.jar"/>
-        <copy todir="build/webapp/authority/WEB-INF/lib" file="lib/commons-fileupload.jar"/>
-        <copy todir="build/webapp/authority/WEB-INF/lib" file="lib/commons-collections.jar"/>
-        <copy todir="build/webapp/authority/WEB-INF/lib" file="lib/commons-io.jar"/>
-        <copy todir="build/webapp/authority/WEB-INF/lib" file="lib/commons-codec.jar"/>
-        <copy todir="build/webapp/authority/WEB-INF/lib" file="lib/commons-httpclient.jar"/>
-        <copy todir="build/webapp/authority/WEB-INF/lib" file="lib/xml-apis.jar"/>
-        <copy todir="build/webapp/authority/WEB-INF/lib" file="lib/xalan2.jar"/>
-        <copy todir="build/webapp/authority/WEB-INF/lib" file="lib/serializer.jar"/>
-        <copy todir="build/webapp/authority/WEB-INF/lib" file="lib/postgresql.jar"/>
-        <copy todir="build/webapp/authority/WEB-INF/lib" file="build/jar/lcf-core.jar"/>
-        <copy todir="build/webapp/authority/WEB-INF/lib" file="build/jar/lcf-agents.jar"/>
-        <copy todir="build/webapp/authority/WEB-INF/lib" file="build/jar/lcf-pull-agent.jar"/>
-        <jar destfile="build/webapp/authority/WEB-INF/lib/lcf-authority-servlet.jar" basedir="build/authority-webapp/classes"/>
+    <target name="webapp-authority-service" depends="jar-core,jar-agents,jar-pull-agent,compile-authority-service">
+        <mkdir dir="build/webapp/authority-service/WEB-INF/lib"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/commons-codec.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/commons-collections.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/commons-el.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/commons-fileupload.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/commons-httpclient.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/commons-io.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/commons-logging.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/jdbcpool-0.99.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/log4j-1.2.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/postgresql.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/serializer.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/servlet-api.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/xalan2.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/xercesImpl.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/xml-apis.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="build/jar/lcf-core.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="build/jar/lcf-agents.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="build/jar/lcf-pull-agent.jar"/>
+        <jar destfile="build/webapp/authority-service/WEB-INF/lib/lcf-authority-servlet.jar" basedir="build/authority-service/classes"/>
     </target>
     
     <target name="webapp-crawler-ui" depends="compile-crawler-ui,jar-core,jar-ui-core,jar-agents,jar-pull-agent">
@@ -114,18 +118,21 @@
                 <include name="*.jar"/>
             </fileset>
         </copy>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-codec.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-collections.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-el.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-fileupload.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-httpclient.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-io.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-logging.jar"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/jdbcpool-0.99.jar"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/log4j-1.2.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-logging.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-fileupload.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-collections.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-io.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-codec.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-httpclient.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/xml-apis.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/xalan2.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/serializer.jar"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/postgresql.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/serializer.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/servlet-api.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/xalan2.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/xercesImpl.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/xml-apis.jar"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-core.jar"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-ui-core.jar"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-agents.jar"/>
@@ -141,16 +148,38 @@
         </copy>
     </target>
     
-    <target name="war-authority" depends="webapp-authority">
-        <mkdir dir="build/war"/>
-        <war destfile="build/war/lcf-authority.war" webxml="authority-webapp/WEB-INF/web.xml" basedir="build/webapp/authority"/>
+    <target name="war-authority-service" depends="webapp-authority-service">
+        <mkdir dir="dist/tomcat"/>
+        <war destfile="dist/tomcat/lcf-authority-service.war" webxml="authority-service/WEB-INF/web.xml" basedir="build/webapp/authority-service"/>
     </target>
     
     <target name="war-crawler-ui" depends="webapp-crawler-ui">
-        <mkdir dir="build/war"/>
-        <war destfile="build/war/lcf-crawler-ui.war" webxml="crawler-ui/WEB-INF/web.xml" basedir="build/webapp/crawler-ui"/>
+        <mkdir dir="dist/tomcat"/>
+        <war destfile="dist/tomcat/lcf-crawler-ui.war" webxml="crawler-ui/WEB-INF/web.xml" basedir="build/webapp/crawler-ui"/>
     </target>
 
-    <target name="all" depends="jar-core,jar-agents,jar-pull-agent,war-authority,war-crawler-ui"/>
+    <target name="processes" depends="jar-core,jar-agents,jar-pull-agent">
+        <mkdir dir="dist/processes"/>
+        <copy todir="dist/processes" file="lib/commons-codec.jar"/>
+        <copy todir="dist/processes" file="lib/commons-collections.jar"/>
+        <copy todir="dist/processes" file="lib/commons-el.jar"/>
+        <copy todir="dist/processes" file="lib/commons-fileupload.jar"/>
+        <copy todir="dist/processes" file="lib/commons-httpclient.jar"/>
+        <copy todir="dist/processes" file="lib/commons-io.jar"/>
+        <copy todir="dist/processes" file="lib/commons-logging.jar"/>
+        <copy todir="dist/processes" file="lib/jdbcpool-0.99.jar"/>
+        <copy todir="dist/processes" file="lib/log4j-1.2.jar"/>
+        <copy todir="dist/processes" file="lib/postgresql.jar"/>
+        <copy todir="dist/processes" file="lib/serializer.jar"/>
+        <copy todir="dist/processes" file="lib/servlet-api.jar"/>
+        <copy todir="dist/processes" file="lib/xalan2.jar"/>
+        <copy todir="dist/processes" file="lib/xercesImpl.jar"/>
+        <copy todir="dist/processes" file="lib/xml-apis.jar"/>
+        <copy todir="dist/processes" file="build/jar/lcf-core.jar"/>
+        <copy todir="dist/processes" file="build/jar/lcf-agents.jar"/>
+        <copy todir="dist/processes" file="build/jar/lcf-pull-agent.jar"/>
+    </target>
+
+    <target name="all" depends="processes,war-authority-service,war-crawler-ui"/>
     
 </project>

@@ -84,7 +84,7 @@
             <fileset dir="framework/build/jar"/>
         </copy>
         <copy todir="connectors/documentum/war">
-            <fileset dir="framework/build/war"/>
+            <fileset dir="framework/dist/tomcat"/>
         </copy>
         <ant dir="connectors/documentum"/>
     </target>
@@ -99,7 +99,7 @@
             <fileset dir="framework/build/jar"/>
         </copy>
         <copy todir="connectors/filenet/war">
-            <fileset dir="framework/build/war"/>
+            <fileset dir="framework/dist/tomcat"/>
         </copy>
         <ant dir="connectors/filenet"/>
     </target>
@@ -114,7 +114,7 @@
             <fileset dir="framework/build/jar"/>
         </copy>
         <copy todir="connectors/filesystem/war">
-            <fileset dir="framework/build/war"/>
+            <fileset dir="framework/dist/tomcat"/>
         </copy>
         <ant dir="connectors/filesystem"/>
     </target>
@@ -129,7 +129,7 @@
             <fileset dir="framework/build/jar"/>
         </copy>
         <copy todir="connectors/gts/war">
-            <fileset dir="framework/build/war"/>
+            <fileset dir="framework/dist/tomcat"/>
         </copy>
         <ant dir="connectors/gts"/>
     </target>
@@ -145,7 +145,7 @@
             <fileset dir="framework/build/jar"/>
         </copy>
         <copy todir="connectors/jcifs/war">
-            <fileset dir="framework/build/war"/>
+            <fileset dir="framework/dist/tomcat"/>
         </copy>
         <ant dir="connectors/jcifs"/>
     </target>
@@ -160,7 +160,7 @@
             <fileset dir="framework/build/jar"/>
         </copy>
         <copy todir="connectors/jdbc/war">
-            <fileset dir="framework/build/war"/>
+            <fileset dir="framework/dist/tomcat"/>
         </copy>
         <ant dir="connectors/jdbc"/>
     </target>
@@ -175,7 +175,7 @@
             <fileset dir="framework/build/jar"/>
         </copy>
         <copy todir="connectors/livelink/war">
-            <fileset dir="framework/build/war"/>
+            <fileset dir="framework/dist/tomcat"/>
         </copy>
         <ant dir="connectors/livelink"/>
     </target>
@@ -190,7 +190,7 @@
             <fileset dir="framework/build/jar"/>
         </copy>
         <copy todir="connectors/lucene/war">
-            <fileset dir="framework/build/war"/>
+            <fileset dir="framework/dist/tomcat"/>
         </copy>
         <ant dir="connectors/lucene"/>
     </target>
@@ -205,7 +205,7 @@
             <fileset dir="framework/build/jar"/>
         </copy>
         <copy todir="connectors/memex/war">
-            <fileset dir="framework/build/war"/>
+            <fileset dir="framework/dist/tomcat"/>
         </copy>
         <ant dir="connectors/memex"/>
     </target>
@@ -230,7 +230,7 @@
             <fileset dir="framework/build/jar"/>
         </copy>
         <copy todir="connectors/meridio/war">
-            <fileset dir="framework/build/war"/>
+            <fileset dir="framework/dist/tomcat"/>
         </copy>
         <ant dir="connectors/meridio"/>
     </target>
@@ -245,7 +245,7 @@
             <fileset dir="framework/build/jar"/>
         </copy>
         <copy todir="connectors/nulloutput/war">
-            <fileset dir="framework/build/war"/>
+            <fileset dir="framework/dist/tomcat"/>
         </copy>
         <ant dir="connectors/nulloutput"/>
     </target>
@@ -260,7 +260,7 @@
             <fileset dir="framework/build/jar"/>
         </copy>
         <copy todir="connectors/rss/war">
-            <fileset dir="framework/build/war"/>
+            <fileset dir="framework/dist/tomcat"/>
         </copy>
         <ant dir="connectors/rss"/>
     </target>
@@ -281,7 +281,7 @@
             <fileset dir="framework/build/jar"/>
         </copy>
         <copy todir="connectors/sharepoint/war">
-            <fileset dir="framework/build/war"/>
+            <fileset dir="framework/dist/tomcat"/>
         </copy>
         <ant dir="connectors/sharepoint"/>
     </target>
@@ -296,7 +296,7 @@
             <fileset dir="framework/build/jar"/>
         </copy>
         <copy todir="connectors/webcrawler/war">
-            <fileset dir="framework/build/war"/>
+            <fileset dir="framework/dist/tomcat"/>
         </copy>
         <ant dir="connectors/webcrawler"/>
     </target>
