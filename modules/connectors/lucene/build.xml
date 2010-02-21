@@ -84,8 +84,8 @@
     </target>
     
     <target name="iar-crawler-ui" depends="webapp-crawler-ui">
-        <mkdir dir="dist/iar"/>
-        <jar destfile="dist/iar/lcf-luceneconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
+        <mkdir dir="dist/tomcat"/>
+        <jar destfile="dist/tomcat/lcf-luceneconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
     </target>
 
     <target name="processes" depends="jar-connector">

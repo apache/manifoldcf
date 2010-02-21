@@ -1,6 +1,8 @@
 <project default="all">
 
     <target name="clean">
+        <delete dir="build"/>
+        <delete dir="dist"/>
         <ant dir="framework" target="clean"/>
         <delete dir="framework/lib"/>
         <ant dir="connectors/documentum" target="clean"/>
@@ -301,15 +303,302 @@
         <ant dir="connectors/webcrawler"/>
     </target>
 
-    <target name="build-open-connectors" depends="build-filesystem-connector,build-rss-connector,build-webcrawler-connector,build-jdbc-connector"/>
+    <target name="deliver-framework" depends="build-framework">
+        <mkdir dir="dist/processes"/>
+        <copy todir="dist/processes">
+            <fileset dir="framework/dist/processes"/>
+        </copy>
+        <mkdir dir="dist/tomcat"/>
+        <copy todir="dist/tomcat">
+            <fileset dir="framework/dist/tomcat"/>
+        </copy>
+    </target>
     
-    <target name="build-output-connectors" depends="build-gts-connector,build-lucene-connector,build-nulloutput-connector"/>
+    <target name="calculate-documentum-condition" depends="build-documentum-connector">
+        <available file="connectors/documentum/dist" type="dir" property="documentum.exists"/>
+        <condition property="documentum.include">
+            <isset property="documentum.exists"/>
+        </condition>
+    </target>
+
+    <target name="deliver-documentum-connector" depends="calculate-documentum-condition" if="documentum.include">
+        <mkdir dir="dist/processes"/>
+        <copy todir="dist/processes">
+            <fileset dir="connectors/documentum/dist/processes"/>
+        </copy>
+        <mkdir dir="dist/tomcat"/>
+        <copy todir="dist/tomcat">
+            <fileset dir="connectors/documentum/dist/tomcat"/>
+        </copy>
+        <mkdir dir="dist/documentum-server-process"/>
+        <copy todir="dist/documentum-server-process">
+            <fileset dir="connectors/documentum/dist/server-process"/>
+        </copy>
+        <mkdir dir="dist/documentum-registry-process"/>
+        <copy todir="dist/documentum-registry-process">
+            <fileset dir="connectors/documentum/dist/registry-process"/>
+        </copy>
+    </target>
+
+    <target name="calculate-filenet-condition" depends="build-filenet-connector">
+        <available file="connectors/filenet/dist" type="dir" property="filenet.exists"/>
+        <condition property="filenet.include">
+            <isset property="filenet.exists"/>
+        </condition>
+    </target>
+
+    <target name="deliver-filenet-connector" depends="calculate-filenet-condition" if="filenet.include">
+        <mkdir dir="dist/processes"/>
+        <copy todir="dist/processes">
+            <fileset dir="connectors/filenet/dist/processes"/>
+        </copy>
+        <mkdir dir="dist/tomcat"/>
+        <copy todir="dist/tomcat">
+            <fileset dir="connectors/filenet/dist/tomcat"/>
+        </copy>
+        <mkdir dir="dist/filenet-server-process"/>
+        <copy todir="dist/filenet-server-process">
+            <fileset dir="connectors/filenet/dist/server-process"/>
+        </copy>
+        <mkdir dir="dist/filenet-registry-process"/>
+        <copy todir="dist/filenet-registry-process">
+            <fileset dir="connectors/filenet/dist/registry-process"/>
+        </copy>
+    </target>
+
+    <target name="calculate-filesystem-condition" depends="build-filesystem-connector">
+        <available file="connectors/filesystem/dist" type="dir" property="filesystem.exists"/>
+        <condition property="filesystem.include">
+            <isset property="filesystem.exists"/>
+        </condition>
+    </target>
+
+    <target name="deliver-filesystem-connector" depends="calculate-filesystem-condition" if="filesystem.include">
+        <mkdir dir="dist/processes"/>
+        <copy todir="dist/processes">
+            <fileset dir="connectors/filesystem/dist/processes"/>
+        </copy>
+        <mkdir dir="dist/tomcat"/>
+        <copy todir="dist/tomcat">
+            <fileset dir="connectors/filesystem/dist/tomcat"/>
+        </copy>
+    </target>
+
+    <target name="calculate-gts-condition" depends="build-gts-connector">
+        <available file="connectors/gts/dist" type="dir" property="gts.exists"/>
+        <condition property="gts.include">
+            <isset property="gts.exists"/>
+        </condition>
+    </target>
+
+    <target name="deliver-gts-connector" depends="calculate-gts-condition" if="gts.include">
+        <mkdir dir="dist/processes"/>
+        <copy todir="dist/processes">
+            <fileset dir="connectors/gts/dist/processes"/>
+        </copy>
+        <mkdir dir="dist/tomcat"/>
+        <copy todir="dist/tomcat">
+            <fileset dir="connectors/gts/dist/tomcat"/>
+        </copy>
+    </target>
+
+    <target name="calculate-jdbc-condition" depends="build-jdbc-connector">
+        <available file="connectors/jdbc/dist" type="dir" property="jdbc.exists"/>
+        <condition property="jdbc.include">
+            <isset property="jdbc.exists"/>
+        </condition>
+    </target>
+
+    <target name="deliver-jdbc-connector" depends="calculate-jdbc-condition" if="jdbc.include">
+        <mkdir dir="dist/processes"/>
+        <copy todir="dist/processes">
+            <fileset dir="connectors/jdbc/dist/processes"/>
+        </copy>
+        <mkdir dir="dist/tomcat"/>
+        <copy todir="dist/tomcat">
+            <fileset dir="connectors/jdbc/dist/tomcat"/>
+        </copy>
+    </target>
+
+    <target name="calculate-jcifs-condition" depends="build-jcifs-connector">
+        <available file="connectors/jcifs/dist" type="dir" property="jcifs.exists"/>
+        <condition property="jcifs.include">
+            <isset property="jcifs.exists"/>
+        </condition>
+    </target>
+
+    <target name="deliver-jcifs-connector" depends="calculate-jcifs-condition" if="jcifs.include">
+        <mkdir dir="dist/processes"/>
+        <copy todir="dist/processes">
+            <fileset dir="connectors/jcifs/dist/processes"/>
+        </copy>
+        <mkdir dir="dist/tomcat"/>
+        <copy todir="dist/tomcat">
+            <fileset dir="connectors/jcifs/dist/tomcat"/>
+        </copy>
+    </target>
+
+    <target name="calculate-livelink-condition" depends="build-livelink-connector">
+        <available file="connectors/livelink/dist" type="dir" property="livelink.exists"/>
+        <condition property="livelink.include">
+            <isset property="livelink.exists"/>
+        </condition>
+    </target>
+
+    <target name="deliver-livelink-connector" depends="calculate-livelink-condition" if="livelink.include">
+        <mkdir dir="dist/processes"/>
+        <copy todir="dist/processes">
+            <fileset dir="connectors/livelink/dist/processes"/>
+        </copy>
+        <mkdir dir="dist/tomcat"/>
+        <copy todir="dist/tomcat">
+            <fileset dir="connectors/livelink/dist/tomcat"/>
+        </copy>
+    </target>
+
+    <target name="calculate-lucene-condition" depends="build-lucene-connector">
+        <available file="connectors/lucene/dist" type="dir" property="lucene.exists"/>
+        <condition property="lucene.include">
+            <isset property="lucene.exists"/>
+        </condition>
+    </target>
+
+    <target name="deliver-lucene-connector" depends="calculate-lucene-condition" if="lucene.include">
+        <mkdir dir="dist/processes"/>
+        <copy todir="dist/processes">
+            <fileset dir="connectors/lucene/dist/processes"/>
+        </copy>
+        <mkdir dir="dist/tomcat"/>
+        <copy todir="dist/tomcat">
+            <fileset dir="connectors/lucene/dist/tomcat"/>
+        </copy>
+    </target>
+
+    <target name="calculate-memex-condition" depends="build-memex-connector">
+        <available file="connectors/memex/dist" type="dir" property="memex.exists"/>
+        <condition property="memex.include">
+            <isset property="memex.exists"/>
+        </condition>
+    </target>
+
+    <target name="deliver-memex-connector" depends="calculate-memex-condition" if="memex.include">
+        <mkdir dir="dist/processes"/>
+        <copy todir="dist/processes">
+            <fileset dir="connectors/memex/dist/processes"/>
+        </copy>
+        <mkdir dir="dist/tomcat"/>
+        <copy todir="dist/tomcat">
+            <fileset dir="connectors/memex/dist/tomcat"/>
+        </copy>
+    </target>
+
+    <target name="calculate-meridio-condition" depends="build-meridio-connector">
+        <available file="connectors/meridio/dist" type="dir" property="meridio.exists"/>
+        <condition property="meridio.include">
+            <isset property="meridio.exists"/>
+        </condition>
+    </target>
+
+    <target name="deliver-meridio-connector" depends="calculate-meridio-condition" if="meridio.include">
+        <mkdir dir="dist/processes"/>
+        <copy todir="dist/processes">
+            <fileset dir="connectors/meridio/dist/processes"/>
+        </copy>
+        <mkdir dir="dist/tomcat"/>
+        <copy todir="dist/tomcat">
+            <fileset dir="connectors/meridio/dist/tomcat"/>
+        </copy>
+        <mkdir dir="dist/wsdd"/>
+        <copy todir="dist/wsdd">
+            <fileset dir="connectors/meridio/dist/wsdd"/>
+        </copy>
+    </target>
+
+    <target name="calculate-nulloutput-condition" depends="build-nulloutput-connector">
+        <available file="connectors/nulloutput/dist" type="dir" property="nulloutput.exists"/>
+        <condition property="nulloutput.include">
+            <isset property="nulloutput.exists"/>
+        </condition>
+    </target>
+
+    <target name="deliver-nulloutput-connector" depends="calculate-nulloutput-condition" if="nulloutput.include">
+        <mkdir dir="dist/processes"/>
+        <copy todir="dist/processes">
+            <fileset dir="connectors/nulloutput/dist/processes"/>
+        </copy>
+        <mkdir dir="dist/tomcat"/>
+        <copy todir="dist/tomcat">
+            <fileset dir="connectors/nulloutput/dist/tomcat"/>
+        </copy>
+    </target>
+
+    <target name="calculate-rss-condition" depends="build-rss-connector">
+        <available file="connectors/rss/dist" type="dir" property="rss.exists"/>
+        <condition property="rss.include">
+            <isset property="rss.exists"/>
+        </condition>
+    </target>
+
+    <target name="deliver-rss-connector" depends="calculate-rss-condition" if="rss.include">
+        <mkdir dir="dist/processes"/>
+        <copy todir="dist/processes">
+            <fileset dir="connectors/rss/dist/processes"/>
+        </copy>
+        <mkdir dir="dist/tomcat"/>
+        <copy todir="dist/tomcat">
+            <fileset dir="connectors/rss/dist/tomcat"/>
+        </copy>
+    </target>
+
+    <target name="calculate-sharepoint-condition" depends="build-sharepoint-connector">
+        <available file="connectors/sharepoint/dist" type="dir" property="sharepoint.exists"/>
+        <condition property="sharepoint.include">
+            <isset property="sharepoint.exists"/>
+        </condition>
+    </target>
+
+    <target name="deliver-sharepoint-connector" depends="calculate-sharepoint-condition" if="sharepoint.include">
+        <mkdir dir="dist/processes"/>
+        <copy todir="dist/processes">
+            <fileset dir="connectors/sharepoint/dist/processes"/>
+        </copy>
+        <mkdir dir="dist/tomcat"/>
+        <copy todir="dist/tomcat">
+            <fileset dir="connectors/sharepoint/dist/tomcat"/>
+        </copy>
+        <mkdir dir="dist/wsdd"/>
+        <copy todir="dist/wsdd">
+            <fileset dir="connectors/sharepoint/dist/wsdd"/>
+        </copy>
+    </target>
+
+    <target name="calculate-webcrawler-condition" depends="build-webcrawler-connector">
+        <available file="connectors/webcrawler/dist" type="dir" property="webcrawler.exists"/>
+        <condition property="webcrawler.include">
+            <isset property="webcrawler.exists"/>
+        </condition>
+    </target>
+
+    <target name="deliver-webcrawler-connector" depends="calculate-webcrawler-condition" if="webcrawler.include">
+        <mkdir dir="dist/processes"/>
+        <copy todir="dist/processes">
+            <fileset dir="connectors/webcrawler/dist/processes"/>
+        </copy>
+        <mkdir dir="dist/tomcat"/>
+        <copy todir="dist/tomcat">
+            <fileset dir="connectors/webcrawler/dist/tomcat"/>
+        </copy>
+    </target>
+
+    <target name="deliver-open-connectors" depends="deliver-filesystem-connector,deliver-rss-connector,deliver-webcrawler-connector,deliver-jdbc-connector"/>
     
-    <target name="build-lgpl-connectors" depends="build-jcifs-connector"/>
+    <target name="deliver-output-connectors" depends="deliver-gts-connector,deliver-lucene-connector,deliver-nulloutput-connector"/>
     
-    <target name="build-proprietary-connectors" depends="build-documentum-connector,build-filenet-connector,build-livelink-connector,build-memex-connector,build-meridio-connector,build-sharepoint-connector"/>
+    <target name="deliver-lgpl-connectors" depends="deliver-jcifs-connector"/>
     
-    <target name="all" depends="build-framework,build-open-connectors,build-output-connectors,build-lgpl-connectors,build-proprietary-connectors"/>
+    <target name="deliver-proprietary-connectors" depends="deliver-documentum-connector,deliver-filenet-connector,deliver-livelink-connector,deliver-memex-connector,deliver-meridio-connector,deliver-sharepoint-connector"/>
+    
+    <target name="all" depends="deliver-framework,deliver-open-connectors,deliver-output-connectors,deliver-lgpl-connectors,deliver-proprietary-connectors"/>
 
     
 </project>

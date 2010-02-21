@@ -197,8 +197,8 @@
     </target>
     
     <target name="iar-crawler-ui" depends="webapp-crawler-ui,precompile-check" if="canBuild">
-        <mkdir dir="dist/iar"/>
-        <jar destfile="dist/iar/lcf-filenetconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
+        <mkdir dir="dist/tomcat"/>
+        <jar destfile="dist/tomcat/lcf-filenetconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
     </target>
 
     <target name="processes" depends="jar-interface,jar-rmistub,jar-connector,precompile-check" if="canBuild">

@@ -103,14 +103,14 @@
     </target>
     
     <target name="iar-crawler-ui" depends="webapp-crawler-ui,precompile-check" if="canBuild">
-        <mkdir dir="dist/iar"/>
-        <jar destfile="dist/iar/lcf-jcifsconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
+        <mkdir dir="dist/tomcat"/>
+        <jar destfile="dist/tomcat/lcf-jcifsconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
         <!-- Copy flag values, too -->
-        <copy todir="dist/iar" file="jcifs.resolveOrder"/>
-        <copy todir="dist/iar" file="jcifs.smb.client.dfs.strictView"/>
-        <copy todir="dist/iar" file="jcifs.smb.client.listCount"/>
-        <copy todir="dist/iar" file="jcifs.smb.client.responseTimeout"/>
-        <copy todir="dist/iar" file="jcifs.smb.client.soTimeout"/>
+        <copy todir="dist/tomcat" file="jcifs.resolveOrder"/>
+        <copy todir="dist/tomcat" file="jcifs.smb.client.dfs.strictView"/>
+        <copy todir="dist/tomcat" file="jcifs.smb.client.listCount"/>
+        <copy todir="dist/tomcat" file="jcifs.smb.client.responseTimeout"/>
+        <copy todir="dist/tomcat" file="jcifs.smb.client.soTimeout"/>
     </target>
 
     <target name="processes" depends="jar-connector,precompile-check" if="canBuild">

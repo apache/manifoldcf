@@ -175,13 +175,13 @@
     </target>
 
     <target name="iar-crawler-ui" depends="webapp-crawler-ui,precompile-check" if="canBuild">
-        <mkdir dir="dist/iar"/>
-        <jar destfile="dist/iar/lcf-sharepointconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
+        <mkdir dir="dist/tomcat"/>
+        <jar destfile="dist/tomcat/lcf-sharepointconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
     </target>
 
     <target name="iar-wsdd" depends="precompile-check" if="canBuild">
-        <mkdir dir="dist/iar"/>
-        <copy todir="dist/iar" file="org.apache.lcf.sharepoint.wsddpath"/>
+        <mkdir dir="dist/tomcat"/>
+        <copy todir="dist/tomcat" file="org.apache.lcf.sharepoint.wsddpath"/>
     </target>
 
     <target name="processes" depends="jar-connector,jar-wsdls,precompile-check" if="canBuild">

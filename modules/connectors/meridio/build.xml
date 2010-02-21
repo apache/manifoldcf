@@ -231,18 +231,18 @@
     </target>
     
     <target name="iar-wsdd" depends="precompile-check" if="canBuild">
-        <mkdir dir="dist/iar"/>
-        <copy todir="dist/iar" file="org.apache.lcf.meridio.wsddpath"/>
+        <mkdir dir="dist/tomcat"/>
+        <copy todir="dist/tomcat" file="org.apache.lcf.meridio.wsddpath"/>
     </target>
     
     <target name="iar-crawler-ui" depends="webapp-crawler-ui,precompile-check" if="canBuild">
-        <mkdir dir="dist/iar"/>
-        <jar destfile="dist/iar/lcf-meridioconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
+        <mkdir dir="dist/tomcat"/>
+        <jar destfile="dist/tomcat/lcf-meridioconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
     </target>
 
     <target name="iar-authority-service" depends="webapp-authority-service,precompile-check" if="canBuild">
-        <mkdir dir="dist/iar"/>
-        <jar destfile="dist/iar/lcf-meridioconnector-authority-service.iar" basedir="build/webapp/authority-service"/>
+        <mkdir dir="dist/tomcat"/>
+        <jar destfile="dist/tomcat/lcf-meridioconnector-authority-service.iar" basedir="build/webapp/authority-service"/>
     </target>
 
     <target name="processes" depends="jar-connector,jar-wsdls,jar-xsds,precompile-check" if="canBuild">
