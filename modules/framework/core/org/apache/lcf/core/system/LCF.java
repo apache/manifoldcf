@@ -81,73 +81,6 @@ public class LCF
   /** Maintenance signal file */
   public static final String maintenanceFileSignalProperty = "org.apache.lcf.database.maintenanceflag";
 
-
-  /* Database test
-  public static void main(String[] argv)
-  {
-    initializeEnvironment();
-    Reader r = new InputStreamReader(System.in);
-
-    try
-    {
-      IThreadContext tc = ThreadContextFactory.make();
-      IDBInterface database = DBInterfaceFactory.make(tc,masterDatabaseName,masterDatabaseUsername,masterDatabasePassword);
-      while (true)
-      {
-        try
-        {
-          try
-          {
-            StringBuffer sb = new StringBuffer();
-            while (true)
-            {
-              int charval = r.read();
-              if (charval == -1)
-                return;
-              if (charval == '\r' || charval == '\n')
-                break;
-              sb.append((char)charval);
-            }
-            String query = sb.toString();
-            System.out.println("Doing query "+query);
-            if (!query.startsWith("select") && !query.startsWith("show"))
-              database.performModification(query,null,null);
-            else
-            {
-              IResultSet set = database.performQuery(query,null,null,null);
-              int i = 0;
-              while (i < set.getRowCount())
-              {
-                IResultRow row = set.getRow(i++);
-                Iterator iter = row.getColumns();
-                while (iter.hasNext())
-                {
-                  String colName = (String)iter.next();
-                  System.out.println(row.getValue(colName).toString());
-                }
-                System.out.println("-----");
-              }
-            }
-            System.out.println("Done");
-          }
-          catch (LCFException e)
-          {
-            e.printStackTrace();
-          }
-        }
-        catch (IOException e)
-        {
-          e.printStackTrace();
-        }
-      }
-    }
-    catch (LCFException e)
-    {
-      e.printStackTrace();
-    }
-  }
-  */
-
   /** Initialize environment.
   */
   public static synchronized void initializeEnvironment()
@@ -235,17 +168,6 @@ public class LCF
     }
   }
 
-
-  /** Get the path where all config files are.
-  *@return the path.
-  */
-  /*
-  public static final String getConfigPath()
-  {
-    return configPath;
-  }
-  */
-  
   /** Read a property.
   *@param s is the property name.
   *@return the property value, as an object.
