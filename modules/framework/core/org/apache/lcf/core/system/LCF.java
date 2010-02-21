@@ -54,13 +54,16 @@ public class LCF
   protected static String masterDatabaseUsername = null;
   protected static String masterDatabasePassword = null;
   protected static java.util.Properties localProperties = null;
-  protected static String configPath = null;
+  //protected static String configPath = null;
   protected static long propertyFilelastMod = 0;
-  protected static String propertyFileName = null;
+  protected static String propertyFilePath = null;
 
   protected static final String applicationName = "lcf";
 
-  // Property names
+  // System property names
+  public static final String lcfConfigFileProperty = "org.apache.lcf.configfile";
+
+  // Property file property names
   public static final String masterDatabaseNameProperty = "org.apache.lcf.database.name";
   public static final String masterDatabaseUsernameProperty = "org.apache.lcf.database.username";
   public static final String masterDatabasePasswordProperty = "org.apache.lcf.database.password";
@@ -69,8 +72,8 @@ public class LCF
   public static final String databaseHandleTimeoutProperty = "org.apache.lcf.database.handletimeout";
 
   public static final String synchDirectoryProperty = "org.apache.lcf.synchdirectory";
-  public static final String logDirectoryProperty = "org.apache.lcf.logdirectory";
   public static final String logConfigFileProperty = "org.apache.lcf.logconfigfile";
+  
 
   /** Hack for BPA */
   public static final String configSignalCommandProperty = "org.apache.lcf.configuration.change.command";
@@ -154,34 +157,29 @@ public class LCF
 
     try
     {
-      String defaultLogConfigFile;
       // Get system properties
       java.util.Properties props = System.getProperties();
       // First, look for a define that might indicate where to look
-      configPath = (String)props.get("org.apache.lcf.location");
-      if (configPath == null)
-        configPath = (String)props.get("user.home") + "/"+applicationName;
-      configPath = configPath.replace('\\', '/');
-      propertyFileName = "properties.ini";
-      defaultLogConfigFile = new File(configPath,"logging.ini").toString();
-
-      // Make sure both the log path and the config path are present
-      try
+    
+      propertyFilePath = (String)props.get(lcfConfigFileProperty);
+      if (propertyFilePath == null)
       {
-        ensureFolder(configPath);
+        String configPath = (String)props.get("user.home") + "/"+applicationName;
+        configPath = configPath.replace('\\', '/');
+        propertyFilePath = new File(configPath,"properties.ini").toString();
       }
-      catch (LCFException e)
-      {
-        e.printStackTrace();
-      }
-
+      
       // Read .ini parameters
       localProperties = new java.util.Properties();
       checkProperties();
 
       String logConfigFile = getProperty(logConfigFileProperty);
       if (logConfigFile == null)
-        logConfigFile = defaultLogConfigFile;
+      {
+        String configPath = (String)props.get("user.home") + "/"+applicationName;
+        configPath = configPath.replace('\\', '/');
+        logConfigFile = new File(configPath,"logging.ini").toString();
+      }
 
       masterDatabaseName = getProperty(masterDatabaseNameProperty);
       if (masterDatabaseName == null)
@@ -213,7 +211,7 @@ public class LCF
   public static final void checkProperties()
     throws LCFException
   {
-    File f = new File(getConfigPath(),propertyFileName);    // for re-read
+    File f = new File(propertyFilePath);    // for re-read
     try
     {
       if (propertyFilelastMod != f.lastModified())
@@ -241,11 +239,13 @@ public class LCF
   /** Get the path where all config files are.
   *@return the path.
   */
+  /*
   public static final String getConfigPath()
   {
     return configPath;
   }
-
+  */
+  
   /** Read a property.
   *@param s is the property name.
   *@return the property value, as an object.
