@@ -310,8 +310,12 @@
         </copy>
         <mkdir dir="dist/tomcat"/>
         <copy todir="dist/tomcat">
-            <fileset dir="framework/dist/tomcat"/>
+            <fileset dir="framework/dist/tomcat" excludes="*.war"/>
         </copy>
+        <mkdir dir="build/crawler-ui"/>
+        <unwar src="framework/dist/tomcat/lcf-crawler-ui.war" dest="build/crawler-ui"/>
+        <mkdir dir="build/authority-service"/>
+        <unwar src="framework/dist/tomcat/lcf-authority-service.war" dest="build/authority-service"/>
     </target>
     
     <target name="calculate-documentum-condition" depends="build-documentum-connector">
@@ -328,7 +332,7 @@
         </copy>
         <mkdir dir="dist/tomcat"/>
         <copy todir="dist/tomcat">
-            <fileset dir="connectors/documentum/dist/tomcat"/>
+            <fileset dir="connectors/documentum/dist/tomcat" excludes="*.iar"/>
         </copy>
         <mkdir dir="dist/documentum-server-process"/>
         <copy todir="dist/documentum-server-process">
@@ -338,6 +342,10 @@
         <copy todir="dist/documentum-registry-process">
             <fileset dir="connectors/documentum/dist/registry-process"/>
         </copy>
+        <mkdir dir="build/crawler-ui"/>
+        <unjar src="connectors/documentum/dist/tomcat/lcf-documentumconnector-crawler-ui.iar" dest="build/crawler-ui"/>
+        <mkdir dir="build/authority-service"/>
+        <unjar src="connectors/documentum/dist/tomcat/lcf-documentumconnector-authority-service.iar" dest="build/authority-service"/>
     </target>
 
     <target name="calculate-filenet-condition" depends="build-filenet-connector">
@@ -354,7 +362,7 @@
         </copy>
         <mkdir dir="dist/tomcat"/>
         <copy todir="dist/tomcat">
-            <fileset dir="connectors/filenet/dist/tomcat"/>
+            <fileset dir="connectors/filenet/dist/tomcat" excludes="*.iar"/>
         </copy>
         <mkdir dir="dist/filenet-server-process"/>
         <copy todir="dist/filenet-server-process">
@@ -364,6 +372,8 @@
         <copy todir="dist/filenet-registry-process">
             <fileset dir="connectors/filenet/dist/registry-process"/>
         </copy>
+        <mkdir dir="build/crawler-ui"/>
+        <unjar src="connectors/filenet/dist/tomcat/lcf-filenetconnector-crawler-ui.iar" dest="build/crawler-ui"/>
     </target>
 
     <target name="calculate-filesystem-condition" depends="build-filesystem-connector">
@@ -380,8 +390,10 @@
         </copy>
         <mkdir dir="dist/tomcat"/>
         <copy todir="dist/tomcat">
-            <fileset dir="connectors/filesystem/dist/tomcat"/>
+            <fileset dir="connectors/filesystem/dist/tomcat" excludes="*.iar"/>
         </copy>
+        <mkdir dir="build/crawler-ui"/>
+        <unjar src="connectors/filesystem/dist/tomcat/lcf-filesystemconnector-crawler-ui.iar" dest="build/crawler-ui"/>
     </target>
 
     <target name="calculate-gts-condition" depends="build-gts-connector">
@@ -398,8 +410,10 @@
         </copy>
         <mkdir dir="dist/tomcat"/>
         <copy todir="dist/tomcat">
-            <fileset dir="connectors/gts/dist/tomcat"/>
+            <fileset dir="connectors/gts/dist/tomcat" excludes="*.iar"/>
         </copy>
+        <mkdir dir="build/crawler-ui"/>
+        <unjar src="connectors/gts/dist/tomcat/lcf-gtsconnector-crawler-ui.iar" dest="build/crawler-ui"/>
     </target>
 
     <target name="calculate-jdbc-condition" depends="build-jdbc-connector">
@@ -416,8 +430,10 @@
         </copy>
         <mkdir dir="dist/tomcat"/>
         <copy todir="dist/tomcat">
-            <fileset dir="connectors/jdbc/dist/tomcat"/>
+            <fileset dir="connectors/jdbc/dist/tomcat" excludes="*.iar"/>
         </copy>
+        <mkdir dir="build/crawler-ui"/>
+        <unjar src="connectors/jdbc/dist/tomcat/lcf-jdbcconnector-crawler-ui.iar" dest="build/crawler-ui"/>
     </target>
 
     <target name="calculate-jcifs-condition" depends="build-jcifs-connector">
@@ -434,8 +450,10 @@
         </copy>
         <mkdir dir="dist/tomcat"/>
         <copy todir="dist/tomcat">
-            <fileset dir="connectors/jcifs/dist/tomcat"/>
+            <fileset dir="connectors/jcifs/dist/tomcat" excludes="*.iar"/>
         </copy>
+        <mkdir dir="build/crawler-ui"/>
+        <unjar src="connectors/jcifs/dist/tomcat/lcf-jcifsconnector-crawler-ui.iar" dest="build/crawler-ui"/>
     </target>
 
     <target name="calculate-livelink-condition" depends="build-livelink-connector">
@@ -452,8 +470,12 @@
         </copy>
         <mkdir dir="dist/tomcat"/>
         <copy todir="dist/tomcat">
-            <fileset dir="connectors/livelink/dist/tomcat"/>
+            <fileset dir="connectors/livelink/dist/tomcat" excludes="*.iar"/>
         </copy>
+        <mkdir dir="build/crawler-ui"/>
+        <unjar src="connectors/livelink/dist/tomcat/lcf-livelinkconnector-crawler-ui.iar" dest="build/crawler-ui"/>
+        <mkdir dir="build/authority-service"/>
+        <unjar src="connectors/livelink/dist/tomcat/lcf-livelinkconnector-authority-service.iar" dest="build/authority-service"/>
     </target>
 
     <target name="calculate-lucene-condition" depends="build-lucene-connector">
@@ -470,8 +492,10 @@
         </copy>
         <mkdir dir="dist/tomcat"/>
         <copy todir="dist/tomcat">
-            <fileset dir="connectors/lucene/dist/tomcat"/>
+            <fileset dir="connectors/lucene/dist/tomcat" excludes="*.iar"/>
         </copy>
+        <mkdir dir="build/crawler-ui"/>
+        <unjar src="connectors/lucene/dist/tomcat/lcf-luceneconnector-crawler-ui.iar" dest="build/crawler-ui"/>
     </target>
 
     <target name="calculate-memex-condition" depends="build-memex-connector">
@@ -488,8 +512,12 @@
         </copy>
         <mkdir dir="dist/tomcat"/>
         <copy todir="dist/tomcat">
-            <fileset dir="connectors/memex/dist/tomcat"/>
+            <fileset dir="connectors/memex/dist/tomcat" excludes="*.iar"/>
         </copy>
+        <mkdir dir="build/crawler-ui"/>
+        <unjar src="connectors/memex/dist/tomcat/lcf-memexconnector-crawler-ui.iar" dest="build/crawler-ui"/>
+        <mkdir dir="build/authority-service"/>
+        <unjar src="connectors/memex/dist/tomcat/lcf-memexconnector-authority-service.iar" dest="build/authority-service"/>
     </target>
 
     <target name="calculate-meridio-condition" depends="build-meridio-connector">
@@ -506,12 +534,16 @@
         </copy>
         <mkdir dir="dist/tomcat"/>
         <copy todir="dist/tomcat">
-            <fileset dir="connectors/meridio/dist/tomcat"/>
+            <fileset dir="connectors/meridio/dist/tomcat" excludes="*.iar"/>
         </copy>
         <mkdir dir="dist/wsdd"/>
         <copy todir="dist/wsdd">
             <fileset dir="connectors/meridio/dist/wsdd"/>
         </copy>
+        <mkdir dir="build/crawler-ui"/>
+        <unjar src="connectors/meridio/dist/tomcat/lcf-meridioconnector-crawler-ui.iar" dest="build/crawler-ui"/>
+        <mkdir dir="build/authority-service"/>
+        <unjar src="connectors/meridio/dist/tomcat/lcf-meridioconnector-authority-service.iar" dest="build/authority-service"/>
     </target>
 
     <target name="calculate-nulloutput-condition" depends="build-nulloutput-connector">
@@ -528,8 +560,10 @@
         </copy>
         <mkdir dir="dist/tomcat"/>
         <copy todir="dist/tomcat">
-            <fileset dir="connectors/nulloutput/dist/tomcat"/>
+            <fileset dir="connectors/nulloutput/dist/tomcat" excludes="*.iar"/>
         </copy>
+        <mkdir dir="build/crawler-ui"/>
+        <unjar src="connectors/nulloutput/dist/tomcat/lcf-nulloutputconnector-crawler-ui.iar" dest="build/crawler-ui"/>
     </target>
 
     <target name="calculate-rss-condition" depends="build-rss-connector">
@@ -546,8 +580,10 @@
         </copy>
         <mkdir dir="dist/tomcat"/>
         <copy todir="dist/tomcat">
-            <fileset dir="connectors/rss/dist/tomcat"/>
+            <fileset dir="connectors/rss/dist/tomcat" excludes="*.iar"/>
         </copy>
+        <mkdir dir="build/crawler-ui"/>
+        <unjar src="connectors/rss/dist/tomcat/lcf-rssconnector-crawler-ui.iar" dest="build/crawler-ui"/>
     </target>
 
     <target name="calculate-sharepoint-condition" depends="build-sharepoint-connector">
@@ -564,12 +600,14 @@
         </copy>
         <mkdir dir="dist/tomcat"/>
         <copy todir="dist/tomcat">
-            <fileset dir="connectors/sharepoint/dist/tomcat"/>
+            <fileset dir="connectors/sharepoint/dist/tomcat" excludes="*.iar"/>
         </copy>
         <mkdir dir="dist/wsdd"/>
         <copy todir="dist/wsdd">
             <fileset dir="connectors/sharepoint/dist/wsdd"/>
         </copy>
+        <mkdir dir="build/crawler-ui"/>
+        <unjar src="connectors/sharepoint/dist/tomcat/lcf-sharepointconnector-crawler-ui.iar" dest="build/crawler-ui"/>
     </target>
 
     <target name="calculate-webcrawler-condition" depends="build-webcrawler-connector">
@@ -586,8 +624,16 @@
         </copy>
         <mkdir dir="dist/tomcat"/>
         <copy todir="dist/tomcat">
-            <fileset dir="connectors/webcrawler/dist/tomcat"/>
+            <fileset dir="connectors/webcrawler/dist/tomcat" excludes="*.iar"/>
         </copy>
+        <mkdir dir="build/crawler-ui"/>
+        <unjar src="connectors/webcrawler/dist/tomcat/lcf-webconnector-crawler-ui.iar" dest="build/crawler-ui"/>
+    </target>
+
+    <target name="deliver-wars" depends="deliver-framework,deliver-documentum-connector,deliver-filenet-connector,deliver-filesystem-connector,deliver-gts-connector,deliver-livelink-connector,deliver-lucene-connector,deliver-memex-connector,deliver-meridio-connector,deliver-nulloutput-connector,deliver-rss-connector,deliver-sharepoint-connector,deliver-webcrawler-connector">
+        <mkdir dir="dist/tomcat"/>
+        <jar destfile="dist/tomcat/lcf-crawler-ui.war" basedir="build/crawler-ui"/>
+        <jar destfile="dist/tomcat/lcf-authority-service.war" basedir="build/authority-service"/>
     </target>
 
     <target name="deliver-open-connectors" depends="deliver-filesystem-connector,deliver-rss-connector,deliver-webcrawler-connector,deliver-jdbc-connector"/>
@@ -598,7 +644,7 @@
     
     <target name="deliver-proprietary-connectors" depends="deliver-documentum-connector,deliver-filenet-connector,deliver-livelink-connector,deliver-memex-connector,deliver-meridio-connector,deliver-sharepoint-connector"/>
     
-    <target name="all" depends="deliver-framework,deliver-open-connectors,deliver-output-connectors,deliver-lgpl-connectors,deliver-proprietary-connectors"/>
+    <target name="all" depends="deliver-framework,deliver-open-connectors,deliver-output-connectors,deliver-lgpl-connectors,deliver-proprietary-connectors,deliver-wars"/>
 
     
 </project>
