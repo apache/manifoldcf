@@ -1605,10 +1605,10 @@ public class LockManager implements ILockManager
     LockDescription[] rval = new LockDescription[ht.size()];
     String[] sortarray = new String[ht.size()];
     i = 0;
-    Iterator enum = ht.keySet().iterator();
-    while (enum.hasNext())
+    Iterator iter = ht.keySet().iterator();
+    while (iter.hasNext())
     {
-      String key = (String)enum.next();
+      String key = (String)iter.next();
       sortarray[i++] = key;
     }
     java.util.Arrays.sort(sortarray);

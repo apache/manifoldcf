@@ -124,11 +124,11 @@ public class KeystoreManager implements IKeystoreManager
     try
     {
       String[] rval = new String[keystore.size()];
-      Enumeration enum = keystore.aliases();
+      Enumeration enumeration = keystore.aliases();
       int i = 0;
-      while (enum.hasMoreElements())
+      while (enumeration.hasMoreElements())
       {
-        String alias = (String)enum.nextElement();
+        String alias = (String)enumeration.nextElement();
         rval[i++] = alias;
       }
       return rval;

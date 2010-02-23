@@ -130,10 +130,10 @@ public class StringSet
   {
     String[] rval = new String[hashtable.size()];
     int i = 0;
-    Iterator enum = hashtable.keySet().iterator();
-    while (enum.hasNext())
+    Iterator iter = hashtable.keySet().iterator();
+    while (iter.hasNext())
     {
-      String x = (String)enum.next();
+      String x = (String)iter.next();
       if (prefix != null)
         x = prefix + x;
       rval[i++] = x;
@@ -145,10 +145,10 @@ public class StringSet
   */
   public StringSet(StringSet oldOne, String prefix)
   {
-    Iterator enum = oldOne.hashtable.keySet().iterator();
-    while (enum.hasNext())
+    Iterator iter = oldOne.hashtable.keySet().iterator();
+    while (iter.hasNext())
     {
-      String x = (String)enum.next();
+      String x = (String)iter.next();
       if (prefix != null)
         x = prefix + x;
       hashtable.put(x,x);

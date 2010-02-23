@@ -250,11 +250,11 @@ public class ConnectionFactory
       // difficult conditions.
 
 
-      Enumeration enum = _pool.getPools();
+      Enumeration enumeration = _pool.getPools();
       ArrayList connectionShutdownThreads = new ArrayList();
-      while (enum.hasMoreElements())
+      while (enumeration.hasMoreElements())
       {
-        ConnectionPool pool = (ConnectionPool)enum.nextElement();
+        ConnectionPool pool = (ConnectionPool)enumeration.nextElement();
         try
         {
           // The removeAllConnections() method did not work, probably because the cleanup was
