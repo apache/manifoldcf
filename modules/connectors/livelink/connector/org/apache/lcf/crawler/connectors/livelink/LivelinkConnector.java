@@ -2641,19 +2641,9 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
           Logging.connectors.debug("Livelink: Status retrieved for "+Integer.toString(vol)+":"+Integer.toString(id)+": status="+Integer.toString(status));
         }
 
-        if (status == 103101)
+        // Treat both 103101 and 103102 as 'object not found'.
+        if (status == 103101 || status == 103102)
           return;
-
-        // Status 103102 indicates that we could not retrieve the object contents, even though we could find the object.  I think it is safe to treat this as a
-        // ServiceInterruption.
-        if (status == 103102)
-        {
-          Logging.connectors.warn("Livelink: Interpreting LAPI error 103102 while fetching object "+Integer.toString(vol)+":"+Integer.toString(id)+" as a service interruption - retrying.");
-          long currentTime = System.currentTimeMillis();
-          throw new ServiceInterruption("Service interruption fetching object "+Integer.toString(vol)+":"+Integer.toString(id),
-            new LCFException("Could not read object "+Integer.toString(vol)+":"+Integer.toString(id)),currentTime+60000L,
-            currentTime+600000L,-1,false);
-        }
 
         // This error means we don't have permission to get the object's status, apparently
         if (status < 0)
