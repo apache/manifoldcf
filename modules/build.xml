@@ -57,7 +57,7 @@
         <copy todir="framework/lib" file="lib/commons-collections.jar"/>
         <copy todir="framework/lib" file="lib/commons-el.jar"/>
         <copy todir="framework/lib" file="lib/commons-fileupload.jar"/>
-        <copy todir="framework/lib" file="lib/commons-httpclient.jar"/>
+        <copy todir="framework/lib" file="lib/commons-httpclient-lcf.jar"/>
         <copy todir="framework/lib" file="lib/commons-io.jar"/>
         <copy todir="framework/lib" file="lib/commons-logging.jar"/>
         <copy todir="framework/lib" file="lib/jasper-compiler.jar"/>
@@ -70,7 +70,7 @@
         <copy todir="framework/lib" file="lib/serializer.jar"/>
         <copy todir="framework/lib" file="lib/servlet-api.jar"/>
         <copy todir="framework/lib" file="lib/xalan2.jar"/>
-        <copy todir="framework/lib" file="lib/xercesImpl.jar"/>
+        <copy todir="framework/lib" file="lib/xercesImpl-lcf.jar"/>
         <copy todir="framework/lib" file="lib/xml-apis.jar"/>
 
         <ant dir="framework"/>
