@@ -7,27 +7,27 @@
     
     <target name="compile-core">
         <mkdir dir="build/core/classes"/>
-        <javac srcdir="core" destdir="build/core/classes" classpath="lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar" target="1.5" source="1.4"/>
+        <javac srcdir="core" destdir="build/core/classes" classpath="lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient-lcf.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar" target="1.5" source="1.4"/>
     </target>
 
     <target name="compile-ui-core" depends="compile-core">
         <mkdir dir="build/ui-core/classes"/>
-        <javac srcdir="ui-core" destdir="build/ui-core/classes" classpath="lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar:build/core/classes" target="1.5" source="1.4"/>
+        <javac srcdir="ui-core" destdir="build/ui-core/classes" classpath="lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient-lcf.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar:build/core/classes" target="1.5" source="1.4"/>
     </target>
 
     <target name="compile-agents" depends="compile-core">
         <mkdir dir="build/agents/classes"/>
-        <javac srcdir="agents" destdir="build/agents/classes" classpath="lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar:build/core/classes" target="1.5" source="1.4"/>
+        <javac srcdir="agents" destdir="build/agents/classes" classpath="lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient-lcf.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar:build/core/classes" target="1.5" source="1.4"/>
     </target>
 
     <target name="compile-pull-agent" depends="compile-core,compile-agents">
         <mkdir dir="build/pull-agent/classes"/>
-        <javac srcdir="pull-agent" destdir="build/pull-agent/classes" classpath="lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar:build/core/classes:build/agents/classes" target="1.5" source="1.4"/>
+        <javac srcdir="pull-agent" destdir="build/pull-agent/classes" classpath="lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient-lcf.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar:build/core/classes:build/agents/classes" target="1.5" source="1.4"/>
     </target>
 
     <target name="compile-authority-service" depends="compile-core,compile-agents,compile-pull-agent">
         <mkdir dir="build/authority-service/classes"/>
-        <javac srcdir="authority-service" destdir="build/authority-service/classes" classpath="lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar:build/core/classes:build/agents/classes:build/pull-agent/classes" target="1.5" source="1.4"/>
+        <javac srcdir="authority-service" destdir="build/authority-service/classes" classpath="lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient-lcf.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar:build/core/classes:build/agents/classes:build/pull-agent/classes" target="1.5" source="1.4"/>
     </target>
 
 
@@ -94,7 +94,7 @@
         <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/commons-collections.jar"/>
         <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/commons-el.jar"/>
         <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/commons-fileupload.jar"/>
-        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/commons-httpclient.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/commons-httpclient-lcf.jar"/>
         <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/commons-io.jar"/>
         <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/commons-logging.jar"/>
         <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/jdbcpool-0.99.jar"/>
@@ -103,7 +103,7 @@
         <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/serializer.jar"/>
         <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/servlet-api.jar"/>
         <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/xalan2.jar"/>
-        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/xercesImpl.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/xercesImpl-lcf.jar"/>
         <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/xml-apis.jar"/>
         <copy todir="build/webapp/authority-service/WEB-INF/lib" file="build/jar/lcf-core.jar"/>
         <copy todir="build/webapp/authority-service/WEB-INF/lib" file="build/jar/lcf-agents.jar"/>
@@ -122,7 +122,7 @@
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-collections.jar"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-el.jar"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-fileupload.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-httpclient.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-httpclient-lcf.jar"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-io.jar"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-logging.jar"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/jdbcpool-0.99.jar"/>
@@ -131,7 +131,7 @@
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/serializer.jar"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/servlet-api.jar"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/xalan2.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/xercesImpl.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/xercesImpl-lcf.jar"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/xml-apis.jar"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-core.jar"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-ui-core.jar"/>
@@ -164,7 +164,7 @@
         <copy todir="dist/processes" file="lib/commons-collections.jar"/>
         <copy todir="dist/processes" file="lib/commons-el.jar"/>
         <copy todir="dist/processes" file="lib/commons-fileupload.jar"/>
-        <copy todir="dist/processes" file="lib/commons-httpclient.jar"/>
+        <copy todir="dist/processes" file="lib/commons-httpclient-lcf.jar"/>
         <copy todir="dist/processes" file="lib/commons-io.jar"/>
         <copy todir="dist/processes" file="lib/commons-logging.jar"/>
         <copy todir="dist/processes" file="lib/jdbcpool-0.99.jar"/>
@@ -173,7 +173,7 @@
         <copy todir="dist/processes" file="lib/serializer.jar"/>
         <copy todir="dist/processes" file="lib/servlet-api.jar"/>
         <copy todir="dist/processes" file="lib/xalan2.jar"/>
-        <copy todir="dist/processes" file="lib/xercesImpl.jar"/>
+        <copy todir="dist/processes" file="lib/xercesImpl-lcf.jar"/>
         <copy todir="dist/processes" file="lib/xml-apis.jar"/>
         <copy todir="dist/processes" file="build/jar/lcf-core.jar"/>
         <copy todir="dist/processes" file="build/jar/lcf-agents.jar"/>
