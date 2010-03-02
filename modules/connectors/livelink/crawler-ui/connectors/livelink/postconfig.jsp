@@ -99,7 +99,7 @@
 		}
 		else if (configOp.equals("Add"))
 		{
-			String alias = variableContext.getParameter("llkeystorealias");
+			String alias = IDFactory.make(threadContext);
 			byte[] certificateValue = variableContext.getBinaryBytes("llcertificate");
 			keystoreValue = parameters.getParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.livelinkKeystore);
 			IKeystoreManager mgr;

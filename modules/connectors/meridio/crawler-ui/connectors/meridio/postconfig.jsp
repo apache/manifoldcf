@@ -133,7 +133,7 @@
 		}
 		else if (configOp.equals("Add"))
 		{
-			String alias = variableContext.getParameter("keystorealias");
+			String alias = IDFactory.make(threadContext);
 			byte[] certificateValue = variableContext.getBinaryBytes("certificate");
 			keystoreValue = parameters.getParameter("MeridioKeystore");
 			IKeystoreManager mgr;

@@ -97,6 +97,7 @@ public class TrustsDescription
   {
     IKeystoreManager rval = KeystoreManagerFactory.make("");
 
+    int certNumber = 0;
     Iterator iter = patternHash.keySet().iterator();
     while (iter.hasNext())
     {
@@ -113,7 +114,8 @@ public class TrustsDescription
         int j = 0;
         while (j < aliases.length)
         {
-          rval.addCertificate(IDFactory.make(),trustStore.getCertificate(aliases[j++]));
+          rval.addCertificate(Integer.toString(certNumber),trustStore.getCertificate(aliases[j++]));
+          certNumber++;
         }
       }
     }

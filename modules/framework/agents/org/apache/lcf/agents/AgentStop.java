@@ -42,22 +42,16 @@ public class AgentStop
     }
 
     LCF.initializeEnvironment();
-
-    // Create a file to indicate that we're stopping
-    String synchDirectory = LCF.getProperty(LCF.synchDirectoryProperty);
-    File synchFile = null;
-    if (synchDirectory != null)
+    IThreadContext tc = ThreadContextFactory.make();
+    try
     {
-      synchFile = new File(synchDirectory,"agentrun.file");
-      try
-      {
-        synchFile.createNewFile();
-      }
-      catch (IOException e)
-      {
-        e.printStackTrace();
-        System.exit(1);
-      }
+      ILockManager lockManager = LockManagerFactory.make(tc);
+      lockManager.setGlobalFlag(AgentRun.agentShutdownSignal);
+    }
+    catch (LCFException e)
+    {
+      e.printStackTrace();
+      System.exit(1);
     }
   }
 

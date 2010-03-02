@@ -183,7 +183,7 @@
 		}
 %>
 			</table>
-			<input type="button" onclick='<%="Javascript:LLAddCertificate(\""+IDFactory.make()+"\")"%>' alt="Add cert" value="Add"/>&nbsp;
+			<input type="button" onclick='<%="Javascript:LLAddCertificate()"%>' alt="Add cert" value="Add"/>&nbsp;
 			Certificate:&nbsp;<input name="llcertificate" size="50" type="file"/>
 		</td>
 	</tr>

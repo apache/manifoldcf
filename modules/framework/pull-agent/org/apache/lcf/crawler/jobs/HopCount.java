@@ -138,13 +138,17 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
   /** Hop "delete" dependencies manager */
   protected HopDeleteDeps deleteDepsManager;
 
+  /** Thread context */
+  protected IThreadContext threadContext;
+  
   /** Constructor.
   *@param database is the database handle.
   */
-  public HopCount(IDBInterface database)
+  public HopCount(IThreadContext tc, IDBInterface database)
     throws LCFException
   {
     super(database,"hopcount");
+    this.threadContext = tc;
     intrinsicLinkManager = new IntrinsicLink(database);
     deleteDepsManager = new HopDeleteDeps(database);
   }
@@ -877,7 +881,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
             DeleteDependency dd = new DeleteDependency(linkType,documentIDHash,sourceDocumentIDHash);
             // Build a new answer, based on the starting answer and the kind of link this is.
             map.clear();
-            Long hopCountID = new Long(IDFactory.make());
+            Long hopCountID = new Long(IDFactory.make(threadContext));
             map.put(idField,hopCountID);
             map.put(parentIDHashField,q.getDocumentIdentifierHash());
             map.put(linkTypeField,q.getLinkType());
@@ -1745,7 +1749,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
     {
       // We do NOT expect there to already be a cached entry!  If there is, we've screwed
       // up somehow, and it's a bug.
-      Long id = new Long(IDFactory.make());
+      Long id = new Long(IDFactory.make(threadContext));
 
       map.put(idField,id);
       map.put(jobIDField,jobID);

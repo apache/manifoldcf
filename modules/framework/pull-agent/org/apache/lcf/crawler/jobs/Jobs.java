@@ -184,6 +184,8 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
   protected IOutputConnectionManager outputMgr;
   protected IRepositoryConnectionManager connectionMgr;
 
+  protected IThreadContext threadContext;
+  
   /** Constructor.
   *@param database is the database handle.
   */
@@ -191,6 +193,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
     throws LCFException
   {
     super(database,"jobs");
+    this.threadContext = threadContext;
     scheduleManager = new ScheduleManager(threadContext,database);
     hopFilterManager = new HopFilterManager(threadContext,database);
     cacheManager = CacheManagerFactory.make(threadContext);
@@ -497,7 +500,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
   {
     JobDescription rval = new JobDescription();
     rval.setIsNew(true);
-    rval.setID(new Long(IDFactory.make()));
+    rval.setID(new Long(IDFactory.make(threadContext)));
     return rval;
   }
 

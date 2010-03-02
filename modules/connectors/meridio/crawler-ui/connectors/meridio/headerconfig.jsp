@@ -156,7 +156,7 @@
 		postForm();
 	}
 
-	function AddCertificate(aliasName)
+	function AddCertificate()
 	{
 		if (editconnection.certificate.value == "")
 		{
@@ -165,7 +165,6 @@
 		}
 		else
 		{
-			editconnection.keystorealias.value = aliasName;
 			editconnection.configop.value = "Add";
 			postForm();
 		}

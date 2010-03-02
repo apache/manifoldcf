@@ -1188,7 +1188,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
       else
         map.put(authorityNameField,"");
 
-      Long id = new Long(IDFactory.make());
+      Long id = new Long(IDFactory.make(threadContext));
       map.put(idField,id);
       map.put(outputConnNameField,outputConnectionName);
       map.put(docKeyField,docKey);

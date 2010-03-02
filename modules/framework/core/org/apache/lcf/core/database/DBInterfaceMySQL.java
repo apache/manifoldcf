@@ -25,12 +25,14 @@ public class DBInterfaceMySQL implements IDBInterface
 {
   public static final String _rcsid = "@(#)$Id$";
 
+  protected IThreadContext context;
   protected IDatabase database;
   protected String cacheKey;
 
   public DBInterfaceMySQL(IThreadContext tc, String databaseName, String userName, String password)
     throws LCFException
   {
+    this.context = tc;
     if (databaseName == null)
       databaseName = "mysql";
     database = DatabaseFactory.make(tc,databaseName,userName,password);
@@ -314,7 +316,7 @@ public class DBInterfaceMySQL implements IDBInterface
 
     if (indexName == null)
       // Build an index name
-      indexName = "I"+IDFactory.make();
+      indexName = "I"+IDFactory.make(context);
     StringBuffer queryBuffer = new StringBuffer("CREATE ");
     if (description.getIsUnique())
       queryBuffer.append("UNIQUE ");

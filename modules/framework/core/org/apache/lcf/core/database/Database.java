@@ -169,7 +169,7 @@ public class Database implements IDatabase
     // at the database implementation layer, which will incidentally cause any delayed transactions to actually be starte.d
     String enclosingID = (th==null)?null:th.getTransactionID();
     delayedTransactionDepth++;
-    th = new TransactionHandle(th,transactionType);
+    th = new TransactionHandle(context,th,transactionType);
     cacheManager.startTransaction(th.getTransactionID(),enclosingID);
     doRollback = false;
   }

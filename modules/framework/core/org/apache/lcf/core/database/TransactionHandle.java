@@ -35,11 +35,11 @@ public class TransactionHandle
   protected String transactionID;
   protected int transactionType;
 
-  public TransactionHandle(TransactionHandle previousTransaction, int transactionType)
+  public TransactionHandle(IThreadContext tc, TransactionHandle previousTransaction, int transactionType)
     throws LCFException
   {
     // Grab a unique ID
-    transactionID = IDFactory.make();
+    transactionID = IDFactory.make(tc);
     this.previousTransaction = previousTransaction;
     this.transactionType = transactionType;
   }

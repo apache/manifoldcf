@@ -132,13 +132,17 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
   /** Prerequisite event manager */
   protected PrereqEventManager prereqEventManager;
 
+  /** Thread context */
+  protected IThreadContext threadContext;
+  
   /** Constructor.
   *@param database is the database handle.
   */
-  public JobQueue(IDBInterface database)
+  public JobQueue(IThreadContext tc, IDBInterface database)
     throws LCFException
   {
     super(database,"jobqueue");
+    this.threadContext = tc;
     prereqEventManager = new PrereqEventManager(database);
   }
 
@@ -833,7 +837,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
   {
     // No prerequisites should be possible at this point.
     HashMap map = new HashMap();
-    Long recordID = new Long(IDFactory.make());
+    Long recordID = new Long(IDFactory.make(threadContext));
     map.put(idField,recordID);
     if (desiredExecuteTime == -1L)
       map.put(checkTimeField,new Long(0L));
@@ -1146,7 +1150,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
     throws LCFException
   {
     HashMap map = new HashMap();
-    Long recordID = new Long(IDFactory.make());
+    Long recordID = new Long(IDFactory.make(threadContext));
     map.put(idField,recordID);
     map.put(checkTimeField,new Long(desiredExecuteTime));
     map.put(checkActionField,actionToString(ACTION_RESCAN));

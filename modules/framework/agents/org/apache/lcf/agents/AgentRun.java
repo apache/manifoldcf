@@ -28,6 +28,8 @@ public class AgentRun
 {
   public static final String _rcsid = "@(#)$Id$";
 
+  public static final String agentShutdownSignal = "_AGENTRUN_";
+  
   private AgentRun()
   {
   }
@@ -42,28 +44,22 @@ public class AgentRun
     }
 
     LCF.initializeEnvironment();
+    IThreadContext tc = ThreadContextFactory.make();
 
-    // Create a file to indicate that we're running
-    String synchDirectory = LCF.getProperty(LCF.synchDirectoryProperty);
-    File synchFile = null;
-    if (synchDirectory != null)
-    {
-      synchFile = new File(synchDirectory,"agentrun.file");
-      // delete it if present
-      synchFile.delete();
-    }
     try
     {
-      IThreadContext tc = ThreadContextFactory.make();
+      ILockManager lockManager = LockManagerFactory.make(tc);
+      // Clear the agents shutdown signal.
+      lockManager.clearGlobalFlag(agentShutdownSignal);
       System.err.println("Running...");
       try
       {
         while (true)
         {
-          // See if file still there
-          if (synchFile != null && synchFile.exists())
+          // Any shutdown signal yet?
+          if (lockManager.checkGlobalFlag(agentShutdownSignal))
             break;
-
+          
           // Start whatever agents need to be started
           LCF.startAgents(tc);
 

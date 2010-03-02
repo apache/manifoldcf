@@ -26,6 +26,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 {
   public static final String _rcsid = "@(#)$Id$";
 
+  protected IThreadContext context;
   protected IDatabase database;
   protected String cacheKey;
   // Postgresql serializable transactions are broken in that transactions that occur within them do not in fact work properly.
@@ -41,6 +42,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
   public DBInterfacePostgreSQL(IThreadContext tc, String databaseName, String userName, String password)
     throws LCFException
   {
+    this.context = tc;
     if (databaseName == null)
       databaseName = "template1";
     database = DatabaseFactory.make(tc,databaseName,userName,password);
@@ -409,7 +411,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
 
     if (indexName == null)
       // Build an index name
-      indexName = "I"+IDFactory.make();
+      indexName = "I"+IDFactory.make(context);
     StringBuffer queryBuffer = new StringBuffer("CREATE ");
     if (description.getIsUnique())
       queryBuffer.append("UNIQUE ");

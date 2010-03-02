@@ -150,7 +150,7 @@
 		}
 %>
 			</table>
-			<input type="button" onclick='<%="Javascript:ShpAddCertificate(\""+IDFactory.make()+"\")"%>' alt="Add cert" value="Add"/>&nbsp;
+			<input type="button" onclick='<%="Javascript:ShpAddCertificate()"%>' alt="Add cert" value="Add"/>&nbsp;
 			Certificate:&nbsp;<input name="shpcertificate" size="50" type="file"/>
 		</td>
 	</tr>

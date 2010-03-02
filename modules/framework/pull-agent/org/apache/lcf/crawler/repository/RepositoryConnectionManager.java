@@ -64,7 +64,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
   {
     super(database,"repoconnections");
 
-    historyManager = new RepositoryHistoryManager(database);
+    historyManager = new RepositoryHistoryManager(threadContext,database);
     throttleSpecManager = new ThrottleSpecManager(database);
     cacheManager = CacheManagerFactory.make(threadContext);
     this.threadContext = threadContext;

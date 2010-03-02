@@ -60,7 +60,7 @@
 		postForm();
 	}
 
-	function LLAddCertificate(aliasName)
+	function LLAddCertificate()
 	{
 		if (editconnection.llcertificate.value == "")
 		{
@@ -69,7 +69,6 @@
 		}
 		else
 		{
-			editconnection.llkeystorealias.value = aliasName;
 			editconnection.configop.value = "Add";
 			postForm();
 		}

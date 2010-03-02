@@ -59,8 +59,8 @@ public class JobManager implements IJobManager
     this.database = database;
     this.threadContext = threadContext;
     jobs = new Jobs(threadContext,database);
-    jobQueue = new JobQueue(database);
-    hopCount = new HopCount(database);
+    jobQueue = new JobQueue(threadContext,database);
+    hopCount = new HopCount(threadContext,database);
     carryDown = new Carrydown(database);
     eventManager = new EventManager(database);
     outputMgr = OutputConnectionManagerFactory.make(threadContext);

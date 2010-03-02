@@ -22,6 +22,7 @@ import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.core.system.Logging;
 import org.apache.lcf.core.system.LCF;
 import java.util.*;
+import java.io.*;
 
 /** The lock manager manages locks across all threads and JVMs and cluster members.  There should be no more than ONE
 * instance of this class per thread!!!  The factory should enforce this.
@@ -52,36 +53,135 @@ public class LockManager implements ILockManager
     synchDirectory = LCF.getProperty(LCF.synchDirectoryProperty);
   }
 
-  protected LocalLock getLocalLock(String lockKey)
+
+  /** Raise a flag.  Use this method to assert a condition, or send a global signal.  The flag will be reset when the
+  * entire system is restarted.
+  *@param flagName is the name of the flag to set.
+  */
+  public void setGlobalFlag(String flagName)
+    throws LCFException
   {
-    LocalLock ll = (LocalLock)localLocks.get(lockKey);
-    if (ll == null)
+    String resourceName = "flag-" + flagName;
+    String path = makeFilePath(resourceName);
+    (new File(path)).mkdirs();
+    File f = new File(path,LCF.safeFileName(resourceName));
+    try
     {
-      ll = new LocalLock();
-      localLocks.put(lockKey,ll);
+      f.createNewFile();
     }
-    return ll;
-  }
-
-  protected void releaseLocalLock(String lockKey)
-  {
-    localLocks.remove(lockKey);
-  }
-
-  protected LocalLock getLocalSection(String sectionKey)
-  {
-    LocalLock ll = (LocalLock)localSections.get(sectionKey);
-    if (ll == null)
+    catch (InterruptedIOException e)
     {
-      ll = new LocalLock();
-      localSections.put(sectionKey,ll);
+      throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
     }
-    return ll;
+    catch (IOException e)
+    {
+      throw new LCFException(e.getMessage(),e);
+    }
   }
 
-  protected void releaseLocalSection(String sectionKey)
+  /** Clear a flag.  Use this method to clear a condition, or retract a global signal.
+  *@param flagName is the name of the flag to clear.
+  */
+  public void clearGlobalFlag(String flagName)
+    throws LCFException
   {
-    localSections.remove(sectionKey);
+    String resourceName = "flag-" + flagName;
+    File f = new File(makeFilePath(resourceName),LCF.safeFileName(resourceName));
+    f.delete();
+  }
+  
+  /** Check the condition of a specified flag.
+  *@param flagName is the name of the flag to check.
+  *@return true if the flag is set, false otherwise.
+  */
+  public boolean checkGlobalFlag(String flagName)
+    throws LCFException
+  {
+    String resourceName = "flag-" + flagName;
+    File f = new File(makeFilePath(resourceName),LCF.safeFileName(resourceName));
+    return f.exists();
+  }
+
+  /** Read data from a shared data resource.  Use this method to read any existing data, or get a null back if there is no such resource.
+  * Note well that this is not necessarily an atomic operation, and it must thus be protected by a lock.
+  *@param resourceName is the global name of the resource.
+  *@return a byte array containing the data, or null.
+  */
+  public byte[] readData(String resourceName)
+    throws LCFException
+  {
+    File f = new File(makeFilePath(resourceName),LCF.safeFileName(resourceName));
+    try
+    {
+      InputStream is = new FileInputStream(f);
+      try
+      {
+        ByteArrayBuffer bab = new ByteArrayBuffer();
+        while (true)
+        {
+          int x = is.read();
+          if (x == -1)
+            break;
+          bab.add((byte)x);
+        }
+        return bab.toArray();
+      }
+      finally
+      {
+        is.close();
+      }
+    }
+    catch (FileNotFoundException e)
+    {
+      return null;
+    }
+    catch (InterruptedIOException e)
+    {
+      throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+    }
+    catch (IOException e)
+    {
+      throw new LCFException("IO exception: "+e.getMessage(),e);
+    }
+  }
+  
+  /** Write data to a shared data resource.  Use this method to write a body of data into a shared resource.
+  * Note well that this is not necessarily an atomic operation, and it must thus be protected by a lock.
+  *@param resourceName is the global name of the resource.
+  *@param data is the byte array containing the data.  Pass null if you want to delete the resource completely.
+  */
+  public void writeData(String resourceName, byte[] data)
+    throws LCFException
+  {
+    try
+    {
+      String path = makeFilePath(resourceName);
+      // Make sure the directory exists
+      (new File(path)).mkdirs();
+      File f = new File(path,LCF.safeFileName(resourceName));
+      if (data == null)
+      {
+        f.delete();
+        return;
+      }
+      FileOutputStream os = new FileOutputStream(f);
+      try
+      {
+        os.write(data,0,data.length);
+      }
+      finally
+      {
+        os.close();
+      }
+    }
+    catch (InterruptedIOException e)
+    {
+      throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+    }
+    catch (IOException e)
+    {
+      throw new LCFException("IO exception: "+e.getMessage(),e);
+    }
   }
 
   /** Wait for a time before retrying a lock.
@@ -1544,6 +1644,38 @@ public class LockManager implements ILockManager
     }
   }
 
+  protected LocalLock getLocalLock(String lockKey)
+  {
+    LocalLock ll = (LocalLock)localLocks.get(lockKey);
+    if (ll == null)
+    {
+      ll = new LocalLock();
+      localLocks.put(lockKey,ll);
+    }
+    return ll;
+  }
+
+  protected void releaseLocalLock(String lockKey)
+  {
+    localLocks.remove(lockKey);
+  }
+
+  protected LocalLock getLocalSection(String sectionKey)
+  {
+    LocalLock ll = (LocalLock)localSections.get(sectionKey);
+    if (ll == null)
+    {
+      ll = new LocalLock();
+      localSections.put(sectionKey,ll);
+    }
+    return ll;
+  }
+
+  protected void releaseLocalSection(String sectionKey)
+  {
+    localSections.remove(sectionKey);
+  }
+
   /** Process inbound locks into a sorted vector of most-restrictive unique locks
   */
   protected LockDescription[] getSortedUniqueLocks(String[] readLocks, String[] writeNonExLocks,
@@ -1621,6 +1753,21 @@ public class LockManager implements ILockManager
     return rval;
   }
 
+  /** Create a file path given a key name.
+  *@param key is the key name.
+  *@return the file path.
+  */
+  protected String makeFilePath(String key)
+  {
+    int hashcode = key.hashCode();
+    int outerDirNumber = (hashcode & (1023));
+    int innerDirNumber = ((hashcode >> 10) & (1023));
+    String fullDir = synchDirectory;
+    if (fullDir.length() == 0 || !fullDir.endsWith("/"))
+      fullDir = fullDir + "/";
+    fullDir = fullDir + Integer.toString(outerDirNumber)+"/"+Integer.toString(innerDirNumber);
+    return fullDir;
+  }
 
   protected class LockDescription
   {
@@ -1705,4 +1852,37 @@ public class LockManager implements ILockManager
       writeCount--;
     }
   }
+  
+  protected static final int BASE_SIZE = 128;
+  
+  protected static class ByteArrayBuffer
+  {
+    protected byte[] buffer;
+    protected int length;
+    
+    public ByteArrayBuffer()
+    {
+      buffer = new byte[BASE_SIZE];
+      length = 0;
+    }
+    
+    public void add(byte b)
+    {
+      if (length == buffer.length)
+      {
+        byte[] oldbuffer = buffer;
+        buffer = new byte[length * 2];
+        System.arraycopy(oldbuffer,0,buffer,0,length);
+      }
+      buffer[length++] = b;
+    }
+    
+    public byte[] toArray()
+    {
+      byte[] rval = new byte[length];
+      System.arraycopy(buffer,0,rval,0,length);
+      return rval;
+    }
+  }
+
 }

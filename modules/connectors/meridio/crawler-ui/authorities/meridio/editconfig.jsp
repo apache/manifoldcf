@@ -303,7 +303,7 @@
 		}
 %>
 			</table>
-			<input type="button" onclick='<%="Javascript:AddCertificate(\""+IDFactory.make()+"\")"%>' alt="Add cert" value="Add"/>&nbsp;
+			<input type="button" onclick='<%="Javascript:AddCertificate()"%>' alt="Add cert" value="Add"/>&nbsp;
 			Certificate:&nbsp;<input name="certificate" size="50" type="file"/>
 		</td>
 	</tr>

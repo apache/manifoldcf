@@ -38,9 +38,6 @@ public class CacheManager implements ICacheManager
   protected ILockManager lockManager;
   protected static GeneralCache cache = new GeneralCache();
 
-  // This is the synch directory; it's null if no cross-JVM synchronization
-  protected String synchDirectory = null;
-
   // This is the hash mapping transaction id's to CacheTransactionHandle objects.
   // It is thread specific because transactions are thread local.
   protected HashMap transactionHash = new HashMap();
@@ -49,7 +46,6 @@ public class CacheManager implements ICacheManager
     throws LCFException
   {
     lockManager = LockManagerFactory.make(context);
-    synchDirectory = LCF.getProperty(LCF.synchDirectoryProperty);
   }
 
   /** Locate or create a set of objects in the cached object pool, and/or destroy and invalidate
@@ -429,21 +425,18 @@ public class CacheManager implements ICacheManager
 
     // Before we conclude that the object is found, if we are on a multi-JVM environment we MUST check
     // the object's timestamp!!!  We check it against the invalidation key file timestamps for the object.
-    if (synchDirectory != null)
-    {
-      long createTime = cache.getObjectCreationTime(objectDescription);
-      StringSet keys = cache.getObjectInvalidationKeys(objectDescription);
+    long createTime = cache.getObjectCreationTime(objectDescription);
+    StringSet keys = cache.getObjectInvalidationKeys(objectDescription);
 
-      Iterator iter = keys.getKeys();
-      while (iter.hasNext())
+    Iterator iter = keys.getKeys();
+    while (iter.hasNext())
+    {
+      String key = (String)iter.next();
+      if (hasExpired(key,createTime))
       {
-        String key = (String)iter.next();
-        if (hasExpired(key,createTime))
-        {
-          // Blow away the entry in cache, since it has expired
-          cache.deleteObject(objectDescription);
-          return null;
-        }
+        // Blow away the entry in cache, since it has expired
+        cache.deleteObject(objectDescription);
+        return null;
       }
     }
 
@@ -463,37 +456,10 @@ public class CacheManager implements ICacheManager
   protected boolean hasExpired(String key, long createTime)
     throws LCFException
   {
-
-    File fileDescription = new File(makeFilePath(key),makeFileName(key));
-    long createdDate = readFile(fileDescription);
+    long createdDate = readSharedData(key);
     if (createdDate == 0L)
       return false;
     return createdDate >= createTime;
-  }
-
-  /** Create a file path given a key name.
-  *@param key is the key name.
-  *@return the file path.
-  */
-  protected String makeFilePath(String key)
-  {
-    int hashcode = key.hashCode();
-    int outerDirNumber = (hashcode & (1023));
-    int innerDirNumber = ((hashcode >> 10) & (1023));
-    String fullDir = synchDirectory;
-    if (fullDir.length() == 0 || !fullDir.endsWith("/"))
-      fullDir = fullDir + "/";
-    fullDir = fullDir + Integer.toString(outerDirNumber)+"/"+Integer.toString(innerDirNumber);
-    return fullDir;
-  }
-
-  /** Create a file name given a key name.
-  *@param key is the key name.
-  *@return the file name.
-  */
-  protected static String makeFileName(String key)
-  {
-    return "cache-"+LCF.safeFileName(key);
   }
 
   /** Set object's expiration and LRU.
@@ -637,33 +603,23 @@ public class CacheManager implements ICacheManager
   }
 
   /** Perform an invalidation.  Assume all appropriate locks are in place.
-  * Eventually, this will be cross-cluster.
   *@param keys is the set of keys to invalidate.
   */
   protected void performInvalidation(StringSet keys)
     throws LCFException
   {
 
-    // Finally, perform the invalidation.  When support is added for
-    // multi cluster, this will need to be extended to blow the cache
-    // cross cluster.
+    // Finally, perform the invalidation.
 
     if (keys != null)
     {
-      if (synchDirectory != null)
+      long invalidationTime = System.currentTimeMillis();
+      // Loop through all keys
+      Iterator iter = keys.getKeys();
+      while (iter.hasNext())
       {
-        long invalidationTime = System.currentTimeMillis();
-        // Loop through all keys
-        Iterator iter = keys.getKeys();
-        while (iter.hasNext())
-        {
-          String keyName = (String)iter.next();
-          String path = makeFilePath(keyName);
-          // Make sure the directory exists
-          (new File(path)).mkdirs();
-          File fileDescription = new File(path,makeFileName(keyName));
-          writeFile(fileDescription,invalidationTime);
-        }
+        String keyName = (String)iter.next();
+        writeSharedData(keyName,invalidationTime);
       }
 
       cache.invalidateKeys(keys);
@@ -855,111 +811,46 @@ public class CacheManager implements ICacheManager
   // Protected methods and classes
 
   /** Read an invalidation file contents.
-  *@param fileDescriptor is the descriptor.
+  *@param key is the cache key name.
   *@return the invalidation time, or 0 if none.
   */
-  protected static long readFile(File fileDescriptor)
+  protected long readSharedData(String key)
     throws LCFException
   {
+    // Read cache resource
+    byte[] cacheResourceData = lockManager.readData("cache-"+key);
+    if (cacheResourceData == null)
+      return 0L;
     try
     {
-      FileReader fr = new FileReader(fileDescriptor);
-      try
-      {
-        BufferedReader x = new BufferedReader(fr);
-        try
-        {
-          StringBuffer sb = new StringBuffer();
-          while (true)
-          {
-            int rval = x.read();
-            if (rval == -1)
-              break;
-            sb.append((char)rval);
-          }
-          return new Long(sb.toString()).longValue();
-        }
-        catch (InterruptedIOException e)
-        {
-          throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
-        }
-        catch (IOException e)
-        {
-          Logging.cache.error("Could not read from lock file: '"+fileDescriptor.toString()+"'",e);
-          // Don't fail hard or there is no way to recover
-          throw e;
-        }
-        finally
-        {
-          x.close();
-        }
-      }
-      catch (InterruptedIOException e)
-      {
-        throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
-      }
-      catch (IOException e)
-      {
-        Logging.cache.error("Could not read from lock file: '"+fileDescriptor.toString()+"'",e);
-        // Don't fail hard or there is no way to recover
-        throw e;
-      }
-      finally
-      {
-        fr.close();
-      }
+      String expiration = new String(cacheResourceData,"utf-8");
+      return new Long(expiration).longValue();
     }
-    catch (InterruptedIOException e)
+    catch (UnsupportedEncodingException e)
     {
-      throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
+      throw new LCFException(e.getMessage(),e);
     }
-    catch (IOException e)
-    {
-      return 0L;
-    }
-
   }
 
   /** Write the invalidation file contents.
-  *@param fileDescriptor is the descriptor.
+  *@param key is the cache key name.
   *@param value is the invalidation timestamp.
   */
-  protected static void writeFile(File fileDescriptor, long value)
+  protected void writeSharedData(String key, long value)
     throws LCFException
   {
-    try
+    if (value == 0L)
+      lockManager.writeData(key,null);
+    else
     {
-      if (value == 0L)
-        fileDescriptor.delete();
-      else
+      try
       {
-        FileWriter fw = new FileWriter(fileDescriptor);
-        try
-        {
-          BufferedWriter x = new BufferedWriter(fw);
-          try
-          {
-            x.write(Long.toString(value));
-          }
-          finally
-          {
-            x.close();
-          }
-        }
-        finally
-        {
-          fw.close();
-        }
+        lockManager.writeData(key,Long.toString(value).getBytes("utf-8"));
       }
-    }
-    catch (InterruptedIOException e)
-    {
-      throw new LCFException("Interrupted",e,LCFException.INTERRUPTED);
-    }
-    catch (IOException e)
-    {
-      // Hard failure is called for
-      throw new LCFException("Cache system failure",e);
+      catch (UnsupportedEncodingException e)
+      {
+        throw new LCFException(e.getMessage(),e);
+      }
     }
   }
 

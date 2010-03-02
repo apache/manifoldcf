@@ -86,7 +86,7 @@
 		}
 		else if (configOp.equals("Add"))
 		{
-			String alias = variableContext.getParameter("shpkeystorealias");
+			String alias = IDFactory.make(threadContext);
 			byte[] certificateValue = variableContext.getBinaryBytes("shpcertificate");
 			keystoreValue = parameters.getParameter("keystore");
 			IKeystoreManager mgr;

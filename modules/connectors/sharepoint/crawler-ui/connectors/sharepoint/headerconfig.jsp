@@ -56,7 +56,7 @@
 		postForm();
 	}
 
-	function ShpAddCertificate(aliasName)
+	function ShpAddCertificate()
 	{
 		if (editconnection.shpcertificate.value == "")
 		{
@@ -65,7 +65,6 @@
 		}
 		else
 		{
-			editconnection.shpkeystorealias.value = aliasName;
 			editconnection.configop.value = "Add";
 			postForm();
 		}

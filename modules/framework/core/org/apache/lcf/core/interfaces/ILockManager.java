@@ -19,11 +19,48 @@
 package org.apache.lcf.core.interfaces;
 
 
-/** The lock manager manages locks across all threads and JVMs and cluster members
+/** The lock manager manages locks across all threads and JVMs and cluster members.  It also
+* manages shared data, which is not necessarily atomic and should be protected by locks.
 */
 public interface ILockManager
 {
   public static final String _rcsid = "@(#)$Id$";
+
+  /** Raise a flag.  Use this method to assert a condition, or send a global signal.  The flag will be reset when the
+  * entire system is restarted.
+  *@param flagName is the name of the flag to set.
+  */
+  public void setGlobalFlag(String flagName)
+    throws LCFException;
+
+  /** Clear a flag.  Use this method to clear a condition, or retract a global signal.
+  *@param flagName is the name of the flag to clear.
+  */
+  public void clearGlobalFlag(String flagName)
+    throws LCFException;
+  
+  /** Check the condition of a specified flag.
+  *@param flagName is the name of the flag to check.
+  *@return true if the flag is set, false otherwise.
+  */
+  public boolean checkGlobalFlag(String flagName)
+    throws LCFException;
+
+  /** Read data from a shared data resource.  Use this method to read any existing data, or get a null back if there is no such resource.
+  * Note well that this is not necessarily an atomic operation, and it must thus be protected by a lock.
+  *@param resourceName is the global name of the resource.
+  *@return a byte array containing the data, or null.
+  */
+  public byte[] readData(String resourceName)
+    throws LCFException;
+  
+  /** Write data to a shared data resource.  Use this method to write a body of data into a shared resource.
+  * Note well that this is not necessarily an atomic operation, and it must thus be protected by a lock.
+  *@param resourceName is the global name of the resource.
+  *@param data is the byte array containing the data.  Pass null if you want to delete the resource completely.
+  */
+  public void writeData(String resourceName, byte[] data)
+    throws LCFException;
 
   /** Wait for a time before retrying a lock.  Use this method to wait
   * after a LockException has been thrown.  )If this is not done, the application

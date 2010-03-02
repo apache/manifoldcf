@@ -42,13 +42,17 @@ public class RepositoryHistoryManager extends org.apache.lcf.core.database.BaseT
   /** Counter for kicking off analyze */
   protected static AnalyzeTracker tracker = new AnalyzeTracker();
 
+  /** Thread context */
+  protected IThreadContext threadContext;
+
   /** Constructor.
   *@param database is the database instance.
   */
-  public RepositoryHistoryManager(IDBInterface database)
+  public RepositoryHistoryManager(IThreadContext tc, IDBInterface database)
     throws LCFException
   {
     super(database,"repohistory");
+    this.threadContext = tc;
   }
 
   /** Install or upgrade the table.
@@ -149,7 +153,7 @@ public class RepositoryHistoryManager extends org.apache.lcf.core.database.BaseT
     String entityIdentifier, String resultCode, String resultDescription)
     throws LCFException
   {
-    Long id = new Long(IDFactory.make());
+    Long id = new Long(IDFactory.make(threadContext));
     HashMap map = new HashMap();
     map.put(idField,id);
     map.put(ownerNameField,connectionName);
