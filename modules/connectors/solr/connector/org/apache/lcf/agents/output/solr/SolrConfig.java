@@ -16,12 +16,12 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.lcf.agents.output.lucene;
+package org.apache.lcf.agents.output.solr;
 
 
-/** Parameters and output data for Lucene output connector.
+/** Parameters and output data for SOLR output connector.
 */
-public class LuceneConfig
+public class SolrConfig
 {
   public static final String _rcsid = "@(#)$Id$";
 

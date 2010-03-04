@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.lcf.agents.output.lucene;
+package org.apache.lcf.agents.output.solr;
 
 import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.agents.interfaces.*;
@@ -25,7 +25,7 @@ import java.util.*;
 
 /** This is the output connector for SOLR.  Currently, no frills.
 */
-public class LuceneConnector extends org.apache.lcf.agents.output.BaseOutputConnector
+public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnector
 {
   public static final String _rcsid = "@(#)$Id$";
 
@@ -41,7 +41,7 @@ public class LuceneConnector extends org.apache.lcf.agents.output.BaseOutputConn
 
   /** Constructor.
   */
-  public LuceneConnector()
+  public SolrConnector()
   {
   }
 
@@ -60,7 +60,7 @@ public class LuceneConnector extends org.apache.lcf.agents.output.BaseOutputConn
   */
   public String getJSPFolder()
   {
-    return "lucene";
+    return "solr";
   }
 
   /** Connect.
@@ -88,37 +88,37 @@ public class LuceneConnector extends org.apache.lcf.agents.output.BaseOutputConn
   {
     if (poster == null)
     {
-      String protocol = params.getParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_PROTOCOL);
+      String protocol = params.getParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_PROTOCOL);
       if (protocol == null || protocol.length() == 0)
-        throw new LCFException("Missing parameter: "+org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_PROTOCOL);
+        throw new LCFException("Missing parameter: "+org.apache.lcf.agents.output.solr.SolrConfig.PARAM_PROTOCOL);
 
-      String server = params.getParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_SERVER);
+      String server = params.getParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_SERVER);
       if (server == null || server.length() == 0)
-        throw new LCFException("Missing parameter: "+org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_SERVER);
+        throw new LCFException("Missing parameter: "+org.apache.lcf.agents.output.solr.SolrConfig.PARAM_SERVER);
 
-      String port = params.getParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_PORT);
+      String port = params.getParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_PORT);
       if (port == null || port.length() == 0)
         port = "80";
 
-      String webapp = params.getParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_WEBAPPNAME);
+      String webapp = params.getParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_WEBAPPNAME);
       if (webapp == null || webapp.length() == 0)
         webapp = "";
 
-      String updatePath = params.getParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_UPDATEPATH);
+      String updatePath = params.getParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_UPDATEPATH);
       if (updatePath == null || updatePath.length() == 0)
         updatePath = "";
 
-      String removePath = params.getParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_REMOVEPATH);
+      String removePath = params.getParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_REMOVEPATH);
       if (removePath == null || removePath.length() == 0)
         removePath = "";
 
-      String statusPath = params.getParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_STATUSPATH);
+      String statusPath = params.getParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_STATUSPATH);
       if (statusPath == null || statusPath.length() == 0)
         statusPath = "";
 
-      String userID = params.getParameter(LuceneConfig.PARAM_USERID);
-      String password = params.getObfuscatedParameter(LuceneConfig.PARAM_PASSWORD);
-      String realm = params.getParameter(LuceneConfig.PARAM_REALM);
+      String userID = params.getParameter(SolrConfig.PARAM_USERID);
+      String password = params.getObfuscatedParameter(SolrConfig.PARAM_PASSWORD);
+      String realm = params.getParameter(SolrConfig.PARAM_REALM);
       try
       {
         poster = new HttpPoster(protocol,server,Integer.parseInt(port),webapp,updatePath,removePath,statusPath,realm,userID,password);

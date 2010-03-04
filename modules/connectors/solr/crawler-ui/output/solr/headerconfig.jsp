@@ -23,7 +23,7 @@
 %>
 
 <%
-	// This file is included in the head section by every place that the configuration information for the Lucene connector
+	// This file is included in the head section by every place that the configuration information for the Solr connector
 	// needs to be edited.  When it is called, the parameter Map object is placed in the thread context
 	// under the name "Parameters".
 
@@ -42,7 +42,7 @@
 	if (tabsArray == null)
 		out.println("No tabs array!");
 
-	tabsArray.add("Lucene");
+	tabsArray.add("SOLR");
 
 
 %>
@@ -53,13 +53,13 @@
 	{
 		if (editconnection.servername.value == "")
 		{
-			alert("Please supply a valid Lucene server name");
+			alert("Please supply a valid SOLR server name");
 			editconnection.servername.focus();
 			return false;
 		}
 		if (editconnection.serverport.value != "" && !isInteger(editconnection.serverport.value))
 		{
-			alert("Lucene server port must be a valid integer");
+			alert("SOLR server port must be a valid integer");
 			editconnection.serverport.focus();
 			return false;
 		}
@@ -94,43 +94,43 @@
 	{
 		if (editconnection.servername.value == "")
 		{
-			alert("Please supply a valid Lucene server name");
-			SelectTab("Lucene");
+			alert("Please supply a valid SOLR server name");
+			SelectTab("SOLR");
 			editconnection.servername.focus();
 			return false;
 		}
 		if (editconnection.serverport.value != "" && !isInteger(editconnection.serverport.value))
 		{
-			alert("Lucene server port must be a valid integer");
-			SelectTab("Lucene");
+			alert("SOLR server port must be a valid integer");
+			SelectTab("SOLR");
 			editconnection.serverport.focus();
 			return false;
 		}
 		if (editconnection.webappname.value != "" && editconnection.webappname.value.indexOf("/") != -1)
 		{
 			alert("Web application name cannot have '/' characters");
-			SelectTab("Lucene");
+			SelectTab("SOLR");
 			editconnection.webappname.focus();
 			return false;
 		}
 		if (editconnection.updatepath.value != "" && editconnection.updatepath.value.substring(0,1) != "/")
 		{
 			alert("Update path must start with a  '/' character");
-			SelectTab("Lucene");
+			SelectTab("SOLR");
 			editconnection.updatepath.focus();
 			return false;
 		}
 		if (editconnection.removepath.value != "" && editconnection.removepath.value.substring(0,1) != "/")
 		{
 			alert("Remove path must start with a  '/' character");
-			SelectTab("Lucene");
+			SelectTab("SOLR");
 			editconnection.removepath.focus();
 			return false;
 		}
 		if (editconnection.statuspath.value != "" && editconnection.statuspath.value.substring(0,1) != "/")
 		{
 			alert("Status path must start with a  '/' character");
-			SelectTab("Lucene");
+			SelectTab("SOLR");
 			editconnection.statuspath.focus();
 			return false;
 		}

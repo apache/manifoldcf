@@ -39,42 +39,42 @@
 
 	String protocol = variableContext.getParameter("serverprotocol");
 	if (protocol != null)
-		parameters.setParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_PROTOCOL,protocol);
+		parameters.setParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_PROTOCOL,protocol);
 		
 	String server = variableContext.getParameter("servername");
 	if (server != null)
-		parameters.setParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_SERVER,server);
+		parameters.setParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_SERVER,server);
 
 	String port = variableContext.getParameter("serverport");
 	if (port != null)
-		parameters.setParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_PORT,port);
+		parameters.setParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_PORT,port);
 
 	String webapp = variableContext.getParameter("webappname");
 	if (webapp != null)
-		parameters.setParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_WEBAPPNAME,webapp);
+		parameters.setParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_WEBAPPNAME,webapp);
 
 	String updatePath = variableContext.getParameter("updatepath");
 	if (updatePath != null)
-		parameters.setParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_UPDATEPATH,updatePath);
+		parameters.setParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_UPDATEPATH,updatePath);
 
 	String removePath = variableContext.getParameter("removepath");
 	if (removePath != null)
-		parameters.setParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_REMOVEPATH,removePath);
+		parameters.setParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_REMOVEPATH,removePath);
 
 	String statusPath = variableContext.getParameter("statuspath");
 	if (statusPath != null)
-		parameters.setParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_STATUSPATH,statusPath);
+		parameters.setParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_STATUSPATH,statusPath);
 
 	String realm = variableContext.getParameter("realm");
 	if (realm != null)
-		parameters.setParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_REALM,realm);
+		parameters.setParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_REALM,realm);
 
 	String userID = variableContext.getParameter("userid");
 	if (userID != null)
-		parameters.setParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_USERID,userID);
+		parameters.setParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_USERID,userID);
 		
 	String password = variableContext.getParameter("password");
 	if (password != null)
-		parameters.setObfuscatedParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_PASSWORD,password);
+		parameters.setObfuscatedParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_PASSWORD,password);
 	
 %>

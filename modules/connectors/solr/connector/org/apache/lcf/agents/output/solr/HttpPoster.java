@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.lcf.agents.output.lucene;
+package org.apache.lcf.agents.output.solr;
 
 import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.core.common.Base64;
@@ -33,7 +33,7 @@ import javax.net.ssl.*;
 import org.apache.log4j.*;
 
 /**
-* Posts an input stream to Lucene
+* Posts an input stream to SOLR
 *
 * @author James Sablatura, modified by Karl Wright
 */
@@ -183,7 +183,7 @@ public class HttpPoster
 
           // Log the activity, if any, regardless of any exception
           if (t.getActivityCode() != null)
-            activities.recordActivity(t.getActivityStart(),LuceneConnector.INGEST_ACTIVITY,t.getActivityBytes(),documentURI,t.getActivityCode(),t.getActivityDetails());
+            activities.recordActivity(t.getActivityStart(),SolrConnector.INGEST_ACTIVITY,t.getActivityBytes(),documentURI,t.getActivityCode(),t.getActivityDetails());
 
           readFromDocumentStreamYet = (readFromDocumentStreamYet || t.getReadFromDocumentStreamYet());
 
@@ -349,7 +349,7 @@ public class HttpPoster
 
           // Log the activity, if any, regardless of any exception
           if (t.getActivityCode() != null)
-            activities.recordActivity(t.getActivityStart(),LuceneConnector.REMOVE_ACTIVITY,null,documentURI,t.getActivityCode(),t.getActivityDetails());
+            activities.recordActivity(t.getActivityStart(),SolrConnector.REMOVE_ACTIVITY,null,documentURI,t.getActivityCode(),t.getActivityDetails());
 
           Throwable thr = t.getException();
           if (thr != null)
@@ -814,7 +814,7 @@ public class HttpPoster
               OutputStream out = socket.getOutputStream();
               try
               {
-                // Create the output stream to Lucene
+                // Create the output stream to SOLR
                 byte[] tmp = ("POST " + postUpdateAction + " HTTP/1.0\r\n").getBytes("ASCII");
                 out.write(tmp, 0, tmp.length);
 
@@ -1555,7 +1555,7 @@ public class HttpPoster
       if (doc != null)
       {
         if (Logging.ingest.isDebugEnabled())
-          Logging.ingest.debug("LUCENE: Saw ingestion response document '"+doc.getXML()+"'");
+          Logging.ingest.debug("SOLR: Saw ingestion response document '"+doc.getXML()+"'");
         //Object root = doc.getRoot();
         ArrayList list = doc.processPath("*",null);
         int k = 0;
@@ -1617,7 +1617,7 @@ public class HttpPoster
       if (doc != null)
       {
         if (Logging.ingest.isDebugEnabled())
-          Logging.ingest.debug("LUCENE: Saw status response document '"+doc.getXML()+"'");
+          Logging.ingest.debug("SOLR: Saw status response document '"+doc.getXML()+"'");
         //Object root = doc.getRoot();
         ArrayList list = doc.processPath("*",null);
         int k = 0;

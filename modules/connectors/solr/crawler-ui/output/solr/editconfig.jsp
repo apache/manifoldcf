@@ -38,48 +38,48 @@
 	if (tabName == null)
 		out.println("No tab name!");
 
-	String protocol = parameters.getParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_PROTOCOL);
+	String protocol = parameters.getParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_PROTOCOL);
 	if (protocol == null)
 		protocol = "http";
 		
-	String server = parameters.getParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_SERVER);
+	String server = parameters.getParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_SERVER);
 	if (server == null)
 		server = "localhost";
 
-	String port = parameters.getParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_PORT);
+	String port = parameters.getParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_PORT);
 	if (port == null)
 		port = "8983";
 
-	String webapp = parameters.getParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_WEBAPPNAME);
+	String webapp = parameters.getParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_WEBAPPNAME);
 	if (webapp == null)
 		webapp = "solr";
 
-	String updatePath = parameters.getParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_UPDATEPATH);
+	String updatePath = parameters.getParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_UPDATEPATH);
 	if (updatePath == null)
 		updatePath = "/update/extract";
 
-	String removePath = parameters.getParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_REMOVEPATH);
+	String removePath = parameters.getParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_REMOVEPATH);
 	if (removePath == null)
 		removePath = "/update";
 
-	String statusPath = parameters.getParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_STATUSPATH);
+	String statusPath = parameters.getParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_STATUSPATH);
 	if (statusPath == null)
 		statusPath = "/admin/ping";
 
-	String realm = parameters.getParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_REALM);
+	String realm = parameters.getParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_REALM);
 	if (realm == null)
 		realm = "";
 
-	String userID = parameters.getParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_USERID);
+	String userID = parameters.getParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_USERID);
 	if (userID == null)
 		userID = "";
 		
-	String password = parameters.getObfuscatedParameter(org.apache.lcf.agents.output.lucene.LuceneConfig.PARAM_PASSWORD);
+	String password = parameters.getObfuscatedParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_PASSWORD);
 	if (password == null)
 		password = "";
 		
 	// "Appliance" tab
-	if (tabName.equals("Lucene"))
+	if (tabName.equals("SOLR"))
 	{
 %>
 <table class="displaytable">
@@ -153,7 +153,7 @@
 	}
 	else
 	{
-		// Lucene tab hiddens
+		// SOLR tab hiddens
 %>
 <input type="hidden" name="serverprotocol" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(protocol)%>'/>
 <input type="hidden" name="servername" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(server)%>'/>
