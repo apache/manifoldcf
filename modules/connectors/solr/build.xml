@@ -71,12 +71,12 @@
     
     <target name="jar-connector" depends="compile-connector">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/lcf-lucene-connector.jar" basedir="build/connector/classes"/>
+        <jar destfile="build/jar/lcf-solr-connector.jar" basedir="build/connector/classes"/>
     </target>
 
     <target name="webapp-crawler-ui" depends="compile-crawler-ui,jar-connector">
         <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-lucene-connector.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-solr-connector.jar"/>
         <mkdir dir="build/webapp/crawler-ui"/>
         <copy todir="build/webapp/crawler-ui">
             <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
@@ -85,12 +85,12 @@
     
     <target name="iar-crawler-ui" depends="webapp-crawler-ui">
         <mkdir dir="dist/tomcat"/>
-        <jar destfile="dist/tomcat/lcf-luceneconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
+        <jar destfile="dist/tomcat/lcf-solrconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
     </target>
 
     <target name="processes" depends="jar-connector">
         <mkdir dir="dist/processes"/>
-        <copy todir="dist/processes" file="build/jar/lcf-lucene-connector.jar"/>
+        <copy todir="dist/processes" file="build/jar/lcf-solr-connector.jar"/>
     </target>
 
     <target name="all" depends="processes,iar-crawler-ui"/>

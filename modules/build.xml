@@ -26,9 +26,9 @@
         <ant dir="connectors/livelink" target="clean"/>
         <delete dir="connectors/livelink/lib"/>
         <delete dir="connectors/livelink/war"/>
-        <ant dir="connectors/lucene" target="clean"/>
-        <delete dir="connectors/lucene/lib"/>
-        <delete dir="connectors/lucene/war"/>
+        <ant dir="connectors/solr" target="clean"/>
+        <delete dir="connectors/solr/lib"/>
+        <delete dir="connectors/solr/war"/>
         <ant dir="connectors/memex" target="clean"/>
         <delete dir="connectors/memex/lib"/>
         <delete dir="connectors/memex/war"/>
@@ -182,19 +182,19 @@
         <ant dir="connectors/livelink"/>
     </target>
 
-    <target name="build-lucene-connector" depends="build-framework">
-        <mkdir dir="connectors/lucene/lib"/>
-        <mkdir dir="connectors/lucene/war"/>
-        <copy todir="connectors/lucene/lib">
+    <target name="build-solr-connector" depends="build-framework">
+        <mkdir dir="connectors/solr/lib"/>
+        <mkdir dir="connectors/solr/war"/>
+        <copy todir="connectors/solr/lib">
             <fileset dir="framework/lib"/>
         </copy>
-        <copy todir="connectors/lucene/lib">
+        <copy todir="connectors/solr/lib">
             <fileset dir="framework/build/jar"/>
         </copy>
-        <copy todir="connectors/lucene/war">
+        <copy todir="connectors/solr/war">
             <fileset dir="framework/dist/tomcat"/>
         </copy>
-        <ant dir="connectors/lucene"/>
+        <ant dir="connectors/solr"/>
     </target>
 
     <target name="build-memex-connector" depends="build-framework">
@@ -478,24 +478,24 @@
         <unjar src="connectors/livelink/dist/tomcat/lcf-livelinkconnector-authority-service.iar" dest="build/authority-service"/>
     </target>
 
-    <target name="calculate-lucene-condition" depends="build-lucene-connector">
-        <available file="connectors/lucene/dist" type="dir" property="lucene.exists"/>
-        <condition property="lucene.include">
-            <isset property="lucene.exists"/>
+    <target name="calculate-solr-condition" depends="build-solr-connector">
+        <available file="connectors/solr/dist" type="dir" property="solr.exists"/>
+        <condition property="solr.include">
+            <isset property="solr.exists"/>
         </condition>
     </target>
 
-    <target name="deliver-lucene-connector" depends="calculate-lucene-condition" if="lucene.include">
+    <target name="deliver-solr-connector" depends="calculate-solr-condition" if="solr.include">
         <mkdir dir="dist/processes"/>
         <copy todir="dist/processes">
-            <fileset dir="connectors/lucene/dist/processes"/>
+            <fileset dir="connectors/solr/dist/processes"/>
         </copy>
         <mkdir dir="dist/tomcat"/>
         <copy todir="dist/tomcat">
-            <fileset dir="connectors/lucene/dist/tomcat" excludes="*.iar"/>
+            <fileset dir="connectors/solr/dist/tomcat" excludes="*.iar"/>
         </copy>
         <mkdir dir="build/crawler-ui"/>
-        <unjar src="connectors/lucene/dist/tomcat/lcf-luceneconnector-crawler-ui.iar" dest="build/crawler-ui"/>
+        <unjar src="connectors/solr/dist/tomcat/lcf-solrconnector-crawler-ui.iar" dest="build/crawler-ui"/>
     </target>
 
     <target name="calculate-memex-condition" depends="build-memex-connector">
@@ -630,7 +630,7 @@
         <unjar src="connectors/webcrawler/dist/tomcat/lcf-webconnector-crawler-ui.iar" dest="build/crawler-ui"/>
     </target>
 
-    <target name="deliver-wars" depends="deliver-framework,deliver-documentum-connector,deliver-filenet-connector,deliver-filesystem-connector,deliver-gts-connector,deliver-livelink-connector,deliver-lucene-connector,deliver-memex-connector,deliver-meridio-connector,deliver-nulloutput-connector,deliver-rss-connector,deliver-sharepoint-connector,deliver-webcrawler-connector">
+    <target name="deliver-wars" depends="deliver-framework,deliver-documentum-connector,deliver-filenet-connector,deliver-filesystem-connector,deliver-gts-connector,deliver-livelink-connector,deliver-solr-connector,deliver-memex-connector,deliver-meridio-connector,deliver-nulloutput-connector,deliver-rss-connector,deliver-sharepoint-connector,deliver-webcrawler-connector">
         <mkdir dir="dist/tomcat"/>
         <jar destfile="dist/tomcat/lcf-crawler-ui.war" basedir="build/crawler-ui"/>
         <jar destfile="dist/tomcat/lcf-authority-service.war" basedir="build/authority-service"/>
@@ -638,7 +638,7 @@
 
     <target name="deliver-open-connectors" depends="deliver-filesystem-connector,deliver-rss-connector,deliver-webcrawler-connector,deliver-jdbc-connector"/>
     
-    <target name="deliver-output-connectors" depends="deliver-gts-connector,deliver-lucene-connector,deliver-nulloutput-connector"/>
+    <target name="deliver-output-connectors" depends="deliver-gts-connector,deliver-solr-connector,deliver-nulloutput-connector"/>
     
     <target name="deliver-lgpl-connectors" depends="deliver-jcifs-connector"/>
     
