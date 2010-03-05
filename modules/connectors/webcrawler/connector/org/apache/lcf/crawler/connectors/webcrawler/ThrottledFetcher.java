@@ -80,11 +80,13 @@ public class ThrottledFetcher
   *@param protocol is the protocol, e.g. "http"
   *@param server is the server IP address, e.g. "10.32.65.1"
   *@param port is the port to connect to, e.g. 80.  Pass -1 if the default port for the protocol is desired.
-  *@param credentials is the credentials object to use for the fetch.  If null, no credentials are available.
+  *@param authentication is the page credentials object to use for the fetch.  If null, no credentials are available.
+  *@param trustStore is the current trust store in effect for the fetch.
   *@param binNames is the set of bins, in order, that should be used for throttling this connection.
   *       Note that the bin names for a given IP address and port MUST be the same for every connection!
   *       This must be enforced by whatever it is that builds the bins - it must do so given an IP and port.
   *@param throttleDescription is the description of all the throttling that should take place.
+  *@param connectionLimit isthe maximum number of connections permitted.
   *@return an IThrottledConnection object that can be used to fetch from the port.
   */
   public static IThrottledConnection getConnection(String protocol, String server, int port,

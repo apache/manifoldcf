@@ -486,7 +486,9 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
   * (Doing so would destroy the ability of virtually hosted sites to do the right thing,
   * since the original host name would be lost.)  Thus, we do the conversion to IP address
   * right before we actually fetch the document.
-  *@param the identifier of the document in which the raw url was found, or null if none.
+  *@param policies are the canonicalization policies in effect.
+  *@param parentIdentifier the identifier of the document in which the raw url was found, or null if none.
+  *@param rawURL is the raw, un-normalized and un-canonicalized url.
   *@return the canonical URL (the document identifier), or null if the url was illegal.
   */
   protected static String makeDocumentIdentifier(CanonicalizationPolicies policies, String parentIdentifier, String rawURL)
@@ -794,7 +796,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
   *@param spec is the current document specification for the current job.  If there is a dependency on this
   * specification, then the version string should include the pertinent data, so that reingestion will occur
   * when the specification changes.  This is primarily useful for metadata.
-  *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
+  *@param jobType is an integer describing how the job is being run, whether continuous or once-only.
   *@param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
   *@return the corresponding version strings, with null in the places where the document no longer exists.
   * Empty version strings indicate that there is no versioning ability for the corresponding document, and the document
@@ -3380,10 +3382,10 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
   }
 
   /** Unstuffer for unpacking lists of variable length.
+  *@param output is the array to fill with the unpacked data.
   *@param value is the value to unpack.
   *@param startPosition is the place to start the unpack.
   *@param delimiter is the character to use between values.
-  *@param endChar is the character to use to mark the end.
   *@return the next position beyond the end of the list.
   */
   protected static int unpackList(ArrayList output, String value, int startPosition, char delimiter)

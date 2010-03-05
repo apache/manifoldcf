@@ -724,7 +724,7 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
   *@param oldVersions is the corresponding array of version strings that have been saved for the document identifiers.
   *   A null value indicates that this is a first-time fetch, while an empty string indicates that the previous document
   *   had an empty version string.
-  *@param activities is the interface this method should use to perform whatever framework actions are desired.
+  *@param activity is the interface this method should use to perform whatever framework actions are desired.
   *@param spec is the current document specification for the current job.  If there is a dependency on this
   * specification, then the version string should include the pertinent data, so that reingestion will occur
   * when the specification changes.  This is primarily useful for metadata.
@@ -2079,10 +2079,10 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
   }
 
   /** Unstuffer for unpacking lists of variable length.
+  *@param output is the place to write the unpacked array into.
   *@param value is the value to unpack.
   *@param startPosition is the place to start the unpack.
   *@param delimiter is the character to use between values.
-  *@param endChar is the character to use to mark the end.
   *@return the next position beyond the end of the list.
   */
   protected static int unpackList(ArrayList output, String value, int startPosition, char delimiter)

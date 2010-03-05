@@ -187,7 +187,7 @@ public class GTSConnector extends org.apache.lcf.agents.output.BaseOutputConnect
   *@param outputDescription is the description string that was constructed for this document by the getOutputDescription() method.
   *@param document is the document data to be processed (handed to the output data store).
   *@param authorityNameString is the name of the authority responsible for authorizing any access tokens passed in with the repository document.  May be null.
-  *@activities is the handle to an object that the implementer of an output connector may use to perform operations, such as logging processing activity.
+  *@param activities is the handle to an object that the implementer of an output connector may use to perform operations, such as logging processing activity.
   *@return the document status (accepted or permanently rejected).
   */
   public int addOrReplaceDocument(String documentURI, String outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
@@ -221,7 +221,7 @@ public class GTSConnector extends org.apache.lcf.agents.output.BaseOutputConnect
   *@param documentURI is the URI of the document.  The URI is presumed to be the unique identifier which the output data store will use to process
   * and serve the document.  This URI is constructed by the repository connector which fetches the document, and is thus universal across all output connectors.
   *@param outputDescription is the last description string that was constructed for this document by the getOutputDescription() method above.
-  *@activities is the handle to an object that the implementer of an output connector may use to perform operations, such as logging processing activity.
+  *@param activities is the handle to an object that the implementer of an output connector may use to perform operations, such as logging processing activity.
   */
   public void removeDocument(String documentURI, String outputDescription, IOutputRemoveActivity activities)
     throws LCFException, ServiceInterruption
@@ -314,10 +314,10 @@ public class GTSConnector extends org.apache.lcf.agents.output.BaseOutputConnect
   }
 
   /** Unstuffer for unpacking lists of variable length.
+  *@param output is the array into which to write the unpacked result.
   *@param value is the value to unpack.
   *@param startPosition is the place to start the unpack.
   *@param delimiter is the character to use between values.
-  *@param endChar is the character to use to mark the end.
   *@return the next position beyond the end of the list.
   */
   protected static int unpackList(ArrayList output, String value, int startPosition, char delimiter)

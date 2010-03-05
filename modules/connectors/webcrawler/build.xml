@@ -3,8 +3,16 @@
     <target name="clean">
         <delete dir="build"/>
         <delete dir="dist"/>
+        <delete dir="doc"/>
     </target>
-    
+
+    <target name="doc">
+        <mkdir dir="doc"/>
+        <javadoc destdir="doc" classpath="lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient-lcf.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar" source="1.4">
+            <fileset dir="connector" includes="**/*.java"/>
+        </javadoc>
+    </target>
+
     <target name="compile-connector">
         <mkdir dir="build/connector/classes"/>
         <javac srcdir="connector" destdir="build/connector/classes" classpath="lib/log4j-1.2.jar:lib/commons-logging.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:lib/commons-httpclient-lcf.jar:lib/commons-collections.jar:lib/commons-codec.jar" target="1.5" source="1.4"/>
@@ -93,6 +101,6 @@
         <copy todir="dist/processes" file="build/jar/lcf-web-connector.jar"/>
     </target>
 
-    <target name="all" depends="processes,iar-crawler-ui"/>
+    <target name="all" depends="processes,iar-crawler-ui,doc"/>
     
 </project>

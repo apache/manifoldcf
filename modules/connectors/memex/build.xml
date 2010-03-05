@@ -3,13 +3,25 @@
     <target name="clean">
         <delete dir="build"/>
         <delete dir="dist"/>
+        <delete dir="doc"/>
     </target>
 
-    <target name="precompile-check">
+    <target name="calculate-condition">
         <available file="mxie-java/JavaMXIELIB.jar" property="mxieStatus"/>
         <condition property="canBuild">
             <isset property="mxieStatus"/>
         </condition>
+    </target>
+
+    <target name="precompile-check" depends="calculate-condition" unless="canBuild">
+        <echo message="Memex Connector cannot be built without JavaMXIELIB.jar"/>
+    </target>
+
+    <target name="doc" depends="precompile-check" if="canBuild">
+        <mkdir dir="doc"/>
+        <javadoc destdir="doc" classpath="mxie-java/JavaMXIELIB.jar:lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient-lcf.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar" source="1.5">
+            <fileset dir="connector" includes="**/*.java"/>
+        </javadoc>
     </target>
 
     <target name="compile-connector" depends="precompile-check" if="canBuild">
@@ -123,6 +135,6 @@
         <copy todir="dist/processes" file="build/jar/lcf-memex-connector.jar"/>
     </target>
 
-    <target name="all" depends="processes,iar-crawler-ui,iar-authority-service"/>
+    <target name="all" depends="processes,iar-crawler-ui,iar-authority-service,doc"/>
     
 </project>

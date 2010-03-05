@@ -25,7 +25,7 @@
 
     <target name="doc" depends="precompile-check" if="canBuild">
         <mkdir dir="doc"/>
-        <javadoc destdir="doc" classpath="lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient-lcf.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar">
+        <javadoc destdir="doc" classpath="lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient-lcf.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar" source="1.4">
             <fileset dir="connector" includes="**/*.java"/>
             <fileset dir="interface" includes="**/*.java"/>
         </javadoc>
@@ -256,6 +256,6 @@
         <copy todir="dist/registry-process" file="build/jar/lcf-documentum-registry.jar"/>
     </target>
 
-    <target name="all" depends="processes,server-process,registry-process,iar-crawler-ui,iar-authority-service"/>
+    <target name="all" depends="processes,server-process,registry-process,iar-crawler-ui,iar-authority-service,doc"/>
     
 </project>

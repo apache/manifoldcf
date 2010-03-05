@@ -890,10 +890,10 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
   }
 
   /** Unstuffer for unpacking lists of variable length.
+  *@param output is the array to write the unpacked result into.
   *@param value is the value to unpack.
   *@param startPosition is the place to start the unpack.
   *@param delimiter is the character to use between values.
-  *@param endChar is the character to use to mark the end.
   *@return the next position beyond the end of the list.
   */
   protected static int unpackList(ArrayList output, String value, int startPosition, char delimiter)

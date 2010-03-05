@@ -127,13 +127,14 @@ public class ThrottledFetcher
   *       stream will block on fetch until the number of bytes being fetched, done
   *       in the average time interval required for that fetch, would not exceed
   *       the desired bandwidth.
-  * @param minimumMillisecondsPerFetch is the number of milliseconds
+  * @param minimumMillisecondsPerFetchPerServer is the number of milliseconds
   *        between fetches, as a minimum, on a per-server basis.  Set
   *        to zero for no limit.
   * @param maxOpenConnectionsPerServer is the maximum number of open connections to allow for a single server.
   *        If more than this number of connections would need to be open, then this connection request will block
   *        until this number will no longer be exceeded.
   * @param connectionLimit is the maximum desired outstanding connections at any one time.
+  * @param connectionTimeoutMilliseconds is the number of milliseconds to wait for the connection before timing out.
   */
   public synchronized IThrottledConnection createConnection(String serverName, double minimumMillisecondsPerBytePerServer,
     int maxOpenConnectionsPerServer, long minimumMillisecondsPerFetchPerServer, int connectionLimit, int connectionTimeoutMilliseconds)
@@ -545,7 +546,13 @@ public class ThrottledFetcher
     * @param urlPath is the path part of the url, e.g. "/robots.txt"
     * @param userAgent is the value of the userAgent header to use.
     * @param from is the value of the from header to use.
-    * @param connectionTimeoutMilliseconds is the maximum number of milliseconds to wait on socket connect.
+    * @param proxyHost is the proxy host, or null if none.
+    * @param proxyPort is the proxy port, or -1 if none.
+    * @param proxyAuthDomain is the proxy authentication domain, or null.
+    * @param proxyAuthUsername is the proxy authentication user name, or null.
+    * @param proxyAuthPassword is the proxy authentication password, or null.
+    * @param lastETag is the requested lastETag header value.
+    * @param lastModified is the requested lastModified header value.
     * @return the status code: success, static error, or dynamic error.
     */
     public int executeFetch(String protocol, int port, String urlPath, String userAgent, String from,

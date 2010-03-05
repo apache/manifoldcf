@@ -84,7 +84,7 @@ public class SPSProxyHelper {
   * Get the acls for a document library.
   * @param site
   * @param docLib is the library GUID
-  * @return
+  * @return array of sids
   * @throws Exception
   */
   public String[] getACLs(String site, String docLib )
@@ -275,8 +275,9 @@ public class SPSProxyHelper {
   * NOTE that this function only works for SharePoint 3.0 with the MCPermissions web service installed.
   * @param site is the encoded subsite path
   * @param file is the encoded file url (not including protocol or server or location, but including encoded subsite, library and folder/file path)
-  * @return
-  * @throws Exception
+  * @return array of document SIDs
+  * @throws LCFException
+  * @throws ServiceInterruption
   */
   public String[] getDocumentACLs(String site, String file)
     throws LCFException, ServiceInterruption
@@ -478,8 +479,9 @@ public class SPSProxyHelper {
   *
   * @param site
   * @param docLibrary
-  * @return
+  * @return an XML document
   * @throws LCFException
+  * @throws ServiceInterruption
   */
   public XMLDoc getDocuments(String site, String docLibrary)
     throws LCFException, ServiceInterruption
@@ -645,10 +647,11 @@ public class SPSProxyHelper {
 
   /**
   *
-  * @param site
+  * @param parentSite
   * @param docLibrary
-  * @return
-  * @throws Exception
+  * @return document library ID
+  * @throws LCFException
+  * @throws ServiceInterruption
   */
   public String getDocLibID(String parentSite, String parentSiteDecoded, String docLibrary)
     throws ServiceInterruption, LCFException
@@ -835,8 +838,9 @@ public class SPSProxyHelper {
   *
   * @param site
   * @param docPath
-  * @return
-  * @throws Exception
+  * @return an XML document
+  * @throws LCFException
+  * @throws ServiceInterruption
   */
   public XMLDoc getVersions( String site, String docPath)
     throws ServiceInterruption, LCFException
@@ -1108,7 +1112,7 @@ public class SPSProxyHelper {
 
   /**
   *
-  * @return
+  * @return true if connection OK
   * @throws java.net.MalformedURLException
   * @throws javax.xml.rpc.ServiceException
   * @throws java.rmi.RemoteException

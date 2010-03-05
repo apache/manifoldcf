@@ -1666,7 +1666,9 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
   * (Doing so would destroy the ability of virtually hosted sites to do the right thing,
   * since the original host name would be lost.)  Thus, we do the conversion to IP address
   * right before we actually fetch the document.
-  *@param the identifier of the document in which the raw url was found, or null if none.
+  *@param parentIdentifier the identifier of the document in which the raw url was found, or null if none.
+  *@param rawURL the starting, un-normalized, un-canonicalized URL.
+  *@param filter the filter object, used to remove unmatching URLs.
   *@return the canonical URL (the document identifier), or null if the url was illegal.
   */
   protected String makeDocumentIdentifier(String parentIdentifier, String rawURL, DocumentURLFilter filter)
@@ -3911,10 +3913,10 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
   }
 
   /** Unstuffer for unpacking lists of variable length.
+  *@param output is the array into which the unpacked output is written.
   *@param value is the value to unpack.
   *@param startPosition is the place to start the unpack.
   *@param delimiter is the character to use between values.
-  *@param endChar is the character to use to mark the end.
   *@return the next position beyond the end of the list.
   */
   protected static int unpackList(ArrayList output, String value, int startPosition, char delimiter)
