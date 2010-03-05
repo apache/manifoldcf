@@ -454,10 +454,8 @@ public interface IJobManager
   * in the specified job's queue, according to specific state rules.
   *@param jobID is the job identifier.
   *@param legalLinkTypes is the set of legal link types that this connector generates.
-  *@param docIDHash is the hashed local document identifier.
-  *@param docID is the local document identifier.
+  *@param docIDHash is the local document identifier hash value.
   *@param parentIdentifierHash is the optional parent identifier hash value for this document.  Pass null if none.
-  *@param parentIdentifier is the optional parent identifier of this document.  Pass null if none.
   *@param relationshipType is the optional link type between this document and its parent.  Pass null if there
   *       is no relationship with a parent.
   *@param hopcountMethod is either accurate, nodelete, or neverdelete.
@@ -530,7 +528,7 @@ public interface IJobManager
 
   /** Retrieve specific parent data for a given document.
   *@param jobID is the job identifier.
-  *@param docID is the document identifier.
+  *@param docIDHash is the document identifier hash value.
   *@param dataName is the kind of data to retrieve.
   *@return the unique data values.
   */
@@ -721,7 +719,7 @@ public interface IJobManager
     throws LCFException;
 
   /** Complete the sequence that aborts jobs and makes them runnable again.
-  *@param currentTime is the current time in milliseconds since epoch.
+  *@param timestamp is the current time in milliseconds since epoch.
   *@param abortJobs is filled in with the set of IJobDescription objects that were aborted.
   */
   public void finishJobAborts(long timestamp, ArrayList abortJobs)

@@ -182,7 +182,7 @@ public class ConnectorManager extends org.apache.lcf.core.database.BaseTable imp
 
   /** Unregister a connector.
   * The connector's deinstall method will also be called.
-  *@param description is the description to unregister.
+  *@param className is the class of the connector to unregister.
   */
   public void unregisterConnector(String className)
     throws LCFException

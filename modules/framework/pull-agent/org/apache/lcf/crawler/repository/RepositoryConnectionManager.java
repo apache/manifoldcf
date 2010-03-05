@@ -579,7 +579,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
   *@param criteria is the filtering criteria, which selects the records of interest.
   *@param sort is the sorting order, which can specify sort based on the result columns.
   *@param startRow is the first row to include (beginning with 0)
-  *@param is the maximum number of rows to include.
+  *@param maxRowCount is the maximum number of rows to include.
   */
   public IResultSet genHistorySimple(String connectionName, FilterCriteria criteria, SortOrder sort, int startRow, int maxRowCount)
     throws LCFException
@@ -601,7 +601,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
   *       for each distinct idBucket value, and the returned activity count will the maximum found over the
   *       specified interval size.
   *@param startRow is the first row to include (beginning with 0)
-  *@param is the maximum number of rows to include.
+  *@param maxRowCount is the maximum number of rows to include.
   */
   public IResultSet genHistoryActivityCount(String connectionName, FilterCriteria criteria, SortOrder sort, BucketDescription idBucket,
     long interval, int startRow, int maxRowCount)
@@ -624,7 +624,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
   *       for each distinct idBucket value, and the returned activity count will the maximum found over the
   *       specified interval size.
   *@param startRow is the first row to include (beginning with 0)
-  *@param is the maximum number of rows to include.
+  *@param maxRowCount is the maximum number of rows to include.
   */
   public IResultSet genHistoryByteCount(String connectionName, FilterCriteria criteria, SortOrder sort, BucketDescription idBucket,
     long interval, int startRow, int maxRowCount)
@@ -646,7 +646,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
   *@param resultCodeBucket is the description of the bucket based on processed result codes.
   *@param idBucket is the description of the bucket based on processed entity identifiers.
   *@param startRow is the first row to include (beginning with 0)
-  *@param is the maximum number of rows to include.
+  *@param maxRowCount is the maximum number of rows to include.
   */
   public IResultSet genHistoryResultCodes(String connectionName, FilterCriteria criteria, SortOrder sort,
     BucketDescription resultCodeBucket, BucketDescription idBucket, int startRow, int maxRowCount)

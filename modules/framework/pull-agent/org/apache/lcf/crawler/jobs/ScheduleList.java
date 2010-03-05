@@ -62,7 +62,7 @@ public class ScheduleList
   }
 
   /** Add a record.
-  *@param record is the record to add to the end.
+  *@param sr is the record to add to the end.
   */
   public void addRecord(ScheduleRecord sr)
   {

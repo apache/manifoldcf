@@ -33,7 +33,7 @@ public class AuthorityConnectorManagerFactory
   }
 
   /** Construct a connector manager.
-  *@param threadContext is the thread context.
+  *@param tc is the thread context.
   *@return the connector manager handle.
   */
   public static IAuthorityConnectorManager make(IThreadContext tc)

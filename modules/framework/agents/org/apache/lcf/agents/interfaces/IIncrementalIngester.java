@@ -53,7 +53,7 @@ public interface IIncrementalIngester
     throws LCFException;
 
   /** Come up with a maximum time (in minutes) for re-analyzing tables.
-  *@Return the time, in minutes.
+  *@return the time, in minutes.
   */
   public int getAnalyzeTime()
     throws LCFException;

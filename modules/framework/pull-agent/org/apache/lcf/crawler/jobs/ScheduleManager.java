@@ -182,7 +182,7 @@ public class ScheduleManager extends org.apache.lcf.core.database.BaseTable
 
   /** Write a schedule list into the database.
   *@param ownerID is the owning identifier.
-  *@param schedule is the schedule list.
+  *@param list is the job description that is the source of the schedule.
   */
   public void writeRows(Long ownerID, IJobDescription list)
     throws LCFException

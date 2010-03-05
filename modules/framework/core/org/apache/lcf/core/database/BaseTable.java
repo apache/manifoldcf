@@ -182,7 +182,7 @@ public class BaseTable
   }
 
   /** Get the current table schema.
-  *@param cacheKeys are the cache keys, if needed (null if no cache desired).
+  *@param invalidateKeys are the cache keys, if needed (null if no cache desired).
   *@param queryClass is the LRU class name against which this query would be cached,
   * or null if no LRU behavior desired.
   *@return a map of column names & ColumnDescription's, or null.
@@ -194,7 +194,7 @@ public class BaseTable
   }
 
   /** Get a table's indexes.
-  *@param cacheKeys are the keys against which to cache the query, or null.
+  *@param invalidateKeys are the keys against which to cache the query, or null.
   *@param queryClass is the name of the query class, or null.
   *@return a map of index names and IndexDescription objects, describing the indexes.
   */

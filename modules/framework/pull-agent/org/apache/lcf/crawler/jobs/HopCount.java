@@ -748,11 +748,10 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
   *@param jobID is the job the documents belong to.
   *@param affectedLinkTypes are the set of affected link types.
   *@param documentIDHashes are the documents to add.
+  *@param startingAnswers are the hopcounts for the documents as they are currently known.
   *@param sourceDocumentIDHash is the source document identifier for the links from source to target documents.
-  *@param estimates are the current estimated answers and delete dependencies at the sourceDocumentID for
-  * each of the affectedLinkType values.  These answers, if not null, will be used to calculate
-  *@param linkEstimates, if not null, provide estimated hopcount distances for each affected link type,
-  * for all the documentIDs.
+  *@param linkType is the link type for this queue addition.
+  *@param hopcountMethod is the desired method of managing hopcounts.
   */
   protected void addToProcessingQueue(Long jobID, String[] affectedLinkTypes, String[] documentIDHashes,
     Answer[] startingAnswers, String sourceDocumentIDHash, String linkType, int hopcountMethod)
@@ -2383,15 +2382,16 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
     }
 
     /** Add a child reference.
-    *@param childDocumentIdentifier is the document identifier of the child.
-    *@param linkType is the link type.
+    *@param childRef is the child node reference to add.
     */
     public void addChild(NodeReference childRef)
     {
       childReferences.put(childRef,childRef);
     }
 
-    /** Remove a child reference. */
+    /** Remove a child reference.
+    *@param childRef is the child node reference to remove.
+    */
     public void removeChild(NodeReference childRef)
     {
       childReferences.remove(childRef);

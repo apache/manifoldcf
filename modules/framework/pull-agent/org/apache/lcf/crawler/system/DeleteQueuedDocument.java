@@ -41,7 +41,6 @@ public class DeleteQueuedDocument
 
   /** Constructor.
   *@param documentDescription is the document description.
-  *@param lastIngestedVersion is the last ingested version.
   */
   public DeleteQueuedDocument(DocumentDescription documentDescription)
   {

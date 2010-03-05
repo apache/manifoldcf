@@ -45,7 +45,8 @@ public class QueuedDocument
 
   /** Constructor.
   *@param documentDescription is the document description.
-  *@param lastIngestedVersion is the last ingested version.
+  *@param lastIngestedStatus is the document's last ingested status.
+  *@param binNames are the bins associated with the document.
   */
   public QueuedDocument(DocumentDescription documentDescription, DocumentIngestStatus lastIngestedStatus, String[] binNames)
   {

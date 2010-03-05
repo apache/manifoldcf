@@ -106,8 +106,8 @@ public class ThrottleSpecManager extends org.apache.lcf.core.database.BaseTable
   }
 
   /** Read rows for a given owner name.
-  *@param id is the owner name.
-  *@param return a list, with columns: "description", "match", and "value".
+  *@param name is the owner name.
+  *@return a list, with columns: "description", "match", and "value".
   */
   public IResultSet readRows(String name)
     throws LCFException

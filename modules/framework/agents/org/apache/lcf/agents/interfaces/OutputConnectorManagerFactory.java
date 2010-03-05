@@ -34,7 +34,7 @@ public class OutputConnectorManagerFactory
   }
 
   /** Construct an output connector manager.
-  *@param threadContext is the thread context.
+  *@param tc is the thread context.
   *@return the output connector manager handle.
   */
   public static IOutputConnectorManager make(IThreadContext tc)

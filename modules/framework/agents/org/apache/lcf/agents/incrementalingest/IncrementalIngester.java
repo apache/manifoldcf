@@ -142,7 +142,7 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
   }
 
   /** Come up with a maximum time (in minutes) for re-analyzing tables.
-  *@Return the time, in minutes.
+  *@return the time, in minutes.
   */
   public int getAnalyzeTime()
     throws LCFException
@@ -1140,8 +1140,11 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
 
 
   /** Note the ingestion of a document, or the "update" of a document.
-  *@param identifierHash is the hash of the id of the document.
+  *@param outputConnectionName is the name of the output connection.
+  *@param docKey is the key string describing the document.
   *@param documentVersion is a string describing the new version of the document.
+  *@param outputVersion is the version string calculated for the output connection.
+  *@param authorityNameString is the name of the relevant authority connection.
   *@param ingestTime is the time at which the ingestion took place, in milliseconds since epoch.
   *@param documentURI is the uri the document can be accessed at, or null (which signals that we are to record the version, but no
   * ingestion took place).

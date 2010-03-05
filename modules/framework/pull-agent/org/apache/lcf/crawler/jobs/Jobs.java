@@ -302,7 +302,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
   }
 
   /** Come up with a maximum time (in minutes) for re-analyzing tables.
-  *@Return the time, in minutes.
+  *@return the time, in minutes.
   */
   public int getAnalyzeTime()
     throws LCFException
@@ -2004,7 +2004,6 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
 
   /** Get multiple jobs (without caching)
   *@param ids is the set of ids to get jobs for.
-  *@param readOnlies are set to true if the job is meant to be read as "read only".
   *@return the corresponding job descriptions.
   */
   protected JobDescription[] getJobsMultiple(Long[] ids)

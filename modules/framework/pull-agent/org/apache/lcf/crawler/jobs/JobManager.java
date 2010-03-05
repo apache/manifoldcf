@@ -1170,7 +1170,7 @@ public class JobManager implements IJobManager
   /** Save a set of document priorities.  In the case where a document was eligible to have its
   * priority set, but it no longer is eligible, then the provided priority will not be written.
   *@param currentTime is the time in milliseconds since epoch.
-  *@param descriptions are the document descriptions.
+  *@param documentDescriptions are the document descriptions.
   *@param priorities are the desired priorities.
   */
   public void writeDocumentPriorities(long currentTime, DocumentDescription[] documentDescriptions, double[] priorities)
@@ -2769,7 +2769,7 @@ public class JobManager implements IJobManager
   * enable the framework to get rid of old, invalid seeds.  They are not queued for processing.
   *@param jobID is the job identifier.
   *@param legalLinkTypes is the set of legal link types that this connector generates.
-  *@param docIDs are the local document identifiers.
+  *@param docIDHashes are the local document identifier hashes.
   *@param hopcountMethod is either accurate, nodelete, or neverdelete.
   */
   public void addRemainingDocumentsInitial(Long jobID, String[] legalLinkTypes, String[] docIDHashes,
@@ -2910,9 +2910,10 @@ public class JobManager implements IJobManager
   /** Get the specified hop counts, with the limit as described.
   *@param jobID is the job identifier.
   *@param legalLinkTypes is the set of legal link types that this connector generates.
-  *@param docIDs is the set of documents to find the hopcount for.
+  *@param docIDHashes are the hashes for the set of documents to find the hopcount for.
   *@param linkType is the kind of link to find the hopcount for.
   *@param limit is the limit, beyond which a negative distance may be returned.
+  *@param hopcountMethod is the method for managing hopcounts that is in effect.
   *@return a vector of booleans corresponding to the documents requested.  A true value is returned
   * if the document is within the specified limit, false otherwise.
   */
@@ -3106,10 +3107,11 @@ public class JobManager implements IJobManager
   * in the specified job's queue, according to specific state rules.
   *@param jobID is the job identifier.
   *@param legalLinkTypes is the set of legal link types that this connector generates.
-  *@param docIDs are the local document identifiers.
-  *@param parentIdentifier is the optional parent identifier of this document.  Pass null if none.
+  *@param docIDHashes are the local document identifier hashes.
+  *@param parentIdentifierHash is the optional parent identifier hash of this document.  Pass null if none.
   *@param relationshipType is the optional link type between this document and its parent.  Pass null if there
   *       is no relationship with a parent.
+  *@param hopcountMethod is the desired method for managing hopcounts.
   *@param dataNames are the names of the data to carry down to the child from this parent.
   *@param dataValues are the values to carry down to the child from this parent, corresponding to dataNames above.  If CharacterInput objects are passed in here,
   *       it is the caller's responsibility to clean these up.
@@ -3371,10 +3373,11 @@ public class JobManager implements IJobManager
   * in the specified job's queue, according to specific state rules.
   *@param jobID is the job identifier.
   *@param legalLinkTypes is the set of legal link types that this connector generates.
-  *@param docID is the local document identifier.
-  *@param parentIdentifier is the optional parent identifier of this document.  Pass null if none.
+  *@param docIDHash is the local document identifier hash value.
+  *@param parentIdentifierHash is the optional parent identifier hash of this document.  Pass null if none.
   *@param relationshipType is the optional link type between this document and its parent.  Pass null if there
   *       is no relationship with a parent.
+  *@param hopcountMethod is the desired method for managing hopcounts.
   *@param dataNames are the names of the data to carry down to the child from this parent.
   *@param dataValues are the values to carry down to the child from this parent, corresponding to dataNames above.
   *@param currentTime is the time in milliseconds since epoch that will be recorded for this operation.
@@ -3398,7 +3401,7 @@ public class JobManager implements IJobManager
   * This method is called at the end of document processing, to help the hopcount tracking engine do its bookkeeping.
   *@param jobID is the job identifier.
   *@param legalLinkTypes is the set of legal link types that this connector generates.
-  *@param parentIdentifiers are the document identifiers for whom child link extraction just took place.
+  *@param parentIdentifierHashes are the document identifier hashes for whom child link extraction just took place.
   *@param hopcountMethod describes how to handle deletions for hopcount purposes.
   *@return the set of documents for which carrydown data was changed by this operation.  These documents are likely
   *  to be requeued as a result of the change.
@@ -3773,7 +3776,7 @@ public class JobManager implements IJobManager
 
   /** Retrieve specific parent data for a given document.
   *@param jobID is the job identifier.
-  *@param docID is the document identifier.
+  *@param docIDHash is the document identifier hash value.
   *@param dataName is the kind of data to retrieve.
   *@return the unique data values.
   */
@@ -3785,7 +3788,7 @@ public class JobManager implements IJobManager
 
   /** Retrieve specific parent data for a given document.
   *@param jobID is the job identifier.
-  *@param docID is the document identifier.
+  *@param docIDHash is the document identifier hash value.
   *@param dataName is the kind of data to retrieve.
   *@return the unique data values.
   */
@@ -4984,7 +4987,6 @@ public class JobManager implements IJobManager
 
   /** Delete jobs in need of being deleted (which are marked "ready for delete").
   * This method is meant to be called periodically to perform delete processing on jobs.
-  *@return the set of jobs that are ready to be deleted.
   */
   public void deleteJobsReadyForDelete()
     throws LCFException

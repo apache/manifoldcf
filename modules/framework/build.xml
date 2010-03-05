@@ -3,6 +3,17 @@
     <target name="clean">
         <delete dir="build"/>
         <delete dir="dist"/>
+        <delete dir="doc"/>
+    </target>
+    
+    <target name="doc">
+        <mkdir dir="doc"/>
+        <javadoc destdir="doc" classpath="lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient-lcf.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar">
+            <fileset dir="core" includes="**/*.java"/>
+            <fileset dir="agents" includes="**/*.java"/>
+            <fileset dir="pull-agent" includes="**/*.java"/>
+            <fileset dir="ui-core" includes="**/*.java"/>
+        </javadoc>
     </target>
     
     <target name="compile-core">
@@ -180,6 +191,6 @@
         <copy todir="dist/processes" file="build/jar/lcf-pull-agent.jar"/>
     </target>
 
-    <target name="all" depends="processes,war-authority-service,war-crawler-ui"/>
+    <target name="all" depends="processes,war-authority-service,war-crawler-ui,doc"/>
     
 </project>

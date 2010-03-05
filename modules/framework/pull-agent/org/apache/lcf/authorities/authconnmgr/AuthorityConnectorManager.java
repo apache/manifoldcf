@@ -186,7 +186,7 @@ public class AuthorityConnectorManager extends org.apache.lcf.core.database.Base
 
   /** Unregister a connector.
   * The connector's deinstall method will also be called.
-  *@param description is the description to unregister.
+  *@param className is the class name of the connector to unregister.
   */
   public void unregisterConnector(String className)
     throws LCFException
