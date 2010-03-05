@@ -54,7 +54,7 @@ public class XMLDoc
   * IE SPECIFING A PATH
 
   * NOTE wildcards are supported BUT the evaluation of wildcards
-  * is not recursive.  IE if the path presented is THIS/<wildchar>/THAT
+  * is not recursive.  IE if the path presented is THIS/[wildchar]/THAT
   * only ONE list of element is returned for the first child of THIS.
   * All children of THIS that have subchildren THAT are NOT returned!
   *
@@ -383,8 +383,8 @@ public class XMLDoc
     return (String)(el.getAttribute(a));
   }
 
-  /** Return element name ie <Author></Author>
-  * return "Author" - may return null if node not
+  /** Return element name.
+  * May return null if node not
   * of type Element
   * @param el Object to ask
   * @return String value
@@ -404,7 +404,7 @@ public class XMLDoc
   /** Get TEXT element value as single string.
   * @param obj Element to grab data
   * @return TXT collapsed for this element
-  * ie <Author>Julie</Author> returns "Julie"
+  * ie [tag]Julie[/tag] returns "Julie"
   */
   public final String getData(Object obj)
   {
