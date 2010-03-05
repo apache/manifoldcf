@@ -823,6 +823,7 @@ public abstract class XMLScanner
                         String entityName = fEntityScanner.scanName();
                         if (entityName == null) {
                             reportFatalError("NameRequiredInReference", null);
+                            entityName = "unknown";
                         }
                         else if (entityDepth == fEntityDepth) {
                             fStringBuffer2.append(entityName);
@@ -1026,6 +1027,14 @@ public abstract class XMLScanner
                     int c = fEntityScanner.peekChar();
                     if (XMLChar.isMarkup(c) || c == ']') {
                         fStringBuffer.append((char)fEntityScanner.scanChar());
+                    }
+                    else if (XMLChar.isHighSurrogate(c)) {
+                        scanSurrogates(fStringBuffer);
+                    }
+                    else if (isInvalidLiteral(c)) {
+                        reportFatalError("InvalidCharInSystemID",
+                                new Object[] { Integer.toHexString(c) }); 
+                        fEntityScanner.scanChar();
                     }
                 } while (fEntityScanner.scanLiteral(quote, ident) != quote);
                 fStringBuffer.append(ident);

@@ -219,6 +219,9 @@ public final class Constants {
     
     /** Warn on undeclared element feature ("validation/warn-on-undeclared-elemdef"). */
     public static final String WARN_ON_UNDECLARED_ELEMDEF_FEATURE = "validation/warn-on-undeclared-elemdef";
+
+    /** Ignore misencoded characters feature */
+    public static final String IGNORE_BADLY_ENCODED_CHARS = "ignore-badly-encoded-chars";
     
     /** Warn on duplicate entity declaration feature ("warn-on-duplicate-entitydef"). */
     public static final String WARN_ON_DUPLICATE_ENTITYDEF_FEATURE = "warn-on-duplicate-entitydef";

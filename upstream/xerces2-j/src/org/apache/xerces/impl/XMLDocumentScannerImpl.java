@@ -783,6 +783,8 @@ public class XMLDocumentScannerImpl
                                 else {
                                     reportFatalError("MarkupNotRecognizedInProlog",
                                                      null);
+                                    // Don't loop forever!
+                                    fEntityScanner.scanChar();
                                 }
                             }
                             else if (isValidNameStartChar(fEntityScanner.peekChar())) {
@@ -802,6 +804,8 @@ public class XMLDocumentScannerImpl
                             else {
                                 reportFatalError("MarkupNotRecognizedInProlog",
                                                  null);
+                                // Don't loop forever!
+                                fEntityScanner.scanChar();
                             }
                             break;
                         }
@@ -872,6 +876,8 @@ public class XMLDocumentScannerImpl
                         }
                         case SCANNER_STATE_REFERENCE: {
                             reportFatalError("ReferenceIllegalInProlog", null);
+                            // Don't loop forever!
+                            fEntityScanner.scanChar();
                         }
                     }
                 } while (complete || again);
@@ -1277,6 +1283,8 @@ public class XMLDocumentScannerImpl
                             else {
                                 reportFatalError("MarkupNotRecognizedInMisc",
                                                  null);
+				// Skip forward one character, otherwise we loop forever.
+				fEntityScanner.scanChar();
                             }
                             break;
                         }

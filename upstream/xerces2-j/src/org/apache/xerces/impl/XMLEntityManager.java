@@ -132,6 +132,10 @@ public class XMLEntityManager
 	protected static final String PARSER_SETTINGS = 
 		Constants.XERCES_FEATURE_PREFIX + Constants.PARSER_SETTINGS;	
 
+    /** Feature identifier: ignore badly encoded characters */
+    protected static final String IGNORE_BADLY_ENCODED_CHARS =
+        Constants.XERCES_FEATURE_PREFIX + Constants.IGNORE_BADLY_ENCODED_CHARS;
+
     // property identifiers
 
     /** Property identifier: symbol table. */
@@ -167,7 +171,8 @@ public class XMLEntityManager
         EXTERNAL_PARAMETER_ENTITIES,
         ALLOW_JAVA_ENCODINGS,
         WARN_ON_DUPLICATE_ENTITYDEF,
-        STANDARD_URI_CONFORMANT
+        STANDARD_URI_CONFORMANT,
+        IGNORE_BADLY_ENCODED_CHARS
     };
 
     /** Feature defaults. */
@@ -175,6 +180,7 @@ public class XMLEntityManager
         null,
         Boolean.TRUE,
         Boolean.TRUE,
+        Boolean.FALSE,
         Boolean.FALSE,
         Boolean.FALSE,
         Boolean.FALSE
@@ -261,6 +267,12 @@ public class XMLEntityManager
      * http://apache.org/xml/features/standard-uri-conformant
      */
     protected boolean fStrictURI;
+
+    /**
+    * allow badly encoded characters (skip them)
+    * http://apache.org/xml/features/ignore-badly-encoded-chars
+    */
+    protected boolean fAllowBadlyEncodedChars;
 
     // properties
 
@@ -1310,6 +1322,13 @@ public class XMLEntityManager
             fStrictURI = false;
         }
 
+        try {
+            fAllowBadlyEncodedChars = componentManager.getFeature(IGNORE_BADLY_ENCODED_CHARS);
+        }
+        catch (XMLConfigurationException e) {
+            fAllowBadlyEncodedChars = false;
+        }
+
         // xerces properties
         fSymbolTable = (SymbolTable)componentManager.getProperty(SYMBOL_TABLE);
         fErrorReporter = (XMLErrorReporter)componentManager.getProperty(ERROR_REPORTER);
@@ -2082,6 +2101,33 @@ public class XMLEntityManager
     protected Reader createReader(InputStream inputStream, String encoding, Boolean isBigEndian)
         throws IOException {
 
+        Reader internalReader = createInternalReader(inputStream, encoding, isBigEndian);
+        if (fAllowBadlyEncodedChars)
+        {
+            // Wrap the reader so that bad characters are ignored rather than causing aborts
+            return new LaxReader(internalReader);
+        }
+        return internalReader;
+    }
+    
+    /**
+     * Creates a reader capable of reading the given input stream in
+     * the specified encoding.
+     *
+     * @param inputStream  The input stream.
+     * @param encoding     The encoding name that the input stream is
+     *                     encoded using. If the user has specified that
+     *                     Java encoding names are allowed, then the
+     *                     encoding name may be a Java encoding name;
+     *                     otherwise, it is an ianaEncoding name.
+     * @param isBigEndian   For encodings (like uCS-4), whose names cannot
+     *                      specify a byte order, this tells whether the order is bigEndian.  null menas
+     *                      unknown or not relevant.
+     *
+     * @return Returns a reader.
+     */
+    protected Reader createInternalReader(InputStream inputStream, String encoding, Boolean isBigEndian)
+        throws IOException {
         // if the encoding is UTF-8 use the optimized UTF-8 reader
         if (encoding == "UTF-8" || encoding == null) {
             if (DEBUG_ENCODINGS) {
@@ -3025,6 +3071,9 @@ public class XMLEntityManager
                 return -1;
             }
             if (fOffset == fData.length) {
+                if (fCurrentEntity.mayReadChunks) {
+                    return fInputStream.read();
+                }
                 byte[] newData = new byte[fOffset << 1];
                 System.arraycopy(fData, 0, newData, 0, fOffset);
                 fData = newData;
@@ -3137,5 +3186,106 @@ public class XMLEntityManager
             }
         }
     } // end of RewindableInputStream class
+
+    protected static class LaxReader extends Reader
+    {
+        protected Reader internalReader;
+
+        public LaxReader(Reader internalReader)
+        {
+            this.internalReader = internalReader;
+        }
+
+        public int read()
+            throws IOException
+        {
+            // Since we need to be able to skip ahead at the point of error, and not drop huge amounts on the floor,
+            // all read operations for this class are channeled through the single-character operation.  This is less
+            // efficient, but hopefully not terribly so.
+            try
+            {
+                return internalReader.read();
+            }
+            catch (org.apache.xerces.impl.io.MalformedByteSequenceException e)
+            {
+                // When this fails, it means we detected a bad character.
+                // However, the bad character has already been pulled off the stream, so we are free to stuff in a "?" and
+                // just keep going.
+                return (int)'?';
+            }
+        }
+        
+        public int read(char[] cbuf)
+            throws IOException
+        {
+            return read(cbuf,0,cbuf.length);
+        }
+
+        public int read(char[] cbuf,
+            int off,
+            int len)
+            throws IOException
+        {
+            int amtRead = 0;
+            while (amtRead < len)
+            {
+                int cval = read();
+                if (cval == -1)
+                {
+                    if (amtRead == 0)
+                        return -1;
+                    else
+                        return amtRead;
+                }
+                cbuf[off++] = (char)cval;
+                amtRead++;
+            }
+            return amtRead;
+        }
+
+        public long skip(long n)
+            throws IOException
+        {
+            long skipped = 0;
+            while (skipped < n)
+            {
+                int cval = read();
+                if (cval == -1)
+                    break;
+                skipped++;
+            }
+            return skipped;
+        }
+        
+        public boolean ready()
+            throws IOException
+        {
+            return internalReader.ready();
+        }
+        
+        public boolean markSupported()
+        {
+            return internalReader.markSupported();
+        }
+        
+        public void mark(int readAheadLimit)
+            throws IOException
+        {
+            internalReader.mark(readAheadLimit);
+        }
+        
+        public void reset()
+           throws IOException
+        {
+            internalReader.reset();
+        }
+
+        public void close()
+            throws IOException
+        {
+            internalReader.close();
+        }
+    }
+    
 
 } // class XMLEntityManager
