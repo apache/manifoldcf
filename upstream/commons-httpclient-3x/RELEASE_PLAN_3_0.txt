@@ -1,0 +1,137 @@
+$Id$
+
+Release Plan for HttpClient 3.0
+-----------------------------------------
+
+Administrivia:
+
+This document describes a plan for a 3.0 release of the
+Jakarta-Commons HttpClient component (for the remainder
+of this document, simply "HttpClient").  Per the
+Jakarta/ASF guidelines
+(http://jakarta.apache.org/site/decisions.html), this
+document doesn't mean anything until accepted by the
+relevant committer community via a lazy majority vote
+(hereafter, simply "lazy majority").  Once accepted, it may
+be replaced by an alternative plan, again subject to lazy
+majority approval.
+
+Non-binding votes (votes cast by those outside the relevant
+committer community) are welcome, but only binding votes
+are significant for decision making purposes.
+
+Objective:
+
+The objective of the 3.0 release of HttpClient is to build upon 
+the foundation laid with the previous release while addressing 
+those  architectural shortcomings and flaws identified during 2.0 
+development process. Several well known and much complained about 
+problems could not be resolved without sacrificing API stability. 
+The primary motivation behind the 3.0 is to fix those design 
+limitations, breaking 2.0 API compatibility where absolutely 
+unavoidable, while preserving overall compatibility with 2.0
+use patterns.  
+
+Planned fixes and modifications:
+
+ 1. Better exception handling framework (Bug #19868).
+
+ 2. Cross-site redirect fix. Authentication, redirect & retry logic
+    to be moved from HttpMethodBase to HttpClient (Bug #20089,
+    #16729).
+
+ 3. New configuration architecture that includes plug-in mechanism 
+    for cookie policies & authentication schemes (Bug #15435, 
+    #10790, #10790, #15297, #21151).
+
+ 4. More reliable header parser (Bug #11240, #21210).
+
+ 5. Ability to abort requests (Bug #20288).
+
+ 6. A better test framework than SimpleHttpConnectionManager, that 
+    allows to more closely mimic real  HttpConnection behavior, 
+    thus enabling more tests without actually requiring a real 
+    connection. 
+
+ 7. Decision on new external dependencies: commons-lang, commons-codec
+    (Bug #16881)
+
+ 8. Removal of functions & classes deprecated in 2.0
+
+
+Release Manager:
+
+  Michael Becke (Starting 15 October, 2003)
+
+
+Voting:
+ <---- Please return this portion with your vote ---->
+[ ] +1    I am in favor of this plan and I will help
+[ ] +0    I am in favor of this plan, but I am unable to help
+[ ] -0    I am not in favor of this plan
+[ ] -1    I am opposed to this plan being executed, and my reason is:
+ <---- /Please return this portion with your vote ---->
+
+ 
+Feature/Fault Tracking:
+
+BugZilla will be the mechanism for tracking features and faults
+(ie: bugs).  When the new Scarab system becomes available, Scarab
+will replace BugZilla in this role.
+
+Milestone development will begin immediately on approval
+of this release plan.  All repository changes that are non-trivial 
+will require a bugzilla bug or feature enhancement request.
+It will be the responsibility of the release manager to categorize
+bugs/features into release versions, but will always remain
+subject to the will of the majority.  In order to declare that a
+release has been reached, all bugs/features categorized into 
+that target release must be completed and a vote must pass 
+subject to lazy approval.
+
+The following procedure will be followed:
+1) All changes must be motivated by a bugzilla change request.
+2) Patches constructed according to standard practice should be 
+attached to the relevant BugZilla bug.
+3) A committer can then commit the patch to the repository.
+
+
+Milestone Development Phases:
+
+3.0 Alpha development
+Designations: 3.0A1, 3.0A2
+During the previous period of development, many new features
+were added, dependencies were changes, interfaces were impacted.
+During Milestone development, the nature of the changes will
+focus on:
+a) interface changes
+b) functionality additions
+c) fault fixing
+
+3.0 Beta development
+Designations: 3.0B1, 3.0B2
+Development will be focused on quality and stability.  No new
+major features will be added, with the following change types
+being the most prelevent:
+a) fix faults with accompanying test cases
+b) additional test cases to improve functionality
+c) improve documentation
+
+3.0 Release development
+Designations: 3.0RC1, 3.0RC2, 3.0
+When all features are complete and all reported bugs have been fixed,
+a release candidate (RC) build will be released.  Any reported bugs
+that are targeted for the 3.0 release will be fixed and a new RC
+build will be released.  After a week of no changes, the last RC
+build will become the 3.0 release with the following changes only:
+release version, aside from:
+a) change the release tag in the build.xml/project.xml
+b) update the site documentation to indicate that there is a release
+
+Post 3.0 Release development
+Designations: 3.0.x
+Following the release, only Bugzilla tracked bugs with attached
+patches will be committed to the repository.  These patches must
+only:
+a) fix faults with accompanying test case(s)
+b) improve documentation

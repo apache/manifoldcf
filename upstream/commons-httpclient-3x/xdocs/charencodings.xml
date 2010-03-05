@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<document>
+
+  <properties>
+    <title>Character Encodings</title>
+    <author email="adrian@ephox.com">Adrian Sutton</author>
+    <author email="jsdever@apache.org">Jeff Dever</author>
+    <revision>$Id$</revision>
+  </properties>
+
+  <body>
+    <section name="Introduction">
+      <p>This document provides an overview of how HttpClient handles character
+      encodings and how to use HttpClient in an encoding safe way.  There are
+      three main sections: 
+      <a href="#HTTP Headers">HTTP Headers</a>, 
+      <a href="#Request/Response Body">Request/Response Body</a> and 
+      <a href="#URLs">URLs</a>.
+      </p>
+    </section>
+
+    <section name="HTTP Headers">
+      <p>The headers of a HTTP request or response must be in <tt>US-ASCII</tt> format.
+        It is not possible to use non <tt>US-ASCII</tt> characters in the header of a
+        request or response.  Generally this is not an issue however, because the
+        HTTP headers are designed to facilite the transfer of data rather than to
+        actually transfer the data itself.</p>
+      <p>One exception however are cookies. Since cookies are transfered as HTTP Headers
+        they are confined to the <tt>US-ASCII</tt> character set. See the Cookie Guide
+        for more information.
+      </p>
+    </section>
+
+    <section name="Request/Response Body">
+      <p>The request or response body can be any encoding, but by default is
+        <tt>ISO-8859-1</tt>.  The encoding may be specified in the 
+        <tt>Content-Type</tt> header, for example:
+        <blockquote>Content-Type: text/html; charset=UTF-8</blockquote>
+      </p>
+
+      <p>In this case the application should be careful to use UTF-8 encoding
+      when converting the body to a String or some characters may be corrupt.
+      You can set the content type header for a request with the
+      <code>addRequestHeader</code> method in each method and retrieve the
+      encoding for the response body with the <code>getResponseCharSet</code>
+      method.</p>
+
+      <p>If the response is known to be a String, you can use the
+      <code>getResponseBodyAsString</code> method which will automatically use
+      the encoding specified in the <tt>Content-Type</tt> header or 
+      <tt>ISO-8859-1</tt> if no charset is specified.</p>
+
+      <p>Note that some document types, such as HTML and XML allow the author
+      to specify the content type of the file.  In this case, you should
+      consult the appropriate standards regarding how to resovle any conflicts
+      in the reported charsets.</p>
+    </section>
+
+    <section name="URLs">
+      <p>The standard for URLs (<a
+      href="http://www.ietf.org/rfc/rfc1738.txt">RFC1738</a>) explictly
+      states that URLs may only contain graphic printable characters of the
+      <tt>US-ASCII</tt> coded character set and is defined in terms of octets.
+      The octets <code>80-FF</code> hexadecimal are not used in <tt>US-ASCII</tt> and the octets
+      <code>OO-1F</code> hexadecimal represent control characters; characters in these
+      ranges must be encoded.</p>
+      
+      <p>Characters which cannot be represented by an 8-bit ASCII code, can not
+      be used in an URL as there is no way to reliably encode them (the
+      encoding scheme for URLs is based off of octets).  Despite this, some
+      servers do support varying means of encoding double byte characters in
+      URLs, the most common technique seems to be to use UTF-8 encoding and
+      encode each octet separately even if a pair of octets represents one
+      character.  This however, is not specified by the standard and is highly
+      prone to error, so it is recommended that URLs be restricted to the 8-bit
+      ASCII range.</p>
+    </section>
+  </body>
+</document>

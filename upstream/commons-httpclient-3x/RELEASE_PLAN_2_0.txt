@@ -1,0 +1,150 @@
+$Id$
+
+Release Plan for HttpClient 2.0 (revised)
+-----------------------------------------
+
+Administrivia:
+
+This document describes a plan for a 2.0 release of the
+Jakarta-Commons HttpClient component (for the remainder
+of this document, simply "HttpClient").  Per the
+Jakarta/ASF guidelines
+(http://jakarta.apache.org/site/decisions.html), this
+document doesn't mean anything until accepted by the
+relevant committer community via a lazy majority vote
+(hereafter, simply "lazy majority").  Once accepted, it may
+be replaced by an alternative plan, again subject to lazy
+majority approval.
+
+Non-binding votes (votes cast by those outside the relevant
+committer community) are welcome, but only binding votes
+are significant for decision making purposes.
+
+Objective:
+
+The objective of the 2.0 release of HttpClient is to
+provide a stable and robust release focused on standards
+compliance, design clarity, forward compatibility, and ease
+of use (i.e., with the intention of providing a stable
+foundation for the further evolution of the HttpClient
+component). Specifically, the 2.0 release seeks to
+introduce and evaluate changes based upon the following
+(ordered) criteria:
+
+ 1. Freedom from defects (deviation from the documented or
+    reasonably expected behavior).
+
+ 2. Compliance to RFC 2616 (HTTP/1.1) and related
+    specifications.
+
+ 3. Interface and design consistency and clarity, ease-of-
+    use, and ease-of-extension.
+
+ 4. Forward compatibility. I.e., the ability to add support
+    for currently unsupported aspects of the relevant
+    specifications or to add support for features that can
+    be reasonably predicted without "breaking" the external
+    (and to a lesser degree, internal) interface of the
+    component.
+
+
+The 2.0 release should also include:
+
+ * Adequate documentation (including both API-level/JavaDoc
+   documentation as well documentation suitable for use
+   on the Jakarta-Commons site)
+
+ * A substantial unit and functional test suite suitable
+   for ensuring the quality and compatibility of release
+   2.0 and subsequent releases.
+
+ * A clear demarcation of the "internal" and "external"
+   interfaces within HttpClient, as defined in the
+   VERSIONING_GUIDELINES.txt document at:
+   http://cvs.apache.org/viewcvs/~checkout~/jakarta-commons/VERSIONING-GUIDELINES.txt
+
+ * Releases will be done according to:
+   http://jakarta.apache.org/commons/releases.html
+
+   
+Release Manager:
+
+  Jeff Dever (Starting July 31, 2002)
+
+
+Voting:
+ <---- Please return this portion with your vote ---->
+[X] +1    I am in favor of this plan and I will help
+[ ] +0    I am in favor of this plan, but I am unable to help
+[ ] -0    I am not in favor of this plan
+[ ] -1    I am opposed to this plan being executed, and my reason is:
+ <---- /Please return this portion with your vote ---->
+
+ 
+Feature/Fault Tracking:
+
+BugZilla will be the mechanism for tracking features and faults
+(ie: bugs).  When the new Scarab system becomes available, Scarab
+will replace BugZilla in this role.
+
+The previous 2.0 release plan called for a time ordered development
+strategy.  There were set dates for given phases of the implementation.
+This approach will be abandoned in favour of a feature completion 
+based development plan.
+
+Milestone development will begin immeadiately on approval
+of this release plan.  All repository changes that are non-trivial 
+will require a bugzilla bug or feature enhancement request.
+It will be the responsibility of the release manager to categorize
+bugs/features into release versions, but will always remain
+subject to the will of the majority.  In order to declare that a
+release has been reached, all bugs/features categorized into 
+that target release must be completed and a vote must pass 
+subject to lazy approval.
+
+The following procedure will be followed:
+1) All changes must be motivated by a bugzilla change request.
+2) Patches constructed according to standard practice should be 
+attached to the relevent BugZilla bug.
+3) A committer can then commit the patch to the repository.
+
+
+Milestone Development Phases:
+
+2.0 Alpha development
+Designations: 2.0A1, 2.0A2
+During the previous period of development, many new features
+were added, depenancies were changes, interfaces were impacted.
+During Milestone development, the nature of the changes will
+focus on:
+a) interface changes
+b) functionality additions
+c) fault fixing
+
+2.0 Beta development
+Designations: 2.0B1, 2.0B2
+Development will be focused on quality and stability.  No new
+major features will be added, with the following change types
+being the most prelevent:
+a) fix faults with accompayning test cases
+b) additional test cases to improve functionality
+c) improve documentation
+
+2.0 Release development
+Designations: 2.0RC1, 2.0RC2, 2.0
+When all features are complete and all reported bugs have been fixed,
+a release candidate (RC) build will be released.  Any reported bugs
+that are targeted for the 2.0 release will be fixed and a new RC
+build will be released.  After a week of no changes, the last RC
+build will become the 2.0 release with the following changes only:
+release version, aside from:
+a) change the release tag in the build.xml/project.xml
+b) update the site documentation to indicate that there is a release
+
+Post 2.0 Release development
+Designations: 2.0.x
+Following the release, only Bugzilla tracked bugs with attached
+patches will be commited to the repository.  These patches must
+only:
+a) fix faults with accompanying test case(s)
+b) improve documentation

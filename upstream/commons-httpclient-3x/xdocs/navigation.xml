@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project name="HttpClient">
+
+  <properties>
+    <title>HttpClient</title>
+    <author email="jsdever@apache.org">Jeff Dever</author>
+    <author email="adrian@ephox.com">Adrian Sutton</author>
+    <revision>$Id$</revision>
+  </properties>
+
+  <body>
+    <menu name="Overview">
+      <item name="Features" href="/features.html"/>
+      <item name="News" href="/news.html"/>
+      <item name="Status" href="http://hc.apache.org/status.html"/>
+      <item name="Download" href="http://hc.apache.org/downloads.cgi"/>
+      <item name="Wiki" href="http://wiki.apache.org/jakarta-httpclient/"/>
+    </menu>
+
+    <menu name="User Guide">
+      <item name="Overview" href="/userguide.html"/>
+      <item name="Authentication Guide" href="/authentication.html"/>
+      <item name="Character Encodings" href="/charencodings.html"/>
+      <item name="Cookies" href="/cookies.html"/>
+      <item name="Exception Handling" href="/exception-handling.html"/>
+      <item name="Logging Guide" href="/logging.html"/>
+      <item name="Methods" href="/methods.html"/>
+      <item name="Optimization Guide" href="/performance.html"/>
+      <item name="Preference Architecture" href="/preference-api.html"/>
+      <item name="Redirects Handling" href="/redirects.html"/>
+      <item name="Sample Code" href="http://svn.apache.org/viewvc/httpcomponents/oac.hc3x/trunk/src/examples/"/>
+      <item name="SSL Guide" href="/sslguide.html"/>
+      <item name="Threading" href="/threading.html"/>
+      <item name="Trouble Shooting" href="/troubleshooting.html"/>
+      <item name="Tutorial" href="/tutorial.html"/>
+    </menu>
+
+    <menu name="ASF" href="http://www.apache.org/">
+      <item name="Foundation" href="http://www.apache.org/foundation/" />
+      <item name="Sponsor Apache" href="http://www.apache.org/foundation/sponsorship.html" />
+      <item name="Thanks" href="http://www.apache.org/foundation/thanks.html" />
+    </menu>
+    
+  </body>
+</project>

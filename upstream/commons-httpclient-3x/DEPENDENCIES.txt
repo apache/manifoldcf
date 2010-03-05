@@ -1,0 +1,19 @@
+HttpClient 3.x requires
+-----------------------
+* JRE 1.2.2 or above
+* JSSE 1.0.3 when running in JRE < 1.4 (optional)
+* JCE 1.2.2 when running in JRE < 1.4 (optional)
+* Commons Logging 1.0.0 or above 
+* Commons Codec 1.2.0 or above
+* junit (unit testing only)
+
+For building httpclient:
+-----------------------
+Create the lib directory if necessary, and add the following to the lib directory:
+* commons-codec.jar
+* commons-logging.jar
+
+For testing httpclient:
+----------------------
+Create the lib directory if necessary, and add the following to the lib directory:
+* junit.jar

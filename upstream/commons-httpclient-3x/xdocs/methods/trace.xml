@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<document>
+
+  <properties>
+    <title>Trace Method</title>
+    <author email="adrian@ephox.com">Adrian Sutton</author>
+    <revision>$Id$</revision>
+  </properties>
+
+  <body>
+
+    <section name="Introduction">
+      <p>The TRACE method is primarily used for debugging and testing purposes,
+      and simply requests that the server echo back the request it received.
+      This can be useful for identifying any changes to the request that is
+      made by proxies.</p>
+
+      <p>The TRACE method is used to invoke a remote, application-layer
+      loop-back of the request message.  The final recipient of the request
+      <i>should</i> reflect the message received back to the client as the
+      entity-body of a 200 (OK) response.  The final recipient is either the
+      origin server or the first proxy or gateway to receive a max-Forwards
+      value of zero (0) in the request (see section 14.31 of <a
+      href="http://www.ietf.org/rfc/rfc2616.txt">RFC2616</a>).</p>
+    </section>
+
+    <section name="Typical Usage">
+      <p>The trace method simply requires providing a URL and reading the
+      response received.  Additional headers can be added with the
+      <code>addRequestHeader</code> method as with any other HttpMethod.</p>
+
+      <source><![CDATA[
+        TraceMethod trace = new TraceMethod("http://jakarata.apache.org");
+        // Execute the method and handle any errors.
+        ...
+        // Read the response body.
+        String request = trace.getResponseBodyAsString();
+        trace.releaseConnection();
+      ]]>
+      </source>
+    </section>
+
+    <section name="Common Problems">
+      <p>None.</p>
+    </section>
+
+    <section name="RFC Section">
+      <p>The trace method is defined in section 9.6 of <a
+      href="http://www.ietf.org/rfc/rfc2616.txt">RFC2616</a>.</p>
+    </section>
+
+  </body>
+
+</document>

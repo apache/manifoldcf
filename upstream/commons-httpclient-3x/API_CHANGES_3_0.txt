@@ -1,0 +1,1681 @@
+Commons HttpClient 3.0 API changes
+==================================
+Class removed: 
+  deprecated: public org.apache.commons.httpclient.Authenticator extends java.lang.Object
+Class removed: 
+  public org.apache.commons.httpclient.HttpConnection.ConnectionTimeoutException extends java.io.IOException
+Class removed: 
+  deprecated: public abstract org.apache.commons.httpclient.HttpUrlMethod extends java.lang.Object implements org.apache.commons.httpclient.HttpMethod
+Class removed: 
+  deprecated: public final org.apache.commons.httpclient.NTLM extends java.lang.Object
+Class removed: 
+  deprecated: public org.apache.commons.httpclient.RequestOutputStream extends java.io.OutputStream
+Class removed: 
+  deprecated: public org.apache.commons.httpclient.ResponseInputStream extends java.io.InputStream
+Class removed: 
+  deprecated: public org.apache.commons.httpclient.methods.UrlDeleteMethod extends org.apache.commons.httpclient.methods.DeleteMethod implements org.apache.commons.httpclient.HttpUrlMethod
+Class removed: 
+  deprecated: public org.apache.commons.httpclient.methods.UrlGetMethod extends org.apache.commons.httpclient.methods.GetMethod implements org.apache.commons.httpclient.HttpUrlMethod
+Class removed: 
+  deprecated: public org.apache.commons.httpclient.methods.UrlHeadMethod extends org.apache.commons.httpclient.methods.HeadMethod implements org.apache.commons.httpclient.HttpUrlMethod
+Class removed: 
+  deprecated: public org.apache.commons.httpclient.methods.UrlOptionsMethod extends org.apache.commons.httpclient.methods.OptionsMethod implements org.apache.commons.httpclient.HttpUrlMethod
+Class removed: 
+  deprecated: public org.apache.commons.httpclient.methods.UrlPostMethod extends org.apache.commons.httpclient.methods.PostMethod implements org.apache.commons.httpclient.HttpUrlMethod
+Class removed: 
+  deprecated: public org.apache.commons.httpclient.methods.UrlPutMethod extends org.apache.commons.httpclient.methods.PutMethod implements org.apache.commons.httpclient.HttpUrlMethod
+Class removed: 
+  deprecated: public final org.apache.commons.httpclient.util.Base64 extends java.lang.Object
+Class added: 
+  public org.apache.commons.httpclient.CircularRedirectException extends org.apache.commons.httpclient.RedirectException
+Class added: 
+  public org.apache.commons.httpclient.ConnectTimeoutException extends java.io.InterruptedIOException
+Class added: 
+  public org.apache.commons.httpclient.ConnectionPoolTimeoutException extends org.apache.commons.httpclient.ConnectTimeoutException
+Class added: 
+  public org.apache.commons.httpclient.DefaultHttpMethodRetryHandler extends java.lang.Object implements org.apache.commons.httpclient.HttpMethodRetryHandler
+Class added: 
+  public org.apache.commons.httpclient.HttpClientError extends java.lang.Error
+Class added: 
+  public org.apache.commons.httpclient.HttpHost extends java.lang.Object implements java.lang.Cloneable
+Class added: 
+  public abstract org.apache.commons.httpclient.HttpMethodRetryHandler extends java.lang.Object
+Class added: 
+  public org.apache.commons.httpclient.HttpVersion extends java.lang.Object implements java.lang.Comparable
+Class added: 
+  public org.apache.commons.httpclient.NoHttpResponseException extends java.io.IOException
+Class added: 
+  public org.apache.commons.httpclient.ProtocolException extends org.apache.commons.httpclient.HttpException
+Class added: 
+  public org.apache.commons.httpclient.ProxyClient extends java.lang.Object
+Class added: 
+  public org.apache.commons.httpclient.ProxyClient.ConnectResponse extends java.lang.Object
+Class added: 
+  public org.apache.commons.httpclient.ProxyHost extends org.apache.commons.httpclient.HttpHost
+Class added: 
+  public org.apache.commons.httpclient.RedirectException extends org.apache.commons.httpclient.ProtocolException
+Class added: 
+  public org.apache.commons.httpclient.auth.AuthChallengeException extends org.apache.commons.httpclient.auth.AuthenticationException
+Class added: 
+  public final org.apache.commons.httpclient.auth.AuthChallengeProcessor extends java.lang.Object
+Class added: 
+  public abstract org.apache.commons.httpclient.auth.AuthPolicy extends java.lang.Object
+Class added: 
+  public org.apache.commons.httpclient.auth.AuthScope extends java.lang.Object
+Class added: 
+  public org.apache.commons.httpclient.auth.AuthState extends java.lang.Object
+Class added: 
+  public org.apache.commons.httpclient.auth.CredentialsNotAvailableException extends org.apache.commons.httpclient.auth.AuthenticationException
+Class added: 
+  public abstract org.apache.commons.httpclient.auth.CredentialsProvider extends java.lang.Object
+Class added: 
+  public org.apache.commons.httpclient.auth.InvalidCredentialsException extends org.apache.commons.httpclient.auth.AuthenticationException
+Class added: 
+  public org.apache.commons.httpclient.cookie.IgnoreCookiesSpec extends java.lang.Object implements org.apache.commons.httpclient.cookie.CookieSpec
+Class added: 
+  public org.apache.commons.httpclient.methods.ByteArrayRequestEntity extends java.lang.Object implements org.apache.commons.httpclient.methods.RequestEntity
+Class added: 
+  public org.apache.commons.httpclient.methods.InputStreamRequestEntity extends java.lang.Object implements org.apache.commons.httpclient.methods.RequestEntity
+Class added: 
+  public abstract org.apache.commons.httpclient.methods.RequestEntity extends java.lang.Object
+Class added: 
+  public org.apache.commons.httpclient.methods.StringRequestEntity extends java.lang.Object implements org.apache.commons.httpclient.methods.RequestEntity
+Class added: 
+  public org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity extends java.lang.Object implements org.apache.commons.httpclient.methods.RequestEntity
+Class added: 
+  public org.apache.commons.httpclient.params.DefaultHttpParams extends java.lang.Object implements org.apache.commons.httpclient.params.HttpParams, java.io.Serializable, java.lang.Cloneable
+Class added: 
+  public org.apache.commons.httpclient.params.DefaultHttpParamsFactory extends java.lang.Object implements org.apache.commons.httpclient.params.HttpParamsFactory
+Class added: 
+  public org.apache.commons.httpclient.params.HostParams extends org.apache.commons.httpclient.params.DefaultHttpParams
+Class added: 
+  public org.apache.commons.httpclient.params.HttpClientParams extends org.apache.commons.httpclient.params.HttpMethodParams
+Class added: 
+  public org.apache.commons.httpclient.params.HttpConnectionManagerParams extends org.apache.commons.httpclient.params.HttpConnectionParams
+Class added: 
+  public org.apache.commons.httpclient.params.HttpConnectionParams extends org.apache.commons.httpclient.params.DefaultHttpParams
+Class added: 
+  public org.apache.commons.httpclient.params.HttpMethodParams extends org.apache.commons.httpclient.params.DefaultHttpParams
+Class added: 
+  public abstract org.apache.commons.httpclient.params.HttpParams extends java.lang.Object
+Class added: 
+  public abstract org.apache.commons.httpclient.params.HttpParamsFactory extends java.lang.Object
+Class added: 
+  public final org.apache.commons.httpclient.protocol.ControllerThreadSocketFactory extends java.lang.Object
+Class added: 
+  public abstract org.apache.commons.httpclient.protocol.ControllerThreadSocketFactory.SocketTask extends java.lang.Object implements java.lang.Runnable
+Class added: 
+  public final org.apache.commons.httpclient.protocol.ReflectionSocketFactory extends java.lang.Object
+Class added: 
+  public org.apache.commons.httpclient.util.DateUtil extends java.lang.Object
+Class added: 
+  public org.apache.commons.httpclient.util.ExceptionUtil extends java.lang.Object
+Class added: 
+  public org.apache.commons.httpclient.util.IdleConnectionHandler extends java.lang.Object
+Class added: 
+  public org.apache.commons.httpclient.util.IdleConnectionTimeoutThread extends java.lang.Thread
+Class added: 
+  public org.apache.commons.httpclient.util.LangUtils extends java.lang.Object
+Class added: 
+  public org.apache.commons.httpclient.util.ParameterFormatter extends java.lang.Object
+Class added: 
+  public org.apache.commons.httpclient.util.ParameterParser extends java.lang.Object
+Class changed: org.apache.commons.httpclient.ChunkedInputStream
+  Methods added:
+    public ChunkedInputStream(java.io.InputStream) throws java.io.IOException;
+
+Class changed: org.apache.commons.httpclient.ChunkedOutputStream
+  Methods removed:
+    public void print(java.lang.String) throws java.io.IOException;
+    public void println() throws java.io.IOException;
+    public void println(java.lang.String) throws java.io.IOException;
+
+  Methods added:
+    public ChunkedOutputStream(java.io.OutputStream, int) throws java.io.IOException;
+    public void finish() throws java.io.IOException;
+    protected void flushCache() throws java.io.IOException;
+    protected void flushCacheWithAppend(byte[], int, int) throws java.io.IOException;
+    public void write(byte[]) throws java.io.IOException;
+
+  Method changed:
+  old:
+    public ChunkedOutputStream(java.io.OutputStream);
+
+  new:
+    public ChunkedOutputStream(java.io.OutputStream) throws java.io.IOException;
+
+  Method changed:
+  old:
+    public void write(int) throws java.io.IOException, java.lang.IllegalStateException;
+
+  new:
+    public void write(int) throws java.io.IOException;
+
+  Method changed:
+  old:
+    public void writeClosingChunk() throws java.io.IOException;
+
+  new:
+    protected void writeClosingChunk() throws java.io.IOException;
+
+Class changed: org.apache.commons.httpclient.ConnectMethod
+  Methods removed:
+    protected void addAuthorizationRequestHeader(org.apache.commons.httpclient.HttpState, org.apache.commons.httpclient.HttpConnection) throws java.io.IOException, org.apache.commons.httpclient.HttpException;
+    protected void addContentLengthRequestHeader(org.apache.commons.httpclient.HttpState, org.apache.commons.httpclient.HttpConnection) throws java.io.IOException, org.apache.commons.httpclient.HttpException;
+
+  Methods added:
+    public ConnectMethod();
+
+  Method changed:
+  old:
+    public ConnectMethod(org.apache.commons.httpclient.HttpMethod);
+
+  new:
+    deprecated: public ConnectMethod(org.apache.commons.httpclient.HttpMethod);
+
+Class changed: org.apache.commons.httpclient.ContentLengthInputStream
+  Methods added:
+    public ContentLengthInputStream(java.io.InputStream, long);
+
+  Method changed:
+  old:
+    public ContentLengthInputStream(java.io.InputStream, int);
+
+  new:
+    deprecated: public ContentLengthInputStream(java.io.InputStream, int);
+
+Class changed: org.apache.commons.httpclient.Cookie
+  Methods removed:
+    deprecated: public static org.apache.commons.httpclient.Header createCookieHeader(java.lang.String, int, java.lang.String, boolean, java.util.Date, org.apache.commons.httpclient.Cookie[]) throws java.lang.IllegalArgumentException;
+    deprecated: public static org.apache.commons.httpclient.Header createCookieHeader(java.lang.String, int, java.lang.String, boolean, org.apache.commons.httpclient.Cookie[]) throws java.lang.IllegalArgumentException;
+    deprecated: public static org.apache.commons.httpclient.Header createCookieHeader(java.lang.String, java.lang.String, boolean, org.apache.commons.httpclient.Cookie[]) throws java.lang.IllegalArgumentException;
+    deprecated: public static org.apache.commons.httpclient.Header createCookieHeader(java.lang.String, java.lang.String, org.apache.commons.httpclient.Cookie[]);
+    deprecated: public boolean matches(java.lang.String, int, java.lang.String, boolean);
+    deprecated: public boolean matches(java.lang.String, int, java.lang.String, boolean, java.util.Date);
+    deprecated: public static org.apache.commons.httpclient.Cookie[] parse(java.lang.String, int, java.lang.String, org.apache.commons.httpclient.Header) throws org.apache.commons.httpclient.HttpException, java.lang.IllegalArgumentException;
+    deprecated: public static org.apache.commons.httpclient.Cookie[] parse(java.lang.String, int, java.lang.String, boolean, org.apache.commons.httpclient.Header) throws org.apache.commons.httpclient.HttpException;
+    deprecated: public static org.apache.commons.httpclient.Cookie[] parse(java.lang.String, java.lang.String, org.apache.commons.httpclient.Header) throws org.apache.commons.httpclient.HttpException, java.lang.IllegalArgumentException;
+    deprecated: public static org.apache.commons.httpclient.Cookie[] parse(java.lang.String, java.lang.String, boolean, org.apache.commons.httpclient.Header) throws org.apache.commons.httpclient.HttpException, java.lang.IllegalArgumentException;
+
+Class changed: org.apache.commons.httpclient.DefaultMethodRetryHandler
+  Class descriptor changed:
+  old:
+    public org.apache.commons.httpclient.DefaultMethodRetryHandler extends java.lang.Object implements org.apache.commons.httpclient.MethodRetryHandler
+  new:
+    deprecated: public org.apache.commons.httpclient.DefaultMethodRetryHandler extends java.lang.Object implements org.apache.commons.httpclient.MethodRetryHandler
+Class changed: org.apache.commons.httpclient.Header
+  Methods added:
+    public Header(java.lang.String, java.lang.String, boolean);
+    public org.apache.commons.httpclient.HeaderElement[] getElements();
+    public boolean isAutogenerated();
+
+  Method changed:
+  old:
+    public org.apache.commons.httpclient.HeaderElement[] getValues() throws org.apache.commons.httpclient.HttpException;
+
+  new:
+    deprecated: public org.apache.commons.httpclient.HeaderElement[] getValues() throws org.apache.commons.httpclient.HttpException;
+
+Class changed: org.apache.commons.httpclient.HeaderElement
+  Methods removed:
+    protected void setParameters(org.apache.commons.httpclient.NameValuePair[]);
+
+  Methods added:
+    public HeaderElement(char[]);
+    public HeaderElement(char[], int, int);
+    public final static org.apache.commons.httpclient.HeaderElement[] parseElements(java.lang.String);
+    public final static org.apache.commons.httpclient.HeaderElement[] parseElements(char[]);
+
+  Method changed:
+  old:
+    public final static org.apache.commons.httpclient.HeaderElement[] parse(java.lang.String) throws org.apache.commons.httpclient.HttpException;
+
+  new:
+    deprecated: public final static org.apache.commons.httpclient.HeaderElement[] parse(java.lang.String) throws org.apache.commons.httpclient.HttpException;
+
+Class changed: org.apache.commons.httpclient.HeaderGroup
+  Methods added:
+    public java.util.Iterator getIterator();
+
+Class changed: org.apache.commons.httpclient.HostConfiguration
+  Methods added:
+    public org.apache.commons.httpclient.params.HostParams getParams();
+    public synchronized void setHost(org.apache.commons.httpclient.HttpHost);
+    public void setParams(org.apache.commons.httpclient.params.HostParams);
+    public synchronized void setProxyHost(org.apache.commons.httpclient.ProxyHost);
+
+  Fields added:
+    public final static org.apache.commons.httpclient.HostConfiguration ANY_HOST_CONFIGURATION;
+
+  Method changed:
+  old:
+    public synchronized java.lang.String getVirtualHost();
+
+  new:
+    deprecated: public synchronized java.lang.String getVirtualHost();
+
+  Method changed:
+  old:
+    public int hashCode();
+
+  new:
+    public synchronized int hashCode();
+
+  Method changed:
+  old:
+    public synchronized boolean isHostSet();
+
+  new:
+    deprecated: public synchronized boolean isHostSet();
+
+  Method changed:
+  old:
+    public synchronized boolean isProxySet();
+
+  new:
+    deprecated: public synchronized boolean isProxySet();
+
+  Method changed:
+  old:
+    public synchronized void setHost(java.lang.String, java.lang.String, int, org.apache.commons.httpclient.protocol.Protocol);
+
+  new:
+    deprecated: public synchronized void setHost(java.lang.String, java.lang.String, int, org.apache.commons.httpclient.protocol.Protocol);
+
+Class changed: org.apache.commons.httpclient.HttpClient
+  Methods removed:
+    deprecated: public void endSession() throws java.io.IOException;
+    deprecated: public void startSession(java.lang.String, int);
+    deprecated: public void startSession(java.lang.String, int, java.lang.String, int);
+    deprecated: public void startSession(java.lang.String, int, java.lang.String, int, boolean);
+    deprecated: public void startSession(java.lang.String, int, org.apache.commons.httpclient.Credentials);
+    deprecated: public void startSession(java.lang.String, int, org.apache.commons.httpclient.Credentials, boolean);
+    deprecated: public void startSession(java.lang.String, int, boolean);
+    deprecated: public void startSession(java.net.URL) throws java.lang.IllegalArgumentException;
+    deprecated: public void startSession(java.net.URL, org.apache.commons.httpclient.Credentials) throws java.lang.IllegalArgumentException;
+    deprecated: public void startSession(org.apache.commons.httpclient.URI) throws org.apache.commons.httpclient.URIException, java.lang.IllegalStateException;
+
+  Methods added:
+    public HttpClient(org.apache.commons.httpclient.params.HttpClientParams);
+    public HttpClient(org.apache.commons.httpclient.params.HttpClientParams, org.apache.commons.httpclient.HttpConnectionManager);
+    public org.apache.commons.httpclient.params.HttpClientParams getParams();
+    public void setParams(org.apache.commons.httpclient.params.HttpClientParams);
+
+  Method changed:
+  old:
+    public synchronized boolean isStrictMode();
+
+  new:
+    deprecated: public synchronized boolean isStrictMode();
+
+  Method changed:
+  old:
+    public synchronized void setConnectionTimeout(int);
+
+  new:
+    deprecated: public synchronized void setConnectionTimeout(int);
+
+  Method changed:
+  old:
+    public synchronized void setHttpConnectionFactoryTimeout(long);
+
+  new:
+    deprecated: public synchronized void setHttpConnectionFactoryTimeout(long);
+
+  Method changed:
+  old:
+    public synchronized void setStrictMode(boolean);
+
+  new:
+    deprecated: public synchronized void setStrictMode(boolean);
+
+  Method changed:
+  old:
+    public synchronized void setTimeout(int);
+
+  new:
+    deprecated: public synchronized void setTimeout(int);
+
+Class changed: org.apache.commons.httpclient.HttpConnection
+  Methods removed:
+    deprecated: public HttpConnection(java.lang.String, int, java.lang.String, int, boolean);
+    deprecated: public HttpConnection(java.lang.String, int, boolean);
+    deprecated: public java.io.OutputStream getRequestOutputStream(boolean) throws java.io.IOException, java.lang.IllegalStateException;
+    deprecated: public java.io.InputStream getResponseInputStream(org.apache.commons.httpclient.HttpMethod) throws java.io.IOException, java.lang.IllegalStateException;
+    deprecated: public void setSecure(boolean) throws java.lang.IllegalStateException;
+
+  Methods added:
+    public HttpConnection(java.lang.String, int, java.lang.String, int, org.apache.commons.httpclient.protocol.Protocol);
+    public boolean closeIfStale() throws java.io.IOException;
+    public org.apache.commons.httpclient.params.HttpConnectionParams getParams();
+    protected java.net.Socket getSocket();
+    protected boolean isLocked();
+    public void print(java.lang.String, java.lang.String) throws java.io.IOException, java.lang.IllegalStateException;
+    public void printLine(java.lang.String, java.lang.String) throws java.io.IOException, java.lang.IllegalStateException;
+    public java.lang.String readLine(java.lang.String) throws java.io.IOException, java.lang.IllegalStateException;
+    protected void setLocked(boolean);
+    public void setParams(org.apache.commons.httpclient.params.HttpConnectionParams);
+    public void setSocketTimeout(int) throws java.net.SocketException, java.lang.IllegalStateException;
+
+  Method changed:
+  old:
+    public HttpConnection(java.lang.String, int, java.lang.String, java.lang.String, int, org.apache.commons.httpclient.protocol.Protocol);
+
+  new:
+    deprecated: public HttpConnection(java.lang.String, int, java.lang.String, java.lang.String, int, org.apache.commons.httpclient.protocol.Protocol);
+
+  Method changed:
+  old:
+    public int getSoTimeout() throws java.net.SocketException;
+
+  new:
+    deprecated: public int getSoTimeout() throws java.net.SocketException;
+
+  Method changed:
+  old:
+    public java.lang.String getVirtualHost();
+
+  new:
+    deprecated: public java.lang.String getVirtualHost();
+
+  Method changed:
+  old:
+    protected boolean isStale();
+
+  new:
+    protected boolean isStale() throws java.io.IOException;
+
+  Method changed:
+  old:
+    public boolean isStaleCheckingEnabled();
+
+  new:
+    deprecated: public boolean isStaleCheckingEnabled();
+
+  Method changed:
+  old:
+    public void print(java.lang.String) throws java.io.IOException, java.lang.IllegalStateException, org.apache.commons.httpclient.HttpRecoverableException;
+
+  new:
+    deprecated: public void print(java.lang.String) throws java.io.IOException, java.lang.IllegalStateException;
+
+  Method changed:
+  old:
+    public void printLine() throws java.io.IOException, java.lang.IllegalStateException, org.apache.commons.httpclient.HttpRecoverableException;
+
+  new:
+    public void printLine() throws java.io.IOException, java.lang.IllegalStateException;
+
+  Method changed:
+  old:
+    public void printLine(java.lang.String) throws java.io.IOException, java.lang.IllegalStateException, org.apache.commons.httpclient.HttpRecoverableException;
+
+  new:
+    deprecated: public void printLine(java.lang.String) throws java.io.IOException, java.lang.IllegalStateException;
+
+  Method changed:
+  old:
+    public java.lang.String readLine() throws java.io.IOException, java.lang.IllegalStateException;
+
+  new:
+    deprecated: public java.lang.String readLine() throws java.io.IOException, java.lang.IllegalStateException;
+
+  Method changed:
+  old:
+    public void setConnectionTimeout(int);
+
+  new:
+    deprecated: public void setConnectionTimeout(int);
+
+  Method changed:
+  old:
+    public void setSendBufferSize(int) throws java.net.SocketException;
+
+  new:
+    deprecated: public void setSendBufferSize(int) throws java.net.SocketException;
+
+  Method changed:
+  old:
+    public void setSoTimeout(int) throws java.net.SocketException, java.lang.IllegalStateException;
+
+  new:
+    deprecated: public void setSoTimeout(int) throws java.net.SocketException, java.lang.IllegalStateException;
+
+  Method changed:
+  old:
+    public void setStaleCheckingEnabled(boolean);
+
+  new:
+    deprecated: public void setStaleCheckingEnabled(boolean);
+
+  Method changed:
+  old:
+    public void setVirtualHost(java.lang.String) throws java.lang.IllegalStateException;
+
+  new:
+    deprecated: public void setVirtualHost(java.lang.String) throws java.lang.IllegalStateException;
+
+  Method changed:
+  old:
+    public void shutdownOutput();
+
+  new:
+    deprecated: public void shutdownOutput();
+
+  Method changed:
+  old:
+    public void write(byte[]) throws java.io.IOException, java.lang.IllegalStateException, org.apache.commons.httpclient.HttpRecoverableException;
+
+  new:
+    public void write(byte[]) throws java.io.IOException, java.lang.IllegalStateException;
+
+  Method changed:
+  old:
+    public void write(byte[], int, int) throws java.io.IOException, java.lang.IllegalStateException, org.apache.commons.httpclient.HttpRecoverableException;
+
+  new:
+    public void write(byte[], int, int) throws java.io.IOException, java.lang.IllegalStateException;
+
+  Method changed:
+  old:
+    public void writeLine() throws java.io.IOException, java.lang.IllegalStateException, org.apache.commons.httpclient.HttpRecoverableException;
+
+  new:
+    public void writeLine() throws java.io.IOException, java.lang.IllegalStateException;
+
+  Method changed:
+  old:
+    public void writeLine(byte[]) throws java.io.IOException, java.lang.IllegalStateException, org.apache.commons.httpclient.HttpRecoverableException;
+
+  new:
+    public void writeLine(byte[]) throws java.io.IOException, java.lang.IllegalStateException;
+
+Class changed: org.apache.commons.httpclient.HttpConnectionManager
+  Methods added:
+    public abstract void closeIdleConnections(long);
+    public abstract org.apache.commons.httpclient.HttpConnection getConnectionWithTimeout(org.apache.commons.httpclient.HostConfiguration, long) throws org.apache.commons.httpclient.ConnectionPoolTimeoutException;
+    public abstract org.apache.commons.httpclient.params.HttpConnectionManagerParams getParams();
+    public abstract void setParams(org.apache.commons.httpclient.params.HttpConnectionManagerParams);
+
+  Method changed:
+  old:
+    public abstract org.apache.commons.httpclient.HttpConnection getConnection(org.apache.commons.httpclient.HostConfiguration, long) throws org.apache.commons.httpclient.HttpException;
+
+  new:
+    deprecated: public abstract org.apache.commons.httpclient.HttpConnection getConnection(org.apache.commons.httpclient.HostConfiguration, long) throws org.apache.commons.httpclient.HttpException;
+
+Class changed: org.apache.commons.httpclient.HttpConstants
+  Class descriptor changed:
+  old:
+    public org.apache.commons.httpclient.HttpConstants extends java.lang.Object
+  new:
+    deprecated: public org.apache.commons.httpclient.HttpConstants extends java.lang.Object
+Class changed: org.apache.commons.httpclient.HttpException
+  Methods added:
+    public HttpException(java.lang.String, java.lang.Throwable);
+    public java.lang.Throwable getCause();
+    deprecated: public java.lang.String getReason();
+    deprecated: public int getReasonCode();
+    public void printStackTrace();
+    public void printStackTrace(java.io.PrintStream);
+    public void printStackTrace(java.io.PrintWriter);
+    deprecated: public void setReason(java.lang.String);
+    deprecated: public void setReasonCode(int);
+
+  Class descriptor changed:
+  old:
+    public org.apache.commons.httpclient.HttpException extends org.apache.commons.httpclient.URIException
+  new:
+    public org.apache.commons.httpclient.HttpException extends java.io.IOException
+Class changed: org.apache.commons.httpclient.HttpMethod
+  Methods added:
+    public abstract void abort();
+    public abstract org.apache.commons.httpclient.auth.AuthState getHostAuthState();
+    public abstract org.apache.commons.httpclient.params.HttpMethodParams getParams();
+    public abstract org.apache.commons.httpclient.auth.AuthState getProxyAuthState();
+    public abstract org.apache.commons.httpclient.Header[] getRequestHeaders(java.lang.String);
+    public abstract org.apache.commons.httpclient.Header[] getResponseHeaders(java.lang.String);
+    public abstract boolean isRequestSent();
+    public abstract void removeRequestHeader(org.apache.commons.httpclient.Header);
+    public abstract void setParams(org.apache.commons.httpclient.params.HttpMethodParams);
+    public abstract void setURI(org.apache.commons.httpclient.URI) throws org.apache.commons.httpclient.URIException;
+
+  Method changed:
+  old:
+    public abstract org.apache.commons.httpclient.HostConfiguration getHostConfiguration();
+
+  new:
+    deprecated: public abstract org.apache.commons.httpclient.HostConfiguration getHostConfiguration();
+
+  Method changed:
+  old:
+    public abstract byte[] getResponseBody();
+
+  new:
+    public abstract byte[] getResponseBody() throws java.io.IOException;
+
+  Method changed:
+  old:
+    public abstract java.lang.String getResponseBodyAsString();
+
+  new:
+    public abstract java.lang.String getResponseBodyAsString() throws java.io.IOException;
+
+  Method changed:
+  old:
+    public abstract boolean isStrictMode();
+
+  new:
+    deprecated: public abstract boolean isStrictMode();
+
+  Method changed:
+  old:
+    public abstract void setStrictMode(boolean);
+
+  new:
+    deprecated: public abstract void setStrictMode(boolean);
+
+Class changed: org.apache.commons.httpclient.HttpMethodBase
+  Methods removed:
+    protected void addAuthorizationRequestHeader(org.apache.commons.httpclient.HttpState, org.apache.commons.httpclient.HttpConnection) throws java.io.IOException, org.apache.commons.httpclient.HttpException;
+    protected void addContentLengthRequestHeader(org.apache.commons.httpclient.HttpState, org.apache.commons.httpclient.HttpConnection) throws java.io.IOException, org.apache.commons.httpclient.HttpException;
+    protected void addProxyAuthorizationRequestHeader(org.apache.commons.httpclient.HttpState, org.apache.commons.httpclient.HttpConnection) throws java.io.IOException, org.apache.commons.httpclient.HttpException;
+    protected void fakeResponse(org.apache.commons.httpclient.StatusLine, org.apache.commons.httpclient.HeaderGroup, java.io.InputStream);
+    protected int getRequestContentLength();
+    protected int getResponseContentLength();
+
+  Methods added:
+    public void abort();
+    public org.apache.commons.httpclient.HttpVersion getEffectiveVersion();
+    public org.apache.commons.httpclient.auth.AuthState getHostAuthState();
+    public org.apache.commons.httpclient.params.HttpMethodParams getParams();
+    public org.apache.commons.httpclient.auth.AuthState getProxyAuthState();
+    public org.apache.commons.httpclient.Header[] getRequestHeaders(java.lang.String);
+    public long getResponseContentLength();
+    public org.apache.commons.httpclient.Header[] getResponseHeaders(java.lang.String);
+    public boolean isAborted();
+    public boolean isRequestSent();
+    public void removeRequestHeader(org.apache.commons.httpclient.Header);
+    public void setParams(org.apache.commons.httpclient.params.HttpMethodParams);
+    public void setURI(org.apache.commons.httpclient.URI) throws org.apache.commons.httpclient.URIException;
+
+  Fields removed:
+    protected final static org.apache.commons.httpclient.Header USER_AGENT;
+
+  Method changed:
+  old:
+    public int execute(org.apache.commons.httpclient.HttpState, org.apache.commons.httpclient.HttpConnection) throws org.apache.commons.httpclient.HttpException, org.apache.commons.httpclient.HttpRecoverableException, java.io.IOException;
+
+  new:
+    public int execute(org.apache.commons.httpclient.HttpState, org.apache.commons.httpclient.HttpConnection) throws org.apache.commons.httpclient.HttpException, java.io.IOException;
+
+  Method changed:
+  old:
+    public java.lang.String getAuthenticationRealm();
+
+  new:
+    deprecated: public java.lang.String getAuthenticationRealm();
+
+  Method changed:
+  old:
+    protected static java.lang.String getContentCharSet(org.apache.commons.httpclient.Header);
+
+  new:
+    protected java.lang.String getContentCharSet(org.apache.commons.httpclient.Header);
+
+  Method changed:
+  old:
+    public org.apache.commons.httpclient.HostConfiguration getHostConfiguration();
+
+  new:
+    deprecated: public org.apache.commons.httpclient.HostConfiguration getHostConfiguration();
+
+  Method changed:
+  old:
+    public org.apache.commons.httpclient.MethodRetryHandler getMethodRetryHandler();
+
+  new:
+    deprecated: public org.apache.commons.httpclient.MethodRetryHandler getMethodRetryHandler();
+
+  Method changed:
+  old:
+    public java.lang.String getProxyAuthenticationRealm();
+
+  new:
+    deprecated: public java.lang.String getProxyAuthenticationRealm();
+
+  Method changed:
+  old:
+    public int getRecoverableExceptionCount();
+
+  new:
+    deprecated: public int getRecoverableExceptionCount();
+
+  Method changed:
+  old:
+    public byte[] getResponseBody();
+
+  new:
+    public byte[] getResponseBody() throws java.io.IOException;
+
+  Method changed:
+  old:
+    public java.lang.String getResponseBodyAsString();
+
+  new:
+    public java.lang.String getResponseBodyAsString() throws java.io.IOException;
+
+  Method changed:
+  old:
+    public boolean isHttp11();
+
+  new:
+    deprecated: public boolean isHttp11();
+
+  Method changed:
+  old:
+    public boolean isStrictMode();
+
+  new:
+    deprecated: public boolean isStrictMode();
+
+  Method changed:
+  old:
+    protected void readResponse(org.apache.commons.httpclient.HttpState, org.apache.commons.httpclient.HttpConnection) throws org.apache.commons.httpclient.HttpException;
+
+  new:
+    protected void readResponse(org.apache.commons.httpclient.HttpState, org.apache.commons.httpclient.HttpConnection) throws java.io.IOException, org.apache.commons.httpclient.HttpException;
+
+  Method changed:
+  old:
+    protected void readStatusLine(org.apache.commons.httpclient.HttpState, org.apache.commons.httpclient.HttpConnection) throws java.io.IOException, org.apache.commons.httpclient.HttpRecoverableException, org.apache.commons.httpclient.HttpException;
+
+  new:
+    protected void readStatusLine(org.apache.commons.httpclient.HttpState, org.apache.commons.httpclient.HttpConnection) throws java.io.IOException, org.apache.commons.httpclient.HttpException;
+
+  Method changed:
+  old:
+    public void setHostConfiguration(org.apache.commons.httpclient.HostConfiguration);
+
+  new:
+    deprecated: public void setHostConfiguration(org.apache.commons.httpclient.HostConfiguration);
+
+  Method changed:
+  old:
+    public void setHttp11(boolean);
+
+  new:
+    deprecated: public void setHttp11(boolean);
+
+  Method changed:
+  old:
+    public void setMethodRetryHandler(org.apache.commons.httpclient.MethodRetryHandler);
+
+  new:
+    deprecated: public void setMethodRetryHandler(org.apache.commons.httpclient.MethodRetryHandler);
+
+  Method changed:
+  old:
+    public void setStrictMode(boolean);
+
+  new:
+    deprecated: public void setStrictMode(boolean);
+
+Class changed: org.apache.commons.httpclient.HttpParser
+  Methods added:
+    public static org.apache.commons.httpclient.Header[] parseHeaders(java.io.InputStream, java.lang.String) throws java.io.IOException, org.apache.commons.httpclient.HttpException;
+    public static java.lang.String readLine(java.io.InputStream, java.lang.String) throws java.io.IOException;
+
+  Method changed:
+  old:
+    public static org.apache.commons.httpclient.Header[] parseHeaders(java.io.InputStream) throws java.io.IOException, org.apache.commons.httpclient.HttpException;
+
+  new:
+    deprecated: public static org.apache.commons.httpclient.Header[] parseHeaders(java.io.InputStream) throws java.io.IOException, org.apache.commons.httpclient.HttpException;
+
+  Method changed:
+  old:
+    public static java.lang.String readLine(java.io.InputStream) throws java.io.IOException;
+
+  new:
+    deprecated: public static java.lang.String readLine(java.io.InputStream) throws java.io.IOException;
+
+Class changed: org.apache.commons.httpclient.HttpRecoverableException
+  Class descriptor changed:
+  old:
+    public org.apache.commons.httpclient.HttpRecoverableException extends org.apache.commons.httpclient.HttpException
+  new:
+    deprecated: public org.apache.commons.httpclient.HttpRecoverableException extends org.apache.commons.httpclient.HttpException
+Class changed: org.apache.commons.httpclient.HttpState
+  Methods removed:
+    deprecated: public synchronized org.apache.commons.httpclient.Cookie[] getCookies(java.lang.String, int, java.lang.String, boolean, java.util.Date);
+    deprecated: public synchronized org.apache.commons.httpclient.Credentials getCredentials(java.lang.String);
+    deprecated: public synchronized org.apache.commons.httpclient.HttpConnectionManager getHttpConnectionManager();
+    deprecated: public synchronized org.apache.commons.httpclient.Credentials getProxyCredentials(java.lang.String);
+    deprecated: public synchronized void setCredentials(java.lang.String, org.apache.commons.httpclient.Credentials);
+    deprecated: public synchronized void setHttpConnectionManager(org.apache.commons.httpclient.HttpConnectionManager);
+    deprecated: public synchronized void setProxyCredentials(java.lang.String, org.apache.commons.httpclient.Credentials);
+
+  Methods added:
+    public void clear();
+    public void clearCookies();
+    public void clearCredentials();
+    public void clearProxyCredentials();
+    public synchronized org.apache.commons.httpclient.Credentials getCredentials(org.apache.commons.httpclient.auth.AuthScope);
+    public synchronized org.apache.commons.httpclient.Credentials getProxyCredentials(org.apache.commons.httpclient.auth.AuthScope);
+    public synchronized void setCredentials(org.apache.commons.httpclient.auth.AuthScope, org.apache.commons.httpclient.Credentials);
+    public synchronized void setProxyCredentials(org.apache.commons.httpclient.auth.AuthScope, org.apache.commons.httpclient.Credentials);
+
+  Fields removed:
+    public final static org.apache.commons.httpclient.auth.HttpAuthRealm DEFAULT_AUTH_REALM;
+
+  Method changed:
+  old:
+    public int getCookiePolicy();
+
+  new:
+    deprecated: public int getCookiePolicy();
+
+  Method changed:
+  old:
+    public synchronized org.apache.commons.httpclient.Credentials getCredentials(java.lang.String, java.lang.String);
+
+  new:
+    deprecated: public synchronized org.apache.commons.httpclient.Credentials getCredentials(java.lang.String, java.lang.String);
+
+  Method changed:
+  old:
+    public synchronized org.apache.commons.httpclient.Credentials getProxyCredentials(java.lang.String, java.lang.String);
+
+  new:
+    deprecated: public synchronized org.apache.commons.httpclient.Credentials getProxyCredentials(java.lang.String, java.lang.String);
+
+  Method changed:
+  old:
+    public boolean isAuthenticationPreemptive();
+
+  new:
+    deprecated: public boolean isAuthenticationPreemptive();
+
+  Method changed:
+  old:
+    public void setAuthenticationPreemptive(boolean);
+
+  new:
+    deprecated: public void setAuthenticationPreemptive(boolean);
+
+  Method changed:
+  old:
+    public void setCookiePolicy(int);
+
+  new:
+    deprecated: public void setCookiePolicy(int);
+
+  Method changed:
+  old:
+    public synchronized void setCredentials(java.lang.String, java.lang.String, org.apache.commons.httpclient.Credentials);
+
+  new:
+    deprecated: public synchronized void setCredentials(java.lang.String, java.lang.String, org.apache.commons.httpclient.Credentials);
+
+  Method changed:
+  old:
+    public synchronized void setProxyCredentials(java.lang.String, java.lang.String, org.apache.commons.httpclient.Credentials);
+
+  new:
+    deprecated: public synchronized void setProxyCredentials(java.lang.String, java.lang.String, org.apache.commons.httpclient.Credentials);
+
+Class changed: org.apache.commons.httpclient.MethodRetryHandler
+  Class descriptor changed:
+  old:
+    public abstract org.apache.commons.httpclient.MethodRetryHandler extends java.lang.Object
+  new:
+    deprecated: public abstract org.apache.commons.httpclient.MethodRetryHandler extends java.lang.Object
+Class changed: org.apache.commons.httpclient.MultiThreadedHttpConnectionManager
+  Methods added:
+    public void closeIdleConnections(long);
+    public void deleteClosedConnections();
+    public org.apache.commons.httpclient.HttpConnection getConnectionWithTimeout(org.apache.commons.httpclient.HostConfiguration, long) throws org.apache.commons.httpclient.ConnectionPoolTimeoutException;
+    public int getConnectionsInPool();
+    public int getConnectionsInPool(org.apache.commons.httpclient.HostConfiguration);
+    public org.apache.commons.httpclient.params.HttpConnectionManagerParams getParams();
+    public void setParams(org.apache.commons.httpclient.params.HttpConnectionManagerParams);
+
+  Method changed:
+  old:
+    public org.apache.commons.httpclient.HttpConnection getConnection(org.apache.commons.httpclient.HostConfiguration, long) throws org.apache.commons.httpclient.HttpException;
+
+  new:
+    deprecated: public org.apache.commons.httpclient.HttpConnection getConnection(org.apache.commons.httpclient.HostConfiguration, long) throws org.apache.commons.httpclient.HttpException;
+
+  Method changed:
+  old:
+    public int getConnectionsInUse();
+
+  new:
+    deprecated: public int getConnectionsInUse();
+
+  Method changed:
+  old:
+    public int getConnectionsInUse(org.apache.commons.httpclient.HostConfiguration);
+
+  new:
+    deprecated: public int getConnectionsInUse(org.apache.commons.httpclient.HostConfiguration);
+
+  Method changed:
+  old:
+    public int getMaxConnectionsPerHost();
+
+  new:
+    deprecated: public int getMaxConnectionsPerHost();
+
+  Method changed:
+  old:
+    public int getMaxTotalConnections();
+
+  new:
+    deprecated: public int getMaxTotalConnections();
+
+  Method changed:
+  old:
+    public boolean isConnectionStaleCheckingEnabled();
+
+  new:
+    deprecated: public boolean isConnectionStaleCheckingEnabled();
+
+  Method changed:
+  old:
+    public void setConnectionStaleCheckingEnabled(boolean);
+
+  new:
+    deprecated: public void setConnectionStaleCheckingEnabled(boolean);
+
+  Method changed:
+  old:
+    public void setMaxConnectionsPerHost(int);
+
+  new:
+    deprecated: public void setMaxConnectionsPerHost(int);
+
+  Method changed:
+  old:
+    public void setMaxTotalConnections(int);
+
+  new:
+    deprecated: public void setMaxTotalConnections(int);
+
+Class changed: org.apache.commons.httpclient.NTCredentials
+  Methods added:
+    public boolean equals(java.lang.Object);
+    public int hashCode();
+
+  Method changed:
+  old:
+    public NTCredentials();
+
+  new:
+    deprecated: public NTCredentials();
+
+  Method changed:
+  old:
+    public void setDomain(java.lang.String);
+
+  new:
+    deprecated: public void setDomain(java.lang.String);
+
+  Method changed:
+  old:
+    public void setHost(java.lang.String);
+
+  new:
+    deprecated: public void setHost(java.lang.String);
+
+Class changed: org.apache.commons.httpclient.SimpleHttpConnectionManager
+  Methods added:
+    public void closeIdleConnections(long);
+    public org.apache.commons.httpclient.HttpConnection getConnectionWithTimeout(org.apache.commons.httpclient.HostConfiguration, long);
+    public org.apache.commons.httpclient.params.HttpConnectionManagerParams getParams();
+    public void setParams(org.apache.commons.httpclient.params.HttpConnectionManagerParams);
+
+  Fields added:
+    protected org.apache.commons.httpclient.HttpConnection httpConnection;
+
+  Method changed:
+  old:
+    public org.apache.commons.httpclient.HttpConnection getConnection(org.apache.commons.httpclient.HostConfiguration, long);
+
+  new:
+    deprecated: public org.apache.commons.httpclient.HttpConnection getConnection(org.apache.commons.httpclient.HostConfiguration, long);
+
+  Method changed:
+  old:
+    public boolean isConnectionStaleCheckingEnabled();
+
+  new:
+    deprecated: public boolean isConnectionStaleCheckingEnabled();
+
+  Method changed:
+  old:
+    public void setConnectionStaleCheckingEnabled(boolean);
+
+  new:
+    deprecated: public void setConnectionStaleCheckingEnabled(boolean);
+
+Class changed: org.apache.commons.httpclient.URI
+  Methods removed:
+    deprecated: public URI(java.net.URL) throws org.apache.commons.httpclient.URIException;
+
+  Methods added:
+    public URI(java.lang.String, boolean) throws org.apache.commons.httpclient.URIException, java.lang.NullPointerException;
+    public URI(java.lang.String, boolean, java.lang.String) throws org.apache.commons.httpclient.URIException, java.lang.NullPointerException;
+    public URI(org.apache.commons.httpclient.URI, java.lang.String, boolean) throws org.apache.commons.httpclient.URIException;
+    protected static java.lang.String decode(java.lang.String, java.lang.String) throws org.apache.commons.httpclient.URIException;
+
+  Method changed:
+  old:
+    public URI(java.lang.String) throws org.apache.commons.httpclient.URIException;
+
+  new:
+    deprecated: public URI(java.lang.String) throws org.apache.commons.httpclient.URIException;
+
+  Method changed:
+  old:
+    public URI(java.lang.String, java.lang.String) throws org.apache.commons.httpclient.URIException;
+
+  new:
+    deprecated: public URI(java.lang.String, java.lang.String) throws org.apache.commons.httpclient.URIException;
+
+  Method changed:
+  old:
+    public URI(org.apache.commons.httpclient.URI, java.lang.String) throws org.apache.commons.httpclient.URIException;
+
+  new:
+    deprecated: public URI(org.apache.commons.httpclient.URI, java.lang.String) throws org.apache.commons.httpclient.URIException;
+
+  Method changed:
+  old:
+    public URI(char[]) throws org.apache.commons.httpclient.URIException, java.lang.NullPointerException;
+
+  new:
+    deprecated: public URI(char[]) throws org.apache.commons.httpclient.URIException, java.lang.NullPointerException;
+
+  Method changed:
+  old:
+    public URI(char[], java.lang.String) throws org.apache.commons.httpclient.URIException, java.lang.NullPointerException;
+
+  new:
+    deprecated: public URI(char[], java.lang.String) throws org.apache.commons.httpclient.URIException, java.lang.NullPointerException;
+
+Class changed: org.apache.commons.httpclient.URIException
+  Class descriptor changed:
+  old:
+    public org.apache.commons.httpclient.URIException extends java.io.IOException
+  new:
+    public org.apache.commons.httpclient.URIException extends org.apache.commons.httpclient.HttpException
+  Method changed:
+  old:
+    public java.lang.String getReason();
+
+  new:
+    deprecated: public java.lang.String getReason();
+
+  Method changed:
+  old:
+    public void setReason(java.lang.String);
+
+  new:
+    deprecated: public void setReason(java.lang.String);
+
+  Method changed:
+  old:
+    public void setReasonCode(int);
+
+  new:
+    deprecated: public void setReasonCode(int);
+
+Class changed: org.apache.commons.httpclient.UsernamePasswordCredentials
+  Methods added:
+    public boolean equals(java.lang.Object);
+    public int hashCode();
+
+  Method changed:
+  old:
+    public UsernamePasswordCredentials();
+
+  new:
+    deprecated: public UsernamePasswordCredentials();
+
+  Method changed:
+  old:
+    public void setPassword(java.lang.String);
+
+  new:
+    deprecated: public void setPassword(java.lang.String);
+
+  Method changed:
+  old:
+    public void setUserName(java.lang.String);
+
+  new:
+    deprecated: public void setUserName(java.lang.String);
+
+Class changed: org.apache.commons.httpclient.auth.AuthChallengeParser
+  Methods added:
+    public static java.util.Map parseChallenges(org.apache.commons.httpclient.Header[]) throws org.apache.commons.httpclient.auth.MalformedChallengeException;
+
+Class changed: org.apache.commons.httpclient.auth.AuthScheme
+  Methods added:
+    public abstract java.lang.String authenticate(org.apache.commons.httpclient.Credentials, org.apache.commons.httpclient.HttpMethod) throws org.apache.commons.httpclient.auth.AuthenticationException;
+    public abstract boolean isComplete();
+    public abstract boolean isConnectionBased();
+    public abstract void processChallenge(java.lang.String) throws org.apache.commons.httpclient.auth.MalformedChallengeException;
+
+  Method changed:
+  old:
+    public abstract java.lang.String authenticate(org.apache.commons.httpclient.Credentials, java.lang.String, java.lang.String) throws org.apache.commons.httpclient.auth.AuthenticationException;
+
+  new:
+    deprecated: public abstract java.lang.String authenticate(org.apache.commons.httpclient.Credentials, java.lang.String, java.lang.String) throws org.apache.commons.httpclient.auth.AuthenticationException;
+
+  Method changed:
+  old:
+    public abstract java.lang.String getID();
+
+  new:
+    deprecated: public abstract java.lang.String getID();
+
+Class changed: org.apache.commons.httpclient.auth.AuthSchemeBase
+  Methods added:
+    public abstract java.lang.String authenticate(org.apache.commons.httpclient.Credentials, org.apache.commons.httpclient.HttpMethod) throws org.apache.commons.httpclient.auth.AuthenticationException;
+    public abstract boolean isComplete();
+    public abstract boolean isConnectionBased();
+    public abstract void processChallenge(java.lang.String) throws org.apache.commons.httpclient.auth.MalformedChallengeException;
+
+  Class descriptor changed:
+  old:
+    public abstract org.apache.commons.httpclient.auth.AuthSchemeBase extends java.lang.Object implements org.apache.commons.httpclient.auth.AuthScheme
+  new:
+    deprecated: public abstract org.apache.commons.httpclient.auth.AuthSchemeBase extends java.lang.Object implements org.apache.commons.httpclient.auth.AuthScheme
+  Method changed:
+  old:
+    public AuthSchemeBase(java.lang.String) throws org.apache.commons.httpclient.auth.MalformedChallengeException;
+
+  new:
+    deprecated: public AuthSchemeBase(java.lang.String) throws org.apache.commons.httpclient.auth.MalformedChallengeException;
+
+  Method changed:
+  old:
+    public abstract java.lang.String authenticate(org.apache.commons.httpclient.Credentials, java.lang.String, java.lang.String) throws org.apache.commons.httpclient.auth.AuthenticationException;
+
+  new:
+    deprecated: public abstract java.lang.String authenticate(org.apache.commons.httpclient.Credentials, java.lang.String, java.lang.String) throws org.apache.commons.httpclient.auth.AuthenticationException;
+
+  Method changed:
+  old:
+    public abstract java.lang.String getID();
+
+  new:
+    deprecated: public abstract java.lang.String getID();
+
+Class changed: org.apache.commons.httpclient.auth.AuthenticationException
+  Methods added:
+    public AuthenticationException(java.lang.String, java.lang.Throwable);
+
+  Class descriptor changed:
+  old:
+    public org.apache.commons.httpclient.auth.AuthenticationException extends org.apache.commons.httpclient.HttpException
+  new:
+    public org.apache.commons.httpclient.auth.AuthenticationException extends org.apache.commons.httpclient.ProtocolException
+Class changed: org.apache.commons.httpclient.auth.BasicScheme
+  Methods added:
+    public BasicScheme();
+    public java.lang.String authenticate(org.apache.commons.httpclient.Credentials, org.apache.commons.httpclient.HttpMethod) throws org.apache.commons.httpclient.auth.AuthenticationException;
+    public static java.lang.String authenticate(org.apache.commons.httpclient.UsernamePasswordCredentials, java.lang.String);
+    public boolean isComplete();
+    public boolean isConnectionBased();
+    public void processChallenge(java.lang.String) throws org.apache.commons.httpclient.auth.MalformedChallengeException;
+
+  Method changed:
+  old:
+    public BasicScheme(java.lang.String) throws org.apache.commons.httpclient.auth.MalformedChallengeException;
+
+  new:
+    deprecated: public BasicScheme(java.lang.String) throws org.apache.commons.httpclient.auth.MalformedChallengeException;
+
+  Method changed:
+  old:
+    public java.lang.String authenticate(org.apache.commons.httpclient.Credentials, java.lang.String, java.lang.String) throws org.apache.commons.httpclient.auth.AuthenticationException;
+
+  new:
+    deprecated: public java.lang.String authenticate(org.apache.commons.httpclient.Credentials, java.lang.String, java.lang.String) throws org.apache.commons.httpclient.auth.AuthenticationException;
+
+  Method changed:
+  old:
+    public static java.lang.String authenticate(org.apache.commons.httpclient.UsernamePasswordCredentials);
+
+  new:
+    deprecated: public static java.lang.String authenticate(org.apache.commons.httpclient.UsernamePasswordCredentials);
+
+Class changed: org.apache.commons.httpclient.auth.DigestScheme
+  Methods removed:
+    public static java.lang.String authenticate(org.apache.commons.httpclient.UsernamePasswordCredentials, java.util.Map) throws org.apache.commons.httpclient.auth.AuthenticationException;
+    public static java.lang.String createDigest(java.lang.String, java.lang.String, java.util.Map) throws org.apache.commons.httpclient.auth.AuthenticationException;
+    public static java.lang.String createDigestHeader(java.lang.String, java.util.Map, java.lang.String);
+
+  Methods added:
+    public DigestScheme();
+    public java.lang.String authenticate(org.apache.commons.httpclient.Credentials, org.apache.commons.httpclient.HttpMethod) throws org.apache.commons.httpclient.auth.AuthenticationException;
+    public boolean isComplete();
+    public boolean isConnectionBased();
+    public void processChallenge(java.lang.String) throws org.apache.commons.httpclient.auth.MalformedChallengeException;
+
+  Method changed:
+  old:
+    public DigestScheme(java.lang.String) throws org.apache.commons.httpclient.auth.MalformedChallengeException;
+
+  new:
+    deprecated: public DigestScheme(java.lang.String) throws org.apache.commons.httpclient.auth.MalformedChallengeException;
+
+  Method changed:
+  old:
+    public java.lang.String authenticate(org.apache.commons.httpclient.Credentials, java.lang.String, java.lang.String) throws org.apache.commons.httpclient.auth.AuthenticationException;
+
+  new:
+    deprecated: public java.lang.String authenticate(org.apache.commons.httpclient.Credentials, java.lang.String, java.lang.String) throws org.apache.commons.httpclient.auth.AuthenticationException;
+
+  Method changed:
+  old:
+    public static java.lang.String createCnonce() throws org.apache.commons.httpclient.auth.AuthenticationException;
+
+  new:
+    public static java.lang.String createCnonce();
+
+  Method changed:
+  old:
+    public java.lang.String getID();
+
+  new:
+    deprecated: public java.lang.String getID();
+
+Class changed: org.apache.commons.httpclient.auth.HttpAuthRealm
+  Methods removed:
+    public boolean equals(java.lang.Object);
+    public int hashCode();
+    public java.lang.String toString();
+
+  Class descriptor changed:
+  old:
+    public org.apache.commons.httpclient.auth.HttpAuthRealm extends java.lang.Object
+  new:
+    deprecated: public org.apache.commons.httpclient.auth.HttpAuthRealm extends org.apache.commons.httpclient.auth.AuthScope
+Class changed: org.apache.commons.httpclient.auth.HttpAuthenticator
+  Class descriptor changed:
+  old:
+    public final org.apache.commons.httpclient.auth.HttpAuthenticator extends java.lang.Object
+  new:
+    deprecated: public final org.apache.commons.httpclient.auth.HttpAuthenticator extends java.lang.Object
+  Method changed:
+  old:
+    public static boolean authenticate(org.apache.commons.httpclient.auth.AuthScheme, org.apache.commons.httpclient.HttpMethod, org.apache.commons.httpclient.HttpConnection, org.apache.commons.httpclient.HttpState) throws org.apache.commons.httpclient.auth.AuthenticationException;
+
+  new:
+    deprecated: public static boolean authenticate(org.apache.commons.httpclient.auth.AuthScheme, org.apache.commons.httpclient.HttpMethod, org.apache.commons.httpclient.HttpConnection, org.apache.commons.httpclient.HttpState) throws org.apache.commons.httpclient.auth.AuthenticationException;
+
+  Method changed:
+  old:
+    public static boolean authenticateDefault(org.apache.commons.httpclient.HttpMethod, org.apache.commons.httpclient.HttpConnection, org.apache.commons.httpclient.HttpState) throws org.apache.commons.httpclient.auth.AuthenticationException;
+
+  new:
+    deprecated: public static boolean authenticateDefault(org.apache.commons.httpclient.HttpMethod, org.apache.commons.httpclient.HttpConnection, org.apache.commons.httpclient.HttpState) throws org.apache.commons.httpclient.auth.AuthenticationException;
+
+  Method changed:
+  old:
+    public static boolean authenticateProxy(org.apache.commons.httpclient.auth.AuthScheme, org.apache.commons.httpclient.HttpMethod, org.apache.commons.httpclient.HttpConnection, org.apache.commons.httpclient.HttpState) throws org.apache.commons.httpclient.auth.AuthenticationException;
+
+  new:
+    deprecated: public static boolean authenticateProxy(org.apache.commons.httpclient.auth.AuthScheme, org.apache.commons.httpclient.HttpMethod, org.apache.commons.httpclient.HttpConnection, org.apache.commons.httpclient.HttpState) throws org.apache.commons.httpclient.auth.AuthenticationException;
+
+  Method changed:
+  old:
+    public static boolean authenticateProxyDefault(org.apache.commons.httpclient.HttpMethod, org.apache.commons.httpclient.HttpConnection, org.apache.commons.httpclient.HttpState) throws org.apache.commons.httpclient.auth.AuthenticationException;
+
+  new:
+    deprecated: public static boolean authenticateProxyDefault(org.apache.commons.httpclient.HttpMethod, org.apache.commons.httpclient.HttpConnection, org.apache.commons.httpclient.HttpState) throws org.apache.commons.httpclient.auth.AuthenticationException;
+
+  Method changed:
+  old:
+    public static org.apache.commons.httpclient.auth.AuthScheme selectAuthScheme(org.apache.commons.httpclient.Header[]) throws org.apache.commons.httpclient.auth.MalformedChallengeException;
+
+  new:
+    deprecated: public static org.apache.commons.httpclient.auth.AuthScheme selectAuthScheme(org.apache.commons.httpclient.Header[]) throws org.apache.commons.httpclient.auth.MalformedChallengeException;
+
+Class changed: org.apache.commons.httpclient.auth.MalformedChallengeException
+  Methods added:
+    public MalformedChallengeException(java.lang.String, java.lang.Throwable);
+
+  Class descriptor changed:
+  old:
+    public org.apache.commons.httpclient.auth.MalformedChallengeException extends org.apache.commons.httpclient.HttpException
+  new:
+    public org.apache.commons.httpclient.auth.MalformedChallengeException extends org.apache.commons.httpclient.ProtocolException
+Class changed: org.apache.commons.httpclient.auth.NTLMScheme
+  Methods added:
+    public NTLMScheme();
+    public java.lang.String authenticate(org.apache.commons.httpclient.Credentials, org.apache.commons.httpclient.HttpMethod) throws org.apache.commons.httpclient.auth.AuthenticationException;
+    deprecated: public static java.lang.String authenticate(org.apache.commons.httpclient.NTCredentials, java.lang.String, java.lang.String) throws org.apache.commons.httpclient.auth.AuthenticationException;
+    public boolean isComplete();
+    public boolean isConnectionBased();
+    public void processChallenge(java.lang.String) throws org.apache.commons.httpclient.auth.MalformedChallengeException;
+
+  Class descriptor changed:
+  old:
+    public org.apache.commons.httpclient.auth.NTLMScheme extends org.apache.commons.httpclient.auth.AuthSchemeBase
+  new:
+    public org.apache.commons.httpclient.auth.NTLMScheme extends java.lang.Object implements org.apache.commons.httpclient.auth.AuthScheme
+  Method changed:
+  old:
+    public java.lang.String authenticate(org.apache.commons.httpclient.Credentials, java.lang.String, java.lang.String) throws org.apache.commons.httpclient.auth.AuthenticationException;
+
+  new:
+    deprecated: public java.lang.String authenticate(org.apache.commons.httpclient.Credentials, java.lang.String, java.lang.String) throws org.apache.commons.httpclient.auth.AuthenticationException;
+
+  Method changed:
+  old:
+    public static java.lang.String authenticate(org.apache.commons.httpclient.NTCredentials, java.lang.String) throws org.apache.commons.httpclient.auth.AuthenticationException;
+
+  new:
+    deprecated: public static java.lang.String authenticate(org.apache.commons.httpclient.NTCredentials, java.lang.String) throws org.apache.commons.httpclient.auth.AuthenticationException;
+
+  Method changed:
+  old:
+    public java.lang.String getID();
+
+  new:
+    deprecated: public java.lang.String getID();
+
+Class changed: org.apache.commons.httpclient.auth.RFC2617Scheme
+  Methods added:
+    public RFC2617Scheme();
+    deprecated: public abstract java.lang.String authenticate(org.apache.commons.httpclient.Credentials, java.lang.String, java.lang.String) throws org.apache.commons.httpclient.auth.AuthenticationException;
+    public abstract java.lang.String authenticate(org.apache.commons.httpclient.Credentials, org.apache.commons.httpclient.HttpMethod) throws org.apache.commons.httpclient.auth.AuthenticationException;
+    public abstract java.lang.String getSchemeName();
+    public abstract boolean isComplete();
+    public abstract boolean isConnectionBased();
+    public void processChallenge(java.lang.String) throws org.apache.commons.httpclient.auth.MalformedChallengeException;
+
+  Class descriptor changed:
+  old:
+    public abstract org.apache.commons.httpclient.auth.RFC2617Scheme extends org.apache.commons.httpclient.auth.AuthSchemeBase
+  new:
+    public abstract org.apache.commons.httpclient.auth.RFC2617Scheme extends java.lang.Object implements org.apache.commons.httpclient.auth.AuthScheme
+  Method changed:
+  old:
+    public RFC2617Scheme(java.lang.String) throws org.apache.commons.httpclient.auth.MalformedChallengeException;
+
+  new:
+    deprecated: public RFC2617Scheme(java.lang.String) throws org.apache.commons.httpclient.auth.MalformedChallengeException;
+
+  Method changed:
+  old:
+    public java.lang.String getID();
+
+  new:
+    deprecated: public java.lang.String getID();
+
+Class changed: org.apache.commons.httpclient.cookie.CookiePolicy
+  Methods added:
+    public static org.apache.commons.httpclient.cookie.CookieSpec getCookieSpec(java.lang.String) throws java.lang.IllegalStateException;
+    public static void registerCookieSpec(java.lang.String, java.lang.Class);
+    public static void unregisterCookieSpec(java.lang.String);
+
+  Fields added:
+    public final static java.lang.String BROWSER_COMPATIBILITY = compatibility;
+    public final static java.lang.String DEFAULT = default;
+    public final static java.lang.String IGNORE_COOKIES = ignoreCookies;
+    public final static java.lang.String NETSCAPE = netscape;
+    public final static java.lang.String RFC_2109 = rfc2109;
+
+  Method changed:
+  old:
+    public static org.apache.commons.httpclient.cookie.CookieSpec getCompatibilitySpec();
+
+  new:
+    deprecated: public static org.apache.commons.httpclient.cookie.CookieSpec getCompatibilitySpec();
+
+  Method changed:
+  old:
+    public static int getDefaultPolicy();
+
+  new:
+    deprecated: public static int getDefaultPolicy();
+
+  Method changed:
+  old:
+    public static org.apache.commons.httpclient.cookie.CookieSpec getSpecByPolicy(int);
+
+  new:
+    deprecated: public static org.apache.commons.httpclient.cookie.CookieSpec getSpecByPolicy(int);
+
+  Method changed:
+  old:
+    public static org.apache.commons.httpclient.cookie.CookieSpec getSpecByVersion(int);
+
+  new:
+    deprecated: public static org.apache.commons.httpclient.cookie.CookieSpec getSpecByVersion(int);
+
+  Method changed:
+  old:
+    public static void setDefaultPolicy(int);
+
+  new:
+    deprecated: public static void setDefaultPolicy(int);
+
+  Field changed:
+  old:
+    public final static int COMPATIBILITY = 0;
+
+  new:
+    deprecated: public final static int COMPATIBILITY = 0;
+
+  Field changed:
+  old:
+    public final static int NETSCAPE_DRAFT = 1;
+
+  new:
+    deprecated: public final static int NETSCAPE_DRAFT = 1;
+
+  Field changed:
+  old:
+    public final static int RFC2109 = 2;
+
+  new:
+    deprecated: public final static int RFC2109 = 2;
+
+Class changed: org.apache.commons.httpclient.cookie.CookieSpec
+  Methods added:
+    public abstract boolean domainMatch(java.lang.String, java.lang.String);
+    public abstract java.util.Collection getValidDateFormats();
+    public abstract boolean pathMatch(java.lang.String, java.lang.String);
+    public abstract void setValidDateFormats(java.util.Collection);
+
+Class changed: org.apache.commons.httpclient.cookie.CookieSpecBase
+  Methods added:
+    public boolean domainMatch(java.lang.String, java.lang.String);
+    public java.util.Collection getValidDateFormats();
+    public boolean pathMatch(java.lang.String, java.lang.String);
+    public void setValidDateFormats(java.util.Collection);
+
+Class changed: org.apache.commons.httpclient.cookie.MalformedCookieException
+  Methods added:
+    public MalformedCookieException(java.lang.String, java.lang.Throwable);
+
+  Class descriptor changed:
+  old:
+    public org.apache.commons.httpclient.cookie.MalformedCookieException extends org.apache.commons.httpclient.HttpException
+  new:
+    public org.apache.commons.httpclient.cookie.MalformedCookieException extends org.apache.commons.httpclient.ProtocolException
+Class changed: org.apache.commons.httpclient.cookie.NetscapeDraftSpec
+  Methods added:
+    public boolean domainMatch(java.lang.String, java.lang.String);
+    public org.apache.commons.httpclient.Cookie[] parse(java.lang.String, int, java.lang.String, boolean, java.lang.String) throws org.apache.commons.httpclient.cookie.MalformedCookieException;
+
+Class changed: org.apache.commons.httpclient.cookie.RFC2109Spec
+  Methods added:
+    public boolean domainMatch(java.lang.String, java.lang.String);
+
+Class changed: org.apache.commons.httpclient.methods.EntityEnclosingMethod
+  Methods removed:
+    deprecated: public EntityEnclosingMethod(java.lang.String, java.lang.String);
+    deprecated: public EntityEnclosingMethod(java.lang.String, java.lang.String, java.lang.String);
+    public java.io.InputStream getRequestBody();
+    public java.lang.String getRequestBodyAsString() throws java.io.IOException;
+    protected int getRequestContentLength();
+
+  Methods added:
+    protected void addRequestHeaders(org.apache.commons.httpclient.HttpState, org.apache.commons.httpclient.HttpConnection) throws java.io.IOException, org.apache.commons.httpclient.HttpException;
+    protected org.apache.commons.httpclient.methods.RequestEntity generateRequestEntity();
+    public java.lang.String getRequestCharSet();
+    protected long getRequestContentLength();
+    public org.apache.commons.httpclient.methods.RequestEntity getRequestEntity();
+    public void setContentChunked(boolean);
+    deprecated: public void setRequestContentLength(long);
+    public void setRequestEntity(org.apache.commons.httpclient.methods.RequestEntity);
+
+  Method changed:
+  old:
+    public void setRequestBody(java.io.InputStream);
+
+  new:
+    deprecated: public void setRequestBody(java.io.InputStream);
+
+  Method changed:
+  old:
+    public void setRequestBody(java.lang.String);
+
+  new:
+    deprecated: public void setRequestBody(java.lang.String);
+
+  Method changed:
+  old:
+    public void setRequestContentLength(int);
+
+  new:
+    deprecated: public void setRequestContentLength(int);
+
+  Field changed:
+  old:
+    public final static int CONTENT_LENGTH_AUTO = -2;
+
+  new:
+    deprecated: public final static long CONTENT_LENGTH_AUTO = -2;
+
+  Field changed:
+  old:
+    public final static int CONTENT_LENGTH_CHUNKED = -1;
+
+  new:
+    deprecated: public final static long CONTENT_LENGTH_CHUNKED = -1;
+
+Class changed: org.apache.commons.httpclient.methods.ExpectContinueMethod
+  Methods removed:
+    deprecated: public ExpectContinueMethod(java.lang.String, java.lang.String);
+    deprecated: public ExpectContinueMethod(java.lang.String, java.lang.String, java.lang.String);
+
+  Class descriptor changed:
+  old:
+    public abstract org.apache.commons.httpclient.methods.ExpectContinueMethod extends org.apache.commons.httpclient.methods.GetMethod
+  new:
+    public abstract org.apache.commons.httpclient.methods.ExpectContinueMethod extends org.apache.commons.httpclient.HttpMethodBase
+  Method changed:
+  old:
+    public boolean getUseExpectHeader();
+
+  new:
+    deprecated: public boolean getUseExpectHeader();
+
+  Method changed:
+  old:
+    public void setUseExpectHeader(boolean);
+
+  new:
+    deprecated: public void setUseExpectHeader(boolean);
+
+Class changed: org.apache.commons.httpclient.methods.GetMethod
+  Methods removed:
+    deprecated: public GetMethod(java.lang.String, java.io.File);
+    deprecated: public GetMethod(java.lang.String, java.lang.String);
+    deprecated: public GetMethod(java.lang.String, java.lang.String, java.lang.String);
+    deprecated: public java.io.File getFileData();
+    deprecated: public java.lang.String getTempDir();
+    deprecated: public java.lang.String getTempFile();
+    deprecated: public boolean getUseDisk();
+    protected void readResponseBody(org.apache.commons.httpclient.HttpState, org.apache.commons.httpclient.HttpConnection) throws java.io.IOException, org.apache.commons.httpclient.HttpException;
+    deprecated: public void setFileData(java.io.File);
+    deprecated: public void setTempDir(java.lang.String);
+    deprecated: public void setTempFile(java.lang.String);
+    deprecated: public void setUseDisk(boolean);
+
+Class changed: org.apache.commons.httpclient.methods.HeadMethod
+  Method changed:
+  old:
+    public int getBodyCheckTimeout();
+
+  new:
+    deprecated: public int getBodyCheckTimeout();
+
+  Method changed:
+  old:
+    protected void readResponseBody(org.apache.commons.httpclient.HttpState, org.apache.commons.httpclient.HttpConnection) throws java.io.IOException;
+
+  new:
+    protected void readResponseBody(org.apache.commons.httpclient.HttpState, org.apache.commons.httpclient.HttpConnection) throws org.apache.commons.httpclient.HttpException, java.io.IOException;
+
+  Method changed:
+  old:
+    public void setBodyCheckTimeout(int);
+
+  new:
+    deprecated: public void setBodyCheckTimeout(int);
+
+Class changed: org.apache.commons.httpclient.methods.MultipartPostMethod
+  Methods removed:
+    public MultipartPostMethod(java.lang.String, java.lang.String);
+    public MultipartPostMethod(java.lang.String, java.lang.String, java.lang.String);
+    protected int getRequestContentLength();
+
+  Methods added:
+    protected void addContentLengthRequestHeader(org.apache.commons.httpclient.HttpState, org.apache.commons.httpclient.HttpConnection) throws java.io.IOException, org.apache.commons.httpclient.HttpException;
+    protected void addContentTypeRequestHeader(org.apache.commons.httpclient.HttpState, org.apache.commons.httpclient.HttpConnection) throws java.io.IOException, org.apache.commons.httpclient.HttpException;
+    protected long getRequestContentLength() throws java.io.IOException;
+
+  Class descriptor changed:
+  old:
+    public org.apache.commons.httpclient.methods.MultipartPostMethod extends org.apache.commons.httpclient.methods.ExpectContinueMethod
+  new:
+    deprecated: public org.apache.commons.httpclient.methods.MultipartPostMethod extends org.apache.commons.httpclient.methods.ExpectContinueMethod
+Class changed: org.apache.commons.httpclient.methods.OptionsMethod
+  Method changed:
+  old:
+    public boolean needContentLength();
+
+  new:
+    deprecated: public boolean needContentLength();
+
+Class changed: org.apache.commons.httpclient.methods.PostMethod
+  Methods removed:
+    deprecated: public PostMethod(java.lang.String, java.lang.String);
+    deprecated: public PostMethod(java.lang.String, java.lang.String, java.lang.String);
+    protected void addRequestHeaders(org.apache.commons.httpclient.HttpState, org.apache.commons.httpclient.HttpConnection) throws java.io.IOException, org.apache.commons.httpclient.HttpException;
+    protected byte[] generateRequestBody();
+
+  Methods added:
+    protected org.apache.commons.httpclient.methods.RequestEntity generateRequestEntity();
+
+Class changed: org.apache.commons.httpclient.methods.TraceMethod
+  Method changed:
+  old:
+    public void recycle();
+
+  new:
+    deprecated: public void recycle();
+
+Class changed: org.apache.commons.httpclient.methods.multipart.FilePart
+  Fields removed:
+    protected final static byte[] FILE_NAME_BYTES;
+
+Class changed: org.apache.commons.httpclient.methods.multipart.Part
+  Methods added:
+    public static long getLengthOfParts(org.apache.commons.httpclient.methods.multipart.Part[], byte[]) throws java.io.IOException;
+    protected byte[] getPartBoundary();
+    public boolean isRepeatable();
+    public static void sendParts(java.io.OutputStream, org.apache.commons.httpclient.methods.multipart.Part[], byte[]) throws java.io.IOException;
+
+  Method changed:
+  old:
+    public static java.lang.String getBoundary();
+
+  new:
+    deprecated: public static java.lang.String getBoundary();
+
+  Field changed:
+  old:
+    protected final static java.lang.String BOUNDARY = ----------------314159265358979323846;
+
+  new:
+    deprecated: protected final static java.lang.String BOUNDARY = ----------------314159265358979323846;
+
+  Field changed:
+  old:
+    protected final static byte[] BOUNDARY_BYTES;
+
+  new:
+    deprecated: protected final static byte[] BOUNDARY_BYTES;
+
+Class changed: org.apache.commons.httpclient.protocol.DefaultProtocolSocketFactory
+  Methods added:
+    public java.net.Socket createSocket(java.lang.String, int, java.net.InetAddress, int, org.apache.commons.httpclient.params.HttpConnectionParams) throws java.io.IOException, java.net.UnknownHostException, org.apache.commons.httpclient.ConnectTimeoutException;
+
+Class changed: org.apache.commons.httpclient.protocol.Protocol
+  Method changed:
+  old:
+    public Protocol(java.lang.String, org.apache.commons.httpclient.protocol.SecureProtocolSocketFactory, int);
+
+  new:
+    deprecated: public Protocol(java.lang.String, org.apache.commons.httpclient.protocol.SecureProtocolSocketFactory, int);
+
+Class changed: org.apache.commons.httpclient.protocol.ProtocolSocketFactory
+  Methods added:
+    public abstract java.net.Socket createSocket(java.lang.String, int, java.net.InetAddress, int, org.apache.commons.httpclient.params.HttpConnectionParams) throws java.io.IOException, java.net.UnknownHostException, org.apache.commons.httpclient.ConnectTimeoutException;
+
+Class changed: org.apache.commons.httpclient.protocol.SSLProtocolSocketFactory
+  Methods added:
+    public java.net.Socket createSocket(java.lang.String, int, java.net.InetAddress, int, org.apache.commons.httpclient.params.HttpConnectionParams) throws java.io.IOException, java.net.UnknownHostException, org.apache.commons.httpclient.ConnectTimeoutException;
+
+Class changed: org.apache.commons.httpclient.util.DateParser
+  Methods added:
+    public static java.util.Date parseDate(java.lang.String, java.util.Collection) throws org.apache.commons.httpclient.util.DateParseException;
+
+  Class descriptor changed:
+  old:
+    public org.apache.commons.httpclient.util.DateParser extends java.lang.Object
+  new:
+    deprecated: public org.apache.commons.httpclient.util.DateParser extends java.lang.Object
+Class changed: org.apache.commons.httpclient.util.EncodingUtil
+  Methods added:
+    public static byte[] getAsciiBytes(java.lang.String);
+    public static java.lang.String getAsciiString(byte[]);
+    public static java.lang.String getAsciiString(byte[], int, int);
+    public static byte[] getBytes(java.lang.String, java.lang.String);
+    public static java.lang.String getString(byte[], int, int, java.lang.String);
+    public static java.lang.String getString(byte[], java.lang.String);
+
+Class changed: org.apache.commons.httpclient.util.URIUtil
+  Methods removed:
+    deprecated: public static java.lang.String toDocumentCharset(java.lang.String) throws org.apache.commons.httpclient.URIException;
+    deprecated: public static java.lang.String toDocumentCharset(java.lang.String, java.lang.String) throws org.apache.commons.httpclient.URIException;
+    deprecated: public static java.lang.String toProtocolCharset(java.lang.String) throws org.apache.commons.httpclient.URIException;
+    deprecated: public static java.lang.String toProtocolCharset(java.lang.String, java.lang.String) throws org.apache.commons.httpclient.URIException;
+    deprecated: public static java.lang.String toUsingCharset(java.lang.String, java.lang.String, java.lang.String) throws org.apache.commons.httpclient.URIException;
+
+Class changed: org.apache.commons.httpclient.util.URIUtil.Coder
+  Class descriptor changed:
+  old:
+    public org.apache.commons.httpclient.util.URIUtil.Coder extends org.apache.commons.httpclient.URI
+  new:
+    deprecated: public org.apache.commons.httpclient.util.URIUtil.Coder extends org.apache.commons.httpclient.URI
+  Method changed:
+  old:
+    public static java.lang.String decode(char[], java.lang.String) throws org.apache.commons.httpclient.URIException;
+
+  new:
+    deprecated: public static java.lang.String decode(char[], java.lang.String) throws org.apache.commons.httpclient.URIException;
+
+  Method changed:
+  old:
+    public static char[] encode(java.lang.String, java.util.BitSet, java.lang.String) throws org.apache.commons.httpclient.URIException;
+
+  new:
+    deprecated: public static char[] encode(java.lang.String, java.util.BitSet, java.lang.String) throws org.apache.commons.httpclient.URIException;
+
+API diff generated by JarDiff http://www.osjava.org/jardiff/
+  

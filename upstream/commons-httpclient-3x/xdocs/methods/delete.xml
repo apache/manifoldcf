@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<document>
+
+  <properties>
+    <title>Delete Method</title>
+    <author email="adrian@ephox.com">Adrian Sutton</author>
+    <revision>$Id$</revision>
+  </properties>
+
+  <body>
+
+    <section name="Introduction">
+      <p>The delete method requests that the origin server delete the resource
+      identified by the request URL.  This method <i>may</i> be overridden by
+      human intervention (or other means) on the origin server.  The client
+      cannot be guaranteed that the operation has been carried out, even if the
+      status code returned from the origin server indicates that the action has
+      been completed successfully.  However, the server <i>should not</i>
+      indicate success unless, at the time the response is given, it intends to
+      delete the resource or move it to an inaccessible location.</p>
+
+      <p>A successful response <i>should</i> be 200 (OK) if the response
+      includes a response body describing the status, 202 (Accepted) if the
+      action has not yet been enacted, or 204 (No Content) if the action has
+      been enacted but the response does not include a response body.</p>
+
+      <p>If the request passes through a cache and the URL identifies one or
+      more currently cached entities, those entries <i>should</i> be treated as
+      stale.  Responses to this method are not cacheable.</p>
+    </section>
+
+
+    <section name="Typical Usage">
+      <p>The delete method is used by supplying a URL to delete the resource at
+      and reading the response from the server.</p>
+
+      <source><![CDATA[
+        DeleteMethod delete = new DeleteMethod("http://jakarata.apache.org");
+        // execute the method and handle any error responses.
+        ...
+        // Ensure that if there is a response body it is read, then release the
+        // connection.
+        ...
+        delete.releaseConnection();
+      ]]>
+      </source>
+    </section>
+
+    <section name="Common Problems">
+      <p>The DELETE method is not widely supported on public servres due to
+      security concerns and generally FTP is used to delete files on the
+      webserver.  Before executing a DELETE method, it may be worth checking
+      that DELETE is supported using the <a href="options.html">OPTIONS</a>
+      method.</p>
+    </section>
+
+    <section name="RFC Section">
+      <p>The delete method is defined in section 9.7 of <a
+      href="http://www.ietf.org/rfc/rfc2616.txt">RFC2616</a>.</p>
+    </section>
+
+  </body>
+
+</document>

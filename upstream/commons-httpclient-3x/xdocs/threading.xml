@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<document>
+  <properties>
+    <title>Threading</title>
+    <author email="becke@u.washington.edu">Michael Becke</author>
+    <revision>$Id$</revision>
+  </properties>
+
+  <body>
+    <section name="Introduction">
+      <p>This document provides an overview of how to use HttpClient safely from within a
+      multi-threaded environment. It is broken down into the following main sections: </p>
+      <ul>
+      	<li><a href="#MultiThreadedHttpConnectionManager">MultiThreadedHttpConnectionManager</a></li>
+	    <li><a href="#Connection Release">Connection Release</a></li>
+	  </ul>
+      <p>Please see the <a href="http://svn.apache.org/viewvc/httpcomponents/oac.hc3x/trunk/src/examples/MultiThreadedExample.java?view=markup">MultiThreadedExample</a>
+      	for a concrete example.</p>
+    </section>
+
+    <section name="MultiThreadedHttpConnectionManager">
+      <p>The main reason for using multiple theads in HttpClient is to allow the
+      	execution of multiple methods at once (Simultaniously downloading the latest builds of HttpClient and 
+      	Tomcat for example). During execution each method uses an instance of an HttpConnection. 
+      	Since connections can only be safely used from a single thread and method at a time and 
+      	are a finite resource, we need to ensure that connections are properly allocated to the methods that require them. 
+      	This job goes to the <a href="apidocs/org/apache/commons/httpclient/MultiThreadedHttpConnectionManager.html">MultiThreadedHttpConnectionManager</a>.</p>
+      <p>To get started one must create an instance of the MultiThreadedHttpConnectionManager
+      	and give it to an HttpClient.  This looks something like:</p>
+      <source><![CDATA[
+      	MultiThreadedHttpConnectionManager connectionManager = 
+      		new MultiThreadedHttpConnectionManager();
+      	HttpClient client = new HttpClient(connectionManager);
+      ]]></source>
+      <p>This instance of HttpClient can now be used to execute multiple methods from multiple 
+      	threads. Each subsequent call to HttpClient.executeMethod() will go to the connection 
+      	manager and ask for an instance of HttpConnection.  This connection will be checked out
+      	to the method and as a result it must also be returned.  More on this below in <b>Connection Release</b>.</p>
+      	
+      <subsection name="Options">
+      	<p>The MultiThreadedHttpConnectionManager supports the following options:</p>
+      	<table>
+      	  <tr>
+      	  	<td>connectionStaleCheckingEnabled</td>
+      	  	<td>The <tt>connectionStaleCheckingEnabled</tt> flag to set on all created connections.  This value 
+      	  	should be left <tt>true</tt> except in special circumstances.  Consult the 
+      	  	<a href="apidocs/org/apache/commons/httpclient/HttpConnection.html#setStaleCheckingEnabled(boolean)">HttpConnection</a> 
+      	  	docs for more detail.</td>
+      	  </tr>
+      	  <tr>
+      	    <td>maxConnectionsPerHost</td>
+      	    <td>The maximum number of connections that will be created for any particular 
+      	      HostConfiguration. Defaults to 2.</td>
+      	  </tr>
+      	  <tr>
+      	    <td>maxTotalConnections</td>
+      	    <td>The maximum number of active connections. Defaults to 20.</td>
+      	  </tr>
+      	</table>
+      	<p>In general the connection manager makes an attempt to reuse connections 
+      	  for a particular host while still allowing different connections to
+          be used simultaneously.  Connection are reclaimed using a least recently
+      	  used approach.</p>
+      </subsection>
+    </section>
+
+    <section name="Connection Release">
+      <p>One main side effect of connection management is that connections must 
+      	be manually released when no longer used.  This is due to the fact 
+      	that HttpClient cannot determine when a method is no longer using its connection.  
+      	This occurs because a method's response body is not read directly by
+      	HttpClient, but by the application using HttpClient.  When the response is read it must obviously make use of the method's 
+      	connection.  Thus, a connection cannot be released from a method until the method's 
+      	response body is read which is after HttpClient finishes executing the
+        method.  The application therefore must manually release the
+        connection by calling releaseConnection() on the method after the
+        response body has been read.  To safely ensure 
+      	connection release HttpClient should be used in the following manner:</p>
+      	
+      <source><![CDATA[
+
+      	MultiThreadedHttpConnectionManager connectionManager = 
+      		new MultiThreadedHttpConnectionManager();
+      	HttpClient client = new HttpClient(connectionManager);
+			...
+        // and then from inside some thread executing a method
+        GetMethod get = new GetMethod("http://httpcomponents.apache.org/");
+        try {
+            client.executeMethod(get);
+            // print response to stdout
+            System.out.println(get.getResponseBodyAsStream());
+        } finally {
+            // be sure the connection is released back to the connection 
+            // manager
+            get.releaseConnection();
+        }
+    ]]></source>
+
+      <p>Particularly, notice that the connection is released regardless of
+      what the result of executing the method was or whether or not an
+      exception was thrown.  For every call to HttpClient.executeMethod there
+      must be a matching call to method.releaseConnection().</p>
+    </section>
+  </body>
+</document>

@@ -1,0 +1,113 @@
+$Id$
+
+Release Plan for HTTP Client 1.0
+--------------------------------
+
+Administrivia:
+
+This document describes a plan for the 1.0 release of the
+Jakarta-Commons HTTP Client component (for the remainder
+of this document, simply "HTTP Client").  Per the
+Jakarta/ASF guidelines
+(http://jakarta.apache.org/site/decisions.html), this
+document doesn't mean anything until accepted by the
+relevant committer community via a lazy majority vote
+(hereafter, simply "lazy majority").  Once accepted, it may
+be replaced by an alternative plan, again subject to lazy
+majority approval.
+
+Non-binding votes (votes cast by those outside the relevant
+committer community) are welcome, but only binding votes
+are significant for decision making purposes.
+
+Objective:
+
+The objective of 1.0 release of HTTP Client is to provide a
+stable, relatively bug free release compatible with Jakarta
+Slide project and its clients (for the remainder of this
+document, simply "Slide").
+
+Any known bugs that can be corrected with minimal
+disruption to Slide should be addressed.  Any remaining
+bugs or deviations from the relevant specifications and
+protocols should be noted as "known issues" in the final
+release notes.
+
+Release Manager:
+
+  ??? (Dirk?, Remy?, Scott?)
+
+Timeline: (let's say GMT in case of doubt)
+
+* Wednesday, 5 September 2001
+
+  On or before 5 September 2001, all bugs to be addressed
+  and all features to be added or removed will be
+  identified.  The decision as to whether a bug fix or
+  feature is deemed "in-scope" for a 1.0 release is to be
+  determined by a lazy majority vote.
+
+  A tentative list includes:
+
+  (Note that these are all bugs/issues with the main branch
+  in Jakarta-Commons.  The version in the Slide tree may or
+  may not have the same set of issues, but we should at
+  least confirm.)
+
+   + Remove logging changes (rolling back to the stdout
+     based debugging, or removing logging altogether)
+   + Address the "multiple header bug": When two response
+     headers with the same name are sent, one of them is
+     ignored. (HTTP/1.0 and HTTP/1.1 say we should treat
+     "a: one" and "a: two" and "a: one, two".)
+   + Address the following HTTP redirect bugs:
+     + Query string changes are silently ignored during
+       redirect.
+     + Host/port changes are silently ignored during
+       redirect.
+     + Protocol changes are silently ignored during
+       redirect
+   + Address the following HTTPS related bugs
+    (alternatively, remove support for HTTPS altogether):
+     + Redirects fail for all HTTPS requests
+     + When connecting via a proxy, HTTPS parameter is
+       silently ignored (i.e., we speak HTTP to the proxy
+       and from the proxy to the destination server)
+   + Address the following cookie related bugs
+     (alternatively, remove support for cookies
+     altogether):
+     + isToBeDiscarded() returns wrong value (false for
+       true/true for false)
+     + Path is ignored when accepting cookies
+     + Secure cookies are accepted over insecure
+       connections
+     + Secure cookies are transmitted over insecure
+       connections
+     + When only name/value is supplied, path defaults to
+       "/".  When domain or other parameter is supplied,
+       path defaults to null.
+     + Secure parameter being inapproriately sent in
+       "cookie" header.
+     + Expires attribute doesn't work for some date formats
+       accepted by commons browsers and sent by common
+       servers.
+     + "Deleting" cookies doesn't fully work--cookies
+        remain in State (but are not transmitted)
+     + When cookies exist but no cookies match the given
+       request, "Cookie: $Version=1" is submitted, rather
+       than no Cookie header at all.
+     + When not specified, cookie path should default to
+       (directory containing the) request path, not "/"
+   + NameValuePair.equals method throws NullPointerException
+     when name or value is null
+
+  (Assuming this plan is accepted, I'll follow up with a
+  ballot along these lines.)
+
+* Wednesday, 12 September 2001
+
+  (Hopefully) the in-scope changes will be addressed by 12
+  September 2001, at which time a formal release vote will
+  be called, subject to lazy majority approval.  A formal
+  release vote may be called before 12 September, if
+  appropriate.

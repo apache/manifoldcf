@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<document>
+
+  <properties>
+    <title>HttpClient Features</title>
+    <author email="dev@hc.apache.org">HttpComponents Team</author>
+    <author email="rwaldhoff@apache.org">Rodney Waldhoff</author>
+    <author email="jsdever@apache.org">Jeff Dever</author>
+    <revision>$Id$</revision>
+  </properties>
+
+  <body>
+
+    <section name="Features">
+      <p>
+        <ul>
+          <li>Standards based, pure Java, implementation of HTTP versions 1.0 and 1.1
+          </li>
+          <li>Full implementation of all HTTP methods (GET, POST, PUT, DELETE, 
+              HEAD, OPTIONS, and TRACE) in an extensible OO framework.
+          </li>
+          <li>Supports encryption with HTTPS (HTTP over SSL) protocol.
+          </li>
+          <li>Granular non-standards configuration and tracking.
+          </li>
+          <li>Transparent connections through HTTP proxies.
+          </li>
+          <li>Tunneled HTTPS connections through HTTP proxies, via the CONNECT method.
+          </li>
+          <li>Transparent connections through SOCKS proxies (version 4 &amp; 5) using native Java 
+              socket support.
+          </li>
+          <li>Authentication using Basic, Digest and the encrypting NTLM (NT Lan Manager) methods.
+          </li>
+          <li>Plug-in mechanism for custom authentication methods.
+          </li>
+          <li>Multi-Part form POST for uploading large files.
+          </li>
+          <li>Pluggable secure sockets implementations, making it easier to use third party solutions
+          </li>
+          <li>Connection management support for use in multi-threaded applications.  Supports setting the
+              maximum total connections as well as the maximum connections per host.  Detects and closes 
+              stale connections.
+          </li>
+          <li>Automatic Cookie handling for reading Set-Cookie: headers from the server and sending
+            them back out in a Cookie: header when appropriate.
+          </li>
+          <li>Plug-in mechanism for custom cookie policies.
+          </li>
+          <li>Request output streams to avoid buffering any content body by streaming
+            directly to the socket to the server.
+          </li>
+          <li>Response input streams to efficiently read the response body by streaming
+            directly from the socket to the server.
+          </li>
+          <li>Persistent connections using KeepAlive in HTTP/1.0 and persistance in HTTP/1.1
+          </li>
+          <li>Direct access to the response code and headers sent by the server.
+          </li>
+          <li>The ability to set connection timeouts.
+          </li>
+          <li>HttpMethods implement the Command Pattern to allow for parallel requests
+            and efficient re-use of connections.
+          </li>
+          <li>Source code is freely available under the Apache Software License.
+          </li>
+        </ul>
+      </p>
+    </section>
+
+
+    <section name="Standards Compliance">
+      <p>
+        <em>HttpClient</em> implements the following specifications
+        endorsed by the Internet Engineering Task Force (IETF) 
+        and the internet at large:
+        <ul>
+          <li><a href="http://www.ietf.org/rfc/rfc1945.txt">RFC1945</a>
+            Hypertext Transfer Protocol -- HTTP/1.0
+          </li>
+          <li><a href="http://www.ietf.org/rfc/rfc2616.txt">RFC2616</a>
+            Hypertext Transfer Protocol -- HTTP/1.1
+          </li>
+          <li><a href="http://www.ietf.org/rfc/rfc2617.txt">RFC2617</a>
+            HTTP Authentication: Basic and Digest Access Authentication
+          </li>
+          <li><a href="http://www.ietf.org/rfc/rfc2109.txt">RFC2109</a>
+            HTTP State Management Mechanism (Cookies)
+          </li>
+          <li><a href="http://www.ietf.org/rfc/rfc2396.txt">RFC2396</a>
+            Uniform Resource Identifiers (URI): Generic Syntax
+          </li>
+          <li><a href="http://www.ietf.org/rfc/rfc1867.txt">RFC1867</a>
+            Form-based File Upload in HTML
+          </li>
+        </ul>
+      </p>
+    </section>
+
+    <section name="Product Comparision">
+      <p>
+        The HTTP protocol is so ubiquitous on the internet that you can find other
+        client side implementations written in Java.  The jdk has the HttpUrlConnection
+        which is limited and in many ways flawed.  This is one reason why Jakarta, and
+        others free and commercial vendors, have implemented independant HTTP clients.
+        To help you choose the right solution, one of those commercial vendors, Oakland Software, has a fair 
+        <a href="http://www.oaklandsoftware.com/product_16.html#compare">product comparison</a>.
+      </p>      
+    </section>
+
+  </body>
+
+</document>

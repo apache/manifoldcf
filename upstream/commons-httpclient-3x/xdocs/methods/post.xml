@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<document>
+
+  <properties>
+    <title>Post Method</title>
+    <author email="adrian@ephox.com">Adrian Sutton</author>
+    <revision>$Id$</revision>
+  </properties>
+
+  <body>
+
+    <section name="Introduction">
+      <p>The post method is used to request that the origin server accept the
+      entity enclosed in the request as a new subordinate of the resource
+      identified by the Request-URI in the Request-Line.  Essentially this
+      means that the POST data will be stored by the server and usually will be
+      processed by a server side application.</p>
+
+      <p>Post is designed to allow a uniform method to cover the following
+      functions:</p>
+
+      <ul>
+        <li>Annotation of existing resources.</li>
+        <li>Posting a message to a bulletin board, newsgroup, mailing list, or
+        similar group of articles.</li>
+        <li>Providing a block of data, such as the result of submitting a form,
+        to a data-handling process.</li>
+        <li>Extending a database through an append operation.</li>
+      </ul>
+
+      <p>It is generally expected that a POST request will have some side
+      effect on the server such as writing to a database, and the HTTP
+      specification suggests that user agents represent user actions which
+      result in a POST request in a special way, so that the user is made aware
+      of the fact that a possibly unsafe action is being requested.  This
+      however, is not a requirement.</p>
+    </section>
+
+    <section name="Typical Usage">
+      <p>There are two major steps to using the POST method, firstly providing
+      the data for the request and secondly reading the response from the
+      server.</p>
+
+      <p>The request data is supplied by one of the variants of
+      <code>setRequestBody</code> which can either take an
+      <code>InputStream</code> an array of <code>NameValuePair</code> objects
+      or a <code>String</code>.  The simplest form is to pass in a
+      NameValuePair and allow HttpClient to format the request body according
+      to the standard, however this requires that the full content be stored in
+      memory which may not be desireable.  In this case, passing in an
+      InputStream would be more appropriate.</p>
+
+      <p>The POST response body can be read using any of the <code>getResponseBody*</code> 
+      methods much like the <a href="get.html">GET</a> method.</p>
+
+      <source><![CDATA[
+        PostMethod post = new PostMethod("http://jakarata.apache.org/");
+        NameValuePair[] data = {
+          new NameValuePair("user", "joe"),
+          new NameValuePair("password", "bloggs")
+        };
+        post.setRequestBody(data);
+        // execute method and handle any error responses.
+        ...
+        InputStream in = post.getResponseBodyAsStream();
+        // handle response.
+        ]]>
+      </source>
+    </section>
+
+    <section name="Common Problems">
+      <p>The most common problem when using the post method is not reading the
+      entire response body and calling releaseConnection regardless of the
+      response received from the server or whether or not the response body is
+      useful to your application.</p>
+    </section>
+
+    <section name="RFC Section">
+      <p>The post method is defined in section 8.3 of <a
+      href="http://www.ietf.org/rfc/rfc1945.txt">RFC1945</a> and similarly
+      redefined for HTTP 1.1 in section 9.5 of <a
+      href="http://www.ietf.org/rfc/rfc2616.txt">RFC2616</a>.</p>
+    </section>
+
+  </body>
+
+</document>

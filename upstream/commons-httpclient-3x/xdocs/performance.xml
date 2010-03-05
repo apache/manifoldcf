@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<document>
+  <properties>
+    <title>HttpClient Performance Optimization Guide</title>
+    <author email="oleg -at- ural.ru">Oleg Kalnichevski</author>
+    <revision>$Id$</revision>
+  </properties>
+  <body>
+    <section name="Introduction">
+      <p>
+       By default HttpClient is configured to provide maximum reliability and standards 
+       compliance rather than raw performance. There are several configuration options and
+       optimization techniques which can significantly improve the performance of HttpClient.
+       This document outlines various techniques to achieve maximum HttpClient performance.
+     </p>
+      <subsection name="Contents">
+        <ul>
+          <li>
+            <a href="#Reuse of HttpClient instance">Reuse the HttpClient instance</a>
+          </li>
+          <li>
+            <a href="#Connection persistence">Connection persistence</a>
+          </li>
+          <li>
+            <a href="#Concurrent execution of HTTP methods">Concurrent execution of HTTP methods</a>
+          </li>
+          <li>
+            <a href="#Request/Response entity streaming">Request/Response entity streaming</a>
+          </li>
+          <li>
+            <a href="#Expect-continue handshake">Expect-continue handshake</a>
+          </li>
+          <li>
+            <a href="#Stale connection check">Stale connection check</a>
+          </li>
+          <li>
+            <a href="#Cookie processing">Cookie processing</a>
+          </li>
+        </ul>
+      </subsection>
+    </section>
+    <section name="Reuse the HttpClient instance">
+      <p>
+       Generally it is recommended to have a single instance of HttpClient per communication
+       component or even per application. However, if the application makes use of HttpClient 
+       only very infrequently, and keeping an idle instance of HttpClient in memory is not warranted,
+       it is highly recommended to explicitly <a href="apidocs/org/apache/commons/httpclient/MultiThreadedHttpConnectionManager.html#shutdown()">
+       shut down</a> the multithreaded connection manager prior to disposing
+       the HttpClient instance. This will ensure proper closure of all HTTP connections in the
+       connection pool. 
+     </p>
+    </section>
+    <section name="Connection persistence">
+      <p>
+       HttpClient always does its best to reuse connections. Connection persistence is enabled 
+       by default and requires no configuration. Under some situations this can lead to leaked
+       connections and therefore lost resources. The easiest way to disable connection persistence
+       is to provide or extend a connection manager that force-closes connections
+       upon release in the <a href="apidocs/org/apache/commons/httpclient/HttpConnectionManager.html#releaseConnection(org.apache.commons.httpclient.HttpConnection)">
+       releaseConnection</a> method.
+     </p>
+    </section>
+    <section name="Concurrent execution of HTTP methods">
+      <p>
+      If the application logic allows for execution of multiple HTTP requests concurrently 
+      (e.g. multiple requests against various sites, or multiple requests representing 
+      different user identities), the use of a dedicated thread per HTTP session can result in a 
+      significant performance gain. HttpClient is fully thread-safe when used with a thread-safe
+      connection manager such as <a href="apidocs/org/apache/commons/httpclient/MultiThreadedHttpConnectionManager.html">
+      MultiThreadedHttpConnectionManager</a>. Please note that each respective thread of execution 
+      must have a local instance of HttpMethod and can have a local instance of HttpState or/and
+      HostConfiguration to represent a specific host configuration and conversational state. At the
+      same time the HttpClient instance and connection manager should be shared among all threads 
+      for maximum efficiency.
+     </p>
+      <p>
+      For details on using multiple threads with HttpClient please refer to the <a href="threading.html">
+      HttpClient Threading Guide</a>.  
+     </p>
+    </section>
+    <section name="Request/Response entity streaming">
+      <p>
+      HttpClient is capable of efficient request/response body streaming. Large entities may be submitted 
+      or received without being buffered in memory. This is especially critical if multiple HTTP 
+      methods may be executed concurrently. While there are convenience methods to deal with entities such as
+      strings or byte arrays, their use is discouraged. Unless used carefully they can easily lead to
+      out of memory conditions, since they imply buffering of the complete entity in memory.
+     </p>
+      <p>
+        <strong>Response streaming:</strong> It is recommended to consume the HTTP response body as a stream of
+       bytes/characters using HttpMethod#getResponseBodyAsStream method. The use of HttpMethod#getResponseBody and 
+       HttpMethod#getResponseBodyAsString are strongly discouraged.
+      <source><![CDATA[
+  HttpClient httpclient = new HttpClient();
+  GetMethod httpget = new GetMethod("http://www.myhost.com/");
+  try {
+    httpclient.executeMethod(httpget);
+    Reader reader = new InputStreamReader(
+            httpget.getResponseBodyAsStream(), httpget.getResponseCharSet()); 
+    // consume the response entity
+  } finally {
+    httpget.releaseConnection();
+  }]]></source>
+      </p>
+      <p>
+        <strong>Request streaming:</strong> The main difficulty encountered when streaming request bodies is that
+        some entity enclosing methods need to be retried due to an authentication failure or an I/O failure. 
+        Obviously non-buffered entities cannot be reread and resubmitted. The recommended approach is to create a custom 
+        <a href="apidocs/org/apache/commons/httpclient/methods/RequestEntity.html">RequestEntity</a> capable of 
+        reconstructing the underlying input stream.
+      <source><![CDATA[
+public class FileRequestEntity implements RequestEntity {
+
+    private File file = null;
+    
+    public FileRequestEntity(File file) {
+        super();
+        this.file = file;
+    }
+
+    public boolean isRepeatable() {
+        return true;
+    }
+
+    public String getContentType() {
+        return "text/plain; charset=UTF-8";
+    }
+    
+    public void writeRequest(OutputStream out) throws IOException {
+        InputStream in = new FileInputStream(this.file);
+        try {
+            int l;
+            byte[] buffer = new byte[1024];
+            while ((l = in.read(buffer)) != -1) {
+                out.write(buffer, 0, l);
+            }
+        } finally {
+            in.close();
+        }
+    }
+
+    public long getContentLength() {
+        return file.length();
+    }
+}
+
+File myfile = new File("myfile.txt");
+PostMethod httppost = new PostMethod("/stuff");
+httppost.setRequestEntity(new FileRequestEntity(myfile));]]></source>
+      </p>
+    </section>
+    <section name="Expect-continue handshake">
+      <p>
+      The purpose of the HTTP 100 (Continue) status is to allow a client sending a request entity to 
+      determine if the target server is willing to accept the request (based on the 
+      request headers) before the client sends the request entity. It is highly inefficient for the client
+      to send the request entity if the server will reject the request without looking at the body. 
+      Authentication failures are the most common reason for the request to be rejected based on the request
+      headers alone. Therefore, use of the 'Expect-continue' handshake is especially recommended with 
+      those target servers that require HTTP authentication. For proxied requests caution
+      must be taken as older HTTP/1.0 proxies may be unable to correctly handle the 'Expect-continue' 
+      handshake.
+     </p>
+     <p>
+     See the <a href="preference-api.html">http.protocol.expect-continue</a> parameter documentation 
+     for more information.
+     </p>
+    </section>
+    <section name="Stale connection check">
+      <p>
+      HTTP specification permits both the client and the server to terminate a persistent (keep-alive) 
+      connection at any time without notice to the counterpart, thus rendering the connection invalid
+      or stale. By default HttpClient performs a check, just prior to executing a request, to determine if the 
+      active connection is stale. The cost of this operation is about 15-30 ms, depending on the JRE used.
+      Disabling stale connection check may result in slight performance improvement, especially for small
+      payload responses, at the risk of getting an I/O error when executing a request over a connection 
+      that has been closed at the server side.
+     </p>
+     <p>
+     See the <a href="preference-api.html">http.connection.stalecheck</a> parameter documentation for more 
+     information.
+     </p>
+    </section>
+    <section name="Cookie processing">
+      <p>
+      If an application, such as web spider, does not need to maintain conversational state with the target
+      server, a small performance gain can made by disabling cookie processing. For details 
+      on cookie processing please to the <a href="cookies.html">HttpClient Cookies Guide</a>.
+     </p>
+    </section>
+  </body>
+</document>

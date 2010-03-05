@@ -1,0 +1,492 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<document>
+
+  <properties>
+    <title>HttpClient News</title>
+    <author email="dev@hc.apache.org">HttpClient Development Team</author>
+    <author email="rwaldhoff@apache.org">Rodney Waldhoff</author>
+    <author email="jsdever@apache.org">Jeff Dever</author>
+    <revision>$Id$</revision>
+  </properties>
+
+  <body>
+        <section name="16 December 2007 - HttpClient 3.1 website moved">
+            <p>
+              The website for HttpClient 3.1 has moved to the new domain
+              of the HttpComponents top level project. The new location is:
+              <br/>
+              <a href="http://hc.apache.org/httpclient-3.x/">http://hc.apache.org/httpclient-3.x/</a>
+            </p>
+        </section>    
+        <section name="13 December 2007 - Mailing lists moved">
+            <p>
+                As part of the move to a top level project, the HttpComponents
+                team has moved the mailing lists to a new domain.
+                The new mailing list names are:
+            </p>
+                <ul>
+                <li><a href="mailto:httpclient-users@hc.apache.org">httpclient-users@hc.apache.org</a> - user list, renamed from httpclient-user@jakarta.apache.org
+                </li>
+                <li><a href="mailto:dev@hc.apache.org">dev@hc.apache.org</a> - developer list, renamed from httpcomponents-dev@jakarta.apache.org
+                </li>
+                </ul>
+            <p>
+                Subscribers to the old lists have been moved to the new ones.
+                No action is required for posting and receiving mails on the
+                lists, but you may have to update your mail filter rules
+                with the new list names.
+                Please see the HttpClient
+                <a href="mail-lists.html">mailing list page</a> for 
+                (un)subscription and archive details.
+            </p>
+        </section>    
+        <section name="22 August 2007 - HttpClient 3.1 released">
+            <p>
+              HttpClient 3.1 has been released. This version adds a number improvements to the 
+              connection management code and fixes a number of minor bugs. It is likely to be the 
+              last non bug fixing release of the HttpClient 3.x codeline.
+            </p>
+        </section>    
+        <section name="16 March 2007 - HttpClient 3.1-rc1 released">
+            <p>
+              HttpClient 3.1-rc1 has been released. This version fixes a number of issues
+              found since 3.1-beta1. This release is expected to be the last one before 
+              HttpClient 3.1 goes final.
+            </p>
+        </section>    
+        <section name="30 October 2006 - HttpClient 3.1-beta1 released">
+            <p>
+              HttpClient 3.1-beta1 has been released. This version finalizes the RFC 2965 cookie 
+              management API and adds a number of improvements to the HTTP connection management
+              classes.
+            </p>
+        </section>    
+        <section name="26 June 2006 - HttpClient 3.1-alpha1 released">
+            <p>
+              HttpClient 3.1-alpha1 has been released. This version adds support for the RFC 2965 cookie 
+              management (also known as Cookie2 or port sensitive cookies). All upstream projects dependent 
+              on HttpClient are strongly encouraged to review the new API and test new features for 
+              compatibility with their products.
+            </p>
+        </section>    
+        <section name="12 May 2006 - HttpClient issue tracking migrated to Jira">
+            <p>
+              HttpClient issue tracking has migrated from Bugzilla to Jira. Please do not enter new bug reports 
+              and update exiting ones in Bugzilla. HttpComponents project will be using 
+              <a href="http://issues.apache.org/jira/">Jira</a> to manage HttpClient related issues as of today. 
+              Please use  <a href="http://issues.apache.org/jira/browse/HTTPCLIENT">this project</a> in Jira to 
+              report new issues against HttpClient and search for reported ones. All existing issue reports can 
+              be accessed in Jira by their original Bugzilla bug id.
+            </p>
+        </section>    
+        <section name="08 May 2006 - HttpClient 3.0.1 released">
+            <p>
+              HttpClient 3.0.1 has been released. This version fixes a number of bugs found since the release of 3.0. 
+              All HttpClient users are encouraged to upgrade.
+            </p>
+        </section>    
+        <section name="27 February 2006 - HttpClient 2.x codebase declared 'End of Life'">
+            <p>
+                HttpClient 2.x will no longer be supported. There will be no more HttpClient 2.x releases
+            </p>
+        </section>    
+        <section name="19 December 2005 - HttpClient 3.0 released">
+            <p>
+                The Jakarta Commons HttpClient project is pleased to announce the release of HttpClient 3.0.  
+		This release fixes all of the bugs discovered in RC4. As before, we strongly recommend that all users upgrade 
+		to HttpClient 3.0. Please <a href="downloads.html">download</a> and enjoy.
+            </p>
+	    <p>HttpClient 3.0 provides the following new features:
+	        <ul>
+   		    <li>Architecture
+		        <ul>
+			    <li>New preference architecture</li>
+			    <li>Improved exception handling framework</li>
+			    <li>Granular non-standards configuration and tracking</li>
+			    <li>Improved HTTP Version configuration and tracking</li>
+			    <li>Support for streaming entities</li>
+			    <li>Support for tunneled HTTP proxies via the ProxyClient</li>
+			    <li>Ability to abort execution of HTTP methods</li>
+			</ul>
+		     </li>
+		     <li>Connection management
+		        <ul>
+			    <li>Support for closing idle connections</li>
+			    <li>Support for JDK1.4 connect timeout through reflection</li>
+			    <li>Support for connection manager shutdown</li>
+			</ul>
+		     </li>
+		     <li>Authentication
+		        <ul>
+			    <li>Improved authentication framework</li>
+			    <li>Plug-in mechanism for authentication modules</li>
+			    <li>Interactive authentication support</li>
+			    <li>Alternate authentication support</li>
+			</ul>
+		     </li>
+		     <li>Cookie management
+		        <ul>
+			    <li>Cookie specification plug-in mechanism</li>
+			    <li>'Ignore cookies' cookie policy</li>
+			    <li>Improved Netscape cookie support</li>
+			</ul>
+		     </li>
+		     <li>Redirects
+		        <ul>
+			    <li>Cross-site redirect support</li>
+			</ul>
+		     </li>
+		</ul>
+	    </p>
+        </section>    
+        <section name="11 October 2005 - HttpClient 3.0 RC4 released">
+            <p>
+                The Jakarta Commons HttpClient project is pleased to announce the fourth and hopefully final 
+		release candidate of HttpClient 3.0.  RC4 fixes a number of hard to find bugs left over in the 
+		previous release. We strongly recommend that all users upgrade 
+		to HttpClient 3.0 RC4. Please <a href="downloads.html">download</a> and enjoy.
+            </p>
+        </section>    
+        <section name="26 June 2005 - HttpClient 3.0 RC3 released">
+            <p>
+                The Jakarta Commons HttpClient project is pleased to announce the third release
+                candidate of HttpClient 3.0.  RC3 has undergone quite a lot of user testing 
+		and it fixes a number of bugs from RC2. We strongly recommend that all users upgrade 
+		to HttpClient 3.0 RC3. Please <a href="downloads.html">download</a> and enjoy.
+            </p>
+        </section>    
+        <section name="09 April 2005 - HttpClient 3.0 RC2 released">
+            <p>
+                The Jakarta Commons HttpClient project is pleased to announce the second release
+                candidate of HttpClient 3.0. Several minor issues have been fixed since RC1 and 
+                HttpClient 3.0 has made significant progess towards the final release. We are 
+                confident HttpClient 3.0 is ready to replace HttpClient 2.0 as a production
+                quality release. We strongly recommend upgrading to HttpClient 3.0. Please 
+                <a href="downloads.html">download</a> and enjoy.
+            </p>
+        </section>    
+        <section name="06 February 2005 - HttpClient 3.0 RC1 released">
+            <p>
+                We are pleased to announce the HttpClient 3.0 RC1 release.  The 3.0 API is frozen and
+                all known bugs have been fixed.  Assuming no major problems are discovered in RC1 a final 3.0
+                release will follow shortly.  We strongly encourage all current HttpClient users to start migrating. 
+                Please <a href="downloads.html">download</a> and enjoy.
+            </p>
+        </section>    
+        <section name="30 January 2005 - Source control switched to Subversion">
+            <p>
+                Along with the rest of the Jakarta Commons projects, HttpClient's version control
+                has been switched to Subversion.  Please see the links below for more information:
+                <ul>
+                    <li><a href="http://www.apache.org/dev/version-control.html">Apache Subversion information</a></li>
+                    <li><a href="http://wiki.apache.org/jakarta-commons/UsingSVN">Commons Subversion Wiki</a></li>
+                    <li>HttpClient 3.0 repository - <a href="http://svn.apache.org/viewcvs.cgi/jakarta/commons/proper/httpclient/trunk/">http://svn.apache.org/viewcvs.cgi/jakarta/commons/proper/httpclient/trunk/</a></li>
+                    <li>HttpClient 2.0 repository - <a href="http://svn.apache.org/viewcvs.cgi/jakarta/commons/proper/httpclient/branches/HTTPCLIENT_2_0_BRANCH/">http://svn.apache.org/viewcvs.cgi/jakarta/commons/proper/httpclient/branches/HTTPCLIENT_2_0_BRANCH/</a></li>
+                </ul>
+            </p>
+        </section>
+        <section name="21 November 2004 - HttpClient 3.0 beta1 released">
+            <p>
+                We are pleased to announce the first beta release of HttpClient 3.0.
+                As of this release the 3.0 API is frozen.  We will now focus on creating additional
+                documentation and test cases.  All current HttpClient 2.0 users are 
+                strongly encouraged to migrate to 3.0. As always we encourage
+                suggestions and bug reports. Please <a href="downloads.html">download</a> and enjoy.
+            </p>
+            <p>The HttpClient 3.0 site can be found 
+               <a href="http://jakarta.apache.org/commons/httpclient/3.0/">here</a>.
+            </p>
+        </section>    
+        <section name="23 October 2004 - New HttpClient mailing lists">
+            <p>
+                Starting today HttpClient has two new mailing lists for 
+                developer and user discussion. People previously subscribed to <i>commons-httpclient-dev</i> have
+                been automatically moved to the new developer mailing list.  People
+                subscribed to <i>commons-user</i> who are interested in HttpClient will have 
+                to join the HttpClient user mailing list manually.
+            </p>
+            <p>
+                Please see the HttpClient <a href="mail-lists.html">mailing list page</a> for 
+                (un)subscription and archive details.
+            </p>
+        </section>    
+        <section name="11 October 2004 - HttpClient issue tracking in Bugzilla">
+            <p>
+                HttpClient project has taken a very important step toward becoming 
+                a full-fledged Jakarta level project. From today, HttpClient is
+                a separate project in Apache Bugzilla issue tracking system. It is no 
+                longer a component of the Commons project. Please use the following
+                details when filing bug reports for 2.0 and 3.0 branches of HttpClient:
+              </p>
+                <table border="0">
+                  <tr> 
+                    <td><strong>Product:</strong></td>
+                    <td>HttpClient</td>
+                  </tr> 
+                  <tr> 
+                    <td><strong>Component:</strong></td>
+                    <td>Commons HttpClient</td>
+                  </tr> 
+                </table>
+                <p>Use the following URL for convenience:
+                <a href="http://issues.apache.org/bugzilla/enter_bug.cgi?product=HttpClient">
+                  Jakarta HttpClient new issue report</a>.
+               </p>
+               <p>
+                Currently HttpClient project is debating whether we should continue using Bugzilla
+                as an issue tracking system or migrate to JIRA. 
+                <a href="http://www.atlassian.com/software/jira/">JIRA</a> is a newer, more flexible 
+                issue tracking system. However, <a href="http://www.atlassian.com/software/jira/">
+                JIRA</a> is not open-source software. If you have a strong opinion on this matter, 
+                please let us know.
+            </p>
+        </section>
+        <section name="11 October 2004 - HttpClient 2.0.2 released">
+            <p>
+                We are pleased to announce the latest stable release of HttpClient, 
+                version 2.0.2.  This release greatly improves the performance of executing 
+                methods where the response contains little or no content.  Please see the 
+                <a href="http://www.apache.org/dist/jakarta/commons/httpclient/RELEASE-NOTES-2.0.txt"
+                >release notes</a> for more detail.
+            </p>
+            <p>
+                Please <a href="downloads.html">download</a> and enjoy.
+            </p>
+        </section>
+        <section name="19 September 2004 - HttpClient 3.0 alpha2 released">
+            <p>
+                We are pleased to announce the final alpha release of HttpClient 3.0.
+                At this point HttpClient is fully feature-complete and is just a 
+                few issue reports short of being code and documentation complete. 
+                All of the important new features such as the new preferences 
+                architecture and exception handling framework are completely documented. 
+                We strongly encourage comment and criticism of the current API so we can
+                have everything worked out by the first beta release. Following this 
+                release the development effort will focus on stabilizing the 3.0 API 
+                and adding more documentation. Depending on on how well this release is 
+                received, as well as the quality and quantity of feedback, we are looking 
+                at an API freeze in one to two months time.
+            </p>
+           <p>The preview of the HttpClient 3.0 site can be found 
+             <a href="http://jakarta.apache.org/commons/httpclient/3.0/">here</a>.</p>
+
+            <p>Please <a href="downloads.html">download</a> and enjoy.</p>
+        </section>
+      <section name="1 August 2004 - HttpClient 2.0.1 released">
+        <p>We are pleased to announce the latest stable release of HttpClient, 
+         version 2.0.1.  This release contains a few minor bug fixes and 
+         enhancements.  Please see the <a 
+         href="http://www.apache.org/dist/jakarta/commons/httpclient/RELEASE-NOTES-2.0.txt"
+         >release notes</a> for more detail.
+        </p>
+        <p>
+         Please <a href="downloads.html">download</a> and enjoy.
+        </p>
+    </section>
+  
+    <section name="17 May 2004 - HttpClient 3.0 alpha1 released">
+        <p>We are pleased to announce the first HttpClient 3.0 release.
+         HttpClient 3.0 provides a wealth of features and enhancements
+         that did not make it into the 2.0 release, while preserving API
+         compatibility as much as possible. In a relatively few cases
+         <a href="http://svn.apache.org/viewcvs.cgi/jakarta/commons/proper/httpclient/trunk/API_CHANGES_3_0.txt?view=markup">API
+         compatibility with HttpClient 2.0</a> could not maintained.
+        </p>
+        <p>   
+         Noteworthy enhancements include:
+         <ul>
+          <li>New preference architecture</li>
+          <li>Improved exception handling framework</li>
+          <li>Granular non-standards configuration and tracking</li>
+          <li>Improved authentication framework</li>
+          <li>Plug-in mechanism for authentication modules</li>
+          <li>Cookie specification plug-in mechanism</li>
+          <li>Cross-site redirect support</li>
+         </ul>
+        </p>
+        <p>
+         We see our fellow Apache developers as well as other open-source
+         projects already reliant on HttpClient as the primary target
+         audience for this release. This is the right time to evaluate
+         HttpClient 3.0 and give us some feedback, critique or other thought on
+         the new API.  Please feel free to file requests for additional features.
+        </p>
+        <p>
+         The goal of the second ALPHA release is to incorporate the feedback, polish 
+         the API, and update documentation. The next ALPHA release will target the
+         wider audience beyond the Apache Jakarta and Apache WS communities.
+        </p>
+        <p>
+         Please <a href="downloads.html">download</a> and
+         let us know what you think.
+        </p>
+    </section>
+
+    <section name="16 April 2004 - Welcome Jakarta HttpClient!">
+      <p>By the count 26 votes in favor, none against, Jakarta Commons HttpClient as been promoted 
+      to the Jakarta sub-project level. The move to the Jakarta sub-project level is a next step in 
+      HttpClient evolution which will result in many exiting changes and new developments. 
+      So, stay tuned.</p>
+    </section>
+
+    <section name="15 February 2004 - HttpClient 2.0 Final released">
+      <p>At last 2.0 final is upon us.  This release represents a great deal of work by quite
+      	a number of people.  We would like to thank all of those who contributed to this 
+      	release.</p>
+      <p>Please <a href="downloads.html">download</a> and enjoy.</p>
+    </section>
+
+    <section name="16 January 2004 - HttpClient 2.0 Release Candidate 3 released">
+      <p>While a final 2.0 release still eludes us, we have continued to make
+       good progress.  This release fixes some significant bugs that crept into RC2.
+       Assuming that there are no major bugs found in this release a final release should 
+       follow shortly.</p>
+    </section>
+
+    <section name="13 October 2003 - HttpClient 2.0 Release Candidate 2 released">
+      <p>Releasing a final version of HttpClient 2.0 by the end of Summer 2003, as 
+       originally planned, was not possible. There were a significant number of minor 
+       bugs reported against RC1. None of them were major, but verifying, fixing, and 
+       testing simply took time more time than anticipated.  We are pleased to 
+       announce the second release candidate of HttpClient 2.0 and hope to follow up 
+       with a final release shortly.</p>
+      <p>At the same time we have been busy working on our next release, currently 
+       designated as 2.1. It it shaping up quite well. We already have a new preferences 
+       architecture in place that will help us provide greater control over HttpClient 
+       without polluting its API with too many options. We have also completely reworked 
+       redirect/authentication/retry logic and can now support cross-host redirects, a 
+       much complained about limitation of HttpClient 2.0.</p>
+    </section>
+
+    <section name="1 August 2003 - HttpClient 2.0 Release Candidate 1 released">
+      <p>The <em>HttpClient 2.0 BETA</em> development phase has been
+        concluded. The number of bugs discovered in the course of the BETA development
+        was surprisingly low. We are confident that <em>HttpClient 2.0</em> has 
+        reached the required level of maturity, and we hope to have a final 2.0
+        release by the end of the Summer.</p>
+    </section>
+
+    <section name="02 July 2003 - HttpClient 2.0 Beta 2 released">
+      <p>This release contains some minor bug fixes and documentation enhancements.
+	Most likely this will be the final beta release before 2.0 Release Candidate 1.  As 
+	always thank you to the HttpClient users and developers for their efforts.
+	Please <a href="downloads.html">download</a> HttpClient 2.0 Beta 2 and
+	enjoy.</p>
+    </section>
+
+    <section name="25 May 2003 - HttpClient 2.0 Beta 1 released">
+      <p>This is the first feature-complete release of HttpClient 2.0.  A lot of
+ 	effort has been put into making this release functional, stable and 
+	reliable. Many thanks to everyone who contributed code, time and testing. 
+	Please <a href="downloads.html">download</a> HttpClient 2.0 Beta 1 and
+	enjoy.</p>
+      <p><b>Note:</b> The binary distributions were updated on 2 June, 2003 to 
+        fix a problem with the original jar's MANIFEST.MF.  Using the original 
+        HttpClient jar from within a servlet container or J2EE managed environment 
+        may have caused some problems.</p>
+    </section>
+
+    <section name="25 February 2003 - HttpClient 2.0 Alpha 3 released">
+      <p>This is an intermediate alpha release.  The build process used in
+        the previous Alpha 2 changed from generating 4 build artifacts to
+        a single distribution.  This one zip contains everything: all 
+        the source, the binary jar, the logging dependancy, generated
+        javadoc and required build files for Ant builds and JUnit tests.</p>
+      <blockquote>
+        "One zip to rule them all, one zip to find them, one zip to 
+        bring them all and in the darkness bind them"</blockquote>
+    </section>
+    
+    <section name="19 February, 2003 - Welcome new committer Michael Becke">
+      <p>Mike been an active contributor for many months.  He has worked on a diverse range 
+        of problems with high quality results.  In particular he is known for the massive
+        HttpClient/HttpMultiClient merger that took place in December.</p>
+      <p>Welcome to Middle Earth Mike!</p>
+    </section>
+
+    <section name="26 January 2003 - new mailing list archives">
+      <p>There are two new mailing list archives of the commons-httpclient-dev
+        mailing list.  It looks like someone up there is starting to like us!
+        <ul>
+          <li><a href="http://archives.apache.org/eyebrowse/SummarizeList?listId=128">
+              http://archives.apache.org/eyebrowse/SummarizeList?listId=128</a></li>
+          <li><a href="http://www.mail-archive.com/commons-httpclient-dev%40jakarta.apache.org/">
+              http://www.mail-archive.com/commons-httpclient-dev%40jakarta.apache.org/</a></li>
+        </ul>
+      </p>
+    </section>
+
+    <section name="25 January 2003 - HttpClient 2.0 Alpha 2 released">
+      <p>After many months and a great resurgence of developers, the new build
+        of <em>HttpClient</em> is finally here.  The new group of developers has done
+        extensive refactoring to move the project along the new vision.
+        The code base has reached a significant level of maturity and we
+        expect that the beta builds will come quickly and that the 
+        final release of 2.0 is not far away!</p>
+
+      <p>Also check out the new <em>HttpClient</em> logo!</p>
+    </section>
+
+    <section name="21 December, 2002 - Welcome new committer Oleg Kalnichevski">
+      <p>Oleg is the first committer to be voted in on the dedicated httpclient 
+        mailing list.  Welcome to the fellowship Olegolas!
+      </p>
+    </section>
+
+    <section name="3 December, 2002 - HttpClient/HttpMultiClient merger">
+      <p>The initial merger of the top level classes HttpClient and HttpMultiClient
+        is complete.  Thanks for the patches and hard work from everyone 
+        particularly to Michale Becke for supplying the primary patch.
+      </p>
+    </section>
+
+    <section name="3 October, 2002 - commons-httpclient-dev mailing list">
+      <p>The mailing list was renamed to be <b>commons-httpclient-dev</b>.
+        Sorry for the confusion.
+      </p>
+    </section>
+
+    <section name="12 July, 2002 - HttpClient 2.0 Release Planning">
+      <p>The <em>HttpClient</em> project has go through some very active
+        development leading up to Alpha 1 last year, but unfortunately 
+        lost momentum shortly after that.  There is now renewed interest
+        and greatly increased activity on the dev-commons mailing list.
+        The committers and contributors are working on a new release plan
+        for 2.0.
+      </p>
+      <p>The 2.0 release plan is expected to be posted to the mailing list for 
+        review by July 22, 2002.
+      </p>
+    </section>
+
+    <section name="5 October, 2001 - HttpClient 2.0 Alpha 1 Released">
+      <p>
+        The <em>HttpClient</em> revision 2.0 alpha 1 is
+        available at
+        <a href="http://jakarta.apache.org/builds/jakarta-commons/release/commons-httpclient/v2.0/">
+          http://jakarta.apache.org/builds/jakarta-commons/release/commons-httpclient/v2.0/</a>.
+      </p>
+    </section>
+
+    <section name="25 April, 2001 - HttpClient Proposal Accepted">
+      <p>
+        The <em>HttpClient</em> <a href="proposal.html">proposal</a>
+        has been accepted by the
+        <a href="http://jakarta.apache.org/commons">Jakarta Commons</a>
+        team and the source has been moved into the
+        <a href="http://svn.apache.org/viewcvs.cgi/jakarta/commons/proper/httpclient/trunk/">Subversion repository</a>.
+      </p>
+    </section>
+
+    <section name="18 April, 2001 - HttpClient Proposed">
+      <p>
+        <em>HttpClient</em>, originally developed by the
+        <a href="http://jakarta.apache.org/slide">Jakarta Slide</a>
+        team, has been
+        <a href="http://www.mail-archive.com/jakarta-commons@jakarta.apache.org/msg01153.html">proposed</a>
+        as a <a href="http://jakarta.apache.org/commons">Jakarta Commons</a>
+        component.
+      </p>
+    </section>
+  </body>
+</document>
