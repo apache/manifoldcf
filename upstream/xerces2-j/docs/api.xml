@@ -1,0 +1,181 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<!DOCTYPE s1 SYSTEM 'dtd/document.dtd'>
+<s1 title='API JavaDoc'>
+ <s2 title='Standard API Documentation'>
+  <p>
+   Always try to use only the standard XML APIs when writing
+   XML applications. This will keep your application shielded
+   from changes in the underlying implementation of those
+   standard APIs and also gives you more flexibility to change
+   the implementation of the standard pieces without modifying
+   your application code.
+  </p>
+  <ul>
+   <li><jump href='javadocs/api/index.html'>Standard API</jump></li>
+   <ul>
+    <li>Java API for XML Processing (JAXP)</li>
+    <ul>
+     <li>
+      <jump href='javadocs/api/javax/xml/package-summary.html'>Constants</jump>
+     </li>
+     <li>
+      <jump href='javadocs/api/javax/xml/datatype/package-summary.html'>Datatype</jump>
+     </li>
+     <li>
+      <jump href='javadocs/api/javax/xml/namespace/package-summary.html'>Namespace</jump>
+     </li>
+     <li>
+      <jump href='javadocs/api/javax/xml/parsers/package-summary.html'>Parsers</jump>
+     </li>
+     <li>
+      <jump href='javadocs/api/javax/xml/transform/package-summary.html'>Transform</jump>
+     </li>
+     <ul>
+      <li>
+       <jump href='javadocs/api/javax/xml/transform/dom/package-summary.html'>DOM</jump>
+      </li>
+      <li>
+       <jump href='javadocs/api/javax/xml/transform/sax/package-summary.html'>SAX</jump>
+      </li>
+      <li>
+       <jump href='javadocs/api/javax/xml/transform/stream/package-summary.html'>Stream</jump>
+      </li>
+     </ul>
+     <li>
+      <jump href='javadocs/api/javax/xml/validation/package-summary.html'>Validation</jump>
+     </li>
+     <li>
+      <jump href='javadocs/api/javax/xml/xpath/package-summary.html'>XPath</jump>
+     </li>
+    </ul>
+    <li>Document Object Model (DOM)</li>
+    <ul>
+     <li>
+      <jump href='javadocs/api/org/w3c/dom/bootstrap/package-summary.html'>Bootstrap</jump>
+     </li>
+     <li>
+      <jump href='javadocs/api/org/w3c/dom/package-summary.html'>Core</jump>
+     </li>
+     <li>
+      <jump href='javadocs/api/org/w3c/dom/ls/package-summary.html'>Load and Save</jump>
+     </li>
+     <li>
+      <jump href='javadocs/api/org/w3c/dom/events/package-summary.html'>Events</jump>
+     </li>
+     <li>
+      <jump href='javadocs/api/org/w3c/dom/html/package-summary.html'>HTML</jump>
+     </li>
+     <li>
+      <jump href='javadocs/api/org/w3c/dom/ranges/package-summary.html'>Ranges</jump>
+     </li>
+     <li>
+      <jump href='javadocs/api/org/w3c/dom/traversal/package-summary.html'>Traversal</jump>
+     </li>
+     <li>
+      <jump href='javadocs/api/org/w3c/dom/xpath/package-summary.html'>XPath</jump>
+     </li>
+    </ul>
+    <li>Simple API for XML (SAX)</li>
+    <ul>
+     <li>
+      <jump href='javadocs/api/org/xml/sax/package-summary.html'>Core</jump>
+     </li>
+     <li>
+      <jump href='javadocs/api/org/xml/sax/helpers/package-summary.html'>Helper Classes</jump>
+     </li>
+     <li>
+      <jump href='javadocs/api/org/xml/sax/ext/package-summary.html'>Extensions</jump>
+     </li>
+    </ul>
+   </ul>
+  </ul>
+ </s2>
+ <s2 title='Xerces Native Interface Documentation'>
+  <p>
+   If you need functionality that is not available in the 
+   standard APIs like DOM and SAX, then perhaps using the Xerces
+   Native Interface (XNI) will provide the information to build
+   the appropriate parsing tools for your application. For more
+   detailed information regarding XNI, refer to the 
+   <link idref='xni'>XNI Manual</link>.
+  </p>
+  <ul>
+   <li>
+    <jump href='javadocs/xni/index.html'>Xerces Native Interface</jump>
+   </li>
+   <ul>
+    <li>
+     <jump href='javadocs/xni/org/apache/xerces/xni/package-summary.html'>Core</jump>
+    </li>
+    <li>
+     <jump href='javadocs/xni/org/apache/xerces/xni/parser/package-summary.html'>Parser
+     Configuration</jump>
+    </li>
+    <li>
+     <jump href='javadocs/xni/org/apache/xerces/xni/grammars/package-summary.html'>Grammar
+     Interfaces</jump>
+    </li>
+   </ul>
+  </ul>
+ </s2>
+ <anchor name="xml-schema-api-documentation"/>
+ <s2 title='XML Schema API Documentation'>
+  <p>
+   The <jump href="http://www.w3.org/Submission/2004/SUBM-xmlschema-api-20040309/">XML Schema API</jump> 
+   specification defines a set of interfaces for accessing and querying the post schema 
+   validation infoset (PSVI) defined in 
+   <jump href="http://www.w3.org/TR/xmlschema-1/#PSVI_contributions">Contributions 
+   to the post-schema-validation infoset (Appendix C.2)</jump>. These interfaces
+   provide access to the XML Schema components, which follow as a consequence of 
+   validation and/or assessment and also provide a means for accessing the PSVI 
+   from a document instance.
+  </p>
+  <p>
+   Some of the interfaces in the XML Schema API reference interfaces
+   from <jump href="http://www.w3.org/DOM/DOMTR#dom3">DOM Level 3</jump>
+   which is now a W3C Recommendation.
+  </p>
+  <ul>
+   <li>
+    <jump href='javadocs/xs/index.html'>XML Schema API</jump>
+   </li>
+  </ul>
+ </s2>
+ <s2 title='Xerces2 Implementation Documentation'>
+  <p>
+   For maintainers and developers of the Xerces2 reference
+   implementation, it's important to know the internal APIs
+   used.
+  </p>
+  <ul>
+   <li>
+    <jump href='javadocs/xerces2/index.html'>Xerces2 Implementation</jump>
+   </li>
+  </ul>
+ </s2>
+ <s2 title='Other Classes Documentation'>
+  <p>
+   The Xerces2 package also contains other implementation classes.
+   You can jump to the API for these classes via the following links:
+  </p>
+  <ul>
+   <li><jump href='javadocs/other/index.html'>Other Classes</jump></li>
+  </ul>
+ </s2>
+</s1>

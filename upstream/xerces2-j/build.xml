@@ -1,0 +1,1462 @@
+<?xml version="1.0"?>
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<!-- ===================================================================
+
+Read the README file for build instruction.
+
+Authors:
+  Stefano Mazzocchi <stefano@apache.org>
+  Anupam Bagchi     <abagchi@apache.org>
+  Andy Clark, IBM
+
+   $Id$
+
+==================================================================== -->
+<project default="usage" basedir=".">
+	
+  <!-- Xerces Java directories -->
+  <property name="build.dir" value="./build"/>
+  <property name="data.dir" value="./data"/>
+  <property name="docs.dir" value="./docs"/>
+  <property name="samples.dir" value="./samples"/>
+  <property name="src.dir" value="./src"/>
+  <property name="tests.dir" value="./tests"/>
+  <property name="tools.dir" value="./tools"/>
+
+  <!-- enable compilation under JDK 1.4 and above -->
+  <taskdef name="xjavac" classname="org.apache.xerces.util.XJavac">
+    <classpath>
+      <pathelement location="${tools.dir}/bin/xjavac.jar"/>
+    </classpath>
+  </taskdef>
+
+  <!-- Allow properties following these statements to be overridden -->
+  <!-- Note that all of these don't have to exist.  They've just been defined
+       incase they are used. -->
+  <property file="build.properties"/>
+  <property file=".ant.properties"/>
+  <property file="${user.home}/.ant.properties"/>
+  <property file="default.properties"/>  
+ 
+  <target name="init">
+    <property name='parser.Name' value='Xerces-J'/>
+    <property name='parser.name' value='xerces-j'/>
+    <property name='parser.shortname' value='xerces'/>
+    <property name='parser.Version' value='2.9.1'/>
+    <property name='parser.version' value='2.9.1'/>
+    <property name='parser_version' value='2_9_1'/>
+
+    <property name='deprecatedjar.parser' value='xerces.jar'/>
+    <property name='jar.apis' value='xml-apis.jar'/>
+    <property name='jar.parser' value='xercesImpl.jar'/>
+    <property name='jar.samples' value='xercesSamples.jar'/>
+    <property name='jar.dv' value='xercesDV.jar'/>
+    <property name='jar.resolver' value='resolver.jar'/>
+    <property name='jar.serializer' value='serializer.jar'/>
+    <property name='jar.junit' value='junit.jar'/>
+    
+    <property name='default.parser.config.name' value='XIncludeAwareParserConfiguration'/>
+    <property name='default.parser.config.qualified' value='org.apache.xerces.parsers.XIncludeAwareParserConfiguration'/>
+
+    <property name="year" value="1999-2007"/>
+    <property name="copyright" value="Copyright &#169; ${year} The Apache Software Foundation. All Rights Reserved."/>
+
+    <echo message= "---------------- ${parser.Name} ${parser.Version} [${year}] ---------------"/>
+    <!-- changed made to synchronize with a patch from Sam Ruby (<rubys@apache.org>) to Xerces1
+    <property name="build.compiler" value="classic"/> -->
+    <property name="debug" value="off"/>
+    <property name="optimize" value="on"/>
+    <property name="deprecation" value="off"/>
+
+    <property name="docs.book" value="${docs.dir}/docs-book.xml"/>
+
+    <property name="packages" value="org.*"/>
+
+    <property name="doc.generator" value="org.apache.stylebook.StyleBook"/>
+    <property name="doc.generator.package" value="${tools.dir}/stylebook-1.0-b2.jar"/>
+
+    <property name="build.src" value="${build.dir}/src"/>
+    <property name="build.dest" value="${build.dir}/classes"/>
+    <property name="build.docs" value="${build.dir}/docs"/>
+    <property name="build.samples" value="${build.dir}/samples"/>
+    <property name="build.tests" value="${build.dir}/tests"/>
+    <property name="build.data" value="${build.dir}/data"/>
+    <property name="build.javadocs" value="${build.dir}/docs/javadocs"/>
+
+    <property name="distsrc.dir" value="${build.dir}/${parser.shortname}-${parser_version}"/>
+    <property name="disttools.dir" value="${build.dir}/tools"/>
+    <property name="distbin.dir" value="${build.dir}/${parser.shortname}-${parser_version}"/>
+    <property name='src.apis.zip' value="${tools.dir}/xml-commons-external-src.zip"/>
+
+    <filter token="year" value="${year}"/>
+    <filter token="version" value="${parser.Version}"/>
+    <filter token="date" value="${TODAY}"/>
+    <filter token="log" value="true"/>
+    <filter token="verbose" value="true"/>
+
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Help on usage                                                       -->
+  <!-- =================================================================== -->
+  <target name="usage" depends="init">
+    <echo message=""/>
+    <echo message=""/>
+    <echo message="${parser.Name} Build instructions"/>
+    <echo message="-------------------------------------------------------------"/>
+    <echo message=""/>
+    <echo message=" available targets are:"/>
+    <echo message=""/>
+    
+    <echo message=" jar      --> generates the xercesImpl.jar file"/>
+    <echo message=" sampjar  --> generates the xercesSamples.jar file"/>
+    <echo message=" jars --> generates xercesImpl &amp; xercesSamples jars"/>
+    <echo message=" jar-schema11 --> 'jar' + XML Schema 1.1 support"/>
+    <echo message=" jars-schema11 --> 'jars' + XML Schema 1.1 support"/>
+    <echo message=" docs     --> generates the HTML documentation"/>
+    <echo message=" javadocs --> generates the API docs (needs Java 1.2 or higher)"/>
+    <echo message=" samples  --> compiles the samples source code"/>
+    <echo message=" compile  --> compiles the source code"/>
+    <echo message=" deprecatedjar  --> generates the xerces.jar file"/>
+    <echo message=" tests    --> compiles the tests source code"/>
+    <echo message=" deprecatedjars --> generates xerces.jar and samples jar"/>
+    <echo message=" dtdjars --> generates xercesImpl containing no schema support or WML/HTML DOM and xercesSamples &amp; xml-apis jars"/>
+    <echo message=" dvjar --> generates a Schema datatype jar"/>
+    <echo message=" pack-tools --> generates the tools distributions (zip and tar.gz)"/>
+    <echo message=" pack-src   --> generates the source distributions (zip and tar.gz)"/>
+    <echo message=" deprecated-bin --> generates the binary distributions (zip and tar.gz)"/>
+    <echo message=" pack-bin --> generates the binary distributions (zip and tar.gz)"/>
+    <echo message=" all      --> generates the binary, source and tools distributions"/>
+    <echo message=" deprecatedall --> generates the binary, source and tools distributions with the xerces.jar"/>
+    <echo message=" test     --> runs a sanity test on the sample files"/>
+    <echo message=" clean    --> cleans up all generated files and directories"/>
+    <echo message=" usage    --> provides help on using the build tool (default)"/>
+    <echo message=""/>
+    <echo message=" See comments inside the build.xml file for more details."/>
+    <echo message="-------------------------------------------------------------"/>
+    <echo message=""/>
+    <echo message=""/>
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Prepares the build directory                                        -->
+  <!-- =================================================================== -->
+  <target name="prepare" depends="init">
+    <mkdir dir="${build.dir}"/>
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- directory creation and file copying common to all configurations    -->
+  <!-- =================================================================== -->
+  <target name="prepare-common" depends="prepare">
+    <!-- create directories -->
+    <mkdir dir="${build.src}"/>
+    <mkdir dir="${build.dest}"/>
+    <mkdir dir="${build.dest}/META-INF"/>
+    <mkdir dir="${build.dest}/META-INF/services"/>
+
+    <copy file="${src.dir}/org/apache/xerces/jaxp/javax.xml.parsers.DocumentBuilderFactory"
+      tofile="${build.dest}/META-INF/services/javax.xml.parsers.DocumentBuilderFactory"/>
+
+    <copy file="${src.dir}/org/apache/xerces/jaxp/javax.xml.parsers.SAXParserFactory"
+      tofile="${build.dest}/META-INF/services/javax.xml.parsers.SAXParserFactory"/>
+  	
+    <copy file="${src.dir}/org/apache/xerces/jaxp/datatype/javax.xml.datatype.DatatypeFactory"
+      tofile="${build.dest}/META-INF/services/javax.xml.datatype.DatatypeFactory"/>
+  	
+    <copy file="${src.dir}/org/apache/xerces/jaxp/validation/javax.xml.validation.SchemaFactory"
+      tofile="${build.dest}/META-INF/services/javax.xml.validation.SchemaFactory"/>
+
+    <copy file="${src.dir}/org/apache/xerces/parsers/org.xml.sax.driver"
+      tofile="${build.dest}/META-INF/services/org.xml.sax.driver"/>
+    
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Prepares the source code                                            -->
+  <!-- =================================================================== -->
+  <target name="prepare-src" depends="prepare-common">
+  	
+  	<!-- Do not include this file in xercesImpl.jar. It prevents applications further down the 
+  	     classpath from overriding the parser's default and may also cause an incompatible mix 
+  	     of classes to be loaded leading to a failure such as a NoSuchMethodError. -->
+  	<!-- <copy file="${src.dir}/org/apache/xerces/parsers/org.apache.xerces.xni.parser.XMLParserConfiguration"
+      tofile="${build.dest}/META-INF/services/org.apache.xerces.xni.parser.XMLParserConfiguration"/> -->
+      
+    <copy file="${src.dir}/org/apache/xerces/dom/org.w3c.dom.DOMImplementationSourceList"
+      tofile="${build.dest}/META-INF/services/org.w3c.dom.DOMImplementationSourceList"/>
+
+    <!-- copy src files -->
+    <copy todir="${build.src}">
+        <fileset 
+            dir="${src.dir}"
+            includes="org/apache/**
+                org/w3c/dom/html/HTMLDOMImplementation.java"
+            excludes="**/classfiles_updated **/CVS* **/.#* **/XMLMessages.java
+                       **/DatatypeContentModel.java **/ComplexTypeInfo.java
+                       **/v1/** **/v2/**
+                       javax.xml.parsers.ConvertToURI.java">
+        </fileset>
+    </copy>
+
+    <!-- now deal with API's:  -->
+    <unzip src="${src.apis.zip}" dest="${build.src}">
+        <patternset
+            includes="org/xml/sax/** 
+                javax/xml/**
+                javax/xml/datatype/**
+                javax/xml/namespace/**
+                javax/xml/parsers/**
+                javax/xml/transform/**
+                javax/xml/validation/**
+                javax/xml/xpath/**
+                org/w3c/dom/*
+                org/w3c/dom/bootstrap/**
+                org/w3c/dom/events/**
+                org/w3c/dom/html/**
+                org/w3c/dom/ls/**
+                org/w3c/dom/ranges/**
+                org/w3c/dom/traversal/**
+        	    org/w3c/dom/xpath/**"
+        />
+    </unzip>
+    
+    <!-- substitute tokens as needed -->
+    <replace file="${build.dir}/src/org/apache/xerces/impl/Version.java" 
+             token="@@VERSION@@" value="${parser.Name} ${parser.Version}"/>
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Compiles the source directory                                       -->
+  <!-- =================================================================== -->
+  <target name="compile" depends="prepare-src">
+    <copy todir="${build.dest}">
+      <fileset dir="${build.src}"
+        includes="**/*.res, **/*.properties">
+      </fileset>
+    </copy>
+
+    <xjavac srcdir="${build.src}"
+           destdir="${build.dest}"
+           classpath="${build.dir}/classes:${tools.dir}/${jar.apis}:${tools.dir}/${jar.resolver}:${tools.dir}/${jar.serializer}"
+           debug="${debug}"
+           deprecation="${deprecation}"
+           optimize="${optimize}"
+           includeAntRuntime="false"
+           includeJavaRuntime="false"
+           excludes="org/xml/sax/** 
+                javax/xml/**
+                org/w3c/dom/*
+                org/w3c/dom/events/**
+                org/w3c/dom/ls/**
+                org/w3c/dom/html/**
+                org/w3c/dom/ranges/**
+                org/w3c/dom/traversal/**
+                org/w3c/dom/xpath/**"
+           />
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Creates the omnibus class package                                   -->
+  <!-- =================================================================== -->
+  <target name="deprecatedjar" depends="compile">
+    <jar jarfile="${build.dir}/${deprecatedjar.parser}"
+         basedir="${build.dest}"
+         compress="true"
+         includes="org/**, javax/**,META-INF/**">
+      <metainf dir="." includes="LICENSE,NOTICE"/>
+    </jar>
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Creates the implementation class package, including DOM Level 3     -->
+  <!-- =================================================================== -->
+  <target name="jar" depends="compile">
+    <!-- take care of manifest file -->
+    <filter token="java.version" value="${java.version}"/>
+    <filter token="java.vendor" value="${java.vendor}"/>
+    <filter token="impl.name" value="${parser.Name} ${parser.Version}"/>
+    <filter token="impl.version" value="${parser.Version}"/>   
+    <copy todir="${build.dir}" file="${src.dir}/manifest.xerces" filtering="true"/>
+    <jar jarfile="${build.dir}/${jar.parser}"
+         basedir="${build.dest}"
+         compress="true"
+         includes="org/apache/**, META-INF/**
+                   org/w3c/dom/html/HTMLDOMImplementation.class"
+         manifest="${build.dir}/manifest.xerces">
+      <manifest>
+        <attribute name="Ant-Version" value="${ant.version}"/>
+      </manifest>
+      <metainf dir="." includes="LICENSE,NOTICE"/>
+    </jar>
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Compiles the samples                                                -->
+  <!-- =================================================================== -->
+  <target name="samples" depends="compile">
+    <mkdir dir="${build.samples}"/>
+    <copy todir="${build.samples}" >
+        <fileset dir="${samples.dir}"/>
+    </copy>
+    <xjavac srcdir="${build.samples}"
+           destdir="${build.dest}"
+           classpath="${build.dir}/classes:${tools.dir}/${jar.apis}"
+           debug="${debug}"
+           includeAntRuntime="false"
+           includeJavaRuntime="true"/>
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Compiles the tests                                                  -->
+  <!-- =================================================================== -->
+  <target name="tests" depends="samples">
+    <mkdir dir="${build.tests}"/>
+    <copy todir="${build.tests}">
+        <fileset dir="${tests.dir}"
+         excludes="dom/rename/**" />
+    </copy>
+    <xjavac srcdir="${build.tests}"
+           destdir="${build.dest}"
+           classpath="${tools.dir}/${jar.apis}:${build.dir}/classes:./tools/junit.jar"
+           debug="${debug}"
+           includeAntRuntime="false"
+           includeJavaRuntime="true"/>
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Creates the samples package                                         -->
+  <!-- =================================================================== -->
+  <target name="sampjar" depends="samples">
+    <jar jarfile="${build.dir}/${jar.samples}"
+         basedir="${build.dest}"
+         compress="true"
+         includes="dom/**,sax/**,jaxp/**,socket/**,ui/**,xni/**,xs/**">
+      <metainf dir="." includes="LICENSE,NOTICE"/>
+    </jar>
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Prepares the docs                                                   -->
+  <!-- =================================================================== -->
+  <target name="prepare-docs" depends="init"> 
+    <mkdir dir="${build.docs}"/>
+    <mkdir dir="${build.dir}/xdocs"/>
+    <copy todir="${build.dir}/xdocs">
+        <fileset dir="${docs.dir}"/>
+    </copy>
+    <replace file="${build.dir}/xdocs/dtd/entities.ent" 
+             token="@@VERSION@@" value="${parser.Version}"/>
+    <replace file="${build.dir}/xdocs/dtd/entities.ent" 
+             token="@@version@@" value="${parser.version}"/>
+    <replace file="${build.dir}/xdocs/dtd/entities.ent" 
+             token="@@_version_@@" value="${parser_version}"/>
+    <replace file="${build.dir}/xdocs/dtd/entities.ent" 
+             token="@@DEFAULT_CONFIG@@" value="${default.parser.config.name}"/>
+    <replace file="${build.dir}/xdocs/dtd/entities.ent" 
+             token="@@DEFAULT_CONFIG_LONG@@" value="${default.parser.config.qualified}"/>
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Generate HTML docs                                                  -->
+  <!-- =================================================================== -->
+  <target name="docs" depends="prepare, prepare-docs">
+    <echo message="Building docs for ${parser.Name} ${parser.Version} ..." />
+    <java fork="yes"
+          classpath="${java.class.path}:${doc.generator.package}:./tools/xalan.jar"
+          classname="${doc.generator}"
+          failOnError="yes">
+      <arg value="targetDirectory=${build.docs}"/>
+      <arg value="${build.dir}/xdocs/docs-book.xml"/>
+      <arg value="${build.dir}/xdocs/style"/>
+    </java>
+
+    <copy file="${docs.dir}/download.cgi" tofile="${build.docs}/download.cgi"/>
+    
+  </target>
+
+
+  <target name="javadoc-replace" unless="additional.param">
+    <replace token="@xerces.internal" dir="${build.src}">
+      <replacevalue><![CDATA[<DL><DT><H1 style="font-size:110%">INTERNAL:</H1><DD>Usage of this class is not supported. It may be altered or removed at any time.</DD></DT></DL>]]></replacevalue>
+    </replace>
+  	
+    <replace token="@xerces.experimental" dir="${build.src}">
+      <replacevalue><![CDATA[<DL><DT><H1 style="font-size:150%">EXPERIMENTAL:</H1><DD>This class should not be considered stable. It is likely to be altered or replaced in the future.</DD></DT></DL>]]></replacevalue>
+    </replace>
+  </target>
+	
+  <!-- =================================================================== -->
+  <!-- Creates the API documentation                                       -->
+  <!-- =================================================================== -->
+  <target name="javadocs" depends="prepare-src">	
+  		
+    <condition property="additional.param" value=" -taglet org.apache.xerces.util.ExperimentalTaglet -taglet org.apache.xerces.util.InternalTaglet -tagletpath ${tools.dir}/bin/xerces2taglets.jar">
+      <available classname="com.sun.tools.doclets.Taglet"/>
+    </condition>
+  	
+    <antcall target="javadoc-replace" />
+  	
+    <condition property="additional.param" value="">
+      <not>
+        <available classname="com.sun.tools.doclets.Taglet"/>
+      </not>
+    </condition>
+  	
+    <mkdir dir='${build.dir}/docs/javadocs/api'/>
+    <javadoc packagenames='javax.xml.*,org.w3c.*,org.xml.*'
+      locale='en_US'
+      sourcepath='${build.src}' destdir='${build.dir}/docs/javadocs/api'
+      author='true' version='true'
+      windowtitle='XML Standard API' doctitle='XML Standard API'
+      bottom='${copyright}'
+      additionalparam='${additional.param}'
+      />
+    <mkdir dir='${build.dir}/docs/javadocs/xni'/>
+    <javadoc packagenames='org.apache.xerces.xni.*'
+      locale='en_US'
+      sourcepath='${build.src}' destdir='${build.dir}/docs/javadocs/xni'
+      author='true' version='true'
+      windowtitle='Xerces Native Interface' 
+      doctitle='Xerces Native Interface'
+      bottom='${copyright}'
+      additionalparam='${additional.param}'
+      />
+    <mkdir dir='${build.dir}/docs/javadocs/xs'/>
+    <javadoc packagenames='org.apache.xerces.xs, org.apache.xerces.xs.datatypes'
+      locale='en_US'
+      sourcepath='${build.src}' destdir='${build.dir}/docs/javadocs/xs'
+      author='true' version='true'
+      windowtitle='XML Schema API' 
+      doctitle='XML Schema API'
+      bottom='${copyright}'
+      additionalparam='${additional.param}'
+      />
+    
+    <mkdir dir='${build.dir}/docs/javadocs/xerces2'/>
+    <javadoc packagenames='org.apache.xerces.dom.*,
+                           org.apache.xerces.impl.*,
+                           org.apache.xerces.jaxp.*,
+                           org.apache.xerces.parsers,
+                           org.apache.xerces.util,
+                           org.apache.xerces.xinclude,
+                           org.apache.xerces.xpointer'
+      locale='en_US'
+      sourcepath='${build.src}' destdir='${build.dir}/docs/javadocs/xerces2'
+      classpath='${tools.dir}/${jar.resolver}:${tools.dir}/${jar.serializer}'
+      author='true' version='true'
+      windowtitle='Xerces2 Implementation' 
+      doctitle='Xerces2 Implementation'
+      bottom='${copyright}'
+      additionalparam='${additional.param}'
+      />
+    <mkdir dir='${build.dir}/docs/javadocs/other'/>
+    <javadoc packagenames='org.apache.html.*,
+                           org.apache.wml.*,
+                           org.apache.xml.serialize.*'
+      locale='en_US'
+      sourcepath='${build.src}' destdir='${build.dir}/docs/javadocs/other'
+      author='true' version='true'
+      windowtitle='Other Classes' doctitle='Other Classes'
+      bottom='${copyright}'
+      additionalparam='${additional.param}'
+      />
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Prepares the source distribution                                    -->
+  <!-- =================================================================== -->
+  <target name="pack-src" depends="init">
+    <echo message="Building the source distribution files (zip,tar)"/>
+    <delete dir="${distbin.dir}"/>
+
+    <mkdir dir="${distsrc.dir}"/>
+    <mkdir dir="${distsrc.dir}/src"/>
+    <mkdir dir="${distsrc.dir}/data"/>
+    <mkdir dir="${distsrc.dir}/docs"/>
+    <mkdir dir="${distsrc.dir}/samples"/>
+
+    <copy todir="${distsrc.dir}/src" >
+        <fileset
+            dir="${src.dir}"  
+            includes="org/**, dom3/**, javax/**, manifest.xerces"
+            excludes="**/CVS*, **/.#*, **/*.class
+                      **/v1/** **/v2/**"
+        />
+    </copy>
+
+
+    <copy todir="${distsrc.dir}/data" >
+        <fileset
+            dir="${data.dir}"  
+            excludes="**/CVS*, **/.#*"
+        />
+    </copy>
+
+    <copy todir="${distsrc.dir}/docs" >
+        <fileset
+            dir="${docs.dir}" 
+            excludes="**/CVS*, **/*.#*, pdf/**, html/**, **/javadocs*"
+        />
+    </copy>
+
+    <copy todir="${distsrc.dir}/samples" >
+        <fileset
+            dir="${samples.dir}"  
+            excludes="**/CVS*, **/*.#*"
+        />
+    </copy>
+
+    <copy file="LICENSE" tofile="${distsrc.dir}/LICENSE"/>
+    <copy file="NOTICE" tofile="${distsrc.dir}/NOTICE"/>
+    <copy file="NOTICE.resolver.txt" tofile="${distsrc.dir}/NOTICE.resolver.txt"/>
+    <copy file="NOTICE.serializer.txt" tofile="${distsrc.dir}/NOTICE.serializer.txt"/>
+    <copy file="LICENSE.DOM-documentation.html" tofile="${distsrc.dir}/LICENSE.DOM-documentation.html"/>
+    <copy file="LICENSE.DOM-software.html" tofile="${distsrc.dir}/LICENSE.DOM-software.html"/>
+    <copy file="LICENSE-SAX.html" tofile="${distsrc.dir}/LICENSE-SAX.html"/>
+    <copy file="LICENSE.resolver.txt" tofile="${distsrc.dir}/LICENSE.resolver.txt"/>
+    <copy file="LICENSE.serializer.txt" tofile="${distsrc.dir}/LICENSE.serializer.txt"/>
+    <copy file="README" tofile="${distsrc.dir}/README"/>
+    <copy file="Readme.html" tofile="${distsrc.dir}/Readme.html"/>
+    <copy file="build.xml" tofile="${distsrc.dir}/build.xml"/>
+    <copy file="${basedir}/build.sh" tofile="${distsrc.dir}/build.sh" />
+    <chmod file="${distsrc.dir}/build.sh" perm="ugo+rx" />
+    <copy file="${basedir}/build.bat" tofile="${distsrc.dir}/build.bat" />
+
+    <zip zipfile="${build.dir}/${parser.Name}-src.${parser.version}.zip" 
+         basedir="${build.dir}"
+         includes="${parser.shortname}-${parser_version}/**" excludes="*.class"/>
+
+    <tar tarfile="${build.dir}/${parser.Name}-src.${parser.version}.tar" 
+         basedir="${build.dir}"
+         includes="${parser.shortname}-${parser_version}/**" excludes="*.class"/>
+    <gzip zipfile="${build.dir}/${parser.Name}-src.${parser.version}.tar.gz"
+          src="${build.dir}/${parser.Name}-src.${parser.version}.tar" />
+    <!-- and why not get rid of the un-gzip'd tarball and save ourselves 15 Mb? -->
+    <delete file="${build.dir}/${parser.Name}-src.${parser.version}.tar"/>
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Prepares the tools distribution                                     -->
+  <!-- =================================================================== -->
+  <target name="pack-tools" depends="init">
+    <echo message="Building the tools distribution files (zip,tar)"/>
+    <mkdir dir="${disttools.dir}"/>
+
+    <copy todir="${disttools.dir}" >
+        <fileset
+            dir="${tools.dir}"  
+            includes="**/*.txt, **/*.html, **/*.bat, **/*.jar, **/*.zip, **/*.opt"
+            excludes="**/CVS*, **/.#*, **/*.class"
+        />
+    </copy>
+
+    <zip zipfile="${build.dir}/${parser.Name}-tools.${parser.version}.zip" 
+         basedir="${build.dir}"
+         includes="tools/**"/>
+
+    <tar tarfile="${build.dir}/${parser.Name}-tools.${parser.version}.tar" 
+         basedir="${build.dir}"
+         includes="tools/**"/>
+    <gzip zipfile="${build.dir}/${parser.Name}-tools.${parser.version}.tar.gz"
+          src="${build.dir}/${parser.Name}-tools.${parser.version}.tar" />
+    <!-- and why not get rid of the un-gzip'd tarball and save ourselves Mb? -->
+    <delete file="${build.dir}/${parser.Name}-tools.${parser.version}.tar"/>
+    <!-- and delete the directory:  -->
+    <delete dir="${disttools.dir}"/>
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Prepares common parts of the binary distributions                   -->
+  <!-- =================================================================== -->
+  <target name="pack-bin-common" depends="javadocs, docs, sampjar">
+
+    <echo message="Building the binary distribution files (zip,tar)"/>
+    <delete dir="${distbin.dir}"/>
+    <mkdir dir="${distbin.dir}"/>
+    <mkdir dir="${distbin.dir}/data"/>
+    <mkdir dir="${distbin.dir}/docs"/>
+    <mkdir dir="${distbin.dir}/docs/javadocs"/>
+    <mkdir dir="${distsrc.dir}/samples"/>
+
+    <copy todir="${distbin.dir}/data" >
+        <fileset
+            dir="${data.dir}"
+            excludes="**/CVS*, **/*.#*"
+        />
+    </copy>
+
+    <copy todir="${distbin.dir}/docs" >
+        <fileset dir="${build.docs}" />
+    </copy>
+
+    <copy todir="${distbin.dir}/docs/javadocs/api" >
+        <fileset dir="${build.dir}/docs/javadocs/api" />
+    </copy>
+    <copy todir="${distbin.dir}/docs/javadocs/xni" >
+        <fileset dir="${build.dir}/docs/javadocs/xni" />
+    </copy>
+    <copy todir="${distbin.dir}/docs/javadocs/xerces2" >
+        <fileset dir="${build.dir}/docs/javadocs/xerces2" />
+    </copy>
+    <copy todir="${distbin.dir}/docs/javadocs/other" >
+        <fileset dir="${build.dir}/docs/javadocs/other" />
+    </copy>
+
+    <copy file="LICENSE" tofile="${distbin.dir}/LICENSE"/>
+    <copy file="NOTICE" tofile="${distsrc.dir}/NOTICE"/>
+    <copy file="NOTICE.resolver.txt" tofile="${distsrc.dir}/NOTICE.resolver.txt"/>
+    <copy file="NOTICE.serializer.txt" tofile="${distsrc.dir}/NOTICE.serializer.txt"/>
+    <copy file="LICENSE.DOM-documentation.html" tofile="${distsrc.dir}/LICENSE.DOM-documentation.html"/>
+    <copy file="LICENSE.DOM-software.html" tofile="${distsrc.dir}/LICENSE.DOM-software.html"/>
+    <copy file="LICENSE-SAX.html" tofile="${distbin.dir}/LICENSE-SAX.html"/>
+    <copy file="LICENSE.resolver.txt" tofile="${distbin.dir}/LICENSE.resolver.txt"/>
+    <copy file="LICENSE.serializer.txt" tofile="${distsrc.dir}/LICENSE.serializer.txt"/>
+    <copy file="Readme.html" tofile="${distbin.dir}/Readme.html"/>
+
+    <copy file="${build.dir}/${jar.samples}" tofile="${distbin.dir}/${jar.samples}"/>
+
+    <copy todir="${distsrc.dir}/samples" >
+        <fileset
+            dir="${samples.dir}"
+            excludes="**/CVS*, **/*.#*"
+        />
+    </copy>
+
+    <copydir src="${samples.dir}" dest="${distsrc.dir}/samples" excludes="**/CVS*, **/*.#*"/>
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Prepares the binary distribution                                    -->
+  <!-- =================================================================== -->
+  <target name="pack-bin" depends="pack-bin-common, jars">
+    <copy file="${build.dir}/${jar.parser}" tofile="${distbin.dir}/${jar.parser}"/>
+    <!-- include the xml-commons APIs -->
+    <copy file="${tools.dir}/${jar.apis}" tofile="${distbin.dir}/${jar.apis}"/>
+    <!-- include the xml-commons resolver -->
+    <copy file="${tools.dir}/${jar.resolver}" tofile="${distbin.dir}/${jar.resolver}"/>
+    <!-- include the Xalan Serializer -->
+    <copy file="${tools.dir}/${jar.serializer}" tofile="${distbin.dir}/${jar.serializer}"/>
+
+    <zip zipfile="${build.dir}/${parser.Name}-bin.${parser.version}.zip" 
+         basedir="${build.dir}"
+         includes="${parser.shortname}-${parser_version}/**" 
+         excludes="*.class, **/${deprecatedjar.parser}"/>
+    <tar tarfile="${build.dir}/${parser.Name}-bin.${parser.version}.tar" 
+         basedir="${build.dir}"
+         includes="${parser.shortname}-${parser_version}/**" 
+         excludes="*.class, **/${deprecatedjar.parser}"/>
+    <gzip zipfile="${build.dir}/${parser.Name}-bin.${parser.version}.tar.gz"
+          src="${build.dir}/${parser.Name}-bin.${parser.version}.tar" />
+    <!-- as before, let's kill of the ungzip'd tarball! -->
+    <delete file="${build.dir}/${parser.Name}-bin.${parser.version}.tar"/>
+
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Prepares the deprecated binary distribution                         -->
+  <!-- =================================================================== -->
+  <target name="deprecated-bin" depends="pack-bin-common, deprecatedjars">
+    <copy file="${build.dir}/${deprecatedjar.parser}" tofile="${distbin.dir}/${deprecatedjar.parser}"/>
+    
+    <!-- include the xml-commons resolver -->
+    <copy file="${tools.dir}/${jar.resolver}" tofile="${distbin.dir}/${jar.resolver}"/>
+    <!-- include the Xalan Serializer -->
+    <copy file="${tools.dir}/${jar.serializer}" tofile="${distbin.dir}/${jar.serializer}"/>
+
+    <zip zipfile="${build.dir}/deprecated${parser.Name}-bin.${parser.version}.zip" 
+         basedir="${build.dir}"
+         includes="${parser.shortname}-${parser_version}/**" 
+         excludes="*.class, **/${jar.parser}, **/${jar.apis}"/>
+    <tar tarfile="${build.dir}/deprecated${parser.Name}-bin.${parser.version}.tar" 
+         basedir="${build.dir}"
+         includes="${parser.shortname}-${parser_version}/**" 
+         excludes="*.class, **/${jar.parser}, **/${jar.apis}"/>
+    <gzip zipfile="${build.dir}/deprecated${parser.Name}-bin.${parser.version}.tar.gz"
+          src="${build.dir}/deprecated${parser.Name}-bin.${parser.version}.tar" />
+    <!-- as before, let's kill of the ungzip'd tarball! -->
+    <delete file="${build.dir}/deprecated${parser.Name}-bin.${parser.version}.tar"/>
+
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Do a sanity test using samples                                      -->
+  <!-- =================================================================== -->
+  <target name="test" depends="tests">
+    <echo message="Performing sanity test for ${parser.Name} ${parser.Version} ..." />
+    <echo message="Using classpath=&apos;${tools.dir}/${jar.apis}:${tools.dir}/${jar.resolver}:${build.dir}/classes&apos;" />
+    <echo message="Running sax.Counter ..." />
+    <java fork="yes"
+          classpath="${tools.dir}/${jar.apis}:${tools.dir}/${jar.resolver}:${tools.dir}/${jar.serializer}:${build.dir}/classes"
+          classname="sax.Counter"
+          failOnError="yes">
+       <arg value="${data.dir}/personal.xml"/>
+    </java>
+    <echo message="Running sax.Writer ..." />
+    <java fork="yes"
+          classpath="${tools.dir}/${jar.apis}:${tools.dir}/${jar.resolver}:${tools.dir}/${jar.serializer}:${build.dir}/classes" 
+          classname="sax.Writer"
+          failOnError="yes">
+       <arg value="${data.dir}/personal.xml"/>
+    </java>
+    <echo message="Running dom.Counter ..." />
+    <java fork="yes"
+          classpath="${tools.dir}/${jar.apis}:${tools.dir}/${jar.resolver}:${tools.dir}/${jar.serializer}:${build.dir}/classes"
+          classname="dom.Counter"
+          failOnError="yes">
+       <arg value="${data.dir}/personal.xml"/>
+    </java>
+    <echo message="Running dom.Writer ..." />
+    <java fork="yes"
+          classpath="${tools.dir}/${jar.apis}:${tools.dir}/${jar.resolver}:${tools.dir}/${jar.serializer}:${build.dir}/classes" 
+          classname="dom.Writer"
+          failOnError="yes">
+       <arg value="${data.dir}/personal.xml"/>
+    </java>
+    <echo message="Running thread.Test dom" />
+    <java fork="yes"
+          classpath="${tools.dir}/${jar.apis}:${tools.dir}/${jar.resolver}:${tools.dir}/${jar.serializer}:${build.dir}/classes"
+          classname="thread.Test"
+          failOnError="yes">
+           <arg value="-dom"/>
+           <arg value="-threads"/>
+           <arg value="20"/>
+           <arg value="-time"/>
+           <arg value="10"/>
+           <arg value="${data.dir}/personal-schema.xml"/>
+
+    </java>
+    <echo message="Running thread.Test sax" />
+    <java fork="yes"
+          classpath="${tools.dir}/${jar.apis}:${tools.dir}/${jar.resolver}:${tools.dir}/${jar.serializer}:${build.dir}/classes"
+          classname="thread.Test"
+          failOnError="yes">
+           <arg value="-threads"/>
+           <arg value="20"/>
+           <arg value="-time"/>
+           <arg value="10"/>
+           <arg value="${data.dir}/personal-schema.xml"/>
+
+    </java>
+
+
+
+    <!--
+    <echo message="Running DOMFilter ..." />
+    <java fork="yes"
+          classpath="${tools.dir}/${jar.apis}:${tools.dir}/${jar.resolver}:${tools.dir}/${jar.serializer}:${build.dir}/classes"
+          classname="dom.DOMFilter"
+          args="-p dom.wrappers.DOMParser ${data.dir}/personal.xml"/>
+    -->
+    <!-- The following are samples but not command-line applications.
+    <echo message="Running IteratorView ..." />
+    <java fork="yes"
+          classpath="${tools.dir}/${jar.apis}:${tools.dir}/${jar.resolver}:${tools.dir}/${jar.serializer}:${build.dir}/classes"
+          classname="dom.traversal.IteratorView"
+          failOnError="yes"
+          args="${data.dir}/personal.xml"/>
+    <echo message="Running TreeWalkerView ..." />
+    <java fork="yes"
+          classpath="${tools.dir}/${jar.apis}:${tools.dir}/${jar.resolver}:${tools.dir}/${jar.serializer}:${build.dir}/classes"
+          classname="dom.traversal.TreeWalkerView"
+          failOnError="yes"
+          args="${data.dir}/personal.xml"/>
+    <echo message="Running TreeViewer ..." />
+    <java fork="yes"
+          classpath="${tools.dir}/${jar.apis}:${tools.dir}/${jar.resolver}:${tools.dir}/${jar.serializer}:${build.dir}/classes"
+          classname="dom.TreeViewer"
+          failOnError="yes"
+          args="${data.dir}/personal.xml"/>
+     -->
+    <echo message="Running dom.DTest ..." />
+    <java fork="yes"
+          classpath="${tools.dir}/${jar.apis}:${tools.dir}/${jar.resolver}:${tools.dir}/${jar.serializer}:${build.dir}/classes"
+          classname="dom.DTest"
+          failOnError="yes">
+    </java>
+    <echo message="Running dom.mem.Test ..." />
+    <java fork="yes"
+          classpath="${tools.dir}/${jar.apis}:${tools.dir}/${jar.resolver}:${tools.dir}/${jar.serializer}:${build.dir}/classes"
+          classname="dom.mem.Test"
+          failOnError="yes">
+    </java>
+    <echo message="Running dom.range.Test ..." />
+    <java fork="yes"
+          classpath="${tools.dir}/${jar.apis}:${tools.dir}/${jar.resolver}:${tools.dir}/${jar.serializer}:${build.dir}/classes"
+          classname="dom.range.Test"
+          failOnError="yes">
+		<arg value="all"/>
+    </java>
+
+    <echo message="Running dom.ids.Test ..." />
+    <java fork="yes"
+          classpath="${tools.dir}/${jar.apis}:${tools.dir}/${jar.resolver}:${tools.dir}/${jar.serializer}:${build.dir}/classes"
+          classname="dom.ids.Test"
+          failOnError="yes">
+    </java>
+    <echo message="Running dom.serialization.Test ..." />
+    <java fork="yes"
+          classpath="${tools.dir}/${jar.apis}:${tools.dir}/${jar.resolver}:${tools.dir}/${jar.serializer}:${build.dir}/classes"
+          classname="dom.serialization.Test"
+          failOnError="yes">
+           <arg value="${data.dir}/personal-schema.xml"/>
+           <arg value="out.xml"/>
+    </java>
+    <echo message="Running schema.Test ..." />
+    <java fork="yes"
+          classpath="${tools.dir}/${jar.apis}:${tools.dir}/${jar.resolver}:${tools.dir}/${jar.serializer}:${build.dir}/classes"
+          classname="schema.Test"
+          failOnError="yes">
+    </java>
+    <echo message="Running schema.config.AllTests ..." />
+  	<java fork="yes"
+          classname="schema.config.AllTests"
+          failOnError="yes">
+        <classpath>
+            <pathelement path="${tools.dir}/${jar.apis}:${tools.dir}/${jar.resolver}:${tools.dir}/${jar.serializer}:${build.dir}/classes" />
+            <pathelement path="${tools.dir}/${jar.junit}" />
+            <pathelement path="${build.dir}/tests" />
+        </classpath>
+    </java>
+    <echo message="Running schema.annotations.AllTests ..." />
+  	<java fork="yes"
+          classname="schema.annotations.AllTests"
+          failOnError="yes">
+        <classpath>
+            <pathelement path="${tools.dir}/${jar.apis}:${tools.dir}/${jar.resolver}:${tools.dir}/${jar.serializer}:${build.dir}/classes" />
+            <pathelement path="${tools.dir}/${jar.junit}" />
+            <pathelement path="${build.dir}/tests" />
+        </classpath>
+    </java>
+    <echo message="Running jaxp.PropertyTest ..." />
+    <java fork="yes"
+          classpath="${tools.dir}/${jar.apis}:${tools.dir}/${jar.resolver}:${tools.dir}/${jar.serializer}:${build.dir}/classes"
+          classname="jaxp.PropertyTest"
+          failOnError="yes">
+    </java>
+    <echo message="Running jaxp.JAXPSpecTest ..." />
+    <java fork="yes"
+          classpath="${tools.dir}/${jar.apis}:${tools.dir}/${jar.resolver}:${tools.dir}/${jar.serializer}:${build.dir}/classes"
+          classname="jaxp.JAXPSpecTest"
+          failOnError="yes">
+           <arg value="testSchemaLanguageSAX"/>
+           <arg value="testSchemaSourceSAX"/>
+           <arg value="testSchemaLanguageDOM"/>
+           <arg value="testSchemaSourceDOM"/>
+    </java>
+    <echo message="Running xinclude.Test ..." />
+    <java fork="yes"
+          classpath="${tools.dir}/${jar.apis}:${tools.dir}/${jar.resolver}:${tools.dir}/${jar.serializer}:${build.dir}/classes"
+          classname="xinclude.Test"
+          failOnError="yes">
+    </java>
+    <echo message="Running dom.registry.Test ..." />
+    <java fork="yes"
+          classpath="${tools.dir}/${jar.apis}:${tools.dir}/${jar.resolver}:${tools.dir}/${jar.serializer}:${build.dir}/classes"
+          classname="dom.registry.Test"
+          failOnError="yes">
+    </java>
+    <echo message="Running dom.dom3.Test ..." />
+    <java fork="yes"
+          classpath="${tools.dir}/${jar.apis}:${tools.dir}/${jar.resolver}:${tools.dir}/${jar.serializer}:${build.dir}/classes"
+          classname="dom.dom3.Test"
+          failOnError="yes">
+    </java>    
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Builds both deprecated xerces and sample jar files                  -->
+  <!-- =================================================================== -->
+  <target name="deprecatedjars" depends="deprecatedjar, sampjar">
+    <!-- include the xml-commons resolver -->
+    <copy file="${tools.dir}/${jar.resolver}" tofile="${build.dir}/${jar.resolver}"/>
+    <!-- include the Xalan Serializer -->
+    <copy file="${tools.dir}/${jar.serializer}" tofile="${build.dir}/${jar.serializer}"/>
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Builds xercesImpl, xml-apis and sample jar files                    -->
+  <!-- =================================================================== -->
+  <target name="jars" depends="jar, sampjar">
+    <!-- include the xml-commons APIs -->
+    <copy file="${tools.dir}/${jar.apis}" tofile="${build.dir}/${jar.apis}"/>
+    <!-- include the xml-commons resolver -->
+    <copy file="${tools.dir}/${jar.resolver}" tofile="${build.dir}/${jar.resolver}"/>
+    <!-- include the Xalan Serializer -->
+    <copy file="${tools.dir}/${jar.serializer}" tofile="${build.dir}/${jar.serializer}"/>
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Builds and packages tools, sources and binary distributions         -->
+  <!-- =================================================================== -->
+  <target name="all" depends="pack-bin, pack-src, pack-tools">
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Builds and packages tools, sources and binary distributions         -->
+  <!-- =================================================================== -->
+  <target name="deprecatedall" depends="pack-src, deprecated-bin, pack-tools">
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Cleans everything                                                   -->
+  <!-- =================================================================== -->
+  <target name="clean" depends="init">
+    <delete dir="${build.dir}"/>
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Creates the dtd implementation class package                        -->
+  <!-- (that is, with no schema support or WML/HTML DOM.)                  -->
+  <!-- =================================================================== -->
+  <target name="dtdjar" depends="dtdcompile">
+    <!-- take care of manifest file -->
+    <filter token="java.version" value="${java.version}"/>
+    <filter token="java.vendor" value="${java.vendor}"/>
+    <filter token="impl.name" value="${parser.Name} ${parser.Version}"/>
+    <filter token="impl.version" value="${parser.Version}"/>   
+    <copy todir="${build.dir}" file="${src.dir}/manifest.xerces" filtering="true"/>
+    <jar jarfile="${build.dir}/dtd-${jar.parser}"
+         basedir="${build.dest}"
+         compress="true"
+         includes="org/apache/**, META-INF/**
+                   org/w3c/dom/html/HTMLDOMImplementation.class"
+         manifest="${build.dir}/manifest.xerces">
+      <manifest>
+        <attribute name="Ant-Version" value="${ant.version}"/>
+      </manifest>
+      <metainf dir="." includes="LICENSE,NOTICE"/>
+    </jar>
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Compiles the dtd source directory                                   -->
+  <!-- =================================================================== -->
+  <target name="dtdcompile" depends="dtdprepare-src">
+    <copy todir="${build.dest}">
+      <fileset dir="${build.src}"
+        includes="**/*.res, **/*.properties">
+      </fileset>
+    </copy>
+
+    <xjavac srcdir="${build.src}"
+           destdir="${build.dest}"
+           debug="${debug}"
+           deprecation="${deprecation}"
+           optimize="${optimize}"
+           includeAntRuntime="false"
+           includeJavaRuntime="true"
+           classpath="${tools.dir}/${jar.apis}:${tools.dir}/${jar.resolver}:${tools.dir}/${jar.serializer}"/>
+  </target>
+
+
+  <!-- =================================================================== -->
+  <!-- Compiles the dtd source code package                               -->
+  <!-- =================================================================== -->
+  <target name="dtdprepare-src" depends="prepare-common">
+    <copy file="${src.dir}/org/apache/xerces/parsers/org.apache.xerces.xni.parser.DTDConfiguration"
+      tofile="${build.dest}/META-INF/services/org.apache.xerces.xni.parser.XMLParserConfiguration"/>
+      
+    <copy file="${src.dir}/org/apache/xerces/dom/org.apache.xerces.dom.DOMImplementationSourceImpl"
+      tofile="${build.dest}/META-INF/services/org.w3c.dom.DOMImplementationSourceList"/>
+  	
+    <!-- delete META-INF/services files for DatatypeFactory/SchemaFactory 
+         since no implementation is provided in this jar -->
+    <delete file="${build.dest}/META-INF/services/javax.xml.datatype.DatatypeFactory"/>
+    <delete file="${build.dest}/META-INF/services/javax.xml.validation.SchemaFactory"/>
+
+    <!-- copy src files -->
+    <copy todir="${build.src}">
+        <fileset 
+            dir="${src.dir}"
+            includes="javax/**, org/**" 
+            excludes="**/classfiles_updated **/CVS* **/.#* **/XMLMessages.java
+                       **/DatatypeContentModel.java **/ComplexTypeInfo.java
+                       **/v1/** **/v2/**
+                        javax.xml.parsers.ConvertToURI.java
+                        org/apache/xerces/impl/xs/*.java
+                        org/apache/xerces/impl/dv/xs/**
+                        org/apache/xerces/impl/xs/identity/**
+                        org/apache/xerces/impl/xs/traversers/**
+                        org/apache/xerces/impl/xs/models/**
+                        org/apache/xerces/impl/xs/opti/**
+                        org/apache/xerces/impl/xs/util/NSItemListImpl.java                      
+                        org/apache/xerces/impl/xs/util/XInt.java
+                        org/apache/xerces/impl/xs/util/XIntPool.java
+                        org/apache/xerces/impl/xs/util/XSNamedMap4Types.java
+                        org/apache/xerces/impl/xs/util/XSNamedMapImpl.java
+                        org/apache/xerces/impl/xs/util/XSGrammarPool.java
+                        org/apache/xerces/impl/xs/dom/**
+                        org/apache/xerces/impl/xpath/**
+                        org/apache/xerces/impl/xpath/regex/**
+                        org/apache/xerces/impl/dv/Schema*.java
+                        org/apache/xerces/impl/msg/XMLSchema**
+                        org/apache/xerces/jaxp/JAXPValidatorComponent.java
+                        org/apache/xerces/jaxp/SchemaValidatorConfiguration.java
+                        org/apache/xerces/jaxp/TeeXMLDocumentFilterImpl.java
+                        org/apache/xerces/jaxp/UnparsedEntityHandler.java
+                        org/apache/xerces/jaxp/datatype/**
+                        org/apache/xerces/jaxp/validation/**
+                        org/apache/xerces/parsers/DOMASBuilderImpl.java
+                        org/apache/xerces/parsers/StandardParserConfiguration.java
+                        org/apache/xerces/parsers/IntegratedParserConfiguration.java
+                        org/apache/xerces/parsers/XIncludeParserConfiguration.java
+                        org/apache/xerces/parsers/XIncludeAwareParserConfiguration.java
+                        org/apache/xerces/parsers/SecurityConfiguration.java
+                        org/apache/xerces/parsers/SoftReferenceSymbolTableConfiguration.java
+                        org/apache/xerces/parsers/XML11Configurable.java
+                        org/apache/xerces/parsers/XML11Configuration.java
+                        org/apache/xerces/parsers/XML11DTDConfiguration.java
+                        org/apache/xerces/parsers/XML11NonValidatingConfiguration.java
+                        org/apache/xerces/parsers/XMLGrammarCachingConfiguration.java
+                        org/apache/xerces/parsers/XPointerParserConfiguration.java
+                        org/apache/xerces/parsers/CachingParserPool.java
+                        org/apache/xerces/xinclude/**
+                        org/apache/xerces/xpointer/**
+                        org/apache/xerces/dom/ASModelImpl.java
+                        org/apache/xerces/dom/ASDOMImplementationImpl.java
+                        org/apache/xerces/dom/DOMXSImplementationSourceImpl.java
+                        org/apache/xerces/dom3/as/**
+                        org/apache/xerces/impl/XML11D*.java
+                        org/apache/xerces/impl/XML11NamespaceBinder.java
+                        org/apache/xerces/impl/XML11NSDocumentScannerImpl.java
+                        org/apache/xerces/impl/XMLVersionDetector.java
+                        org/apache/xerces/impl/dtd/XML11*.java
+                        org/apache/xerces/impl/msg/DatatypeMessage*.properties
+                        org/apache/xerces/impl/msg/JAXPValidationMessage*.properties
+                        org/apache/xerces/impl/msg/XIncludeMessage*.properties
+                        org/apache/xerces/impl/msg/XPointerMessage*.properties
+                        org/apache/xerces/util/DatatypeMessageFormatter.java
+                        org/apache/html/**
+                        org/apache/wml/**
+           ">
+        </fileset>
+    </copy>
+    
+    <!-- copy src files -->
+    <copy todir="${build.src}">
+        <fileset 
+            dir="${src.dir}"
+            includes="org/apache/xerces/xs/*.java,
+                      org/apache/xerces/impl/xs/XSTypeDecl.java
+                     ">
+        </fileset>
+    </copy>
+
+    <!-- HACK: DOM implementation now is aware of type information
+         and thus is imports XSSimpleTypeDecl (among other XSModel interfaces 
+         for XML Schema type support) Since in DTD jars we never going to have 
+         XSSimpleTypeDecl we can safely replace it by String. The code after 
+         replacement may look a bit strange.. but there is nothing we can do at 
+         this point -->
+    <replace file="${build.dir}/src/org/apache/xerces/dom/AttrNSImpl.java" 
+             token="import org.apache.xerces.impl.dv.xs.XSSimpleTypeDecl;" value=""/>
+    <replace file="${build.dir}/src/org/apache/xerces/dom/AttrNSImpl.java" 
+             token="return ((XSSimpleTypeDecl) type).isDOMDerivedFrom(" value="return false;"/>
+    <replace file="${build.dir}/src/org/apache/xerces/dom/AttrNSImpl.java" 
+             token="typeNamespaceArg, typeNameArg, derivationMethod);" value=""/>
+    <replace file="${build.dir}/src/org/apache/xerces/dom/AttrNSImpl.java" 
+             token="XSSimpleTypeDecl" value="String"/>
+    <replace file="${build.dir}/src/org/apache/xerces/dom/AttrNSImpl.java"
+             token="import org.apache.xerces.xs.XSSimpleTypeDefinition;" value=""/>
+    <replace file="${build.dir}/src/org/apache/xerces/dom/AttrNSImpl.java"
+             token="XSSimpleTypeDefinition" value="String"/>
+    <replace file="${build.dir}/src/org/apache/xerces/dom/AttrNSImpl.java" 
+             token="return ((String)type).getName();" value="return (String)type;"/>
+    <replace file="${build.dir}/src/org/apache/xerces/dom/AttrNSImpl.java" 
+             token="return ((String)type).getNamespace();" value="return null;"/>
+
+    <replace file="${build.dir}/src/org/apache/xerces/dom/ElementNSImpl.java" 
+             token="import org.apache.xerces.xs.XSSimpleTypeDefinition;" value=""/>
+    <replace file="${build.dir}/src/org/apache/xerces/dom/ElementNSImpl.java" 
+             token="import org.apache.xerces.impl.dv.xs.XSSimpleTypeDecl;" value=""/>
+    <replace file="${build.dir}/src/org/apache/xerces/dom/ElementNSImpl.java" 
+             token="import org.apache.xerces.impl.xs.XSComplexTypeDecl;" value=""/>
+    <replace file="${build.dir}/src/org/apache/xerces/dom/ElementNSImpl.java" 
+             token="transient XSTypeDefinition type;" value="transient Object type;"/>
+    <replace file="${build.dir}/src/org/apache/xerces/dom/ElementNSImpl.java" 
+             token="XSSimpleTypeDefinition" value="String"/>
+    <replace file="${build.dir}/src/org/apache/xerces/dom/ElementNSImpl.java" 
+             token="return ((XSSimpleTypeDecl) type).getTypeName();" value="return null;"/>
+    <replace file="${build.dir}/src/org/apache/xerces/dom/ElementNSImpl.java" 
+             token="return ((XSComplexTypeDecl) type).getTypeName();" value="return null;"/>
+    <replace file="${build.dir}/src/org/apache/xerces/dom/ElementNSImpl.java" 
+             token="return type.getNamespace();" value="return null;"/>
+    <replace file="${build.dir}/src/org/apache/xerces/dom/ElementNSImpl.java" 
+             token="return type.getNamespace();" value="return null;"/>
+    <replace file="${build.dir}/src/org/apache/xerces/dom/ElementNSImpl.java" 
+             token="return ((XSSimpleTypeDecl) type).isDOMDerivedFrom(" value="return false;"/>
+    <replace file="${build.dir}/src/org/apache/xerces/dom/ElementNSImpl.java" 
+             token="return ((XSComplexTypeDecl) type).isDOMDerivedFrom(" value="return false;"/>
+    <replace file="${build.dir}/src/org/apache/xerces/dom/ElementNSImpl.java" 
+             token="typeNamespaceArg, typeNameArg, derivationMethod);" value=""/>
+  	
+    <!-- HACK: Remove references to schema DOM from DOMUtil -->
+    <replace file="${build.dir}/src/org/apache/xerces/util/DOMUtil.java" 
+             token="import org.apache.xerces.impl.xs.opti.ElementImpl;" value=""/>
+    <replace file="${build.dir}/src/org/apache/xerces/util/DOMUtil.java" 
+             token="(node instanceof ElementImpl)" value="(node == null)"/>
+    <replace file="${build.dir}/src/org/apache/xerces/util/DOMUtil.java" 
+             token="return ((ElementImpl)node).getAnnotation();" value="return null;"/>
+    <replace file="${build.dir}/src/org/apache/xerces/util/DOMUtil.java" 
+             token="return ((ElementImpl)node).getSyntheticAnnotation();" value="return null;"/>
+    <replace file="${build.dir}/src/org/apache/xerces/util/DOMUtil.java" 
+             token="(node instanceof org.apache.xerces.impl.xs.opti.NodeImpl)" value="(node == null)"/>
+    <replace file="${build.dir}/src/org/apache/xerces/util/DOMUtil.java" 
+             token="((org.apache.xerces.impl.xs.opti.NodeImpl)node).setReadOnly(true, false);" value="return;"/>
+    <replace file="${build.dir}/src/org/apache/xerces/util/DOMUtil.java" 
+             token="((org.apache.xerces.impl.xs.opti.NodeImpl)node).setReadOnly(false, false);" value="return;"/>
+    <replace file="${build.dir}/src/org/apache/xerces/util/DOMUtil.java" 
+             token="return ((org.apache.xerces.impl.xs.opti.NodeImpl)node).getReadOnly();" value="return false;"/>
+  	
+    <!-- HACK: Remove references to schema validation support from org.apache.xerces.jaxp -->
+    <replace file="${build.dir}/src/org/apache/xerces/jaxp/SAXParserImpl.java" 
+             token="import org.apache.xerces.impl.xs.XMLSchemaValidator;" value=""/>
+    <replace file="${build.dir}/src/org/apache/xerces/jaxp/SAXParserImpl.java" 
+             token="import org.apache.xerces.jaxp.validation.XSGrammarPoolContainer;" value=""/>
+    <replace file="${build.dir}/src/org/apache/xerces/jaxp/SAXParserImpl.java" 
+             token="UnparsedEntityHandler fUnparsedEntityHandler" value="org.apache.xerces.xni.parser.XMLDTDFilter fUnparsedEntityHandler"/>
+    <replace file="${build.dir}/src/org/apache/xerces/jaxp/SAXParserImpl.java" 
+             token="this.grammar = spf.getSchema();" value="this.grammar = null;"/>
+    <replace file="${build.dir}/src/org/apache/xerces/jaxp/SAXParserImpl.java" 
+             token="(grammar != null)" value="(false)"/>
+    <replace file="${build.dir}/src/org/apache/xerces/jaxp/SAXParserImpl.java" 
+             token="(grammar instanceof XSGrammarPoolContainer)" value="(grammar != null)"/>
+    <replace file="${build.dir}/src/org/apache/xerces/jaxp/SAXParserImpl.java" 
+             token="new XMLSchemaValidator();" value="null;"/>
+    <replace file="${build.dir}/src/org/apache/xerces/jaxp/SAXParserImpl.java" 
+             token="new UnparsedEntityHandler(fSchemaValidationManager);" value="null;"/>
+    <replace file="${build.dir}/src/org/apache/xerces/jaxp/SAXParserImpl.java" 
+             token="new JAXPValidatorComponent(grammar.newValidatorHandler());" value="null;"/>
+    <replace file="${build.dir}/src/org/apache/xerces/jaxp/SAXParserImpl.java" 
+             token="new SchemaValidatorConfiguration(config," value="null;"/>
+    <replace file="${build.dir}/src/org/apache/xerces/jaxp/SAXParserImpl.java" 
+             token="(XSGrammarPoolContainer) grammar, fSchemaValidationManager);" value=""/>
+    <replace file="${build.dir}/src/org/apache/xerces/jaxp/SAXParserImpl.java" 
+             token="fSAXParser.fUnparsedEntityHandler.reset();" value=""/>
+  	
+    <replace file="${build.dir}/src/org/apache/xerces/jaxp/DocumentBuilderImpl.java" 
+             token="import org.apache.xerces.impl.xs.XMLSchemaValidator;" value=""/>
+    <replace file="${build.dir}/src/org/apache/xerces/jaxp/DocumentBuilderImpl.java" 
+             token="import org.apache.xerces.jaxp.validation.XSGrammarPoolContainer;" value=""/>
+    <replace file="${build.dir}/src/org/apache/xerces/jaxp/DocumentBuilderImpl.java" 
+             token="UnparsedEntityHandler fUnparsedEntityHandler" value="org.apache.xerces.xni.parser.XMLDTDFilter fUnparsedEntityHandler"/>
+    <replace file="${build.dir}/src/org/apache/xerces/jaxp/DocumentBuilderImpl.java" 
+             token="this.grammar = dbf.getSchema();" value="this.grammar = null;"/>
+    <replace file="${build.dir}/src/org/apache/xerces/jaxp/DocumentBuilderImpl.java" 
+             token="(grammar != null)" value="(false)"/>
+    <replace file="${build.dir}/src/org/apache/xerces/jaxp/DocumentBuilderImpl.java" 
+             token="(grammar instanceof XSGrammarPoolContainer)" value="(grammar != null)"/>
+    <replace file="${build.dir}/src/org/apache/xerces/jaxp/DocumentBuilderImpl.java" 
+             token="new XMLSchemaValidator();" value="null;"/>
+    <replace file="${build.dir}/src/org/apache/xerces/jaxp/DocumentBuilderImpl.java" 
+             token="new UnparsedEntityHandler(fSchemaValidationManager);" value="null;"/>
+    <replace file="${build.dir}/src/org/apache/xerces/jaxp/DocumentBuilderImpl.java" 
+             token="new JAXPValidatorComponent(grammar.newValidatorHandler());" value="null;"/>
+    <replace file="${build.dir}/src/org/apache/xerces/jaxp/DocumentBuilderImpl.java" 
+             token="new SchemaValidatorConfiguration(config," value="null;"/>
+    <replace file="${build.dir}/src/org/apache/xerces/jaxp/DocumentBuilderImpl.java" 
+             token="(XSGrammarPoolContainer) grammar, fSchemaValidationManager);" value=""/>
+    <replace file="${build.dir}/src/org/apache/xerces/jaxp/DocumentBuilderImpl.java" 
+             token="fUnparsedEntityHandler.reset();" value=""/>
+  	
+    <replace file="${build.dir}/src/org/apache/xerces/jaxp/SAXParserFactoryImpl.java" 
+             token="return grammar;" value="throw new UnsupportedOperationException();"/>
+    <replace file="${build.dir}/src/org/apache/xerces/jaxp/SAXParserFactoryImpl.java" 
+             token="this.grammar = grammar;" value="throw new UnsupportedOperationException();"/>
+
+    <replace file="${build.dir}/src/org/apache/xerces/jaxp/DocumentBuilderFactoryImpl.java" 
+             token="return grammar;" value="throw new UnsupportedOperationException();"/>
+    <replace file="${build.dir}/src/org/apache/xerces/jaxp/DocumentBuilderFactoryImpl.java" 
+             token="this.grammar = grammar;" value="throw new UnsupportedOperationException();"/>
+             
+    <!-- HACK: Remove reference to XML11Configurable from SAX parser -->
+    <replace file="${build.dir}/src/org/apache/xerces/parsers/AbstractSAXParser.java"
+             token="return (fConfiguration instanceof XML11Configurable);" value="return false;"/>
+ 
+    <!-- now deal with API's:  -->
+    <unzip src="${src.apis.zip}" dest="${build.src}">
+        <patternset
+            includes="org/xml/sax/** 
+                javax/xml/**
+                javax/xml/datatype/**
+                javax/xml/namespace/**
+                javax/xml/parsers/**
+                javax/xml/transform/**
+                javax/xml/validation/**
+                javax/xml/xpath/**
+                org/w3c/dom/*
+                org/w3c/dom/bootstrap/**
+                org/w3c/dom/events/**
+                org/w3c/dom/html/**
+                org/w3c/dom/ls/**
+                org/w3c/dom/ranges/**
+                org/w3c/dom/traversal/**
+                org/w3c/dom/xpath/**"
+        />
+    </unzip>
+
+
+    <!-- substitute tokens as needed -->
+    <replace file="${build.dir}/src/org/apache/xerces/impl/Version.java" 
+             token="@@VERSION@@" value="${parser.Name} ${parser.Version}"/>
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Builds xercesImpl (dtd), xml-apis, and sample jars                  -->
+  <!-- =================================================================== -->
+  <target name="dtdjars" depends="dtdjar, sampjar">
+    <!-- include the xml-commons APIs -->
+    <copy file="${tools.dir}/${jar.apis}" tofile="${build.dir}/${jar.apis}"/>
+    <!-- include the xml-commons resolver -->
+    <copy file="${tools.dir}/${jar.resolver}" tofile="${build.dir}/${jar.resolver}"/>
+    <!-- include the Xalan Serializer -->
+    <copy file="${tools.dir}/${jar.serializer}" tofile="${build.dir}/${jar.serializer}"/>
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Build xercesDV jar                                                  -->
+  <!-- =================================================================== -->
+  <target name="dvjar" depends="dvcompile">
+    <jar jarfile="${build.dir}/${jar.dv}"
+         basedir="${build.dest}"
+         compress="true"
+         includes="org/apache/xerces/**">
+      <metainf dir="." includes="LICENSE,NOTICE"/>
+    </jar>
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Compiles the dv source directory                                    -->
+  <!-- =================================================================== -->
+  <target name="dvcompile" depends="dvprepare-src">
+    <copy todir="${build.dest}">
+      <fileset dir="${build.src}"
+        includes="**/*.properties">
+      </fileset>
+    </copy>
+
+    <xjavac srcdir="${build.src}"
+           destdir="${build.dest}"
+    	   classpath="${build.dir}/classes:${tools.dir}/${jar.apis}"
+           debug="${debug}"
+           deprecation="${deprecation}"
+           optimize="${optimize}"
+           includeAntRuntime="false"
+           includeJavaRuntime="true"/>
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Compiles the dv source code package                                 -->
+  <!-- =================================================================== -->
+  <target name="dvprepare-src" depends="prepare">
+
+    <!-- copy src files -->
+    <copy todir="${build.src}">
+        <fileset 
+            dir="${src.dir}"
+            includes="org/apache/xerces/impl/Constants.java
+        	          org/apache/xerces/impl/dv/**
+                      org/apache/xerces/impl/msg/XMLSchema**
+                      org/apache/xerces/impl/xpath/regex/**
+		      org/apache/xerces/impl/xs/util/ShortListImpl.java,
+        	          org/apache/xerces/impl/xs/SchemaSymbols.java
+                      org/apache/xerces/impl/xs/XSTypeDecl.java
+        	org/apache/xerces/jaxp/datatype/*.java
+			org/apache/xerces/xs/XSException.java
+			org/apache/xerces/xs/StringList.java
+			org/apache/xerces/xs/ShortList.java
+			org/apache/xerces/xs/XSAnnotation.java
+			org/apache/xerces/xs/XSAttributeDeclaration.java
+			org/apache/xerces/xs/XSAttributeGroupDefinition.java
+			org/apache/xerces/xs/XSAttributeUse.java
+			org/apache/xerces/xs/XSComplexTypeDefinition.java
+			org/apache/xerces/xs/XSConstants.java
+			org/apache/xerces/xs/XSElementDeclaration.java
+			org/apache/xerces/xs/XSIDCDefinition.java
+			org/apache/xerces/xs/XSModel.java
+			org/apache/xerces/xs/XSModelGroup.java
+			org/apache/xerces/xs/XSModelGroupDefinition.java
+			org/apache/xerces/xs/XSNamedMap.java
+			org/apache/xerces/xs/XSNamespaceItem.java
+			org/apache/xerces/xs/XSNamespaceItemList.java
+			org/apache/xerces/xs/XSNotationDeclaration.java
+			org/apache/xerces/xs/XSObject.java
+			org/apache/xerces/xs/XSObjectList.java
+			org/apache/xerces/xs/XSParticle.java
+			org/apache/xerces/xs/XSSimpleTypeDefinition.java
+			org/apache/xerces/xs/XSTerm.java
+			org/apache/xerces/xs/XSTypeDefinition.java
+			org/apache/xerces/xs/XSWildcard.java
+			org/apache/xerces/xs/XSFacet.java
+                      org/apache/xerces/xs/XSMultiValueFacet.java
+                      org/apache/xerces/xs/datatypes/*.java
+                      org/apache/xerces/impl/xs/util/StringListImpl.java
+                      org/apache/xerces/impl/xs/util/XSObjectListImpl.java
+                      org/apache/xerces/util/DatatypeMessageFormatter.java
+                      org/apache/xerces/util/ObjectFactory.java
+                      org/apache/xerces/util/SecuritySupport.java
+                      org/apache/xerces/util/SecuritySupport12.java
+                      org/apache/xerces/util/SymbolHash.java
+                      org/apache/xerces/util/URI.java
+                      org/apache/xerces/util/XMLChar.java
+                      org/apache/xerces/xni/NamespaceContext.java
+                      org/apache/xerces/xni/QName.java
+                     "
+            excludes="org/apache/xerces/impl/dv/DatatypeValidator.java
+                      org/apache/xerces/impl/dv/DTDDVFactory.java
+                      org/apache/xerces/impl/dv/dtd/**
+                      org/apache/xerces/impl/dv/xs/SchemaDVFactoryImpl.java
+                     ">
+        </fileset>
+    </copy>
+    
+    <!-- substitute tokens as needed -->
+    <replace file="${build.src}/org/apache/xerces/impl/dv/SchemaDVFactory.java" 
+             token="SchemaDVFactoryImpl" value="FullDVFactory"/>
+  </target>
+
+
+  <!-- =================================================================== -->
+  <!--  Retrieve the XML Conformance test suite from sourceforge           -->
+  <!-- =================================================================== -->
+  <target name="get-conftests" depends="init">
+    <mkdir dir="tests/conformance"/>
+    <get src="http://prdownloads.sourceforge.net/xmlconf/utilities.jar" dest="tests/conformance/utilties.jar" verbose="true" usetimestamp="true"/>
+    <cvspass cvsroot=":pserver:anonymous@cvs.xmlconf.sourceforge.net:/cvsroot/xmlconf" password=""/>
+    <cvs cvsRoot=":pserver:anonymous@cvs.xmlconf.sourceforge.net:/cvsroot/xmlconf" package="xml" dest="tests/conformance"/>
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Run the XML Conformance test suite from sourceforge                 -->
+  <!-- =================================================================== -->
+  <target name="run-conftests" depends="init">
+    <java classname="xml.testing.Driver" output="tests/conformance/report-nv.html">
+      <arg value="tests/conformance/xml/suite/xmlconf.xml"/>
+      <arg value="org.apache.xerces.parsers.SAXParser"/>
+      <arg value="tests/conformance/xml/template.xml"/>
+      <arg value="nv"/>
+      <arg value="${parser.version}"/>
+      <classpath>
+        <pathelement location="tests/conformance/utilities.jar"/>
+        <pathelement location="${build.dir}/${jar.apis}"/>
+        <pathelement location="${build.dir}/${jar.parser}"/>
+      </classpath>
+    </java>
+
+    <java classname="xml.testing.Driver" output="tests/conformance/report-val.html">
+      <arg value="tests/conformance/xml/suite/xmlconf.xml"/>
+      <arg value="org.apache.xerces.parsers.SAXParser"/>
+      <arg value="tests/conformance/xml/template.xml"/>
+      <arg value="val"/>
+      <arg value="${parser.version}"/>
+      <classpath>
+        <pathelement location="tests/conformance/utilities.jar"/>
+        <pathelement location="${build.dir}/${jar.apis}"/>
+        <pathelement location="${build.dir}/${jar.parser}"/>
+      </classpath>
+    </java>
+
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Prepares the source code with Schema 1.1 support                    -->
+  <!-- =================================================================== -->
+  <target name="prepare-src-schema11" depends="prepare-src">
+  	<replace file="${build.src}/org/apache/xerces/impl/Constants.java"
+  		token="SCHEMA_1_1_SUPPORT = false" value="SCHEMA_1_1_SUPPORT = true"/>
+  	<replace file="${build.src}/org/apache/xerces/xs/XSConstants.java"
+  	    token="public static final short UNAVAILABLE_DT            = 45;"
+  	    value="public static final short UNAVAILABLE_DT            = 45;&#xA;
+      &#xA;    public static final short YEARMONTHDURATION_DT      = 46;&#xA;
+      &#xA;    public static final short DAYTIMEDURATION_DT        = 47;&#xA;
+      &#xA;    public static final short PRECISIONDECIMAL_DT       = 48;&#xA;
+      &#xA;    public static final short ANYATOMICTYPE_DT          = 49;"/>
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Compiles the source directory with Schema 1.1 support               -->
+  <!-- =================================================================== -->
+  <target name="compile-schema11" depends="prepare-src-schema11">
+        <copy todir="${build.dest}">
+          <fileset dir="${build.src}"
+            includes="**/*.res, **/*.properties">
+          </fileset>
+        </copy>
+
+        <xjavac srcdir="${build.src}"
+               destdir="${build.dest}"
+               classpath="${build.dir}/classes:${tools.dir}/${jar.apis}:${tools.dir}/${jar.resolver}:${tools.dir}/${jar.serializer}"
+               debug="${debug}"
+               deprecation="${deprecation}"
+               optimize="${optimize}"
+               includeAntRuntime="false"
+               includeJavaRuntime="false"
+               excludes="org/xml/sax/** 
+                    javax/xml/**
+                    org/w3c/dom/*
+                    org/w3c/dom/events/**
+                    org/w3c/dom/html/**
+                    org/w3c/dom/ranges/**
+                    org/w3c/dom/traversal/**
+                    org/w3c/dom/xpath/**"
+               />
+  	</target>
+  
+  <!-- =================================================================== -->
+  <!-- Creates the implementation class package with Schema 1.1 support    -->
+  <!-- =================================================================== -->
+  <target name="jar-schema11" depends="compile-schema11">
+    <!-- take care of manifest file -->
+    <filter token="java.version" value="${java.version}"/>
+    <filter token="java.vendor" value="${java.vendor}"/>
+    <filter token="impl.name" value="${parser.Name} ${parser.Version}"/>
+    <filter token="impl.version" value="${parser.Version}"/>   
+    <copy todir="${build.dir}" file="${src.dir}/manifest.xerces" filtering="true"/>
+    <jar jarfile="${build.dir}/schema11-${jar.parser}"
+         basedir="${build.dest}"
+         compress="true"
+         includes="org/apache/**, META-INF/**
+                    org/w3c/dom/html/HTMLDOMImplementation.class
+                   org/w3c/dom/ls/**
+                   org/w3c/dom/DOMError.class
+                   org/w3c/dom/DOMErrorHandler.class
+                   org/w3c/dom/DOMImplementationSource.class
+                   org/w3c/dom/DOMImplementationRegistry.class
+                   org/w3c/dom/DOMLocator.class
+                   org/w3c/dom/UserDataHandler.class"
+         manifest="${build.dir}/manifest.xerces">
+      <manifest>
+        <attribute name="Ant-Version" value="${ant.version}"/>
+      </manifest>
+      <metainf dir="." includes="LICENSE,NOTICE"/>
+    </jar>
+  </target>	
+
+  <!-- =================================================================== -->
+  <!-- Builds xercesImpl, xml-apis and sample jars with Schema 1.1 support -->
+  <!-- =================================================================== -->
+  <target name="jars-schema11" depends="jar-schema11, sampjar">
+    <!-- include the xml-commons APIs -->
+    <copy file="${tools.dir}/${jar.apis}" tofile="${build.dir}/${jar.apis}"/>
+    <!-- include the xml-commons resolver -->
+    <copy file="${tools.dir}/${jar.resolver}" tofile="${build.dir}/${jar.resolver}"/>
+    <!-- include the Xalan Serializer -->
+    <copy file="${tools.dir}/${jar.serializer}" tofile="${build.dir}/${jar.serializer}"/>
+  </target>
+</project>

@@ -1,0 +1,59 @@
+
+                Xerces Java Build Instructions
+                ------------------------------
+
+===========================================================================
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+===========================================================================
+
+Before building Xerces, you need the source package and tools
+package available from the Apache XML Project's distribution
+web page:
+
+    http://xml.apache.org/dist/xerces-j/
+
+Download both the Xerces-J-src.X.Y.Z.zip and Xerces-J-tools.X.Y.Z.zip 
+files for the appropriate Xerces release (where "X.Y.Z" is the version
+number) and extract them in the same directory. If you are using Unix, 
+download the equivalent .tar.gz files instead of the .zip files.
+
+You also need to have a Java Development Kit (JDK) version 1.2 (or 
+higher) installed on your system. Before initiating any part of the 
+build, set the JAVA_HOME environment variable to the installation 
+directory of your JDK.
+
+The Ant program is used to build everything in Xerces, including
+the documentation. This tool, and the others needed (besides the
+pre-requisite JDK) are contained within the tools package. To
+make building the packages easier, a Windows batch file and a Unix 
+shell script are included.
+
+If you only want to compile the source code and make the JAR files,
+run the following command on Windows:
+
+    build.bat jars
+
+or from Unix (make sure that build.sh is executable):
+
+    build.sh jars
+
+This will compile all of the source code and generate the JAR
+files that are available as part of the binary package. After
+building, these files will be located in the build/ directory.
+
+If you want to build everything, including the documentation,
+run the build batch file (or shell script) specifying the "all"
+target instead of "jars".

@@ -1,0 +1,408 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<!DOCTYPE faqs SYSTEM 'dtd/faqs.dtd'>
+<faqs title='Building and Running FAQs'>
+ <faq title='Swing version?'>
+  <q>Which version of Swing is required?</q>
+  <a>
+   <p>
+    This release uses Swing 1.1 (JFC 1.1). Swing is only used by
+    the sample programs and is not required by the parser itself.
+   </p>
+  </a>
+ </faq>
+ <faq title='Recompling source files?'>
+  <q>How do I recompile the source files?</q>
+  <a>
+   <p>
+    To build &ParserName; you need the Java Development
+    Kit (JDK) version 1.2 (or higher) installed on your machine.
+    The actual build is performed by the Ant program which is
+    written in Java and is a subproject of the Apache
+    <jump href='http://ant.apache.org/'>Ant</jump>
+    project. The build also requires a few other tools but
+    all of the tools you need (including Ant) are contained
+    in the <ref>&ParserName;-tools.&parserversion;.zip</ref>
+    file, packaged separately. Go to the &ParserName; 
+    <jump href='http://xerces.apache.org/xerces2-j/download.cgi'>download</jump>
+    page to download the tools package and then extract it in the
+    same location as the source package.
+   </p>
+   <p>
+    Once you have extracted both the source and tools packages
+    in the same directory, you can invoke a build by either
+    using the "build.bat" file for Windows platforms or the
+    "build.sh" file for UNIX platforms. Before invoking either
+    one of these scripts, though, be sure to set the JAVA_HOME
+    environment variable to the installed location of your JDK.
+   </p>
+   <p>
+    The script will invoke the Ant build program for you which
+    displays the list of allowed build targets. To only compile
+    the source files, type "build compile" (on Windows platforms)
+    at the command line in the directory where you extracted 
+    &ParserName;; to build the Jar files, type "build jars"; and
+    to build everything, including documentation, type "build
+    all".
+   </p>
+  </a>
+ </faq>
+ <faq title='Regenerating API documentation?'>
+  <q>How do I regenerate the API documentation?</q>
+  <a>
+   <p>
+    To regenerate the API documentation, you need to set up
+    your environment to build &ParserName;.  Instead of typing 
+    "build all", you type "build javadocs".
+   </p>
+  </a>
+ </faq>
+ <faq title="How do I use Visual Age?">
+  <q>How do I import &ParserName; into Visual Age for Java</q>
+  <a>
+   <ul>
+    <li>
+     Why does VisualAge for Java 2.0 report problems when I import
+     the &ParserName; parser?
+     <br/>
+     The current version of the &ParserName; parser uses Swing 
+     1.1, while VisualAge for Java 2.0 comes with Swing 1.0.2. The 
+     free update for the Professional version of VisualAge for Java 
+     2.0 installs Swing 1.0.3. The most important difference between
+     Swing 1.0.2 - 1.0.3 and 1.1 is the Java package was changed 
+     from com.sun.java.swing.* to javax.swing.*.
+     <br/>
+     To fix the errors, you must download the Java Foundation Classes
+     1.1 with Swing 1.1 from Sun's Java home page and import the 
+     &quot;swingall.jar&quot; file into VisualAge for Java 2.0. The
+     Swing 1.1 package can be found at the following URL:
+     <br/>
+     <jump href="http://java.sun.com/products/jfc/index.html">http://java.sun.com/products/jfc/index.html</jump>
+     <br/>
+     Refer to the VisualAge for Java 2.0 documentation for information 
+     about how to import a JAR file into the repository and add that 
+     code to your workspace.
+    </li>
+    <li>
+     Are there any other tips for importing the &ParserName; 
+     parser into VisualAge for Java 2.0?
+     <br/>
+     The most useful tip applies to <em>any</em> updated code that you
+     import into the VisualAge for Java 2.0 product. Before updating 
+     code, do the following:
+     <br/>
+     1. version the old code
+     <br/>
+     2. delete it from your workspace
+     <br/>
+     3. import the new code
+     <br/>
+     Deleting code from your workspace does not actually delete 
+     the code permanently - the versioned code is moved to the 
+     repository where it can be retrieved later. Be aware, though, 
+     that removing code from your workspace will cause problems with
+     all of the other classes that use that code. VisualAge for Java
+     2.0 will flag them as errors but this situation is temporary. 
+     When you import the new code, the errors found when deleting the
+     old code will be fixed.
+     <br/>
+     If you are unsure as to how to perform any of these steps, refer 
+     to the VisualAge for Java 2.0 documentation.
+    </li>
+   </ul>
+  </a>
+ </faq>
+ <!--
+   - REVISIT: This needs to be re-run and re-verified before we
+   -          put this FAQ item back in.
+ <faq title='100% Pure Java compliant?'>
+  <q>Is this &ParserName; version 100% pure Java compliant?</q>
+  <a>
+   <p>
+    Running JavaPureCheck on the &ParserName; parser code indicated 339 
+    pure Java classes, 9 warnings, and 0 errors. The nine warnings are 
+    enumerated below with explanations. To see the entire report, click 
+    <link idref="jpc">here</link>. 
+   </p>
+   <p>
+    There are many common cases where JavaPureCheck issues warnings 
+    even though the code is pure Java. These are the most common 
+    reasons:
+   </p>
+   <ol>
+    <li>
+     Warning: method reference: 
+     <code>java.lang.Class.forName(java.lang.String)</code>
+     <br/>
+     This warning is issued in the following two cases:
+    </li>
+    <ol>
+     <li>
+      Program code calls the <code>Class.forName(String)</code> 
+      method to dynamically load a class file. In this situation, 
+      the specified class may contain impure Java code. In the 
+      cases where this method is called directly in the parser 
+      code, an explanation is provided detailing why this warning
+      can be ignored.
+     </li>
+     <li>
+      Program code makes direct reference to an object&apos;s 
+      class. For example: <code>Class stringClass = String.class;</code>. 
+      In this situation the Java compiler converts 
+      <code>String.class</code> to the method call 
+      <code>Class.forName(&quot;java.lang.String&quot;)</code>. 
+      As long as the object whose class is being referenced is 
+      pure Java, the code making the reference remains pure.
+     </li>
+    </ol>
+    <li>
+     Warning: possible hard-coded path: ...
+     <br/>
+     When a String literal contains a common path separator character
+     (e.g. &apos;/&apos; or &apos;\&apos;), JavaPureCheck assumes that 
+     it is a hard-coded path and that the class may not contain
+     portable code. While a human tester can verify that the string is
+     not a path, JavaPureCheck must be conservative and issue a 
+     warning.
+    </li>
+   </ol>
+   <p>Explanations:</p>
+   <ul>
+    <li>Class: org.xml.sax.helpers.ParserFactory</li>
+    <ul>
+     <li>
+      Warning: method reference: 
+      java.lang.Class.forName(java.lang.String)
+     </li>
+    </ul>
+    <ul>
+     <li>
+      Explanation: The ParserFactory class is part of the standard
+      SAX 1.0 distribution. The warning given that this class "may
+      load impure class" is correct - the ParserFactory class may 
+      load impure Java class files. However, the purpose of this
+      utility class is to load parser classes by name and therefore
+      cannot dynamically check the pureness of parser classes loaded 
+      in this fashion. Since the &ParserName; parser does not use this
+      method directly, it is not a problem that concerns the &ParserName;
+      parser.
+     </li>
+    </ul>
+    <li>Class: org.apache.xml.serialize.SerializerFactory</li>
+    <ul>
+     <li>
+      Warning: method reference: 
+      java.lang.Class.forName(java.lang.String)
+     </li>
+    </ul>
+    <ul>
+     <li>
+      Explanation: The SerializerFactory supports querying a system 
+      property to dynamically instantiate a serializer by class name. 
+      However, all of the serializer classes provided in this 
+      distribution are pure. The only way to load an impure 
+      serializer is if the user provided an impure serializer
+      implementation.
+     </li>
+    </ul>
+    <li>Class: org.apache.xml.serialize.OutputFormat</li>
+    <ul>
+     <li>Warning: possible hard-coded path: text/xml</li>
+    </ul>
+    <ul>
+     <li>Warning: possible hard-coded path: text/plain</li>
+    </ul>
+    <ul>
+     <li>Warning: possible hard-coded path: application/pdf</li>
+    </ul>
+    <ul>
+     <li>Warning: possible hard-coded path: text/html</li>
+    </ul>
+    <ul>
+     <li>
+      Warning: possible hard-coded path: 
+      -//W3C//DTD XHTML 1.0 Strict//EN
+     </li>
+    </ul>
+    <ul>
+     <li>Explanation: These strings are not filenames.</li>
+    </ul>
+    <li>Class: org.apache.xml.serialize.HTMLdtd</li>
+    <ul>
+     <li>
+      Warning: method reference: 
+      java.lang.Class.forName(java.lang.String)
+     </li>
+    </ul>
+    <ul>
+     <li>Explanation: Referencing class object that is pure Java.</li>
+    </ul>
+    <li>Class: org.apache.html.dom.HTMLDocumentImpl</li>
+    <ul>
+     <li>
+      Warning: method reference: 
+      java.lang.Class.forName(java.lang.String)
+     </li>
+    </ul>
+    <ul>
+     <li>Explanation: Referencing class object that is pure Java.</li>
+    </ul>
+    <li>Class: org.apache.xerces.readers.StringReader</li>
+    <ul>
+     <li>
+      Warning: method reference: 
+      java.lang.Class.forName(java.lang.String)
+     </li>
+    </ul>
+    <ul>
+     <li>Explanation: Referencing class object that is pure Java.</li>
+    </ul>
+    <li>Class: org.apache.xerces.parsers.DOMParser</li>
+    <ul>
+     <li>
+      Warning: method reference: 
+      java.lang.Class.forName(java.lang.String)
+     </li>
+    </ul>
+    <ul>
+     <li>
+      Explanation: The DOMParser class allows the user to set the
+      DOM implementation to use, by name. However, the default DOM
+      implementation is pure Java.
+     </li>
+    </ul>
+    <ul>
+     <li>Explanation: Referencing class object that is pure Java.</li>
+    </ul>
+    <li>Class: org.apache.xerces.utils.CharDataChunk</li>
+    <ul>
+     <li>
+      Warning: method reference: 
+      java.lang.Class.forName(java.lang.String)
+     </li>
+    </ul>
+    <ul>
+     <li>Explanation: Referencing class object that is pure Java.</li>
+    </ul>
+    <li>Class: org.apache.xerces.utils.UTF8DataChunk</li>
+    <ul>
+     <li>
+      Warning: method reference: 
+      java.lang.Class.forName(java.lang.String)
+     </li>
+    </ul>
+    <ul>
+     <li>Explanation: Referencing class object that is pure Java.</li>
+    </ul>
+   </ul>
+   <p>
+    The results file of the JavaPureCheck can be viewed by clicking
+    <link idref="jpc">here</link>.
+   </p>
+   <note>
+    The samples were not checked with JavaPureCheck and are not 
+    guaranteed to be pure Java. We reserve the right to write samples 
+    in the future that are platform specific and therefore may not 
+    pass as pure Java. The parser, however, will remain pure Java.
+   </note>
+  </a>
+ </faq>
+ -->
+ <faq title='Running on the Mac?'>
+  <q>How do I get &ParserName; to run on the Mac under MRJ?</q>
+  <a>
+   <p>
+    <em>Prerequisites</em> (available from 
+    <jump href="http://developer.apple.com/java/">http://developer.apple.com/java/</jump>):
+   </p>
+   <ul>
+    <li>MRJ 2.1 (this is the most recent version of the JVM)</li>
+    <li>
+     MRJ SDK 2.1 (this is the most recent version of the Java
+     developer tools)
+    </li>
+   </ul>
+   <p>
+    <em>Instructions </em>(other variations would work also):
+   </p>
+   <ol>
+    <li>Download the .tar.gz file containing &ParserName;.</li>
+    <li>
+     Use Stuffit Expander(tm), Suntar, or some other Macintosh tool 
+     that supports the .tar.gz format to expand the downloaded file.
+    </li>
+    <li>
+     JBindery, part of MRJ SDK 2.1, is used to create a double-clickable 
+     Java application with the necessary configuration information built
+     in. It is analogous to writing a .bat or .sh script. 
+    </li>
+    <li><em>To run the dom.DOMWriter example:</em></li>
+    <ol>
+     <li>Double click on JBindery to start it up.</li>
+     <li>Click on the Classpath panel.</li>
+     <li>
+      Click on the &quot;Add .zip File&quot; button and add both the 
+      &quot;xerces.jar&quot; and &quot;xercesSamples.jar&quot; files.
+     </li>
+     <li>Click on the Command panel.</li>
+     <li>
+      Enter &quot;dom.Writer&quot; as the Class name. Enter 
+      &quot;data/personal.xml&quot; in the Optional parameters box.
+     </li>
+     <li>
+      Click on Save Settings button, pick a name such as &quot;Run
+      <code>dom.Writer</code>&quot; for the file, and <em>be 
+      sure</em> that &quot;Save as Application&quot; is selected 
+      (this is the default) and save the file.
+     </li>
+     <li>Quit JBindery.</li>
+     <li>
+      You can now double click on the file you created in step (f) to
+      run the XJParse example.
+     </li>
+    </ol>
+   </ol>
+  </a>
+ </faq>
+ <faq title='Visual Cafe exception error?'>
+  <q>Why do I get an ArrayIndexOutOfBoundsException in the Symantec Visual Cafe debugger?</q>
+  <a>
+   <p>
+    The Visual Cafe debugger is set to trap 
+    <code>ArrayIndexOutOfBoundsException</code> exceptions by 
+    default. &ParserName; sometimes uses 
+    <code>ArrayIndexOutOfBoundsException</code> internally to 
+    signal exceptional, but not erroneous conditions. In order to 
+    run &ParserName; inside Visual Cafe's debugger, you need to
+    turn off the trapping of these exceptions.
+   </p>
+   <p><em>To do this:</em></p>
+   <ol>
+    <li>Select the &quot;Options&quot; item in the "Project" menu.</li>
+    <li>
+     Select the &quot;Debugger&quot; tab in the dialog which appears.
+    </li>
+    <li>Select &quot;Exceptions&quot; from the popup menu.</li>
+    <li>
+     Remove the check from the checkbox for 
+     <code>java.lang.ArrayIndexOutOfBoundsException</code>.
+    </li>
+   </ol>
+  </a>
+ </faq>
+</faqs>

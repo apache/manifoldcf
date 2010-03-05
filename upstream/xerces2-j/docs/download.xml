@@ -1,0 +1,149 @@
+<?xml version="1.0" standalone="no"?>
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<!DOCTYPE s1 SYSTEM "sbk:/sources/dtd/document.dtd">
+
+<s1 title="Downloading">
+
+    <s2 title="Download">
+
+<p>Use the links below to download the &ParserName; from one of
+our mirrors.  You <em>must</em> <link anchor="verify">verify the
+integrity</link> of the downloaded files using signatures downloaded from
+our main distribution directory.</p>
+
+<p>You can download the &ParserName; distributions from
+the <jump href="http://www.apache.org/dist/xerces/j/">master distribution
+directory</jump> or, preferably, its <jump
+href="[preferred]/xerces/j/">mirror</jump>. Only current recommended
+releases are available on the main distribution site and its mirrors.
+Older releases are available from the <jump
+href="http://archive.apache.org/dist/xerces/j/">archive download
+site.</jump></p>
+
+</s2>
+
+<s2 title="Mirror" >
+<p>The currently selected mirror is <em>[preferred]</em>.  If you encounter a
+problem with this mirror, please select another mirror.  If all
+mirrors are failing, there are <em>backup</em> mirrors (at the end of
+the mirrors list) that should be available.</p>
+
+
+<form action="[location]" method="get" id="SelectMirror">
+Other mirrors: <select name="Preferred">
+[if-any http]
+  [for http]<option value="[http]">[http]</option>[end]
+[end]  
+[if-any ftp]
+  [for ftp]<option value="[ftp]">[ftp]</option>[end]
+[end]
+[if-any backup]
+  [for backup]<option value="[backup]">[backup] (backup)</option>[end]
+[end]
+</select>
+<input type="submit" value="Change" />     
+</form>
+
+
+<p>You may also consult the <jump href="http://www.apache.org/mirrors/">complete
+list of mirrors</jump>.</p>
+
+</s2>
+
+
+<anchor name="verify"/>
+<s2 title="Verify the integrity of the files">
+
+<p>It is essential that you verify the integrity of the downloaded
+files using the PGP or MD5 signatures.  Please read <jump
+href="http://httpd.apache.org/dev/verification.html">Verifying HTTP Server Releases</jump> for
+more information on why you should verify our releases.</p>
+
+<p>The PGP signatures can be verified using PGP or GPG.  First
+download the <jump href="http://www.apache.org/dist/xerces/j/KEYS">KEYS</jump>
+as well as the <code>asc</code> signature file for the particular
+distribution.  Make sure you get these files from the <jump
+href="http://www.apache.org/dist/xerces/j/">main distribution
+directory</jump>, rather than from a mirror. Then verify the signatures
+using</p>
+
+<source>
+% pgpk -a KEYS
+% pgpv apache_1.3.24.tar.gz.asc
+</source>
+<p><em>or</em></p>
+<source>
+% pgp -ka KEYS
+% pgp apache_1.3.24.tar.gz.asc
+</source>
+<p><em>or</em></p>
+<source>
+% gpg --import KEYS
+% gpg --verify apache_1.3.24.tar.gz.asc
+</source>
+
+
+
+<p>Alternatively, you can verify the MD5 signature on the files.  A
+unix program called <code>md5</code> or <code>md5sum</code> is
+included in many unix distributions.  It is also available as part of
+<jump href="http://www.gnu.org/software/textutils/textutils.html">GNU
+Textutils</jump>.  Windows users can get binary md5 programs from <jump
+href="http://www.fourmilab.ch/md5/">here</jump>, <jump
+href="http://www.pc-tools.net/win32/freeware/console/">here</jump>, or
+<jump href="http://www.slavasoft.com/fsum/">here</jump>.</p>
+
+</s2>
+
+<!--
+<s2 title="&ParserName; &ParserVersion; Binary Releases">
+
+<ul>
+<li>Windows/Java <code>.zip</code>: 
+<jump href="[preferred]/xerces/j/binaries/Xerces-J-bin.&ParserVersion;.zip">Xerces-J-bin.&ParserVersion;.zip</jump> 
+[<jump href="http://www.apache.org/dist/xerces/j/binaries/Xerces-J-bin.&ParserVersion;.zip.sig">PGP</jump>]
+</li>
+
+<li>Unix <code>.tar.gz</code>: 
+<jump href="[preferred]/xerces/j/binaries/Xerces-J-bin.&ParserVersion;.tar.gz">Xerces-J-bin.&ParserVersion;.tar.gz</jump> 
+[<jump href="http://www.apache.org/dist/xerces/j/binaries/Xerces-J-bin.&ParserVersion;.tar.gz.sig">PGP</jump>]
+</li>
+
+</ul>
+
+</s2>
+
+<s2 title="&ParserName; &ParserVersion; Source Releases">
+
+<ul>
+<li>Windows/Java <code>.zip</code>: 
+<jump href="[preferred]/xerces/j/Xerces-J-src.&ParserVersion;.zip">Xerces-J-src.&ParserVersion;.zip</jump> 
+[<jump href="http://www.apache.org/dist/xerces/j/Xerces-J-current.zip.sig">PGP</jump>]
+</li>
+
+<li>Unix <code>.tar.gz</code> archive: 
+<jump href="[preferred]/xerces/j/binaries/Xerces-J-src.&ParserVersion;.tar.gz">Xerces-J-src.&ParserVersion;.tar.gz</jump> 
+[<jump href="http://www.apache.org/dist/xerces/j/binaries/Xerces-J-src.&ParserVersion;.tar.gz.sig">PGP</jump>]
+
+
+</li>
+</ul>
+</s2>
+-->
+
+</s1>

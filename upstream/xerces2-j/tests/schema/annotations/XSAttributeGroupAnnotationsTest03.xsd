@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="XSAttributeGroupAnnotationsTest"
+    xmlns:sv="XSAttributeGroupAnnotationsTest">
+
+    <attributeGroup  name="AG" sa:synth="ANNOT"
+        xmlns:sa="SyntheticAnnotationsNS">
+    </attributeGroup >
+
+    <attributeGroup  name="AG1" >
+    </attributeGroup >
+    
+    <element name="root">
+        <complexType>
+            <sequence>
+                <element name="elString" type="string" />
+            </sequence>
+        </complexType>
+    </element>
+
+</schema>

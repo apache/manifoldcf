@@ -1,0 +1,157 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<!DOCTYPE faqs SYSTEM 'dtd/faqs.dtd'>
+<faqs title='FAQs for Developers and Prospective Contributors'>
+    <faq title="Submitting Patches">
+    <q>I have a problem and I think I know how to fix it.  How can I
+        communicate my ideas to the Xerces team?
+    </q>
+    <a>
+        <p>To maximize the probability that your ideas will grab the
+        attention of one of the Xerces developers who knows about the
+        area of the parser you're concerned with, you should follow
+        these steps:
+    </p>
+    <ol>
+        <li>Check out and build the most recent Xerces code.  For
+            instructions on how to do this, see the <link idref="source-repository">
+            Source Repository</link> page. If you do this, you can confirm that your
+            bug still exists and has not been fixed since the last
+            release.
+        </li>
+        <li>
+            Write up your bug report.  Include a description of your
+            system (JDK level and vendor, platform and classpath
+            contents) as well as sufficient code to reproduce the
+            problem.  This code might involve XML documents,
+            accompanying grammars, and the code you are using to
+            invoke the parser or use its APIs.
+        </li>
+        <li>
+            Describe why your solution works.
+        </li>
+        <li>
+            Prepare a patch to fix Xerces code.  To do this, when you
+            have applied your changes to a local copy of the most
+            recent xerces source code, do <code>svn diff
+            file</code> for each file you&apos;ve changed.
+        </li>
+        <li>
+            Zip (or tar) up your patches.  If you send them in the
+            body of a message or bug report they are very difficult to
+            apply.
+        </li>
+        <li>
+            Submit a bug report on <jump
+            href="http://issues.apache.org/jira">JIRA</jump>
+            (remembering to attach your patches and test code)
+            or, if you think your patch might need some discussion,
+            post it to the <jump href="http://xml.apache.org/mail.html#xerces-j-dev">j-dev@xerces.apache.org</jump> list.
+        </li>
+    </ol>
+    </a>
+    </faq>
+    <faq title="Release Preparation">
+    <q>I am a recent committer.  It has fallen to my lot to prepare a Xerces-J
+        release; how do I do this?
+    </q>
+    <a>
+        <p>You're in luck--it isn&apos;t at all difficult.  Just
+            follow these steps and you&apos;ll be done in no time:
+        </p>
+        <ol> 
+        <li>Ensure that the API code has been properly refreshed.
+        That is, make sure that <code>tools/xml-apis.jar</code>
+        and <code>tools/xml-apis--src.zip</code> reflect the
+        state of the branch of xml-commons that contains the API
+        set to which the parser must conform.  At the time of
+        writing (September 2, 2007) this was the main
+        <code>trunk</code>.
+        </li>
+        <li>Change the following files:<br/>
+            <code>build.xml</code>
+                (that is, change the <code>parser.Version</code>,
+                <code>parser.version</code>, and 
+                <code>parser_version</code> properties as appropriate for the
+                release).<br/>  
+            <code>docs/releases.xml</code> 
+                (contributors should have updated this file as significant 
+                changes/patches were applied, but the release manager should verify that 
+                nothing has slipped through.
+                Also, the release manager should attempt to ensure that appropriate
+                credit has been given for contributions).
+        </li>
+        <li>Tag the release in SVN
+            (tags for releases usually have the form Xerces-J_x_y_z
+            where x.y.z is the Xerces-J release number)
+            You should also tag the current branch of xml-commons
+            containing the APIs that the parser needs to conform
+            to; see step 1 above.
+        </li>
+        <li>Do a test build and regression test run;
+            i.e., <code>build test</code> at a bare minimum.
+            In general, apply as many test suites (OASIS XML
+                tests, W3C DOM and Schema tests etc.) as are
+                available, particularly with a view to preventing
+                regressions since the previous release.
+        </li>
+        <li>Do the final build based on that tag:<br/>
+            windows build to produce <code>.zip</code>
+                packages<br/>
+            unix build (on a unix machine to make sure no 0x0d's
+                appear in documentation of <code>.tar.gz</code>
+                packages.  Beware to do the build from within
+                X-windows to avoid problems with StyleBook on the
+                command-line!
+        </li>
+        <li>zip and tar the tools directory</li> 
+        <li>
+            Generate PGP/GNUPG signatures for dist binaries:<br/>
+            That is, add public key to the SVN <code>KEYS</code> file if necessary
+            and make sure public key is on a key server or two.
+        </li>
+        <li>Upload the binaries and signatures to the dist section of
+            the website</li>
+        <li>Update
+            <code>/www/xml.apache.org/dist/xerces-j/.htaccess</code>, 
+            which directs the user to the most recent release.  Take
+            care to move old packages to the <code>old_xerces</code>
+            directory so that the package listing is manageable.  
+        </li>
+        <li>Prepare release e-mail -- be sure to give contributors
+            credit for their work</li>
+        <li>Send the release e-mail to the xerces-j lists, general@xml.apache.org and, 
+            if it&apos;s a big enough release, announcements@xml.apache.org and 
+            announcements@apache.org
+        </li>
+        <li>JIRA:<br/>
+            Firstly, create new release.  Then,
+            remove oldest release (if we are up-to 6
+                releases).
+        </li>
+        <li>Website:<br/>
+            Upload generated docs directory to minotaur (until this process 
+                matures and becomes SVN-based).
+            Commit <code>/www/xerces.apache.org/xerces2-j</code> to SVN;
+               i.e., update the xml-site module.
+        </li>
+        </ol>
+    </a>
+    </faq>
+</faqs>
+

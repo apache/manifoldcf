@@ -1,0 +1,399 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<!DOCTYPE faqs SYSTEM 'dtd/faqs.dtd'>
+<faqs title='Caching and Preparsing Grammars'>
+ <faq title='Caching Grammars'>
+  <q>I have a set of (DTD or XML Schema) grammars that I
+    use a lot.  How can I make Xerces
+    reuse the representations it builds for these grammars,
+    instead of parsing them anew with every new document?
+  </q>
+  <a>
+    <p>
+        Before answering this question, it will greatly help to
+        understand how Xerces handles grammars internally.  To do
+        this, here are some terms:
+    </p>
+    <anchor name="grammar-terms"/>
+    <ul>
+        <li><code>Grammar</code>:  defined in the
+        <code>org.apache.xerces.xni.grammars.Grammar</code>
+        interface; simply differentiates objects that are Xerces
+        grammars from other objects, as well as providing a means
+        to get at the location information (<code>XMLGrammarDescription</code>) for the grammar represented..</li>
+        <li><code>XMLGrammarDescription</code>:  defined by the
+        <code>org.apache.xerces.xni.grammars.XMLGrammarDescription</code>
+        interface, holds some basic location information common to all grammars.
+        This can be used to distinguish one
+        <code>Grammar</code> object from another, and also
+        contains information about the type of the grammar.</li>
+        <li>Validator:  A generic term used in Xerces to denote
+        an object which compares the structure of an XML document
+        with the expectations of a certain type of grammar.
+        Currently, we have DTD and XML Schema validators.</li>
+        <li><code>XMLGrammarPool</code>:  Defined by the
+        <code>org.apache.xerces.xni.grammars.XMLGrammarPool</code>
+        interface, this object is owned by the application and it
+        is the means by which the application and Xerces pass
+        complex grammars to one another.</li>
+        <li>Grammar bucket:  An internal data structure owned by
+        a Xerces validator in which grammars--and information
+        related to grammars--to be used in a given validation
+        episode is stored.</li>
+        <li><code>XMLGrammarLoader</code>:  defined in the
+        <code>org.apache.xerces.xni.grammars.XMLGrammarLoader</code>
+        interface, this defines an object that "knows how" to
+        read the XML representation of a particular kind of
+        grammar and construct a Xerces-internal representation (a
+        <code>Grammar</code> object) out of it.  These objects
+        may interact with validators during parsing of instance
+        documents, or with external code during grammar
+        preparsing.</li>
+    </ul>
+    <p>Now that the terminology is out of the way, it's possible
+        to relate all these objects together.  At the commencement of
+        a validation episode, a validator will call the
+        <code>retrieveInitialGrammarSet(String grammarType)</code> method of the
+        <code>XMLGrammarPool</code> instance to which it has access.  It
+        will use the <code>Grammar</code> objects it procures in this
+        way to seed its grammar bucket.
+    </p>
+    <p>
+        When the validator determines that it needs a grammar, it
+        will consult its grammar bucket.  If it finds a matching
+        grammar, it will attempt to use it.  Otherwise, if it has
+        access to an <code>XMLGrammarPool</code> instance, it
+        will request a grammar from that object with the
+        <code>retrieveGrammar(XMLGrammarDescription desc)</code>
+        method.  Only if both of these steps fail will it fall
+        back to attempting to resolve the grammar entity and
+        calling the appropriate <code>XMLGrammarLoader</code> 
+        to actually create a new Grammar object.
+    </p>
+    <p>
+        At the end of the validation episode, the validator will
+        call the <code>cacheGrammars(String grammarType,
+        Grammar[] grammars)</code> method of the
+        <code>XMLGrammarPool</code> (if any) to which it has
+        access.  There is no guarantee grammars that the grammar
+        pool itself supplied to the validator will not be
+        included in this set, so a grammar pool implementation
+        cannot rely only on new grammars to be passed back in
+        this situation.
+    </p>
+    <p>
+        At long last, it's now possible to answer the original
+        question--how can one cache grammars?  Assuming one has a
+        reasonable <code>XMLGrammarPool</code>
+        implementation--such as that provided with Xerces--there are two
+        answers:
+    </p>
+    <ol>
+        <li><anchor name="passive"/>The "passive" approach:  Don't do any preparsing,
+        just register the grammar pool implementation with the
+        parser, and as new grammars are requested by instance
+        documents, simply let the validators add them to the
+        pool.  This is very unobtrusive to the application, but
+        doesn't provide that much control over what grammars are
+        added; even if a custom EntityResolver is registered,
+        it's still possible that unwanted grammars will make it
+        into the pool.</li>
+        <li>The "active" approach:  Preload a grammar pool
+        implementation with all the grammars you'll need, then
+        lock it so that no new grammars will be added.  Then
+        registering this on the configuration will allow
+        validators to make use of this set; registering a
+        do-nothing EntityResolver will allow the application to
+        deny validators from using any but the "approved" grammar
+        set.  This will oblige the application to use more Xerces
+        code, but provides a far more fine-grained approach to
+        controlling what grammars may be used.</li>
+    </ol>
+    <p>
+        We discuss both these approaches in a bit more detail
+        below, complete with some (broad) examples.  
+        As a starting point, though, the
+        <code>XMLGrammarBuilder</code> sample, from the
+        <code>xni</code> package, should provide a starting-point
+        for implementing either the active or passive approach.
+    </p>
+  </a>
+ </faq>
+ <faq title="Xerces Default Grammar Caching Implementation">
+  <q>Exactly how does Xerces default implementation of things
+  like the grammar pool work?</q>
+  <a>
+    <p>
+        Before proceeding further, let there be no doubt that, by default, Xerces
+        does not cache grammars at all.  In order to trigger Xerces grammar caching, an <code>XMLGrammarPool</code>
+        must be set, using the <code>setProperty</code> method,
+        on a Xerces configuration that supports grammar pools.  On the other hand,
+        you could simply use the <code>XMLGrammarCachingConfiguration</code> as
+        discussed briefly <jump href="#caching-w-standards">below</jump>.
+    </p>
+    <p>
+        When enabled, by default, Xerces's grammar pool implementation stores
+        any grammar offered to it (provided it does not already
+        have a reference matching that grammar).  It also makes
+        available all grammars it has, of a particular type, on
+        calls to <code>retrieveInitialGrammarSet</code>.  It will
+        also try and retrieve a matching grammar on calls to
+        <code>retrieveGrammar</code>.
+    </p>
+    <p>
+        Xerces uses hashing to distinguish different grammar
+        objects, by hashing on the
+        <code>XMLGrammarDescription</code> objects that those
+        grammars contain.  Thus, both of Xerces implementations
+        of XMLGrammarDescription--for DTD's and XML
+        Schemas--provide implementations of <code>hashCode():
+        int</code> and <code>equals(Object):boolean</code> that
+        are used by the hashing algorithm.
+    </p>
+    <p>
+        In XML Schemas, hashing is simply carried out on the
+        target namespace of the schema.  Thus, two grammars are
+        considered equal (by our default implementation) if and
+        only if their XMLGrammarDescriptions are instances of
+        <code>org.apache.xerces.impl.xs.XSDDescription</code> (our schema implementation of
+        XMLGrammarDescription) and the targetNamespace fields of
+        those objects are identical.
+    </p>
+    <p>
+        The case in DTD's is much more difficult.  Here is the
+        algorithm, which describes the conditions under which two
+        DTD grammars will be considered equal:
+    </p>
+    <ul>
+        <li>Both grammars must have XMLGrammarDescriptions that
+        are instances of
+        <code>org.apache.xerces.impl.dtd.XMLDTDDescription</code>.</li>
+        <li>If their publicId or expandedSystemId fields are
+        non-null they must be identical;</li>
+        <li>If one of the descriptions has a root element
+        defined, it must be the same as the root element defined
+        in the other description, or be in the list of global
+        elements stored in that description;</li>
+        <li>If neither has a root element defined, then they must
+        share at least one global element declaration in
+        common.</li>
+    </ul>
+    <p>
+        The DTD grammar caching also assumes that the entirety of
+        the cached grammar will lie in an external subset.  i.e.,
+        in the example below, Xerces will happily cache--or use a
+        cached version of--the DTD in "my.dtd".  If the document
+        contained an internal subset, the declarations would be
+        ignored.  
+    </p>
+    <source>&lt;!DOCTYPE myDoc SYSTEM "my.dtd"&gt;
+&lt;myDoc ...&gt;...&lt;/myDoc&gt;</source>
+    <p>
+        Using these heuristics, Xerces's default grammar caching
+        implementation appears to do a reasonable job at matching
+        grammars up with appropriate instance documents.  This
+        functionality is very new, so in addition to bug reports
+        we'd very much appreciate, especially on the DTD front,
+        feedback on whether this form of caching is indeed useful or
+        whether--for instance--it would be better if internal
+        declarations were somehow incorporated into the grammar
+        that's been cached.
+    </p>
+  </a>
+ </faq>
+ <faq title="Preparsing Grammars">
+  <q>I like the idea of "active" caching (or I want the grammar
+  object for some purpose); how do I go about parsing a grammar
+  independent of an instance document?</q>
+  <a>
+    <p>
+        First, if you haven't read <jump href="#grammar-terms">the first FAQ on this page</jump> and
+        have trouble with terminology, hopefully answers
+        lie there.  
+      </p>
+      <p>
+        Preparsing of grammars in Xerces is accomplished with
+        implementations of the <code>XMLGrammarLoader</code>
+        interface.  Each implementation needs to know how to
+        parse a particular type of grammar and how to build a
+        data structure representing that grammar that Xerces can
+        efficiently make use of in validation.  Since most
+        application programs won't want to deal with Xerces
+        implementations per se, we have provided a handy utility
+        class to handle grammar preparsing generally:
+        <code>org.apache.xerces.parsers.XMLGrammarPreparser</code>.
+        This FAQ describes the use of this class.
+        For a live example, check out the
+        <code>XMLGrammarBuilder</code> sample in the
+        <code>samples/xni</code> directory of the binary
+        distribution.
+    </p>
+    <p>
+        <code>XMLGrammarPreparser</code> has methods for
+        installing XNI error handlers, entity resolvers, setting
+        the Locale, and generally doing similar things as an XNI
+        configuration.  Any object passed to XMLGrammarPreparser
+        by any of these methods will be passed on to all
+        <code>XMLGrammarLoader</code>s registered with
+        XMLGrammarPreparser.
+    </p>
+    <p>
+        Before <code>XMLGrammarPreparser</code> can be used, its
+        <code>registerPreparser(String, XMLGrammarLoader):
+        boolean</code> method must be called.  This allows a
+        String identifying an arbitrary grammar type to be
+        associated with a loader for that type.  To make peoples'
+        lives easier, if you want DTD grammars or XML Schema
+        grammar support, you can pass <code>null</code> for the
+        second parameter and <code>XMLGrammarPreparser</code>
+        will try and instantiate the appropriate default grammar
+        loader.  For DTD's, for instance, just call
+        <code>registerPreparser</code> like:
+    </p>
+    <source>grammarPreparser("http://www.w3.org/TR/REC-xml", null)</source>
+    <p>
+        Schema grammars correspond to the URI
+        "http://www.w3.org/2001/XMLSchema"; both these constants
+        can be found in the
+        <code>org.apache.xerces.xni.grammars.XMLGrammarDescription</code>
+        interface.  The method returns true if an
+        XMLGrammarLoader was successfully associated with the
+        given grammar String, false otherwise.
+    </p>
+    <p>
+        XMLGrammarPreparser also contains methods for setting
+        features and properties on particular loaders--keyed on
+        with the same string that was used to register the
+        loader.  It also allows features and properties the
+        application believes to be general to all loaders to be
+        set; it transmits such features and properties to each
+        loader that is registered.  These methods also silently consume any
+        notRecognized/notSupported exceptions that the loaders throw.  Particularly useful here is
+        registering an <code>XMLGrammarPool</code>
+        implementation, such as that found in
+        <code>org.apache.xerces.util.XMLGrammarPoolImpl</code>.
+    </p>
+    <p>
+        To actually parse a grammar, one simply calls the
+        <code>preparseGrammar(String grammarType, XMLInputSource
+        source):  Grammar</code> method.  As above, the String
+        represents the type of the grammar to be parsed, and the
+        XMLInputSource is the location of the grammar to be
+        parsed; this will not be subjected to entity expansion.
+    </p>
+    <p>
+        It's worth noting that Xerces default grammar loaders
+        will attempt to cache the resulting grammar(s) if a
+        grammar pool implementation is registered with them.
+        This is particularly useful in the case of schema
+        grammars:  If a schema grammar imports another grammar,
+        the Grammar object returned will be the schema doing the
+        importing, not the one being imported.  For caching,
+        this means that if this grammar is cached by itself, the grammars
+        that it imports won't be available to the grammar pool
+        implementation.  Since our Schema Loader knows about this
+        idiosyncrasy, if a grammar pool is registered with it,
+        it will cache all schema grammars it encounters,
+        including the one which it was specifically called to
+        parse.  In general, it is probably advisable to register
+        grammar pool implementations with grammar loaders for
+        this reason; generally, one would want to cache--and make
+        available to the grammar pool implementation--imported
+        grammars as well as specific schema grammars, since the
+        specific schemas cannot be used without those that they
+        import.
+    </p>
+  </a>
+ </faq>
+ <faq title="Grammar caching with Standard APIs">
+  <q>All right, I've (somehow) got a grammar pool full of
+  grammars.  How do I use this with my application that uses
+  standard (SAX|DOM|JAXP) parsers?</q>
+  <a><anchor name="caching-w-standards"/>
+    <p>
+        For SAX and DOM the case is simple.  Just do:
+    </p>
+    <source>XMLParserConfiguration config = new &DefaultConfig;();
+config.setProperty("http://apache.org/xml/properties/internal/grammar-pool",
+    myFullGrammarPool);
+(SAX|DOM)Parser parser = new (SAX|DOM)Parser(config);</source>
+    <p>
+        Now your grammar pool instance will be used by all
+        validators created by this parser to validate your
+        instance documents.
+    </p>
+    <p>
+        If you have an application that uses pure JAXP, your task
+        is a bit trickier.  You'll need to do something like
+        this:
+    </p>
+    <source>System.setProperty("org.apache.xerces.xni.parser.XMLParserConfiguration",
+    "org.apache.xerces.parsers.XMLGrammarCachingConfiguration");
+DocumentBuilder builder = // JAXP factory invocation
+// parse documents and store grammars</source>
+    <p>
+        Note that this only supports the "passive" caching
+        approach discussed in <jump href="#passive">above</jump>.  The
+        <code>org.apache.xerces.parsers.XMLGrammarCachingConfiguration</code>
+        represents experimental code; feedback on whether it is
+        useful would be greatly appreciated.
+    </p>
+  </a>
+ </faq>
+ <faq title="Examining Grammars">
+  <q>But I don't want to "preparse" grammars for efficiency; I
+  want to parse them in order to look at their contents using
+  some API!  Can I do this?</q>
+  <a>
+    <p>
+        Yes, for grammar types for which such an API is defined.
+        No such API exists at the current moment for DTD's.  For
+        XML Schemas, Xerces implements the 
+        <jump href="http://www.w3.org/Submission/2004/SUBM-xmlschema-api-20040309/">XML Schema API</jump>.
+        For details, it's best to look at the 
+        <link idref="api" anchor="xml-schema-api-documentation">API</link> docs for
+        the <code>org.apache.xerces.xs</code>
+        package.  Assuming you have produced a Grammar object from an XML Schema
+        document by some means, to turn that object
+        into an object usable in this API, do the following:
+    </p>
+    <ol>
+        <li>
+            Cast the Grammar object to <code>org.apache.xerces.xni.grammars.XSGrammar</code>;
+        </li>
+        <li>
+            Call the <code>toXSModel()</code> method on the casted object;
+        </li>
+        <li>
+            Use the methods in the <code>org.apache.xerces.xs.XSModel</code>
+            interface to examine the new object; methods on this
+            interface and others in the same package should allow you to access
+            all aspects of the schema.
+        </li>
+    </ol>
+  </a>
+ </faq>
+ <faq title="Alternative method for getting an XSModel">
+  <q>Is there an alternative method for getting an XSModel?</q>
+  <a>
+   <p>
+    Yes, for more information see the <jump href="faq-xs.html">XML Schema FAQ</jump>.
+   </p>
+  </a>
+ </faq>
+</faqs>

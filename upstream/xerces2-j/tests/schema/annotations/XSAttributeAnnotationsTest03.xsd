@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="XSAttributeAnnotationsTest"
+    xmlns:sv="XSAttributeAnnotationsTest">
+
+    <attribute name="attr" type="string" sa:synth="ANNOT"
+        xmlns:sa="SyntheticAnnotationsNS">
+    </attribute>
+
+    <attribute name="attr1" type="string">
+    </attribute>
+    
+    <element name="root">
+        <complexType>
+            <sequence>
+                <element name="elString" type="string" />
+            </sequence>
+        </complexType>
+    </element>
+
+</schema>

@@ -1,0 +1,171 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<!DOCTYPE faqs SYSTEM 'dtd/faqs.dtd'>
+<faqs title='Xerces Native Interface FAQs'>
+  <faq title="Augmentations">
+    <q>What are all these strange &quot;Augmentations&quot; parameters I see in so many methods?</q>
+    <a>
+        <p> They&apos;re intended to provide a way to augment the
+        basic XML infoset available from the non-Augmentation
+        parameters in the callbacks.  They can be used by a component to add arbitrary
+        information to the streaming infoset, which can then
+        be interpreted by some later component.</p>
+        <p> For instance, a component can be written to transmit the
+        post schema validation infoset through Augmentations
+        callbacks.  This can then be translated into an XML
+        representation.  This is exactly what is done in the PSVI
+        Writer and PSVI Configuration samples--see <link
+        idref="samples-xni">XNI sample documentation</link> for
+        details.</p>
+    </a>
+ </faq>
+ <faq title='Overriding Default Parser Configuration'>
+  <q>How do I change the default parser configuration?</q>
+  <a>
+   <anchor name="override-default-config"/>
+   <p>
+    It is possible to override the default parser configuration used
+    by the Xerces2 parsers without writing any code or changing the
+    existing parser classes. Moreover, the DOM and SAX parsers created
+    using the JAXP interfaces will use the specified parser configuration
+    transparently and without need to call additional methods to set the
+    parser configuration.
+   </p>
+   <p>
+    The DOM and SAX parsers decide which parser configuration to use in
+    the following order:
+   </p>
+   <ol>
+    <li>
+     First, the <code>org.apache.xerces.xni.parser.XMLParserConfiguration</code>
+     system property is queried for the class name of the parser configuration.
+    </li>
+    <li>
+     Next, if a file called <code>xerces.properties</code> exists in the lib
+     subdirectory of the JRE installation and the 
+     <code>org.apache.xerces.xni.parser.XMLParserConfiguration</code> property
+     is defined it, then its value will be read from the file.
+    </li>
+    <li>
+     Next, the <code>org.apache.xerces.xni.parser.XMLParserConfiguration</code>
+     file is requested from the <code>META-INF/services/</code> directory. 
+     This file contains the class name of the parser configuration.
+    </li>
+    <li>
+     Finally, the <code>&DefaultConfigLong;</code>
+     is used as the default parser configuration.
+    </li>
+   </ol>
+   <note>
+    In all cases, the parser configuration class must have a public,
+    no argument constructor so that it can be instantiated dynamically.
+   </note>
+   <p>
+    When using Java 2, it is not necessary to rebuild the Xerces jar files
+    in order to override the default parser configuration using the first
+    method. As long as a JAR file containing the appropriate file exists
+    in the <code>META-INF/services/</code> directory appears <em>before</em>
+    the Xerces JAR files, the parser will use the new parser configuration.
+   </p>
+   <p>
+    The first method can always be used on the command line for the JVM
+    by using the <code>-D</code> option. For example, to override the
+    default parser configuration using a custom configuration named
+    <code>MyConfig</code>, use the following command line:
+   </p>
+   <source>java -Dorg.apache.xerces.xni.parser.XMLParserConfiguration=MyConfig application_class</source>
+  </a>
+ </faq>
+ <faq title="Xerces Parser Configurations">
+  <q>In the Xerces distribution, what are the available parser configurations?</q>
+  <a>
+   <p>
+    The default parser configuration is <code>&DefaultConfigLong;</code>. It
+    and the other available parser configurations are described in the table 
+    below. All of them are located in the <code>org.apache.xerces.parsers</code>
+    package.
+   </p>
+   <table>
+    <tr><th>Configuration</th><th>Description</th></tr>
+    <tr>
+     <td>DTDConfiguration</td>
+     <td>A DTD-only configuration. Contains components appropriate to DTD-centric validation.</td>
+    </tr>
+    <tr>
+     <td>IntegratedParserConfiguration</td>
+     <td>Extends StandardParserConfiguration by including a scanner that integrates 
+         both scanning of the document and binding namespaces.</td>
+    </tr>
+    <tr>
+     <td>NonValidatingConfiguration</td>
+     <td>A non-validating configuration. It does not provide a
+         <jump href="http://www.w3.org/TR/2006/REC-xml-20060816/#sec-conformance">conformant</jump>
+         non-validating XML processor because it does not process the declarations
+         in an internal subset besides checking their well-formedness.
+     </td>
+    </tr>
+    <tr>
+     <td>SecurityConfiguration</td>
+     <td>Extends the default configuration allowing Xerces to behave in a more
+         security conscious manner by installing a 
+         <link idref='properties' anchor='security-manager'>SecurityManager</link>.
+     </td>
+    </tr>
+    <tr>
+     <td>SoftReferenceSymbolTableConfiguration</td>
+     <td>Extends the default configuration allowing Xerces to handle usage scenarios
+         where the names in the XML documents being parsed are mostly unique by
+         installing a memory sensitive SymbolTable. The internalized strings stored
+         in this SymbolTable are softly reachable and may be cleared by the garbage
+         collector in response to memory demand.
+     </td>
+    </tr>
+    <tr>
+     <td>StandardParserConfiguration</td>
+     <td>Extends DTDConfiguration by adding support for XML schema validation.</td>
+    </tr>
+    <tr>
+     <td>XIncludeAwareParserConfiguration</td>
+     <td>Extends XML11Configuration by providing support 
+         for XInclude. See the XInclude <link idref='faq-xinclude'>FAQ</link>.
+     </td>
+    </tr>
+    <tr>
+     <td>XML11Configuration</td>
+     <td>Like IntegratedParserConfiguration except that it supports XML 1.1
+         in addition to XML 1.0.
+     </td>
+    </tr>
+    <tr>
+     <td>XML11DTDConfiguration</td>
+     <td>Like DTDConfiguration except that it supports XML 1.1 in addition to XML 1.0.</td>
+    </tr>
+    <tr>
+     <td>XML11NonValidatingConfiguration</td>
+     <td>Like NonValidatingConfiguration except that it supports XML 1.1 in addition to XML 1.0.</td>
+    </tr>
+    <tr>
+     <td>XMLGrammarCachingConfiguration</td>
+     <td>Extends the default configuration by providing a generic
+         way of using Xerces' grammar caching facilities.
+     </td>
+    </tr>
+   </table>
+  </a>
+ </faq>
+</faqs>

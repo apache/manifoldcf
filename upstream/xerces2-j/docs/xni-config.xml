@@ -1,0 +1,1356 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<!DOCTYPE s1 SYSTEM 'dtd/document.dtd'>
+<s1 title='XNI Parser Configuration'>
+ <s2 title='Parser Configuration'>
+  <p>
+   Parser configurations built using the Xerces Native Interface
+   are made from a series of parser components. This document
+   details the XNI API for these components and how they are put
+   together to construct a parser configuration in the following
+   sections:
+  </p>
+  <ul>
+   <li><link anchor='components'>Components</link></li>
+   <li><link anchor='configurations'>Configurations</link></li>
+   <li><link anchor='pipelines'>Pipelines</link></li>
+  </ul>
+  <p>
+   In addition, several <link anchor='examples'>examples</link>
+   are included to show how to create some parser components and 
+   configurations:
+  </p>
+  <ul>
+   <li><link anchor='abstract-parser-config'>Abstract Parser Configuration</link></li>
+   <li><link anchor='csv-parser-config'>CSV Parser Configuration</link></li>
+  </ul>
+  <note>
+   All of the interfaces and classes defined in this document
+   reside in the <code>org.apache.xerces.xni.parser</code> package
+   but may use various interfaces and classes from the core XNI
+   package, <code>org.apache.xerces.xni</code>.
+  </note>
+  <note>
+   The source code for the samples in this document are included
+   in the downloaded packages for Xerces2.
+  </note>
+ </s2>
+ <anchor name='components'/>
+ <s2 title='Components'>
+  <p>
+   Parser configurations are comprised of a number of parser
+   components that perform various tasks. For example, a parser
+   component may be responsible for the actual scanning of XML
+   documents to generate document "streaming" information
+   events; another component may manage commonly used symbols
+   within the parser configuration in order to improve
+   performance; and a third component may even manage the
+   resolution of external parsed entities and the transcoding
+   of these entities from various international encodings into
+   <jump href='http://www.unicode.org/'>Unicode</jump> used 
+   within the Java virtual machine. When these components are
+   assembled in a certain way, they constitute a single parser
+   configuration but they can also be used interchangeably with
+   other components that implement the appropriate interfaces.
+  </p>
+  <p>
+   <strong>Note:</strong>
+   Even though a parser is comprised of a number of components,
+   not all of these components are <em>configurable</em>. In
+   other words, some components depend on knowing the state of
+   certain features and properties of the parser configuration
+   while others can operate completely independent of the parser
+   configuration. However, when we use the term "component" when
+   talking about XNI, we are talking about a <em>configurable
+   component</em> within the parser configuration.
+  </p>
+  <p>
+   The following diagram shows an example of this collection of 
+   parser components: (Please note that this is not the <em>only</em>
+   configuration of parser components.)
+  </p>
+  <p>
+   <img alt='Parser Components' src='xni-components-overview.gif'/>
+  </p>
+  <p>
+   The only distinguishing feature of a component
+   is that it can be notified of the state
+   of parser features and properties. Features represent parser
+   state of type <code>boolean</code> whereas properties represent
+   parser state of type <code>java.lang.Object</code>. Each
+   component can also be queried for which features and properties
+   it recognizes.
+  </p>
+  <anchor name='component'/>
+  <s3 title='Interface XMLComponent'>
+   <p>
+    This interface is the basic configurable component in a parser
+    configuration. It is managed by the
+    <link anchor='component-manager'>XMLComponentManager</link>
+    which holds the parser state.
+   </p>
+   <table>
+    <tr><th>Methods</th></tr>
+    <tr>
+     <td>
+      <code>
+       public void reset(
+           <link anchor='component-manager'>XMLComponentManager</link> manager
+           ) throws <link anchor='configuration-exception'>XMLConfigurationException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public Boolean getDefaultFeature(
+           String featureId);
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void getDefaultProperty(
+           String propertyId);
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void setFeature(
+           String featureId,
+           boolean state
+           ) throws <link anchor='configuration-exception'>XMLConfigurationException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void setProperty(
+           String propertyId,
+	   Object value
+           ) throws <link anchor='configuration-exception'>XMLConfigurationException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr><td><code>public String[] getRecognizedFeatures();</code></td></tr>
+    <tr><td><code>public String[] getRecognizedProperties();</code></td></tr>
+   </table>
+  </s3>
+  <anchor name='configuration-exception'/>
+  <s3 title='Class XMLConfigurationException'>
+   <p>
+   </p>
+   <table>
+    <tr>
+     <th>
+      Extends <link idref='xni-core' anchor='exception'>XNIException</link>
+     </th>
+    </tr>
+    <tr><th>Constants</th></tr>
+    <tr>
+     <td><code>public static final short NOT_RECOGNIZED;</code></td>
+    </tr>
+    <tr>
+     <td><code>public static final short NOT_SUPPORTED;</code></td>
+    </tr>
+    <tr><th>Constructors</th></tr>
+    <tr>
+     <td>
+      <code>
+       public XMLConfigurationException(
+           short type,
+	   String identifier
+           );
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public XMLConfigurationException(
+           short type,
+	   String identifier,
+	   String message
+           );
+      </code>
+     </td>
+    </tr>
+    <tr><th>Methods</th></tr>
+    <tr><td><code>public short getType();</code></td></tr>
+    <tr><td><code>public String getIdentifier();</code></td></tr>
+   </table>
+  </s3>
+  <p>
+   Components are managed by a component manager. The component
+   manager keeps track of the parser state for features and 
+   properties.  The component manager is responsible for notifying
+   each component when the value of those features and properties
+   change.
+  </p>
+  <p>
+   Before parsing a document, a parser configuration <em>must</em>
+   use the component manager to reset all of the parser components.
+   Then, during parsing, each time a feature or property value is
+   modified, all of the components <em>must</em> be informed of the 
+   change.
+  </p>
+  <anchor name='component-manager'/>
+  <s3 title='Interface XMLComponentManager'>
+   <p>
+    The component manager interface allows components to query
+    needed features and properties during a call to the
+    <code>XMLComponent#reset(XMLComponentManager)</code> method.
+    However, components <em>should not</em> keep a reference to
+    the component manager. In other words, all necessary state
+    should be queried when the component is reset.
+   </p>
+   <table>
+    <tr><th>Methods</th></tr>
+    <tr>
+     <td>
+      <code>
+       public boolean getFeature(
+           String featureId
+           ) throws <link anchor='configuration-exception'>XMLConfigurationException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public Object getProperty(
+           String propertyId
+           ) throws <link anchor='configuration-exception'>XMLConfigurationException</link>;
+      </code>
+     </td>
+    </tr>
+   </table>
+  </s3>
+  <p>
+   <strong>Note:</strong>
+   A compliant XNI parser configuration is <em>not</em>
+   required to use any components that implement the
+   <code><link anchor='component'>XMLComponent</link></code>
+   interface. That interface is included as a convenience for
+   people building modular and configurable parser components.
+   The Xerces2 reference implementation uses the component
+   interface to implement its components so that they can be
+   used interchangeably in various configurations.
+  </p>
+ </s2>
+ <anchor name='configurations'/>
+ <s2 title='Configurations'>
+  <p>
+   An XNI parser configuration defines the entry point for a
+   parser to set features and properties, initiate a parse of
+   an XML instance document, perform entity resolution, and
+   receive notification of errors that occurred in the document.
+  </p>
+  <p>
+   A parser configuration is typically comprised of a series of
+   parser components. Some of these components may be
+   connected together to form the parsing pipeline. This parser
+   configuration is then used by a specific parser implementation
+   that generates a particular API, such as DOM or SAX. The
+   separation between the parser configuration and parser instance
+   allows the same API-generating parser to be used with an
+   unlimited number of different parser configurations.
+  </p>
+  <p>
+   When a document is parsed, the parser configuration resets the
+   configurable components and initiates the scanning of the
+   document. Typically, a scanner starts scanning the document
+   which generates XNI information set events that are sent to
+   the next component in the pipeline (e.g. the validator). The
+   information set events coming out of the end of the pipeline
+   are then communicated to the document and DTD handlers that
+   are registered with the parser configuration. 
+  </p>
+  <p>
+   The following diagram shows both the generic parsing pipeline
+   contained within a parser configuration and the separation of 
+   parser configuration and specific parser classes.
+  </p>
+  <p>
+   <img alt='Parser Configuration' src='xni-parser-configuration.gif'/>
+  </p>
+  <p>
+   There are two parser configuration interfaces defined in XNI:
+   the <code>XMLParserConfiguration</code> and the
+   <code>XMLPullParserConfiguration</code>. For most purposes, the
+   standard parser configuration will suffice. Document and DTD
+   handler interfaces will be registered on the parser configuration
+   and the document will be parsed completely by calling the
+   <code>parse(XMLInputSource)</code> method. In this situation,
+   the application is driven by the output of the configuration.
+  </p>
+  <p>
+   However, the <code>XMLPullParserConfiguration</code> interface
+   extends the <code>XMLParserConfiguration</code> interface to
+   provide methods that allow the application to drive the
+   configuration. Any configuration class that implements this
+   interface guarantees that it can be driven in a pull parsing
+   fashion but does not make any statement as to how much or how
+   little pull parsing will be performed at each step.
+  </p>
+  <anchor name='parser-configuration'/>
+  <s3 title='Interface XMLParserConfiguration'>
+   <p>
+    The parser configuration is the primary connection to specific
+    parser instances. Because the parser configuration is responsible
+    for holding the parser state, the 
+    <code>addRecognizedFeatures(String[])</code> and
+    <code>addRecognizedProperties(String[])</code> methods allow the
+    parser instance to add recognized features and properties that
+    the parser configuration will store.
+   </p>
+   <!--
+   <table>
+    <tr>
+     <th>
+      Extends <link anchor='component-manager'>XMLComponentManager</link>
+     </th>
+    </tr>
+    <tr><th>Methods</th></tr>
+    <tr>
+     <td>
+      <code>
+       public void setFeature(
+           String featureId,
+	   boolean state
+	   ) throws <link anchor='configuration-exception'>XMLConfigurationException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void setProperty(
+           String propertyId,
+	   Object value
+	   ) throws <link anchor='configuration-exception'>XMLConfigurationException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>public void addRecognizedFeatures(String[] featureIds);</code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>public void addRecognizedProperties(String[] propertyIds);</code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void setEntityResolver(
+           <link anchor='entity-resolver'>XMLEntityResolver</link> resolver
+	   );
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public <link anchor='entity-resolver'>XMLEntityResolver</link>
+           getEntityResolver();
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void setErrorHandler(
+           <link anchor='error-handler'>XMLErrorHandler</link> handler
+	   );
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public <link anchor='error-handler'>XMLErrorHandler</link>
+           getErrorHandler();
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void setDocumentHandler(
+           <link idref='xni-core' anchor='document-handler'>XMLDocumentHandler</link> handler
+	   );
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public <link anchor='document-handler'>XMLDocumentHandler</link>
+           getDocumentHandler();
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void setDTDHandler(
+           <link idref='xni-core' anchor='dtd-handler'>XMLDTDHandler</link> handler
+	   );
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public <link anchor='dtd-handler'>XMLDTDHandler</link>
+           getDTDHandler();
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void setDTDContentModelHandler(
+           <link idref='xni-core' anchor='dtd-content-model-handler'>XMLDTDContentModelHandler</link> handler
+	   );
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public <link anchor='dtd-content-model-handler'>XMLDTDContentModelHandler</link>
+           getDTDContentModelHandler();
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void parse(
+           <link anchor='input-source'>XMLInputSource</link> source
+	   ) throws java.io.IOException, <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr><td><code>public void setLocale(java.util.Locale);</code></td></tr>
+    <tr><td><code>public Locale getLocale();</code></td></tr>
+   </table>
+   -->
+  </s3>
+  <anchor name='pull-parser-configuration'/>
+  <s3 title='Interface XMLPullParserConfiguration'>
+   <p>
+    Parser configurations that implement this interface state that they
+    can be driven by the application in a pull parser fashion.
+   </p>
+   <table>
+    <tr>
+     <th>
+      Extends <link anchor='parser-configuration'>XMLParserConfiguration</link>
+     </th>
+    </tr>
+    <tr><th>Methods</th></tr>
+    <tr>
+     <td>
+      <code>
+       public void setInputSource(
+           <link anchor='input-source'>XMLInputSource</link> source
+	   ) throws java.io.IOException, 
+                    <link anchor='configuration-exception'>XMLConfigurationException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public boolean parse(boolean complete)
+	   throws java.io.IOException, 
+                  <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+   </table>
+  </s3>
+  <anchor name='entity-resolver'/>
+  <s3 title='Interface XMLEntityResolver'>
+   <p>
+   This interface is used to resolve external parsed entities. The
+   application can register an object that implements this interface
+  with the parser configuration in order to intercept entities and
+  resolve them explicitly. If the registered entity resolver cannot
+  resolve the entity, it should return <code>null</code> so that the
+  parser will try to resolve the entity using a default mechanism.   </p>
+   <table>
+    <tr><th>Methods</th></tr>
+    <tr>
+     <td>
+      <code>
+       public <link anchor='input-source'>XMLInputSource</link> resolveEntity(
+               <link anchor='resource-identifier'>XMLResourceIdentifier</link> resourceIdentifier
+	   ) throws java.io.IOException, <link anchor='parse-exception'>XMLParseException</link>;
+      </code>
+     </td>
+    </tr>
+   </table>
+  </s3>
+  <anchor name='error-handler'/>
+  <s3 title='Interface XMLErrorHandler'>
+  <p>
+  An interface for handling errors. If the application is interested
+  in error notifications, then it can register an error handler object
+  that implements this interface with the parser configuration.
+ </p>
+   <table>
+    <tr><th>Methods</th></tr>
+    <tr>
+     <td>
+      <code>
+       public void warning(
+           String domain,
+	   String key,
+           <link anchor='parse-exception'>XMLParseException</link> exception
+	   ) throws <link idref='xni-core' anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void error(
+           String domain,
+	   String key,
+           <link anchor='parse-exception'>XMLParseException</link> exception
+	   ) throws <link idref='xni-core' anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void fatalError(
+           String domain,
+	   String key,
+           <link anchor='parse-exception'>XMLParseException</link> exception
+	   ) throws <link idref='xni-core' anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+   </table>
+  </s3>
+  <anchor name='input-source'/>
+  <s3 title='Class XMLInputSource'>
+  <p>
+  This class represents an input source for an XML document. The
+  basic properties of an input source are the following: 
+   public identifier,
+   system identifier,
+   byte stream or character stream.   
+   </p>
+   <!--
+   <table>
+    <tr><th>Constructors</th></tr>
+    <tr>
+     <td>
+      <code>
+       public XMLInputSource(
+           String publicId,
+	   String systemId,
+	   String baseSystemId
+           );
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public XMLInputSource(
+           String publicId,
+	   String systemId,
+	   String baseSystemId,
+	   java.io.InputStream byteStream,
+	   String encoding
+           );
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public XMLInputSource(
+           String publicId,
+	   String systemId,
+	   String baseSystemId
+	   java.io.Reader characterStream,
+	   String encoding
+           );
+      </code>
+     </td>
+    </tr>
+    <tr><th>Methods</th></tr>
+    <tr><td><code>public void setPublicId(String publicId);</code></td></tr>
+    <tr><td><code>public String getPublicId();</code></td></tr>
+    <tr><td><code>public void setSystemId(String systemId);</code></td></tr>
+    <tr><td><code>public String getSystemId();</code></td></tr>
+    <tr><td><code>public void getBaseSystemId(String baseSystemId);</code></td></tr>
+    <tr><td><code>public String getBaseSystemId();</code></td></tr>
+    <tr><td><code>public void getByteStream(java.io.InputStream byteStream);</code></td></tr>
+    <tr><td><code>public java.io.InputStream getByteStream();</code></td></tr>
+    <tr><td><code>public void getCharacterStream(java.io.Reader characterStream);</code></td></tr>
+    <tr><td><code>public java.io.Reader getCharacterStream();</code></td></tr>
+    <tr><td><code>public void setEncoding(String encoding);</code></td></tr>
+    <tr><td><code>public String getEncoding();</code></td></tr>
+   </table>
+   -->
+  </s3>
+  
+  <anchor name='resource-identifier'/>
+  <s3 title='Class XMLResourceIdentifier'>
+  <p>
+   This represents the basic physical description of the location of any
+  XML resource (a Schema grammar, a DTD, a general entity etc.) 
+   </p>
+   </s3>
+
+
+  <anchor name='parse-exception'/>
+  <s3 title='Class XMLParseException'>
+  <p>
+  
+  A parsing exception. This exception is different from the standard
+  XNI exception in that it stores the location in the document (or
+  its entities) where the exception occurred.
+  </p>
+  <!--
+   <table>
+    <tr>
+     <th>
+      Extends <link idref='xni-core' anchor='exception'>XNIException</link>
+     </th>
+    </tr>
+    <tr><th>Constructors</th></tr>
+    <tr>
+     <td>
+      <code>
+       public XMLParseException(
+           <link idref='xni-core' anchor='locator'>XMLLocator</link> location,
+	   String message
+           );
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public XMLParseException(
+           <link idref='xni-core' anchor='locator'>XMLLocator</link> location,
+	   String message,
+	   Exception exception
+           );
+      </code>
+     </td>
+    </tr>
+    <tr><th>Methods</th></tr>
+    <tr><td><code>public String getPublicId();</code></td></tr>
+    <tr><td><code>public String getSystemId();</code></td></tr>
+    <tr><td><code>public String getBaseSystemId();</code></td></tr>
+    <tr><td><code>public int getLineNumber();</code></td></tr>
+    <tr><td><code>public int getColumnNumber();</code></td></tr>
+   </table>
+   -->
+  </s3>
+ </s2>
+ <anchor name='pipelines'/>
+ <s2 title='Pipelines'>
+  <p>
+   The <link idref='xni-core'>Core Interfaces</link> provide
+   interfaces for the streaming information set. While these
+   interfaces are sufficient for communicating the document and
+   DTD information, it does not provide an easy way to construct
+   the pipeline or initiate the pipeline to start parsing an
+   XML document. The <code>org.apache.xerces.xni.parser</code> 
+   package has additional interfaces to fill exactly this need.
+  </p>
+  <p>
+   Each parser configuration can be thought of as two separate
+   pipelines: one for document information and one for DTD
+   information. Each pipeline starts with a scanner and is followed
+   by zero or more filters (objects that implement interfaces
+   to handle the incoming information as well as register
+   handlers for the outgoing information). The information that
+   comes out the end of the pipeline is usually forwarded by
+   the parser configuration to the registered handlers.
+  </p>
+  <p>
+   There are two scanner interfaces defined: the XMLDocumentScanner
+   and the XMLDTDScanner:
+  </p>
+  <anchor name='document-scanner'/>
+  <s3 title='Interface XMLDocumentScanner'>
+   <p>This interface defines an XML document scanner.</p>
+   <table>
+    <tr>
+     <th>
+      Extends <link anchor='document-source'>XMLDocumentSource</link>
+     </th>
+    </tr>
+    <tr><th>Methods</th></tr>
+    <tr>
+     <td>
+      <code>
+       public void setInputSource(
+           <link anchor='input-source'>XMLInputSource</link> source
+           ) throws java.io.IOException;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public boolean scanDocument(boolean complete)
+           throws java.io.IOException, <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+   </table>
+  </s3>
+  <anchor name='dtd-scanner'/>
+  <s3 title='Interface XMLDTDScanner'>
+   <p>
+    This interface defines a DTD scanner. Typically, scanning of
+    the DTD internal subset is initiated from the XML document 
+    scanner so the input source is implicitly the same as the
+    one used by the document scanner. Therefore, the 
+    <code>setInputSource</code> method should only be called before
+    scanning of the DTD external subset.
+   </p>
+   <table>
+    <tr>
+     <th>
+      Extends <link anchor='dtd-source'>XMLDTDSource</link>,
+      <link anchor='dtd-content-model-source'>XMLDTDContentModelSource</link>
+     </th>
+    </tr>
+    <tr><th>Methods</th></tr>
+    <tr>
+     <td>
+      <code>
+       public void setInputSource(
+           <link anchor='input-source'>XMLInputSource</link> source
+           ) throws java.io.IOException;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public boolean scanDTDInternalSubset(
+           boolean complete,
+	   boolean standalone,
+	   boolean hasExternalSubset
+	   ) throws java.io.IOException, <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public boolean scanDTDExternalSubset(
+           boolean complete
+	   ) throws java.io.IOException, <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+   </table>
+  </s3>
+  <p>
+   Notice how each scanner interface's scanning methods take a
+   <code>complete</code> parameter and returns a boolean. This
+   allows (but does not require) scanners that implement these
+   interfaces to provide "pull" parsing behaviour in which the
+   application drives the parser's operation instead of having
+   parsing events "pushed" to the registered handlers.
+  </p>
+  <p>
+   After the scanners, zero or filters may be present in a parser
+   configuration pipeline. A document pipeline filter implements the
+   <link idref='xni-core' anchor='document-handler'>XMLDocumentHandler</link>
+   interface from the XNI Core Interfaces as well as the
+   <link anchor='document-source'>XMLDocumentSource</link>
+   interface which allows filters to be chained together in
+   the pipeline. There are equivalents source interfaces for the
+   DTD information as well.
+  </p>
+  <anchor name='document-source'/>
+  <s3 title='Interface XMLDocumentSource'>
+   <p>This interface allows a document handler to be registered.</p>
+   <table>
+    <tr><th>Methods</th></tr>
+    <tr>
+     <td>
+      <code>
+       public void setDocumentHandler(
+           <link idref='xni-core' anchor='document-handler'>XMLDocumentHandler</link> handler
+           );
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public <link idref='xni-core' anchor='document-handler'>XMLDocumentHandler</link> getDocumentHandler();
+      </code>
+     </td>
+    </tr>
+   </table>
+  </s3>
+  <anchor name='document-filter'/>
+  <s3 title='Interface XMLDocumentFilter'>
+   <p>
+    Defines a document filter that acts as both a receiver and 
+    an emitter of document events.
+   </p>
+   <table>
+    <tr>
+     <th> Extends 
+      <link idref='xni-core' anchor='document-handler'>XMLDocumentHandler</link>,
+      <link anchor='document-source'>XMLDocumentSource</link>
+     </th>
+    </tr>
+   </table>
+  </s3>
+  <anchor name='dtd-source'/>
+  <s3 title='Interface XMLDTDSource'>
+   <p>This interface allows a DTD handler to be registered.</p>
+   <table>
+    <tr><th>Methods</th></tr>
+    <tr>
+     <td>
+      <code>
+       public void setDTDHandler(
+           <link idref='xni-core' anchor='dtd-handler'>XMLDTDHandler</link> handler
+           );
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public <link idref='xni-core' anchor='dtd-handler'>XMLDTDHandler</link> getDTDHandler();
+      </code>
+     </td>
+    </tr>
+   </table>
+  </s3>
+  <anchor name='dtd-filter'/>
+  <s3 title='Interface XMLDTDFilter'>
+   <p>
+    Defines a DTD filter that acts as both a receiver and 
+    an emitter of DTD events.
+   </p>
+   <table>
+    <tr>
+     <th> Extends 
+      <link idref='xni-core' anchor='dtd-handler'>XMLDTDHandler</link>,
+      <link anchor='dtd-source'>XMLDTDSource</link>
+     </th>
+    </tr>
+   </table>
+  </s3>
+  <anchor name='dtd-content-model-source'/>
+  <s3 title='Interface XMLDTDContentModelSource'>
+   <p>This interface allows a DTD content model handler to be registered.</p>
+   <table>
+    <tr><th>Methods</th></tr>
+    <tr>
+     <td>
+      <code>
+       public void setDTDContentModelHandler(
+           <link idref='xni-core' anchor='dtd-content-model-handler'>XMLDTDContentModelHandler</link> handler
+           );
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public <link idref='xni-core' anchor='dtd-content-model-handler'>XMLDTDContentModelHandler</link> getDTDContentModelHandler();
+      </code>
+     </td>
+    </tr>
+   </table>
+  </s3>
+  <anchor name='dtd-content-model-filter'/>
+  <s3 title='Interface XMLDTDContentModelFilter'>
+   <p>
+    Defines a DTD content model filter that acts as both a receiver and 
+    an emitter of DTD content model events.
+   </p>
+   <table>
+    <tr>
+     <th> Extends 
+      <link idref='xni-core' anchor='dtd-content-model-handler'>XMLDTDContentModelHandler</link>,
+      <link anchor='dtd-content-model-source'>XMLDTDContentModelSource</link>
+     </th>
+    </tr>
+   </table>
+  </s3>
+  <p>
+   The next section gives some basic examples for using the XNI
+   framework to construct filters and parser configurations.
+  </p>
+ </s2>
+ <anchor name='examples'/>
+ <s2 title='Examples'>
+  <p>
+   The following samples show how to create various parser components
+   and parser configurations. The XNI samples included with the Xerces2
+   reference release provide a convenient way to test a parser
+   configuration. For example, to test the 
+   <link anchor='csv-parser-config'>CSV Parser Configuration</link>
+   example, run the following command:
+  </p>
+  <source>java xni.DocumentTracer -p CSVConfiguration document.csv</source>
+  <p>
+   Or a new CSV parser can be constructed that produces standard
+   SAX events. For example:
+  </p>
+  <source>import org.apache.xerces.parsers.AbstractSAXParser;
+
+public class CSVParser
+    extends AbstractSAXParser {
+
+    // Constructors
+
+    public CSVParser() {
+        super(new CSVConfiguration());
+    }
+
+} // class CSVParser</source>
+  <p>
+   The following samples are available:
+  </p>
+  <ul>
+   <li><link anchor='abstract-parser-config'>Abstract Parser Configuration</link></li>
+   <li><link anchor='csv-parser-config'>CSV Parser Configuration</link></li>
+  </ul>
+  <anchor name='abstract-parser-config'/>
+  <s3 title='Abstract Parser Configuration'>
+   <p>
+    This abstract parser configuration simply helps manage
+    components, features and properties, and other tasks common to
+    all parser configurations.
+   </p>
+   <source><![CDATA[import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Hashtable;
+import java.util.Locale;
+import java.util.Vector;
+
+import org.apache.xerces.xni.XMLDocumentHandler;
+import org.apache.xerces.xni.XMLDTDHandler;
+import org.apache.xerces.xni.XMLDTDContentModelHandler;
+import org.apache.xerces.xni.XNIException;
+
+import org.apache.xerces.xni.parser.XMLComponent;
+import org.apache.xerces.xni.parser.XMLConfigurationException;
+import org.apache.xerces.xni.parser.XMLEntityResolver;
+import org.apache.xerces.xni.parser.XMLErrorHandler;
+import org.apache.xerces.xni.parser.XMLInputSource;
+import org.apache.xerces.xni.parser.XMLParserConfiguration;
+
+public abstract class AbstractConfiguration 
+    implements XMLParserConfiguration {
+
+    // Data
+
+    protected final Vector fRecognizedFeatures = new Vector();
+    protected final Vector fRecognizedProperties = new Vector();
+    protected final Hashtable fFeatures = new Hashtable();
+    protected final Hashtable fProperties = new Hashtable();
+
+    protected XMLEntityResolver fEntityResolver;
+    protected XMLErrorHandler fErrorHandler;
+    protected XMLDocumentHandler fDocumentHandler;
+    protected XMLDTDHandler fDTDHandler;
+    protected XMLDTDContentModelHandler fDTDContentModelHandler;
+    
+    protected Locale fLocale;
+
+    protected final Vector fComponents = new Vector();
+
+    // XMLParserConfiguration methods
+
+    public void addRecognizedFeatures(String[] featureIds) {
+        int length = featureIds != null ? featureIds.length : 0;
+        for (int i = 0; i < length; i++) {
+            String featureId = featureIds[i];
+            if (!fRecognizedFeatures.contains(featureId)) {
+                fRecognizedFeatures.addElement(featureId);
+            }
+        }
+    }
+    
+    public void setFeature(String featureId, boolean state)
+        throws XMLConfigurationException {
+        if (!fRecognizedFeatures.contains(featureId)) {
+            short type = XMLConfigurationException.NOT_RECOGNIZED;
+            throw new XMLConfigurationException(type, featureId);
+        }
+        fFeatures.put(featureId, state ? Boolean.TRUE : Boolean.FALSE);
+        int length = fComponents.size();
+        for (int i = 0; i < length; i++) {
+            XMLComponent component = (XMLComponent)fComponents.elementAt(i);
+            component.setFeature(featureId, state);
+        }
+    }
+
+    public boolean getFeature(String featureId) 
+        throws XMLConfigurationException {
+        if (!fRecognizedFeatures.contains(featureId)) {
+            short type = XMLConfigurationException.NOT_RECOGNIZED;
+            throw new XMLConfigurationException(type, featureId);
+        }
+        Boolean state = (Boolean)fFeatures.get(featureId);
+        return state != null ? state.booleanValue() : false;
+    }
+    
+    public void addRecognizedProperties(String[] propertyIds) {
+        int length = propertyIds != null ? propertyIds.length : 0;
+        for (int i = 0; i < length; i++) {
+            String propertyId = propertyIds[i];
+            if (!fRecognizedProperties.contains(propertyId)) {
+                fRecognizedProperties.addElement(propertyId);
+            }
+        }
+    }
+
+    public void setProperty(String propertyId, Object value) 
+        throws XMLConfigurationException {
+        if (!fRecognizedProperties.contains(propertyId)) {
+            short type = XMLConfigurationException.NOT_RECOGNIZED;
+            throw new XMLConfigurationException(type, propertyId);
+        }
+        if (value != null) {
+            fProperties.put(propertyId, value);
+        }
+        else {
+            fProperties.remove(propertyId);
+        }
+        int length = fComponents.size();
+        for (int i = 0; i < length; i++) {
+            XMLComponent component = (XMLComponent)fComponents.elementAt(i);
+            component.setProperty(propertyId, value);
+        }
+    }
+
+    public Object getProperty(String propertyId) 
+        throws XMLConfigurationException {
+        if (!fRecognizedProperties.contains(propertyId)) {
+            short type = XMLConfigurationException.NOT_RECOGNIZED;
+            throw new XMLConfigurationException(type, propertyId);
+        }
+        Object value = fProperties.get(propertyId);
+        return value;
+    }
+
+    public void setEntityResolver(XMLEntityResolver resolver) {
+        fEntityResolver = resolver;
+    }
+    
+    public XMLEntityResolver getEntityResolver() {
+        return fEntityResolver;
+    }
+
+    public void setErrorHandler(XMLErrorHandler handler) {
+        fErrorHandler = handler;
+    }
+    
+    public XMLErrorHandler getErrorHandler() {
+        return fErrorHandler;
+    }
+
+    public void setDocumentHandler(XMLDocumentHandler handler) {
+        fDocumentHandler = handler;
+    }
+
+    public XMLDocumentHandler getDocumentHandler() {
+        return fDocumentHandler;
+    }
+
+    public void setDTDHandler(XMLDTDHandler handler) {
+        fDTDHandler = handler;
+    }
+
+    public XMLDTDHandler getDTDHandler() {
+        return fDTDHandler;
+    }
+
+    public void setDTDContentModelHandler(XMLDTDContentModelHandler handler) {
+        fDTDContentModelHandler = handler;
+    }
+    
+    public XMLDTDContentModelHandler getDTDContentModelHandler() {
+        return fDTDContentModelHandler;
+    }
+
+    public abstract void parse(XMLInputSource inputSource) 
+        throws IOException, XNIException;
+    
+    public void setLocale(Locale locale) {
+        fLocale = locale;
+    }
+    
+    // Protected methods
+
+    protected void addComponent(XMLComponent component) {
+        if (!fComponents.contains(component)) {
+            fComponents.addElement(component);
+            addRecognizedFeatures(component.getRecognizedFeatures());
+            addRecognizedProperties(component.getRecognizedProperties());
+        }
+    }
+
+    protected void resetComponents() 
+        throws XMLConfigurationException {
+        int length = fComponents.size();
+        for (int i = 0; i < length; i++) {
+            XMLComponent component = (XMLComponent)fComponents.elementAt(i);
+            component.reset(this);
+        }
+    }
+
+    protected void openInputSourceStream(XMLInputSource source)
+        throws IOException {
+        if (source.getCharacterStream() != null) {
+            return;
+        }
+        InputStream stream = source.getByteStream();
+        if (stream == null) {
+            String systemId = source.getSystemId();
+            try {
+                URL url = new URL(systemId);
+                stream = url.openStream();
+            }
+            catch (MalformedURLException e) {
+                stream = new FileInputStream(systemId);
+            }
+            source.setByteStream(stream);
+        }
+    }
+
+} // class AbstractConfiguration]]></source>
+  </s3>
+  <anchor name='csv-parser-config'/>
+  <s3 title='CSV Parser Configuration'>
+   <p>
+    This example is a very simple parser configuration that can
+    parse files with comma-separated values (CSV) to generate
+    XML events. For example, the following CSV document:
+   </p>
+   <source>Andy Clark,16 Jan 1973,Cincinnati</source>
+   <p>
+    produces the following XML "document" as represented by the
+    XNI streaming document information:
+   </p>
+   <source><![CDATA[<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE csv [
+<!ELEMENT csv (row)*>
+<!ELEMENT row (col)*>
+<!ELEMENT col (#PCDATA)>
+]>
+<csv>
+ <row>
+  <col>Andy Clark</col>
+  <col>16 Jan 1973</col>
+  <col>Cincinnati</col>
+ </row>
+</csv>]]></source>
+   <p>
+    Here is the source code for the CSV parser configuration. 
+    Notice that it does not use any components. Rather, it implements
+    the CSV parsing directly in the parser configuration's 
+    <code>parse(XMLInputSource)</code> method. This demonstrates
+    that you are <em>not</em> required to use the 
+    <code>XMLComponent</code> interface but it is there for
+    building modular components that can be used in other
+    configurations.
+   </p>
+   <source><![CDATA[import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.StringTokenizer;
+
+import org.apache.xerces.util.XMLAttributesImpl;
+import org.apache.xerces.util.XMLStringBuffer;
+
+import org.apache.xerces.xni.QName;
+import org.apache.xerces.xni.XMLAttributes;
+import org.apache.xerces.xni.XMLDTDContentModelHandler;
+import org.apache.xerces.xni.XNIException;
+
+import org.apache.xerces.xni.parser.XMLInputSource;
+
+public class CSVConfiguration
+    extends AbstractConfiguration {
+
+    // Constants
+
+    protected static final QName CSV = new QName(null, null, "csv", null);
+    protected static final QName ROW = new QName(null, null, "row", null);
+    protected static final QName COL = new QName(null, null, "col", null);
+    protected static final XMLAttributes EMPTY_ATTRS = new XMLAttributesImpl();
+
+    // Data
+
+    private final XMLStringBuffer fStringBuffer = new XMLStringBuffer();
+
+    // XMLParserConfiguration methods
+
+    public void setFeature(String featureId, boolean state) {}
+    public boolean getFeature(String featureId) { return false; }
+    public void setProperty(String propertyId, Object value) {}
+    public Object getProperty(String propertyId) { return null; }
+
+    public void parse(XMLInputSource source) 
+        throws IOException, XNIException {
+
+        // get reader
+        openInputSourceStream(source);
+        Reader reader = source.getCharacterStream();
+        if (reader == null) {
+            InputStream stream = source.getByteStream();
+            reader = new InputStreamReader(stream);
+        }
+        BufferedReader bufferedReader = new BufferedReader(reader);
+
+        // start document
+        if (fDocumentHandler != null) {
+            fDocumentHandler.startDocument(null, "UTF-8");
+            fDocumentHandler.xmlDecl("1.0", "UTF-8", null);
+            fDocumentHandler.doctypeDecl("csv", null, null);
+        }
+        if (fDTDHandler != null) {
+            fDTDHandler.startDTD(null);
+            fDTDHandler.elementDecl("csv", "(row)*");
+            fDTDHandler.elementDecl("row", "(col)*");
+            fDTDHandler.elementDecl("col", "(#PCDATA)");
+        }
+        if (fDTDContentModelHandler != null) {
+            fDTDContentModelHandler.startContentModel("csv");
+            fDTDContentModelHandler.startGroup();
+            fDTDContentModelHandler.element("row");
+            fDTDContentModelHandler.endGroup();
+            short csvOccurs = XMLDTDContentModelHandler.OCCURS_ZERO_OR_MORE;
+            fDTDContentModelHandler.occurrence(csvOccurs);
+            fDTDContentModelHandler.endContentModel();
+            
+            fDTDContentModelHandler.startContentModel("row");
+            fDTDContentModelHandler.startGroup();
+            fDTDContentModelHandler.element("col");
+            fDTDContentModelHandler.endGroup();
+            short rowOccurs = XMLDTDContentModelHandler.OCCURS_ZERO_OR_MORE;
+            fDTDContentModelHandler.occurrence(rowOccurs);
+            fDTDContentModelHandler.endContentModel();
+        
+            fDTDContentModelHandler.startContentModel("col");
+            fDTDContentModelHandler.startGroup();
+            fDTDContentModelHandler.pcdata();
+            fDTDContentModelHandler.endGroup();
+            fDTDContentModelHandler.endContentModel();
+        }
+        if (fDTDHandler != null) {
+            fDTDHandler.endDTD();
+        }
+        if (fDocumentHandler != null) {
+            fDocumentHandler.startElement(CSV, EMPTY_ATTRS);
+        }
+
+        // read lines
+        String line;
+        while ((line = bufferedReader.readLine()) != null) {
+            if (fDocumentHandler != null) {
+                fDocumentHandler.startElement(ROW, EMPTY_ATTRS);
+                StringTokenizer tokenizer = new StringTokenizer(line, ",");
+                while (tokenizer.hasMoreTokens()) {
+                    fDocumentHandler.startElement(COL, EMPTY_ATTRS);
+                    String token = tokenizer.nextToken();
+                    fStringBuffer.clear();
+                    fStringBuffer.append(token);
+                    fDocumentHandler.characters(fStringBuffer);
+                    fDocumentHandler.endElement(COL);
+                }
+                fDocumentHandler.endElement(ROW);
+            }
+        }
+        bufferedReader.close();
+
+        // end document
+        if (fDocumentHandler != null) {
+            fDocumentHandler.endElement(CSV);
+            fDocumentHandler.endDocument();
+        }
+
+    }
+    
+} // class CSVConfiguration]]></source>
+  <p>
+   The source code is longer than it actually needs to be because
+   it also emits the DTD information necessary for a validating
+   parser to validate the document. The real core of the example
+   is the following:
+  </p>
+  <source><![CDATA[fDocumentHandler.startDocument(null, "UTF-8");
+fDocumentHandler.startElement(CSV, EMPTY_ATTRS);
+
+String line;
+while ((line = bufferedReader.readLine()) != null) {
+    if (fDocumentHandler != null) {
+        fDocumentHandler.startElement(ROW, EMPTY_ATTRS);
+        
+	StringTokenizer tokenizer = new StringTokenizer(line, ",");
+        while (tokenizer.hasMoreTokens()) {
+            fDocumentHandler.startElement(COL, EMPTY_ATTRS);
+            String token = tokenizer.nextToken();
+            fStringBuffer.clear();
+            fStringBuffer.append(token);
+            fDocumentHandler.characters(fStringBuffer);
+            fDocumentHandler.endElement(COL);
+        }
+	
+        fDocumentHandler.endElement(ROW);
+    }
+}
+
+fDocumentHandler.endElement(CSV);
+fDocumentHandler.endDocument();]]></source>
+  </s3>
+ </s2>
+</s1>

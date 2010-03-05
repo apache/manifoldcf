@@ -1,0 +1,112 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<!DOCTYPE faqs SYSTEM 'dtd/faqs.dtd'>
+<faqs title='Common Problems FAQs'>
+ <faq title='Parsing HTML Generated an Error.'>
+  <q>
+   I tried to use &ParserName; to parse an HTML file and it
+   generated an error. What did I do wrong?
+  </q>
+  <a>
+   <p>
+    Unfortunately, HTML does not, in general, follow the XML 
+    grammar rules. Most HTML files do not meet the XML style 
+    guidelines. Therefore, the XML parser generates XML 
+    well-formedness errors.
+   </p>
+   <p>Typical errors include:</p>
+   <ul>
+    <li>
+     Missing end tags, e.g. &lt;P&gt; with no &lt;/P&gt; (end 
+     tags are not required in HTML)
+    </li>
+    <li>
+     Missing closing slash on &lt;IMG HREF="foo" <em>/</em>&gt; 
+     (not required in HTML)
+    </li>
+    <li>
+     Missing quotes on attribute values, e.g. &lt;IMG width="600"&gt; 
+     (not generally required in HTML)
+    </li>
+   </ul>
+   <p>
+    HTML must match the XHTML standard for well-formedness before it 
+    can be parsed by &ParserName; or any other XML parser. You can 
+    find the 
+    <jump href="http://www.w3.org/TR/2002/REC-xhtml1-20020801/">XHTML 
+    standard</jump> on the 
+    <jump href="http://www.w3.org/">W3C web site</jump>.
+   </p>
+  </a>
+ </faq>
+ <faq title='UTF-8 Character Error'>
+  <q>I get an &quot;invalid UTF-8 character&quot; error.</q>
+  <a>
+   <p>
+    There are many Unicode characters that are not allowed in an 
+    XML document, according to the XML spec. Typical disallowed 
+    characters are control characters, even if you escape them 
+    using the Character Reference form: &amp;#xxxx; . See the XML 1.0
+    specification, sections 
+    <jump href="http://www.w3.org/TR/2006/REC-xml-20060816/#charsets">2.2</jump> 
+    and 
+    <jump href="http://www.w3.org/TR/2006/REC-xml-20060816/#sec-references">4.1</jump> 
+    for details. If the parser is generating this error, it is very
+    likely that there is a character in the file that you can not see.
+    You can generally use a UNIX command like &quot;od -hc&quot; to 
+    find it.
+   </p>
+  </a>
+ </faq>
+ <faq title='Error Accessing EBCDIC XML Files'>
+  <q>
+   I get an error when I access EBCDIC XML files, what is happening?
+  </q>
+  <a>
+   <p>
+    If an XML document/file is not UTF-8, then you MUST specify the
+    encoding. When transcoding a UTF8 document to EBCDIC, remember 
+    to change this:
+   </p>
+   <ul>
+    <li>
+     &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt; 
+     <br/>
+     to something like this:
+     <br/>
+     &lt;?xml version=&quot;1.0&quot; encoding=&quot;ebcdic-cp-us&quot;?&gt;
+    </li>
+   </ul>
+  </a>
+ </faq>
+ <faq title='EOF Character Error'>
+  <q>
+   I get an error on the EOF character (0x1A) -- what is happening?
+  </q>
+  <a>
+   <p>
+    You are probably using the <em>LPEX</em> editor, which 
+    automatically inserts an End-of-file character (0x1A) at the end 
+    of your XML document (other editors might do this as well). 
+    Unfortunately, the EOF character (0x1A) is an illegal character 
+    according to the XML specification, and &ParserName; 
+    correctly generates an error.
+   </p>
+  </a>
+ </faq>
+</faqs>

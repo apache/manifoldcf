@@ -1,0 +1,260 @@
+<?xml version="1.0" standalone="no"?>
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<!DOCTYPE s1 SYSTEM "./dtd/document.dtd">
+<s1 title="Document Object Model Level 3 Implementation">
+	<!--
+	<s2 title="Disclaimer">
+		<p>
+
+			The &ParserNameLong; &ParserVersion; contains a partial
+			implementation of the W3C Document Object Model Level 3.
+		</p>
+		<p>
+			The
+			<jump href="http://www.w3.org/DOM/DOMTR#DOML3">DOM Level 3</jump>
+			specification is at the stage of
+			<strong>Proposed Recommendation</strong>, which represents work in progress 
+			and has been widely reviewed and satisfies certain technical requirements
+			but may still change based on implementation experience.
+
+			This implementation is experimental: it should not be
+			considered as complete or correct.
+		</p>
+	</s2>
+	-->
+	<s2 title="Introduction">
+		<p>
+			The &ParserNameLong; &ParserVersion; contains an implementation of 
+			the Document Object Model Level 3 <jump href="http://www.w3.org/TR/DOM-Level-3-Core/">Core</jump> 
+			and Document Object Model Level 3 <jump href="http://www.w3.org/TR/DOM-Level-3-LS/">Load and Save</jump> Recommendations.
+			To learn how to program with the DOM Level 3 see <jump href="samples-dom.html#DOM3">dom.DOM3</jump> sample.
+		</p>
+
+	</s2>
+
+	<s2 title='Implementation of DOM Level 3 Core'>
+		<p>
+			DOM Level 3 Core DOMConfiguration <code>parameters</code> supported are:
+		</p>
+		<ul>
+			<li>
+				<strong>error-handler</strong>
+				[
+				<em>DOMErrorHandler</em>
+				]
+			</li>
+			<li>
+				<strong>resource-resolver</strong>
+				[
+				<em>LSResourceResolver</em>
+				]
+			</li>
+			<li>
+				<strong>schema-type</strong>
+				[
+				<em>String</em>
+				]
+			</li>
+			<li>
+				<strong>schema-location</strong>
+				[
+				<em>String</em>
+				]
+			</li>
+			<li>
+				<strong>canonical-form</strong>
+				[
+				<em>false</em>
+				]
+			</li>
+			<li>
+				<strong>cdata-sections</strong>
+				[
+				<em>true/false</em>
+				]
+			</li>
+			<li>
+				<strong>comments</strong>
+				[
+				<em>true/false</em>
+				]
+			</li>
+			<li>
+				<strong>namespaces</strong>
+				[
+				<em>true/false</em>
+				]
+			</li>
+			<li>
+				<strong>entities</strong>
+				[
+				<em>true/false</em>
+				]
+			</li>
+			<li>
+				<strong>infoset</strong>
+				[
+				<em>true/false</em>
+				]
+			</li>
+			<li>
+				<strong>namespace-declarations</strong>
+				[
+				<em>true/false</em>
+				]
+			</li>
+			<li>
+				<strong>normalize-characters</strong>
+				[
+				<em>false</em>
+				]
+			</li>
+			<li>
+				<strong>split-cdata-sections</strong>
+				[
+				<em>true/false</em>
+				]
+			</li>
+			<li>
+				<strong>validate-if-schema</strong>
+				[
+				<em>true/false</em>
+				]
+			</li>
+			<li>
+				<strong>element-content-whitespace</strong>
+				[
+				<em>true</em>
+				]
+			</li>
+			<li>
+				<strong>datatype-normalization</strong>
+				[
+				<em>true/false</em>
+				]
+			</li>
+			<li>
+				<strong>validate</strong>
+				[
+				<em>true/false</em>
+				] -- revalidation is supported only against XML Schemas. For more information, please refer to
+				<link idref='faq-dom'>How to revalidate DOM in memory?</link>
+				.
+			</li>
+			<li>
+				<strong>validate-if-schema</strong>
+				[
+				<em>true/false</em>
+				]
+			</li>
+			<li>
+				<strong>check-character-normalization</strong>
+				[
+				<em>false</em>
+				]
+			</li>			
+			<li>
+				<strong>well-formed</strong>
+				[
+				<em>true/false</em>
+				]
+			</li>	
+			<li>
+				<strong>psvi</strong>
+				[
+				<em>true/false</em>
+				] -- (NON-DOM) setting the value of this parameter to true will include 
+				PSVI information in the DOM tree. 
+			</li>
+
+		</ul>
+	</s2>
+
+	<s2 title='Implementation of DOM Level 3 Load and Save'>
+		<p>
+			Additional DOM Level 3 Load and Save DOMConfiguration <code>parameters</code> supported:
+		</p>
+		<ul>
+			<li>
+				<strong>charset-overrides-xml-encoding</strong>
+				[
+				<em>true/false</em>
+				]
+			</li>
+			<li>
+				<strong>disallow-doctype</strong>
+				[
+				<em>true/false</em>
+				]
+			</li>			
+			<li>
+				<strong>ignore-unknown-character-denormalizations</strong>
+				[
+				<em>true</em>
+				]
+			</li>			
+			<li>
+				<strong>supported-media-types-only</strong>
+				[
+				<em>false</em>
+				]
+			</li>
+			<li>
+				<strong>discard-default-content</strong>
+				[
+				<em>true/false</em>
+				]
+			</li>
+			<li>
+				<strong>format-pretty-print</strong>
+				[
+				<em>true/false</em>
+				]
+			</li>			
+			<li>
+				<strong>xml-declaration</strong>
+				[
+				<em>true/false</em>
+				]
+			</li>
+		</ul>
+		<p></p>
+		<p>Here is the list of DOM Level 3 Load and Save limitations:</p>
+		<ul>
+
+    		<li>
+    			<strong>LSParser</strong> <jump href="http://www.w3.org/TR/DOM-Level-3-LS/load-save.html#LS-LSParser-parseWithContext">
+    			parserWithContext</jump>
+    			 -- not supported.
+	    	</li>
+	      <li><strong>DOMImplementationLS</strong> <jump href="http://www.w3.org/TR/DOM-Level-3-LS/load-save.html#LS-DOMImplementationLS-MODE_ASYNCH">
+			MODE_ASYNCHRONOUS</jump> 
+				-- not supported.
+			</li>
+            <li><strong>LSSerializer</strong> - the following parameters are not supported:</li>
+<ul>
+<li><strong>normalize-characters</strong>
+[
+<em>true</em>
+]</li>
+</ul>
+</ul>
+
+	</s2>
+
+</s1>

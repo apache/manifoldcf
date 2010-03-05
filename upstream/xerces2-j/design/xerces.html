@@ -1,0 +1,109 @@
+<!-- $Id$ -->
+<html>
+ <head>
+  <title>Xerces 2 | Xerces</title>
+  <link rel='stylesheet' type='text/css' href='css/site.css'>
+ </head>
+ <body>
+  <span class='netscape'>
+  <a name='TOP'></a>
+  <h1>Evaluation of Xerces Code</h1>
+  <a name='Overview'></a>
+  <h2>Overview</h2>
+  <p>
+   Historically, the <a href='http://xml.apache.org/xerces-j/'>Xerces</a>
+   code was developed to be the fastest 
+   <a href='http://www.w3.org/XML/'>XML</a> parser on the planet.
+   This impacted design decisions and caused the parser to be
+   written from the inside out. While this produced an extremely
+   fast XML parser with DTD validation, the overall design
+   suffered. Xerces developers have found it difficult to understand, 
+   fix bugs, and add new features. Hence the Xerces2 effort.
+  </p>
+  <a name='TheGood'></a>
+  <h2>The Good</h2>
+  <p>
+   <table border='0'>
+    <tr>
+     <th>Standards:</th>
+     <td>
+      The Xerces parser is an extremely complete XML parser. Besides
+      conforming to the XML and Namespace specifications, it offers
+      support for SAX 1 and 2; DOM Level 1 and 2; and most of
+      the latest working draft of XML Schema.
+     </td>
+    </tr>
+    <tr>
+     <th>Modularity:</th>
+     <td>
+      The current Xerces code made a decent attempt at modularity by
+      defining a set of interfaces between components of the parser
+      such as the scanner and validator. The parser is designed as 
+      a pipeline of components. This is a good idea whose implementation
+      got complicated by performance considerations and feature creep.
+     </td>
+    </tr>
+    <tr>
+     <th>Validation:</th>
+     <td>
+      Xerces is able to validate documents with grammars specified
+      in DTD and XML Schema syntax. All validation is performed by
+      a universal validator that can validate the union of features
+      found in both syntaxes. This enables the parser to handle
+      current and future grammars in a consistent way.
+     </td>
+    </tr>
+    <tr>
+     <th>Performance:</th>
+     <td>
+      The Xerces parser has always performed well. Implementation of
+      XML Schema has caused the performance to slip but this is to
+      be expected -- you can't do a lot more work per element without
+      incurring a performance penalty.
+     </td>
+    </tr>
+   </table>
+  </p>
+  <a name='TheBad'></a>
+  <h2>The Bad</h2>
+  <p>
+   <table border='0'>
+    <tr>
+     <th>Size:</th>
+     <td>
+      The parser is too big but this is not all due to the code
+      required to parse XML files. A lot of contributed features
+      have been rolled into the Xerces jar file. For example: 
+      HTML and WML DOM implementations; document serializers; etc.
+      It would be nice to find a way to package the features into
+      separate distributable jars.
+     </td>
+    </tr>
+    <tr>
+     <th>Simplicity:</th>
+     <td>
+      The code needs to be simplified. A lot of complexity of the
+      Xerces parser can be found in the entity readers and the use
+      of the string pool throughout the system.
+     </td>
+    </tr>
+    <tr>
+     <th>Documentation:</th>
+     <td>
+      This is little to no documentation of the Xerces code. And
+      frequently the javadoc comments are missing or incorrect. 
+      More effort must be taken in Xerces 2 in order to make sure 
+      that everything is well documented.
+     </td>
+    </tr>
+   </table>
+  </p>
+  </span>
+  <a name='BOTTOM'></a>
+  <hr>
+  <span class='netscape'>
+   Author: Andy Clark <br>
+   Last modified: $Date$
+  </span>
+ </body>
+</html>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<v02:root xmlns:xsi         ="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:v02         ="http://www.schemaTest.org/testImport"
+	  xmlns="http://default"
+          xsi:schemaLocation="http://www.schemaTest.org/testImport
+                              schema.xsd">
+
+<decVal xmlns="">2.5</decVal>
+<v02:decVal>5.0</v02:decVal>
+
+<strMin5 xmlns="">Min 5 chars</strMin5>
+<strMin50 xmlns="">
+The content of this element must be at least 50 chars long.
+</strMin50>
+
+<strVal xmlns="">
+The content of this element must be at least 50 chars long.
+</strVal>
+<decVal xmlns="">2.5</decVal>
+
+</v02:root>

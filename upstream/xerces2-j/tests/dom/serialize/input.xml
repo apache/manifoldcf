@@ -1,0 +1,27 @@
+<?xml version='1.0' ?>
+<s:Envelope xmlns="default namespace" xmlns:s='urn:schemas-xmlsoap-org:soap.v1'  xmlns:xsi='http://www.w3.org/1999/XMLSchema/instance'>
+<s:Body>
+
+<size>3</size>
+
+<!-- xmlns is removed during the modifications -->
+<empty xmlns="">
+ <elem/>
+ <elem xmlns="newURI"><a/></elem>
+</empty>
+
+<!-- both first and second "elem" elements have xmlns="" declaration -->
+<empty xmlns="">
+ <elem xmlns=""/>
+ <elem xmlns="newURI"><a/></elem>
+</empty>
+
+<!-- the second element "good" had declaration xmlns:n1="http://www.w3.org" -->
+<x xmlns:n1="http://www.w3.org" xmlns="http://www.w3.org" >
+ <good a="1" b="2" />
+ <good a="1" xmlns:n1="http://www.w3.org" n1:a="2" />
+</x>
+
+</s:Body>
+
+</s:Envelope>

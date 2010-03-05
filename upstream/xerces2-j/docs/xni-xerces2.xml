@@ -1,0 +1,533 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<!DOCTYPE s1 SYSTEM 'dtd/document.dtd'>
+<s1 title='Xerces2 Components'>
+ <s2 title='Re-using Xerces2 Parser Components'>
+  <p>
+   The Xerces Native Interface (XNI) defines a general way to build
+   parser components and configurations. The Xerces2 reference
+   implementation is written using this framework so that the parser
+   components can be re-used to create new parser configurations. In
+   order to re-use the Xerces2 parser components, however, the
+   developer must know the dependencies of each standard component.
+   This document provides an overview of the Xerces2 parser components
+   and lists the relevant dependencies.
+  </p>
+  <p>
+   An overview of the general dependencies and the dependencies for
+   each standard component are detailed below:
+  </p>
+  <ul>
+   <li><link anchor='overview'>Overview</link></li>
+   <li>Fundamental Dependencies</li>
+   <ul>
+    <li><link anchor='symbol-table'>Symbol Table</link></li>
+    <li><link anchor='error-reporter'>Error Reporter</link></li>
+   </ul>
+   <li>Individual Component Dependencies</li>
+   <ul>
+    <li><link anchor='document-scanner'>Document Scanner</link></li>
+    <li><link anchor='dtd-scanner'>DTD Scanner</link></li>
+    <li><link anchor='entity-manager'>Entity Manager</link></li>
+    <li><link anchor='dtd-validator'>DTD Validator</link></li>
+    <li><link anchor='namespace-binder'>Namespace Binder</link></li>
+    <li><link anchor='schema-validator'>Schema Validator</link></li>
+   </ul>
+   <!-- NOTE:
+     - More components and their dependencies may be added as
+     - they are made and integrated into the standard Xerces2
+     - configuration.
+     -->
+  </ul>
+ </s2>
+ <anchor name='overview'/>
+ <s2 title='Overview'>
+  <p>
+   The standard parser configuration for the Xerces2 reference
+   implementation of XNI is defined in the
+   <code>org.apache.xerces.parsers.StandardParserConfiguration</code>
+   class. This configuration is comprised of a number of 
+   components. Some of these components are configurable and some 
+   are shared within the configuration but do not implement the
+   <link idref='xni-config' anchor='component'>XMLComponent</link>
+   interface.
+  </p>
+  <p>
+   The following list details the set of components used in the 
+   Xerces2 standard configuration. The components marked with an
+   asterisk (*) are configurable.
+  </p>
+  <ul>
+   <li>Symbol Table</li>
+   <li>Error Reporter (*)</li>
+   <li>Document Scanner (*)</li>
+   <li>DTD Scanner (*)</li>
+   <li>Entity Manager (*)</li>
+   <li>DTD Validator (*)</li>
+   <li>Namespace Binder (*)</li>
+   <li>Schema Validator (*)</li>
+  </ul>
+  <note>
+   There are additional components other than those in the above
+   list, such as the "Grammar Pool" and "Datatype Validator
+   Factory". However, the validation engine in the Xerces2
+   reference implementation is currently being re-designed and
+   re-implemented. Therefore, these components are subject to
+   change and should not be used or relied upon.
+  </note>
+  <p>
+   In general, there are levels of dependency among the components
+   in the standard configuration. Some components are required by
+   all of the configurable components, where as there are certain
+   components required by other components. The following diagram
+   illustrates these basic levels of dependency.
+  </p>
+  <p>
+   <img alt='Xerces2 Component Dependencies' src='xni-components-dependence.gif'/>
+  </p>
+  <p>
+   The dependencies of each component are detailed in subsequent
+   sections of this document but the basic dependencies are 
+   listed below:
+  </p>
+  <ul>
+   <li>
+    All of the configurable Xerces2 components in the standard 
+    configuration depend on the 
+    "<link anchor='symbol-table'>Symbol Table</link>" and the
+    "<link anchor='error-reporter'>Error Reporter</link>".
+   </li>
+   <li>
+    Both the "<link anchor='document-scanner'>Document Scanner</link>"
+    and the "<link anchor='dtd-scanner'>DTD Scanner</link>" depend 
+    on the "<link anchor='entity-manager'>Entity Manager</link>"
+    component.
+   </li>
+   <li>
+    In addition to the other dependencies, the 
+    "<link anchor='document-scanner'>Document Scanner</link>" also
+    depends on the 
+    "<link anchor='dtd-scanner'>DTD Scanner</link>" for scanning of
+    the internal and external subsets of the DTD.
+   </li>
+  </ul>
+  <p>
+   Each configurable component queries the components that it
+   depends on before each document is parsed. The configuration 
+   is required to call the 
+   <link idref='xni-config' anchor='component'>XMLComponent</link>'s 
+   "reset" method. From the 
+   <link idref='xni-config' anchor='component-manager'>XMLComponentManager</link>
+   object that is passed to the "reset" method, the component
+   can query the other components that it needs. Therefore, each
+   component is assigned a unique property identifier used to
+   query the components from the component manager.
+  </p>
+  <p>
+   The following example source code shows how one of the
+   standard Xerces2 components is queried within a configurable
+   component. However, for complete dependency details and the 
+   property identifiers defined for each component, refer to the
+   appropriate sections of this document.
+  </p>
+  <source><![CDATA[import org.apache.xerces.xni.parser.XMLComponent;
+import org.apache.xerces.xni.parser.XMLComponentManager;
+import org.apache.xerces.xni.parser.XMLConfigurationException;
+
+public class MyComponent
+    implements XMLComponent {
+    
+    // Constants
+    
+    public static final String SYMBOL_TABLE =
+        "http://apache.org/xml/properties/internal/symbol-table";
+
+    // XMLComponent methods
+    
+    public void reset(XMLComponentManager manager)
+        throws XMLConfigurationException {
+        SymbolTable symbolTable = 
+	    (SymbolTable)manager.getProperty(SYMBOL_TABLE);
+    }
+
+}]]></source>
+ </s2>
+ <anchor name='symbol-table'/>
+ <s2 title='Symbol Table'>
+  <p>Property information:</p>
+  <table>
+   <tr>
+    <th>Property Id</th>
+    <td>http://apache.org/xml/properties/internal/symbol-table</td>
+   </tr>
+   <tr>
+    <th>Type</th>
+    <td>org.apache.xerces.util.SymbolTable</td>
+   </tr>
+  </table>
+  <p>
+   For performance reasons, the Xerces2 reference implementation
+   uses a custom symbol table in order to re-use common strings
+   that appear in the document. The symbol table is responsible
+   for keeping track of these common strings and always return
+   the same <code>java.lang.String</code> reference for lexically
+   equivalent strings. This not only reduces the amount of unique
+   objects created while parsing, it also allows components (e.g.
+   the validators, etc) to perform comparisons directly on the
+   references for certain string objects without having to call
+   the "equals" method.
+  </p>
+  <p>
+   <strong>Note:</strong> 
+   Nearly all of the standard components depend on this component.
+   Therefore, if you write a parser configuration that re-uses any
+   of the standard components, you must have an instance of this
+   component registered with the appropriate property identifier.
+  </p>
+ </s2>
+ <anchor name='error-reporter'/>
+ <s2 title='Error Reporter'>
+  <p>Property information:</p>
+  <table>
+   <tr>
+    <th>Property Id</th>
+    <td>http://apache.org/xml/properties/internal/error-reporter</td>
+   </tr>
+   <tr>
+    <th>Type</th>
+    <td>org.apache.xerces.impl.XMLErrorReporter</td>
+   </tr>
+  </table>
+  <p>Recognized features:</p>
+  <ul>
+   <li>http://apache.org/xml/features/continue-after-fatal-error</li>
+  </ul>
+  <p>Recognized properties:</p>
+  <ul>
+   <li>http://apache.org/xml/properties/internal/error-handler</li>
+  </ul>
+  <p>
+   In any parser instance, there must be a way for components to
+   report errors in a uniform way. The "Error Reporter" component
+   serves this purpose and simplifies the process of localizing
+   error messages and notifying the registered
+   <link idref='xni-parser' anchor='error-handler'>XMLErrorHandler</link>.
+  </p>
+  <p>
+   In general, errors are identified by the domain of the error 
+   and a unique key within that domain. The XMLErrorReporter class
+   allows message formatters to be set for each domain and then
+   delegates the formatting of error messages (with replacement
+   text) to the message formatter assigned to that error domain.
+   The localized error message is then sent to the registered
+   error handler.
+  </p>
+  <p>
+   An error message formatter is any class that implements the
+   <code>org.apache.xerces.util.MessageFormatter</code> interface.
+   If you write a new parser component for use with the existing
+   Xerces2 components, you should implement your own message 
+   formatter and register it with the Error Reporter. For
+   example:
+  </p>
+  <source><![CDATA[import java.util.Locale;
+import java.util.MissingResourceException;
+import org.apache.xerces.util.MessageFormatter;
+
+public class MyFormatter
+    implements MessageFormatter {
+
+    // MessageFormatter methods
+    
+    public String formatMessage(Locale locale, String key, Object[] args)
+        throws MissingResourceException {
+        // localize and format message based on locale, key, 
+	// and replacement text arguments
+	return "MY ERROR ("+key+")";
+    }
+
+}]]></source>
+  <source><![CDATA[import org.apache.xerces.impl.XMLErrorReporter;
+import org.apache.xerces.xni.parser.XMLComponent;
+import org.apache.xerces.xni.parser.XMLComponentManager;
+import org.apache.xerces.xni.parser.XMLConfigurationException;
+
+public class MyComponent
+    implements XMLComponent {
+    
+    // Constants
+    
+    public static final String ERROR_REPORTER =
+        "http://apache.org/xml/properties/internal/error-reporter";
+
+    public static final String DOMAIN = "http://example.com/mydomain";
+
+    // XMLComponent methods
+    
+    public void reset(XMLComponentManager manager)
+        throws XMLConfigurationException {
+        XMLErrorReporter reporter = 
+	    (XMLErrorReporter)manager.getProperty(ERROR_REPORTER);
+	if (reporter.getMessageFormatter(DOMAIN) == null) {
+	    reporter.putMesssageFormatter(DOMAIN, new MyFormatter());
+	}
+    }
+
+}]]></source>
+  <p>
+   <strong>Note:</strong>
+   It is <em>strongly</em> encouraged that any new error domains
+   that you create follow the standard URI syntax. While there is
+   no requirement that the URI must point to an actual resource on 
+   the Internet, it is a common way to separate domains and it
+   provides more useful information to the application. 
+  </p>
+  <p>
+   <strong>Note:</strong> 
+   Nearly all of the standard components depend on this component.
+   Therefore, if you write a parser configuration that re-uses any
+   of the standard components, you must have an instance of this
+   component registered with the appropriate property identifier.
+  </p>
+ </s2>
+ <anchor name='document-scanner'/>
+ <s2 title='Document Scanner'>
+  <p>Property information:</p>
+  <table>
+   <tr>
+    <th>Property Id</th>
+    <td>http://apache.org/xml/properties/internal/document-scanner</td>
+   </tr>
+   <tr>
+    <th>Type</th>
+    <td>org.apache.xerces.xni.parser.XMLDocumentScanner</td>
+   </tr>
+  </table>
+  <p>Required properties:</p>
+  <ul>
+   <li>http://apache.org/xml/properties/internal/symbol-table</li>
+   <li>http://apache.org/xml/properties/internal/error-reporter</li>
+   <li>http://apache.org/xml/properties/internal/entity-manager</li>
+   <li>http://apache.org/xml/properties/internal/dtd-scanner</li>
+  </ul>
+  <p>Recognized features:</p>
+  <ul>
+   <li>http://xml.org/sax/features/namespaces</li>
+   <li>http://xml.org/sax/features/validation</li>
+   <li>http://apache.org/xml/features/nonvalidating/load-external-dtd</li>
+   <li>http://apache.org/xml/features/scanner/notify-char-refs</li>
+   <li>http://apache.org/xml/features/scanner/notify-builtin-refs</li>
+  </ul>
+  <p>
+   The <code>org.apache.xerces.impl.XMLDocumentScannerImpl</code>
+   class implements the XNI document scanner interface and is
+   implemented so that it can also function as a "pull" parser.
+   A pull parser allows the application to drive the parsing of 
+   the document instead of having all of the document events
+   "pushed" to the registered handlers.
+  </p>
+ </s2>
+ <anchor name='dtd-scanner'/>
+ <s2 title='DTD Scanner'>
+  <p>Property information:</p>
+  <table>
+   <tr>
+    <th>Property Id</th>
+    <td>http://apache.org/xml/properties/internal/dtd-scanner</td>
+   </tr>
+   <tr>
+    <th>Type</th>
+    <td>org.apache.xerces.xni.parser.XMLDTDScanner</td>
+   </tr>
+  </table>
+  <p>Required properties:</p>
+  <ul>
+   <li>http://apache.org/xml/properties/internal/symbol-table</li>
+   <li>http://apache.org/xml/properties/internal/error-reporter</li>
+   <li>http://apache.org/xml/properties/internal/entity-manager</li>
+  </ul>
+  <p>Recognized features:</p>
+  <ul>
+   <li>http://xml.org/sax/features/validation</li>
+   <li>http://apache.org/xml/features/scanner/notify-char-refs</li>
+  </ul>
+  <p>
+   The <code>org.apache.xerces.impl.XMLDTDScannerImpl</code>
+   class implements the XNI DTD scanner interface and is
+   implemented so that it can also function as a "pull" parser.
+   A pull parser allows the application to drive the parsing of 
+   the DTD instead of having all of the DTD events
+   "pushed" to the registered handlers.
+  </p>
+ </s2>
+ <anchor name='entity-manager'/>
+ <s2 title='Entity Manager'>
+  <p>Property information:</p>
+  <table>
+   <tr>
+    <th>Property Id</th>
+    <td>http://apache.org/xml/properties/internal/entity-manager</td>
+   </tr>
+   <tr>
+    <th>Type</th>
+    <td>org.apache.xerces.impl.XMLEntityManager</td>
+   </tr>
+  </table>
+  <p>Required properties:</p>
+  <ul>
+   <li>http://apache.org/xml/properties/internal/symbol-table</li>
+   <li>http://apache.org/xml/properties/internal/error-reporter</li>
+  </ul>
+  <p>Recognized features:</p>
+  <ul>
+   <li>http://xml.org/sax/features/validation</li>
+   <li>http://xml.org/sax/features/external-general-entities</li>
+   <li>http://xml.org/sax/features/external-parameter-entities</li>
+   <li>http://apache.org/xml/features/allow-java-encodings</li>
+  </ul>
+  <p>Recognized properties:</p>
+  <ul>
+   <li>http://apache.org/xml/properties/entity-resolver</li>
+  </ul>
+  <p>
+   Both the <link anchor='document-scanner'>Document Scanner</link>
+   and the <link anchor='dtd-scanner'>DTD Scanner</link> depend
+   on the Entity Manager. This component handles starting and
+   stopping entities automatically so that the scanners can continue
+   operation transparently even when entities go in and out of
+   scope.
+  </p>
+  <p>
+   The Entity Manager implements an Entity Scanner which is a 
+   low-level scanner for document and DTD information. Because
+   the document and DTD scanners interact only with the Entity
+   Scanner to scan the document, the scanners are shielded from
+   changes caused by starting and stopping entities. Changes in
+   the entities being scanned happens transparently within the 
+   Manager/Scanner combination but the scanner components are
+   notified of the start and end of the entity by implementing
+   the XMLEntityHandler interface that is only part of the
+   Xerces2 reference implementation.
+  </p>
+ </s2>
+ <anchor name='dtd-validator'/>
+ <s2 title='DTD Validator'>
+  <p>Property information:</p>
+  <table>
+   <tr>
+    <th>Property Id</th>
+    <td>http://apache.org/xml/properties/internal/validator/dtd</td>
+   </tr>
+   <tr>
+    <th>Type</th>
+    <td>org.apache.xerces.impl.dtd.XMLDTDValidator</td>
+   </tr>
+  </table>
+  <p>Required properties:</p>
+  <ul>
+   <li>http://apache.org/xml/properties/internal/symbol-table</li>
+   <li>http://apache.org/xml/properties/internal/error-reporter</li>
+   <!--
+     - NOTE: The following properties are also required but the
+     -       validation engine is being redesigned so I'm not
+     -       listing them in the documentation.
+   <li>http://apache.org/xml/properties/internal/grammar-pool</li>
+   <li>http://apache.org/xml/properties/internal/datatype-validator-factory</li>
+   -->
+  </ul>
+  <p>Recognized features:</p>
+  <ul>
+   <li>http://xml.org/sax/features/namespaces</li>
+   <li>http://xml.org/sax/features/validation</li>
+   <li>http://apache.org/xml/features/validation/dynamic</li>
+  </ul>
+  <p>
+   The DTD Validator performs validation of the document events that 
+   it receives which may augment the streaming information set with
+   default attribute values and normalizing attribute values.
+  </p>
+ </s2>
+ <anchor name='namespace-binder'/>
+ <s2 title='Namespace Binder'>
+  <p>Property information:</p>
+  <table>
+   <tr>
+    <th>Property Id</th>
+    <td>http://apache.org/xml/properties/internal/namespace-binder</td>
+   </tr>
+   <tr>
+    <th>Type</th>
+    <td>org.apache.xerces.impl.XMLNamespaceBinder</td>
+   </tr>
+  </table>
+  <p>Required properties:</p>
+  <ul>
+   <li>http://apache.org/xml/properties/internal/symbol-table</li>
+   <li>http://apache.org/xml/properties/internal/error-reporter</li>
+  </ul>
+  <p>Recognized features:</p>
+  <ul>
+   <li>http://xml.org/sax/features/namespaces</li>
+  </ul>
+  <p>
+   The Namespace Binder is responsible for detecting namespace bindings
+   in the startElement/emptyElement methods and emitting appropriate 
+   start and end prefix mapping events. Namespace binding should always
+   occur <em>after</em> DTD validation (since namespace bindings may
+   have been defaulted from an attribute declaration in the DTD) and
+   <em>before</em> Schema validation.
+  </p>
+ </s2>
+ <anchor name='schema-validator'/>
+ <s2 title='Schema Validator'>
+  <p>Property information:</p>
+  <table>
+   <tr>
+    <th>Property Id</th>
+    <td>http://apache.org/xml/properties/internal/validator/schema</td>
+   </tr>
+   <tr>
+    <th>Type</th>
+    <td>org.apache.xerces.impl.xs.XMLSchemaValidator</td>
+   </tr>
+  </table>
+  <p>Required properties:</p>
+  <ul>
+   <li>http://apache.org/xml/properties/internal/symbol-table</li>
+   <li>http://apache.org/xml/properties/internal/error-reporter</li>
+   <!--
+     - NOTE: The following properties are also required but the
+     -       validation engine is being redesigned so I'm not
+     -       listing them in the documentation.
+   <li>http://apache.org/xml/properties/internal/grammar-pool</li>
+   <li>http://apache.org/xml/properties/internal/datatype-validator-factory</li>
+   -->
+  </ul>
+  <p>Recognized features:</p>
+  <ul>
+   <li>http://xml.org/sax/features/namespaces</li>
+   <li>http://xml.org/sax/features/validation</li>
+   <li>http://apache.org/xml/features/validation/dynamic</li>
+  </ul>
+  <p>
+   The Schema Validator performs validation of the document events that 
+   it receives which may augment the streaming information set with
+   default simple type values and normalizing simple type values.
+  </p>
+ </s2>
+</s1> 

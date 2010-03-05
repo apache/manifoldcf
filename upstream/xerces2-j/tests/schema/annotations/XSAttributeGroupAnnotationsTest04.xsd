@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="XSAttributeGroupAnnotationsTest"
+    xmlns:sv="XSAttributeGroupAnnotationsTest">
+
+    <attributeGroup name="AG">
+        <annotation id="ANNOT1">
+            <appinfo source="None">
+                <!-- No Appinfo -->
+            </appinfo>
+            <documentation>ANNOT1 should be seen</documentation>
+        </annotation>
+        <attribute name="attr" type="string">
+            <annotation id="ANNOT2">
+                <appinfo source="None">
+                    <!-- No Appinfo -->
+                </appinfo>
+                <documentation>ANNOT2 should be seen</documentation>
+            </annotation>
+        </attribute>
+    </attributeGroup>
+
+    <element name="root">
+        <complexType>
+            <sequence>
+                <element name="elString" type="string" />
+            </sequence>
+            <attributeGroup ref="sv:AG">
+            
+                <!--  THESE ANNOTATIONS ARE LOST -->
+                <annotation id="ANNOT3">
+                    <appinfo source="None">
+                        <!-- No Appinfo -->
+                    </appinfo>
+                    <documentation>ANNOT3 will be lost.</documentation>
+                </annotation>
+                
+            </attributeGroup>
+        </complexType>
+    </element>
+
+</schema>

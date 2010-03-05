@@ -1,0 +1,97 @@
+<?xml version='1.0' encoding='US-ASCII'?>
+<!-- $Id$ -->
+<!DOCTYPE issues SYSTEM 'issues.dtd' [
+<!ENTITY people SYSTEM 'people.ent'>
+]>
+<issues date='$Date$'>
+
+ <!-- People -->
+ &people;
+
+ <!-- Issues -->
+ <issue id='I1' originator='andyc'>
+  <title>Entity Management &amp; Readers</title>
+  <detail>
+   The heart of parsing XML documents is the interaction between
+   the various scanners and the document input stream. Since this
+   is the critical path in the parser, performance is an important
+   consideration. Yet, at the same time, the interaction between
+   scanner and reader should be simple and straightforward.
+  </detail>
+  <problem>
+   <detail>
+    Entity stack management. The scanners can push readers on the
+    stack when an entity reference is seen but who pops the reader?
+   </detail>
+  </problem>
+  <problem>
+   <detail>
+    Who scans the XMLDecl and TextDecl lines? The scanner(s) or
+    the entity reader?
+   </detail>
+  </problem>
+  <problem>
+   <detail>
+    Handling the changing of the input stream reader based
+    on the encoding specified in the XMLDecl or TextDecl lines.
+   </detail>
+  </problem>
+  <problem>
+   <detail>
+    How do we handle the pushback buffer needed at certain
+    times during parsing while still keeping the amount of
+    delegation down to a minimum?
+   </detail>
+  </problem>
+ </issue>
+
+ <issue id='I2' originator='estaub'>
+  <title>Parser Pipeline Construction</title>
+  <detail>
+   The parser is designed as a pipeline and the components need
+   to be connected together and configured.
+  </detail>
+  <problem>
+   <detail>
+    Is there a generic way to put components together in 
+    order to construct the pipeline? If users want to
+    construct a new parser object with a different pipeline
+    configuration, this should be easy to do.
+   </detail>
+  </problem>
+ </issue>
+
+ <issue id='I3' originator='estaub'>
+  <title>Operations on XML Infoset</title>
+  <detail>
+   There are many emerging XML standards that involve operations
+   on the <a href='http://www.w3.org/TR/xml-infoset'>XML Infoset</a>.
+   <a href='http://www.w3.org/TR/xinclude'>XInclude</a> is one of
+   these standards that defines how XML inclusion operates on the
+   Infoset.
+  </detail>
+  <problem>
+   <detail>
+    When should these operations take place in the parser 
+    pipeline: before or after validation? And if it's after 
+    validation, then what does it mean for the parser to say a 
+    document is "valid"? The inclusion could cause the document to 
+    become invalid. This is more than an implementation issue; it's
+    a standards issue.
+   </detail>
+   <comment author='estaub' link='http://archive.covalent.net/xml/xerces-j-dev/2000/09/0482.xml'>
+    If XInclude processing were called after validation, then what would be
+    validated would be the unexpanded XInclude.  In other words, the schema or
+    DTD would describe the original unexpanded xinclude:href attributes, and so
+    forth.
+   </comment>
+  </problem>
+  <problem>
+   <detail>
+    Should operations on the XML Infoset even be in the parser
+    pipeline?
+   </detail>
+  </problem>
+ </issue>
+
+</issues>

@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!DOCTYPE root[
+   <!ENTITY ent1 "Dallas. &ent3; #5668">
+   <!ENTITY ent2 "1900 Dallas Road<![CDATA[ (East) ]]>">
+   <!ENTITY ent3 "California. &ent4; PO">  
+   <!ENTITY ent4 "USA ">
+   <!ENTITY ent5 "The Content &ent6; never reached">
+   <!ENTITY ent6 "ends here. <foo/>">
+]>
+
+<root>&ent1; &ent2;
+<elem>Home </elem>
+<elem>Test: &ent5;</elem>
+</root> 

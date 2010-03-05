@@ -1,0 +1,150 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<!DOCTYPE faqs SYSTEM 'dtd/faqs.dtd'>
+<faqs title='Performance FAQs'>
+  <faq title='General Performance'>
+    <q>General Performance</q>
+    <a>
+      <p>
+	Don't use XML where it doesn't make sense. XML is not a panacea. 
+	You will not get good performance by transferring and parsing a 
+	lot of XML files. 
+      </p>
+      <p>Using XML is memory, CPU, and network intensive.</p>
+    </a>
+  </faq>
+  <faq title='Parser Performance'>
+    <q>Parser Performance</q>
+    <a>
+      <p>
+	Avoid creating a new parser each time you parse; reuse parser 
+	instances. A pool of reusable parser instances might be a good idea 
+	if you have multiple threads parsing at the same time.
+      </p>
+      <p>
+	The parser configuration may affect the performance of the parser.
+	For example, if you are interested in evaluating the parser performance
+	with DTDs you may want to use the <code>DTDConfiguration</code> 
+	(<em>Note</em>: you can build Xerces with DTD-only support using 
+	<em>dtdjars</em> build target).
+      </p>
+    </a>
+  </faq>
+  <faq title='Parsing Documents Performance'>
+    <q>Parsing Documents Performance</q>
+    <a>
+      <p>
+	There are a variety of things that you can do to improve the
+	performance when parsing documents:
+      </p>
+      <ul>
+	<li>
+	  Convert the document to US ASCII ("US-ASCII") or Unicode 
+	  ("UTF-8" or "UTF-16") before parsing. Documents written using 
+	  ASCII are the fastest to parse because each character is 
+	  guaranteed to be a single byte and map directly to their 
+	  equivalent Unicode value. For documents that contain Unicode 
+	  characters beyond the ASCII range, multiple byte sequences 
+	  must be read and converted for each character. There is a 
+	  performance penalty for this conversion. The UTF-16 encoding 
+	  alleviates some of this penalty because each character is 
+	  specified using two bytes, assuming no surrogate characters. 
+	  However, using UTF-16 can roughly double the size of the 
+	  original document which takes longer to parse.
+	</li>
+	<li>
+	  Explicitly specify "US-ASCII" encoding if your document is in 
+	  ASCII format. If no encoding is specified, the XML specification 
+	  requires the parser to assume UTF-8 which is slower to process.
+	</li>
+	<li>
+	  Avoid external entities and external DTDs. The extra file 
+	  opens and transcoding setup is expensive.
+	</li>
+	<li>
+	  Reduce character count; smaller documents are parsed quicker. 
+	  Replace elements with attributes where it makes sense. Avoid 
+	  gratuitous use of whitespace because the parser must scan past it.
+	</li>
+	<li>
+	  Avoid using too many default attributes. Defaulting attribute
+	  values slows down processing.
+	</li>
+      </ul>
+    </a>
+  </faq>
+  <faq title='XML Application Performance'>
+    <q>XML Application Performance</q>
+    <a>
+      <p>
+       When writing an XML application there are a number of choices you can make that effect
+       performance. Some of the things which will affect the performance of your application
+       are described below.
+      </p>
+      <ul>
+    <li><strong>Grammar Caching</strong> -- if you do need validation, consider
+      using grammar caching to reduce the cost of validation by allowing the parser
+      to skip grammar loading and assessment. See this <link idref="faq-grammars">FAQ</link> 
+      on how to perform grammar caching with Xerces.
+    </li>
+	<li><strong>Validation</strong> -- if you don't need validation (and infoset augmentation) 
+	  of XML documents, 
+	  don't include validators (DTD or XML Schema) in the pipeline. 
+	  Including the validator components in the pipeline will result in a performance 
+	  hit for your application: if a validator component is present in the pipeline, 
+	  Xerces will try to augment the infoset even if the validation feature is set to false.
+	  If you are only interested in validating against DTDs don't include 
+	  XML Schema validator in the pipeline.
+
+	</li>
+	<li> <strong>DOCTYPE</strong> -- if you don't need validation, 
+	  avoid using a DOCTYPE line in your XML document. 
+	  The current version of the parser will always read the DTD if the DOCTYPE line
+	  is specified even when validation feature is set to false.
+	</li>
+	<li> <strong>Deferred DOM</strong>  --
+	  by default, the DOM feature <em>defer-node-expansion</em> is true, 
+	  causing DOM nodes to be expanded as the tree is traversed. 
+	  The performance tests produced by <em>Denis Sosnoski</em> showed that Xerces DOM with 
+	  deferred node expansion offers poor performance and large memory size 
+	  for small documents (0K-10K). Thus, for best performance when using Xerces DOM 
+	  with smaller documents you should disable the deferred node expansion feature.
+	  For larger documents (~100K and higher) the deferred DOM offers 
+	  better performance than non-deferred DOM but uses a large memory size.
+	</li>
+	<li><strong>SAX</strong> --
+	  if memory usage using DOM is a concern, SAX should be considered;      
+	  the SAX parser uses very little memory and notifies the   
+	  application as parts of the document are parsed.
+	</li>
+      </ul>
+      <p>
+       For more detailed information on best practices for writing XML applications 
+       you may want to read the following series of articles:
+      </p>
+      <ol>
+        <li><jump href="http://www-106.ibm.com/developerworks/xml/library/x-perfap1.html">Write XML documents and develop applications using the SAX and DOM APIs</jump></li>
+        <li><jump href="http://www-106.ibm.com/developerworks/xml/library/x-perfap2.html">Reuse parser instances with the Xerces2 SAX and DOM implementations</jump></li>
+        <li><jump href="http://www-106.ibm.com/developerworks/xml/library/x-perfap3.html">XNI, Xerces2 features and properties, and caching schemas</jump></li>
+      </ol>
+      <p>
+       These three articles discuss general performance tips in addition to ones specifically pertaining to Xerces2.
+      </p>
+    </a>
+  </faq>
+</faqs>

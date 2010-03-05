@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="XSNotationAnnotationsTest"
+    xmlns:sv="XSNotationAnnotationsTest"
+    xmlns:sn="SyntheticAnnotation">
+
+    <notation name="notation1" id="NOT1" public="PUB" system="SYS"></notation>
+
+    <notation name="notation2" id="NOT2" public="PUB" system="SYS" sn:att="synth"></notation>
+
+    <notation name="notation3" id="NOT3" public="PUB" system="SYS">
+        <annotation id="ANNOT1">
+            <appinfo>APPINFO1</appinfo>
+        </annotation>
+    </notation>
+
+    <notation name="notation4" id="NOT4" public="PUB" system="SYS" sn:att="synth">
+        <annotation id="ANNOT2">
+            <documentation>DOC1</documentation>
+        </annotation>
+    </notation>
+
+    <element name="root">
+        <complexType>
+            <sequence>
+                <element name="elString" type="string" />
+            </sequence>
+        </complexType>
+    </element>
+
+</schema>

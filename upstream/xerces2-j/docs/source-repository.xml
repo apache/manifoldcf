@@ -1,0 +1,58 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<!DOCTYPE s1 SYSTEM 'dtd/document.dtd'>
+<s1 title="Source Repository">
+  <s2 title="Overview">
+    <p>The &ParserNameLong; source code is stored in the Subversion
+       repository (SVN). The SVN repository is public and everyone
+       has read access. The repository uses a standard layout of:</p>
+
+<source>
+<jump href="https://svn.apache.org/repos/asf/xerces/java/">https://svn.apache.org/repos/asf/xerces/java/</jump>
+                                        |
+                                        | - <jump href="https://svn.apache.org/repos/asf/xerces/java/branches/">branches/</jump>
+                                        |
+                                        | - <jump href="https://svn.apache.org/repos/asf/xerces/java/tags/">tags/</jump>
+                                        \
+                                          - <jump href="https://svn.apache.org/repos/asf/xerces/java/trunk/">trunk/</jump>
+</source>
+
+    <p>For example, to check out the trunk (the place where the main
+       development is taking place), execute:</p>
+
+<source>
+svn co <jump href="https://svn.apache.org/repos/asf/xerces/java/trunk">https://svn.apache.org/repos/asf/xerces/java/trunk</jump>
+</source>
+
+    <p>To check out the code in the stax-dev branch, execute:</p>
+
+<source>
+svn co <jump href="https://svn.apache.org/repos/asf/xerces/java/branches/stax-dev">https://svn.apache.org/repos/asf/xerces/java/branches/stax-dev</jump>
+</source>
+
+    <p>To check out the code tagged Xerces-J_2_6_2, execute:</p>
+
+<source>
+svn co <jump href="https://svn.apache.org/repos/asf/xerces/java/tags/Xerces-J_2_6_2">https://svn.apache.org/repos/asf/xerces/java/tags/Xerces-J_2_6_2</jump>
+</source>
+
+    <p>You can also browse the repository and examine individual
+       files using the <jump href="http://svn.apache.org/viewcvs.cgi/xerces/java/trunk/">Web
+       interface</jump>.</p>   
+  </s2>
+</s1>

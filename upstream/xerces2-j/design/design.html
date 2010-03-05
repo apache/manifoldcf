@@ -1,0 +1,2368 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN"
+                      "http://www.w3.org/TR/WD-html-in-xml/DTD/xhtml1-strict.dtd">
+<HTML>
+ <HEAD>
+  <TITLE>Xerces 2 | Design</TITLE>
+  <LINK href="css/index.css" rel="stylesheet" type="text/css">
+  <LINK href="css/design.css" rel="stylesheet" type="text/css">
+ </HEAD>
+ <BODY>
+  <H1 align="center">Xerces-J 2.0       Design     </H1>
+  <H2>Classes and Interfaces</H2>
+  <H3>Xerces Native Interface (XNI)</H3>
+  <BLOCKQUOTE>
+   <A name="XMLDocumentHandler"><DL class="interface">
+     <DT>interface <SPAN class="interface-title">XMLDocumentHandler</SPAN>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">startDocument</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">systemId</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">encoding</SPAN>          )
+       <LI>
+        <SPAN class="method-title">xmlDecl</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">version</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">encoding</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">standalone</SPAN>          )
+       <LI>
+        <SPAN class="method-title">doctypeDecl</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">rootElement</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">publicId</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">systemId</SPAN>          )
+       <LI>
+        <SPAN class="method-title">comment</SPAN>      (   <SPAN
+        class="class-title">XMLString</SPAN> <SPAN
+        class="param-title">text</SPAN>          )
+       <LI>
+        <SPAN class="method-title">processingInstruction</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">target</SPAN>, <SPAN
+        class="class-title">XMLString</SPAN> <SPAN
+        class="param-title">data</SPAN>          )
+       <LI>
+        <SPAN class="method-title">startPrefixMapping</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">prefix</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">uri</SPAN>          )
+       <LI>
+        <SPAN class="method-title">startEntity</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">name</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">publicId</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">systemId</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">baseSystemId</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">encoding</SPAN>          )
+       <LI>
+        <SPAN class="method-title">textDecl</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">version</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">encoding</SPAN>          )
+       <LI>
+        <SPAN class="method-title">endEntity</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">name</SPAN>          )
+       <LI>
+        <SPAN class="method-title">startElement</SPAN>      (   <SPAN
+        class="class-title">QName</SPAN> <SPAN
+        class="param-title">element</SPAN>, <SPAN
+        class="interface-title">XMLAttributes</SPAN> <SPAN
+        class="param-title">attributes</SPAN>          )
+       <LI>
+        <SPAN class="method-title">emptyElement</SPAN>      (   <SPAN
+        class="class-title">QName</SPAN> <SPAN
+        class="param-title">element</SPAN>, <SPAN
+        class="interface-title">XMLAttributes</SPAN> <SPAN
+        class="param-title">attributes</SPAN>          )
+       <LI>
+        <SPAN class="method-title">characters</SPAN>      (   <SPAN
+        class="class-title">XMLString</SPAN> <SPAN
+        class="param-title">text</SPAN>          )
+       <LI>
+        <SPAN class="method-title">ignorableWhitespace</SPAN>      (
+         <SPAN class="class-title">XMLString</SPAN> <SPAN
+        class="param-title">text</SPAN>          )
+       <LI>
+        <SPAN class="method-title">endElement</SPAN>      (   <SPAN
+        class="class-title">QName</SPAN> <SPAN
+        class="param-title">element</SPAN>          )
+       <LI>
+        <SPAN class="method-title">endPrefixMapping</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">prefix</SPAN>          )
+       <LI>
+        <SPAN class="method-title">startCDATA</SPAN>      (
+        )
+       <LI>
+        <SPAN class="method-title">endCDATA</SPAN>      (             )
+       <LI>
+        <SPAN class="method-title">endDocument</SPAN>      (
+        )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="XMLDocumentFragmentHandler"><DL class="interface">
+     <DT>interface <SPAN class="interface-title">XMLDocumentFragmentHandler</SPAN>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">startDocumentFragment</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">baseSystemId</SPAN>, <SPAN
+        class="interface-title">NamespaceContext</SPAN> <SPAN
+        class="param-title">namespaceContext</SPAN>          )
+       <LI>
+        <SPAN class="method-title">comment</SPAN>      (   <SPAN
+        class="class-title">XMLString</SPAN> <SPAN
+        class="param-title">text</SPAN>          )
+       <LI>
+        <SPAN class="method-title">processingInstruction</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">target</SPAN>, <SPAN
+        class="class-title">XMLString</SPAN> <SPAN
+        class="param-title">data</SPAN>          )
+       <LI>
+        <SPAN class="method-title">startPrefixMapping</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">prefix</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">uri</SPAN>          )
+       <LI>
+        <SPAN class="method-title">startEntity</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">name</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">publicId</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">systemId</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">baseSystemId</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">encoding</SPAN>          )
+       <LI>
+        <SPAN class="method-title">endEntity</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">name</SPAN>          )
+       <LI>
+        <SPAN class="method-title">startElement</SPAN>      (   <SPAN
+        class="class-title">QName</SPAN> <SPAN
+        class="param-title">element</SPAN>, <SPAN
+        class="interface-title">XMLAttributes</SPAN> <SPAN
+        class="param-title">attributes</SPAN>          )
+       <LI>
+        <SPAN class="method-title">emptyElement</SPAN>      (   <SPAN
+        class="class-title">QName</SPAN> <SPAN
+        class="param-title">element</SPAN>, <SPAN
+        class="interface-title">XMLAttributes</SPAN> <SPAN
+        class="param-title">attributes</SPAN>          )
+       <LI>
+        <SPAN class="method-title">characters</SPAN>      (   <SPAN
+        class="class-title">XMLString</SPAN> <SPAN
+        class="param-title">text</SPAN>          )
+       <LI>
+        <SPAN class="method-title">ignorableWhitespace</SPAN>      (
+         <SPAN class="class-title">XMLString</SPAN> <SPAN
+        class="param-title">text</SPAN>          )
+       <LI>
+        <SPAN class="method-title">endElement</SPAN>      (   <SPAN
+        class="class-title">QName</SPAN> <SPAN
+        class="param-title">element</SPAN>          )
+       <LI>
+        <SPAN class="method-title">endPrefixMapping</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">prefix</SPAN>          )
+       <LI>
+        <SPAN class="method-title">startCDATA</SPAN>      (
+        )
+       <LI>
+        <SPAN class="method-title">endCDATA</SPAN>      (             )
+       <LI>
+        <SPAN class="method-title">textDecl</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">version</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">encoding</SPAN>          )
+       <LI>
+        <SPAN class="method-title">endDocumentFragment</SPAN>      (
+        )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="NamespaceContext"><DL class="interface">
+     <DT>interface <SPAN class="interface-title">NamespaceContext</SPAN>
+     <DD class="constants">      constants:      <UL>
+       <LI>
+        <SPAN class="class-title">String</SPAN> <SPAN class="constant-title">XMLNS</SPAN>
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">getParentContext</SPAN>      (
+        )       :    <SPAN class="interface-title">NamespaceContext</SPAN>
+       <LI>
+        <SPAN class="method-title">getURI</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">prefix</SPAN>          )       :    <SPAN class="class-title">String</SPAN>
+       <LI>
+        <SPAN class="method-title">getDeclaredPrefixCount</SPAN>      (
+        )       :    int
+       <LI>
+        <SPAN class="method-title">getDeclaredPrefixAt</SPAN>      (
+        int <SPAN class="param-title">index</SPAN>          )       :
+         <SPAN class="class-title">String</SPAN>
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="XMLDTDHandler"><DL class="interface">
+     <DT>interface <SPAN class="interface-title">XMLDTDHandler</SPAN>
+     <DD class="constants">      constants:      <UL>
+       <LI>short <SPAN class="constant-title">CONDITIONAL_INCLUDE</SPAN>
+       <LI>short <SPAN class="constant-title">CONDITIONAL_IGNORE</SPAN>
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">startDTD</SPAN>      (             )
+       <LI>
+        <SPAN class="method-title">comment</SPAN>      (   <SPAN
+        class="class-title">XMLString</SPAN> <SPAN
+        class="param-title">text</SPAN>          )
+       <LI>
+        <SPAN class="method-title">processingInstruction</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">target</SPAN>, <SPAN
+        class="class-title">XMLString</SPAN> <SPAN
+        class="param-title">data</SPAN>          )
+       <LI>
+        <SPAN class="method-title">startEntity</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">name</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">publicId</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">systemId</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">baseSystemId</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">encoding</SPAN>          )
+       <LI>
+        <SPAN class="method-title">textDecl</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">version</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">encoding</SPAN>          )
+       <LI>
+        <SPAN class="method-title">endEntity</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">name</SPAN>          )
+       <LI>
+        <SPAN class="method-title">elementDecl</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">name</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">contentModel</SPAN>          )
+       <LI>
+        <SPAN class="method-title">startAttlist</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">elementName</SPAN>          )
+       <LI>
+        <SPAN class="method-title">attributeDecl</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">elementName</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">attributeName</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">type</SPAN>, <SPAN
+        class="class-title">String</SPAN>[]   <SPAN
+        class="param-title">enumeration</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">defaultType</SPAN>, <SPAN
+        class="class-title">XMLString</SPAN> <SPAN
+        class="param-title">defaultValue</SPAN>          )
+       <LI>
+        <SPAN class="method-title">endAttlist</SPAN>      (
+        )
+       <LI>
+        <SPAN class="method-title">internalEntityDecl</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">name</SPAN>, <SPAN
+        class="class-title">XMLString</SPAN> <SPAN
+        class="param-title">text</SPAN>          )
+       <LI>
+        <SPAN class="method-title">externalEntityDecl</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">name</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">publicId</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">systemId</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">baseSystemId</SPAN>          )
+       <LI>
+        <SPAN class="method-title">unparsedEntityDecl</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">name</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">publicId</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">systemId</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">notation</SPAN>          )
+       <LI>
+        <SPAN class="method-title">notationDecl</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">name</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">publicId</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">systemId</SPAN>          )
+       <LI>
+        <SPAN class="method-title">startConditional</SPAN>      (
+        short <SPAN class="param-title">type</SPAN>          )
+       <LI>
+        <SPAN class="method-title">endConditional</SPAN>      (
+        )
+       <LI>
+        <SPAN class="method-title">endDTD</SPAN>      (             )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="XMLDTDContentModelHandler"><DL class="interface">
+     <DT>interface <SPAN class="interface-title">XMLDTDContentModelHandler</SPAN>
+     <DD class="constants">      constants:      <UL>
+       <LI>short <SPAN class="constant-title">SEPARATOR_CHOICE</SPAN>
+       <LI>short <SPAN class="constant-title">SEPARATOR_SEQUENCE</SPAN>
+       <LI>short <SPAN class="constant-title">OCCURS_ZERO_OR_ONE</SPAN>
+       <LI>short <SPAN class="constant-title">OCCURS_ZERO_OR_MORE</SPAN>
+       <LI>short <SPAN class="constant-title">OCCURS_ONE_OR_MORE</SPAN>
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">startContentModel</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">elementName</SPAN>          )
+       <LI>
+        <SPAN class="method-title">any</SPAN>      (             )
+       <LI>
+        <SPAN class="method-title">empty</SPAN>      (             )
+       <LI>
+        <SPAN class="method-title">startGroup</SPAN>      (
+        )
+       <LI>
+        <SPAN class="method-title">pcdata</SPAN>      (             )
+       <LI>
+        <SPAN class="method-title">element</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">elementName</SPAN>          )
+       <LI>
+        <SPAN class="method-title">separator</SPAN>      (   short <SPAN
+        class="param-title">separator</SPAN>          )
+       <LI>
+        <SPAN class="method-title">occurrence</SPAN>      (   short
+         <SPAN class="param-title">occurrence</SPAN>          )
+       <LI>
+        <SPAN class="method-title">endGroup</SPAN>      (             )
+       <LI>
+        <SPAN class="method-title">endContentModel</SPAN>      (
+        )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="QName"><DL class="class">
+     <DT>class <SPAN class="class-title">QName</SPAN>
+     <DD class="fields">      fields:      <UL>
+       <LI>
+        <SPAN class="class-title">String</SPAN> <SPAN class="field-title">prefix</SPAN>
+       <LI>
+        <SPAN class="class-title">String</SPAN> <SPAN class="field-title">localpart</SPAN>
+       <LI>
+        <SPAN class="class-title">String</SPAN> <SPAN class="field-title">rawname</SPAN>
+       <LI>
+        <SPAN class="class-title">String</SPAN> <SPAN class="field-title">uri</SPAN>
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">setValues</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">prefix</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">localpart</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">rawname</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">uri</SPAN>          )
+       <LI>
+        <SPAN class="method-title">clear</SPAN>      (             )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="XMLString"><DL class="class">
+     <DT>class <SPAN class="class-title">XMLString</SPAN>
+     <DD class="fields">      fields:      <UL>
+       <LI>char[]   <SPAN class="field-title">ch</SPAN>
+       <LI>int <SPAN class="field-title">offset</SPAN>
+       <LI>int <SPAN class="field-title">length</SPAN>
+      </UL>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">XMLString</SPAN>      (
+        )
+       <LI>
+        <SPAN class="constructor-title">XMLString</SPAN>      (   char[]
+         <SPAN class="param-title">ch</SPAN>, int <SPAN
+        class="param-title">offset</SPAN>, int <SPAN
+        class="param-title">length</SPAN>          )
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">setValues</SPAN>      (   char[]
+         <SPAN class="param-title">ch</SPAN>, int <SPAN
+        class="param-title">offset</SPAN>, int <SPAN
+        class="param-title">length</SPAN>          )
+       <LI>
+        <SPAN class="method-title">clear</SPAN>      (             )
+       <LI>
+        <SPAN class="method-title">equals</SPAN>      (   char[]   <SPAN
+        class="param-title">ch</SPAN>, int <SPAN
+        class="param-title">offset</SPAN>, int <SPAN
+        class="param-title">length</SPAN>          )       :    boolean
+       <LI>
+        <SPAN class="method-title">equals</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">s</SPAN>          )       :    boolean
+       <LI>
+        <SPAN class="method-title">toString</SPAN>      (             )
+        :    <SPAN class="class-title">String</SPAN>
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="XMLAttributes"><DL class="interface">
+     <DT>interface <SPAN class="interface-title">XMLAttributes</SPAN>
+     <DD class="extends">      extends      <SPAN class="interface-title">AttributeList</SPAN>
+      <SPAN class="interface-title">Attributes</SPAN>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">addAttribute</SPAN>      (   <SPAN
+        class="class-title">QName</SPAN> <SPAN
+        class="param-title">name</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">type</SPAN>, <SPAN
+        class="class-title">XMLString</SPAN> <SPAN
+        class="param-title">value</SPAN>          )       :    int
+       <LI>
+        <SPAN class="method-title">removeAttributeAt</SPAN>      (   int
+         <SPAN class="param-title">index</SPAN>          )
+       <LI>
+        <SPAN class="method-title">removeAllAttributes</SPAN>      (
+        )
+       <LI>
+        <SPAN class="method-title">removeAllEntitiesFor</SPAN>      (
+        int <SPAN class="param-title">attrIndex</SPAN>          )
+       <LI>
+        <SPAN class="method-title">addAttributeEntity</SPAN>      (
+        int <SPAN class="param-title">index</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">name</SPAN>, int <SPAN
+        class="param-title">offset</SPAN>, int <SPAN
+        class="param-title">length</SPAN>          )
+       <LI>
+        <SPAN class="method-title">removeEntityAt</SPAN>      (   int
+         <SPAN class="param-title">attrIndex</SPAN>, int <SPAN
+        class="param-title">entityIndex</SPAN>          )
+       <LI>
+        <SPAN class="method-title">setName</SPAN>      (   int <SPAN
+        class="param-title">index</SPAN>, <SPAN
+        class="class-title">QName</SPAN> <SPAN
+        class="param-title">name</SPAN>          )
+       <LI>
+        <SPAN class="method-title">getName</SPAN>      (   int <SPAN
+        class="param-title">index</SPAN>, <SPAN
+        class="class-title">QName</SPAN> <SPAN
+        class="param-title">name</SPAN>          )
+       <LI>
+        <SPAN class="method-title">setType</SPAN>      (   int <SPAN
+        class="param-title">index</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">type</SPAN>          )
+       <LI>
+        <SPAN class="method-title">getType</SPAN>      (   int <SPAN
+        class="param-title">index</SPAN>          )       :    <SPAN class="class-title">String</SPAN>
+       <LI>
+        <SPAN class="method-title">setValue</SPAN>      (   int <SPAN
+        class="param-title">index</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">value</SPAN>          )
+       <LI>
+        <SPAN class="method-title">setNonNormalizedValue</SPAN>      (
+        int <SPAN class="param-title">index</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">value</SPAN>          )
+       <LI>
+        <SPAN class="method-title">getNonNormalizedValue</SPAN>      (
+        int <SPAN class="param-title">index</SPAN>          )       :
+         <SPAN class="class-title">String</SPAN>
+       <LI>
+        <SPAN class="method-title">setSpecified</SPAN>      (   int
+         <SPAN class="param-title">index</SPAN>, boolean <SPAN
+        class="param-title">specified</SPAN>          )
+       <LI>
+        <SPAN class="method-title">isSpecified</SPAN>      (   int <SPAN
+        class="param-title">index</SPAN>          )       :    boolean
+       <LI>
+        <SPAN class="method-title">getEntityCount</SPAN>      (   int
+         <SPAN class="param-title">attrIndex</SPAN>          )       :    int
+       <LI>
+        <SPAN class="method-title">getEntityName</SPAN>      (   int
+         <SPAN class="param-title">attrIndex</SPAN>, int <SPAN
+        class="param-title">entityIndex</SPAN>          )       :
+         <SPAN class="class-title">String</SPAN>
+       <LI>
+        <SPAN class="method-title">getEntityOffset</SPAN>      (   int
+         <SPAN class="param-title">attrIndex</SPAN>, int <SPAN
+        class="param-title">entityIndex</SPAN>          )       :    int
+       <LI>
+        <SPAN class="method-title">getEntityLength</SPAN>      (   int
+         <SPAN class="param-title">attrIndex</SPAN>, int <SPAN
+        class="param-title">entityIndex</SPAN>          )       :    int
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="XNIException"><DL class="class">
+     <DT>class <SPAN class="class-title">XNIException</SPAN>
+     <DD class="fields">      fields:      <UL>
+       <LI>
+        <SPAN class="class-title">String</SPAN> <SPAN class="field-title">fException</SPAN>
+      </UL>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">XNIException</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">message</SPAN>          )
+       <LI>
+        <SPAN class="constructor-title">XNIException</SPAN>      (
+         <SPAN class="class-title">Exception</SPAN> <SPAN
+        class="param-title">exception</SPAN>          )
+       <LI>
+        <SPAN class="constructor-title">XNIException</SPAN>      (
+         <SPAN class="class-title">Exception</SPAN> <SPAN
+        class="param-title">exception</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">message</SPAN>          )
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">getException</SPAN>      (
+        )       :    <SPAN class="class-title">String</SPAN>
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <H3>XNI: Parser Pipeline</H3>
+  <BLOCKQUOTE>
+   <A name="XMLComponent"><DL class="interface">
+     <DT>interface <SPAN class="interface-title">XMLComponent</SPAN>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">reset</SPAN>      (   <SPAN
+        class="interface-title">XMLComponentManager</SPAN> <SPAN
+        class="param-title">componentManager</SPAN>          )
+       <LI>
+        <SPAN class="method-title">getRecognizedFeatures</SPAN>      (
+         <SPAN class="class-title">String</SPAN>[]   <SPAN
+        class="param-title">recognizedFeatures</SPAN>          )
+       <LI>
+        <SPAN class="method-title">setFeature</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">featureId</SPAN>, boolean <SPAN
+        class="param-title">state</SPAN>          )
+       <LI>
+        <SPAN class="method-title">getRecognizedProperties</SPAN>      (
+         <SPAN class="class-title">String</SPAN>[]   <SPAN
+        class="param-title">recognizedProperties</SPAN>          )
+       <LI>
+        <SPAN class="method-title">setProperty</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">propertyId</SPAN>, <SPAN
+        class="class-title">Object</SPAN> <SPAN
+        class="param-title">value</SPAN>          )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="XMLComponentManager"><DL class="interface">
+     <DT>interface <SPAN class="interface-title">XMLComponentManager</SPAN>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">getFeature</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">featureId</SPAN>          )       :    boolean
+       <LI>
+        <SPAN class="method-title">getProperty</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">propertyId</SPAN>          )       :
+         <SPAN class="class-title">Object</SPAN>
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="XMLParserConfiguration"><DL class="interface">
+     <DT>interface <SPAN class="interface-title">XMLParserConfiguration</SPAN>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">addRecognizedFeatures</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">featureIds</SPAN>          )
+       <LI>
+        <SPAN class="method-title">setFeature</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">featureId</SPAN>, boolean <SPAN
+        class="param-title">state</SPAN>          )
+       <LI>
+        <SPAN class="method-title">getFeature</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">featureId</SPAN>          )       :    boolean
+       <LI>
+        <SPAN class="method-title">addRecognizedProperties</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">propertyIds</SPAN>          )
+       <LI>
+        <SPAN class="method-title">setProperty</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">propertyId</SPAN>, <SPAN
+        class="class-title">Object</SPAN> <SPAN
+        class="param-title">value</SPAN>          )
+       <LI>
+        <SPAN class="method-title">getProperty</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">propertyId</SPAN>          )       :
+         <SPAN class="class-title">Object</SPAN>
+       <LI>
+        <SPAN class="method-title">setLocale</SPAN>      (   <SPAN
+        class="class-title">Locale</SPAN> <SPAN
+        class="param-title">locale</SPAN>          )
+       <LI>
+        <SPAN class="method-title">setDocumentHandler</SPAN>      (
+         <SPAN class="interface-title">XMLDocumentHandler</SPAN> <SPAN
+        class="param-title">documentHandler</SPAN>          )
+       <LI>
+        <SPAN class="method-title">setDTDHandler</SPAN>      (   <SPAN
+        class="interface-title">XMLDTDHandler</SPAN> <SPAN
+        class="param-title">dtdHandler</SPAN>          )
+       <LI>
+        <SPAN class="method-title">setDTDContentModelHandler</SPAN>
+        (   <SPAN
+        class="interface-title">XMLDTDContentModelHandler</SPAN> <SPAN
+        class="param-title">dtdContentModelHandler</SPAN>          )
+       <LI>
+        <SPAN class="method-title">parse</SPAN>      (   <SPAN
+        class="class-title">InputSource</SPAN> <SPAN
+        class="param-title">inputSource</SPAN>          )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <H3>Implementation: Core Components</H3>
+  <BLOCKQUOTE>
+   <A name="XMLErrorReporter"><DL class="class">
+     <DT>class <SPAN class="class-title">XMLErrorReporter</SPAN>
+     <DD class="implements">      implements      <SPAN class="interface-title">XMLComponent</SPAN>
+     <DD class="constants">      constants:      <UL>
+       <LI>short <SPAN class="constant-title">SEVERITY_WARNING</SPAN>
+       <LI>short <SPAN class="constant-title">SEVERITY_ERROR</SPAN>
+       <LI>short <SPAN class="constant-title">SEVERITY_FATAL_ERROR</SPAN>
+      </UL>
+     <DD class="fields">      fields:      <UL>
+       <LI>
+        <SPAN class="class-title">Locale</SPAN> <SPAN class="field-title">fLocale</SPAN>
+       <LI>
+        <SPAN class="class-title">Hashtable</SPAN>      &lt;   <SPAN
+        class="interface-title">MessageFormatter</SPAN>      &gt;
+         <SPAN class="field-title">fMessageFormatters</SPAN>
+       <LI>
+        <SPAN class="interface-title">ErrorHandler</SPAN> <SPAN class="field-title">fErrorHandler</SPAN>
+       <LI>boolean <SPAN class="field-title">fContinueAfterFatalError</SPAN>
+      </UL>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">XMLErrorReporter</SPAN>      (
+        )
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">setLocale</SPAN>      (   <SPAN
+        class="class-title">Locale</SPAN> <SPAN
+        class="param-title">locale</SPAN>          )
+       <LI>
+        <SPAN class="method-title">putMessageFormatter</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">domain</SPAN>, <SPAN
+        class="interface-title">MessageFormatter</SPAN> <SPAN
+        class="param-title">messageFormatter</SPAN>          )
+       <LI>
+        <SPAN class="method-title">getMessageFormatter</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">domain</SPAN>          )       :    <SPAN class="interface-title">MessageFormatter</SPAN>
+       <LI>
+        <SPAN class="method-title">removeMessageFormatter</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">domain</SPAN>          )       :    <SPAN class="interface-title">MessageFormatter</SPAN>
+       <LI>
+        <SPAN class="method-title">reportError</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">domain</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">key</SPAN>, <SPAN
+        class="class-title">Object</SPAN>[]   <SPAN
+        class="param-title">arguments</SPAN>, short <SPAN
+        class="param-title">severity</SPAN>          )
+       <LI>
+        <SPAN class="method-title">reportError</SPAN>      (   <SPAN
+        class="interface-title">Locator</SPAN> <SPAN
+        class="param-title">location</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">domain</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">key</SPAN>, <SPAN
+        class="class-title">Object</SPAN>[]   <SPAN
+        class="param-title">arguments</SPAN>, short <SPAN
+        class="param-title">severity</SPAN>          )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="XMLDocumentScanner"><DL class="class">
+     <DT>class <SPAN class="class-title">XMLDocumentScanner</SPAN>
+     <DD class="implements">      implements      <SPAN
+      class="interface-title">XMLComponent</SPAN>, <SPAN
+      class="class-title"></SPAN>, <SPAN class="interface-title">XMLEntityHandler</SPAN>
+     <DD class="fields">      fields:      <UL>
+       <LI>
+        <SPAN class="class-title">SymbolTable</SPAN> <SPAN class="field-title">fSymbolTable</SPAN>
+       <LI>
+        <SPAN class="class-title">XMLErrorReporter</SPAN> <SPAN class="field-title">fErrorReporter</SPAN>
+       <LI>
+        <SPAN class="class-title">XMLEntityManager</SPAN> <SPAN class="field-title">fEntityManager</SPAN>
+       <LI>
+        <SPAN class="class-title">XMLDTDScanner</SPAN> <SPAN class="field-title">fDTDScanner</SPAN>
+       <LI>boolean <SPAN class="field-title">fNamespaces</SPAN>
+       <LI>
+        <SPAN class="interface-title">XMLDocumentHandler</SPAN> <SPAN class="field-title">fDocumentHandler</SPAN>
+      </UL>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">XMLDocumentScanner</SPAN>      (
+        )
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">scanDocument</SPAN>      (   boolean
+         <SPAN class="param-title">complete</SPAN>          )       :    boolean
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="XMLDTDScanner"><DL class="class">
+     <DT>class <SPAN class="class-title">XMLDTDScanner</SPAN>
+     <DD class="implements">      implements      <SPAN
+      class="interface-title">XMLComponent</SPAN>, <SPAN
+      class="class-title"></SPAN>, <SPAN class="class-title"></SPAN>,
+       <SPAN class="interface-title">XMLEntityHandler</SPAN>
+     <DD class="fields">      fields:      <UL>
+       <LI>
+        <SPAN class="class-title">SymbolTable</SPAN> <SPAN class="field-title">fSymbolTable</SPAN>
+       <LI>
+        <SPAN class="class-title">XMLErrorReporter</SPAN> <SPAN class="field-title">fErrorReporter</SPAN>
+       <LI>
+        <SPAN class="class-title">XMLEntityManager</SPAN> <SPAN class="field-title">fEntityManager</SPAN>
+       <LI>
+        <SPAN class="interface-title">XMLDTDHandler</SPAN> <SPAN class="field-title">fDTDHandler</SPAN>
+       <LI>
+        <SPAN class="interface-title">XMLDTDContentModelHandler</SPAN>
+         <SPAN class="field-title">fDTDContentModelHandler</SPAN>
+      </UL>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">XMLDTDScanner</SPAN>      (
+        )
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">scanDTD</SPAN>      (   boolean <SPAN
+        class="param-title">complete</SPAN>          )       :    boolean
+       <LI>
+        <SPAN class="method-title">scanDTDFragment</SPAN>      (
+        boolean <SPAN class="param-title">complete</SPAN>          )
+        :    boolean
+       <LI>
+        <SPAN class="method-title">scanDTDInternalSubset</SPAN>      (
+        boolean <SPAN class="param-title">complete</SPAN>, boolean <SPAN
+        class="param-title">standalone</SPAN>, boolean <SPAN
+        class="param-title">hasExternalDTD</SPAN>          )       :    boolean
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="XMLEntityManager"><DL class="class">
+     <DT>class <SPAN class="class-title">XMLEntityManager</SPAN>
+     <DD class="implements">      implements      <SPAN class="interface-title">XMLComponent</SPAN>
+     <DD class="fields">      fields:      <UL>
+       <LI>
+        <SPAN class="interface-title">EntityResolver</SPAN> <SPAN class="field-title">fEntityResolver</SPAN>
+       <LI>
+        <SPAN class="class-title">XMLEntityScanner</SPAN> <SPAN class="field-title">fEntityReader</SPAN>
+       <LI>
+        <SPAN class="interface-title">XMLEntityHandler</SPAN> <SPAN class="field-title">fEntityHandler</SPAN>
+      </UL>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">XMLEntityManager</SPAN>      (
+        )
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">setEntityHandler</SPAN>      (
+         <SPAN class="interface-title">XMLEntityHandler</SPAN> <SPAN
+        class="param-title">entityHandler</SPAN>          )
+       <LI>
+        <SPAN class="method-title">addExternalEntity</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">name</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">publicId</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">systemId</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">baseSystemId</SPAN>          )
+       <LI>
+        <SPAN class="method-title">addInternalEntity</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">name</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">text</SPAN>          )
+       <LI>
+        <SPAN class="method-title">addUnparsedEntity</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">name</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">publicId</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">systemId</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">notation</SPAN>          )
+       <LI>
+        <SPAN class="method-title">isDeclaredEntity</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">name</SPAN>          )       :    boolean
+       <LI>
+        <SPAN class="method-title">isExternalEntity</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">name</SPAN>          )       :    boolean
+       <LI>
+        <SPAN class="method-title">isUnparsedEntity</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">name</SPAN>          )       :    boolean
+       <LI>
+        <SPAN class="method-title">setStandalone</SPAN>      (   boolean
+         <SPAN class="param-title">standalone</SPAN>          )
+       <LI>
+        <SPAN class="method-title">isStandalone</SPAN>      (
+        )       :    boolean
+       <LI>
+        <SPAN class="method-title">expandSystemId</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">systemId</SPAN>          )       :    <SPAN class="class-title">String</SPAN>
+       <LI>
+        <SPAN class="method-title">expandSystemId</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">systemId</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">baseSystemId</SPAN>          )       :
+         <SPAN class="class-title">String</SPAN>
+       <LI>
+        <SPAN class="method-title">resolveEntity</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">publicId</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">systemId</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">baseSystemId</SPAN>          )       :
+         <SPAN class="class-title">XMLInputSource</SPAN>
+       <LI>
+        <SPAN class="method-title">startDocumentEntity</SPAN>      (
+         <SPAN class="class-title">XMLInputSource</SPAN> <SPAN
+        class="param-title">inputSource</SPAN>          )
+       <LI>
+        <SPAN class="method-title">startDTDEntity</SPAN>      (   <SPAN
+        class="class-title">XMLInputSource</SPAN> <SPAN
+        class="param-title">inputSource</SPAN>          )
+       <LI>
+        <SPAN class="method-title">startEntity</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">name</SPAN>, <SPAN
+        class="class-title">XMLInputSource</SPAN> <SPAN
+        class="param-title">inputSource</SPAN>          )
+       <LI>
+        <SPAN class="method-title">getEntityScanner</SPAN>      (
+        )       :    <SPAN class="class-title">XMLEntityScanner</SPAN>
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="XMLEntityHandler"><DL class="interface">
+     <DT>interface <SPAN class="interface-title">XMLEntityHandler</SPAN>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">startEntity</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">name</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">publicId</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">systemId</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">baseSystemId</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">encoding</SPAN>          )
+       <LI>
+        <SPAN class="method-title">endEntity</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">name</SPAN>          )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="XMLInputSource"><DL class="class">
+     <DT>class <SPAN class="class-title">XMLInputSource</SPAN>
+     <DD class="extends">      extends      <SPAN class="class-title">InputSource</SPAN>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">XMLInputSource</SPAN>      (
+        )
+       <LI>
+        <SPAN class="constructor-title">XMLInputSource</SPAN>      (
+         <SPAN class="class-title">InputSource</SPAN> <SPAN
+        class="param-title">inputSource</SPAN>          )
+       <LI>
+        <SPAN class="constructor-title">XMLInputSource</SPAN>      (
+         <SPAN class="class-title">Inputstream</SPAN> <SPAN
+        class="param-title">inputStream</SPAN>          )
+       <LI>
+        <SPAN class="constructor-title">XMLInputSource</SPAN>      (
+         <SPAN class="class-title">Reader</SPAN> <SPAN
+        class="param-title">reader</SPAN>          )
+       <LI>
+        <SPAN class="constructor-title">XMLInputSource</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">systemId</SPAN>          )
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">setBaseSystemId</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">baseSystemId</SPAN>          )
+       <LI>
+        <SPAN class="method-title">getBaseSystemId</SPAN>      (
+        )       :    <SPAN class="class-title">String</SPAN>
+       <LI>
+        <SPAN class="method-title">setExpandedSystemId</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">expandedSystemId</SPAN>          )
+       <LI>
+        <SPAN class="method-title">getExpandedSystemId</SPAN>      (
+        )       :    <SPAN class="class-title">String</SPAN>
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="XMLEntityScanner"><DL class="class">
+     <DT>class <SPAN class="class-title">XMLEntityScanner</SPAN>
+     <DD class="implements">      implements      <SPAN class="interface-title">Locator</SPAN>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">getBaseSystemId</SPAN>      (
+        )       :    <SPAN class="class-title">String</SPAN>
+       <LI>
+        <SPAN class="method-title">setEncoding</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">encoding</SPAN>          )
+       <LI>
+        <SPAN class="method-title">isExternal</SPAN>      (
+        )       :    boolean
+       <LI>
+        <SPAN class="method-title">peekChar</SPAN>      (             )
+        :    int
+       <LI>
+        <SPAN class="method-title">scanChar</SPAN>      (             )
+        :    int
+       <LI>
+        <SPAN class="method-title">scanNmtoken</SPAN>      (
+        )       :    <SPAN class="class-title">String</SPAN>
+       <LI>
+        <SPAN class="method-title">scanName</SPAN>      (             )
+        :    <SPAN class="class-title">String</SPAN>
+       <LI>
+        <SPAN class="method-title">scanQName</SPAN>      (   <SPAN
+        class="class-title">QName</SPAN> <SPAN
+        class="param-title">qname</SPAN>          )       :    boolean
+       <LI>
+        <SPAN class="method-title">scanContent</SPAN>      (   <SPAN
+        class="class-title">XMLString</SPAN> <SPAN
+        class="param-title">content</SPAN>          )       :    int
+       <LI>
+        <SPAN class="method-title">scanLiteral</SPAN>      (   int <SPAN
+        class="param-title">quote</SPAN>, <SPAN
+        class="class-title">XMLString</SPAN> <SPAN
+        class="param-title">content</SPAN>          )       :    int
+       <LI>
+        <SPAN class="method-title">scanData</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">delimiter</SPAN>, <SPAN
+        class="class-title">XMLString</SPAN> <SPAN
+        class="param-title">data</SPAN>          )       :    boolean
+       <LI>
+        <SPAN class="method-title">skipChar</SPAN>      (   int <SPAN
+        class="param-title">c</SPAN>          )       :    boolean
+       <LI>
+        <SPAN class="method-title">skipSpaces</SPAN>      (
+        )       :    boolean
+       <LI>
+        <SPAN class="method-title">skipString</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">s</SPAN>          )       :    boolean
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="XMLValidator"><DL class="class">
+     <DT>class <SPAN class="class-title">XMLValidator</SPAN>
+     <DD class="implements">      implements      <SPAN
+      class="interface-title">XMLComponent</SPAN>, <SPAN class="class-title"></SPAN>
+     <DD class="fields">      fields:      <UL>
+       <LI>
+        <SPAN class="class-title">SymbolTable</SPAN> <SPAN class="field-title">fSymbolTable</SPAN>
+       <LI>
+        <SPAN class="class-title">XMLErrorReporter</SPAN> <SPAN class="field-title">fErrorReporter</SPAN>
+       <LI>
+        <SPAN class="class-title">GrammarPool</SPAN> <SPAN class="field-title">fGrammarPool</SPAN>
+       <LI>boolean <SPAN class="field-title">fNamespaces</SPAN>
+       <LI>boolean <SPAN class="field-title">fValidation</SPAN>
+       <LI>boolean <SPAN class="field-title">fDynamicValidation</SPAN>
+       <LI>
+        <SPAN class="interface-title">XMLDocumentHandler</SPAN> <SPAN class="field-title">fDocumentHandler</SPAN>
+      </UL>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">XMLValidator</SPAN>      (
+        )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <H3>Implementation: Validation</H3>
+  <BLOCKQUOTE>
+   <A name="GrammarPool"><DL class="class">
+     <DT>class <SPAN class="class-title">GrammarPool</SPAN>
+     <DD class="fields">      fields:      <UL>
+       <LI>
+        <SPAN class="class-title">Hashtable</SPAN>      &lt;   <SPAN
+        class="class-title">Grammar</SPAN>      &gt;   <SPAN class="field-title">fGrammars</SPAN>
+       <LI>
+        <SPAN class="class-title">Hashtable</SPAN>      &lt;   <SPAN
+        class="class-title">Grammar</SPAN>      &gt;   <SPAN class="field-title">fGrammarsNS</SPAN>
+      </UL>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">GrammarPool</SPAN>      (
+        )
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">putGrammar</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">rootElement</SPAN>, <SPAN
+        class="class-title">Grammar</SPAN> <SPAN
+        class="param-title">grammar</SPAN>          )
+       <LI>
+        <SPAN class="method-title">putGrammarNS</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">targetNamespace</SPAN>, <SPAN
+        class="class-title">Grammar</SPAN> <SPAN
+        class="param-title">grammar</SPAN>          )
+       <LI>
+        <SPAN class="method-title">getGrammar</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">rootElement</SPAN>          )       :
+         <SPAN class="class-title">Grammar</SPAN>
+       <LI>
+        <SPAN class="method-title">getGrammarNS</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">targetNamespace</SPAN>          )       :
+         <SPAN class="class-title">Grammar</SPAN>
+       <LI>
+        <SPAN class="method-title">removeGrammar</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">rootElement</SPAN>          )       :
+         <SPAN class="class-title">Grammar</SPAN>
+       <LI>
+        <SPAN class="method-title">removeGrammarNS</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">targetNamespace</SPAN>          )       :
+         <SPAN class="class-title">Grammar</SPAN>
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="Grammar"><DL class="class">
+     <DT>class <SPAN class="class-title">Grammar</SPAN>
+     <DD class="constants">      constants:      <UL>
+       <LI>int <SPAN class="constant-title">TOP_LEVEL_SCOPE</SPAN>
+      </UL>
+     <DD class="fields">      fields:      <UL>
+       <LI>
+        <SPAN class="class-title">String</SPAN> <SPAN class="field-title">fTargetNamespace</SPAN>
+      </UL>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">Grammar</SPAN>      (
+        )
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">isNamespaceAware</SPAN>      (
+        )       :    boolean
+       <LI>
+        <SPAN class="method-title">getTargetNamespace</SPAN>      (
+        )       :    <SPAN class="class-title">String</SPAN>
+       <LI>
+        <SPAN class="method-title">getElementDeclCount</SPAN>      (
+        )       :    int
+       <LI>
+        <SPAN class="method-title">getElementDeclIndex</SPAN>      (
+         <SPAN class="class-title">QName</SPAN> <SPAN
+        class="param-title">elementDeclName</SPAN>, int <SPAN
+        class="param-title">scope</SPAN>          )       :    int
+       <LI>
+        <SPAN class="method-title">getElementDeclAt</SPAN>      (   int
+         <SPAN class="param-title">elementDeclIndex</SPAN>, <SPAN
+        class="class-title">XMLElementDecl</SPAN> <SPAN
+        class="param-title">elementDecl</SPAN>          )       :    boolean
+       <LI>
+        <SPAN class="method-title">getAttributeDeclCount</SPAN>      (
+        int <SPAN class="param-title">elementDeclIndex</SPAN>          )
+        :    int
+       <LI>
+        <SPAN class="method-title">getAttributeDeclIndex</SPAN>      (
+        int <SPAN class="param-title">elementDeclIndex</SPAN>, <SPAN
+        class="class-title">QName</SPAN> <SPAN
+        class="param-title">attributeDeclName</SPAN>          )       :    int
+       <LI>
+        <SPAN class="method-title">getAttributeDeclAt</SPAN>      (
+        int <SPAN class="param-title">attributeDeclIndex</SPAN>, <SPAN
+        class="class-title">XMLAttributeDecl</SPAN> <SPAN
+        class="param-title">attributeDecl</SPAN>          )       :    boolean
+       <LI>
+        <SPAN class="method-title">getEntityDeclCount</SPAN>      (
+        )       :    int
+       <LI>
+        <SPAN class="method-title">getEntityDeclIndex</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">entityDeclName</SPAN>          )       :    int
+       <LI>
+        <SPAN class="method-title">getEntityDeclAt</SPAN>      (   int
+         <SPAN class="param-title">entityDeclIndex</SPAN>, <SPAN
+        class="class-title">XMLEntityDecl</SPAN> <SPAN
+        class="param-title">entityDecl</SPAN>          )       :    boolean
+       <LI>
+        <SPAN class="method-title">getNotationDeclCount</SPAN>      (
+        )       :    int
+       <LI>
+        <SPAN class="method-title">getNotationDeclIndex</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">notationDeclName</SPAN>          )       :    int
+       <LI>
+        <SPAN class="method-title">getNotationDeclAt</SPAN>      (   int
+         <SPAN class="param-title">notationDeclIndex</SPAN>, <SPAN
+        class="class-title">XMLNotationDecl</SPAN> <SPAN
+        class="param-title">notationDecl</SPAN>          )       :    boolean
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="XMLElementDecl"><DL class="class">
+     <DT>class <SPAN class="class-title">XMLElementDecl</SPAN>
+     <DD class="constants">      constants:      <UL>
+       <LI>short <SPAN class="constant-title">TYPE_ANY</SPAN>
+       <LI>short <SPAN class="constant-title">TYPE_EMPTY</SPAN>
+       <LI>short <SPAN class="constant-title">TYPE_MIXED</SPAN>
+       <LI>short <SPAN class="constant-title">TYPE_CHILDREN</SPAN>
+       <LI>short <SPAN class="constant-title">TYPE_SIMPLE</SPAN>
+      </UL>
+     <DD class="fields">      fields:      <UL>
+       <LI>
+        <SPAN class="class-title">QName</SPAN> <SPAN class="field-title">name</SPAN>
+       <LI>int <SPAN class="field-title">scope</SPAN>
+       <LI>short <SPAN class="field-title">type</SPAN>
+       <LI>
+        <SPAN class="class-title">XMLSimpleType</SPAN> <SPAN class="field-title">simpleType</SPAN>
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">setValues</SPAN>      (   <SPAN
+        class="class-title">QName</SPAN> <SPAN
+        class="param-title">name</SPAN>, int <SPAN
+        class="param-title">scope</SPAN>, short <SPAN
+        class="param-title">type</SPAN>, <SPAN
+        class="class-title">XMLSimpleType</SPAN> <SPAN
+        class="param-title">simpleType</SPAN>          )
+       <LI>
+        <SPAN class="method-title">setValues</SPAN>      (   <SPAN
+        class="class-title">XMLElementDecl</SPAN> <SPAN
+        class="param-title">elementDecl</SPAN>          )
+       <LI>
+        <SPAN class="method-title">clear</SPAN>      (             )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="XMLAttributeDecl"><DL class="class">
+     <DT>class <SPAN class="class-title">XMLAttributeDecl</SPAN>
+     <DD class="fields">      fields:      <UL>
+       <LI>
+        <SPAN class="class-title">QName</SPAN> <SPAN class="field-title">name</SPAN>
+       <LI>
+        <SPAN class="class-title">XMLSimpleType</SPAN> <SPAN class="field-title">simpleType</SPAN>
+       <LI>boolean <SPAN class="field-title">optional</SPAN>
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">setValues</SPAN>      (   <SPAN
+        class="class-title">QName</SPAN> <SPAN
+        class="param-title">name</SPAN>, <SPAN
+        class="class-title">XMLSimpleType</SPAN> <SPAN
+        class="param-title">simpleType</SPAN>, boolean <SPAN
+        class="param-title">optional</SPAN>          )
+       <LI>
+        <SPAN class="method-title">setValues</SPAN>      (   <SPAN
+        class="class-title">XMLAttributeDecl</SPAN> <SPAN
+        class="param-title">attributeDecl</SPAN>          )
+       <LI>
+        <SPAN class="method-title">clear</SPAN>      (             )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="XMLSimpleType"><DL class="class">
+     <DT>class <SPAN class="class-title">XMLSimpleType</SPAN>
+     <DD class="constants">      constants:      <UL>
+       <LI>short <SPAN class="constant-title">TYPE_CDATA</SPAN>
+       <LI>short <SPAN class="constant-title">TYPE_ENTITY</SPAN>
+       <LI>short <SPAN class="constant-title">TYPE_ENUMERATION</SPAN>
+       <LI>short <SPAN class="constant-title">TYPE_ID</SPAN>
+       <LI>short <SPAN class="constant-title">TYPE_IDREF</SPAN>
+       <LI>short <SPAN class="constant-title">TYPE_NMTOKEN</SPAN>
+       <LI>short <SPAN class="constant-title">TYPE_NOTATION</SPAN>
+       <LI>short <SPAN class="constant-title">TYPE_NAMED</SPAN>
+       <LI>short <SPAN class="constant-title">DEFAULT_TYPE_DEFAULT</SPAN>
+       <LI>short <SPAN class="constant-title">DEFAULT_TYPE_FIXED</SPAN>
+       <LI>short <SPAN class="constant-title">DEFAULT_TYPE_IMPLIED</SPAN>
+       <LI>short <SPAN class="constant-title">DEFAULT_TYPE_REQUIRED</SPAN>
+      </UL>
+     <DD class="fields">      fields:      <UL>
+       <LI>short <SPAN class="field-title">type</SPAN>
+       <LI>
+        <SPAN class="class-title">String</SPAN> <SPAN class="field-title">name</SPAN>
+       <LI>
+        <SPAN class="class-title">String</SPAN>[]   <SPAN class="field-title">enumeration</SPAN>
+       <LI>boolean <SPAN class="field-title">list</SPAN>
+       <LI>short <SPAN class="field-title">defaultType</SPAN>
+       <LI>
+        <SPAN class="class-title">String</SPAN> <SPAN class="field-title">defaultValue</SPAN>
+       <LI>
+        <SPAN class="interface-title">DatatypeValidator</SPAN> <SPAN class="field-title">datatypeValidator</SPAN>
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">setValues</SPAN>      (   short <SPAN
+        class="param-title">type</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">name</SPAN>, <SPAN
+        class="class-title">String</SPAN>[]   <SPAN
+        class="param-title">enumeration</SPAN>, boolean <SPAN
+        class="param-title">list</SPAN>, short <SPAN
+        class="param-title">defaultType</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">defaultValue</SPAN>, <SPAN
+        class="interface-title">DatatypeValidator</SPAN> <SPAN
+        class="param-title">datatypeValidator</SPAN>          )
+       <LI>
+        <SPAN class="method-title">setValues</SPAN>      (   <SPAN
+        class="class-title">XMLSimpleType</SPAN> <SPAN
+        class="param-title">simpleType</SPAN>          )
+       <LI>
+        <SPAN class="method-title">clear</SPAN>      (             )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="XMLEntityDecl"><DL class="class">
+     <DT>class <SPAN class="class-title">XMLEntityDecl</SPAN>
+     <DD class="fields">      fields:      <UL>
+       <LI>
+        <SPAN class="class-title">String</SPAN> <SPAN class="field-title">name</SPAN>
+       <LI>
+        <SPAN class="class-title">String</SPAN> <SPAN class="field-title">publicId</SPAN>
+       <LI>
+        <SPAN class="class-title">String</SPAN> <SPAN class="field-title">systemId</SPAN>
+       <LI>
+        <SPAN class="class-title">String</SPAN> <SPAN class="field-title">baseSystemId</SPAN>
+       <LI>
+        <SPAN class="class-title">String</SPAN> <SPAN class="field-title">notation</SPAN>
+       <LI>boolean <SPAN class="field-title">isPE</SPAN>
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">setValues</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">name</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">publicId</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">systemId</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">baseSystemId</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">notation</SPAN>, boolean <SPAN
+        class="param-title">isPE</SPAN>          )
+       <LI>
+        <SPAN class="method-title">setValues</SPAN>      (   <SPAN
+        class="class-title">XMLEntityDecl</SPAN> <SPAN
+        class="param-title">entityDecl</SPAN>          )
+       <LI>
+        <SPAN class="method-title">clear</SPAN>      (             )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="XMLNotationDecl"><DL class="class">
+     <DT>class <SPAN class="class-title">XMLNotationDecl</SPAN>
+     <DD class="fields">      fields:      <UL>
+       <LI>
+        <SPAN class="class-title">String</SPAN> <SPAN class="field-title">name</SPAN>
+       <LI>
+        <SPAN class="class-title">String</SPAN> <SPAN class="field-title">publicId</SPAN>
+       <LI>
+        <SPAN class="class-title">String</SPAN> <SPAN class="field-title">systemId</SPAN>
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">setValues</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">name</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">publicId</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">systemId</SPAN>          )
+       <LI>
+        <SPAN class="method-title">notationDecl</SPAN>      (   <SPAN
+        class="class-title">XMLNotationDecl</SPAN> <SPAN
+        class="param-title">notationDecl</SPAN>          )
+       <LI>
+        <SPAN class="method-title">clear</SPAN>      (             )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="DatatypeValidatorFactory"><DL class="interface">
+     <DT>interface <SPAN class="interface-title">DatatypeValidatorFactory</SPAN>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">createDatatypeValidator</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">name</SPAN>, <SPAN
+        class="interface-title">DatatypeValidator</SPAN> <SPAN
+        class="param-title">base</SPAN>, <SPAN
+        class="class-title">Hashtable</SPAN>      &lt;   <SPAN
+        class="class-title">String</SPAN>      &gt;   <SPAN
+        class="param-title">facets</SPAN>, boolean <SPAN
+        class="param-title">list</SPAN>          )       :    <SPAN class="interface-title">DatatypeValidator</SPAN>
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="DatatypeValidator"><DL class="interface">
+     <DT>interface <SPAN class="interface-title">DatatypeValidator</SPAN>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">getFacets</SPAN>      (             )
+        :    <SPAN class="class-title">Hashtable</SPAN>      &lt;
+         <SPAN class="class-title">String</SPAN>      &gt;
+       <LI>
+        <SPAN class="method-title">validate</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">data</SPAN>, <SPAN
+        class="class-title">Object</SPAN> <SPAN
+        class="param-title">state</SPAN>          )
+       <LI>
+        <SPAN class="method-title">compare</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">value1</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">value2</SPAN>          )       :    int
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="InvalidDatatypeFacetException"><DL class="class">
+     <DT>class <SPAN class="class-title">InvalidDatatypeFacetException</SPAN>
+     <DD class="extends">      extends      <SPAN class="class-title">SAXException</SPAN>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN
+        class="constructor-title">InvalidDatatypeFacetException</SPAN>
+        (             )
+       <LI>
+        <SPAN
+        class="constructor-title">InvalidDatatypeFacetException</SPAN>
+        (   <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">message</SPAN>          )
+       <LI>
+        <SPAN
+        class="constructor-title">InvalidDatatypeFacetException</SPAN>
+        (   <SPAN class="class-title">Exception</SPAN> <SPAN
+        class="param-title">exception</SPAN>          )
+       <LI>
+        <SPAN
+        class="constructor-title">InvalidDatatypeFacetException</SPAN>
+        (   <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">message</SPAN>, <SPAN
+        class="class-title">Exception</SPAN> <SPAN
+        class="param-title">exception</SPAN>          )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="InvalidDatatypeValueException"><DL class="class">
+     <DT>class <SPAN class="class-title">InvalidDatatypeValueException</SPAN>
+     <DD class="extends">      extends      <SPAN class="class-title">SAXException</SPAN>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN
+        class="constructor-title">InvalidDatatypeValueException</SPAN>
+        (             )
+       <LI>
+        <SPAN
+        class="constructor-title">InvalidDatatypeValueException</SPAN>
+        (   <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">message</SPAN>          )
+       <LI>
+        <SPAN
+        class="constructor-title">InvalidDatatypeValueException</SPAN>
+        (   <SPAN class="class-title">Exception</SPAN> <SPAN
+        class="param-title">exception</SPAN>          )
+       <LI>
+        <SPAN
+        class="constructor-title">InvalidDatatypeValueException</SPAN>
+        (   <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">message</SPAN>, <SPAN
+        class="class-title">Exception</SPAN> <SPAN
+        class="param-title">exception</SPAN>          )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="ContentModelValidator"><DL class="interface">
+     <DT>interface <SPAN class="interface-title">ContentModelValidator</SPAN>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">validate</SPAN>      (   <SPAN
+        class="class-title">QName</SPAN>[]   <SPAN
+        class="param-title">children</SPAN>, int <SPAN
+        class="param-title">offset</SPAN>, int <SPAN
+        class="param-title">length</SPAN>          )       :    int
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <H3>Implementation: Validation Content Models</H3>
+  <BLOCKQUOTE>
+   <A name="SimpleContentModel"><DL class="class">
+     <DT>class <SPAN class="class-title">SimpleContentModel</SPAN>
+     <DD class="implements">      implements      <SPAN class="interface-title">ContentModelValidator</SPAN>
+     <DD class="constants">      constants:      <UL>
+       <LI>short <SPAN class="constant-title">CHOICE</SPAN>
+       <LI>short <SPAN class="constant-title">SEQUENCE</SPAN>
+      </UL>
+     <DD class="fields">      fields:      <UL>
+       <LI>short <SPAN class="field-title">fOperator</SPAN>
+       <LI>
+        <SPAN class="class-title">QName</SPAN> <SPAN class="field-title">fFirstChild</SPAN>
+       <LI>
+        <SPAN class="class-title">QName</SPAN> <SPAN class="field-title">fSecondChild</SPAN>
+      </UL>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">SimpleContentModel</SPAN>      (
+        short <SPAN class="param-title">operator</SPAN>, <SPAN
+        class="class-title">QName</SPAN> <SPAN
+        class="param-title">firstChild</SPAN>, <SPAN
+        class="class-title">QName</SPAN> <SPAN
+        class="param-title">secondChild</SPAN>          )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="MixedContentModel"><DL class="class">
+     <DT>class <SPAN class="class-title">MixedContentModel</SPAN>
+     <DD class="implements">      implements      <SPAN class="interface-title">ContentModelValidator</SPAN>
+     <DD class="fields">      fields:      <UL>
+       <LI>int <SPAN class="field-title">fCount</SPAN>
+       <LI>
+        <SPAN class="class-title">QName</SPAN>[]   <SPAN class="field-title">fChildren</SPAN>
+       <LI>boolean <SPAN class="field-title">fOrdered</SPAN>
+      </UL>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">MixedContentModel</SPAN>      (
+        int <SPAN class="param-title">count</SPAN>, <SPAN
+        class="class-title">QName</SPAN>[]   <SPAN
+        class="param-title">children</SPAN>, boolean <SPAN
+        class="param-title">ordered</SPAN>          )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="DFAContentModel"><DL class="class">
+     <DT>class <SPAN class="class-title">DFAContentModel</SPAN>
+     <DD class="implements">      implements      <SPAN class="interface-title">ContentModelValidator</SPAN>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">DFAContentModel</SPAN>      (
+        )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <H3>Implementation: Validation Datatypes</H3>
+  <BLOCKQUOTE>
+   <A name="DatatypeValidatorFactoryImpl"><DL class="class">
+     <DT>class <SPAN class="class-title">DatatypeValidatorFactoryImpl</SPAN>
+     <DD class="implements">      implements      <SPAN class="interface-title">DatatypeValidatorFactory</SPAN>
+     <DD class="fields">      fields:      <UL>
+       <LI>
+        <SPAN class="class-title">Hashtable</SPAN>      &lt;   <SPAN
+        class="interface-title">DatatypeValidator</SPAN>      &gt;
+         <SPAN class="field-title">fBaseTypes</SPAN>
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="AbstractDatatypeValidator"><DL class="class">
+     <DT>class <SPAN class="class-title">AbstractDatatypeValidator</SPAN>
+     <DD class="implements">      implements      <SPAN class="interface-title">DatatypeValidator</SPAN>
+     <DD class="fields">      fields:      <UL>
+       <LI>
+        <SPAN class="class-title">Hashtable</SPAN>      &lt;   <SPAN
+        class="class-title">String</SPAN>      &gt;   <SPAN class="field-title">fFacets</SPAN>
+      </UL>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">AbstractDatatypeValidator</SPAN>
+        (   <SPAN class="interface-title">DatatypeValidator</SPAN> <SPAN
+        class="param-title">base</SPAN>, <SPAN
+        class="class-title">Hashtable</SPAN>      &lt;   <SPAN
+        class="class-title">String</SPAN>      &gt;   <SPAN
+        class="param-title">facets</SPAN>, boolean <SPAN
+        class="param-title">list</SPAN>          )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="StringDatatypeValidator"><DL class="class">
+     <DT>class <SPAN class="class-title">StringDatatypeValidator</SPAN>
+     <DD class="extends">      extends      <SPAN class="class-title">AbstractDatatypeValidator</SPAN>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">StringDatatypeValidator</SPAN>
+        (   <SPAN class="interface-title">DatatypeValidator</SPAN> <SPAN
+        class="param-title">base</SPAN>, <SPAN
+        class="class-title">Hashtable</SPAN>      &lt;   <SPAN
+        class="class-title">String</SPAN>      &gt;   <SPAN
+        class="param-title">facets</SPAN>, boolean <SPAN
+        class="param-title">list</SPAN>          )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <H3>Implementation: Validation Grammars</H3>
+  <BLOCKQUOTE>
+   <A name="DTDGrammar"><DL class="class">
+     <DT>class <SPAN class="class-title">DTDGrammar</SPAN>
+     <DD class="extends">      extends      <SPAN class="class-title">Grammar</SPAN>
+     <DD class="implements">      implements      <SPAN
+      class="class-title"></SPAN>, <SPAN class="class-title"></SPAN>
+     <DD class="fields">      fields:      <UL>
+       <LI>
+        <SPAN class="interface-title">XMLDTDHandler</SPAN> <SPAN class="field-title">fDTDHandler</SPAN>
+       <LI>
+        <SPAN class="interface-title">XMLDTDContentModelHandler</SPAN>
+         <SPAN class="field-title">fDTDContentModelHandler</SPAN>
+      </UL>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">DTDGrammar</SPAN>      (
+        )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="SchemaGrammar"><DL class="class">
+     <DT>class <SPAN class="class-title">SchemaGrammar</SPAN>
+     <DD class="extends">      extends      <SPAN class="class-title">Grammar</SPAN>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">SchemaGrammar</SPAN>      (
+        )
+       <LI>
+        <SPAN class="constructor-title">SchemaGrammar</SPAN>      (
+         <SPAN class="interface-title">Document</SPAN> <SPAN
+        class="param-title">grammarDocument</SPAN>          )
+       <LI>
+        <SPAN class="constructor-title">SchemaGrammar</SPAN>      (
+         <SPAN class="interface-title">Document</SPAN> <SPAN
+        class="param-title">grammarDocument</SPAN>, <SPAN
+        class="class-title">GrammarPool</SPAN> <SPAN
+        class="param-title">grammarPool</SPAN>          )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <H3>Validation: XPath</H3>
+  <BLOCKQUOTE>
+   <A name="XPath"><DL class="class">
+     <DT>class <SPAN class="class-title">XPath</SPAN>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">XPath</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">xpath</SPAN>          )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="XPathException"><DL class="class">
+     <DT>class <SPAN class="class-title">XPathException</SPAN>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">XPathException</SPAN>      (
+        )
+       <LI>
+        <SPAN class="constructor-title">XPathException</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">message</SPAN>          )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="XPathMatcher"><DL class="class">
+     <DT>class <SPAN class="class-title">XPathMatcher</SPAN>
+     <DD class="implements">      implements      <SPAN class="interface-title">XMLDocumentFragmentHandler</SPAN>
+     <DD class="fields">      fields:      <UL>
+       <LI>boolean <SPAN class="field-title">fShouldBufferContent</SPAN>
+      </UL>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">XPathMatcher</SPAN>      (
+         <SPAN class="class-title">XPath</SPAN> <SPAN
+        class="param-title">xpath</SPAN>          )
+       <LI>
+        <SPAN class="constructor-title">XPathMatcher</SPAN>      (
+         <SPAN class="class-title">XPath</SPAN> <SPAN
+        class="param-title">xpath</SPAN>, boolean <SPAN
+        class="param-title">shouldBufferContent</SPAN>          )
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">isMatched</SPAN>      (             )
+        :    boolean
+       <LI>
+        <SPAN class="method-title">getMatchedString</SPAN>      (
+        )       :    <SPAN class="class-title">String</SPAN>
+       <LI>
+        <SPAN class="method-title">matched</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">content</SPAN>          )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <H3>Validation: Identity Constraints</H3>
+  <BLOCKQUOTE>
+   <A name="IdentityConstraint"><DL class="class">
+     <DT>class <SPAN class="class-title">IdentityConstraint</SPAN>
+     <DD class="constants">      constants:      <UL>
+       <LI>short <SPAN class="constant-title">UNIQUE</SPAN>
+       <LI>short <SPAN class="constant-title">KEY</SPAN>
+       <LI>short <SPAN class="constant-title">KEYREF</SPAN>
+      </UL>
+     <DD class="fields">      fields:      <UL>
+       <LI>
+        <SPAN class="class-title">String</SPAN> <SPAN class="field-title">fElementName</SPAN>
+       <LI>
+        <SPAN class="class-title">Selector</SPAN> <SPAN class="field-title">fSelector</SPAN>
+       <LI>
+        <SPAN class="class-title">Hashtable</SPAN>      &lt;   <SPAN
+        class="class-title">Field</SPAN>      &gt;   <SPAN class="field-title">fFields</SPAN>
+      </UL>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">IdentityConstraint</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">elementName</SPAN>          )
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">getType</SPAN>      (             )
+        :    short
+       <LI>
+        <SPAN class="method-title">getElementName</SPAN>      (
+        )       :    <SPAN class="class-title">String</SPAN>
+       <LI>
+        <SPAN class="method-title">setSelector</SPAN>      (   <SPAN
+        class="class-title">Selector</SPAN> <SPAN
+        class="param-title">selector</SPAN>          )
+       <LI>
+        <SPAN class="method-title">getSelector</SPAN>      (
+        )       :    <SPAN class="class-title">Selector</SPAN>
+       <LI>
+        <SPAN class="method-title">addField</SPAN>      (   <SPAN
+        class="class-title">Field</SPAN> <SPAN
+        class="param-title">field</SPAN>          )
+       <LI>
+        <SPAN class="method-title">getFieldCount</SPAN>      (
+        )       :    int
+       <LI>
+        <SPAN class="method-title">getFieldAt</SPAN>      (   int <SPAN
+        class="param-title">index</SPAN>          )       :    <SPAN class="class-title">Field</SPAN>
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="Unique"><DL class="class">
+     <DT>class <SPAN class="class-title">Unique</SPAN>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">Unique</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">elementName</SPAN>          )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="Key"><DL class="class">
+     <DT>class <SPAN class="class-title">Key</SPAN>
+     <DD class="fields">      fields:      <UL>
+       <LI>
+        <SPAN class="class-title">String</SPAN> <SPAN class="field-title">fKeyName</SPAN>
+      </UL>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">Key</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">elementName</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">keyName</SPAN>          )
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">getKeyName</SPAN>      (
+        )       :    <SPAN class="class-title">String</SPAN>
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="KeyRef"><DL class="class">
+     <DT>class <SPAN class="class-title">KeyRef</SPAN>
+     <DD class="fields">      fields:      <UL>
+       <LI>
+        <SPAN class="class-title">String</SPAN> <SPAN class="field-title">fKeyName</SPAN>
+      </UL>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">KeyRef</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">elementName</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">keyName</SPAN>          )
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">getKeyName</SPAN>      (
+        )       :    <SPAN class="class-title">String</SPAN>
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="Selector"><DL class="class">
+     <DT>class <SPAN class="class-title">Selector</SPAN>
+     <DD class="fields">      fields:      <UL>
+       <LI>
+        <SPAN class="class-title">XPath</SPAN> <SPAN class="field-title">fXPath</SPAN>
+       <LI>
+        <SPAN class="class-title">IdentityConstraint</SPAN> <SPAN class="field-title">fIdentityConstraint</SPAN>
+      </UL>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">Selector</SPAN>      (   <SPAN
+        class="class-title">XPath</SPAN> <SPAN
+        class="param-title">xpath</SPAN>, <SPAN
+        class="class-title">IdentityConstraint</SPAN> <SPAN
+        class="param-title">identityConstraint</SPAN>          )
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">getXPath</SPAN>      (             )
+        :    <SPAN class="class-title">XPath</SPAN>
+       <LI>
+        <SPAN class="method-title">getIdentityConstraint</SPAN>      (
+        )       :    <SPAN class="class-title">IdentityConstraint</SPAN>
+       <LI>
+        <SPAN class="method-title">createMatcher</SPAN>      (   <SPAN
+        class="interface-title">FieldActivator</SPAN> <SPAN
+        class="param-title">fieldActivator</SPAN>          )       :
+         <SPAN class="class-title">XPathMatcher</SPAN>
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="FieldActivator"><DL class="interface">
+     <DT>interface <SPAN class="interface-title">FieldActivator</SPAN>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">startValueScopeFor</SPAN>      (
+         <SPAN class="class-title">IdentityConstraint</SPAN> <SPAN
+        class="param-title">identityConstraint</SPAN>          )
+       <LI>
+        <SPAN class="method-title">activateField</SPAN>      (   <SPAN
+        class="class-title">Field</SPAN> <SPAN
+        class="param-title">field</SPAN>          )
+       <LI>
+        <SPAN class="method-title">endValueScopeFor</SPAN>      (
+         <SPAN class="class-title">IdentityConstraint</SPAN> <SPAN
+        class="param-title">identityConstraint</SPAN>          )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="Field"><DL class="class">
+     <DT>class <SPAN class="class-title">Field</SPAN>
+     <DD class="fields">      fields:      <UL>
+       <LI>
+        <SPAN class="class-title">XPath</SPAN> <SPAN class="field-title">fXPath</SPAN>
+       <LI>
+        <SPAN class="class-title">IdentityConstraint</SPAN> <SPAN class="field-title">fIdentityConstraint</SPAN>
+       <LI>
+        <SPAN class="interface-title">DatatypeValidator</SPAN> <SPAN class="field-title">fDatatypeValidator</SPAN>
+      </UL>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">Field</SPAN>      (   <SPAN
+        class="class-title">XPath</SPAN> <SPAN
+        class="param-title">xpath</SPAN>, <SPAN
+        class="class-title">IdentityConstraint</SPAN> <SPAN
+        class="param-title">identityConstraint</SPAN>, <SPAN
+        class="interface-title">DatatypeValidator</SPAN> <SPAN
+        class="param-title">datatypeValidator</SPAN>          )
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">getXPath</SPAN>      (             )
+        :    <SPAN class="class-title">XPath</SPAN>
+       <LI>
+        <SPAN class="method-title">getIdentityConstraint</SPAN>      (
+        )       :    <SPAN class="class-title">IdentityConstraint</SPAN>
+       <LI>
+        <SPAN class="method-title">getDatatypeValidator</SPAN>      (
+        )       :    <SPAN class="interface-title">DatatypeValidator</SPAN>
+       <LI>
+        <SPAN class="method-title">createMatcher</SPAN>      (   <SPAN
+        class="interface-title">ValueStore</SPAN> <SPAN
+        class="param-title">valueStore</SPAN>          )       :
+         <SPAN class="class-title">XPathMatcher</SPAN>
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="ValueStore"><DL class="interface">
+     <DT>interface <SPAN class="interface-title">ValueStore</SPAN>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">addValue</SPAN>      (   <SPAN
+        class="class-title">Field</SPAN> <SPAN
+        class="param-title">field</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">value</SPAN>          )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <H3>Parsing</H3>
+  <BLOCKQUOTE>
+   <A name="CachingParserPool"><DL class="class">
+     <DT>class <SPAN class="class-title">CachingParserPool</SPAN>
+     <DD class="fields">      fields:      <UL>
+       <LI>
+        <SPAN class="class-title">SymbolTable</SPAN> <SPAN class="field-title">fSymbolTable</SPAN>
+       <LI>
+        <SPAN class="class-title">GrammarPool</SPAN> <SPAN class="field-title">fGrammarPool</SPAN>
+      </UL>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">CachingParserPool</SPAN>      (
+        )
+       <LI>
+        <SPAN class="constructor-title">CachingParserPool</SPAN>      (
+         <SPAN class="class-title">SymbolTable</SPAN> <SPAN
+        class="param-title">symbolTable</SPAN>, <SPAN
+        class="class-title">GrammarPool</SPAN> <SPAN
+        class="param-title">grammarPool</SPAN>          )
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">getSymbolTable</SPAN>      (
+        )       :    <SPAN class="class-title">SymbolTable</SPAN>
+       <LI>
+        <SPAN class="method-title">getGrammarPool</SPAN>      (
+        )       :    <SPAN class="class-title">GrammarPool</SPAN>
+       <LI>
+        <SPAN class="method-title">createDOMParser</SPAN>      (
+        )       :    <SPAN class="class-title">DOMParser</SPAN>
+       <LI>
+        <SPAN class="method-title">createSAXParser</SPAN>      (
+        )       :    <SPAN class="class-title">SAXParser</SPAN>
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="XMLParser"><DL class="class">
+     <DT>class <SPAN class="class-title">XMLParser</SPAN>
+     <DD class="implements">      implements      <SPAN class="interface-title">XMLComponentManager</SPAN>
+     <DD class="fields">      fields:      <UL>
+       <LI>
+        <SPAN class="class-title">SymbolTable</SPAN> <SPAN class="field-title">fSymbolTable</SPAN>
+       <LI>
+        <SPAN class="class-title">XMLEntityManager</SPAN> <SPAN class="field-title">fEntityManager</SPAN>
+       <LI>
+        <SPAN class="class-title">XMLErrorReporter</SPAN> <SPAN class="field-title">fErrorReporter</SPAN>
+       <LI>boolean <SPAN class="field-title">fNamespaces</SPAN>
+       <LI>boolean <SPAN class="field-title">fValidation</SPAN>
+       <LI>boolean <SPAN class="field-title">fDynamicValidation</SPAN>
+       <LI>boolean <SPAN class="field-title">fContinueAfterFatalError</SPAN>
+      </UL>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">XMLParser</SPAN>      (
+        )
+       <LI>
+        <SPAN class="constructor-title">XMLParser</SPAN>      (   <SPAN
+        class="class-title">SymbolTable</SPAN> <SPAN
+        class="param-title">symbolTable</SPAN>          )
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">setFeature</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">featureId</SPAN>, boolean <SPAN
+        class="param-title">state</SPAN>          )
+       <LI>
+        <SPAN class="method-title">getFeature</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">featureId</SPAN>          )       :    boolean
+       <LI>
+        <SPAN class="method-title">setProperty</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">propertyId</SPAN>, <SPAN
+        class="class-title">Object</SPAN> <SPAN
+        class="param-title">value</SPAN>          )
+       <LI>
+        <SPAN class="method-title">getProperty</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">propertyId</SPAN>          )       :
+         <SPAN class="class-title">Object</SPAN>
+       <LI>
+        <SPAN class="method-title">setEntityResolver</SPAN>      (
+         <SPAN class="interface-title">EntityResolver</SPAN> <SPAN
+        class="param-title">entityResolver</SPAN>          )
+       <LI>
+        <SPAN class="method-title">setErrorHandler</SPAN>      (   <SPAN
+        class="interface-title">ErrorHandler</SPAN> <SPAN
+        class="param-title">errorHandler</SPAN>          )
+       <LI>
+        <SPAN class="method-title">parse</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">systemId</SPAN>          )
+       <LI>
+        <SPAN class="method-title">parse</SPAN>      (   <SPAN
+        class="class-title">InputSource</SPAN> <SPAN
+        class="param-title">inputSource</SPAN>          )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="XMLDocumentParser"><DL class="class">
+     <DT>class <SPAN class="class-title">XMLDocumentParser</SPAN>
+     <DD class="extends">      extends      <SPAN class="class-title">XMLParser</SPAN>
+     <DD class="implements">      implements      <SPAN
+      class="interface-title">XMLDocumentHandler</SPAN>, <SPAN
+      class="interface-title">XMLDTDHandler</SPAN>, <SPAN class="interface-title">XMLDTDContentModelHandler</SPAN>
+     <DD class="fields">      fields:      <UL>
+       <LI>
+        <SPAN class="class-title">XMLDocumentScanner</SPAN> <SPAN class="field-title">fScanner</SPAN>
+       <LI>
+        <SPAN class="class-title">XMLDTDScanner</SPAN> <SPAN class="field-title">fDTDScanner</SPAN>
+       <LI>
+        <SPAN class="class-title">XMLValidator</SPAN> <SPAN class="field-title">fValidator</SPAN>
+       <LI>
+        <SPAN class="class-title">GrammarPool</SPAN> <SPAN class="field-title">fGrammarPool</SPAN>
+       <LI>
+        <SPAN class="interface-title">DatatypeValidatorFactory</SPAN>
+         <SPAN class="field-title">fDatatypeValidatorFactory</SPAN>
+      </UL>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">XMLDocumentParser</SPAN>      (
+        )
+       <LI>
+        <SPAN class="constructor-title">XMLDocumentParser</SPAN>      (
+         <SPAN class="class-title">SymbolTable</SPAN> <SPAN
+        class="param-title">symbolTable</SPAN>, <SPAN
+        class="class-title">GrammarPool</SPAN> <SPAN
+        class="param-title">grammarPool</SPAN>          )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="DOMParser"><DL class="class">
+     <DT>class <SPAN class="class-title">DOMParser</SPAN>
+     <DD class="extends">      extends      <SPAN class="class-title">XMLDocumentParser</SPAN>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">DOMParser</SPAN>      (
+        )
+       <LI>
+        <SPAN class="constructor-title">DOMParser</SPAN>      (   <SPAN
+        class="class-title">SymbolTable</SPAN> <SPAN
+        class="param-title">symbolTable</SPAN>, <SPAN
+        class="class-title">GrammarPool</SPAN> <SPAN
+        class="param-title">grammarPool</SPAN>          )
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">getDocument</SPAN>      (
+        )       :    <SPAN class="interface-title">Document</SPAN>
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="SAXParser"><DL class="class">
+     <DT>class <SPAN class="class-title">SAXParser</SPAN>
+     <DD class="extends">      extends      <SPAN class="class-title">XMLDocumentParser</SPAN>
+     <DD class="implements">      implements      <SPAN
+      class="interface-title">Parser</SPAN>, <SPAN class="interface-title">XMLReader</SPAN>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">SAXParser</SPAN>      (
+        )
+       <LI>
+        <SPAN class="constructor-title">SAXParser</SPAN>      (   <SPAN
+        class="class-title">SymbolTable</SPAN> <SPAN
+        class="param-title">symbolTable</SPAN>, <SPAN
+        class="class-title">GrammarPool</SPAN> <SPAN
+        class="param-title">grammarPool</SPAN>          )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <H3>Utility Interfaces and Classes</H3>
+  <BLOCKQUOTE>
+   <A name="XMLChar"><DL class="class">
+     <DT>class <SPAN class="class-title">XMLChar</SPAN>
+     <DD class="constants">      constants:      <UL>
+       <LI>byte[]   <SPAN class="constant-title">CHARS</SPAN>
+       <LI>byte <SPAN class="constant-title">MASK_VALID</SPAN>
+       <LI>byte <SPAN class="constant-title">MASK_SPACE</SPAN>
+       <LI>byte <SPAN class="constant-title">MASK_NAME_START</SPAN>
+       <LI>byte <SPAN class="constant-title">MASK_NAME</SPAN>
+       <LI>byte <SPAN class="constant-title">MASK_PUBID</SPAN>
+       <LI>byte <SPAN class="constant-title">MASK_CONTENT</SPAN>
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">isValid</SPAN>      (   int <SPAN
+        class="param-title">c</SPAN>          )       :    boolean
+       <LI>
+        <SPAN class="method-title">isInvalid</SPAN>      (   int <SPAN
+        class="param-title">c</SPAN>          )       :    boolean
+       <LI>
+        <SPAN class="method-title">isSpace</SPAN>      (   int <SPAN
+        class="param-title">c</SPAN>          )       :    boolean
+       <LI>
+        <SPAN class="method-title">isNameStart</SPAN>      (   int <SPAN
+        class="param-title">c</SPAN>          )       :    boolean
+       <LI>
+        <SPAN class="method-title">isName</SPAN>      (   int <SPAN
+        class="param-title">c</SPAN>          )       :    boolean
+       <LI>
+        <SPAN class="method-title">isPubid</SPAN>      (   int <SPAN
+        class="param-title">c</SPAN>          )       :    boolean
+       <LI>
+        <SPAN class="method-title">isContent</SPAN>      (   int <SPAN
+        class="param-title">c</SPAN>          )       :    boolean
+       <LI>
+        <SPAN class="method-title">isMarkup</SPAN>      (   int <SPAN
+        class="param-title">c</SPAN>          )       :    boolean
+       <LI>
+        <SPAN class="method-title">isHighSurrogate</SPAN>      (   int
+         <SPAN class="param-title">c</SPAN>          )       :    boolean
+       <LI>
+        <SPAN class="method-title">isLowSurrogate</SPAN>      (   int
+         <SPAN class="param-title">c</SPAN>          )       :    boolean
+       <LI>
+        <SPAN class="method-title">isSupplemental</SPAN>      (   int
+         <SPAN class="param-title">c</SPAN>          )       :    boolean
+       <LI>
+        <SPAN class="method-title">highSurrogate</SPAN>      (   int
+         <SPAN class="param-title">c</SPAN>          )       :    char
+       <LI>
+        <SPAN class="method-title">lowSurrogate</SPAN>      (   int
+         <SPAN class="param-title">c</SPAN>          )       :    char
+       <LI>
+        <SPAN class="method-title">supplemental</SPAN>      (   int
+         <SPAN class="param-title">highSurrogate</SPAN>, int <SPAN
+        class="param-title">lowSurrogate</SPAN>          )       :    int
+       <LI>
+        <SPAN class="method-title">isValidName</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">name</SPAN>          )       :    boolean
+       <LI>
+        <SPAN class="method-title">isValidIANAEncoding</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">encoding</SPAN>          )       :    boolean
+       <LI>
+        <SPAN class="method-title">isValidJavaEncoding</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">encoding</SPAN>          )       :    boolean
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="EncodingMap"><DL class="class">
+     <DT>class <SPAN class="class-title">EncodingMap</SPAN>
+     <DD class="fields">      fields:      <UL>
+       <LI>
+        <SPAN class="class-title">Hashtable</SPAN>      &lt;   <SPAN
+        class="class-title">String</SPAN>      &gt;   <SPAN class="field-title">fIANA2JavaMap</SPAN>
+       <LI>
+        <SPAN class="class-title">Hashtable</SPAN>      &lt;   <SPAN
+        class="class-title">String</SPAN>      &gt;   <SPAN class="field-title">fJava2IANAMap</SPAN>
+      </UL>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">EncodingMap</SPAN>      (
+        )
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">putIANA2JavaMapping</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">ianaEncoding</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">javaEncoding</SPAN>          )
+       <LI>
+        <SPAN class="method-title">getIANA2JavaMapping</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">ianaEncoding</SPAN>          )       :
+         <SPAN class="class-title">String</SPAN>
+       <LI>
+        <SPAN class="method-title">removeIANA2JavaMapping</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">ianaEncoding</SPAN>          )       :
+         <SPAN class="class-title">String</SPAN>
+       <LI>
+        <SPAN class="method-title">putJava2IANAMapping</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">javaEncoding</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">ianaEncoding</SPAN>          )
+       <LI>
+        <SPAN class="method-title">getJava2IANAMapping</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">javaEncoding</SPAN>          )       :
+         <SPAN class="class-title">String</SPAN>
+       <LI>
+        <SPAN class="method-title">removeJava2IANAMapping</SPAN>      (
+         <SPAN class="class-title">String</SPAN> <SPAN
+        class="param-title">javaEncoding</SPAN>          )       :
+         <SPAN class="class-title">String</SPAN>
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="SymbolTable"><DL class="class">
+     <DT>class <SPAN class="class-title">SymbolTable</SPAN>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">SymbolTable</SPAN>      (
+        )
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">addSymbol</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">symbol</SPAN>          )       :    <SPAN class="class-title">String</SPAN>
+       <LI>
+        <SPAN class="method-title">addSymbol</SPAN>      (   char[]
+         <SPAN class="param-title">buffer</SPAN>, int <SPAN
+        class="param-title">offset</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">length</SPAN>          )       :    <SPAN class="class-title">String</SPAN>
+       <LI>
+        <SPAN class="method-title">containsSymbol</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">symbol</SPAN>          )       :    boolean
+       <LI>
+        <SPAN class="method-title">containsSymbol</SPAN>      (   char[]
+         <SPAN class="param-title">buffer</SPAN>, int <SPAN
+        class="param-title">offset</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">length</SPAN>          )       :    boolean
+       <LI>
+        <SPAN class="method-title">hash</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">symbol</SPAN>          )       :    int
+       <LI>
+        <SPAN class="method-title">hash</SPAN>      (   char[]   <SPAN
+        class="param-title">buffer</SPAN>, int <SPAN
+        class="param-title">offset</SPAN>, int <SPAN
+        class="param-title">length</SPAN>          )       :    int
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="MessageFormatter"><DL class="interface">
+     <DT>interface <SPAN class="interface-title">MessageFormatter</SPAN>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">formatMessage</SPAN>      (   <SPAN
+        class="class-title">Locale</SPAN> <SPAN
+        class="param-title">locale</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">key</SPAN>, <SPAN
+        class="class-title">Object</SPAN>[]   <SPAN
+        class="param-title">arguments</SPAN>          )       :    <SPAN class="class-title">String</SPAN>
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="XMLStringBuffer"><DL class="class">
+     <DT>class <SPAN class="class-title">XMLStringBuffer</SPAN>
+     <DD class="extends">      extends      <SPAN class="class-title">XMLString</SPAN>
+     <DD class="constants">      constants:      <UL>
+       <LI>int <SPAN class="constant-title">DEFAULT_SIZE</SPAN>
+      </UL>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">XMLStringBuffer</SPAN>      (
+        )
+       <LI>
+        <SPAN class="constructor-title">XMLStringBuffer</SPAN>      (
+        int <SPAN class="param-title">size</SPAN>          )
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">clear</SPAN>      (             )
+       <LI>
+        <SPAN class="method-title">append</SPAN>      (   char <SPAN
+        class="param-title">c</SPAN>          )
+       <LI>
+        <SPAN class="method-title">append</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">s</SPAN>          )
+       <LI>
+        <SPAN class="method-title">append</SPAN>      (   char[]   <SPAN
+        class="param-title">ch</SPAN>, int <SPAN
+        class="param-title">offset</SPAN>, int <SPAN
+        class="param-title">length</SPAN>          )
+       <LI>
+        <SPAN class="method-title">append</SPAN>      (   <SPAN
+        class="class-title">XMLString</SPAN> <SPAN
+        class="param-title">s</SPAN>          )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="XMLAttributesImpl"><DL class="class">
+     <DT>class <SPAN class="class-title">XMLAttributesImpl</SPAN>
+     <DD class="implements">      implements      <SPAN class="interface-title">XMLAttributes</SPAN>
+     <DD class="fields">      fields:      <UL>
+       <LI>boolean <SPAN class="field-title">fNamespaces</SPAN>
+      </UL>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">XMLAttributesImpl</SPAN>      (
+        )
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">setNamespaces</SPAN>      (   boolean
+         <SPAN class="param-title">namespaces</SPAN>          )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="NamespaceSupport"><DL class="class">
+     <DT>class <SPAN class="class-title">NamespaceSupport</SPAN>
+     <DD class="implements">      implements      <SPAN class="interface-title">NamespaceContext</SPAN>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">NamespaceSupport</SPAN>      (
+        )
+       <LI>
+        <SPAN class="constructor-title">NamespaceSupport</SPAN>      (
+         <SPAN class="interface-title">NamespaceContext</SPAN> <SPAN
+        class="param-title">context</SPAN>          )
+      </UL>
+     <DD class="methods">      methods:      <UL>
+       <LI>
+        <SPAN class="method-title">pushContext</SPAN>      (
+        )
+       <LI>
+        <SPAN class="method-title">declarePrefix</SPAN>      (   <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">prefix</SPAN>, <SPAN
+        class="class-title">String</SPAN> <SPAN
+        class="param-title">uri</SPAN>          )
+       <LI>
+        <SPAN class="method-title">popContext</SPAN>      (
+        )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>
+  <BLOCKQUOTE>
+   <A name="DefaultErrorHandler"><DL class="class">
+     <DT>class <SPAN class="class-title">DefaultErrorHandler</SPAN>
+     <DD class="implements">      implements      <SPAN class="interface-title">ErrorHandler</SPAN>
+     <DD class="constructors">      constructors:      <UL>
+       <LI>
+        <SPAN class="constructor-title">DefaultErrorHandler</SPAN>
+        (             )
+      </UL>
+    </DL>
+   </A></BLOCKQUOTE>          Last modified: $Date$</BODY>
+</HTML>

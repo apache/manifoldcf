@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!ENTITY % include.blocks SYSTEM 'blocks.ent'>
+%include.blocks;
+
+<!ELEMENT desc (#PCDATA|%relBlocks;|%markup;|%links;)*>
+
+<!ELEMENT releases (desc?,release+)>
+<!ELEMENT release (desc?,changes?)>
+<!ATTLIST release version CDATA #REQUIRED
+                  date    CDATA #IMPLIED>
+<!ELEMENT changes (add|remove|fix|update)+>
+<!ELEMENT add (note,submitter?)>
+<!ELEMENT remove (note,submitter?)>
+<!ELEMENT fix (note,submitter?)>
+<!ELEMENT update (note,submitter?)>
+<!ELEMENT submitter EMPTY>
+<!ATTLIST submitter name   CDATA #REQUIRED
+                    mailto CDATA #IMPLIED>

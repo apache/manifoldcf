@@ -1,0 +1,139 @@
+<?xml version='1.0' encoding='US-ASCII'?>
+<!-- $Id$ -->
+<!DOCTYPE schedule SYSTEM 'schedule.dtd' [
+<!ENTITY people SYSTEM 'people.ent'>
+]>
+<schedule date='$Date$'>
+ <!-- People -->
+ &people;
+ 
+ <!-- Milestones -->
+ <milestone id='M1' date='Friday, 29 Sep 2000'>
+  <title>Parser without DTD support</title>
+  <task driver='andyc' status='done'>
+   <title>Document design based on Xerces community feedback</title>
+  </task>
+  <task driver='ericye' status='done'>
+   <title>Support classes</title>
+   <detail>
+    This affects the following classes: 
+    XMLString, XMLStringBuffer, XMLChar, EncodingMap, SymbolTable, QName.
+   </detail>
+  </task>
+  <task driver='jeffreyr' status='done'>
+   <title>Basic entity managment</title>
+   <detail>
+    This affects the following classes: XMLEntityManager, XMLEntityScanner.
+   </detail>
+  </task>
+  <task driver='ericye' status='done'>
+   <title>Basic error handling</title>
+   <detail>
+    This affects the following interfaces &amp; classes:
+    XMLErrorReporter, some MessageFormatter.
+   </detail>
+  </task>
+  <task driver='andyc' status='done'>
+   <title>Parsing of elements and attributes using internal interface</title>
+   <detail>
+    This affects the following classes: XMLAttributes, XMLDocumentScanner.
+   </detail>
+  </task>
+  <task driver='lehors' status='done'>
+   <title>Implement a SAX2 parser from internal callbacks</title>
+   <detail>
+    This affects the following classes: 
+    XMLParser, XMLDocumentParser, SAXParser.
+   </detail>
+  </task>
+ </milestone>
+ <milestone id='M2' date='Friday, 6 October 2000'>
+  <title>Parser with DTD scanning without validation</title>
+  <depends idref='M1'/>
+  <task driver='jeffreyr'>
+   <title>More documentation</title>
+   <detail>
+    Parser initialization and the validation system needs to be
+    documented.
+   </detail>
+   <contributor idref='lehors'/>
+  </task>
+  <task driver='andyc' status='done'>
+   <title>
+    Re-organize package structure to separate core interfaces and
+    classes from implementation
+   </title>
+   <contributor idref='lehors'/>
+  </task>
+  <task driver='andyc'>
+   <title>Improve entity manager and scanner</title>
+   <detail>
+    Must support external entities, including the DTD entity and
+    pre-defined general entities (e.g. &amp;amp;).
+   </detail>
+  </task>
+  <task driver='ericye'>
+   <title>Improve document scanner</title>
+   <detail>
+    Handle trailing miscellaneous section; premature end of file; use
+    the error reporter; etc.
+   </detail>
+  </task>
+  <task driver='lehors'>
+   <title>Parsing of DOCTYPE line and DTD markup declarations</title>
+  </task>
+  <task driver='jeffreyr'>
+   <title>Storing basic DTD grammar information</title>
+  </task>
+ </milestone>
+ <milestone id='M3'>
+  <title>Parser with DTD scanning + datatypes and content model validation</title>
+  <depends idref='M2'/>
+  <task driver='andyc'>
+   <title>Ever more documentation</title>
+   <detail>
+    Document parser configurations and how new components and 
+    configurations would be written and connected.
+   </detail>
+  </task>
+  <task driver='jeffreyr'>
+   <title>Datatype validators</title>
+   <detail>
+    Only those datatype validators needed for DTD grammars need to be
+    added. All DTD datatypes should work: CDATA, ENTITY, ENTITIES, ID,
+    IDREF, IDREFS, NMTOKEN, NMTOKENS, and NOTATION.
+   </detail>
+  </task>
+  <task driver='ericye'>
+   <title>Content model validators</title>
+   <detail>
+    This affects the following classes: 
+    SimpleContentModel, MixedContentModel, DFAContentModel.
+   </detail>
+  </task>
+ </milestone>
+ <milestone id='M4'>
+  <title>Parser with DTD scanning and Schema parsing + validation</title>
+  <depends idref='M3'/>
+  <task driver='lehors'>
+   <title>DOM implementation</title>
+   <detail>
+    Write the DOMParser to populate the DOM tree. Decide what should
+    be done with the "deferred" DOM implementation.
+   </detail>
+  </task>
+  <task driver='ericye'>
+   <title>Schema structures updated to current spec (22 Sep 2000)</title>
+   <detail>Can this be done without using the DOM?</detail>
+  </task>
+  <task driver='jeffreyr'>
+   <title>Schema datatypes updated to current spec (22 Sep 2000)</title>
+  </task>
+ </milestone>
+ <milestone id='M666'>
+  <title>Full Schema support</title>
+ </milestone>
+ <milestone id='M9999'>
+  <title>Party!</title>
+ </milestone>
+</schedule>

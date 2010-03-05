@@ -1,0 +1,2407 @@
+<!-- saved from url=(0022)http://internet.e-mail -->
+<html xmlns:fo="http://www.w3.org/1999/XSL/Format">
+<head>
+<title>Proposed Xerces2 Requirements -  15 September 2000</title>
+</head>
+<body bgcolor="#FFFFFF">
+<h1>Proposed Xerces2 Requirements</h1>
+<h4>Date: 15 September 2000<br>
+  Editors: &nbsp;&nbsp;<a href="mailto:estaub@mediaone.net">Ed Staub</a>&nbsp;&nbsp;<a href="mailto:twleung@sauria.com">Ted Leung</a>
+</h4>
+<hr>
+<h2>Schema</h2>
+<p>Proposed requirements are organized into categories. &nbsp;Some requirements 
+  occur in more than one category in the future.</p>
+<p>Each requirement has a number. Underneath the number is a "hardness" 
+  and "status".</p>
+<dl>
+<dt>Possible "hardness" values are:</dt>
+<dd>
+<b>hard</b> - Xerces2 must and shall meet this requirement<br>
+<b>soft</b> - Xerces2 should meet this requirement, but it may be dropped 
+    because of conflicting requirements or time pressures</dd>
+<dt>
+<br>
+    Possible "status" values are:</dt>
+<dd>
+<span style="background-color:aquamarine"><b>approved</b> - there appears to be a clear consensus</span>
+<br>
+<b>tooQuiet</b> - there may be a consensus, but there hasn't been enough 
+    input to be sure <br>
+<b>hardnessConflict</b> - there is conflict over whether this is a hard or 
+    soft requirement<b>
+<br>
+    vetoConflict</b> - there is a conflict over whether this proposed requirement 
+    is a requirement at all<br>
+<span style="background-color:silver"><b>rejected</b> - the proposed requirement appears to be dead</span>
+<br>
+<b>unevaluated</b> - editor hasn't finished reviewing input
+					</dd>
+</dl>
+<hr>
+<h2>Requirements by Number</h2>
+<a href="#req.1" style="background-color:aquamarine">1</a>
+			&nbsp;	&nbsp;
+			The code shall be maintainable and simple to read.<br>
+<a href="#req.2" style="background-color:aquamarine">2</a>
+			&nbsp;	&nbsp;
+			The parser should have a competitive memory footprint (competitive
+against the other Java based parsers out there).
+<br>
+<a href="#req.3" style="background-color:aquamarine">3</a>
+			&nbsp;	&nbsp;
+			The parser shall be designed so as to allow deployment of minimal subsets suitable for low-end, memory-constrained appli...<br>
+<a href="#req.4" style="background-color:aquamarine">4</a>
+			&nbsp;	&nbsp;
+			The parser shall run well on all virutal machines and 			shall not be optimized toward a particular virtual machine.<br>
+<a href="#req.5" style="background-color:aquamarine">5</a>
+			&nbsp;	&nbsp;
+			Optimizations that interfere with readability,        modularity, or size should be shunned.  <br>
+<br>
+<a href="#req.6" style="background-color:silver">6</a>
+			&nbsp;	&nbsp;
+			The parser should have the smallest possible distribution (JAR) size.<br>
+<a href="#req.7" style="background-color:aquamarine">7</a>
+			&nbsp;	&nbsp;
+			The design of the parser should be documented, with diagrams where they are more expressive than text.<br>
+<a href="#req.8" style="background-color:silver">8</a>
+			&nbsp;	&nbsp;
+			The parser should have the characteristics needed for it to be included in the JDK.<br>
+<a href="#req.9" style="background-color:silver">9</a>
+			&nbsp;	&nbsp;
+			The parser should be upwardly compatible with Xerces.<br>
+<a href="#req.10" style="background-color:aquamarine">10</a>
+			&nbsp;	&nbsp;
+			The parser shall be cleanly modular.<br>
+<br>
+<a href="#req.11" style="background-color:snow">11</a>
+			&nbsp;	&nbsp;
+			Development should be coordinated with xerces-c.<br>
+<a href="#req.12" style="background-color:aquamarine">12</a>
+			&nbsp;	&nbsp;
+			The parser shall support SAX2.<br>
+<a href="#req.13a" style="background-color:snow">13a</a>
+			&nbsp;	&nbsp;
+			
+				Read-only, memory conservative, high performance DOM subset. In some  ways, this is optional, since the alternative...<br>
+<a href="#req.13b" style="background-color:snow">13b</a>
+			&nbsp;	&nbsp;
+			
+				parse-next function, with added control over buffer size.  <br>
+<a href="#req.13c" style="background-color:snow">13c</a>
+			&nbsp;	&nbsp;
+			
+				Some sort of way to tell if a SAX char buffer is going to be  overwritten, so data doesn't have to be copied until ...<br>
+<a href="#req.13d" style="background-color:snow">13d</a>
+			&nbsp;	&nbsp;
+			
+				Serialization support, as is currently in Assaf's classes.  <br>
+<a href="#req.13e" style="background-color:snow">13e</a>
+			&nbsp;	&nbsp;
+			
+				Schema data-type support, which will be needed for XSLT2, and Xalan 2.0  extensions. <br>
+<a href="#req.13f" style="background-color:snow">13f</a>
+			&nbsp;	&nbsp;
+			
+				Small core footprint for standalone, compiled stylesheet capability, for  use on small devices. This would need to ...<br>
+<a href="#req.14" style="background-color:aquamarine">14</a>
+			&nbsp;	&nbsp;
+			The parser shall validate XML 1.0.<br>
+<a href="#req.15" style="background-color:aquamarine">15</a>
+			&nbsp;	&nbsp;
+			 The parser shall support namespaces.<br>
+<br>
+<a href="#req.16" style="background-color:aquamarine">16</a>
+			&nbsp;	&nbsp;
+			 The parser shall support DOM Level 2. <br>
+<a href="#req.18" style="background-color:aquamarine">18</a>
+			&nbsp;	&nbsp;
+			 The parser shall support XML Schema. <br>
+<a href="#req.19" style="background-color:aquamarine">19</a>
+			&nbsp;	&nbsp;
+			 The parser shall support XPath. <br>
+<a href="#req.20" style="background-color:snow">20</a>
+			&nbsp;	&nbsp;
+			 The parser should support XInclude. <br>
+<br>
+<a href="#req.21" style="background-color:snow">21</a>
+			&nbsp;	&nbsp;
+			 The parser should support write validation of a DOM tree or revalidation. <br>
+<a href="#req.22" style="background-color:snow">22</a>
+			&nbsp;	&nbsp;
+			 The parser shall support grammar access for both DTD and Schema. <br>
+<a href="#req.23" style="background-color:aquamarine">23</a>
+			&nbsp;	&nbsp;
+			 No significant speed penalty should be invoked for unused features, notably validation. When not validating, the parser...<br>
+<a href="#req.24" style="background-color:aquamarine">24</a>
+			&nbsp;	&nbsp;
+			 The parser should provide best-of-breed performance across all JIT's (not just Hotspot). Such performance
+shall not com...<br>
+<a href="#req.25" style="background-color:aquamarine">25</a>
+			&nbsp;	&nbsp;
+			 The parser should support grammar caching and precompilation. <br>
+<br>
+<a href="#req.28" style="background-color:aquamarine">28</a>
+			&nbsp;	&nbsp;
+			 Xerces Native API.  The parser should provide a reasonable core API (fast!) upon which to layer other API's.  Examples ...<br>
+<a href="#req.29" style="background-color:aquamarine">29</a>
+			&nbsp;	&nbsp;
+			 The project should produce testcases for both conformance and benchmarking.  <br>
+<a href="#req.30" style="background-color:silver">30</a>
+			&nbsp;	&nbsp;
+			 The parse shall support SAX 1 <br>
+<br>
+<a href="#req.31" style="background-color:snow">31</a>
+			&nbsp;	&nbsp;
+			 The core parser should not directly support any tree model. <br>
+<a href="#req.32" style="background-color:silver">32</a>
+			&nbsp;	&nbsp;
+			 The parser shall support Java 1.1 <br>
+<a href="#req.33" style="background-color:snow">33</a>
+			&nbsp;	&nbsp;
+			 The parser should support loading and validating only certainrequested portions of a document -- a useful feature  when...<br>
+<a href="#req.34" style="background-color:snow">34</a>
+			&nbsp;	&nbsp;
+			 The parser shall support the XML  Information Set. <br>
+<a href="#req.35" style="background-color:snow">35</a>
+			&nbsp;	&nbsp;
+			 The parser should support pull model parsing. <br>
+<br>
+<a href="#req.37" style="background-color:snow">37</a>
+			&nbsp;	&nbsp;
+			 The DOM should emit events to interested listeners when changes are made to the DOM <br>
+<a href="#req.38" style="background-color:snow">38</a>
+			&nbsp;	&nbsp;
+			 The parser should support 
+					RELAX
+				. <br>
+<a href="#req.39" style="background-color:snow">39</a>
+			&nbsp;	&nbsp;
+			 The parser should allow for automatic detection of compressed/encrypted documents. <br>
+<hr>
+<h2>Requirement Categories</h2>
+<a href="#cat.{.}">Architecture</a>
+<br>
+<a href="#cat.{.}">Standards</a>
+<br>
+<a href="#cat.{.}">Features</a>
+<br>
+<a href="#cat.{.}">Memory</a>
+<br>
+<a href="#cat.{.}">Speed</a>
+<br>
+<a href="#cat.{.}">Quality</a>
+<br>
+<a href="#cat.{.}">Other</a>
+<br>
+<hr>
+<h2>Requirements by Category</h2>
+<h3>
+<a name="#cat.{.}"></a>Architecture</h3>
+<table border="1" width="95%">
+<tr bgcolor="aquamarine">
+<td valign="top">
+<p>
+<a name="req.3"></a><b>3.</b>
+<br>
+        &nbsp;&nbsp;hard<br>
+        &nbsp;&nbsp;approved</p>
+</td><td valign="top">
+<p>
+<b>
+<def>The parser shall be designed so as to allow deployment of minimal subsets suitable for low-end, memory-constrained applications
+			<br>The build process shall create both:
+<ul>
+					<li>a .jar file containing all standard components of Xerces (xerces.jar).</li>
+					<li>a set of .jar files which together contain everything in xerces.jar, broken into the following components:
+<ul>
+							<li>xerces kernel, which supports the “internal APIs” and SAX support</li>
+							<li>DOM support</li>
+							<li>Validation support</li>
+							<li>other components of large size which can be easily factored and for which there is a significant audience who will benefit from not including them in a deployment.</li>
+						</ul>
+					</li>
+				</ul>
+			</def>
+</b>
+</p>
+<blockquote>
+<p>
+			See also:
+		<a href="#req.2">2</a>
+		&nbsp;&nbsp;
+	
+			See also:
+		<a href="#req.13">13</a>
+		&nbsp;&nbsp;
+	</p>
+<b><i>Voted</i></b>
+		 on from 26-Aug-00 to 15-Sept-00.  Votes:
+	<ul>
+<li>
+<a href="mailto:CurtA@techie.com">Curt Arnold</a>
+			: +1<blockquote>
+<voteComment>If this type of surgery is possible, then it should help
+requirement 2 since loading unused classes could be avoided.
+</voteComment>
+</blockquote>
+</li>
+<li>
+<a href="mailto:chris.laprun@nist.gov">Chris Laprun</a>
+			: +1</li>
+<li>
+<a href="mailto:twleung@sauria.com">Ted Leung</a>
+			: +1</li>
+<li>
+<a href="mailto:duncan@x180.com">James Duncan Davidson</a>
+			: +1</li>
+<li>
+<a href="mailto:mhk@dia.dk">Mikael Helbo Kjaer</a>
+			: +1</li>
+<li>
+<a href="mailto:jeffreyr_97@hotmail.com">Jeffrey Rodriguez</a>
+			: +1</li>
+<li>
+<a href="mailto:lehors@us.ibm.com">Arnaud Le Hors</a>
+			: +1</li>
+<li>
+<a href="mailto:arkin@arkin.exoffice.com">Assaf Arkin</a>
+			: +1</li>
+<li>
+<a href="mailto:ericye@locus.apache.org">Eric Ye</a>
+			: +1</li>
+<li>
+<a href="mailto:Edwin.Goei@eng.sun.com">Edwin Goei</a>
+			: +1</li>
+</ul>
+<b><i>References</i></b>
+<br>
+<p>"<ref set="gen" id="2091">It should be possible to build a parser as a set of Jar files        so that a smaller parser can be assembled which fits the need of a        particular implementation. For example, in TV sets do you really need        validation?</ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2091.html">
+					<strong>[spinnaker] Announce</strong>
+				</a>&nbsp;<a name="2091">
+					<em>James Duncan Davidson</em>
+				</a>&nbsp;<em>(Sat Jul         08 2000 - 07:31:16 MEST)</em>
+			</li>
+</p>
+<p>"<ref set="gen" id="2223">Where I am now we use XML as a wire format, so the data volume is small,  and parsing takes place on the client (the customer's e-commerce  environment) and on the server. Small footprint (memory *and* disk)  are much more important in this context than speed or even validation.  </ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2223.html">
+					<strong>Re: [spinnaker] Announce</strong>
+				</a>&nbsp;<a name="2223">
+					<em>Rod McChesney</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000         - 01:32:31 MEST)</em>
+			</li>
+</p>
+<p>"<ref set="gen" id="2223">... many applications could benefit ...</ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2223.html">
+					<strong>Re: [spinnaker] Announce</strong>
+				</a>&nbsp;<a name="2223">
+					<em>Rod McChesney</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000         - 01:32:31 MEST)</em>
+			</li>
+</p>
+<p>"<ref set="xdev" id="1324">"small-but-performant-ambitious"  devices vs. "as-small-and-cheap-as-possible" devices</ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-xerces-j-dev/1324.html">
+					<strong>RE: REDOM Design discussion.</strong>
+				</a>
+				<a name="1324">
+					<em>Paulo Gaspar <small>(Sat Jul 15 2000 - 15:33:49         MEST)</small>
+					</em>
+				</a>
+			</li>
+</p>
+<p>"<ref set="xdev" id="1361">I [am] a proponent [of support for] "small-but-perfrormant-ambitious", not  "as-small-and-cheap-as-possible" [devices] </ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-xerces-j-dev/1361.html">
+					<strong>Re: REDOM Design discussion.</strong>
+				</a>
+				<a name="1361">
+					<em>James Duncan Davidson <small>(Tue Jul 18 2000 -         00:28:02 MEST)</small>
+					</em>
+				</a>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+</table>
+<h3>
+<a name="#cat.{.}"></a>Standards</h3>
+<table border="1" width="95%">
+<tr bgcolor="aquamarine">
+<td valign="top">
+<p>
+<a name="req.12"></a><b>12.</b>
+<br>
+        &nbsp;&nbsp;hard<br>
+        &nbsp;&nbsp;approved</p>
+</td><td valign="top">
+<p>
+<b>
+<def>The parser shall support SAX2.</def>
+</b>
+</p>
+<blockquote>
+<p>
+			See also:
+		<a href="#req.13">13</a>
+		&nbsp;&nbsp;
+	</p>
+<b><i>References</i></b>
+<br>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2203.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2203">
+					<em>Scott         Boag/CAM/Lotus</em>
+				</a>&nbsp;<em>(Tue Jul 11 2000 -         23:42:10 MEST)</em>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2243.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2243">
+					<em>Arnaud Le         Hors</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 - 02:49:04         MEST)</em>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="aquamarine">
+<td valign="top">
+<p>
+<a name="req.14"></a><b>14.</b>
+<br>
+        &nbsp;&nbsp;hard<br>
+        &nbsp;&nbsp;approved</p>
+</td><td valign="top">
+<p>
+<b>
+<def>The parser shall validate XML 1.0.</def>
+</b>
+</p>
+<blockquote>
+<b><i>References</i></b>
+<br>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2243.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2243">
+					<em>Arnaud Le         Hors</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 - 02:49:04         MEST)</em>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="aquamarine">
+<td valign="top">
+<p>
+<a name="req.15"></a><b>15.</b>
+<br>
+        &nbsp;&nbsp;hard<br>
+        &nbsp;&nbsp;approved</p>
+</td><td valign="top">
+<p>
+<b>
+<def> The parser shall support namespaces.</def>
+</b>
+</p>
+<blockquote>
+<b><i>References</i></b>
+<br>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2243.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2243">
+					<em>Arnaud Le         Hors</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 - 02:49:04         MEST)</em>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="aquamarine">
+<td valign="top">
+<p>
+<a name="req.18"></a><b>18.</b>
+<br>
+        &nbsp;&nbsp;hard<br>
+        &nbsp;&nbsp;approved</p>
+</td><td valign="top">
+<p>
+<b>
+<def> The parser shall support XML Schema. </def>
+</b>
+</p>
+<blockquote>
+<b><i>References</i></b>
+<br>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2242.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2242">
+					<em>Eric         Ye</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 - 02:48:42 MEST)</em>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2243.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2243">
+					<em>Arnaud Le         Hors</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 - 02:49:04         MEST)</em>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="aquamarine">
+<td valign="top">
+<p>
+<a name="req.19"></a><b>19.</b>
+<br>
+        &nbsp;&nbsp;hard<br>
+        &nbsp;&nbsp;approved</p>
+</td><td valign="top">
+<p>
+<b>
+<def> The parser shall support XPath. </def>
+</b>
+</p>
+<blockquote>
+<b><i>References</i></b>
+<br>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2245.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2245">
+					<em>Donald         Ball</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 - 02:57:59         MEST)</em>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2275.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2275">
+					<em>Brett         McLaughlin</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 - 16:07:32         MEST)</em>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2284.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2284">
+					<em>Eduardo         Pelegri--Llopart</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 -         19:31:22 MEST)</em>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2285.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2285">
+					<em>Jeffrey         Rodriguez</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 - 19:38:42         MEST)</em>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2320.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2320">
+					<em>Stefano         Mazzocchi</em>
+				</a>&nbsp;<em>(Thu Jul 13 2000 - 01:11:58         MEST)</em>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-xerces-j-dev/1277.html">
+					<strong>Re: XRI requirements</strong>
+				</a>
+				<a name="1277">
+					<em>Jeffrey Rodriguez <small>(Wed Jul 12 2000 - 09:59:50         MEST)</small>
+					</em>
+				</a>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="snow">
+<td valign="top">
+<p>
+<a name="req.20"></a><b>20.</b>
+<br>
+        &nbsp;&nbsp;soft<br>
+        &nbsp;&nbsp;unevaluated</p>
+</td><td valign="top">
+<p>
+<b>
+<def> The parser should support XInclude. </def>
+</b>
+</p>
+<blockquote>
+<b><i>References</i></b>
+<br>
+<p>"<ref set="gen" id="2245">+1</ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2245.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2245">
+					<em>Donald         Ball</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 - 02:57:59         MEST)</em>
+			</li>
+</p>
+<p>"<ref set="gen" id="2271">+1</ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2271.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2271">
+					<em>Stefano         Mazzocchi</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 - 15:02:47         MEST)</em>
+			</li>
+</p>
+<p>"<ref set="gen" id="2285">+1</ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2285.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2285">
+					<em>Jeffrey         Rodriguez</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 - 19:38:42         MEST)</em>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="snow">
+<td valign="top">
+<p>
+<a name="req.22"></a><b>22.</b>
+<br>
+        &nbsp;&nbsp;hard<br>
+        &nbsp;&nbsp;unevaluated</p>
+</td><td valign="top">
+<p>
+<b>
+<def> The parser shall support grammar access for both DTD and Schema. </def>
+</b>
+</p>
+<blockquote>
+<p>
+			See also:
+		<a href="#req.13">13</a>
+		&nbsp;&nbsp;
+	</p>
+<b><i>References</i></b>
+<br>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2242.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2242">
+					<em>Eric         Ye</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 - 02:48:42 MEST)</em>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="silver">
+<td valign="top">
+<p>
+<a name="req.30"></a><b>30.</b>
+<br>
+        &nbsp;&nbsp;hard<br>
+        &nbsp;&nbsp;rejected</p>
+</td><td valign="top">
+<p>
+<b>
+<def> The parse shall support SAX 1 </def>
+</b>
+</p>
+<blockquote>
+<b><i>References</i></b>
+<br>
+<p>"<ref set="gen" id="2249">-1</ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2249.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2249">
+					<em>Brett         McLaughlin</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 - 03:07:59         MEST)</em>
+			</li>
+</p>
+<p>"<ref set="gen" id="2257">-1</ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2257.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2257">
+					<em>N. Sean         Timm</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 - 05:59:47         MEST)</em>
+			</li>
+</p>
+<p>"<ref set="gen" id="2271">-1</ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2271.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2271">
+					<em>Stefano         Mazzocchi</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 - 15:02:47         MEST)</em>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="silver">
+<td valign="top">
+<p>
+<a name="req.32"></a><b>32.</b>
+<br>
+        &nbsp;&nbsp;hard<br>
+        &nbsp;&nbsp;rejected</p>
+</td><td valign="top">
+<p>
+<b>
+<def> The parser shall support Java 1.1 </def>
+</b>
+</p>
+<blockquote>
+<b><i>References</i></b>
+<br>
+<p>"<ref set="gen" id="2249">-1</ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2249.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2249">
+					<em>Brett         McLaughlin</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 - 03:07:59         MEST)</em>
+			</li>
+</p>
+<p>"<ref set="gen" id="2257">-1</ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2257.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2257">
+					<em>N. Sean         Timm</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 - 05:59:47         MEST)</em>
+			</li>
+</p>
+<p>"<ref set="gen" id="2271">-1</ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2271.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2271">
+					<em>Stefano         Mazzocchi</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 - 15:02:47         MEST)</em>
+			</li>
+</p>
+<p>"<ref set="xdev" id="1314">+1</ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-xerces-j-dev/1314.html">
+					<strong>Re: REDOM Design discussion.</strong>
+				</a>
+				<a name="1314">
+					<em>Jeffrey Rodriguez <small>(Fri Jul 14 2000 -         18:47:28 MEST)</small>
+					</em>
+				</a>
+			</li>
+</p>
+<p>"<ref set="xdev" id="1317">+-0</ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-xerces-j-dev/1317.html">
+					<strong>Re: REDOM Design discussion.</strong>
+				</a>
+				<a name="1317">
+					<em>James Duncan Davidson <small>(Fri Jul 14 2000 -         19:22:19 MEST)</small>
+					</em>
+				</a>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="snow">
+<td valign="top">
+<p>
+<a name="req.34"></a><b>34.</b>
+<br>
+        &nbsp;&nbsp;hard<br>
+        &nbsp;&nbsp;unevaluated</p>
+</td><td valign="top">
+<p>
+<b>
+<def> The parser shall support the XML  Information Set. </def>
+</b>
+</p>
+<blockquote>
+<b><i>References</i></b>
+<br>
+<p>"<ref set="gen" id="2298">+1</ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2298.html">
+					<strong>Re: [Xerces2] Requirements list; 'Xerces2'?;         cross-posting</strong>
+				</a>&nbsp;<a name="2298">
+					<em>Arnaud         Le Hors</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 - 20:46:38         MEST)</em>
+			</li>
+</p>
+<p>"<ref set="gen" id="2321">+1</ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2321.html">
+					<strong>Re: [Xerces2] Requirements list; 'Xerces2'?;         cross-posting</strong>
+				</a>&nbsp;<a name="2321">
+					<em>Stefano         Mazzocchi</em>
+				</a>&nbsp;<em>(Thu Jul 13 2000 - 01:13:00         MEST)</em>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+</table>
+<h3>
+<a name="#cat.{.}"></a>Features</h3>
+<table border="1" width="95%">
+<tr bgcolor="snow">
+<td valign="top">
+<p>
+<a name="req.13a"></a><b>13a.</b>
+<br>
+        &nbsp;&nbsp;soft<br>
+        &nbsp;&nbsp;unevaluated</p>
+</td><td valign="top">
+<p>
+<b>
+<def>
+				<br>Read-only, memory conservative, high performance DOM subset. In some  ways, this is optional, since the alternative is that the XSLT processor  implement it's own DOM, as it does today. But it would be neat and simpler  if only one DOM implementation needed to exist.  <br>  a) Document-order indexes or API as a DOM extension. I know of few or  no conformant XSLT processors that can do without this.  <br>  b) [optional] isWhite() method as a DOM extensions (pure telling of  whether or not the text contains non-whitespace), for performance reasons.  <br>  c) Some sort of weak reference, where nodes could be released if not  referenced, and then rebuilt if requested. For performance and memory  footprint.  </def>
+</b>
+</p>
+<blockquote>
+<b><i>References</i></b>
+<br>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2203.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2203">
+					<em>Scott         Boag/CAM/Lotus</em>
+				</a>&nbsp;<em>(Tue Jul 11 2000 -         23:42:10 MEST)</em>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2296.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2296">
+					<em>Scott         Boag/CAM/Lotus</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 -         19:59:46 MEST)</em>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="snow">
+<td valign="top">
+<p>
+<a name="req.13b"></a><b>13b.</b>
+<br>
+        &nbsp;&nbsp;soft<br>
+        &nbsp;&nbsp;unevaluated</p>
+</td><td valign="top">
+<p>
+<b>
+<def>
+				<br>parse-next function, with added control over buffer size.  </def>
+</b>
+</p>
+<blockquote>
+<b><i>References</i></b>
+<br>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2203.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2203">
+					<em>Scott         Boag/CAM/Lotus</em>
+				</a>&nbsp;<em>(Tue Jul 11 2000 -         23:42:10 MEST)</em>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2296.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2296">
+					<em>Scott         Boag/CAM/Lotus</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 -         19:59:46 MEST)</em>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="snow">
+<td valign="top">
+<p>
+<a name="req.13c"></a><b>13c.</b>
+<br>
+        &nbsp;&nbsp;soft<br>
+        &nbsp;&nbsp;unevaluated</p>
+</td><td valign="top">
+<p>
+<b>
+<def>
+				<br>Some sort of way to tell if a SAX char buffer is going to be  overwritten, so data doesn't have to be copied until this occurs.  </def>
+</b>
+</p>
+<blockquote>
+<b><i>References</i></b>
+<br>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2203.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2203">
+					<em>Scott         Boag/CAM/Lotus</em>
+				</a>&nbsp;<em>(Tue Jul 11 2000 -         23:42:10 MEST)</em>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2296.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2296">
+					<em>Scott         Boag/CAM/Lotus</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 -         19:59:46 MEST)</em>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="snow">
+<td valign="top">
+<p>
+<a name="req.13d"></a><b>13d.</b>
+<br>
+        &nbsp;&nbsp;soft<br>
+        &nbsp;&nbsp;unevaluated</p>
+</td><td valign="top">
+<p>
+<b>
+<def>
+				<br>Serialization support, as is currently in Assaf's classes.  </def>
+</b>
+</p>
+<blockquote>
+<b><i>References</i></b>
+<br>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2203.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2203">
+					<em>Scott         Boag/CAM/Lotus</em>
+				</a>&nbsp;<em>(Tue Jul 11 2000 -         23:42:10 MEST)</em>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2296.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2296">
+					<em>Scott         Boag/CAM/Lotus</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 -         19:59:46 MEST)</em>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="snow">
+<td valign="top">
+<p>
+<a name="req.13e"></a><b>13e.</b>
+<br>
+        &nbsp;&nbsp;soft<br>
+        &nbsp;&nbsp;unevaluated</p>
+</td><td valign="top">
+<p>
+<b>
+<def>
+				<br>Schema data-type support, which will be needed for XSLT2, and Xalan 2.0  extensions. </def>
+</b>
+</p>
+<blockquote>
+<b><i>References</i></b>
+<br>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2203.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2203">
+					<em>Scott         Boag/CAM/Lotus</em>
+				</a>&nbsp;<em>(Tue Jul 11 2000 -         23:42:10 MEST)</em>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2296.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2296">
+					<em>Scott         Boag/CAM/Lotus</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 -         19:59:46 MEST)</em>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="snow">
+<td valign="top">
+<p>
+<a name="req.13f"></a><b>13f.</b>
+<br>
+        &nbsp;&nbsp;soft<br>
+        &nbsp;&nbsp;unevaluated</p>
+</td><td valign="top">
+<p>
+<b>
+<def>
+				<br>Small core footprint for standalone, compiled stylesheet capability, for  use on small devices. This would need to include the Serializer. I'm not  sure if this should really be a separate micro-parser?   </def>
+</b>
+</p>
+<blockquote>
+<b><i>References</i></b>
+<br>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2203.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2203">
+					<em>Scott         Boag/CAM/Lotus</em>
+				</a>&nbsp;<em>(Tue Jul 11 2000 -         23:42:10 MEST)</em>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2296.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2296">
+					<em>Scott         Boag/CAM/Lotus</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 -         19:59:46 MEST)</em>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="aquamarine">
+<td valign="top">
+<p>
+<a name="req.16"></a><b>16.</b>
+<br>
+        &nbsp;&nbsp;hard<br>
+        &nbsp;&nbsp;approved</p>
+</td><td valign="top">
+<p>
+<b>
+<def> The parser shall support DOM Level 2. </def>
+</b>
+</p>
+<blockquote>
+<b><i>References</i></b>
+<br>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2243.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2243">
+					<em>Arnaud Le         Hors</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 - 02:49:04         MEST)</em>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="snow">
+<td valign="top">
+<p>
+<a name="req.21"></a><b>21.</b>
+<br>
+        &nbsp;&nbsp;soft<br>
+        &nbsp;&nbsp;unevaluated</p>
+</td><td valign="top">
+<p>
+<b>
+<def> The parser should support write validation of a DOM tree or revalidation. </def>
+</b>
+</p>
+<blockquote>
+<b><i>References</i></b>
+<br>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2242.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2242">
+					<em>Eric         Ye</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 - 02:48:42 MEST)</em>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="aquamarine">
+<td valign="top">
+<p>
+<a name="req.28"></a><b>28.</b>
+<br>
+        &nbsp;&nbsp;soft<br>
+        &nbsp;&nbsp;approved</p>
+</td><td valign="top">
+<p>
+<b>
+<def> Xerces Native API.  The parser should provide a reasonable core API (fast!) upon which to layer other API's.  Examples of such API's include SAX2, DOM, and JDOM. </def>
+</b>
+</p>
+<blockquote>
+<p>
+			See also:
+		<a href="#req.10">10</a>
+		&nbsp;&nbsp;
+	</p>
+<b><i>Voted</i></b>
+		 on from 07-Sept-00 to 15-Sept-00.  Votes:
+	<ul>
+<li>
+<a href="mailto:jeffreyr_97@hotmail.com">Jeffrey Rodriguez</a>
+			: +1</li>
+<li>
+<a href="mailto:ericye@locus.apache.org">Eric Ye</a>
+			: +1</li>
+<li>
+<a href="mailto:CurtA@techie.com">Curt Arnold</a>
+			: +1</li>
+<li>
+<a href="mailto:duncan@x180.com">James Duncan Davidson</a>
+			: +1</li>
+<li>
+<a href="mailto:twleung@sauria.com">Ted Leung</a>
+			: +1</li>
+<li>
+<a href="mailto:mhk@dia.dk">Mikael Helbo Kjaer</a>
+			: +1</li>
+<li>
+<a href="mailto:lehors@us.ibm.com">Arnaud Le Hors</a>
+			: +1</li>
+</ul>
+<b><i>References</i></b>
+<br>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2207.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2207">
+					<em>Brett         McLaughlin</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 - 00:28:32         MEST)</em>
+			</li>
+</p>
+<p>"<ref set="gen" id="2221">JDOM is an important up and coming API that already has established a large and rapidly growing groundswell of support and in the  developer community.</ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2221.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2221">
+					<em>James         Duncan Davidson</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 -         01:15:59 MEST)</em>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="snow">
+<td valign="top">
+<p>
+<a name="req.31"></a><b>31.</b>
+<br>
+        &nbsp;&nbsp;soft<br>
+        &nbsp;&nbsp;unevaluated</p>
+</td><td valign="top">
+<p>
+<b>
+<def> The core parser should not directly support any tree model. </def>
+</b>
+</p>
+<blockquote>
+<p>
+			See also:
+		<a href="#req.10">10</a>
+		&nbsp;&nbsp;
+	</p>
+<b><i>References</i></b>
+<br>
+<p>"<ref set="gen" id="2154">My understanding of the design, which I think is good, is that the  "core" actually doesn't directly support any tree model.  <br>                API Layer JDOM DOM SAX2  <br>               Core Layer Java parser code </ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2154.html">
+					<strong>Re: [spinnaker] Announce</strong>
+				</a>&nbsp;<a name="2154">
+					<em>Arnaud Le Hors</em>
+				</a>&nbsp;<em>(Tue Jul 11         2000 - 03:41:05 MEST)</em>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2263.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2263">
+					<em>Jason         Hunter</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 - 07:51:22         MEST)</em>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2326.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2326">
+					<em>Tim         Bray</em>
+				</a>&nbsp;<em>(Thu Jul 13 2000 - 02:33:14         MEST)</em>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-xerces-j-dev/1169.html">
+					<strong>[spinnaker] Design discussion</strong>
+				</a>
+				<a name="1169">
+					<em>James Duncan Davidson <small>(Mon Jul 10 2000 -         08:04:29 MEST)</small>
+					</em>
+				</a>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-xerces-j-dev/1179.html">
+					<strong>Re: [spinnaker] Design discussion</strong>
+				</a>
+				<a name="1179">
+					<em>costin@eng.sun.com <small>(Mon Jul 10 2000         - 20:40:06 MEST)</small>
+					</em>
+				</a>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-xerces-j-dev/1185.html">
+					<strong>Re: [spinnaker] Design discussion</strong>
+				</a>
+				<a name="1185">
+					<em>Edwin Goei <small>(Tue Jul 11 2000 -         00:48:20 MEST)</small>
+					</em>
+				</a>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-xerces-j-dev/1211.html">
+					<strong>Re: ?? Design discussion - xerces-design-dev new         list</strong>
+				</a>
+				<a name="1211">
+					<em>Arnaud Le Hors <small>         (Tue Jul 11 2000 - 06:51:24 MEST)</small>
+					</em>
+				</a>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-xerces-j-dev/1320.html">
+					<strong>[Xerces2] What is CORE?</strong>
+				</a>
+				<a name="1320">
+					<em>Ed Staub <small>(Fri Jul 14 2000 - 23:34:45         MEST)</small>
+					</em>
+				</a>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-xerces-j-dev/1321.html">
+					<strong>Re: [Xerces2] What is CORE?</strong>
+				</a>
+				<a name="1321">
+					<em>Brett McLaughlin <small>(Fri Jul 14 2000 -         23:52:26 MEST)</small>
+					</em>
+				</a>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-xerces-j-dev/1322.html">
+					<strong>Re: [Xerces2] What is CORE?</strong>
+				</a>
+				<a name="1322">
+					<em>Arved Sandstrom <small>(Sat Jul 15 2000 -         01:08:07 MEST)</small>
+					</em>
+				</a>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="snow">
+<td valign="top">
+<p>
+<a name="req.33"></a><b>33.</b>
+<br>
+        &nbsp;&nbsp;soft<br>
+        &nbsp;&nbsp;unevaluated</p>
+</td><td valign="top">
+<p>
+<b>
+<def> The parser should support loading and validating only certainrequested portions of a document -- a useful feature  when dealing with large xml databases, for example.   See the W3C <a href="http://www.w3.org/TR/WD-xml-fragment">
+					<em>XML Fragement Interchange</em>
+				</a> Working Draft. </def>
+</b>
+</p>
+<blockquote>
+<b><i>References</i></b>
+<br>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2276.html">
+					<strong>RE: XRI requirements</strong>
+				</a>&nbsp;<a name="2276">
+					<em>James Snell</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 -         07:25:50 MEST)</em>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="snow">
+<td valign="top">
+<p>
+<a name="req.35"></a><b>35.</b>
+<br>
+        &nbsp;&nbsp;soft<br>
+        &nbsp;&nbsp;unevaluated</p>
+</td><td valign="top">
+<p>
+<b>
+<def> The parser should support pull model parsing. </def>
+</b>
+</p>
+<blockquote>
+<b><i>References</i></b>
+<br>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2310.html">
+					<strong>Microsoft XML stuff</strong>
+				</a>&nbsp;<a name="2310">
+					<em>Scott Boag/CAM/Lotus</em>
+				</a>&nbsp;<em>(Wed Jul         12 2000 - 21:46:16 MEST)</em>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2323.html">
+					<strong>Re: Microsoft XML stuff</strong>
+				</a>&nbsp;<a name="2323">
+					<em>Ted Leung</em>
+				</a>&nbsp;<em>(Thu Jul 13 2000 -         02:08:55 MEST)</em>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2333.html">
+					<strong>Re: Microsoft XML stuff</strong>
+				</a>&nbsp;<a name="2333">
+					<em>Ted Leung</em>
+				</a>&nbsp;<em>(Thu Jul 13 2000 -         06:46:09 MEST)</em>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2335.html">
+					<strong>Re: Microsoft XML stuff</strong>
+				</a>&nbsp;<a name="2335">
+					<em>Eric Hodges</em>
+				</a>&nbsp;<em>(Thu Jul 13 2000 -         09:15:49 MEST)</em>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2340.html">
+					<strong>RE: Microsoft XML stuff</strong>
+				</a>&nbsp;<a name="2340">
+					<em>Scott Boag/CAM/Lotus</em>
+				</a>&nbsp;<em>(Thu Jul         13 2000 - 06:29:25 MEST)</em>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="snow">
+<td valign="top">
+<p>
+<a name="req.37"></a><b>37.</b>
+<br>
+        &nbsp;&nbsp;soft<br>
+        &nbsp;&nbsp;unevaluated</p>
+</td><td valign="top">
+<p>
+<b>
+<def> The DOM should emit events to interested listeners when changes are made to the DOM </def>
+</b>
+</p>
+<blockquote>
+<b><i>References</i></b>
+<br>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-xerces-j-dev/1201.html">
+					<strong>Re: ?? Design discussion - xerces-design-dev new         list</strong>
+				</a>
+				<a name="1201">
+					<em>Kelly Campbell <small>         (Tue Jul 11 2000 - 03:08:57 MEST)</small>
+					</em>
+				</a>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="snow">
+<td valign="top">
+<p>
+<a name="req.38"></a><b>38.</b>
+<br>
+        &nbsp;&nbsp;soft<br>
+        &nbsp;&nbsp;unevaluated</p>
+</td><td valign="top">
+<p>
+<b>
+<def> The parser should support <a href="http://www.xml.gr.jp/relax/">
+					<em>RELAX</em>
+				</a>. </def>
+</b>
+</p>
+<blockquote>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="snow">
+<td valign="top">
+<p>
+<a name="req.39"></a><b>39.</b>
+<br>
+        &nbsp;&nbsp;soft<br>
+        &nbsp;&nbsp;unevaluated</p>
+</td><td valign="top">
+<p>
+<b>
+<def> The parser should allow for automatic detection of compressed/encrypted documents. </def>
+</b>
+</p>
+<blockquote>
+</blockquote>
+</td>
+</tr>
+</table>
+<h3>
+<a name="#cat.{.}"></a>Memory</h3>
+<table border="1" width="95%">
+<tr bgcolor="aquamarine">
+<td valign="top">
+<p>
+<a name="req.2"></a><b>2.</b>
+<br>
+        &nbsp;&nbsp;soft<br>
+        &nbsp;&nbsp;approved</p>
+</td><td valign="top">
+<p>
+<b>
+<def>The parser should have a competitive memory footprint (competitive
+against the other Java based parsers out there).
+</def>
+</b>
+</p>
+<blockquote>
+<p>
+			See also:
+		<a href="#req.3">3</a>
+		&nbsp;&nbsp;
+	</p>
+<b><i>Voted</i></b>
+		 on from 26-Aug-00 to 15-Sept-00.  Votes:
+	<ul>
+<li>
+<a href="mailto:CurtA@techie.com">Curt Arnold</a>
+			: +1<blockquote>
+<voteComment>I assume that the comparison would be some basket of scenarios, so
+that being efficient with large documents could offset a slightly
+greater initial load size.</voteComment>
+</blockquote>
+</li>
+<li>
+<a href="mailto:chris.laprun@nist.gov">Chris Laprun</a>
+			: +1</li>
+<li>
+<a href="mailto:twleung@sauria.com">Ted Leung</a>
+			: +1</li>
+<li>
+<a href="mailto:duncan@x180.com">James Duncan Davidson</a>
+			: +1</li>
+<li>
+<a href="mailto:mhk@dia.dk">Mikael Helbo Kjaer</a>
+			: +1</li>
+<li>
+<a href="mailto:jeffreyr_97@hotmail.com">Jeffrey Rodriguez</a>
+			: +1</li>
+<li>
+<a href="mailto:lehors@us.ibm.com">Arnaud Le Hors</a>
+			: +1</li>
+<li>
+<a href="mailto:arkin@arkin.exoffice.com">Assaf Arkin</a>
+			: +1</li>
+<li>
+<a href="mailto:ericye@locus.apache.org">Eric Ye</a>
+			: +0</li>
+<li>
+<a href="mailto:Edwin.Goei@eng.sun.com">Edwin Goei</a>
+			: +1</li>
+</ul>
+<b><i>References</i></b>
+<br>
+<p>"<ref set="gen" id="2091">This means small distribution size (JAR file)        and small memory footprint.</ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2091.html">
+					<strong>[spinnaker] Announce</strong>
+				</a>&nbsp;<a name="2091">
+					<em>James Duncan Davidson</em>
+				</a>&nbsp;<em>(Sat Jul         08 2000 - 07:31:16 MEST)</em>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2203.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2203">
+					<em>Scott         Boag/CAM/Lotus</em>
+				</a>&nbsp;<em>(Tue Jul 11 2000 -         23:42:10 MEST)</em>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2341.html">
+					<strong>Re: [spinnaker] Announce</strong>
+				</a>&nbsp;<a name="2341">
+					<em>Stefano Mazzocchi</em>
+				</a>&nbsp;<em>(Thu Jul 13         2000 - 01:52:43 MEST)</em>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2345.html">
+					<strong>Re: [spinnaker] Announce</strong>
+				</a>&nbsp;<a name="2345">
+					<em>costin@eng.sun.com</em>
+				</a>&nbsp;<em>(Thu Jul 13         2000 - 21:46:20 MEST)</em>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="silver">
+<td valign="top">
+<p>
+<a name="req.6"></a><b>6.</b>
+<br>
+        &nbsp;&nbsp;soft<br>
+        &nbsp;&nbsp;rejected</p>
+</td><td valign="top">
+<p>
+<b>
+<def>The parser should have the smallest possible distribution (JAR) size.</def>
+</b>
+</p>
+<blockquote>
+<p>
+			See also:
+		<a href="#req.3">3</a>
+		&nbsp;&nbsp;
+	</p>
+<b><i>Voted</i></b>
+		 on from 26-Aug-00 to 15-Sept-00.  Votes:
+	<ul>
+<li>
+<a href="mailto:CurtA@techie.com">Curt Arnold</a>
+			: +1 to remove</li>
+<li>
+<a href="mailto:chris.laprun@nist.gov">Chris Laprun</a>
+			: +1 to remove</li>
+<li>
+<a href="mailto:twleung@sauria.com">Ted Leung</a>
+			: +1 to remove</li>
+<li>
+<a href="mailto:duncan@x180.com">James Duncan Davidson</a>
+			: +1 to remove</li>
+<li>
+<a href="mailto:mhk@dia.dk">Mikael Helbo Kjaer</a>
+			: +1 to remove</li>
+<li>
+<a href="mailto:jeffreyr_97@hotmail.com">Jeffrey Rodriguez</a>
+			: +1 to remove</li>
+<li>
+<a href="mailto:lehors@us.ibm.com">Arnaud Le Hors</a>
+			: +1 to remove</li>
+<li>
+<a href="mailto:arkin@arkin.exoffice.com">Assaf Arkin</a>
+			: +1 to remove</li>
+<li>
+<a href="mailto:ericye@locus.apache.org">Eric Ye</a>
+			: +1 to remove</li>
+<li>
+<a href="mailto:Edwin.Goei@eng.sun.com">Edwin Goei</a>
+			: +1 to remove</li>
+</ul>
+<blockquote>
+<i>Ed:</i>The votes below were votes to remove this requirement.  Its concerns are addressed elsewhere.</blockquote>
+<b><i>References</i></b>
+<br>
+<p>"<ref set="gen" id="2091">This means small distribution size (JAR file)        and small memory footprint.  </ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2091.html">
+					<strong>[spinnaker] Announce</strong>
+				</a>&nbsp;<a name="2091">
+					<em>James Duncan Davidson</em>
+				</a>&nbsp;<em>(Sat Jul         08 2000 - 07:31:16 MEST)</em>
+			</li>
+</p>
+<p>"<ref set="gen" id="2093">These two requirements [small memory footprint, small jar size -ed] are in direct conflict.   </ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2093.html">
+					<strong>Re: [spinnaker] Announce</strong>
+				</a>&nbsp;<a name="2093">
+					<em>Arnaud Le Hors</em>
+				</a>&nbsp;<em>(Sat Jul 08         2000 - 19:56:58 MEST)</em>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+</table>
+<h3>
+<a name="#cat.{.}"></a>Speed</h3>
+<table border="1" width="95%">
+<tr bgcolor="aquamarine">
+<td valign="top">
+<p>
+<a name="req.4"></a><b>4.</b>
+<br>
+        &nbsp;&nbsp;hard<br>
+        &nbsp;&nbsp;approved</p>
+</td><td valign="top">
+<p>
+<b>
+<def>The parser shall run well on all virutal machines and 			shall not be optimized toward a particular virtual machine.</def>
+</b>
+</p>
+<blockquote>
+<b><i>References</i></b>
+<br>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2091.html">
+					<strong>[spinnaker] Announce</strong>
+				</a>&nbsp;<a name="2091">
+					<em>James Duncan Davidson</em>
+				</a>&nbsp;<em>(Sat Jul         08 2000 - 07:31:16 MEST)</em>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-xerces-j-dev/1299.html">
+					<strong>Re: REDOM Design discussion.</strong>
+				</a>
+				<a name="1299">
+					<em>Jim Driscoll <small>(Thu Jul 13 2000 - 18:12:19         MEST)</small>
+					</em>
+				</a>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-xerces-j-dev/1307.html">
+					<strong>Re: REDOM Design discussion.</strong>
+				</a>
+				<a name="1307">
+					<em>James Duncan Davidson <small>(Fri Jul 14 2000 -         06:38:44 MEST)</small>
+					</em>
+				</a>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="aquamarine">
+<td valign="top">
+<p>
+<a name="req.23"></a><b>23.</b>
+<br>
+        &nbsp;&nbsp;soft<br>
+        &nbsp;&nbsp;approved</p>
+</td><td valign="top">
+<p>
+<b>
+<def> No significant speed penalty should be invoked for unused features, notably validation. When not validating, the parser should run almost as fast (within 5%) as a non-validating parser. </def>
+</b>
+</p>
+<blockquote>
+<p>
+			See also:
+		<a href="#req.10">10</a>
+		&nbsp;&nbsp;
+	</p>
+<b><i>Voted</i></b>
+		 on from 07-Sept-00 to 15-Sept-00.  Votes:
+	<ul>
+<li>
+<a href="mailto:jeffreyr_97@hotmail.com">Jeffrey Rodriguez</a>
+			: 0</li>
+<li>
+<a href="mailto:ericye@locus.apache.org">Eric Ye</a>
+			: +0</li>
+<li>
+<a href="mailto:CurtA@techie.com">Curt Arnold</a>
+			: +1</li>
+<li>
+<a href="mailto:duncan@x180.com">James Duncan Davidson</a>
+			: +1</li>
+<li>
+<a href="mailto:twleung@sauria.com">Ted Leung</a>
+			: +1</li>
+<li>
+<a href="mailto:mhk@dia.dk">Mikael Helbo Kjaer</a>
+			: +1</li>
+<li>
+<a href="mailto:lehors@us.ibm.com">Arnaud Le Hors</a>
+			: +1</li>
+</ul>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="aquamarine">
+<td valign="top">
+<p>
+<a name="req.24"></a><b>24.</b>
+<br>
+        &nbsp;&nbsp;soft<br>
+        &nbsp;&nbsp;approved</p>
+</td><td valign="top">
+<p>
+<b>
+<def> The parser should provide best-of-breed performance across all JIT's (not just Hotspot). Such performance
+shall not come at the expense of requirement 5.</def>
+</b>
+</p>
+<blockquote>
+<p>
+			See also:
+		<a href="#req.5">5</a>
+		&nbsp;&nbsp;
+	</p>
+<b><i>Voted</i></b>
+		 on from 07-Sept-00 to 15-Sept-00.  Votes:
+	<ul>
+<li>
+<a href="mailto:jeffreyr_97@hotmail.com">Jeffrey Rodriguez</a>
+			: +1</li>
+<li>
+<a href="mailto:ericye@locus.apache.org">Eric Ye</a>
+			: +1</li>
+<li>
+<a href="mailto:CurtA@techie.com">Curt Arnold</a>
+			: +1</li>
+<li>
+<a href="mailto:duncan@x180.com">James Duncan Davidson</a>
+			: +1</li>
+<li>
+<a href="mailto:twleung@sauria.com">Ted Leung</a>
+			: +1</li>
+<li>
+<a href="mailto:mhk@dia.dk">Mikael Helbo Kjaer</a>
+			: +1</li>
+<li>
+<a href="mailto:lehors@us.ibm.com">Arnaud Le Hors</a>
+			: +1</li>
+</ul>
+<b><i>References</i></b>
+<br>
+<p>"<ref set="xdev" id="1317">-1 (on JDK 1.1)</ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-xerces-j-dev/1317.html">
+					<strong>Re: REDOM Design discussion.</strong>
+				</a>
+				<a name="1317">
+					<em>James Duncan Davidson <small>(Fri Jul 14 2000 -         19:22:19 MEST)</small>
+					</em>
+				</a>
+			</li>
+</p>
+<p>"<ref set="xdev" id="1323">Fast enough to not notice that a parse happened for most data (10 lines to  10K).  To expand on that, when I have Ant read it's data from build.xml, I  shouldn't notice. If I send a bit of form encoded XML data to a server, and  then get some back, it shouldn't be appreciable considering the connection  cost. </ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-xerces-j-dev/1323.html">
+					<strong>Re: [Xerces2] What is CORE?</strong>
+				</a>
+				<a name="1323">
+					<em>James Duncan Davidson <small>(Sat Jul 15 2000 -         06:31:24 MEST)</small>
+					</em>
+				</a>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="aquamarine">
+<td valign="top">
+<p>
+<a name="req.25"></a><b>25.</b>
+<br>
+        &nbsp;&nbsp;soft<br>
+        &nbsp;&nbsp;approved</p>
+</td><td valign="top">
+<p>
+<b>
+<def> The parser should support grammar caching and precompilation. </def>
+</b>
+</p>
+<blockquote>
+<b><i>Voted</i></b>
+		 on from 07-Sept-00 to 15-Sept-00.  Votes:
+	<ul>
+<li>
+<a href="mailto:jeffreyr_97@hotmail.com">Jeffrey Rodriguez</a>
+			: +1</li>
+<li>
+<a href="mailto:ericye@locus.apache.org">Eric Ye</a>
+			: +1</li>
+<li>
+<a href="mailto:CurtA@techie.com">Curt Arnold</a>
+			: +1</li>
+<li>
+<a href="mailto:duncan@x180.com">James Duncan Davidson</a>
+			: +1</li>
+<li>
+<a href="mailto:twleung@sauria.com">Ted Leung</a>
+			: +1</li>
+<li>
+<a href="mailto:mhk@dia.dk">Mikael Helbo Kjaer</a>
+			: +1</li>
+<li>
+<a href="mailto:lehors@us.ibm.com">Arnaud Le Hors</a>
+			: +1</li>
+</ul>
+<b><i>References</i></b>
+<br>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2242.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2242">
+					<em>Eric         Ye</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 - 02:48:42 MEST)</em>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2261.html">
+					<strong>Re: XRI requirements</strong>
+				</a>&nbsp;<a name="2261">
+					<em>Jeffrey Rodriguez</em>
+				</a>&nbsp;<em>(Wed Jul 12         2000 - 07:01:23 MEST)</em>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+</table>
+<h3>
+<a name="#cat.{.}"></a>Quality</h3>
+<table border="1" width="95%">
+<tr bgcolor="aquamarine">
+<td valign="top">
+<p>
+<a name="req.1"></a><b>1.</b>
+<br>
+        &nbsp;&nbsp;hard<br>
+        &nbsp;&nbsp;approved</p>
+</td><td valign="top">
+<p>
+<b>
+<def>The code shall be maintainable and simple to read.</def>
+</b>
+</p>
+<blockquote>
+<p>
+			See also:
+		<a href="#req.5">5</a>
+		&nbsp;&nbsp;
+	</p>
+<b><i>Voted</i></b>
+		 on from 26-Aug-00 to 15-Sept-00.  Votes:
+	<ul>
+<li>
+<a href="mailto:CurtA@techie.com">Curt Arnold</a>
+			: +1<blockquote>
+<voteComment>+1 on intent.  But how can this be a "shall" when there is not a measure
+for maintainability or simplicity.  Are there specific criteria that we
+want to establish such as the Sun's Java coding conventions or something
+else from the Apache world?
+</voteComment>
+</blockquote>
+</li>
+<li>
+<a href="mailto:chris.laprun@nist.gov">Chris Laprun</a>
+			: +1</li>
+<li>
+<a href="mailto:twleung@sauria.com">Ted Leung</a>
+			: +1</li>
+<li>
+<a href="mailto:duncan@x180.com">James Duncan Davidson</a>
+			: +1<blockquote>
+<voteComment>I have an easy way to measure this.. Committers should only be committers if
+they are prepared to read the code commits. If the code commit isn't
+readable to somebody and they throw a flag, then it probably fails the test.
+For example, my criteria on such code would be that I can understand it. If
+everybody's criteria is this, then it works.
+</voteComment>
+</blockquote>
+</li>
+<li>
+<a href="mailto:mhk@dia.dk">Mikael Helbo Kjaer</a>
+			: +1</li>
+<li>
+<a href="mailto:jeffreyr_97@hotmail.com">Jeffrey Rodriguez</a>
+			: +1</li>
+<li>
+<a href="mailto:lehors@us.ibm.com">Arnaud Le Hors</a>
+			: +1</li>
+<li>
+<a href="mailto:arkin@arkin.exoffice.com">Assaf Arkin</a>
+			: +1</li>
+<li>
+<a href="mailto:ericye@locus.apache.org">Eric Ye</a>
+			: +1</li>
+<li>
+<a href="mailto:Edwin.Goei@eng.sun.com">Edwin Goei</a>
+			: +1</li>
+</ul>
+<b><i>References</i></b>
+<br>
+<p>"<ref set="gen" id="2091"> Above all, this is the primary goal        for any openly developed project as without the ability to read the        code, it's impossible for people to contribute and get involved.</ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2091.html">
+					<strong>[spinnaker] Announce</strong>
+				</a>&nbsp;<a name="2091">
+					<em>James Duncan Davidson</em>
+				</a>&nbsp;<em>(Sat Jul         08 2000 - 07:31:16 MEST)</em>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2138.html">
+					<strong>Re: [spinnaker] Announce</strong>
+				</a>&nbsp;<a name="2138">
+					<em>Edwin Goei</em>
+				</a>&nbsp;<em>(Mon Jul 10 2000 -         23:18:54 MEST)</em>
+			</li>
+</p>
+<p>"<ref set="gen" id="2186">[current code too complex, scares off users]</ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2186.html">
+					<strong>Re: [spinnaker] Announce</strong>
+				</a>&nbsp;<a name="2186">
+					<em>Brett McLaughlin</em>
+				</a>&nbsp;<em>(Tue Jul 11         2000 - 22:17:03 MEST)</em>
+			</li>
+</p>
+<p>"<ref set="gen" id="2209">I don't think I am [willing to trade off some performance for clearly written code]. Performance is too damned important in the XML  world</ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2209.html">
+					<strong>Re: [spinnaker] Announce</strong>
+				</a>&nbsp;<a name="2209">
+					<em>Scott Boag/CAM/Lotus</em>
+				</a>&nbsp;<em>(Wed Jul         12 2000 - 00:25:18 MEST)</em>
+			</li>
+</p>
+<p>"<ref set="gen" id="2220">You're not going to get a diverse developer community built around code that  is too damned hard to read... </ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2220.html">
+					<strong>Re: [spinnaker] Announce</strong>
+				</a>&nbsp;<a name="2220">
+					<em>James Duncan Davidson</em>
+				</a>&nbsp;<em>(Wed Jul         12 2000 - 01:11:58 MEST)</em>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2311.html">
+					<strong>Re: [spinnaker] Announce</strong>
+				</a>&nbsp;<a name="2311">
+					<em>Scott Boag/CAM/Lotus</em>
+				</a>&nbsp;<em>(Wed Jul         12 2000 - 23:44:52 MEST)</em>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="aquamarine">
+<td valign="top">
+<p>
+<a name="req.5"></a><b>5.</b>
+<br>
+        &nbsp;&nbsp;soft<br>
+        &nbsp;&nbsp;approved</p>
+</td><td valign="top">
+<p>
+<b>
+<def>Optimizations that interfere with readability,        modularity, or size should be shunned.  </def>
+</b>
+</p>
+<blockquote>
+<p>
+			See also:
+		<a href="#req.1">1</a>
+		&nbsp;&nbsp;
+	</p>
+<b><i>References</i></b>
+<br>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2091.html">
+					<strong>[spinnaker] Announce</strong>
+				</a>&nbsp;<a name="2091">
+					<em>James Duncan Davidson</em>
+				</a>&nbsp;<em>(Sat Jul         08 2000 - 07:31:16 MEST)</em>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="aquamarine">
+<td valign="top">
+<p>
+<a name="req.7"></a><b>7.</b>
+<br>
+        &nbsp;&nbsp;soft<br>
+        &nbsp;&nbsp;approved</p>
+</td><td valign="top">
+<p>
+<b>
+<def>The design of the parser should be documented, with diagrams where they are more expressive than text.</def>
+</b>
+</p>
+<blockquote>
+<b><i>Voted</i></b>
+		 on from 26-Aug-00 to 15-Sept-00.  Votes:
+	<ul>
+<li>
+<a href="mailto:CurtA@techie.com">Curt Arnold</a>
+			: +0</li>
+<li>
+<a href="mailto:chris.laprun@nist.gov">Chris Laprun</a>
+			: +1</li>
+<li>
+<a href="mailto:twleung@sauria.com">Ted Leung</a>
+			: +1</li>
+<li>
+<a href="mailto:duncan@x180.com">James Duncan Davidson</a>
+			: +1</li>
+<li>
+<a href="mailto:mhk@dia.dk">Mikael Helbo Kjaer</a>
+			: +1</li>
+<li>
+<a href="mailto:jeffreyr_97@hotmail.com">Jeffrey Rodriguez</a>
+			: +1</li>
+<li>
+<a href="mailto:lehors@us.ibm.com">Arnaud Le Hors</a>
+			: +1</li>
+<li>
+<a href="mailto:arkin@arkin.exoffice.com">Assaf Arkin</a>
+			: +1</li>
+<li>
+<a href="mailto:ericye@locus.apache.org">Eric Ye</a>
+			: +1</li>
+<li>
+<a href="mailto:Edwin.Goei@eng.sun.com">Edwin Goei</a>
+			: +1</li>
+</ul>
+<b><i>References</i></b>
+<br>
+<p>"<ref set="gen" id="2104">... would benefit greatly from requirements and design documentation; most especially some diagrams. I find that a dozen or so good diagrams often do a better job of  conveying the design and, perhaps more importantly, the design approach or  philosophy, than written documents.  </ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2104.html">
+					<strong>design docs and diagrams [was Re: [spinnaker]         Announce]</strong>
+				</a>&nbsp;<a name="2104">
+					<em>Randall J.         Parr</em>
+				</a>&nbsp;<em>(Sun Jul 09 2000 - 18:43:49         MEST)</em>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="silver">
+<td valign="top">
+<p>
+<a name="req.9"></a><b>9.</b>
+<br>
+        &nbsp;&nbsp;soft<br>
+        &nbsp;&nbsp;rejected</p>
+</td><td valign="top">
+<p>
+<b>
+<def>The parser should be upwardly compatible with Xerces.</def>
+</b>
+</p>
+<blockquote>
+<b><i>Voted</i></b>
+		 on from 07-Sept-00 to 15-Sept-00.  Votes:
+	<ul>
+<li>
+<a href="mailto:jeffreyr_97@hotmail.com">Jeffrey Rodriguez</a>
+			: 0</li>
+<li>
+<a href="mailto:ericye@locus.apache.org">Eric Ye</a>
+			: +1</li>
+<li>
+<a href="mailto:CurtA@techie.com">Curt Arnold</a>
+			: +1</li>
+<li>
+<a href="mailto:duncan@x180.com">James Duncan Davidson</a>
+			: +0</li>
+<li>
+<a href="mailto:twleung@sauria.com">Ted Leung</a>
+			: 0</li>
+<li>
+<a href="mailto:mhk@dia.dk">Mikael Helbo Kjaer</a>
+			: +1</li>
+<li>
+<a href="mailto:lehors@us.ibm.com">Arnaud Le Hors</a>
+			: +1</li>
+</ul>
+<b><i>References</i></b>
+<br>
+<p>"<ref set="gen" id="2110">Whatever happened to making things upgrade compatiable. </ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2110.html">
+					<strong>Re: [spinnaker] Announce</strong>
+				</a>&nbsp;<a name="2110">
+					<em>MITCHELL SOJDEHEI</em>
+				</a>&nbsp;<em>(Mon Jul 10         2000 - 02:57:49 MEST)</em>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="aquamarine">
+<td valign="top">
+<p>
+<a name="req.10"></a><b>10.</b>
+<br>
+        &nbsp;&nbsp;hard<br>
+        &nbsp;&nbsp;approved</p>
+</td><td valign="top">
+<p>
+<b>
+<def>The parser shall be cleanly modular.</def>
+</b>
+</p>
+<blockquote>
+<b><i>References</i></b>
+<br>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2091.html">
+					<strong>[spinnaker] Announce</strong>
+				</a>&nbsp;<a name="2091">
+					<em>James Duncan Davidson</em>
+				</a>&nbsp;<em>(Sat Jul         08 2000 - 07:31:16 MEST)</em>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2122.html">
+					<strong>Re: [spinnaker] Announce</strong>
+				</a>&nbsp;<a name="2122">
+					<em>costin@eng.sun.com</em>
+				</a>&nbsp;<em>(Mon Jul 10         2000 - 19:54:06 MEST)</em>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2130.html">
+					<strong>Re: [spinnaker] Announce</strong>
+				</a>&nbsp;<a name="2130">
+					<em>costin@eng.sun.com</em>
+				</a>&nbsp;<em>(Mon Jul 10         2000 - 22:48:38 MEST)</em>
+			</li>
+</p>
+<p>"<ref set="gen" id="2154">[star vs. pipeline]</ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2154.html">
+					<strong>Re: [spinnaker] Announce</strong>
+				</a>&nbsp;<a name="2154">
+					<em>Arnaud Le Hors</em>
+				</a>&nbsp;<em>(Tue Jul 11         2000 - 03:41:05 MEST)</em>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+</table>
+<h3>
+<a name="#cat.{.}"></a>Other</h3>
+<table border="1" width="95%">
+<tr bgcolor="silver">
+<td valign="top">
+<p>
+<a name="req.8"></a><b>8.</b>
+<br>
+        &nbsp;&nbsp;soft<br>
+        &nbsp;&nbsp;rejected</p>
+</td><td valign="top">
+<p>
+<b>
+<def>The parser should have the characteristics needed for it to be included in the JDK.</def>
+</b>
+</p>
+<blockquote>
+<b><i>Voted</i></b>
+		 on from 07-Sept-00 to 15-Sept-00.  Votes:
+	<ul>
+<li>
+<a href="mailto:duncan@x180.com">James Duncan Davidson</a>
+			: +1 to remove</li>
+<li>
+<a href="mailto:jeffreyr_97@hotmail.com">Jeffrey Rodriguez</a>
+			: +1 to remove</li>
+<li>
+<a href="mailto:ericye@locus.apache.org">Eric Ye</a>
+			: +1 to remove</li>
+<li>
+<a href="mailto:CurtA@techie.com">Curt Arnold</a>
+			: +0</li>
+<li>
+<a href="mailto:twleung@sauria.com">Ted Leung</a>
+			: +1 to remove</li>
+<li>
+<a href="mailto:mhk@dia.dk">Mikael Helbo Kjaer</a>
+			: +1 to remove</li>
+<li>
+<a href="mailto:lehors@us.ibm.com">Arnaud Le Hors</a>
+			: +1</li>
+</ul>
+<b><i>References</i></b>
+<br>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2108.html">
+					<strong>[spinnaker] XML Hack Article</strong>
+				</a>&nbsp;<a name="2108">
+					<em>James Duncan Davidson</em>
+				</a>&nbsp;<em>         (Mon Jul 10 2000 - 00:47:01 MEST)</em>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="snow">
+<td valign="top">
+<p>
+<a name="req.11"></a><b>11.</b>
+<br>
+        &nbsp;&nbsp;soft<br>
+        &nbsp;&nbsp;unevaluated</p>
+</td><td valign="top">
+<p>
+<b>
+<def>Development should be coordinated with xerces-c.</def>
+</b>
+</p>
+<blockquote>
+<b><i>Voted</i></b>
+		 on from 07-Sept-00 to 15-Sept-00.  Votes:
+	<ul>
+<li>
+<a href="mailto:jeffreyr_97@hotmail.com">Jeffrey Rodriguez</a>
+			: 0</li>
+<li>
+<a href="mailto:ericye@locus.apache.org">Eric Ye</a>
+			: +1</li>
+<li>
+<a href="mailto:CurtA@techie.com">Curt Arnold</a>
+			: +1</li>
+<li>
+<a href="mailto:duncan@x180.com">James Duncan Davidson</a>
+			: +0</li>
+<li>
+<a href="mailto:twleung@sauria.com">Ted Leung</a>
+			: -1</li>
+<li>
+<a href="mailto:mhk@dia.dk">Mikael Helbo Kjaer</a>
+			: -1 (non-committer)</li>
+<li>
+<a href="mailto:lehors@us.ibm.com">Arnaud Le Hors</a>
+			: +1</li>
+</ul>
+<b><i>References</i></b>
+<br>
+<p>"<ref set="gen" id="2133">I'd also like to see this be coordinated with the xerces-c developers ... it would be  nice to keep the two parsers in sync so that changes to one parser and  relatively easy to implement in the other. 		 </ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2133.html">
+					<strong>Re: [spinnaker] Announce</strong>
+				</a>&nbsp;<a name="2133">
+					<em>Joe Polastre</em>
+				</a>&nbsp;<em>(Mon Jul 10 2000         - 23:05:18 MEST)</em>
+			</li>
+</p>
+<p>"<ref set="gen" id="2144">I disagree...</ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2144.html">
+					<strong>Re: [spinnaker] Announce</strong>
+				</a>&nbsp;<a name="2144">
+					<em>James Duncan Davidson</em>
+				</a>&nbsp;<em>(Mon Jul         10 2000 - 23:34:54 MEST)</em>
+			</li>
+</p>
+<p>"<ref set="gen" id="2161">Java is a very different language from C++, and you need  different strategies.  </ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2161.html">
+					<strong>Re: [spinnaker] Announce</strong>
+				</a>&nbsp;<a name="2161">
+					<em>Scott Boag/CAM/Lotus</em>
+				</a>&nbsp;<em>(Tue Jul         11 2000 - 05:25:51 MEST)</em>
+			</li>
+</p>
+<p>"<ref set="gen" id="2182">...there's much to be gained by keeping the  overall architecture and design the same between the two versions. </ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2182.html">
+					<strong>Re: [spinnaker] Announce</strong>
+				</a>&nbsp;<a name="2182">
+					<em>Andy Heninger</em>
+				</a>&nbsp;<em>(Tue Jul 11 2000         - 18:59:24 MEST)</em>
+			</li>
+</p>
+<p>"<ref set="gen" id="2194">[forcing deep similarity is bad]</ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2194.html">
+					<strong>Re: [spinnaker] Announce</strong>
+				</a>&nbsp;<a name="2194">
+					<em>James Duncan Davidson</em>
+				</a>&nbsp;<em>(Tue Jul         11 2000 - 22:39:19 MEST)</em>
+			</li>
+</p>
+<p>"<ref set="gen" id="2222">...trying to find one design that fits both  languages well will produce one design that doesn't quite fit either  language. </ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2222.html">
+					<strong>Re: [spinnaker] Announce</strong>
+				</a>&nbsp;<a name="2222">
+					<em>Eric Hodges</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 -         01:23:23 MEST)</em>
+			</li>
+</p>
+<p>"<ref set="gen" id="2241">Let's push for high-level designs that  can accommodate any OO language...</ref>"<br>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2241.html">
+					<strong>Re: [spinnaker] Announce</strong>
+				</a>&nbsp;<a name="2241">
+					<em>Arved Sandstrom</em>
+				</a>&nbsp;<em>(Wed Jul 12         2000 - 02:22:53 MEST)</em>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2246.html">
+					<strong>Re: [spinnaker] Announce</strong>
+				</a>&nbsp;<a name="2246">
+					<em>James Duncan Davidson</em>
+				</a>&nbsp;<em>(Wed Jul         12 2000 - 02:55:07 MEST)</em>
+			</li>
+</p>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2248.html">
+					<strong>Re: [spinnaker] Announce</strong>
+				</a>&nbsp;<a name="2248">
+					<em>Eric Hodges</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 -         03:03:32 MEST)</em>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+<tr bgcolor="aquamarine">
+<td valign="top">
+<p>
+<a name="req.29"></a><b>29.</b>
+<br>
+        &nbsp;&nbsp;soft<br>
+        &nbsp;&nbsp;approved</p>
+</td><td valign="top">
+<p>
+<b>
+<def> The project should produce testcases for both conformance and benchmarking.  </def>
+</b>
+</p>
+<blockquote>
+<b><i>Voted</i></b>
+		 on from 07-Sept-00 to 15-Sept-00.  Votes:
+	<ul>
+<li>
+<a href="mailto:jeffreyr_97@hotmail.com">Jeffrey Rodriguez</a>
+			: 0</li>
+<li>
+<a href="mailto:ericye@locus.apache.org">Eric Ye</a>
+			: +1</li>
+<li>
+<a href="mailto:CurtA@techie.com">Curt Arnold</a>
+			: +1</li>
+<li>
+<a href="mailto:duncan@x180.com">James Duncan Davidson</a>
+			: +1</li>
+<li>
+<a href="mailto:twleung@sauria.com">Ted Leung</a>
+			: +1</li>
+<li>
+<a href="mailto:mhk@dia.dk">Mikael Helbo Kjaer</a>
+			: +1</li>
+<li>
+<a href="mailto:lehors@us.ibm.com">Arnaud Le Hors</a>
+			: +0</li>
+</ul>
+<b><i>References</i></b>
+<br>
+<p>
+<li>
+				<a href="http://xml-archive.webweaving.org/xml-archive-general/2242.html">
+					<strong>Re: parser-next-gen goals, plan, and         requirements</strong>
+				</a>&nbsp;<a name="2242">
+					<em>Eric         Ye</em>
+				</a>&nbsp;<em>(Wed Jul 12 2000 - 02:48:42 MEST)</em>
+			</li>
+</p>
+</blockquote>
+</td>
+</tr>
+</table>
+</body>
+</html>

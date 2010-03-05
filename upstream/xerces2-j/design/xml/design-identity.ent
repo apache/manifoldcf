@@ -1,0 +1,368 @@
+<?xml encoding='US-ASCII'?>
+<!-- $Id$ -->
+<category name='Validation: XPath' package='&package;.impl.xpath'>
+ 
+ <class id='xpath' name='XPath'>
+ 
+  <constructor>
+   <param name='xpath'>
+    <reference idref='java-string'/>
+   </param>
+   <throws>
+    <reference idref='xpath-exception'/>
+   </throws>
+  </constructor>
+
+ </class>
+ 
+ <class id='xpath-exception' name='XPathException'>
+
+  <constructor/>
+
+  <constructor>
+   <param name='message'>
+    <reference idref='java-string'/>
+   </param>
+  </constructor>
+
+ </class>
+ 
+ <class id='xpath-matcher' name='XPathMatcher'>
+ 
+  <implements>
+   <reference idref='document-fragment-handler'/>
+  </implements>
+
+  <field name='fShouldBufferContent'>
+   <primitive type='boolean'/>
+  </field>
+
+  <constructor>
+   <param name='xpath'>
+    <reference idref='xpath'/>
+   </param>
+  </constructor>
+
+  <constructor>
+   <param name='xpath'>
+    <reference idref='xpath'/>
+   </param>
+   <param name='shouldBufferContent'>
+    <primitive type='boolean'/>
+   </param>
+  </constructor>
+
+  <method name='isMatched'>
+   <returns>
+    <primitive type='boolean'/>
+   </returns>
+  </method>
+  
+  <method name='getMatchedString'>
+   <returns>
+    <reference idref='java-string'/>
+   </returns>
+  </method>
+  
+  <method name='matched' visibility='protected'>
+   <param name='content'>
+    <reference idref='java-string'/>
+   </param>
+   <throws>
+    <reference idref='sax-exception'/>
+   </throws>
+  </method>
+
+ </class>
+
+</category>
+
+<category name='Validation: Identity Constraints' package='&package;.impl.validation.identity'>
+
+ <class id='identity-constraint' name='IdentityConstraint'>
+
+  <constant name='UNIQUE'>
+   <primitive type='short'/>
+  </constant>
+
+  <constant name='KEY'>
+   <primitive type='short'/>
+  </constant>
+
+  <constant name='KEYREF'>
+   <primitive type='short'/>
+  </constant>
+
+  <field name='fElementName'>
+   <reference idref='java-string'/>
+  </field>
+  
+  <field name='fSelector'>
+   <reference idref='ic-selector'/>
+  </field>
+  
+  <field name='fFields'>
+   <collection>
+    <collector>
+     <reference idref='java-hashtable'/>
+    </collector>
+    <items>
+     <reference idref='ic-field'/>
+    </items>
+   </collection>
+  </field>
+
+  <constructor>
+   <param name='elementName'>
+    <reference idref='java-string'/>
+   </param>
+  </constructor>
+  
+  <method name='getType'>
+   <returns>
+    <primitive type='short'/>
+   </returns>
+  </method>
+  
+  <method name='getElementName'>
+   <returns>
+    <reference idref='java-string'/>
+   </returns>
+  </method>
+  
+  <method name='setSelector'>
+   <param name='selector'>
+    <reference idref='ic-selector'/>
+   </param>
+  </method>
+  
+  <method name='getSelector'>
+   <returns>
+    <reference idref='ic-selector'/>
+   </returns>
+  </method>
+  
+  <method name='addField'>
+   <param name='field'>
+    <reference idref='ic-field'/>
+   </param>
+  </method>
+  
+  <method name='getFieldCount'>
+   <returns>
+    <primitive type='int'/>
+   </returns>
+  </method>
+  
+  <method name='getFieldAt'>
+   <param name='index'>
+    <primitive type='int'/>
+   </param>
+   <returns>
+    <reference idref='ic-field'/>
+   </returns>
+  </method>
+
+ </class>
+
+ <class id='ic-unique' name='Unique'>
+
+  <constructor>
+   <param name='elementName'>
+    <reference idref='java-string'/>
+   </param>
+  </constructor> 
+
+ </class>
+ 
+ <class id='ic-key' name='Key'>
+
+  <field name='fKeyName'>
+   <reference idref='java-string'/>
+  </field>
+
+  <constructor>
+   <param name='elementName'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='keyName'>
+    <reference idref='java-string'/>
+   </param>
+  </constructor> 
+
+  <method name='getKeyName'>
+   <returns>
+    <reference idref='java-string'/>
+   </returns>
+  </method>
+  
+ </class>
+
+ <class id='ic-keyref' name='KeyRef'>
+
+  <field name='fKeyName'>
+   <reference idref='java-string'/>
+  </field>
+
+  <constructor>
+   <param name='elementName'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='keyName'>
+    <reference idref='java-string'/>
+   </param>
+  </constructor> 
+
+  <method name='getKeyName'>
+   <returns>
+    <reference idref='java-string'/>
+   </returns>
+  </method>
+  
+ </class>
+ 
+ <class id='ic-selector' name='Selector'>
+
+  <field name='fXPath'>
+   <reference idref='xpath'/>
+  </field>
+  
+  <field name='fIdentityConstraint'>
+   <reference idref='identity-constraint'/>
+  </field>
+  
+  <constructor>
+   <param name='xpath'>
+    <reference idref='xpath'/>
+   </param>
+   <param name='identityConstraint'>
+    <reference idref='identity-constraint'/>
+   </param>
+  </constructor>
+  
+  <method name='getXPath'>
+   <returns>
+    <reference idref='xpath'/>
+   </returns>
+  </method>
+  
+  <method name='getIdentityConstraint'>
+   <returns>
+    <reference idref='identity-constraint'/>
+   </returns>
+  </method>
+  
+  <method name='createMatcher'>
+   <param name='fieldActivator'>
+    <reference idref='ic-field-activator'/>
+   </param>
+   <returns>
+    <reference idref='xpath-matcher'/>
+   </returns>
+  </method>
+  
+ </class>
+
+ <interface id='ic-field-activator' name='FieldActivator'>
+
+  <method name='startValueScopeFor'>
+   <param name='identityConstraint'>
+    <reference idref='identity-constraint'/>
+   </param>
+   <throws>
+    <reference idref='sax-exception'/>
+   </throws>
+  </method> 
+
+  <method name='activateField'>
+   <param name='field'>
+    <reference idref='ic-field'/>
+   </param>
+   <throws>
+    <reference idref='sax-exception'/>
+   </throws>
+  </method>
+
+  <method name='endValueScopeFor'>
+   <param name='identityConstraint'>
+    <reference idref='identity-constraint'/>
+   </param>
+   <throws>
+    <reference idref='sax-exception'/>
+   </throws>
+  </method> 
+
+ </interface>
+
+ <class id='ic-field' name='Field'>
+
+  <field name='fXPath'>
+   <reference idref='xpath'/>
+  </field>
+  
+  <field name='fIdentityConstraint'>
+   <reference idref='identity-constraint'/>
+  </field>
+  
+  <field name='fDatatypeValidator'>
+   <reference idref='datatype-validator'/>
+  </field>
+
+  <constructor>
+   <param name='xpath'>
+    <reference idref='xpath'/>
+   </param>
+   <param name='identityConstraint'>
+    <reference idref='identity-constraint'/>
+   </param>
+   <param name='datatypeValidator'>
+    <reference idref='datatype-validator'/>
+   </param>
+  </constructor>
+  
+  <method name='getXPath'>
+   <returns>
+    <reference idref='xpath'/>
+   </returns>
+  </method>
+  
+  <method name='getIdentityConstraint'>
+   <returns>
+    <reference idref='identity-constraint'/>
+   </returns>
+  </method>
+  
+  <method name='getDatatypeValidator'>
+   <returns>
+    <reference idref='datatype-validator'/>
+   </returns>
+  </method>
+
+  <method name='createMatcher'>
+   <param name='valueStore'>
+    <reference idref='ic-value-store'/>
+   </param>
+   <returns>
+    <reference idref='xpath-matcher'/>
+   </returns>
+  </method>
+  
+ </class>
+
+ <interface id='ic-value-store' name='ValueStore'>
+
+  <method name='addValue'>
+   <param name='field'>
+    <reference idref='ic-field'/>
+   </param>
+   <param name='value'>
+    <reference idref='java-string'/>
+   </param>
+   <throws>
+    <reference idref='sax-exception'/>
+   </throws>
+  </method> 
+
+ </interface>
+
+</category>

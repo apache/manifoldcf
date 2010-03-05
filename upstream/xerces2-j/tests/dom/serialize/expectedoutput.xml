@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<s:Envelope xmlns="default namespace" xmlns:s="urn:schemas-xmlsoap-org:soap.v1" xmlns:xsi="http://www.w3.org/1999/XMLSchema/instance">
+<s:Body>
+
+<size>3</size>
+
+<!-- xmlns is removed during the modifications -->
+<empty xmlns="">
+ <elem/>
+ <elem xmlns="newURI"><a/></elem>
+</empty>
+
+<!-- both first and second "elem" elements have xmlns="" declaration -->
+<empty xmlns="">
+ <elem xmlns=""/>
+ <elem xmlns="newURI"><a/></elem>
+</empty>
+
+<!-- the second element "good" had declaration xmlns:n1="http://www.w3.org" -->
+<x xmlns="http://www.w3.org" xmlns:n1="http://www.w3.org">
+ <good a="1" b="2"/>
+ <good a="1" n1:a="2" xmlns:n1="http://www.w3.org"/>
+</x>
+
+<!--attributes: make sure that NS* prefix is created-->
+<root xmlns="" xmlns:xx="foo" xmlns:NS1="http://rsa2" NS1:attr="value"/>
+
+<!--add element in the same scope-->
+<s:child1/>
+
+<!--add element with s bound to different namespace-->
+<s:child2 xmlns:s="http://child2"/>
+
+<!--add element with no prefix bound to different scope than default prefix-->
+<child3 xmlns="http://child3/default"/>
+
+<!--add element no prefix no namespace-->
+<child4 xmlns=""/>
+
+<!--make sure only one 'xmlns:m1'declaration appears not several-->
+<m1:root xmlns:m1="http://rsa"><m1:e1 m1:a1="v" xmlns:m2="http://rsa2" m2:a2="v"/></m1:root>
+
+<!--create element: prefix bound to http://child7, local declaration of xmlns:prefix = http://child8-->
+<prefix:child7 xmlns:prefix="http://child7"/>
+
+<!--add child5, uri=null, xmlns:p=emptyStr (invalid)-->
+<child5 xmlns=""/>
+
+<!--create element: with 2 xmlns-->
+<child6 xmlns="http://child6"/>
+
+<!--
+1) attr3 (with no prefix) and bound to http://attr3 (that is not declared).
+2) attr1 attribute with null namespace
+3) attr2 with declared s - no change
+-->
+<s:testAttributes attr1="" xmlns:NS1="http://attr3" NS1:attr3="" s:attr2=""/>
+
+<!--
+1) attr_B with no prefix and http://attr_B
+2) attr_A had no prefix and http://attr_A. There is local default decl bound to the same namespace-->
+<s:testAttributes2 xmlns:NS1="http://attr_A" NS1:attr_A="" xmlns:NS2="http://attr_B" NS2:attr_B="" xmlns="http://attr_A"/>
+</s:Body>
+
+</s:Envelope>

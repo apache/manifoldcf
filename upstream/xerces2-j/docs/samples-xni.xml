@@ -1,0 +1,523 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<!DOCTYPE s1 SYSTEM 'dtd/document.dtd'>
+<s1 title='XNI Samples'>
+ <s2 title='Overview'>
+  <p>
+   The Xerces Native Interface (XNI) is an internal API that is
+   independent of other XML APIs and is used to implement the 
+   Xerces family of parsers. XNI allows a wide variety of parsers
+   to be written in an easy and modular fashion. The XNI samples
+   included with Xerces are simple examples of how to program
+   using the XNI API. However, for information on how to take full
+   advantage of this powerful framework, refer to the
+   <link idref='xni'>XNI Manual</link>.
+  </p>
+  <p>Basic XNI samples:</p>
+  <ul>
+   <li><link anchor='Counter'>xni.Counter</link></li>
+   <li><link anchor='DocumentTracer'>xni.DocumentTracer</link></li>
+   <li><link anchor='Writer'>xni.Writer</link></li>
+   <li><link anchor='PSVIWriter'>xni.PSVIWriter</link></li>
+   <li><link anchor='XMLGrammarBuilder'>xni.XMLGrammarBuilder</link></li>
+  </ul>
+  <ul>
+   <li><link anchor='PassThroughFilter'>xni.PassThroughFilter</link></li>
+   <li><link anchor='UpperCaseFilter'>xni.UpperCaseFilter</link></li>
+  </ul>
+  <p>Parser configuration samples:</p>
+  <ul>
+   <li><link anchor='NonValidatingParserConfiguration'>xni.parser.NonValidatingParserConfiguration</link></li>
+   <li><link anchor='AbstractConfiguration'>xni.parser.AbstractConfiguration</link></li>
+   <!--
+     - REVISIT: Add in this sample once the proper interfaces have been
+     -          designed and implemented in the parser. *And* after the
+     -          sample code has been written.
+     -
+   <li><link anchor='DynamicParserConfiguration'>xni.parser.DynamicParserConfiguration</link></li>
+   -->
+  </ul>
+  <ul>
+   <li><link anchor='CSVConfiguration'>xni.parser.CSVConfiguration</link></li>
+   <li><link anchor='CSVParser'>xni.parser.CSVParser</link></li>
+   <li><link anchor='PSVIConfiguration'>xni.parser.PSVIConfiguration</link></li>
+   <li><link anchor='PSVIParser'>xni.parser.PSVIParser</link></li>
+  </ul>
+  <p>Sample xerces.properties</p>
+  <ul>
+   <li><link anchor='xercesProperties'>xni/xerces.properties</link></li>
+  </ul>
+  <p>
+   Most of the XNI samples have a command line option that allows the
+   user to specify a different XNI parser configuration to use. In
+   order to supply another parser configuration besides the default
+   Xerces <code>&DefaultConfig;</code>, the configuration
+   must implement the 
+   <code>org.apache.xerces.xni.parser.XMLParserConfiguration</code>
+   interface.
+  </p>
+ </s2>
+ <anchor name='Counter'/>
+ <s2 title='Sample xni.Counter'>
+  <p>
+   A sample XNI counter. The output of this program shows the time
+   and count of elements, attributes, ignorable whitespaces, and 
+   characters appearing in the document. 
+  </p>
+  <p>
+   This class is useful as a "poor-man's" performance tester to
+   compare the speed and accuracy of various parser configurations. 
+   However, it is important to note that the first parse time of a
+   parser will include both VM class load time and parser 
+   initialization that would not be present in subsequent parses 
+   with the same file. 
+  </p>
+  <note>
+   The results produced by this program should never be accepted as
+   true performance measurements.
+  </note>
+  <s3 title='usage'>
+   <source>java xni.Counter (options) uri ...</source>
+  </s3>
+  <s3 title='options'>
+   <table>
+    <tr><th>Option</th><th>Description</th></tr>
+    <tr><td>-p name</td><td>Select parser configuration by name.</td></tr>
+    <tr><td>-x number</td><td>Select number of repetitions.</td></tr>
+    <tr><td>-n  | -N</td><td>Turn on/off namespace processing.</td></tr>
+    <tr>
+     <td>-np | -NP</td>
+     <td>
+      Turn on/off namespace prefixes.<br/>
+      <strong>NOTE:</strong> Requires use of -n.
+     </td>
+    </tr>
+    <tr><td>-v  | -V</td><td>Turn on/off validation.</td></tr>
+    <tr>
+     <td>-s  | -S</td>
+     <td>
+      Turn on/off Schema validation support.<br/>
+      <strong>NOTE:</strong> Not supported by all parser configurations.
+     </td>
+    </tr>
+    <tr>
+     <td>-f  | -F</td>
+     <td>
+      Turn on/off Schema full checking.<br/>
+      <strong>NOTE:</strong> Requires use of -s and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-hs | -HS</td>
+     <td>
+      Turn on/off honouring of all schema locations.<br/>
+      <strong>NOTE:</strong> Requires use of -s and not supported by all parsers.
+     </td>
+    </tr>
+    <tr><td>-m  | -M</td><td>Turn on/off memory usage report.</td></tr>
+    <tr><td>-t  | -T</td><td>Turn on/off \"tagginess\" report.</td></tr>
+    <tr>
+     <td>--rem text</td>
+     <td>Output user defined comment before next parse.</td>
+    </tr>
+    <tr><td>-h</td><td>Display help screen.</td></tr>
+   </table>
+  </s3>
+  <s3 title='notes'>
+   <p>
+    The speed and memory results from this program should NOT be used
+    as the basis of parser performance comparison! Real analytical 
+    methods should be used. For better results, perform multiple 
+    document parses within the same virtual machine to remove class
+    loading from parse time and memory usage.
+   </p>
+   <p>
+    The "tagginess" measurement gives a rough estimate of the percentage
+    of markup versus content in the XML document. The percent tagginess
+    of a document is equal to the minimum amount of tag characters 
+    required for elements, attributes, and processing instructions 
+    divided by the total amount of characters (characters, ignorable 
+    whitespace, and tag characters) in the document.
+   </p>
+   <p>
+    Not all features are supported by different parser configurations.
+   </p>
+  </s3>
+ </s2>
+ <anchor name='DocumentTracer'/>
+ <s2 title='Sample xni.DocumentTracer'>
+  <p>
+   Provides a complete trace of XNI document and DTD events for 
+   files parsed.
+  </p>
+  <s3 title='usage'>
+   <source>java xni.DocumentTracer (options) uri ...</source>
+  </s3>
+  <s3 title='options'>
+   <table>
+    <tr><th>Option</th><th>Description</th></tr>
+    <tr><td>-p name</td><td>Specify parser configuration by name.</td></tr>
+    <tr><td>-n | -N</td><td>Turn on/off namespace processing.</td></tr>
+    <tr><td>-v | -V</td><td>Turn on/off validation.</td></tr>
+    <tr>
+     <td>-s | -S</td>
+     <td>
+      Turn on/off Schema validation support.<br/>
+      <strong>NOTE:</strong> Not supported by all parser configurations.
+     </td>
+    </tr>
+    <tr>
+     <td>-f  | -F</td>
+     <td>
+      Turn on/off Schema full checking.<br/>
+      <strong>NOTE:</strong> Requires use of -s and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-hs | -HS</td>
+     <td>
+      Turn on/off honouring of all schema locations.<br/>
+      <strong>NOTE:</strong> Requires use of -s and not supported by all parsers.
+     </td>
+    </tr>
+    <tr><td>-c | -C</td><td>Turn on/off character notifications</td></tr>
+    <tr><td>-h</td><td>Display help screen.</td></tr>
+   </table>
+  </s3>
+ </s2>
+ <anchor name='Writer'/>
+ <s2 title='Sample xni.Writer'>
+  <p>
+   A sample XNI writer. This sample program illustrates how to
+   take received XMLDocumentHandler callbacks in order to print 
+   a document that is parsed.
+  </p>
+  <s3 title='usage'>
+   <source>java xni.Writer (options) uri ...</source>
+  </s3>
+  <s3 title='options'>
+   <table>
+    <tr><th>Option</th><th>Description</th></tr>
+    <tr><td>-p name</td><td>Select parser configuration by name.</td></tr>
+    <tr><td>-n | -N</td><td>Turn on/off namespace processing.</td></tr>
+    <tr><td>-v | -V</td><td>Turn on/off validation.</td></tr>
+    <tr>
+     <td>-s | -S</td>
+     <td>
+      Turn on/off Schema validation support.<br/>
+      <strong>NOTE:</strong> Not supported by all parser configurations.
+     </td>
+    </tr>
+    <tr>
+     <td>-f  | -F</td>
+     <td>
+      Turn on/off Schema full checking.<br/>
+      <strong>NOTE:</strong> Requires use of -s and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-hs | -HS</td>
+     <td>
+      Turn on/off honouring of all schema locations.<br/>
+      <strong>NOTE:</strong> Requires use of -s and not supported by all parsers.
+     </td>
+    </tr>
+    <!--
+    <tr>
+     <td>-c | -C</td>
+     <td>
+      Turn on/off Canonical XML output.<br/>
+      <strong>NOTE:</strong> This is not W3C canonical output.
+     </td>
+    </tr>
+    -->
+    <tr><td>-h</td><td>Display help screen.</td></tr>
+   </table>
+  </s3>
+ </s2>
+
+ <anchor name='PSVIWriter'/>
+ <s2 title='Sample xni.PSVIWriter'>
+  <p>
+   This is an example of a component that converts XNI events for a document into
+   XNI events for that document's PSVI information.
+  </p>
+  <p>
+   This class can <strong>NOT</strong> be run as a standalone
+   program. It is only an example of how to write a component. See
+   <link anchor='PSVIConfiguration'>xni.parser.PSVIConfiguration</link> and
+   <link anchor='PSVIParser'>xni.parser.PSVIParser</link>.
+  </p>
+ </s2>
+
+ <anchor name='XMLGrammarBuilder'/>
+ <s2 title='Sample xni.XMLGrammarBuilder'>
+  <p>
+    This sample illustrates how to use Xerces' grammar
+    preparsing functionality to build a compiled representation of a grammar
+    and use it to parse instance documents.  It is also meant
+    to replace the DOM ASBuilder sample (which
+    implements the DOM AS interfaces which have been discontinued by W3C).  It
+    handles both XML Schema grammars and DTD external subsets.
+  </p>
+  <s3 title='usage'>
+   <source>java xni.XMLGrammarBuilder [-p name] -d uri ... | [-f|-F] [-hs|-HS] -a uri ... [-i uri ...]</source>
+  </s3>
+  <s3 title='options'>
+   <table>
+    <tr><th>Option</th><th>Description</th></tr>
+    <tr><td>-p name</td><td>Select parser configuration by name to use for instance validation.</td></tr>
+    <tr><td>-d</td><td>URI of file(s) to be compiled as DTD external
+        subsets</td></tr>
+    <tr><td>-a</td><td>URI of file(s) to be compiled as XML Schema grammars</td></tr>
+    <tr>
+     <td>-f  | -F</td>
+     <td>
+      Turn on/off Schema full checking when validating instances against schemas.<br/>
+      <strong>NOTE:</strong> Requires use of -a and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-hs | -HS</td>
+     <td>
+      Turn on/off honouring of all schema locations.<br/>
+      <strong>NOTE:</strong> Requires use of -a and not supported by all parsers.
+     </td>
+    </tr>
+    <tr><td>-i</td><td>List of instance documents to validate.  The preparsed grammars will be
+        used first, but if a reference is made to a non-preparsed grammar,
+        it will be resolved.</td></tr>
+   </table>
+  </s3>
+  <s3 title='notes'>
+   <p>
+    No two schema grammars preparsed by this class should share the
+    same targetNamespace (or have no targetNamespace).  If this condition is
+    not meant, results are undefined--but, very likely, one of the schemas
+    will simply be ignored.
+    </p>
+   <p>
+    Not all features are supported by different parser configurations.
+    Particularly, if a parser configuration is specified, it would be wise to
+    ensure it supports the kind of grammars to be preparsed.
+   </p>
+  </s3>
+ </s2>
+
+ <anchor name='PassThroughFilter'/>
+ <s2 title='Sample xni.PassThroughFilter'>
+  <p>
+   This sample demonstrates how to implement a simple pass-through
+   filter for the document "streaming" information set using XNI.
+   This filter could be used in a pipeline of XNI parser components
+   that communicate document events.
+  </p>
+  <p>
+   This class can <strong>NOT</strong> be run as a standalone
+   program. It is only an example of how to write a document
+   handler.
+  </p>
+ </s2>
+ <anchor name='UpperCaseFilter'/>
+ <s2 title='Sample xni.UpperCaseFilter'>
+  <p>
+   This sample demonstrates how to create a filter for the document
+   "streaming" information set that turns element names into upper
+   case.
+  </p>
+  <p>
+   This class can <strong>NOT</strong> be run as a standalone
+   program. It is only an example of how to write a document
+   handler.
+  </p>
+ </s2>
+ <anchor name='NonValidatingParserConfiguration'/>
+ <s2 title='Sample xni.parser.NonValidatingParserConfiguration'>
+  <p>Non-validating parser configuration.</p>
+  <p>
+   This class can <strong>NOT</strong> be run as a standalone
+   program. It is only an example of how to write a parser
+   configuration using XNI. You can use this parser configuration
+   by specifying the fully qualified class name to all of the XNI
+   samples that accept a parser configuration using the 
+   <code>-p</code> option. For example:
+  </p>
+  <source>java xni.Counter -p xni.parser.NonValidatingParserConfiguration document.xml</source>
+ </s2>
+ <anchor name='AbstractConfiguration'/>
+ <s2 title='Sample xni.parser.AbstractConfiguration'>
+  <p>
+   This abstract parser configuration simply helps manage components, 
+   features and properties, and other tasks common to all parser
+   configurations. In order to subclass this configuration and use
+   it effectively, the subclass is required to do the following:
+  </p>
+  <ul>
+   <li>
+    Add all configurable components using the <code>addComponent</code>
+    method,</li>
+   <li>Implement the <code>parse</code> method, and</li>
+   <li>Call the <code>resetComponents</code> before parsing.</li>
+  </ul>
+  <p>
+   This class can <strong>NOT</strong> be run as a standalone
+   program. It is only an example of how to write a parser
+   configuration using XNI.
+  </p>
+ </s2>
+ <!--
+   - REVISIT: Add in this sample once the proper interfaces have been
+   -          designed and implemented in the parser. *And* after the
+   -          sample code has been written.
+   -
+ <anchor name='DynamicParserConfiguration'/>
+ <s2 title='Sample xni.parser.DynamicParserConfiguration'>
+ </s2>
+ -->
+ <anchor name='CSVConfiguration'/>
+ <s2 title='Sample xni.parser.CSVConfiguration'>
+  <p>
+   This example is a very simple parser configuration that can 
+   parse files with comma-separated values (CSV) to generate XML
+   events. For example, the following CSV document:
+  </p>
+  <source>Andy Clark,16 Jan 1973,Cincinnati</source>
+  <p>
+   produces the following XML "document" as represented by the 
+   XNI streaming document information:
+  </p>
+  <source><![CDATA[<?xml version='1.0' encoding='UTF-8' standalone='true'?>
+<!DOCTYPE csv [
+<!ELEMENT csv (row)*>
+<!ELEMENT row (col)*>
+<!ELEMENT col (#PCDATA)>
+]>
+<csv>
+ <row>
+  <col>Andy Clark</col>
+  <col>16 Jan 1973</col>
+  <col>Cincinnati</col>
+ </row>
+</csv>]]></source>
+  <p>
+   This class can <strong>NOT</strong> be run as a standalone
+   program. It is only an example of how to write a parser
+   configuration using XNI. You can use this parser configuration
+   by specifying the fully qualified class name to all of the XNI
+   samples that accept a parser configuration using the 
+   <code>-p</code> option. For example:
+  </p>
+  <source>java xni.Counter -p xni.parser.CSVConfiguration document.xml</source>
+ </s2>
+ <anchor name='CSVParser'/>
+ <s2 title='Samples xni.parser.CSVParser'>
+  <p>
+   This parser class implements a SAX parser that can parse simple
+   comma-separated value (CSV) files.
+  </p>
+  <p>
+   This class can <strong>NOT</strong> be run as a standalone
+   program. It is only an example of how to write a parser
+   using XNI. You can use this parser
+   by specifying the fully qualified class name to all of the SAX
+   samples that accept a parser using the 
+   <code>-p</code> option. For example:
+  </p>
+  <source>java sax.Counter -p xni.parser.CSVParser document.xml</source>
+ </s2>
+
+ <anchor name='PSVIConfiguration'/>
+ <s2 title='Sample xni.parser.PSVIConfiguration'>
+  <p>
+   This example is a parser configuration that can includes a post
+   schema validation infoset converter. The configuration includes:
+   DTD validator, Namespace binder, XML Schema validators and PSVIWriter component. 
+  </p>
+  <p>
+   This class can <strong>NOT</strong> be run as a standalone
+   program. It is only an example of how to write a parser
+   configuration using XNI. You can use this parser configuration
+   by specifying the fully qualified class name to all of the XNI
+   samples that accept a parser configuration using the 
+   <code>-p</code> option:
+  </p>
+  <source>java xni.Writer -v -s -p xni.parser.PSVIConfiguration personal-schema.xml</source>
+   <note><link idref='features' anchor="validation">Validation</link>
+   and <link idref='features' anchor="validation.schema">schema validation</link>
+   features must be set to true to receive the correct PSVI output.</note>
+ </s2>
+
+ <anchor name='PSVIParser'/>
+ <s2 title='Samples xni.parser.PSVIParser'>
+  <p>
+   This parser class implements a SAX parser that outputs events for
+   the post schema validation infoset of a document.
+  </p>
+  <p>
+   This class can <strong>NOT</strong> be run as a standalone
+   program. It is only an example of how to write a parser
+   using XNI. You can use this parser
+   by specifying the fully qualified class name to all of the SAX
+   samples that accept a parser using the 
+   <code>-p</code> option. For example:
+  </p>
+  <source>java sax.Writer -v -s -p xni.parser.PSVIParser personal-schema.xml</source>
+  <note><link idref='features' anchor="validation">Validation</link>
+  and <link idref='features' anchor="validation.schema">schema validation</link>
+  features must be set to true to receive the correct PSVI output.</note>
+ </s2>
+ 
+ <anchor name='xercesProperties'/>
+ <s2 title='Sample xni/xerces.properties'>
+    <p> When you create a Xerces parser, either directly using a native
+    class like org.apache.xerces.parsers.DOMParser, or via a
+    standard API like JAXP, Xerces provides a dynamic means of
+    dynamically selecting a "configuration" for that parser.
+    Configurations are the basic mechanism Xerces uses to decide
+    exactly how it will treat an XML document (e.g., whether it
+    needs to know about Schema validation, whether it needs to be
+    cognizant of potential denial-of-service attacks launched via
+    malicious XML documents, etc.)  The steps are fourfold:
+    </p>
+    <ol>
+      <li> * first, Xerces will examine the system property
+            org.apache.xerces.xni.parser.XMLParserConfiguration;
+      </li>
+      <li> next, it will try and find a file called xerces.properties in
+            the lib subdirectory of your JRE installation;
+      </li>
+      <li> next, it will examine all the jars on your classpath to try
+            and find one with the appropriate entry in its
+            META-INF/services directory.
+       </li>
+       <li>if all else fails, it will use a hardcoded default.
+       </li>
+     </ol>
+     <p> The third step can be quite time-consuming, especially if you
+    have a lot of jars on your classpath and run applications which
+    require the creation of lots of parsers.  If you know you're
+    only using applications which require "standard" APIs (that
+    is, don't need some special Xerces property), or you want to
+    try and force applications to use only certain Xerces
+    configurations, then you may wish to copy this file into your
+    JRE's lib directory.  We try and ensure that this file contains
+    the currently-recommended default configuration; if you know
+    which configuration you want, you may substitute that class
+    name for what we've provided here.</p> 
+ </s2>
+</s1>

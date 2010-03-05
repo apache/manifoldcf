@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='US-ASCII'?>
+<!-- $Id$ -->
+<!DOCTYPE design SYSTEM 'design.dtd' [
+<!ENTITY package 'org.apache.xerces'>
+<!ENTITY types-java SYSTEM 'types-java.ent'>
+<!ENTITY types-dom  SYSTEM 'types-dom.ent'>
+<!ENTITY types-sax  SYSTEM 'types-sax.ent'>
+<!ENTITY design-xni        SYSTEM 'design-xni.ent'>
+<!ENTITY design-impl       SYSTEM 'design-impl.ent'>
+<!ENTITY design-parsers    SYSTEM 'design-parsers.ent'>
+<!ENTITY design-util       SYSTEM 'design-util.ent'>
+<!ENTITY design-validation SYSTEM 'design-validation.ent'>
+<!ENTITY design-models     SYSTEM 'design-models.ent'>
+<!ENTITY design-datatypes  SYSTEM 'design-datatypes.ent'>
+<!ENTITY design-grammars   SYSTEM 'design-grammars.ent'>
+<!ENTITY design-identity   SYSTEM 'design-identity.ent'>
+]>
+<design name='Xerces-J 2.0' date='$Date$'>
+ 
+ <types>
+  &types-java;
+  &types-dom;
+  &types-sax;
+ </types>
+ 
+ &design-xni;
+ &design-impl;
+ &design-validation;
+ &design-models;
+ &design-datatypes;
+ &design-grammars;
+ &design-identity;
+ &design-parsers;
+ &design-util;
+ 
+</design>

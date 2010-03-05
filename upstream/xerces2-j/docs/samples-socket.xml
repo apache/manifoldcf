@@ -1,0 +1,136 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<!DOCTYPE s1 SYSTEM 'dtd/document.dtd'>
+<s1 title='Socket Samples'>
+ <s2 title='Overview'>
+  <p>
+   Very often, applications need to transmit XML documents over
+   the network using a socket stream. However, XML is not designed
+   to make this possible because XML documents do not contain an
+   explicit end-of-document terminal. Therefore, the stream must
+   end (i.e. the socket must close) in order for the parser to
+   finish parsing the complete XML document.
+  </p>
+  <p>
+   Since creating socket streams is expensive the application needs
+   to re-use the same stream but XML doesn't define an end-of-document. 
+   Therefore, another solution must be found. The socket samples 
+   included with Xerces can be used to learn how to overcome this 
+   common problem in a general way.
+  </p>
+  <p>Socket samples:</p>
+  <ul>
+   <li><link anchor='DelayedInput'>socket.DelayedInput</link></li>
+   <li><link anchor='KeepSocketOpen'>socket.KeepSocketOpen</link></li>
+  </ul>
+ </s2>
+ <anchor name='DelayedInput'/>
+ <s2 title='Sample socket.DelayedInput'>
+  <p>
+   This sample delays the input to the SAX parser to simulate reading data
+   from a socket where data is not always immediately available. An XML
+   parser should be able to parse the input and perform the necessary
+   callbacks as data becomes available. So this is a good way to test
+   any parser that implements the SAX2 <code>XMLReader</code> interface
+   to see if it can parse data as it arrives.
+  </p>
+  <p>
+   <strong>Note:</strong> This sample uses NSGMLS-like output of elements
+   and attributes interspersed with information about how many bytes are
+   being read at a time.
+  </p>
+  <s3 title='usage'>
+   <source>java socket.DelayedInput (options) filename ...</source>
+  </s3>
+  <s3 title='options'>
+   <table>
+    <tr><th>Option</th><th>Description</th></tr>
+    <tr><td>-p name</td><td>Select SAX2 parser by name.</td></tr>
+    <tr><td>-n | -N</td><td>Turn on/off namespace processing.</td></tr>
+    <tr><td>-v | -V</td><td>Turn on/off validation.</td></tr>
+    <tr>
+     <td>-s | -S</td>
+     <td>
+      Turn on/off Schema validation support.<br/>
+      <strong>NOTE:</strong> Not supported by all parsers.");
+     </td>
+    </tr>
+    <tr>
+     <td>-f  | -F</td>
+     <td>
+      Turn on/off Schema full checking.<br/>
+      <strong>NOTE:</strong> Requires use of -s and not supported by all parsers.
+     </td>
+    </tr>
+    <tr><td>-h</td><td>Display help screen.</td></tr>
+   </table>
+  </s3>
+ </s2>
+ <anchor name='KeepSocketOpen'/>
+ <s2 title='Sample socket.KeepSocketOpen'>
+  <p>
+   This sample provides a solution to the problem of 1) sending multiple
+   XML documents over a single socket connection or 2) sending other types
+   of data after the XML document without closing the socket connection.
+  </p>
+  <p>
+   The first situation is a problem because the XML specification does
+   not allow a document to contain multiple root elements. Therefore a
+   document stream must end (or at least appear to end) for the XML
+   parser to accept it as the end of the document.
+  </p>
+  <p>
+   The second situation is a problem because the XML parser buffers the
+   input stream in specified block sizes for performance reasons. This
+   could cause the parser to accidentally read additional bytes of data
+   beyond the end of the document. This actually relates to the first
+   problem if the documents are encoding in two different international
+   encodings.
+  </p>
+  <p>
+   The solution that this sample introduces wraps both the input and
+   output stream on both ends of the socket. The stream wrappers 
+   introduce a protocol that allows arbitrary length data to be sent
+   as separate, localized input streams. While the socket stream
+   remains open, a separate input stream is created to "wrap" an
+   incoming document and make it appear as if it were a standalone
+   input stream.
+  </p>
+  <p>
+   To use this sample, enter any number of filenames of XML documents
+   as parameters to the program. For example:
+  </p>
+  <source>java socket.KeepSocketOpen doc1.xml doc2.xml doc3.xml</source>
+  <p>
+   This program will create a server and client thread that communicate
+   on a specified port number on the "localhost" address. When the client
+   connects to the server, the server sends each XML document specified
+   on the command line to the client in sequence, wrapping each document
+   in a <code>WrappedOutputStream</code>. The client uses a 
+   <code>WrappedInputStream</code> to read the data and pass it to the
+   parser.
+  </p>
+  <note>
+   Do not send any XML documents with associated grammars to the client. 
+   In other words, don't send any documents that contain a DOCTYPE line
+   that references an external DTD because the client will not be able 
+   to resolve the location of the DTD and an error will be issued by 
+   the client.
+  </note>
+ </s2>
+</s1>

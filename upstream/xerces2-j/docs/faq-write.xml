@@ -1,0 +1,345 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<!DOCTYPE faqs SYSTEM 'dtd/faqs.dtd'>
+<faqs title='Writing Application FAQs'>
+
+ <!--
+   - REVISIT: make sure that JAXP implementation can handle
+   -          passing features and properties through to the
+   -          parser implementation. Then complete this section.
+ <faq title='Controlling parser options'>
+  <q>How do I control the various parser options?</q>
+  <a>TBD</a>
+ </faq>
+ -->
+
+
+ <faq title='Handling Errors'>
+  <q>How do I handle errors?</q>
+  <a>
+   <p>
+    You should register an error handler with the parser by supplying
+    a class which implements the <code>org.xml.sax.ErrorHandler</code>
+    interface. This is true regardless of whether your parser is a
+    DOM based or SAX based parser.
+   </p>
+   <p>
+    You can register an error handler on a <code>DocumentBuilder</code>
+    created using JAXP like this:
+   </p>
+   <source>import javax.xml.parsers.DocumentBuilder;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
+
+ErrorHandler handler = new ErrorHandler() {
+    public void warning(SAXParseException e) throws SAXException {
+        System.err.println("[warning] "+e.getMessage());
+    }
+    public void error(SAXParseException e) throws SAXException {
+        System.err.println("[error] "+e.getMessage());
+    }
+    public void fatalError(SAXParseException e) throws SAXException {
+        System.err.println("[fatal error] "+e.getMessage());
+    throw e;
+    }
+};
+
+DocumentBuilder builder = /* builder instance */;
+builder.setErrorHandler(handler);</source>
+   <p>If you are using <jump href="http://www.w3.org/DOM/DOMTR#DOML3">DOM Level 3</jump> 
+    you can register an error handler with the <code>DOMBuilder</code> by supplying
+    a class which implements the <code>org.w3c.dom.DOMErrorHandler</code>
+    interface. For more information, refer to <link idref="faq-dom">FAQ</link></p>
+   <p>
+    You can also register an error handler on a SAXParser using JAXP
+    like this:
+   </p>
+   <source>import javax.xml.parsers.SAXParser;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
+
+ErrorHandler handler = new ErrorHandler() {
+    public void warning(SAXParseException e) throws SAXException {
+        System.err.println("[warning] "+e.getMessage());
+    }
+    public void error(SAXParseException e) throws SAXException {
+        System.err.println("[error] "+e.getMessage());
+    }
+    public void fatalError(SAXParseException e) throws SAXException {
+        System.err.println("[fatal error] "+e.getMessage());
+    throw e;
+    }
+};
+
+SAXParser parser = /* parser instance */;
+parser.getXMLReader().setErrorHandler(handler);</source>
+  </a>
+ </faq>
+ <faq title='What does &quot;non-validating&quot; mean?'>  
+  <q>Why does &quot;non-validating&quot; not mean &quot;well-formedness checking&quot; only?</q>
+  <a>
+   <p>
+    Using a &quot;non-validating&quot; parser does not mean that
+    only well-formedness checking is done! There are still many 
+    things that the XML specification requires of the parser, 
+    including entity substitution, defaulting of attribute values, 
+    and attribute normalization.
+   </p>
+   <p>
+    This table describes what &quot;non-validating&quot; really
+    means for &ParserName; parsers. In this table, "no DTD" 
+    means no internal or external DTD subset is present.
+   </p>
+   <table>
+    <tr>
+     <tn/>
+     <th colspan="2">non-validating parsers</th>
+     <th colspan="2">validating parsers</th>
+    </tr>
+    <tr>
+     <tn/>
+     <th>DTD present</th>
+     <th>no DTD</th>
+     <th>DTD present</th>
+     <th>no DTD</th>
+    </tr>
+    <tr>
+     <th>DTD is read</th>
+     <td>Yes</td>
+     <td>No</td>
+     <td>Yes</td>
+     <td>Error</td>
+    </tr>
+    <tr>
+     <th>entity substitution</th>
+     <td>Yes</td>
+     <td>No</td>
+     <td>Yes</td>
+     <td>Error</td>
+    </tr>
+    <tr>
+     <th>defaulting of attributes</th>
+     <td>Yes</td>
+     <td>No</td>
+     <td>Yes</td>
+     <td>Error</td>
+    </tr>
+    <tr>
+     <th>attribute normalization</th>
+     <td>Yes</td>
+     <td>No</td>
+     <td>Yes</td>
+     <td>Error</td>
+    </tr>
+    <tr>
+     <th>checking against model</th>
+     <td>No</td>
+     <td>No</td>
+     <td>Yes</td>
+     <td>Error</td>
+    </tr>
+   </table>
+  </a>
+ </faq> 
+<faq title='Parsing Several Documents'>
+  <q>
+   How do I more efficiently parse several documents sharing a 
+   common DTD?
+  </q>
+  <a>
+   <p>
+    By default, the parser does not cache DTD's. The common DTD, 
+    since it is specified in each XML document, will be re-parsed 
+    once for each document.
+   </p>
+   <p>
+    However, there are things that you can do to make the 
+    process of reading DTD's more efficient:
+   </p>
+   <ul>
+    <li>First, have a look at 
+        <link idref="faq-grammars">the grammar caching/preparsing FAQ</link>
+    </li>
+    <li>keep your DTD and DTD references local</li>
+    <li>use internal DTD subsets, if possible</li>
+    <li>load files from server to local client before parsing</li>
+    <li>
+     Cache document files into a local client cache. You should do an 
+     HTTP header request to check whether the document has changed, 
+     before accessing it over the network.
+    </li>
+    <li>
+     Do not reference an external DTD or internal DTD subset at all. 
+     In this case, no DTD will be read.
+    </li>
+    <li>
+     Use a custom <code>EntityResolver</code> and keep common 
+     DTDs in a memory buffer.
+    </li>
+   </ul>
+  </a>
+ </faq>
+ <faq title='Pull-parsing documents'>
+  <q>
+   How can I parse documents in a pull-parsing fashion?
+  </q>
+  <a>
+   <p>
+    Since the pull-parsing API is specific to Xerces, you have to use
+    a Xerces-specific method to create parsers, and parse documents.
+   </p>
+   <p>
+    First, you need to create a parser configuration that implements the
+    <code>XMLPullParserConfiguration</code> interface. Then you need to
+    create a parser from this configuration. To parse documents, method
+    <code>parse(boolean)</code> should be called.
+   </p>
+   <source>import &DefaultConfigLong;;
+import org.apache.xerces.parsers.SAXParser;
+import org.apache.xerces.xni.parser.XMLInputSource;
+
+  ...
+
+boolean continueParse = true;
+void pullParse(XMLInputSource input) throws Exception {
+    &DefaultConfig; config = new &DefaultConfig;();
+    SAXParser parser = new SAXParser(config);
+    config.setInputSource(input);
+    parser.reset();
+    while (continueParse) {
+        continueParse = continueParse &amp;&amp; config.parse(false);
+    }
+}</source>
+    <p>
+     In the above example, a SAXParser is used to pull-parse an
+     XMLInputSource. DOMParser can be used in a similar way. A flag
+     <code>continueParse</code> is used to indicate whether to continue
+     parsing the document. The application can stop the parsing by
+     setting this flag to false.
+    </p>
+  </a>
+ </faq>
+ <faq title='Getting More Information for Your Entity Resolver'>
+  <q>
+    I would like to know more about the kind of entity my XMLEntityResolver's
+    been asked to resolve.  How can I go about convincing Xerces to tell me more?
+  </q>
+  <a>
+    <p>
+        XNI only guarantees that you'll receive an XMLResourceIdentifier object 
+        during an XMLEntityResolver#resolveEntity callback.
+        Nonetheless, the xni.grammars package has a number of
+        interfaces which extend XMLResourceIdentifier that can
+        provide considerably more information.
+    </p>
+    <p>
+        To take advantage of this, you'll first need to see
+        whether the object you've been passed is an instance of
+        the
+        <code>org.apache.xerces.xni.grammars.XMLGrammarDescription</code>
+        interface.  This interface contains a method called
+        <code>getGrammarType</code> which can tell you what kind
+        of grammar is involved (for the moment, XML Schema and
+        DTD's are all that's supported).  Once you know the type
+        of grammar, you can cast once again to either
+        <code>org.apache.xerces.xni.grammars.XMLDTDDescription</code>
+        or
+        <code>org.apache.xerces.xni.grammars.XMLSchemaDescription</code>
+        which contain a wealth of information specific to these
+        types of grammars.  The javadocs for these interfaces
+        should provide sufficient information for you to know
+        what their various methods return.
+    </p> 
+  </a>
+ </faq>
+ <!--
+   - REVISIT: Rewrite this section with better information.
+ <faq title='How do I read data from a stream as it arrives?'>
+  <q>How do I read data from a stream as it arrives?</q>
+  <a>
+   <p>There are 2 problems you have to deal with:</p>
+   <ol>
+    <li>
+     The Apache parsers terminate when they reach end-of-file; with 
+     a data stream, unless the sender drops the socket, you have no
+     end-of-file, so you need to terminate in some other way
+    </li>
+    <li>
+     The Apache parsers close the input stream on termination, and 
+     this closes the socket; you normally don't want this, because 
+     you'll want to send an ack to the data stream source, and you
+     may want to have further exchanges on the socket anyway.
+    </li>
+   </ol>
+   <p>Terminating the parse</p>
+   <p>
+    One way that works forSAX is to throw an exception when you
+    detect the logical end-of-document.
+   </p>
+   <p>
+    For instance, in your class extending DefaultHandler, you can 
+    have:
+   </p>
+   <source>public class DocProcessor extends DefaultHandler {
+    private int level;
+    .
+    .
+    public void startElement(String uri,
+                             String localName,
+                             String raw,
+                             Attributes attrs) throws SAXException
+    {
+        ++level;
+    }
+
+    public void endElement (String namespaceURI,
+                            String localName,
+                            String qName) throws SAXException
+    {
+        level = level - 1;
+        if (level == 0) {
+            throw new SAXException ("Finished");
+        }
+    }</source>
+  <p>Preventing the parser from closing the socket</p>
+  <p>
+   One way is to subclass BufferedReader to provide an empty close 
+   method. So, invoke the parser as follows:
+  </p>
+  <source>Socket socket;
+
+    // code to set the socket
+
+    parser.parse(new InputSource(new MyBufferedReader(new InputStreamReader(socket.getInputStream()))));
+    .
+    .
+    class MyBufferedReader extends BufferedReader
+    {
+        public MyBufferedReader(InputStreamReader i) {
+            super(i);
+        }
+
+        public void close() {
+        }
+    }</source>
+  </a>
+ </faq>
+ -->
+</faqs>

@@ -1,0 +1,66 @@
+<?xml encoding='US-ASCII'?>
+<!-- $Id$ -->
+
+<!-- overall organization -->
+<!ELEMENT design (note*,types*,category*)>
+<!ATTLIST design name CDATA #IMPLIED
+                 date CDATA #IMPLIED>
+<!ELEMENT date (#PCDATA)>
+<!ELEMENT types (category)*>
+<!ELEMENT category (note*,(class|interface)*)>
+<!ATTLIST category name    CDATA   #REQUIRED
+                   package NMTOKEN #IMPLIED
+>
+
+<!-- markup -->
+<!ELEMENT note (#PCDATA)>
+
+<!-- types -->
+<!ENTITY % types 'array|primitive|reference|collection'>
+<!ELEMENT array (note*,(primitive|reference))>
+<!ATTLIST array dimension CDATA '1'>
+<!ELEMENT primitive EMPTY>
+<!ATTLIST primitive type (long|int|short|byte|char|boolean) #REQUIRED>
+<!ELEMENT reference EMPTY>
+<!ATTLIST reference idref IDREF #REQUIRED>
+<!ELEMENT collection (note*,collector,items)>
+<!ELEMENT collector (%types;)>
+<!ELEMENT items (%types;)>
+<!ELEMENT union (note?,part,part+)>
+<!ELEMENT part (note?,(%types;)*)>
+
+<!-- sections -->
+<!ENTITY % visibility 'public|private|protected'>
+<!ELEMENT constant (note*,(%types;))>
+<!ATTLIST constant name       NMTOKEN        #REQUIRED
+                   value      CDATA          #IMPLIED
+                   visibility (%visibility;) 'public'
+>
+<!ELEMENT field (note*,(%types;))>
+<!ATTLIST field name       NMTOKEN        #REQUIRED
+                visibility (%visibility;) 'protected'
+>
+<!ELEMENT constructor (note*,param*,throws*)>
+<!ATTLIST constructor visibility (%visibility;) 'public'>
+<!ELEMENT method (note*,param*,returns?,throws*)>
+<!ATTLIST method name       NMTOKEN        #REQUIRED
+                 visibility (%visibility;) 'public'
+>
+<!ELEMENT param (note*,(%types;))>
+<!ATTLIST param name NMTOKEN #REQUIRED>
+<!ELEMENT returns (note*,(%types;))>
+<!ELEMENT throws (note*,reference)>
+
+<!-- objects -->
+<!ELEMENT class (note*,extends?,implements*,constant*,field*,constructor*,method*)>
+<!ATTLIST class id         ID             #REQUIRED 
+                name       NMTOKEN        #REQUIRED
+                visibility (%visibility;) #FIXED 'public'
+>
+<!ELEMENT interface (note*,extends*,constant*,method*)>
+<!ATTLIST interface id         ID             #REQUIRED
+                    name       NMTOKEN        #REQUIRED
+                    visibility (%visibility;) #FIXED 'public'
+>
+<!ELEMENT extends (note*,reference)>
+<!ELEMENT implements (note*,reference)>

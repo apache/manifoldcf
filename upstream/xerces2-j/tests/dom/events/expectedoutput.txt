@@ -1,0 +1,357 @@
+EVT 1: 'DOMNodeInserted' listener '#document' target 'Root' while CAPTURING... will bubble
+	relatedNode='[#document: null]'
+EVT 2: 'DOMNodeInserted' listener 'Root' target 'Root' while AT_TARGET... will bubble
+	relatedNode='[#document: null]'
+EVT 3: 'DOMNodeInserted' listener '#document' target 'Root' while BUBBLING... will bubble
+	relatedNode='[#document: null]'
+EVT 4: 'DOMNodeInsertedIntoDocument' listener '#document' target 'Root' while CAPTURING... 
+EVT 5: 'DOMNodeInsertedIntoDocument' listener 'Root' target 'Root' while AT_TARGET... 
+EVT 6: 'DOMSubtreeModified' listener '#document' target '#document' while AT_TARGET... will bubble
+EVT 7: 'DOMNodeInserted' listener '#document' target 'Root_E0' while CAPTURING... will bubble
+	relatedNode='[Root: null]'
+EVT 8: 'DOMNodeInserted' listener 'Root' target 'Root_E0' while CAPTURING... will bubble
+	relatedNode='[Root: null]'
+EVT 9: 'DOMNodeInserted' listener 'Root_E0' target 'Root_E0' while AT_TARGET... will bubble
+	relatedNode='[Root: null]'
+EVT 10: 'DOMNodeInserted' listener 'Root' target 'Root_E0' while BUBBLING... will bubble
+	relatedNode='[Root: null]'
+EVT 11: 'DOMNodeInserted' listener '#document' target 'Root_E0' while BUBBLING... will bubble
+	relatedNode='[Root: null]'
+EVT 12: 'DOMNodeInsertedIntoDocument' listener '#document' target 'Root_E0' while CAPTURING... 
+EVT 13: 'DOMNodeInsertedIntoDocument' listener 'Root' target 'Root_E0' while CAPTURING... 
+EVT 14: 'DOMNodeInsertedIntoDocument' listener 'Root_E0' target 'Root_E0' while AT_TARGET... 
+EVT 15: 'DOMSubtreeModified' listener '#document' target 'Root' while CAPTURING... will bubble
+EVT 16: 'DOMSubtreeModified' listener 'Root' target 'Root' while AT_TARGET... will bubble
+EVT 17: 'DOMSubtreeModified' listener '#document' target 'Root' while BUBBLING... will bubble
+EVT 18: 'DOMNodeInserted' listener 'Root_E0_A0' target '#text' while CAPTURING... will bubble
+	relatedNode='Root_E0_A0="Initialized A0 of Root_E0"'
+EVT 19: 'DOMNodeInserted' listener 'Root_E0_A0' target '#text' while BUBBLING... will bubble
+	relatedNode='Root_E0_A0="Initialized A0 of Root_E0"'
+EVT 20: 'DOMSubtreeModified' listener 'Root_E0_A0' target 'Root_E0_A0' while AT_TARGET... will bubble
+EVT 21: 'DOMAttrModified' listener '#document' target 'Root_E0' while CAPTURING... will bubble
+	relatedNode='Root_E0_A0="Initialized A0 of Root_E0"'
+	attrName='Root_E0_A0'
+	newValue='Initialized A0 of Root_E0'
+	attrChange='ADDITION'
+EVT 22: 'DOMAttrModified' listener 'Root' target 'Root_E0' while CAPTURING... will bubble
+	relatedNode='Root_E0_A0="Initialized A0 of Root_E0"'
+	attrName='Root_E0_A0'
+	newValue='Initialized A0 of Root_E0'
+	attrChange='ADDITION'
+EVT 23: 'DOMAttrModified' listener 'Root_E0' target 'Root_E0' while AT_TARGET... will bubble
+	relatedNode='Root_E0_A0="Initialized A0 of Root_E0"'
+	attrName='Root_E0_A0'
+	newValue='Initialized A0 of Root_E0'
+	attrChange='ADDITION'
+EVT 24: 'DOMAttrModified' listener 'Root' target 'Root_E0' while BUBBLING... will bubble
+	relatedNode='Root_E0_A0="Initialized A0 of Root_E0"'
+	attrName='Root_E0_A0'
+	newValue='Initialized A0 of Root_E0'
+	attrChange='ADDITION'
+EVT 25: 'DOMAttrModified' listener '#document' target 'Root_E0' while BUBBLING... will bubble
+	relatedNode='Root_E0_A0="Initialized A0 of Root_E0"'
+	attrName='Root_E0_A0'
+	newValue='Initialized A0 of Root_E0'
+	attrChange='ADDITION'
+EVT 26: 'DOMSubtreeModified' listener 'Root_E0_A0' target 'Root_E0_A0' while AT_TARGET... will bubble
+EVT 27: 'DOMSubtreeModified' listener '#document' target 'Root_E0' while CAPTURING... will bubble
+EVT 28: 'DOMSubtreeModified' listener 'Root' target 'Root_E0' while CAPTURING... will bubble
+EVT 29: 'DOMSubtreeModified' listener 'Root_E0' target 'Root_E0' while AT_TARGET... will bubble
+EVT 30: 'DOMSubtreeModified' listener 'Root' target 'Root_E0' while BUBBLING... will bubble
+EVT 31: 'DOMSubtreeModified' listener '#document' target 'Root_E0' while BUBBLING... will bubble
+EVT 32: 'DOMNodeRemoved' listener 'Root_E0_A0' target '#text' while CAPTURING... will bubble
+	relatedNode='Root_E0_A0="Initialized A0 of Root_E0"'
+EVT 33: 'DOMNodeRemoved' listener 'Root_E0_A0' target '#text' while BUBBLING... will bubble
+	relatedNode='Root_E0_A0="Initialized A0 of Root_E0"'
+EVT 34: 'DOMNodeRemovedFromDocument' listener 'Root_E0_A0' target '#text' while CAPTURING... 
+EVT 35: 'DOMNodeInserted' listener 'Root_E0_A0' target '#text' while CAPTURING... will bubble
+	relatedNode='Root_E0_A0="Updated A0 of E0, prepare to be acidulated."'
+EVT 36: 'DOMNodeInserted' listener 'Root_E0_A0' target '#text' while BUBBLING... will bubble
+	relatedNode='Root_E0_A0="Updated A0 of E0, prepare to be acidulated."'
+EVT 37: 'DOMNodeInsertedIntoDocument' listener 'Root_E0_A0' target '#text' while CAPTURING... 
+EVT 38: 'DOMAttrModified' listener '#document' target 'Root_E0' while CAPTURING... will bubble
+	relatedNode='Root_E0_A0="Updated A0 of E0, prepare to be acidulated."'
+	attrName='Root_E0_A0'
+	prevValue='Initialized A0 of Root_E0'
+	newValue='Updated A0 of E0, prepare to be acidulated.'
+	attrChange='MODIFICATION'
+EVT 39: 'DOMAttrModified' listener 'Root' target 'Root_E0' while CAPTURING... will bubble
+	relatedNode='Root_E0_A0="Updated A0 of E0, prepare to be acidulated."'
+	attrName='Root_E0_A0'
+	prevValue='Initialized A0 of Root_E0'
+	newValue='Updated A0 of E0, prepare to be acidulated.'
+	attrChange='MODIFICATION'
+EVT 40: 'DOMAttrModified' listener 'Root_E0' target 'Root_E0' while AT_TARGET... will bubble
+	relatedNode='Root_E0_A0="Updated A0 of E0, prepare to be acidulated."'
+	attrName='Root_E0_A0'
+	prevValue='Initialized A0 of Root_E0'
+	newValue='Updated A0 of E0, prepare to be acidulated.'
+	attrChange='MODIFICATION'
+EVT 41: 'DOMAttrModified' listener 'Root' target 'Root_E0' while BUBBLING... will bubble
+	relatedNode='Root_E0_A0="Updated A0 of E0, prepare to be acidulated."'
+	attrName='Root_E0_A0'
+	prevValue='Initialized A0 of Root_E0'
+	newValue='Updated A0 of E0, prepare to be acidulated.'
+	attrChange='MODIFICATION'
+EVT 42: 'DOMAttrModified' listener '#document' target 'Root_E0' while BUBBLING... will bubble
+	relatedNode='Root_E0_A0="Updated A0 of E0, prepare to be acidulated."'
+	attrName='Root_E0_A0'
+	prevValue='Initialized A0 of Root_E0'
+	newValue='Updated A0 of E0, prepare to be acidulated.'
+	attrChange='MODIFICATION'
+EVT 43: 'DOMSubtreeModified' listener 'Root_E0_A0' target 'Root_E0_A0' while AT_TARGET... will bubble
+EVT 44: 'DOMSubtreeModified' listener '#document' target 'Root_E0' while CAPTURING... will bubble
+EVT 45: 'DOMSubtreeModified' listener 'Root' target 'Root_E0' while CAPTURING... will bubble
+EVT 46: 'DOMSubtreeModified' listener 'Root_E0' target 'Root_E0' while AT_TARGET... will bubble
+EVT 47: 'DOMSubtreeModified' listener 'Root' target 'Root_E0' while BUBBLING... will bubble
+EVT 48: 'DOMSubtreeModified' listener '#document' target 'Root_E0' while BUBBLING... will bubble
+EVT 49: 'DOMAttrModified' listener '#document' target 'Root_E0' while CAPTURING... will bubble
+	relatedNode='Root_E0_A0="Updated A0 of E0, prepare to be acidulated."'
+	attrName='Root_E0_A0'
+	prevValue='Updated A0 of E0, prepare to be acidulated.'
+	attrChange='REMOVAL'
+EVT 50: 'DOMAttrModified' listener 'Root' target 'Root_E0' while CAPTURING... will bubble
+	relatedNode='Root_E0_A0="Updated A0 of E0, prepare to be acidulated."'
+	attrName='Root_E0_A0'
+	prevValue='Updated A0 of E0, prepare to be acidulated.'
+	attrChange='REMOVAL'
+EVT 51: 'DOMAttrModified' listener 'Root_E0' target 'Root_E0' while AT_TARGET... will bubble
+	relatedNode='Root_E0_A0="Updated A0 of E0, prepare to be acidulated."'
+	attrName='Root_E0_A0'
+	prevValue='Updated A0 of E0, prepare to be acidulated.'
+	attrChange='REMOVAL'
+EVT 52: 'DOMAttrModified' listener 'Root' target 'Root_E0' while BUBBLING... will bubble
+	relatedNode='Root_E0_A0="Updated A0 of E0, prepare to be acidulated."'
+	attrName='Root_E0_A0'
+	prevValue='Updated A0 of E0, prepare to be acidulated.'
+	attrChange='REMOVAL'
+EVT 53: 'DOMAttrModified' listener '#document' target 'Root_E0' while BUBBLING... will bubble
+	relatedNode='Root_E0_A0="Updated A0 of E0, prepare to be acidulated."'
+	attrName='Root_E0_A0'
+	prevValue='Updated A0 of E0, prepare to be acidulated.'
+	attrChange='REMOVAL'
+EVT 54: 'DOMSubtreeModified' listener '#document' target 'Root_E0' while CAPTURING... will bubble
+EVT 55: 'DOMSubtreeModified' listener 'Root' target 'Root_E0' while CAPTURING... will bubble
+EVT 56: 'DOMSubtreeModified' listener 'Root_E0' target 'Root_E0' while AT_TARGET... will bubble
+EVT 57: 'DOMSubtreeModified' listener 'Root' target 'Root_E0' while BUBBLING... will bubble
+EVT 58: 'DOMSubtreeModified' listener '#document' target 'Root_E0' while BUBBLING... will bubble
+EVT 59: 'DOMAttrModified' listener '#document' target 'Root_E0' while CAPTURING... will bubble
+	relatedNode='Root_E0_A0="Updated A0 of E0, prepare to be acidulated."'
+	attrName='Root_E0_A0'
+	newValue='Updated A0 of E0, prepare to be acidulated.'
+	attrChange='ADDITION'
+EVT 60: 'DOMAttrModified' listener 'Root' target 'Root_E0' while CAPTURING... will bubble
+	relatedNode='Root_E0_A0="Updated A0 of E0, prepare to be acidulated."'
+	attrName='Root_E0_A0'
+	newValue='Updated A0 of E0, prepare to be acidulated.'
+	attrChange='ADDITION'
+EVT 61: 'DOMAttrModified' listener 'Root_E0' target 'Root_E0' while AT_TARGET... will bubble
+	relatedNode='Root_E0_A0="Updated A0 of E0, prepare to be acidulated."'
+	attrName='Root_E0_A0'
+	newValue='Updated A0 of E0, prepare to be acidulated.'
+	attrChange='ADDITION'
+EVT 62: 'DOMAttrModified' listener 'Root' target 'Root_E0' while BUBBLING... will bubble
+	relatedNode='Root_E0_A0="Updated A0 of E0, prepare to be acidulated."'
+	attrName='Root_E0_A0'
+	newValue='Updated A0 of E0, prepare to be acidulated.'
+	attrChange='ADDITION'
+EVT 63: 'DOMAttrModified' listener '#document' target 'Root_E0' while BUBBLING... will bubble
+	relatedNode='Root_E0_A0="Updated A0 of E0, prepare to be acidulated."'
+	attrName='Root_E0_A0'
+	newValue='Updated A0 of E0, prepare to be acidulated.'
+	attrChange='ADDITION'
+EVT 64: 'DOMSubtreeModified' listener 'Root_E0_A0' target 'Root_E0_A0' while AT_TARGET... will bubble
+EVT 65: 'DOMSubtreeModified' listener '#document' target 'Root_E0' while CAPTURING... will bubble
+EVT 66: 'DOMSubtreeModified' listener 'Root' target 'Root_E0' while CAPTURING... will bubble
+EVT 67: 'DOMSubtreeModified' listener 'Root_E0' target 'Root_E0' while AT_TARGET... will bubble
+EVT 68: 'DOMSubtreeModified' listener 'Root' target 'Root_E0' while BUBBLING... will bubble
+EVT 69: 'DOMSubtreeModified' listener '#document' target 'Root_E0' while BUBBLING... will bubble
+
+Add/remove a preconstructed tree; tests AddedToDocument
+
+
+EventReporter muted
+
+
+EventReporter awakened:
+
+EVT 106: 'DOMNodeInserted' listener '#document' target 'lateAdd' while CAPTURING... will bubble
+	relatedNode='[Root: null]'
+EVT 107: 'DOMNodeInserted' listener 'Root' target 'lateAdd' while CAPTURING... will bubble
+	relatedNode='[Root: null]'
+EVT 108: 'DOMNodeInserted' listener 'lateAdd' target 'lateAdd' while AT_TARGET... will bubble
+	relatedNode='[Root: null]'
+EVT 109: 'DOMNodeInserted' listener 'Root' target 'lateAdd' while BUBBLING... will bubble
+	relatedNode='[Root: null]'
+EVT 110: 'DOMNodeInserted' listener '#document' target 'lateAdd' while BUBBLING... will bubble
+	relatedNode='[Root: null]'
+EVT 111: 'DOMNodeInsertedIntoDocument' listener '#document' target 'lateAdd' while CAPTURING... 
+EVT 112: 'DOMNodeInsertedIntoDocument' listener 'Root' target 'lateAdd' while CAPTURING... 
+EVT 113: 'DOMNodeInsertedIntoDocument' listener 'lateAdd' target 'lateAdd' while AT_TARGET... 
+EVT 114: 'DOMNodeInsertedIntoDocument' listener '#document' target 'lateAdd_E0' while CAPTURING... 
+EVT 115: 'DOMNodeInsertedIntoDocument' listener 'Root' target 'lateAdd_E0' while CAPTURING... 
+EVT 116: 'DOMNodeInsertedIntoDocument' listener 'lateAdd' target 'lateAdd_E0' while CAPTURING... 
+EVT 117: 'DOMNodeInsertedIntoDocument' listener 'lateAdd_E0' target 'lateAdd_E0' while AT_TARGET... 
+EVT 118: 'DOMNodeInsertedIntoDocument' listener 'lateAdd_E0_A0' target 'lateAdd_E0_A0' while AT_TARGET... 
+EVT 119: 'DOMNodeInsertedIntoDocument' listener 'lateAdd_E0_A0' target '#text' while CAPTURING... 
+EVT 120: 'DOMNodeInsertedIntoDocument' listener '#document' target 'lateAdd_E0_E1' while CAPTURING... 
+EVT 121: 'DOMNodeInsertedIntoDocument' listener 'Root' target 'lateAdd_E0_E1' while CAPTURING... 
+EVT 122: 'DOMNodeInsertedIntoDocument' listener 'lateAdd' target 'lateAdd_E0_E1' while CAPTURING... 
+EVT 123: 'DOMNodeInsertedIntoDocument' listener 'lateAdd_E0' target 'lateAdd_E0_E1' while CAPTURING... 
+EVT 124: 'DOMNodeInsertedIntoDocument' listener 'lateAdd_E0_E1' target 'lateAdd_E0_E1' while AT_TARGET... 
+EVT 125: 'DOMNodeInsertedIntoDocument' listener 'lateAdd_E0_E1_A1' target 'lateAdd_E0_E1_A1' while AT_TARGET... 
+EVT 126: 'DOMNodeInsertedIntoDocument' listener 'lateAdd_E0_E1_A1' target '#text' while CAPTURING... 
+EVT 127: 'DOMSubtreeModified' listener '#document' target 'Root' while CAPTURING... will bubble
+EVT 128: 'DOMSubtreeModified' listener 'Root' target 'Root' while AT_TARGET... will bubble
+EVT 129: 'DOMSubtreeModified' listener '#document' target 'Root' while BUBBLING... will bubble
+EVT 130: 'DOMNodeRemoved' listener '#document' target 'lateAdd' while CAPTURING... will bubble
+	relatedNode='[Root: null]'
+EVT 131: 'DOMNodeRemoved' listener 'Root' target 'lateAdd' while CAPTURING... will bubble
+	relatedNode='[Root: null]'
+EVT 132: 'DOMNodeRemoved' listener 'lateAdd' target 'lateAdd' while AT_TARGET... will bubble
+	relatedNode='[Root: null]'
+EVT 133: 'DOMNodeRemoved' listener 'Root' target 'lateAdd' while BUBBLING... will bubble
+	relatedNode='[Root: null]'
+EVT 134: 'DOMNodeRemoved' listener '#document' target 'lateAdd' while BUBBLING... will bubble
+	relatedNode='[Root: null]'
+EVT 135: 'DOMNodeRemovedFromDocument' listener '#document' target 'lateAdd' while CAPTURING... 
+EVT 136: 'DOMNodeRemovedFromDocument' listener 'Root' target 'lateAdd' while CAPTURING... 
+EVT 137: 'DOMNodeRemovedFromDocument' listener 'lateAdd' target 'lateAdd' while AT_TARGET... 
+EVT 138: 'DOMNodeRemovedFromDocument' listener '#document' target 'lateAdd_E0' while CAPTURING... 
+EVT 139: 'DOMNodeRemovedFromDocument' listener 'Root' target 'lateAdd_E0' while CAPTURING... 
+EVT 140: 'DOMNodeRemovedFromDocument' listener 'lateAdd' target 'lateAdd_E0' while CAPTURING... 
+EVT 141: 'DOMNodeRemovedFromDocument' listener 'lateAdd_E0' target 'lateAdd_E0' while AT_TARGET... 
+EVT 142: 'DOMNodeRemovedFromDocument' listener 'lateAdd_E0_A0' target 'lateAdd_E0_A0' while AT_TARGET... 
+EVT 143: 'DOMNodeRemovedFromDocument' listener 'lateAdd_E0_A0' target '#text' while CAPTURING... 
+EVT 144: 'DOMNodeRemovedFromDocument' listener '#document' target 'lateAdd_E0_E1' while CAPTURING... 
+EVT 145: 'DOMNodeRemovedFromDocument' listener 'Root' target 'lateAdd_E0_E1' while CAPTURING... 
+EVT 146: 'DOMNodeRemovedFromDocument' listener 'lateAdd' target 'lateAdd_E0_E1' while CAPTURING... 
+EVT 147: 'DOMNodeRemovedFromDocument' listener 'lateAdd_E0' target 'lateAdd_E0_E1' while CAPTURING... 
+EVT 148: 'DOMNodeRemovedFromDocument' listener 'lateAdd_E0_E1' target 'lateAdd_E0_E1' while AT_TARGET... 
+EVT 149: 'DOMNodeRemovedFromDocument' listener 'lateAdd_E0_E1_A1' target 'lateAdd_E0_E1_A1' while AT_TARGET... 
+EVT 150: 'DOMNodeRemovedFromDocument' listener 'lateAdd_E0_E1_A1' target '#text' while CAPTURING... 
+EVT 151: 'DOMSubtreeModified' listener '#document' target 'Root' while CAPTURING... will bubble
+EVT 152: 'DOMSubtreeModified' listener 'Root' target 'Root' while AT_TARGET... will bubble
+EVT 153: 'DOMSubtreeModified' listener '#document' target 'Root' while BUBBLING... will bubble
+
+Replace a preconstructed tree; tests AddedToDocument
+
+
+EventReporter muted
+
+
+EventReporter awakened:
+
+EVT 193: 'DOMNodeInserted' listener '#document' target 'Root_E0' while CAPTURING... will bubble
+	relatedNode='[Root: null]'
+EVT 194: 'DOMNodeInserted' listener 'Root' target 'Root_E0' while CAPTURING... will bubble
+	relatedNode='[Root: null]'
+EVT 195: 'DOMNodeInserted' listener 'Root_E0' target 'Root_E0' while AT_TARGET... will bubble
+	relatedNode='[Root: null]'
+EVT 196: 'DOMNodeInserted' listener 'Root' target 'Root_E0' while BUBBLING... will bubble
+	relatedNode='[Root: null]'
+EVT 197: 'DOMNodeInserted' listener '#document' target 'Root_E0' while BUBBLING... will bubble
+	relatedNode='[Root: null]'
+EVT 198: 'DOMNodeInsertedIntoDocument' listener '#document' target 'Root_E0' while CAPTURING... 
+EVT 199: 'DOMNodeInsertedIntoDocument' listener 'Root' target 'Root_E0' while CAPTURING... 
+EVT 200: 'DOMNodeInsertedIntoDocument' listener 'Root_E0' target 'Root_E0' while AT_TARGET... 
+EVT 201: 'DOMNodeInsertedIntoDocument' listener 'Root_E0_A0' target 'Root_E0_A0' while AT_TARGET... 
+EVT 202: 'DOMNodeInsertedIntoDocument' listener 'Root_E0_A0' target '#text' while CAPTURING... 
+EVT 203: 'DOMNodeInsertedIntoDocument' listener '#document' target 'lateAdd' while CAPTURING... 
+EVT 204: 'DOMNodeInsertedIntoDocument' listener 'Root' target 'lateAdd' while CAPTURING... 
+EVT 205: 'DOMNodeInsertedIntoDocument' listener 'lateAdd' target 'lateAdd' while AT_TARGET... 
+EVT 206: 'DOMNodeInsertedIntoDocument' listener '#document' target 'lateAdd_E0' while CAPTURING... 
+EVT 207: 'DOMNodeInsertedIntoDocument' listener 'Root' target 'lateAdd_E0' while CAPTURING... 
+EVT 208: 'DOMNodeInsertedIntoDocument' listener 'lateAdd' target 'lateAdd_E0' while CAPTURING... 
+EVT 209: 'DOMNodeInsertedIntoDocument' listener 'lateAdd_E0' target 'lateAdd_E0' while AT_TARGET... 
+EVT 210: 'DOMNodeInsertedIntoDocument' listener 'lateAdd_E0_A0' target 'lateAdd_E0_A0' while AT_TARGET... 
+EVT 211: 'DOMNodeInsertedIntoDocument' listener 'lateAdd_E0_A0' target '#text' while CAPTURING... 
+EVT 212: 'DOMNodeInsertedIntoDocument' listener '#document' target 'lateAdd_E0_E1' while CAPTURING... 
+EVT 213: 'DOMNodeInsertedIntoDocument' listener 'Root' target 'lateAdd_E0_E1' while CAPTURING... 
+EVT 214: 'DOMNodeInsertedIntoDocument' listener 'lateAdd' target 'lateAdd_E0_E1' while CAPTURING... 
+EVT 215: 'DOMNodeInsertedIntoDocument' listener 'lateAdd_E0' target 'lateAdd_E0_E1' while CAPTURING... 
+EVT 216: 'DOMNodeInsertedIntoDocument' listener 'lateAdd_E0_E1' target 'lateAdd_E0_E1' while AT_TARGET... 
+EVT 217: 'DOMNodeInsertedIntoDocument' listener 'lateAdd_E0_E1_A1' target 'lateAdd_E0_E1_A1' while AT_TARGET... 
+EVT 218: 'DOMNodeInsertedIntoDocument' listener 'lateAdd_E0_E1_A1' target '#text' while CAPTURING... 
+EVT 219: 'DOMNodeRemoved' listener '#document' target 'lateAdd' while CAPTURING... will bubble
+	relatedNode='[Root: null]'
+EVT 220: 'DOMNodeRemoved' listener 'Root' target 'lateAdd' while CAPTURING... will bubble
+	relatedNode='[Root: null]'
+EVT 221: 'DOMNodeRemoved' listener 'lateAdd' target 'lateAdd' while AT_TARGET... will bubble
+	relatedNode='[Root: null]'
+EVT 222: 'DOMNodeRemoved' listener 'Root' target 'lateAdd' while BUBBLING... will bubble
+	relatedNode='[Root: null]'
+EVT 223: 'DOMNodeRemoved' listener '#document' target 'lateAdd' while BUBBLING... will bubble
+	relatedNode='[Root: null]'
+EVT 224: 'DOMNodeRemovedFromDocument' listener '#document' target 'lateAdd' while CAPTURING... 
+EVT 225: 'DOMNodeRemovedFromDocument' listener 'Root' target 'lateAdd' while CAPTURING... 
+EVT 226: 'DOMNodeRemovedFromDocument' listener 'lateAdd' target 'lateAdd' while AT_TARGET... 
+EVT 227: 'DOMNodeRemovedFromDocument' listener '#document' target 'lateAdd_E0' while CAPTURING... 
+EVT 228: 'DOMNodeRemovedFromDocument' listener 'Root' target 'lateAdd_E0' while CAPTURING... 
+EVT 229: 'DOMNodeRemovedFromDocument' listener 'lateAdd' target 'lateAdd_E0' while CAPTURING... 
+EVT 230: 'DOMNodeRemovedFromDocument' listener 'lateAdd_E0' target 'lateAdd_E0' while AT_TARGET... 
+EVT 231: 'DOMNodeRemovedFromDocument' listener 'lateAdd_E0_A0' target 'lateAdd_E0_A0' while AT_TARGET... 
+EVT 232: 'DOMNodeRemovedFromDocument' listener 'lateAdd_E0_A0' target '#text' while CAPTURING... 
+EVT 233: 'DOMNodeRemovedFromDocument' listener '#document' target 'lateAdd_E0_E1' while CAPTURING... 
+EVT 234: 'DOMNodeRemovedFromDocument' listener 'Root' target 'lateAdd_E0_E1' while CAPTURING... 
+EVT 235: 'DOMNodeRemovedFromDocument' listener 'lateAdd' target 'lateAdd_E0_E1' while CAPTURING... 
+EVT 236: 'DOMNodeRemovedFromDocument' listener 'lateAdd_E0' target 'lateAdd_E0_E1' while CAPTURING... 
+EVT 237: 'DOMNodeRemovedFromDocument' listener 'lateAdd_E0_E1' target 'lateAdd_E0_E1' while AT_TARGET... 
+EVT 238: 'DOMNodeRemovedFromDocument' listener 'lateAdd_E0_E1_A1' target 'lateAdd_E0_E1_A1' while AT_TARGET... 
+EVT 239: 'DOMNodeRemovedFromDocument' listener 'lateAdd_E0_E1_A1' target '#text' while CAPTURING... 
+EVT 240: 'DOMSubtreeModified' listener '#document' target 'Root' while CAPTURING... will bubble
+EVT 241: 'DOMSubtreeModified' listener 'Root' target 'Root' while AT_TARGET... will bubble
+EVT 242: 'DOMSubtreeModified' listener '#document' target 'Root' while BUBBLING... will bubble
+
+EventReporter muted
+
+
+EventReporter awakened:
+
+EVT 259: 'DOMCharacterDataModified' listener '#document' target '#text' while CAPTURING... will bubble
+	prevValue='fo'
+	newValue='foo'
+EVT 260: 'DOMCharacterDataModified' listener 'Root' target '#text' while CAPTURING... will bubble
+	prevValue='fo'
+	newValue='foo'
+EVT 261: 'DOMCharacterDataModified' listener 'Root_E0' target '#text' while CAPTURING... will bubble
+	prevValue='fo'
+	newValue='foo'
+EVT 262: 'DOMCharacterDataModified' listener '#text' target '#text' while AT_TARGET... will bubble
+	prevValue='fo'
+	newValue='foo'
+EVT 263: 'DOMCharacterDataModified' listener 'Root_E0' target '#text' while BUBBLING... will bubble
+	prevValue='fo'
+	newValue='foo'
+EVT 264: 'DOMCharacterDataModified' listener 'Root' target '#text' while BUBBLING... will bubble
+	prevValue='fo'
+	newValue='foo'
+EVT 265: 'DOMCharacterDataModified' listener '#document' target '#text' while BUBBLING... will bubble
+	prevValue='fo'
+	newValue='foo'
+EVT 266: 'DOMSubtreeModified' listener '#document' target '#text' while CAPTURING... will bubble
+EVT 267: 'DOMSubtreeModified' listener 'Root' target '#text' while CAPTURING... will bubble
+EVT 268: 'DOMSubtreeModified' listener 'Root_E0' target '#text' while CAPTURING... will bubble
+EVT 269: 'DOMSubtreeModified' listener '#text' target '#text' while AT_TARGET... will bubble
+EVT 270: 'DOMSubtreeModified' listener 'Root_E0' target '#text' while BUBBLING... will bubble
+EVT 271: 'DOMSubtreeModified' listener 'Root' target '#text' while BUBBLING... will bubble
+EVT 272: 'DOMSubtreeModified' listener '#document' target '#text' while BUBBLING... will bubble
+EVT 273: 'DOMAttrModified' listener '#document' target 'Root' while CAPTURING... will bubble
+	relatedNode='foo="bar"'
+	attrName='foo'
+	newValue='bar'
+	attrChange='ADDITION'
+EVT 274: 'DOMAttrModified' listener 'Root' target 'Root' while AT_TARGET... will bubble
+	relatedNode='foo="bar"'
+	attrName='foo'
+	newValue='bar'
+	attrChange='ADDITION'
+EVT 275: 'DOMAttrModified' listener '#document' target 'Root' while BUBBLING... will bubble
+	relatedNode='foo="bar"'
+	attrName='foo'
+	newValue='bar'
+	attrChange='ADDITION'
+EVT 276: 'DOMSubtreeModified' listener '#document' target 'Root' while CAPTURING... will bubble
+EVT 277: 'DOMSubtreeModified' listener 'Root' target 'Root' while AT_TARGET... will bubble
+EVT 278: 'DOMSubtreeModified' listener '#document' target 'Root' while BUBBLING... will bubble
+Done

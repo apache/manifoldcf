@@ -1,0 +1,368 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<!DOCTYPE s1 SYSTEM 'dtd/document.dtd'>
+<s1 title='SAX Samples'>
+ <s2 title='Overview'>
+  <p>
+   This page documents the various Simple API for XML (SAX)
+   samples included with Xerces. Besides being useful programs,
+   they can be used as SAX programming examples to learn how to
+   program using the SAX API.
+  </p>
+  <p>SAX samples:</p>
+  <ul>
+   <li><link anchor='Counter'>sax.Counter</link></li>
+   <li><link anchor='DocumentTracer'>sax.DocumentTracer</link></li>
+   <li><link anchor='Writer'>sax.Writer</link></li>
+  </ul>
+  <p>
+   Most of the SAX parser samples have a command line option that
+   allows the user to specify a different parser to use. In
+   order to supply another SAX parser besides the default Xerces
+   <code>SAXParser</code>, the parser must implement either the
+   <code>org.xml.sax.Parser</code> or <code>org.xml.sax.XMLReader</code>
+   interfaces. You may specify xni.parser.PSVIParser if you want Xerces to output PSVI.
+  </p>
+  <note>
+   JAXP could be used instead but this feature is not implemented 
+   at this time. Using JAXP would require the user to specify the
+   <code>-Djavax.xml.parsers.SAXParserFactory=...</code>
+   option to the virtual machine in order to use a different
+   SAX parser factory.
+  </note>
+ </s2>
+ <anchor name='Counter'/>
+ <s2 title='Sample sax.Counter'>
+  <p>
+   A sample SAX2 counter. This sample program illustrates how to
+   register a SAX2 ContentHandler and receive the callbacks in
+   order to print information about the document. The output of
+   this program shows the time and count of elements, attributes, 
+   ignorable whitespaces, and characters appearing in the document. 
+  </p>
+  <p>
+   This class is useful as a "poor-man's" performance tester to
+   compare the speed and accuracy of various SAX parsers. However,
+   it is important to note that the first parse time of a parser
+   will include both VM class load time and parser initialization
+   that would not be present in subsequent parses with the same
+   file. 
+  </p>
+  <note>
+   The results produced by this program should never be accepted 
+   as true performance measurements.
+  </note>
+  <s3 title='usage'>
+   <source>java sax.Counter (options) uri ...</source>
+  </s3>
+  <s3 title='options'>
+   <table>
+    <tr><th>Option</th><th>Description</th></tr>
+    <tr><td>-p name</td><td>Select parser by name.</td></tr>
+    <tr><td>-x number</td><td>Select number of repetitions.</td></tr>
+    <tr><td>-n  | -N</td><td>Turn on/off namespace processing.</td></tr>
+    <tr>
+     <td>-np | -NP</td>
+     <td>
+      Turn on/off namespace prefixes.<br/>
+      <strong>NOTE:</strong> Requires use of -n.
+     </td>
+    </tr>
+    <tr><td>-v  | -V</td><td>Turn on/off validation.</td></tr>
+    <tr>
+     <td>-s  | -S</td>
+     <td>
+      Turn on/off Schema validation support.<br/>
+      <strong>NOTE:</strong> Not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-f  | -F</td>
+     <td>
+      Turn on/off Schema full checking.<br/>
+      <strong>NOTE:</strong> Requires use of -s and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-hs | -HS</td>
+     <td>
+      Turn on/off honouring of all schema locations.<br/>
+      <strong>NOTE:</strong> Requires use of -s and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-va | -VA</td>
+     <td>
+      Turn on/off validation of schema annotations.<br/>
+      <strong>NOTE:</strong> Requires use of -s and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-dv | -DV</td>
+     <td>
+      Turn on/off dynamic validation.<br/>
+      <strong>NOTE:</strong> Not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-xi | -XI</td>
+     <td>
+      Turn on/off XInclude processing.<br/>
+      <strong>NOTE:</strong> Not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-xb | -XB</td>
+     <td>
+      Turn on/off base URI fixup during XInclude processing.<br/>
+      <strong>NOTE:</strong> Requires use of -xi and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-xl | -XL</td>
+     <td>
+      Turn on/off language fixup during XInclude processing.<br/>
+      <strong>NOTE:</strong> Requires use of -xi and not supported by all parsers.
+     </td>
+    </tr>
+    <tr><td>-m  | -M</td><td>Turn on/off memory usage report.</td></tr>
+    <tr><td>-t  | -T</td><td>Turn on/off \"tagginess\" report.</td></tr>
+    <tr>
+     <td>--rem text</td>
+     <td>Output user defined comment before next parse.</td>
+    </tr>
+    <tr><td>-h</td><td>Display help screen.</td></tr>
+   </table>
+  </s3>
+  <s3 title='notes'>
+   <p>
+    The speed and memory results from this program should NOT be 
+    used as the basis of parser performance comparison! Real 
+    analytical methods should be used. For better results, perform
+    multiple document parses within the same virtual machine to 
+    remove class loading from parse time and memory usage.
+   </p>
+   <p>
+    The "tagginess" measurement gives a rough estimate of the 
+    percentage of markup versus content in the XML document. The 
+    percent tagginess of a document is equal to the minimum amount 
+    of tag characters required for elements, attributes, and 
+    processing instructions divided by the total amount of 
+    characters (characters, ignorable whitespace, and tag characters)
+    in the document.
+   </p>
+   <p>
+    Not all features are supported by different parsers.
+   </p>
+  </s3>
+ </s2>
+ <anchor name='DocumentTracer'/>
+ <s2 title='Sample sax.DocumentTracer'>
+  <p>
+   Provides a complete trace of SAX2 events for files parsed. This is
+   useful for making sure that a SAX parser implementation faithfully
+   communicates all information in the document to the SAX handlers.
+  </p>
+  <s3 title='usage'>
+   <source>java sax.DocumentTracer (options) uri ...</source>
+  </s3>
+  <s3 title='options'>
+   <table>
+    <tr><th>Option</th><th>Description</th></tr>
+    <tr><td>-p name</td><td>Select parser by name.</td></tr>
+    <tr><td>-n | -N</td><td>Turn on/off namespace processing.</td></tr>
+    <tr>
+     <td>-np | -NP</td>
+     <td>
+      Turn on/off namespace prefixes.<br/>
+      <strong>NOTE:</strong> Requires use of -n.
+     </td>
+    </tr>
+    <tr><td>-v | -V</td><td>Turn on/off validation.</td></tr>
+    <tr>
+     <td>-xd | -XD</td>
+     <td>
+      Turn on/off loading of external DTDs.<br/>
+      <strong>NOTE:</strong> Always on when -v in use and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-s | -S</td>
+     <td>
+      Turn on/off Schema validation support.<br/>
+      <strong>NOTE:</strong> Not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-f  | -F</td>
+     <td>
+      Turn on/off Schema full checking.<br/>
+      <strong>NOTE:</strong> Requires use of -s and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-hs | -HS</td>
+     <td>
+      Turn on/off honouring of all schema locations.<br/>
+      <strong>NOTE:</strong> Requires use of -s and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-va | -VA</td>
+     <td>
+      Turn on/off validation of schema annotations.<br/>
+      <strong>NOTE:</strong> Requires use of -s and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-dv | -DV</td>
+     <td>
+      Turn on/off dynamic validation.<br/>
+      <strong>NOTE:</strong> Not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-xi | -XI</td>
+     <td>
+      Turn on/off XInclude processing.<br/>
+      <strong>NOTE:</strong> Not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-xb | -XB</td>
+     <td>
+      Turn on/off base URI fixup during XInclude processing.<br/>
+      <strong>NOTE:</strong> Requires use of -xi and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-xl | -XL</td>
+     <td>
+      Turn on/off language fixup during XInclude processing.<br/>
+      <strong>NOTE:</strong> Requires use of -xi and not supported by all parsers.
+     </td>
+    </tr>
+    <tr><td>-h</td><td>Display help screen.</td></tr>
+   </table>
+  </s3>
+ </s2>
+ <anchor name='Writer'/>
+ <s2 title='Sample sax.Writer'>
+  <p>
+   A sample SAX2 writer. This sample program illustrates how to
+   register a SAX2 ContentHandler and receive the callbacks in
+   order to print a document that is parsed.
+  </p>
+  <s3 title='usage'>
+   <source>java sax.Writer (options) uri ...</source>
+  </s3>
+  <s3 title='options'>
+   <table>
+    <tr><th>Option</th><th>Description</th></tr>
+    <tr><td>-p name</td><td>Select parser by name.</td></tr>
+    <tr><td>-n | -N</td><td>Turn on/off namespace processing.</td></tr>
+    <tr>
+     <td>-np | -NP</td>
+     <td>
+      Turn on/off namespace prefixes.<br/>
+      <strong>NOTE:</strong> Requires use of -n.
+     </td>
+    </tr>
+    <tr><td>-v | -V</td><td>Turn on/off validation.</td></tr>
+    <tr>
+     <td>-xd | -XD</td>
+     <td>
+      Turn on/off loading of external DTDs.<br/>
+      <strong>NOTE:</strong> Always on when -v in use and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-s | -S</td>
+     <td>
+      Turn on/off Schema validation support.<br/>
+      <strong>NOTE:</strong> Not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-f  | -F</td>
+     <td>
+      Turn on/off Schema full checking.<br/>
+      <strong>NOTE:</strong> Requires use of -s and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-hs | -HS</td>
+     <td>
+      Turn on/off honouring of all schema locations.<br/>
+      <strong>NOTE:</strong> Requires use of -s and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-va | -VA</td>
+     <td>
+      Turn on/off validation of schema annotations.<br/>
+      <strong>NOTE:</strong> Requires use of -s and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-ga | -GA</td>
+     <td>
+      Turn on/off generation of synthetic schema annotations.<br/>
+      <strong>NOTE:</strong> Requires use of -s and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-dv | -DV</td>
+     <td>
+      Turn on/off dynamic validation.<br/>
+      <strong>NOTE:</strong> Not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-xi | -XI</td>
+     <td>
+      Turn on/off XInclude processing.<br/>
+      <strong>NOTE:</strong> Not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-xb | -XB</td>
+     <td>
+      Turn on/off base URI fixup during XInclude processing.<br/>
+      <strong>NOTE:</strong> Requires use of -xi and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-xl | -XL</td>
+     <td>
+      Turn on/off language fixup during XInclude processing.<br/>
+      <strong>NOTE:</strong> Requires use of -xi and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-c | -C</td>
+     <td>
+      Turn on/off Canonical XML output.<br/>
+      <strong>NOTE:</strong> This is not W3C canonical output.
+     </td>
+    </tr>
+    <tr><td>-h</td><td>Display help screen.</td></tr>
+   </table>
+  </s3>
+ </s2>
+</s1>

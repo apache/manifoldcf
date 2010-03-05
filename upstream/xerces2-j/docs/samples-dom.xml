@@ -1,0 +1,407 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<!DOCTYPE s1 SYSTEM 'dtd/document.dtd'>
+<s1 title='DOM Samples'>
+ <s2 title='Overview'>
+  <p>
+   This page documents the various Document Object Model (DOM)
+   samples included with Xerces. Besides being useful programs,
+   they can be used as DOM programming examples to learn how to
+   program using the DOM API.
+  </p>
+  <p>Basic DOM samples:</p>
+  <ul>
+   <li><link anchor='Counter'>dom.Counter</link></li>
+   <!--
+     - Should the following samples be removed? rewritten? revamped?
+   <li><link anchor='DOMGenerate'>dom.DOMGenerate</link></li>
+   -->
+   <li><link anchor='GetElementsByTagName'>dom.GetElementsByTagName</link></li>
+   <li><link anchor='Writer'>dom.Writer</link></li>
+   <!-- <li><link anchor='ASBuilder'>dom.ASBuilder</link></li> -->
+   <li><link anchor='DOM3'>dom.DOM3</link></li>
+   <li><link anchor='DOMAddLines'>dom.DOMAddLines</link></li>
+  </ul>
+  <!--
+    - These samples should be redone.
+  <p>DOM Traversal samples:</p>
+  <ul>
+   <li><link anchor='IteratorView'>dom.traversal.IteratorView</link></li>
+   <li><link anchor='NameNodeFilter'>dom.traversal.NameNodeFilter</link></li>
+   <li><link anchor='TreeWalkerView'>dom.traversal.TreeWalkerView</link></li>
+  </ul>
+  -->
+  <p>
+   Most of the DOM parser samples have a command line option that
+   allows the user to specify a different DOM parser to use. In
+   order to supply another DOM parser besides the default Xerces
+   <code>DOMParser</code>, a DOM parser wrapper class must be written.
+   This class must implement the <code>dom.ParserWrapper</code>
+   interface.
+  </p>
+  <note>
+   JAXP could be used instead of the special DOM parser wrapper
+   class. However, that feature is not implemented at this time.
+   Using JAXP would require the user to specify the
+   <code>-Djavax.xml.parsers.DocumentBuilderFactory=...</code>
+   option to the virtual machine in order to use a different
+   document builder factory.
+  </note>
+ </s2>
+ <anchor name='Counter'/>
+ <s2 title='Sample dom.Counter'>
+  <p>
+   A sample DOM counter. This sample program illustrates how to
+   traverse a DOM tree in order to get information about the document.
+   The output of this program shows the time and count of elements,
+   attributes, ignorable whitespaces, and characters appearing in
+   the document. Three times are shown: the parse time, the first
+   traversal of the document, and the second traversal of the tree.
+  </p>
+  <p>
+   This class is useful as a "poor-man's" performance tester to
+   compare the speed and accuracy of various DOM parsers. However,
+   it is important to note that the first parse time of a parser
+   will include both VM class load time and parser initialization
+   that would not be present in subsequent parses with the same
+   file. 
+  </p>
+  <note>
+   The results produced by this program should never be accepted as
+   true performance measurements.
+  </note>
+  <s3 title='usage'>
+   <source>java dom.Counter (options) uri ...</source>
+  </s3>
+  <s3 title='options'>
+   <table>
+    <tr><th>Option</th><th>Description</th></tr>
+    <tr><td>-p name</td><td>Select parser wrapper by name.</td></tr>
+    <tr><td>-x number</td><td>Select number of repetitions.</td></tr>
+    <tr><td>-n  | -N</td><td>Turn on/off namespace processing.</td></tr>
+    <tr><td>-v  | -V</td><td>Turn on/off validation.</td></tr>
+    <tr>
+     <td>-s  | -S</td>
+     <td>
+      Turn on/off Schema validation support.<br/>
+      <strong>NOTE:</strong> Not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-f  | -F</td>
+     <td>
+      Turn on/off Schema full checking.<br/>
+      <strong>NOTE:</strong> Requires use of -s and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-hs | -HS</td>
+     <td>
+      Turn on/off honouring of all schema locations.<br/>
+      <strong>NOTE:</strong> Requires use of -s and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-va | -VA</td>
+     <td>
+      Turn on/off validation of schema annotations.<br/>
+      <strong>NOTE:</strong> Requires use of -s and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-dv | -DV</td>
+     <td>
+      Turn on/off dynamic validation.<br/>
+      <strong>NOTE:</strong> Not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-xi | -XI</td>
+     <td>
+      Turn on/off XInclude processing.<br/>
+      <strong>NOTE:</strong> Not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-xb | -XB</td>
+     <td>
+      Turn on/off base URI fixup during XInclude processing.<br/>
+      <strong>NOTE:</strong> Requires use of -xi and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-xl | -XL</td>
+     <td>
+      Turn on/off language fixup during XInclude processing.<br/>
+      <strong>NOTE:</strong> Requires use of -xi and not supported by all parsers.
+     </td>
+    </tr>
+    <tr><td>-h</td><td>Display help screen.</td></tr>
+   </table>
+  </s3>
+ </s2>
+ <!--
+   - Should the following samples be removed? rewritten? revamped?
+ <anchor name='DOMGenerate'/>
+ <s2 title='Sample dom.DOMGenerate'>
+  <p>TODO</p>
+ </s2>
+ -->
+ <anchor name='GetElementsByTagName'/>
+ <s2 title='Sample dom.GetElementsByTagName'>
+  <p>
+   A sample DOM filter. This sample program illustrates how to
+   use the <code>Document#getElementsByTagName()</code> method 
+   to quickly and easily locate elements by name.
+  </p>
+  <s3 title='usage'>
+   <source>java dom.GetElementsByTagName (options) uri ...</source>
+  </s3>
+  <s3 title='options'>
+   <table>
+    <tr><th>Option</th><th>Description</th></tr>
+    <tr><td>-p name</td><td>Select parser wrapper by name.</td></tr>
+    <tr><td>-e name</td><td>Specify element name for search.</td></tr>
+    <tr><td>-a name</td><td>Specify attribute name for specified elements.</td></tr>
+    <tr><td>-n | -N</td><td>Turn on/off namespace processing.</td></tr>
+    <tr><td>-v | -V</td><td>Turn on/off validation.</td></tr>
+    <tr>
+     <td>-s | -S</td>
+     <td>
+      Turn on/off Schema validation support.<br/>
+     <strong>NOTE:</strong> Not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-f  | -F</td>
+     <td>
+      Turn on/off Schema full checking.<br/>
+      <strong>NOTE:</strong> Requires use of -s and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-hs | -HS</td>
+     <td>
+      Turn on/off honouring of all schema locations.<br/>
+      <strong>NOTE:</strong> Requires use of -s and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-va | -VA</td>
+     <td>
+      Turn on/off validation of schema annotations.<br/>
+      <strong>NOTE:</strong> Requires use of -s and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-dv | -DV</td>
+     <td>
+      Turn on/off dynamic validation.<br/>
+      <strong>NOTE:</strong> Not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-xi | -XI</td>
+     <td>
+      Turn on/off XInclude processing.<br/>
+      <strong>NOTE:</strong> Not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-xb | -XB</td>
+     <td>
+      Turn on/off base URI fixup during XInclude processing.<br/>
+      <strong>NOTE:</strong> Requires use of -xi and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-xl | -XL</td>
+     <td>
+      Turn on/off language fixup during XInclude processing.<br/>
+      <strong>NOTE:</strong> Requires use of -xi and not supported by all parsers.
+     </td>
+    </tr>
+    <tr><td>-h</td><td>Display help screen.</td></tr>
+   </table>
+  </s3>
+ </s2>
+ <anchor name='Writer'/>
+ <s2 title='Sample dom.Writer'>
+  <p>
+   A sample DOM writer. This sample program illustrates how to
+   traverse a DOM tree in order to print a document that is parsed.
+  </p>
+  <s3 title='usage'>
+   <source>java dom.Writer (options) uri ...</source>
+  </s3>
+  <s3 title='options'>
+   <table>
+    <tr><td>-p name</td><td>Select parser wrapper by name.</td></tr>
+    <tr><td>-n | -N</td><td>Turn on/off namespace processing.</td></tr>
+    <tr><td>-v | -V</td><td>Turn on/off validation.</td></tr>
+    <tr>
+     <td>-xd | -XD</td>
+     <td>
+      Turn on/off loading of external DTDs.<br/>
+      <strong>NOTE:</strong> Always on when -v in use and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-s | -S</td>
+     <td>
+      Turn on/off Schema validation support.<br/>
+      <strong>NOTE:</strong> Not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-f  | -F</td>
+     <td>
+      Turn on/off Schema full checking.<br/>
+      <strong>NOTE:</strong> Requires use of -s and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-hs | -HS</td>
+     <td>
+      Turn on/off honouring of all schema locations.<br/>
+      <strong>NOTE:</strong> Requires use of -s and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-va | -VA</td>
+     <td>
+      Turn on/off validation of schema annotations.<br/>
+      <strong>NOTE:</strong> Requires use of -s and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-ga | -GA</td>
+     <td>
+      Turn on/off generation of synthetic schema annotations.<br/>
+      <strong>NOTE:</strong> Requires use of -s and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-dv | -DV</td>
+     <td>
+      Turn on/off dynamic validation.<br/>
+      <strong>NOTE:</strong> Not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-xi | -XI</td>
+     <td>
+      Turn on/off XInclude processing.<br/>
+      <strong>NOTE:</strong> Not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-xb | -XB</td>
+     <td>
+      Turn on/off base URI fixup during XInclude processing.<br/>
+      <strong>NOTE:</strong> Requires use of -xi and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-xl | -XL</td>
+     <td>
+      Turn on/off language fixup during XInclude processing.<br/>
+      <strong>NOTE:</strong> Requires use of -xi and not supported by all parsers.
+     </td>
+    </tr>
+    <tr>
+     <td>-c | -C</td>
+     <td>
+      Turn on/off Canonical XML output.<br/>
+      <strong>NOTE:</strong> This is not W3C canonical output.
+     </td>
+    </tr>
+    <tr><td>-h</td><td>Display help screen.</td></tr>
+   </table>
+  </s3>
+ </s2>
+
+<!--
+ <anchor name='ASBuilder'/>
+ <s2 title='Sample dom.ASBuilder'>
+  <p>
+   This sample program illustrates how to preparse xml schema
+   documents and how to validate instance documents against
+   preparsed schema grammars.
+  </p>
+  <note>The Abstract Schema module implementation is <code>deprecated</code>. You should use 
+        Xerces Grammar caching functionality to pre-parse schemas.</note>
+  <s3 title='usage'>
+   <source>java dom.ASBuilder [-f|-F] -a uri ... [-i uri ...]</source>
+  </s3>
+  <s3 title='options'>
+   <table>
+    <tr><td>-f | -F</td><td>Turn on/off schema full checking.</td></tr>
+    <tr><td>-a uri ...</td><td>Provide a list of schema documents.</td></tr>
+    <tr><td>-i uri ...</td><td>Provide a list of instance documents to validate.</td></tr>
+   </table>
+  </s3>
+ </s2> -->
+
+ <anchor name='DOM3'/>
+ <s2 title='Sample dom.DOM3'>
+  <p>This sample program illustrates how to use the DOM Level 3 API.</p>
+
+  <s3 title='usage'>
+   <source>java dom.DOM3 uri</source>
+  </s3>
+ </s2>
+
+ <anchor name='DOMAddLines'/>
+ <s2 title='Sample dom.DOMAddLines'>
+  <p>
+    A sample of Adding lines to the DOM Node. This sample program illustrates:
+  </p>
+  <ul>
+    <li>How to override methods from  DocumentHandler ( XMLDocumentHandler)</li>
+    <li>How to turn off ignorable white spaces by overriding ignorableWhiteSpace</li>
+    <li>How to use the SAX Locator to return row position (line number of DOM element)</li>
+    <li>How to attach user defined Objects to Nodes using the DOM Level 3 setUserData method.</li>
+  </ul>
+ <s3 title='usage'>
+   <source>java dom.DOMAddLines (options) uri ...</source>
+  </s3>
+  <s3 title='options'>
+   <table>
+    <tr><th>Option</th><th>Description</th></tr>
+    <tr><td>-h</td><td>Display help screen.</td></tr>
+    <tr><td>-i</td><td>Don't print ignorable white spaces.</td></tr>
+   </table>
+  </s3>
+ </s2>
+ <!--
+    These samples should be redone.
+ <anchor name='IteratorView'/>
+ <s2 title='Sample dom.traversal.IteratorView'>
+  <p>TODO</p>
+ </s2>
+ <anchor name='NameNodeFilter'/>
+ <s2 title='Sample dom.traversal.NameNodeFilter'>
+  <p>TODO</p>
+ </s2>
+ <anchor name='TreeWalkerView'/>
+ <s2 title='Sample dom.traversal.TreeWalkerView'>
+  <p>TODO</p>
+ </s2>
+ -->
+</s1>

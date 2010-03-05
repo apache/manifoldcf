@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<letter xmlns:xml="http://www.w3.org/XML/1998/namespace">
+  <address>
+    <street>
+        <streetNum/>
+        <streetName/>
+    </street>
+    <city></city>
+    <country xml:base="http://country.com"/>
+  </address>
+  <body xml:base="http://paragraph.com">
+    <p1>
+      <header>Abstract</header>
+      <text/>
+      <header xml:base="http://paragraph.com2">Introduction</header>
+      <text/>
+    </p1>
+  </body>
+</letter>

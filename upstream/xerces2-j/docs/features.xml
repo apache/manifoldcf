@@ -1,0 +1,743 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<!DOCTYPE features SYSTEM 'dtd/settings.dtd'>
+<features>
+ <desc name='Setting Features'>
+  <p>
+   If you have created a DOM document builder or a SAX parser using
+   the JAXP interfaces, the following instructions tell you how to
+   set features on document builders and SAX parsers created from
+   the JAXP interfaces.
+  </p>
+  <p>
+   The DocumentBuilderFactory interface contains a 
+   <code>setFeature(String,boolean)</code> method which 
+   can be used to set features on the underlying parser.
+   For example:
+  </p>
+  <source>import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.DocumentBuilder;
+  
+DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+dbf.setNamespaceAware(true);
+
+try {
+    dbf.setFeature("http://apache.org/xml/features/allow-java-encodings", 
+                   true);
+} 
+catch (ParserConfigurationException e) {
+    System.err.println("could not set parser feature");
+}</source>
+  <p>
+   The SAXParserFactory interface contains a
+   <code>setFeature(String,boolean)</code> method which can be used
+   to set features on the underlying implementation of <code>XMLReader</code>.
+   Once you create the SAXParser you can retrieve the underlying
+   <code>XMLReader</code> allowing you to set and query features on it directly.
+   For example:
+  </p>
+  <source>import javax.xml.parsers.SAXParser;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
+
+SAXParser parser = /* created from SAXParserFactory */;
+XMLReader reader = parser.getXMLReader();
+try {
+    reader.setFeature("http://xml.org/sax/features/allow-java-encodings", 
+                      true);
+} 
+catch (SAXException e) {
+    System.err.println("could not set parser feature");
+}</source>
+ </desc>
+ <fcategory name='General Features'>
+  <feature name='http://xml.org/sax/features/namespaces'
+           id='namespaces'>
+   <true>
+    Perform namespace processing: prefixes will be stripped off 
+    element and attribute names and replaced with the corresponding 
+    namespace URIs. By default, the two will simply be concatenated, 
+    but the namespace-sep core property allows the application to 
+    specify a delimiter string for separating the URI part and the 
+    local part.
+   </true>
+   <false>Do not perform namespace processing.</false>
+   <default value='true'/>
+   <access parsing='read-only' not-parsing='read-write'/>
+   <note>
+    If the validation feature is set to true, then the document 
+    must contain a grammar that supports the use of namespaces.
+   </note>
+   <see idref='namespace-prefixes'/>
+   <see idref='validation'/>
+  </feature>
+  <feature name='http://xml.org/sax/features/use-entity-resolver2'
+           id='use-entity-resolver2'>
+   <true>
+    The methods of the org.xml.sax.ext.EntityResolver2 interface will be used when an object implementing
+    this interface is registered with the parser using setEntityResolver.
+   </true>
+   <false>
+    The methods of the org.xml.sax.ext.EntityResolver2 interface will not be used.
+   </false>
+   <default value='true'/>
+   <access general='read-write'/>
+   <since value='&ParserName; 2.7.0'/>
+   <note>
+    If the <link anchor="disallow-doctype-decl">disallow DOCTYPE declaration</link> feature is set to true
+    org.xml.sax.ext.EntityResolver2.getExternalSubset() will not be called when the document contains no
+    DOCTYPE declaration.
+   </note>
+   <see idref='disallow-doctype-decl'/>
+   <see idref='validation'/>
+   <see idref='nonvalidating.load-external-dtd'/>
+  </feature>
+  <feature name='http://xml.org/sax/features/validation' 
+           id='validation'>
+   <true>Validate the document and report validity errors.</true>
+   <false>Do not report validity errors.</false>
+   <default value='false'/>
+   <access parsing='read-only' not-parsing='read-write'/>
+   <note>
+    If this feature is set to true, the document must specify 
+    a grammar. By default, validation will occur against DTD. For more information, please, refer to the  <link idref='faq-pcfp'>FAQ</link>.
+    If this feature is set to false, and document specifies a grammar 
+    that grammar might be parsed but no validation of the document contents 
+    will be performed.
+   </note>
+   <see idref='validation.dynamic'/>
+   <see idref='namespaces'/>
+   <see idref='nonvalidating.load-external-dtd'/>
+  </feature>
+  <feature name='http://apache.org/xml/features/validation/dynamic'
+           id='validation.dynamic'>
+   <true>
+    The parser will validate the document only if a grammar is 
+    specified.
+   </true>
+   <false>
+    Validation is determined by the state of the <ref>validation</ref>
+    feature.  
+   </false>
+   <default value='false'/>
+   <see idref='validation'/>
+  </feature>
+  <feature name='http://apache.org/xml/features/validation/schema'
+           id='validation.schema'>
+   <true>Turn on XML Schema validation by inserting an XML Schema validator into the pipeline.
+   </true>
+   <false>Do not report validation errors against XML Schema.</false>
+   <default value='false'/>   
+   <access parsing='read-only' not-parsing='read-write'/>
+   <note> Validation errors will only be reported if the <link anchor="validation">validation feature</link> is set to true. For more information, please, refer to the <link idref='faq-pcfp'>FAQ</link>
+   </note>
+   <note> 
+    Checking of constraints on a schema grammar which are either time-consuming or memory intensive
+    such as unique particle attribution will only occur if the
+    <link anchor="validation.schema-full-checking">schema full checking feature</link> is set to true.
+   </note>  
+   <see idref='validation'/>
+   <see idref='validation.dynamic'/>
+   <see idref='namespaces'/>
+  </feature>
+  <feature name='http://apache.org/xml/features/validation/schema-full-checking'
+           id='validation.schema-full-checking'>
+   <true>
+    Enable full schema grammar constraint checking, including checking 
+    which may be time-consuming or memory intensive. Currently, unique
+    particle attribution constraint checking and particle derivation 
+    restriction checking are controlled by this option. 
+   </true>
+   <false>Disable full constraint checking.</false>
+   <default value='false'/>
+   <note>
+    This feature checks the Schema grammar itself for additional 
+    errors that are time-consuming or memory intensive. It does
+    <strong>not</strong> affect the level of checking performed on
+    document instances that use Schema grammars.
+   </note>
+  </feature>
+    
+  <feature name='http://apache.org/xml/features/validation/schema/normalized-value'
+           id='validation.schema.normalized-value'>
+   <true>Expose via SAX and DOM XML Schema normalized values for attributes and elements.
+   </true>
+   <false>Expose the infoset values</false>
+   <default value='true'/>   
+   <access parsing='read-only' not-parsing='read-write'/>
+   <note> XML Schema normalized values will be exposed only if 
+          both <link anchor="validation.schema">schema validation</link> and
+          <link anchor="validation">validation</link> features are set to true. 
+   </note>  
+   <see idref='validation'/>
+   <see idref='validation.schema'/> 
+   <see idref='validation.schema.element-default'/>
+  </feature>
+  
+   <feature name='http://apache.org/xml/features/validation/schema/element-default'
+           id='validation.schema.element-default'>
+   <true>Send XML Schema element default values via characters().
+   </true>
+   <false>Do not send XML Schema default values in XNI</false>
+   <default value='true'/>   
+   <access parsing='read-only' not-parsing='read-write'/>
+   <note> XML Schema default values will be send via characters() if both <link anchor="validation.schema">schema validation</link> and
+          <link anchor="validation">validation</link> features are set to true.
+   </note>  
+   <see idref='validation'/>
+   <see idref='validation.schema'/>
+   <see idref='validation.schema.normalized-value'/>
+  </feature>
+
+  <feature name='http://apache.org/xml/features/validation/schema/augment-psvi'
+           id='validation.schema.augment-psvi'>
+   <true>Augment Post-Schema-Validation-Infoset.</true>
+   <false>Do not augment Post-Schema-Validation-Infoset.</false>
+   <default value='true'/>
+   <access parsing='read-only' not-parsing='read-write'/>
+   <note> This feature can be turned off to improve parsing performance. 
+   </note>  
+   <see idref='validation'/>
+   <see idref='validation.schema'/> 
+  </feature>
+  
+  <feature name='http://apache.org/xml/features/validation/schema/ignore-xsi-type-until-elemdecl'
+           id='validation.schema.ignore-xsi-type-until-elemdecl'>
+   <true>xsi:type attributes will be ignored until a global element declaration has been found, at which point xsi:type attributes will be processed on the element for which the global element declaration was found as well as its descendants.</true>
+   <false>Do not ignore xsi:type attributes.</false>
+   <default value='false'/>
+   <access parsing='read-only' not-parsing='read-write'/>
+   <since value='&ParserName; 2.8.0'/>
+   <see idref='validation'/>
+   <see idref='validation.schema'/>
+  </feature>
+  
+  <feature name='http://apache.org/xml/features/generate-synthetic-annotations'
+           id='generate-synthetic-annotations'>
+   <true>Enable generation of synthetic annotations. A synthetic annotation will be generated when a schema component has non-schema attributes but no child annotation.</true>
+   <false>Do not generate synthetic annotations.</false>
+   <default value='false'/>
+   <access parsing='read-only' not-parsing='read-write'/>
+   <since value='&ParserName; 2.7.0'/>
+   <see idref='validation'/>
+   <see idref='validation.schema'/>
+   <see idref='validate-annotations'/>
+  </feature>
+  
+  <feature name='http://apache.org/xml/features/validate-annotations'
+           id='validate-annotations'>
+   <true>Schema annotations will be laxly validated against available schema components.</true>
+   <false>Do not validate schema annotations.</false>
+   <default value='false'/>
+   <access parsing='read-only' not-parsing='read-write'/>
+   <since value='&ParserName; 2.7.0'/>
+   <see idref='validation'/>
+   <see idref='validation.schema'/>
+   <see idref='generate-synthetic-annotations'/>
+  </feature>
+  
+  <feature name='http://apache.org/xml/features/honour-all-schemaLocations'
+           id='honour-all-schemaLocations'>
+    <true>All schema location hints will be used to locate the components for a given target namespace.</true>
+    <false>Only the first schema location hint encountered by the processor will be used to locate the components for a given target namespace.</false>
+    <default value='false'/>
+    <access parsing='read-only' not-parsing='read-write'/>
+    <since value='&ParserName; 2.7.0'/>
+  </feature>
+
+  <feature name='http://xml.org/sax/features/external-general-entities'
+           id='external-general-entities'>
+   <true>Include external general entities.</true>
+   <false>Do not include external general entities.</false>
+   <default value='true'/>
+   <access parsing='read-only' not-parsing='read-write'/>
+   <see idref='external-parameter-entities'/>
+  </feature>
+  <feature name='http://xml.org/sax/features/external-parameter-entities'
+           id='external-parameter-entities'>
+   <true>
+    Include external parameter entities and the external DTD subset.
+   </true>
+   <false>
+    Do not include external parameter entities or the external DTD subset.
+   </false>
+   <default value='true'/>
+   <access parsing='read-only' not-parsing='read-write'/>
+   <see idref='external-general-entities'/>
+  </feature>
+  <feature name='http://apache.org/xml/features/validation/balance-syntax-trees'
+           id='validation.balance-syntax-trees'>
+   <true>Construct an optimal representation for DTD content models to significantly 
+         reduce the likelihood a StackOverflowError will occur when large content 
+         models are processed.</true>
+   <false>
+    Do not invest processing time to construct an optimal representation for DTD content models.
+   </false>
+   <default value='false'/>
+   <access parsing='read-only' not-parsing='read-write'/>
+   <since value='&ParserName; 2.8.0'/>
+   <note>
+    Enabling this feature may cost your application some performance when DTDs are 
+    processed so it is recommended that it only be turned on when necessary.
+   </note>
+  </feature>
+  <feature name='http://apache.org/xml/features/validation/id-idref-checking'
+           id='validation.id-idref-checking'>
+   <true>Enable checking of ID/IDREF constraints.</true>
+   <false>
+    Disable checking of ID/IDREF constraints. Validation will not fail if 
+    there are non-unique ID values or dangling IDREF values in the document.
+   </false>
+   <default value='true'/>
+   <access parsing='read-only' not-parsing='read-write'/>
+   <since value='&ParserName; 2.8.0'/>
+   <note>This feature only applies to schema validation.</note>
+   <see idref='validation'/>
+   <see idref='validation.schema'/>
+  </feature>
+  <feature name='http://apache.org/xml/features/validation/identity-constraint-checking'
+           id='validation.identity-constraint-checking'>
+   <true>Enable identity constraint checking.</true>
+   <false>Disable identity constraint checking.</false>
+   <default value='true'/>
+   <access parsing='read-only' not-parsing='read-write'/>
+   <since value='&ParserName; 2.8.0'/>
+   <see idref='validation'/>
+   <see idref='validation.schema'/>
+  </feature>
+  <feature name='http://apache.org/xml/features/validation/unparsed-entity-checking'
+           id='validation.unparsed-entity-checking'>
+   <true>Check that each value of type ENTITY matches the name of an unparsed entity declared in the DTD.</true>
+   <false>Do not check that each value of type ENTITY matches the name of an unparsed entity declared in the DTD.</false>
+   <default value='true'/>
+   <access parsing='read-only' not-parsing='read-write'/>
+   <since value='&ParserName; 2.8.0'/>
+   <note>This feature only applies to schema validation.</note>
+   <see idref='validation'/>
+   <see idref='validation.schema'/>
+  </feature>
+  <feature name='http://apache.org/xml/features/validation/warn-on-duplicate-attdef'
+           id='validation.warn-on-duplicate-attdef'>
+   <true>Report a warning when a duplicate attribute is re-declared.</true>
+   <false>
+    Do not report a warning when a duplicate attribute is re-declared.
+   </false>
+   <default value='false'/>
+  </feature>
+  <feature name='http://apache.org/xml/features/validation/warn-on-undeclared-elemdef'
+           id='validation.warn-on-undeclared-elemdef'>
+   <true>
+    Report a warning if an element referenced in a content model is 
+    not declared.
+   </true>
+   <false>
+    Do not report a warning if an element referenced in a content model
+    is not declared.  
+   </false>
+   <default value='false'/>
+  </feature>
+  
+  <feature name='http://apache.org/xml/features/warn-on-duplicate-entitydef'
+           id='warn-on-duplicate-entitydef'>
+   <true>Report a warning for duplicate entity declaration.</true>
+   <false>
+    Do not report warning for duplicate entity declaration.
+   </false>
+   <default value='false'/>
+  </feature>
+  
+  <feature name='http://apache.org/xml/features/allow-java-encodings'
+           id='allow-java-encodings'>
+   <true>Allow Java encoding names in XMLDecl and TextDecl line.</true>
+   <false>
+    Do not allow Java encoding names in XMLDecl and TextDecl line.
+   </false>
+   <default value='false'/>
+   <note>
+    A true value for this feature allows the encoding of the file to
+    be specified as a Java encoding name as well as the standard ISO
+    encoding name. Be aware that other parsers may not be able to use
+    Java encoding names. If this feature is set to false, an error 
+    will be generated if Java encoding names are used.  
+   </note>
+  </feature>
+  <feature name='http://apache.org/xml/features/continue-after-fatal-error'
+           id='continue-after-fatal-error'>
+   <true>Attempt to continue parsing after a fatal error.</true>
+   <false>Stops parse on first fatal error.</false>
+   <default value='false'/>
+   <note>
+    The behavior of the parser when this feature is set to 
+    <code>true</code> is <strong>undetermined</strong>! Therefore use
+    this feature with extreme caution because the parser may get stuck
+    in an infinite loop or worse.
+   </note>
+  </feature>
+  <feature name='http://apache.org/xml/features/nonvalidating/load-dtd-grammar'
+           id='nonvalidating.load-dtd-grammar'>
+   <true>
+    Load the DTD and use it to add default attributes and set attribute 
+    types when parsing.
+   </true>
+   <false>
+    Build the grammar but do not use the default attributes and attribute
+    types information it contains.
+   </false>
+   <default value='true'/>
+   <note>This feature is always on when validation is on.</note>
+   <see idref='validation'/>
+   <see idref='nonvalidating.load-external-dtd'/>
+  </feature>
+  <feature name='http://apache.org/xml/features/nonvalidating/load-external-dtd'
+           id='nonvalidating.load-external-dtd'>
+   <true>Load the external DTD.</true>
+   <false>Ignore the external DTD completely.</false>
+   <default value='true'/>
+   <note>This feature is always on when validation is on.</note>
+   <see idref='validation'/>
+   <see idref='nonvalidating.load-dtd-grammar'/>
+  </feature>
+
+  <feature name='http://apache.org/xml/features/scanner/notify-char-refs'
+           id='scanner.notify-char-refs'>
+   <true>
+    Notifies the handler of character entity boundaries in the
+    document via the start/endEntity callbacks.
+   </true>
+   <false>Does not notify of character entity boundaries.</false>
+   <default value='false'/>
+   <see idref='scanner.notify-builtin-refs'/>
+  </feature>
+
+  <feature name='http://apache.org/xml/features/scanner/notify-builtin-refs'
+           id='scanner.notify-builtin-refs'>
+   <true>
+    Notifies the handler of built-in entity boundaries (e.g &amp;amp;)
+    in the document via the start/endEntity callbacks.
+   </true>
+   <false>Does not notify of built-in entity boundaries.</false>
+   <default value='false'/>
+   <see idref='scanner.notify-char-refs'/>
+  </feature>
+
+  <feature name='http://apache.org/xml/features/disallow-doctype-decl'
+           id='disallow-doctype-decl'>
+   <true>
+    A fatal error is thrown if the incoming document contains a DOCTYPE
+    declaration.
+   </true>
+   <false>DOCTYPE declaration is allowed.</false>
+   <default value='false'/>
+   <since value='&ParserName; 2.3.0'/>
+  </feature>
+
+  <feature name='http://apache.org/xml/features/standard-uri-conformant'
+           id='standard-uri-conformant'>
+   <true>Requires that a URI has to be provided where a URI is expected.</true>
+   <false>
+    Some invalid URI's are accepted as valid values when a URI is expected.
+    Examples include: using platform dependent file separator in place of '/';
+    using Windows/DOS path names like "c:\blah" and "\\host\dir\blah"; using
+    invalid URI characters (space, for example).
+   </false>
+   <default value='false'/>
+   <since value='&ParserName; 2.3.0'/>
+   <note>
+    It's recommended to set this feature to true if you want your
+    application/documents to be truly portable across different XML processors.
+   </note>
+  </feature>
+  
+  <feature name='http://apache.org/xml/features/xinclude'
+           id='xinclude'>
+   <true>Enable XInclude processing.</true>
+   <false>Do not perform XInclude processing.</false>
+   <default value='false'/>
+   <since value='&ParserName; 2.7.0'/>
+   <see idref='xinclude.fixup-base-uris'/>
+   <see idref='xinclude.fixup-language'/>
+  </feature>
+  
+  <feature name='http://apache.org/xml/features/xinclude/fixup-base-uris'
+           id='xinclude.fixup-base-uris'>
+   <true>Perform base URI fixup as specified by the XInclude Recommendation.</true>
+   <false>Do not perform base URI fixup. The XInclude processor will not add xml:base attributes.</false>
+   <default value='true'/>
+   <since value='&ParserName; 2.7.0'/>
+   <see idref='xinclude'/>
+  </feature>
+  
+  <feature name='http://apache.org/xml/features/xinclude/fixup-language'
+           id='xinclude.fixup-language'>
+   <true>Perform language fixup as specified by the XInclude Recommendation.</true>
+   <false>Do not perform language fixup. The XInclude processor will not add xml:lang attributes.</false>
+   <default value='true'/>
+   <since value='&ParserName; 2.7.0'/>
+   <see idref='xinclude'/>
+  </feature>
+ </fcategory>
+
+ <fcategory name='DOM Features'>
+  <feature name='http://apache.org/xml/features/dom/defer-node-expansion'
+           id="dom.defer-node-expansion">
+   <true>
+    Lazily expand the DOM nodes.
+   </true>
+   <false>
+    Fully expand the DOM nodes.
+   </false>
+   <default value='true**'/>
+   <note>In the <code>LSParser</code> implementation the default value of 
+    this feature is <strong>false</strong>. 
+   </note>
+   <note>
+<!--
+    This feature only applies when the <link idref="properties"
+    anchor="document-class-name">http://apache.org/xml/properties/dom/document-class-name</link>
+    property is set to a value other than the name of the default document
+    factory.
+-->
+    When this feature is set to true, the DOM nodes in the returned document
+    are expanded as the tree is traversed. This allows the parser to return a
+    document faster than if the tree is fully expanded during parsing and
+    improves memory usage when the whole tree is not traversed.
+    </note>
+
+  </feature>
+  <feature name='http://apache.org/xml/features/dom/create-entity-ref-nodes'
+           id='dom.create-entity-ref-nodes'>
+   <true>
+    Create <code>EntityReference</code> nodes in the DOM tree. The 
+    <code>EntityReference</code> nodes and their child nodes will be 
+    read-only.  
+   </true>
+   <false>
+    Do not create <code>EntityReference</code> nodes in the DOM tree. 
+    No <code>EntityReference</code> nodes will be created, only the 
+    nodes corresponding to their fully expanded substitution text will 
+    be created.  
+   </false>
+   <default value='true'/>
+   <note>
+    This feature only affects the appearance of <code>EntityReference</code>
+    nodes in the DOM tree. The document will always contain the entity
+    reference child nodes.  
+   </note>
+  </feature>
+  <feature name='http://apache.org/xml/features/dom/include-ignorable-whitespace'
+           id='dom.include-ignorable-whitespace'>
+   <true>
+    Include text nodes that can be considered "ignorable whitespace" in 
+    the DOM tree.
+   </true>
+   <false>Do not include ignorable whitespace in the DOM tree.</false>
+   <default value='true'/>
+   <note>
+    The only way that the parser can determine if text is ignorable 
+    is by reading the associated grammar and having a content model for
+    the document. When ignorable whitespace text nodes are included in 
+    the DOM tree, they will be flagged as ignorable. The ignorable flag
+    can be queried by calling the 
+    <code>Text#isElementContentWhitespace():boolean</code> method. 
+    This feature is relevant only when the grammar is <strong>DTD</strong>. 
+   </note>
+  </feature>
+ </fcategory>
+ <fcategory name='SAX Features'>
+  <feature name='http://xml.org/sax/features/namespace-prefixes'
+           id='namespace-prefixes'>
+   <true>
+    Report the original prefixed names and attributes used for namespace
+    declarations.
+   </true>
+   <false>
+    Do not report attributes used for Namespace declarations, and 
+    optionally do not report original prefixed names.
+   </false>
+   <default value='false'/>
+   <access parsing='read-only' not-parsing='read-write'/>
+  </feature>
+  <feature name='http://xml.org/sax/features/string-interning'
+           id='string-interning'>
+   <true>
+    All element names, prefixes, attribute names, namespace URIs, and
+    local names are internalized using the
+    <code>java.lang.String#intern(String):String</code> method.
+   </true>
+   <false>Names are not necessarily internalized.</false>
+   <default value='true'/>
+   <access parsing='read-only' not-parsing='read-write'/>
+   <note>
+    &ParserName; always internalizes all strings mentioned above
+    using the <code>String#intern()</code> method. This feature
+    can only be set to true.
+   </note>
+  </feature>
+  <feature name='http://xml.org/sax/features/lexical-handler/parameter-entities'
+           id='lexical-handler.parameter-entities'>
+   <true>
+    Report the beginning and end of parameter entities to a registered LexicalHandler.
+   </true>
+   <false>
+    Do not report the beginning and end of parameter entities to a registered LexicalHandler.
+   </false>
+   <default value='true'/>
+   <since value='&ParserName; 2.7.0'/>
+  </feature>
+  <feature name='http://xml.org/sax/features/is-standalone'
+           id='is-standalone'>
+   <true>
+    The document specified standalone="yes" in its XML declaration.
+   </true>
+   <false>
+    The document specified standalone="no" in its XML declaration or the 
+    standalone document declaration was absent.
+   </false>
+   <access parsing='read-only' not-parsing='none'/>
+   <since value='&ParserName; 2.7.0'/>
+  </feature>
+  <feature name='http://xml.org/sax/features/resolve-dtd-uris'
+           id='resolve-dtd-uris'>
+   <true>
+    The system identifiers passed to the notationDecl, unparsedEntityDecl, and 
+    externalEntityDecl events will be absolutized relative to their base URIs before reporting.
+   </true>
+   <false>
+    System identifiers in declarations will not be absolutized before reporting.
+   </false>
+   <default value='true'/>
+   <since value='&ParserName; 2.7.0'/>
+   <note>
+    This feature does not apply to EntityResolver.resolveEntity(), which is not used to report declarations, 
+    or to LexicalHandler.startDTD(), which already provides the non-absolutized URI.
+   </note>
+  </feature>
+  <feature name='http://xml.org/sax/features/unicode-normalization-checking'
+           id='unicode-normalization-checking'>
+   <true>
+    Perform Unicode normalization checking (as described in section 2.13 and Appendix B 
+    of the XML 1.1 Recommendation) and report normalization errors.
+   </true>
+   <false>
+    Do not report Unicode normalization errors.
+   </false>
+   <default value='false'/>
+   <since value='&ParserName; 2.7.0'/>
+   <note>
+    As there is currently no support for Unicode normalization checking, this 
+    feature can only be set to false.
+   </note>
+  </feature>
+  <feature name='http://xml.org/sax/features/use-attributes2'
+           id='use-attributes2'>
+   <true>
+    The Attributes objects passed by the parser in org.xml.sax.ContentHandler.startElement() implement the org.xml.sax.ext.Attributes2 interface.
+   </true>
+   <false>
+    The Attributes objects passed by the parser do not implement the org.xml.sax.ext.Attributes2 interface.
+   </false>
+   <access general='read-only'/>
+   <since value='&ParserName; 2.7.0'/>
+   <note>
+    Xerces-J will always report Attributes objects that also implement org.xml.sax.ext.Attributes2
+    so the value of this feature will always be true.
+   </note>
+  </feature>
+  <feature name='http://xml.org/sax/features/use-locator2'
+           id='use-locator2'>
+   <true>
+    The Locator objects passed by the parser in org.xml.sax.ContentHandler.setDocumentLocator() implement the org.xml.sax.ext.Locator2 interface.
+   </true>
+   <false>
+    The Locator objects passed by the parser do not implement the org.xml.sax.ext.Locator2 interface.
+   </false>
+   <access general='read-only'/>
+   <since value='&ParserName; 2.7.0'/>
+   <note>
+    Xerces-J will always report Locator objects that also implement org.xml.sax.ext.Locator2
+    so the value of this feature will always be true.
+   </note>
+  </feature>
+  <feature name='http://xml.org/sax/features/xmlns-uris'
+           id='xmlns-uris'>
+   <true>
+    When the namespace-prefixes feature is set to true, namespace declaration attributes
+    will be reported as being in the http://www.w3.org/2000/xmlns/ namespace.
+   </true>
+   <false>
+    Namespace declaration attributes are reported as having no namespace.
+   </false>
+   <default value='false'/>
+   <since value='&ParserName; 2.7.0'/>
+   <see idref='namespaces'/>
+   <see idref='namespace-prefixes'/>
+  </feature>
+  <feature name='http://xml.org/sax/features/xml-1.1'
+           id='xml-1.1'>
+   <true>
+    The parser supports both XML 1.0 and XML 1.1.
+   </true>
+   <false>
+    The parser supports only XML 1.0.
+   </false>
+   <access general='read-only'/>
+   <since value='&ParserName; 2.7.0'/>
+   <note>
+    The value of this feature will depend on whether the
+    parser configuration owned by the SAX parser is known
+    to support XML 1.1.
+   </note>
+  </feature>
+  
+ </fcategory>
+ <fcategory name='XInclude Features (Experimental)'>
+   <feature name='http://xml.org/sax/features/allow-dtd-events-after-endDTD'
+           id='allow-dtd-events-after-endDTD'>
+   <true>
+    Allows <code>notationDecl</code> and <code>unparsedEntityDecl</code> events to
+    be sent in the XNI pipeline after the <code>endDTD</code> event has been sent.
+   </true>
+   <false>
+    Ensures that <code>notationDecl</code> and <code>unparsedEntityDecl</code> events
+    are not sent after the <code>endDTD</code> event has been sent (default SAX behaviour).
+   </false>
+   <default value='true**'/>
+   <since value='&ParserName; 2.5.0'/>
+   <note>
+    The default value for this feature is true, except when using SAX,
+    because SAX requires that no DTD events be sent after the <code>endDTD</code>
+    event.  Thus, in order to maintain SAX compatibility,
+    this feature cannot be true by default for SAX. Setting this feature to false
+    can result in loss of information, if notations and unparsed entities were
+    needed to resolve references in the document.
+   </note>
+   <note>
+    This feature is only relevant when XInclude processing is being done.  Due to the
+    nature of implementing XInclude in a stream-based API, it is not possible to know
+    the complete set of required unparsed entities and notations before the <code>endDTD</code>
+    event from the source document is sent.  If an <code>XIncludeHandler</code> is
+    not present in your pipeline, the value of this feature is irrelevant.
+   </note>
+   <note>
+    This feature is currently experimental, and might be removed or changed in the
+    next release. If you have any concerns or suggestions about its use, please
+    contact the j-users@xerces.apache.org mailing list.
+   </note>
+  </feature>
+ </fcategory>
+</features>

@@ -1,0 +1,263 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<!DOCTYPE properties SYSTEM 'dtd/settings.dtd'>
+<properties>
+ <desc name='Setting Properties'>
+  <p>
+   If you have created a DOM document builder or a SAX parser using
+   the JAXP interfaces, the following instructions tell you how to
+   set properties on document builders and SAX parsers created from
+   the JAXP interfaces.
+  </p>
+  <p>
+   The DocumentBuilderFactory interface contains a 
+   <code>setAttribute(String,Object)</code> method which <em>may</em>
+   provide a means to set properties on the underlying parser. When 
+   using Xerces, you can set the value of a property with this method.
+   For example:
+  </p>
+  <source>import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.DocumentBuilder;
+  
+DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+dbf.setNamespaceAware(true);
+
+String id    = "http://apache.org/xml/properties/dom/document-class-name";
+Object value = "org.apache.xerces.dom.DocumentImpl";
+try {
+    dbf.setAttribute(id, value);
+} 
+catch (IllegalArgumentException e) {
+    System.err.println("could not set parser property");
+}</source>
+  <p>
+   The SAXParser interface contains a
+   <code>setProperty(String,Object)</code> method which can be used
+   to set properties on the underlying implementation of <code>XMLReader</code>.
+   You can also retrieve the underlying <code>XMLReader</code> from the
+   SAXParser allowing you to set and query properties on it directly.
+   For example:
+  </p>
+  <source>import javax.xml.parsers.SAXParser;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
+
+SAXParser parser = /* created from SAXParserFactory */;
+XMLReader reader = parser.getXMLReader();
+
+String id    = "http://apache.org/xml/properties/input-buffer-size";
+Object value = new Integer(2048);
+try {
+    reader.setProperty(id, value);
+} 
+catch (SAXException e) {
+    System.err.println("could not set parser property");
+}</source>
+ </desc>
+ <pcategory name='General Properties'>
+  <property name='http://xml.org/sax/properties/xml-string'
+            id='xml-string'>
+   <desc>
+    Get the string of characters associated with the current event. 
+    If the parser recognizes and supports this property but is not
+    currently parsing text, it should return null.  
+   </desc>
+   <type>java.lang.String</type>
+   <access general='read-only'/>
+   <note>
+    This property is currently not supported because the contents of
+    the XML string returned by this property is not well defined.  
+   </note>
+  </property>
+  <property name='http://apache.org/xml/properties/schema/external-schemaLocation'
+            id='schema.external-schemaLocation'>
+   <desc>
+    The XML Schema Recommendation explicitly states that the inclusion
+    of schemaLocation/noNamespaceSchemaLocation attributes is only a 
+    hint; it does not mandate that these attributes must be used to 
+    locate schemas. Similar situation happens to &lt;import&gt; element in
+    schema documents. This property allows the user to specify a list of
+    schemas to use. If the targetNamespace of a schema (specified 
+    using this property) matches the targetNamespace of a schema 
+    occurring in the instance document in schemaLocation attribute, or
+    if the targetNamespace matches the namespace attribute of &lt;import&gt;
+    element, the schema specified by the user using this property will
+    be used (i.e., the schemaLocation attribute in the instance document
+    or on the &lt;import&gt; element will be effectively ignored).
+   </desc>
+   <type>java.lang.String</type>
+   <access general='read-write'/>
+   <note>
+    The syntax is the same as for schemaLocation attributes in 
+    instance documents: e.g, "http://www.example.com file_name.xsd". 
+    The user can specify more than one XML Schema in the list.   
+   </note>
+  </property>
+  <property name='http://apache.org/xml/properties/schema/external-noNamespaceSchemaLocation'
+            id='schema.external-noNamespaceSchemaLocation'>
+   <desc>
+    This property allows the user to specify an XML Schema with no 
+    namespace.
+   </desc>
+   <type>java.lang.String</type>
+   <access general='read-write'/>
+   <note>
+    The syntax is a same as for the noNamespaceSchemaLocation attribute 
+    that may occur in an instance document: e.g."file_name.xsd". The 
+    user may specify only one XML Schema. For more information see the
+    documentation for the 
+    http://apache.org/xml/properties/schema/external-schemaLocation 
+    property.
+   </note>
+  </property>
+  <property name='http://apache.org/xml/properties/validation/schema/root-type-definition'
+            id='validation.schema.root-type-definition'>
+   <desc>
+    A QName object representing the top-level type definition used when 
+    validating the root element of a document or document fragment (also
+    known as the validation root). If the value of this property is non-null, 
+    the validation root will not be validated against any element declaration. 
+    If the type definition cannot be found an error will be reported.
+   </desc>
+   <type>javax.xml.namespace.QName</type>
+   <access general='read-write'/>
+   <since value='&ParserName; 2.8.0'/>
+  </property>
+  <property name='http://apache.org/xml/properties/input-buffer-size'
+            id='input-buffer-size'>
+   <desc>
+    The size of the input buffer in the readers. This determines how many
+    bytes to read for each chunk.
+   </desc>
+   <type>java.lang.Integer</type>
+   <access general='read-write'/>
+   <since value='&ParserName; 2.1.0'/>
+   <note>
+    Some tests indicate that a bigger buffer size can improve the parsing
+    performance for relatively large files. The default buffer size
+    in Xerces is 2K. This would give a good performance for small documents
+    (less than 10K). For documents larger than 10K, specifying the buffer
+    size to 4K or 8K will significantly improve the performance. But it's not
+    recommended to set it to a value larger than 16K. For really tiny
+    documents (1K, for example), you can also set it to a value less than 2K,
+    to get the best performance.
+   </note>
+   <note>
+    There are some conditions where the size of the parser's internal buffers 
+    may be increased beyond the size specified for the input buffer. This would 
+    happen in places where the text in the document cannot be split, for
+    instance if the document contains a name which is longer than the input
+    buffer.
+   </note>
+  </property>
+  <property name='http://apache.org/xml/properties/security-manager'
+            id='security-manager'>
+   <desc>
+    It is possible to create XML documents whose processing could
+    result in the use of all system resources.  This property enables
+    Xerces to detect such documents, and abort their processing.
+   </desc>
+   <type>org.apache.xerces.util.SecurityManager</type>
+   <access general='read-write'/>
+   <since value='&ParserName; 2.3.0'/>
+   <note>
+    The <code>org.apache.xerces.util.SecurityManager</code> class
+    contains a number of methods that allow applications to tailor Xerces's 
+    tolerance of document constructs that could result in the heavy
+    consumption of system resources (see the javadoc of this class for
+    details).  Default values that should be appropriate for many
+    environments are provided when the class is instantiated.  <strong>Xerces will not
+    behave in a strictly spec-compliant way when this property is set</strong>.
+    By default, this property is not set; Xerces's behaviour is therefore strictly 
+    spec-compliant by default.
+   </note>
+  </property>
+ </pcategory>
+ <pcategory name='DOM Properties'>
+  <property name='http://apache.org/xml/properties/dom/current-element-node'
+            id='dom.current-element-node'>
+   <desc>The current DOM element node while parsing.</desc>
+   <type>org.w3c.dom.Element</type>
+   <access general='read-only'/>
+   <note>
+    This property is useful for determining the location with a DOM
+    document when an error occurs.
+   </note>
+  </property>
+  <property name='http://apache.org/xml/properties/dom/document-class-name'
+            id='dom.document-class-name'>
+   <desc>
+    The fully qualified name of the class implementing 
+    the <code>org.w3c.dom.Document</code> interface. The
+    implementation used must have a zero argument constructor.  
+   </desc>
+   <type>java.lang.String</type>
+   <default value='"org.apache.xerces.dom.DocumentImpl"'/>
+   <access general='read-write'/>
+   <note>
+    When the document class name is set to a value other than the 
+    name of the default document factory, the deferred node expansion 
+    feature does not work.   
+   </note>
+  </property>
+ </pcategory>
+ <pcategory name='SAX Properties'>
+  <property name='http://xml.org/sax/properties/declaration-handler'
+            id='declaration-handler'>
+   <desc>Set the handler for DTD declarations.</desc>
+   <type>org.xml.sax.ext.DeclHandler</type>
+   <access general='read-write'/>
+  </property>
+  <property name='http://xml.org/sax/properties/lexical-handler'
+            id='lexical-handler'>
+   <desc>Set the handler for lexical parsing events.</desc>
+   <type>org.xml.sax.ext.LexicalHandler</type>
+   <access general='read-write'/>
+  </property>
+  <property name='http://xml.org/sax/properties/dom-node'
+            id='dom-node'>
+   <desc>
+    The DOM node currently being visited, if SAX is being used as
+    a DOM iterator. If the parser recognizes and supports this 
+    property but is not currently visiting a DOM node, it should 
+    return null.  
+   </desc>
+   <type>org.w3c.dom.Node</type>
+   <access parsing='read-only' not-parsing='read-write'/>
+   <note>
+    This property is only for SAX parser implementations used as
+    DOM tree walkers. Currently, Xerces does not have this
+    functionality.
+   </note>
+  </property>
+  <property name='http://xml.org/sax/properties/document-xml-version'
+            id='document-xml-version'>
+   <desc>
+    A literal string describing the actual XML version 
+    of the document, such as "1.0" or "1.1".
+   </desc>
+   <type>java.lang.String</type>
+   <access general='read-only'/>
+   <since value='&ParserName; 2.7.0'/>
+   <note>
+    This property may only be examined during a parse after the
+    startDocument callback has been completed.
+   </note>
+  </property>
+ </pcategory>
+</properties>

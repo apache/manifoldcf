@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!ENTITY % include.blocks SYSTEM 'blocks.ent'>
+%include.blocks;
+
+<!ENTITY % boolean '(true|false)'>
+<!ENTITY % access-options '(read-only|read-write|write-only|none)'>
+
+<!ELEMENT settings (features,properties)>
+<!ELEMENT features (desc?,(fcategory+|feature+)?)>
+<!ELEMENT properties (desc?,(pcategory+|property+)?)>
+
+<!ELEMENT desc (#PCDATA|%markup;|%blocks;)*>
+<!ATTLIST desc name CDATA #IMPLIED>
+<!ELEMENT fcategory (desc?,feature+)>
+<!ATTLIST fcategory name CDATA #REQUIRED>
+<!ELEMENT pcategory (desc?,property+)>
+<!ATTLIST pcategory name CDATA #REQUIRED>
+<!ELEMENT access EMPTY>
+<!ATTLIST access general     %access-options; #IMPLIED
+                 parsing     %access-options; #IMPLIED
+		 not-parsing %access-options; #IMPLIED>
+
+<!ELEMENT since EMPTY>
+<!ATTLIST since value CDATA #REQUIRED>
+
+<!ELEMENT see EMPTY>
+<!ATTLIST see idref IDREF #REQUIRED>
+
+<!ELEMENT feature (desc?,true,false,default?,access?,since?,note*,see*)>
+<!ATTLIST feature name CDATA #REQUIRED 
+                  id   ID    #IMPLIED>
+<!ELEMENT true (#PCDATA|%markup;)*>
+<!ELEMENT false (#PCDATA|%markup;)*>
+<!ELEMENT default EMPTY>
+<!ATTLIST default value CDATA #REQUIRED>
+		 
+<!ELEMENT property (desc?,type,default?,access?,since?,note*,see*)>
+<!ATTLIST property name CDATA #REQUIRED
+                   id   ID    #IMPLIED>
+<!ELEMENT type (#PCDATA)>

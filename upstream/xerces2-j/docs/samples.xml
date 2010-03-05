@@ -1,0 +1,68 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<!DOCTYPE s1 SYSTEM 'dtd/document.dtd'>
+<s1 title='Sample Programs'>
+ <s2 title='Overview'>
+  <p>
+   &ParserName; contains many useful samples to help you get 
+   up-and-running with writing XML applications. Many of the sample
+   programs are even useful as standalone programs to help in 
+   testing the validity of XML documents and/or debugging 
+   applications.
+  </p>
+  <p>
+   The samples are organized either by API or by programming area in
+   the following categories:
+  </p>
+  <ul>
+   <li><link idref='samples-dom'>DOM Samples</link></li>
+   <li><link idref='samples-sax'>SAX Samples</link></li>
+   <li><link idref='samples-jaxp'>JAXP Samples</link></li>
+   <li><link idref='samples-socket'>Socket Samples</link></li>
+   <li><link idref='samples-ui'>UI Samples</link></li>
+   <li><link idref='samples-xni'>XNI Samples</link></li>
+  </ul>
+ </s2>
+ <s2 title='Running the Samples'>
+  <p>
+   Running the sample applications requires that you have already
+   installed the Java Development Kit (JDK) or Java Runtime
+   Environment (JRE) on your computer and extracted the 
+   &ParserName; software.
+  </p>
+  <p>
+   If you do not already have a JDK already on your computer download
+   one from Sun&apos;s Java website: 
+   <jump href="http://java.sun.com">http://java.sun.com</jump> or from 
+   IBM&apos;s website
+   <jump href="http://www.ibm.com/developer/java/">http://www.ibm.com/developer/java/</jump>.
+   The sample applications described in the following pages support 
+   Java 1.x (e.g. 1.1.8, etc) and/or Java 2 (e.g. 1.2.2, 1.3, etc).
+   The UI samples are written using Swing and require Java 2 in order
+   to run but all of the command line programs will run using Java 1.x.
+  </p>
+  <p>
+   Command lines examples on the following pages use the Windows path
+   separator &apos;;&apos; (semicolon) and directory separator 
+   &apos;\&apos; (backslash). On UNIX, use the &apos;:&apos; (colon) 
+   character to separate the JAR files in the classpath, and replace
+   Windows directory separator &apos;\&apos; (backslash) with 
+   &apos;/&apos; (forward slash).
+  </p>
+ </s2>
+</s1>

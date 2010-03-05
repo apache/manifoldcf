@@ -1,0 +1,1485 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<!DOCTYPE s1 SYSTEM 'dtd/document.dtd'> 
+<s1 title='XNI Core Interfaces'>
+ <s2 title='Core Interfaces'>
+  <p>
+   The Xerces Native Interface core contains a series of
+   interfaces and classes designed to communicate a document's
+   "streaming" information set. This page documents the API
+   available for receiving this information in the following
+   sections:
+  </p>
+  <ul>
+   <li><link anchor='document-information'>Document Information</link></li>
+   <li><link anchor='dtd-information'>DTD Information</link></li>
+  </ul>
+  <p>
+   A few examples are also included to illustrate the use of the
+   streaming information set:
+  </p>
+  <ul>
+   <li>
+    <link anchor='pass-through-filter'>Pass-Through Document 
+    Handler Filter</link>
+   </li>
+   <li><link anchor='upper-case-filter'>Upper-Case Filter</link></li>
+  </ul>
+  <p>
+   For information regarding the parser configuration framework, 
+   refer to the <link idref='xni-config'>Parser Configuration</link>
+   documentation.
+  </p>
+  <note>
+   The source code for the samples in this document are included
+   in the downloaded packages for Xerces2.
+  </note>
+ </s2>
+ <s2 title='Document Information'>
+  <p>
+   The document information is communicated using the
+   <code>XMLDocumentHandler</code> interface. In addition, the
+   <code>XMLDocumentFragmentHandler</code> interface is included
+   to get information regarding document fragments. Programmers
+   already familiar with the SAX programming interfaces should
+   be immediately comfortable programming to the Xerces Native
+   Interface. However, XNI does not depend on the SAX interfaces
+   and classes.
+  </p>
+  <note>
+   All of the interfaces and classes documented on this page
+   are contained within the <code>org.apache.xerces.xni</code>
+   package.
+  </note>
+  <anchor name='document-handler'/>
+  <s3 title='Interface XMLDocumentHandler'>
+   <p>
+    Communicates document structure and content information. This
+    is the most important handler interface in the Xerces Native
+    Interface.
+   </p>
+<!-- REVISIT: this info is already available in http://xerces.apache.org/xerces2-j/api.html
+   <table>
+    <tr><th>Methods</th></tr>
+    <tr>
+     <td>
+      <code>
+       public void startDocument(
+           <link anchor='locator'>XMLLocator</link> locator, 
+           String encoding, Augmentations augs
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void xmlDecl(
+           String version,
+           String encoding,
+	   String standalone, Augmentations augs
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void doctypeDecl(
+           String rootElement,
+	   String publicId,
+           String systemId, Augmentations augs
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void comment(
+           <link anchor='string'>XMLString</link> text, Augmentations augs
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void processingInstruction(
+           String target,
+           <link anchor='string'>XMLString</link> data, Augmentations augs
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void startPrefixMapping(
+           String prefix,
+	   String uri, Augmentations augs
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void endPrefixMapping(
+           String prefix, Augmentations augs
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void startElement(
+           <link anchor='qname'>QName</link> element,
+	   <link anchor='attributes'>XMLAttributes</link> attributes,
+       Augmentations augs
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void emptyElement(
+           <link anchor='qname'>QName</link> element,
+	   <link anchor='attributes'>XMLAttributes</link> attributes,
+       Augmentations augs
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void endElement(
+           <link anchor='qname'>QName</link> element,
+           Augmentations augs
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void startGeneralEntity(
+           String name,
+           XMLResourceIdentifier identifier,
+	   String encoding, Augmentations augs
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void textDecl(
+           String version,
+	   String encoding, Augmentations augs
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void endGeneralEntity(
+           String name, Augmentations augs
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void characters(
+           <link anchor='string'>XMLString</link> text,
+           Augmentations augs
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void ignorableWhitespace(
+           <link anchor='string'>XMLString</link> text,
+           Augmentations augs
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void startCDATA(Augmentations augs) 
+           throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void endCDATA(Augmentations augs) 
+           throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void endDocument(Augmentations augs) 
+           throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+   </table>
+-->
+
+  </s3>
+  <anchor name='document-fragment-handler'/>
+  <s3 title='Interface XMLDocumentFragmentHandler'>
+   <p>
+    Communicates information about a document fragment. This
+    interface is provided for convenience in defining a document
+    fragment but is not required to be used by a compliant XNI
+    parser component or configuration.
+   </p>
+
+<!-- REVISIT: see http://xerces.apache.org/xerces2-j/api.html
+   <table>
+    <tr><th>Methods</th></tr>
+    <tr>
+     <td>
+      <code>
+       public void startDocumentFragment(
+           <link anchor='locator'>XMLLocator</link> locator,
+           <link anchor='namespace-context'>NamespaceContext</link>
+           ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void startEntity(
+           String name,
+	   String publicId,
+	   String systemId,
+	   String baseSystemId,
+	   String encoding
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void textDecl(
+           String version,
+	   String encoding
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void endEntity(
+           String name
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void comment(
+           <link anchor='string'>XMLString</link> text
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void processingInstruction(
+           String target,
+           <link anchor='string'>XMLString</link> data
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void startPrefixMapping(
+           String prefix,
+	   String uri
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void endPrefixMapping(
+           String prefix
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void startElement(
+           <link anchor='qname'>QName</link> element,
+	   <link anchor='attributes'>XMLAttributes</link> attributes
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void emptyElement(
+           <link anchor='qname'>QName</link> element,
+	   <link anchor='attributes'>XMLAttributes</link> attributes
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void endElement(
+           <link anchor='qname'>QName</link> element
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void characters(
+           <link anchor='string'>XMLString</link> text
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void ignorableWhitespace(
+           <link anchor='string'>XMLString</link> text
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void startCDATA() 
+           throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void endCDATA() 
+           throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void endDocumentFragment() 
+           throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+   </table>
+-->
+  </s3>
+  <p>
+   Besides the handler interfaces there are several related 
+   interfaces and classes. All of these are described below.
+  </p>
+  <anchor name='exception'/>
+  <s3 title='Class XNIException'>
+   <p>Represents a generic Xerces Native Interface exception.</p>
+   <p>
+    <strong>Note:</strong> 
+    This exception extends <code>java.lang.RuntimeException</code>. 
+    Therefore, even though all of the handler interface methods can 
+    throw this type of exception, it is not explicitly required to 
+    be caught. Since XNI is intended to be an internal set of 
+    interfaces, it is expected that XNI implementations will provide 
+    a catch block for this exception at the top level so that XNI 
+    exceptions do not "leak" out to the application code.
+   </p>
+
+<!-- REVISIT: http://xerces.apache.org/xerces2-j/api.html
+
+   <table>
+    <tr><th>Constructors</th></tr>
+    <tr><td><code>public XNIException(String message);</code></td></tr>
+    <tr>
+     <td><code>public XNIException(Exception exception);</code></td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public XNIException(String message, Exception exception);
+      </code>
+     </td>
+    </tr>
+    <tr><th>Methods</th></tr>
+    <tr><td><code>public Exception getException();</code></td></tr>
+   </table>
+
+-->
+  </s3>
+  <anchor name='augs'/>
+  <s3 title='Interface Augmentations'>
+    <p> This interface enables arbitrary information to be passed
+    through the pipeline on various calls from one component to
+    another.  XNI tries to model, as close as is feasible, the
+    information made available by the W3C&apos;s InfoSet
+    specification.  The <link anchor="augs">Augmentations</link>
+    interface is intended to permit components to augment the infoset
+    for some document at almost any given point.  Many other XNI
+    interfaces besides the DocumentHandler support Augmentations
+    parameters.</p>
+    <p> One kind of particularly useful Infoset augmentation is
+    provided through the Post-Schema validation Infoset.  For
+    information about Xerces2&apos;s support of the PSVI, and how
+    Augmentations are used in a well-defined way to permit this
+    support, see the <link idref="samples-xni">documentation</link> for the PSVI Writer and 
+    PSVI Configuration samples.</p>
+  </s3>
+  <anchor name='resource'/>
+  <s3 title='Interface XMLResourceIdentifier'>
+  <p>
+    This interface serves to gather together information relevant to 
+    any kind of XML resource (external entity, notation, schema 
+    grammar, etc.).  There are five fields in this interface:</p>
+    <ul>
+      <li>baseSystemId:  The URI against which the literal systemId 
+        in the entity (or the URI to be resolved in the 
+        <code>schemaLocation</code> attribute as the case may be) 
+        should be resolved relative to.  
+      </li>
+      <li> literalSystemId:  The &quot;real&quot; (unexpanded) value
+        of the systemId (or <code>schemaLocation</code>) of the entity
+        which this object relates to.  
+      </li>
+      <li> expandedSystemId:  The value of the systemId (or
+        <code>schemaLocation</code>) after being subjects to relative
+        URI expansion.  SAX programmers will be familiar with this
+        concept from the SAX Locator interface, for example; this
+        property maps to the <code>systemId</code> property of that
+        interface.
+      </li>
+      <li> publicId:  the publicId of the entity. 
+      </li>
+      <li> namespace:  the namespace of the entity. This is useful
+        when the resource is some kind of namespace-aware grammar
+        (an XML Schema, for example).
+      </li>
+      </ul>
+      <p> As in the case of other XNI objects, XMLResourceIdentifiers
+      cannot be depended upon to retain their values between calls;
+      hence, callees should extract whatever information they need
+      from them (or clone the object) before returning control back to
+      the parser. </p>
+  </s3> 
+  <anchor name='locator'/>
+  <s3 title='Interface XMLLocator'>
+   <p>
+    This interface is used to communicate the document location to
+    the various handler interfaces. The application can use the
+    methods on this interface to query the public, literal system, and expanded system
+    base system identifier as well as the line number, column number 
+    and the encoding of the entity currently being parsed.
+   </p>
+   <p>
+    A locator is passed as a parameter in the first method called
+    by the <code>XMLDocumentHandler</code>,
+    <code>XMLDocumentFragmentHandler</code>, and
+    <code>XMLDTDHandler</code> interfaces. 
+   </p>
+   <p>
+    <strong>Note:</strong> 
+    Parser components that emit document information are not required
+    to provide a locator object. However, the Xerces2 reference 
+    implementation <em>does</em> provide a locator to registered
+    handlers.
+   </p>
+   
+<!-- REVISIT: http://xerces.apache.org/xerces2-j/api.html
+<table>
+    <tr><th>Methods</th></tr>
+    <tr><td><code>public String getPublicId();</code></td></tr>
+    <tr><td><code>public String getSystemId();</code></td></tr>
+    <tr><td><code>public String getBaseSystemId();</code></td></tr>
+    <tr><td><code>public int getLineNumber();</code></td></tr>
+    <tr><td><code>public int getColumnNumber();</code></td></tr>
+   </table>
+-->
+  </s3>
+  <anchor name='qname'/>
+  <s3 title='Class QName'>
+   <p>The QName object is a structure of qualified name information.</p>
+   <p>
+    <strong>Note:</strong>
+    The fields of this object have public visibility but should be
+    considered to be <em>read-only</em> to all methods that are
+    passed this object. The caller that creates and passes the QName
+    object "owns" the data. Therefore, callees should 
+    <strong>not</strong> retain a reference to the passed object and
+    are required to copy the references contained in the object if
+    the data is to be used beyond the scope of the method call.
+   </p>
+
+<!-- REVISIT: http://xerces.apache.org/xerces2-j/api.html
+   <table>
+    <tr><th>Fields</th></tr>
+    <tr><td><code>public String prefix;</code></td></tr>
+    <tr><td><code>public String localpart;</code></td></tr>
+    <tr><td><code>public String rawname;</code></td></tr>
+    <tr><td><code>public String uri;</code></td></tr>
+    <tr><th>Constructors</th></tr>
+    <tr><td><code>public QName();</code></td></tr>
+    <tr>
+     <td>
+      <code>
+       public QName(String prefix, String localpart,
+                    String rawname, String uri);
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public QName(<link anchor='qname'>QName</link> qname);
+      </code>
+     </td>
+    </tr>
+    <tr><th>Convenience Methods</th></tr>
+    <tr>
+     <td>
+      <code>
+       public void setValues(String prefix, String localpart,
+                             String rawname, String uri);
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void setValues(<link anchor='qname'>QName</link> qname);
+      </code>
+     </td>
+    </tr>
+    <tr><td><code>public void clear();</code></td></tr>
+   </table>
+-->
+  </s3>
+  <anchor name='attributes'/>
+  <s3 title='Interface XMLAttributes'>
+   <p>
+    This interface represents the collection of attributes that is
+    passed to the <code>startElement</code> and <code>emptyElement</code>
+    methods of the <code>XMLDocumentHandler</code> and
+    <code>XMLDocumentFragmentHandler</code> interfaces. This
+    collection of attributes contains all of the information about
+    the attributes of an element (except order) and is editable.
+   </p>
+   <p>
+    This interface is also capable of storing information about
+    entities appearing in the attribute value. However, it should
+    be noted that if entity information is set for an attribute,
+    then the non-normalized value of the attribute <strong>must</strong>
+    also be stored because the offsets and lengths of entities in
+    the attribute have no meaning for the normalized value.
+   </p>
+
+<!-- REVISIT: http://xerces.apache.org/xerces2-j/api.html
+   <table>
+    <tr><th>Methods</th></tr>
+    <tr>
+     <td>
+      <code>
+       public void addAttribute(
+           <link anchor='qname'>QName</link> attrName,
+	   String attrType, 
+	   String attrValue
+           );
+      </code>
+     </td>
+    </tr>
+    <tr><td><code>public void removeAllAttributes();</code></td></tr>
+    <tr>
+     <td><code>public void removeAttributeAt(int attrIndex);</code></td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void addAttributeEntity(
+           int attrIndex,
+	   String entityName,
+	   int entityOffset,
+	   int entityLength
+           );
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>public void removeAllEntitiesFor(int attrIndex);</code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void removeEntityAt(int attrIndex, int entityIndex);
+      </code>
+     </td>
+    </tr>
+    <tr><td><code>public int getLength();</code></td></tr>
+    <tr><td><code>public int getIndex(String qName);</code></td></tr>
+    <tr>
+     <td>
+      <code>public int getIndex(String uri, String localName);</code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void setName(
+           int attrIndex,
+           <link anchor='qname'>QName</link> attrName
+           );
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void getName(
+           int attrIndex,
+           <link anchor='qname'>QName</link> attrName
+           );
+      </code>
+     </td>
+    </tr>
+    <tr><td><code>public String getURI(int attrIndex);</code></td></tr>
+    <tr>
+     <td><code>public String getLocalName(int attrIndex);</code></td>
+    </tr>
+    <tr><td><code>public String getQName(int attrIndex);</code></td></tr>
+    <tr>
+     <td>
+      <code>public void setType(int attrIndex, String attrType);</code>
+     </td>
+    </tr>
+    <tr><td><code>public String getType(int attrIndex);</code></td></tr>
+    <tr><td><code>public String getType(String qName);</code></td></tr>
+    <tr>
+     <td>
+      <code>public String getType(String uri, String localName);</code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>public void setValue(int attrIndex, String attrValue);</code>
+     </td>
+    </tr>
+    <tr><td><code>public String getValue(int attrIndex);</code></td></tr>
+    <tr><td><code>public String getValue(String qName);</code></td></tr>
+    <tr>
+     <td>
+      <code>public String getValue(String uri, String localName);</code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void setNonNormalizedValue(int attrIndex, String attrValue);
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>public String getNonNormalizedValue(int attrIndex);</code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void setSpecified(int attrIndex, boolean specified);
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td><code>public boolean isSpecified(int attrIndex);</code></td>
+    </tr>
+    <tr>
+     <td><code>public int getEntityCount(int attrIndex);</code></td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void setEntityName(
+           int attrIndex, 
+	   int entityIndex,
+	   String entityName
+           );
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public String getEntityName(
+           int attrIndex, 
+	   int entityIndex
+           );
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void setEntityOffset(
+           int attrIndex, 
+	   int entityIndex,
+	   int entityOffset
+           );
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public int getEntityOffset(
+           int attrIndex, 
+	   int entityIndex
+           );
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void setEntityLength(
+           int attrIndex, 
+	   int entityIndex,
+	   int entityLength
+           );
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public int getEntityLength(
+           int attrIndex, 
+	   int entityIndex
+	   );
+      </code>
+     </td>
+    </tr>
+   </table>
+
+-->
+
+  </s3>
+  <anchor name='string'/>
+  <s3 title='Class XMLString'>
+   <p>
+    The XMLString object is a structure for holding text information.
+    This object allows the underlying implementation to pass text
+    information by using its own internal character buffer without
+    creating new String objects or copying the data.
+   </p>
+   <p>
+    <strong>Note:</strong>
+    The fields of this object have public visibility but should be
+    considered to be <em>read-only</em> to all methods that are
+    passed this object. The caller that creates and passes the 
+    XMLString object "owns" the data. Therefore, callees should 
+    <strong>not</strong> retain a reference to the passed object and
+    are required to copy the information contained in the object if
+    the data is to be used beyond the scope of the method call. Also,
+    callees should <strong>never</strong> modify the contents of the
+    character array directly as that could adversely affect the
+    operation of the caller.
+   </p>
+
+<!-- REVISIT: http://xerces.apache.org/xerces2-j/api.html
+   <table>
+    <tr><th>Fields</th></tr>
+    <tr><td><code>public char[] ch;</code></td></tr>
+    <tr><td><code>public int offset;</code></td></tr>
+    <tr><td><code>public int length;</code></td></tr>
+    <tr><th>Constructors</th></tr>
+    <tr><td><code>public XMLString();</code></td></tr>
+    <tr>
+     <td>
+      <code>
+       public XMLString(char[] ch, int offset, int length);
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public XMLString(<link anchor='string'>XMLString</link> string);
+      </code>
+     </td>
+    </tr>
+    <tr><th>Convenience Methods</th></tr>
+    <tr>
+     <td>
+      <code>
+       public void setValues(char[] ch, int offset, int length);
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void setValues(<link anchor='string'>XMLString</link> string);
+      </code>
+     </td>
+    </tr>
+    <tr><td><code>public void clear();</code></td></tr>
+   </table>
+-->
+  </s3>
+  <anchor name='namespace-context'/>
+  <s3 title='Interface NamespaceContext'>
+   <p>
+    Namespace context information for document fragments. This 
+    object is passed to the first method of the
+    <code>XMLDocumentFragmentHandler</code> interface.
+   </p>
+
+<!-- REVISIT: http://xerces.apache.org/xerces2-j/api.html   
+<table>
+    <tr><th>Constants</th></tr>
+    <tr><td><code>public static final String XMLNS;</code></td></tr>
+    <tr><td><code>public String getURI(String prefix);</code></td></tr>
+    <tr><td><code>public int getDeclaredPrefixCount();</code></td></tr>
+    <tr>
+     <td><code>public String getDeclaredPrefixAt(int index);</code></td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public <link anchor='namespace-context'>NamespaceContext</link>
+       getParentContext();
+      </code>
+     </td>
+    </tr>
+   </table>
+-->
+
+  </s3>
+ </s2>
+ <s2 title='DTD Information'>
+  <p>
+   The DTD information is communicated through two interfaces:
+   <code>XMLDTDHandler</code> and <code>XMLDTDContentModelHandler</code>.
+   The first handler interface passes the basic DTD information
+   whereas the second handler interface breaks down each element
+   declaration content model into separate callbacks.
+  </p>
+  <anchor name="dtd-handler"/>
+  <s3 title='Interface XMLDTDHandler'>
+   <p>
+    Communicates basic DTD information such as element and attribute
+    declarations. The implementor of this interface can also be
+    informed of characters within an ignored conditional section.
+   </p>
+
+<!-- REVISIT: http://xerces.apache.org/xerces2-j/api.html
+   <table>
+    <tr><th>Constants</th></tr>
+    <tr>
+     <td><code>public static final short CONDITIONAL_INCLUDE;</code></td>
+    </tr>
+    <tr>
+     <td><code>public static final short CONDITIONAL_IGNORE;</code></td>
+    </tr>
+    <tr><th>Methods</th></tr>
+    <tr>
+     <td>
+      <code>
+       public void startDTD(
+           <link anchor='locator'>XMLLocator</link> locator
+           ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void startEntity(
+           String name,
+	   String publicId,
+	   String systemId,
+	   String baseSystemId,
+	   String encoding
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void textDecl(
+           String version,
+	   String encoding
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void endEntity(
+           String name
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void comment(
+           <link anchor='string'>XMLString</link> text
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void processingInstruction(
+           String target,
+           <link anchor='string'>XMLString</link> data
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void elementDecl(
+           String name,
+	   String contentModel
+           ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void startAttlist(
+           String elementName
+           ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void attributeDecl(
+           String elementName,
+	   String attributeName,
+	   String type,
+	   String[] enumeration,
+	   String defaultType,
+	   <link anchor='string'>XMLString</link> defaultValue
+           ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void endAttlist() throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void internalEntityDecl(
+           String name,
+	   <link anchor='string'>XMLString</link> text
+           ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void externalEntityDecl(
+           String name,
+	   String publicId,
+	   String systemId,
+	   String baseSystemId
+           ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void unparsedEntityDecl(
+           String name,
+	   String publicId,
+	   String systemId,
+	   String notation
+           ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void notationDecl(
+           String name,
+	   String publicId,
+	   String systemId
+           ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void startConditional(
+           short type
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void characters(
+           <link anchor='string'>XMLString</link> text
+	   ) throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void endConditional() throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void endDTD() throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+   </table>
+-->
+
+  </s3>
+  <anchor name="dtd-content-model-handler"/>
+  <s3 title='Interface XMLDTDContentModelHandler'>
+   <p>
+    Breaks down each element declaration's content model into 
+    a set of separate methods so that handlers don't have to 
+    reparse the content model string given in the 
+    <code>XMLDTDHandler#elementDecl(String,String)</code> method. 
+    This separation also helps those applications that want to 
+    know boundaries of entities when used as part of an element's 
+    content model.
+   </p>
+
+<!-- REVISIT: http://xerces.apache.org/xerces2-j/api.html
+   <table>
+    <tr><th>Constants</th></tr>
+    <tr>
+     <td>
+      <code>public static final short SEPARATOR_CHOICE;</code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>public static final short SEPARATOR_SEQUENCE;</code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>public static final short OCCURS_ZERO_OR_ONE;</code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>public static final short OCCURS_ZERO_OR_MORE;</code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>public static final short OCCURS_ONE_OR_MORE;</code>
+     </td>
+    </tr>
+    <tr><th>Methods</th></tr>
+    <tr>
+     <td>
+      <code>
+       public void startContentModel()
+           throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void any()
+           throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void empty()
+           throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void startGroup()
+           throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void pcdata()
+           throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void element(String elementName)
+           throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void separator(short type)
+           throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void occurrence(short type)
+           throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void endGroup()
+           throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <code>
+       public void endContentModel()
+           throws <link anchor='exception'>XNIException</link>;
+      </code>
+     </td>
+    </tr>
+   </table>
+
+-->
+
+  </s3>
+ </s2>
+ <s2 title='Examples'>
+  <p>
+   The following examples demonstrate the basic use of the various
+   XNI handler interfaces.
+  </p>
+  <anchor name='pass-through-filter'/>
+  <s3 title='Pass-Through Document Handler Filter'>
+   <p>
+    The following example demonstrates a basic pass-through 
+    document handler filter. This filter receives document handler
+    events and passes them through to the next document handler.
+   </p>
+   <source>import org.apache.xerces.xni.<link anchor='qname'>QName</link>;
+import org.apache.xerces.xni.<link anchor='attributes'>XMLAttributes</link>;
+import org.apache.xerces.xni.<link anchor='document-handler'>XMLDocumentHandler</link>;
+import org.apache.xerces.xni.<link anchor='locator'>XMLLocator</link>;
+import org.apache.xerces.xni.<link anchor='string'>XMLString</link>;
+import org.apache.xerces.xni.<link anchor='exception'>XNIException</link>;
+import org.apache.xerces.xni.<link anchor='resource'>XMLResourceIdentifier</link>;
+import org.apache.xerces.xni.<link anchor='augs'>Augmentations</link>;
+
+public class PassThroughFilter
+    implements <link anchor='document-handler'>XMLDocumentHandler</link> {
+    
+    // Data
+    
+    protected <link anchor='document-handler'>XMLDocumentHandler</link> fDocumentHandler;
+    protected <link anchor='document-source'>XMLDocumentSource</link> fDocumentSource;
+    
+    // Public methods
+   
+    public void setDocumentHandler(<link anchor='document-handler'>XMLDocumentHandler</link> handler) {
+        fDocumentHandler = handler;
+    }
+    
+    // XMLDocumentHandler methods
+    
+    public void startDocument(<link anchor='locator'>XMLLocator</link>
+    locator, String encoding, <link anchor='namespaceContext'>NamespaceContext</link> namespaceContext, <link anchor="augs">Augmentations</link> augs)
+        throws <link anchor='exception'>XNIException</link> {
+        if (fDocumentHandler != null) {
+            fDocumentHandler.startDocument(locator, encoding, namespaceContext, augs);
+        }
+    }
+    
+    public void xmlDecl(String version, String encoding, 
+                        String standalone, <link
+                        anchor="augs">Augmentations</link> augs) throws <link anchor='exception'>XNIException</link> {
+        if (fDocumentHandler != null) {
+            fDocumentHandler.xmlDecl(version, encoding, standalone,
+                augs);
+        }
+    }
+    
+    public void doctypeDecl(String rootElement, String publicId, 
+                            String systemId, <link
+                            anchor="augs">Augmentations</link> augs) throws <link anchor='exception'>XNIException</link> {
+        if (fDocumentHandler != null) {
+            fDocumentHandler.doctypeDecl(rootElement, publicId,
+                    systemId, augs);
+        }
+    }
+    
+    public void comment(<link anchor='string'>XMLString</link> text,
+        <link anchor="augs">Augmentations</link> augs)
+        throws <link anchor='exception'>XNIException</link> {
+        if (fDocumentHandler != null) {
+            fDocumentHandler.comment(text, augs);
+        }
+    }
+    
+    public void processingInstruction(String target, <link
+    anchor='string'>XMLString</link> data, <link
+        anchor="augs">Augmentations</link> augs)
+        throws <link anchor='exception'>XNIException</link> {
+        if (fDocumentHandler != null) {
+            fDocumentHandler.processingInstruction(target, data, augs);
+        }
+    }
+
+    public void startElement(<link anchor='qname'>QName</link>
+    element, <link anchor='attributes'>XMLAttributes</link>
+        attributes, <link anchor="augs">Augmentations</link> augs)
+        throws <link anchor='exception'>XNIException</link> {
+        if (fDocumentHandler != null) {
+            fDocumentHandler.startElement(element, attributes, augs);
+        }
+    }
+    
+    public void emptyElement(<link anchor='qname'>QName</link>
+    element, <link anchor='attributes'>XMLAttributes</link>
+        attributes, <link anchor="augs">Augmentations</link> augs)
+        throws <link anchor='exception'>XNIException</link> {
+        if (fDocumentHandler != null) {
+            fDocumentHandler.emptyElement(element, attributes, augs);
+        }
+    }
+    
+    public void endElement(<link anchor='qname'>QName</link> element,
+        <link anchor="augs">augmentations</link> augs)
+        throws <link anchor='exception'>XNIException</link> {
+        if (fDocumentHandler != null) {
+            fDocumentHandler.endElement(element, augs);
+        }
+    }
+    
+    public void startGeneralEntity(String name, 
+            <link anchor="resource">XMLResourceIdentifier</link> resId,
+            String encoding, <link anchor="augs">Augmentations</link> augs) 
+        throws <link anchor='exception'>XNIException</link> {
+        if (fDocumentHandler != null) {
+            fDocumentHandler.startEntity(name, 
+                                         resId, encoding, augs);
+        }
+    }
+    
+    public void textDecl(String version, String encoding, <link
+        anchor="augs">Augmentations</link> augs)
+        throws <link anchor='exception'>XNIException</link> {
+        if (fDocumentHandler != null) {
+            fDocumentHandler.textDecl(version, encoding, augs);
+        }
+    }
+    
+    public void endGeneralEntity(String name, <link
+        anchor="augs">Augmentations</link> augs)
+        throws <link anchor='exception'>XNIException</link> {
+        if (fDocumentHandler != null) {
+            fDocumentHandler.endEntity(name, augs);
+        }
+    }
+    
+    public void characters(<link anchor='string'>XMLString</link> text,
+        <link anchor="augs">Augmentations</link> augs)
+        throws <link anchor='exception'>XNIException</link> {
+        if (fDocumentHandler != null) {
+            fDocumentHandler.characters(text, augs);
+        }
+    }
+    
+    public void ignorableWhitespace(<link
+        anchor='string'>XMLString</link> text ,
+        <link anchor="augs">Augmentations</link> augs)
+        throws <link anchor='exception'>XNIException</link> {
+        if (fDocumentHandler != null) {
+            fDocumentHandler.ignorableWhitespace(text, augs);
+        }
+    }
+    
+    public void startCDATA(<link anchor="augs">Augmentations</link>
+        augs)
+        throws <link anchor='exception'>XNIException</link> {
+        if (fDocumentHandler != null) {
+            fDocumentHandler.startCDATA(augs);
+        }
+    }
+    
+    public void endCDATA(<link anchor="augs">Augmentations</link> augs)
+        throws <link anchor='exception'>XNIException</link> {
+        if (fDocumentHandler != null) {
+            fDocumentHandler.endCDATA(augs);
+        }
+    }
+    
+    public void endDocument(<link anchor="augs">Augmentations</link>
+            augs)
+        throws <link anchor='exception'>XNIException</link> {
+        if (fDocumentHandler != null) {
+            fDocumentHandler.endDocument(augs);
+        }
+    }
+
+    public void setDocumentSource(<link anchor='document-source'>XMLDocumentSource</link> source) {
+        fDocumentSource = source;
+    }
+    
+    public XMLDocumentSource getDocumentSource(<link anchor='document-source'>XMLDocumentSource</link> source) {
+        return fDocumentSource;
+    }
+    
+    
+} // class PassThroughFilter</source>
+  </s3>
+  <anchor name='upper-case-filter'/>
+  <s3 title='Upper-Case Filter'>
+   <p>
+    The following code extends the pass-through document handler
+    filter to upper-case all of the element names.
+   </p>
+   <source>import org.apache.xerces.xni.<link anchor='qname'>QName</link>;
+import org.apache.xerces.xni.<link anchor='attributes'>XMLAttributes</link>;
+import org.apache.xerces.xni.<link anchor='string'>XNIException</link>;
+import org.apache.xerces.xni.<link anchor='augs'>Augmentations</link>; 
+public class UpperCaseFilter
+    extends PassThroughFilter {
+    
+    // Data
+    
+    private final <link anchor='qname'>QName</link> fQName = new QName();
+
+    // XMLDocumentHandler methods
+    
+    public void startElement(<link anchor='qname'>QName</link> element, <link anchor='attributes'>XMLAttributes</link> attributes,
+        <link anchor="augs">Augmentations</link> augs)
+        throws <link anchor='exception'>XNIException</link> {
+        super.startElement(toUpperCase(element), attributes, augs);
+    }
+    
+    public void emptyElement(<link anchor='qname'>QName</link>
+    element, <link anchor='attributes'>XMLAttributes</link>
+        attributes, <link anchor="augs">Augmentations</link> augs)
+        throws <link anchor='exception'>XNIException</link> {
+        super.emptyElement(toUpperCase(element), attributes, augs);
+    }
+    
+    public void endElement(<link anchor='qname'>QName</link> element,
+        <link anchor="augs">Augmentations</link> augs)
+        throws <link anchor='exception'>XNIException</link> {
+        super.endElement(toUpperCase(element), augs);
+    }
+    
+    // Protected methods
+    
+    protected QName toUpperCase(<link anchor='qname'>QName</link> qname) {
+        String prefix = qname.prefix != null
+                      ? qname.prefix.toUpperCase() : null;
+        String localpart = qname.localpart != null
+                         ? qname.localpart.toUpperCase() : null;
+        String rawname = qname.rawname != null
+                       ? qname.rawname.toUpperCase() : null;
+        String uri = qname.uri;
+        fQName.setValues(prefix, localpart, rawname, uri);
+        return fQName;
+    }
+
+} // class UpperCaseFilter</source>
+  </s3>
+ </s2>
+</s1>

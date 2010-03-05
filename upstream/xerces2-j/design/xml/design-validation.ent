@@ -1,0 +1,781 @@
+<?xml encoding='US-ASCII'?>
+<!-- $Id$ -->
+<category name='Implementation: Validation' package='&package;.impl.validation'>
+
+ <class id='grammar-pool' name='GrammarPool'>
+ 
+  <field name='fGrammars'>
+   <collection>
+    <collector>
+     <reference idref='java-hashtable'/>
+    </collector>
+    <items>
+     <reference idref='grammar'/>
+    </items>
+   </collection>
+  </field>
+  
+  <field name='fGrammarsNS'>
+   <collection>
+    <collector>
+     <reference idref='java-hashtable'/>
+    </collector>
+    <items>
+     <reference idref='grammar'/>
+    </items>
+   </collection>
+  </field>
+  
+  <constructor/>
+  
+  <method name='putGrammar'>
+   <param name='rootElement'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='grammar'>
+    <reference idref='grammar'/>
+   </param>
+  </method>
+  
+  <method name='putGrammarNS'>
+   <param name='targetNamespace'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='grammar'>
+    <reference idref='grammar'/>
+   </param>
+  </method>
+  
+  <method name='getGrammar'>
+   <param name='rootElement'>
+    <reference idref='java-string'/>
+   </param>
+   <returns>
+    <reference idref='grammar'/>
+   </returns>
+  </method>
+  
+  <method name='getGrammarNS'>
+   <param name='targetNamespace'>
+    <reference idref='java-string'/>
+   </param>
+   <returns>
+    <reference idref='grammar'/>
+   </returns>
+  </method>
+  
+  <method name='removeGrammar'>
+   <param name='rootElement'>
+    <reference idref='java-string'/>
+   </param>
+   <returns>
+    <reference idref='grammar'/>
+   </returns>
+  </method>
+  
+  <method name='removeGrammarNS'>
+   <param name='targetNamespace'>
+    <reference idref='java-string'/>
+   </param>
+   <returns>
+    <reference idref='grammar'/>
+   </returns>
+  </method>
+  
+ </class>
+
+ <class id='grammar' name='Grammar'>
+ 
+  <constant name='TOP_LEVEL_SCOPE'>
+   <primitive type='int'/>
+  </constant>
+
+  <field name='fTargetNamespace'>
+   <reference idref='java-string'/>
+  </field>
+  
+  <constructor/>
+
+  <method name='isNamespaceAware'>
+   <returns>
+    <primitive type='boolean'/>
+   </returns>
+  </method>  
+
+  <method name='getTargetNamespace'>
+   <returns>
+    <reference idref='java-string'/>
+   </returns>
+  </method>
+  
+  <method name='getElementDeclCount'>
+   <returns>
+    <primitive type='int'/>
+   </returns>
+  </method>
+  
+  <method name='getElementDeclIndex'>
+   <param name='elementDeclName'>
+    <reference idref='qname'/>
+   </param>
+   <param name='scope'>
+    <primitive type='int'/>
+   </param>
+   <returns>
+    <primitive type='int'/>
+   </returns>
+  </method>
+  
+  <method name='getElementDeclAt'>
+   <param name='elementDeclIndex'>
+    <primitive type='int'/>
+   </param>
+   <param name='elementDecl'>
+    <note>The values of this structure are set by this call.</note>
+    <reference idref='element-decl'/>
+   </param>
+   <returns>
+    <primitive type='boolean'/>
+   </returns>
+  </method>
+  
+  <method name='getAttributeDeclCount'>
+   <param name='elementDeclIndex'>
+    <primitive type='int'/>
+   </param>
+   <returns>
+    <primitive type='int'/>
+   </returns>
+  </method>
+  
+  <method name='getAttributeDeclIndex'>
+   <param name='elementDeclIndex'>
+    <primitive type='int'/>
+   </param>
+   <param name='attributeDeclName'>
+    <!-- REVISIT: This should be a QName in the code to handle such
+                  cases as attributes from other namespaces being
+                  allowed for the specified element. -Ac -->
+    <reference idref='qname'/>
+   </param>
+   <returns>
+    <primitive type='int'/>
+   </returns>
+  </method>
+  
+  <method name='getAttributeDeclAt'>
+   <param name='attributeDeclIndex'>
+    <primitive type='int'/>
+   </param>
+   <param name='attributeDecl'>
+    <note>The values of this structure are set by this call.</note>
+    <reference idref='attribute-decl'/>
+   </param>
+   <returns>
+    <primitive type='boolean'/>
+   </returns>
+  </method>
+  
+  <method name='getEntityDeclCount'>
+   <returns>
+    <primitive type='int'/>
+   </returns>
+  </method>
+  
+  <method name='getEntityDeclIndex'>
+   <param name='entityDeclName'>
+    <reference idref='java-string'/>
+   </param>
+   <returns>
+    <primitive type='int'/>
+   </returns>
+  </method>
+  
+  <method name='getEntityDeclAt'>
+   <param name='entityDeclIndex'>
+    <primitive type='int'/>
+   </param>
+   <param name='entityDecl'>
+    <reference idref='entity-decl'/>
+   </param>
+   <returns>
+    <primitive type='boolean'/>
+   </returns>
+  </method>
+  
+  <method name='getNotationDeclCount'>
+   <returns>
+    <primitive type='int'/>
+   </returns>
+  </method>
+  
+  <method name='getNotationDeclIndex'>
+   <param name='notationDeclName'>
+    <reference idref='java-string'/>
+   </param>
+   <returns>
+    <primitive type='int'/>
+   </returns>
+  </method>
+  
+  <method name='getNotationDeclAt'>
+   <param name='notationDeclIndex'>
+    <primitive type='int'/>
+   </param>
+   <param name='notationDecl'>
+    <reference idref='notation-decl'/>
+   </param>
+   <returns>
+    <primitive type='boolean'/>
+   </returns>
+  </method>
+  
+ </class>
+
+ <class id='element-decl' name='XMLElementDecl'>
+ 
+  <constant name='TYPE_ANY'>
+   <primitive type='short'/>
+  </constant>
+  
+  <constant name='TYPE_EMPTY'>
+   <primitive type='short'/>
+  </constant>
+  
+  <constant name='TYPE_MIXED'>
+   <primitive type='short'/>
+  </constant>
+  
+  <constant name='TYPE_CHILDREN'>
+   <primitive type='short'/>
+  </constant>
+  
+  <constant name='TYPE_SIMPLE'>
+   <primitive type='short'/>
+  </constant>
+  
+  <field name='name' visibility='public'>
+   <reference idref='qname'/>
+  </field>
+  
+  <field name='scope' visibility='public'>
+   <primitive type='int'/>
+  </field>
+  
+  <field name='type' visibility='public'>
+   <primitive type='short'/>
+  </field>
+  
+  <field name='simpleType' visibility='public'>
+   <reference idref='simple-type'/>
+  </field>
+  
+  <method name='setValues'>
+   <param name='name'>
+    <reference idref='qname'/>
+   </param>
+   <param name='scope'>
+    <primitive type='int'/>
+   </param>
+   <param name='type'>
+    <primitive type='short'/>
+   </param>
+   <param name='simpleType'>
+    <reference idref='simple-type'/>
+   </param>
+  </method>
+  
+  <method name='setValues'>
+   <param name='elementDecl'>
+    <reference idref='element-decl'/>
+   </param>
+  </method>
+  
+  <method name='clear'/>
+  
+ </class>
+
+ <class id='attribute-decl' name='XMLAttributeDecl'>
+ 
+  <field name='name' visibility='public'>
+   <reference idref='qname'/>
+  </field>
+  
+  <field name='simpleType' visibility='public'>
+   <reference idref='simple-type'/>
+  </field>
+  
+  <field name='optional' visibility='public'>
+   <primitive type='boolean'/>
+  </field>
+  
+  <method name='setValues'>
+   <param name='name'>
+    <reference idref='qname'/>
+   </param>
+   <param name='simpleType'>
+    <reference idref='simple-type'/>
+   </param>
+   <param name='optional'>
+    <primitive type='boolean'/>
+   </param>
+  </method>
+  
+  <method name='setValues'>
+   <param name='attributeDecl'>
+    <reference idref='attribute-decl'/>
+   </param>
+  </method>
+  
+  <method name='clear'/>
+  
+ </class>
+
+ <class id='simple-type' name='XMLSimpleType'>
+ 
+  <constant name='TYPE_CDATA'>
+   <primitive type='short'/>
+  </constant>
+  
+  <constant name='TYPE_ENTITY'>
+   <primitive type='short'/>
+  </constant>
+  
+  <constant name='TYPE_ENUMERATION'>
+   <primitive type='short'/>
+  </constant>
+  
+  <constant name='TYPE_ID'>
+   <primitive type='short'/>
+  </constant>
+  
+  <constant name='TYPE_IDREF'>
+   <primitive type='short'/>
+  </constant>
+  
+  <constant name='TYPE_NMTOKEN'>
+   <primitive type='short'/>
+  </constant>
+  
+  <constant name='TYPE_NOTATION'>
+   <primitive type='short'/>
+  </constant>
+  
+  <constant name='TYPE_NAMED'>
+   <primitive type='short'/>
+  </constant>
+  
+  <constant name='DEFAULT_TYPE_DEFAULT'>
+   <primitive type='short'/>
+  </constant>
+  
+  <constant name='DEFAULT_TYPE_FIXED'>
+   <primitive type='short'/>
+  </constant>
+  
+  <constant name='DEFAULT_TYPE_IMPLIED'>
+   <primitive type='short'/>
+  </constant>
+  
+  <constant name='DEFAULT_TYPE_REQUIRED'>
+   <primitive type='short'/>
+  </constant>
+  
+  <field name='type'>
+   <primitive type='short'/>
+  </field>
+  
+  <field name='name'>
+   <reference idref='java-string'/>
+  </field>
+  
+  <field name='enumeration' visibility='public'>
+   <array>
+    <reference idref='java-string'/>
+   </array>
+  </field>
+  
+  <field name='list' visibility='public'>
+   <primitive type='boolean'/>
+  </field>
+  
+  <field name='defaultType' visibility='public'>
+   <primitive type='short'/>
+  </field>
+  
+  <field name='defaultValue' visibility='public'>
+   <reference idref='java-string'/>
+  </field>
+  
+  <field name='datatypeValidator' visibility='public'>
+   <reference idref='datatype-validator'/>
+  </field>
+  
+  <method name='setValues'>
+   <param name='type'>
+    <primitive type='short'/>
+   </param>
+   <param name='name'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='enumeration'>
+    <array>
+     <reference idref='java-string'/>
+    </array>
+   </param>
+   <param name='list'>
+    <primitive type='boolean'/>
+   </param>
+   <param name='defaultType'>
+    <primitive type='short'/>
+   </param>
+   <param name='defaultValue'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='datatypeValidator'>
+    <reference idref='datatype-validator'/>
+   </param>
+  </method>
+
+  <method name='setValues'>
+   <param name='simpleType'>
+    <reference idref='simple-type'/>
+   </param>
+  </method>
+  
+  <method name='clear'/>
+  
+ </class>
+
+ <class id='entity-decl' name='XMLEntityDecl'>
+ 
+  <field name='name' visibility='public'>
+   <reference idref='java-string'/>
+  </field>
+  
+  <field name='publicId' visibility='public'>
+   <reference idref='java-string'/>
+  </field>
+  
+  <field name='systemId' visibility='public'>
+   <reference idref='java-string'/>
+  </field>
+  
+  <field name='baseSystemId' visibility='public'>
+   <reference idref='java-string'/>
+  </field>
+  
+  <field name='notation' visibility='public'>
+   <reference idref='java-string'/>
+  </field>
+  
+  <field name='isPE' visibility='public'>
+   <primitive type='boolean'/>
+  </field>
+  
+  <method name='setValues'>
+   <param name='name'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='publicId'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='systemId'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='baseSystemId'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='notation'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='isPE'>
+    <primitive type='boolean'/>
+   </param>
+  </method>
+
+  <method name='setValues'>
+   <param name='entityDecl'>
+    <reference idref='entity-decl'/>
+   </param>
+  </method>
+  
+  <method name='clear'/>
+  
+ </class>
+
+ <class id='notation-decl' name='XMLNotationDecl'>
+ 
+  <field name='name' visibility='public'>
+   <reference idref='java-string'/>
+  </field>
+  
+  <field name='publicId' visibility='public'>
+   <reference idref='java-string'/>
+  </field>
+  
+  <field name='systemId' visibility='public'>
+   <reference idref='java-string'/>
+  </field>
+  
+  <method name='setValues'>
+   <param name='name'>
+   <reference idref='java-string'/>
+   </param>
+   <param name='publicId'>
+   <reference idref='java-string'/>
+   </param>
+   <param name='systemId'>
+   <reference idref='java-string'/>
+   </param>
+  </method>
+  
+  <method name='notationDecl'>
+   <param name='notationDecl'>
+    <reference idref='notation-decl'/>
+   </param>
+  </method>
+
+  <method name='clear'/>
+  
+ </class>
+
+ <interface id='datatype-validator-factory' name='DatatypeValidatorFactory'>
+ 
+  <method name='createDatatypeValidator'>
+   <param name='name'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='base'>
+    <reference idref='datatype-validator'/>
+   </param>
+   <param name='facets'>
+    <collection>
+     <collector>
+      <reference idref='java-hashtable'/>
+     </collector>
+     <items>
+      <reference idref='java-string'/>
+     </items>
+    </collection>
+   </param>
+   <param name='list'>
+    <primitive type='boolean'/>
+   </param>
+   <returns>
+    <reference idref='datatype-validator'/>
+   </returns>
+   <throws>
+    <reference idref='invalid-datatype-facet-exception'/>
+   </throws>
+   <throws>
+    <reference idref='invalid-datatype-value-exception'/>
+   </throws>
+  </method>
+  
+ </interface>
+
+ <interface id='datatype-validator' name='DatatypeValidator'>
+ 
+  <method name='getFacets'>
+   <returns>
+    <collection>
+     <collector>
+      <reference idref='java-hashtable'/>
+     </collector>
+     <items>
+      <reference idref='java-string'/>
+     </items>
+    </collection>
+   </returns>
+  </method>
+  
+  <method name='validate'>
+   <param name='data'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='state'>
+    <reference idref='java-object'/>
+   </param>
+   <throws>
+    <reference idref='invalid-datatype-value-exception'/>
+   </throws>
+  </method>
+  
+  <method name='compare'>
+   <param name='value1'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='value2'>
+    <reference idref='java-string'/>
+   </param>
+   <returns>
+    <primitive type='int'/>
+   </returns>
+   <throws>
+    <reference idref='invalid-datatype-value-exception'/>
+   </throws>
+  </method>
+  
+ </interface>
+
+ <class id='invalid-datatype-facet-exception' name='InvalidDatatypeFacetException'>
+ 
+  <extends>
+   <reference idref='sax-exception'/>
+  </extends>
+  
+  <constructor/>
+  
+  <constructor>
+   <param name='message'>
+    <reference idref='java-string'/>
+   </param>
+  </constructor>
+  
+  <constructor>
+   <param name='exception'>
+    <reference idref='java-exception'/>
+   </param>
+  </constructor>
+  
+  <constructor>
+   <param name='message'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='exception'>
+    <reference idref='java-exception'/>
+   </param>
+  </constructor>
+  
+ </class>
+
+ <class id='invalid-datatype-value-exception' name='InvalidDatatypeValueException'>
+ 
+  <extends>
+   <reference idref='sax-exception'/>
+  </extends>
+  
+  <constructor/>
+  
+  <constructor>
+   <param name='message'>
+    <reference idref='java-string'/>
+   </param>
+  </constructor>
+  
+  <constructor>
+   <param name='exception'>
+    <reference idref='java-exception'/>
+   </param>
+  </constructor>
+  
+  <constructor>
+   <param name='message'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='exception'>
+    <reference idref='java-exception'/>
+   </param>
+  </constructor>
+  
+ </class>
+
+ <interface id='content-model' name='ContentModelValidator'>
+ 
+  <method name='validate'>
+   <param name='children'>
+    <array>
+     <reference idref='qname'/>
+    </array>
+   </param>
+   <param name='offset'>
+    <primitive type='int'/>
+   </param>
+   <param name='length'>
+    <primitive type='int'/>
+   </param>
+   <returns>
+    <primitive type='int'/>
+   </returns>
+  </method>
+  
+  <!-- REVISIT: Add this functionality in later. -Ac
+  <method name='whatCanGoHere'>
+   <param name='insertableElementsInfo'>
+    <reference idref='insertable-elements-info'/>
+   </param>
+  </method>
+  -->
+  
+ </interface>
+
+ <!-- REVISIT: Add this functionality in later. -Ac
+ <class id='insertable-elements-info' name='InsertableElementsInfo'>
+  <field name='canHoldPCData' visibility='public'>
+   <primitive type='boolean'/>
+  </field>
+  <field name='childCount' visibility='public'>
+   <primitive type='int'/>
+  </field>
+  <field name='currentChildren' visibility='public'>
+   <array>
+    <reference idref='qname'/>
+   </array>
+  </field>
+  <field name='insertAt' visibility='public'>
+   <primitive type='int'/>
+  </field>
+  <field name='isValidEOC' visibility='public'>
+   <primitive type='boolean'/>
+  </field>
+  <field name='possibleChildren' visibility='public'>
+   <array>
+    <reference idref='qname'/>
+   </array>
+  </field>
+  <field name='results' visibility='public'>
+   <array>
+    <primitive type='boolean'/>
+   </array>
+  </field>
+  <field name='resultsCount' visibility='public'>
+   <primitive type='int'/>
+  </field>
+  <method name='setValues'>
+   <param name='canHoldPCData'>
+    <primitive type='boolean'/>
+   </param>
+   <param name='childCount'>
+    <primitive type='int'/>
+   </param>
+   <param name='currentChildren'>
+    <array>
+     <reference idref='qname'/>
+    </array>
+   </param>
+   <param name='insertAt'>
+    <primitive type='int'/>
+   </param>
+   <param name='isValidEOC'>
+    <primitive type='boolean'/>
+   </param>
+   <param name='possibleChildren'>
+    <array>
+     <reference idref='qname'/>
+    </array>
+   </param>
+   <param name='results'>
+    <array>
+     <primitive type='boolean'/>
+    </array>
+   </param>
+   <param name='resultsCount'>
+    <primitive type='int'/>
+   </param>
+  </method>
+  <method name='clear'/>
+ </class>
+ -->
+
+</category>

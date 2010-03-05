@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE p:root [
+   <!ENTITY ent1 "<ent1_e domestic='Yes'>&ent2;</ent1_e>">
+   <!ENTITY ent2 "<ent2_e xmlns:a='http://a.com'><a:elem_a/></ent2_e>">
+   
+]>
+<ns1:root xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:ns1="http://www.example.com">
+
+<elem2 xmlns:ns2="http://www.ns2.com">
+  <elem3 xmlns="http://www.example.com">&ent1;</elem3>
+  <elem4/>
+</elem2> 
+
+<foo:elem6 xmlns:foo="url1:">
+  <bar:branch xmlns:bar="url1:">
+    <bar:leaf xmlns:bar="url2:"/>
+  </bar:branch>
+</foo:elem6>
+
+<elem7 xmlns:y="b:">
+   <elem8 xmlns:x="a:">
+      <baz xmlns:x="b:" x:attr="attr"/>
+   </elem8>
+</elem7>
+
+
+</ns1:root>

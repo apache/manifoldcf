@@ -1,0 +1,286 @@
+<!-- $Id$ -->
+<html>
+ <head>
+  <title>Xerces 2 | Architecture</title>
+  <link rel='stylesheet' type='text/css' href='css/site.css'>
+  <link rel='stylesheet' type='text/css' href='css/diagram.css'>
+  <style type='text/css'>
+   .note { font-size: smaller }
+   .pipeline { color: black; background: white;
+               border-style: solid; border-color: black; border-width: 1;
+               font-weight: normal  }
+  </style>
+ </head>
+ <body>
+  <span class='netscape'>
+  <a name='TOP'></a>
+  <h1>Xerces2 Architecture</h1>
+  <h2>Table of Contents</h2>
+  <p>
+   <ul>
+    <li><a href='#Overview'>Overview</a></li>
+    <li><a href='#DocumentInformation'>Document Information</a></li>
+    <li>
+     <a href='#ParserConfiguration'>Parser Configuration</a>
+     <ul>
+      <li><a href='#Configuration.FeaturesAndProperties'>Features &amp; Properties</a></li>
+      <li><a href='#Configuration.SettingsManagement'>Settings Management</a></li>
+     </ul>
+    </li>
+   </ul>
+  </p>
+  <hr>
+  <a name='Overview'></a>
+  <h2>Overview</h2>
+  <p>
+   The Xerces Native Interface (XNI) is a framework for communicating
+   a "streaming" document information set and constructing generic parser
+   configurations. XNI is part of the Xerces2 development but it is
+   important to note that the Xerces2 parser is just a standards compliant
+   reference implementation of the Xerces Native Interface. Other parsers 
+   can be written that conform to XNI without conforming to any particular 
+   standards.
+  </p>
+  <a name='DocumentInformation'></a>
+  <h2>Document Information</h2>
+  <p>
+   An XML parser can be viewed as a pipeline in which information flows 
+   from a scanner to a validator to the parser. In this pipeline, one 
+   component (the scanner) acts as a source of events; the final component 
+   (the parser) is the final target of the events; and any components 
+   between the source and target are known as filters. Filter components 
+   are both targets for the information sent by the previous component in 
+   the pipeline and sources for the information that the filter chooses to 
+   propagate to the next component in the pipeline. The following diagram 
+   illustrates the layout of the pipeline in this kind of parser.
+  </p>
+  <p>
+   <table border='2' cellpadding='10' cellspacing='0'>
+    <tr class='diagram'>
+     <td>
+      <table cellpadding='7' cellspacing='0'>
+       <tr class='diagram'>
+        <td class='diagram'>XML<br>Document</td>
+        <td><img alt='--&gt;' src='images/arrow-right.gif'></td>
+        <td class='component'>Scanner</td>
+        <td><img alt='--&gt;' src='images/arrow-right.gif'></td>
+        <td class='component'>Validator</td>
+        <td><img alt='--&gt;' src='images/arrow-right.gif'></td>
+        <td class='component'>Parser</td>
+        <td><img alt='--&gt;' src='images/arrow-right.gif'></td>
+        <td class='diagram'>Application<br>API</td>
+       </tr>
+      </table>
+     </td>
+    </tr>
+   </table>
+  </p>
+  <p>
+   Parsing of DTDs can also be viewed as a pipeline. Since the
+   DTD is referenced in the document instance by XML syntax
+   (the DOCTYPE declaration), the DTD pipeline is triggered by 
+   the document scanner. This contrasts with XML Schema because
+   there is no XML syntax that associates a Schema grammar with
+   a document; a special attribute in the document instance is
+   used as a <em>hint</em> to the location of the grammar. The 
+   following diagram illustrates the layout of the DTD pipeline.
+  </p>
+  <p>
+   <table border='2' cellpadding='10' cellspacing='0'>
+    <tr class='diagram'>
+     <td>
+      <table cellpadding='7' cellspacing='0'>
+       <tr class='diagram'>
+        <td class='diagram'>DTD<br>Document</td>
+        <td><img alt='--&gt;' src='images/arrow-right.gif'></td>
+        <td class='component'>DTD<br>Scanner</td>
+        <td><img alt='--&gt;' src='images/arrow-right.gif'></td>
+        <td class='component' rowspan='3'>Validator</td>
+        <td><img alt='--&gt;' src='images/arrow-right.gif'></td>
+        <td class='component'>Parser</td>
+        <td><img alt='--&gt;' src='images/arrow-right.gif'></td>
+        <td class='diagram'>Application<br>API</td>
+       </tr>
+       <tr><td>&nbsp;</td></tr>
+       <tr class='diagram'>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td><img alt='--&gt;' src='images/arrow-right.gif'></td>
+        <td class='component'>DTD<br>Grammar</td>
+       </tr>
+      </table>
+     </td>
+    </tr>
+   </table>
+  </p>
+  <p>
+   Note that the DTD scanner communicates directly with the validator.
+   The validator receives the callbacks from the DTD scanner in order
+   to create and populate the DTD grammar object. In this way, the
+   validator acts as a "tee", propogating the DTD events to both
+   the next stage in the pipeline and the DTD grammar object. This
+   allows the validation stage in the pipeline to be completely 
+   removed from the parser configuration, if needed.
+  </p>
+  <p>
+   The XML document information is defined by the 
+   <code><a href='design.html#XMLDocumentHandler'>XMLDocumentHandler</a></code>
+   interface and the DTD information is defined by the 
+   <code><a href='design.html#XMLDTDHandler'>XMLDTDHandler</a></code>
+   and
+   <code><a href='design.html#XMLDTDContentModelHandler'>XMLDTDContentModelHandler</a></code>
+   interfaces. 
+   (Note: As of 10 Apr 2001, the DTD interfaces are subject to change 
+    based on user feedback.)
+   This set of interfaces and supporting interfaces and classes
+   comprise the XNI Core. However, whereas the XNI Core defines what 
+   information document and DTD is communicated but does not define 
+   the semantics for configuring the parser pipeline.
+  </p>
+
+  <a name='ParserConfiguration'></a>
+  <h2>Parser Configuration</h2>
+  <p>
+   In the XNI world, a parser object used by an application is merely an
+   API generator (e.g. building DOM trees or calling SAX handlers). The 
+   components and configuration information for that parser is defined 
+   within a parser configuration object. With this approach, different 
+   parser configurations can be used with the existing parser instances 
+   without duplicating code.
+  </p>
+  <p>
+   The parser configuration object, defined by the
+   <code><a href='design.html#XMLParserConfiguration'>XMLParserConfiguration</a></code>
+   interface, that is used by the application is comprised of a series of 
+   components. The parser configuration assembles the parsing pipeline 
+   components, transmits settings to each component, and controls their 
+   actions. The following diagram shows a general parser configuration 
+   and its components. (No ordering or direct connection between 
+   components should be implied.)
+  </p>
+  <p>
+   <table border='2' cellspacing='0' cellpadding='7'>
+    <tr class='diagram'>
+     <td>
+      <table border='0' cellspacing='5' cellpadding='5'>
+       <tr align='center' valign='middle'>
+        <th class='manager' colspan='9'>Parser Configuration</th>
+       </tr>
+       <tr align='center' valign='middle'>
+        <td class='non-config-component'>Symbol<br>Table</td>
+        <td class='non-config-component'>Grammar<br>Pool</td>
+        <td class='non-config-component'>Datatype<br>Validator<br>Factory</td>
+        <td class='config-component'>Error<br>Reporter</td>
+        <td class='config-component'>Entity<br>Manager</td>
+        <td class='config-component'>Document<br>Scanner</td>
+        <td class='config-component'>DTD<br>Scanner</td>
+        <td class='config-component'>Validator</td>
+       </tr>
+      </table>
+     </td>
+    </tr>
+   </table>
+  </p>
+  <p>
+   The workings of the parser configuration object are unknown to
+   the parser. The parser is only able to set features and properties 
+   on the configuration, set the XNI handlers to receive the document
+   information, and initiate a parse. Typically the parser object
+   itself will be registered as the target of XNI events produced 
+   from the parser configuration when a document is parsed, but it
+   doesn't have to be. The following diagram illustrates this
+   situation.
+  </p>
+  <p>
+   <table border='2' cellspacing='0' cellpadding='7'>
+    <tr class='diagram'>
+     <td>
+      <table border='0' cellspacing='5' cellpadding='5'>
+       <tr align='center' valign='top'>
+        <th class='parser' colspan='9' rowspan='2'>
+         Parser
+         <table border='0' cellspacing='5' cellpadding='5'>
+          <th class='pipeline'>
+           <em>Parser Configuration Pipeline</em>
+           <table border='0' cellspacing='0' cellpadding='5'>
+            <tr>
+             <td class='config-component'>Scanner</td>
+             <td valign='center'><img alt='--&gt;' src='images/arrow-right.gif'></td>
+             <td class='config-component'>Validator</td>
+             <td valign='center'><img alt='--&gt;' src='images/arrow-right.gif'></td>
+            </tr>
+           </table>
+          </th>
+         </table>
+        </th>
+        <td valign='center'><img alt='--&gt;' src='images/arrow-right.gif'></td>
+        <th class='parser'>DOM<br>Parser</th>
+       </tr>
+       <tr align='center' valign='top'>
+        <td valign='center'><img alt='--&gt;' src='images/arrow-right.gif'></td>
+        <th class='parser'>SAX<br>Parser</th>
+       </tr>
+      </table>
+     </td>
+    </tr>
+   </table>
+
+  <a name='Configuration.FeaturesAndProperties'></a>
+  <h3>Features &amp; Properties</h3>
+  <p>
+   Features and properties are provided via the extensible mechanism
+   found in SAX2. Features are boolean settings on the parser 
+   configuration while properties are object settings. There are a 
+   number of SAX2 core features and properties but XNI parser components 
+   are free to define new ones. All of the features and properties are
+   managed by the parser configuration, though.
+  </p>
+  <p>
+   <em>TODO:</em> Expand on how features and properties are set, when,
+   and by who.
+  </p>
+
+  <a name='Configuration.SettingsManagement'></a>
+  <h3>Settings Management</h3>
+  <p>
+   The parser configuration implements the 
+   <code><a href='design.html#XMLComponentManager'>XMLComponentManager</a></code> 
+   interface and each component implements the 
+   <code><a href='design.html#XMLComponent'>XMLComponent</a></code> 
+   interface. For this configuration system to work, the parser
+   configuration must adhere to the following guidelines:
+   <span class='netscape'>
+   <ul>
+    <li>
+     Before each parse, the parser configuration <strong>must</strong> 
+     call the <code>reset</code> method on each configurable component.
+     This call allows each component to query the state of only
+     those features and properties that are important to the operation
+     of the component.
+    </li>
+    <li>
+     Any time that the application sets a feature or property on the 
+     parser <em>during a parse</em>, the parser configuration
+     <strong>must</strong> pass those settings to each configurable 
+     component. This is important because configuration settings can 
+     change while parsing an XML document and those settings may 
+     directly affect the operation of components. But this does 
+     <em>not</em> need to be done before or after a parse because 
+     each component will query settings during the call to 
+     <code>reset</code>.
+    </li>
+   </ul>
+   </span>
+  </p>
+
+  </span>
+  <a name='BOTTOM'></a>
+  <hr>
+  <span class='netscape'>
+   Author: Andy Clark <br>
+   Last modified: $Date$
+  </span>
+ </body>
+</html>

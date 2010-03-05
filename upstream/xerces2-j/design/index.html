@@ -1,0 +1,241 @@
+<!-- $Id$ -->
+<html>
+ <head>
+  <title>Xerces2</title>
+  <link rel='stylesheet' type='text/css' href='css/site.css'>
+  <style type='text/css'>
+   .needs { font-size: smaller }
+  </style>
+ </head>
+ <body>
+  <span class='netscape'>
+  <a name='TOP'></a>
+  <h1>Xerces2</h1>
+  <a name='TOC'></a>
+  <h2>Table of Contents</h2>
+  <p>
+   <ul>
+    <li><a href='#Goals'>Goals</a></li>
+    <li><a href='#Scenarios'>Scenarios</a></li>
+    <li><a href='#Documentation'>Documentation</a></li>
+    <li><a href='#SourceCode'>Source Code</a>
+     <ul>
+      <li><a href='#SourceCode.MainBranches'>Main Branches</a></li>
+      <li><a href='#SourceCode.SupplementalBranches'>Supplemental Branches</a></li>
+     </ul>
+    </li>
+   </ul>
+  </p>
+  <hr>
+  <a name='Goals'></a>
+  <h2>Goals</h2>
+  <p>
+   The ultimate goal of the Xerces2 refactoring effort is to
+   develop an XML parser that is simple, clean, and modular.
+   By clearly defining the internal interfaces of the parser
+   components, the design of the parser will be better understood
+   and enable people to add features and fix bugs. Also, the
+   modularity of the design will enable custom configurations of
+   the parser that can be used in a wide variety of applications.
+  </p>
+  <a name='Scenarios'></a>
+  <h2>Scenarios</h2>
+  <p>
+   Xerces is a general purpose XML parser designed to be suitable
+   for a wide range of applications. A parser with better
+   performance can be written but it is believed that a general
+   design will suit a larger audience of XML application developers.
+   Therefore, any design should take into consideration what the
+   <em>users</em> of the parser need.
+  </p>
+  <p>
+   A few scenarios highlight the disparate needs of the developer
+   audience:
+   <ul>
+    <li>
+     <strong>XML Editor</strong><br>
+     <span class='needs'>grammar access; document 
+     editing and events; re-validation</span>
+    </li>
+    <li>
+     <strong>Transaction Server that "Speaks" XML</strong><br>
+     <span class='needs'>high performance; grammar caching</span>
+    </li>
+    <li>
+     <strong>Client-side XML Applets</strong><br>
+     <span class='needs'>small footprint; serialization</span>
+    </li>
+   </ul>
+  </p>
+  <a name='Documentation'></a>
+  <h2>Documentation</h2>
+  <p>
+   <dl>
+<!--
+    <dt><a href='schedule.html'>Implementation Schedule</a></dt>
+-->
+
+    <dt><a href='coding.html'>Coding Conventions</a></dt>
+
+    <dt>Design Documents</dt>
+    <dd>
+     Evaluation of <a href='crimson.html'>Crimson</a> and
+     <a href='xerces.html'>Xerces</a> Code
+    </dd>
+    <dd><a href='architecture.html'>Xerces2 Architecture</a></dd>
+    <dd><a href='entities.html'>Entity Management</a></dd>
+    <dd><a href='issues.html'>Implementation Issues</a></dd>
+
+    <dt>Presentations</dt>
+    <dd>
+     <a href='http://www.apache.org/~andyc/speeches/20010407/Xerces2.ppt'>Xerces2</a> (PowerPoint 2000) <br>
+     07 Apr 2001: XML Developer's Day - Tokyo, Japan
+    </dd>
+    <dd>
+     <a href='http://www.apache.org/~andyc/speeches/20010611/xerces2ws.ppt'>Xerces2
+     Workshop</a> (PowerPoint 2000) <br>
+     11 Jun 2001: Xerces2 Workshop - Cupertino, CA
+    </dd>
+
+    <dt>Interfaces and Classes</dt>
+    <dd>
+     Design
+     [<a href='design.html'>.html</a>] 
+     [<a href='css/design.css'>.css</a>] 
+     [<a href='xml/design.dtd'>.dtd</a>] 
+     [<a href='xml/design-all.xml'>.xml</a>] 
+     [<a href='xsl/design.xsl'>.xsl</a>] 
+<!-- The DesignDoc program is currently broken. -Ac
+     [<a href='design.zip'>.zip</a>]
+-->
+    </dd>
+
+    <dt>Useful Programs</dt>
+    <dd>
+     Stylesheet
+     [<a href='src/Stylesheet.java'>.java</a>]
+     [<a href='src/Stylesheet.class'>.class</a>]
+    </dd>
+<!-- The DesignDoc program is currently broken. -Ac
+    <dd>
+     DesignDoc
+     [<a href='src/DesignDoc.java'>.java</a>]
+     [<a href='src/DesignDoc.class'>.class</a>]
+     [<a href='src/DesignDoc$IndentingWriter.class'>.class</a>]
+    </dd>
+-->
+   </dl>
+  </p>
+  <a name='SourceCode'></a>
+  <h2>Source Code</h2>
+  <p>
+   The source code is available in the Apache CVS repository
+   in the "xerces_j_2" branch of the "xml-xerces" module. For
+   anonymous access to the source code, use the following
+   commands to checkout the code into a local directory named
+   "x2":
+   <pre>
+    set CVSROOT=:pserver:anoncvs@cvs.apache.org:/home/cvspublic
+    cvs login        <em>(password: anoncvs)</em>
+    cvs checkout -d x2 -r xerces_j_2 xml-xerces/java 
+   </pre>
+  </p>
+  <a name='SourceCode.MainBranches'></a>
+  <h3>Main Branches</h3>
+  <p>
+   <table border='0' cellspacing='2' cellpadding='3'>
+    <tr><th>Branch</th><th>Description</th></tr>
+    <tr>
+     <td>xerces_j_2</td>
+     <td>
+      Main development branch for the Xerces2 implementation.
+     </td>
+    </tr>
+    <tr>
+     <td>x2m1</td>
+     <td>
+      Milestone 1<br>
+      The code from this milestone implements basic document parsing.
+      Only element, attributes, and text content is supported; all other
+      XML constructs are <strong>not</strong> supported. The SAXParser
+      and SAX examples can be used to test the code.
+     </td>
+    </tr>
+    <!--
+    <tr>
+     <td></td>
+     <td>
+     </td>
+    </tr>
+    -->
+   </table>
+  </p>
+  <a name='SourceCode.SupplementalBranches'></a>
+  <h3>Supplemental Branches</h3>
+  <p>
+   All of the supplemental branches are created from the main
+   development branch named "xerces_j_2". Supplemental branches are
+   used for discovery work with the intention that code and/or
+   ideas from the branch will be merged back into the "xerces_j_2"
+   branch.
+  </p>
+  <p>
+   <table border='0' cellspacing='2' cellpadding='3'>
+    <tr><th>Branch</th><th>Description</th></tr>
+    <tr>
+     <td>x2entities</td>
+     <td>
+      Code to implement a bare bones entity management system. 
+      <strong>Warning:</strong> The entity scanner is very inefficient 
+      and is not for production use. This entity scanner is only used 
+      to implement the essential entity scanning methods needed by the 
+      document scanner. <em>Note:</em> This branch is no longer needed
+      and the files have been removed.
+      <dl style='margin: 0'>
+       <dt>Contents:</dt>
+       <dd>src/org/apache/xerces/readers/XMLEntityManager.java</dd>
+       <dd>src/org/apache/xerces/readers/XMLEntityScanner.java</dd>
+      </dl>
+     </td>
+    </tr>
+    <tr>
+     <td>x2design</td>
+     <td>
+      A re-organization of class and interface packages to seperate core 
+      functionality from implementation. <em>Note:</em> This
+      work has now been merged back into the "xerces_j_2" branch.
+      <dl style='margin: 0'>
+       <dt>Contents:</dt>
+       <dd>design/xml/design.xml</dd>
+      </dl>
+     </td>
+    </tr>
+    <tr>
+     <td>parserConfig</td>
+     <td>
+      Experimentation with parser configuration. <em>Note:</em> This
+      work has now been merged back into the "xerces_j_2" branch.
+      <dl style='margin: 0'>
+       <dt>Contents:</dt>
+       <dd>src/org/apache/xerces/parsers (directory)</dd>
+      </dl>
+     </td>
+    </tr>
+    <!--
+    <tr>
+     <td></td>
+     <td>
+     </td>
+    </tr>
+    -->
+   </table>
+  </p>
+  </span>
+  <a name='BOTTOM'></a>
+  <hr>
+  <span class='netscape'>
+   Author: Andy Clark <br>
+   Last modified: $Date$
+  </span>
+ </body>
+</html>

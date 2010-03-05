@@ -1,0 +1,1374 @@
+<?xml encoding='US-ASCII'?>
+<!-- $Id$ -->
+<category name='Xerces Native Interface (XNI)' package='&package;.xni'>
+ 
+ <interface id='document-handler' name='XMLDocumentHandler'>
+ 
+  <method name='startDocument'>
+   <param name='systemId'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='encoding'>
+    <reference idref='java-string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='xmlDecl'>
+   <param name='version'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='encoding'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='standalone'>
+    <reference idref='java-string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='doctypeDecl'>
+   <param name='rootElement'>
+    <reference idref='java-string'/>    
+   </param>
+   <param name='publicId'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='systemId'>
+    <reference idref='java-string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='comment'>
+   <param name='text'>
+    <reference idref='string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='processingInstruction'>
+   <param name='target'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='data'>
+    <reference idref='string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='startPrefixMapping'>
+   <param name='prefix'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='uri'>
+    <reference idref='java-string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='startEntity'>
+   <param name='name'>
+    <note>
+     The DTD has the pseudo-name of "[dtd]; parameter entity names 
+     start with '%'; and general entities are just specified by 
+     their name.
+    </note>
+    <reference idref='java-string'/>
+   </param>
+   <param name='publicId'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='systemId'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='baseSystemId'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='encoding'>
+    <note>
+     The auto-detected encoding of the entity or null if not appropriate. 
+     The encoding name will be specified using the IANA encoding name.
+    </note>
+    <reference idref='java-string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='textDecl'>
+   <param name='version'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='encoding'>
+    <reference idref='java-string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='endEntity'>
+   <param name='name'>
+    <reference idref='java-string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='startElement'>
+   <param name='element'>
+    <reference idref='qname'/>
+   </param>
+   <param name='attributes'>
+    <reference idref='attributes'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='emptyElement'>
+   <param name='element'>
+    <reference idref='qname'/>
+   </param>
+   <param name='attributes'>
+    <reference idref='attributes'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='characters'>
+   <param name='text'>
+    <reference idref='string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='ignorableWhitespace'>
+   <param name='text'>
+    <reference idref='string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='endElement'>
+   <param name='element'>
+    <reference idref='qname'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='endPrefixMapping'>
+   <param name='prefix'>
+    <reference idref='java-string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='startCDATA'>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  <method name='endCDATA'>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>   
+  
+  <method name='endDocument'>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+ </interface>
+
+ <interface id='document-fragment-handler' name='XMLDocumentFragmentHandler'>
+ 
+  <method name='startDocumentFragment'>
+   <param name='baseSystemId'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='namespaceContext'>
+    <reference idref='namespace-context'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='comment'>
+   <param name='text'>
+    <reference idref='string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='processingInstruction'>
+   <param name='target'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='data'>
+    <reference idref='string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='startPrefixMapping'>
+   <param name='prefix'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='uri'>
+    <reference idref='java-string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='startEntity'>
+   <param name='name'>
+    <note>
+     The DTD has the pseudo-name of "[dtd]; parameter entity names 
+     start with '%'; and general entities are just specified by 
+     their name.
+    </note>
+    <reference idref='java-string'/>
+   </param>
+   <param name='publicId'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='systemId'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='baseSystemId'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='encoding'>
+    <note>
+     The auto-detected encoding of the entity or null if not appropriate. 
+     The encoding name will be specified using the IANA encoding name.
+    </note>
+    <reference idref='java-string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='endEntity'>
+   <param name='name'>
+    <reference idref='java-string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='startElement'>
+   <param name='element'>
+    <reference idref='qname'/>
+   </param>
+   <param name='attributes'>
+    <reference idref='attributes'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='emptyElement'>
+   <param name='element'>
+    <reference idref='qname'/>
+   </param>
+   <param name='attributes'>
+    <reference idref='attributes'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='characters'>
+   <param name='text'>
+    <reference idref='string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='ignorableWhitespace'>
+   <param name='text'>
+    <reference idref='string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='endElement'>
+   <param name='element'>
+    <reference idref='qname'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='endPrefixMapping'>
+   <param name='prefix'>
+    <reference idref='java-string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='startCDATA'>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='endCDATA'>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='textDecl'>
+   <param name='version'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='encoding'>
+    <reference idref='java-string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='endDocumentFragment'>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+ </interface>
+
+ <interface id='namespace-context' name='NamespaceContext'>
+ 
+  <constant name='XMLNS'>
+   <reference idref='java-string'/>
+  </constant>
+  
+  <method name='getParentContext'>
+   <returns>
+    <reference idref='namespace-context'/>
+   </returns>
+  </method>
+  
+  <method name='getURI'>
+   <param name='prefix'>
+    <reference idref='java-string'/>
+   </param>
+   <returns>
+    <reference idref='java-string'/>
+   </returns>
+  </method>
+  
+  <method name='getDeclaredPrefixCount'>
+   <returns>
+    <primitive type='int'/>
+   </returns>
+  </method>
+  
+  <method name='getDeclaredPrefixAt'>
+   <param name='index'>
+    <primitive type='int'/>
+   </param>
+   <returns>
+    <reference idref='java-string'/>
+   </returns>
+  </method>
+  
+ </interface>
+
+ <interface id='dtd-handler' name='XMLDTDHandler'>
+ 
+  <constant name='CONDITIONAL_INCLUDE'>
+   <primitive type='short'/>
+  </constant>
+  
+  <constant name='CONDITIONAL_IGNORE'>
+   <primitive type='short'/>
+  </constant>
+  
+  <method name='startDTD'>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='comment'>
+   <param name='text'>
+    <reference idref='string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='processingInstruction'>
+   <param name='target'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='data'>
+    <reference idref='string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='startEntity'>
+   <param name='name'>
+    <note>
+     The DTD has the pseudo-name of "[dtd]; parameter entity names 
+     start with '%'; and general entities are just specified by 
+     their name.
+    </note>
+    <reference idref='java-string'/>
+   </param>
+   <param name='publicId'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='systemId'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='baseSystemId'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='encoding'>
+    <note>
+     The auto-detected encoding of the entity or null if not appropriate. 
+     The encoding name will be specified using the IANA encoding name.
+    </note>
+    <reference idref='java-string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='textDecl'>
+   <param name='version'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='encoding'>
+    <reference idref='java-string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='endEntity'>
+   <param name='name'>
+    <reference idref='java-string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='elementDecl'>
+   <param name='name'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='contentModel'>
+    <reference idref='java-string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='startAttlist'>
+   <param name='elementName'>
+    <reference idref='java-string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='attributeDecl'>
+   <param name='elementName'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='attributeName'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='type'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='enumeration'>
+    <array>
+     <reference idref='java-string'/>
+    </array>
+   </param>
+   <param name='defaultType'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='defaultValue'>
+    <reference idref='string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='endAttlist'>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='internalEntityDecl'>
+   <param name='name'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='text'>
+    <reference idref='string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='externalEntityDecl'>
+   <param name='name'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='publicId'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='systemId'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='baseSystemId'>
+    <reference idref='java-string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='unparsedEntityDecl'>
+   <param name='name'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='publicId'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='systemId'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='notation'>
+    <reference idref='java-string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='notationDecl'>
+   <param name='name'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='publicId'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='systemId'>
+    <reference idref='java-string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='startConditional'>
+   <param name='type'>
+    <primitive type='short'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='endConditional'>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  <method name='endDTD'>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+ </interface>
+
+ <interface id='dtd-content-model-handler' name='XMLDTDContentModelHandler'>
+ 
+  <constant name='SEPARATOR_CHOICE'>
+   <primitive type='short'/>
+  </constant>
+  
+  <constant name='SEPARATOR_SEQUENCE'>
+   <primitive type='short'/>
+  </constant>
+  
+  <constant name='OCCURS_ZERO_OR_ONE'>
+   <primitive type='short'/>
+  </constant>
+  
+  <constant name='OCCURS_ZERO_OR_MORE'>
+   <primitive type='short'/>
+  </constant>
+  
+  <constant name='OCCURS_ONE_OR_MORE'>
+   <primitive type='short'/>
+  </constant>
+  
+  <method name='startContentModel'>
+   <param name='elementName'>
+    <reference idref='java-string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='any'>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='empty'>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+
+  <method name='startGroup'>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='pcdata'>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+
+  <method name='element'>
+   <param name='elementName'>
+    <reference idref='java-string'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='separator'>
+   <param name='separator'>
+    <primitive type='short'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='occurrence'>
+   <param name='occurrence'>
+    <primitive type='short'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='endGroup'>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='endContentModel'>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+ </interface>
+
+ <class id='qname' name='QName'>
+ 
+  <field name='prefix' visibility='public'>
+   <reference idref='java-string'/>
+  </field>
+  
+  <field name='localpart' visibility='public'>
+   <reference idref='java-string'/>
+  </field>
+  
+  <field name='rawname' visibility='public'>
+   <reference idref='java-string'/>
+  </field>
+  
+  <field name='uri' visibility='public'>
+   <reference idref='java-string'/>
+  </field>
+  
+  <method name='setValues'>
+   <param name='prefix'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='localpart'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='rawname'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='uri'>
+    <reference idref='java-string'/>
+   </param>
+  </method>
+  
+  <method name='clear'/>
+  
+ </class>
+
+ <class id='string' name='XMLString'>
+ 
+  <field name='ch' visibility='public'>
+   <array>
+    <primitive type='char'/>
+   </array>
+  </field>
+  
+  <field name='offset' visibility='public'>
+   <primitive type='int'/>
+  </field>
+  
+  <field name='length' visibility='public'>
+   <primitive type='int'/>
+  </field>
+  
+  <constructor/>
+  
+  <constructor>
+   <param name='ch'>
+    <array>
+     <primitive type='char'/>
+    </array>
+   </param>
+   <param name='offset'>
+    <primitive type='int'/>
+   </param>
+   <param name='length'>
+    <primitive type='int'/>
+   </param>
+  </constructor>
+  
+  <method name='setValues'>
+   <param name='ch'>
+    <array>
+     <primitive type='char'/>
+    </array>
+   </param>
+   <param name='offset'>
+    <primitive type='int'/>
+   </param>
+   <param name='length'>
+    <primitive type='int'/>
+   </param>
+  </method>
+  
+  <method name='clear'/>
+  
+  <method name='equals'>
+   <param name='ch'>
+    <array>
+     <primitive type='char'/>
+    </array>
+   </param>
+   <param name='offset'>
+    <primitive type='int'/>
+   </param>
+   <param name='length'>
+    <primitive type='int'/>
+   </param>
+   <returns>
+    <primitive type='boolean'/>
+   </returns>
+  </method>
+  
+  <method name='equals'>
+   <param name='s'>
+    <reference idref='java-string'/>
+   </param>
+   <returns>
+    <primitive type='boolean'/>
+   </returns>
+  </method>
+  
+  <method name='toString'>
+   <returns>
+    <reference idref='java-string'/>
+   </returns>
+  </method>
+  
+ </class>
+ 
+ <interface id='attributes' name='XMLAttributes'>
+ 
+  <extends>
+   <reference idref='sax-attribute-list'/>
+  </extends>
+  
+  <extends>
+   <reference idref='sax-attributes'/>
+  </extends>
+  
+  <method name='addAttribute'>
+   <param name='name'>
+    <reference idref='qname'/>
+   </param>
+   <param name='type'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='value'>
+    <reference idref='string'/>
+   </param>
+   <returns>
+    <primitive type='int'/>
+   </returns>
+  </method>
+  
+  <method name='removeAttributeAt'>
+   <param name='index'>
+    <primitive type='int'/>
+   </param>
+  </method>
+  
+  <method name='removeAllAttributes'/>
+  
+  <method name='removeAllEntitiesFor'>
+   <param name='attrIndex'>
+    <primitive type='int'/>
+   </param>
+  </method>
+  
+  <method name='addAttributeEntity'>
+   <param name='index'>
+    <primitive type='int'/>
+   </param>
+   <param name='name'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='offset'>
+    <primitive type='int'/>
+   </param>
+   <param name='length'>
+    <primitive type='int'/>
+   </param>
+  </method>
+  
+  <method name='removeEntityAt'>
+   <param name='attrIndex'>
+    <primitive type='int'/>
+   </param>
+   <param name='entityIndex'>
+    <primitive type='int'/>
+   </param>
+  </method>
+  
+  <method name='setName'>
+   <param name='index'>
+    <primitive type='int'/>
+   </param>
+   <param name='name'>
+    <reference idref='qname'/>
+   </param>
+  </method>
+  
+  <method name='getName'>
+   <param name='index'>
+    <primitive type='int'/>
+   </param>
+   <param name='name'>
+    <reference idref='qname'/>
+   </param>
+  </method>
+  
+  <method name='setType'>
+   <param name='index'>
+    <primitive type='int'/>
+   </param>
+   <param name='type'>
+    <reference idref='java-string'/>
+   </param>
+  </method>
+  
+  <method name='getType'>
+   <param name='index'>
+    <primitive type='int'/>
+   </param>
+   <returns>
+    <reference idref='java-string'/>
+   </returns>
+  </method>
+  
+  <method name='setValue'>
+   <param name='index'>
+    <primitive type='int'/>
+   </param>
+   <param name='value'>
+    <reference idref='java-string'/>
+   </param>
+  </method>
+  
+  <method name='setNonNormalizedValue'>
+   <param name='index'>
+    <primitive type='int'/>
+   </param>
+   <param name='value'>
+    <reference idref='java-string'/>
+   </param>
+  </method>
+  
+  <method name='getNonNormalizedValue'>
+   <param name='index'>
+    <primitive type='int'/>
+   </param>
+   <returns>
+    <reference idref='java-string'/>
+   </returns>
+  </method>
+
+  <method name='setSpecified'>
+   <param name='index'>
+    <primitive type='int'/>
+   </param>
+   <param name='specified'>
+    <primitive type='boolean'/>
+   </param>
+  </method>
+  
+  <method name='isSpecified'>
+   <param name='index'>
+    <primitive type='int'/>
+   </param>
+   <returns>
+    <primitive type='boolean'/>
+   </returns>
+  </method>
+  
+  <method name='getEntityCount'>
+   <param name='attrIndex'>
+    <primitive type='int'/>
+   </param>
+   <returns>
+    <primitive type='int'/>
+   </returns>
+  </method>
+  
+  <method name='getEntityName'>
+   <param name='attrIndex'>
+    <primitive type='int'/>
+   </param>
+   <param name='entityIndex'>
+    <primitive type='int'/>
+   </param>
+   <returns>
+    <reference idref='java-string'/>
+   </returns>
+  </method>
+  
+  <method name='getEntityOffset'>
+   <param name='attrIndex'>
+    <primitive type='int'/>
+   </param>
+   <param name='entityIndex'>
+    <primitive type='int'/>
+   </param>
+   <returns>
+    <primitive type='int'/>
+   </returns>
+  </method>
+  
+  <method name='getEntityLength'>
+   <param name='attrIndex'>
+    <primitive type='int'/>
+   </param>
+   <param name='entityIndex'>
+    <primitive type='int'/>
+   </param>
+   <returns>
+    <primitive type='int'/>
+   </returns>
+  </method>
+  
+ </interface>
+
+ <class id='xni-exception' name='XNIException'>
+  <field name='fException'>
+   <reference idref='java-string'/>
+  </field>
+  <constructor>
+   <param name='message'>
+    <reference idref='java-string'/>
+   </param>
+  </constructor>
+  <constructor>
+   <param name='exception'>
+    <reference idref='java-exception'/>
+   </param>
+  </constructor>
+  <constructor>
+   <param name='exception'>
+    <reference idref='java-exception'/>
+   </param>
+   <param name='message'>
+    <reference idref='java-string'/>
+   </param>
+  </constructor>
+  <method name='getException'>
+   <returns>
+    <reference idref='java-string'/>
+   </returns>
+  </method>
+ </class>
+
+</category>
+
+<category name='XNI: Parser Pipeline' package='&package;.xni.pipeline'>
+ <interface id='configurable' name='XMLComponent'>
+ 
+  <method name='reset'>
+   <param name='componentManager'>
+    <reference idref='configuration-manager'/>
+   </param>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+  
+  <method name='getRecognizedFeatures'>
+   <param name='recognizedFeatures'>
+    <array>
+     <reference idref='java-string'/>
+    </array>
+   </param>
+  </method>
+
+  <method name='setFeature'>
+   <param name='featureId'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='state'>
+    <primitive type='boolean'/>
+   </param>
+   <throws>
+    <reference idref='sax-not-recognized-exception'/>
+   </throws>
+   <throws>
+    <reference idref='sax-not-supported-exception'/>
+   </throws>
+  </method>
+  
+  <method name='getRecognizedProperties'>
+   <param name='recognizedProperties'>
+    <array>
+     <reference idref='java-string'/>
+    </array>
+   </param>
+  </method>
+
+  <method name='setProperty'>
+   <param name='propertyId'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='value'>
+    <reference idref='java-object'/>
+   </param>
+   <throws>
+    <reference idref='sax-not-recognized-exception'/>
+   </throws>
+   <throws>
+    <reference idref='sax-not-supported-exception'/>
+   </throws>
+  </method>
+  
+ </interface>
+
+ <interface id='configuration-manager' name='XMLComponentManager'>
+ 
+  <method name='getFeature'>
+   <param name='featureId'>
+    <reference idref='java-string'/>
+   </param>
+   <returns>
+    <primitive type='boolean'/>
+   </returns>
+   <throws>
+    <reference idref='sax-not-recognized-exception'/>
+   </throws>
+   <throws>
+    <reference idref='sax-not-supported-exception'/>
+   </throws>
+  </method>
+  
+  <method name='getProperty'>
+   <param name='propertyId'>
+    <reference idref='java-string'/>
+   </param>
+   <returns>
+    <reference idref='java-object'/>
+   </returns>
+   <throws>
+    <reference idref='sax-not-recognized-exception'/>
+   </throws>
+   <throws>
+    <reference idref='sax-not-supported-exception'/>
+   </throws>
+  </method>
+  
+ </interface>
+
+ <interface id='parser-configuration' name='XMLParserConfiguration'>
+ 
+  <method name='addRecognizedFeatures'>
+   <param name='featureIds'>
+    <reference idref='java-string'/>
+   </param>
+  </method>
+
+  <method name='setFeature'>
+   <param name='featureId'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='state'>
+    <primitive type='boolean'/>
+   </param>
+   <throws>
+    <reference idref='sax-not-recognized-exception'/>
+   </throws>
+   <throws>
+    <reference idref='sax-not-supported-exception'/>
+   </throws>
+  </method>
+  
+  <method name='getFeature'>
+   <param name='featureId'>
+    <reference idref='java-string'/>
+   </param>
+   <returns>
+    <primitive type='boolean'/>
+   </returns>
+   <throws>
+    <reference idref='sax-not-recognized-exception'/>
+   </throws>
+   <throws>
+    <reference idref='sax-not-supported-exception'/>
+   </throws>
+  </method>
+  
+  <method name='addRecognizedProperties'>
+   <param name='propertyIds'>
+    <reference idref='java-string'/>
+   </param>
+  </method>
+
+  <method name='setProperty'>
+   <param name='propertyId'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='value'>
+    <reference idref='java-object'/>
+   </param>
+   <throws>
+    <reference idref='sax-not-recognized-exception'/>
+   </throws>
+   <throws>
+    <reference idref='sax-not-supported-exception'/>
+   </throws>
+  </method>
+  
+  <method name='getProperty'>
+   <param name='propertyId'>
+    <reference idref='java-string'/>
+   </param>
+   <returns>
+    <reference idref='java-object'/>
+   </returns>
+   <throws>
+    <reference idref='sax-not-recognized-exception'/>
+   </throws>
+   <throws>
+    <reference idref='sax-not-supported-exception'/>
+   </throws>
+  </method>
+
+  <method name='setLocale'>
+   <param name='locale'>
+    <reference idref='java-locale'/>
+   </param>
+  </method>
+  
+  <method name='setDocumentHandler'>
+   <param name='documentHandler'>
+    <reference idref='document-handler'/>
+   </param>
+  </method>
+
+  <!-- 
+    - // REVISIT: The following two methods to be combined, redesigned, 
+    -             or both. -Ac
+    -->
+    
+  <method name='setDTDHandler'>
+   <param name='dtdHandler'>
+    <reference idref='dtd-handler'/>
+   </param>
+  </method>
+
+  <method name='setDTDContentModelHandler'>
+   <param name='dtdContentModelHandler'>
+    <reference idref='dtd-content-model-handler'/>
+   </param>
+  </method>
+
+  <method name='parse'>
+   <param name='inputSource'>
+    <reference idref='sax-input-source'/>
+   </param>
+   <throws>
+    <reference idref='java-io-exception'/>
+   </throws>
+   <throws>
+    <reference idref='xni-exception'/>
+   </throws>
+  </method>
+
+ </interface>
+
+</category>
+
+<!-- 
+  - Old interfaces to be either moved to another package or
+  - removed entirely. The decision on what should be done with
+  - then is currently deferred. -Ac
+  
+ <interface id='document-source' name='XMLDocumentSource'>
+ 
+  <method name='setDocumentHandler'>
+   <param name='documentHandler'>
+    <reference idref='document-handler'/>
+   </param>
+  </method>
+  
+ </interface>
+
+ <interface id='document-filter' name='XMLDocumentFilter'>
+ 
+  <extends>
+   <reference idref='document-handler'/>
+  </extends>
+  <extends>
+   <reference idref='document-source'/>
+  </extends>
+  
+ </interface>
+
+ <interface id='dtd-source' name='XMLDTDSource'>
+ 
+  <method name='setDTDHandler'>
+   <param name='dtdHandler'>
+    <reference idref='dtd-handler'/>
+   </param>
+  </method>
+  
+ </interface>
+
+ <interface id='dtd-filter' name='XMLDTDFilter'>
+ 
+  <extends>
+   <reference idref='dtd-handler'/>
+  </extends>
+  
+  <extends>
+   <reference idref='dtd-source'/>
+  </extends>
+  
+ </interface>
+
+ <interface id='dtd-content-model-source' name='XMLDTDContentModelSource'>
+ 
+  <method name='setDTDContentModelHandler'>
+   <param name='dtdContentModelHandler'>
+    <reference idref='dtd-content-model-handler'/>
+   </param>
+  </method>
+  
+ </interface>
+
+ <interface id='dtd-content-model-filter' name='XMLDTDContentModelFilter'>
+ 
+  <extends>
+   <reference idref='dtd-content-model-handler'/>
+  </extends>
+  
+  <extends>
+   <reference idref='dtd-content-model-source'/>
+  </extends>
+  
+ </interface>
+
+-->

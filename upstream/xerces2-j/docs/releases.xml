@@ -1,0 +1,2523 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<!-- $Id$ -->
+<!DOCTYPE releases SYSTEM 'dtd/releases.dtd'>
+<releases>
+  <release version='&ParserName; 2.9.1'>
+   <desc>
+    <p>
+     This release fixes several bugs which were present in Xerces-J 2.9.0.
+     It also includes a few minor enhancements and performance improvements.
+    </p>
+   </desc>
+   <changes>
+    <add>
+     <note>
+      Added support for creating UIEvents and MouseEvents through the
+      DOM Level 2 <jump href="http://www.w3.org/TR/DOM-Level-2-Events/">Events</jump> API.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </add>
+    <update>
+     <note>
+      Improved the reporting of character conversion errors. The CharConversionException 
+      which triggered the fatal error is now available from SAXException.getException(). 
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </update>
+    <update>
+     <note>
+      Reduced the performance penalty for using an EOFException internally to 
+      signal to the scanner that the end of the document has been reached. The
+      exception is now cached, avoiding the expensive fillInStackTrace() on
+      creation.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </update>
+    <update>
+     <note>
+      Improved the performance of the XMLGregorianCalendar implementation.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </update>
+    <update>
+     <note>
+      Implemented improvements in the processing of large minOccurs/maxOccurs on 
+      element/wildcard particles which once caused OutOfMemoryErrors to occur during
+      validation. Note that an OutOfMemoryError may still occur if the minOccurs/maxOccurs
+      are nested or appear on a sequence or choice model group.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </update>
+    <update>
+     <note>
+      Improved the algorithm for checking the <jump href="http://www.w3.org/TR/xmlschema-1/#cos-nonambig">Unique Particle Attribution</jump> 
+      constraint so that it no longer causes an OutOfMemoryError for content models with large maxOccurs values. Note that this only applies 
+      to the checking of schema validity. An OutOfMemoryError may still occur if the schema contains large maxOccurs and is used to validate 
+      an instance document.
+     </note>
+     <submitter name='Peter McCracken'/>
+    </update>
+    <fix>
+     <note>
+      Completed the implementation of XML Schema erratum E2-67.
+     </note>
+     <submitter name='Ed Merks, Khaled Noaman'/>
+    </fix>
+    <fix>
+     <note>
+      Implemented XML 1.0 Third Edition erratum E13.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed bugs in the implementation of Document.normalizeDocument() where it was not correctly 
+      re-evaluating Element.schemaTypeInfo, Attr.schemaTypeInfo, IDness or the 
+      [element content whitespace] property of text nodes when validating against a DTD or XML Schema.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed a thread-safety bug which could cause an ArrayIndexOutOfBoundsException or a 
+      NullPointerException to be thrown during DTD validation if a grammar pool is shared 
+      between multiple parser instances.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed a bug in the DOMConfiguration of a Document where it was processing the 
+      "schema-location" parameter as an atomic URI value instead of a whitespace separated 
+      list of URIs.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed a bug in the XInclude implementation where the Locator would report the location 
+      of the xi:include element in the top-level document as the location of all the document 
+      events in the included document or fragment.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed a bug in the JAXP schema validator which caused it to fail with a third-party DOM 
+      Level 3 implementation whose nodes can only be tested for identity using isSameNode().
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed several bugs in the XML schema processor which were exposed by running the W3C's
+      XML Schema 1.0 2nd Edition test suite. 
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed several bugs in the DOM Level 2 
+      <jump href="http://www.w3.org/TR/DOM-Level-2-Traversal-Range/">Traversal and Range</jump> implementation.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed various bugs and made various improvements.
+     </note>
+     <submitter name='Dave Brosius, Michael Glavassevich, Khaled Noaman'/>
+    </fix>
+   </changes>
+  </release>
+  <release version='&ParserName; 2.9.0'>
+   <desc>
+    <p>
+     As of this release, Xerces and Xalan now share a common serialization codebase.
+     The DOM Level 3 serialization support which was in Xerces was migrated into 
+     the Xalan serializer and Xerces' native serializer was deprecated. In this release 
+     we also upgraded the xml-commons resolver to v1.2 (which provides support for OASIS 
+     XML Catalogs v1.1), introduced a few minor features and fixed several bugs.
+    </p>
+   </desc>
+   <changes>
+    <update>
+     <note>
+      Migrated the DOM Level 3 serialization support onto a common serialization 
+      codebase shared with Xalan and deprecated Xerces' native serializer.
+     </note>
+     <submitter name='Neil Delima, Michael Glavassevich'/>
+    </update>
+    <add>
+     <note>
+      Upgraded the xml-commons resolver to v1.2. This new version of
+      the resolver adds support for 
+      <jump href="http://www.oasis-open.org/committees/download.php/14809/xml-catalogs.html">OASIS XML Catalogs v1.1</jump>.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </add>
+    <add>
+     <note>
+      Created a new parser configuration which uses a memory sensitive
+      SymbolTable which can handle usage scenarios where the names in the 
+      XML documents being parsed are mostly unique. The internalized 
+      strings stored in this SymbolTable are softly reachable and may be 
+      cleared by the garbage collector in response to memory demand.
+     </note>
+     <submitter name='Peter McCracken'/>
+    </add>
+    <update>
+     <note>
+      Updated the schema loader so that it can now process schema documents with an XML 1.1 declaration.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </update>
+    <fix>
+     <note>
+      Fixed several bugs in the checking of schema type restrictions 
+      that involve substitution groups.
+     </note>
+     <submitter name='Lucian Holland, Ignacio Hernandez-Ros'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed a bug in Xerces' regular expression support where patterns containing
+      "$" and "^" were being interpreted as anchors in a schema context.
+     </note>
+     <submitter name='Chris Carman'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed a bug in the XPath matcher for identity constraints which allowed
+      steps containing NCName:* to select element or attribute names which do 
+      not match the specified namespace.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed a bug in the XPath parser for identity constraints which caused
+      field and selector XPaths containing the non-abbreviated form of the 
+      child and attribute axes to be reported as invalid.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed a bug which allowed the JAXP SchemaFactory to mutate a user 
+      supplied DOM input.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed a bug which caused the JAXP 1.2 method for schema validation to 
+      produce DTD validation errors when XInclude processing is enabled.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed various bugs and made various improvements.
+     </note>
+     <submitter name='Nathan Beyer, George Cristian Bina, Michael Glavassevich, Jacob Kjome, Grant McDonald'/>
+    </fix>
+   </changes>
+  </release>
+  <release version='&ParserName; 2.8.1'>
+   <desc>
+    <p>
+     This release fixes several bugs which were present in Xerces-J 2.8.0. 
+     It also includes a few minor enhancements and performance improvements.
+    </p>
+   </desc>
+   <changes>
+    <add>
+     <note>
+      Implemented native support for the ISO-8859-1 encoding.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </add>
+    <add>
+     <note>
+      Added a method to XSModel which returns a list containing the members 
+      of the substitution group for a given element declaration.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </add>
+    <update>
+     <note>
+      Improved the performance of Xerces' optimized readers (for small 
+      documents) by recycling their byte buffers.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </update>
+    <update>
+     <note>
+      Modified the DocumentBuilder and LSParser implementations so that they drop 
+      their internal references to the DOM they just built. If an application is 
+      pooling parsers this will allow the garbage collector to reclaim the Document 
+      and all of its nodes if the application no longer has any references to it.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </update>
+    <fix>
+     <note>
+      Fixed numerous schema annotation related bugs including those introduced in
+      Xerces-J 2.8.0 which caused NPEs to be thrown from several of the getAnnotation() 
+      methods in the XML Schema API.
+     </note>
+     <submitter name='Neil Delima, Michael Glavassevich'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed a DOM bug which caused the internal subset of a DocumentType node to be
+      omitted from a cloned Document.
+     </note>
+     <submitter name='Jacob Kjome'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed a bug in Xerces' regular expression support involving patterns starting with '.'.
+     </note>
+     <submitter name='Kent Tamura'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed a bug which caused the DOM builder to drop all of the text in the document if 
+      grammar caching is enabled and the document being processed contains both an internal 
+      and an external DTD subset.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed a schema bug which allowed defaulted attributes with the same local 
+      name to overwrite each other.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed a bug which caused a schema document to be loaded multiple times if it 
+      was both included and redefined. This made it possible for the redefined components 
+      to be incorrectly overwritten by the original ones from the include.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed a bug in Xerces' native serializer which caused documents containing 
+      supplemental characters in attribute values to be written incorrectly.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed a bug in the XInclude processor which in some instances caused 
+      content to be omitted from the result if an element() XPointer is 
+      specified on an include element.
+     </note>
+     <submitter name='Neil Delima'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed various bugs and made various improvements.
+     </note>
+     <submitter name='Dave Brosius, Michael Glavassevich, Jacob Kjome, Peter McCracken'/>
+    </fix>
+   </changes>
+  </release>
+  <release version='&ParserName; 2.8.0'>
+   <desc>
+    <p>
+     This release introduces several new validation related features and provides enhancements 
+     to the XML schema annotation support. All of the schema component interfaces in the XML Schema API 
+     now have a getAnnotations() method which returns a list of XSAnnotations. This includes annotations 
+     on particles and attribute uses which were previously "lost". In addition, in this release we
+     implemented support for pretty-printing in the LSSerializer, repaired the warn-on-undeclared-elemdef
+     feature which had been broken for several releases and fixed many other bugs.
+    </p>
+   </desc>
+   <changes>
+    <add>
+     <note>
+      Added a getAnnotations() method to each of the component interfaces in the XML Schema API
+      (including XSParticle and XSAttributeUse) and implemented the support for the new methods.
+     </note>
+     <submitter name='Neil Delima'/>
+    </add>
+    <add>
+     <note>
+      Implemented a <link idref='properties' anchor="validation.schema.root-type-definition">property</link> 
+      for starting schema assessment from a specific type definition.
+     </note>
+     <submitter name='Peter McCracken'/>
+    </add>
+    <add>
+     <note>
+      Implemented features for disabling ID/IDREF, unparsed entity and identity constraint checking.
+     </note>
+     <submitter name='Peter McCracken'/>
+    </add>
+    <add>
+     <note>
+      Implemented a <link idref='features' anchor="validation.schema.ignore-xsi-type-until-elemdecl">feature</link> 
+      which instructs the schema validator to ignore xsi:type attributes until a global element declaration 
+      has been found.
+     </note>
+     <submitter name='Peter McCracken'/>
+    </add>
+    <update>
+     <note>
+      Modified the JAXP Validation API implementation so that it propagates features set on the SchemaFactory
+      to the Schemas created from the factory and in turn ValidatorHandlers and Validators constructed from 
+      those Schema objects (as clarified by JAXP 1.4).
+     </note>
+     <submitter name='Peter McCracken'/>
+    </update>
+    <add>
+     <note>
+      Implemented the DOM Level 3 Load and Save
+      <jump href="http://www.w3.org/TR/2004/REC-DOM-Level-3-LS-20040407/load-save.html#parameter-format-pretty-print">format-pretty-print</jump>
+      parameter.
+     </note>
+     <submitter name='Matej Kraus'/>
+    </add>
+    <fix>
+     <note>
+      Fixed the <link idref='features' anchor="validation.warn-on-undeclared-elemdef">warn-on-undeclared-elemdef</link> 
+      feature which had been broken for many releases.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <add>
+     <note>
+      Implemented a <link idref='features' anchor="validation.balance-syntax-trees">feature</link>
+      which allows the parser to process DTDs containing large content models which under normal 
+      operation may cause a StackOverflowError to occur.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </add>   
+    <update>
+     <note>
+      Improved the performance and memory usage of XSAnnotation.writeAnnotation().
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </update>
+    <fix>
+     <note>
+      Implemented XML Schema erratum E2-66.
+     </note>
+     <submitter name='Sandy Gao'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed bugs in the implementation of Document.normalizeDocument() which caused DTD 
+      validation to fail in numerous scenarios.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed a bug where schema validation performed in Document.normalizeDocument() was adding 
+      default attributes without setting their owner element or firing mutation events.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed a bug which caused the JAXP 1.2 method for schema validation to fail when the 
+      parser is reused. 
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed a bug which caused a ClassCastException to be thrown when adopting a node from a 
+      deferred DOM into a non-deferred DOM. 
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed the dtdjars build target which had been broken for several releases.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <update>
+     <note>
+      Improved identity constraint error messages.
+     </note>
+     <submitter name='George Cristian Bina'/>
+    </update>
+    <fix>
+     <note>
+      Fixed various bugs and made various improvements.
+     </note>
+     <submitter name='Nathan Beyer, Dave Brosius, Sandy Gao, Michael Glavassevich, Matej Kraus, Peter McCracken'/>
+    </fix>
+   </changes>
+  </release>
+  <release version='&ParserName; 2.7.1'>
+   <desc>
+    <p>
+     This release fixes one XInclude bug and several schema related 
+     bugs which were present in Xerces-J 2.7.0.
+    </p>
+   </desc>
+   <changes>
+    <fix>
+     <note>
+      Fixed an inconsistency in the validation behaviour of the parser
+      when XInclude processing is enabled and the
+      <link idref='features' anchor="validation">validation</link> and 
+      <link idref='features' anchor="validation.schema">schema validation</link> 
+      features are also enabled. 
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed a bug where in a DOM Level 3 context with schema validation
+      enabled, not all schema constraints (such as unique particle 
+      attribution) were being checked.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed bugs which allowed various invalid lexical values to be
+      accepted by the schema validator for the following types: double, 
+      date, float, gDay, gMonthDay, gMonth and gYearMonth.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed a schema bug where errors would be reported for comments and 
+      processing instructions which appear as the children of an 
+      element declared to have empty content.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed a bug which caused an NPE to be thrown for a
+      namespace declaration such as xmlns="" which appeared on
+      an ancestor element of an &lt;annotation&gt;.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+   </changes>
+  </release>
+  <release version='&ParserName; 2.7.0'>
+   <desc>
+    <p>This release provides a complete implementation of the parser related 
+    portions of JAXP 1.3 and also brings Xerces into compliance with SAX 2.0.2,
+    the DOM Level 3 Core and Load/Save W3C Recommendations, the XML Inclusions
+    (XInclude) Version 1.0 W3C Recommendation and the XML Schema 1.0 Structures 
+    and Datatypes Second Edition W3C Recommendations.</p>
+    <p>&ParserName; 2.7.0 incorporates two minor changes to the Xerces Native Interface
+    (documented below). A new package <code>org.apache.xerces.xs.datatypes</code> has
+    been added to Xerces' XML Schema API that provides a full schema datatype to 
+    object mapping. In addition, in this release we introduced many new parser
+    features, improved parser performance in several areas and fixed many bugs.
+    </p>
+   </desc>
+   <changes>
+    <add>
+     <note>
+      Implemented the following packages defined by JAXP 1.3: 
+      javax.xml.datatype, javax.xml.parsers and javax.xml.validation.
+     </note>
+     <submitter name='Neeraj Bajaj, Neil Delima, Joseph Fialli, Michael Glavassevich, Kohsuke Kawaguchi, 
+                      Ankit Pasricha, Jeff Suttor, K. Venugopal, Jack Z. Wang, Arun Yadav'/>
+    </add>
+    <add>
+     <note>
+      Defined and implemented interfaces (<code>org.apache.xerces.xs.datatypes</code>) for accessing actual values.
+     </note>
+     <submitter name='Naela Nissar, Ankit Pasricha'/>
+    </add>
+    <add>
+     <note>
+      Implemented a feature that instructs the schema processor to use all schema location hints
+      for a given target namespace when locating components.
+     </note>
+     <submitter name='Ankit Pasricha'/>
+    </add>
+    <add>
+     <note>
+      Implemented partial experimental support for the first working draft of 
+      XML Schema 1.1 <jump href="http://www.w3.org/TR/2004/WD-xmlschema11-1-20040716/">Structures</jump>
+      and <jump href="http://www.w3.org/TR/2004/WD-xmlschema11-2-20040716/">Datatypes</jump>.
+     </note>
+     <submitter name='Naela Nissar, Ankit Pasricha'/>
+    </add>
+    <add>
+     <note>
+      Implemented features for configuring whether the XInclude processor 
+      performs <jump href="http://www.w3.org/TR/2004/REC-xinclude-20041220/#base">base URI fixup</jump>
+      and/or <jump href="http://www.w3.org/TR/2004/REC-xinclude-20041220/#language">language fixup</jump>.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </add>
+    <update>
+     <note>
+      Implemented the <jump href="http://www.w3.org/TR/2004/REC-xinclude-20041220/">XInclude</jump>
+      Recommendation (December 2004).
+     </note>
+     <submitter name='Neil Delima, Michael Glavassevich'/>
+    </update>
+    <fix>
+     <note>
+      Fixed a bug which caused the DTD validator to be activated when using the XInclude
+      processor with schema validation turned on.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <update>
+     <note>
+      Modified the XNI XMLLocator interface to include getCharacterOffset and getXMLVersion.
+      Added a getCharacterOffset method to XMLParseException.
+     </note>
+     <submitter name='Michael Glavassevich, Ankit Pasricha'/>
+    </update>
+    <update>
+     <note>
+      Made various modifications to support the reporting of character offsets in XNI and DOM.
+     </note>
+     <submitter name='Ankit Pasricha'/>
+    </update>
+    <add>
+     <note>
+      Implemented SAX 2.0.2 and SAX2 Extensions 1.1.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </add>
+    <fix>
+     <note>
+      Fixed SAX conformance bugs including one concerning skipped entities.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <add>
+     <note>
+      Implemented a feature that allows schema annotations to be validated.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </add>
+    <add>
+     <note>
+      Added support for generating synthetic annotations when a schema component
+      has non-schema attributes but no child annotation.
+     </note>
+     <submitter name='Ankit Pasricha'/>
+    </add>
+    <fix>
+     <note>
+      Fixed numerous schema related bugs.
+     </note>
+     <submitter name='Mike Boos, Neil Delima, Sandy Gao, Michael Glavassevich, Kohsuke Kawaguchi, Elena Litani, Ankit Pasricha'/>
+    </fix>
+    <update>
+     <note>
+      Reimplemented <jump href="http://www.w3.org/TR/DOM-Level-3-Core/core.html#Text3-replaceWholeText">Text.replaceWholeText</jump> and
+      <jump href="http://www.w3.org/TR/DOM-Level-3-Core/core.html#TypeInfo-isDerivedFrom">TypeInfo.isDerivedFrom</jump> according
+      to the DOM Level 3 Core Recommendation.
+     </note>
+     <submitter name='Neil Delima'/>
+    </update>
+    <fix>
+     <note>
+      Fixed various DOM Level 3 bugs.
+     </note>
+     <submitter name='Jonathan Au, Neil Delima, Michael Glavassevich, Naela Nissar, Ankit Pasricha, K. Venugopal'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed numerous bugs in the DOM Level 2 <jump href="http://www.w3.org/TR/DOM-Level-2-Events/">Events</jump> and
+      <jump href="http://www.w3.org/TR/DOM-Level-2-Traversal-Range/">Traversal and Range</jump> implementation.
+     </note>
+     <submitter name='Neil Delima, Naela Nissar'/>
+    </fix>
+    <add>
+     <note>
+      Created two new parser configurations that support XML 1.1.
+     </note>
+     <submitter name='John Kim'/>
+    </add>
+    <update>
+     <note>
+      Improved the performance of the SymbolTable, processing of attribute values and parsing of relative URIs.
+     </note>
+     <submitter name='Michael Glavassevich, John Kim'/>
+    </update>
+    <update>
+     <note>
+      Added support for EntityResolver2 and LSResourceResolver to XMLCatalogResolver.
+     </note>
+     <submitter name='Michael Glavassevich, John Kim'/>
+    </update>
+    <fix>
+     <note>
+      Fixed a potential memory leak in the ObjectFactory classes which in some
+      circumstances allowed input streams to never be closed.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed a thread-safety bug concerning identity constraints which caused
+      spurious errors about duplicate field matches to be reported.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed various bugs.
+     </note>
+     <submitter name='Dave Brosius, Michael Glavassevich, Eric Isakson'/>
+    </fix>
+   </changes>
+  </release>
+  <release version='&ParserName; 2.6.2'>
+   <desc>
+    This release fixes several bugs which were present in
+    Xerces-J 2.6.1. It also provides a few minor performance
+    improvements.
+   </desc>
+   <changes>
+    <fix>
+     <note>
+      Fixed a bug in the specification of the XML Schema API. Some of the 
+      method signatures did not match the signatures in the implementation.
+     </note>
+     <submitter name='Elena Litani'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed a bug introduced in 2.6.1 which caused the XMLSerializer to 
+      automatically expand entity references and convert CDATA sections to text.
+     </note>
+     <submitter name='Elena Litani'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed a possible security hole regarding class loading.
+     </note>
+     <submitter name='Neeraj Bajaj'/>
+    </fix>
+    <update>
+     <note>
+      Improved class initialization for the XMLChar and  
+      XML11Char classes to reduce the cost of loading Xerces.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </update>
+    <fix>
+     <note>
+      Fixed a SAX conformance bug involving spurious
+      prefix mapping events with namespace support 
+      turned off.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <update>
+     <note>
+      Made message localization changes.
+     </note>
+     <submitter name='Neil Delima, Michael Glavassevich'/>
+    </update>
+    <fix>
+     <note>
+      Fixed schema related bugs.
+     </note>
+     <submitter name='Sandy Gao'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed various bugs.
+     </note>
+     <submitter name='Curt Arnold, Michael Glavassevich, Kohsuke Kawaguchi, Naela Nissar'/>
+    </fix>
+   </changes>
+  </release>
+  <release version='&ParserName; 2.6.1'>
+   <desc>
+    This release provides support for OASIS XML Catalogs
+    and includes several bug fixes for XML 1.1, XML Schema and 
+    DOM Level 3 Core and Load/Save. It also contains several
+    performance improvements and includes an update for 
+    the latest working draft of XInclude. This is the last
+    release to support JDK 1.1.
+   </desc>
+   <changes>
+    <add>
+     <note>
+      Added support for XML Catalogs.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </add>
+    <fix>
+     <note>
+      Implemented some remaining XML Schema errata and 
+      fixed several schema related bugs. 
+     </note>
+     <submitter name='Sandy Gao'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed various DOM Level 3 bugs.
+     </note>
+     <submitter name='Neil Delima, Kohsuke Kawaguchi, Michael Glavassevich, Elena Litani, K. Venugopal'/>
+    </fix>
+    <update>
+     <note>
+      Implemented well-formedness checking for LSSerializer (DOM Level 3).
+     </note>
+     <submitter name='Elena Litani'/>
+    </update>
+    <fix>
+     <note>
+      Modified the XJavac task used by the build file so that
+      Xerces can be built on Mac OS X with Apple JDK 1.4.
+     </note>
+     <submitter name='Alex Milowski'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed possible security hole: the features and properties set on the parser were not propagated to the XMLSchemaLoader.
+     </note>
+     <submitter name='Elena Litani'/>
+    </fix>
+    <update>
+     <note>
+      Implemented the latest 
+      <jump href="http://www.w3.org/TR/2003/WD-xinclude-20031110/">XInclude</jump> 
+      draft, excluding support for XPointer.
+     </note>
+     <submitter name='Michael Glavassevich, K. Venugopal'/>
+    </update>
+    <fix>
+     <note>
+      Implemented missing support for supplemental 
+      characters in XML 1.1 names.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed a bug which caused the parser to overwrite some of
+      the user's configuration with default values when 
+      namespace support was disabled.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <update>
+     <note>
+      Implemented various performance improvements.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </update>
+    <fix>
+     <note>
+      Fixed various bugs.
+     </note>
+     <submitter name='Michael Glavassevich, Lucian Holland, Kohsuke Kawaguchi, Elena Litani'/>
+    </fix>
+   </changes>
+  </release>
+  <release version='&ParserName; 2.6.0'>
+   <desc>This release provides an implementation of W3C DOM Level 3 Core and Load/Save Candidate Recommendations and also brings Xerces into compliance with the most recent work of the W3C XML Core working group (XML 1.1, Namespace in XML 1.1, XML 1.0 3rd edition, XInclude).
+In addition, in this release we improved parser performance in several areas and fixed many bugs.
+</desc>
+   <changes>
+    <update>
+     <note>
+      Improved the scanning of attribute lists, both small and large.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </update>
+
+    <update>
+     <note>
+      Reimplemented XML11Configuration (the default configuration), improving
+      performance during reset; accomplished primarily by adding an internal 
+      feature which allows components to query whether or not they need to 
+      read features and properties from the configuration.
+     </note>
+     <submitter name='Elena Litani'/>
+    </update>
+
+    <update>
+     <note>
+      Modified XML Schema interfaces (<code>org.apache.xerces.xs</code>) and
+      updated the implementation accordingly. Methods were added to expose 
+      actual values and their types and new interfaces were added for 
+      loading XSModels. In addition, fixed various bugs in the implementation and <code>PSVIWriter</code> sample.
+     </note>
+     <submitter name='Sandy Gao, Pete Lloyd, Elena Litani'/>
+    </update>
+    
+    <update>
+     <note>
+      Implemented the DOM Level 3 
+      <jump href="http://www.w3.org/TR/2003/CR-DOM-Level-3-Core-20031107/">Core</jump> and 
+      <jump href="http://www.w3.org/TR/2003/CR-DOM-Level-3-LS-20031107/">Load and Save</jump> Candidate Recommendations.
+     </note>
+     <submitter name='Neil Delima, Neeraj Bajaj, Michael Glavassevich, Elena Litani, Ramesh Mandava, Gopal Sharma, K.Venugopal'/>
+    </update>
+
+    <add>
+     <note>
+      Added support for the 'well-formed' feature in DOM Level 3 Core.
+     </note>
+     <submitter name='Neeraj Bajaj'/>
+    </add>
+
+    <add>
+     <note>
+      Added XML 1.1 support to DOM Level 3.
+     </note>
+     <submitter name='K.Venugopal'/>
+    </add>
+    <fix>
+     <note>
+      Fixed the serializer so that 
+      TAB (0x9), LF (0xA), CR (0xD), NEL (0x85) and LSEP (0x2028) are
+      escaped where appropriate in order to allow these characters
+      to be roundtripped. 
+     </note>
+     <submitter name='Neil Delima, Elena Litani'/>
+    </fix>
+    <update>
+     <note>
+      Implemented experimental support for the
+      <jump href="http://www.w3.org/TR/2003/PR-xml11-20031105/">XML 1.1</jump> PR.
+      This still excludes section 2.13.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </update>
+    <fix>
+     <note>
+      Fixed a bug which could cause the parser to run out of
+      memory (or other resources) while parsing documents
+      containing many entity references.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <fix>
+     <note>
+      Implemented missing support for Registry-based 
+      Naming Authority in the URI implementation.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <fix>
+     <note>
+      Modified the XJavac task used by the build file so that
+      Xerces can be built on Linux with Blackdown JDK 1.4.
+     </note>
+     <submitter name='Amit Kapoor'/>
+    </fix>
+    <fix>
+     <note>
+      Removed static references to sun.io.CharToByteConverter 
+      which made it impossible to compile Xerces on platforms 
+      that do not have this internal class. With binaries on 
+      such platforms, the serializer was unusable with 
+      many encodings.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <update>
+     <note> Added support for XML Base to the XInclude implementation.
+      Fixed various bugs regarding text inclusion and relative URI 
+      resolution in the XInclude implementation.
+     </note>
+     <submitter name='Michael Glavassevich, Peter McCracken, Neil Pitman'/>
+    </update>
+    <update>
+     <note>
+      Implemented <jump href="http://www.w3.org/XML/xml-V10-2e-errata">errata</jump>
+      from the XML 1.0 Second Edition Specification.
+     </note>
+     <submitter name='Neil Delima, Michael Glavassevich, Glenn Marcy, Peter McCracken'/>
+    </update>
+    <update>
+     <note>
+      Moved Xerces' SAX support up to SAX 2.0.1.
+     </note>
+     <submitter name='Elena Litani'/>
+    </update>
+
+    <fix>
+     <note>
+      Fixed bugs in the XML 1.1 entity scanner that in some cases treated 
+      NEL (0x85) and LSEP (0x2028) as white space characters in internal 
+      entities, and not as end of line characters in external entities.
+     </note>
+     <submitter name='Michael Glavassevich'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed bug in HTML DOM implementation that would cause a hierarchy
+      request error by trying to move a doctype node to be a child of
+      the &lt;html&gt; element.
+     </note>
+     <submitter name='Andy Clark'/>
+    </fix>
+    <fix>
+     <note>
+      Fixed various bugs.
+     </note>
+     <submitter name="Neil Delima, Sandy Gao, Neil Graham, Michael Glavassevich, Elena Litani, Lisa Martin, Peter McCracken, Gareth Reakes, Neeraj Bajaj, K.Venugopal, Ramesh Mandava, Kohsuke Kawaguchi, Gopal Sharma"/>
+    </fix>
+   </changes>
+  </release>
+  <release version='&ParserName; 2.5.0'>
+   <desc>
+    This release provides a partial implementation of W3C XInclude specification as well as adds annotation support for the XML Schema component API. In addition to fixing many bugs, this release also brings Xerces into compliance with the most recent work of the W3C DOM working group on DOM level 3 Core and Load/Save, and includes additional fixes related to the XML 1.1 specification.
+   </desc>
+   <changes>
+   <fix>
+    <note>
+     Fixed an ArrayIndexOutOfBoundsException in the scanner caused by some
+     invalid character references.
+    </note>
+    <submitter name="Michael Glavassevich"/>
+   </fix>
+   <fix>
+    <note>
+     Fixed various bugs related to XML 1.1.
+    </note>
+    <submitter name="Neil Graham, Neil Delima, Michael Glavassevich"/>
+   </fix>
+   <fix>
+    <note>
+     Fixed various bugs in the URI implementation, and added previously missing
+     support for IPv6 addresses.
+    </note>
+    <submitter name="Michael Glavassevich"/>
+   </fix>
+   <fix>
+    <note>
+     Fixed performance issue for attributes with large value field.
+    </note>
+    <submitter name="Thomas DeWeese"/>
+   </fix>
+    <update>
+    <note>
+     Implemented the latest DOM Level 3 
+     <jump href="http://www.w3.org/TR/2003/WD-DOM-Level-3-Core-20030609/">Core</jump> and 
+     <jump href="http://www.w3.org/TR/2003/WD-DOM-Level-3-LS-20030619/">Load and Save</jump> drafts in Last Call.
+    </note>
+    <submitter name="Elena Litani, Gopal Sharma, Arun Yadav, Neeraj Bajaj"/>
+   </update>
+   <update>
+    <note>
+        Added annotation support to the XML Schema component model API implementation. Modified the PSVI API to allow exposing facets as objects.
+    </note>
+    <submitter name="Neil Graham, Elena Litani"/>
+   </update>
+   <update>
+    <note>
+        Added preliminary XInclude implementation, excluding support for XPointer and
+        XML Base specifications.
+    </note>
+    <submitter name="Peter McCracken, Arun Yadav, Elena Litani"/>
+   </update>
+   <update>
+    <note>
+        Modified PSVIWriter to output all PSVI information.  Changed it to output to
+        an XNI event stream rather than a file.
+    </note>
+    <submitter name="Peter McCracken, Neil Graham"/>
+   </update>
+   <fix>
+    <note>
+        Modified error messages for Schema validation.
+    </note>
+    <submitter name="Peter McCracken, Sandy Gao"/>
+   </fix>
+
+   <fix>
+    <note>
+     Fixed various bugs.
+    </note>
+    <submitter name='Neil Delima, Neil Graham, Elena Litani, Michael Glavassevich, K. Venugopal'/>
+   </fix>
+   </changes>
+  </release>
+  <release version='&ParserName; 2.4.0'>
+   <desc>
+        This release incorporates two minor changes to the Xerces Native Interface.  
+        In addition to fixing many bugs, this release also brings Xerces 
+        into compliance with the most recent
+        work of the W3C DOM working group on DOM level 3 Core
+        and Load/Save, and includes additional fixes based on the XML Schema errata. 
+        Also in this release, XML 1.1. is supported by default.
+   </desc>
+   <changes>
+   <update>
+    <note>
+     Modified XNI XMLResourceIdentifier to include set/getNamespace.
+     Added getEncoding method to the XNI XMLLocator interface.  
+    </note>
+    <submitter name="Sandy Gao, Neil Graham"/>
+   </update>
+   <fix>
+    <note>
+     Fixed scanner implementation to be able to handle large CDATA sections
+     without buffering.
+    </note>
+    <submitter name='Andy Clark'/>
+   </fix>
+   <fix>
+    <note>
+        Made internal class loading strategy a bit more friendly in environments which 
+        need to provide classloaders to do things like manage multiple
+        versions of Xerces.
+    </note>
+    <submitter name="Igor Malinin, Neil Graham"/>
+   </fix>
+   <fix>
+    <note>Improved robustness of build shell script under the Cygwin environment.
+    </note>
+    <submitter name="J. Pietschmann, Neil Graham"/> 
+   </fix>
+   <fix>
+    <note>
+     Fixed null pointer exception in DTDConfiguration caused when
+     no DTD handlers are registered.
+    </note>
+    <submitter name='Andy Clark'/>
+   </fix>
+   <fix>
+    <note>
+     Fixed various bugs related to &lt;redefine&gt; in XML Schema traversal.
+    </note>
+    <submitter name='Khaled Noaman, Sandy Gao'/>
+   </fix>
+
+   <fix>
+    <note>
+     Fixed various bugs related to the pattern facet (regular expression)
+     in XML Schema.
+    </note>
+    <submitter name='Khaled Noaman, Sandy Gao'/>
+   </fix>
+    <update>
+    <note>
+     Implemented the latest DOM Level 3 
+     <jump href="http://www.w3.org/TR/2003/WD-DOM-Level-3-Core-20030226/">Core</jump> and 
+     <jump href="http://www.w3.org/TR/2003/WD-DOM-Level-3-LS-20030226/">Load and Save</jump> drafts.
+    </note>
+    <submitter name="Elena Litani"/>
+   </update>
+   <update>
+    <note>
+     Improved performance of XML11Configuration and made it the default configuration.
+    </note>
+    <submitter name="Elena Litani"/>
+   </update>
+   <update>
+    <note>
+     Added support for ordering disconnected nodes (DOM Level 3 compareDocumentPosition)
+    </note>
+    <submitter name="Lisa Martin"/>
+   </update>
+      <update>
+    <note>
+     In anticipation of the DOM Level 3 Events specification, fix Xerces Events implementation
+     to call event listeners in the order in which they were registered
+    </note>
+    <submitter name="Arnaud Le Hors"/>
+   </update>
+   
+   <update>
+    <note>
+     Implemented XML Schema errata as they were published.
+    </note>
+    <submitter name="Sandy Gao"/>
+   </update>
+   <fix>
+    <note>
+     Fixed a bug related the external-schemaLocation property.
+    </note>
+    <submitter name='Sandy Gao'/>
+   </fix>
+    <fix>
+    <note>
+     Fixed various bugs.
+    </note>
+    <submitter name='Ville Skyttä, Michael Glavassevich, Elena Litani, Sandy Gao, Neil Graham'/>
+   </fix>
+  </changes>
+  </release>
+  <release version="&ParserName; 2.3.0">
+    <desc>
+        With this release, the Xerces-J developers are declaring the Xerces
+        Native Interface (XNI) core and parsers packages
+        to be gold.  
+        This release also brings Xerces into compliance with the most recent
+        work of the W3C DOM working group on DOM level 3 Core
+        and Load/Save, and introduces many fixes to bring Xerces's behaviour 
+        into line with XML Schema errata.  Support for the
+        parsing of documents written according to the XML 1.1 candidate recommendation 
+        has also been completed, except that no option for verifying that documents
+        are normalized has yet been implemented.
+        Finally, Xerces now provides means by which applications can force
+        the parser to reject certain kinds of documents the processing of which could
+        result in a denial-of-service attack.
+    </desc>
+    <changes>
+    <update>
+       <note>
+        Modified XMLLocator interface to remove setter methods for move
+        towards finalizing XNI; this change also implied removing XMLLocator's dependence
+        upon XMLResourceIdentifier.
+       </note>
+       <submitter name='Andy Clark'/>
+    </update>
+    <add>
+          <note>Implemented several DOM Level 3 features, including DOMConfiguration, exposing type
+          information via DOM, and allowing to set an ID attribute in the DOM.
+          </note>
+          <submitter name='Elena Litani'/>
+      </add>      
+    <update>
+       <note>
+        Modified support for DOM L3 compareDocumentPosition (formerly 
+        compareTreePosition).
+       </note>
+       <submitter name='Lisa Martin'/>
+    </update>
+      <update>
+       <note>
+        Modified several XNI interfaces, i.e. NamespaceContext, XMLResourceIdentifier,
+        Augmentation, XMLAttributes, and updated implementation accordingly.
+       </note>
+       <submitter name='Elena Litani, Sandy Gao'/>
+      </update>
+      <update>
+       <note>
+        Modified PSVI interfaces (<code>org.apache.xerces.impl.xs.psvi</code>) 
+        and updated implementation accordingly.
+       </note>
+       <submitter name='Elena Litani'/>
+    </update>      
+      <update>
+            <note>
+            Modified XMLDTDHandler, XMLDTDSource, XMLDTDContentModelHandler and
+            XMLDTDContentModelSource to make these pipelines doubly-linked,
+            as was done in the last release for the main document pipeline.
+        </note>
+        <submitter name="Neil Graham"/>
+      </update>
+      <add>
+        <note>Completed experimental support for XML 1.1 and
+            XML Namespaces 1.1 CR's, except for XML 1.1 section 2.13.
+        </note>
+        <submitter name="Neil Graham"/>
+    </add>
+    <add>
+        <note>
+            Provided a mechanism by which applications can instruct the parser
+            to abort the parsing of documents containing constructs that
+            could swamp system resources.
+        </note>
+        <submitter name="Neil Graham, Neeraj Bajaj"/>
+      </add>
+      <add>
+       <note>
+        Added a feature "disallow-doctype-decl" so that a fatal error is reported
+        if this feature is on and the incoming document has a DOCTYPE.
+       </note>
+       <submitter name="Sandy Gao"/>
+      </add>
+      <add>
+       <note>
+        Added a feature "standard-uri-conformant" so that the parser enforces
+        the URI rules when this feature is on.
+       </note>
+       <submitter name="Sandy Gao"/>
+      </add>
+      <update>
+       <note>
+        Performance update: ported the partial DTM implementation of DOM and
+        use it for parsing Schema documents.
+       </note>
+       <submitter name="Sandy Gao"/>
+      </update>
+      <add>
+       <note>
+        Provided full support for canonical representation of XML Schema
+        datatypes.
+       </note>
+       <submitter name="Sandy Gao"/>
+      </add>
+      <update>
+       <note>
+        Implemented XML Schema errata as they were published.
+       </note>
+       <submitter name="Sandy Gao"/>
+      </update>
+      <fix>
+        <note>
+          Fix comment parsing bug that prevented Tomcat 4.1.12 from making
+          use of Xerces versions later than 2.1.0.
+        </note>
+        <submitter name="Tim Bruce, Neil Graham"/>
+      </fix>
+    </changes>
+  </release>
+  <release version="&ParserName; 2.2.1">
+    <desc>
+        This release fixes four important bugs and several minor problems that
+        were present in Xerces-J 2.2.0.  
+    </desc>
+    <changes>
+        <fix>
+            <note>
+                Fixed SAX endElement call so that the element's
+                namespace URI is returned.  
+            </note>
+            <submitter name="Elena Litani"/>
+        </fix>
+        <fix>
+            <note>
+                Fixed HTML DOM implementation so that
+                it can be instantiated.
+            </note>
+            <submitter name="Neil Graham"/>
+        </fix>
+        <fix>
+            <note>
+                Made the external-schema-location property work again.
+            </note>
+            <submitter name="Sandy Gao"/>
+        </fix>
+        <fix>
+            <note>
+                Enabled Xerces to validate the schema for schemas.
+            </note>
+            <submitter name="Sandy Gao"/>
+        </fix>
+    </changes>
+  </release>
+  <release version="&ParserName; 2.2.0">
+    <desc>
+        As well as incorporating two changes to the Xerces Native Interface, this
+        release focuses on performance improvements and bug fixes.  
+    </desc>
+    <changes>
+       <update>
+           <note>
+              Modified XMLComponent interface so that components used
+              in a parser configuration can specify preferred default
+              values for settings. Also updated all classes that 
+              implement the XMLComponent interface.
+           </note>
+           <submitter name='Andy Clark'/>
+       </update>
+       <update>
+        <note>
+            Modified XNI XMLDocumentHandler interface so that NamespaceContext
+            objects are passed on the startDocument call.  This makes
+            the start/endPrefixMapping calls redundant; they have
+            been deprecated.
+        </note>
+        <submitter name="Elena Litani, Arnaud Le Hors"/>
+      </update>
+       <fix>
+        <note>
+            Fixed many conformance bugs and enhanced the parser's performance
+            in many situations.
+        </note>
+        <submitter name="Elena Litani, Sandy Gao, Neil Graham"/>
+      </fix>
+    </changes>
+  </release>
+  <release version="&ParserName; 2.1.0">
+    <desc>
+        As well as some relatively minor changes to XNI, this release includes many 
+        bugfixes and performance improvements.
+    </desc>
+    <changes>
+        <update>
+          <note>
+          Added xni.XMLDocumentHandler.setDocumentSource/getDocumentSource and
+          XMLDocumentSource.getDocumentHandler methods to allow to modify Xerces 
+          pipeline dynamically.
+          </note>
+          <submitter name='Elena Litani'/>
+        </update>
+        <add>
+          <note>Store PSVI in DOM tree: when the new DOM document is used,
+                element/attribute nodes can be casted to Element/AttributePSVI
+                interfaces to retrieve PSVI properties.
+          </note>
+          <submitter name='Sandy Gao'/>
+        </add>
+        <add>
+          <note>Provide access to PSVI via SAX using 
+                 org.apache.xerces.impl.xs.psvi.PSVIProvider interface.
+          </note>
+          <submitter name='Elena Litani'/>
+        </add>
+        <add>
+          <note>Provided a way to convert preparsed schema grammars to XSModels.
+          </note>
+          <submitter name='Sandy Gao'/>
+        </add>
+        <update>
+          <note>
+            Message localization changes.
+          </note>
+          <submitter name='Sandy Gao, Neil Graham, Elena Litani, Lisa Martin'/>
+        </update>
+        <update>
+          <note>Send all element PSVI properties on endElement calls, so that
+                the application doesn't need to stack them when startElement
+                is called.
+          </note>
+          <submitter name='Sandy Gao'/>
+        </update>
+        <update>
+          <note>Made it possible to build a Schema Datatype jar file. Now it
+                can be used as a standalone data type library.
+          </note>
+          <submitter name='Sandy Gao'/>
+        </update>
+        <update>
+          <note>Performance update: avoid using exceptions to determine whether
+                an array needs to be resized.
+          </note>
+          <submitter name='Henry Zongaro, Sandy Gao'/>
+        </update>
+        <update>
+          <note>Performance update: avoid adding the commonly used XML symbols
+                to the symbol table again and again.
+          </note>
+          <submitter name='Sandy Gao'/>
+        </update>
+        <update>
+          <note>Performance update: improve scanning speed by skipping end tag
+                names and using proper input buffer size.
+          </note>
+          <submitter name='Neeraj Bajaj, Sandy Gao'/>
+        </update>
+        <fix>
+            <note>Applied fixes to Xerces's regular expression support to address
+                a number of bugs reported by users.
+            </note>
+            <submitter name="Kent Tamura, Neil Graham"/>
+        </fix>
+        <add>
+          <note>Provide implementation for DOM Level 3 DOMBuilderFilter and DOMWriterFilter.
+          </note>
+          <submitter name='Elena Litani'/>
+        </add>
+        <update>
+            <note>
+                Applied fixes to JAXP, SAX and internal
+                object factory code so that it behaves correctly
+                in environments where AccessControllers are being
+                used.  These fixes make it no longer possible to
+                compile Xerces under JDK 1.1.8.
+            </note>
+            <submitter name="Edwin Goei, Neil Graham"/>
+        </update>
+        <update>
+          <note>Reorganize the code again to allow to build Xerces with DOM Level 3 support and 
+             modifying the build.xml to replace import statements in the source code.
+          </note>
+          <submitter name='Elena Litani'/>
+        </update>
+        <update>
+            <note>
+                Changed various parts of Xerces's implementation so
+                that it is now statically immutable.
+            </note>
+            <submitter name="Neil Graham"/>
+        </update>
+
+        <fix>
+            <note>
+                Reorganized identity constraint support to improve both conformance 
+                and performance.
+            </note>
+            <submitter name="Neil Graham"/>
+        </fix>
+        <fix>
+            <note>General bug fixes.
+            </note>
+            <submitter name="Elena Litani, Neil Graham, Lisa Martin, Sandy Gao"/>
+        </fix>
+    </changes>
+  </release>
+  <release version="&ParserName; 2.0.2">
+    <desc>
+      In this release, numerous bugs have been fixed.  Only one minor change in the Xerces
+      Native Interface is included (documented below); considerable
+      new functionality has also been added in terms of PSVI support, DOM level 3, and
+      grammar preparsing/caching.
+    </desc>
+    <changes>
+      <add>
+	<note>Schema Component API interfaces and implementation; full PSVI support.
+	</note>
+	<submitter name='Sandy Gao, Elena Litani'/>
+      </add>
+
+      <update>
+	<note>
+	  Add XMLResourceIdentifier to startExternalSubset() method defined in 
+	  XNI XMLDTDHandler. 
+	  That allows supporting baseURI for an external subset.
+	</note>
+	<submitter name='Elena Litani'/>
+      </update>
+      <add>
+	<note>
+	   Add implementation for baseURI, documentURI, normalizeDocument 
+           and required normalize document features. Added support for DOM revalidation 
+           against XML Schemas. [DOM Level 3]
+	</note>
+	<submitter name='Elena Litani'/>
+      </add>
+      <add>
+        <note> 
+          Added implementation for compareTreePosition method of DOM L3.
+        </note>
+        <submitter name='Lisa Martin'/>
+      </add>
+      <add>
+        <note>Added XMLGrammarLoader interface to the xni.grammars package; refactor DTD and 
+          Schema validation code to create classes implementing this interface; created
+          a convenience class (XMLGrammarPreparser) that uses the new grammar loaders to permit grammar preparsing;
+          wrote a sample (xni.XMLGrammarBuilder) that demonstrates how all this works.
+        </note>
+        <submitter name="Neil Graham"/>
+      </add>
+      <add>
+        <note>
+          Reorganized the code in Xerces DOM implementation to expose DOM Level 3
+          functionality via org.w3c.dom package.
+          Added several build targets for building customized xerces jar files that include
+          DOM Level 3 Core and Load/Save interfaces and 
+          implementation of those interfaces: jars-dom3, apijar-dom3, sampjar-dom3. 
+       </note>
+	<submitter name='Arnaud Le Hors, Elena Litani'/>
+     </add>
+      <update>
+	<note>
+	  Updated xni.DocumentTracer sample to print augmentations for events.
+	  This makes it easier to debug configurations that augment the document's
+	  infoset.
+	</note>
+	<submitter name='Andy Clark'/>
+      </update>
+      <update>
+	<note>
+	  Removed dependence on SAX attribute interfaces from XMLAttributesImpl
+	  utility class. The AbstractSAXParser already defines a SAX attribute
+	  proxy class so that the parser and components can be properly layered.
+	</note>
+	<submitter name='Andy Clark'/>
+      </update>
+      <update>
+        <note>
+            Moved from the org.xml.sax.helpers.AttributesImpl shipped with SAX 2.0 to that
+            shipping in 2.0.1.  This solves problems encountered with creating empty
+            attribute lists.
+        </note>
+        <submitter name="Neil Graham"/>
+      </update>
+      <update>
+	<note>
+	  Improved handling of settings in parser classes making it easier
+	  to re-use the parsers with other parser configurations. Previously,
+	  the parser instances assumed that all configurations supported
+	  various settings (i.e. the parser would set default values without 
+	  first adding the recognized features and property identifiers to
+	  the parser configuration).
+	</note>
+	<submitter name='Andy Clark'/>
+      </update>
+      <fix>
+	<note>
+	  Fixed bug in HTML DOM implementation that was causing xerces.dom
+	  element nodes to be created instead of the appropriate HTML element
+	  nodes.
+	</note>
+	<submitter name='Andy Clark'/>
+      </fix>
+      <fix>
+	<note>
+	  Fixed bug to avoid null pointer exception in AbstractDOMParser when
+	  locator information is not available from parser configuration.
+	</note>
+	<submitter name='Andy Clark'/>
+      </fix>
+      <fix>
+	<note>
+	  Fixed bug in WrappedInput/OutputStream classes reported by Morten Bjørhus.
+	</note>
+	<submitter name='Andy Clark'/>
+      </fix>
+      
+      <fix>
+	<note>The DTD validator failed to report 
+	  "undeclared element" error if an attribute was 
+	  declared for an undeclared element.</note>
+	<submitter name='Elena Litani'/>
+      </fix>
+      <fix>
+        <note>Performance fixes:  replaced code that increases array sizes by catching ArrayIndexOutOfBoundsExceptions
+            with code that checks the sizes of the relevant arrays.  Also streamlined
+            several method calls in the DTD Grammar classes to account for the 
+            fact that scope is not relevant for this type of grammar.  Finally,
+            improved algorithm for recognizing entities and notations.
+        </note>
+        <submitter name="Henry Zongaro, Neil Graham"/>
+      </fix>
+      <update>
+	<note>
+	  Compress jars by default.  We have not done so in the past,
+	  and it will be useful to see if this proves problematic or
+	  beneficial.
+	</note>
+	<submitter name="Neil Graham"/>
+      </update>
+      <add>
+	<note>
+	  Added several build targets for building customized xercesImpl
+	  jar files.  Now we can build a DTD-only version, and a DTD-only
+	  version also excluding support for the HTML/WML DOM.
+	</note>
+	<submitter name="Neil Graham"/>
+      </add>
+      <fix>
+	<note>
+	  Parser now reads external entities one chunk at a time, 
+	  rather than a character at a time;
+	  this increases performance dramatically in certain circumstances.  
+	  This fix also allows a number of EBCDIC encodings to work which did
+	  not work previously.  
+	</note>
+	<submitter name="Neil Graham, Henry Zongaro"/>
+      </fix>
+
+      <update>
+	<note>Performance enhancement: implemented DOM node and 
+	  declaration pools that reduce number of objects created 
+	  during building of XML Schema grammars.
+	</note>
+	<submitter name='Elena Litani'/>
+      </update>
+      <update>
+	<note>Improved performance for non-deferred DOM: reduced 
+	  number of concatenations for characters (bug #5602)
+	</note>
+	<submitter name='Elena Litani'/>
+      </update>
+
+      <update>
+	<note>According to the namespace spec errata, namespace declaration
+          attributes should be bound to a special namespace; and errors should
+          be reported on illegal bindings of "xmlns" and "xml" prefixes and
+          their namespaces.
+	</note>
+	<submitter name='Sandy Gao'/>
+      </update>
+
+      <update>
+	<note>Refined schema error messages: provide more descriptive error
+          messages for simple type validation errors; avoid cascading errors
+          when a grammar for a given namespace is not found, or when components
+          from a certain namespace can't be accessed from a given schema
+          document.
+	</note>
+	<submitter name='Sandy Gao'/>
+      </update>
+
+      <update>
+	<note>Changed the lexical representation of gMonth from "--MM--" to "--MM".
+	</note>
+	<submitter name='Sandy Gao'/>
+      </update>
+
+      <fix>
+	<note>Decimal point shouldn't be allowed in integer-derived types;
+           "fractionDigits" and "totalDigits" should be calculated on the value space.
+	</note>
+	<submitter name='Sandy Gao'/>
+      </fix>
+
+      <fix>
+	<note>Fixed several DOM bugs. Xerces now passes 
+	  W3C DOM Level 1 Core test suite.
+	</note>
+	<submitter name='Elena Litani'/>
+      </fix> 
+
+      <update>
+	<note>Improved management of ID attributes in the DOM so that
+	  Document.getElementByID is more reliable.
+	</note>
+	<submitter name='Arnaud  Le Hors'/>
+      </update>
+      <fix>
+	<note>Applied patch from Scott Sanders to fix Java serialization of the
+	  DOM and add a test.
+	</note>
+	<submitter name='Arnaud  Le Hors'/>
+      </fix>
+
+
+      <fix>
+	<note>Applied patch from Henry Zongaro to fix a ClassCastException 
+	  in the deferred DOM.</note>
+	<submitter name='Elena Litani'/>
+      </fix>
+      <fix>
+	<note>Applied patch from Fabio Riccardi to reset normalize value 
+	  in the PSVI.
+	</note>
+	<submitter name='Elena Litani'/>
+      </fix>
+      <fix>
+	<note>Applied patch from Joe Kesselman that fixes 
+	  NPE in a NodeIterator (bug #6888).
+	</note>
+	<submitter name='Elena Litani'/>
+      </fix>
+
+
+
+    </changes>
+  </release>
+  <release version='&ParserName; 2.0.1'>
+    <desc>
+      This release fixes a number of bugs.
+    </desc>
+    <changes>
+
+      <fix>
+	<note>
+	  Fixed and closed bugs filed in Bugzilla.
+	</note>
+	<submitter name='Sandy Gao, Pavani Mukthipudi, Elena Litani, Rahul Srivastava, Neil Graham, Neeraj Bajaj, Lisa Martin, Gopal Sharma, Andy Clark, Arun Yadav'/>
+      </fix>
+
+      <add>
+	<note>
+	  Added the support of reporting line/column numbers of schema errors.
+	</note>
+	<submitter name='Sandy Gao'/>
+      </add>
+
+      <update>
+	<note>
+	  When creating DOM nodes, use Strings we already have, instead of
+	  creating new ones.
+	</note>
+	<submitter name='Sandy Gao'/>
+      </update>
+
+      <update>
+	<note>
+	  Updated DTD datatypes to use the new datatype interfaces.
+	</note>
+	<submitter name='Sandy Gao'/>
+      </update>
+
+      <fix>
+	<note>
+	  Fixed an entity resolution bug: we passed null as the system ID
+	  to the entity resolver.
+	</note>
+	<submitter name='Sandy Gao'/>
+      </fix>
+
+      <fix>
+	<note>
+	  Fixed a bug in the handling of URI's containing "../../".
+	</note>
+	<submitter name='Sandy Gao'/>
+      </fix>
+
+      <fix>
+	<note>
+	  Fixed a thread-safety bug in schema simple type implementation.
+	  The implementation class should be stateless after construction.
+	</note>
+	<submitter name='Sandy Gao'/>
+      </fix>
+
+      <fix>
+	<note>Fixed bugs in namespace algorithm for serialization.</note>
+	<submitter name='Elena Litani'/>
+      </fix>
+
+      <fix>
+	<note>Fixed a bug in deferred DOM for CDATA nodes.</note>
+	<submitter name='Elena Litani'/>
+      </fix>
+
+      <fix>
+	<note>Enabled processing of base 64-encoded material on OS/390.</note>
+	<submitter name='Neil Graham, Steve Dulin'/>
+      </fix>
+
+      <update>
+	<note>Modified XNI grammar interfaces such that Grammars now have 
+	  an associated XMLGrammarDescription and XMLGrammarDescriptions record the
+	  type of the grammar.  </note>
+	<submitter name="Neil Graham"/>
+      </update>
+
+      <fix>
+	<note>Fixed a bug related to Signature of call back attributeDecl in XNI samples.</note>
+	<submitter name='Rahul Srivastava'/>
+      </fix>
+
+      <fix>
+	<note>Fixed a bug related to feature prefix in AbstractDOMParser.</note>
+	<submitter name='Rahul Srivastava'/>
+      </fix>
+
+      <add>
+	<note>
+	  Added the support for defer loading of schema grammars, grammar is parsed
+	  only when there is reference to any schema component from that namespace.
+	</note>
+	<submitter name='Neeraj Bajaj'/>
+      </add>
+
+      <update>
+	<note>
+	  JAXP 1.2 schemaSource property, if the String given is relative URI, 
+	  now it is resolved against the instance document being parsed.
+	</note>
+	<submitter name='Neeraj Bajaj'/>
+      </update>
+
+      <fix>
+	<note>
+	  Fixed a bug related to SchemaNormalizedValue to expose it only when
+	  validation attempted is full.
+	</note>
+	<submitter name='Pavani Mukthipudi'/>
+      </fix>
+
+    </changes>
+  </release>
+
+  <release version='&ParserName; 2.0.0'>
+    <desc>
+      This is the first production-quality release of the Xerces2 Java
+      XML parser.  We are confident that it also marks the stabilization
+      of the XNI API, although changes in XNI are still possible.  As
+      well as these XNI improvements and extensions, a host of bugs
+      and limitations that existed in Xerces 2.0.0beta4 have been fixed in 
+      this release.
+    </desc>
+    <changes>
+      
+      <add>
+	<note>Implemented support for UCS-4 and UCS-2 encodings.</note>
+	<submitter name='Neil Graham'/>
+      </add>
+      
+      <add>
+	<note>
+	  Added ability to override default parser configuration.
+	</note>
+	<submitter name='Andy Clark'/>
+      </add>
+
+      <add>
+	<note>Implemented DOM Level 3 isEqualNode() method
+	</note>
+	<submitter name='Arnaud Le Hors'/>
+      </add>
+      
+      <add>
+	<note>Implemented namespace fixup during serialization of DOM tree.</note>
+	<submitter name='Elena Litani'/>
+      </add>
+      
+      <add>
+	<note>Added implementation for new Xerces features validation/schema/normalized-value and 
+	  validation/schema/element-default</note>
+	<submitter name='Elena Litani'/>
+      </add>
+
+
+      <add>
+        <note>Implemented current-element-node property</note>
+        <submitter name='Ted Leung'/>
+      </add> 
+      
+      
+      <add>
+	<note>Added internal subset string to DOM.</note>
+	<submitter name='Andy Clark'/>
+      </add>
+
+      <add>
+	<note>Added support for warn-on-duplicate-attdef xerces feature
+	  validation/warn-on-duplicate-attdef
+	</note>
+	<submitter name='Neeraj Bajaj'/>
+      </add>
+
+      
+      <update>
+	<note> Added an interface, XMLResourceIdentifier, for
+	  describing the physical location of XML resources (external
+	  entities, schemas etc.) for use in grammar caching and entity
+	  resolution.  Updated XMLEntityResolver, XMLLocator,
+	  XMLDocumentHandler, XMLDocumentFragmentHandler, and
+	  XMLDTDHandler to use this new interface consistently instead of unwieldy
+	  lists of Strings in various callbacks.
+	</note>
+	<submitter name="Neil Graham"/>
+      </update>
+      
+      <update>
+	<note>
+	  Updated Xerces Native Interface to add augmentations to
+	  document fragment handler, DTD handler, and the DTD content
+	  model handler interfaces. Additional methods were also 
+	  renamed and/or modified.
+	</note>
+	<submitter name='Andy Clark'/>
+      </update>
+      
+      
+      <update>
+	<note>
+	  Updated Xerces Native Interface to add methods to Augmentations, XMLAttributes, and
+	  modify PSVI interfaces.
+	</note>
+	<submitter name='Elena Litani'/>
+      </update>
+      
+      <update>
+	<note>
+	  Cleaned up separation between DOMParser and DeferredDOM by
+	  moving part of the code from createDeferredElement back into the parser,
+	  this has several benefits including to only have to walk the list of
+	  attributes once
+	</note>
+	<submitter name='Arnaud Le Hors'/>
+      </update>
+
+      <update>
+	<note>Provided support for fundamental facets in DV implementation  </note>
+	<submitter name='Neeraj Bajaj, Sandy Gao'/>
+      </update>
+      
+
+      <fix>
+        <note> Moved schema simple type error messages to the property file to enable localization.
+        </note>
+        <submitter name="Sandy Gao"/>
+      </fix>
+      
+      <fix>
+        <note> Fixed various bugs related to the dependency between schema documents.
+        </note>
+        <submitter name="Sandy Gao"/>
+      </fix>
+      
+      <fix>
+        <note> Modified URI resolution strategy so that Windows network paths are recognized.
+        </note>
+        <submitter name="Sandy Gao"/>
+      </fix>
+      
+      <fix>
+        <note> Fixed various bugs related to schema components traversal and validation.
+        </note>
+        <submitter name="Sandy Gao"/>
+      </fix>
+      
+      <fix>
+        <note> Fixed a bug in the ui.DOMParserSaveEncoding sample.
+        </note>
+        <submitter name="Joerg Vogel, Neil Graham"/>
+      </fix>
+      
+      <fix>
+        <note> 
+	  Modified XMLDTDScanner to synchronize start/end entity calls.
+	  Fixed XMLDocumentScannerImpl so it always checks settings for load-external-dtd feature. 
+	  Modified implementation of setDocumentHandler(): now user can change document handler
+	  during the parse.
+        </note>
+        <submitter name="Elena Litani"/>
+      </fix>
+      
+      <fix>
+        <note> 
+	  Fixed DOM L2 bugs: synchronization for entity reference nodes, 
+	  cloning of attribute node, report of event phases.             
+        </note>
+        <submitter name="Arnaud Le Hors, Elena Litani"/>
+      </fix>
+
+      <fix>
+        <note> 
+	  Fixed a bug in XMLDocumentFragmentScannerImpl occurring when a ] is encountered          at the end of an entity.                        
+        </note>
+        <submitter name="Arnaud Le Hors"/>
+      </fix> 
+      
+      <fix>
+        <note>Fixed misc. SAX bugs.
+        </note>
+        <submitter name="Lisa Martin"/>
+      </fix>
+
+      <fix>
+        <note>Fixed JAXP implementation of schemaLanguage property.
+        </note>
+        <submitter name="Edwin Goei"/>
+      </fix>
+
+      
+      <fix>
+        <note>Massive Javadoc fixes. 
+        </note>
+        <submitter name="Ted Leung, Neeraj Bajaj, Rahul Srivastava"/>
+      </fix>
+
+      <fix>
+        <note>Fixed external-schemaLocation and external-noNamespaceSchemalocation 
+	  properties related bug (# 5768)        
+        </note>
+        <submitter name="Gopal Sharma"/>
+      </fix>
+
+
+      <fix>
+        <note>Fixed namespaces and namespace-prefixes related SAX bug.
+        </note>
+        <submitter name="Rahul Srivastava"/>
+      </fix>
+
+      <fix>
+        <note>Corrected features documentation for string-interning feature.
+        </note>
+        <submitter name="Rahul Srivastava"/>
+      </fix>
+      
+      <fix>
+        <note>Fixed the bug in which duplicate attribute definitions were not ignored
+          and error was reported for ID datatype and Notation.
+        </note>
+        <submitter name="Neeraj Bajaj"/>
+      </fix>
+
+      <fix>
+        <note>Fixed the bug where 'locale' value was not set for StandardParserConfiguration.
+        </note>
+        <submitter name="Takuki Kamiya, Neeraj Bajaj"/>
+      </fix>
+
+    </changes>
+  </release>
+  
+
+  <release version='&ParserName; 2.0.0 (beta4)'>
+    <desc>
+      This release fixes a number of bugs, introduces more changes to the Xerces
+      Native Interface, provides partial experimental DOM Level 3 implementation,
+      and includes full XML Schema support.
+    </desc>
+    <changes>
+      <add>
+        <note> 
+	  Implemented schema particle derivation restriction checking
+        </note>
+        <submitter name="Lisa Martin"/>
+      </add>
+      <add>
+        <note> 
+	  Added checking for schema constraint cos-element-consistent 
+        </note>
+        <submitter name="Lisa Martin"/>
+      </add>
+      <fix>
+        <note> 
+	  resolved misc. SAX2 bugs
+        </note>
+        <submitter name="Lisa Martin"/>
+      </fix>
+      <add>
+	<note>
+	  Added implementation of DOMInputSource, DOMError, DOMLocator and wrappers
+	  for entity resolver and error handler (DOM Level 3).
+	</note>
+	<submitter name='Gopal Sharma, Elena Litani'/>
+      </add>
+
+      <add>
+	<note>
+	  Added implementation of DOMWriter, DocumentLS, DOMImplementationLS and new
+	  features support for save and load: create-cdata-nodes,
+	  split-cdata-sections (DOM Level 3).
+	</note>
+	<submitter name='Rahul Srivastava, Elena Litani'/>
+      </add>
+
+      <add>
+	<note>
+	  Added implementation of DOMBuilder, DOMASBuilder and partial
+	  implementation of ASModel.  Add support for a new feature
+	  "include-comments" (DOM Level 3).
+	</note>
+	<submitter name='Pavani Mukthipudi, Neil Graham, Elena Litani'/>
+      </add>
+
+      <add>
+	<note>
+	  Added Augmentations interface to core XNI interfaces and PSVI interfaces
+	  as an extension to XNI (unstable). Added DOM Level 3 interfaces to
+	  xerces.dom3 package. Modified samples accordingly.
+	</note>
+	<submitter name='Elena Litani'/>
+      </add>
+
+      <add>
+	<note>
+	  Implemented split of xerces.jar file into an API-only jar file
+	  (xmlParserAPIs.jar) and a jar file containing only the API
+	  implementation (xercesImpl.jar).
+	</note>
+	<submitter name="Neil Graham"/>
+      </add>
+
+      <update>
+	<note>
+	  Modified XNI document handler interface to include Augmentations as an
+	  extra parameter on each parser event. Modified XMLAttributes interface to
+	  include getter methods for augmentations.
+	</note>
+	<submitter name='Elena Litani'/>
+      </update>
+
+      <add>
+	<note>
+	  Implemented PSVI support in Xerces and added PSVIWriter, PSVIParser and
+	  PSVIConfiguration sample files.
+	</note>
+	<submitter name='Arun Yadav, Elena Litani, Sandy Gao'/>
+      </add>
+      
+      <add>
+	<note>
+	  Added "external-schemaLocation" and "external-noNamespaceSchemaLocation"
+	  properties.
+	</note>
+	<submitter name='Sandy Gao'/>
+      </add>
+
+      <add>
+	<note>
+	  New schema simple type interface and implementation. It fixes various bugs
+	  in the old implementation, and provides enough information for PSVI
+	  support.
+	</note>
+	<submitter name='Sandy Gao, Neeraj Bajaj'/>
+      </add>
+
+      <update>
+	<note>
+	  Internalize all symbols in SymbolTable using
+	  java.lang.String#intern(). Now applications can compare the symbols by
+	  reference.
+	</note>
+	<submitter name='Sandy Gao'/>
+      </update>
+
+      <add>
+	<note>
+	  Added "schema-full-checking" feature, and implemented "Unique Particle
+	  Attribution" constraint.
+	</note>
+	<submitter name='Sandy Gao'/>
+      </add>
+
+      <fix>
+	<note>
+	  Changed the default configuration to standard parser configuration (that
+	  does not include XML Schema validator), modified how and when the pipeline
+	  is constructed.
+	</note>
+	<submitter name='Elena Litani'/>
+      </fix>
+
+      <fix>
+	<note>
+	  Changed XML Schema validation behavior back to validate only if the
+	  http://xml.org/sax/features/validation feature is true. Note: XML Schema
+	  validation is off by default.
+	</note>
+	<submitter name='Andy Clark'/>
+      </fix>
+
+      <fix>
+	<note>
+	  Added constructor to new DTDXSParserConfiguration so it can
+	  share settings from a parent configuration.
+	</note>
+	<submitter name='Andy Clark'/>
+      </fix>
+      
+      <fix>
+	<note>
+	  The parser no longer wraps RuntimeException with XNIException
+	  in the parse method.
+	</note>
+	<submitter name='Andy Clark'/>
+      </fix>
+
+      <fix>
+	<note>
+	  Fixed cloneNode() for Entity, EntityReference and DocumentType. Fixed
+	  importNode() of EntityReference nodes which mistakenly carried the old
+	  value. Fixed handling EntityReference node subtrees that left the node
+	  empty in non deferred DOM.
+	</note>
+	<submitter name='Arnaud Le Hors'/>
+      </fix>
+
+      <fix>
+	<note>
+	  Added missing default attribute values in the DOM and fixed 
+	  double entity value bug in deferred DOM.
+	</note>
+	<submitter name='Andy Clark'/>
+      </fix>
+
+      <fix>
+	<note>
+	  Fixed getElementById() in the DOMParser. Bound namespace attributes to
+	  http://www.w3.org/2000/xmlns/ (DOM only).
+	</note>
+	<submitter name='Elena Litani'/>
+      </fix>
+
+      <fix>
+	<note>Various documentation fixes.</note>
+	<submitter name='Andy Clark, Elena Litani'/>
+      </fix>
+      
+      <add>
+	<note>
+	  Added more DOM Level 3 interfaces to xerces.dom3 package. Implemented
+	  DOMImplementationRegistry (DOMImplementationSource really),
+	  Node.set/getTextContent(), Node.isSameNode(), Node.getInterface(),
+	  Node.set/getUserData(). Extended dom.mem.Test to test these additions.
+	</note>
+	<submitter name='Arnaud Le Hors'/>
+      </add>
+
+      <add>
+	<note>
+	  Added ASBuilder sample to the DOM samples package to show how
+	  to use the new DOM level 3 ASBuilder interface to implement a
+	  form of grammar caching.
+	</note>
+	<submitter name='Sandy Gao'/>
+      </add>
+
+      <fix>
+	<note>
+	  Enabled the parser to process documents encoded in EBCDIC and
+	  UTF-16.
+	</note>
+	<submitter name='Neil Graham'/>
+      </fix>
+    </changes>
+  </release>
+
+  <release version='&ParserName; 2.0.0 (beta3)'>
+    <desc>
+      This release fixes a number of bugs, introduces some changes to
+      the Xerces Native Interface, and is the first Xerces2 release to
+      include XML Schema validation support. Please note that the XML
+      Schema validation code was completely rewritten for Xerces2 and
+      should be considered alpha at this time.
+    </desc>
+    <changes>
+      
+      <add>
+	<note>
+	  Redesigned and rewrote XML Schema validation code. Also updated
+	  standard parser configuration to include the XML Schema validator 
+	  in the document pipeline by default.
+	</note>
+	<submitter name='Sandy Gao, Lisa Martin, Neil Graham, Elena Litani, Rahul Srivastava, Gopal Sharma, Pavani Mukthipudi, Neeraj Bajaj'/>
+      </add>
+
+      <add>
+	<note>
+	  Added new default parser configuration that includes DTD and XML Schema
+	  validators (DTDXSParserConfiguration). Implemented dynamic validation for
+	  both validators.
+	</note>
+	<submitter name='Sandy Gao, Elena Litani'/>
+      </add>
+      
+      <fix>
+	<note>
+	  Synched up javax.xml.parsers package with latest code from xml-commons
+	  module and various bug fixes.
+	</note>
+	<submitter name='Edwin Goei'/>
+      </fix> 
+      <fix>
+	<note>
+	  DOM/ DOMParser bug fixes. 
+	</note>
+	<submitter name='Ted Leung, Andy Clark, Elena Litani, Arun Yadav'/>
+      </fix> 
+
+
+      <fix>
+	<note>
+	  Fixed newline normalization bug. Previously, the sequence #x0A #x0D
+	  was being converted to #x0A instead of #x0A #x0A per section 2.11 of
+	  the XML 1.0 specification. Thanks to Aleksander Slominski for the
+	  bug report.
+	</note>
+	<submitter name='Andy Clark'/>
+      </fix>
+      <update>
+	<note>
+	  Added getter methods to XMLParserConfiguration interface and added
+	  filter interfaces for components that consume and produce document 
+	  and DTD information.
+	</note>
+	<submitter name='Andy Clark'/>
+      </update>
+      <fix>
+	<note>
+	  Fixed DTD scanner from reporting entity boundaries appearing
+	  inside of markup declarations. Entity boundaries appearing
+	  in the content model of an element declaration is still
+	  reported, though.
+	</note>
+	<submitter name='Andy Clark'/>
+      </fix>
+      <update>
+	<note>
+	  Simplified XMLAttributes interface by removing the methods
+	  related to entities appearing in attribute values.
+	</note>
+	<submitter name='Andy Clark'/>
+      </update>
+      <update>
+	<note>
+	  Changed the XMLDTDHandler defined in XNI to add a non-normalized 
+	  value parameter to the internal element declaration callback. Also
+	  implemented the non-normalized value for attribute values.
+	</note>
+	<submitter name='Andy Clark'/>
+      </update>
+      <fix>
+	<note>
+	  Fixed bug in entity manager that would never resolve IANA encoding
+	  names to Java encoding names properly. (Bug #3449) 
+	</note>
+	<submitter name='Pavani Mukthipudi' mailto='Pavani.Mukthipudi@sun.com'/>
+      </fix>
+      <fix>
+	<note>
+	  Fixed bug in SAX parser that was not forwarding external entity
+	  declarations in the DTD. (Bug #3392)
+	</note>
+	<submitter name='Neeraj Bajaj' mailto='Neeraj.Bajaj@sun.com'/>
+      </fix>
+      <add>
+	<note>
+	  Separated the XMLDocumentScannerImpl class so that it derives
+	  from XMLDocumentFragmentScannerImpl which enables an
+	  application to parse document fragments.
+	</note>
+	<submitter name='Andy Clark'/>
+      </add>
+      <add>
+	<note>
+	  Ported the deferred DOM implementation from the Xerces 1.x
+	  codebase.
+	</note>
+	<submitter name='Arnaud  Le Hors'/>
+      </add>
+    </changes>
+  </release>
+  <release version='&ParserName; 2.0.0 (beta2)'>
+    <desc>
+      This is primarily a bug fix release. However, a new XNI
+      interface and additional documentation have been added.
+    </desc>
+    <changes>
+      <fix>
+	<note>
+	  Fixed bug for when namespace bindings were added as default
+	  attributes from the DTD.
+	</note>
+	<submitter name='Andy Clark'/>
+      </fix>
+      <fix>
+	<note>
+	  Fixed Xerces2 standard components to properly recognize and use
+	  the features and properties that they are documented to accept.
+	</note>
+	<submitter name='Andy Clark'/>
+      </fix>
+      <add>
+	<note>
+	  Added documentation to the XNI Manual for re-using the Xerces2
+	  parser components.
+	</note>
+	<submitter name='Andy Clark'/>
+      </add>
+      <update>
+	<note>
+	  Moved Xerces 1.x to "xerces_j_1" branch and moved Xerces2 to the main 
+	  trunk of the "xml-xerces" module.
+	</note>
+	<submitter name='Arnaud  Le Hors'/>
+      </update>
+      <fix>
+	<note>
+	  Improved ability of document and DTD scanners to perform pull parsing.
+	</note>
+	<submitter name='Andy Clark'/>
+      </fix>
+      <fix>
+	<note>
+	  Fixed bug where namespace binder would turn an emptyElement callback into
+	  startElement and endElement callbacks.
+	</note>
+	<submitter name='Andy Clark'/>
+      </fix>
+      <update>
+	<note>
+	  Updated standard parser configuration to separate DTD validation
+	  and namespace binding in the parsing pipeline.
+	</note>
+	<submitter name='Andy Clark'/>
+      </update>
+      <remove>
+	<note>
+	  Removed old XML Schema code that was not being used. This code 
+	  is intended to be replaced by either a port of the Xerces 1.x 
+	  XML Schema implementation or by a re-designed, re-implemented
+	  XML Schema implementation.
+	</note>
+	<submitter name='Andy Clark'/>
+      </remove>
+      <fix>
+	<note>
+	  Fixed bug in scanner that allowed the built-in entity references
+	  to be sent via XNI. The default value for this feature should have
+	  been false.
+	</note>
+	<submitter name='Andy Clark'/>
+      </fix>
+      <fix>
+	<note>Fixed several SAX bugs.</note>
+	<submitter name='Andy Clark'/>
+      </fix>
+      <update>
+	<note>
+	  Synchronized DOM implementation code from Xerces 1.x codebase.
+	</note>
+	<submitter name='Andy Clark'/>
+      </update>
+    </changes>
+  </release>
+  <release version='&ParserName; 2.0.0 (beta)'>
+    <desc>
+      First beta release of the Xerces2 code. Besides numerous bug 
+      fixes, this release has changes and additions to XNI. The new
+      XNI parser configuration framework has been added in this release.
+      Refer to the <link idref='xni'>XNI Manual</link> for complete
+      information.
+    </desc>
+    <changes>
+      <add>
+	<note>
+	  Added document and DTD scanner interfaces to XNI to allow
+	  parser configuration pipelines to be constructed generically.
+	</note>
+	<submitter name='Andy Clark'/>
+      </add>
+      <fix>
+	<note>
+	  Fixed bug in DTD grammar for mixed content models that was 
+	  building the wrong validation content model.
+	</note>
+	<submitter name='Sandy Gao'/>
+      </fix>
+      <update>
+	<note>
+	  Removed SAX dependency from XNI framework. Now the only
+	  dependence on external API such as SAX is in the implementation
+	  of the AbstractSAXParser and DOMParser so that legacy code
+	  doesn't break.
+	</note>
+	<submitter name='Andy Clark'/>
+      </update>
+      <update>
+	<note>
+	  Rewrote existing documentation, added XNI information, cleaned
+	  up stylesheets, and converted some docs to use custom DTDs.
+	</note>
+	<submitter name='Andy Clark'/>
+      </update>
+      <fix>
+	<note>DTD method ordering problem for INCLUDE/IGNORE sections.</note>
+	<submitter name='Petr Kuzel'/>
+      </fix>
+      <update>
+	<note>Improved DFA build-time performance.</note>
+	<submitter name='ATOZAWA@jp.ibm.com' mailto='ATOZAWA@jp.ibm.com'/>
+      </update>
+      <update>
+	<note>Synchronized with Xerces 1.3.0</note>
+	<submitter name='Arnaud  Le Hors'/>
+      </update>
+    </changes>
+  </release>
+  <release version='&ParserName; 2.0.0 (alpha)'>
+    <desc>Initial alpha release of Xerces2 code.</desc>
+  </release>
+</releases>

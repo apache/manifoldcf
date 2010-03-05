@@ -1,0 +1,26 @@
+BODY { background: white; color: black; 
+       font-weight: bold }
+
+H1 { background: #0086b2; color: white; text-align: center }
+H2, H3, H4, H5, H6 { background: #0086b2; color: white }
+
+P { color: black; font-weight: normal; text-align: justify; 
+    margin-left: 20; margin-right: 20 }
+
+A { color: blue; text-decoration: underline }
+A:hover { color: red; text-decoration: underline }
+A:visited { color: blue; text-decoration: underline }
+
+DL { margin-right: 20; margin-left: 20 }
+DT { color: black; font-weight: bold; padding-top: 5 }
+
+TABLE { font-weight: normal }
+TR { vertical-align: top }
+TH { background: #0086b2; color: white; text-align: left }
+TD { color: black; font-weight: normal }
+
+STRONG { color: black }
+
+.netscape { color: black; font-weight: normal }
+.copyright { font-size: 8pt; font-style: italic;
+             text-align: center }

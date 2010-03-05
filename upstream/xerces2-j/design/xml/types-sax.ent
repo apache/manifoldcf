@@ -1,0 +1,210 @@
+<?xml encoding='US-ASCII'?>
+<!-- $Id$ -->
+<category name='Simple API for XML' package='org.xml.sax'>
+ <class id='sax-exception' name='SAXException'/>
+ <class id='sax-input-source' name='InputSource'/>
+ <class id='sax-not-recognized-exception' name='SAXNotRecognizedException'/>
+ <class id='sax-not-supported-exception' name='SAXNotSupportedException'/>
+ <class id='sax-parse-exception' name='SAXParseException'/>
+ <interface id='sax-attribute-list' name='AttributeList'/>
+ <interface id='sax-attributes' name='Attributes'/>
+ <interface id='sax-content-handler' name='ContentHandler'/>
+ <interface id='sax-document-handler' name='DocumentHandler'/>
+ <interface id='sax-dtd-handler' name='DTDHandler'/>
+ <interface id='sax-entity-resolver' name='EntityResolver'/>
+ <interface id='sax-error-handler' name='ErrorHandler'/>
+ <interface id='sax-locator' name='Locator'>
+  <method name='getPublicId'>
+   <returns>
+    <reference idref='java-string'/>
+   </returns>
+  </method>
+  <method name='getSystemId'>
+   <returns>
+    <reference idref='java-string'/>
+   </returns>
+  </method>
+  <method name='getLineNumber'>
+   <returns>
+    <primitive type='int'/>
+   </returns>
+  </method>
+  <method name='getColumnNumber'>
+   <returns>
+    <primitive type='int'/>
+   </returns>
+  </method>
+ </interface>
+ <interface id='sax-parser' name='Parser'>
+  <method name='parse'>
+   <param name='systemId'>
+    <reference idref='java-string'/>
+   </param>
+   <throws>
+    <reference idref='java-io-exception'/>
+   </throws>
+   <throws>
+    <reference idref='sax-exception'/>
+   </throws>
+  </method>
+  <method name='parse'>
+   <param name='inputSource'>
+    <reference idref='sax-input-source'/>
+   </param>
+   <throws>
+    <reference idref='java-io-exception'/>
+   </throws>
+   <throws>
+    <reference idref='sax-exception'/>
+   </throws>
+  </method>
+  <method name='setLocale'>
+   <param name='locale'>
+    <reference idref='java-locale'/>
+   </param>
+   <throws>
+    <reference idref='sax-exception'/>
+   </throws>
+  </method>
+  <method name='setEntityResolver'>
+   <param name='entityResolver'>
+    <reference idref='sax-entity-resolver'/>
+   </param>
+  </method>
+  <method name='setDocumentHandler'>
+   <param name='documentHandler'>
+    <reference idref='sax-document-handler'/>
+   </param>
+  </method>
+  <method name='setDTDHandler'>
+   <param name='dtdHandler'>
+    <reference idref='sax-dtd-handler'/>
+   </param>
+  </method>
+  <method name='setErrorHandler'>
+   <param name='errorHandler'>
+    <reference idref='sax-error-handler'/>
+   </param>
+  </method>
+ </interface>
+ <interface id='sax-xmlreader' name='XMLReader'>
+  <method name='parse'>
+   <param name='systemId'>
+    <reference idref='java-string'/>
+   </param>
+   <throws>
+    <reference idref='java-io-exception'/>
+   </throws>
+   <throws>
+    <reference idref='sax-exception'/>
+   </throws>
+  </method>
+  <method name='parse'>
+   <param name='inputSource'>
+    <reference idref='sax-input-source'/>
+   </param>
+   <throws>
+    <reference idref='java-io-exception'/>
+   </throws>
+   <throws>
+    <reference idref='sax-exception'/>
+   </throws>
+  </method>
+  <method name='setEntityResolver'>
+   <param name='entityResolver'>
+    <reference idref='sax-entity-resolver'/>
+   </param>
+  </method>
+  <method name='getEntityResolver'>
+   <returns>
+    <reference idref='sax-entity-resolver'/>
+   </returns>
+  </method>
+  <method name='setContentHandler'>
+   <param name='contentHandler'>
+    <reference idref='sax-content-handler'/>
+   </param>
+  </method>
+  <method name='getContentHandler'>
+   <returns>
+    <reference idref='sax-content-handler'/>
+   </returns>
+  </method>
+  <method name='setDTDHandler'>
+   <param name='dtdHandler'>
+    <reference idref='sax-dtd-handler'/>
+   </param>
+  </method>
+  <method name='getDTDHandler'>
+   <returns>
+    <reference idref='sax-dtd-handler'/>
+   </returns>
+  </method>
+  <method name='setErrorHandler'>
+   <param name='errorHandler'>
+    <reference idref='sax-error-handler'/>
+   </param>
+  </method>
+  <method name='getErrorHandler'>
+   <returns>
+    <reference idref='sax-error-handler'/>
+   </returns>
+  </method>
+  <method name='setFeature'>
+   <param name='featureId'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='state'>
+    <primitive type='boolean'/>
+   </param>
+   <throws>
+    <reference idref='sax-not-recognized-exception'/>
+   </throws>
+   <throws>
+    <reference idref='sax-not-supported-exception'/>
+   </throws>
+  </method>
+  <method name='getFeature'>
+   <param name='featureId'>
+    <reference idref='java-string'/>
+   </param>
+   <returns>
+    <primitive type='boolean'/>
+   </returns>
+   <throws>
+    <reference idref='sax-not-recognized-exception'/>
+   </throws>
+   <throws>
+    <reference idref='sax-not-supported-exception'/>
+   </throws>
+  </method>
+  <method name='setProperty'>
+   <param name='propertyId'>
+    <reference idref='java-string'/>
+   </param>
+   <param name='value'>
+    <reference idref='java-object'/>
+   </param>
+   <throws>
+    <reference idref='sax-not-recognized-exception'/>
+   </throws>
+   <throws>
+    <reference idref='sax-not-supported-exception'/>
+   </throws>
+  </method>
+  <method name='getProperty'>
+   <param name='propertyId'>
+    <reference idref='java-string'/>
+   </param>
+   <returns>
+    <reference idref='java-object'/>
+   </returns>
+   <throws>
+    <reference idref='sax-not-recognized-exception'/>
+   </throws>
+   <throws>
+    <reference idref='sax-not-supported-exception'/>
+   </throws>
+  </method>
+ </interface>
+</category>

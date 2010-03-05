@@ -1,0 +1,230 @@
+<!-- $Id$ -->
+<html>
+ <head>
+  <title>Xerces 2 | Entities</title>
+  <link rel='stylesheet' type='text/css' href='css/site.css'>
+  <link rel='stylesheet' type='text/css' href='css/diagram.css'>
+  <style type='text/css'>
+   .note { font-size: smaller }
+  </style>
+ </head>
+ <body>
+  <span class='netscape'>
+  <a name='TOP'></a>
+  <h1>Entity Management</h1>
+  <a name='TOC'></a>
+  <h2>Table of Contents</h2>
+  <p>
+   <ul>
+    <li><a href='#Overview'>Overview</a>
+     <ul>
+      <li><a href='#Overview.Xerces'>Xerces</a></li>
+      <li><a href='#Overview.Crimson'>Crimson</a></li>
+     </ul>
+    </li>
+    <li><a href='#Assumptions'>Assumptions</a></li>
+    <li><a href='#EntityManager'>EntityManager</a></li>
+    <li><a href='#EntityScanner'>EntityScanner</a></li>
+    <li><a href='#Notes'>Notes</a>
+     <ul>
+      <li><a href='#Notes.OpenIssues'>Open Issues</a></li>
+     </ul>
+    </li>
+   </ul>
+  </p>
+  <hr>
+  <a name='Overview'></a>
+  <h2>Overview</h2>
+  <p>
+   An XML document is comprised of various entities which can
+   be encoded using different character encodings. The document
+   instance is known as the <em>document entity</em> whereas
+   we'll call the DTD the <em>dtd entity</em>. In addition,
+   <em>general entities</em> and <em>parameter entities</em>
+   act as macros for inserting fragments into the parse stream 
+   when the entity is referenced in the document and DTD, 
+   respectively.
+  </p>
+  <p>
+   There must be a way to declare, locate, and read 
+   entities in their respective character encoding. The entity
+   manager handles locating entities and obtaining an entity
+   scanner capable of scanning the entity content. Depending on 
+   the character encoding, there may be custom readers for
+   performance reasons. Regardless of the character encoding,
+   though, the interface to scan the underlying content must
+   be consistent and simple.
+  </p>
+  <a name='Overview.Xerces'></a>
+  <h3>Xerces</h3>
+  <p>
+   The complexity of the original Xerces code resulted, in
+   large part, from the readers and entity management. The
+   entity readers were defined with a large set of methods
+   so that read operations could be optimized for each
+   reader and that character transcoding could be deferred.
+   However, this meant that every reader had to implement
+   all of the methods separately which introduced more
+   chances for bugs in the code and made it harder to 
+   understand the system.
+  </p>
+  <a name='Overview.Crimson'></a>
+  <h3>Crimson</h3>
+  <p>
+   Crimson took a simpler approach to reading entities.
+   There is only one reader class that delegates the read
+   calls to a few optimized input stream readers. And
+   without attempting to defer character encoding, the
+   code path is greatly simplified. But its not all roses.
+   If you look deep enough in the code you'll find that
+   the entity management code is <em>somewhat</em> complex 
+   because of the nature of XML entities.
+  </p>
+  <a name='Assumptions'></a>
+  <h2>Assumptions</h2>
+  <p>
+   Before designing the entity management, a few assumptions 
+   were made:
+   <ul>
+    <li>
+     Characters are <em>always</em> transcoded<br>
+     <span class='note'>
+      This greatly simplifies the system and allows us to avoid
+      using a string pool. There <em>is</em> a performance cost 
+      but the simplicity and understandability of the code far 
+      outweighs any performance lost.
+     </span>
+    </li>
+    <li>
+     There will be a single entity manager per parser instance<br>
+     <span class='note'>
+      Scanners need to have a way of locating entities and
+      reading their contents. An entity manager would provide
+      that mechanism.
+     </span>
+    </li>
+    <li>
+     There will be a single entity scanner per parser instance that 
+     XML scanners will use<br>
+     <span class='note'>
+      This entity scanner can still delegate to custom, optimized
+      input stream readers for performance.
+     </span>
+    </li>
+   </ul>
+  </p>
+  <a name='EntityManager'></a>
+  <h2>Entity Manager</h2>
+  <p>
+   The entity manager is a core component in any parser
+   configuration and there is only one entity manager per parser
+   instance. Some of the responsibilities of the entity 
+   manager are:
+   <ul>
+    <li>Registering declared entities</li>
+    <li>Resolving external entities</li>
+    <li>Starting entities</li>
+   </ul>
+  </p>
+  <p>
+   The <code><a href='design.html#XMLEntityManager'>XMLEntityManager</a></code>
+   class implements the entity management in the parser. This
+   class contains methods for registering general and parameter 
+   entities; resolving entities either by default or by using
+   the SAX <code>EntityResolver</code> registered by the user;
+   and starting named and unnamed entities. The various XML
+   scanners query the entity scanner by calling
+   <code>getEntityScanner</code> on the entity manager. 
+  </p>
+  <a name='EntityScanner'></a>
+  <h2>Entity Scanner</h2>
+  <p>
+   The entity scanner is responsible for scanning "primitive"
+   XML structure from an entity and reporting the parse location.
+   The <code><a href='design.html#XMLEntityScanner'>XMLEntityScanner</a></code>
+   class contains methods to peek at the current character; scan 
+   names and content; etc.
+  </p>
+  <p>
+   There is only one entity scanner per entity manager.
+   The entity scanner works directly with the entity manager in
+   order to read from the underlying character readers. This
+   makes scanning of the entities transparent to the caller.
+   Changing readers; auto-detecting encodings from input
+   streams; and buffering is done "under the covers" and does 
+   not affect how the caller interacts with the entity scanner.
+  </p>
+  <p>
+   If both the entity manager and entity scanner are singletons
+   per parser instance, why aren't they a single object?
+   The manager and scanner <em>could</em> be a single object
+   but they are separate in order to have a cleaner separation
+   of functionality and API. Even though they are separate, 
+   they share common data, as shown in the following diagram.
+  </p>
+  <p>
+   <table border='2' cellpadding='10' cellspacing='0'>
+    <tr class='diagram'>
+     <td>
+      <table border='0' cellpadding='2' cellspacing='0'>
+       <tr>
+        <td class='config-component'>
+         <table cellpadding='7' cellspacing='2'>
+          <tr class='diagram'>
+           <td class='component'>Entity<br>Manager</td>
+           <td class='component'>Entity<br>Scanner</td>
+          </tr>
+         </table>
+         <li>entity resolver</li>
+         <li>reader stack</li>
+         <li>entity handler</li>
+        </td>
+       </tr>
+      </table>
+     </td>
+    </tr>
+   </table>
+  </p>
+  <a name='Notes'></a>
+  <h2>Notes</h2>
+  <p>
+   It is expected that the entity management and readers will
+   need to be re-evaluated as the Xerces 2 concept is
+   implemented. The operation of reading entities directly
+   impacts the performance of the parser and while this isn't
+   an initial requirement it is important.
+  </p>
+  <a name='Notes.OpenIssues'></a>
+  <h3>Open Issues</h3>
+  <p>
+   There are currently some open issues. [Note: these should
+   move to <a href='issues.html'>implementation issues</a>.]
+   <dl>
+    <dt>Entity Encoding</dt>
+    <dd>
+     When an entity is started that is read from an input stream,
+     the encoding must first be auto-detected. Then, as the
+     appropriate scanner parses the XMLDecl or TextDecl line,
+     a new encoding must be set on the entity scanner. An API 
+     must be created in order to set the encoding. However,
+     the work of swapping out the character reader is done
+     transparently from the caller. 
+    </dd>
+    <dt>Open Readers</dt>
+    <dd>
+     Who closes open readers? The parser should close all readers
+     that it created but should not close any readers that are
+     passed to the parser via the <code>parse(InputSource)</code>
+     method. And at what time are the readers closed in the case
+     of an unrecoverable error?
+    </dd>
+   </dl>
+  </p>
+  </span>
+  <a name='BOTTOM'></a>
+  <hr>
+  <span class='netscape'>
+   Last modified: $Date$
+  </span>
+ </body>
+</html>

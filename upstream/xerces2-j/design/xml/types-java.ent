@@ -1,0 +1,23 @@
+<?xml encoding='US-ASCII'?>
+<!-- $Id$ -->
+<category name='Java Language'>
+ <class id='java-exception' name='Exception'/>
+ <class id='java-object' name='Object'/>
+ <class id='java-string' name='String'/>
+ <interface id='java-cloneable' name='Cloneable'/>
+</category>
+
+<category name='Java I/O' package='java.io'>
+ <class id='java-io-exception' name='IOException'/>
+ <class id='java-io-input-stream' name='Inputstream'/>
+ <class id='java-io-reader' name='Reader'/>
+</category>
+
+<category name='Java Utils' package='java.util'>
+ <class id='java-empty-stack-exception' name='EmptyStackException'/>
+ <class id='java-hashtable' name='Hashtable'/>
+ <class id='java-locale' name='Locale'/>
+ <class id='java-missing-resource-exception' name='MissingResourceException'/>
+ <class id='java-stack' name='Stack'/>
+ <class id='java-vector' name='Vector'/>
+</category>

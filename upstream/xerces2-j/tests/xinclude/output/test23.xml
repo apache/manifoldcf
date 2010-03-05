@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<x xmlns="http://www.schemaTest.org/xinclude-test" xmlns:xi="http://www.w3.org/2001/XInclude" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.schemaTest.org/xinclude-test tests.xsd">
+   <!-- including the same document, but as text -->
+   &lt;?xml version=&quot;1.0&quot;?&gt;
+&lt;x xmlns=&quot;http://www.schemaTest.org/xinclude-test&quot;
+   xmlns:xi=&quot;http://www.w3.org/2001/XInclude&quot;
+   xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+   xsi:schemaLocation=&quot;http://www.schemaTest.org/xinclude-test tests.xsd&quot;&gt;
+   &lt;!-- test that including the same document fails --&gt;
+   &lt;!-- EXPECT FAILURE --&gt;
+   &lt;xi:include parse=&quot;xml&quot;
+               href=&quot;test24.xml&quot;/&gt;
+&lt;/x&gt;
+
+</x>

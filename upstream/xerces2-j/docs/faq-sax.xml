@@ -1,0 +1,146 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<!DOCTYPE faqs SYSTEM 'dtd/faqs.dtd'>
+<faqs title='Programming with SAX'>
+
+ <faq title="Creating a SAX Parser">
+  <q>How do I create a SAX parser?</q>
+  <a>
+   <p>
+    You can create a SAX parser by using the Java APIs for
+    XML Processing (JAXP). The following source code shows
+    how:
+   </p>
+   <source>import java.io.IOException; 
+import javax.xml.parsers.FactoryConfigurationError;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
+
+  ...
+
+String xmlFile = &quot;file:///&parserdir;/data/personal.xml&quot;; 
+try {
+    SAXParserFactory factory = SAXParserFactory.newInstance();
+    factory.setNamespaceAware(true);
+    SAXParser parser = factory.newSAXParser();
+    DefaultHandler handler = /* custom handler class */;
+    parser.parse(xmlFile, handler);
+} 
+catch (FactoryConfigurationError e) {
+    // unable to get a document builder factory
+} 
+catch (ParserConfigurationException e) {
+    // parser was unable to be configured
+catch (SAXException e) {
+    // parsing error
+} 
+catch (IOException e) {
+    // i/o error
+}</source>
+  </a>
+ </faq>
+
+  <faq title='Incomplete character data is received via SAX'>
+  <q>Why does the SAX parser lose some character data or why is the data split 
+  into several chunks?</q>
+  <a>
+  <p>If you read the <jump href='http://www.saxproject.org/apidoc/org/xml/sax/ContentHandler.html#characters(char[],%20int,%20int)'>SAX</jump> 
+  documentation, you will find that SAX may deliver contiguous text as multiple calls to 
+<code>characters</code>, for reasons having to do with parser efficiency and input 
+buffering. It is the programmer's responsibility to deal with that 
+appropriately, e.g. by accumulating text until the next non-characters 
+event.
+ </p>
+ <p>
+   Xerces will split calls to <code>characters</code> at the end of an internal buffer,
+   at a new line and also at a few other boundaries. You can never rely on contiguous
+   text to be passed in a single characters callback.
+ </p>
+  </a>
+  </faq>
+  
+  <faq title='Ignorable Whitespace and XML Schemas'>
+    <q>Why doesn't the SAX parser report ignorable whitespace for XML Schemas?</q>
+    <a>
+      <p>SAX is very clear that ignorableWhitespace is only called for
+         <jump href="http://www.w3.org/TR/2006/REC-xml-20060816/#sec-white-space">
+         element content whitespace</jump>, which is defined in the context of a DTD.
+         The result of schema validation is the Post-Schema-Validation Infoset (PSVI). 
+         Schema processors augment the base Infoset by adding new properties to 
+         element and attribute information items, but not character information items.
+         Schemas do not change whether a character is element content whitespace.
+      </p>
+    </a>
+  </faq>
+  
+  <faq title="Attributes and ContentHandler.startElement">
+    <q>Why is the Attributes parameter passed to startElement always a 
+    reference to the same object?</q>
+    <a>
+      <p>Outside the scope of <code>startElement</code>, the value of the 
+         <code>Attributes</code> parameter is undefined. For each instance of Xerces'
+         SAX parser, there exists only one <code>Attributes</code> instance which 
+         is reused for every new set of attributes. Before each 
+         <code>startElement</code> callback, the previous values in this object
+         will be overwritten. This is done for performance reasons in order
+         to reduce object creation. To persist a set of attributes
+         beyond <code>startElement</code> the object should be cloned, for
+         instance by using <code>org.xml.sax.helpers.AttributesImpl</code>.
+      </p>
+    </a>
+  </faq>
+  
+  <faq title="Namespace of xmlns attributes">
+    <q>Why does the SAX parser report that xmlns attributes have no namespace?</q>
+    <a>
+       <p>An erratum for the Namespaces in XML Recommendation put namespace declaration 
+          attributes in the namespace "http://www.w3.org/2000/xmlns/". By default, 
+          SAX2 (SAX 2.0.2) follows the original Namespaces in XML Recommendation, so 
+          conforming parsers must report that these attributes have no namespace. To
+          configure the parser to report a namespace for such attributes, turn on
+          the <link idref='features' anchor='xmlns-uris'>xmlns-uris</link> feature.
+       </p>
+       <p>When using Xerces 2.6.2 (or prior) or other parser implementations
+          that do not support this feature, your code must handle this discrepancy
+          when interacting with APIs such as DOM and applications which expect a namespace 
+          for xmlns attributes.
+       </p>
+    </a>
+  </faq>
+
+  <faq title="Encodings and XML Version via SAX">
+    <q>Is there any way I can determine what encoding an entity was
+    written in, or what XML version the document conformed to, if I'm
+    using SAX?</q>
+    <a>
+        <p>Yes. As of SAX 2.0.2 encoding and version information is made
+        available through the <code>org.xml.sax.ext.Locator2</code>
+        interface. In Xerces, instances of the SAX <code>Locator</code> interface
+        passed to a <code>setDocumentLocator</code> call will also implement
+        the <code>Locator2</code> interface. You can determine the encoding
+        and XML version of the entity currently being parsed by calling the
+        <code>getEncoding()</code> and <code>getXMLVersion()</code> methods.
+        </p>
+    </a>
+  </faq>
+  
+
+</faqs>

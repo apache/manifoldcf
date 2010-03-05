@@ -1,0 +1,183 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<!DOCTYPE s1 SYSTEM 'dtd/document.dtd'>
+<s1 title='Xerces Native Interface'>
+ <s2 title='Overview'>
+  <p>
+   The Xerces Native Interface (XNI) is a framework for communicating
+   a "streaming" document information set and constructing generic
+   parser configurations. XNI is part of the Xerces2 development but
+   the Xerces2 parser is just a standards compliant reference 
+   implementation of the Xerces Native Interface. Other parsers can be
+   written that conform to XNI without conforming to any particular 
+   standards or using any code from the reference implementation.
+  </p>
+  <p>
+   The Xerces Native Interface is used to implement the Xerces2 parser
+   from a set of modular components in a standard configuration. This 
+   configuration is then used to drive the DOM and SAX parser 
+   implementations provided with Xerces2. However, XNI is merely an
+   <em>internal</em> set of interfaces. There is no need for an XML
+   application programmer to learn XNI if they only intend to interface
+   to the Xerces2 parser using standard interfaces like JAXP, DOM, and
+   SAX. Xerces developers and application developers that need more
+   power and flexibility than that provided by the standard interfaces
+   should read and understand XNI.
+  </p>
+  <p>Overview information:</p>
+  <ul>
+   <li>
+    <jump href='#streaming-info-set'>"Streaming" Information 
+    Set</jump>
+   </li>
+   <li>
+    <jump href='#generic-parser-configurations'>Generic Parser
+    Configurations</jump>
+   </li>
+  </ul>
+  <p>Design and implementation information:</p>
+  <ul>
+   <li><link idref='xni-design'>Design Details</link></li>
+   <li><link idref='xni-core'>Core Interfaces</link></li>
+   <li><link idref='xni-config'>Parser Configuration</link></li>
+   <li><link idref='xni-xerces2'>Xerces2 Parser Components</link></li>
+  </ul>
+ </s2>
+ <anchor name='streaming-info-set'/>
+ <s2 title='"Streaming" Information Set'>
+  <p>
+   What is meant by a "streaming" information set? Quite simply,
+   the streaming information set is the document information that can
+   be communicated by parsing the document in a serial manner. In
+   other words, it is the information received as-you-see-it. An XNI
+   parser provides this streaming info set to a registered document
+   handler. The XNI document handler is similar to the standard
+   SAX <code>ContentHandler</code> interface but is different in 
+   several important ways:
+  </p>
+  <ul>
+   <li>
+    XNI attempts to provide lossless communication of the streaming
+    information set. Therefore, XNI passes the encodings of external
+    parsed entities and other information that is lost when using SAX.
+   </li>
+   <li>
+    The XNI document handler interface is also designed to build a
+    pipeline of parser components where the streaming information set
+    can be fully modified and augmented by each stage in the pipeline.
+    SAX, however, is primarily a read-only set of interfaces.
+   </li>
+  </ul>
+  <p>
+   The Xerces Native Interface breaks the document's streaming
+   information set into several more manageable interfaces:
+  </p>
+  <table>
+   <tr><th>Interface</th><th>Description</th></tr>
+   <tr>
+    <td><code>XMLDocumentHandler</code></td>
+    <td>Communicates document structure and content information.</td>
+   </tr>
+   <tr>
+    <td><code>XMLDTDHandler</code></td>
+    <td>
+     Communicates basic DTD information such as element and attribute
+     declarations.
+    </td>
+   </tr>
+   <tr>
+    <td><code>XMLDTDContentModelHandler</code></td>
+    <td>
+     Breaks down each element declaration's content model into a
+     set of separate methods so that handlers don't have to reparse
+     the content model string given in the 
+     <code>XMLDTDHandler#elementDecl(String,String)</code> method.
+     This separation also helps those applications that want to
+     know boundaries of entities when used as part of an element's
+     content model.
+    </td>
+   </tr>
+  </table>
+  <p>
+   And an additional handler is provided for convenience in defining
+   document fragments:
+  </p>
+  <table>
+   <tr><th>Interface</th><th>Description</th></tr>
+   <tr>
+    <td><code>XMLDocumentFragmentHandler</code></td>
+    <td>Communicates information about a document fragment.</td>
+   </tr>
+  </table>
+  <p>
+   For complete details of the Xerces Native Interface, refer to
+   the <link idref='xni-core'>Core Interfaces</link> documentation.
+  </p>
+ </s2>
+ <anchor name='generic-parser-configurations'/>
+ <s2 title='Generic Parser Configurations'>
+  <p>
+   The Xerces Native Interface document handler interfaces define a
+   document's streaming information set but XNI also contains a set 
+   of interfaces that define parser components and configurations. 
+   These interfaces provide a framework for a library of parser parts
+   that can be used interchangeably or completely replaced at the
+   programmer's option. This framework allows an unparalleled level
+   of configuration and implementation choices to implement XML
+   applications. 
+  </p>
+  <p>
+   The following list details some possible examples of parsers and
+   configurations that can be written using the XNI parser configuration
+   framework:
+  </p>
+  <ul>
+   <li>
+    <strong>HTML Parser</strong><br/>
+    An HTML scanner can be written that breaks an HTML document into
+    a series of XNI callbacks. Using a configuration that swaps the
+    default XML scanner with the HTML scanner, you can create DOM and
+    SAX parsers for HTML documents.
+   </li>
+   <li>
+    <strong>Optimized Parser</strong><br/>
+    For improved XML performance, a minimal XML scanner can be written
+    and swapped for the default, fully compliant XML scanner. In
+    addition, the validator component can be removed from the parser
+    pipeline to reduce the amount of work required to parse XML
+    documents.
+   </li>
+   <li>
+    <strong>XInclude Processor</strong><br/>
+    An XNI parser component can be written to handle XInclude by
+    analyzing the streaming information set and automatically
+    inserting the contents of referenced links into the event stream.
+    By adding this component to the parser pipeline before the
+    validator, included content would appear transparent to the
+    validator as if that content was in the original document.
+   </li>
+  </ul>
+  <p>
+   This is just a small sample of what is possible when using the
+   XNI parser configuration framework. For complete details of the
+   XNI parser configurations, refer to the 
+   <link idref='xni-config'>Parser Configuration</link> 
+   documentation.
+  </p>
+ </s2>
+</s1>

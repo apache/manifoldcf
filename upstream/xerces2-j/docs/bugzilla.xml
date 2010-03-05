@@ -1,0 +1,52 @@
+<?xml version="1.0" standalone="no"?>
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<!DOCTYPE s1 SYSTEM "./dtd/document.dtd">
+<s1 title="Reporting Bugs in Jira">
+<s2 title="Before you report a bug">
+<p> Before you report a bug, please, <em>read</em> the following instructions:</p>
+  <ul>
+	<li>If doubt exists whether the behavior in question is a bug 
+          or a feature, please post a message to the <jump href="http://xml.apache.org/mail.html#xerces-j-user">
+          j-users@xerces.apache.org</jump> list for clarification.
+         </li>
+	<li>To help to eliminate duplicate or invalid bug reports, such as the
+	    <jump href="http://issues.apache.org/jira/browse/XERCESJ-581">external-schemaLocation</jump> bug, 
+	    <em>please take a quick look at bugs in JIRA</em> opened against the version you're working 
+        with to see whether the bug has been already reported and/or fixed.
+	    You can also download the 
+	    <jump href='http://vmgump.apache.org/gump/public-jars/xml-xerces2/'>latest code</jump> 
+	    in SVN and check if you can reproduce the bug.</li>
+	  <li>Report bugs against the newest release.</li>
+	  <li>Read <jump href="http://issues.apache.org/jira">JIRA Notes</jump></li>
+      </ul>
+      <p>We strongly encourage you write patches for problems you find and submit 
+         them to <jump href="http://xml.apache.org/mail.html#xerces-j-dev">j-dev@xerces.apache.org</jump>.
+         Being specific in the description of your bug report, and providing enough information to reproduce the 
+         bug will improve the likelihood that the bug you found will be fixed in the foreseeable future. In the 
+         interest of fixing bugs, adding enhancements, and addressing outstanding design issues, we need your 
+         active participation in the ongoing development of Xerces2.</p>
+      <anchor name="jira"/>
+
+</s2>
+
+<s2 title="Report a bug">
+<p> Have you read the instructions above?
+If yes, please click <jump href="http://issues.apache.org/jira/browse/XERCESJ">here</jump>
+to submit a bug report.  </p>
+</s2>
+</s1>

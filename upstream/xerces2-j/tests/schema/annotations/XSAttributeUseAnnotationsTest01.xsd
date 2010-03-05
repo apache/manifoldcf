@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="XSAttributeUseAnnotationsTest"
+    xmlns:sv="XSAttributeUseAnnotationsTest"
+    xmlns:sn="SyntheticAnnotationNS">
+
+    <attribute name="attr1" type="string" sn:att="ATT1"></attribute>
+    <attributeGroup name="AG" sn:att="AG1">
+        <attribute name="attr3" type="string"></attribute>
+    </attributeGroup>
+
+    <complexType name="CT">
+        <sequence>
+            <element name="elString" type="string" />
+        </sequence>
+        <attribute ref="sv:attr1" sn:att="ATT2"/>
+        <attribute name="attr2" sn:att="ATT3"/>
+        <attributeGroup ref="sv:AG" sn:att="AG2"/>
+    </complexType>
+
+    <element name="root" type="sv:CT" />
+
+</schema>

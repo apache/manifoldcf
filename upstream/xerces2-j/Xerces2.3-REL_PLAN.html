@@ -1,0 +1,255 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<html> 
+<head>
+<title>Xerces 2.1 plan</title>
+<style type="text/css">
+         BODY {  margin: 2em 1em 2em 70px;  
+                 font-family: New Times Roman, serif;    
+                 color: black;    
+                 background-color: white;}
+</style>
+</head>
+
+<body>
+<h1>Xerces 2.3 Plan</h1>
+
+<p><b>Features:</b>
+<ul>
+<li>Track changes to DOM L3 Core and Load and Save          
+<li>XML 1.1
+<li>Performance work
+<li>Improved JAXP 1.2 support
+<li>XML Schema 2nd Edition
+<li>Fix security problems
+</ul>
+<p><b>Target DCUT (code complete) date: Mon. Jan. 20 </b>  
+<p><b>Target release date: Fri. Jan. 24 </b>               
+
+<h3>Development line items </h3>
+<table border="2">
+<tr>
+<th style="text-align:left">Line item </th>
+<th style="text-align:left">Volunteer </th>
+<th style="text-align:left">Sizing </th>
+<th style="text-align:left">Timeframe </th>
+<th style="text-align:left">Status </th></tr>
+
+<tr>
+<td><b>DOM L3 </b>                </td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+
+<tr>
+<td>DOM Configuration </td>
+<td> Elena Litani</td>
+<td> 1 pw</td>
+<td> Dec. 2 - 6 </td>
+<td> Complete </td>
+</tr> 
+
+<tr>
+<td>ID Attributes</td>
+<td> Elena Litani</td>
+<td> 1 pw</td>
+<td> Dec. 16-20 </td>
+<td> Complete</td>
+</tr>
+<tr>
+<td>normalizeDocument</td>
+<td> Elena Litani</td>
+<td> 1 pw</td>
+<td> Dec. 9-13 </td>
+<td> Complete</td>
+</tr>
+<tr>
+<td>TypeInfo and general changes</td>
+<td> Elena Litani</td>
+<td> 1 pw</td>
+<td> Jan. 13 - 17 </td>
+<td> Complete</td>
+</tr>
+<tr>
+<td>compareTreePosition changes</td>
+<td> Lisa Martin</td>
+<td> 1 pw</td>
+<td> Jan. 13 - 17 </td>
+<td> Complete (except for document ordering, which will be done in 2.3.1)</td>
+</tr>
+
+<tr>
+<td><b>XML 1.1 and Namespaces 1.1 </b>                </td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+
+<tr>
+<td>Basic support for 1.1 </td>
+<td> Neil Graham</td>
+<td> 2.5 pw</td>
+<td> Nov. 25 - Dec. 11</td>
+<td> Complete </td>
+</tr>
+
+<tr>
+<td>Serializer changes </td>
+<td>Neil Graham</td>
+<td> 1.5 pw </td>
+<td>Jan. 8-17 </td>
+<td>  Complete</td>
+</tr>
+<tr>
+<td>Namespaces 1.1 </td>
+<td>Neil Graham</td>
+<td> .5 pw </td>
+<td>Dec. 9 - 13 </td>
+<td> Complete </td>
+</tr>
+
+
+<tr>
+<td><b>XML Schema Errata  </b>               </td> 
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Investigate changes to be made </td>
+<td> Sandy Gao</td>
+<td> 3 pd  </td>
+<td> To be completed by Jan. 8 </td>
+<td> Ongoing, as XML Schema WG has not posted final errata.  To be completed in Xerces 2.3.1 </td>
+</tr>
+<tr>
+<td>Changes for errata </td>
+<td>Sandy Gao</td>
+<td> 2 pw </td>
+<td> Dec. 9 - Jan. 17 </td>
+<td> In progress.  To be completed in Xerces 2.3.1. </td>
+</tr>
+
+<tr>
+<td><b>Performance enhancements  </b>               </td> 
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+
+<tr>
+<td>Scanner enhancements </td>
+<td> Elena Litani</td>
+<td> 2 pw  </td>
+<td> Nov. 19 - 29</td>
+<td> Will be completed in Xerces 2.3.1 </td>
+</tr>
+<tr>
+<td>DTM for schema processing </td>
+<td> Sandy Gao </td>
+<td> 2 pw  </td>
+<td> Dec. 2 - 20 </td>
+<td> Complete</td>
+</tr>
+
+<tr>
+<td><b>JAXP 1.2 </b>               </td> 
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Misc. cleanup </td>
+<td> Neil Graham</td>
+<td> .5 pw </td>
+<td> Jan. 6 - 8  </td>
+<td> Complete </td>
+</tr>
+<tr>
+<td><b>Miscellaneous </b>               </td> 
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Build work for commons  </td>
+<td> Neil Graham</td>
+<td> 1 pw  </td>
+<td> Dec. 9 - 20
+<td> Complete </td>
+</tr>
+<tr>
+<td>Strict uri feature </td>
+<td> Sandy Gao</td>
+<td> 1 pw  </td>
+<td> Dec. 16 - Jan. 10 </td>
+<td> Complete</td>
+</tr>
+<tr>
+<td>Security feature  </td>
+<td> Neil Graham, Neeraj Bajaj et. al </td>
+<td> 1 pw  </td>
+<td> Dec. 16 - Jan. 10</td>
+<td> Complete</td>
+</tr>
+<tr>
+<td>XNI changes       </td>
+<td> Elena Litani, Andy Clark et. al </td>
+<td> 1 pw  </td>
+<td> Dec. 16 - Jan. 10</td>
+<td> Complete</td>
+</tr>
+<tr>
+<tr>
+<td><b>DCUT  </b>               </td> 
+<td></td>
+<td></td>
+<td>Jan. 20  </td>
+<td>Jan. 27 (actual)</td>
+</tr>
+
+
+<tr>
+<td><b>Build and publish Xerces 2.1</b>       </td>
+<td></td>
+<td></td>
+<td>Week of Jan. 20 </td>
+<td></td>
+</tr>
+
+</table>
+
+<h3>Candidate features and cleanup items (if time permits) </h3>
+<ul>
+<li>Schema:  support multiple schemas in 1 file 
+<li>Schema:  support schemas embedded in instance docs 
+<li>Cleanup of validation features and properties
+<li>Accepting DOM tree as source of schema
+<li>Schema: Investigate whether semantics should change when decl not found for Validation root
+<li>Schema:  should we keep simple content model?
+<li> ... 
+</ul>
+</body>
+</html>

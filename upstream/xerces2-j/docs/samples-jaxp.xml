@@ -1,0 +1,277 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<!DOCTYPE s1 SYSTEM 'dtd/document.dtd'>
+<s1 title='JAXP Samples'>
+ <s2 title='Overview'>
+  <p>
+   This page documents the various Java API for XML Processing (JAXP)
+   samples included with Xerces. Besides being useful programs,
+   they can be used as JAXP programming examples to learn how to
+   program using the JAXP API.
+  </p>
+  <p>JAXP samples:</p>
+  <ul>
+   <li><link anchor='ParserAPIUsage'>jaxp.ParserAPIUsage</link></li>
+   <li><link anchor='SourceValidator'>jaxp.SourceValidator</link></li>
+   <li><link anchor='InlineSchemaValidator'>jaxp.InlineSchemaValidator</link></li>
+   <li><link anchor='TypeInfoWriter'>jaxp.TypeInfoWriter</link></li>
+   <li><link anchor='DatatypeAPIUsage'>jaxp.DatatypeAPIUsage</link></li>
+  </ul>
+ </s2>
+ <anchor name='ParserAPIUsage'/>
+ <s2 title='Sample jaxp.ParserAPIUsage'>
+  <p>
+   A sample which demonstrates usage of classes in the
+   javax.xml.parsers package, particularly new features introduced
+   in JAXP 1.3, including XInclude processing, integration with
+   the JAXP 1.3 Validation API and parser reset.
+  </p>
+  <s3 title='usage'>
+   <source>java jaxp.ParserAPIUsage (options) uri</source>
+  </s3>
+  <s3 title='options'>
+   <table>
+    <tr><th>Option</th><th>Description</th></tr>
+    <tr><td>-a uri ...</td><td>Provide a list of schema documents.</td></tr>
+    <tr><td>-api (sax|dom)</td><td>Select API to use (sax|dom).</td></tr>
+    <tr><td>-xi | -XI</td><td>Turn on/off XInclude processing.</td></tr>
+    <tr><td>-sp | -SP</td><td>Turn on/off secure processing.</td></tr>
+    <tr><td>-h</td><td>Display help screen.</td></tr>
+   </table>
+  </s3>
+ </s2>
+ <anchor name='SourceValidator'/>
+ <s2 title='Sample jaxp.SourceValidator'>
+  <p>
+   A sample demonstrating how to use the JAXP 1.3 Validation API
+   to create a validator and use the validator to validate input
+   from SAX, DOM or a stream. The output of this program shows the 
+   time spent executing the Validator.validate(Source) method.
+  </p>
+  <p>
+   This class is useful as a "poor-man's" performance tester to
+   compare the speed of various JAXP 1.3 validators with different
+   input sources. However, it is important to note that the first 
+   validation time of a validator will include both VM class load time 
+   and validator initialization that would not be present in subsequent
+   validations with the same document. Also note that when the source for
+   validation is SAX or a stream, the validation time will also include
+   the time to parse the document, whereas the DOM validation is
+   completely in memory. 
+  </p>
+  <note>
+   The results produced by this program should never be accepted 
+   as true performance measurements.
+  </note>
+  <s3 title='usage'>
+   <source>java jaxp.SourceValidator (options) ...</source>
+  </s3>
+  <s3 title='options'>
+   <table>
+    <tr><th>Option</th><th>Description</th></tr>
+    <tr><td>-l name</td><td>Select schema language by name.</td></tr>
+    <tr><td>-x number</td><td>Select number of repetitions.</td></tr>
+    <tr><td>-a uri ...</td><td>Provide a list of schema documents.</td></tr>
+    <tr><td>-i uri ...</td><td>Provide a list of instance documents to validate.</td></tr>
+    <tr><td>-vs source</td><td>Select validation source (sax|dom|stream).</td></tr>
+    <tr>
+     <td>-f  | -F</td>
+     <td>
+      Turn on/off Schema full checking.<br/>
+      <strong>NOTE:</strong> Not supported by all schema factories and validators.
+     </td>
+    </tr>
+    <tr>
+     <td>-hs | -HS</td>
+     <td>
+      Turn on/off honouring of all schema locations.<br/>
+      <strong>NOTE:</strong> Not supported by all schema factories and validators.
+     </td>
+    </tr>
+    <tr>
+     <td>-va | -VA</td>
+     <td>
+      Turn on/off validation of schema annotations.<br/>
+      <strong>NOTE:</strong> Not supported by all schema factories and validators.
+     </td>
+    </tr>
+    <tr>
+     <td>-ga | -GA</td>
+     <td>
+      Turn on/off generation of synthetic schema annotations.<br/>
+      <strong>NOTE:</strong> Not supported by all schema factories and validators.
+     </td>
+    </tr>
+    <tr><td>-m  | -M</td><td>Turn on/off memory usage report.</td></tr>
+    <tr><td>-h</td><td>Display help screen.</td></tr>
+   </table>
+  </s3>
+  <s3 title='notes'>
+   <p>
+    The speed and memory results from this program should NOT be 
+    used as the basis of parser performance comparison! Real 
+    analytical methods should be used. For better results, perform
+    multiple validations within the same virtual machine to 
+    remove class loading from parse time and memory usage.
+   </p>
+   <p>
+    Not all features are supported by different parsers.
+   </p>
+  </s3>
+ </s2>
+ <anchor name='InlineSchemaValidator'/>
+ <s2 title='Sample jaxp.InlineSchemaValidator'>
+  <p>
+   A sample demonstrating how to use the JAXP 1.3 Validation API
+   to create a validator and use the validator to validate input
+   from a DOM which contains inline schemas and multiple validation
+   roots. The output of this program shows the time spent executing 
+   the Validator.validate(Source) method.
+  </p>
+  <p>
+   This class is useful as a "poor-man's" performance tester to
+   compare the speed of various JAXP 1.3 validators with different
+   input sources. However, it is important to note that the first 
+   validation time of a validator will include both VM class load time 
+   and validator initialization that would not be present in subsequent
+   validations with the same document.
+  </p>
+  <note>
+   This sample makes use of the JAXP 1.3 XPath API and requires either
+   a JAXP 1.3 compliant XSLT processor (or JDK 5.0) to run.
+  </note>
+  <note>
+   The results produced by this program should never be accepted 
+   as true performance measurements.
+  </note>
+  <s3 title='usage'>
+   <source>java jaxp.InlineSchemaValidator (options) uri ...</source>
+  </s3>
+  <s3 title='options'>
+   <table>
+    <tr><th>Option</th><th>Description</th></tr>
+    <tr><td>-l name</td><td>Select schema language by name.</td></tr>
+    <tr><td>-x number</td><td>Select number of repetitions.</td></tr>
+    <tr><td>-a xpath ...</td><td>Provide a list of XPath expressions for schema roots.</td></tr>
+    <tr><td>-i xpath ...</td><td>Provide a list of XPath expressions for validation roots.</td></tr>
+    <tr><td>-nm pre uri ...</td><td>Provide a list of prefix to namespace URI mappings for the XPath expressions.</td></tr>
+    <tr>
+     <td>-f  | -F</td>
+     <td>
+      Turn on/off Schema full checking.<br/>
+      <strong>NOTE:</strong> Not supported by all schema factories and validators.
+     </td>
+    </tr>
+    <tr>
+     <td>-hs | -HS</td>
+     <td>
+      Turn on/off honouring of all schema locations.<br/>
+      <strong>NOTE:</strong> Not supported by all schema factories and validators.
+     </td>
+    </tr>
+    <tr>
+     <td>-va | -VA</td>
+     <td>
+      Turn on/off validation of schema annotations.<br/>
+      <strong>NOTE:</strong> Not supported by all schema factories and validators.
+     </td>
+    </tr>
+    <tr>
+     <td>-ga | -GA</td>
+     <td>
+      Turn on/off generation of synthetic schema annotations.<br/>
+      <strong>NOTE:</strong> Not supported by all schema factories and validators.
+     </td>
+    </tr>
+    <tr><td>-m  | -M</td><td>Turn on/off memory usage report.</td></tr>
+    <tr><td>-h</td><td>Display help screen.</td></tr>
+   </table>
+  </s3>
+  <s3 title='notes'>
+   <p>
+    The speed and memory results from this program should NOT be 
+    used as the basis of parser performance comparison! Real 
+    analytical methods should be used. For better results, perform
+    multiple validations within the same virtual machine to 
+    remove class loading from parse time and memory usage.
+   </p>
+   <p>
+    Not all features are supported by different parsers.
+   </p>
+  </s3>
+ </s2>
+ <anchor name='TypeInfoWriter'/>
+ <s2 title='Sample jaxp.TypeInfoWriter'>
+  <p>
+   Provides a trace of the schema type information for elements and
+   attributes in an XML document. This demonstrates usage of the
+   JAXP 1.3 Validation API, particuarly how to read type information
+   from a TypeInfoProvider.
+  </p>
+  <s3 title='usage'>
+   <source>java jaxp.TypeInfoWriter (options) ...</source>
+  </s3>
+  <s3 title='options'>
+   <table>
+    <tr><th>Option</th><th>Description</th></tr>
+    <tr><td>-l name</td><td>Select schema language by name.</td></tr>
+    <tr><td>-p name</td><td>Select parser by name.</td></tr>
+    <tr><td>-a uri ...</td><td>Provide a list of schema documents.</td></tr>
+    <tr><td>-i uri ...</td><td>Provide a list of instance documents to validate.</td></tr>
+    <tr>
+     <td>-f  | -F</td>
+     <td>
+      Turn on/off Schema full checking.<br/>
+      <strong>NOTE:</strong> Not supported by all schema factories and validators.
+     </td>
+    </tr>
+    <tr>
+     <td>-hs | -HS</td>
+     <td>
+      Turn on/off honouring of all schema locations.<br/>
+      <strong>NOTE:</strong> Not supported by all schema factories and validators.
+     </td>
+    </tr>
+    <tr>
+     <td>-va | -VA</td>
+     <td>
+      Turn on/off validation of schema annotations.<br/>
+      <strong>NOTE:</strong> Not supported by all schema factories and validators.
+     </td>
+    </tr>
+    <tr>
+     <td>-ga | -GA</td>
+     <td>
+      Turn on/off generation of synthetic schema annotations.<br/>
+      <strong>NOTE:</strong> Not supported by all schema factories and validators.
+     </td>
+    </tr>
+    <tr><td>-h</td><td>Display help screen.</td></tr>
+   </table>
+  </s3>
+ </s2>
+ <anchor name='DatatypeAPIUsage'/>
+ <s2 title='Sample jaxp.DatatypeAPIUsage'>
+  <p>
+   A sample which demonstrates usage of the JAXP 1.3 Datatype API.
+  </p>
+  <s3 title='usage'>
+   <source>java jaxp.DatatypeAPIUsage</source>
+  </s3>
+ </s2>
+</s1>

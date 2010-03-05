@@ -1,0 +1,204 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<HTML><HEAD><TITLE>Xerces 2.8.0 plan</TITLE>
+<META http-equiv=Content-Type content="text/html; charset=iso-8859-1">
+<STYLE type=text/css>BODY {
+	MARGIN: 2em 1em 2em 70px; COLOR: black; FONT-FAMILY: New Times Roman, serif; BACKGROUND-COLOR: white
+}
+</STYLE>
+
+<META content="MSHTML 6.00.2800.1226" name=GENERATOR></HEAD>
+<BODY>
+<H1>Xerces 2.8.0 Plan</H1>
+<P><B>Features:</B> 
+<UL>
+  <LI>Start schema assessment from a specific type definition
+  <LI>Features for disabling ID/IDREF, unparsed entity and identity constraint checking
+  <LI>Enhancements to XML Schema annotation support
+  <LI>Support the warn-on-undeclared-elemdef feature which has been missing for many releases
+  <LI>Other misc. features, improvements and bug fixes</LI></UL>
+<P><B>Target DCUT (code complete) date: February 24th, 2006 </B>
+<P><B>Target release date: February 27th, 2006 </B>
+<H3>Development line items </H3>
+<TABLE border=2>
+  <TBODY>
+  <TR>
+    <TH style="TEXT-ALIGN: left">Line item </TH>
+    <TH style="TEXT-ALIGN: left">Volunteer </TH>
+    <TH style="TEXT-ALIGN: left">Sizing </TH>
+    <TH style="TEXT-ALIGN: left">Timeframe </TH>
+    <TH style="TEXT-ALIGN: left">Status </TH></TR>
+  <TR>
+    <TD><B>DOM Level 3 </B></TD>
+    <TD></TD>
+    <TD></TD>
+    <TD></TD>
+    <TD></TD></TR>
+  <TR>
+    <TD>Repair DTD and schema validation behaviour of Document.normalizeDocument()</TD>
+    <TD>Michael Glavassevich</TD>
+    <TD>2 pw</TD>
+    <TD>December 2005 / January 2006</TD>
+    <TD>Complete</TD></TR>
+  <TR>
+    <TD>LSSerializer: format-pretty-print [true]</TD>
+    <TD>Matej Kraus</TD>
+    <TD></TD>
+    <TD>November 2005</TD>
+    <TD>Complete</TD></TR>
+  <TR>
+    <TD><B>JAXP 1.3 </B></TD>
+    <TD></TD>
+    <TD></TD>
+    <TD></TD>
+    <TD></TD></TR>
+  <TR>
+    <TD>Enhancements to SchemaFactory.newSchema(Source[])</TD>
+    <TD>Peter McCracken</TD>
+    <TD>1 pw</TD>
+    <TD>December 2005 / January 2006</TD>
+    <TD>Complete</TD></TR>
+  <TR>
+    <TD>Expose current element node from validator when input is DOM.</TD>
+    <TD>Michael Glavassevich</TD>
+    <TD>0.5 pd</TD>
+    <TD>December 2005 / January 2006</TD>
+    <TD>Complete</TD></TR>
+  <TR>
+    <TD><B>DTD</B></TD>
+    <TD></TD>
+    <TD></TD>
+    <TD></TD>
+    <TD></TD></TR>
+  <TR>
+    <TD>Feature: balance-syntax-trees</TD>
+    <TD>Michael Glavassevich</TD>
+    <TD>1.5 pw</TD>
+    <TD>October 2005</TD>
+    <TD>Complete</TD></TR>
+  <TR>
+    <TD>Feature: warn-on-undeclared-elemdef</TD>
+    <TD>Michael Glavassevich</TD>
+    <TD>2 pd</TD>
+    <TD>January 2006</TD>
+    <TD>Complete</TD></TR>
+  <TR>
+    <TD><B>XML Schema 1.0</B></TD>
+    <TD></TD>
+    <TD></TD>
+    <TD></TD>
+    <TD></TD></TR>
+  <TR>
+    <TD>Expose annotations in XSAttributeUse and XSParticle</TD>
+    <TD>Neil Delima</TD>
+    <TD>2 pw</TD>
+    <TD>December 2005 / January 2006</TD>
+    <TD>Complete</TD></TR>
+  <TR>
+    <TD>Support lists of annotations for other XSObjects</TD>
+    <TD>Neil Delima</TD>
+    <TD>2 pw</TD>
+    <TD>December 2005 / January 2006</TD>
+    <TD>Complete</TD></TR>
+  <TR>
+    <TD>Feature: id-idref-checking</TD>
+    <TD>Peter McCracken</TD>
+    <TD>1 pd</TD>
+    <TD>December 2005 / January 2006</TD>
+    <TD>Complete</TD></TR>
+  <TR>
+    <TD>Feature: identity-constraint-checking</TD>
+    <TD>Peter McCracken</TD>
+    <TD>2 pd</TD>
+    <TD>December 2005 / January 2006</TD>
+    <TD>Complete</TD></TR>
+  <TR>
+    <TD>Feature: unparsed-entity-checking</TD>
+    <TD>Peter McCracken</TD>
+    <TD>1 pd</TD>
+    <TD>December 2005 / January 2006</TD>
+    <TD>Complete</TD></TR>
+  <TR>
+    <TD>Feature: ignore-xsi-type-until-elemdecl</TD>
+    <TD>Peter McCracken</TD>
+    <TD>1 pw</TD>
+    <TD>December 2005 / January 2006</TD>
+    <TD>Complete</TD></TR>
+  <TR>
+    <TD>Property: root-type-definition</TD>
+    <TD>Peter McCracken</TD>
+    <TD>1 pw</TD>
+    <TD>December 2005 / January 2006</TD>
+    <TD>Complete</TD></TR>
+  <TR>
+    <TD>Improve identity constraint error messages</TD>
+    <TD>George Cristian Bina</TD>
+    <TD></TD>
+    <TD>August 2005</TD>
+    <TD>Complete</TD></TR>
+  <TR>
+    <TD><B>Miscellaneous </B></TD>
+    <TD></TD>
+    <TD></TD>
+    <TD></TD>
+    <TD></TD></TR>
+  <TR>
+    <TD>Bug fixes in xml-commons and update to latest xml-commons-external </TD>
+    <TD>Nathan Beyer, Michael Glavassevich</TD>
+    <TD></TD>
+    <TD>January/February 2006</TD>
+    <TD>Complete</TD></TR>
+  <TR>
+    <TD>Replace XJavac Ant task with a cleaner solution </TD>
+    <TD></TD>
+    <TD></TD>
+    <TD></TD>
+    <TD>Deferred</TD></TR>
+  <TR>
+    <TD>Fix dtdjars target which was broken in Xerces 2.7.0 </TD>
+    <TD>Michael Glavassevich</TD>
+    <TD></TD>
+    <TD>February 23rd/24th, 2006</TD>
+    <TD>Complete</TD></TR>
+  <TR>
+    <TD>Documentation improvements </TD>
+    <TD>All</TD>
+    <TD></TD>
+    <TD>February 2006</TD>
+    <TD>Complete</TD></TR>
+  <TR>
+    <TD><B>DCUT </B></TD>
+    <TD></TD>
+    <TD></TD>
+    <TD>February 24th, 2006 </TD>
+    <TD></TD></TR>
+  <TR>
+    <TD><B>Review and fix severe defects reported in Bugzilla/Jira </B></TD>
+    <TD>All</TD>
+    <TD>1 pw</TD>
+    <TD>February 24th-27th, 2006 </TD>
+    <TD></TD></TR>
+  <TR>
+    <TD><B>Build and publish Xerces 2.8.0</B> </TD>
+    <TD></TD>
+    <TD></TD>
+    <TD>February 27th, 2006 </TD>
+    <TD></TD></TR></TBODY></TABLE>
+<H3>Candidate features and cleanup items (if time permits) </H3>
+<UL> 
+  <LI>... </LI></UL></BODY></HTML>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE personnel SYSTEM "input.dtd">
+<personnel>
+
+  <person id="Big.Boss" id2="id01">
+    <name><family>Boss</family> <given>Big</given></name>
+    <email>chief@foo.com</email>
+    <link subordinates="one.worker two.worker three.worker four.worker five.worker"/>
+  </person>
+
+  <person id="one.worker" id2="id02">
+    <name><family>Worker</family> <given>One</given></name>
+    <email>one@foo.com</email>
+    <link manager="Big.Boss"/>
+  </person>
+
+  <person id="two.worker" id2="id03">
+    <name><family>Worker</family> <given>Two</given></name>
+    <email>two@foo.com</email>
+    <link manager="Big.Boss"/>
+  </person>
+
+</personnel>
