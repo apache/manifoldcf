@@ -33,6 +33,7 @@ public interface IDocumentum extends Remote
   public static final String _rcsid = "@(#)$Id$";
 
   /** Create a session.
+  *@param docbaseName is the name of the docbase we want to connect to.
   *@param userName is the username to use to establish the session.
   *@param password is the password to use to establish the session.
   *@param domain is the domain to use to establish the session.
@@ -40,8 +41,7 @@ public interface IDocumentum extends Remote
   public void createSession(String docbaseName, String userName, String password, String domain)
     throws DocumentumException, RemoteException;
 
-  /** Delete a session.
-  *@param sessionID is the session identifier to close and discard.
+  /** Delete the session.
   */
   public void destroySession()
     throws DocumentumException, RemoteException;

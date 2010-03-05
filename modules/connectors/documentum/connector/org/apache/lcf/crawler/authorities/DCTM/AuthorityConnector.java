@@ -572,7 +572,7 @@ public class AuthorityConnector extends org.apache.lcf.authorities.authorities.B
   }
 
   /** Obtain the access tokens for a given user name.
-  *@param userName is the user name or identifier.
+  *@param strUserNamePassedIn is the user name or identifier.
   *@return the response tokens (according to the current authority).
   * (Should throws an exception only when a condition cannot be properly described within the authorization response object.)
   */
