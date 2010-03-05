@@ -336,18 +336,23 @@ public class NTLMScheme implements AuthScheme {
         NTLM ntlm = new NTLM();
         ntlm.setCredentialCharset(method.getParams().getCredentialCharset());
         String response = null;
+
         if (this.state == INITIATED || this.state == FAILED) {
             response = ntlm.getType1Message(
                 ntcredentials.getHost(), 
                 ntcredentials.getDomain());
             this.state = TYPE1_MSG_GENERATED;
         } else {
+	    NTLM.Type2Message t2m = new NTLM.Type2Message(this.ntlmchallenge);
             response = ntlm.getType3Message(
                 ntcredentials.getUserName(), 
                 ntcredentials.getPassword(),
                 ntcredentials.getHost(), 
                 ntcredentials.getDomain(),
-                ntlm.parseType2Message(this.ntlmchallenge));
+                t2m.getChallenge(),
+		t2m.getFlags(),
+		t2m.getTarget(),
+		t2m.getTargetInfo());
             this.state = TYPE3_MSG_GENERATED;
         }
         return "NTLM " + response;

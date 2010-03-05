@@ -81,6 +81,14 @@ public class HttpClientParams extends HttpMethodParams {
      */
     public static final String REJECT_RELATIVE_REDIRECT = "http.protocol.reject-relative-redirect"; 
 
+    /**
+     * Supplies a ProtocolFactory object, for custom protocol support even across redirections.
+     * <p>
+     * This parameter expects a value of type {@link ProtocolFactory}.
+     * </p>
+     */
+    public static final String PROTOCOL_FACTORY = "http.protocol.factory"; 
+
     /** 
      * Defines the maximum number of redirects to be followed. 
      * The limit on number of redirects is intended to prevent infinite loops. 

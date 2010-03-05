@@ -31,7 +31,9 @@
 package org.apache.commons.httpclient;
 
 import org.apache.commons.httpclient.params.HostParams;
+import org.apache.commons.httpclient.params.HttpClientParams;
 import org.apache.commons.httpclient.protocol.Protocol;
+import org.apache.commons.httpclient.protocol.ProtocolFactory;
 import org.apache.commons.httpclient.util.LangUtils;
 
 import java.net.InetAddress;
@@ -250,7 +252,10 @@ public class HostConfiguration implements Cloneable {
      * @param protocol The protocol.
      */
     public synchronized void setHost(final String host, int port, final String protocol) {
-        this.host = new HttpHost(host, port, Protocol.getProtocol(protocol));
+        if (this.params.getParameter(HttpClientParams.PROTOCOL_FACTORY) != null)
+            this.host = new HttpHost(host, port, ((ProtocolFactory)this.params.getParameter(HttpClientParams.PROTOCOL_FACTORY)).getProtocol(protocol));
+        else
+            this.host = new HttpHost(host, port, Protocol.getProtocol(protocol));
     }
     
     /**
@@ -293,7 +298,7 @@ public class HostConfiguration implements Cloneable {
      * @param port The port
      */
     public synchronized void setHost(final String host, int port) {
-        setHost(host, port, Protocol.getProtocol("http"));
+        setHost(host, port, "http");
     }
     
     /**
@@ -302,7 +307,11 @@ public class HostConfiguration implements Cloneable {
      * @param host The host(IP or DNS name).
      */
     public synchronized void setHost(final String host) {
-        Protocol defaultProtocol = Protocol.getProtocol("http"); 
+        Protocol defaultProtocol;
+        if (this.params.getParameter(HttpClientParams.PROTOCOL_FACTORY) != null)
+            defaultProtocol = ((ProtocolFactory)this.params.getParameter(HttpClientParams.PROTOCOL_FACTORY)).getProtocol("http");
+        else
+            defaultProtocol = Protocol.getProtocol("http"); 
         setHost(host, defaultProtocol.getDefaultPort(), defaultProtocol);
     }
     
