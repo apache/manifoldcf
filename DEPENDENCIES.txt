@@ -1,0 +1,13 @@
+Lucene Connector Framework requires
+-----------------------------------
+* JRE 1.5 or above
+* All other libraries checked in under modules/lib
+
+For building LCF:
+-----------------
+* Read the wiki page at http://cwiki.apache.org/confluence/display/CONNECTORS/How+to+Build+and+Deploy+Lucene+Connector+Framework
+
+For testing LCF:
+----------------
+* No tests yet in place
+
