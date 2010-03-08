@@ -1,5 +1,0 @@
-<?xml encoding='US-ASCII'?>
-<!-- $Id$ -->
-<category name='Document Object Model' package='org.w3c.dom'>
- <interface id='dom-document' name='Document'/>
-</category>

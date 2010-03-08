@@ -1,4 +1,0 @@
-<?xml encoding='US-ASCII'?>
-<!ELEMENT person (#PCDATA)>
-<!ATTLIST person id    ID    #REQUIRED
-                 email CDATA #IMPLIED>
