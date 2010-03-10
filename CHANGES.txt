@@ -2,3 +2,23 @@ Lucene Connectors Framework Change Log
 $Id$
 
 ======================= Trunk (not yet released) =======================
+
+(1) Initial commit, from software grant.
+(2) Major-scale tree re-organization, for clarity and consistency.
+(3) Major organizational rearrangement of framework module, plus first draft of ant build script for same.
+(4) Add libs (not necessarily current versions, and some of them modified), plus apache tld's and standard libraries and servlet api, and get build to work in this environment.
+(5) Reorganize all connectors into a 'standard form', and add build.xml ant scripts.
+(6) Add conditional compilation for those connectors that require special libraries, wsdls, etc.
+(7) Add uberbuild ant script, and move the checked-in framework lib dependencies up a level.  The uberbuild script will copy all that around, so only the connector-specific build deps need to be present in each individual connector.
+(8) Add a special build target for building the MCPermissions web service.
+(9) Package reorganization.  Move all packages to org.apache.lcf from com.metacarta.
+(10) Get Metacarta out of class names across the board.
+(11) Debrand, as far as is currently practicable.  Meridio Connector remains branded a bit because of the current immutability of the MetaCartaWS web service.
+(12) Clean out the MetaCarta-specific upgrade code, and make all install methods have a standard, modern form.
+(13) Re-indent all java files to meet Apache standards.
+(14) Add job states that represent situations where the output connector for the job is not currently installed.  This should prevent the job from running or being deleted.  (This code was missing as a result of an oversight.  Now it has been implemented.)
+(15) Fix for bug discovered at MetaCarta: Some Livelink systems return 103102 errors, not 103101 errors, when a deleted document is accessed.
+(16) Centralize all synchronized directory access to be within the ILockManager abstraction layer.  This is so we can easily move from a synchronized directory architecture to a synchronization service based one.
+(17) Rename lucene connector in svn to be SOLR connector.
+(18) Add eol-style and keywords "Id" properties, where appropriate.
+
