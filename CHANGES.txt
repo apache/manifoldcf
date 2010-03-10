@@ -1,4 +1,4 @@
 Lucene Connectors Framework Change Log
-$Id: $
+$Id$
 
 ======================= Trunk (not yet released) =======================
