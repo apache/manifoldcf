@@ -53,26 +53,29 @@
     
         <mkdir dir="framework/lib"/>
         <!-- Individually specify the needed libraries, since otherwise that information would not be available readily -->
-        <copy todir="framework/lib" file="lib/commons-codec.jar"/>
-        <copy todir="framework/lib" file="lib/commons-collections.jar"/>
-        <copy todir="framework/lib" file="lib/commons-el.jar"/>
-        <copy todir="framework/lib" file="lib/commons-fileupload.jar"/>
-        <copy todir="framework/lib" file="lib/commons-httpclient-lcf.jar"/>
-        <copy todir="framework/lib" file="lib/commons-io.jar"/>
-        <copy todir="framework/lib" file="lib/commons-logging.jar"/>
-        <copy todir="framework/lib" file="lib/jasper-compiler.jar"/>
-        <copy todir="framework/lib" file="lib/jasper-compiler-jdt.jar"/>
-        <copy todir="framework/lib" file="lib/jasper-runtime.jar"/>
-        <copy todir="framework/lib" file="lib/jdbcpool-0.99.jar"/>
-        <copy todir="framework/lib" file="lib/jsp-api.jar"/>
-        <copy todir="framework/lib" file="lib/log4j-1.2.jar"/>
-        <copy todir="framework/lib" file="lib/postgresql.jar"/>
-        <copy todir="framework/lib" file="lib/serializer.jar"/>
-        <copy todir="framework/lib" file="lib/servlet-api.jar"/>
-        <copy todir="framework/lib" file="lib/xalan2.jar"/>
-        <copy todir="framework/lib" file="lib/xercesImpl-lcf.jar"/>
-        <copy todir="framework/lib" file="lib/xml-apis.jar"/>
-
+        <copy todir="framework/lib">
+            <fileset dir="lib">
+                <include name="commons-codec*.jar"/>
+                <include name="commons-collections*.jar"/>
+                <include name="commons-el*.jar"/>
+                <include name="commons-fileupload*.jar"/>
+                <include name="commons-httpclient-lcf.jar"/>
+                <include name="commons-io*.jar"/>
+                <include name="commons-logging*.jar"/>
+                <include name="jasper-compiler*.jar"/>
+                <include name="jasper-compiler-jdt*.jar"/>
+                <include name="jasper-runtime.jar*"/>
+                <include name="jdbcpool-0.99.jar"/>
+                <include name="jsp-api*.jar"/>
+                <include name="log4j*.jar"/>
+                <include name="postgresql*.jar"/>
+                <include name="serializer*.jar"/>
+                <include name="servlet-api*.jar"/>
+                <include name="xalan*.jar"/>
+                <include name="xercesImpl-lcf.jar"/>
+                <include name="xml-apis*.jar"/>
+            </fileset>
+        </copy>
         <ant dir="framework"/>
     </target>
 
@@ -139,7 +142,11 @@
     <target name="build-jcifs-connector" depends="build-framework">
         <mkdir dir="connectors/jcifs/lib"/>
         <mkdir dir="connectors/jcifs/war"/>
-        <copy todir="connectors/jcifs/lib" file="lib/jakarta-poi.jar"/>
+        <copy todir="connectors/jcifs/lib">
+            <fileset dir="lib">
+                <include name="poi*.jar"/>
+            </fileset>
+        </copy>
         <copy todir="connectors/jcifs/lib">
             <fileset dir="framework/lib"/>
         </copy>
@@ -215,16 +222,16 @@
     <target name="build-meridio-connector" depends="build-framework">
         <mkdir dir="connectors/meridio/lib"/>
         <mkdir dir="connectors/meridio/war"/>
-        <copy todir="connectors/meridio/lib" file="lib/axis.jar"/>
-        <copy todir="connectors/meridio/lib" file="lib/jaxrpc.jar"/>
-        <copy todir="connectors/meridio/lib" file="lib/saaj.jar"/>
-        <copy todir="connectors/meridio/lib" file="lib/wsdl4j.jar"/>
-        <copy todir="connectors/meridio/lib" file="lib/castor-1.0.5-commons.jar"/>
-        <copy todir="connectors/meridio/lib" file="lib/castor-1.0.5.jar"/>
-        <copy todir="connectors/meridio/lib" file="lib/castor-1.0.5-xml.jar"/>
-        <copy todir="connectors/meridio/lib" file="lib/commons-discovery.jar"/>
-        <copy todir="connectors/meridio/lib" file="lib/geronimo-activation_1.1_spec.jar"/>
-        <copy todir="connectors/meridio/lib" file="lib/geronimo-javamail_1.4_spec.jar"/>
+        <copy todir="connectors/meridio/lib">
+            <fileset dir="lib">
+                <include name="axis*.jar"/>
+                <include name="wsdl4j*.jar"/>
+                <include name="castor*.jar"/>
+                <include name="commons-discovery*.jar"/>
+                <include name="geronimo-activation_1.1_spec*.jar"/>
+                <include name="geronimo-javamail_1.4_spec*.jar"/>
+            </fileset>
+        </copy>
         <copy todir="connectors/meridio/lib">
             <fileset dir="framework/lib"/>
         </copy>
@@ -270,13 +277,14 @@
     <target name="build-sharepoint-connector" depends="build-framework">
         <mkdir dir="connectors/sharepoint/lib"/>
         <mkdir dir="connectors/sharepoint/war"/>
-        <copy todir="connectors/sharepoint/lib" file="lib/axis.jar"/>
-        <copy todir="connectors/sharepoint/lib" file="lib/jaxrpc.jar"/>
-        <copy todir="connectors/sharepoint/lib" file="lib/saaj.jar"/>
-        <copy todir="connectors/sharepoint/lib" file="lib/wsdl4j.jar"/>
-        <copy todir="connectors/sharepoint/lib" file="lib/commons-discovery.jar"/>
-        <copy todir="connectors/sharepoint/lib" file="lib/geronimo-activation_1.1_spec.jar"/>
-
+        <copy todir="connectors/sharepoint/lib">
+            <fileset dir="lib">
+                <include name="axis*.jar"/>
+                <include name="wsdl4j*.jar"/>
+                <include name="commons-discovery*.jar"/>
+                <include name="geronimo-activation_1.1_spec*.jar"/>
+            </fileset>
+        </copy>
         <copy todir="connectors/sharepoint/lib">
             <fileset dir="framework/lib"/>
         </copy>

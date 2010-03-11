@@ -3,11 +3,26 @@
     <target name="clean">
         <delete dir="build"/>
         <delete dir="dist"/>
+        <delete dir="doc"/>
     </target>
     
+    <target name="doc">
+        <mkdir dir="doc"/>
+        <javadoc destdir="doc" source="1.4">
+            <classpath>
+                <fileset dir="lib" includes="*.jar"/>
+            </classpath>
+            <fileset dir="connector" includes="**/*.java"/>
+        </javadoc>
+    </target>
+
     <target name="compile-connector">
         <mkdir dir="build/connector/classes"/>
-        <javac srcdir="connector" destdir="build/connector/classes" classpath="lib/log4j-1.2.jar:lib/commons-logging.jar:lib/lcf-core.jar:lib/lcf-agents.jar" target="1.5" source="1.4"/>
+        <javac srcdir="connector" destdir="build/connector/classes" target="1.5" source="1.4">
+            <classpath>
+                <fileset dir="lib" includes="*.jar"/>
+            </classpath>
+        </javac>
     </target>
 
     <target name="compile-crawler-ui" depends="compile-connector">
@@ -93,6 +108,6 @@
         <copy todir="dist/processes" file="build/jar/lcf-solr-connector.jar"/>
     </target>
 
-    <target name="all" depends="processes,iar-crawler-ui"/>
+    <target name="all" depends="processes,iar-crawler-ui,doc"/>
     
 </project>

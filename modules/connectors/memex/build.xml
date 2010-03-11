@@ -20,14 +20,22 @@
     <target name="doc" depends="precompile-check" if="canBuild">
         <mkdir dir="doc"/>
         <javadoc destdir="doc" classpath="mxie-java/JavaMXIELIB.jar:lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient-lcf.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar" source="1.5">
+            <classpath>
+                <fileset dir="lib" includes="*.jar"/>
+                <fileset dir="mxie-java" includes="*.jar"/>
+            </classpath>
             <fileset dir="connector" includes="**/*.java"/>
         </javadoc>
     </target>
 
     <target name="compile-connector" depends="precompile-check" if="canBuild">
-        <property name="classpath" value="lib/log4j-1.2.jar:lib/commons-logging.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:mxie-java/JavaMXIELIB.jar"/>
         <mkdir dir="build/connector/classes"/>
-        <javac srcdir="connector" destdir="build/connector/classes" classpath="${classpath}" target="1.5" source="1.5"/>
+        <javac srcdir="connector" destdir="build/connector/classes" classpath="${classpath}" target="1.5" source="1.5">
+            <classpath>
+                <fileset dir="lib" includes="*.jar"/>
+                <fileset dir="mxie-java" includes="*.jar"/>
+            </classpath>
+        </javac>
     </target>
 
     <target name="compile-crawler-ui" depends="compile-connector,precompile-check" if="canBuild">

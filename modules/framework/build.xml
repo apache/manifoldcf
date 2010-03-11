@@ -8,7 +8,12 @@
     
     <target name="doc">
         <mkdir dir="doc"/>
-        <javadoc destdir="doc" classpath="lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient-lcf.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar" maxmemory="256M" source="1.4">
+        <javadoc destdir="doc" maxmemory="256M" source="1.4">
+            <classpath>
+                <fileset dir="lib"> 
+                    <include name="*.jar"/> 
+                </fileset>
+            </classpath>
             <fileset dir="core" includes="**/*.java"/>
             <fileset dir="agents" includes="**/*.java"/>
             <fileset dir="pull-agent" includes="**/*.java"/>
@@ -18,27 +23,64 @@
     
     <target name="compile-core">
         <mkdir dir="build/core/classes"/>
-        <javac srcdir="core" destdir="build/core/classes" classpath="lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient-lcf.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar" target="1.5" source="1.4"/>
+        <javac srcdir="core" destdir="build/core/classes" target="1.5" source="1.4">
+            <classpath>
+                <fileset dir="lib"> 
+                    <include name="*.jar"/> 
+                </fileset>
+            </classpath>
+        </javac>
     </target>
 
     <target name="compile-ui-core" depends="compile-core">
         <mkdir dir="build/ui-core/classes"/>
-        <javac srcdir="ui-core" destdir="build/ui-core/classes" classpath="lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient-lcf.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar:build/core/classes" target="1.5" source="1.4"/>
+        <javac srcdir="ui-core" destdir="build/ui-core/classes" target="1.5" source="1.4">
+            <classpath>
+                <fileset dir="lib"> 
+                    <include name="*.jar"/> 
+                </fileset>
+                <pathelement location="build/core/classes"/>
+            </classpath>
+        </javac>
     </target>
 
     <target name="compile-agents" depends="compile-core">
         <mkdir dir="build/agents/classes"/>
-        <javac srcdir="agents" destdir="build/agents/classes" classpath="lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient-lcf.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar:build/core/classes" target="1.5" source="1.4"/>
+        <javac srcdir="agents" destdir="build/agents/classes" target="1.5" source="1.4">
+            <classpath>
+                 <fileset dir="lib"> 
+                    <include name="*.jar"/> 
+                </fileset>
+                <pathelement location="build/core/classes"/>
+           </classpath>
+        </javac>
     </target>
 
     <target name="compile-pull-agent" depends="compile-core,compile-agents">
         <mkdir dir="build/pull-agent/classes"/>
-        <javac srcdir="pull-agent" destdir="build/pull-agent/classes" classpath="lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient-lcf.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar:build/core/classes:build/agents/classes" target="1.5" source="1.4"/>
+        <javac srcdir="pull-agent" destdir="build/pull-agent/classes" target="1.5" source="1.4">
+            <classpath>
+                 <fileset dir="lib"> 
+                    <include name="*.jar"/> 
+                </fileset>
+                <pathelement location="build/core/classes"/>
+                <pathelement location="build/agents/classes"/>
+            </classpath>
+        </javac>
     </target>
 
     <target name="compile-authority-service" depends="compile-core,compile-agents,compile-pull-agent">
         <mkdir dir="build/authority-service/classes"/>
-        <javac srcdir="authority-service" destdir="build/authority-service/classes" classpath="lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient-lcf.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar:build/core/classes:build/agents/classes:build/pull-agent/classes" target="1.5" source="1.4"/>
+        <javac srcdir="authority-service" destdir="build/authority-service/classes" target="1.5" source="1.4">
+            <classpath>
+                 <fileset dir="lib"> 
+                    <include name="*.jar"/> 
+                </fileset>
+                <pathelement location="build/core/classes"/>
+                <pathelement location="build/agents/classes"/>
+                <pathelement location="build/pull-agent/classes"/>
+            </classpath>
+        </javac>
     </target>
 
 
@@ -101,24 +143,32 @@
 
     <target name="webapp-authority-service" depends="jar-core,jar-agents,jar-pull-agent,compile-authority-service">
         <mkdir dir="build/webapp/authority-service/WEB-INF/lib"/>
-        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/commons-codec.jar"/>
-        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/commons-collections.jar"/>
-        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/commons-el.jar"/>
-        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/commons-fileupload.jar"/>
-        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/commons-httpclient-lcf.jar"/>
-        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/commons-io.jar"/>
-        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/commons-logging.jar"/>
-        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/jdbcpool-0.99.jar"/>
-        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/log4j-1.2.jar"/>
-        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/postgresql.jar"/>
-        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/serializer.jar"/>
-        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/servlet-api.jar"/>
-        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/xalan2.jar"/>
-        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/xercesImpl-lcf.jar"/>
-        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="lib/xml-apis.jar"/>
-        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="build/jar/lcf-core.jar"/>
-        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="build/jar/lcf-agents.jar"/>
-        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="build/jar/lcf-pull-agent.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib">
+            <fileset dir="lib">
+                <include name="commons-codec*.jar"/>
+                <include name="commons-collections*.jar"/>
+                <include name="commons-el*.jar"/>
+                <include name="commons-fileupload*.jar"/>
+                <include name="commons-httpclient-lcf.jar"/>
+                <include name="commons-io*.jar"/>
+                <include name="commons-logging*.jar"/>
+                <include name="jdbcpool-0.99.jar"/>
+                <include name="log4j*.jar"/>
+                <include name="postgresql*.jar"/>
+                <include name="serializer*.jar"/>
+                <include name="servlet-api*.jar"/>
+                <include name="xalan*.jar"/>
+                <include name="xercesImpl-lcf.jar"/>
+                <include name="xml-apis*.jar"/>
+            </fileset>
+        </copy>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib">
+            <fileset dir="build/jar">
+                <include name="lcf-core.jar"/>
+                <include name="lcf-agents.jar"/>
+                <include name="lcf-pull-agent.jar"/>
+            </fileset>
+        </copy>
         <jar destfile="build/webapp/authority-service/WEB-INF/lib/lcf-authority-servlet.jar" basedir="build/authority-service/classes"/>
     </target>
     
@@ -129,25 +179,33 @@
                 <include name="*.jar"/>
             </fileset>
         </copy>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-codec.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-collections.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-el.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-fileupload.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-httpclient-lcf.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-io.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-logging.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/jdbcpool-0.99.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/log4j-1.2.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/postgresql.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/serializer.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/servlet-api.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/xalan2.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/xercesImpl-lcf.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/xml-apis.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-core.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-ui-core.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-agents.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-pull-agent.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib">
+            <fileset dir="lib">
+                <include name="commons-codec*.jar"/>
+                <include name="commons-collections*.jar"/>
+                <include name="commons-el*.jar"/>
+                <include name="commons-fileupload*.jar"/>
+                <include name="commons-httpclient-lcf.jar"/>
+                <include name="commons-io*.jar"/>
+                <include name="commons-logging*.jar"/>
+                <include name="jdbcpool-0.99.jar"/>
+                <include name="log4j*.jar"/>
+                <include name="postgresql*.jar"/>
+                <include name="serializer*.jar"/>
+                <include name="servlet-api*.jar"/>
+                <include name="xalan*.jar"/>
+                <include name="xercesImpl-lcf.jar"/>
+                <include name="xml-apis*.jar"/>
+            </fileset>
+        </copy>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib">
+            <fileset dir="build/jar">
+                <include name="lcf-core.jar"/>
+                <include name="lcf-agents.jar"/>
+                <include name="lcf-pull-agent.jar"/>
+                <include name="lcf-ui-core.jar"/>
+            </fileset>
+        </copy>
         <mkdir dir="build/webapp/crawler-ui/WEB-INF/jsp"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/jsp">
             <fileset dir="crawler-ui/WEB-INF/jsp">
@@ -171,24 +229,32 @@
 
     <target name="processes" depends="jar-core,jar-agents,jar-pull-agent">
         <mkdir dir="dist/processes"/>
-        <copy todir="dist/processes" file="lib/commons-codec.jar"/>
-        <copy todir="dist/processes" file="lib/commons-collections.jar"/>
-        <copy todir="dist/processes" file="lib/commons-el.jar"/>
-        <copy todir="dist/processes" file="lib/commons-fileupload.jar"/>
-        <copy todir="dist/processes" file="lib/commons-httpclient-lcf.jar"/>
-        <copy todir="dist/processes" file="lib/commons-io.jar"/>
-        <copy todir="dist/processes" file="lib/commons-logging.jar"/>
-        <copy todir="dist/processes" file="lib/jdbcpool-0.99.jar"/>
-        <copy todir="dist/processes" file="lib/log4j-1.2.jar"/>
-        <copy todir="dist/processes" file="lib/postgresql.jar"/>
-        <copy todir="dist/processes" file="lib/serializer.jar"/>
-        <copy todir="dist/processes" file="lib/servlet-api.jar"/>
-        <copy todir="dist/processes" file="lib/xalan2.jar"/>
-        <copy todir="dist/processes" file="lib/xercesImpl-lcf.jar"/>
-        <copy todir="dist/processes" file="lib/xml-apis.jar"/>
-        <copy todir="dist/processes" file="build/jar/lcf-core.jar"/>
-        <copy todir="dist/processes" file="build/jar/lcf-agents.jar"/>
-        <copy todir="dist/processes" file="build/jar/lcf-pull-agent.jar"/>
+        <copy todir="dist/processes">
+            <fileset dir="lib">
+                <include name="commons-codec*.jar"/>
+                <include name="commons-collections*.jar"/>
+                <include name="commons-el*.jar"/>
+                <include name="commons-fileupload*.jar"/>
+                <include name="commons-httpclient-lcf.jar"/>
+                <include name="commons-io*.jar"/>
+                <include name="commons-logging*.jar"/>
+                <include name="jdbcpool-0.99.jar"/>
+                <include name="log4j*.jar"/>
+                <include name="postgresql*.jar"/>
+                <include name="serializer*.jar"/>
+                <include name="servlet-api*.jar"/>
+                <include name="xalan*.jar"/>
+                <include name="xercesImpl-lcf.jar"/>
+                <include name="xml-apis*.jar"/>
+            </fileset>
+        </copy>
+        <copy todir="dist/processes">
+            <fileset dir="build/jar">
+                <include name="lcf-core.jar"/>
+                <include name="lcf-agents.jar"/>
+                <include name="lcf-pull-agent.jar"/>
+            </fileset>
+        </copy>
     </target>
 
     <target name="all" depends="processes,war-authority-service,war-crawler-ui,doc"/>

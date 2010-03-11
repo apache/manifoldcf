@@ -25,7 +25,10 @@
 
     <target name="doc" depends="precompile-check" if="canBuild">
         <mkdir dir="doc"/>
-        <javadoc destdir="doc" classpath="lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient-lcf.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar" source="1.4">
+        <javadoc destdir="doc" source="1.4">
+            <classpath>
+                <fileset dir="lib" includes="*.jar"/>
+            </classpath>
             <fileset dir="connector" includes="**/*.java"/>
             <fileset dir="interface" includes="**/*.java"/>
         </javadoc>
@@ -104,7 +107,13 @@
 
     <target name="compile-connector" depends="compile-interface,compile-rmic,precompile-check" if="canBuild">
         <mkdir dir="build/connector/classes"/>
-        <javac srcdir="connector" destdir="build/connector/classes" classpath="lib/log4j-1.2.jar:lib/commons-logging.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:build/interface/classes:build/rmistub/classes" target="1.5" source="1.4"/>
+        <javac srcdir="connector" destdir="build/connector/classes" target="1.5" source="1.4">
+            <classpath>
+                <fileset dir="lib" includes="*.jar"/>
+                <pathelement location="build/interface/classes"/>
+                <pathelement location="build/rmistub/classes"/>
+            </classpath>
+        </javac>
     </target>
 
     <target name="compile-crawler-ui" depends="compile-interface,compile-rmic,compile-connector,precompile-check" if="canBuild">
@@ -208,9 +217,13 @@
 
     <target name="webapp-crawler-ui" depends="compile-crawler-ui,jar-rmistub,jar-interface,jar-connector,precompile-check" if="canBuild">
         <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-documentum-connector.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-documentum-rmistub.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-documentum-interface.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib">
+            <fileset dir="build/jar">
+                <include name="lcf-documentum-connector.jar"/>
+                <include name="lcf-documentum-rmistub.jar"/>
+                <include name="lcf-documentum-interface.jar"/>
+            </fileset>
+        </copy>
         <mkdir dir="build/webapp/crawler-ui"/>
         <copy todir="build/webapp/crawler-ui">
             <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
@@ -219,9 +232,13 @@
 
     <target name="webapp-authority-service" depends="jar-rmistub,jar-interface,jar-connector,precompile-check" if="canBuild">
         <mkdir dir="build/webapp/authority-service/WEB-INF/lib"/>
-        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="build/jar/lcf-documentum-connector.jar"/>
-        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="build/jar/lcf-documentum-rmistub.jar"/>
-        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="build/jar/lcf-documentum-interface.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib">
+            <fileset dir="build/jar">
+                <include name="lcf-documentum-connector.jar"/>
+                <include name="lcf-documentum-rmistub.jar"/>
+                <include name="lcf-documentum-interface.jar"/>
+            </fileset>
+        </copy>
     </target>
 
     <target name="iar-crawler-ui" depends="webapp-crawler-ui,precompile-check" if="canBuild">
@@ -236,9 +253,13 @@
 
     <target name="processes" depends="jar-interface,jar-rmistub,jar-connector,precompile-check" if="canBuild">
         <mkdir dir="dist/processes"/>
-        <copy todir="dist/processes" file="build/jar/lcf-documentum-interface.jar"/>
-        <copy todir="dist/processes" file="build/jar/lcf-documentum-rmistub.jar"/>
-        <copy todir="dist/processes" file="build/jar/lcf-documentum-connector.jar"/>
+        <copy todir="dist/processes">
+            <fileset dir="build/jar">
+                <include name="lcf-documentum-connector.jar"/>
+                <include name="lcf-documentum-rmistub.jar"/>
+                <include name="lcf-documentum-interface.jar"/>
+            </fileset>
+        </copy>
     </target>
 
     <target name="server-process" depends="jar-interface,jar-implementation,jar-rmiskel,jar-server,precompile-check" if="canBuild">
@@ -246,9 +267,13 @@
         <copy todir="dist/server-process">
             <fileset dir="dfc" includes="*.jar"/>
         </copy>
-        <copy todir="dist/server-process" file="build/jar/lcf-documentum-interface.jar"/>
-        <copy todir="dist/server-process" file="build/jar/lcf-documentum-rmiskel.jar"/>
-        <copy todir="dist/server-process" file="build/jar/lcf-documentum-implementation.jar"/>
+        <copy todir="dist/server-process">
+            <fileset dir="build/jar">
+                <include name="lcf-documentum-interface.jar"/>
+                <include name="lcf-documentum-rmiskel.jar"/>
+                <include name="lcf-documentum-implementation.jar"/>
+            </fileset>
+        </copy>
     </target>
 
     <target name="registry-process" depends="jar-registry,precompile-check" if="canBuild">

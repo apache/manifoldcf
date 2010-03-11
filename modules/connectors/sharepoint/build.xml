@@ -40,7 +40,10 @@
 
     <target name="classcreate-wsdl">
         <mkdir dir="build/wsdljava"/>
-        <java classname="org.apache.axis.wsdl.WSDL2Java" fork="true" classpath="lib/axis.jar:lib/commons-logging.jar:lib/commons-discovery.jar:lib/saaj.jar:lib/wsdl4j.jar:lib/jaxrpc.jar:lib/geronimo-activation_1.1_spec.jar:lib/xml-apis.jar:lib/xercesImpl.jar">
+        <java classname="org.apache.axis.wsdl.WSDL2Java" fork="true">
+            <classpath>
+                <fileset dir="lib" includes="*.jar"/>
+            </classpath>
             <arg value="--timeout"/>
             <arg value="0"/>
             <arg value="--noImports"/>
@@ -76,19 +79,32 @@
 
     <target name="compile-wsdls" depends="classcreate-wsdls,precompile-check" if="canBuild">
         <mkdir dir="build/wsdlclasses"/>
-        <javac srcdir="build/wsdljava" destdir="build/wsdlclasses" classpath="lib/log4j-1.2.jar:lib/commons-logging.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:lib/axis.jar:lib/geronimo-activation_1.1_spec.jar:lib/jaxrpc.jar:lib/saaj.jar" target="1.5" source="1.4"/>
+        <javac srcdir="build/wsdljava" destdir="build/wsdlclasses" target="1.5" source="1.4">
+            <classpath>
+                <fileset dir="lib" includes="*.jar"/>
+            </classpath>
+        </javac>
     </target>
 
     <target name="doc" depends="precompile-check,compile-wsdls" if="canBuild">
         <mkdir dir="doc"/>
-        <javadoc destdir="doc" classpath="lib/axis.jar:lib/geronimo-activation_1.1_spec.jar:lib/jaxrpc.jar:lib/saaj.jar:build/wsdlclasses:lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient-lcf.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar" source="1.4">
+        <javadoc destdir="doc" source="1.4">
+            <classpath>
+                <fileset dir="lib" includes="*.jar"/>
+                <pathelement location="build/wsdlclasses"/>
+            </classpath>
             <fileset dir="connector" includes="**/*.java"/>
         </javadoc>
     </target>
 
     <target name="compile-connector" depends="compile-wsdls,precompile-check" if="canBuild">
         <mkdir dir="build/connector/classes"/>
-        <javac srcdir="connector" destdir="build/connector/classes" classpath="lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient-lcf.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:lib/axis.jar:lib/geronimo-activation_1.1_spec.jar:lib/jaxrpc.jar:lib/saaj.jar:build/wsdlclasses" target="1.5" source="1.4"/>
+        <javac srcdir="connector" destdir="build/connector/classes" target="1.5" source="1.4">
+            <classpath>
+                <fileset dir="lib" includes="*.jar"/>
+                <pathelement location="build/wsdlclasses"/>
+            </classpath>
+        </javac>
     </target>
 
     <target name="compile-crawler-ui" depends="compile-connector,compile-wsdls,precompile-check" if="canBuild">
@@ -164,13 +180,17 @@
 
     <target name="webapp-crawler-ui" depends="compile-crawler-ui,jar-connector,jar-wsdls,precompile-check" if="canBuild">
         <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-sharepoint-connector.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-sharepoint-wsdlstub.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/axis.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/jaxrpc.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/wsdl4j.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/saaj.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/commons-discovery.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib">
+            <fileset dir="build/jar">
+                <include name="lcf-sharepoint-connector.jar"/>
+                <include name="lcf-sharepoint-wsdlstub.jar"/>
+            </fileset>
+            <fileset dir="lib">
+                <include name="axis*.jar"/>
+                <include name="wsdl4j*.jar"/>
+                <include name="commons-discovery*.jar"/>
+            </fileset>
+        </copy>
         <mkdir dir="build/webapp/crawler-ui"/>
         <copy todir="build/webapp/crawler-ui">
             <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
@@ -194,13 +214,17 @@
 
     <target name="processes" depends="jar-connector,jar-wsdls,precompile-check" if="canBuild">
         <mkdir dir="dist/processes"/>
-        <copy todir="dist/processes" file="build/jar/lcf-sharepoint-connector.jar"/>
-        <copy todir="dist/processes" file="build/jar/lcf-sharepoint-wsdlstub.jar"/>
-        <copy todir="dist/processes" file="lib/axis.jar"/>
-        <copy todir="dist/processes" file="lib/jaxrpc.jar"/>
-        <copy todir="dist/processes" file="lib/wsdl4j.jar"/>
-        <copy todir="dist/processes" file="lib/saaj.jar"/>
-        <copy todir="dist/processes" file="lib/commons-discovery.jar"/>
+        <copy todir="dist/processes">
+            <fileset dir="build/jar">
+                <include name="lcf-sharepoint-connector.jar"/>
+                <include name="lcf-sharepoint-wsdlstub.jar"/>
+            </fileset>
+            <fileset dir="lib">
+                <include name="axis*.jar"/>
+                <include name="wsdl4j*.jar"/>
+                <include name="commons-discovery*.jar"/>
+            </fileset>
+        </copy>
         <copy todir="dist/processes" file="org.apache.lcf.sharepoint.wsddpath"/>
     </target>
 

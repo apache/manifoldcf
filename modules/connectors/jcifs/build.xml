@@ -19,14 +19,23 @@
 
     <target name="doc" depends="precompile-check" if="canBuild">
         <mkdir dir="doc"/>
-        <javadoc destdir="doc" classpath="jcifs/jcifs.jar:lib/jakarta-poi.jar:lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient-lcf.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar" source="1.4">
+        <javadoc destdir="doc" source="1.4">
+            <classpath>
+                <fileset dir="jcifs" includes="*.jar"/>
+                <fileset dir="lib" includes="*.jar"/>
+            </classpath>
             <fileset dir="connector" includes="**/*.java"/>
         </javadoc>
     </target>
 
     <target name="compile-connector" depends="precompile-check" if="canBuild">
         <mkdir dir="build/connector/classes"/>
-        <javac srcdir="connector" destdir="build/connector/classes" classpath="lib/log4j-1.2.jar:lib/commons-logging.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:jcifs/jcifs.jar:lib/jakarta-poi.jar" target="1.5" source="1.4"/>
+        <javac srcdir="connector" destdir="build/connector/classes" target="1.5" source="1.4">
+            <classpath>
+                <fileset dir="jcifs" includes="*.jar"/>
+                <fileset dir="lib" includes="*.jar"/>
+            </classpath>
+        </javac>
     </target>
 
     <target name="compile-crawler-ui" depends="compile-connector,precompile-check" if="canBuild">
@@ -101,9 +110,15 @@
 
     <target name="webapp-crawler-ui" depends="compile-crawler-ui,jar-connector,precompile-check" if="canBuild">
         <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-jcifs-connector.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="jcifs/jcifs.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="lib/jakarta-poi.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib">
+            <fileset dir="build/jar">
+                <include name="lcf-jcifs-connector.jar"/>
+            </fileset>
+            <fileset dir="jcifs" includes="*.jar"/>
+            <fileset dir="lib">
+                <include name="poi*.jar"/>
+            </fileset>
+        </copy>
         <mkdir dir="build/webapp/crawler-ui"/>
         <copy todir="build/webapp/crawler-ui">
             <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
@@ -124,7 +139,11 @@
     <target name="processes" depends="jar-connector,precompile-check" if="canBuild">
         <mkdir dir="dist/processes"/>
         <copy todir="dist/processes" file="build/jar/lcf-jcifs-connector.jar"/>
-        <copy todir="dist/processes" file="lib/jakarta-poi.jar"/>
+        <copy todir="dist/processes">
+            <fileset dir="lib">
+                <include name="poi*.jar"/>
+            </fileset>
+        </copy>
         <copy todir="dist/processes">
             <fileset dir="jcifs" includes="*.jar"/>
         </copy>
