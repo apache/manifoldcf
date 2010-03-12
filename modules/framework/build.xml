@@ -198,7 +198,7 @@
                 <include name="xml-apis*.jar"/>
             </fileset>
         </copy>
-        <copy todir="build/webapp/authority-service/WEB-INF/lib">
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib">
             <fileset dir="build/jar">
                 <include name="lcf-core.jar"/>
                 <include name="lcf-agents.jar"/>
