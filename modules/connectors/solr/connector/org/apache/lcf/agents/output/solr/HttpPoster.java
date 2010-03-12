@@ -429,8 +429,8 @@ public class HttpPoster
 
   /**
   * Get the response code of the post
-  * @param stream the stream the response is going to come from
-  * @return the response string
+  * @param in the stream the response is going to come from
+  * @return the response details.
   * @throws LCFException
   */
   protected CodeDetails getResponse(InputStream in) throws LCFException, ServiceInterruption
