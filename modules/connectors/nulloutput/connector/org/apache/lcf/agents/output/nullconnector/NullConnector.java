@@ -146,7 +146,7 @@ public class NullConnector extends org.apache.lcf.agents.output.BaseOutputConnec
   *@param documentURI is the URI of the document.  The URI is presumed to be the unique identifier which the output data store will use to process
   * and serve the document.  This URI is constructed by the repository connector which fetches the document, and is thus universal across all output connectors.
   *@param outputDescription is the last description string that was constructed for this document by the getOutputDescription() method above.
-  *@activities is the handle to an object that the implementer of an output connector may use to perform operations, such as logging processing activity.
+  *@param activities is the handle to an object that the implementer of an output connector may use to perform operations, such as logging processing activity.
   */
   public void removeDocument(String documentURI, String outputDescription, IOutputRemoveActivity activities)
     throws LCFException, ServiceInterruption
