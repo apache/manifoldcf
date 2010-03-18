@@ -23,6 +23,7 @@ import org.apache.lcf.agents.interfaces.*;
 import org.apache.lcf.agents.system.Logging;
 import org.apache.lcf.agents.system.LCF;
 import java.util.*;
+import java.io.*;
 
 /** Incremental ingestion API implementation.
 * This class is responsible for keeping track of what has been sent where, and also the corresponding version of
@@ -190,6 +191,29 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
     performDelete("",null,null);
   }
 
+  /** Check if a file is indexable.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param localFile is the local file to check.
+  *@return true if the local file is indexable.
+  */
+  public boolean checkDocumentIndexable(String outputConnectionName, File localFile)
+    throws LCFException, ServiceInterruption
+  {
+    IOutputConnection connection = connectionManager.load(outputConnectionName);
+    IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+    if (connector == null)
+      // The connector is not installed; treat this as a service interruption.
+      throw new ServiceInterruption("Output connector not installed",300000L);
+    try
+    {
+      return connector.checkDocumentIndexable(localFile);
+    }
+    finally
+    {
+      OutputConnectorFactory.release(connector);
+    }
+  }
+  
   /** Record a document version, but don't ingest it.
   * The purpose of this method is to keep track of the frequency at which ingestion "attempts" take place.
   * ServiceInterruption is thrown if this action must be rescheduled.

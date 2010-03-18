@@ -23,6 +23,7 @@ import org.apache.lcf.agents.interfaces.*;
 import org.apache.lcf.crawler.interfaces.*;
 import org.apache.lcf.crawler.system.Logging;
 import java.util.*;
+import java.io.*;
 import java.lang.reflect.*;
 
 /** This class represents a worker thread.  Hundreds of these threads are instantiated in order to
@@ -1281,7 +1282,6 @@ public class WorkerThread extends Thread
   protected static class ProcessActivity implements IProcessActivity
   {
     // Member variables
-    // MHL to remove version map and add specified version to this method call
     protected IThreadContext threadContext;
     protected IJobManager jobManager;
     protected IIncrementalIngester ingester;
@@ -1891,6 +1891,16 @@ public class WorkerThread extends Thread
     {
       // Accumulate aborts
       abortSet.put(localIdentifier,localIdentifier);
+    }
+
+    /** Check whether a document is indexable by the currently specified output connector.
+    *@param localFile is the local copy of the file to check.
+    *@return true if the document is indexable.
+    */
+    public boolean checkDocumentIndexable(File localFile)
+      throws LCFException, ServiceInterruption
+    {
+      return ingester.checkDocumentIndexable(job.getOutputConnectionName(),localFile);
     }
 
     /** Create a global string from a simple string.

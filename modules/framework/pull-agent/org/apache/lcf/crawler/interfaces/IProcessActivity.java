@@ -24,7 +24,7 @@ import java.util.*;
 
 /** This interface abstracts from the activities that a fetched document processor can do.
 */
-public interface IProcessActivity extends IHistoryActivity, IEventActivity, IAbortActivity
+public interface IProcessActivity extends IHistoryActivity, IEventActivity, IAbortActivity, IFingerprintActivity
 {
   public static final String _rcsid = "@(#)$Id$";
 

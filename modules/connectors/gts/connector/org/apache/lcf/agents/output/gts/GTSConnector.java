@@ -20,8 +20,22 @@ package org.apache.lcf.agents.output.gts;
 
 import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.agents.interfaces.*;
+import org.apache.lcf.agents.system.Logging;
+
+// POIFS stuff
+import org.apache.poi.poifs.eventfilesystem.POIFSReader;
+import org.apache.poi.poifs.eventfilesystem.POIFSReaderListener;
+import org.apache.poi.poifs.eventfilesystem.POIFSReaderEvent;
+import org.apache.poi.poifs.filesystem.POIFSDocumentPath;
+import org.apache.poi.hpsf.SummaryInformation;
+import org.apache.poi.hpsf.PropertySetFactory;
+import org.apache.poi.hpsf.PropertySet;
+import org.apache.poi.hpsf.NoPropertySetStreamException;
+import org.apache.poi.hpsf.MarkUnsupportedException;
+import org.apache.poi.hpsf.UnexpectedPropertySetTypeException;
 
 import java.util.*;
+import java.io.*;
 
 /** This is the output connector for the MetaCarta appliance.  It establishes a notion of
 * collection(s) a document is ingested into, as well as the idea of a document template for the
@@ -37,6 +51,17 @@ public class GTSConnector extends org.apache.lcf.agents.output.BaseOutputConnect
   public final static String INGEST_ACTIVITY = "document ingest";
   /** Document removal activity */
   public final static String REMOVE_ACTIVITY = "document deletion";
+
+  // These are the document types the fingerprinter understands
+  protected static final int DT_UNKNOWN = -1;
+  protected static final int DT_COMPOUND_DOC = 0;
+  protected static final int DT_MSWORD = 1;
+  protected static final int DT_MSEXCEL = 2;
+  protected static final int DT_MSPOWERPOINT = 3;
+  protected static final int DT_MSOUTLOOK = 4;
+  protected static final int DT_TEXT = 5;
+  protected static final int DT_ZERO = 6;
+  protected static final int DT_PDF = 7;
 
   /** Local data */
   protected HttpPoster poster = null;
@@ -116,6 +141,25 @@ public class GTSConnector extends org.apache.lcf.agents.output.BaseOutputConnect
     {
       return "Transient error: "+e.getMessage();
     }
+  }
+
+  /** Pre-determine whether a document (passed here as a File object) is indexable by this connector.  This method is used by participating
+  * repository connectors to help reduce the number of unmanageable documents that are passed to this output connector in advance of an
+  * actual transfer.  This hook is provided mainly to support search engines that only handle a small set of accepted file types.
+  *@param localFile is the local file to check.
+  *@return true if the file is indexable.
+  */
+  public boolean checkDocumentIndexable(File localFile)
+    throws LCFException, ServiceInterruption
+  {
+    if (!super.checkDocumentIndexable(localFile))
+      return false;
+    int docType = fingerprint(localFile);
+    return (docType == DT_TEXT ||
+      docType == DT_MSWORD ||
+      docType == DT_MSEXCEL ||
+      docType == DT_PDF ||
+      docType == DT_MSPOWERPOINT);
   }
 
   /** Get an output version string, given an output specification.  The output version string is used to uniquely describe the pertinent details of
@@ -340,6 +384,308 @@ public class GTSConnector extends org.apache.lcf.agents.output.BaseOutputConnect
     {
     }
     return startPosition;
+  }
+
+  /** Fingerprint a file!
+  * Pass in the name of the (local) temporary file that we should be looking at.
+  * This method will read it as needed until the file has been identified (or found
+  * to remain "unknown").
+  * The code here has been lifted algorithmically from products/ShareCrawler/Fingerprinter.pas.
+  */
+  protected static int fingerprint(File file)
+    throws LCFException
+  {
+    try
+    {
+      // Look at the first 4K
+      byte[] byteBuffer = new byte[4096];
+      int amt;
+
+      // Open file for reading.
+      InputStream is = new FileInputStream(file);
+      try
+      {
+        amt = 0;
+        while (amt < byteBuffer.length)
+        {
+          int incr = is.read(byteBuffer,amt,byteBuffer.length-amt);
+          if (incr == -1)
+            break;
+          amt += incr;
+        }
+      }
+      finally
+      {
+        is.close();
+      }
+
+      if (amt == 0)
+        return DT_ZERO;
+
+      if (isText(byteBuffer,amt))
+      {
+        // Treat as ASCII text
+        // We don't need to distinguish between the various flavors (e.g. HTML,
+        // XML, RTF, or plain TEXT, because GTS will eat them all regardless.
+        // Since it's a bit dicey to figure out the encoding, we'll just presume
+        // it's something that GTS will understand.
+        return DT_TEXT;
+      }
+
+      // Treat it as binary
+
+      // Is it PDF?  Does it begin with "%PDF-"?
+      if (byteBuffer[0] == (byte)0x25 && byteBuffer[1] == (byte)0x50 && byteBuffer[2] == (byte)0x44 && byteBuffer[3] == (byte)0x46)
+        return DT_PDF;
+
+      // Is it a compound document? Does it begin with 0xD0CF11E0A1B11AE1?
+      if (Logging.ingest.isDebugEnabled())
+        Logging.ingest.debug("GTS: Document begins with: "+hexprint(byteBuffer[0])+hexprint(byteBuffer[1])+
+        hexprint(byteBuffer[2])+hexprint(byteBuffer[3])+hexprint(byteBuffer[4])+hexprint(byteBuffer[5])+
+        hexprint(byteBuffer[6])+hexprint(byteBuffer[7]));
+      if (byteBuffer[0] == (byte)0xd0 && byteBuffer[1] == (byte)0xcf && byteBuffer[2] == (byte)0x11 && byteBuffer[3] == (byte)0xe0 &&
+        byteBuffer[4] == (byte)0xa1 && byteBuffer[5] == (byte)0xb1 && byteBuffer[6] == (byte)0x1a && byteBuffer[7] == (byte)0xe1)
+      {
+        Logging.ingest.debug("GTS: Compound document signature detected");
+        // Figure out what kind of compound document it is.
+        String appName = getAppName(file);
+        if (appName == null)
+          return DT_UNKNOWN;
+        else
+        {
+          if (Logging.ingest.isDebugEnabled())
+            Logging.ingest.debug("GTS: Appname is '"+appName+"'");
+        }
+        return recognizeApp(appName);
+      }
+
+      return DT_UNKNOWN;
+    }
+    catch (java.net.SocketTimeoutException e)
+    {
+      return DT_UNKNOWN;
+    }
+    catch (InterruptedIOException e)
+    {
+      throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+    }
+    catch (IOException e)
+    {
+      // An I/O error indicates that the type is unknown.
+      return DT_UNKNOWN;
+    }
+    catch (IllegalArgumentException e)
+    {
+      // Another POI error, means unknown document type
+      return DT_UNKNOWN;
+    }
+    catch (IllegalStateException e)
+    {
+      // Another POI error, means unknown document type
+      return DT_UNKNOWN;
+    }
+    catch (ArrayIndexOutOfBoundsException e)
+    {
+      // This means that poi couldn't find the bytes it was expecting, so just treat it as unknown
+      return DT_UNKNOWN;
+    }
+    catch (ClassCastException e)
+    {
+      // This means that poi had an internal error
+      return DT_UNKNOWN;
+    }
+    catch (OutOfMemoryError e)
+    {
+      // POI seems to throw this for some kinds of corrupt documents.
+      // I'm not sure this is the right thing to do but it's the best I
+      // can at the moment, until I get some documents from Norway that
+      // demonstrate the problem.
+      return DT_UNKNOWN;
+    }
+  }
+
+  /** Get a binary document's APPNAME field, or return null if the document
+  * does not seem to be an OLE compound document.
+  */
+  protected static String getAppName(File documentPath)
+    throws LCFException
+  {
+    try
+    {
+      InputStream is = new FileInputStream(documentPath);
+      try
+      {
+        // Use POIFS to traverse the file
+        POIFSReader reader = new POIFSReader();
+        ReaderListener listener = new ReaderListener();
+        reader.registerListener(listener,"\u0005SummaryInformation");
+        reader.read(is);
+        if (Logging.ingest.isDebugEnabled())
+          Logging.ingest.debug("GTS: Done finding appname for '"+documentPath.toString()+"'");
+        return listener.getAppName();
+      }
+      finally
+      {
+        is.close();
+      }
+    }
+    catch (java.net.SocketTimeoutException e)
+    {
+      return null;
+    }
+    catch (InterruptedIOException e)
+    {
+      throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+    }
+    catch (Throwable e)
+    {
+      // We should eat all errors.  Also, even though our policy is to stop the crawler on out-of-memory errors, in this case we will
+      // not do that, because there's no "collateral damage" that can result from a fingerprinting failure.  No locks can be dropped, and
+      // we cannot screw up the database driver.
+      // Any collateral damage that we *do* need to stop for should manifest itself in another thread.
+
+      // The exception effectively means that we cannot identify the document.
+      return null;
+    }
+  }
+
+  /** Translate a string application name to one of the kinds of documents
+  * we care about.
+  */
+  protected static int recognizeApp(String appName)
+  {
+    appName = appName.toUpperCase();
+    if (appName.indexOf("MICROSOFT WORD") != -1)
+      return DT_MSWORD;
+    if (appName.indexOf("MICROSOFT OFFICE WORD") != -1)
+      return DT_MSWORD;
+    if (appName.indexOf("MICROSOFT EXCEL") != -1)
+      return DT_MSEXCEL;
+    if (appName.indexOf("MICROSOFT POWERPOINT") != -1)
+      return DT_MSPOWERPOINT;
+    if (appName.indexOf("MICROSOFT OFFICE POWERPOINT") != -1)
+      return DT_MSPOWERPOINT;
+    if (appName.indexOf("MICROSOFT OUTLOOK") != -1)
+      return DT_MSOUTLOOK;
+    return DT_COMPOUND_DOC;
+  }
+
+  /** Test to see if a document is text or not.  The first n bytes are passed
+  * in, and this code returns "true" if it thinks they represent text.  The code
+  * has been lifted algorithmically from products/Sharecrawler/Fingerprinter.pas,
+  * which was based on "perldoc -f -T".
+  */
+  protected static boolean isText(byte[] beginChunk, int chunkLength)
+  {
+    if (chunkLength == 0)
+      return true;
+    int i = 0;
+    int count = 0;
+    while (i < chunkLength)
+    {
+      byte x = beginChunk[i++];
+      if (x == 0)
+        return false;
+      if (isStrange(x))
+        count++;
+    }
+    return ((double)count)/((double)chunkLength) < 0.30;
+  }
+
+  /** Check if character is not typical ASCII. */
+  protected static boolean isStrange(byte x)
+  {
+    return (x > 127 || x < 32) && (!isWhiteSpace(x));
+  }
+
+  /** Check if a byte is a whitespace character. */
+  protected static boolean isWhiteSpace(byte x)
+  {
+    return (x == 0x09 || x == 0x0a || x == 0x0d || x == 0x20);
+  }
+
+  protected static String hexprint(byte x)
+  {
+    StringBuffer sb = new StringBuffer();
+    sb.append(nibbleprint(0x0f & (((int)x)>>4))).append(nibbleprint(0x0f & ((int)x)));
+    return sb.toString();
+  }
+
+  protected static char nibbleprint(int x)
+  {
+    if (x >= 10)
+      return (char)(x - 10 + 'a');
+    return (char)(x + '0');
+  }
+
+  /** Reader listener object that extracts the app name */
+  protected static class ReaderListener implements POIFSReaderListener
+  {
+    protected String appName = null;
+
+    /** Constructor. */
+    public ReaderListener()
+    {
+    }
+
+    /** Get the app name.
+    */
+    public String getAppName()
+    {
+      return appName;
+    }
+
+    /** Process an "event" from POIFS - which is basically just the fact that we saw what we
+    * said we wanted to see, namely the SummaryInfo stream.
+    */
+    public void processPOIFSReaderEvent(POIFSReaderEvent event)
+    {
+      // Catch exceptions
+      try
+      {
+        InputStream is = event.getStream();
+        try
+        {
+          PropertySet ps = PropertySetFactory.create(is);
+          if (!(ps instanceof SummaryInformation))
+          {
+            appName = null;
+            return;
+          }
+          appName = ((SummaryInformation)ps).getApplicationName();
+        }
+        finally
+        {
+          is.close();
+        }
+
+      }
+      catch (NoPropertySetStreamException e)
+      {
+        // This means we couldn't figure out what the application was
+        appName = null;
+        return;
+      }
+      catch (MarkUnsupportedException e)
+      {
+        // Bad code; need to suport mark operation.
+        Logging.ingest.error("Need to feed a stream that supports mark(): "+e.getMessage(),e);
+        appName = null;
+        return;
+      }
+      catch (java.io.UnsupportedEncodingException e)
+      {
+        // Bad code; need to support encoding properly
+        Logging.ingest.error("Need to support encoding: "+e.getMessage(),e);
+        appName = null;
+        return;
+      }
+      catch (IOException e)
+      {
+        appName = null;
+        return;
+      }
+    }
   }
 
 }

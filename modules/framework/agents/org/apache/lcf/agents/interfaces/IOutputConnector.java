@@ -128,6 +128,15 @@ public interface IOutputConnector
   */
   public ConfigParams getConfiguration();
 
+  /** Pre-determine whether a document (passed here as a File object) is indexable by this connector.  This method is used by participating
+  * repository connectors to help reduce the number of unmanageable documents that are passed to this output connector in advance of an
+  * actual transfer.  This hook is provided mainly to support search engines that only handle a small set of accepted file types.
+  *@param localFile is the local file to check.
+  *@return true if the file is indexable.
+  */
+  public boolean checkDocumentIndexable(File localFile)
+    throws LCFException, ServiceInterruption;
+
   /** Get an output version string, given an output specification.  The output version string is used to uniquely describe the pertinent details of
   * the output specification and the configuration, to allow the Connector Framework to determine whether a document will need to be output again.
   * Note that the contents of the document cannot be considered by this method, and that a different version string (defined in IRepositoryConnector)

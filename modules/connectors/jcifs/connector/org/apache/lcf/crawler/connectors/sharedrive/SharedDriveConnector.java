@@ -45,21 +45,10 @@ import org.apache.lcf.core.interfaces.LCFException;
 import org.apache.lcf.crawler.interfaces.DocumentSpecification;
 import org.apache.lcf.crawler.interfaces.IDocumentIdentifierStream;
 import org.apache.lcf.crawler.interfaces.IProcessActivity;
+import org.apache.lcf.crawler.interfaces.IFingerprintActivity;
 import org.apache.lcf.core.interfaces.SpecificationNode;
 import org.apache.lcf.crawler.interfaces.IVersionActivity;
 import org.apache.lcf.crawler.system.Logging;
-
-// POIFS stuff
-import org.apache.poi.poifs.eventfilesystem.POIFSReader;
-import org.apache.poi.poifs.eventfilesystem.POIFSReaderListener;
-import org.apache.poi.poifs.eventfilesystem.POIFSReaderEvent;
-import org.apache.poi.poifs.filesystem.POIFSDocumentPath;
-import org.apache.poi.hpsf.SummaryInformation;
-import org.apache.poi.hpsf.PropertySetFactory;
-import org.apache.poi.hpsf.PropertySet;
-import org.apache.poi.hpsf.NoPropertySetStreamException;
-import org.apache.poi.hpsf.MarkUnsupportedException;
-import org.apache.poi.hpsf.UnexpectedPropertySetTypeException;
 
 /** This is the "repository connector" for a smb/cifs shared drive file system.  It's a relative of the share crawler, and should have
 * comparable basic functionality.
@@ -70,17 +59,6 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
 
   // Activities we log
   public final static String ACTIVITY_ACCESS = "access";
-
-  // These are the document types the fingerprinter understands
-  protected static final int DT_UNKNOWN = -1;
-  protected static final int DT_COMPOUND_DOC = 0;
-  protected static final int DT_MSWORD = 1;
-  protected static final int DT_MSEXCEL = 2;
-  protected static final int DT_MSPOWERPOINT = 3;
-  protected static final int DT_MSOUTLOOK = 4;
-  protected static final int DT_TEXT = 5;
-  protected static final int DT_ZERO = 6;
-  protected static final int DT_PDF = 7;
 
   // These are the share connector nodes and attributes in the document specification
   public static final String NODE_STARTPOINT = "startpoint";
@@ -699,7 +677,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
                     }
 
 
-                    if (checkIngest(tempFile, newPath, spec))
+                    if (checkIngest(tempFile, newPath, spec, activities))
                     {
                       if (Logging.connectors.isDebugEnabled())
                         Logging.connectors.debug("JCIFS: Decided to ingest '"+documentIdentifier+"'");
@@ -1648,9 +1626,10 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
   *@param localFile is the file.
   *@param fileName is the JCIFS file name.
   *@param documentSpecification is the specification.
+  *@param activities are the activities available to determine indexability.
   *@return true if the file should be ingested.
   */
-  protected boolean checkIngest(File localFile, String fileName, DocumentSpecification documentSpecification)
+  protected boolean checkIngest(File localFile, String fileName, DocumentSpecification documentSpecification, IFingerprintActivity activities)
     throws LCFException, ServiceInterruption
   {
     if (Logging.connectors.isDebugEnabled())
@@ -1734,12 +1713,7 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
                     isIndexable = false;
                   else
                   {
-                    int docType = fingerprint(localFile);
-                    isIndexable = (docType == DT_TEXT ||
-                      docType == DT_MSWORD ||
-                      docType == DT_MSEXCEL ||
-                      docType == DT_PDF ||
-                      docType == DT_MSPOWERPOINT);
+                    isIndexable = activities.checkDocumentIndexable(localFile);
                   }
 
                   isMatch = (indexable.equals("yes") && isIndexable) ||
@@ -1979,125 +1953,6 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
     return getFileCanonicalPath(new SmbFile(uri,pa));
   }
 
-  /** Fingerprint a file!
-  * Pass in the name of the (local) temporary file that we should be looking at.
-  * This method will read it as needed until the file has been identified (or found
-  * to remain "unknown").
-  * The code here has been lifted algorithmically from products/ShareCrawler/Fingerprinter.pas.
-  */
-  protected static int fingerprint(File file)
-    throws LCFException
-  {
-    try
-    {
-      // Look at the first 4K
-      byte[] byteBuffer = new byte[4096];
-      int amt;
-
-      // Open file for reading.
-      InputStream is = new FileInputStream(file);
-      try
-      {
-        amt = 0;
-        while (amt < byteBuffer.length)
-        {
-          int incr = is.read(byteBuffer,amt,byteBuffer.length-amt);
-          if (incr == -1)
-            break;
-          amt += incr;
-        }
-      }
-      finally
-      {
-        is.close();
-      }
-
-      if (amt == 0)
-        return DT_ZERO;
-
-      if (isText(byteBuffer,amt))
-      {
-        // Treat as ASCII text
-        // We don't need to distinguish between the various flavors (e.g. HTML,
-        // XML, RTF, or plain TEXT, because GTS will eat them all regardless.
-        // Since it's a bit dicey to figure out the encoding, we'll just presume
-        // it's something that GTS will understand.
-        return DT_TEXT;
-      }
-
-      // Treat it as binary
-
-      // Is it PDF?  Does it begin with "%PDF-"?
-      if (byteBuffer[0] == (byte)0x25 && byteBuffer[1] == (byte)0x50 && byteBuffer[2] == (byte)0x44 && byteBuffer[3] == (byte)0x46)
-        return DT_PDF;
-
-      // Is it a compound document? Does it begin with 0xD0CF11E0A1B11AE1?
-      if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("JCIFS: Document begins with: "+hexprint(byteBuffer[0])+hexprint(byteBuffer[1])+
-        hexprint(byteBuffer[2])+hexprint(byteBuffer[3])+hexprint(byteBuffer[4])+hexprint(byteBuffer[5])+
-        hexprint(byteBuffer[6])+hexprint(byteBuffer[7]));
-      if (byteBuffer[0] == (byte)0xd0 && byteBuffer[1] == (byte)0xcf && byteBuffer[2] == (byte)0x11 && byteBuffer[3] == (byte)0xe0 &&
-        byteBuffer[4] == (byte)0xa1 && byteBuffer[5] == (byte)0xb1 && byteBuffer[6] == (byte)0x1a && byteBuffer[7] == (byte)0xe1)
-      {
-        Logging.connectors.debug("JCIFS: Compound document signature detected");
-        // Figure out what kind of compound document it is.
-        String appName = getAppName(file);
-        if (appName == null)
-          return DT_UNKNOWN;
-        else
-        {
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("JCIFS: Appname is '"+appName+"'");
-        }
-        return recognizeApp(appName);
-      }
-
-      return DT_UNKNOWN;
-    }
-    catch (java.net.SocketTimeoutException e)
-    {
-      return DT_UNKNOWN;
-    }
-    catch (InterruptedIOException e)
-    {
-      throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
-    }
-    catch (IOException e)
-    {
-      // An I/O error indicates that the type is unknown.
-      return DT_UNKNOWN;
-    }
-    catch (IllegalArgumentException e)
-    {
-      // Another POI error, means unknown document type
-      return DT_UNKNOWN;
-    }
-    catch (IllegalStateException e)
-    {
-      // Another POI error, means unknown document type
-      return DT_UNKNOWN;
-    }
-    catch (ArrayIndexOutOfBoundsException e)
-    {
-      // This means that poi couldn't find the bytes it was expecting, so just treat it as unknown
-      return DT_UNKNOWN;
-    }
-    catch (ClassCastException e)
-    {
-      // This means that poi had an internal error
-      return DT_UNKNOWN;
-    }
-    catch (OutOfMemoryError e)
-    {
-      // POI seems to throw this for some kinds of corrupt documents.
-      // I'm not sure this is the right thing to do but it's the best I
-      // can at the moment, until I get some documents from Norway that
-      // demonstrate the problem.
-      return DT_UNKNOWN;
-    }
-  }
-
-
   /** Stuffer for packing a single string with an end delimiter */
   protected static void pack(StringBuffer output, String value, char delimiter)
   {
@@ -2203,122 +2058,6 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
     {
     }
     return startPosition;
-  }
-
-  protected static String hexprint(byte x)
-  {
-    StringBuffer sb = new StringBuffer();
-    sb.append(nibbleprint(0x0f & (((int)x)>>4))).append(nibbleprint(0x0f & ((int)x)));
-    return sb.toString();
-  }
-
-  protected static char nibbleprint(int x)
-  {
-    if (x >= 10)
-      return (char)(x - 10 + 'a');
-    return (char)(x + '0');
-  }
-
-  /** Get a binary document's APPNAME field, or return null if the document
-  * does not seem to be an OLE compound document.
-  */
-  protected static String getAppName(File documentPath)
-    throws LCFException
-  {
-    try
-    {
-      InputStream is = new FileInputStream(documentPath);
-      try
-      {
-        // Use POIFS to traverse the file
-        POIFSReader reader = new POIFSReader();
-        ReaderListener listener = new ReaderListener();
-        reader.registerListener(listener,"\u0005SummaryInformation");
-        reader.read(is);
-        if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("JCIFS: Done finding appname for '"+documentPath.toString()+"'");
-        return listener.getAppName();
-      }
-      finally
-      {
-        is.close();
-      }
-    }
-    catch (java.net.SocketTimeoutException e)
-    {
-      return null;
-    }
-    catch (InterruptedIOException e)
-    {
-      throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
-    }
-    catch (Throwable e)
-    {
-      // We should eat all errors.  Also, even though our policy is to stop the crawler on out-of-memory errors, in this case we will
-      // not do that, because there's no "collateral damage" that can result from a fingerprinting failure.  No locks can be dropped, and
-      // we cannot screw up the database driver.
-      // Any collateral damage that we *do* need to stop for should manifest itself in another thread.
-
-      // The exception effectively means that we cannot identify the document.
-      return null;
-    }
-  }
-
-
-
-  /** Translate a string application name to one of the kinds of documents
-  * we care about.
-  */
-  protected static int recognizeApp(String appName)
-  {
-    appName = appName.toUpperCase();
-    if (appName.indexOf("MICROSOFT WORD") != -1)
-      return DT_MSWORD;
-    if (appName.indexOf("MICROSOFT OFFICE WORD") != -1)
-      return DT_MSWORD;
-    if (appName.indexOf("MICROSOFT EXCEL") != -1)
-      return DT_MSEXCEL;
-    if (appName.indexOf("MICROSOFT POWERPOINT") != -1)
-      return DT_MSPOWERPOINT;
-    if (appName.indexOf("MICROSOFT OFFICE POWERPOINT") != -1)
-      return DT_MSPOWERPOINT;
-    if (appName.indexOf("MICROSOFT OUTLOOK") != -1)
-      return DT_MSOUTLOOK;
-    return DT_COMPOUND_DOC;
-  }
-
-  /** Test to see if a document is text or not.  The first n bytes are passed
-  * in, and this code returns "true" if it thinks they represent text.  The code
-  * has been lifted algorithmically from products/Sharecrawler/Fingerprinter.pas,
-  * which was based on "perldoc -f -T".
-  */
-  protected static boolean isText(byte[] beginChunk, int chunkLength)
-  {
-    if (chunkLength == 0)
-      return true;
-    int i = 0;
-    int count = 0;
-    while (i < chunkLength)
-    {
-      byte x = beginChunk[i++];
-      if (x == 0)
-        return false;
-      if (isStrange(x))
-        count++;
-    }
-    return ((double)count)/((double)chunkLength) < 0.30;
-  }
-
-  /** Check if character is not typical ASCII. */
-  protected static boolean isStrange(byte x)
-  {
-    return (x > 127 || x < 32) && (!isWhiteSpace(x));
-  }
-
-  /** Check if a byte is a whitespace character. */
-  protected static boolean isWhiteSpace(byte x)
-  {
-    return (x == 0x09 || x == 0x0a || x == 0x0d || x == 0x20);
   }
 
   // These methods allow me to experiment with cluster-mandated error handling on an entirely local level.  They correspond to individual SMBFile methods.
@@ -2968,76 +2707,6 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
 
     java.util.Arrays.sort(directories);
     return directories;
-  }
-
-  /** Reader listener object that extracts the app name */
-  protected static class ReaderListener implements POIFSReaderListener
-  {
-    protected String appName = null;
-
-    /** Constructor. */
-    public ReaderListener()
-    {
-    }
-
-    /** Get the app name.
-    */
-    public String getAppName()
-    {
-      return appName;
-    }
-
-    /** Process an "event" from POIFS - which is basically just the fact that we saw what we
-    * said we wanted to see, namely the SummaryInfo stream.
-    */
-    public void processPOIFSReaderEvent(POIFSReaderEvent event)
-    {
-      // Catch exceptions
-      try
-      {
-        InputStream is = event.getStream();
-        try
-        {
-          PropertySet ps = PropertySetFactory.create(is);
-          if (!(ps instanceof SummaryInformation))
-          {
-            appName = null;
-            return;
-          }
-          appName = ((SummaryInformation)ps).getApplicationName();
-        }
-        finally
-        {
-          is.close();
-        }
-
-      }
-      catch (NoPropertySetStreamException e)
-      {
-        // This means we couldn't figure out what the application was
-        appName = null;
-        return;
-      }
-      catch (MarkUnsupportedException e)
-      {
-        // Bad code; need to suport mark operation.
-        Logging.connectors.error("Need to feed a stream that supports mark()",e);
-        appName = null;
-        return;
-      }
-      catch (java.io.UnsupportedEncodingException e)
-      {
-        // Bad code; need to support encoding properly
-        Logging.connectors.error("Need to support encoding",e);
-        appName = null;
-        return;
-      }
-      catch (IOException e)
-      {
-        appName = null;
-        return;
-      }
-    }
   }
 
   /**

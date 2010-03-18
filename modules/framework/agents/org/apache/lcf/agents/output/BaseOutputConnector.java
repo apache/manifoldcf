@@ -143,6 +143,18 @@ public abstract class BaseOutputConnector implements IOutputConnector
     return params;
   }
 
+  /** Pre-determine whether a document (passed here as a File object) is indexable by this connector.  This method is used by participating
+  * repository connectors to help reduce the number of unmanageable documents that are passed to this output connector in advance of an
+  * actual transfer.  This hook is provided mainly to support search engines that only handle a small set of accepted file types.
+  *@param localFile is the local file to check.
+  *@return true if the file is indexable.
+  */
+  public boolean checkDocumentIndexable(File localFile)
+    throws LCFException, ServiceInterruption
+  {
+    return true;
+  }
+
 }
 
 

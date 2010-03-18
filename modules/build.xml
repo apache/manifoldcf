@@ -129,6 +129,9 @@
         <mkdir dir="connectors/gts/war"/>
         <copy todir="connectors/gts/lib">
             <fileset dir="framework/lib"/>
+	    <fileset dir="lib">
+	      <include name="poi*.jar"/>
+	    </fileset>
         </copy>
         <copy todir="connectors/gts/lib">
             <fileset dir="framework/build/jar"/>
@@ -143,14 +146,7 @@
         <mkdir dir="connectors/jcifs/lib"/>
         <mkdir dir="connectors/jcifs/war"/>
         <copy todir="connectors/jcifs/lib">
-            <fileset dir="lib">
-                <include name="poi*.jar"/>
-            </fileset>
-        </copy>
-        <copy todir="connectors/jcifs/lib">
             <fileset dir="framework/lib"/>
-        </copy>
-        <copy todir="connectors/jcifs/lib">
             <fileset dir="framework/build/jar"/>
         </copy>
         <copy todir="connectors/jcifs/war">

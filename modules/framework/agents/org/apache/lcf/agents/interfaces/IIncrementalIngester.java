@@ -19,6 +19,7 @@
 package org.apache.lcf.agents.interfaces;
 
 import org.apache.lcf.core.interfaces.*;
+import java.io.*;
 
 /** This interface describes the incremental ingestion API.
 * SOME NOTES:
@@ -67,6 +68,14 @@ public interface IIncrementalIngester
   */
   public void clearAll()
     throws LCFException;
+
+  /** Check if a file is indexable.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param localFile is the local file to check.
+  *@return true if the local file is indexable.
+  */
+  public boolean checkDocumentIndexable(String outputConnectionName, File localFile)
+    throws LCFException, ServiceInterruption;
 
   /** Record a document version, but don't ingest it.
   * The purpose of this method is to keep track of the frequency at which ingestion "attempts" take place.
