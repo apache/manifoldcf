@@ -549,7 +549,10 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
                     // Note: This should really depend on whether the connection uses the default AD authority or not, but most of the time
                     // this is true.  Unfortunately, without an API change, we don't get the "usesDefaultAuthority" flag passed into
                     // processDocuments() at this time; when that is changed, make the following conditional on that flag being true.
-                    denyAcls = new String[]{defaultAuthorityDenyToken};
+                    if (specAcls.length != 0)
+		      denyAcls = new String[]{defaultAuthorityDenyToken};
+		    else
+		      denyAcls = new String[0];
                   }
                   else
                   {
