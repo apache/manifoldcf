@@ -155,8 +155,13 @@ public class JobManager implements IJobManager
   protected static void writeEnumeratedValues(java.io.OutputStream os, EnumeratedValues ev)
     throws java.io.IOException
   {
+    if (ev == null)
+    {
+      LCF.writeSdword(os,-1);
+      return;
+    }
     int size = ev.size();
-    LCF.writeDword(os,size);
+    LCF.writeSdword(os,size);
     Iterator iter = ev.getValues();
     while (iter.hasNext())
     {
@@ -230,7 +235,9 @@ public class JobManager implements IJobManager
   protected EnumeratedValues readEnumeratedValues(java.io.InputStream is)
     throws java.io.IOException
   {
-    int size = LCF.readDword(is);
+    int size = LCF.readSdword(is);
+    if (size == -1)
+      return null;
     int[] values = new int[size];
     int i = 0;
     while (i < size)
