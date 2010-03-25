@@ -31,6 +31,9 @@ public class LockManager implements ILockManager
 {
   public static final String _rcsid = "@(#)$Id$";
 
+  /** Synchronization directory property - local to this implementation of ILockManager */
+  public static final String synchDirectoryProperty = "org.apache.lcf.synchdirectory";
+
   // These are the lock/section types, in order of escalation
   protected final static int TYPE_READ = 1;
   protected final static int TYPE_WRITENONEX = 2;
@@ -50,7 +53,11 @@ public class LockManager implements ILockManager
   public LockManager()
     throws LCFException
   {
-    synchDirectory = LCF.getProperty(LCF.synchDirectoryProperty);
+    synchDirectory = LCF.getProperty(synchDirectoryProperty);
+    if (synchDirectory == null)
+      throw new LCFException("Property "+synchDirectoryProperty+" must be set!",LCFException.SETUP_ERROR);
+    if (!new File(synchDirectory).isDirectory())
+      throw new LCFException("Property "+synchDirectoryProperty+" must point to an existing, writeable directory!",LCFException.SETUP_ERROR);
   }
 
 

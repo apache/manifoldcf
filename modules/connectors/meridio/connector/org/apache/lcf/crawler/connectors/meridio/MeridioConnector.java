@@ -29,6 +29,7 @@ import org.apache.lcf.crawler.connectors.meridio.meridiowrapper.MeridioDataSetEx
 import org.apache.lcf.crawler.connectors.meridio.meridiowrapper.MeridioWrapper;
 import org.apache.lcf.crawler.interfaces.*;
 import org.apache.lcf.crawler.system.Logging;
+import org.apache.lcf.crawler.system.LCF;
 
 import org.apache.commons.httpclient.protocol.Protocol;
 import org.apache.commons.httpclient.protocol.ProtocolFactory;
@@ -61,6 +62,9 @@ import org.apache.lcf.crawler.connectors.meridio.RMDataSet.*;
 public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepositoryConnector
 {
   public static final String _rcsid = "@(#)$Id$";
+
+  // Properties we need
+  public final static String wsddPathProperty = "org.apache.lcf.meridio.wsddpath";
 
   // This is the base url to use.
   protected String urlBase = null;
@@ -190,9 +194,9 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
         * Now try and login to Meridio; the wrapper's constructor can be
         * used as it calls the Meridio login method
         *================================================================*/
-        String meridioWSDDLocation = System.getProperty("org.apache.lcf.meridio.wsddpath");
+        String meridioWSDDLocation = LCF.getProperty(wsddPathProperty);
         if (meridioWSDDLocation == null)
-          throw new LCFException("Meridio wsdd location path (property org.apache.lcf.meridio.wsddpath) must be specified!");
+          throw new LCFException("Meridio wsdd location path (property "+wsddPathProperty+") must be specified!");
 
         meridio_ = new MeridioWrapper(Logging.connectors, DmwsURL, RmwsURL, null,
           params.getParameter("DMWSProxyHost"),

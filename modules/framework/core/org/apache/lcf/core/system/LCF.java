@@ -63,22 +63,34 @@ public class LCF
   // System property names
   public static final String lcfConfigFileProperty = "org.apache.lcf.configfile";
 
-  // Property file property names
+  // System property/property file property names
+  
+  // Database access properties
+  /** Database name property */
   public static final String masterDatabaseNameProperty = "org.apache.lcf.database.name";
+  /** Database user name property */
   public static final String masterDatabaseUsernameProperty = "org.apache.lcf.database.username";
+  /** Database password property */
   public static final String masterDatabasePasswordProperty = "org.apache.lcf.database.password";
 
+  // Database connection pooling properties
+  /** Maximum open database handles property */
   public static final String databaseHandleMaxcountProperty = "org.apache.lcf.database.maxhandles";
+  /** Database handle timeout property */
   public static final String databaseHandleTimeoutProperty = "org.apache.lcf.database.handletimeout";
 
-  public static final String synchDirectoryProperty = "org.apache.lcf.synchdirectory";
+  // Log configuration properties
+  /** Location of log configuration file */
   public static final String logConfigFileProperty = "org.apache.lcf.logconfigfile";
   
-
-  /** Hack for BPA */
+  // Implementation class properties
+  /** Lock manager implementation class */
+  public static final String lockManagerImplementation = "org.apache.lcf.lockmanagerclass";
+  
+  // The following are system integration properties
+  /** Script to invoke when configuration changes, if any */
   public static final String configSignalCommandProperty = "org.apache.lcf.configuration.change.command";
-
-  /** Maintenance signal file */
+  /** File to look for to block access to UI during database maintenance */
   public static final String maintenanceFileSignalProperty = "org.apache.lcf.database.maintenanceflag";
 
   /** Initialize environment.
@@ -168,13 +180,16 @@ public class LCF
     }
   }
 
-  /** Read a property.
+  /** Read a property, either from the system properties, or from the local property file image.
   *@param s is the property name.
-  *@return the property value, as an object.
+  *@return the property value, as a string.
   */
   public static final String getProperty(String s)
   {
-    return localProperties.getProperty(s);
+    String rval = System.getProperty(s);
+    if (rval == null)
+      rval = localProperties.getProperty(s);
+    return rval;
   }
 
   /** Attempt to make sure a path is a folder

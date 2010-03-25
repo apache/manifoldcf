@@ -18,6 +18,8 @@
 */
 package org.apache.lcf.core.interfaces;
 
+import org.apache.lcf.core.system.LCF;
+
 public class LockManagerFactory
 {
   public static final String _rcsid = "@(#)$Id$";
@@ -38,8 +40,37 @@ public class LockManagerFactory
     Object x = context.get(lockManager);
     if (x == null || !(x instanceof ILockManager))
     {
-      x = new org.apache.lcf.core.lockmanager.LockManager();
-      context.save(lockManager,x);
+      String implementationClass = LCF.getProperty(LCF.lockManagerImplementation);
+      if (implementationClass == null)
+        implementationClass = "org.apache.lcf.core.lockmanager.LockManager";
+      try
+      {
+        Class c = Class.forName(implementationClass);
+        x = c.newInstance();
+        if (!(x instanceof ILockManager))
+          throw new LCFException("Lock manager class "+implementationClass+" does not implement ILockManager",LCFException.SETUP_ERROR);
+        context.save(lockManager,x);
+      }
+      catch (ClassNotFoundException e)
+      {
+        throw new LCFException("Lock manager class "+implementationClass+" could not be found: "+e.getMessage(),e,LCFException.SETUP_ERROR);
+      }
+      catch (ExceptionInInitializerError e)
+      {
+        throw new LCFException("Lock manager class "+implementationClass+" could not be instantiated: "+e.getMessage(),e,LCFException.SETUP_ERROR);
+      }
+      catch (LinkageError e)
+      {
+        throw new LCFException("Lock manager class "+implementationClass+" could not be linked: "+e.getMessage(),e,LCFException.SETUP_ERROR);
+      }
+      catch (InstantiationException e)
+      {
+        throw new LCFException("Lock manager class "+implementationClass+" could not be instantiated: "+e.getMessage(),e,LCFException.SETUP_ERROR);
+      }
+      catch (IllegalAccessException e)
+      {
+        throw new LCFException("Lock manager class "+implementationClass+" had no public default initializer: "+e.getMessage(),e,LCFException.SETUP_ERROR);
+      }
     }
     return (ILockManager)x;
   }

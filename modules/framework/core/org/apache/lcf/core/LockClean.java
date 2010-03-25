@@ -39,7 +39,7 @@ public class LockClean
     }
 
     LCF.initializeEnvironment();
-    String synchDir = LCF.getProperty(LCF.synchDirectoryProperty);
+    String synchDir = LCF.getProperty(org.apache.lcf.core.lockmanager.LockManager.synchDirectoryProperty);
     if (synchDir != null)
     {
       // Recursively clean up the contents of the synch directory.

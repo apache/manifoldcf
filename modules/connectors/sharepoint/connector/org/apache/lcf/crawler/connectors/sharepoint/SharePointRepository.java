@@ -52,6 +52,9 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
 {
   public static final String _rcsid = "@(#)$Id$";
 
+  // Properties we need
+  public final static String wsddPathProperty = "org.apache.lcf.sharepoint.wsddpath";
+
   // Activities we log
   public final static String ACTIVITY_FETCH = "fetch";
 
@@ -184,9 +187,9 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
 
       fileBaseUrl = serverUrl + encodedServerLocation;
 
-      String sharepointWSDDLocation = System.getProperty("org.apache.lcf.sharepoint.wsddpath");
+      String sharepointWSDDLocation = LCF.getProperty(wsddPathProperty);
       if (sharepointWSDDLocation == null)
-        throw new LCFException("SharePoint wsdd location path (property org.apache.lcf.sharepoint.wsddpath) must be specified!");
+        throw new LCFException("SharePoint wsdd location path (property "+wsddPathProperty+") must be specified!");
 
       proxy = new SPSProxyHelper( serverUrl, encodedServerLocation, serverLocation, userName, password, myFactory, sharepointWSDDLocation,
         connectionManager );

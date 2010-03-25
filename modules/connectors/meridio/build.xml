@@ -110,7 +110,7 @@
 
     <target name="compile-xsds" depends="classcreate-xsds,precompile-check" if="canBuild">
         <mkdir dir="build/xsdclasses"/>
-        <javac srcdir="build/xsdjava" destdir="build/xsdclasses" target="1.5" source="1.4">
+        <javac srcdir="build/xsdjava" destdir="build/xsdclasses" target="1.5" source="1.5">
             <classpath>
                 <fileset dir="lib" includes="*.jar"/>
             </classpath>
@@ -119,7 +119,7 @@
 
     <target name="doc" depends="precompile-check,compile-wsdls,compile-xsds" if="canBuild">
         <mkdir dir="doc"/>
-        <javadoc destdir="doc" source="1.4">
+        <javadoc destdir="doc" source="1.5">
             <classpath>
                 <fileset dir="lib" includes="*.jar"/>
                 <pathelement location="build/wsdljava"/>
