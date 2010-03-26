@@ -207,11 +207,6 @@
         <jar destfile="dist/tomcat/lcf-sharepointconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
     </target>
 
-    <target name="iar-wsdd" depends="precompile-check" if="canBuild">
-        <mkdir dir="dist/tomcat"/>
-        <copy todir="dist/tomcat" file="org.apache.lcf.sharepoint.wsddpath"/>
-    </target>
-
     <target name="processes" depends="jar-connector,jar-wsdls,precompile-check" if="canBuild">
         <mkdir dir="dist/processes"/>
         <copy todir="dist/processes">
@@ -225,9 +220,8 @@
                 <include name="commons-discovery*.jar"/>
             </fileset>
         </copy>
-        <copy todir="dist/processes" file="org.apache.lcf.sharepoint.wsddpath"/>
     </target>
 
-    <target name="all" depends="processes,iar-crawler-ui,iar-wsdd,wsdd,doc"/>
+    <target name="all" depends="processes,iar-crawler-ui,wsdd,doc"/>
     
 </project>
