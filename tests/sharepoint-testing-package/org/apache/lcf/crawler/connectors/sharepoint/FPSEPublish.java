@@ -78,7 +78,10 @@ public class FPSEPublish
                 this.userName = userName;
                 this.passWord = password;
                 this.domainName = domainName;
-                this.configuration = new FileProvider("/usr/lib/metacarta/sharepoint-client-config.wsdd");
+		String fileName = LCF.getProperty("org.apache.lcf.sharepoint.wsddpath");
+		if (fileName == null)
+		    throw new LCFException("Missing org.apache.lcf.sharepoint.wsddpath property!",LCFException.SETUP_ERROR);
+                this.configuration = new FileProvider(fileName);
         }
 
         public void close()
