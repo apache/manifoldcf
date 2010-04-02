@@ -56,7 +56,7 @@
         </copy>
         <!-- Compile to java, as a check -->
         <mkdir dir="build/crawler-ui/java"/>
-        <!-- Define the jsp compilation task using tomcat libraries -->
+        <!-- Define the jsp compilation task using web libraries -->
         <taskdef classname="org.apache.jasper.JspC" name="jasper2" > 
             <classpath id="jspc.classpath"> 
                 <pathelement location="${java.home}/../lib/tools.jar"/>
@@ -99,8 +99,8 @@
     </target>
     
     <target name="iar-crawler-ui" depends="webapp-crawler-ui">
-        <mkdir dir="dist/tomcat"/>
-        <jar destfile="dist/tomcat/lcf-solrconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
+        <mkdir dir="dist/web"/>
+        <jar destfile="dist/web/lcf-solrconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
     </target>
 
     <target name="processes" depends="jar-connector">

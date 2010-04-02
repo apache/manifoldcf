@@ -129,13 +129,13 @@
     </target>
 
     <target name="iar-crawler-ui" depends="webapp-crawler-ui,precompile-check" if="canBuild">
-        <mkdir dir="dist/tomcat"/>
-        <jar destfile="dist/tomcat/lcf-memexconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
+        <mkdir dir="dist/web"/>
+        <jar destfile="dist/web/lcf-memexconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
     </target>
 
     <target name="iar-authority-service" depends="webapp-authority-service,precompile-check" if="canBuild">
-        <mkdir dir="dist/tomcat"/>
-        <jar destfile="dist/tomcat/lcf-memexconnector-authority-service.iar" basedir="build/webapp/authority-service"/>
+        <mkdir dir="dist/web"/>
+        <jar destfile="dist/web/lcf-memexconnector-authority-service.iar" basedir="build/webapp/authority-service"/>
     </target>
 
     <target name="processes" depends="jar-connector,precompile-check" if="canBuild">

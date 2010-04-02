@@ -218,13 +218,13 @@
     </target>
     
     <target name="war-authority-service" depends="webapp-authority-service">
-        <mkdir dir="dist/tomcat"/>
-        <war destfile="dist/tomcat/lcf-authority-service.war" webxml="authority-service/WEB-INF/web.xml" basedir="build/webapp/authority-service"/>
+        <mkdir dir="dist/web"/>
+        <war destfile="dist/web/lcf-authority-service.war" webxml="authority-service/WEB-INF/web.xml" basedir="build/webapp/authority-service"/>
     </target>
     
     <target name="war-crawler-ui" depends="webapp-crawler-ui">
-        <mkdir dir="dist/tomcat"/>
-        <war destfile="dist/tomcat/lcf-crawler-ui.war" webxml="crawler-ui/WEB-INF/web.xml" basedir="build/webapp/crawler-ui"/>
+        <mkdir dir="dist/web"/>
+        <war destfile="dist/web/lcf-crawler-ui.war" webxml="crawler-ui/WEB-INF/web.xml" basedir="build/webapp/crawler-ui"/>
     </target>
 
     <target name="processes" depends="jar-core,jar-agents,jar-pull-agent">
