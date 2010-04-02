@@ -24,7 +24,7 @@ import org.apache.lcf.crawler.interfaces.*;
 import org.apache.lcf.crawler.system.Logging;
 import java.io.*;
 
-/** This is the "repository connector" for a file system.  It's a relative if the share crawler, and should have
+/** This is the "repository connector" for a file system.  It's a relative of the share crawler, and should have
 * comparable basic functionality, with the exception of the ability to use ActiveDirectory and look at other shares.
 */
 public class FileConnector extends org.apache.lcf.crawler.connectors.BaseRepositoryConnector
