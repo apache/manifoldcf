@@ -31,7 +31,7 @@ boolean maintenanceUnderway = org.apache.lcf.crawler.system.LCF.checkMaintenance
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
 	<title>
-		Lucene Connector Framework: Maximum Activity Report
+		Lucene Connectors Framework: Maximum Activity Report
 	</title>
 
 	<script type="text/javascript">

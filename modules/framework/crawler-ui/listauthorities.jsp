@@ -30,7 +30,7 @@
 	<link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
 
 	<title>
-		Lucene Connector Framework: List Authorities
+		Lucene Connectors Framework: List Authorities
 	</title>
 
 	<script type="text/javascript">
