@@ -156,11 +156,14 @@ public class HttpPoster
   * Post the input stream to ingest
   * @param documentURI is the document's uri.
   * @param document is the document structure to ingest.
+  * @param arguments are the configuration arguments to pass in the post.
+  * @param activities is the activities object, so we can report what's happening.
   * @return true if the ingestion was successful, or false if the ingestion is illegal.
   * @throws LCFException, ServiceInterruption
   */
   public boolean indexPost(String documentURI,
-    RepositoryDocument document, IOutputAddActivity activities)
+    RepositoryDocument document, Map arguments,
+    IOutputAddActivity activities)
     throws LCFException, ServiceInterruption
   {
     if (Logging.ingest.isDebugEnabled())
@@ -175,7 +178,7 @@ public class HttpPoster
     {
       try
       {
-        IngestThread t = new IngestThread(documentURI,document);
+        IngestThread t = new IngestThread(documentURI,document,arguments);
         try
         {
           t.start();
@@ -770,6 +773,7 @@ public class HttpPoster
   {
     protected String documentURI;
     protected RepositoryDocument document;
+    protected Map arguments;
 
     protected Long activityStart = null;
     protected Long activityBytes = null;
@@ -779,12 +783,13 @@ public class HttpPoster
     protected boolean readFromDocumentStreamYet = false;
     protected boolean rval = false;
 
-    public IngestThread(String documentURI, RepositoryDocument document)
+    public IngestThread(String documentURI, RepositoryDocument document, Map arguments)
     {
       super();
       setDaemon(true);
       this.documentURI = documentURI;
       this.document = document;
+      this.arguments = arguments;
     }
 
     public void run()
@@ -837,8 +842,16 @@ public class HttpPoster
                 int totalLength = 0;
                 // Count the id.
                 totalLength += lengthField("literal.id",documentURI);
+                // Count the arguments
+                Iterator iter = arguments.keySet().iterator();
+                while (iter.hasNext())
+                {
+                  String name = (String)iter.next();
+                  String value = (String)arguments.get(name);
+                  totalLength += lengthField(name,value);
+                }
                 // Count the metadata.
-                Iterator iter = document.getFields();
+                iter = document.getFields();
                 while (iter.hasNext())
                 {
                   String fieldName = (String)iter.next();
@@ -874,6 +887,15 @@ public class HttpPoster
 
                 // Write the id field
                 writeField(out,"literal.id",documentURI);
+
+                // Write the arguments
+                iter = arguments.keySet().iterator();
+                while (iter.hasNext())
+                {
+                  String name = (String)iter.next();
+                  String value = (String)arguments.get(name);
+                  writeField(out,name,value);
+                }
 
                 // Write the metadata, each in a field by itself
                 iter = document.getFields();

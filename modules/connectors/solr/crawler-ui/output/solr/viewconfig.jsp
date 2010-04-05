@@ -70,4 +70,44 @@
 
 		</td>
 	</tr>
+	
+	<tr>
+		<td class="description" colspan="1"><nobr>Arguments:</nobr></td>
+		<td class="boxcell" colspan="3">
+			<table class="formtable">
+				<tr class="formheaderrow">
+					<td class="formcolumnheader"><nobr>Name</nobr></td>
+					<td class="formcolumnheader"><nobr>Value</nobr></td>
+				</tr>
+<%
+	int i = 0;
+	int instanceNumber = 0;
+	while (i < parameters.getChildCount())
+	{
+		ConfigNode cn = parameters.getChild(i++);
+		if (cn.getType().equals(org.apache.lcf.agents.output.solr.SolrConfig.NODE_ARGUMENT))
+		{
+			// An argument node!  Look for all its parameters.
+			String name = cn.getAttributeValue(org.apache.lcf.agents.output.solr.SolrConfig.ATTRIBUTE_NAME);
+			String value = cn.getAttributeValue(org.apache.lcf.agents.output.solr.SolrConfig.ATTRIBUTE_VALUE);
+%>
+				<tr class='<%=((instanceNumber % 2)==0)?"evenformrow":"oddformrow"%>'>
+					<td class="formcolumncell"><nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(name)%></nobr></td>
+					<td class="formcolumncell"><nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(value)%></nobr></td>
+				</tr>
+<%
+			instanceNumber++;
+		}
+	}
+	if (instanceNumber == 0)
+	{
+%>
+				<tr class="formrow"><td class="formmessage" colspan="5">No arguments</td></tr>
+<%
+	}
+%>
+			</table>
+		</td>
+	</tr>
+
 </table>

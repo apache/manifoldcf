@@ -162,8 +162,45 @@ public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnec
   public String getOutputDescription(OutputSpecification spec)
     throws LCFException
   {
-    // No output description data at this time.
-    return "";
+    // All the arguments need to go into this string, since they affect ingestion.
+    Map args = new HashMap();
+    int i = 0;
+    while (i < params.getChildCount())
+    {
+      ConfigNode node = params.getChild(i++);
+      if (node.getType().equals(SolrConfig.NODE_ARGUMENT))
+        args.put(node.getAttributeValue(SolrConfig.ATTRIBUTE_NAME),node.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE));
+    }
+    
+    String[] sortArray = new String[args.size()];
+    Iterator iter = args.keySet().iterator();
+    i = 0;
+    while (iter.hasNext())
+    {
+      sortArray[i++] = (String)iter.next();
+    }
+    
+    // Always use sorted order, because we need this to be comparable.
+    java.util.Arrays.sort(sortArray);
+    
+    String[] fixedList = new String[2];
+    ArrayList nameValues = new ArrayList();
+    i = 0;
+    while (i < sortArray.length)
+    {
+      String name = sortArray[i++];
+      String value = (String)args.get(name);
+      fixedList[0] = name;
+      fixedList[1] = value;
+      StringBuffer pairBuffer = new StringBuffer();
+      packFixedList(pairBuffer,fixedList,'=');
+      nameValues.add(pairBuffer.toString());
+    }
+    
+    StringBuffer sb = new StringBuffer();
+    packList(sb,nameValues,'+');
+    
+    return sb.toString();
   }
 
   /** Add (or replace) a document in the output data store using the connector.
@@ -183,11 +220,22 @@ public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnec
   public int addOrReplaceDocument(String documentURI, String outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
     throws LCFException, ServiceInterruption
   {
+    // Build the argument map we'll send.
+    // There's no point doing it from packed values; this is configuration based, which cannot change or we'd get a new connection instance.
+    Map args = new HashMap();
+    int i = 0;
+    while (i < params.getChildCount())
+    {
+      ConfigNode node = params.getChild(i++);
+      if (node.getType().equals(SolrConfig.NODE_ARGUMENT))
+        args.put(node.getAttributeValue(SolrConfig.ATTRIBUTE_NAME),node.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE));
+    }
+
     // Establish a session
     getSession();
 
     // Now, go off and call the ingest API.
-    if (poster.indexPost(documentURI,document,activities))
+    if (poster.indexPost(documentURI,document,args,activities))
       return DOCUMENTSTATUS_ACCEPTED;
     return DOCUMENTSTATUS_REJECTED;
   }

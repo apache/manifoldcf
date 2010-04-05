@@ -79,7 +79,7 @@
 		password = "";
 		
 	// "Appliance" tab
-	if (tabName.equals("SOLR"))
+	if (tabName.equals("Server"))
 	{
 %>
 <table class="displaytable">
@@ -153,7 +153,7 @@
 	}
 	else
 	{
-		// SOLR tab hiddens
+		// Server tab hiddens
 %>
 <input type="hidden" name="serverprotocol" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(protocol)%>'/>
 <input type="hidden" name="servername" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(server)%>'/>
@@ -165,6 +165,117 @@
 <input type="hidden" name="realm" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(realm)%>'/>
 <input type="hidden" name="userid" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(userID)%>'/>
 <input type="hidden" name="password" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(password)%>'/>
+<%
+	}
+
+	// Prepare for the argument tab
+	Map argumentMap = new HashMap();
+	int i = 0;
+	while (i < parameters.getChildCount())
+	{
+		ConfigNode sn = parameters.getChild(i++);
+		if (sn.getType().equals(org.apache.lcf.agents.output.solr.SolrConfig.NODE_ARGUMENT))
+		{
+			String name = sn.getAttributeValue(org.apache.lcf.agents.output.solr.SolrConfig.ATTRIBUTE_NAME);
+			String value = sn.getAttributeValue(org.apache.lcf.agents.output.solr.SolrConfig.ATTRIBUTE_VALUE);
+			argumentMap.put(name,value);
+		}
+	}
+	// "Arguments" tab
+	if (tabName.equals("Arguments"))
+	{
+		// For the display, sort the arguments into alphabetic order
+		String[] sortArray = new String[argumentMap.size()];
+		i = 0;
+		Iterator iter = argumentMap.keySet().iterator();
+		while (iter.hasNext())
+		{
+			sortArray[i++] = (String)iter.next();
+		}
+		java.util.Arrays.sort(sortArray);
+%>
+<table class="displaytable">
+	<tr><td class="separator" colspan="2"><hr/></td></tr>
+	<tr>
+		<td class="description"><nobr>Arguments:</nobr></td>
+		<td class="boxcell">
+			<table class="formtable">
+				<tr class="formheaderrow">
+					<td class="formcolumnheader"></td>
+					<td class="formcolumnheader"><nobr>Name</nobr></td>
+					<td class="formcolumnheader"><nobr>Value</nobr></td>
+				</tr>
+<%
+		i = 0;
+		while (i < sortArray.length)
+		{
+			String name = sortArray[i];
+			String value = (String)argumentMap.get(name);
+			// It's prefix will be...
+			String prefix = "argument_" + Integer.toString(i);
+%>
+				<tr class='<%=((i % 2)==0)?"evenformrow":"oddformrow"%>'>
+					<td class="formcolumncell">
+						<a name='<%=prefix%>'><input type="button" value="Delete" alt='<%="Delete argument #"+Integer.toString(i+1)%>' onclick='<%="javascript:deleteArgument("+Integer.toString(i)+");"%>'/>
+						<input type="hidden" name='<%=prefix+"_op"%>' value="Continue"/>
+						<input type="hidden" name='<%=prefix+"_name"%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(name)%>'/>
+						<input type="hidden" name='<%=prefix+"_value"%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(value)%>'/>
+					</td>
+					<td class="formcolumncell">
+						<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(name)%></nobr>
+					</td>
+					<td class="formcolumncell">
+						<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(value)%></nobr>
+					</td>
+				</tr>
+<%
+			i++;
+		}
+		if (i == 0)
+		{
+%>
+				<tr class="formrow"><td class="formmessage" colspan="3">No arguments specified</td></tr>
+<%
+		}
+%>
+				<tr class="formrow"><td class="formseparator" colspan="3"><hr/></td></tr>
+				<tr class="formrow">
+					<td class="formcolumncell">
+						<a name="argument"><input type="button" value="Add" alt="Add argument" onclick="javascript:addArgument();"/></a>
+						<input type="hidden" name="argument_count" value='<%=i%>'/>
+						<input type="hidden" name="argument_op" value="Continue"/>
+					</td>
+					<td class="formcolumncell">
+						<nobr><input type="text" size="30" name="argument_name" value=""/></nobr>
+					</td>
+					<td class="formcolumncell">
+						<nobr><input type="text" size="30" name="argument_value" value=""/></nobr>
+					</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+<%
+	}
+	else
+	{
+		// Emit hiddens for argument tab
+		i = 0;
+		Iterator iter = argumentMap.keySet().iterator();
+		while (iter.hasNext())
+		{
+			String name = (String)iter.next();
+			String value = (String)argumentMap.get(name);
+			// It's prefix will be...
+			String prefix = "argument_" + Integer.toString(i++);
+%>
+<input type="hidden" name='<%=prefix+"_name"%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(name)%>'/>
+<input type="hidden" name='<%=prefix+"_value"%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(value)%>'/>
+<%
+		}
+%>
+<input type="hidden" name="argument_count" value='<%=i%>'/>
 <%
 	}
 %>

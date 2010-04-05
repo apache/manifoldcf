@@ -42,7 +42,8 @@
 	if (tabsArray == null)
 		out.println("No tabs array!");
 
-	tabsArray.add("SOLR");
+	tabsArray.add("Server");
+        tabsArray.add("Arguments");
 
 
 %>
@@ -53,13 +54,13 @@
 	{
 		if (editconnection.servername.value == "")
 		{
-			alert("Please supply a valid SOLR server name");
+			alert("Please supply a valid Solr server name");
 			editconnection.servername.focus();
 			return false;
 		}
 		if (editconnection.serverport.value != "" && !isInteger(editconnection.serverport.value))
 		{
-			alert("SOLR server port must be a valid integer");
+			alert("Solr server port must be a valid integer");
 			editconnection.serverport.focus();
 			return false;
 		}
@@ -94,47 +95,72 @@
 	{
 		if (editconnection.servername.value == "")
 		{
-			alert("Please supply a valid SOLR server name");
-			SelectTab("SOLR");
+			alert("Please supply a valid Solr server name");
+			SelectTab("Server");
 			editconnection.servername.focus();
 			return false;
 		}
 		if (editconnection.serverport.value != "" && !isInteger(editconnection.serverport.value))
 		{
-			alert("SOLR server port must be a valid integer");
-			SelectTab("SOLR");
+			alert("Solr server port must be a valid integer");
+			SelectTab("Server");
 			editconnection.serverport.focus();
 			return false;
 		}
 		if (editconnection.webappname.value != "" && editconnection.webappname.value.indexOf("/") != -1)
 		{
 			alert("Web application name cannot have '/' characters");
-			SelectTab("SOLR");
+			SelectTab("Server");
 			editconnection.webappname.focus();
 			return false;
 		}
 		if (editconnection.updatepath.value != "" && editconnection.updatepath.value.substring(0,1) != "/")
 		{
 			alert("Update path must start with a  '/' character");
-			SelectTab("SOLR");
+			SelectTab("Server");
 			editconnection.updatepath.focus();
 			return false;
 		}
 		if (editconnection.removepath.value != "" && editconnection.removepath.value.substring(0,1) != "/")
 		{
 			alert("Remove path must start with a  '/' character");
-			SelectTab("SOLR");
+			SelectTab("Server");
 			editconnection.removepath.focus();
 			return false;
 		}
 		if (editconnection.statuspath.value != "" && editconnection.statuspath.value.substring(0,1) != "/")
 		{
 			alert("Status path must start with a  '/' character");
-			SelectTab("SOLR");
+			SelectTab("Server");
 			editconnection.statuspath.focus();
 			return false;
 		}
 		return true;
+	}
+
+	function deleteArgument(i)
+	{
+		// Set the operation
+		eval("editconnection.argument_"+i+"_op.value=\"Delete\"");
+		// Submit
+		if (editconnection.argument_count.value==i)
+			postFormSetAnchor("argument");
+		else
+			postFormSetAnchor("argument_"+i)
+		// Undo, so we won't get two deletes next time
+		eval("editconnection.argument_"+i+"_op.value=\"Continue\"");
+	}
+
+	function addArgument()
+	{
+		if (editconnection.argument_name.value == "")
+		{
+			alert("Argument name cannot be an empty string");
+			editconnection.argument_name.focus();
+			return;
+		}
+		editconnection.argument_op.value="Add";
+		postFormSetAnchor("argument");
 	}
 
 //-->

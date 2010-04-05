@@ -47,7 +47,13 @@ public class SolrConfig
   public static final String PARAM_USERID = "User ID";
   /** Optional user password */
   public static final String PARAM_PASSWORD = "Password";
-
+  /** Node describing an argument */
+  public static final String NODE_ARGUMENT = "argument";
+  /** Attribute with the argument name */
+  public static final String ATTRIBUTE_NAME = "name";
+  /** Attribute with the argument value */
+  public static final String ATTRIBUTE_VALUE = "value";
+  
   // Output specification
 
   // Nothing yet...

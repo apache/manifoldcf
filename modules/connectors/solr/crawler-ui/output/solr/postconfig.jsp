@@ -76,5 +76,48 @@
 	String password = variableContext.getParameter("password");
 	if (password != null)
 		parameters.setObfuscatedParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_PASSWORD,password);
-	
+    
+	String x = variableContext.getParameter("argument_count");
+	if (x != null && x.length() > 0)
+	{
+		// About to gather the argument nodes, so get rid of the old ones.
+		int i = 0;
+		while (i < parameters.getChildCount())
+		{
+			ConfigNode node = parameters.getChild(i);
+			if (node.getType().equals(org.apache.lcf.agents.output.solr.SolrConfig.NODE_ARGUMENT))
+				parameters.removeChild(i);
+			else
+				i++;
+		}
+		int count = Integer.parseInt(x);
+		i = 0;
+		while (i < count)
+		{
+			String prefix = "argument_"+Integer.toString(i);
+			String op = variableContext.getParameter(prefix+"_op");
+			if (op == null || !op.equals("Delete"))
+			{
+				// Gather the name and value.
+				String name = variableContext.getParameter(prefix+"_name");
+				String value = variableContext.getParameter(prefix+"_value");
+				ConfigNode node = new ConfigNode(org.apache.lcf.agents.output.solr.SolrConfig.NODE_ARGUMENT);
+				node.setAttribute(org.apache.lcf.agents.output.solr.SolrConfig.ATTRIBUTE_NAME,name);
+				node.setAttribute(org.apache.lcf.agents.output.solr.SolrConfig.ATTRIBUTE_VALUE,value);
+				parameters.addChild(parameters.getChildCount(),node);
+			}
+			i++;
+		}
+		String addop = variableContext.getParameter("argument_op");
+		if (addop != null && addop.equals("Add"))
+		{
+			String name = variableContext.getParameter("argument_name");
+			String value = variableContext.getParameter("argument_value");
+			ConfigNode node = new ConfigNode(org.apache.lcf.agents.output.solr.SolrConfig.NODE_ARGUMENT);
+			node.setAttribute(org.apache.lcf.agents.output.solr.SolrConfig.ATTRIBUTE_NAME,name);
+			node.setAttribute(org.apache.lcf.agents.output.solr.SolrConfig.ATTRIBUTE_VALUE,value);
+			parameters.addChild(parameters.getChildCount(),node);
+		}
+	}
+
 %>
