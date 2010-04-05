@@ -519,7 +519,7 @@
 	    int i = 0;
 %>
 					<select name="authorityname" size="1">
-						<option value="_none_" <%=(authorityName==null)?"selected=\"selected\"":""%>>Standard (Kerberos)</option>
+						<option value="_none_" <%=(authorityName==null)?"selected=\"selected\"":""%>>None (global authority)</option>
 <%
 	    while (i < set2.length)
 	    {

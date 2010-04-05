@@ -103,7 +103,7 @@
 			<td class="columncell"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(name)%></td>
 			<td class="columncell"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(description)%></td>
 			<td class="columncell"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(connectorName)%></td>
-			<td class="columncell"><%=((authorityName==null)?"Default (Kerberos)":org.apache.lcf.ui.util.Encoder.bodyEscape(authorityName))%></td>
+			<td class="columncell"><%=((authorityName==null)?"None (global authority)":org.apache.lcf.ui.util.Encoder.bodyEscape(authorityName))%></td>
 			<td class="columncell"><%=Integer.toString(maxCount)%></td>
 		</tr>
 <%

@@ -85,7 +85,7 @@
 			connectorName = className + "(uninstalled)";
 		String authorityName = connection.getACLAuthority();
 		if (authorityName == null)
-			authorityName = "Default (Kerberos)";
+			authorityName = "None (global authority)";
 		int maxCount = connection.getMaxConnections();
 		String[] throttles = connection.getThrottles();
 		ConfigParams parameters = connection.getConfigParams();
