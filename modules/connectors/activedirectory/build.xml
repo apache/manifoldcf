@@ -1,0 +1,123 @@
+<project default="all">
+
+    <target name="clean">
+        <delete dir="build"/>
+        <delete dir="dist"/>
+        <delete dir="doc"/>
+    </target>
+
+    <target name="doc">
+        <mkdir dir="doc"/>
+        <javadoc destdir="doc" source="1.4">
+            <classpath>
+                <fileset dir="lib" includes="*.jar"/>
+            </classpath>
+            <fileset dir="connector" includes="**/*.java"/>
+        </javadoc>
+    </target>
+
+    <target name="compile-connector">
+        <mkdir dir="build/connector/classes"/>
+        <javac srcdir="connector" destdir="build/connector/classes" target="1.5" source="1.4">
+            <classpath>
+                <fileset dir="lib" includes="*.jar"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="compile-crawler-ui" depends="compile-connector">
+        <!-- Unpack the crawler war -->
+        <mkdir dir="build/crawler-ui-war"/>
+        <unwar src="war/lcf-crawler-ui.war" dest="build/crawler-ui-war"/>
+        <!-- Create a copy of everything in the proper environment -->
+        <mkdir dir="build/jsp-environment/WEB-INF/lib"/>
+        <mkdir dir="build/jsp-environment/WEB-INF/jsp"/>
+        <copy todir="build/jsp-environment/WEB-INF" file="build/crawler-ui-war/WEB-INF/web.xml"/>
+        <copy todir="build/jsp-environment" file="build/crawler-ui-war/adminHeaders.jsp"/>
+        <copy todir="build/jsp-environment" file="build/crawler-ui-war/adminDefaults.jsp"/>
+        <copy todir="build/jsp-environment" file="build/crawler-ui-war/error.jsp"/>
+        <copy todir="build/jsp-environment" file="build/crawler-ui-war/checkAdminLogin.jsp"/>
+
+        <copy todir="build/jsp-environment">
+            <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
+        </copy>
+        <copy todir="build/jsp-environment/WEB-INF/lib">
+            <fileset dir="build/crawler-ui-war/WEB-INF/lib">
+                <include name="*.jar"/>
+            </fileset>
+        </copy>
+        <copy todir="build/jsp-environment/WEB-INF/jsp">
+            <fileset dir="build/crawler-ui-war/WEB-INF/jsp">
+                <include name="*.tld"/>
+            </fileset>
+        </copy>
+        <copy todir="build/jsp-environment/WEB-INF/classes">
+            <fileset dir="build/connector/classes"/>
+        </copy>
+        <!-- Compile to java, as a check -->
+        <mkdir dir="build/crawler-ui/java"/>
+        <!-- Define the jsp compilation task using web libraries -->
+        <taskdef classname="org.apache.jasper.JspC" name="jasper2" > 
+            <classpath id="jspc.classpath"> 
+                <pathelement location="${java.home}/../lib/tools.jar"/>
+                <fileset dir="lib"> 
+                    <include name="*.jar"/> 
+                </fileset> 
+                <pathelement location="build/crawler-ui-war/WEB-INF/lib/jstl.jar"/>
+                <pathelement location="build/crawler-ui-war/WEB-INF/lib/standard.jar"/>
+                <pathelement location="build/connector/classes"/>
+            </classpath> 
+        </taskdef> 
+        <jasper2 validateXml="false" uriroot="build/jsp-environment" webXmlFragment="build/jsp-environment/WEB-INF/web-generated.xml" outputDir="build/crawler-ui/java" /> 
+        <!-- Compile java classes -->
+        <mkdir dir="build/crawler-ui/classes"/>
+        <javac srcdir="build/crawler-ui/java" destdir="build/crawler-ui/classes" target="1.5" source="1.4">
+            <classpath id="classpath">
+                <pathelement location="${java.home}/../lib/tools.jar"/>
+                <fileset dir="lib"> 
+                    <include name="*.jar"/> 
+                </fileset>
+                <pathelement location="build/crawler-ui-war/WEB-INF/lib/jstl.jar"/>
+                <pathelement location="build/crawler-ui-war/WEB-INF/lib/standard.jar"/>
+                <pathelement location="build/connector/classes"/>
+            </classpath>
+        </javac>
+    </target>
+    
+    <target name="jar-connector" depends="compile-connector">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/lcf-activedirectory-connector.jar" basedir="build/connector/classes"/>
+    </target>
+
+    <target name="webapp-crawler-ui" depends="compile-crawler-ui,jar-connector">
+        <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-activedirectory-connector.jar"/>
+        <mkdir dir="build/webapp/crawler-ui"/>
+        <copy todir="build/webapp/crawler-ui">
+            <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
+        </copy>
+    </target>
+
+    <target name="webapp-authority-service" depends="jar-connector">
+        <mkdir dir="build/webapp/authority-service/WEB-INF/lib"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="build/jar/lcf-activedirectory-connector.jar"/>
+    </target>
+
+    <target name="iar-crawler-ui" depends="webapp-crawler-ui">
+        <mkdir dir="dist/web"/>
+        <jar destfile="dist/web/lcf-activedirectoryconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
+    </target>
+
+    <target name="iar-authority-service" depends="webapp-authority-service">
+        <mkdir dir="dist/web"/>
+        <jar destfile="dist/web/lcf-activedirectoryconnector-authority-service.iar" basedir="build/webapp/authority-service"/>
+    </target>
+
+    <target name="processes" depends="jar-connector">
+        <mkdir dir="dist/processes"/>
+        <copy todir="dist/processes" file="build/jar/lcf-activedirectory-connector.jar"/>
+    </target>
+
+    <target name="all" depends="processes,iar-crawler-ui,iar-authority-service,doc"/>
+    
+</project>

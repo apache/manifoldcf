@@ -5,6 +5,9 @@
         <delete dir="dist"/>
         <ant dir="framework" target="clean"/>
         <delete dir="framework/lib"/>
+        <ant dir="connectors/activedirectory" target="clean"/>
+        <delete dir="connectors/activedirectory/lib"/>
+        <delete dir="connectors/activedirectory/war"/>
         <ant dir="connectors/documentum" target="clean"/>
         <delete dir="connectors/documentum/lib"/>
         <delete dir="connectors/documentum/war"/>
@@ -79,6 +82,21 @@
         <ant dir="framework"/>
     </target>
 
+    <target name="build-activedirectory-connector" depends="build-framework">
+        <mkdir dir="connectors/activedirectory/lib"/>
+        <mkdir dir="connectors/activedirectory/war"/>
+        <copy todir="connectors/activedirectory/lib">
+            <fileset dir="framework/lib"/>
+        </copy>
+        <copy todir="connectors/activedirectory/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+        <copy todir="connectors/activedirectory/war">
+            <fileset dir="framework/dist/web"/>
+        </copy>
+        <ant dir="connectors/activedirectory"/>
+    </target>
+    
     <target name="build-documentum-connector" depends="build-framework">
         <mkdir dir="connectors/documentum/lib"/>
         <mkdir dir="connectors/documentum/war"/>
@@ -322,7 +340,29 @@
         <mkdir dir="build/authority-service"/>
         <unwar src="framework/dist/web/lcf-authority-service.war" dest="build/authority-service"/>
     </target>
-    
+
+    <target name="calculate-activedirectory-condition" depends="build-activedirectory-connector">
+        <available file="connectors/activedirectory/dist" type="dir" property="activedirectory.exists"/>
+        <condition property="activedirectory.include">
+            <isset property="activedirectory.exists"/>
+        </condition>
+    </target>
+
+    <target name="deliver-activedirectory-connector" depends="calculate-activedirectory-condition" if="activedirectory.include">
+        <mkdir dir="dist/processes"/>
+        <copy todir="dist/processes">
+            <fileset dir="connectors/activedirectory/dist/processes"/>
+        </copy>
+        <mkdir dir="dist/web"/>
+        <copy todir="dist/web">
+            <fileset dir="connectors/activedirectory/dist/web" excludes="*.iar"/>
+        </copy>
+        <mkdir dir="build/crawler-ui"/>
+        <unjar src="connectors/activedirectory/dist/web/lcf-activedirectoryconnector-crawler-ui.iar" dest="build/crawler-ui"/>
+        <mkdir dir="build/authority-service"/>
+        <unjar src="connectors/activedirectory/dist/web/lcf-activedirectoryconnector-authority-service.iar" dest="build/authority-service"/>
+    </target>
+
     <target name="calculate-documentum-condition" depends="build-documentum-connector">
         <available file="connectors/documentum/dist" type="dir" property="documentum.exists"/>
         <condition property="documentum.include">
@@ -635,13 +675,13 @@
         <unjar src="connectors/webcrawler/dist/web/lcf-webconnector-crawler-ui.iar" dest="build/crawler-ui"/>
     </target>
 
-    <target name="deliver-wars" depends="deliver-framework,deliver-documentum-connector,deliver-filenet-connector,deliver-filesystem-connector,deliver-gts-connector,deliver-livelink-connector,deliver-solr-connector,deliver-memex-connector,deliver-meridio-connector,deliver-nulloutput-connector,deliver-rss-connector,deliver-sharepoint-connector,deliver-webcrawler-connector">
+    <target name="deliver-wars" depends="deliver-framework,deliver-activedirectory-connector,deliver-documentum-connector,deliver-filenet-connector,deliver-filesystem-connector,deliver-gts-connector,deliver-livelink-connector,deliver-solr-connector,deliver-memex-connector,deliver-meridio-connector,deliver-nulloutput-connector,deliver-rss-connector,deliver-sharepoint-connector,deliver-webcrawler-connector">
         <mkdir dir="dist/web"/>
         <jar destfile="dist/web/lcf-crawler-ui.war" basedir="build/crawler-ui"/>
         <jar destfile="dist/web/lcf-authority-service.war" basedir="build/authority-service"/>
     </target>
 
-    <target name="deliver-open-connectors" depends="deliver-filesystem-connector,deliver-rss-connector,deliver-webcrawler-connector,deliver-jdbc-connector"/>
+    <target name="deliver-open-connectors" depends="deliver-activedirectory-connector,deliver-filesystem-connector,deliver-rss-connector,deliver-webcrawler-connector,deliver-jdbc-connector"/>
     
     <target name="deliver-output-connectors" depends="deliver-gts-connector,deliver-solr-connector,deliver-nulloutput-connector"/>
     
