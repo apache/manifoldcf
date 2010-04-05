@@ -73,7 +73,7 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
   protected static final String[] activitiesList = new String[]{ACTIVITY_EXTERNAL_QUERY};
 
   /** Deny access token for default authority */
-  private final static String defaultAuthorityDenyToken = "McAdAuthority_MC_DEAD_AUTHORITY";
+  private final static String defaultAuthorityDenyToken = "DEAD_AUTHORITY";
 
   protected JDBCConnection connection = null;
   protected String jdbcProvider = null;
@@ -395,7 +395,7 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
           // A real version string!  Any acls must be added to the front, if they are present...
           sb = new StringBuffer();
           packList(sb,acls,'+');
-          if (acls.length > 0 && usesDefaultAuthority)
+          if (acls.length > 0)
           {
             sb.append('+');
             pack(sb,defaultAuthorityDenyToken,'+');
@@ -546,9 +546,6 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
                     if (specAcls == null)
                       specAcls = getAcls(spec);
                     accessAcls = specAcls;
-                    // Note: This should really depend on whether the connection uses the default AD authority or not, but most of the time
-                    // this is true.  Unfortunately, without an API change, we don't get the "usesDefaultAuthority" flag passed into
-                    // processDocuments() at this time; when that is changed, make the following conditional on that flag being true.
                     if (specAcls.length != 0)
 		      denyAcls = new String[]{defaultAuthorityDenyToken};
 		    else

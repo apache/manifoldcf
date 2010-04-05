@@ -55,7 +55,7 @@ public class MemexAuthority extends org.apache.lcf.authorities.authorities.BaseA
   private final static long CONNECTION_IDLE_INTERVAL = 900000L;
 
 
-  private static final String globalDenyToken = "MC_DEAD_AUTHORITY";
+  private static final String globalDenyToken = "DEAD_AUTHORITY";
   private static final AuthorizationResponse unreachableResponse = new AuthorizationResponse(new String[]{globalDenyToken},
     AuthorizationResponse.RESPONSE_UNREACHABLE);
   private static final AuthorizationResponse userNotFoundResponse = new AuthorizationResponse(new String[]{globalDenyToken},
@@ -241,11 +241,11 @@ public class MemexAuthority extends org.apache.lcf.authorities.authorities.BaseA
           if (searchHits < 0) {
             //If the number of hits is less than zero, something went wrong
             Logging.authorityConnectors.warn("Memex: User search hits < 0! ("+Integer.toString(searchHits)+")");
-            return new AuthorizationResponse(new String[] {"DEFAULT-DENY"}, AuthorizationResponse.RESPONSE_UNREACHABLE);
+            return new AuthorizationResponse(new String[] {MemexConnector.defaultAuthorityDenyToken}, AuthorizationResponse.RESPONSE_UNREACHABLE);
           }else if(searchHits == 0){
             if (Logging.authorityConnectors.isDebugEnabled())
               Logging.authorityConnectors.debug("Memex: User '"+userName+"' not found");
-            return new AuthorizationResponse(new String[] {"DEFAULT-DENY"}, AuthorizationResponse.RESPONSE_USERNOTFOUND);
+            return new AuthorizationResponse(new String[] {MemexConnector.defaultAuthorityDenyToken}, AuthorizationResponse.RESPONSE_USERNOTFOUND);
           }else if(searchHits > 1){
             //This shouldn't happen - should only be one entry per user
             if (Logging.authorityConnectors.isDebugEnabled())
@@ -386,7 +386,7 @@ public class MemexAuthority extends org.apache.lcf.authorities.authorities.BaseA
   public AuthorizationResponse getDefaultAuthorizationResponse(String userName)
   {
     // The default response if the getConnection method fails
-    return new AuthorizationResponse(new String[] {"DEFAULT-DENY"}, AuthorizationResponse.RESPONSE_UNREACHABLE);
+    return new AuthorizationResponse(new String[] {MemexConnector.defaultAuthorityDenyToken}, AuthorizationResponse.RESPONSE_UNREACHABLE);
   }
 
   //////////////////////////////////////////////////////////////////////

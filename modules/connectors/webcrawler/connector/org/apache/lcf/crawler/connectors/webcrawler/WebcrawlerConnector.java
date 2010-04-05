@@ -259,7 +259,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
   protected static DataCache cache = new DataCache();
 
   /** Deny access token for default authority */
-  private final static String defaultAuthorityDenyToken = "McAdAuthority_MC_DEAD_AUTHORITY";
+  private final static String defaultAuthorityDenyToken = "DEAD_AUTHORITY";
 
   /** Constructor.
   */
@@ -1126,7 +1126,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
 
             // Acls
             packList(sb,acls,'+');
-            if (acls.length > 0 && usesDefaultAuthority)
+            if (acls.length > 0)
             {
               sb.append('+');
               pack(sb,defaultAuthorityDenyToken,'+');

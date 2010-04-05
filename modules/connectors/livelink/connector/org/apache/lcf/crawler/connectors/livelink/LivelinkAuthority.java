@@ -71,7 +71,7 @@ public class LivelinkAuthority extends org.apache.lcf.authorities.authorities.Ba
   // Livelink does not have "deny" permissions, and there is no such thing as a document with no tokens, so it is safe to not have a local "deny" token.
   // However, people feel that a suspenders-and-belt approach is called for, so this restriction has been added.
   // Livelink tokens are numbers, "SYSTEM", or "GUEST", so they can't collide with the standard form.
-  private static final String denyToken = "MC_DEAD_AUTHORITY";
+  private static final String denyToken = "DEAD_AUTHORITY";
   private static final AuthorizationResponse unreachableResponse = new AuthorizationResponse(new String[]{denyToken},
     AuthorizationResponse.RESPONSE_UNREACHABLE);
   private static final AuthorizationResponse userNotFoundResponse = new AuthorizationResponse(new String[]{denyToken},

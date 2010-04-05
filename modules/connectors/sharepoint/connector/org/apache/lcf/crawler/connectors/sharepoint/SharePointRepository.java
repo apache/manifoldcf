@@ -98,7 +98,7 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
   }
 
   /** Deny access token for default authority */
-  private final static String defaultAuthorityDenyToken = "McAdAuthority_MC_DEAD_AUTHORITY";
+  private final static String defaultAuthorityDenyToken = "DEAD_AUTHORITY";
 
   /** Constructor.
   */

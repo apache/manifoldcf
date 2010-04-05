@@ -51,7 +51,7 @@ public class AuthorityConnector extends org.apache.lcf.authorities.authorities.B
   // Documentum has no "deny" tokens, and its document acls cannot be empty, so no local authority deny token is required.
   // However, it is felt that we need to be suspenders-and-belt, so here is the deny token.
   // The documentum tokens are of the form xxx:yyy, so they cannot collide with the standard deny token.
-  protected static final String denyToken = "MC_DEAD_AUTHORITY";
+  protected static final String denyToken = "DEAD_AUTHORITY";
 
   protected static final AuthorizationResponse unreachableResponse = new AuthorizationResponse(new String[]{denyToken},AuthorizationResponse.RESPONSE_UNREACHABLE);
   protected static final AuthorizationResponse userNotFoundResponse = new AuthorizationResponse(new String[]{denyToken},AuthorizationResponse.RESPONSE_USERNOTFOUND);

@@ -79,7 +79,7 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
   private final static long CONNECTION_IDLE_INTERVAL = 900000L;
 
   /** Deny access token for default authority */
-  private final static String defaultAuthorityDenyToken = "McAdAuthority_MC_DEAD_AUTHORITY";
+  public final static String defaultAuthorityDenyToken = "DEAD_AUTHORITY";
 
   // Activities that we know about
   protected final static String ACTIVITY_SEARCH_AND_DECODE = "search and decode record";
@@ -1055,10 +1055,7 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
                               Logging.connectors.debug("Memex: Record "+urn+" has forced acls");
 
                             aclarray = forcedAcls;
-                            if (usesDefaultAuthority)
-                              acldenyarray = new String[]{defaultAuthorityDenyToken};
-                            else
-                              acldenyarray = new String[]{"DEFAULT-DENY"};
+                            acldenyarray = new String[]{defaultAuthorityDenyToken};
                           }
 
                           // Third decodeable section: acls

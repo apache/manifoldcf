@@ -60,13 +60,10 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 
   protected static final long timeToRelease = 300000L;
 
-  /** Deny access token for default authority */
-  private final static String defaultAuthorityDenyToken = "McAdAuthority_MC_DEAD_AUTHORITY";
-
-  // Documentum has no "deny" tokens, and its document acls cannot be empty, so no local authority deny token is required.
-  // However, it is felt that we need to be suspenders-and-belt, so here is the deny token.
-  // The documentum tokens are of the form xxx:yyy, so they cannot collide with the standard deny token.
-  private static final String denyToken = "MC_DEAD_AUTHORITY";
+  /** Documentum has no "deny" tokens, and its document acls cannot be empty, so no local authority deny token is required.
+  * However, it is felt that we need to be suspenders-and-belt, so here is the deny token.
+  * The documentum tokens are of the form xxx:yyy, so they cannot collide with the standard deny token. */
+  private static final String denyToken = "DEAD_AUTHORITY";
 
   protected class GetSessionThread extends Thread
   {
@@ -1235,11 +1232,7 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
       forcedAclString.append('+');
       java.util.Arrays.sort(acls);
       packList(forcedAclString,acls,'+');
-      // KDW: Added 4/21/2008 to allow AD authority failure to disable documents with forced acls
-      if (usesDefaultAuthority)
-        pack(forcedAclString,defaultAuthorityDenyToken,'+');
-      else
-        pack(forcedAclString,denyToken,'+');
+      pack(forcedAclString,denyToken,'+');
     }
     else
       forcedAclString.append('-');

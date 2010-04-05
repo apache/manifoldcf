@@ -73,8 +73,8 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
   /** Deny access token for Meridio */
   private final static String denyToken = "DEAD_AUTHORITY";
 
-  /** Deny access token for default authority */
-  private final static String defaultAuthorityDenyToken = "McAdAuthority_MC_DEAD_AUTHORITY";
+  /** Deny access token for Active Directory, which is what we expect to be in place for forced acls */
+  private final static String defaultAuthorityDenyToken = "DEAD_AUTHORITY";
 
   private static final long interruptionRetryTime = 60000L;
 
@@ -625,14 +625,8 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
         {
           decodeableString.append('+');
           packList(decodeableString,acls,'+');
-          // KDW: Added this 4/21/2008 to handle the relationship with the global authority
-          if (usesDefaultAuthority)
-          {
-            decodeableString.append('+');
-            pack(decodeableString,defaultAuthorityDenyToken,'+');
-          }
-          else
-            decodeableString.append('-');
+          decodeableString.append('+');
+          pack(decodeableString,defaultAuthorityDenyToken,'+');
         }
 
         // Calculate the part of the version string that comes from path name and mapping.

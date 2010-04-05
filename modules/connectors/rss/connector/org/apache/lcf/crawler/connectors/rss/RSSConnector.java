@@ -212,7 +212,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
   public final static String ACTIVITY_ROBOTSPARSE = "robots parse";
 
   /** Deny access token for default authority */
-  private final static String defaultAuthorityDenyToken = "McAdAuthority_MC_DEAD_AUTHORITY";
+  private final static String defaultAuthorityDenyToken = "DEAD_AUTHORITY";
 
   /** Constructor.
   */
@@ -919,7 +919,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
 
                 sb.append('+');
                 packList(sb,acls,'+');
-                if (acls.length > 0 && usesDefaultAuthority)
+                if (acls.length > 0)
                 {
                   sb.append('+');
                   pack(sb,defaultAuthorityDenyToken,'+');
@@ -1151,7 +1151,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
 
                           sb.append('+');
                           packList(sb,acls,'+');
-                          if (acls.length > 0 && usesDefaultAuthority)
+                          if (acls.length > 0)
                           {
                             sb.append('+');
                             pack(sb,defaultAuthorityDenyToken,'+');

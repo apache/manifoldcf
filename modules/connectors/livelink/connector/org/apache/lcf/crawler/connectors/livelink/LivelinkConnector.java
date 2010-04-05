@@ -56,12 +56,12 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
   private final static String ACTIVITY_FETCH = "fetch document";
 
   /** Deny access token for default authority */
-  private final static String defaultAuthorityDenyToken = "MCADAuthority_MC_DEAD_AUTHORITY";
+  private final static String defaultAuthorityDenyToken = "DEAD_AUTHORITY";
 
   // Livelink does not have "deny" permissions, and there is no such thing as a document with no tokens, so it is safe to not have a local "deny" token.
   // However, people feel that a suspenders-and-belt approach is called for, so this restriction has been added.
   // Livelink tokens are numbers, "SYSTEM", or "GUEST", so they can't collide with the standard form.
-  private static final String denyToken = "MC_DEAD_AUTHORITY";
+  private static final String denyToken = "DEAD_AUTHORITY";
 
   // A couple of very important points.
   // First, the canonical document identifier has the following form:
@@ -991,10 +991,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
             {
               // Forced acls
               actualAcls = acls;
-              if (usesDefaultAuthority)
-                denyAcl = defaultAuthorityDenyToken;
-              else
-                denyAcl = denyToken;
+              denyAcl = defaultAuthorityDenyToken;
             }
             else
             {
