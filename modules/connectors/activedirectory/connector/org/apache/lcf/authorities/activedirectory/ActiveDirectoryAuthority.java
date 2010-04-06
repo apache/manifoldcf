@@ -47,6 +47,11 @@ public class ActiveDirectoryAuthority extends org.apache.lcf.authorities.authori
 
   /** The initialized LDAP context (which functions as a session) */
   private LdapContext ctx = null;
+  /** The time of last access to this ctx object */
+  private long expiration = -1L;
+  
+  /** The length of time in milliseconds that the connection remains idle before expiring.  Currently 5 minutes. */
+  private static final long expirationInterval = 300000L;
   
   /** This is the active directory global deny token.  This should be ingested with all documents. */
   private static final String globalDenyToken = "DEAD_AUTHORITY";
@@ -99,20 +104,40 @@ public class ActiveDirectoryAuthority extends org.apache.lcf.authorities.authori
     return super.check();
   }
 
+  /** Poll.  The connection should be closed if it has been idle for too long.
+  */
+  public void poll()
+    throws LCFException
+  {
+    if (expiration != -1L && System.currentTimeMillis() > expiration)
+      closeConnection();
+    super.poll();
+  }
+  
+  /** Close the connection handle, but leave the info around if we open it again. */
+  protected void closeConnection()
+  {
+    if (ctx != null)
+    {
+      try
+      {
+        ctx.close();
+      }
+      catch (NamingException e)
+      {
+        // Eat this error
+      }
+      ctx = null;
+      expiration = -1L;
+    }
+  }
+  
   /** Close the connection.  Call this before discarding the repository connector.
   */
   public void disconnect()
     throws LCFException
   {
-    try
-    {
-      ctx.close();
-    }
-    catch (NamingException e)
-    {
-      // Eat this error
-    }
-    ctx = null;
+    closeConnection();
     domainControllerName = null;
     userName = null;
     password = null;
@@ -259,6 +284,30 @@ public class ActiveDirectoryAuthority extends org.apache.lcf.authorities.authori
 	throw new LCFException(e.getMessage(),e);
       }
     }
+    else
+    {
+      // Attempt to reconnect.  I *hope* this is efficient and doesn't do unnecessary work.
+      try
+      {
+        ctx.reconnect(null);
+      }
+      catch (AuthenticationException e)
+      {
+        // This means we couldn't authenticate!
+        throw new LCFException("Authentication problem authenticating admin user '"+userName+"': "+e.getMessage(),e);
+      }
+      catch (CommunicationException e)
+      {
+        // This means we couldn't connect, most likely
+	throw new LCFException("Couldn't communicate with domain controller '"+domainControllerName+"': "+e.getMessage(),e);
+      }
+      catch (NamingException e)
+      {
+	throw new LCFException(e.getMessage(),e);
+      }
+    }
+    
+    expiration = System.currentTimeMillis() + expirationInterval;
   }
   
   /** Parse a user name into an ldap search base. */
