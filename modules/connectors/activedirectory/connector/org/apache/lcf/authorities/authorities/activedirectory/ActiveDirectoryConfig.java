@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.lcf.authorities.activedirectory;
+package org.apache.lcf.authorities.authorities.activedirectory;
 
 
 /** Parameters and output data for MetaCarta GTS output connector.

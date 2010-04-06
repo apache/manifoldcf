@@ -37,13 +37,13 @@
 	if (tabName == null)
 		out.println("No tab name!");
 
-	String domainControllerName = parameters.getParameter(org.apache.lcf.authorities.activedirectory.ActiveDirectoryConfig.PARAM_DOMAINCONTROLLER);
+	String domainControllerName = parameters.getParameter(org.apache.lcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_DOMAINCONTROLLER);
 	if (domainControllerName == null)
 		domainControllerName = "";
-	String userName = parameters.getParameter(org.apache.lcf.authorities.activedirectory.ActiveDirectoryConfig.PARAM_USERNAME);
+	String userName = parameters.getParameter(org.apache.lcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_USERNAME);
 	if (userName == null)
 		userName = "";
-	String password = parameters.getObfuscatedParameter(org.apache.lcf.authorities.activedirectory.ActiveDirectoryConfig.PARAM_PASSWORD);
+	String password = parameters.getObfuscatedParameter(org.apache.lcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_PASSWORD);
 	if (password == null)
 		password = "";
 

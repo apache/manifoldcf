@@ -38,11 +38,11 @@
 
 	String domainControllerName = variableContext.getParameter("domaincontrollername");
 	if (domainControllerName != null)
-		parameters.setParameter(org.apache.lcf.authorities.activedirectory.ActiveDirectoryConfig.PARAM_DOMAINCONTROLLER,domainControllerName);
+		parameters.setParameter(org.apache.lcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_DOMAINCONTROLLER,domainControllerName);
 	String userName = variableContext.getParameter("username");
 	if (userName != null)
-		parameters.setParameter(org.apache.lcf.authorities.activedirectory.ActiveDirectoryConfig.PARAM_USERNAME,userName);
+		parameters.setParameter(org.apache.lcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_USERNAME,userName);
 	String password = variableContext.getParameter("password");
 	if (password != null)
-		parameters.setObfuscatedParameter(org.apache.lcf.authorities.activedirectory.ActiveDirectoryConfig.PARAM_PASSWORD,password);
+		parameters.setObfuscatedParameter(org.apache.lcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_PASSWORD,password);
 %>
