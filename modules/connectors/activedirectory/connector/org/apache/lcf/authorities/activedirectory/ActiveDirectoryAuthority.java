@@ -95,9 +95,7 @@ public class ActiveDirectoryAuthority extends org.apache.lcf.authorities.authori
   public String check()
     throws LCFException
   {
-    String message = getSession();
-    if (message != null)
-      return "Domain controller unreachable: "+message;
+    getSession();
     return super.check();
   }
 
@@ -129,9 +127,7 @@ public class ActiveDirectoryAuthority extends org.apache.lcf.authorities.authori
   public AuthorizationResponse getAuthorizationResponse(String userName)
     throws LCFException
   {
-    String message = getSession();
-    if (message != null)
-      return unreachableResponse;
+    getSession();
 
     //Create the search controls 		
     SearchControls searchCtls = new SearchControls();
@@ -146,7 +142,7 @@ public class ActiveDirectoryAuthority extends org.apache.lcf.authorities.authori
     String searchBase = parseUser(userName);
  
     //Specify the attributes to return
-    String returnedAtts[] = {"tokenGroups"};
+    String returnedAtts[] = {"tokenGroups","objectSid"};
     searchCtls.setReturningAttributes(returnedAtts);
 
     try
@@ -155,6 +151,8 @@ public class ActiveDirectoryAuthority extends org.apache.lcf.authorities.authori
       NamingEnumeration answer = ctx.search(searchBase, searchFilter, searchCtls);
 
       ArrayList theGroups = new ArrayList();
+      // All users get certain well-known groups
+      theGroups.add("S-1-1-0");
 
       //Loop through the search results
       while (answer.hasMoreElements())
@@ -221,7 +219,7 @@ public class ActiveDirectoryAuthority extends org.apache.lcf.authorities.authori
 
   // Protected methods
   
-  protected String getSession()
+  protected void getSession()
     throws LCFException
   {
     if (ctx == null)
@@ -239,7 +237,7 @@ public class ActiveDirectoryAuthority extends org.apache.lcf.authorities.authori
       env.put(Context.PROVIDER_URL,ldapURL);
 		
       //specify attributes to be returned in binary format
-      env.put("java.naming.ldap.attributes.binary","tokenGroups");
+      env.put("java.naming.ldap.attributes.binary","tokenGroups objectSid");
  
       // Now, try the connection...
       try
@@ -251,13 +249,16 @@ public class ActiveDirectoryAuthority extends org.apache.lcf.authorities.authori
         // This means we couldn't authenticate!
         throw new LCFException("Authentication problem authenticating admin user '"+userName+"': "+e.getMessage(),e);
       }
-      catch (NamingException e)
+      catch (CommunicationException e)
       {
         // This means we couldn't connect, most likely
-        return e.getMessage();
+	throw new LCFException("Couldn't communicate with domain controller '"+domainControllerName+"': "+e.getMessage(),e);
+      }
+      catch (NamingException e)
+      {
+	throw new LCFException(e.getMessage(),e);
       }
     }
-    return null;
   }
   
   /** Parse a user name into an ldap search base. */
