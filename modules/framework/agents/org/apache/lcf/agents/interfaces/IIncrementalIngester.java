@@ -69,6 +69,14 @@ public interface IIncrementalIngester
   public void clearAll()
     throws LCFException;
 
+  /** Check if a mime type is indexable.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param mimeType is the mime type to check.
+  *@return true if the mimeType is indexable.
+  */
+  public boolean checkMimeTypeIndexable(String outputConnectionName, String mimeType)
+    throws LCFException, ServiceInterruption;
+
   /** Check if a file is indexable.
   *@param outputConnectionName is the name of the output connection associated with this action.
   *@param localFile is the local file to check.

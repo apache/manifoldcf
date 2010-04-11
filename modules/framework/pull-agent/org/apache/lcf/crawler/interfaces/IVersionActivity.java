@@ -25,7 +25,7 @@ import java.util.*;
 /** This interface abstracts from the activities that a versioning operation can do.
 * See IProcessActivity for a description of the event model.
 */
-public interface IVersionActivity extends IHistoryActivity, IEventActivity, IAbortActivity
+public interface IVersionActivity extends IHistoryActivity, IEventActivity, IAbortActivity, IFingerprintActivity
 {
   public static final String _rcsid = "@(#)$Id$";
 

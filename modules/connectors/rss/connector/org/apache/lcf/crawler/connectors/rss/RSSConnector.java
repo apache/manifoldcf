@@ -140,65 +140,6 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
 
   protected static DataCache cache = new DataCache();
 
-  protected static final String[] interestingMimeTypeArray = new String[]
-  {
-    "application/excel",
-      "application/powerpoint",
-      "application/ppt",
-      "application/rtf",
-      "application/xls",
-      "text/html",
-      "text/rtf",
-      "text/pdf",
-      "application/x-excel",
-      "application/x-msexcel",
-      "application/x-mspowerpoint",
-      "application/x-msword-doc",
-      "application/x-msword",
-      "application/x-word",
-      "Application/pdf",
-      "text/xml",
-      "no-type",
-      "text/plain",
-      "application/pdf",
-      "application/x-rtf",
-      "application/vnd.ms-excel",
-      "application/vnd.ms-pps",
-      "application/vnd.ms-powerpoint",
-      "application/vnd.ms-word",
-      "application/msword",
-      "application/msexcel",
-      "application/mspowerpoint",
-      "application/ms-powerpoint",
-      "application/ms-word",
-      "application/ms-excel",
-      "Adobe",
-      "application/Vnd.Ms-Excel",
-      "vnd.ms-powerpoint",
-      "application/x-pdf",
-      "winword",
-      "text/richtext",
-      "Text",
-      "Text/html",
-      "application/MSWORD",
-      "application/PDF",
-      "application/MSEXCEL",
-      "application/MSPOWERPOINT",
-      "application/rss+xml",
-      "application/xml"
-  };
-
-  protected static final Map interestingMimeTypeMap = new HashMap();
-  static
-  {
-    int i = 0;
-    while (i < interestingMimeTypeArray.length)
-    {
-      String type = interestingMimeTypeArray[i++];
-      interestingMimeTypeMap.put(type,type);
-    }
-  }
-
 
   protected static final Map understoodProtocols = new HashMap();
   static
@@ -1098,7 +1039,7 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
                         // Decide whether to exclude this document based on what we see here.
                         // Basically, we want to get rid of everything that we don't know what
                         // to do with in the ingestion system.
-                        if (!isContentInteresting(contentType))
+                        if (!isContentInteresting(activities,contentType))
                         {
                           if (Logging.connectors.isDebugEnabled())
                             Logging.connectors.debug("RSS: Removing url '"+urlValue+"' because it had the wrong content type: "+((contentType==null)?"null":"'"+contentType+"'"));
@@ -3284,8 +3225,8 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
 
   /** Code to check if data is interesting, based on response code and content type.
   */
-  protected boolean isContentInteresting(String contentType)
-    throws LCFException
+  protected boolean isContentInteresting(IFingerprintActivity activities, String contentType)
+    throws ServiceInterruption, LCFException
   {
     // Look at the content type and decide if it's a kind we want.  This is defined
     // as something we think we can either ingest, or extract links from.
@@ -3299,8 +3240,8 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
     if (pos != -1)
       contentType = contentType.substring(0,pos);
     contentType = contentType.trim();
-
-    return interestingMimeTypeMap.get(contentType) != null;
+    
+    return activities.checkMimeTypeIndexable(contentType);
   }
 
   /** Stuffer for packing a single string with an end delimiter */

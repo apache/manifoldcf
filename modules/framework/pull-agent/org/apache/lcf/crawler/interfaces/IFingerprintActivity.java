@@ -23,11 +23,19 @@ import org.apache.lcf.agents.interfaces.*;
 import java.util.*;
 import java.io.*;
 
-/** This interface abstracts from the activities that handle document fingerprinting.
+/** This interface abstracts from the activities that handle document fingerprinting and mime type acceptance.
 */
 public interface IFingerprintActivity
 {
   public static final String _rcsid = "@(#)$Id$";
+
+  /** Detect if a mime type is indexable or not.  This method is used by participating repository connectors to pre-filter the number of
+  * unusable documents that will be passed to this output connector.
+  *@param mimeType is the mime type of the document.
+  *@return true if the mime type is indexable by this connector.
+  */
+  public boolean checkMimeTypeIndexable(String mimeType)
+    throws LCFException, ServiceInterruption;
 
   /** Check whether a document is indexable by the currently specified output connector.
   *@param localFile is the local copy of the file to check.

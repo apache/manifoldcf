@@ -143,6 +143,74 @@ public class GTSConnector extends org.apache.lcf.agents.output.BaseOutputConnect
     }
   }
 
+  protected static final String[] ingestableMimeTypeArray = new String[]
+  {
+    "application/excel",
+      "application/powerpoint",
+      "application/ppt",
+      "application/rtf",
+      "application/xls",
+      "text/html",
+      "text/rtf",
+      "text/pdf",
+      "application/x-excel",
+      "application/x-msexcel",
+      "application/x-mspowerpoint",
+      "application/x-msword-doc",
+      "application/x-msword",
+      "application/x-word",
+      "Application/pdf",
+      "text/xml",
+      "no-type",
+      "text/plain",
+      "application/pdf",
+      "application/x-rtf",
+      "application/vnd.ms-excel",
+      "application/vnd.ms-pps",
+      "application/vnd.ms-powerpoint",
+      "application/vnd.ms-word",
+      "application/msword",
+      "application/msexcel",
+      "application/mspowerpoint",
+      "application/ms-powerpoint",
+      "application/ms-word",
+      "application/ms-excel",
+      "Adobe",
+      "application/Vnd.Ms-Excel",
+      "vnd.ms-powerpoint",
+      "application/x-pdf",
+      "winword",
+      "text/richtext",
+      "Text",
+      "Text/html",
+      "application/MSWORD",
+      "application/PDF",
+      "application/MSEXCEL",
+      "application/MSPOWERPOINT"
+  };
+
+  protected static final Map ingestableMimeTypeMap = new HashMap();
+  static
+  {
+    int i = 0;
+    while (i < ingestableMimeTypeArray.length)
+    {
+      String type = ingestableMimeTypeArray[i++];
+      ingestableMimeTypeMap.put(type,type);
+    }
+  }
+
+  /** Detect if a mime type is indexable or not.  This method is used by participating repository connectors to pre-filter the number of
+  * unusable documents that will be passed to this output connector.
+  *@param mimeType is the mime type of the document.
+  *@param true if the mime type is indexable by this connector.
+  */
+  public boolean checkMimeTypeIndexable(String mimeType)
+    throws LCFException, ServiceInterruption
+  {
+    return (ingestableMimeTypeMap.get(mimeType) != null);
+  }
+
   /** Pre-determine whether a document (passed here as a File object) is indexable by this connector.  This method is used by participating
   * repository connectors to help reduce the number of unmanageable documents that are passed to this output connector in advance of an
   * actual transfer.  This hook is provided mainly to support search engines that only handle a small set of accepted file types.

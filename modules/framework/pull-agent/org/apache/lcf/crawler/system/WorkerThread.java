@@ -328,7 +328,7 @@ public class WorkerThread extends Thread
 
                       HashMap abortSet = new HashMap();
                       ProcessActivity activity;
-                      VersionActivity versionActivity = new VersionActivity(connectionName,connMgr,jobManager,job.getID(),abortSet);
+                      VersionActivity versionActivity = new VersionActivity(connectionName,connMgr,jobManager,job,ingester,abortSet);
 
                       String aclAuthority = connection.getACLAuthority();
                       boolean isDefaultAuthority = (aclAuthority == null || aclAuthority.length() == 0);
@@ -1137,18 +1137,31 @@ public class WorkerThread extends Thread
     protected IRepositoryConnectionManager connMgr;
     protected IJobManager jobManager;
     protected Long jobID;
+    protected IJobDescription job;
+    protected IIncrementalIngester ingester;
     protected HashMap abortSet;
 
     /** Constructor.
     */
     public VersionActivity(String connectionName, IRepositoryConnectionManager connMgr,
-      IJobManager jobManager, Long jobID, HashMap abortSet)
+      IJobManager jobManager, IJobDescription job, IIncrementalIngester ingester, HashMap abortSet)
     {
       this.connectionName = connectionName;
       this.connMgr = connMgr;
       this.jobManager = jobManager;
-      this.jobID = jobID;
+      this.job = job;
+      this.ingester = ingester;
       this.abortSet = abortSet;
+    }
+
+    /** Check whether a mime type is indexable by the currently specified output connector.
+    *@param mimeType is the mime type to check, not including any character set specification.
+    *@return true if the mime type is indexable.
+    */
+    public boolean checkMimeTypeIndexable(String mimeType)
+      throws LCFException, ServiceInterruption
+    {
+      return ingester.checkMimeTypeIndexable(job.getOutputConnectionName(),mimeType);
     }
 
     /** Record time-stamped information about the activity of the connector.
@@ -1183,7 +1196,7 @@ public class WorkerThread extends Thread
     public String[] retrieveParentData(String localIdentifier, String dataName)
       throws LCFException
     {
-      return jobManager.retrieveParentData(jobID,LCF.hash(localIdentifier),dataName);
+      return jobManager.retrieveParentData(job.getID(),LCF.hash(localIdentifier),dataName);
     }
 
     /** Retrieve data passed from parents to a specified child document.
@@ -1194,7 +1207,7 @@ public class WorkerThread extends Thread
     public CharacterInput[] retrieveParentDataAsFiles(String localIdentifier, String dataName)
       throws LCFException
     {
-      return jobManager.retrieveParentDataAsFiles(jobID,LCF.hash(localIdentifier),dataName);
+      return jobManager.retrieveParentDataAsFiles(job.getID(),LCF.hash(localIdentifier),dataName);
     }
 
     /** Check whether current job is still active.
@@ -1205,7 +1218,7 @@ public class WorkerThread extends Thread
     public void checkJobStillActive()
       throws LCFException, ServiceInterruption
     {
-      if (jobManager.checkJobActive(jobID) == false)
+      if (jobManager.checkJobActive(job.getID()) == false)
         throw new ServiceInterruption("Job no longer active",System.currentTimeMillis());
     }
 
@@ -1891,6 +1904,16 @@ public class WorkerThread extends Thread
     {
       // Accumulate aborts
       abortSet.put(localIdentifier,localIdentifier);
+    }
+
+    /** Check whether a mime type is indexable by the currently specified output connector.
+    *@param mimeType is the mime type to check, not including any character set specification.
+    *@return true if the mime type is indexable.
+    */
+    public boolean checkMimeTypeIndexable(String mimeType)
+      throws LCFException, ServiceInterruption
+    {
+      return ingester.checkMimeTypeIndexable(job.getOutputConnectionName(),mimeType);
     }
 
     /** Check whether a document is indexable by the currently specified output connector.

@@ -191,6 +191,29 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
     performDelete("",null,null);
   }
 
+  /** Check if a mime type is indexable.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param mimeType is the mime type to check.
+  *@return true if the mimeType is indexable.
+  */
+  public boolean checkMimeTypeIndexable(String outputConnectionName, String mimeType)
+    throws LCFException, ServiceInterruption
+  {
+    IOutputConnection connection = connectionManager.load(outputConnectionName);
+    IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+    if (connector == null)
+      // The connector is not installed; treat this as a service interruption.
+      throw new ServiceInterruption("Output connector not installed",300000L);
+    try
+    {
+      return connector.checkMimeTypeIndexable(mimeType);
+    }
+    finally
+    {
+      OutputConnectorFactory.release(connector);
+    }
+  }
+
   /** Check if a file is indexable.
   *@param outputConnectionName is the name of the output connection associated with this action.
   *@param localFile is the local file to check.

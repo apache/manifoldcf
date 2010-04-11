@@ -143,6 +143,17 @@ public abstract class BaseOutputConnector implements IOutputConnector
     return params;
   }
 
+  /** Detect if a mime type is indexable or not.  This method is used by participating repository connectors to pre-filter the number of
+  * unusable documents that will be passed to this output connector.
+  *@param mimeType is the mime type of the document.
+  *@return true if the mime type is indexable by this connector.
+  */
+  public boolean checkMimeTypeIndexable(String mimeType)
+    throws LCFException, ServiceInterruption
+  {
+    return true;
+  }
+
   /** Pre-determine whether a document (passed here as a File object) is indexable by this connector.  This method is used by participating
   * repository connectors to help reduce the number of unmanageable documents that are passed to this output connector in advance of an
   * actual transfer.  This hook is provided mainly to support search engines that only handle a small set of accepted file types.

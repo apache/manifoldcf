@@ -78,110 +78,34 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
   protected static final int RESULTSTATUS_TRUE = 1;
   protected static final int RESULTSTATUS_NOTYETDETERMINED = 2;
 
-  protected static final String[] ingestableMimeTypeArray = new String[]
-  {
-    "application/excel",
-      "application/powerpoint",
-      "application/ppt",
-      "application/rtf",
-      "application/xls",
-      "text/html",
-      "text/rtf",
-      "text/pdf",
-      "application/x-excel",
-      "application/x-msexcel",
-      "application/x-mspowerpoint",
-      "application/x-msword-doc",
-      "application/x-msword",
-      "application/x-word",
-      "Application/pdf",
-      "text/xml",
-      "no-type",
-      "text/plain",
-      "application/pdf",
-      "application/x-rtf",
-      "application/vnd.ms-excel",
-      "application/vnd.ms-pps",
-      "application/vnd.ms-powerpoint",
-      "application/vnd.ms-word",
-      "application/msword",
-      "application/msexcel",
-      "application/mspowerpoint",
-      "application/ms-powerpoint",
-      "application/ms-word",
-      "application/ms-excel",
-      "Adobe",
-      "application/Vnd.Ms-Excel",
-      "vnd.ms-powerpoint",
-      "application/x-pdf",
-      "winword",
-      "text/richtext",
-      "Text",
-      "Text/html",
-      "application/MSWORD",
-      "application/PDF",
-      "application/MSEXCEL",
-      "application/MSPOWERPOINT"
-  };
-
-
+  /** This represents a list of the mime types that this connector knows how to extract links from.
+  * Documents that are indexable are described by the output connector. */
   protected static final String[] interestingMimeTypeArray = new String[]
   {
-    "application/excel",
-      "application/powerpoint",
-      "application/ppt",
-      "application/rtf",
-      "application/xls",
-      "text/html",
-      "text/rtf",
-      "text/pdf",
-      "application/x-excel",
-      "application/x-msexcel",
-      "application/x-mspowerpoint",
-      "application/x-msword-doc",
-      "application/x-msword",
-      "application/x-word",
-      "Application/pdf",
-      "text/xml",
-      "no-type",
-      "text/plain",
-      "application/pdf",
-      "application/x-rtf",
-      "application/vnd.ms-excel",
-      "application/vnd.ms-pps",
-      "application/vnd.ms-powerpoint",
-      "application/vnd.ms-word",
-      "application/msword",
-      "application/msexcel",
-      "application/mspowerpoint",
-      "application/ms-powerpoint",
-      "application/ms-word",
-      "application/ms-excel",
-      "Adobe",
-      "application/Vnd.Ms-Excel",
-      "vnd.ms-powerpoint",
-      "application/x-pdf",
-      "winword",
-      "text/richtext",
-      "Text",
-      "Text/html",
-      "application/MSWORD",
-      "application/PDF",
-      "application/MSEXCEL",
-      "application/MSPOWERPOINT"
+    "application/rtf",
+    "application/xls",
+    "text/html",
+    "text/rtf",
+    "application/x-excel",
+    "application/x-msexcel",
+    "application/x-mspowerpoint",
+    "application/x-msword-doc",
+    "application/x-msword",
+    "application/x-word",
+    "text/xml",
+    "no-type",
+    "text/plain",
+    "application/x-rtf",
+    "application/x-pdf",
+    "text/richtext",
+    "Text",
+    "Text/html"
   };
 
-  protected static final Map ingestableMimeTypeMap = new HashMap();
   protected static final Map interestingMimeTypeMap = new HashMap();
   static
   {
     int i = 0;
-    while (i < ingestableMimeTypeArray.length)
-    {
-      String type = ingestableMimeTypeArray[i++];
-      ingestableMimeTypeMap.put(type,type);
-    }
-    i = 0;
     while (i < interestingMimeTypeArray.length)
     {
       String type = interestingMimeTypeArray[i++];
@@ -774,7 +698,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
                             contentType = null;
                         }
 
-                        if (isContentInteresting(currentURI,response,contentType))
+                        if (isContentInteresting(activities,currentURI,response,contentType))
                         {
                           // Treat it as real, and cache it.
                           checkSum = cache.addData(activities,currentURI,connection);
@@ -1218,7 +1142,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
         // We can exclude it if it does not seem to be a kind of document that the ingestion system knows
         // about.
 
-        if (isDataIngestable(documentIdentifier))
+        if (isDataIngestable(activities,documentIdentifier))
         {
           // Ingest the document
           if (Logging.connectors.isDebugEnabled())
@@ -1966,8 +1890,8 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
 
   /** Code to check if data is interesting, based on response code and content type.
   */
-  protected boolean isContentInteresting(String documentIdentifier, int response, String contentType)
-    throws LCFException
+  protected boolean isContentInteresting(IFingerprintActivity activities, String documentIdentifier, int response, String contentType)
+    throws ServiceInterruption, LCFException
   {
     // Additional filtering only done if it's a 200 response
     if (response != 200)
@@ -1987,13 +1911,17 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
       contentType = contentType.substring(0,pos);
     contentType = contentType.trim();
 
-    return interestingMimeTypeMap.get(contentType) != null;
+    // There are presumably mime types we can extract links from that we can't index?
+    if (interestingMimeTypeMap.get(contentType) != null)
+      return true;
+    
+    return activities.checkMimeTypeIndexable(contentType);
   }
 
   /** Code to check if an already-fetched document should be ingested.
   */
-  protected boolean isDataIngestable(String documentIdentifier)
-    throws LCFException
+  protected boolean isDataIngestable(IFingerprintActivity activities, String documentIdentifier)
+    throws ServiceInterruption, LCFException
   {
     if (cache.getResponseCode(documentIdentifier) != 200)
       return false;
@@ -2019,13 +1947,7 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
       contentType = contentType.substring(0,pos);
     contentType = contentType.trim();
 
-    if (ingestableMimeTypeMap.get(contentType) == null)
-      return false;
-
-    // Now, it looks good, but let's be certain by doing fingerprinting.
-    // MHL
-
-    return true;
+    return activities.checkMimeTypeIndexable(contentType);
   }
 
   /** Find a redirection URI, if it exists */
