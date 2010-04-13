@@ -1164,6 +1164,16 @@ public class WorkerThread extends Thread
       return ingester.checkMimeTypeIndexable(job.getOutputConnectionName(),mimeType);
     }
 
+    /** Check whether a document is indexable by the currently specified output connector.
+    *@param localFile is the local copy of the file to check.
+    *@return true if the document is indexable.
+    */
+    public boolean checkDocumentIndexable(File localFile)
+      throws LCFException, ServiceInterruption
+    {
+      return ingester.checkDocumentIndexable(job.getOutputConnectionName(),localFile);
+    }
+
     /** Record time-stamped information about the activity of the connector.
     *@param startTime is either null or the time since the start of epoch in milliseconds (Jan 1, 1970).  Every
     *       activity has an associated time; the startTime field records when the activity began.  A null value
