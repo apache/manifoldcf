@@ -82,6 +82,6 @@
 <p class="menumain"><nobr>Miscellaneous</nobr></p>
 <ul class="menusecond">
 	<li class="menuitem">
-		<nobr><a class="menulink" href="/documentation/ConnectorGuide.pdf" alt="Help">Help</a></nobr>
+		<nobr><a class="menulink" href="http://incubator.apache.org/connectors/end-user-documentation.html" alt="Help">Help</a></nobr>
 	</li>
 </ul>
