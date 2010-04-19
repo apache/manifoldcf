@@ -141,6 +141,9 @@
     <target name="processes" depends="jar-connector,precompile-check" if="canBuild">
         <mkdir dir="dist/processes"/>
         <copy todir="dist/processes" file="build/jar/lcf-memex-connector.jar"/>
+        <copy todir="dist/processes">
+            <fileset dir="mxie-java" includes="*.jar"/>
+        </copy>
     </target>
 
     <target name="all" depends="processes,iar-crawler-ui,iar-authority-service,doc"/>
