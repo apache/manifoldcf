@@ -408,7 +408,10 @@ public class CacheManager implements ICacheManager
         Object q = transactionHandle.lookupObject(objectDescription);
         if (q != null)
         {
-          // System.out.println("Found object in transaction cache: "+objectDescription.getCriticalSectionName());
+          if (Logging.cache.isDebugEnabled())
+          {
+            Logging.cache.debug(" Object '"+objectDescription.getCriticalSectionName()+"' found in transaction cache");
+          }
           return q;
         }
         // See if we can look at the parent
@@ -423,6 +426,11 @@ public class CacheManager implements ICacheManager
     if (o == null)
       return null;
 
+    if (Logging.cache.isDebugEnabled())
+    {
+      Logging.cache.debug(" Object '"+objectDescription.getCriticalSectionName()+"' exists locally; checking if local copy is valid");
+    }
+    
     // Before we conclude that the object is found, if we are on a multi-JVM environment we MUST check
     // the object's timestamp!!!  We check it against the invalidation key file timestamps for the object.
     long createTime = cache.getObjectCreationTime(objectDescription);
@@ -442,6 +450,11 @@ public class CacheManager implements ICacheManager
 
     // System.out.println("Found object: "+objectDescription.getCriticalSectionName());
 
+    if (Logging.cache.isDebugEnabled())
+    {
+      Logging.cache.debug(" Object '"+objectDescription.getCriticalSectionName()+"' is valid; resetting local expiration");
+    }
+
     // Update the expiration time for this object.
     resetObjectExpiration(objectDescription,handle.getLookupTime());
 
@@ -457,6 +470,10 @@ public class CacheManager implements ICacheManager
     throws LCFException
   {
     long createdDate = readSharedData(key);
+    if (Logging.cache.isDebugEnabled())
+    {
+      Logging.cache.debug(" Checking whether our cached copy of object with key = "+key+" has been invalidated.  It has create time "+new Long(createTime).toString()+", and the last change is "+new Long(createdDate).toString());
+    }
     if (createdDate == 0L)
       return false;
     return createdDate >= createTime;
@@ -619,6 +636,8 @@ public class CacheManager implements ICacheManager
       while (iter.hasNext())
       {
         String keyName = (String)iter.next();
+        if (Logging.cache.isDebugEnabled())
+          Logging.cache.debug(" Invalidating key = "+keyName+" as of time = "+new Long(invalidationTime).toString());
         writeSharedData(keyName,invalidationTime);
       }
 
@@ -845,7 +864,7 @@ public class CacheManager implements ICacheManager
     {
       try
       {
-        lockManager.writeData(key,Long.toString(value).getBytes("utf-8"));
+        lockManager.writeData("cache-"+key,Long.toString(value).getBytes("utf-8"));
       }
       catch (UnsupportedEncodingException e)
       {
