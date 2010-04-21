@@ -235,7 +235,7 @@ public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnec
     getSession();
 
     // Now, go off and call the ingest API.
-    if (poster.indexPost(documentURI,document,args,activities))
+    if (poster.indexPost(documentURI,document,args,authorityNameString,activities))
       return DOCUMENTSTATUS_ACCEPTED;
     return DOCUMENTSTATUS_REJECTED;
   }

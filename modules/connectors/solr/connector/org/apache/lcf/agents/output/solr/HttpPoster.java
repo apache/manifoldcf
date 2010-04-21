@@ -152,23 +152,31 @@ public class HttpPoster
       interruptionRetryTime = new Long(x).longValue();
   }
 
+  
   /**
   * Post the input stream to ingest
   * @param documentURI is the document's uri.
   * @param document is the document structure to ingest.
   * @param arguments are the configuration arguments to pass in the post.
+  * @param authorityNameString is the name of the governing authority for this document's acls, or null if none.
   * @param activities is the activities object, so we can report what's happening.
   * @return true if the ingestion was successful, or false if the ingestion is illegal.
   * @throws LCFException, ServiceInterruption
   */
   public boolean indexPost(String documentURI,
     RepositoryDocument document, Map arguments,
-    IOutputAddActivity activities)
+    String authorityNameString, IOutputAddActivity activities)
     throws LCFException, ServiceInterruption
   {
     if (Logging.ingest.isDebugEnabled())
       Logging.ingest.debug("indexPost(): '" + documentURI + "'");
 
+    // Convert the incoming acls to qualified forms
+    String[] shareAcls = convertACL(document.getShareACL(),authorityNameString,activities);
+    String[] shareDenyAcls = convertACL(document.getShareDenyACL(),authorityNameString,activities);
+    String[] acls = convertACL(document.getACL(),authorityNameString,activities);
+    String[] denyAcls = convertACL(document.getDenyACL(),authorityNameString,activities);
+    
     // This flag keeps track of whether we read anything from the input stream yet.
     // If not, we can retry here.  If so, we have to reschedule.
     boolean readFromDocumentStreamYet = false;
@@ -178,7 +186,7 @@ public class HttpPoster
     {
       try
       {
-        IngestThread t = new IngestThread(documentURI,document,arguments);
+        IngestThread t = new IngestThread(documentURI,document,arguments,shareAcls,shareDenyAcls,acls,denyAcls);
         try
         {
           t.start();
@@ -406,6 +414,29 @@ public class HttpPoster
 
     }
 
+  }
+
+  /** Convert an unqualified ACL to qualified form.
+  * @param acl is the initial, unqualified ACL.
+  * @param authorityNameString is the name of the governing authority for this document's acls, or null if none.
+  * @param activities is the activities object, so we can report what's happening.
+  * @return the modified ACL.
+  */
+  protected static String[] convertACL(String[] acl, String authorityNameString, IOutputAddActivity activities)
+    throws LCFException
+  {
+    if (acl != null)
+    {
+      String[] rval = new String[acl.length];
+      int i = 0;
+      while (i < rval.length)
+      {
+        rval[i] = activities.qualifyAccessToken(authorityNameString,acl[i]);
+        i++;
+      }
+      return rval;
+    }
+    return new String[0];
   }
 
   /**
@@ -721,6 +752,26 @@ public class HttpPoster
     return rval;
   }
 
+  /** Count the size of an acl level */
+  protected static int lengthACLs(String aclType, String[] acl, String[] denyAcl)
+    throws IOException
+  {
+    int totalLength = 0;
+    String metadataACLName = "__ACCESS_TOKEN__" + aclType;
+    int i = 0;
+    while (i < acl.length)
+    {
+      totalLength += lengthField(metadataACLName,acl[i++]);
+    }
+    String metadataDenyACLName = "__DENY_TOKEN__" + aclType;
+    i = 0;
+    while (i < denyAcl.length)
+    {
+      totalLength += lengthField(metadataDenyACLName,denyAcl[i++]);
+    }
+    return totalLength;
+  }
+
   /** Write the preamble */
   protected static void writePreamble(OutputStream out)
     throws IOException
@@ -763,6 +814,25 @@ public class HttpPoster
     writePostamble(out);
   }
 
+  
+  /** Output an acl level */
+  protected static void writeACLs(OutputStream out, String aclType, String[] acl, String[] denyAcl)
+    throws IOException
+  {
+    String metadataACLName = "__ACCESS_TOKEN__" + aclType;
+    int i = 0;
+    while (i < acl.length)
+    {
+      writeField(out,metadataACLName,acl[i++]);
+    }
+    String metadataDenyACLName = "__DENY_TOKEN__" + aclType;
+    i = 0;
+    while (i < denyAcl.length)
+    {
+      writeField(out,metadataDenyACLName,denyAcl[i++]);
+    }
+  }
+  
   /** Killable thread that does ingestions.
   * Java 1.5 stopped permitting thread interruptions to abort socket waits.  As a result, it is impossible to get threads to shutdown cleanly that are doing
   * such waits.  So, the places where this happens are segregated in their own threads so that they can be just abandoned.
@@ -774,6 +844,10 @@ public class HttpPoster
     protected String documentURI;
     protected RepositoryDocument document;
     protected Map arguments;
+    protected String[] shareAcls;
+    protected String[] shareDenyAcls;
+    protected String[] acls;
+    protected String[] denyAcls;
 
     protected Long activityStart = null;
     protected Long activityBytes = null;
@@ -783,13 +857,17 @@ public class HttpPoster
     protected boolean readFromDocumentStreamYet = false;
     protected boolean rval = false;
 
-    public IngestThread(String documentURI, RepositoryDocument document, Map arguments)
+    public IngestThread(String documentURI, RepositoryDocument document, Map arguments, String[] shareAcls, String[] shareDenyAcls, String[] acls, String[] denyAcls)
     {
       super();
       setDaemon(true);
       this.documentURI = documentURI;
       this.document = document;
       this.arguments = arguments;
+      this.shareAcls = shareAcls;
+      this.shareDenyAcls = shareDenyAcls;
+      this.acls = acls;
+      this.denyAcls = denyAcls;
     }
 
     public void run()
@@ -842,6 +920,9 @@ public class HttpPoster
                 int totalLength = 0;
                 // Count the id.
                 totalLength += lengthField("literal.id",documentURI);
+                // Count the acls
+                totalLength += lengthACLs("share",shareAcls,shareDenyAcls);
+                totalLength += lengthACLs("document",acls,denyAcls);
                 // Count the arguments
                 Iterator iter = arguments.keySet().iterator();
                 while (iter.hasNext())
@@ -887,6 +968,10 @@ public class HttpPoster
 
                 // Write the id field
                 writeField(out,"literal.id",documentURI);
+
+		// Write the access token information
+                writeACLs(out,"share",shareAcls,shareDenyAcls);
+                writeACLs(out,"document",acls,denyAcls);
 
                 // Write the arguments
                 iter = arguments.keySet().iterator();
