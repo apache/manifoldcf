@@ -218,18 +218,18 @@
     </target>
     
     <target name="war-authority-service" depends="webapp-authority-service">
-        <mkdir dir="dist/web"/>
-        <war destfile="dist/web/lcf-authority-service.war" webxml="authority-service/WEB-INF/web.xml" basedir="build/webapp/authority-service"/>
+        <mkdir dir="dist/web/war"/>
+        <war destfile="dist/web/war/lcf-authority-service.war" webxml="authority-service/WEB-INF/web.xml" basedir="build/webapp/authority-service"/>
     </target>
     
     <target name="war-crawler-ui" depends="webapp-crawler-ui">
-        <mkdir dir="dist/web"/>
-        <war destfile="dist/web/lcf-crawler-ui.war" webxml="crawler-ui/WEB-INF/web.xml" basedir="build/webapp/crawler-ui"/>
+        <mkdir dir="dist/web/war"/>
+        <war destfile="dist/web/war/lcf-crawler-ui.war" webxml="crawler-ui/WEB-INF/web.xml" basedir="build/webapp/crawler-ui"/>
     </target>
 
     <target name="processes" depends="jar-core,jar-agents,jar-pull-agent">
-        <mkdir dir="dist/processes"/>
-        <copy todir="dist/processes">
+        <mkdir dir="dist/processes/jar"/>
+        <copy todir="dist/processes/jar">
             <fileset dir="lib">
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -248,12 +248,16 @@
                 <include name="xml-apis*.jar"/>
             </fileset>
         </copy>
-        <copy todir="dist/processes">
+        <copy todir="dist/processes/jar">
             <fileset dir="build/jar">
                 <include name="lcf-core.jar"/>
                 <include name="lcf-agents.jar"/>
                 <include name="lcf-pull-agent.jar"/>
             </fileset>
+        </copy>
+        <mkdir dir="dist/processes/script"/>
+        <copy todir="dist/processes/script">
+            <fileset dir="scripts">
         </copy>
     </target>
 

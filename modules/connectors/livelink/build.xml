@@ -123,18 +123,18 @@
     </target>
 
     <target name="iar-crawler-ui" depends="webapp-crawler-ui,precompile-check" if="canBuild">
-        <mkdir dir="dist/web"/>
-        <jar destfile="dist/web/lcf-livelinkconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
+        <mkdir dir="dist/web/war"/>
+        <jar destfile="dist/web/war/lcf-livelinkconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
     </target>
 
     <target name="iar-authority-service" depends="webapp-authority-service,precompile-check" if="canBuild">
-        <mkdir dir="dist/web"/>
-        <jar destfile="dist/web/lcf-livelinkconnector-authority-service.iar" basedir="build/webapp/authority-service"/>
+        <mkdir dir="dist/web/war"/>
+        <jar destfile="dist/web/war/lcf-livelinkconnector-authority-service.iar" basedir="build/webapp/authority-service"/>
     </target>
 
     <target name="processes" depends="jar-connector,precompile-check" if="canBuild">
-        <mkdir dir="dist/processes"/>
-        <copy todir="dist/processes" file="build/jar/lcf-livelink-connector.jar"/>
+        <mkdir dir="dist/processes/jar"/>
+        <copy todir="dist/processes/jar" file="build/jar/lcf-livelink-connector.jar"/>
     </target>
 
     <target name="all" depends="processes,iar-crawler-ui,iar-authority-service,doc"/>

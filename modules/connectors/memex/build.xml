@@ -129,19 +129,19 @@
     </target>
 
     <target name="iar-crawler-ui" depends="webapp-crawler-ui,precompile-check" if="canBuild">
-        <mkdir dir="dist/web"/>
-        <jar destfile="dist/web/lcf-memexconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
+        <mkdir dir="dist/web/war"/>
+        <jar destfile="dist/web/war/lcf-memexconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
     </target>
 
     <target name="iar-authority-service" depends="webapp-authority-service,precompile-check" if="canBuild">
-        <mkdir dir="dist/web"/>
-        <jar destfile="dist/web/lcf-memexconnector-authority-service.iar" basedir="build/webapp/authority-service"/>
+        <mkdir dir="dist/web/war"/>
+        <jar destfile="dist/web/war/lcf-memexconnector-authority-service.iar" basedir="build/webapp/authority-service"/>
     </target>
 
     <target name="processes" depends="jar-connector,precompile-check" if="canBuild">
-        <mkdir dir="dist/processes"/>
-        <copy todir="dist/processes" file="build/jar/lcf-memex-connector.jar"/>
-        <copy todir="dist/processes">
+        <mkdir dir="dist/processes/jar"/>
+        <copy todir="dist/processes/jar" file="build/jar/lcf-memex-connector.jar"/>
+        <copy todir="dist/processes/jar">
             <fileset dir="mxie-java" includes="*.jar"/>
         </copy>
     </target>

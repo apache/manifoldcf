@@ -242,18 +242,18 @@
     </target>
 
     <target name="iar-crawler-ui" depends="webapp-crawler-ui,precompile-check" if="canBuild">
-        <mkdir dir="dist/web"/>
-        <jar destfile="dist/web/lcf-documentumconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
+        <mkdir dir="dist/web/war"/>
+        <jar destfile="dist/web/war/lcf-documentumconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
     </target>
 
     <target name="iar-authority-service" depends="webapp-authority-service,precompile-check" if="canBuild">
-        <mkdir dir="dist/web"/>
-        <jar destfile="dist/web/lcf-documentumconnector-authority-service.iar" basedir="build/webapp/crawler-ui"/>
+        <mkdir dir="dist/web/war"/>
+        <jar destfile="dist/web/war/lcf-documentumconnector-authority-service.iar" basedir="build/webapp/crawler-ui"/>
     </target>
 
     <target name="processes" depends="jar-interface,jar-rmistub,jar-connector,precompile-check" if="canBuild">
-        <mkdir dir="dist/processes"/>
-        <copy todir="dist/processes">
+        <mkdir dir="dist/processes/jar"/>
+        <copy todir="dist/processes/jar">
             <fileset dir="build/jar">
                 <include name="lcf-documentum-connector.jar"/>
                 <include name="lcf-documentum-rmistub.jar"/>
@@ -263,11 +263,11 @@
     </target>
 
     <target name="server-process" depends="jar-interface,jar-implementation,jar-rmiskel,jar-server,precompile-check" if="canBuild">
-        <mkdir dir="dist/server-process"/>
-        <copy todir="dist/server-process">
+        <mkdir dir="dist/server-process/jar"/>
+        <copy todir="dist/server-process/jar">
             <fileset dir="dfc" includes="*.jar"/>
         </copy>
-        <copy todir="dist/server-process">
+        <copy todir="dist/server-process/jar">
             <fileset dir="build/jar">
                 <include name="lcf-documentum-interface.jar"/>
                 <include name="lcf-documentum-rmiskel.jar"/>
@@ -277,8 +277,8 @@
     </target>
 
     <target name="registry-process" depends="jar-registry,precompile-check" if="canBuild">
-        <mkdir dir="dist/registry-process"/>
-        <copy todir="dist/registry-process" file="build/jar/lcf-documentum-registry.jar"/>
+        <mkdir dir="dist/registry-process/jar"/>
+        <copy todir="dist/registry-process/jar" file="build/jar/lcf-documentum-registry.jar"/>
     </target>
 
     <target name="all" depends="processes,server-process,registry-process,iar-crawler-ui,iar-authority-service,doc"/>

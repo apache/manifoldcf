@@ -126,33 +126,35 @@
     </target>
     
     <target name="iar-crawler-ui" depends="webapp-crawler-ui,precompile-check" if="canBuild">
-        <mkdir dir="dist/web"/>
-        <jar destfile="dist/web/lcf-jcifsconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
+        <mkdir dir="dist/web/jar"/>
+        <jar destfile="dist/web/jar/lcf-jcifsconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
         <!-- Copy flag values, too -->
-        <copy todir="dist/web" file="jcifs.resolveOrder"/>
-        <copy todir="dist/web" file="jcifs.smb.client.dfs.strictView"/>
-        <copy todir="dist/web" file="jcifs.smb.client.listCount"/>
-        <copy todir="dist/web" file="jcifs.smb.client.responseTimeout"/>
-        <copy todir="dist/web" file="jcifs.smb.client.soTimeout"/>
+        <mkdir dir="dist/web/define"/>
+        <copy todir="dist/web/define" file="jcifs.resolveOrder"/>
+        <copy todir="dist/web/define" file="jcifs.smb.client.dfs.strictView"/>
+        <copy todir="dist/web/define" file="jcifs.smb.client.listCount"/>
+        <copy todir="dist/web/define" file="jcifs.smb.client.responseTimeout"/>
+        <copy todir="dist/web/define" file="jcifs.smb.client.soTimeout"/>
     </target>
 
     <target name="processes" depends="jar-connector,precompile-check" if="canBuild">
-        <mkdir dir="dist/processes"/>
-        <copy todir="dist/processes" file="build/jar/lcf-jcifs-connector.jar"/>
-        <copy todir="dist/processes">
+        <mkdir dir="dist/processes/jar"/>
+        <copy todir="dist/processes/jar" file="build/jar/lcf-jcifs-connector.jar"/>
+        <copy todir="dist/processes/jar">
             <fileset dir="lib">
                 <include name="poi*.jar"/>
             </fileset>
         </copy>
-        <copy todir="dist/processes">
+        <copy todir="dist/processes/jar">
             <fileset dir="jcifs" includes="*.jar"/>
         </copy>
         <!-- Copy flag values, too -->
-        <copy todir="dist/processes" file="jcifs.resolveOrder"/>
-        <copy todir="dist/processes" file="jcifs.smb.client.dfs.strictView"/>
-        <copy todir="dist/processes" file="jcifs.smb.client.listCount"/>
-        <copy todir="dist/processes" file="jcifs.smb.client.responseTimeout"/>
-        <copy todir="dist/processes" file="jcifs.smb.client.soTimeout"/>
+        <mkdir dir="dist/processes/define"/>
+        <copy todir="dist/processes/define" file="jcifs.resolveOrder"/>
+        <copy todir="dist/processes/define" file="jcifs.smb.client.dfs.strictView"/>
+        <copy todir="dist/processes/define" file="jcifs.smb.client.listCount"/>
+        <copy todir="dist/processes/define" file="jcifs.smb.client.responseTimeout"/>
+        <copy todir="dist/processes/define" file="jcifs.smb.client.soTimeout"/>
     </target>
 
     <target name="all" depends="processes,iar-crawler-ui,doc"/>

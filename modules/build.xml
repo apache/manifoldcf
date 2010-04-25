@@ -92,7 +92,7 @@
             <fileset dir="framework/build/jar"/>
         </copy>
         <copy todir="connectors/activedirectory/war">
-            <fileset dir="framework/dist/web"/>
+            <fileset dir="framework/dist/web/war"/>
         </copy>
         <ant dir="connectors/activedirectory"/>
     </target>
@@ -107,7 +107,7 @@
             <fileset dir="framework/build/jar"/>
         </copy>
         <copy todir="connectors/documentum/war">
-            <fileset dir="framework/dist/web"/>
+            <fileset dir="framework/dist/web/war"/>
         </copy>
         <ant dir="connectors/documentum"/>
     </target>
@@ -122,7 +122,7 @@
             <fileset dir="framework/build/jar"/>
         </copy>
         <copy todir="connectors/filenet/war">
-            <fileset dir="framework/dist/web"/>
+            <fileset dir="framework/dist/web/war"/>
         </copy>
         <ant dir="connectors/filenet"/>
     </target>
@@ -137,7 +137,7 @@
             <fileset dir="framework/build/jar"/>
         </copy>
         <copy todir="connectors/filesystem/war">
-            <fileset dir="framework/dist/web"/>
+            <fileset dir="framework/dist/web/war"/>
         </copy>
         <ant dir="connectors/filesystem"/>
     </target>
@@ -155,7 +155,7 @@
             <fileset dir="framework/build/jar"/>
         </copy>
         <copy todir="connectors/gts/war">
-            <fileset dir="framework/dist/web"/>
+            <fileset dir="framework/dist/web/war"/>
         </copy>
         <ant dir="connectors/gts"/>
     </target>
@@ -168,7 +168,7 @@
             <fileset dir="framework/build/jar"/>
         </copy>
         <copy todir="connectors/jcifs/war">
-            <fileset dir="framework/dist/web"/>
+            <fileset dir="framework/dist/web/war"/>
         </copy>
         <ant dir="connectors/jcifs"/>
     </target>
@@ -183,7 +183,7 @@
             <fileset dir="framework/build/jar"/>
         </copy>
         <copy todir="connectors/jdbc/war">
-            <fileset dir="framework/dist/web"/>
+            <fileset dir="framework/dist/web/war"/>
         </copy>
         <ant dir="connectors/jdbc"/>
     </target>
@@ -198,7 +198,7 @@
             <fileset dir="framework/build/jar"/>
         </copy>
         <copy todir="connectors/livelink/war">
-            <fileset dir="framework/dist/web"/>
+            <fileset dir="framework/dist/web/war"/>
         </copy>
         <ant dir="connectors/livelink"/>
     </target>
@@ -213,7 +213,7 @@
             <fileset dir="framework/build/jar"/>
         </copy>
         <copy todir="connectors/solr/war">
-            <fileset dir="framework/dist/web"/>
+            <fileset dir="framework/dist/web/war"/>
         </copy>
         <ant dir="connectors/solr"/>
     </target>
@@ -228,7 +228,7 @@
             <fileset dir="framework/build/jar"/>
         </copy>
         <copy todir="connectors/memex/war">
-            <fileset dir="framework/dist/web"/>
+            <fileset dir="framework/dist/web/war"/>
         </copy>
         <ant dir="connectors/memex"/>
     </target>
@@ -253,7 +253,7 @@
             <fileset dir="framework/build/jar"/>
         </copy>
         <copy todir="connectors/meridio/war">
-            <fileset dir="framework/dist/web"/>
+            <fileset dir="framework/dist/web/war"/>
         </copy>
         <ant dir="connectors/meridio"/>
     </target>
@@ -268,7 +268,7 @@
             <fileset dir="framework/build/jar"/>
         </copy>
         <copy todir="connectors/nulloutput/war">
-            <fileset dir="framework/dist/web"/>
+            <fileset dir="framework/dist/web/war"/>
         </copy>
         <ant dir="connectors/nulloutput"/>
     </target>
@@ -283,7 +283,7 @@
             <fileset dir="framework/build/jar"/>
         </copy>
         <copy todir="connectors/rss/war">
-            <fileset dir="framework/dist/web"/>
+            <fileset dir="framework/dist/web/war"/>
         </copy>
         <ant dir="connectors/rss"/>
     </target>
@@ -306,7 +306,7 @@
             <fileset dir="framework/build/jar"/>
         </copy>
         <copy todir="connectors/sharepoint/war">
-            <fileset dir="framework/dist/web"/>
+            <fileset dir="framework/dist/web/war"/>
         </copy>
         <ant dir="connectors/sharepoint"/>
     </target>
@@ -321,7 +321,7 @@
             <fileset dir="framework/build/jar"/>
         </copy>
         <copy todir="connectors/webcrawler/war">
-            <fileset dir="framework/dist/web"/>
+            <fileset dir="framework/dist/web/war"/>
         </copy>
         <ant dir="connectors/webcrawler"/>
     </target>
@@ -333,12 +333,12 @@
         </copy>
         <mkdir dir="dist/web"/>
         <copy todir="dist/web">
-            <fileset dir="framework/dist/web" excludes="*.war"/>
+            <fileset dir="framework/dist/web" excludes="**/*.war"/>
         </copy>
         <mkdir dir="build/crawler-ui"/>
-        <unwar src="framework/dist/web/lcf-crawler-ui.war" dest="build/crawler-ui"/>
+        <unwar src="framework/dist/web/war/lcf-crawler-ui.war" dest="build/crawler-ui"/>
         <mkdir dir="build/authority-service"/>
-        <unwar src="framework/dist/web/lcf-authority-service.war" dest="build/authority-service"/>
+        <unwar src="framework/dist/web/war/lcf-authority-service.war" dest="build/authority-service"/>
     </target>
 
     <target name="calculate-activedirectory-condition" depends="build-activedirectory-connector">
@@ -355,12 +355,12 @@
         </copy>
         <mkdir dir="dist/web"/>
         <copy todir="dist/web">
-            <fileset dir="connectors/activedirectory/dist/web" excludes="*.iar"/>
+            <fileset dir="connectors/activedirectory/dist/web" excludes="**/*.iar"/>
         </copy>
         <mkdir dir="build/crawler-ui"/>
-        <unjar src="connectors/activedirectory/dist/web/lcf-activedirectoryconnector-crawler-ui.iar" dest="build/crawler-ui"/>
+        <unjar src="connectors/activedirectory/dist/web/war/lcf-activedirectoryconnector-crawler-ui.iar" dest="build/crawler-ui"/>
         <mkdir dir="build/authority-service"/>
-        <unjar src="connectors/activedirectory/dist/web/lcf-activedirectoryconnector-authority-service.iar" dest="build/authority-service"/>
+        <unjar src="connectors/activedirectory/dist/web/war/lcf-activedirectoryconnector-authority-service.iar" dest="build/authority-service"/>
     </target>
 
     <target name="calculate-documentum-condition" depends="build-documentum-connector">
@@ -377,7 +377,7 @@
         </copy>
         <mkdir dir="dist/web"/>
         <copy todir="dist/web">
-            <fileset dir="connectors/documentum/dist/web" excludes="*.iar"/>
+            <fileset dir="connectors/documentum/dist/web" excludes="**/*.iar"/>
         </copy>
         <mkdir dir="dist/documentum-server-process"/>
         <copy todir="dist/documentum-server-process">
@@ -388,9 +388,9 @@
             <fileset dir="connectors/documentum/dist/registry-process"/>
         </copy>
         <mkdir dir="build/crawler-ui"/>
-        <unjar src="connectors/documentum/dist/web/lcf-documentumconnector-crawler-ui.iar" dest="build/crawler-ui"/>
+        <unjar src="connectors/documentum/dist/web/war/lcf-documentumconnector-crawler-ui.iar" dest="build/crawler-ui"/>
         <mkdir dir="build/authority-service"/>
-        <unjar src="connectors/documentum/dist/web/lcf-documentumconnector-authority-service.iar" dest="build/authority-service"/>
+        <unjar src="connectors/documentum/dist/web/war/lcf-documentumconnector-authority-service.iar" dest="build/authority-service"/>
     </target>
 
     <target name="calculate-filenet-condition" depends="build-filenet-connector">
@@ -407,7 +407,7 @@
         </copy>
         <mkdir dir="dist/web"/>
         <copy todir="dist/web">
-            <fileset dir="connectors/filenet/dist/web" excludes="*.iar"/>
+            <fileset dir="connectors/filenet/dist/web" excludes="**/*.iar"/>
         </copy>
         <mkdir dir="dist/filenet-server-process"/>
         <copy todir="dist/filenet-server-process">
@@ -418,7 +418,7 @@
             <fileset dir="connectors/filenet/dist/registry-process"/>
         </copy>
         <mkdir dir="build/crawler-ui"/>
-        <unjar src="connectors/filenet/dist/web/lcf-filenetconnector-crawler-ui.iar" dest="build/crawler-ui"/>
+        <unjar src="connectors/filenet/dist/web/war/lcf-filenetconnector-crawler-ui.iar" dest="build/crawler-ui"/>
     </target>
 
     <target name="calculate-filesystem-condition" depends="build-filesystem-connector">
@@ -435,10 +435,10 @@
         </copy>
         <mkdir dir="dist/web"/>
         <copy todir="dist/web">
-            <fileset dir="connectors/filesystem/dist/web" excludes="*.iar"/>
+            <fileset dir="connectors/filesystem/dist/web" excludes="**/*.iar"/>
         </copy>
         <mkdir dir="build/crawler-ui"/>
-        <unjar src="connectors/filesystem/dist/web/lcf-filesystemconnector-crawler-ui.iar" dest="build/crawler-ui"/>
+        <unjar src="connectors/filesystem/dist/web/war/lcf-filesystemconnector-crawler-ui.iar" dest="build/crawler-ui"/>
     </target>
 
     <target name="calculate-gts-condition" depends="build-gts-connector">
@@ -455,10 +455,10 @@
         </copy>
         <mkdir dir="dist/web"/>
         <copy todir="dist/web">
-            <fileset dir="connectors/gts/dist/web" excludes="*.iar"/>
+            <fileset dir="connectors/gts/dist/web" excludes="**/*.iar"/>
         </copy>
         <mkdir dir="build/crawler-ui"/>
-        <unjar src="connectors/gts/dist/web/lcf-gtsconnector-crawler-ui.iar" dest="build/crawler-ui"/>
+        <unjar src="connectors/gts/dist/web/war/lcf-gtsconnector-crawler-ui.iar" dest="build/crawler-ui"/>
     </target>
 
     <target name="calculate-jdbc-condition" depends="build-jdbc-connector">
@@ -475,10 +475,10 @@
         </copy>
         <mkdir dir="dist/web"/>
         <copy todir="dist/web">
-            <fileset dir="connectors/jdbc/dist/web" excludes="*.iar"/>
+            <fileset dir="connectors/jdbc/dist/web" excludes="**/*.iar"/>
         </copy>
         <mkdir dir="build/crawler-ui"/>
-        <unjar src="connectors/jdbc/dist/web/lcf-jdbcconnector-crawler-ui.iar" dest="build/crawler-ui"/>
+        <unjar src="connectors/jdbc/dist/web/war/lcf-jdbcconnector-crawler-ui.iar" dest="build/crawler-ui"/>
     </target>
 
     <target name="calculate-jcifs-condition" depends="build-jcifs-connector">
@@ -495,10 +495,10 @@
         </copy>
         <mkdir dir="dist/web"/>
         <copy todir="dist/web">
-            <fileset dir="connectors/jcifs/dist/web" excludes="*.iar"/>
+            <fileset dir="connectors/jcifs/dist/web" excludes="**/*.iar"/>
         </copy>
         <mkdir dir="build/crawler-ui"/>
-        <unjar src="connectors/jcifs/dist/web/lcf-jcifsconnector-crawler-ui.iar" dest="build/crawler-ui"/>
+        <unjar src="connectors/jcifs/dist/web/war/lcf-jcifsconnector-crawler-ui.iar" dest="build/crawler-ui"/>
     </target>
 
     <target name="calculate-livelink-condition" depends="build-livelink-connector">
@@ -515,12 +515,12 @@
         </copy>
         <mkdir dir="dist/web"/>
         <copy todir="dist/web">
-            <fileset dir="connectors/livelink/dist/web" excludes="*.iar"/>
+            <fileset dir="connectors/livelink/dist/web" excludes="**/*.iar"/>
         </copy>
         <mkdir dir="build/crawler-ui"/>
-        <unjar src="connectors/livelink/dist/web/lcf-livelinkconnector-crawler-ui.iar" dest="build/crawler-ui"/>
+        <unjar src="connectors/livelink/dist/web/war/lcf-livelinkconnector-crawler-ui.iar" dest="build/crawler-ui"/>
         <mkdir dir="build/authority-service"/>
-        <unjar src="connectors/livelink/dist/web/lcf-livelinkconnector-authority-service.iar" dest="build/authority-service"/>
+        <unjar src="connectors/livelink/dist/web/war/lcf-livelinkconnector-authority-service.iar" dest="build/authority-service"/>
     </target>
 
     <target name="calculate-solr-condition" depends="build-solr-connector">
@@ -537,10 +537,10 @@
         </copy>
         <mkdir dir="dist/web"/>
         <copy todir="dist/web">
-            <fileset dir="connectors/solr/dist/web" excludes="*.iar"/>
+            <fileset dir="connectors/solr/dist/web" excludes="**/*.iar"/>
         </copy>
         <mkdir dir="build/crawler-ui"/>
-        <unjar src="connectors/solr/dist/web/lcf-solrconnector-crawler-ui.iar" dest="build/crawler-ui"/>
+        <unjar src="connectors/solr/dist/web/war/lcf-solrconnector-crawler-ui.iar" dest="build/crawler-ui"/>
     </target>
 
     <target name="calculate-memex-condition" depends="build-memex-connector">
@@ -557,12 +557,12 @@
         </copy>
         <mkdir dir="dist/web"/>
         <copy todir="dist/web">
-            <fileset dir="connectors/memex/dist/web" excludes="*.iar"/>
+            <fileset dir="connectors/memex/dist/web" excludes="**/*.iar"/>
         </copy>
         <mkdir dir="build/crawler-ui"/>
-        <unjar src="connectors/memex/dist/web/lcf-memexconnector-crawler-ui.iar" dest="build/crawler-ui"/>
+        <unjar src="connectors/memex/dist/web/war/lcf-memexconnector-crawler-ui.iar" dest="build/crawler-ui"/>
         <mkdir dir="build/authority-service"/>
-        <unjar src="connectors/memex/dist/web/lcf-memexconnector-authority-service.iar" dest="build/authority-service"/>
+        <unjar src="connectors/memex/dist/web/war/lcf-memexconnector-authority-service.iar" dest="build/authority-service"/>
     </target>
 
     <target name="calculate-meridio-condition" depends="build-meridio-connector">
@@ -579,16 +579,16 @@
         </copy>
         <mkdir dir="dist/web"/>
         <copy todir="dist/web">
-            <fileset dir="connectors/meridio/dist/web" excludes="*.iar"/>
+            <fileset dir="connectors/meridio/dist/web" excludes="**/*.iar"/>
         </copy>
         <mkdir dir="dist/wsdd"/>
         <copy todir="dist/wsdd">
             <fileset dir="connectors/meridio/dist/wsdd"/>
         </copy>
         <mkdir dir="build/crawler-ui"/>
-        <unjar src="connectors/meridio/dist/web/lcf-meridioconnector-crawler-ui.iar" dest="build/crawler-ui"/>
+        <unjar src="connectors/meridio/dist/web/war/lcf-meridioconnector-crawler-ui.iar" dest="build/crawler-ui"/>
         <mkdir dir="build/authority-service"/>
-        <unjar src="connectors/meridio/dist/web/lcf-meridioconnector-authority-service.iar" dest="build/authority-service"/>
+        <unjar src="connectors/meridio/dist/web/war/lcf-meridioconnector-authority-service.iar" dest="build/authority-service"/>
     </target>
 
     <target name="calculate-nulloutput-condition" depends="build-nulloutput-connector">
@@ -605,10 +605,10 @@
         </copy>
         <mkdir dir="dist/web"/>
         <copy todir="dist/web">
-            <fileset dir="connectors/nulloutput/dist/web" excludes="*.iar"/>
+            <fileset dir="connectors/nulloutput/dist/web" excludes="**/*.iar"/>
         </copy>
         <mkdir dir="build/crawler-ui"/>
-        <unjar src="connectors/nulloutput/dist/web/lcf-nulloutputconnector-crawler-ui.iar" dest="build/crawler-ui"/>
+        <unjar src="connectors/nulloutput/dist/web/war/lcf-nulloutputconnector-crawler-ui.iar" dest="build/crawler-ui"/>
     </target>
 
     <target name="calculate-rss-condition" depends="build-rss-connector">
@@ -625,10 +625,10 @@
         </copy>
         <mkdir dir="dist/web"/>
         <copy todir="dist/web">
-            <fileset dir="connectors/rss/dist/web" excludes="*.iar"/>
+            <fileset dir="connectors/rss/dist/web" excludes="**/*.iar"/>
         </copy>
         <mkdir dir="build/crawler-ui"/>
-        <unjar src="connectors/rss/dist/web/lcf-rssconnector-crawler-ui.iar" dest="build/crawler-ui"/>
+        <unjar src="connectors/rss/dist/web/war/lcf-rssconnector-crawler-ui.iar" dest="build/crawler-ui"/>
     </target>
 
     <target name="calculate-sharepoint-condition" depends="build-sharepoint-connector">
@@ -645,14 +645,14 @@
         </copy>
         <mkdir dir="dist/web"/>
         <copy todir="dist/web">
-            <fileset dir="connectors/sharepoint/dist/web" excludes="*.iar"/>
+            <fileset dir="connectors/sharepoint/dist/web" excludes="**/*.iar"/>
         </copy>
         <mkdir dir="dist/wsdd"/>
         <copy todir="dist/wsdd">
             <fileset dir="connectors/sharepoint/dist/wsdd"/>
         </copy>
         <mkdir dir="build/crawler-ui"/>
-        <unjar src="connectors/sharepoint/dist/web/lcf-sharepointconnector-crawler-ui.iar" dest="build/crawler-ui"/>
+        <unjar src="connectors/sharepoint/dist/web/war/lcf-sharepointconnector-crawler-ui.iar" dest="build/crawler-ui"/>
     </target>
 
     <target name="calculate-webcrawler-condition" depends="build-webcrawler-connector">
@@ -669,16 +669,16 @@
         </copy>
         <mkdir dir="dist/web"/>
         <copy todir="dist/web">
-            <fileset dir="connectors/webcrawler/dist/web" excludes="*.iar"/>
+            <fileset dir="connectors/webcrawler/dist/web" excludes="**/*.iar"/>
         </copy>
         <mkdir dir="build/crawler-ui"/>
-        <unjar src="connectors/webcrawler/dist/web/lcf-webconnector-crawler-ui.iar" dest="build/crawler-ui"/>
+        <unjar src="connectors/webcrawler/dist/web/war/lcf-webconnector-crawler-ui.iar" dest="build/crawler-ui"/>
     </target>
 
     <target name="deliver-wars" depends="deliver-framework,deliver-activedirectory-connector,deliver-documentum-connector,deliver-filenet-connector,deliver-filesystem-connector,deliver-gts-connector,deliver-livelink-connector,deliver-solr-connector,deliver-memex-connector,deliver-meridio-connector,deliver-nulloutput-connector,deliver-rss-connector,deliver-sharepoint-connector,deliver-webcrawler-connector">
-        <mkdir dir="dist/web"/>
-        <jar destfile="dist/web/lcf-crawler-ui.war" basedir="build/crawler-ui"/>
-        <jar destfile="dist/web/lcf-authority-service.war" basedir="build/authority-service"/>
+        <mkdir dir="dist/web/war"/>
+        <jar destfile="dist/web/war/lcf-crawler-ui.war" basedir="build/crawler-ui"/>
+        <jar destfile="dist/web/war/lcf-authority-service.war" basedir="build/authority-service"/>
     </target>
 
     <target name="deliver-open-connectors" depends="deliver-activedirectory-connector,deliver-filesystem-connector,deliver-rss-connector,deliver-webcrawler-connector,deliver-jdbc-connector"/>

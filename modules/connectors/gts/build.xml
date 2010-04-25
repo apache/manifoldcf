@@ -99,13 +99,13 @@
     </target>
     
     <target name="iar-crawler-ui" depends="webapp-crawler-ui">
-        <mkdir dir="dist/web"/>
-        <jar destfile="dist/web/lcf-gtsconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
+        <mkdir dir="dist/web/war"/>
+        <jar destfile="dist/web/war/lcf-gtsconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
     </target>
 
     <target name="processes" depends="jar-connector">
-        <mkdir dir="dist/processes"/>
-        <copy todir="dist/processes" file="build/jar/lcf-gts-connector.jar"/>
+        <mkdir dir="dist/processes/jar"/>
+        <copy todir="dist/processes/jar" file="build/jar/lcf-gts-connector.jar"/>
     </target>
 
     <target name="all" depends="processes,iar-crawler-ui,doc"/>
