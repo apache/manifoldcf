@@ -126,8 +126,8 @@
     </target>
     
     <target name="iar-crawler-ui" depends="webapp-crawler-ui,precompile-check" if="canBuild">
-        <mkdir dir="dist/web/jar"/>
-        <jar destfile="dist/web/jar/lcf-jcifsconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
+        <mkdir dir="dist/web/war"/>
+        <jar destfile="dist/web/war/lcf-jcifsconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
         <!-- Copy flag values, too -->
         <mkdir dir="dist/web/define"/>
         <copy todir="dist/web/define" file="jcifs.resolveOrder"/>

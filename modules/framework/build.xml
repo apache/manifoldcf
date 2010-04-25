@@ -257,7 +257,7 @@
         </copy>
         <mkdir dir="dist/processes/script"/>
         <copy todir="dist/processes/script">
-            <fileset dir="scripts">
+            <fileset dir="scripts"/>
         </copy>
     </target>
 
