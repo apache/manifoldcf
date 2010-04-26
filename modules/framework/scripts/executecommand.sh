@@ -1,8 +1,8 @@
 #!/bin/bash -e
 
 #Make sure environment variables are properly set
-if [ -e $JAVA_HOME/bin/java ] ; then
-    if [ -f $LCF_HOME/properties.ini ] ; then
+if [ -e "$JAVA_HOME"/bin/java ] ; then
+    if [ -f "$LCF_HOME"/properties.ini ] ; then
     
         # Build the classpath
         CLASSPATH=""
@@ -16,10 +16,12 @@ if [ -e $JAVA_HOME/bin/java ] ; then
         
         # Build the defines
         DEFINES=""
-        for filename in $(ls -1 "$LCF_HOME/processes/define") ; do
-            DEFINEVAR=-D"$filename"=$(cat "$LCF_HOME/processes/define/"$filename")
-            DEFINES="$DEFINES $DEFINEVAR"
-        done
+        if [ -e "$LCF_HOME/processes/define" ] ; then
+            for filename in $(ls -1 "$LCF_HOME/processes/define") ; do
+                DEFINEVAR=-D"$filename"=$(cat "$LCF_HOME/processes/define/"$filename")
+                DEFINES="$DEFINES $DEFINEVAR"
+            done
+        fi
         
         "$JAVA_HOME/bin/java" "$DEFINES" --classpath "$CLASSPATH" "$@"
         exit $?
