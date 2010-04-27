@@ -6,9 +6,9 @@
 
 <web-app>
 
-  <display-name>MetaCarta Crawler Interface</display-name>
+  <display-name>Lucene Connectors Framework Crawler Interface</display-name>
 
-  <description>MetaCarta Crawler Interface</description>
+  <description>Lucene Connectors Framework Crawler Interface</description>
 
   <session-config>
 	<session-timeout>5</session-timeout>
