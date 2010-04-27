@@ -6,7 +6,7 @@ if [ -e "$JAVA_HOME"/bin/java ] ; then
     
         # Build the classpath
         CLASSPATH=""
-        for filename in $(ls -1 "$LCF_HOME/processes/jar") ; do
+        for filename in $(ls -1 "$LCF_HOME"/processes/jar) ; do
             if [ -n "$CLASSPATH" ] ; then
                 CLASSPATH="$CLASSPATH":"$LCF_HOME"/processes/jar/"$filename"
             else
@@ -15,10 +15,10 @@ if [ -e "$JAVA_HOME"/bin/java ] ; then
         done
         
         # Build the defines
-        DEFINES=""
+        DEFINES="-Dorg.apache.lcf.configfile=$LCF_HOME/properties.ini"
         if [ -e "$LCF_HOME/processes/define" ] ; then
-            for filename in $(ls -1 "$LCF_HOME/processes/define") ; do
-                DEFINEVAR=-D"$filename"=$(cat "$LCF_HOME/processes/define/"$filename")
+            for filename in $(ls -1 "$LCF_HOME"/processes/define) ; do
+                DEFINEVAR=-D"$filename"=$(cat "$LCF_HOME"/processes/define/"$filename")
                 DEFINES="$DEFINES $DEFINEVAR"
             done
         fi
