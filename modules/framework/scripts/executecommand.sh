@@ -23,7 +23,7 @@ if [ -e "$JAVA_HOME"/bin/java ] ; then
             done
         fi
         
-        "$JAVA_HOME/bin/java" "$DEFINES" --classpath "$CLASSPATH" "$@"
+        "$JAVA_HOME/bin/java" "$DEFINES" -cp "$CLASSPATH" "$@"
         exit $?
         
     else
