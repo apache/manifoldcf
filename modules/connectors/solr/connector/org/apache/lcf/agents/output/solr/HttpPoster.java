@@ -757,7 +757,7 @@ public class HttpPoster
     throws IOException
   {
     int totalLength = 0;
-    String metadataACLName = "__ACCESS_TOKEN__" + aclType;
+    String metadataACLName = "__ALLOW_TOKEN__" + aclType;
     int i = 0;
     while (i < acl.length)
     {
@@ -819,7 +819,7 @@ public class HttpPoster
   protected static void writeACLs(OutputStream out, String aclType, String[] acl, String[] denyAcl)
     throws IOException
   {
-    String metadataACLName = "__ACCESS_TOKEN__" + aclType;
+    String metadataACLName = "__ALLOW_TOKEN__" + aclType;
     int i = 0;
     while (i < acl.length)
     {
