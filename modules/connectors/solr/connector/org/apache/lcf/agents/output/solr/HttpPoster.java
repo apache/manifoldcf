@@ -52,7 +52,10 @@ public class HttpPoster
   private String postUpdateAction;
   private String postRemoveAction;
   private String postStatusAction;
+  private String allowAttributeName;
+  private String denyAttributeName;
 
+  private static final String LITERAL = "literal.";
 
   private int buffersize = 32768;  // default buffer size
   double sizeCoefficient = 0.0005;    // 20 ms additional timeout per 2000 bytes, pulled out of my butt
@@ -108,9 +111,12 @@ public class HttpPoster
   * @param password is the unencoded password, or null.
   */
   public HttpPoster(String protocol, String server, int port, String webappName, String updatePath, String removePath, String statusPath,
-    String realm, String userID, String password)
+    String realm, String userID, String password, String allowAttributeName, String denyAttributeName)
     throws LCFException
   {
+    this.allowAttributeName = allowAttributeName;
+    this.denyAttributeName = denyAttributeName;
+      
     this.host = server;
     this.port = port;
     this.protocol = protocol;
@@ -753,17 +759,17 @@ public class HttpPoster
   }
 
   /** Count the size of an acl level */
-  protected static int lengthACLs(String aclType, String[] acl, String[] denyAcl)
+  protected int lengthACLs(String aclType, String[] acl, String[] denyAcl)
     throws IOException
   {
     int totalLength = 0;
-    String metadataACLName = "__ALLOW_TOKEN__" + aclType;
+    String metadataACLName = LITERAL + allowAttributeName + aclType;
     int i = 0;
     while (i < acl.length)
     {
       totalLength += lengthField(metadataACLName,acl[i++]);
     }
-    String metadataDenyACLName = "__DENY_TOKEN__" + aclType;
+    String metadataDenyACLName = LITERAL + denyAttributeName + aclType;
     i = 0;
     while (i < denyAcl.length)
     {
@@ -816,16 +822,16 @@ public class HttpPoster
 
   
   /** Output an acl level */
-  protected static void writeACLs(OutputStream out, String aclType, String[] acl, String[] denyAcl)
+  protected void writeACLs(OutputStream out, String aclType, String[] acl, String[] denyAcl)
     throws IOException
   {
-    String metadataACLName = "__ALLOW_TOKEN__" + aclType;
+    String metadataACLName = LITERAL + allowAttributeName + aclType;
     int i = 0;
     while (i < acl.length)
     {
       writeField(out,metadataACLName,acl[i++]);
     }
-    String metadataDenyACLName = "__DENY_TOKEN__" + aclType;
+    String metadataDenyACLName = LITERAL + denyAttributeName + aclType;
     i = 0;
     while (i < denyAcl.length)
     {

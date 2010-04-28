@@ -38,7 +38,11 @@ public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnec
 
   /** Local data */
   protected HttpPoster poster = null;
-
+  /** The allow attribute name */
+  protected String allowAttributeName = "allow_token_";
+  /** The deny attribute name */
+  protected String denyAttributeName = "deny_token_";
+  
   /** Constructor.
   */
   public SolrConnector()
@@ -121,7 +125,8 @@ public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnec
       String realm = params.getParameter(SolrConfig.PARAM_REALM);
       try
       {
-        poster = new HttpPoster(protocol,server,Integer.parseInt(port),webapp,updatePath,removePath,statusPath,realm,userID,password);
+        poster = new HttpPoster(protocol,server,Integer.parseInt(port),webapp,updatePath,removePath,statusPath,realm,userID,password,
+          allowAttributeName,denyAttributeName);
       }
       catch (NumberFormatException e)
       {
