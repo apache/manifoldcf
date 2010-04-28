@@ -1,5 +1,11 @@
 #!/bin/bash -e
 
+if [[ $OSTYPE == "cygwin" ]] ; then
+    PATHSEP=";"
+else
+    PATHSEP=":"
+fi
+
 #Make sure environment variables are properly set
 if [ -e "$JAVA_HOME"/bin/java ] ; then
     if [ -f "$LCF_HOME"/properties.ini ] ; then
@@ -8,7 +14,7 @@ if [ -e "$JAVA_HOME"/bin/java ] ; then
         CLASSPATH=""
         for filename in $(ls -1 "$LCF_HOME"/processes/jar) ; do
             if [ -n "$CLASSPATH" ] ; then
-                CLASSPATH="$CLASSPATH":"$LCF_HOME"/processes/jar/"$filename"
+                CLASSPATH="$CLASSPATH""$PATHSEP""$LCF_HOME"/processes/jar/"$filename"
             else
                 CLASSPATH="$LCF_HOME"/processes/jar/"$filename"
             fi
