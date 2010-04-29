@@ -712,6 +712,15 @@ public class ThrottledFetcher
           throw new ServiceInterruption("Timed out waiting for a connection for '"+myUrl+"'", e, currentTime + 1000000L,
             currentTime + 720L * 60000L,-1,false);
         }
+        catch (java.net.NoRouteToHostException e)
+        {
+          // This exception means we know the IP address but can't get there.  That's either a firewall issue, or it's something transient
+          // with the network.  Some degree of retry is probably wise.
+          throwable = e;
+          long currentTime = System.currentTimeMillis();
+          throw new ServiceInterruption("No route to host for '"+myUrl+"'", e, currentTime + 1000000L,
+            currentTime + 720L * 60000L,-1,false);
+        }
         catch (IOException e)
         {
           // Treat this as a bad url.  We don't know what happened, but it isn't something we are going to naively
