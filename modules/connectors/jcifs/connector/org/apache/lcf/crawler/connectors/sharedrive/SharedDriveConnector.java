@@ -114,23 +114,21 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
       // make the smb connection to the server
       String authenticationString;
       if (domain == null || domain.length() == 0)
-        authenticationString = username + ":" + password;
-      else
-        authenticationString = domain + ";" + username + ":" + password;
-
+        domain = null;
+      
       if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("Connecting to: " + "smb://" + authenticationString.substring(0,authenticationString.indexOf(":")+1) + "<password>@" + server + "/");
+        Logging.connectors.debug("Connecting to: " + "smb://" + ((domain==null)?"":domain)+";"+username+":<password>@" + server + "/");
 
       try
       {
         // use NtlmPasswordAuthentication so that we can reuse credential for DFS support
-        pa = new NtlmPasswordAuthentication(authenticationString);
+        pa = new NtlmPasswordAuthentication(domain,username,password);
         SmbFile smbconnection = new SmbFile("smb://" + server + "/",pa);
         smbconnectionPath = getFileCanonicalPath(smbconnection);
       }
       catch (MalformedURLException e)
       {
-        Logging.connectors.error("Unable to access SMB/CIFS share: "+"smb://" + authenticationString.substring(0,authenticationString.indexOf(":")+1) + "<password>@" + server + "/\n" + e);
+        Logging.connectors.error("Unable to access SMB/CIFS share: "+"smb://" + ((domain==null)?"":domain)+";"+username+":<password>@"+ server + "/\n" + e);
         throw new LCFException("Unable to access SMB/CIFS share: "+server, e, LCFException.REPOSITORY_CONNECTION_ERROR);
       }
     }
