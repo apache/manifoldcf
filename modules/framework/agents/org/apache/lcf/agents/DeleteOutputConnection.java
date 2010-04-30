@@ -16,16 +16,15 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.lcf.crawler;
+package org.apache.lcf.agents;
 
 import java.io.*;
 import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.agents.interfaces.*;
-import org.apache.lcf.crawler.interfaces.*;
-import org.apache.lcf.crawler.system.*;
+import org.apache.lcf.agents.system.LCF;
 import java.util.*;
 
-/** This class is used during testing.
+/** This class is a command that is used to delete an output connection.
 */
 public class DeleteOutputConnection
 {

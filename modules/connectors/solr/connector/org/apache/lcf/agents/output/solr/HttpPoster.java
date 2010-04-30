@@ -56,7 +56,8 @@ public class HttpPoster
   private String denyAttributeName;
 
   private static final String LITERAL = "literal.";
-
+  private static final String NOTHING = "__NOTHING__";
+    
   private int buffersize = 32768;  // default buffer size
   double sizeCoefficient = 0.0005;    // 20 ms additional timeout per 2000 bytes, pulled out of my butt
   /** the number of times we should poll for the response */
