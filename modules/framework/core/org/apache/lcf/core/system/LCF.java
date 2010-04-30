@@ -55,7 +55,7 @@ public class LCF
   protected static String masterDatabasePassword = null;
   protected static java.util.Properties localProperties = null;
   //protected static String configPath = null;
-  protected static long propertyFilelastMod = 0;
+  protected static long propertyFilelastMod = -1L;
   protected static String propertyFilePath = null;
 
   protected static final String applicationName = "lcf";
@@ -109,6 +109,7 @@ public class LCF
       propertyFilePath = (String)props.get(lcfConfigFileProperty);
       if (propertyFilePath == null)
       {
+	System.out.println("Couldn't find "+lcfConfigFileProperty+" property; using default");
         String configPath = (String)props.get("user.home") + "/"+applicationName;
         configPath = configPath.replace('\\', '/');
         propertyFilePath = new File(configPath,"properties.ini").toString();
@@ -121,6 +122,7 @@ public class LCF
       String logConfigFile = getProperty(logConfigFileProperty);
       if (logConfigFile == null)
       {
+	System.out.println("Couldn't find "+logConfigFileProperty+" property; using default");
         String configPath = (String)props.get("user.home") + "/"+applicationName;
         configPath = configPath.replace('\\', '/');
         logConfigFile = new File(configPath,"logging.ini").toString();
@@ -165,6 +167,7 @@ public class LCF
         try
         {
           localProperties.load(is);
+	  System.out.println("Property file successfully read");
           //System.err.println("Loaded configuration properties: '" + f.toString() + "'");
           propertyFilelastMod = f.lastModified();
         }
@@ -173,6 +176,8 @@ public class LCF
           is.close();
         }
       }
+      else
+	System.out.println("Property file not read because it didn't change");
     }
     catch (Exception e)
     {
