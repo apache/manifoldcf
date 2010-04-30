@@ -28,8 +28,8 @@ if [ -e "$JAVA_HOME"/bin/java ] ; then
                 DEFINES="$DEFINES $DEFINEVAR"
             done
         fi
-        
-        "$JAVA_HOME/bin/java" "$DEFINES" -cp "$CLASSPATH" "$@"
+
+        "$JAVA_HOME/bin/java" $DEFINES -cp "$CLASSPATH" "$@"
         exit $?
         
     else
