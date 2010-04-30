@@ -11,7 +11,7 @@ set JAVADEFINES=
 for %%g in (define/*) do call script\setdefine.bat %%g
 rem restore old path here
 cd "%OLDDIR%"
-"%JAVA_HOME%\bin\java" "-Dorg.apache.lcf.configfile=%LCF_HOME%\properties.ini" %JAVADEFINES% -classpath "%CLASSPATH%" %1 %2 %3 %4 %5 %6 %7 %8 %9
+"%JAVA_HOME%\bin\java" "-Dorg.apache.lcf.configfile=%LCF_HOME%\properties.ini" %JAVADEFINES% -classpath "%CLASSPATH%" %*
 goto done
 :nojavahome
 echo Environment variable JAVA_HOME is not set properly.
