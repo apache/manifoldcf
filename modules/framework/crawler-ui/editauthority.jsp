@@ -199,6 +199,21 @@
 		return true;
 	}
 
+	function isRegularExpression(value)
+	{
+		try
+		{
+			var foo = "teststring";
+                        foo.search(value.replace(/\(\?i\)/,""));
+			return true;
+		}
+		catch (e)
+		{
+			return false;
+		}
+
+	}
+
 	function isInteger(value)
 	{
 		var anum=/(^\d+$)/;
