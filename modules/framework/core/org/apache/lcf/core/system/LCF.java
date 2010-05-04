@@ -109,7 +109,7 @@ public class LCF
       propertyFilePath = (String)props.get(lcfConfigFileProperty);
       if (propertyFilePath == null)
       {
-	System.out.println("Couldn't find "+lcfConfigFileProperty+" property; using default");
+	System.err.println("Couldn't find "+lcfConfigFileProperty+" property; using default");
         String configPath = (String)props.get("user.home") + "/"+applicationName;
         configPath = configPath.replace('\\', '/');
         propertyFilePath = new File(configPath,"properties.ini").toString();
@@ -122,7 +122,7 @@ public class LCF
       String logConfigFile = getProperty(logConfigFileProperty);
       if (logConfigFile == null)
       {
-	System.out.println("Couldn't find "+logConfigFileProperty+" property; using default");
+	System.err.println("Couldn't find "+logConfigFileProperty+" property; using default");
         String configPath = (String)props.get("user.home") + "/"+applicationName;
         configPath = configPath.replace('\\', '/');
         logConfigFile = new File(configPath,"logging.ini").toString();
@@ -167,8 +167,7 @@ public class LCF
         try
         {
           localProperties.load(is);
-	  System.out.println("Property file successfully read");
-          //System.err.println("Loaded configuration properties: '" + f.toString() + "'");
+	  System.err.println("Property file successfully read");
           propertyFilelastMod = f.lastModified();
         }
         finally
@@ -177,7 +176,7 @@ public class LCF
         }
       }
       else
-	System.out.println("Property file not read because it didn't change");
+	System.err.println("Property file not read because it didn't change");
     }
     catch (Exception e)
     {
