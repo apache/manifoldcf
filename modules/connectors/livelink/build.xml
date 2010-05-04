@@ -110,7 +110,10 @@
 
     <target name="webapp-crawler-ui" depends="compile-crawler-ui,jar-connector,precompile-check" if="canBuild">
         <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-livelink-connector.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib">
+	    <fileset dir="build/jar" includes="*.jar"/>
+	    <fileset dir="lapi" includes="*.jar"/>
+	</copy>
         <mkdir dir="build/webapp/crawler-ui"/>
         <copy todir="build/webapp/crawler-ui">
             <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
@@ -119,7 +122,10 @@
 
     <target name="webapp-authority-service" depends="jar-connector,precompile-check" if="canBuild">
         <mkdir dir="build/webapp/authority-service/WEB-INF/lib"/>
-        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="build/jar/lcf-livelink-connector.jar"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib">
+	    <fileset dir="build/jar" includes="*.jar"/>
+	    <fileset dir="lapi" includes="*.jar"/>
+	</copy>
     </target>
 
     <target name="iar-crawler-ui" depends="webapp-crawler-ui,precompile-check" if="canBuild">
@@ -134,7 +140,10 @@
 
     <target name="processes" depends="jar-connector,precompile-check" if="canBuild">
         <mkdir dir="dist/processes/jar"/>
-        <copy todir="dist/processes/jar" file="build/jar/lcf-livelink-connector.jar"/>
+        <copy todir="dist/processes/jar">
+	    <fileset dir="build/jar" includes="*.jar"/>
+	    <fileset dir="lapi" includes="*.jar"/>
+	</copy>
     </target>
 
     <target name="all" depends="processes,iar-crawler-ui,iar-authority-service,doc"/>
