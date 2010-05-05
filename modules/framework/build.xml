@@ -8,7 +8,7 @@
     
     <target name="doc">
         <mkdir dir="doc"/>
-        <javadoc destdir="doc" maxmemory="256M" source="1.4">
+        <javadoc destdir="doc" maxmemory="256M" source="1.4" useexternalfile="true">
             <classpath>
                 <fileset dir="lib"> 
                     <include name="*.jar"/> 
