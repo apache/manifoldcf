@@ -840,6 +840,15 @@ public class HttpPoster
     }
   }
   
+  /** XML encoding */
+  protected static String xmlEncode(String input)
+  {
+    StringBuffer sb = new StringBuffer("<![CDATA[");
+    sb.append(input);
+    sb.append("]]>");
+    return sb.toString();
+  }
+  
   /** Killable thread that does ingestions.
   * Java 1.5 stopped permitting thread interruptions to abort socket waits.  As a result, it is impossible to get threads to shutdown cleanly that are doing
   * such waits.  So, the places where this happens are segregated in their own threads so that they can be just abandoned.
@@ -1339,7 +1348,7 @@ public class HttpPoster
               OutputStream out = socket.getOutputStream();
               try
               {
-                byte[] requestBytes = ("<delete><id>"+documentURI+"</id></delete>").getBytes("UTF-8");
+                byte[] requestBytes = ("<delete><id>"+xmlEncode(documentURI)+"</id></delete>").getBytes("UTF-8");
                 long startTime = System.currentTimeMillis();
                 byte[] tmp = ("POST " + postRemoveAction + " HTTP/1.0\r\n").getBytes("ASCII");
                 out.write(tmp, 0, tmp.length);
