@@ -59,9 +59,8 @@
 /* Apache configuration merging strategy:
  *
  * Apache processes <Location> directives in the order in which they
- * appear in the configuration file(s).  In GTS 4.1 and earlier there
- * is no attempt made to order the specificity of these <Location>
- * directives.  So now the merge_config() code below now takes each
+ * appear in the configuration file(s).
+ * The merge_config() code below now takes each
  * successive <Location> directive which specifies a given
  * mod_authz_annotate configuration, with one or more authority urls
  * to contact and takes the unique union of those authorities.  If the
@@ -82,29 +81,6 @@
  *  AuthzAnnotateIDAclAuthority http://localhost:7039/UserACLs
  * </Location>
  *
- * When a query is made to /clients/search/services/saved-search/JSON
- * http://localhost:7039/UserACLs will only be contacted once for the
- * request.
- *
- *
- * For example given the configuration below:
- *
- * <Location /clients/search/services/saved-search/JSON>
- *  AuthzAnnotateEnable  On
- *  AuthzAnnotateIDAuthority http://localhost:7039/UserACLs
- *  AuthzAnnotateIDAclAuthority http://localhost:7040/UserACLs
- * </Location>
- *
- * <Location /clients/search>
- *  AuthzAnnotateEnable  On
- *  AuthzAnnotateAclAuthority http://localhost:7039/UserACLs
- * </Location>
- *
- * For this second configuration when a query is made to
- * /clients/search/services/saved-search/JSON both authorities
- * http://localhost:7039/UserACLs and http://localhost:7040/UserACLs
- * will be contacted (both will be asked for IDs and ACLs) (becuase
- * 
  */
 
 
