@@ -74,7 +74,7 @@ public class RepositoryHistoryManager extends org.apache.lcf.core.database.BaseT
         map.put(startTimeField,new ColumnDescription("BIGINT",false,false,null,null,false));
         map.put(endTimeField,new ColumnDescription("BIGINT",false,false,null,null,false));
         map.put(dataSizeField,new ColumnDescription("BIGINT",false,false,null,null,false));
-        map.put(activityTypeField,new ColumnDescription("VARCHAR(32)",false,false,null,null,false));
+        map.put(activityTypeField,new ColumnDescription("VARCHAR(64)",false,false,null,null,false));
         map.put(entityIdentifierField,new ColumnDescription("LONGTEXT",false,false,null,null,false));
         map.put(resultCodeField,new ColumnDescription("VARCHAR(255)",false,true,null,null,false));
         map.put(resultDescriptionField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
@@ -82,7 +82,14 @@ public class RepositoryHistoryManager extends org.apache.lcf.core.database.BaseT
       }
       else
       {
-        // Upgrade code, if needed.
+        // Upgrade code.
+	ColumnDescription cd = (ColumnDescription)existing.get(activityTypeField);
+	if (cd.getTypeString().toUpperCase().equals("VARCHAR(32)"))
+	{
+	  HashMap alterMap = new HashMap();
+	  alterMap.put(activityTypeField,new ColumnDescription("VARCHAR(64)",false,false,null,null,false));
+	  performAlter(null,alterMap,null,null);
+	}
       }
 
       // Index management

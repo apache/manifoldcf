@@ -22,3 +22,7 @@ $Id$
 (17) Rename lucene connector in svn to be SOLR connector.
 (18) Add eol-style and keywords "Id" properties, where appropriate.
 
+5/10/2010, 07:58 EDT
+
+- Schema change to the repohistory table; the activitytype column was too narrow
+  to contain both a 32-character connection name and an activity string.
