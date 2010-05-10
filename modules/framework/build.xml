@@ -23,7 +23,7 @@
     
     <target name="compile-core">
         <mkdir dir="build/core/classes"/>
-        <javac srcdir="core" destdir="build/core/classes" target="1.5" source="1.4">
+        <javac srcdir="core" destdir="build/core/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <fileset dir="lib"> 
                     <include name="*.jar"/> 
@@ -34,7 +34,7 @@
 
     <target name="compile-ui-core" depends="compile-core">
         <mkdir dir="build/ui-core/classes"/>
-        <javac srcdir="ui-core" destdir="build/ui-core/classes" target="1.5" source="1.4">
+        <javac srcdir="ui-core" destdir="build/ui-core/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <fileset dir="lib"> 
                     <include name="*.jar"/> 
@@ -46,7 +46,7 @@
 
     <target name="compile-agents" depends="compile-core">
         <mkdir dir="build/agents/classes"/>
-        <javac srcdir="agents" destdir="build/agents/classes" target="1.5" source="1.4">
+        <javac srcdir="agents" destdir="build/agents/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
             <classpath>
                  <fileset dir="lib"> 
                     <include name="*.jar"/> 
@@ -58,7 +58,7 @@
 
     <target name="compile-pull-agent" depends="compile-core,compile-agents">
         <mkdir dir="build/pull-agent/classes"/>
-        <javac srcdir="pull-agent" destdir="build/pull-agent/classes" target="1.5" source="1.4">
+        <javac srcdir="pull-agent" destdir="build/pull-agent/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
             <classpath>
                  <fileset dir="lib"> 
                     <include name="*.jar"/> 
@@ -71,7 +71,7 @@
 
     <target name="compile-authority-service" depends="compile-core,compile-agents,compile-pull-agent">
         <mkdir dir="build/authority-service/classes"/>
-        <javac srcdir="authority-service" destdir="build/authority-service/classes" target="1.5" source="1.4">
+        <javac srcdir="authority-service" destdir="build/authority-service/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
             <classpath>
                  <fileset dir="lib"> 
                     <include name="*.jar"/> 
@@ -103,7 +103,7 @@
         <jasper2 validateXml="false" uriroot="crawler-ui" webXmlFragment="crawler-ui/WEB-INF/web-generated.xml" outputDir="build/crawler-ui/java" /> 
         <!-- Compile java classes -->
         <mkdir dir="build/crawler-ui/classes"/>
-        <javac srcdir="build/crawler-ui/java" destdir="build/crawler-ui/classes" target="1.5" source="1.4">
+        <javac srcdir="build/crawler-ui/java" destdir="build/crawler-ui/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
             <classpath id="classpath">
                 <pathelement location="${java.home}/../lib/tools.jar"/>
                 <fileset dir="lib"> 

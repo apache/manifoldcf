@@ -101,7 +101,7 @@
 
     <target name="compile-wsdls" depends="classcreate-wsdls,precompile-check" if="canBuild">
         <mkdir dir="build/wsdlclasses"/>
-        <javac srcdir="build/wsdljava" destdir="build/wsdlclasses" target="1.5" source="1.4">
+        <javac srcdir="build/wsdljava" destdir="build/wsdlclasses" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <fileset dir="lib" includes="*.jar"/>
             </classpath>
@@ -110,7 +110,7 @@
 
     <target name="compile-xsds" depends="classcreate-xsds,precompile-check" if="canBuild">
         <mkdir dir="build/xsdclasses"/>
-        <javac srcdir="build/xsdjava" destdir="build/xsdclasses" target="1.5" source="1.5">
+        <javac srcdir="build/xsdjava" destdir="build/xsdclasses" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <fileset dir="lib" includes="*.jar"/>
             </classpath>
@@ -131,7 +131,7 @@
 
     <target name="compile-connector" depends="compile-wsdls,compile-xsds,precompile-check" if="canBuild">
         <mkdir dir="build/connector/classes"/>
-        <javac srcdir="connector" destdir="build/connector/classes" target="1.5" source="1.4">
+        <javac srcdir="connector" destdir="build/connector/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <fileset dir="lib" includes="*.jar"/>
                 <pathelement location="build/wsdlclasses"/>
@@ -188,7 +188,7 @@
         <jasper2 validateXml="false" uriroot="build/jsp-environment" webXmlFragment="build/jsp-environment/WEB-INF/web-generated.xml" outputDir="build/crawler-ui/java" /> 
         <!-- Compile java classes -->
         <mkdir dir="build/crawler-ui/classes"/>
-        <javac srcdir="build/crawler-ui/java" destdir="build/crawler-ui/classes" target="1.5" source="1.4">
+        <javac srcdir="build/crawler-ui/java" destdir="build/crawler-ui/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
             <classpath id="classpath">
                 <pathelement location="${java.home}/../lib/tools.jar"/>
                 <fileset dir="lib"> 

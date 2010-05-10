@@ -30,12 +30,12 @@
 
     <target name="compile-interface" depends="precompile-check" if="canBuild">
         <mkdir dir="build/interface/classes"/>
-        <javac srcdir="interface" destdir="build/interface/classes" classpath="" target="1.5" source="1.4"/>
+        <javac srcdir="interface" destdir="build/interface/classes" classpath="" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source"/>
     </target>
 
     <target name="compile-implementation" depends="compile-interface,precompile-check" if="canBuild">
         <mkdir dir="build/implementation/classes"/>
-        <javac srcdir="implementation" destdir="build/implementation/classes" target="1.5" source="1.4">
+        <javac srcdir="implementation" destdir="build/implementation/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
             <classpath id="implementation.classpath">
                 <fileset dir="filenet-api"> 
                     <include name="*.jar"/> 
@@ -85,7 +85,7 @@
     
     <target name="compile-server" depends="compile-interface,compile-implementation,compile-rmic,precompile-check" if="canBuild">
         <mkdir dir="build/server/classes"/>
-        <javac srcdir="server" destdir="build/server/classes" target="1.5" source="1.4">
+        <javac srcdir="server" destdir="build/server/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <pathelement location="build/interface/classes"/>
                 <pathelement location="build/implementation/classes"/>
@@ -102,7 +102,7 @@
 
     <target name="compile-connector" depends="compile-interface,compile-rmic,precompile-check" if="canBuild">
         <mkdir dir="build/connector/classes"/>
-        <javac srcdir="connector" destdir="build/connector/classes" target="1.5" source="1.4">
+        <javac srcdir="connector" destdir="build/connector/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <fileset dir="lib" includes="*.jar"/>
                 <pathelement location="build/interface/classes"/>
@@ -160,7 +160,7 @@
         <jasper2 validateXml="false" uriroot="build/jsp-environment" webXmlFragment="build/jsp-environment/WEB-INF/web-generated.xml" outputDir="build/crawler-ui/java" /> 
         <!-- Compile java classes -->
         <mkdir dir="build/crawler-ui/classes"/>
-        <javac srcdir="build/crawler-ui/java" destdir="build/crawler-ui/classes" target="1.5" source="1.4">
+        <javac srcdir="build/crawler-ui/java" destdir="build/crawler-ui/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
             <classpath id="classpath">
                 <pathelement location="${java.home}/../lib/tools.jar"/>
                 <fileset dir="lib"> 

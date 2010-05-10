@@ -18,7 +18,7 @@
 
     <target name="compile-connector">
         <mkdir dir="build/connector/classes"/>
-        <javac srcdir="connector" destdir="build/connector/classes" target="1.5" source="1.4">
+        <javac srcdir="connector" destdir="build/connector/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <fileset dir="lib" includes="*.jar"/>
             </classpath>
@@ -71,7 +71,7 @@
         <jasper2 validateXml="false" uriroot="build/jsp-environment" webXmlFragment="build/jsp-environment/WEB-INF/web-generated.xml" outputDir="build/crawler-ui/java" /> 
         <!-- Compile java classes -->
         <mkdir dir="build/crawler-ui/classes"/>
-        <javac srcdir="build/crawler-ui/java" destdir="build/crawler-ui/classes" target="1.5" source="1.4">
+        <javac srcdir="build/crawler-ui/java" destdir="build/crawler-ui/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
             <classpath id="classpath">
                 <pathelement location="${java.home}/../lib/tools.jar"/>
                 <fileset dir="lib"> 

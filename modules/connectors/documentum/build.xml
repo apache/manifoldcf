@@ -36,12 +36,12 @@
 
     <target name="compile-interface" depends="precompile-check" if="canBuild">
         <mkdir dir="build/interface/classes"/>
-        <javac srcdir="interface" destdir="build/interface/classes" classpath="" target="1.5" source="1.4"/>
+        <javac srcdir="interface" destdir="build/interface/classes" classpath="" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source"/>
     </target>
 
     <target name="compile-implementation" depends="compile-interface,precompile-check" if="canBuild">
         <mkdir dir="build/implementation/classes"/>
-        <javac srcdir="implementation" destdir="build/implementation/classes" target="1.5" source="1.4">
+        <javac srcdir="implementation" destdir="build/implementation/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
             <classpath id="implementation.classpath">
                 <fileset dir="dfc"> 
                     <include name="*.jar"/> 
@@ -97,12 +97,12 @@
     
     <target name="compile-server" depends="compile-interface,compile-implementation,compile-rmic,precompile-check" if="canBuild">
         <mkdir dir="build/server/classes"/>
-        <javac srcdir="server" destdir="build/server/classes" classpath="build/interface/classes:build/implementation/classes:build/rmistub/classes:build/rmiskel/classes" target="1.5" source="1.4"/>
+        <javac srcdir="server" destdir="build/server/classes" classpath="build/interface/classes:build/implementation/classes:build/rmistub/classes:build/rmiskel/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source"/>
     </target>
 
     <target name="compile-registry" depends="compile-interface,precompile-check" if="canBuild">
         <mkdir dir="build/registry/classes"/>
-        <javac srcdir="registry" destdir="build/registry/classes" classpath="build/interface/classes" target="1.5" source="1.4"/>
+        <javac srcdir="registry" destdir="build/registry/classes" classpath="build/interface/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source"/>
     </target>
 
     <target name="compile-connector" depends="compile-interface,compile-rmic,precompile-check" if="canBuild">
@@ -165,7 +165,7 @@
         <jasper2 validateXml="false" uriroot="build/jsp-environment" webXmlFragment="build/jsp-environment/WEB-INF/web-generated.xml" outputDir="build/crawler-ui/java" /> 
         <!-- Compile java classes -->
         <mkdir dir="build/crawler-ui/classes"/>
-        <javac srcdir="build/crawler-ui/java" destdir="build/crawler-ui/classes" target="1.5" source="1.4">
+        <javac srcdir="build/crawler-ui/java" destdir="build/crawler-ui/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
             <classpath id="classpath">
                 <pathelement location="${java.home}/../lib/tools.jar"/>
                 <fileset dir="lib"> 
