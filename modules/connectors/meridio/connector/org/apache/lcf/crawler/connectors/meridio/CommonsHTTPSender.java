@@ -52,6 +52,7 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.httpclient.protocol.Protocol;
+import org.apache.commons.httpclient.protocol.ProtocolFactory;
 import org.apache.commons.logging.Log;
 
 import javax.xml.soap.MimeHeader;
@@ -202,7 +203,12 @@ public class CommonsHTTPSender extends BasicHandler {
       // the timeout value for allocation of connections from the pool
       httpClient.getParams().setConnectionManagerTimeout(this.clientProperties.getConnectionPoolTimeout());
       // Set our protocol factory, in case there's a redirect
-      httpClient.getParams().setParameter(org.apache.commons.httpclient.params.HttpClientParams.PROTOCOL_FACTORY,configInfo.getProtocolFactory());
+      ProtocolFactory myFactory = configInfo.getProtocolFactory();
+      if (myFactory != null)
+        httpClient.getParams().setParameter(org.apache.commons.httpclient.params.HttpClientParams.PROTOCOL_FACTORY,myFactory);
+      // Allow circular redirections
+      httpClient.getParams().setParameter(org.apache.commons.httpclient.params.HttpClientParams.ALLOW_CIRCULAR_REDIRECTS,new Boolean(true));
+
 
       HostConfiguration hostConfiguration =
         getHostConfiguration(httpClient, msgContext, targetURL, configInfo);
@@ -235,6 +241,7 @@ public class CommonsHTTPSender extends BasicHandler {
         method = new GetMethod(relativeTargetURL);
       }
 
+      method.setFollowRedirects(true);
 
       // The variable 'releaseMethod' is null if we no longer have to release the connection into the pool
       // on exit from this section.  Otherwise it remains set to the method, so that all exceptions cause

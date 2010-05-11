@@ -237,6 +237,8 @@ public class CommonsHTTPSender extends BasicHandler {
         method = new GetMethod(relativeTargetURL);
       }
 
+      // Allow redirection
+      method.setFollowRedirects(true);
 
       // The variable 'releaseMethod' is null if we no longer have to release the connection into the pool
       // on exit from this section.  Otherwise it remains set to the method, so that all exceptions cause
