@@ -203,39 +203,39 @@
 <%
 	}
 
-	// The "MetaCarta Service Server" tab
-	if (tabName.equals("MetaCarta Service Server"))
+	// The "User Service Server" tab
+	if (tabName.equals("User Service Server"))
 	{
 %>
 <table class="displaytable">
 	<tr><td class="separator" colspan="2"><hr/></td></tr>
 	<tr>
-		<td class="description"><nobr>MetaCarta webservice server protocol:</nobr></td><td class="value"><select name="metacartawsServerProtocol"><option value="http" <%=((metacartawsServerProtocol.equals("http"))?"selected=\"true\"":"")%>>http</option><option value="https" <%=(metacartawsServerProtocol.equals("https")?"selected=\"true\"":"")%>>https</option></select></td>
+		<td class="description"><nobr>User webservice server protocol:</nobr></td><td class="value"><select name="metacartawsServerProtocol"><option value="http" <%=((metacartawsServerProtocol.equals("http"))?"selected=\"true\"":"")%>>http</option><option value="https" <%=(metacartawsServerProtocol.equals("https")?"selected=\"true\"":"")%>>https</option></select></td>
 	</tr>
 	<tr>
-		<td class="description"><nobr>MetaCarta webservice server name:</nobr></td><td class="value"><input type="text" size="64" name="metacartawsServerName" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(metacartawsServerName)%>'/></td>
+		<td class="description"><nobr>User webservice server name:</nobr></td><td class="value"><input type="text" size="64" name="metacartawsServerName" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(metacartawsServerName)%>'/></td>
 	</tr>
         <tr>
-		<td class="description"><nobr>MetaCarta webservice server port:</nobr></td><td class="value"><input type="text" size="5" name="metacartawsServerPort" value='<%=metacartawsServerPort%>'/></td>
+		<td class="description"><nobr>User webservice server port:</nobr></td><td class="value"><input type="text" size="5" name="metacartawsServerPort" value='<%=metacartawsServerPort%>'/></td>
 	</tr>
         <tr>
-		<td class="description"><nobr>MetaCarta webservice location:</nobr></td><td class="value"><input type="text" size="64" name="metacartawsLocation" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(metacartawsLocation)%>'/></td>
+		<td class="description"><nobr>User webservice location:</nobr></td><td class="value"><input type="text" size="64" name="metacartawsLocation" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(metacartawsLocation)%>'/></td>
 	</tr>
 	<tr>
 		<td class="separator" colspan="2"><hr/></td>
 	</tr>
 	<tr>
-		<td class="description"><nobr>MetaCarta webservice server proxy host:</nobr></td><td class="value"><input type="text" size="64" name="metacartawsProxyHost" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(metacartawsProxyHost)%>'/></td>
+		<td class="description"><nobr>User webservice server proxy host:</nobr></td><td class="value"><input type="text" size="64" name="metacartawsProxyHost" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(metacartawsProxyHost)%>'/></td>
 	</tr>
 	<tr>
-		<td class="description"><nobr>MetaCarta webservice server proxy port:</nobr></td><td class="value"><input type="text" size="5" name="metacartawsProxyPort" value='<%=metacartawsProxyPort%>'/></td>
+		<td class="description"><nobr>User webservice server proxy port:</nobr></td><td class="value"><input type="text" size="5" name="metacartawsProxyPort" value='<%=metacartawsProxyPort%>'/></td>
 	</tr>
 </table>
 <%
 	}
 	else
 	{
-		// Hiddens for the MetaCarta Service Server tab.
+		// Hiddens for the User Service Server tab.
 %>
 <input type="hidden" name="metacartawsServerProtocol" value='<%=metacartawsServerProtocol%>'/>
 <input type="hidden" name="metacartawsServerName" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(metacartawsServerName)%>'/>

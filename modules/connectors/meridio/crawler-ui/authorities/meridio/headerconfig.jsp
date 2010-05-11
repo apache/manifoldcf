@@ -44,7 +44,7 @@
 
 	tabsArray.add("Document Server");
 	tabsArray.add("Records Server");
-	tabsArray.add("MetaCarta Service Server");
+	tabsArray.add("User Service Server");
 	tabsArray.add("Credentials");
 
 %>
@@ -117,8 +117,8 @@
 		}
 		if (editconnection.metacartawsServerName.value == "")
 		{
-			alert("Please fill in a Meridio MetaCarta Service server name");
-			SelectTab("MetaCarta Service Server");
+			alert("Please fill in a User Service server name");
+			SelectTab("User Service Server");
 			editconnection.metacartawsServerName.focus();
 			return false;
 		}
@@ -139,8 +139,8 @@
 		}
 		if (editconnection.metacartawsServerPort.value != "" && !isInteger(editconnection.metacartawsServerPort.value))
 		{
-			alert("Please supply a Meridio MetaCarta Service port number, or none for default");
-			SelectTab("MetaCarta Service Server");
+			alert("Please supply a User Service port number, or none for default");
+			SelectTab("User Service Server");
 			editconnection.metacartawsServerPort.focus();
 			return false;
 		}
