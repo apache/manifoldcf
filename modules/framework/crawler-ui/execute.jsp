@@ -528,6 +528,45 @@
 		    }
 
 
+		    else if (op.equals("ReingestAll"))
+		    {
+			// Reingest signal operation
+			String type = variableContext.getParameter("type");
+			if (type != null && type.equals("output"))
+			{
+				try
+				{
+					String connectionName = variableContext.getParameter("connname");
+					if (connectionName == null)
+						throw new LCFException("Missing connection parameter");
+					org.apache.lcf.agents.system.LCF.signalOutputConnectionRedo(threadContext,connectionName);
+%>
+					<jsp:forward page="listoutputs.jsp"/>
+<%
+				}
+				catch (LCFException e)
+				{
+					e.printStackTrace();
+					variableContext.setParameter("text",e.getMessage());
+					variableContext.setParameter("target","listoutputs.jsp");
+%>
+					<jsp:forward page="error.jsp"/>
+<%
+				}
+			}
+			else
+			{
+				// Error
+				variableContext.setParameter("text","Illegal parameter to page");
+				variableContext.setParameter("target","index.jsp");
+%>
+				<jsp:forward page="error.jsp"/>
+<%
+			}
+
+		    }
+		    
+		    
 		    else if (op.equals("Delete"))
 		    {
 			// Delete operation

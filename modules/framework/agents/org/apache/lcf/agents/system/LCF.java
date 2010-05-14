@@ -143,5 +143,23 @@ public class LCF extends org.apache.lcf.core.system.LCF
     }
     // Done.
   }
+  
+  /** Signal output connection needs redoing.
+  * This is called when something external changed on an output connection, and
+  * therefore all associated documents must be reindexed.
+  *@param threadContext is the thread context.
+  *@param connectionName is the connection name.
+  */
+  public static void signalOutputConnectionRedo(IThreadContext threadContext, String connectionName)
+    throws LCFException
+  {
+    // Blow away the incremental ingestion table first
+    IIncrementalIngester ingester = IncrementalIngesterFactory.make(threadContext);
+    ingester.resetOutputConnection(connectionName);
+    // Now, signal to all agents that the output connection configuration has changed.  Do this second, so that there cannot be documents
+    // resulting from this signal that find themselves "unchanged".
+    AgentManagerFactory.noteOutputConnectionChange(threadContext,connectionName);
+  }
+  
 }
 

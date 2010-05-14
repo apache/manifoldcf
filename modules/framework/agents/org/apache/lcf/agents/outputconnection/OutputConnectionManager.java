@@ -259,10 +259,17 @@ public class OutputConnectionManager extends org.apache.lcf.core.database.BaseTa
         values.put(descriptionField,object.getDescription());
         values.put(classNameField,object.getClassName());
         values.put(maxCountField,new Long((long)object.getMaxConnections()));
-        values.put(configField,object.getConfigParams().toXML());
+        String configXML = object.getConfigParams().toXML();
+        values.put(configField,configXML);
+        boolean notificationNeeded = false;
 
         if (set.getRowCount() > 0)
         {
+          IResultRow row = set.getRow(0);
+          String oldXML = (String)row.getValue(configField);
+          if (oldXML == null || !oldXML.equals(configXML))
+            notificationNeeded = true;
+
           // Update
           params.clear();
           params.add(object.getName());
@@ -275,6 +282,10 @@ public class OutputConnectionManager extends org.apache.lcf.core.database.BaseTa
           // We only need the general key because this is new.
           performInsert(values,null);
         }
+        
+        // If notification required, do it.
+        if (notificationNeeded)
+          AgentManagerFactory.noteOutputConnectionChange(threadContext,object.getName());
 
         cacheManager.invalidateKeys(ch);
       }

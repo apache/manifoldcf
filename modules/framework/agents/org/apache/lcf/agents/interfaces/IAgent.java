@@ -71,4 +71,10 @@ public interface IAgent
   public void noteOutputConnectorRegistration(String[] connectionNames)
     throws LCFException;
 
+  /** Note a change in configuration for an output connection.
+  *@param connectionName is the name of the connection being changed.
+  */
+  public void noteOutputConnectionChange(String connectionName)
+    throws LCFException;
+  
 }

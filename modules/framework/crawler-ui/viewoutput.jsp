@@ -45,6 +45,16 @@
 		}
 	}
 
+	function ReingestAll(connectionName)
+	{
+		if (confirm("This command will force all documents associated with output\nconnection '"+connectionName+"' to be recrawled the next time their associated\n jobs are started.  Do you want to continue?"))
+		{
+			document.viewconnection.op.value="ReingestAll";
+			document.viewconnection.connname.value=connectionName;
+			document.viewconnection.submit();
+		}
+	}
+	
 	//-->
 	</script>
 
@@ -153,8 +163,12 @@
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
-		<tr><td class="message" colspan="4"><a href='<%="viewoutput.jsp?connname="+java.net.URLEncoder.encode(connectionName,"UTF-8")%>' alt="Refresh">Refresh</a>&nbsp;<a href='<%="editoutput.jsp?connname="+java.net.URLEncoder.encode(connectionName,"UTF-8")%>' alt="Edit this output connection">Edit</a>&nbsp;<a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.lcf.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>' alt="Delete this output connection">Delete</a>
-		</td></tr>
+		<tr>
+			<td class="message" colspan="4">
+				<nobr><a href='<%="viewoutput.jsp?connname="+java.net.URLEncoder.encode(connectionName,"UTF-8")%>' alt="Refresh">Refresh</a>&nbsp;<a href='<%="editoutput.jsp?connname="+java.net.URLEncoder.encode(connectionName,"UTF-8")%>' alt="Edit this output connection">Edit</a>&nbsp;<a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.lcf.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>' alt="Delete this output connection">Delete</a></nobr><br/>
+				<nobr><a href="javascript:void()" onclick='<%="javascript:ReingestAll(\""+org.apache.lcf.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>' alt="Re-ingest all documents associated with this output connection">Re-ingest all associated documents</a></nobr>
+			</td>
+		</tr>
 		</table>
 
 <%

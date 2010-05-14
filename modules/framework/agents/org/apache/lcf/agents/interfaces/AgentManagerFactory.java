@@ -108,6 +108,23 @@ public class AgentManagerFactory
     }
   }
 
+  /** Note to all registered agents the change of configuration of an output connection.
+  * This method will be called when the connection's xml is modified.
+  *@param threadContext is the thread context.
+  *@param connectionName is the connection name.
+  */
+  public static void noteOutputConnectionChange(IThreadContext threadContext, String connectionName)
+    throws LCFException
+  {
+    // Instantiate the list of IAgent objects
+    IAgent[] theAgents = instantiateAllAgents(threadContext);
+    int i = 0;
+    while (i < theAgents.length)
+    {
+      theAgents[i++].noteOutputConnectionChange(connectionName);
+    }
+  }
+
   /** Instantiate the complete set of IAgent objects.
   *@param threadContext is the thread context.
   *@return the array of such objects.

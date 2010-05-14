@@ -672,6 +672,13 @@ public interface IJobManager
   public void noteConnectorRegistration(String[] connectionNames)
     throws LCFException;
 
+  /** Note a change in connection configuration.
+  * This method will be called whenever a connection's configuration is modified, or when an external repository change
+  * is signalled.
+  */
+  public void noteConnectionChange(String connectionName)
+    throws LCFException;
+    
   /**  Note the deregistration of an output connector used by the specified connections.
   * This method will be called when the connector is deregistered.  Jobs that use these connections
   *  must therefore enter appropriate states.
@@ -686,6 +693,13 @@ public interface IJobManager
   *@param connectionNames is the set of connection names.
   */
   public void noteOutputConnectorRegistration(String[] connectionNames)
+    throws LCFException;
+
+  /** Note a change in output connection configuration.
+  * This method will be called whenever a connection's configuration is modified, or when an external output target change
+  * is signalled.
+  */
+  public void noteOutputConnectionChange(String connectionName)
     throws LCFException;
 
   /** Delete jobs in need of being deleted (which are marked "ready for delete").

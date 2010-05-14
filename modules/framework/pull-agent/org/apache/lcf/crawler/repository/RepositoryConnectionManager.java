@@ -55,7 +55,7 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
   ICacheManager cacheManager;
   // Thread context
   IThreadContext threadContext;
-
+  
   /** Constructor.
   *@param threadContext is the thread context.
   */
@@ -318,10 +318,17 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
         values.put(classNameField,object.getClassName());
         values.put(authorityNameField,object.getACLAuthority());
         values.put(maxCountField,new Long((long)object.getMaxConnections()));
-        values.put(configField,object.getConfigParams().toXML());
-
+        String configXML = object.getConfigParams().toXML();
+        values.put(configField,configXML);
+        boolean notificationNeeded = false;
+        
         if (set.getRowCount() > 0)
         {
+          IResultRow row = set.getRow(0);
+          String oldXML = (String)row.getValue(configField);
+          if (oldXML == null || !oldXML.equals(configXML))
+            notificationNeeded = true;
+          
           // Update
           params.clear();
           params.add(object.getName());
@@ -338,6 +345,13 @@ public class RepositoryConnectionManager extends org.apache.lcf.core.database.Ba
 
         // Write secondary table stuff
         throttleSpecManager.writeRows(object.getName(),object);
+
+        // If notification required, do it.
+        if (notificationNeeded)
+        {
+          IJobManager jobManager = JobManagerFactory.make(threadContext);
+          jobManager.noteConnectionChange(object.getName());
+        }
 
         cacheManager.invalidateKeys(ch);
       }

@@ -948,6 +948,18 @@ public class LCF extends org.apache.lcf.agents.system.LCF
     jobManager.noteOutputConnectorRegistration(connectionNames);
   }
 
+  /** Note the change in configuration of an output connection.
+  *@param threadContext is the thread context.
+  *@param connectionName is the output connection name.
+  */
+  public static void noteOutputConnectionChange(IThreadContext threadContext, String connectionName)
+    throws LCFException
+  {
+    // Notify job manager
+    IJobManager jobManager = JobManagerFactory.make(threadContext);
+    jobManager.noteOutputConnectionChange(connectionName);
+  }
+  
   /** Qualify output activity name.
   *@param outputActivityName is the name of the output activity.
   *@param outputConnectionName is the corresponding name of the output connection.

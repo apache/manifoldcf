@@ -354,6 +354,16 @@ public class JobManager implements IJobManager
     }
   }
 
+  /** Note a change in connection configuration.
+  * This method will be called whenever a connection's configuration is modified, or when an external repository change
+  * is signalled.
+  */
+  public void noteConnectionChange(String connectionName)
+    throws LCFException
+  {
+    jobs.noteConnectionChange(connectionName);
+  }
+
   /**  Note the deregistration of an output connector used by the specified connections.
   * This method will be called when the connector is deregistered.  Jobs that use these connections
   *  must therefore enter appropriate states.
@@ -459,6 +469,16 @@ public class JobManager implements IJobManager
       int statusValue = jobs.stringToStatus((String)row.getValue(jobs.statusField));
       jobs.noteOutputConnectorRegistration(jobID,statusValue);
     }
+  }
+
+  /** Note a change in output connection configuration.
+  * This method will be called whenever a connection's configuration is modified, or when an external target config change
+  * is signalled.
+  */
+  public void noteOutputConnectionChange(String connectionName)
+    throws LCFException
+  {
+    jobs.noteOutputConnectionChange(connectionName);
   }
 
   /** Load a sorted list of job descriptions.

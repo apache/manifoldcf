@@ -949,6 +949,36 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
     performUpdate(newValues,"WHERE "+idField+"=?",list,invKey);
   }
 
+  /** Note a change in connection configuration.
+  * This method will be called whenever a connection's configuration is modified, or when an external repository change
+  * is signalled.
+  */
+  public void noteConnectionChange(String connectionName)
+    throws LCFException
+  {
+    // No cache keys need invalidation, since we're changing the start time, not the status.
+    HashMap newValues = new HashMap();
+    newValues.put(lastCheckTimeField,null);
+    ArrayList list = new ArrayList();
+    list.add(connectionName);
+    performUpdate(newValues,"WHERE "+connectionNameField+"=?",list,null);
+  }
+
+  /** Note a change in output connection configuration.
+  * This method will be called whenever a connection's configuration is modified, or when an external target config change
+  * is signalled.
+  */
+  public void noteOutputConnectionChange(String connectionName)
+    throws LCFException
+  {
+    // No cache keys need invalidation, since we're changing the start time, not the status.
+    HashMap newValues = new HashMap();
+    newValues.put(lastCheckTimeField,null);
+    ArrayList list = new ArrayList();
+    list.add(connectionName);
+    performUpdate(newValues,"WHERE "+outputNameField+"=?",list,null);
+  }
+  
   /** Check whether a job's status indicates that it is in ACTIVE or ACTIVESEEDING state.
   */
   public boolean checkJobActive(Long jobID)

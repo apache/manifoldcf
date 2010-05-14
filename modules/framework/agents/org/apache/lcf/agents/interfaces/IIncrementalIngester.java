@@ -239,5 +239,12 @@ public interface IIncrementalIngester
     String identifierClass, String identifierHash)
     throws LCFException;
 
-
+  /** Reset all documents belonging to a specific output connection, because we've got information that
+  * that system has been reconfigured.  This will force all such documents to be reindexed the next time
+  * they are checked.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  */
+  public void resetOutputConnection(String outputConnectionName)
+    throws LCFException;
+    
 }

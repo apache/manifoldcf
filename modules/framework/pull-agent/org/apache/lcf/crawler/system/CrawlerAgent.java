@@ -104,5 +104,24 @@ public class CrawlerAgent implements IAgent
     LCF.noteOutputConnectorRegistration(threadContext,connectionNames);
   }
 
+  /** Note a change in configuration for an output connection.
+  *@param connectionName is the name of the connections being changed.
+  */
+  public void noteOutputConnectionChange(String connectionName)
+    throws LCFException
+  {
+    LCF.noteOutputConnectionChange(threadContext,connectionName);
+  }
+
+  /** Signal that an output connection needs to be "redone".  This means that all documents sent to that output connection must be sent again,
+  * and the history as to their status must be forgotten.
+  *@param connectionName is the name of the connection being signalled.
+  */
+  public void signalOutputConnectionRedo(String connectionName)
+    throws LCFException
+  {
+    LCF.signalOutputConnectionRedo(threadContext,connectionName);
+  }
+
 }
 

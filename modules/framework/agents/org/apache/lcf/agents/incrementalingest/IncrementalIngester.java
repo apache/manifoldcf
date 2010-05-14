@@ -1185,6 +1185,21 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
     }
   }
 
+  /** Reset all documents belonging to a specific output connection, because we've got information that
+  * that system has been reconfigured.  This will force all such documents to be reindexed the next time
+  * they are checked.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  */
+  public void resetOutputConnection(String outputConnectionName)
+    throws LCFException
+  {
+    // We're not going to blow away the records, but we are going to set their versions to mean, "reindex required"
+    HashMap map = new HashMap();
+    map.put(lastVersionField,null);
+    ArrayList list = new ArrayList();
+    list.add(outputConnectionName);
+    performUpdate(map,"WHERE "+outputConnNameField+"=?",list,null);
+  }
 
   /** Note the ingestion of a document, or the "update" of a document.
   *@param outputConnectionName is the name of the output connection.
