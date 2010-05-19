@@ -174,7 +174,16 @@ public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnec
     {
       ConfigNode node = params.getChild(i++);
       if (node.getType().equals(SolrConfig.NODE_ARGUMENT))
-        args.put(node.getAttributeValue(SolrConfig.ATTRIBUTE_NAME),node.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE));
+      {
+        String attrName = node.getAttributeValue(SolrConfig.ATTRIBUTE_NAME);
+        ArrayList list = (ArrayList)args.get(attrName);
+        if (list == null)
+        {
+          list = new ArrayList();
+          args.put(attrName,list);
+        }
+        list.add(node.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE));
+      }
     }
     
     String[] sortArray = new String[args.size()];
@@ -194,12 +203,17 @@ public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnec
     while (i < sortArray.length)
     {
       String name = sortArray[i++];
-      String value = (String)args.get(name);
-      fixedList[0] = name;
-      fixedList[1] = value;
-      StringBuffer pairBuffer = new StringBuffer();
-      packFixedList(pairBuffer,fixedList,'=');
-      nameValues.add(pairBuffer.toString());
+      ArrayList values = (ArrayList)args.get(name);
+      int j = 0;
+      while (j < values.size())
+      {
+        String value = (String)values.get(j++);
+        fixedList[0] = name;
+        fixedList[1] = value;
+        StringBuffer pairBuffer = new StringBuffer();
+        packFixedList(pairBuffer,fixedList,'=');
+        nameValues.add(pairBuffer.toString());
+      }
     }
     
     StringBuffer sb = new StringBuffer();
@@ -233,7 +247,16 @@ public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnec
     {
       ConfigNode node = params.getChild(i++);
       if (node.getType().equals(SolrConfig.NODE_ARGUMENT))
-        args.put(node.getAttributeValue(SolrConfig.ATTRIBUTE_NAME),node.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE));
+      {
+        String attrName = node.getAttributeValue(SolrConfig.ATTRIBUTE_NAME);
+        ArrayList list = (ArrayList)args.get(attrName);
+        if (list == null)
+        {
+          list = new ArrayList();
+          args.put(attrName,list);
+        }
+        list.add(node.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE));
+      }
     }
 
     // Establish a session

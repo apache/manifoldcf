@@ -178,7 +178,13 @@
 		{
 			String name = sn.getAttributeValue(org.apache.lcf.agents.output.solr.SolrConfig.ATTRIBUTE_NAME);
 			String value = sn.getAttributeValue(org.apache.lcf.agents.output.solr.SolrConfig.ATTRIBUTE_VALUE);
-			argumentMap.put(name,value);
+			ArrayList values = (ArrayList)argumentMap.get(name);
+			if (values == null)
+			{
+				values = new ArrayList();
+				argumentMap.put(name,values);
+			}
+			values.add(value);
 		}
 	}
 	// "Arguments" tab
@@ -207,29 +213,34 @@
 				</tr>
 <%
 		i = 0;
-		while (i < sortArray.length)
+		int k = 0;
+		while (k < sortArray.length)
 		{
-			String name = sortArray[i];
-			String value = (String)argumentMap.get(name);
-			// It's prefix will be...
-			String prefix = "argument_" + Integer.toString(i);
+			String name = sortArray[k++];
+			ArrayList values = (ArrayList)argumentMap.get(name);
+			int j = 0;
+			while (j < values.size())
+			{
+				String value = (String)values.get(j++);
+				// Its prefix will be...
+				String prefix = "argument_" + Integer.toString(i);
 %>
 				<tr class='<%=((i % 2)==0)?"evenformrow":"oddformrow"%>'>
 					<td class="formcolumncell">
 						<a name='<%=prefix%>'><input type="button" value="Delete" alt='<%="Delete argument #"+Integer.toString(i+1)%>' onclick='<%="javascript:deleteArgument("+Integer.toString(i)+");"%>'/>
 						<input type="hidden" name='<%=prefix+"_op"%>' value="Continue"/>
 						<input type="hidden" name='<%=prefix+"_name"%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(name)%>'/>
-						<input type="hidden" name='<%=prefix+"_value"%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(value)%>'/>
 					</td>
 					<td class="formcolumncell">
 						<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(name)%></nobr>
 					</td>
 					<td class="formcolumncell">
-						<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(value)%></nobr>
+						<nobr><input type="text" size="30" name='<%=prefix+"_value"%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(value)%>'</nobr>
 					</td>
 				</tr>
 <%
-			i++;
+				i++;
+			}
 		}
 		if (i == 0)
 		{
@@ -266,13 +277,19 @@
 		while (iter.hasNext())
 		{
 			String name = (String)iter.next();
-			String value = (String)argumentMap.get(name);
-			// It's prefix will be...
-			String prefix = "argument_" + Integer.toString(i++);
+			ArrayList values = (ArrayList)argumentMap.get(name);
+			int j = 0;
+			while (j < values.size())
+			{
+				String value = (String)values.get(j++);
+				// It's prefix will be...
+				String prefix = "argument_" + Integer.toString(i++);
 %>
 <input type="hidden" name='<%=prefix+"_name"%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(name)%>'/>
 <input type="hidden" name='<%=prefix+"_value"%>' value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(value)%>'/>
 <%
+
+			}
 		}
 %>
 <input type="hidden" name="argument_count" value='<%=i%>'/>

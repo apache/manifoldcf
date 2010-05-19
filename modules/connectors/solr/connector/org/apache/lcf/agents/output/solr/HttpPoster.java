@@ -164,7 +164,7 @@ public class HttpPoster
   * Post the input stream to ingest
   * @param documentURI is the document's uri.
   * @param document is the document structure to ingest.
-  * @param arguments are the configuration arguments to pass in the post.
+  * @param arguments are the configuration arguments to pass in the post.  Key is argument name, value is a list of the argument values.
   * @param authorityNameString is the name of the governing authority for this document's acls, or null if none.
   * @param activities is the activities object, so we can report what's happening.
   * @return true if the ingestion was successful, or false if the ingestion is illegal.
@@ -893,9 +893,6 @@ public class HttpPoster
 
       try
       {
-        // Build the URL in question.
-        // MHL
-
         // Do the operation!
         long fullStartTime = System.currentTimeMillis();
 
@@ -944,8 +941,13 @@ public class HttpPoster
                 while (iter.hasNext())
                 {
                   String name = (String)iter.next();
-                  String value = (String)arguments.get(name);
-                  totalLength += lengthField(name,value);
+                  List values = (List)arguments.get(name);
+                  int j = 0;
+                  while (j < values.size())
+                  {
+                    String value = (String)values.get(j++);
+                    totalLength += lengthField(name,value);
+                  }
                 }
                 // Count the metadata.
                 iter = document.getFields();
@@ -994,8 +996,13 @@ public class HttpPoster
                 while (iter.hasNext())
                 {
                   String name = (String)iter.next();
-                  String value = (String)arguments.get(name);
-                  writeField(out,name,value);
+                  List values = (List)arguments.get(name);
+                  int j = 0;
+                  while (j < values.size())
+                  {
+                    String value = (String)values.get(j++);
+                    writeField(out,name,value);
+                  }
                 }
 
                 // Write the metadata, each in a field by itself
