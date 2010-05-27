@@ -86,6 +86,8 @@ public class LCF
   // Implementation class properties
   /** Lock manager implementation class */
   public static final String lockManagerImplementation = "org.apache.lcf.lockmanagerclass";
+  /** Database implementation class */
+  public static final String databaseImplementation = "org.apache.lcf.databaseimplementationclass";
   
   // The following are system integration properties
   /** Script to invoke when configuration changes, if any */

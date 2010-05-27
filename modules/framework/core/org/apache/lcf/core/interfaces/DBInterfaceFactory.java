@@ -18,6 +18,9 @@
 */
 package org.apache.lcf.core.interfaces;
 
+import org.apache.lcf.core.system.LCF;
+import java.lang.reflect.*;
+
 /** This is the factory class for an IDBInterface.
 */
 public class DBInterfaceFactory
@@ -37,10 +40,46 @@ public class DBInterfaceFactory
     Object x = context.get(dbName);
     if (x == null || !(x instanceof IDBInterface))
     {
-      // Create new database handle
-      // x = new org.apache.lcf.core.database.DBInterfaceMySQL(context,databaseName,userName,password);
-      x = new org.apache.lcf.core.database.DBInterfacePostgreSQL(context,databaseName,userName,password);
-      context.save(dbName,x);
+      String implementationClass = LCF.getProperty(LCF.databaseImplementation);
+      if (implementationClass == null)
+        implementationClass = "org.apache.lcf.core.database.DBInterfacePostgreSQL";
+      try
+      {
+        Class c = Class.forName(implementationClass);
+        Constructor constructor = c.getConstructor(new Class[]{IThreadContext.class,String.class,String.class,String.class});
+        x = constructor.newInstance(new Object[]{context,databaseName,userName,password});
+        if (!(x instanceof IDBInterface))
+          throw new LCFException("Database implementation class "+implementationClass+" does not implement IDBInterface",LCFException.SETUP_ERROR);
+        context.save(dbName,x);
+      }
+      catch (ClassNotFoundException e)
+      {
+        throw new LCFException("Database implementation class "+implementationClass+" could not be found: "+e.getMessage(),e,LCFException.SETUP_ERROR);
+      }
+      catch (ExceptionInInitializerError e)
+      {
+        throw new LCFException("Database implementation class "+implementationClass+" could not be instantiated: "+e.getMessage(),e,LCFException.SETUP_ERROR);
+      }
+      catch (LinkageError e)
+      {
+        throw new LCFException("Database implementation class "+implementationClass+" could not be linked: "+e.getMessage(),e,LCFException.SETUP_ERROR);
+      }
+      catch (InstantiationException e)
+      {
+        throw new LCFException("Database implementation class "+implementationClass+" could not be instantiated: "+e.getMessage(),e,LCFException.SETUP_ERROR);
+      }
+      catch (InvocationTargetException e)
+      {
+        throw new LCFException("Database implementation class "+implementationClass+" could not be instantiated: "+e.getMessage(),e,LCFException.SETUP_ERROR);
+      }
+      catch (NoSuchMethodException e)
+      {
+        throw new LCFException("Database implementation class "+implementationClass+" had no constructor taking (IThreadContext, String, String, String): "+e.getMessage(),e,LCFException.SETUP_ERROR);
+      }
+      catch (IllegalAccessException e)
+      {
+        throw new LCFException("Database implementation class "+implementationClass+" had no public constructor taking (IThreadContext, String, String, String): "+e.getMessage(),e,LCFException.SETUP_ERROR);
+      }
     }
     return (IDBInterface)x;
 
