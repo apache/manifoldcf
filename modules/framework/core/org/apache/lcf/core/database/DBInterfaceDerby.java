@@ -19,25 +19,29 @@
 package org.apache.lcf.core.database;
 
 import org.apache.lcf.core.interfaces.*;
+import org.apache.lcf.core.system.Logging;
 import java.util.*;
 
-public class DBInterfaceMySQL implements IDBInterface
+public class DBInterfaceDerby implements IDBInterface
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  private static final String _url = "jdbc:mysql://localhost/";
-  private static final String _driver = "org.gjt.mm.mysql.Driver";
-
+  protected final static String _url = "jdbc:derby:";
+  protected final static String _driver = "org.apache.derby.jdbc.EmbeddedDriver";
+  
   protected IThreadContext context;
   protected IDatabase database;
   protected String cacheKey;
+  // Postgresql serializable transactions are broken in that transactions that occur within them do not in fact work properly.
+  // So, once we enter the serializable realm, STOP any additional transactions from doing anything at all.
+  protected int serializableDepth = 0;
 
-  public DBInterfaceMySQL(IThreadContext tc, String databaseName, String userName, String password)
+  public DBInterfaceDerby(IThreadContext tc, String databaseName, String userName, String password)
     throws LCFException
   {
     this.context = tc;
     if (databaseName == null)
-      databaseName = "mysql";
+      databaseName = "default";
     database = DatabaseFactory.make(tc,_url+databaseName,_driver,databaseName,userName,password);
     cacheKey = CacheKeyFactory.makeDatabaseKey(databaseName);
   }
@@ -228,6 +232,7 @@ public class DBInterfaceMySQL implements IDBInterface
   public void performCreate(String tableName, Map columnMap, StringSet invalidateKeys)
     throws LCFException
   {
+    int constraintNumber = 0;
     StringBuffer queryBuffer = new StringBuffer("CREATE TABLE ");
     queryBuffer.append(tableName);
     queryBuffer.append('(');
@@ -241,32 +246,38 @@ public class DBInterfaceMySQL implements IDBInterface
         queryBuffer.append(',');
       else
         first = false;
-      queryBuffer.append(columnName);
-      queryBuffer.append(' ');
-      queryBuffer.append(cd.getTypeString());
-      if (cd.getIsNull())
-        queryBuffer.append(" NULL");
-      else
-        queryBuffer.append(" NOT NULL");
-      if (cd.getIsPrimaryKey())
-        queryBuffer.append(" PRIMARY KEY");
-      if (cd.getReferenceTable() != null)
-      {
-        queryBuffer.append(" REFERENCES ");
-        queryBuffer.append(cd.getReferenceTable());
-        queryBuffer.append('(');
-        queryBuffer.append(cd.getReferenceColumn());
-        queryBuffer.append(") ON DELETE");
-        if (cd.getReferenceCascade())
-          queryBuffer.append(" CASCADE");
-        else
-          queryBuffer.append(" RESTRICT");
-      }
+      appendDescription(queryBuffer,columnName,cd,false);
     }
     queryBuffer.append(')');
 
     performModification(queryBuffer.toString(),null,invalidateKeys);
 
+  }
+
+  protected void appendDescription(StringBuffer queryBuffer, String columnName, ColumnDescription cd, boolean forceNull)
+    throws LCFException
+  {
+    queryBuffer.append(columnName);
+    queryBuffer.append(' ');
+    queryBuffer.append(mapType(cd.getTypeString()));
+    if (forceNull || cd.getIsNull())
+      queryBuffer.append(" NULL");
+    else
+      queryBuffer.append(" NOT NULL");
+    if (cd.getIsPrimaryKey())
+      queryBuffer.append("CONSTRAINT c" + IDFactory.make(context) + " PRIMARY KEY");
+    if (cd.getReferenceTable() != null)
+    {
+      queryBuffer.append("CONSTRAINT c" + IDFactory.make(context) + " REFERENCES ");
+      queryBuffer.append(cd.getReferenceTable());
+      queryBuffer.append('(');
+      queryBuffer.append(cd.getReferenceColumn());
+      queryBuffer.append(") ON DELETE");
+      if (cd.getReferenceCascade())
+        queryBuffer.append(" CASCADE");
+      else
+        queryBuffer.append(" RESTRICT");
+    }
   }
 
   /** Perform a table alter operation.
@@ -283,7 +294,85 @@ public class DBInterfaceMySQL implements IDBInterface
     StringSet invalidateKeys)
     throws LCFException
   {
-    // MHL
+    beginTransaction(TRANSACTION_ENCLOSING);
+    try
+    {
+      if (columnDeleteList != null)
+      {
+        int i = 0;
+        while (i < columnDeleteList.size())
+        {
+          String columnName = (String)columnDeleteList.get(i++);
+          performModification("ALTER TABLE ONLY "+tableName+" DROP "+columnName,null,invalidateKeys);
+        }
+      }
+
+      // Do the modifies.  This involves renaming each column to a temp column, then creating a new one, then copying
+      if (columnModifyMap != null)
+      {
+        Iterator iter = columnModifyMap.keySet().iterator();
+        while (iter.hasNext())
+        {
+          String columnName = (String)iter.next();
+          ColumnDescription cd = (ColumnDescription)columnModifyMap.get(columnName);
+          String renameColumn = "__temp__";
+          // Create a new column we can copy the data into.
+          performModification("RENAME COLUMN "+tableName+"."+columnName+" TO "+renameColumn,null,invalidateKeys);
+          // Create new column
+          StringBuffer sb = new StringBuffer();
+          appendDescription(sb,columnName,cd,true);
+          performModification("ALTER TABLE "+tableName+" ADD "+sb.toString(),null,invalidateKeys);
+          // Copy old data to new
+          performModification("UPDATE "+tableName+" SET "+columnName+"="+renameColumn,null,invalidateKeys);
+          // Make the column null, if it needs it
+          if (cd.getIsNull() == false)
+            performModification("ALTER TABLE "+tableName+" ALTER "+columnName+" SET NOT NULL",null,invalidateKeys);
+          // Drop old column
+          performModification("ALTER TABLE "+tableName+" DROP "+renameColumn,null,invalidateKeys);
+        }
+      }
+
+      // Now, do the adds
+      if (columnMap != null)
+      {
+        Iterator iter = columnMap.keySet().iterator();
+        while (iter.hasNext())
+        {
+          String columnName = (String)iter.next();
+          ColumnDescription cd = (ColumnDescription)columnMap.get(columnName);
+          StringBuffer sb = new StringBuffer();
+          appendDescription(sb,columnName,cd,false);
+          performModification("ALTER TABLE "+tableName+" ADD "+sb.toString(),null,invalidateKeys);
+        }
+      }
+    }
+    catch (LCFException e)
+    {
+      signalRollback();
+      throw e;
+    }
+    catch (Error e)
+    {
+      signalRollback();
+      throw e;
+    }
+    finally
+    {
+      endTransaction();
+    }
+
+  }
+
+
+  /** Map a standard type into a derby type.
+  *@param inputType is the input type.
+  *@return the output type.
+  */
+  protected static String mapType(String inputType)
+  {
+    if (inputType.equalsIgnoreCase("longtext"))
+      return "clob";
+    return inputType;
   }
 
   /** Add an index to a table.
@@ -357,7 +446,7 @@ public class DBInterfaceMySQL implements IDBInterface
   public void analyzeTable(String tableName)
     throws LCFException
   {
-    // Does nothing
+    // Does nothing on Derby
   }
 
   /** Reindex a table.
@@ -366,7 +455,7 @@ public class DBInterfaceMySQL implements IDBInterface
   public void reindexTable(String tableName)
     throws LCFException
   {
-    // Does nothing
+    // Does nothing on Derby
   }
 
   /** Perform a table drop operation.
@@ -386,7 +475,12 @@ public class DBInterfaceMySQL implements IDBInterface
   public boolean lookupUser(String userName, StringSet cacheKeys, String queryClass)
     throws LCFException
   {
-    throw new LCFException("Not Supported");
+    ArrayList params = new ArrayList();
+    params.add(userName);
+    IResultSet set = performQuery("SELECT * FROM pg_user WHERE usename=?",params,cacheKeys,queryClass);
+    if (set.getRowCount() == 0)
+      return false;
+    return true;
   }
 
   /** Perform user create.
@@ -396,7 +490,8 @@ public class DBInterfaceMySQL implements IDBInterface
   public void performCreateUser(String userName, String password)
     throws LCFException
   {
-    // Does nothing for MySQL
+    performModification("CREATE USER "+userName+" PASSWORD "+
+      quoteSQLString(password),null,null);
   }
 
   /** Perform user delete.
@@ -405,7 +500,7 @@ public class DBInterfaceMySQL implements IDBInterface
   public void performDropUser(String userName)
     throws LCFException
   {
-    // Does nothing
+    performModification("DROP USER "+userName,null,null);
   }
 
   /** Perform database lookup.
@@ -416,9 +511,13 @@ public class DBInterfaceMySQL implements IDBInterface
   public boolean lookupDatabase(String databaseName, StringSet cacheKeys, String queryClass)
     throws LCFException
   {
-    throw new LCFException("Not Supported");
+    ArrayList params = new ArrayList();
+    params.add(databaseName);
+    IResultSet set = performQuery("SELECT * FROM pg_database WHERE datname=?",params,cacheKeys,queryClass);
+    if (set.getRowCount() == 0)
+      return false;
+    return true;
   }
-
 
   /** Perform database create.
   *@param databaseName is the database name.
@@ -430,33 +529,9 @@ public class DBInterfaceMySQL implements IDBInterface
     StringSet invalidateKeys)
     throws LCFException
   {
-    beginTransaction();
-    try
-    {
-      performModification("CREATE DATABASE "+databaseName+" CHARACTER SET "+
-        quoteSQLString("utf8"),null,invalidateKeys);
-      if (databaseUser != null)
-      {
-        performModification("GRANT ALL ON "+databaseName+".* TO "+
-          quoteSQLString(databaseUser)+"@"+
-          quoteSQLString("localhost")+" IDENTIFIED BY "+
-          quoteSQLString(databasePassword),null,invalidateKeys);
-      }
-    }
-    catch (LCFException e)
-    {
-      signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      signalRollback();
-      throw e;
-    }
-    finally
-    {
-      endTransaction();
-    }
+    performModification("CREATE DATABASE "+databaseName+" OWNER="+
+      databaseUser+" ENCODING="+
+      quoteSQLString("utf8"),null,invalidateKeys);
   }
 
   /** Perform database drop.
@@ -469,6 +544,37 @@ public class DBInterfaceMySQL implements IDBInterface
     performModification("DROP DATABASE "+databaseName,null,invalidateKeys);
   }
 
+  /** Reinterpret an exception tossed by the database layer.  We need to disambiguate the various kinds of exception that
+  * should be thrown.
+  *@param theException is the exception to reinterpret
+  *@return the reinterpreted exception to throw.
+  */
+  protected LCFException reinterpretException(LCFException theException)
+  {
+    if (Logging.db.isDebugEnabled())
+      Logging.db.debug("Reinterpreting exception '"+theException.getMessage()+"'.  The exception type is "+Integer.toString(theException.getErrorCode()));
+    if (theException.getErrorCode() != LCFException.DATABASE_CONNECTION_ERROR)
+      return theException;
+    Throwable e = theException.getCause();
+    if (!(e instanceof java.sql.SQLException))
+      return theException;
+    if (Logging.db.isDebugEnabled())
+      Logging.db.debug("Exception "+theException.getMessage()+" is possibly a transaction abort signal");
+    String message = e.getMessage();
+    if (message.indexOf("deadlock detected") != -1)
+      return new LCFException(message,e,LCFException.DATABASE_TRANSACTION_ABORT);
+    if (message.indexOf("could not serialize") != -1)
+      return new LCFException(message,e,LCFException.DATABASE_TRANSACTION_ABORT);
+    // Note well: We also have to treat 'duplicate key' as a transaction abort, since this is what you get when two threads attempt to
+    // insert the same row.  (Everything only works, then, as long as there is a unique constraint corresponding to every bad insert that
+    // one could make.)
+    if (message.indexOf("duplicate key") != -1)
+      return new LCFException(message,e,LCFException.DATABASE_TRANSACTION_ABORT);
+    if (Logging.db.isDebugEnabled())
+      Logging.db.debug("Exception "+theException.getMessage()+" is NOT a transaction abort signal");
+    return theException;
+  }
+
   /** Perform a general database modification query.
   *@param query is the query string.
   *@param params are the parameterized values, if needed.
@@ -477,19 +583,44 @@ public class DBInterfaceMySQL implements IDBInterface
   public void performModification(String query, ArrayList params, StringSet invalidateKeys)
     throws LCFException
   {
-    database.executeQuery(query,params,null,invalidateKeys,null,false,0,null,null);
+    try
+    {
+      database.executeQuery(query,params,null,invalidateKeys,null,false,0,null,null);
+    }
+    catch (LCFException e)
+    {
+      throw reinterpretException(e);
+    }
   }
 
   /** Get a table's schema.
   *@param tableName is the name of the table.
   *@param cacheKeys are the keys against which to cache the query, or null.
   *@param queryClass is the name of the query class, or null.
-  *@return a map of column names and ColumnDescription objects, describing the schema.
+  *@return a map of column names and ColumnDescription objects, describing the schema, or null if the
+  * table doesn't exist.
   */
   public Map getTableSchema(String tableName, StringSet cacheKeys, String queryClass)
     throws LCFException
   {
-    IResultSet set = performQuery("DESCRIBE "+tableName,null,cacheKeys,queryClass);
+    // MHL
+    StringBuffer query = new StringBuffer();
+    query.append("SELECT pg_attribute.attname AS \"Field\",");
+    query.append("CASE pg_type.typname WHEN 'int2' THEN 'smallint' WHEN 'int4' THEN 'int'");
+    query.append(" WHEN 'int8' THEN 'bigint' WHEN 'varchar' THEN 'varchar(' || pg_attribute.atttypmod-4 || ')'");
+    query.append(" WHEN 'text' THEN 'longtext'");
+    query.append(" WHEN 'bpchar' THEN 'char(' || pg_attribute.atttypmod-4 || ')'");
+    query.append(" ELSE pg_type.typname END AS \"Type\",");
+    query.append("CASE WHEN pg_attribute.attnotnull THEN '' ELSE 'YES' END AS \"Null\",");
+    query.append("CASE pg_type.typname WHEN 'varchar' THEN substring(pg_attrdef.adsrc from '^(.*).*$') ELSE pg_attrdef.adsrc END AS Default ");
+    query.append("FROM pg_class INNER JOIN pg_attribute ON (pg_class.oid=pg_attribute.attrelid) INNER JOIN pg_type ON (pg_attribute.atttypid=pg_type.oid) ");
+    query.append("LEFT JOIN pg_attrdef ON (pg_class.oid=pg_attrdef.adrelid AND pg_attribute.attnum=pg_attrdef.adnum) ");
+    query.append("WHERE pg_class.relname=").append(quoteSQLString(tableName)).append(" AND pg_attribute.attnum>=1 AND NOT pg_attribute.attisdropped ");
+    query.append("ORDER BY pg_attribute.attnum");
+
+    IResultSet set = performQuery(query.toString(),null,cacheKeys,queryClass);
+    if (set.getRowCount() == 0)
+      return null;
     // Digest the result
     HashMap rval = new HashMap();
     int i = 0;
@@ -499,7 +630,7 @@ public class DBInterfaceMySQL implements IDBInterface
       String fieldName = row.getValue("Field").toString();
       String type = row.getValue("Type").toString();
       boolean isNull = row.getValue("Null").toString().equals("YES");
-      boolean isPrimaryKey = row.getValue("Key").toString().equals("PRI");
+      boolean isPrimaryKey = false; // row.getValue("Key").toString().equals("PRI");
       rval.put(fieldName,new ColumnDescription(type,isPrimaryKey,isNull,null,null,false));
     }
 
@@ -515,8 +646,26 @@ public class DBInterfaceMySQL implements IDBInterface
   public Map getTableIndexes(String tableName, StringSet cacheKeys, String queryClass)
     throws LCFException
   {
-    // MHL
-    return null;
+    Map rval = new HashMap();
+
+    // This query returns all index names for the table
+    String query = "SELECT t0.CONGLOMERATENAME FROM SYSCONGLOMERATES t0,SYSTABLES t1 WHERE t0.TABLEID=t1.TABLEID AND t0.ISINDEX=1 AND t1.TABLENAME='"+tableName+"'";
+    
+    // It doesn't look like there's a way to find exactly what is in the index, and what the columns are.  Since
+    // the goal of Derby is to build tests, and this method is used primarily on installation, we can probably accept
+    // the poor performance implied in tearing an index down and recreating it unnecessarily, so I'm going to do a fake-out.
+    
+    IResultSet result = performQuery(query,null,cacheKeys,queryClass);
+    int i = 0;
+    while (i < result.getRowCount())
+    {
+      IResultRow row = result.getRow(i++);
+      String indexName = (String)row.getValue("CONGLOMERATENAME");
+
+      rval.put(indexName,new IndexDescription(false,new String[0]));
+    }
+
+    return rval;
   }
 
   /** Get a database's tables.
@@ -527,18 +676,14 @@ public class DBInterfaceMySQL implements IDBInterface
   public StringSet getAllTables(StringSet cacheKeys, String queryClass)
     throws LCFException
   {
-    IResultSet set = performQuery("SHOW TABLES",null,cacheKeys,queryClass);
+    IResultSet set = performQuery("SELECT TABLENAME FROM SYSTABLES WHERE TABLE_TYPE='T'",null,cacheKeys,queryClass);
     StringSetBuffer ssb = new StringSetBuffer();
-    String columnName = "Tables_in_"+database.getDatabaseName().toLowerCase();
-    // System.out.println(columnName);
+    String columnName = "TABLENAME";
 
     int i = 0;
     while (i < set.getRowCount())
     {
       IResultRow row = set.getRow(i++);
-      // Iterator iter2 = row.getColumns();
-      // if (iter2.hasNext())
-      //      System.out.println("column = '"+(String)iter2.next()+"'");
       String value = row.getValue(columnName).toString();
       ssb.add(value);
     }
@@ -556,7 +701,14 @@ public class DBInterfaceMySQL implements IDBInterface
   public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass)
     throws LCFException
   {
-    return database.executeQuery(query,params,cacheKeys,null,queryClass,true,-1,null,null);
+    try
+    {
+      return database.executeQuery(query,params,cacheKeys,null,queryClass,true,-1,null,null);
+    }
+    catch (LCFException e)
+    {
+      throw reinterpretException(e);
+    }
   }
 
   /** Perform a general "data fetch" query.
@@ -573,7 +725,14 @@ public class DBInterfaceMySQL implements IDBInterface
     int maxResults, ILimitChecker returnLimit)
     throws LCFException
   {
-    return database.executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,null,returnLimit);
+    try
+    {
+      return database.executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,null,returnLimit);
+    }
+    catch (LCFException e)
+    {
+      throw reinterpretException(e);
+    }
   }
 
   /** Perform a general "data fetch" query.
@@ -591,7 +750,14 @@ public class DBInterfaceMySQL implements IDBInterface
     int maxResults, ResultSpecification resultSpec, ILimitChecker returnLimit)
     throws LCFException
   {
-    return database.executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,resultSpec,returnLimit);
+    try
+    {
+      return database.executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,resultSpec,returnLimit);
+    }
+    catch (LCFException e)
+    {
+      throw reinterpretException(e);
+    }
   }
 
   /** Quote a sql string.
@@ -650,7 +816,7 @@ public class DBInterfaceMySQL implements IDBInterface
   public void beginTransaction()
     throws LCFException
   {
-    database.beginTransaction(database.TRANSACTION_READCOMMITTED);
+    beginTransaction(TRANSACTION_ENCLOSING);
   }
 
   /** Begin a database transaction.  This method call MUST be paired with an endTransaction() call,
@@ -665,14 +831,79 @@ public class DBInterfaceMySQL implements IDBInterface
   public void beginTransaction(int transactionType)
     throws LCFException
   {
-    database.beginTransaction(database.TRANSACTION_READCOMMITTED);
+    if (database.getCurrentTransactionType() == database.TRANSACTION_SERIALIZED)
+    {
+      serializableDepth++;
+      return;
+    }
+
+    if (transactionType == TRANSACTION_ENCLOSING)
+    {
+      int enclosingTransactionType = database.getCurrentTransactionType();
+      switch (enclosingTransactionType)
+      {
+      case IDatabase.TRANSACTION_READCOMMITTED:
+        transactionType = TRANSACTION_READCOMMITTED;
+        break;
+      case IDatabase.TRANSACTION_SERIALIZED:
+        transactionType = TRANSACTION_SERIALIZED;
+        break;
+      default:
+        throw new LCFException("Unknown transaction type");
+      }
+    }
+
+    switch (transactionType)
+    {
+    case TRANSACTION_READCOMMITTED:
+      try
+      {
+        performModification("SET ISOLATION READ COMMITTED",null,null);
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        database.endTransaction();
+        throw e;
+      }
+      catch (LCFException e)
+      {
+        database.signalRollback();
+        database.endTransaction();
+        throw e;
+      }
+      database.beginTransaction(database.TRANSACTION_READCOMMITTED);
+      break;
+    case TRANSACTION_SERIALIZED:
+      try
+      {
+        performModification("SET ISOLATION SERIALIZABLE",null,null);
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        database.endTransaction();
+        throw e;
+      }
+      catch (LCFException e)
+      {
+        database.signalRollback();
+        database.endTransaction();
+        throw e;
+      }
+      database.beginTransaction(database.TRANSACTION_SERIALIZED);
+      break;
+    default:
+      throw new LCFException("Bad transaction type");
+    }
   }
 
   /** Signal that a rollback should occur on the next endTransaction().
   */
   public void signalRollback()
   {
-    database.signalRollback();
+    if (serializableDepth == 0)
+      database.signalRollback();
   }
 
   /** End a database transaction, either performing a commit or a rollback (depending on whether
@@ -681,6 +912,12 @@ public class DBInterfaceMySQL implements IDBInterface
   public void endTransaction()
     throws LCFException
   {
+    if (serializableDepth > 0)
+    {
+      serializableDepth--;
+      return;
+    }
+
     database.endTransaction();
   }
 

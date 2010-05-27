@@ -34,7 +34,7 @@ public class DatabaseFactory
 
   /** Grab or create the correct instance of a database manager.
   */
-  public static IDatabase make(IThreadContext context, String databaseName, String userName, String password)
+  public static IDatabase make(IThreadContext context, String jdbcUrl, String jdbcClass, String databaseName, String userName, String password)
     throws LCFException
   {
     String dbName = databaseInstancePrefix + databaseName;
@@ -42,7 +42,7 @@ public class DatabaseFactory
     if (x == null || !(x instanceof IDatabase))
     {
       // Create new database handle
-      x = new org.apache.lcf.core.database.Database(context,databaseName,userName,password);
+      x = new org.apache.lcf.core.database.Database(context,jdbcUrl,jdbcClass,databaseName,userName,password);
       context.save(dbName,x);
     }
     return (IDatabase)x;

@@ -36,10 +36,6 @@ public class ConnectionFactory
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  private static final String _url = "jdbc:postgresql://localhost/";
-  // private static final String _url = "jdbc:mysql://localhost/";
-  private static final String _driver = "org.postgresql.Driver";
-  // private static final String _driver = "org.gjt.mm.mysql.Driver";
 
   private static final int defaultMaxDBConnections = 200;
   private static final int defaultTimeoutValue = 86400;
@@ -52,14 +48,11 @@ public class ConnectionFactory
   {
   }
 
-  public static Connection getConnection(String database, String userName, String password)
+  public static Connection getConnection(String jdbcUrl, String jdbcDriver, String database, String userName, String password)
     throws LCFException
   {
-    String dburl = _url + database;
-    if (database.length() == 0)
-      database = "_root_";
 
-    ConnectionPoolManager _pool = poolManager.ensurePoolExists();
+    ConnectionPoolManager _pool = poolManager.ensurePoolExists(jdbcDriver);
     try
     {
       // Hope for a connection now
@@ -85,7 +78,7 @@ public class ConnectionFactory
 
         // Logging.db.debug("adding pool alias [" + database + "]");
         // I had to up the timeout from one hour to 3 due to the webconnector keeping some connections open a very long time...
-        _pool.addAlias(database, _driver, dburl,
+        _pool.addAlias(database, jdbcDriver, jdbcUrl,
           userName, password,
           maxDBConnections,
           300,                    // Idle timeout: idle time before closing connection: 5 minutes
@@ -201,7 +194,7 @@ public class ConnectionFactory
     {
     }
 
-    public ConnectionPoolManager ensurePoolExists()
+    public ConnectionPoolManager ensurePoolExists(String jdbcDriver)
       throws LCFException
     {
       synchronized (poolExistenceLock)
@@ -210,7 +203,7 @@ public class ConnectionFactory
           return _pool;
         try
         {
-          Class.forName(_driver);
+          Class.forName(jdbcDriver);
         }
         catch (Exception e)
         {

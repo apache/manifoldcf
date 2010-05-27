@@ -38,6 +38,8 @@ public class Database implements IDatabase
 
   protected ICacheManager cacheManager;
   protected IThreadContext context;
+  protected String jdbcUrl;
+  protected String jdbcDriverClass;
   protected String databaseName;
   protected String userName;
   protected String password;
@@ -51,10 +53,12 @@ public class Database implements IDatabase
   protected final static String END_TRANSACTION = "COMMIT";
   protected final static String ROLLBACK_TRANSACTION = "ROLLBACK";
 
-  public Database(IThreadContext context, String databaseName, String userName, String password)
+  public Database(IThreadContext context, String jdbcUrl, String jdbcDriverClass, String databaseName, String userName, String password)
     throws LCFException
   {
     this.context = context;
+    this.jdbcUrl = jdbcUrl;
+    this.jdbcDriverClass = jdbcDriverClass;
     this.databaseName = databaseName;
     this.userName = userName;
     this.password = password;
@@ -196,7 +200,7 @@ public class Database implements IDatabase
     // Get a semipermanent connection
     if (connection == null)
     {
-      connection = ConnectionFactory.getConnection(databaseName,userName,password);
+      connection = ConnectionFactory.getConnection(jdbcUrl,jdbcDriverClass,databaseName,userName,password);
       try
       {
         // Start a transaction
@@ -422,7 +426,7 @@ public class Database implements IDatabase
     else
     {
       // Grab a connection
-      Connection tempConnection = ConnectionFactory.getConnection(databaseName,userName,password);
+      Connection tempConnection = ConnectionFactory.getConnection(jdbcUrl,jdbcDriverClass,databaseName,userName,password);
       try
       {
         return executeViaThread(tempConnection,query,params,bResults,maxResults,spec,returnLimit);

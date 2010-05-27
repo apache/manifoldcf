@@ -26,6 +26,11 @@ public class DBInterfacePostgreSQL implements IDBInterface
 {
   public static final String _rcsid = "@(#)$Id$";
 
+  private static final String _url = "jdbc:postgresql://localhost/";
+  // private static final String _url = "jdbc:mysql://localhost/";
+  private static final String _driver = "org.postgresql.Driver";
+  // private static final String _driver = "org.gjt.mm.mysql.Driver";
+
   protected IThreadContext context;
   protected IDatabase database;
   protected String cacheKey;
@@ -45,7 +50,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
     this.context = tc;
     if (databaseName == null)
       databaseName = "template1";
-    database = DatabaseFactory.make(tc,databaseName,userName,password);
+    database = DatabaseFactory.make(tc,_url+databaseName,_driver,databaseName,userName,password);
     cacheKey = CacheKeyFactory.makeDatabaseKey(databaseName);
   }
 
