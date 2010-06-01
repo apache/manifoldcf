@@ -84,6 +84,17 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
   public static final String VALUE_DIRECTORY = "directory";
   public static final String VALUE_FILE = "file";
 
+  // Static initialization of various system properties.  This hopefully takes place
+  // before jcifs is loaded.
+  static
+  {
+    System.setProperty("jcifs.smb.client.soTimeout","150000");
+    System.setProperty("jcifs.smb.client.responseTimeout","120000");
+    System.setProperty("jcifs.resolveOrder","LMHOSTS,DNS,WINS");
+    System.setProperty("jcifs.smb.client.listCount","20");
+    System.setProperty("jcifs.sm.client.dfs.strictView","true");
+  }
+  
   private String smbconnectionPath = null;
   private String server = null;
   private String domain = null;

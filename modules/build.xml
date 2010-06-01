@@ -71,7 +71,6 @@
                 <include name="jdbcpool-0.99.jar"/>
                 <include name="jsp-api*.jar"/>
                 <include name="log4j*.jar"/>
-                <include name="postgresql*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="servlet-api*.jar"/>
                 <include name="xalan*.jar"/>
@@ -326,6 +325,30 @@
         <ant dir="connectors/webcrawler"/>
     </target>
 
+    <target name="deliver-database-support">
+        <mkdir dir="dist/processes/jar"/>
+        <copy todir="dist/processes/jar">
+            <fileset dir="lib">
+                <include name="postgresql*.jar"/>
+                <include name="derby*.jar"/>
+            </fileset>
+        </copy>
+        <mkdir dir="build/crawler-ui/WEB-INF/lib"/>
+        <copy todir="build/crawler-ui/WEB-INF/lib">
+            <fileset dir="lib">
+                <include name="postgresql*.jar"/>
+                <include name="derby*.jar"/>
+            </fileset>
+        </copy>
+        <mkdir dir="build/authority-service/WEB-INF/lib"/>
+        <copy todir="build/authority-service/WEB-INF/lib">
+            <fileset dir="lib">
+                <include name="postgresql*.jar"/>
+                <include name="derby*.jar"/>
+            </fileset>
+        </copy>
+    </target>
+    
     <target name="deliver-framework" depends="build-framework">
         <mkdir dir="dist/processes"/>
         <copy todir="dist/processes">
@@ -675,7 +698,7 @@
         <unjar src="connectors/webcrawler/dist/web/war/lcf-webconnector-crawler-ui.iar" dest="build/crawler-ui"/>
     </target>
 
-    <target name="deliver-wars" depends="deliver-framework,deliver-activedirectory-connector,deliver-documentum-connector,deliver-filenet-connector,deliver-filesystem-connector,deliver-gts-connector,deliver-livelink-connector,deliver-solr-connector,deliver-memex-connector,deliver-meridio-connector,deliver-nulloutput-connector,deliver-rss-connector,deliver-sharepoint-connector,deliver-webcrawler-connector">
+    <target name="deliver-wars" depends="deliver-database-support,deliver-framework,deliver-activedirectory-connector,deliver-documentum-connector,deliver-filenet-connector,deliver-filesystem-connector,deliver-gts-connector,deliver-livelink-connector,deliver-solr-connector,deliver-memex-connector,deliver-meridio-connector,deliver-nulloutput-connector,deliver-rss-connector,deliver-sharepoint-connector,deliver-webcrawler-connector">
         <mkdir dir="dist/web/war"/>
         <jar destfile="dist/web/war/lcf-crawler-ui.war" basedir="build/crawler-ui"/>
         <jar destfile="dist/web/war/lcf-authority-service.war" basedir="build/authority-service"/>
@@ -689,7 +712,7 @@
     
     <target name="deliver-proprietary-connectors" depends="deliver-documentum-connector,deliver-filenet-connector,deliver-livelink-connector,deliver-memex-connector,deliver-meridio-connector,deliver-sharepoint-connector"/>
     
-    <target name="all" depends="deliver-framework,deliver-open-connectors,deliver-output-connectors,deliver-lgpl-connectors,deliver-proprietary-connectors,deliver-wars"/>
+    <target name="all" depends="deliver-database-support,deliver-framework,deliver-open-connectors,deliver-output-connectors,deliver-lgpl-connectors,deliver-proprietary-connectors,deliver-wars"/>
 
     
 </project>

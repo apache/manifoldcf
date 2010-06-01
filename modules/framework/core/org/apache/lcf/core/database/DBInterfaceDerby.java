@@ -21,6 +21,7 @@ package org.apache.lcf.core.database;
 import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.core.system.Logging;
 import java.util.*;
+import java.io.*;
 
 public class DBInterfaceDerby implements IDBInterface
 {
@@ -31,6 +32,9 @@ public class DBInterfaceDerby implements IDBInterface
   
   protected IThreadContext context;
   protected IDatabase database;
+  protected String userName;
+  protected String password;
+  
   protected String cacheKey;
   // Postgresql serializable transactions are broken in that transactions that occur within them do not in fact work properly.
   // So, once we enter the serializable realm, STOP any additional transactions from doing anything at all.
@@ -42,8 +46,10 @@ public class DBInterfaceDerby implements IDBInterface
     this.context = tc;
     if (databaseName == null)
       databaseName = "default";
-    database = DatabaseFactory.make(tc,_url+databaseName,_driver,databaseName,userName,password);
+    database = DatabaseFactory.make(tc,_url+databaseName+";create=true;user="+userName+";password="+password,_driver,databaseName,userName,password);
     cacheKey = CacheKeyFactory.makeDatabaseKey(databaseName);
+    this.userName = userName;
+    this.password = password;
   }
 
   /** Get the database name.
@@ -261,14 +267,16 @@ public class DBInterfaceDerby implements IDBInterface
     queryBuffer.append(' ');
     queryBuffer.append(mapType(cd.getTypeString()));
     if (forceNull || cd.getIsNull())
-      queryBuffer.append(" NULL");
+    {
+      //queryBuffer.append(" NULL");
+    }
     else
       queryBuffer.append(" NOT NULL");
     if (cd.getIsPrimaryKey())
-      queryBuffer.append("CONSTRAINT c" + IDFactory.make(context) + " PRIMARY KEY");
+      queryBuffer.append(" CONSTRAINT c" + IDFactory.make(context) + " PRIMARY KEY");
     if (cd.getReferenceTable() != null)
     {
-      queryBuffer.append("CONSTRAINT c" + IDFactory.make(context) + " REFERENCES ");
+      queryBuffer.append(" CONSTRAINT c" + IDFactory.make(context) + " REFERENCES ");
       queryBuffer.append(cd.getReferenceTable());
       queryBuffer.append('(');
       queryBuffer.append(cd.getReferenceColumn());
@@ -475,9 +483,8 @@ public class DBInterfaceDerby implements IDBInterface
   public boolean lookupUser(String userName, StringSet cacheKeys, String queryClass)
     throws LCFException
   {
-    ArrayList params = new ArrayList();
-    params.add(userName);
-    IResultSet set = performQuery("SELECT * FROM pg_user WHERE usename=?",params,cacheKeys,queryClass);
+    IDatabase rootDatabase = DatabaseFactory.make(context,_url+database.getDatabaseName()+";create=true",_driver,database.getDatabaseName(),"","");
+    IResultSet set = rootDatabase.executeQuery("VALUES SYSCS_UTIL.SYSCS_GET_DATABASE_PROPERTY('derby.user."+userName+"')",null,cacheKeys,null,queryClass,true,-1,null,null);
     if (set.getRowCount() == 0)
       return false;
     return true;
@@ -490,8 +497,9 @@ public class DBInterfaceDerby implements IDBInterface
   public void performCreateUser(String userName, String password)
     throws LCFException
   {
-    performModification("CREATE USER "+userName+" PASSWORD "+
-      quoteSQLString(password),null,null);
+    IDatabase rootDatabase = DatabaseFactory.make(context,_url+database.getDatabaseName()+";create=true",_driver,database.getDatabaseName(),"","");
+    rootDatabase.executeQuery("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.user."+userName+"', '"+password+"')",null,null,null,null,false,0,null,null);
+    rootDatabase.executeQuery("CREATE SCHEMA "+userName+" AUTHORIZATION "+userName,null,null,null,null,false,0,null,null);
   }
 
   /** Perform user delete.
@@ -500,7 +508,9 @@ public class DBInterfaceDerby implements IDBInterface
   public void performDropUser(String userName)
     throws LCFException
   {
-    performModification("DROP USER "+userName,null,null);
+    IDatabase rootDatabase = DatabaseFactory.make(context,_url+database.getDatabaseName()+";create=true",_driver,database.getDatabaseName(),"","");
+    rootDatabase.executeQuery("DROP SCHEMA "+userName+" RESTRICT",null,null,null,null,false,0,null,null);
+    rootDatabase.executeQuery("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.user."+userName+"', null)",null,null,null,null,false,0,null,null);
   }
 
   /** Perform database lookup.
@@ -511,12 +521,8 @@ public class DBInterfaceDerby implements IDBInterface
   public boolean lookupDatabase(String databaseName, StringSet cacheKeys, String queryClass)
     throws LCFException
   {
-    ArrayList params = new ArrayList();
-    params.add(databaseName);
-    IResultSet set = performQuery("SELECT * FROM pg_database WHERE datname=?",params,cacheKeys,queryClass);
-    if (set.getRowCount() == 0)
-      return false;
-    return true;
+    File f = new File(databaseName);
+    return f.exists();
   }
 
   /** Perform database create.
@@ -529,9 +535,9 @@ public class DBInterfaceDerby implements IDBInterface
     StringSet invalidateKeys)
     throws LCFException
   {
-    performModification("CREATE DATABASE "+databaseName+" OWNER="+
-      databaseUser+" ENCODING="+
-      quoteSQLString("utf8"),null,invalidateKeys);
+    // Do nothing here; we create the database automatically whenever we go try to do stuff.
+    //DatabaseFactory.make(context,_url+databaseName+";create=true",_driver,
+    //  database.getDatabaseName(),userName,password);
   }
 
   /** Perform database drop.
@@ -541,9 +547,29 @@ public class DBInterfaceDerby implements IDBInterface
   public void performDropDatabase(String databaseName, StringSet invalidateKeys)
     throws LCFException
   {
-    performModification("DROP DATABASE "+databaseName,null,invalidateKeys);
+    // rm -rf <databasename>
+    File f = new File(databaseName);
+    recursiveDelete(f);
   }
 
+  protected static void recursiveDelete(File f)
+  {
+    File[] files = f.listFiles();
+    if (files != null)
+    {
+      int i = 0;
+      while (i < files.length)
+      {
+        File newf = files[i++];
+        if (newf.isDirectory())
+          recursiveDelete(newf);
+        else
+          newf.delete();
+      }
+    }
+    f.delete();
+  }
+  
   /** Reinterpret an exception tossed by the database layer.  We need to disambiguate the various kinds of exception that
   * should be thrown.
   *@param theException is the exception to reinterpret
@@ -603,22 +629,11 @@ public class DBInterfaceDerby implements IDBInterface
   public Map getTableSchema(String tableName, StringSet cacheKeys, String queryClass)
     throws LCFException
   {
-    // MHL
-    StringBuffer query = new StringBuffer();
-    query.append("SELECT pg_attribute.attname AS \"Field\",");
-    query.append("CASE pg_type.typname WHEN 'int2' THEN 'smallint' WHEN 'int4' THEN 'int'");
-    query.append(" WHEN 'int8' THEN 'bigint' WHEN 'varchar' THEN 'varchar(' || pg_attribute.atttypmod-4 || ')'");
-    query.append(" WHEN 'text' THEN 'longtext'");
-    query.append(" WHEN 'bpchar' THEN 'char(' || pg_attribute.atttypmod-4 || ')'");
-    query.append(" ELSE pg_type.typname END AS \"Type\",");
-    query.append("CASE WHEN pg_attribute.attnotnull THEN '' ELSE 'YES' END AS \"Null\",");
-    query.append("CASE pg_type.typname WHEN 'varchar' THEN substring(pg_attrdef.adsrc from '^(.*).*$') ELSE pg_attrdef.adsrc END AS Default ");
-    query.append("FROM pg_class INNER JOIN pg_attribute ON (pg_class.oid=pg_attribute.attrelid) INNER JOIN pg_type ON (pg_attribute.atttypid=pg_type.oid) ");
-    query.append("LEFT JOIN pg_attrdef ON (pg_class.oid=pg_attrdef.adrelid AND pg_attribute.attnum=pg_attrdef.adnum) ");
-    query.append("WHERE pg_class.relname=").append(quoteSQLString(tableName)).append(" AND pg_attribute.attnum>=1 AND NOT pg_attribute.attisdropped ");
-    query.append("ORDER BY pg_attribute.attnum");
+    String query = "SELECT t0.columnname,t0.columndatatype FROM sys.syscolumns t0, sys.systables t1 WHERE t0.referenceid=t1.tableid AND CAST(t1.tablename AS VARCHAR(128))=? ORDER BY t0.columnnumber ASC";
+    ArrayList list = new ArrayList();
+    list.add(tableName);
 
-    IResultSet set = performQuery(query.toString(),null,cacheKeys,queryClass);
+    IResultSet set = performQuery(query,list,cacheKeys,queryClass);
     if (set.getRowCount() == 0)
       return null;
     // Digest the result
@@ -627,10 +642,10 @@ public class DBInterfaceDerby implements IDBInterface
     while (i < set.getRowCount())
     {
       IResultRow row = set.getRow(i++);
-      String fieldName = row.getValue("Field").toString();
-      String type = row.getValue("Type").toString();
-      boolean isNull = row.getValue("Null").toString().equals("YES");
-      boolean isPrimaryKey = false; // row.getValue("Key").toString().equals("PRI");
+      String fieldName = row.getValue("columnname").toString();
+      String type = row.getValue("columndatatype").toString();
+      boolean isNull = false;
+      boolean isPrimaryKey = false;
       rval.put(fieldName,new ColumnDescription(type,isPrimaryKey,isNull,null,null,false));
     }
 
@@ -649,18 +664,20 @@ public class DBInterfaceDerby implements IDBInterface
     Map rval = new HashMap();
 
     // This query returns all index names for the table
-    String query = "SELECT t0.CONGLOMERATENAME FROM SYSCONGLOMERATES t0,SYSTABLES t1 WHERE t0.TABLEID=t1.TABLEID AND t0.ISINDEX=1 AND t1.TABLENAME='"+tableName+"'";
+    String query = "SELECT t0.conglomeratename FROM sys.sysconglomerates t0,sys.systables t1 WHERE t0.tableid=t1.tableid AND t0.isindex IS NOT NULL AND CAST(t1.tablename AS VARCHAR(128))=?";
+    ArrayList list = new ArrayList();
+    list.add(tableName);
     
     // It doesn't look like there's a way to find exactly what is in the index, and what the columns are.  Since
     // the goal of Derby is to build tests, and this method is used primarily on installation, we can probably accept
     // the poor performance implied in tearing an index down and recreating it unnecessarily, so I'm going to do a fake-out.
     
-    IResultSet result = performQuery(query,null,cacheKeys,queryClass);
+    IResultSet result = performQuery(query,list,cacheKeys,queryClass);
     int i = 0;
     while (i < result.getRowCount())
     {
       IResultRow row = result.getRow(i++);
-      String indexName = (String)row.getValue("CONGLOMERATENAME");
+      String indexName = (String)row.getValue("conglomeratename");
 
       rval.put(indexName,new IndexDescription(false,new String[0]));
     }
@@ -676,9 +693,9 @@ public class DBInterfaceDerby implements IDBInterface
   public StringSet getAllTables(StringSet cacheKeys, String queryClass)
     throws LCFException
   {
-    IResultSet set = performQuery("SELECT TABLENAME FROM SYSTABLES WHERE TABLE_TYPE='T'",null,cacheKeys,queryClass);
+    IResultSet set = performQuery("SELECT CAST(tablename AS VARCHAR(128)) FROM sys.systables WHERE table_type='T'",null,cacheKeys,queryClass);
     StringSetBuffer ssb = new StringSetBuffer();
-    String columnName = "TABLENAME";
+    String columnName = "tablename";
 
     int i = 0;
     while (i < set.getRowCount())
