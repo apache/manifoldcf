@@ -22,17 +22,13 @@ import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.core.system.Logging;
 import java.util.*;
 
-public class DBInterfacePostgreSQL implements IDBInterface
+public class DBInterfacePostgreSQL extends Database implements IDBInterface
 {
   public static final String _rcsid = "@(#)$Id$";
 
   private static final String _url = "jdbc:postgresql://localhost/";
-  // private static final String _url = "jdbc:mysql://localhost/";
   private static final String _driver = "org.postgresql.Driver";
-  // private static final String _driver = "org.gjt.mm.mysql.Driver";
 
-  protected IThreadContext context;
-  protected IDatabase database;
   protected String cacheKey;
   // Postgresql serializable transactions are broken in that transactions that occur within them do not in fact work properly.
   // So, once we enter the serializable realm, STOP any additional transactions from doing anything at all.
@@ -47,27 +43,8 @@ public class DBInterfacePostgreSQL implements IDBInterface
   public DBInterfacePostgreSQL(IThreadContext tc, String databaseName, String userName, String password)
     throws LCFException
   {
-    this.context = tc;
-    if (databaseName == null)
-      databaseName = "template1";
-    database = DatabaseFactory.make(tc,_url+databaseName,_driver,databaseName,userName,password);
-    cacheKey = CacheKeyFactory.makeDatabaseKey(databaseName);
-  }
-
-  /** Get the database name.
-  *@return the database name.
-  */
-  public String getDatabaseName()
-  {
-    return database.getDatabaseName();
-  }
-
-  /** Get the current transaction id.
-  *@return the current transaction identifier, or null if no transaction.
-  */
-  public String getTransactionID()
-  {
-    return database.getTransactionID();
+    super(tc,_url+((databaseName==null)?"template1":databaseName),_driver,((databaseName==null)?"template1":databaseName),userName,password);
+    cacheKey = CacheKeyFactory.makeDatabaseKey(this.databaseName);
   }
 
   /** Get the database general cache key.
@@ -599,7 +576,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
   {
     try
     {
-      database.executeQuery(query,params,null,invalidateKeys,null,false,0,null,null);
+      executeQuery(query,params,null,invalidateKeys,null,false,0,null,null);
     }
     catch (LCFException e)
     {
@@ -767,7 +744,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
   {
     try
     {
-      return database.executeQuery(query,params,cacheKeys,null,queryClass,true,-1,null,null);
+      return executeQuery(query,params,cacheKeys,null,queryClass,true,-1,null,null);
     }
     catch (LCFException e)
     {
@@ -791,7 +768,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
   {
     try
     {
-      return database.executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,null,returnLimit);
+      return executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,null,returnLimit);
     }
     catch (LCFException e)
     {
@@ -816,7 +793,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
   {
     try
     {
-      return database.executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,resultSpec,returnLimit);
+      return executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,resultSpec,returnLimit);
     }
     catch (LCFException e)
     {
@@ -880,7 +857,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
   public void beginTransaction()
     throws LCFException
   {
-    beginTransaction(TRANSACTION_ENCLOSING);
+    super.beginTransaction(TRANSACTION_ENCLOSING);
   }
 
   /** Begin a database transaction.  This method call MUST be paired with an endTransaction() call,
@@ -895,7 +872,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
   public void beginTransaction(int transactionType)
     throws LCFException
   {
-    if (database.getCurrentTransactionType() == database.TRANSACTION_SERIALIZED)
+    if (getCurrentTransactionType() == TRANSACTION_SERIALIZED)
     {
       serializableDepth++;
       return;
@@ -903,41 +880,30 @@ public class DBInterfacePostgreSQL implements IDBInterface
 
     if (transactionType == TRANSACTION_ENCLOSING)
     {
-      int enclosingTransactionType = database.getCurrentTransactionType();
-      switch (enclosingTransactionType)
-      {
-      case IDatabase.TRANSACTION_READCOMMITTED:
-        transactionType = TRANSACTION_READCOMMITTED;
-        break;
-      case IDatabase.TRANSACTION_SERIALIZED:
-        transactionType = TRANSACTION_SERIALIZED;
-        break;
-      default:
-        throw new LCFException("Unknown transaction type");
-      }
+      transactionType = getCurrentTransactionType();
     }
 
     switch (transactionType)
     {
     case TRANSACTION_READCOMMITTED:
-      database.beginTransaction(database.TRANSACTION_READCOMMITTED);
+      super.beginTransaction(TRANSACTION_READCOMMITTED);
       break;
     case TRANSACTION_SERIALIZED:
-      database.beginTransaction(database.TRANSACTION_SERIALIZED);
+      super.beginTransaction(TRANSACTION_SERIALIZED);
       try
       {
         performModification("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE",null,null);
       }
       catch (Error e)
       {
-        database.signalRollback();
-        database.endTransaction();
+        super.signalRollback();
+        super.endTransaction();
         throw e;
       }
       catch (LCFException e)
       {
-        database.signalRollback();
-        database.endTransaction();
+        super.signalRollback();
+        super.endTransaction();
         throw e;
       }
       break;
@@ -951,7 +917,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
   public void signalRollback()
   {
     if (serializableDepth == 0)
-      database.signalRollback();
+      super.signalRollback();
   }
 
   /** End a database transaction, either performing a commit or a rollback (depending on whether
@@ -966,7 +932,7 @@ public class DBInterfacePostgreSQL implements IDBInterface
       return;
     }
 
-    database.endTransaction();
+    super.endTransaction();
     if (getTransactionID() == null)
     {
       int i = 0;
@@ -984,6 +950,43 @@ public class DBInterfacePostgreSQL implements IDBInterface
     }
   }
 
+  /** Abstract method to start a transaction */
+  protected void startATransaction()
+    throws LCFException
+  {
+    executeViaThread(connection,"START TRANSACTION",null,false,0,null,null);
+  }
+
+  /** Abstract method to commit a transaction */
+  protected void commitCurrentTransaction()
+    throws LCFException
+  {
+    executeViaThread(connection,"COMMIT",null,false,0,null,null);
+  }
+  
+  /** Abstract method to roll back a transaction */
+  protected void rollbackCurrentTransaction()
+    throws LCFException
+  {
+    executeViaThread(connection,"ROLLBACK",null,false,0,null,null);
+  }
+  
+  /** Abstract method for explaining a query */
+  protected void explainQuery(String query, ArrayList params)
+    throws LCFException
+  {
+    IResultSet x = executeUncachedQuery("EXPLAIN "+query,params,true,
+      -1,null,null);
+    int k = 0;
+    while (k < x.getRowCount())
+    {
+      IResultRow row = x.getRow(k++);
+      Iterator iter = row.getColumns();
+      String colName = (String)iter.next();
+      Logging.db.warn(" Plan: "+row.getValue(colName).toString());
+    }
+    Logging.db.warn("");
+  }
 
 }
 

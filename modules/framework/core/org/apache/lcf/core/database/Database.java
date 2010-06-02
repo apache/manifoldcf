@@ -32,7 +32,7 @@ import javax.sql.*;
 * the transaction management will get screwed up (i.e. nobody will know what happened to the connection
 * handles...)
 */
-public class Database implements IDatabase
+public class Database
 {
   public static final String _rcsid = "@(#)$Id$";
 
@@ -49,9 +49,6 @@ public class Database implements IDatabase
   protected int delayedTransactionDepth = 0;
 
   protected final static String _TRANSACTION_ = "_TRANSACTION_";
-  protected final static String BEGIN_TRANSACTION = "START TRANSACTION";
-  protected final static String END_TRANSACTION = "COMMIT";
-  protected final static String ROLLBACK_TRANSACTION = "ROLLBACK";
 
   public Database(IThreadContext context, String jdbcUrl, String jdbcDriverClass, String databaseName, String userName, String password)
     throws LCFException
@@ -83,6 +80,30 @@ public class Database implements IDatabase
     return th.getTransactionID();
   }
 
+  /** Abstract method to start a transaction */
+  protected void startATransaction()
+    throws LCFException
+  {
+  }
+
+  /** Abstract method to commit a transaction */
+  protected void commitCurrentTransaction()
+    throws LCFException
+  {
+  }
+  
+  /** Abstract method to roll back a transaction */
+  protected void rollbackCurrentTransaction()
+    throws LCFException
+  {
+  }
+  
+  /** Abstract method for explaining a query */
+  protected void explainQuery(String query, ArrayList params)
+    throws LCFException
+  {
+  }
+  
   /** Execute arbitrary database query, and optionally cache the result.  Cached results are
   * returned for this operation if they are valid and appropriate.  Note that any cached results
   * returned were only guaranteed to be pertinent at the time the cached result was obtained; the
@@ -148,7 +169,7 @@ public class Database implements IDatabase
   public int getCurrentTransactionType()
   {
     if (th == null)
-      return TRANSACTION_READCOMMITTED;
+      return IDBInterface.TRANSACTION_READCOMMITTED;
     return th.getTransactionType();
   }
 
@@ -204,16 +225,15 @@ public class Database implements IDatabase
       try
       {
         // Start a transaction
-        executeViaThread(connection,BEGIN_TRANSACTION,null,false,0,null,null);
-      }
-      catch (InterruptedException e)
-      {
-        // Don't do anything else other than drop the connection on the floor
-        connection = null;
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        startATransaction();
       }
       catch (LCFException e)
       {
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+        {
+          connection = null;
+          throw e;
+        }
         ConnectionFactory.releaseConnection(connection);
         connection = null;
         throw e;
@@ -229,13 +249,16 @@ public class Database implements IDatabase
     {
       try
       {
-        executeViaThread(connection,BEGIN_TRANSACTION,null,false,0,null,null);
+        startATransaction();
       }
-      catch (InterruptedException e)
+      catch (LCFException e)
       {
-        // Don't do anything else other than drop the connection on the floor
-        connection = null;
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+        {
+          // Don't do anything else other than drop the connection on the floor
+          connection = null;
+        }
+        throw e;
       }
     }
   }
@@ -275,20 +298,23 @@ public class Database implements IDatabase
           {
             // Do a rollback in the database, and blow away cached queries (cached against the
             // database transaction key).
-            executeViaThread(connection,ROLLBACK_TRANSACTION,null,false,0,null,null);
+            rollbackCurrentTransaction();
           }
           else
           {
             // Do a commit into the database, and blow away cached queries (cached against the
             // database transaction key).
-            executeViaThread(connection,END_TRANSACTION,null,false,0,null,null);
+            commitCurrentTransaction();
           }
         }
-        catch (InterruptedException e)
+        catch (LCFException e)
         {
-          // Drop the connection on the floor, so it cannot be reused.
-          connection = null;
-          throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+          if (e.getErrorCode() == LCFException.INTERRUPTED)
+          {
+            // Drop the connection on the floor, so it cannot be reused.
+            connection = null;
+          }
+          throw e;
         }
         finally
         {
@@ -368,7 +394,7 @@ public class Database implements IDatabase
   /** Do query execution via a subthread, so the primary thread can be interrupted */
   protected IResultSet executeViaThread(Connection connection, String query, ArrayList params, boolean bResults, int maxResults,
     ResultSpecification spec, ILimitChecker returnLimit)
-    throws LCFException, InterruptedException
+    throws LCFException
   {
     if (connection == null)
       // This probably means that the thread was interrupted and the connection was abandoned.  Just return null.
@@ -397,7 +423,7 @@ public class Database implements IDatabase
     {
       t.interrupt();
       // We need the caller to abandon any connections left around, so rethrow in a way that forces them to process the event properly.
-      throw e;
+      throw new LCFException(e.getMessage(),e,LCFException.INTERRUPTED);
     }
 
   }
@@ -416,11 +442,12 @@ public class Database implements IDatabase
       {
         return executeViaThread(connection,query,params,bResults,maxResults,spec,returnLimit);
       }
-      catch (InterruptedException e)
+      catch (LCFException e)
       {
-        // drop the connection object on the floor, so it cannot possibly be reused
-        connection = null;
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          // drop the connection object on the floor, so it cannot possibly be reused
+          connection = null;
+        throw e;
       }
     }
     else
@@ -431,11 +458,12 @@ public class Database implements IDatabase
       {
         return executeViaThread(tempConnection,query,params,bResults,maxResults,spec,returnLimit);
       }
-      catch (InterruptedException e)
+      catch (LCFException e)
       {
-        // drop the connection object on the floor, so it cannot possibly be reused
-        tempConnection = null;
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          // drop the connection object on the floor, so it cannot possibly be reused
+          tempConnection = null;
+        throw e;
       }
       finally
       {
@@ -1054,17 +1082,7 @@ public class Database implements IDatabase
           }
           try
           {
-            IResultSet x = database.executeUncachedQuery("EXPLAIN "+description.getQuery(),description.getParameters(),true,
-              -1,null,null);
-            int k = 0;
-            while (k < x.getRowCount())
-            {
-              IResultRow row = x.getRow(k++);
-              Iterator iter = row.getColumns();
-              String colName = (String)iter.next();
-              Logging.db.warn(" Plan: "+row.getValue(colName).toString());
-            }
-            Logging.db.warn("");
+            database.explainQuery(description.getQuery(),description.getParameters());
           }
           catch (LCFException e)
           {

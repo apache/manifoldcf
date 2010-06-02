@@ -36,7 +36,7 @@ public class ScheduleManager extends org.apache.lcf.core.database.BaseTable
   public final static String dayOfWeekField = "dayofweek";
   public final static String dayOfMonthField = "dayofmonth";
   public final static String monthOfYearField = "monthofyear";
-  public final static String yearField = "year";
+  public final static String yearField = "yearlist";
   public final static String hourOfDayField = "hourofday";
   public final static String minutesOfHourField = "minutesofhour";
   public final static String timezoneField = "timezone";
@@ -82,6 +82,18 @@ public class ScheduleManager extends org.apache.lcf.core.database.BaseTable
       else
       {
         // Upgrade code goes here, if needed.
+        if (existing.get(yearField) == null)
+        {
+          // Need to rename the "year" column as the "yearlist" column.
+          HashMap map = new HashMap();
+          map.put(yearField,new ColumnDescription("VARCHAR(255)",false,true,null,null,false));
+          performAlter(map,null,null,null);
+          performModification("UPDATE "+getTableName()+" SET ("+yearField+"=year)",null,null);
+          ArrayList list = new ArrayList();
+          list.add("year");
+          performAlter(null,null,list,null);
+
+        }
       }
 
       // Index management

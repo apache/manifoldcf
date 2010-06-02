@@ -21,7 +21,7 @@ package org.apache.lcf.core.database;
 import org.apache.lcf.core.interfaces.*;
 import java.util.*;
 
-public class DBInterfaceMySQL implements IDBInterface
+public class DBInterfaceMySQL extends Database implements IDBInterface
 {
   public static final String _rcsid = "@(#)$Id$";
 
@@ -29,33 +29,13 @@ public class DBInterfaceMySQL implements IDBInterface
   private static final String _driver = "org.gjt.mm.mysql.Driver";
 
   protected IThreadContext context;
-  protected IDatabase database;
   protected String cacheKey;
 
   public DBInterfaceMySQL(IThreadContext tc, String databaseName, String userName, String password)
     throws LCFException
   {
-    this.context = tc;
-    if (databaseName == null)
-      databaseName = "mysql";
-    database = DatabaseFactory.make(tc,_url+databaseName,_driver,databaseName,userName,password);
-    cacheKey = CacheKeyFactory.makeDatabaseKey(databaseName);
-  }
-
-  /** Get the database name.
-  *@return the database name.
-  */
-  public String getDatabaseName()
-  {
-    return database.getDatabaseName();
-  }
-
-  /** Get the current transaction id.
-  *@return the current transaction identifier, or null if no transaction.
-  */
-  public String getTransactionID()
-  {
-    return database.getTransactionID();
+    super(tc,_url+databaseName,_driver,(databaseName==null)?"mysql":databaseName,userName,password);
+    cacheKey = CacheKeyFactory.makeDatabaseKey(this.databaseName);
   }
 
   /** Get the database general cache key.
@@ -477,7 +457,7 @@ public class DBInterfaceMySQL implements IDBInterface
   public void performModification(String query, ArrayList params, StringSet invalidateKeys)
     throws LCFException
   {
-    database.executeQuery(query,params,null,invalidateKeys,null,false,0,null,null);
+    executeQuery(query,params,null,invalidateKeys,null,false,0,null,null);
   }
 
   /** Get a table's schema.
@@ -529,7 +509,7 @@ public class DBInterfaceMySQL implements IDBInterface
   {
     IResultSet set = performQuery("SHOW TABLES",null,cacheKeys,queryClass);
     StringSetBuffer ssb = new StringSetBuffer();
-    String columnName = "Tables_in_"+database.getDatabaseName().toLowerCase();
+    String columnName = "Tables_in_"+databaseName.toLowerCase();
     // System.out.println(columnName);
 
     int i = 0;
@@ -556,7 +536,7 @@ public class DBInterfaceMySQL implements IDBInterface
   public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass)
     throws LCFException
   {
-    return database.executeQuery(query,params,cacheKeys,null,queryClass,true,-1,null,null);
+    return executeQuery(query,params,cacheKeys,null,queryClass,true,-1,null,null);
   }
 
   /** Perform a general "data fetch" query.
@@ -573,7 +553,7 @@ public class DBInterfaceMySQL implements IDBInterface
     int maxResults, ILimitChecker returnLimit)
     throws LCFException
   {
-    return database.executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,null,returnLimit);
+    return executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,null,returnLimit);
   }
 
   /** Perform a general "data fetch" query.
@@ -591,7 +571,7 @@ public class DBInterfaceMySQL implements IDBInterface
     int maxResults, ResultSpecification resultSpec, ILimitChecker returnLimit)
     throws LCFException
   {
-    return database.executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,resultSpec,returnLimit);
+    return executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,resultSpec,returnLimit);
   }
 
   /** Quote a sql string.
@@ -650,7 +630,7 @@ public class DBInterfaceMySQL implements IDBInterface
   public void beginTransaction()
     throws LCFException
   {
-    database.beginTransaction(database.TRANSACTION_READCOMMITTED);
+    super.beginTransaction(TRANSACTION_READCOMMITTED);
   }
 
   /** Begin a database transaction.  This method call MUST be paired with an endTransaction() call,
@@ -665,25 +645,29 @@ public class DBInterfaceMySQL implements IDBInterface
   public void beginTransaction(int transactionType)
     throws LCFException
   {
-    database.beginTransaction(database.TRANSACTION_READCOMMITTED);
+    super.beginTransaction(TRANSACTION_READCOMMITTED);
   }
 
-  /** Signal that a rollback should occur on the next endTransaction().
-  */
-  public void signalRollback()
-  {
-    database.signalRollback();
-  }
-
-  /** End a database transaction, either performing a commit or a rollback (depending on whether
-  * signalRollback() was called within the transaction).
-  */
-  public void endTransaction()
+  /** Abstract method to start a transaction */
+  protected void startATransaction()
     throws LCFException
   {
-    database.endTransaction();
+    executeViaThread(connection,"START TRANSACTION",null,false,0,null,null);
   }
 
+  /** Abstract method to commit a transaction */
+  protected void commitCurrentTransaction()
+    throws LCFException
+  {
+    executeViaThread(connection,"COMMIT",null,false,0,null,null);
+  }
+  
+  /** Abstract method to roll back a transaction */
+  protected void rollbackCurrentTransaction()
+    throws LCFException
+  {
+    executeViaThread(connection,"ROLLBACK",null,false,0,null,null);
+  }
 
 }
 

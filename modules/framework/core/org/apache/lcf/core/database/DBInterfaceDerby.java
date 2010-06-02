@@ -23,15 +23,13 @@ import org.apache.lcf.core.system.Logging;
 import java.util.*;
 import java.io.*;
 
-public class DBInterfaceDerby implements IDBInterface
+public class DBInterfaceDerby extends Database implements IDBInterface
 {
   public static final String _rcsid = "@(#)$Id$";
 
   protected final static String _url = "jdbc:derby:";
   protected final static String _driver = "org.apache.derby.jdbc.EmbeddedDriver";
   
-  protected IThreadContext context;
-  protected IDatabase database;
   protected String userName;
   protected String password;
   
@@ -43,29 +41,10 @@ public class DBInterfaceDerby implements IDBInterface
   public DBInterfaceDerby(IThreadContext tc, String databaseName, String userName, String password)
     throws LCFException
   {
-    this.context = tc;
-    if (databaseName == null)
-      databaseName = "default";
-    database = DatabaseFactory.make(tc,_url+databaseName+";create=true;user="+userName+";password="+password,_driver,databaseName,userName,password);
-    cacheKey = CacheKeyFactory.makeDatabaseKey(databaseName);
+    super(tc,_url+((databaseName==null)?"default":databaseName)+";create=true;user="+userName+";password="+password,_driver,((databaseName==null)?"default":databaseName),userName,password);
+    cacheKey = CacheKeyFactory.makeDatabaseKey(this.databaseName);
     this.userName = userName;
     this.password = password;
-  }
-
-  /** Get the database name.
-  *@return the database name.
-  */
-  public String getDatabaseName()
-  {
-    return database.getDatabaseName();
-  }
-
-  /** Get the current transaction id.
-  *@return the current transaction identifier, or null if no transaction.
-  */
-  public String getTransactionID()
-  {
-    return database.getTransactionID();
   }
 
   /** Get the database general cache key.
@@ -483,7 +462,7 @@ public class DBInterfaceDerby implements IDBInterface
   public boolean lookupUser(String userName, StringSet cacheKeys, String queryClass)
     throws LCFException
   {
-    IDatabase rootDatabase = DatabaseFactory.make(context,_url+database.getDatabaseName()+";create=true",_driver,database.getDatabaseName(),"","");
+    Database rootDatabase = new Database(context,_url+databaseName+";create=true",_driver,databaseName,"","");
     IResultSet set = rootDatabase.executeQuery("VALUES SYSCS_UTIL.SYSCS_GET_DATABASE_PROPERTY('derby.user."+userName+"')",null,cacheKeys,null,queryClass,true,-1,null,null);
     if (set.getRowCount() == 0)
       return false;
@@ -497,7 +476,7 @@ public class DBInterfaceDerby implements IDBInterface
   public void performCreateUser(String userName, String password)
     throws LCFException
   {
-    IDatabase rootDatabase = DatabaseFactory.make(context,_url+database.getDatabaseName()+";create=true",_driver,database.getDatabaseName(),"","");
+    Database rootDatabase = new Database(context,_url+databaseName+";create=true",_driver,databaseName,"","");
     rootDatabase.executeQuery("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.user."+userName+"', '"+password+"')",null,null,null,null,false,0,null,null);
     rootDatabase.executeQuery("CREATE SCHEMA "+userName+" AUTHORIZATION "+userName,null,null,null,null,false,0,null,null);
   }
@@ -508,7 +487,7 @@ public class DBInterfaceDerby implements IDBInterface
   public void performDropUser(String userName)
     throws LCFException
   {
-    IDatabase rootDatabase = DatabaseFactory.make(context,_url+database.getDatabaseName()+";create=true",_driver,database.getDatabaseName(),"","");
+    Database rootDatabase = new Database(context,_url+databaseName+";create=true",_driver,databaseName,"","");
     rootDatabase.executeQuery("DROP SCHEMA "+userName+" RESTRICT",null,null,null,null,false,0,null,null);
     rootDatabase.executeQuery("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.user."+userName+"', null)",null,null,null,null,false,0,null,null);
   }
@@ -611,7 +590,7 @@ public class DBInterfaceDerby implements IDBInterface
   {
     try
     {
-      database.executeQuery(query,params,null,invalidateKeys,null,false,0,null,null);
+      executeQuery(query,params,null,invalidateKeys,null,false,0,null,null);
     }
     catch (LCFException e)
     {
@@ -629,9 +608,9 @@ public class DBInterfaceDerby implements IDBInterface
   public Map getTableSchema(String tableName, StringSet cacheKeys, String queryClass)
     throws LCFException
   {
-    String query = "SELECT t0.columnname,t0.columndatatype FROM sys.syscolumns t0, sys.systables t1 WHERE t0.referenceid=t1.tableid AND CAST(t1.tablename AS VARCHAR(128))=? ORDER BY t0.columnnumber ASC";
+    String query = "SELECT CAST(t0.columnname AS VARCHAR(128)) AS columnname,CAST(t0.columndatatype AS VARCHAR(128)) AS columndatatype FROM sys.syscolumns t0, sys.systables t1 WHERE t0.referenceid=t1.tableid AND CAST(t1.tablename AS VARCHAR(128))=? ORDER BY t0.columnnumber ASC";
     ArrayList list = new ArrayList();
-    list.add(tableName);
+    list.add(tableName.toUpperCase());
 
     IResultSet set = performQuery(query,list,cacheKeys,queryClass);
     if (set.getRowCount() == 0)
@@ -642,8 +621,8 @@ public class DBInterfaceDerby implements IDBInterface
     while (i < set.getRowCount())
     {
       IResultRow row = set.getRow(i++);
-      String fieldName = row.getValue("columnname").toString();
-      String type = row.getValue("columndatatype").toString();
+      String fieldName = (String)row.getValue("columnname");
+      String type = (String)row.getValue("columndatatype");
       boolean isNull = false;
       boolean isPrimaryKey = false;
       rval.put(fieldName,new ColumnDescription(type,isPrimaryKey,isNull,null,null,false));
@@ -720,7 +699,7 @@ public class DBInterfaceDerby implements IDBInterface
   {
     try
     {
-      return database.executeQuery(query,params,cacheKeys,null,queryClass,true,-1,null,null);
+      return executeQuery(query,params,cacheKeys,null,queryClass,true,-1,null,null);
     }
     catch (LCFException e)
     {
@@ -744,7 +723,7 @@ public class DBInterfaceDerby implements IDBInterface
   {
     try
     {
-      return database.executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,null,returnLimit);
+      return executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,null,returnLimit);
     }
     catch (LCFException e)
     {
@@ -769,7 +748,7 @@ public class DBInterfaceDerby implements IDBInterface
   {
     try
     {
-      return database.executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,resultSpec,returnLimit);
+      return executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,resultSpec,returnLimit);
     }
     catch (LCFException e)
     {
@@ -848,7 +827,7 @@ public class DBInterfaceDerby implements IDBInterface
   public void beginTransaction(int transactionType)
     throws LCFException
   {
-    if (database.getCurrentTransactionType() == database.TRANSACTION_SERIALIZED)
+    if (getCurrentTransactionType() == TRANSACTION_SERIALIZED)
     {
       serializableDepth++;
       return;
@@ -856,18 +835,7 @@ public class DBInterfaceDerby implements IDBInterface
 
     if (transactionType == TRANSACTION_ENCLOSING)
     {
-      int enclosingTransactionType = database.getCurrentTransactionType();
-      switch (enclosingTransactionType)
-      {
-      case IDatabase.TRANSACTION_READCOMMITTED:
-        transactionType = TRANSACTION_READCOMMITTED;
-        break;
-      case IDatabase.TRANSACTION_SERIALIZED:
-        transactionType = TRANSACTION_SERIALIZED;
-        break;
-      default:
-        throw new LCFException("Unknown transaction type");
-      }
+      transactionType = super.getCurrentTransactionType();
     }
 
     switch (transactionType)
@@ -875,40 +843,40 @@ public class DBInterfaceDerby implements IDBInterface
     case TRANSACTION_READCOMMITTED:
       try
       {
-        performModification("SET ISOLATION READ COMMITTED",null,null);
+        executeViaThread(connection,"SET ISOLATION READ COMMITTED",null,false,0,null,null);
       }
       catch (Error e)
       {
-        database.signalRollback();
-        database.endTransaction();
+        super.signalRollback();
+        super.endTransaction();
         throw e;
       }
       catch (LCFException e)
       {
-        database.signalRollback();
-        database.endTransaction();
+        super.signalRollback();
+        super.endTransaction();
         throw e;
       }
-      database.beginTransaction(database.TRANSACTION_READCOMMITTED);
+      super.beginTransaction(TRANSACTION_READCOMMITTED);
       break;
     case TRANSACTION_SERIALIZED:
       try
       {
-        performModification("SET ISOLATION SERIALIZABLE",null,null);
+        executeViaThread(connection,"SET ISOLATION SERIALIZABLE",null,false,0,null,null);
       }
       catch (Error e)
       {
-        database.signalRollback();
-        database.endTransaction();
+        super.signalRollback();
+        super.endTransaction();
         throw e;
       }
       catch (LCFException e)
       {
-        database.signalRollback();
-        database.endTransaction();
+        super.signalRollback();
+        super.endTransaction();
         throw e;
       }
-      database.beginTransaction(database.TRANSACTION_SERIALIZED);
+      super.beginTransaction(TRANSACTION_SERIALIZED);
       break;
     default:
       throw new LCFException("Bad transaction type");
@@ -920,7 +888,7 @@ public class DBInterfaceDerby implements IDBInterface
   public void signalRollback()
   {
     if (serializableDepth == 0)
-      database.signalRollback();
+      super.signalRollback();
   }
 
   /** End a database transaction, either performing a commit or a rollback (depending on whether
@@ -935,7 +903,77 @@ public class DBInterfaceDerby implements IDBInterface
       return;
     }
 
-    database.endTransaction();
+    super.endTransaction();
+  }
+
+  int depthCount = 0;
+  boolean inTransaction = false;
+  
+  /** Abstract method to start a transaction */
+  protected void startATransaction()
+    throws LCFException
+  {
+    if (!inTransaction)
+    {
+      try
+      {
+        connection.setAutoCommit(false);
+      }
+      catch (java.sql.SQLException e)
+      {
+        throw new LCFException(e.getMessage(),e);
+      }
+      inTransaction = true;
+    }
+    depthCount++;
+  }
+
+  /** Abstract method to commit a transaction */
+  protected void commitCurrentTransaction()
+    throws LCFException
+  {
+    if (inTransaction)
+    {
+      depthCount--;
+      if (depthCount == 0)
+      {
+        try
+        {
+          connection.commit();
+        }
+        catch (java.sql.SQLException e)
+        {
+          throw new LCFException(e.getMessage(),e);
+        }
+        inTransaction = false;
+      }
+    }
+    else
+      throw new LCFException("Transaction nesting error!");
+  }
+  
+  /** Abstract method to roll back a transaction */
+  protected void rollbackCurrentTransaction()
+    throws LCFException
+  {
+    if (inTransaction)
+    {
+      depthCount--;
+      if (depthCount == 0)
+      {
+        try
+        {
+          connection.rollback();
+        }
+        catch (java.sql.SQLException e)
+        {
+          throw new LCFException(e.getMessage(),e);
+        }
+        inTransaction = false;
+      }
+    }
+    else
+      throw new LCFException("Transaction nesting error!");
   }
 
 
