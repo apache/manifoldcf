@@ -480,17 +480,16 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
     return rval;
   }
 
-  /** Count the number of jobs that have a specified priority level */
-  public int countPriorityJobs(int priority)
+  /** Are there any jobs that have a specified priority level */
+  public boolean hasPriorityJobs(int priority)
     throws LCFException
   {
-    IResultSet set = performQuery("SELECT COUNT(*) AS countvar FROM "+getTableName()+" WHERE "+priorityField+"="+Integer.toString(priority)+
+    IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+priorityField+"="+Integer.toString(priority)+
       " AND "+
       statusField+" IN ("+
       quoteSQLString(statusToString(STATUS_ACTIVE))+","+
-      quoteSQLString(statusToString(STATUS_ACTIVESEEDING))+")",null,null,null);
-    IResultRow row = set.getRow(0);
-    return (int)((Long)row.getValue("countvar")).longValue();
+      quoteSQLString(statusToString(STATUS_ACTIVESEEDING))+") "+constructOffsetLimitClause(0,1),null,null,null,1);
+    return set.getRowCount() > 0;
   }
 
   /** Create a job.

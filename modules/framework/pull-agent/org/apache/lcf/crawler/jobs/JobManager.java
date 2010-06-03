@@ -1667,7 +1667,7 @@ public class JobManager implements IJobManager
 
     while (!isDone && currentPriority <= 10)
     {
-      if (jobs.countPriorityJobs(currentPriority) > 0)
+      if (jobs.hasPriorityJobs(currentPriority))
       {
         Long currentPriorityValue = new Long((long)currentPriority);
         fetchAndProcessDocuments(answers,currentTimeValue,currentPriorityValue,vList,connections);
@@ -2228,13 +2228,13 @@ public class JobManager implements IJobManager
   {
     // The query here mirrors the carrydown.restoreRecords() delete query!  However, it also fetches enough information to build a DocumentDescription
     // object for return, and so a join is necessary against the jobqueue table.
-    String query = "SELECT DISTINCT t0."+jobQueue.idField+",t0."+jobQueue.docHashField+",t0."+jobQueue.docIDField+" FROM "+
-      jobQueue.getTableName()+" t0,"+carryDown.getTableName()+
+    //???
+    String query = "SELECT t0."+jobQueue.idField+",t0."+jobQueue.docHashField+",t0."+jobQueue.docIDField+" FROM "+
+      jobQueue.getTableName()+" t0 WHERE EXISTS(SELECT 'x' FROM "+carryDown.getTableName()+
       " t1 WHERE t1."+carryDown.parentIDHashField+" IN ("+queryPart+") AND t1."+carryDown.childIDHashField+"=t0."+jobQueue.docHashField+
-      " AND t0."+jobQueue.jobIDField+"=? AND t1."+carryDown.jobIDField+"=?";
+      " AND t0."+jobQueue.jobIDField+"=? AND t1."+carryDown.jobIDField+"=?)";
     list.add(jobID);
     list.add(jobID);
-
     IResultSet set = database.performQuery(query,list,null,null);
     int i = 0;
     while (i < set.getRowCount())
@@ -3597,10 +3597,11 @@ public class JobManager implements IJobManager
   {
     // The query here mirrors the carrydown.restoreRecords() delete query!  However, it also fetches enough information to build a DocumentDescription
     // object for return, and so a join is necessary against the jobqueue table.
-    String query = "SELECT DISTINCT t0."+jobQueue.idField+",t0."+jobQueue.docHashField+",t0."+jobQueue.docIDField+" FROM "+
-      jobQueue.getTableName()+" t0,"+carryDown.getTableName()+
+    //???
+    String query = "SELECT t0."+jobQueue.idField+",t0."+jobQueue.docHashField+",t0."+jobQueue.docIDField+" FROM "+
+      jobQueue.getTableName()+" t0 WHERE EXISTS(SELECT 'x' FROM "+carryDown.getTableName()+
       " t1 WHERE "+carryDown.parentIDHashField+" IN ("+queryPart+") AND t1."+carryDown.childIDHashField+"=t0."+jobQueue.docHashField+
-      " AND t0."+jobQueue.jobIDField+"=? AND t1."+jobQueue.jobIDField+"=? AND t1."+carryDown.newField+"=?";
+      " AND t0."+jobQueue.jobIDField+"=? AND t1."+jobQueue.jobIDField+"=? AND t1."+carryDown.newField+"=?)";
     list.add(jobID);
     list.add(jobID);
     list.add(carryDown.statusToString(carryDown.ISNEW_BASE));
@@ -5524,14 +5525,14 @@ public class JobManager implements IJobManager
       null,null,null);
 
     IResultSet set2 = database.performQuery("SELECT "+
-      JobQueue.jobIDField+",COUNT("+JobQueue.docHashField+") AS doccount FROM "+
+      JobQueue.jobIDField+",CAST(COUNT("+JobQueue.docHashField+") AS BIGINT) AS doccount FROM "+
       jobQueue.getTableName()+" t1"+
       ((whereClause==null)?"":(" WHERE EXISTS(SELECT 'x' FROM "+
       jobs.getTableName()+" t0 WHERE t0."+Jobs.idField+"=t1."+JobQueue.jobIDField+" AND "+whereClause+")"))+
       " GROUP BY "+JobQueue.jobIDField,null,null,null);
 
     IResultSet set3 = database.performQuery("SELECT "+
-      JobQueue.jobIDField+",COUNT("+JobQueue.docHashField+") AS doccount FROM "+
+      JobQueue.jobIDField+",CAST(COUNT("+JobQueue.docHashField+") AS BIGINT) AS doccount FROM "+
       jobQueue.getTableName()+" t1 WHERE "+
       JobQueue.statusField+" IN ("+
       database.quoteSQLString(JobQueue.statusToString(JobQueue.STATUS_ACTIVE))+","+
@@ -5545,7 +5546,7 @@ public class JobManager implements IJobManager
       " GROUP BY "+JobQueue.jobIDField,null,null,null);
 
     IResultSet set4 = database.performQuery("SELECT "+
-      JobQueue.jobIDField+",COUNT("+JobQueue.docHashField+") AS doccount FROM "+
+      JobQueue.jobIDField+",CAST(COUNT("+JobQueue.docHashField+") AS BIGINT) AS doccount FROM "+
       jobQueue.getTableName()+" t1 WHERE "+
       JobQueue.statusField+" IN ("+
       database.quoteSQLString(JobQueue.statusToString(JobQueue.STATUS_COMPLETE))+","+
@@ -5706,7 +5707,8 @@ public class JobManager implements IJobManager
       .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_COMPLETE))).append(" THEN 'Processed'")
       .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PURGATORY))).append(" THEN 'Processed'")
       .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED))).append(" THEN 'Being removed'")
-      .append("END AS state,")
+      .append(" ELSE 'Unknown'")
+      .append(" END AS state,")
       .append("CASE")
       .append(" WHEN ")
       .append("(").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_COMPLETE)))
@@ -5765,12 +5767,14 @@ public class JobManager implements IJobManager
       .append(")")
       .append(" AND t0.").append(jobQueue.checkActionField).append("=").append(database.quoteSQLString(jobQueue.actionToString(jobQueue.ACTION_REMOVE)))
       .append(" THEN 'Expiring'")
-      .append("END AS status,")
+      .append(" ELSE 'Unknown'")
+      .append(" END AS status,")
       .append("t0.").append(jobQueue.checkTimeField).append(" AS scheduled,")
       .append("CASE")
       .append(" WHEN ").append("(t0.").append(jobQueue.checkActionField).append(" IS NULL OR t0.").append(jobQueue.checkActionField).append("=").append(database.quoteSQLString(jobQueue.actionToString(jobQueue.ACTION_RESCAN))).append(") THEN 'Process'")
       .append(" WHEN ").append("t0.").append(jobQueue.checkActionField).append("=").append(database.quoteSQLString(jobQueue.actionToString(jobQueue.ACTION_REMOVE))).append(" THEN 'Expire'")
-      .append("END AS action,")
+      .append(" ELSE 'Unknown'")
+      .append(" END AS action,")
       .append("t0.").append(jobQueue.failCountField).append(" AS retrycount,")
       .append("t0.").append(jobQueue.failTimeField).append(" AS retrylimit")
       .append(" FROM ").append(jobQueue.getTableName()).append(" t0,").append(jobs.getTableName()).append(" t1 WHERE ")
