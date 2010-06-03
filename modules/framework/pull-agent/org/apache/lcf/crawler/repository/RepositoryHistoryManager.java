@@ -258,13 +258,15 @@ public class RepositoryHistoryManager extends org.apache.lcf.core.database.BaseT
   {
     // Build the query.
     StringBuffer sb = new StringBuffer("SELECT ");
-    sb.append(activityTypeField).append(" AS activity,").append(startTimeField).append(" AS starttime,(")
+    sb.append(idField).append(" AS id,").append(activityTypeField).append(" AS activity,").append(startTimeField).append(" AS starttime,(")
       .append(endTimeField).append("-").append(startTimeField).append(")")
       .append(" AS elapsedtime,").append(resultCodeField).append(" AS resultcode,").append(resultDescriptionField)
       .append(" AS resultdesc,").append(dataSizeField).append(" AS bytes,").append(entityIdentifierField)
       .append(" AS identifier FROM ").append(getTableName());
     addCriteria(sb,"",connectionName,criteria,false);
-    addOrdering(sb,new String[]{"starttime","activity","elapsedtime","resultcode","resultdesc","bytes","identifier"},sort);
+    // Note well: We can't order by "identifier" in all databases, so in order to guarantee order we use "id".  This will force a specific internal
+    // order for the OFFSET/LIMIT clause.  We include "starttime" because that's the default ordering.
+    addOrdering(sb,new String[]{"starttime","id"},sort);
     addLimits(sb,startRow,maxRowCount);
     return performQuery(sb.toString(),null,null,null,maxRowCount);
   }
@@ -561,20 +563,14 @@ public class RepositoryHistoryManager extends org.apache.lcf.core.database.BaseT
     if (entityMatch != null)
     {
       whereEmitted = emitClauseStart(sb,whereEmitted);
-      sb.append(fieldPrefix).append(entityIdentifierField).append("~");
-      if (entityMatch.isInsensitive())
-        sb.append("*");
-      sb.append(quoteSQLString(entityMatch.getRegexpString()));
+      sb.append(constructRegexpClause(fieldPrefix+entityIdentifierField,quoteSQLString(entityMatch.getRegexpString()),entityMatch.isInsensitive()));
     }
 
     RegExpCriteria resultCodeMatch = criteria.getResultCodeMatch();
     if (resultCodeMatch != null)
     {
       whereEmitted = emitClauseStart(sb,whereEmitted);
-      sb.append(fieldPrefix).append(resultCodeField).append("~");
-      if (resultCodeMatch.isInsensitive())
-        sb.append("*");
-      sb.append(quoteSQLString(resultCodeMatch.getRegexpString()));
+      sb.append(constructRegexpClause(fieldPrefix+resultCodeField,quoteSQLString(resultCodeMatch.getRegexpString()),resultCodeMatch.isInsensitive()));
     }
 
     return whereEmitted;
@@ -630,10 +626,12 @@ public class RepositoryHistoryManager extends org.apache.lcf.core.database.BaseT
         if (i > 0)
           sb.append(",");
         sb.append(field);
-        if (j == 0)
-          sb.append(" DESC");
-        else
-          sb.append(" ASC");
+	// Always make it DESC order...
+	sb.append(" DESC");
+        //if (j == 0)
+	//  sb.append(" DESC");
+        //else
+        //  sb.append(" ASC");
         i++;
       }
       j++;
@@ -644,7 +642,7 @@ public class RepositoryHistoryManager extends org.apache.lcf.core.database.BaseT
   */
   protected void addLimits(StringBuffer sb, int startRow, int maxRowCount)
   {
-    sb.append(" ").append(constructLimitClause(maxRowCount)).append(" OFFSET ").append(Integer.toString(startRow));
+    sb.append(" ").append(constructOffsetLimitClause(startRow,maxRowCount));
   }
 
 

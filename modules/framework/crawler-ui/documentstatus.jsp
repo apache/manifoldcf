@@ -398,7 +398,7 @@ if (maintenanceUnderway == false)
 
 		<table class="displaytable">
 		    <tr class="headerrow">
-			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("identifier");'><nobr>Identifier</nobr></a></td>
+			<td class="reportcolumnheader"><nobr>Identifier</nobr></td>
 			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("job");'><nobr>Job</nobr></a></td>
 			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("state");'><nobr>State</nobr></a></td>
 			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("status");'><nobr>Status</nobr></a></td>

@@ -574,14 +574,37 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     return executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,resultSpec,returnLimit);
   }
 
-  /** Construct a limit clause.
-  * This method constructs a limit clause in the proper manner for the database in question.
-  *@param limit is the limit number.
+  /** Construct a regular-expression match clause.
+  * This method builds both the text part of a regular-expression match.
+  *@param column is the column specifier string.
+  *@param regularExpression is the properly-quoted regular expression string, or "?" if a parameterized value is to be used.
+  *@param caseInsensitive is true of the regular expression match is to be case insensitive.
+  *@return the query chunk needed, not padded with spaces on either side.
+  */
+  public String constructRegexpClause(String column, String regularExpression, boolean caseInsensitive)
+  {
+    // MHL - do what MySQL requires, whatever that is...
+    return column + " LIKE " + regularExpression;
+  }
+
+  /** Construct an offset/limit clause.
+  * This method constructs an offset/limit clause in the proper manner for the database in question.
+  *@param offset is the starting offset number.
+  *@param limit is the limit of result rows to return.
   *@return the proper clause, with no padding spaces on either side.
   */
-  public String constructLimitClause(int limit)
+  public String constructOffsetLimitClause(int offset, int limit)
   {
-    return "LIMIT "+Integer.toString(limit);
+    StringBuffer sb = new StringBuffer();
+    if (offset != 0)
+      sb.append("OFFSET ").append(Integer.toString(offset));
+    if (limit != -1)
+    {
+      if (offset != 0)
+        sb.append(" ");
+      sb.append("LIMIT ").append(Integer.toString(limit));
+    }
+    return sb.toString();
   }
 
   /** Quote a sql string.

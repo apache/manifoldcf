@@ -683,11 +683,11 @@ if (maintenanceUnderway == false)
 		    <tr class="headerrow">
 			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("starttime");'><nobr>Start Time</nobr></a></td>
 			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("activity");'><nobr>Activity</nobr></a></td>
-			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("identifier");'><nobr>Identifier</nobr></a></td>
+			<td class="reportcolumnheader"><nobr>Identifier</nobr></td>
 			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("resultcode");'><nobr>Result Code</nobr></a></td>
 			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("bytes");'><nobr>Bytes</nobr></a></td>
 			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("elapsedtime");'><nobr>Time</nobr></a></td>
-			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("resultdesc");'><nobr>Result Description</nobr></a></td>
+			<td class="reportcolumnheader"><nobr>Result Description</nobr></td>
 		    </tr>
 <%
 		zz = 0;
