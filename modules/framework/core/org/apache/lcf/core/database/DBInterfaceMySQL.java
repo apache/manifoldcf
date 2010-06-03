@@ -574,6 +574,16 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     return executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,resultSpec,returnLimit);
   }
 
+  /** Construct a limit clause.
+  * This method constructs a limit clause in the proper manner for the database in question.
+  *@param limit is the limit number.
+  *@return the proper clause, with no padding spaces on either side.
+  */
+  public String constructLimitClause(int limit)
+  {
+    return "LIMIT "+Integer.toString(limit);
+  }
+
   /** Quote a sql string.
   * This method quotes a sql string in the proper manner for the database in question.
   *@param string is the input string.

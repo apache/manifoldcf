@@ -528,7 +528,7 @@ public class JobQueue extends org.apache.lcf.core.database.BaseTable
       quoteSQLString(statusToString(STATUS_ACTIVE))+","+
       quoteSQLString(statusToString(STATUS_ACTIVEPURGATORY))+","+
       quoteSQLString(statusToString(STATUS_ACTIVENEEDRESCAN))+","+
-      quoteSQLString(statusToString(STATUS_ACTIVENEEDRESCANPURGATORY))+") LIMIT 1",list,null,null);
+      quoteSQLString(statusToString(STATUS_ACTIVENEEDRESCANPURGATORY))+") "+constructLimitClause(1),list,null,null,1);
     return set.getRowCount() > 0;
   }
 

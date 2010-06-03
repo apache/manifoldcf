@@ -1753,8 +1753,8 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
   {
     IResultSet set = performQuery("SELECT "+idField+" FROM "+getTableName()+" WHERE "+
       statusField+" IN ("+quoteSQLString(statusToString(STATUS_READYFORDELETE))+","+
-      quoteSQLString(statusToString(STATUS_SHUTTINGDOWN))+") LIMIT 1",
-      null,new StringSet(getJobStatusKey()),null);
+      quoteSQLString(statusToString(STATUS_SHUTTINGDOWN))+") "+constructLimitClause(1),
+      null,new StringSet(getJobStatusKey()),null,1);
     return set.getRowCount() > 0;
   }
 
@@ -1772,7 +1772,7 @@ public class Jobs extends org.apache.lcf.core.database.BaseTable
       statusField+" IN ("+
       quoteSQLString(statusToString(STATUS_ACTIVE)) + "," +
       quoteSQLString(statusToString(STATUS_ACTIVESEEDING)) +
-      ") LIMIT 1",null,new StringSet(getJobStatusKey()),null);
+      ") "+constructLimitClause(1),null,new StringSet(getJobStatusKey()),null,1);
     return set.getRowCount() > 0;
   }
 

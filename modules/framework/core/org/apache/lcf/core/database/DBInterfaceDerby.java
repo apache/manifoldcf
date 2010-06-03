@@ -19,6 +19,7 @@
 package org.apache.lcf.core.database;
 
 import org.apache.lcf.core.interfaces.*;
+import org.apache.lcf.core.system.LCF;
 import org.apache.lcf.core.system.Logging;
 import java.util.*;
 import java.io.*;
@@ -30,6 +31,8 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   protected final static String _url = "jdbc:derby:";
   protected final static String _driver = "org.apache.derby.jdbc.EmbeddedDriver";
   
+  public final static String databasePathProperty = "org.apache.lcf.derbydatabasepath";
+  
   protected String userName;
   protected String password;
   
@@ -38,10 +41,22 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   // So, once we enter the serializable realm, STOP any additional transactions from doing anything at all.
   protected int serializableDepth = 0;
 
+  protected static String getFullDatabasePath(String databaseName)
+    throws LCFException
+  {
+    String path = LCF.getProperty(databasePathProperty);
+    if (path == null)
+      throw new LCFException("Derby database requires '"+databasePathProperty+"' property, containing a full path");
+    path = path.replace("\\","/");
+    if (!path.endsWith("/"))
+      path = path + "/";
+    return path + databaseName;
+  }
+  
   public DBInterfaceDerby(IThreadContext tc, String databaseName, String userName, String password)
     throws LCFException
   {
-    super(tc,_url+((databaseName==null)?"default":databaseName)+";create=true;user="+userName+";password="+password,_driver,((databaseName==null)?"default":databaseName),userName,password);
+    super(tc,_url+getFullDatabasePath((databaseName==null)?"default":databaseName)+";create=true;user="+userName+";password="+password,_driver,getFullDatabasePath((databaseName==null)?"default":databaseName),userName,password);
     cacheKey = CacheKeyFactory.makeDatabaseKey(this.databaseName);
     this.userName = userName;
     this.password = password;
@@ -756,6 +771,16 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     }
   }
 
+  /** Construct a limit clause.
+  * This method constructs a limit clause in the proper manner for the database in question.
+  *@param limit is the limit number.
+  *@return the proper clause, with no padding spaces on either side.
+  */
+  public String constructLimitClause(int limit)
+  {
+    return "";
+  }
+
   /** Quote a sql string.
   * This method quotes a sql string in the proper manner for the database in question.
   *@param string is the input string.
@@ -978,6 +1003,11 @@ public class DBInterfaceDerby extends Database implements IDBInterface
       throw new LCFException("Transaction nesting error!");
   }
 
+  /** Abstract method for mapping a column name from resultset */
+  protected String mapColumnName(String rawColumnName)
+  {
+    return rawColumnName.toLowerCase();
+  }
 
 }
 

@@ -84,48 +84,20 @@ public class IntrinsicLink extends org.apache.lcf.core.database.BaseTable
     while (true)
     {
       // Schema
-      beginTransaction();
-      try
+      Map existing = getTableSchema(null,null);
+      if (existing == null)
       {
-        Map existing = getTableSchema(null,null);
-        if (existing == null)
-        {
-          HashMap map = new HashMap();
-          map.put(jobIDField,new ColumnDescription("BIGINT",false,false,jobsTable,jobsColumn,false));
-          map.put(linkTypeField,new ColumnDescription("VARCHAR(255)",false,true,null,null,false));
-          map.put(parentIDHashField,new ColumnDescription("VARCHAR(40)",false,false,null,null,false));
-          map.put(childIDHashField,new ColumnDescription("VARCHAR(40)",false,true,null,null,false));
-          map.put(newField,new ColumnDescription("CHAR(1)",false,true,null,null,false));
-          performCreate(map,null);
-        }
-        else
-        {
-          ColumnDescription cd;
-
-          // If there exists a childid field, remove parent and child id fields, and do the index manipulation we need.
-          cd = (ColumnDescription)existing.get("childid");
-          if (cd != null)
-          {
-            ArrayList list = new ArrayList();
-            list.add("childid");
-            list.add("parentid");
-            performAlter(null,null,list,null);
-          }
-        }
+        HashMap map = new HashMap();
+        map.put(jobIDField,new ColumnDescription("BIGINT",false,false,jobsTable,jobsColumn,false));
+        map.put(linkTypeField,new ColumnDescription("VARCHAR(255)",false,true,null,null,false));
+        map.put(parentIDHashField,new ColumnDescription("VARCHAR(40)",false,false,null,null,false));
+        map.put(childIDHashField,new ColumnDescription("VARCHAR(40)",false,true,null,null,false));
+        map.put(newField,new ColumnDescription("CHAR(1)",false,true,null,null,false));
+        performCreate(map,null);
       }
-      catch (LCFException e)
+      else
       {
-        signalRollback();
-        throw e;
-      }
-      catch (Error e)
-      {
-        signalRollback();
-        throw e;
-      }
-      finally
-      {
-        endTransaction();
+        // Perform upgrade, if needed.
       }
 
       // Indexes
@@ -159,136 +131,11 @@ public class IntrinsicLink extends org.apache.lcf.core.database.BaseTable
 
       // Create the indexes we are still missing
       if (uniqueIndex != null)
-      {
-        // This create may fail
-        try
-        {
-          performAddIndex(null,uniqueIndex);
-        }
-        catch (LCFException e)
-        {
-          if (e.getMessage().indexOf("could not create unique index") == -1)
-            throw e;
-          removeDuplicates();
-          // Go back around
-          continue;
-        }
-      }
-
+        performAddIndex(null,uniqueIndex);
+      
       // All done
       break;
     }
-  }
-
-  /** Remove duplicates, as part of upgrade */
-  protected void removeDuplicates()
-    throws LCFException
-  {
-    // If we get here, it's because we couldn't create the necessary unique table constraint.  Fix this by removing undesired duplicates.
-
-    Logging.jobs.warn("Found duplicate keys in the intrinsiclink table - correcting...");
-
-    // First, create a temporary non-unique index that we intend to remove at the end of this process.  We need this index in order to be able to
-    // order retrieval of rows by the proposed key order.
-    performAddIndex("temp_index_intrinsiclink",new IndexDescription(false,new String[]{jobIDField,linkTypeField,parentIDHashField,childIDHashField}));
-
-    // The fastest way to eliminate duplicates is to read rows in sorted order, and delete those that are duplicates.  The index created above
-    // will be used and will guarantee that we don't use excessive postgresql server memory.  A client-side filter will be used to eliminate results
-    // that are not duplicates, which should prevent unbounded client memory usage as well.
-
-    // Count the rows first
-    IResultSet countSet = performQuery("SELECT COUNT(*) AS countvar FROM "+getTableName(),null,null,null);
-    IResultRow countRow = countSet.getRow(0);
-    int count;
-    try
-    {
-      count = Integer.parseInt(countRow.getValue("countvar").toString());
-    }
-    catch (NumberFormatException e)
-    {
-      throw new LCFException(e.getMessage(),e);
-    }
-
-    // Now, amass a list of duplicates
-    ArrayList duplicateList = new ArrayList();
-    DuplicateFinder duplicateFinder = new DuplicateFinder();
-    int j = 0;
-    while (j < count)
-    {
-      IResultSet resultSet = getDBInterface().performQuery("SELECT "+jobIDField+","+linkTypeField+","+parentIDHashField+","+childIDHashField+","+newField+" FROM "+getTableName()+
-        " ORDER BY "+jobIDField+" ASC,"+linkTypeField+" ASC,"+parentIDHashField+" ASC,"+childIDHashField+" ASC OFFSET "+Integer.toString(j)+" LIMIT 10000",null,null,null,-1,duplicateFinder);
-
-      int i = 0;
-      while (i < resultSet.getRowCount())
-      {
-        IResultRow row = resultSet.getRow(i++);
-        Long jobID = (Long)row.getValue(jobIDField);
-        String linkType = (String)row.getValue(linkTypeField);
-        String parentIDHash = (String)row.getValue(parentIDHashField);
-        String childIDHash = (String)row.getValue(childIDHashField);
-        String newValue = (String)row.getValue(newField);
-
-        Logging.jobs.warn("Duplicate intrinsiclink row detected: job "+jobID.toString()+", linktype = '"+linkType+"', parentIDHash = "+((parentIDHash==null)?"None":parentIDHash)+", childIDHash = "+((childIDHash==null)?"None":childIDHash));
-        HashMap map = new HashMap();
-        map.put(jobIDField,jobID);
-        map.put(linkTypeField,linkType);
-        if (parentIDHash!=null)
-          map.put(parentIDHashField,parentIDHash);
-        if (childIDHash!=null)
-          map.put(childIDHashField,childIDHash);
-        if (newValue != null)
-          map.put(newField,newValue);
-        duplicateList.add(map);
-      }
-
-      j += 10000;
-    }
-
-    // Go through the duplicatelist, and remove the duplicates
-    j = 0;
-    while (j < duplicateList.size())
-    {
-      HashMap map = (HashMap)duplicateList.get(j++);
-
-      beginTransaction();
-      try
-      {
-        // Since there's no row ID, all we can do is delete all rows that match, and then create a (single) row that is the one we want to retain.
-        ArrayList list = new ArrayList();
-        list.add(map.get(jobIDField));
-        list.add(map.get(linkTypeField));
-        String parentIDHash = (String)map.get(parentIDHashField);
-        String childIDHash = (String)map.get(childIDHashField);
-        if (parentIDHash != null)
-          list.add(parentIDHash);
-        if (childIDHash != null)
-          list.add(childIDHash);
-        performDelete("WHERE "+jobIDField+"=? AND "+linkTypeField+"=? AND "+parentIDHashField+((parentIDHash!=null)?"=?":" IS NULL")+
-          " AND "+childIDHashField+((childIDHash!=null)?"=?":" IS NULL"),list,null);
-
-        performInsert(map,null);
-      }
-      catch (LCFException e)
-      {
-        signalRollback();
-        throw e;
-      }
-      catch (Error e)
-      {
-        signalRollback();
-        throw e;
-      }
-      finally
-      {
-        endTransaction();
-      }
-    }
-
-    // Remove the temporary index
-    performRemoveIndex("temp_index_intrinsiclink");
-
-    Logging.jobs.warn("Done cleaning out duplicate rows in the intrinsiclink table.");
-
   }
 
   /** Uninstall.

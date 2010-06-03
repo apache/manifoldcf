@@ -229,6 +229,21 @@ public class BaseTable
     return dbInterface.performQuery(query,params,cacheKeys,queryClass);
   }
 
+  /** Perform a general "data fetch" query, with the ability to provide a limit.
+  *@param query is the query string.
+  *@param params are the parameterized values, if needed.
+  *@param cacheKeys are the cache keys, if needed (null if no cache desired).
+  *@param queryClass is the LRU class name against which this query would be cached,
+  * or null if no LRU behavior desired.
+  *@param resultLimit is the maximum number of results desired.
+  *@return a resultset.
+  */
+  protected IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass, int resultLimit)
+    throws LCFException
+  {
+    return dbInterface.performQuery(query,params,cacheKeys,queryClass,resultLimit,null);
+  }
+
   /** Begin a database transaction.  This method call MUST be paired with an endTransaction() call,
   * or database handles will be lost.  If the transaction should be rolled back, then signalRollback() should
   * be called before the transaction is ended.
@@ -268,6 +283,15 @@ public class BaseTable
     return CacheKeyFactory.makeTableKey(null,tableName,dbInterface.getDatabaseName());
   }
 
+  /** Construct a limit clause.
+  * This method constructs a limit clause in the proper manner for the database in question.
+  *@param limit is the limit number.
+  *@return the proper clause, with no padding spaces on either side.
+  */
+  public String constructLimitClause(int limit)
+  {
+    return dbInterface.constructLimitClause(limit);
+  }
 
   /** Quote a sql string.
   * This method quotes a sql string in the proper manner for the database in question.

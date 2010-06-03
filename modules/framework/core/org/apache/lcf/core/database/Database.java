@@ -104,6 +104,12 @@ public class Database
   {
   }
   
+  /** Abstract method for mapping a column name from resultset */
+  protected String mapColumnName(String rawColumnName)
+  {
+    return rawColumnName;
+  }
+  
   /** Execute arbitrary database query, and optionally cache the result.  Cached results are
   * returned for this operation if they are valid and appropriate.  Note that any cached results
   * returned were only guaranteed to be pertinent at the time the cached result was obtained; the
@@ -612,7 +618,7 @@ public class Database
             resultCols = new String[colcount];
             for (int i = 0; i < colcount; i++)
             {
-              resultCols[i] = rsmd.getColumnName(i+1);
+              resultCols[i] = mapColumnName(rsmd.getColumnName(i+1));
             }
           }
 

@@ -266,7 +266,7 @@ public class RepositoryHistoryManager extends org.apache.lcf.core.database.BaseT
     addCriteria(sb,"",connectionName,criteria,false);
     addOrdering(sb,new String[]{"starttime","activity","elapsedtime","resultcode","resultdesc","bytes","identifier"},sort);
     addLimits(sb,startRow,maxRowCount);
-    return performQuery(sb.toString(),null,null,null);
+    return performQuery(sb.toString(),null,null,null,maxRowCount);
   }
 
   /** Count the number of rows specified by a given set of criteria.  This can be used to make decisions
@@ -374,7 +374,7 @@ public class RepositoryHistoryManager extends org.apache.lcf.core.database.BaseT
     sb.append(" GROUP BY bucket,windowstart,windowend) t2 ORDER BY bucket ASC, activitycount DESC) t3) t4");
     addOrdering(sb,new String[]{"activitycount","starttime","endtime","idbucket"},sort);
     addLimits(sb,startRow,maxRowCount);
-    return performQuery(sb.toString(),null,null,null);
+    return performQuery(sb.toString(),null,null,null,maxRowCount);
   }
 
 
@@ -463,7 +463,7 @@ public class RepositoryHistoryManager extends org.apache.lcf.core.database.BaseT
 
     addOrdering(sb,new String[]{"bytecount","starttime","endtime","idbucket"},sort);
     addLimits(sb,startRow,maxRowCount);
-    return performQuery(sb.toString(),null,null,null);
+    return performQuery(sb.toString(),null,null,null,maxRowCount);
   }
 
   /** Get a bucketed history of different result code/identifier combinations.
@@ -490,7 +490,7 @@ public class RepositoryHistoryManager extends org.apache.lcf.core.database.BaseT
     sb.append(" GROUP BY resultcodebucket,idbucket");
     addOrdering(sb,new String[]{"eventcount","resultcodebucket","idbucket"},sort);
     addLimits(sb,startRow,maxRowCount);
-    return performQuery(sb.toString(),null,null,null);
+    return performQuery(sb.toString(),null,null,null,maxRowCount);
   }
 
   /** Turn a bucket description into a return column.
@@ -644,7 +644,7 @@ public class RepositoryHistoryManager extends org.apache.lcf.core.database.BaseT
   */
   protected void addLimits(StringBuffer sb, int startRow, int maxRowCount)
   {
-    sb.append(" LIMIT ").append(Integer.toString(maxRowCount)).append(" OFFSET ").append(Integer.toString(startRow));
+    sb.append(" ").append(constructLimitClause(maxRowCount)).append(" OFFSET ").append(Integer.toString(startRow));
   }
 
 

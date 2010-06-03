@@ -844,7 +844,7 @@ public class JobManager implements IJobManager
           database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN))+","+
           database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY))+","+
           database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED))+
-          ")) LIMIT "+Integer.toString(maxCount),
+          ")) "+database.constructLimitClause(maxCount),
           null,null,null,maxCount,null);
 
         if (Logging.perf.isDebugEnabled())
@@ -1108,10 +1108,10 @@ public class JobManager implements IJobManager
       .append(jobQueue.prioritySetField).append("<? AND ").append(jobQueue.statusField).append(" IN(")
       .append(database.quoteSQLString(jobQueue.statusToString(JobQueue.STATUS_COMPLETE))).append(",")
       .append(database.quoteSQLString(jobQueue.statusToString(JobQueue.STATUS_PURGATORY))).append(")")
-      .append(" LIMIT ").append(Integer.toString(n));
+      .append(" ").append(database.constructLimitClause(n));
     list.add(new Long(currentTime));
 
-    IResultSet set = database.performQuery(sb.toString(),list,null,null);
+    IResultSet set = database.performQuery(sb.toString(),list,null,null,n,null);
 
     DocumentDescription[] rval = new DocumentDescription[set.getRowCount()];
 
@@ -1170,13 +1170,13 @@ public class JobManager implements IJobManager
       .append(database.quoteSQLString(JobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY))).append(") AND (")
       .append(jobQueue.checkActionField).append(" IS NULL OR ")
       .append(jobQueue.checkActionField).append("=").append(database.quoteSQLString(jobQueue.actionToString(JobQueue.ACTION_RESCAN)))
-      .append(") LIMIT ").append(Integer.toString(n));
+      .append(") ").append(database.constructLimitClause(n));
     list.add(new Long(currentTime));
 
     // Analyze jobqueue tables unconditionally, since it's become much more sensitive in 8.3 than it used to be.
     jobQueue.unconditionallyAnalyzeTables();
 
-    IResultSet set = database.performQuery(sb.toString(),list,null,null);
+    IResultSet set = database.performQuery(sb.toString(),list,null,null,n,null);
 
     DocumentDescription[] rval = new DocumentDescription[set.getRowCount()];
 
@@ -1334,7 +1334,7 @@ public class JobManager implements IJobManager
       .append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY))).append(",")
       .append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED)))
       .append("))");
-    sb.append(" LIMIT ").append(Integer.toString(n));
+    sb.append(" ").append(database.constructLimitClause(n));
 
     // Analyze jobqueue tables unconditionally, since it's become much more sensitive in 8.3 than it used to be.
     jobQueue.unconditionallyAnalyzeTables();
@@ -1356,7 +1356,7 @@ public class JobManager implements IJobManager
       database.beginTransaction();
       try
       {
-        IResultSet set = database.performQuery(sb.toString(),list,null,null,-1,null);
+        IResultSet set = database.performQuery(sb.toString(),list,null,null,n,null);
 
         if (Logging.perf.isDebugEnabled())
           Logging.perf.debug(" Expiring "+Integer.toString(set.getRowCount())+" documents");
@@ -1721,14 +1721,14 @@ public class JobManager implements IJobManager
       .append(jobQueue.checkActionField).append("=?")
       .append(") AND (")
       .append(jobQueue.statusField).append("=? OR ").append(jobQueue.statusField).append("=?)")
-      .append(" ORDER BY ").append(jobQueue.docPriorityField).append(" ASC LIMIT 1");
+      .append(" ORDER BY ").append(jobQueue.docPriorityField).append(" ASC ").append(database.constructLimitClause(1));
 
     list.add(currentTimeValue);
     list.add(jobQueue.actionToString(JobQueue.ACTION_RESCAN));
     list.add(jobQueue.statusToString(JobQueue.STATUS_PENDING));
     list.add(jobQueue.statusToString(JobQueue.STATUS_PENDINGPURGATORY));
 
-    IResultSet set = database.performQuery(sb.toString(),list,null,null);
+    IResultSet set = database.performQuery(sb.toString(),list,null,null,1,null);
     if (set.getRowCount() > 0)
     {
       IResultRow row = set.getRow(0);
@@ -1836,7 +1836,8 @@ public class JobManager implements IJobManager
       }
 
       // Now we can tack the limit onto the query.  Before this point, remainingDocuments would be crap
-      sb.append(" LIMIT ").append(vList.getRemainingDocuments());
+      int limitValue = vList.getRemainingDocuments();
+      sb.append(database.constructLimitClause(limitValue));
 
       if (Logging.perf.isDebugEnabled())
       {
@@ -5068,7 +5069,7 @@ public class JobManager implements IJobManager
             "("+jobQueue.jobIDField+"=? AND "+jobQueue.statusField+"=?) OR "+
             "("+jobQueue.jobIDField+"=? AND "+jobQueue.statusField+"=?) OR "+
             "("+jobQueue.jobIDField+"=? AND "+jobQueue.statusField+"=?) OR "+
-            "("+jobQueue.jobIDField+"=? AND "+jobQueue.statusField+"=?) LIMIT 1",list,null,null);
+            "("+jobQueue.jobIDField+"=? AND "+jobQueue.statusField+"=?) "+database.constructLimitClause(1),list,null,null,1,null);
 
           if (confirmSet.getRowCount() > 0)
             continue;
@@ -5209,7 +5210,7 @@ public class JobManager implements IJobManager
             "("+jobQueue.jobIDField+"=? AND "+jobQueue.statusField+"=?) OR "+
             "("+jobQueue.jobIDField+"=? AND "+jobQueue.statusField+"=?) OR "+
             "("+jobQueue.jobIDField+"=? AND "+jobQueue.statusField+"=?) OR "+
-            "("+jobQueue.jobIDField+"=? AND "+jobQueue.statusField+"=?) LIMIT 1",list,null,null);
+            "("+jobQueue.jobIDField+"=? AND "+jobQueue.statusField+"=?) "+database.constructLimitClause(1),list,null,null,1,null);
 
           if (confirmSet.getRowCount() > 0)
             continue;
@@ -5297,7 +5298,7 @@ public class JobManager implements IJobManager
             "("+jobQueue.jobIDField+"=? AND "+jobQueue.statusField+"=?) OR "+
             "("+jobQueue.jobIDField+"=? AND "+jobQueue.statusField+"=?) OR "+
             "("+jobQueue.jobIDField+"=? AND "+jobQueue.statusField+"=?) OR "+
-            "("+jobQueue.jobIDField+"=? AND "+jobQueue.statusField+"=?) LIMIT 1",list,null,null);
+            "("+jobQueue.jobIDField+"=? AND "+jobQueue.statusField+"=?) "+database.constructLimitClause(1),list,null,null,1,null);
 
           if (confirmSet.getRowCount() > 0)
             continue;
@@ -5396,7 +5397,7 @@ public class JobManager implements IJobManager
           IResultSet confirmSet = database.performQuery("SELECT "+jobQueue.idField+" FROM "+
             jobQueue.getTableName()+" WHERE "+
             "("+jobQueue.jobIDField+"=? AND "+jobQueue.statusField+"=?) OR "+
-            "("+jobQueue.jobIDField+"=? AND "+jobQueue.statusField+"=?) LIMIT 1",list,null,null);
+            "("+jobQueue.jobIDField+"=? AND "+jobQueue.statusField+"=?) "+database.constructLimitClause(1),list,null,null,1,null);
 
           if (confirmSet.getRowCount() > 0)
             continue;
@@ -5776,7 +5777,7 @@ public class JobManager implements IJobManager
     addCriteria(sb,"t0.",connectionName,filterCriteria,true);
     addOrdering(sb,new String[]{"identifier","job","state","status","scheduled","action","retrycount","retrylimit"},sortOrder);
     addLimits(sb,startRow,rowCount);
-    return database.performQuery(sb.toString(),null,null,null);
+    return database.performQuery(sb.toString(),null,null,null,rowCount,null);
   }
 
   /** Run a 'queue status' report.
@@ -5884,7 +5885,7 @@ public class JobManager implements IJobManager
     sb.append(" GROUP BY idbucket");
     addOrdering(sb,new String[]{"idbucket","inactive","processing","expiring","deleting","processready","expireready","processwaiting","expirewaiting","waitingforever"},sortOrder);
     addLimits(sb,startRow,rowCount);
-    return database.performQuery(sb.toString(),null,null,null);
+    return database.performQuery(sb.toString(),null,null,null,rowCount,null);
   }
 
   // Protected methods for report generation
@@ -6139,7 +6140,7 @@ public class JobManager implements IJobManager
   */
   protected void addLimits(StringBuffer sb, int startRow, int maxRowCount)
   {
-    sb.append(" LIMIT ").append(Integer.toString(maxRowCount)).append(" OFFSET ").append(Integer.toString(startRow));
+    sb.append(" ").append(database.constructLimitClause(maxRowCount)).append(" OFFSET ").append(Integer.toString(startRow));
   }
 
 

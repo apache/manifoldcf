@@ -273,6 +273,13 @@ public interface IDBInterface
     int maxResults, ResultSpecification resultSpec, ILimitChecker returnLimit)
     throws LCFException;
 
+  /** Construct a limit clause.
+  * This method constructs a limit clause in the proper manner for the database in question.
+  *@param limit is the limit number.
+  *@return the proper clause, with no padding spaces on either side.
+  */
+  public String constructLimitClause(int limit);
+  
   /** Quote a sql string.
   * This method quotes a sql string in the proper manner for the database in question.
   *@param string is the input string.

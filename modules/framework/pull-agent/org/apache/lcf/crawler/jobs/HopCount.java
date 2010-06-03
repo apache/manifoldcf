@@ -678,7 +678,7 @@ public class HopCount extends org.apache.lcf.core.database.BaseTable
     list.add(jobID);
     list.add(markToString(MARK_QUEUED));
     IResultSet set = performQuery("SELECT "+linkTypeField+","+parentIDHashField+" FROM "+
-      getTableName()+" WHERE "+jobIDField+"=? AND "+markForDeathField+"=?"+" LIMIT 200 FOR UPDATE",list,null,null);
+      getTableName()+" WHERE "+jobIDField+"=? AND "+markForDeathField+"=? "+constructLimitClause(200)+" FOR UPDATE",list,null,null,200);
 
     // No more entries == we are done
     if (set.getRowCount() == 0)
