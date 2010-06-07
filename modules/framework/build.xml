@@ -156,7 +156,6 @@
                 <include name="log4j*.jar"/>
                 <include name="postgresql*.jar"/>
                 <include name="serializer*.jar"/>
-                <include name="servlet-api*.jar"/>
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl-lcf.jar"/>
                 <include name="xml-apis*.jar"/>
@@ -192,7 +191,6 @@
                 <include name="log4j*.jar"/>
                 <include name="postgresql*.jar"/>
                 <include name="serializer*.jar"/>
-                <include name="servlet-api*.jar"/>
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl-lcf.jar"/>
                 <include name="xml-apis*.jar"/>
