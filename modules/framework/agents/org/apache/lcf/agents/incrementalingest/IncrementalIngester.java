@@ -365,10 +365,11 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
         // Delete all records from the database that match the old URI, except for THIS record.
         list.clear();
         list.add(oldURIHash);
-        list.add(oldURI);
+	// Ideally, we should include the actual string, but that's hard because of database limitations
+        //list.add(oldURI);
         list.add(docKey);
         list.add(connection.getName());
-        performDelete("WHERE "+uriHashField+"=? AND "+docURIField+"=? AND "+docKeyField+"!=? AND "+outputConnNameField+"=?",list,null);
+        performDelete("WHERE "+uriHashField+"=? AND "+ /* docURIField+"=? AND "+ */ docKeyField+"!=? AND "+outputConnNameField+"=?",list,null);
         removeDocument(connection,oldURI,oldOutputVersion,activities);
       }
 
@@ -377,10 +378,11 @@ public class IncrementalIngester extends org.apache.lcf.core.database.BaseTable 
         // Get rid of all records that match the NEW uri, except for this record.
         list.clear();
         list.add(documentURIHash);
-        list.add(documentURI);
+        // Database limitations prevent this
+        // list.add(documentURI);
         list.add(docKey);
         list.add(connection.getName());
-        performDelete("WHERE "+uriHashField+"=? AND "+docURIField+"=? AND "+docKeyField+"!=? AND "+outputConnNameField+"=?",list,null);
+        performDelete("WHERE "+uriHashField+"=? AND "+ /* docURIField+"=? AND "+ */ docKeyField+"!=? AND "+outputConnNameField+"=?",list,null);
       }
 
       // Now, we know we are ready for the ingest.

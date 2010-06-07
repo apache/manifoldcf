@@ -987,8 +987,11 @@ public class DBInterfaceDerby extends Database implements IDBInterface
       {
         try
         {
-          connection.commit();
-          connection.setAutoCommit(true);
+          if (connection != null)
+          {
+            connection.commit();
+            connection.setAutoCommit(true);
+          }
         }
         catch (java.sql.SQLException e)
         {
@@ -1012,8 +1015,11 @@ public class DBInterfaceDerby extends Database implements IDBInterface
       {
         try
         {
-          connection.rollback();
-          connection.setAutoCommit(true);
+          if (connection != null)
+          {
+            connection.rollback();
+            connection.setAutoCommit(true);
+          }
         }
         catch (java.sql.SQLException e)
         {

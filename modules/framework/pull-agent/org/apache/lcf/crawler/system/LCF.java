@@ -133,6 +133,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
   public static void startSystem(IThreadContext threadContext)
     throws LCFException
   {
+    Logging.root.info("Starting up pull-agent...");
     synchronized (startupLock)
     {
       // Now, start all the threads
@@ -222,6 +223,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       // Start the initialization thread.  This does the initialization work and starts all the other threads when that's done.  It then exits.
       initializationThread.start();
     }
+    Logging.root.info("Pull-agent started");
   }
 
   protected static class InitializationThread extends Thread
@@ -337,6 +339,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
   public static void stopSystem(IThreadContext threadContext)
     throws LCFException
   {
+    Logging.root.info("Shutting down pull-agent...");
     synchronized (startupLock)
     {
       while (initializationThread != null || jobDeleteThread != null || startupThread != null || jobStartThread != null || stufferThread != null ||
@@ -563,6 +566,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       numDeleteThreads = 0;
       numExpireThreads = 0;
     }
+    Logging.root.info("Pull-agent successfully shut down");
   }
 
   /** Atomically export the crawler configuration */
