@@ -54,13 +54,25 @@ public class LockManager implements ILockManager
     throws LCFException
   {
     synchDirectory = LCF.getProperty(synchDirectoryProperty);
-    if (synchDirectory == null)
-      throw new LCFException("Property "+synchDirectoryProperty+" must be set!",LCFException.SETUP_ERROR);
-    if (!new File(synchDirectory).isDirectory())
-      throw new LCFException("Property "+synchDirectoryProperty+" must point to an existing, writeable directory!",LCFException.SETUP_ERROR);
+    if (synchDirectory != null)
+    {
+      if (!new File(synchDirectory).isDirectory())
+        throw new LCFException("Property "+synchDirectoryProperty+" must point to an existing, writeable directory!",LCFException.SETUP_ERROR);
+    }
   }
 
-
+  /** Calculate the name of a flag resource.
+  *@param flagName is the name of the flag.
+  *@return the name for the flag resource.
+  */
+  protected static String getFlagResourceName(String flagName)
+  {
+    return "flag-"+flagName;
+  }
+  
+  /** Global flag information.  This is used only when all of LCF is run within one process. */
+  protected static HashMap globalFlags = new HashMap();
+  
   /** Raise a flag.  Use this method to assert a condition, or send a global signal.  The flag will be reset when the
   * entire system is restarted.
   *@param flagName is the name of the flag to set.
@@ -68,21 +80,32 @@ public class LockManager implements ILockManager
   public void setGlobalFlag(String flagName)
     throws LCFException
   {
-    String resourceName = "flag-" + flagName;
-    String path = makeFilePath(resourceName);
-    (new File(path)).mkdirs();
-    File f = new File(path,LCF.safeFileName(resourceName));
-    try
+    if (synchDirectory == null)
     {
-      f.createNewFile();
+      // Keep local flag information in memory
+      synchronized (globalFlags)
+      {
+        globalFlags.put(flagName,new Boolean(true));
+      }
     }
-    catch (InterruptedIOException e)
+    else
     {
-      throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
-    }
-    catch (IOException e)
-    {
-      throw new LCFException(e.getMessage(),e);
+      String resourceName = getFlagResourceName(flagName);
+      String path = makeFilePath(resourceName);
+      (new File(path)).mkdirs();
+      File f = new File(path,LCF.safeFileName(resourceName));
+      try
+      {
+        f.createNewFile();
+      }
+      catch (InterruptedIOException e)
+      {
+        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+      }
+      catch (IOException e)
+      {
+        throw new LCFException(e.getMessage(),e);
+      }
     }
   }
 
@@ -92,9 +115,20 @@ public class LockManager implements ILockManager
   public void clearGlobalFlag(String flagName)
     throws LCFException
   {
-    String resourceName = "flag-" + flagName;
-    File f = new File(makeFilePath(resourceName),LCF.safeFileName(resourceName));
-    f.delete();
+    if (synchDirectory == null)
+    {
+      // Keep flag information in memory
+      synchronized (globalFlags)
+      {
+        globalFlags.remove(flagName);
+      }
+    }
+    else
+    {
+      String resourceName = getFlagResourceName(flagName);
+      File f = new File(makeFilePath(resourceName),LCF.safeFileName(resourceName));
+      f.delete();
+    }
   }
   
   /** Check the condition of a specified flag.
@@ -104,11 +138,25 @@ public class LockManager implements ILockManager
   public boolean checkGlobalFlag(String flagName)
     throws LCFException
   {
-    String resourceName = "flag-" + flagName;
-    File f = new File(makeFilePath(resourceName),LCF.safeFileName(resourceName));
-    return f.exists();
+    if (synchDirectory == null)
+    {
+      // Keep flag information in memory
+      synchronized (globalFlags)
+      {
+        return globalFlags.get(flagName) != null;
+      }
+    }
+    else
+    {
+      String resourceName = getFlagResourceName(flagName);
+      File f = new File(makeFilePath(resourceName),LCF.safeFileName(resourceName));
+      return f.exists();
+    }
   }
 
+  /** Global resource data.  Used only when LCF is run entirely out of one process. */
+  protected static HashMap globalData = new HashMap();
+  
   /** Read data from a shared data resource.  Use this method to read any existing data, or get a null back if there is no such resource.
   * Note well that this is not necessarily an atomic operation, and it must thus be protected by a lock.
   *@param resourceName is the global name of the resource.
@@ -117,38 +165,49 @@ public class LockManager implements ILockManager
   public byte[] readData(String resourceName)
     throws LCFException
   {
-    File f = new File(makeFilePath(resourceName),LCF.safeFileName(resourceName));
-    try
+    if (synchDirectory == null)
     {
-      InputStream is = new FileInputStream(f);
+      // Keep resource data local
+      synchronized (globalData)
+      {
+        return (byte[])globalData.get(resourceName);
+      }
+    }
+    else
+    {
+      File f = new File(makeFilePath(resourceName),LCF.safeFileName(resourceName));
       try
       {
-        ByteArrayBuffer bab = new ByteArrayBuffer();
-        while (true)
+        InputStream is = new FileInputStream(f);
+        try
         {
-          int x = is.read();
-          if (x == -1)
-            break;
-          bab.add((byte)x);
+          ByteArrayBuffer bab = new ByteArrayBuffer();
+          while (true)
+          {
+            int x = is.read();
+            if (x == -1)
+              break;
+            bab.add((byte)x);
+          }
+          return bab.toArray();
         }
-        return bab.toArray();
+        finally
+        {
+          is.close();
+        }
       }
-      finally
+      catch (FileNotFoundException e)
       {
-        is.close();
+        return null;
       }
-    }
-    catch (FileNotFoundException e)
-    {
-      return null;
-    }
-    catch (InterruptedIOException e)
-    {
-      throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
-    }
-    catch (IOException e)
-    {
-      throw new LCFException("IO exception: "+e.getMessage(),e);
+      catch (InterruptedIOException e)
+      {
+        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+      }
+      catch (IOException e)
+      {
+        throw new LCFException("IO exception: "+e.getMessage(),e);
+      }
     }
   }
   
@@ -160,34 +219,48 @@ public class LockManager implements ILockManager
   public void writeData(String resourceName, byte[] data)
     throws LCFException
   {
-    try
+    if (synchDirectory == null)
     {
-      String path = makeFilePath(resourceName);
-      // Make sure the directory exists
-      (new File(path)).mkdirs();
-      File f = new File(path,LCF.safeFileName(resourceName));
-      if (data == null)
+      // Keep resource data local
+      synchronized (globalData)
       {
-        f.delete();
-        return;
+        if (data == null)
+          globalData.remove(resourceName);
+        else
+          globalData.put(resourceName,data);
       }
-      FileOutputStream os = new FileOutputStream(f);
+    }
+    else
+    {
       try
       {
-        os.write(data,0,data.length);
+        String path = makeFilePath(resourceName);
+        // Make sure the directory exists
+        (new File(path)).mkdirs();
+        File f = new File(path,LCF.safeFileName(resourceName));
+        if (data == null)
+        {
+          f.delete();
+          return;
+        }
+        FileOutputStream os = new FileOutputStream(f);
+        try
+        {
+          os.write(data,0,data.length);
+        }
+        finally
+        {
+          os.close();
+        }
       }
-      finally
+      catch (InterruptedIOException e)
       {
-        os.close();
+        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
       }
-    }
-    catch (InterruptedIOException e)
-    {
-      throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
-    }
-    catch (IOException e)
-    {
-      throw new LCFException("IO exception: "+e.getMessage(),e);
+      catch (IOException e)
+      {
+        throw new LCFException("IO exception: "+e.getMessage(),e);
+      }
     }
   }
 
