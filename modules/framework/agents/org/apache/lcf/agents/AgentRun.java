@@ -52,32 +52,25 @@ public class AgentRun
       // Clear the agents shutdown signal.
       lockManager.clearGlobalFlag(agentShutdownSignal);
       System.err.println("Running...");
-      try
+      while (true)
       {
-        while (true)
-        {
-          // Any shutdown signal yet?
-          if (lockManager.checkGlobalFlag(agentShutdownSignal))
-            break;
+        // Any shutdown signal yet?
+        if (lockManager.checkGlobalFlag(agentShutdownSignal))
+          break;
           
-          // Start whatever agents need to be started
-          LCF.startAgents(tc);
+        // Start whatever agents need to be started
+        LCF.startAgents(tc);
 
-          try
-          {
-            LCF.sleep(5000);
-          }
-          catch (InterruptedException e)
-          {
-            break;
-          }
+        try
+        {
+          LCF.sleep(5000);
         }
-        System.err.println("Shutting down...");
+        catch (InterruptedException e)
+        {
+          break;
+        }
       }
-      finally
-      {
-        LCF.stopAgents(tc);
-      }
+      System.err.println("Shutting down...");
     }
     catch (LCFException e)
     {

@@ -73,6 +73,9 @@ public class LCF extends org.apache.lcf.agents.system.LCF
   protected static final String lowWaterFactorProperty = "org.apache.lcf.crawler.lowwaterfactor";
   protected static final String stuffAmtFactorProperty = "org.apache.lcf.crawler.stuffamountfactor";
 
+  /** This object is used to make sure the initialization sequence is atomic.  Shutdown cannot occur until the system is in a known state. */
+  protected static Integer startupLock = new Integer(0);
+  
   /** Initialize environment.
   */
   public static synchronized void initializeEnvironment()
@@ -130,93 +133,95 @@ public class LCF extends org.apache.lcf.agents.system.LCF
   public static void startSystem(IThreadContext threadContext)
     throws LCFException
   {
-
-    // Now, start all the threads
-    String maxThreads = getProperty(workerThreadCountProperty);
-    if (maxThreads == null)
-      maxThreads = "100";
-    numWorkerThreads = new Integer(maxThreads).intValue();
-    if (numWorkerThreads < 1 || numWorkerThreads > 300)
-      throw new LCFException("Illegal value for the number of worker threads");
-    String maxDeleteThreads = getProperty(deleteThreadCountProperty);
-    if (maxDeleteThreads == null)
-      maxDeleteThreads = "10";
-    String maxExpireThreads = getProperty(expireThreadCountProperty);
-    if (maxExpireThreads == null)
-      maxExpireThreads = "10";
-    numDeleteThreads = new Integer(maxDeleteThreads).intValue();
-    if (numDeleteThreads < 1 || numDeleteThreads > 300)
-      throw new LCFException("Illegal value for the number of delete threads");
-    numExpireThreads = new Integer(maxExpireThreads).intValue();
-    if (numExpireThreads < 1 || numExpireThreads > 300)
-      throw new LCFException("Illegal value for the number of expire threads");
-    String lowWaterFactorString = getProperty(lowWaterFactorProperty);
-    if (lowWaterFactorString == null)
-      lowWaterFactorString = "5";
-    lowWaterFactor = new Float(lowWaterFactorString).floatValue();
-    if (lowWaterFactor < 1.0 || lowWaterFactor > 1000.0)
-      throw new LCFException("Illegal value for the low water factor");
-    String stuffAmtFactorString = getProperty(stuffAmtFactorProperty);
-    if (stuffAmtFactorString == null)
-      stuffAmtFactorString = "2";
-    stuffAmtFactor = new Float(stuffAmtFactorString).floatValue();
-    if (stuffAmtFactor < 0.1 || stuffAmtFactor > 1000.0)
-      throw new LCFException("Illegal value for the stuffing amount factor");
-
-
-    // Create the threads and objects.  This MUST be completed before there is any chance of "shutdownSystem" getting called.
-
-    QueueTracker queueTracker = new QueueTracker();
-
-
-    DocumentQueue documentQueue = new DocumentQueue();
-    DocumentDeleteQueue documentDeleteQueue = new DocumentDeleteQueue();
-    DocumentDeleteQueue expireQueue = new DocumentDeleteQueue();
-
-    BlockingDocuments blockingDocuments = new BlockingDocuments();
-
-    workerResetManager = new WorkerResetManager(documentQueue);
-    docDeleteResetManager = new DocDeleteResetManager(documentDeleteQueue);
-
-    jobStartThread = new JobStartThread();
-    startupThread = new StartupThread(queueTracker);
-    finisherThread = new FinisherThread();
-    jobDeleteThread = new JobDeleteThread();
-    stufferThread = new StufferThread(documentQueue,numWorkerThreads,workerResetManager,queueTracker,blockingDocuments,lowWaterFactor,stuffAmtFactor);
-    expireStufferThread = new ExpireStufferThread(expireQueue,numExpireThreads,workerResetManager);
-    setPriorityThread = new SetPriorityThread(queueTracker,numWorkerThreads,blockingDocuments);
-
-    workerThreads = new WorkerThread[numWorkerThreads];
-    int i = 0;
-    while (i < numWorkerThreads)
+    synchronized (startupLock)
     {
-      workerThreads[i] = new WorkerThread(Integer.toString(i),documentQueue,workerResetManager,queueTracker);
-      i++;
-    }
+      // Now, start all the threads
+      String maxThreads = getProperty(workerThreadCountProperty);
+      if (maxThreads == null)
+        maxThreads = "100";
+      numWorkerThreads = new Integer(maxThreads).intValue();
+      if (numWorkerThreads < 1 || numWorkerThreads > 300)
+        throw new LCFException("Illegal value for the number of worker threads");
+      String maxDeleteThreads = getProperty(deleteThreadCountProperty);
+      if (maxDeleteThreads == null)
+        maxDeleteThreads = "10";
+      String maxExpireThreads = getProperty(expireThreadCountProperty);
+      if (maxExpireThreads == null)
+        maxExpireThreads = "10";
+      numDeleteThreads = new Integer(maxDeleteThreads).intValue();
+      if (numDeleteThreads < 1 || numDeleteThreads > 300)
+        throw new LCFException("Illegal value for the number of delete threads");
+      numExpireThreads = new Integer(maxExpireThreads).intValue();
+      if (numExpireThreads < 1 || numExpireThreads > 300)
+        throw new LCFException("Illegal value for the number of expire threads");
+      String lowWaterFactorString = getProperty(lowWaterFactorProperty);
+      if (lowWaterFactorString == null)
+        lowWaterFactorString = "5";
+      lowWaterFactor = new Float(lowWaterFactorString).floatValue();
+      if (lowWaterFactor < 1.0 || lowWaterFactor > 1000.0)
+        throw new LCFException("Illegal value for the low water factor");
+      String stuffAmtFactorString = getProperty(stuffAmtFactorProperty);
+      if (stuffAmtFactorString == null)
+        stuffAmtFactorString = "2";
+      stuffAmtFactor = new Float(stuffAmtFactorString).floatValue();
+      if (stuffAmtFactor < 0.1 || stuffAmtFactor > 1000.0)
+        throw new LCFException("Illegal value for the stuffing amount factor");
 
-    expireThreads = new ExpireThread[numExpireThreads];
-    i = 0;
-    while (i < numExpireThreads)
-    {
-      expireThreads[i] = new ExpireThread(Integer.toString(i),expireQueue,queueTracker,workerResetManager);
-      i++;
-    }
 
-    deleteStufferThread = new DocumentDeleteStufferThread(documentDeleteQueue,numDeleteThreads,docDeleteResetManager);
-    deleteThreads = new DocumentDeleteThread[numDeleteThreads];
-    i = 0;
-    while (i < numDeleteThreads)
-    {
-      deleteThreads[i] = new DocumentDeleteThread(Integer.toString(i),documentDeleteQueue,docDeleteResetManager);
-      i++;
-    }
-    jobResetThread = new JobResetThread(queueTracker);
-    seedingThread = new SeedingThread(queueTracker);
-    idleCleanupThread = new IdleCleanupThread();
+      // Create the threads and objects.  This MUST be completed before there is any chance of "shutdownSystem" getting called.
 
-    initializationThread = new InitializationThread(queueTracker);
-    // Start the initialization thread.  This does the initialization work and starts all the other threads when that's done.  It then exits.
-    initializationThread.start();
+      QueueTracker queueTracker = new QueueTracker();
+
+
+      DocumentQueue documentQueue = new DocumentQueue();
+      DocumentDeleteQueue documentDeleteQueue = new DocumentDeleteQueue();
+      DocumentDeleteQueue expireQueue = new DocumentDeleteQueue();
+
+      BlockingDocuments blockingDocuments = new BlockingDocuments();
+
+      workerResetManager = new WorkerResetManager(documentQueue);
+      docDeleteResetManager = new DocDeleteResetManager(documentDeleteQueue);
+
+      jobStartThread = new JobStartThread();
+      startupThread = new StartupThread(queueTracker);
+      finisherThread = new FinisherThread();
+      jobDeleteThread = new JobDeleteThread();
+      stufferThread = new StufferThread(documentQueue,numWorkerThreads,workerResetManager,queueTracker,blockingDocuments,lowWaterFactor,stuffAmtFactor);
+      expireStufferThread = new ExpireStufferThread(expireQueue,numExpireThreads,workerResetManager);
+      setPriorityThread = new SetPriorityThread(queueTracker,numWorkerThreads,blockingDocuments);
+
+      workerThreads = new WorkerThread[numWorkerThreads];
+      int i = 0;
+      while (i < numWorkerThreads)
+      {
+        workerThreads[i] = new WorkerThread(Integer.toString(i),documentQueue,workerResetManager,queueTracker);
+        i++;
+      }
+
+      expireThreads = new ExpireThread[numExpireThreads];
+      i = 0;
+      while (i < numExpireThreads)
+      {
+        expireThreads[i] = new ExpireThread(Integer.toString(i),expireQueue,queueTracker,workerResetManager);
+        i++;
+      }
+
+      deleteStufferThread = new DocumentDeleteStufferThread(documentDeleteQueue,numDeleteThreads,docDeleteResetManager);
+      deleteThreads = new DocumentDeleteThread[numDeleteThreads];
+      i = 0;
+      while (i < numDeleteThreads)
+      {
+        deleteThreads[i] = new DocumentDeleteThread(Integer.toString(i),documentDeleteQueue,docDeleteResetManager);
+        i++;
+      }
+      jobResetThread = new JobResetThread(queueTracker);
+      seedingThread = new SeedingThread(queueTracker);
+      idleCleanupThread = new IdleCleanupThread();
+
+      initializationThread = new InitializationThread(queueTracker);
+      // Start the initialization thread.  This does the initialization work and starts all the other threads when that's done.  It then exits.
+      initializationThread.start();
+    }
   }
 
   protected static class InitializationThread extends Thread
@@ -332,230 +337,232 @@ public class LCF extends org.apache.lcf.agents.system.LCF
   public static void stopSystem(IThreadContext threadContext)
     throws LCFException
   {
-
-    while (initializationThread != null || jobDeleteThread != null || startupThread != null || jobStartThread != null || stufferThread != null ||
-      finisherThread != null || workerThreads != null || expireStufferThread != null | expireThreads != null ||
-      deleteStufferThread != null || deleteThreads != null ||
-      jobResetThread != null || seedingThread != null || idleCleanupThread != null || setPriorityThread != null)
+    synchronized (startupLock)
     {
-      // Send an interrupt to all threads that are still there.
-      // In theory, this only needs to be done once.  In practice, I have seen cases where the thread loses track of the fact that it has been
-      // interrupted (which may be a JVM bug - who knows?), but in any case there's no harm in doing it again.
-      if (initializationThread != null)
+      while (initializationThread != null || jobDeleteThread != null || startupThread != null || jobStartThread != null || stufferThread != null ||
+        finisherThread != null || workerThreads != null || expireStufferThread != null | expireThreads != null ||
+        deleteStufferThread != null || deleteThreads != null ||
+        jobResetThread != null || seedingThread != null || idleCleanupThread != null || setPriorityThread != null)
       {
-        initializationThread.interrupt();
-      }
-      if (setPriorityThread != null)
-      {
-        setPriorityThread.interrupt();
-      }
-      if (jobStartThread != null)
-      {
-        jobStartThread.interrupt();
-      }
-      if (jobDeleteThread != null)
-      {
-        jobDeleteThread.interrupt();
-      }
-      if (startupThread != null)
-      {
-        startupThread.interrupt();
-      }
-      if (stufferThread != null)
-      {
-        stufferThread.interrupt();
-      }
-      if (expireStufferThread != null)
-      {
-        expireStufferThread.interrupt();
-      }
-      if (finisherThread != null)
-      {
-        finisherThread.interrupt();
-      }
-      if (workerThreads != null)
-      {
-        int i = 0;
-        while (i < workerThreads.length)
+        // Send an interrupt to all threads that are still there.
+        // In theory, this only needs to be done once.  In practice, I have seen cases where the thread loses track of the fact that it has been
+        // interrupted (which may be a JVM bug - who knows?), but in any case there's no harm in doing it again.
+        if (initializationThread != null)
         {
-          Thread workerThread = workerThreads[i++];
-          if (workerThread != null)
-            workerThread.interrupt();
+          initializationThread.interrupt();
         }
-      }
-      if (expireThreads != null)
-      {
-        int i = 0;
-        while (i < expireThreads.length)
+        if (setPriorityThread != null)
         {
-          Thread expireThread = expireThreads[i++];
-          if (expireThread != null)
-            expireThread.interrupt();
+          setPriorityThread.interrupt();
         }
-      }
-      if (deleteStufferThread != null)
-      {
-        deleteStufferThread.interrupt();
-      }
-      if (deleteThreads != null)
-      {
-        int i = 0;
-        while (i < deleteThreads.length)
+        if (jobStartThread != null)
         {
-          Thread deleteThread = deleteThreads[i++];
-          if (deleteThread != null)
-            deleteThread.interrupt();
+          jobStartThread.interrupt();
         }
-      }
-      if (jobResetThread != null)
-      {
-        jobResetThread.interrupt();
-      }
-      if (seedingThread != null)
-      {
-        seedingThread.interrupt();
-      }
-      if (idleCleanupThread != null)
-      {
-        idleCleanupThread.interrupt();
-      }
-
-      // Now, wait for all threads to die.
-      try
-      {
-        LCF.sleep(1000L);
-      }
-      catch (InterruptedException e)
-      {
-      }
-
-      // Check to see which died.
-      if (initializationThread != null)
-      {
-        if (!initializationThread.isAlive())
-          initializationThread = null;
-      }
-      if (setPriorityThread != null)
-      {
-        if (!setPriorityThread.isAlive())
-          setPriorityThread = null;
-      }
-      if (jobDeleteThread != null)
-      {
-        if (!jobDeleteThread.isAlive())
-          jobDeleteThread = null;
-      }
-      if (startupThread != null)
-      {
-        if (!startupThread.isAlive())
-          startupThread = null;
-      }
-      if (jobStartThread != null)
-      {
-        if (!jobStartThread.isAlive())
-          jobStartThread = null;
-      }
-      if (stufferThread != null)
-      {
-        if (!stufferThread.isAlive())
-          stufferThread = null;
-      }
-      if (expireStufferThread != null)
-      {
-        if (!expireStufferThread.isAlive())
-          expireStufferThread = null;
-      }
-      if (finisherThread != null)
-      {
-        if (!finisherThread.isAlive())
-          finisherThread = null;
-      }
-      if (workerThreads != null)
-      {
-        int i = 0;
-        boolean isAlive = false;
-        while (i < workerThreads.length)
+        if (jobDeleteThread != null)
         {
-          Thread workerThread = workerThreads[i];
-          if (workerThread != null)
+          jobDeleteThread.interrupt();
+        }
+        if (startupThread != null)
+        {
+          startupThread.interrupt();
+        }
+        if (stufferThread != null)
+        {
+          stufferThread.interrupt();
+        }
+        if (expireStufferThread != null)
+        {
+          expireStufferThread.interrupt();
+        }
+        if (finisherThread != null)
+        {
+          finisherThread.interrupt();
+        }
+        if (workerThreads != null)
+        {
+          int i = 0;
+          while (i < workerThreads.length)
           {
-            if (!workerThread.isAlive())
-              workerThreads[i] = null;
-            else
-              isAlive = true;
+            Thread workerThread = workerThreads[i++];
+            if (workerThread != null)
+              workerThread.interrupt();
           }
-          i++;
         }
-        if (!isAlive)
-          workerThreads = null;
+        if (expireThreads != null)
+        {
+          int i = 0;
+          while (i < expireThreads.length)
+          {
+            Thread expireThread = expireThreads[i++];
+            if (expireThread != null)
+              expireThread.interrupt();
+          }
+        }
+        if (deleteStufferThread != null)
+        {
+          deleteStufferThread.interrupt();
+        }
+        if (deleteThreads != null)
+        {
+          int i = 0;
+          while (i < deleteThreads.length)
+          {
+            Thread deleteThread = deleteThreads[i++];
+            if (deleteThread != null)
+              deleteThread.interrupt();
+          }
+        }
+        if (jobResetThread != null)
+        {
+          jobResetThread.interrupt();
+        }
+        if (seedingThread != null)
+        {
+          seedingThread.interrupt();
+        }
+        if (idleCleanupThread != null)
+        {
+          idleCleanupThread.interrupt();
+        }
+
+        // Now, wait for all threads to die.
+        try
+        {
+          LCF.sleep(1000L);
+        }
+        catch (InterruptedException e)
+        {
+        }
+
+        // Check to see which died.
+        if (initializationThread != null)
+        {
+          if (!initializationThread.isAlive())
+            initializationThread = null;
+        }
+        if (setPriorityThread != null)
+        {
+          if (!setPriorityThread.isAlive())
+            setPriorityThread = null;
+        }
+        if (jobDeleteThread != null)
+        {
+          if (!jobDeleteThread.isAlive())
+            jobDeleteThread = null;
+        }
+        if (startupThread != null)
+        {
+          if (!startupThread.isAlive())
+            startupThread = null;
+        }
+        if (jobStartThread != null)
+        {
+          if (!jobStartThread.isAlive())
+            jobStartThread = null;
+        }
+        if (stufferThread != null)
+        {
+          if (!stufferThread.isAlive())
+            stufferThread = null;
+        }
+        if (expireStufferThread != null)
+        {
+          if (!expireStufferThread.isAlive())
+            expireStufferThread = null;
+        }
+        if (finisherThread != null)
+        {
+          if (!finisherThread.isAlive())
+            finisherThread = null;
+        }
+        if (workerThreads != null)
+        {
+          int i = 0;
+          boolean isAlive = false;
+          while (i < workerThreads.length)
+          {
+            Thread workerThread = workerThreads[i];
+            if (workerThread != null)
+            {
+              if (!workerThread.isAlive())
+                workerThreads[i] = null;
+              else
+                isAlive = true;
+            }
+            i++;
+          }
+          if (!isAlive)
+            workerThreads = null;
+        }
+
+        if (expireThreads != null)
+        {
+          int i = 0;
+          boolean isAlive = false;
+          while (i < expireThreads.length)
+          {
+            Thread expireThread = expireThreads[i];
+            if (expireThread != null)
+            {
+              if (!expireThread.isAlive())
+                expireThreads[i] = null;
+              else
+                isAlive = true;
+            }
+            i++;
+          }
+          if (!isAlive)
+            expireThreads = null;
+        }
+
+        if (deleteStufferThread != null)
+        {
+          if (!deleteStufferThread.isAlive())
+            deleteStufferThread = null;
+        }
+        if (deleteThreads != null)
+        {
+          int i = 0;
+          boolean isAlive = false;
+          while (i < deleteThreads.length)
+          {
+            Thread deleteThread = deleteThreads[i];
+            if (deleteThread != null)
+            {
+              if (!deleteThread.isAlive())
+                deleteThreads[i] = null;
+              else
+                isAlive = true;
+            }
+            i++;
+          }
+          if (!isAlive)
+            deleteThreads = null;
+        }
+        if (jobResetThread != null)
+        {
+          if (!jobResetThread.isAlive())
+            jobResetThread = null;
+        }
+        if (seedingThread != null)
+        {
+          if (!seedingThread.isAlive())
+            seedingThread = null;
+        }
+        if (idleCleanupThread != null)
+        {
+          if (!idleCleanupThread.isAlive())
+            idleCleanupThread = null;
+        }
       }
 
-      if (expireThreads != null)
-      {
-        int i = 0;
-        boolean isAlive = false;
-        while (i < expireThreads.length)
-        {
-          Thread expireThread = expireThreads[i];
-          if (expireThread != null)
-          {
-            if (!expireThread.isAlive())
-              expireThreads[i] = null;
-            else
-              isAlive = true;
-          }
-          i++;
-        }
-        if (!isAlive)
-          expireThreads = null;
-      }
-
-      if (deleteStufferThread != null)
-      {
-        if (!deleteStufferThread.isAlive())
-          deleteStufferThread = null;
-      }
-      if (deleteThreads != null)
-      {
-        int i = 0;
-        boolean isAlive = false;
-        while (i < deleteThreads.length)
-        {
-          Thread deleteThread = deleteThreads[i];
-          if (deleteThread != null)
-          {
-            if (!deleteThread.isAlive())
-              deleteThreads[i] = null;
-            else
-              isAlive = true;
-          }
-          i++;
-        }
-        if (!isAlive)
-          deleteThreads = null;
-      }
-      if (jobResetThread != null)
-      {
-        if (!jobResetThread.isAlive())
-          jobResetThread = null;
-      }
-      if (seedingThread != null)
-      {
-        if (!seedingThread.isAlive())
-          seedingThread = null;
-      }
-      if (idleCleanupThread != null)
-      {
-        if (!idleCleanupThread.isAlive())
-          idleCleanupThread = null;
-      }
+      // Threads are down; release connectors
+      RepositoryConnectorFactory.closeAllConnectors(threadContext);
+      numWorkerThreads = 0;
+      numDeleteThreads = 0;
+      numExpireThreads = 0;
     }
-
-    // Threads are down; release connectors
-    RepositoryConnectorFactory.closeAllConnectors(threadContext);
-    numWorkerThreads = 0;
-    numDeleteThreads = 0;
-    numExpireThreads = 0;
   }
 
   /** Atomically export the crawler configuration */

@@ -42,17 +42,22 @@ public class LCF extends org.apache.lcf.core.system.LCF
 
   /** This is the place we keep track of the agents we've started. */
   protected static HashMap runningHash = new HashMap();
-
+  /** This flag prevents startAgents() from starting anything once stopAgents() has been called. */
+  protected static boolean stopAgentsRun = false;
+  
   /** Initialize environment.
   */
   public static synchronized void initializeEnvironment()
   {
-    // System.out.println(" In agents initializeEnvironment");
     if (initialized)
       return;
 
-    // System.out.println("Initializing");
+    // Do core initialization
     org.apache.lcf.core.system.LCF.initializeEnvironment();
+    
+    // Create the shutdown hook for agents.  All activity will be keyed off of runningHash, so it is safe to do this under all conditions.
+    org.apache.lcf.core.system.LCF.addShutdownHook(new AgentsShutdownHook());
+    
     Logging.initializeLoggers();
     Logging.setLogLevels();
     initialized = true;
@@ -93,7 +98,7 @@ public class LCF extends org.apache.lcf.core.system.LCF
   }
 
 
-  /** Start agents.
+  /** Start all not-running agents.
   *@param threadContext is the thread context.
   */
   public static void startAgents(IThreadContext threadContext)
@@ -102,34 +107,51 @@ public class LCF extends org.apache.lcf.core.system.LCF
     // Get agent manager
     IAgentManager manager = AgentManagerFactory.make(threadContext);
     String[] classes = manager.getAllAgents();
-    int i = 0;
-    while (i < classes.length)
+    LCFException problem = null;
+    synchronized (runningHash)
     {
-      String className = classes[i++];
-      synchronized (runningHash)
+      // DO NOT permit this method to do anything if stopAgents() has ever been called for this JVM! 
+      // (If it has, it means that the JVM is trying to shut down.)
+      if (stopAgentsRun)
+        return;
+      int i = 0;
+      while (i < classes.length)
       {
+        String className = classes[i++];
         if (runningHash.get(className) == null)
         {
           // Start this agent
           IAgent agent = AgentFactory.make(threadContext,className);
-          // Start it
-          agent.startAgent();
-          // Successful
-          runningHash.put(className,agent);
+          try
+          {
+            // There is a potential race condition where the agent has been started but hasn't yet appeared in runningHash.
+            // But having runningHash be the synchronizer for this activity will prevent any problems.
+            // There is ANOTHER potential race condition, however, that can occur if the process is shut down just before startAgents() is called.
+            // We avoid that problem by means of a flag, which prevents startAgents() from doing anything once stopAgents() has been called.
+            agent.startAgent();
+            // Successful!
+            runningHash.put(className,agent);
+          }
+          catch (LCFException e)
+          {
+            problem = e;
+          }
         }
       }
     }
+    if (problem != null)
+      throw problem;
     // Done.
   }
 
-  /** Stop agents.
-  *@param threadContext is the thread context
+  /** Stop all started agents.
   */
   public static void stopAgents(IThreadContext threadContext)
     throws LCFException
   {
     synchronized (runningHash)
     {
+      stopAgentsRun = true;
       HashMap iterHash = (HashMap)runningHash.clone();
       Iterator iter = iterHash.keySet().iterator();
       while (iter.hasNext())
@@ -159,6 +181,23 @@ public class LCF extends org.apache.lcf.core.system.LCF
     // Now, signal to all agents that the output connection configuration has changed.  Do this second, so that there cannot be documents
     // resulting from this signal that find themselves "unchanged".
     AgentManagerFactory.noteOutputConnectionChange(threadContext,connectionName);
+  }
+  
+  /** Agents shutdown hook class */
+  protected static class AgentsShutdownHook implements IShutdownHook
+  {
+    
+    public AgentsShutdownHook()
+    {
+    }
+    
+    public void doCleanup()
+      throws LCFException
+    {
+      IThreadContext tc = ThreadContextFactory.make();
+      stopAgents(tc);
+    }
+    
   }
   
 }

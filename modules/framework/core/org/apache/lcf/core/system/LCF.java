@@ -27,16 +27,31 @@ public class LCF
 {
   public static final String _rcsid = "@(#)$Id$";
 
-
-  // On-exit file delete tracking
-  protected static FileTrack tracker = new FileTrack();
-  // Shutdown thread
-  protected static Thread shutdownThread = new FileCleanupThread();
+  
+  // Shutdown hooks
+  /** Temporary file collector */
+  protected static FileTrack tracker;
+  /** Database handle cleanup */
+  protected static DatabaseShutdown dbShutdown;
+  
+  /** Array of cleanup hooks (for managing shutdown) */
+  protected static ArrayList cleanupHooks; 
+  /** Shutdown thread */
+  protected static Thread shutdownThread;
+  /** Static initializer for setting up shutdown thread etc. */
   static
   {
+    cleanupHooks = new ArrayList();
+    shutdownThread = new ShutdownThread(cleanupHooks);
+    tracker = new FileTrack();
+    dbShutdown = new DatabaseShutdown();
     try
     {
       Runtime.getRuntime().addShutdownHook(shutdownThread);
+      // Register the file tracker for cleanup on shutdown
+      addShutdownHook(tracker);
+      // Register the database cleanup hook
+      addShutdownHook(dbShutdown);
     }
     catch (Exception e)
     {
@@ -971,8 +986,45 @@ public class LCF
     return Float.intBitsToFloat(readSdword(os));
   }
 
+  /** Add a cleanup hook to the list.  These hooks will be evaluated in the
+  * reverse order than the order in which they were added.
+  *@param hook is the shutdown hook that needs to be added to the sequence.
+  */
+  public static void addShutdownHook(IShutdownHook hook)
+  {
+    synchronized (cleanupHooks)
+    {
+      cleanupHooks.add(hook);
+    }
+  }
+  
+  /** Perform system shutdown, using the registered shutdown hooks. */
+  protected static void cleanUpSystem()
+  {
+    // It needs to call all registered shutdown hooks, in reverse order.
+    // A failure of any one hook should cause the cleanup to continue, after a logging attempt is made.
+    synchronized (cleanupHooks)
+    {
+      int i = cleanupHooks.size();
+      while (i > 0)
+      {
+	i--;
+	IShutdownHook hook = (IShutdownHook)cleanupHooks.get(i);
+	try
+	{
+	  hook.doCleanup();
+	}
+	catch (LCFException e)
+	{
+	  Logging.root.warn("Error during system shutdown: "+e.getMessage(),e);
+	}
+      }
+      cleanupHooks.clear();
+    }
+  }
+
   /** Class that tracks files that need to be cleaned up on exit */
-  protected static class FileTrack
+  protected static class FileTrack implements IShutdownHook
   {
     /** Key and value are both File objects */
     protected HashMap filesToDelete = new HashMap();
@@ -996,15 +1048,19 @@ public class LCF
     }
 
     /** Delete all remaining files */
-    public synchronized void cleanUpAll()
+    public void doCleanup()
+      throws LCFException
     {
-      Iterator iter = filesToDelete.keySet().iterator();
-      while (iter.hasNext())
+      synchronized (this)
       {
-        File f = (File)iter.next();
-        f.delete();
+	Iterator iter = filesToDelete.keySet().iterator();
+	while (iter.hasNext())
+	{
+	  File f = (File)iter.next();
+	  f.delete();
+	}
+	filesToDelete.clear();
       }
-      filesToDelete.clear();
     }
 
     /** Finalizer, which is designed to catch class unloading that tomcat 5.5 does.
@@ -1014,7 +1070,7 @@ public class LCF
     {
       try
       {
-        cleanUpAll();
+        doCleanup();
       }
       finally
       {
@@ -1024,18 +1080,15 @@ public class LCF
 
   }
 
-  /** Finisher thread, to be registered with the runtime */
-  protected static class FileCleanupThread extends Thread
+  /** Class that cleans up database handles on exit */
+  protected static class DatabaseShutdown implements IShutdownHook
   {
-    /** Constructor.
-    */
-    public FileCleanupThread()
+    public DatabaseShutdown()
     {
-      super();
-      setName("File cleanup thread");
     }
-
-    public void run()
+    
+    public void doCleanup()
+      throws LCFException
     {
       // Clean up the database handles
       Thread t = new DatabaseConnectionReleaseThread();
@@ -1048,9 +1101,25 @@ public class LCF
       catch (InterruptedException e)
       {
       }
-      // Cleanup temp files
-      if (tracker != null)
-        tracker.cleanUpAll();
+    }
+  }
+  
+  /** Finisher thread, to be registered with the runtime */
+  protected static class ShutdownThread extends Thread
+  {
+    protected ArrayList cleanupHooks;
+    /** Constructor.
+    */
+    public ShutdownThread(ArrayList cleanupHooks)
+    {
+      super();
+      setName("Shutdown thread");
+    }
+
+    public void run()
+    {
+      // This thread is run at shutdown time.
+      cleanUpSystem();
     }
   }
 
