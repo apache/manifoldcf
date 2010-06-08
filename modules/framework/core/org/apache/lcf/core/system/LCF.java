@@ -547,18 +547,7 @@ public class LCF
     String databasePassword = getMasterDatabasePassword();
 
     IDBInterface master = DBInterfaceFactory.make(threadcontext,masterName,masterUsername,masterPassword);
-    // Ideally, check for existence of lcf user.  In fact, we don't
-    // have a hook for this.  So, attempt the create, and interpret failure as
-    // meaning "user already exists".
-    if (master.lookupUser(databaseUsername,null,null) == false)
-    {
-      master.performCreateUser(databaseUsername,databasePassword);
-    }
-
-    if (master.lookupDatabase(databaseName,null,null) == false)
-    {
-      master.performCreateDatabase(databaseName,databaseUsername,databasePassword,null);
-    }
+    master.createUserAndDatabase(databaseUsername,databasePassword,databaseName,null);
   }
 
   /** Drop system database.
@@ -572,8 +561,7 @@ public class LCF
     throws LCFException
   {
     IDBInterface master = DBInterfaceFactory.make(threadcontext,masterName,masterUsername,masterPassword);
-    master.performDropDatabase(getMasterDatabaseName(),null);
-    master.performDropUser(getMasterDatabaseUsername());
+    master.dropUserAndDatabase(getMasterDatabaseUsername(),getMasterDatabaseName(),null);
   }
 
   /** Add a file to the tracking system. */

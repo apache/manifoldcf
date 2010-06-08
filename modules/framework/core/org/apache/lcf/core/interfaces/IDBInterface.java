@@ -154,51 +154,24 @@ public interface IDBInterface
   public void performDrop(String tableName, StringSet invalidateKeys)
     throws LCFException;
 
-  /** Perform user lookup.
-  *@param userName is the user name to lookup.
-  *@return true if the user exists.
-  */
-  public boolean lookupUser(String userName, StringSet cacheKeys, String queryClass)
-    throws LCFException;
-
-  /** Perform user create.
+  /** Create user and database.
   *@param userName is the user name.
-  *@param password is the user's password.
-  */
-  public void performCreateUser(String userName, String password)
-    throws LCFException;
-
-  /** Perform user delete.
-  *@param userName is the user name.
-  */
-  public void performDropUser(String userName)
-    throws LCFException;
-
-  /** Perform database lookup.
+  *@param password is the user's desired password.
   *@param databaseName is the database name.
-  *@param cacheKeys are the cache keys, if any.
-  *@return true if the database exists.
-  */
-  public boolean lookupDatabase(String databaseName, StringSet cacheKeys, String queryClass)
-    throws LCFException;
-
-  /** Perform database create.
-  *@param databaseName is the database name.
-  *@param databaseUser is the user to grant access to the database.
-  *@param databasePassword is the password of the user to grant access to the database.
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
-  public void performCreateDatabase(String databaseName, String databaseUser, String databasePassword,
+  public void createUserAndDatabase(String userName, String password, String databaseName,
     StringSet invalidateKeys)
     throws LCFException;
 
-  /** Perform database drop.
+  /** Drop user and database.
+  *@param userName is the user name.
   *@param databaseName is the database name.
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
-  public void performDropDatabase(String databaseName, StringSet invalidateKeys)
+  public void dropUserAndDatabase(String userName, String databaseName, StringSet invalidateKeys)
     throws LCFException;
-
+    
   /** Get a table's schema.
   *@param tableName is the name of the table.
   *@param cacheKeys are the keys against which to cache the query, or null.

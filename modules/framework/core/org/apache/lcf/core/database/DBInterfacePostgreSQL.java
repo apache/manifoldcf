@@ -459,11 +459,45 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
     performModification("DROP TABLE "+tableName,null,invalidateKeys);
   }
 
+  /** Create user and database.
+  *@param userName is the user name.
+  *@param password is the user's desired password.
+  *@param databaseName is the database name.
+  *@param invalidateKeys are the cache keys that should be invalidated, if any.
+  */
+  public void createUserAndDatabase(String userName, String password, String databaseName,
+    StringSet invalidateKeys)
+    throws LCFException
+  {
+    if (lookupUser(userName,null,null) == false)
+    {
+      performCreateUser(userName,password,invalidateKeys);
+    }
+
+    if (lookupDatabase(databaseName,null,null) == false)
+    {
+      performCreateDatabase(databaseName,userName,password,invalidateKeys);
+    }
+
+  }
+
+  /** Drop user and database.
+  *@param userName is the user name.
+  *@param databaseName is the database name.
+  *@param invalidateKeys are the cache keys that should be invalidated, if any.
+  */
+  public void dropUserAndDatabase(String userName, String databaseName, StringSet invalidateKeys)
+    throws LCFException
+  {
+    performDropDatabase(databaseName,invalidateKeys);
+    performDropUser(userName,invalidateKeys);
+  }
+
   /** Perform user lookup.
   *@param userName is the user name to lookup.
   *@return true if the user exists.
   */
-  public boolean lookupUser(String userName, StringSet cacheKeys, String queryClass)
+  protected boolean lookupUser(String userName, StringSet cacheKeys, String queryClass)
     throws LCFException
   {
     ArrayList params = new ArrayList();
@@ -478,20 +512,20 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param userName is the user name.
   *@param password is the user's password.
   */
-  public void performCreateUser(String userName, String password)
+  protected void performCreateUser(String userName, String password, StringSet invalidateKeys)
     throws LCFException
   {
     performModification("CREATE USER "+userName+" PASSWORD "+
-      quoteSQLString(password),null,null);
+      quoteSQLString(password),null,invalidateKeys);
   }
 
   /** Perform user delete.
   *@param userName is the user name.
   */
-  public void performDropUser(String userName)
+  protected void performDropUser(String userName, StringSet invalidateKeys)
     throws LCFException
   {
-    performModification("DROP USER "+userName,null,null);
+    performModification("DROP USER "+userName,null,invalidateKeys);
   }
 
   /** Perform database lookup.
@@ -499,7 +533,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param cacheKeys are the cache keys, if any.
   *@return true if the database exists.
   */
-  public boolean lookupDatabase(String databaseName, StringSet cacheKeys, String queryClass)
+  protected boolean lookupDatabase(String databaseName, StringSet cacheKeys, String queryClass)
     throws LCFException
   {
     ArrayList params = new ArrayList();
@@ -516,7 +550,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param databasePassword is the password of the user to grant access to the database.
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
-  public void performCreateDatabase(String databaseName, String databaseUser, String databasePassword,
+  protected void performCreateDatabase(String databaseName, String databaseUser, String databasePassword,
     StringSet invalidateKeys)
     throws LCFException
   {
@@ -529,7 +563,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param databaseName is the database name.
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
-  public void performDropDatabase(String databaseName, StringSet invalidateKeys)
+  protected void performDropDatabase(String databaseName, StringSet invalidateKeys)
     throws LCFException
   {
     performModification("DROP DATABASE "+databaseName,null,invalidateKeys);
