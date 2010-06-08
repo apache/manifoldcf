@@ -4,6 +4,7 @@
         <delete dir="build"/>
         <delete dir="dist"/>
         <delete dir="doc"/>
+        <delete dir="test-output"/>
     </target>
     
     <target name="doc">
@@ -259,6 +260,42 @@
         </copy>
     </target>
 
-    <target name="all" depends="processes,war-authority-service,war-crawler-ui,doc"/>
+    <target name="compile-tests" depends="compile-core,compile-ui-core,compile-agents,compile-pull-agent,compile-authority-service">
+        <mkdir dir="build/tests/classes"/>
+        <javac srcdir="tests" destdir="build/tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+            <classpath>
+                 <fileset dir="lib"> 
+                    <include name="*.jar"/> 
+                </fileset>
+                <pathelement location="build/core/classes"/>
+                <pathelement location="build/ui-core/classes"/>
+                <pathelement location="build/agents/classes"/>
+                <pathelement location="build/pull-agent/classes"/>
+                <pathelement location="build/authority-service/classes"/>
+            </classpath>
+        </javac>
+    </target>
+    
+    <target name="run-tests" depends="compile-tests">
+        <mkdir dir="test-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-output" showoutput="true">
+            <classpath>
+                <fileset dir="lib">
+                    <include name="*.jar"/>
+                </fileset>
+                <pathelement location="build/core/classes"/>
+                <pathelement location="build/ui-core/classes"/>
+                <pathelement location="build/agents/classes"/>
+                <pathelement location="build/pull-agent/classes"/>
+                <pathelement location="build/authority-service/classes"/>
+                <pathelement location="build/tests/classes"/>
+            </classpath>
+            <test name="org.apache.lcf.agents.tests.Sanity" todir="test-output"/>
+            <test name="org.apache.lcf.crawler.tests.Sanity" todir="test-output"/>
+            <!-- MHL -->
+        </junit>
+    </target>
+    
+    <target name="all" depends="processes,war-authority-service,war-crawler-ui,doc,run-tests"/>
     
 </project>

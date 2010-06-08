@@ -577,9 +577,13 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   protected void performDropDatabase(String databaseName, StringSet invalidateKeys)
     throws LCFException
   {
+    // Cause database to shut down
+    new Database(context,_url+databaseName+";shutdown=true",_driver,databaseName,"","");
+    // DO NOT delete user or shutdown database, since this is in fact impossible under java 1.5 (since Derby makes its directories read-only, and
+    // there's no way to undo that...
     // rm -rf <databasename>
-    File f = new File(databaseName);
-    recursiveDelete(f);
+    //File f = new File(databaseName);
+    //recursiveDelete(f);
   }
 
   protected static void recursiveDelete(File f)
@@ -597,7 +601,8 @@ public class DBInterfaceDerby extends Database implements IDBInterface
           newf.delete();
       }
     }
-    f.delete();
+    if (!f.delete())
+      System.out.println("Failed to delete file "+f.toString());
   }
   
   /** Reinterpret an exception tossed by the database layer.  We need to disambiguate the various kinds of exception that

@@ -15,7 +15,7 @@
 * limitations under the License.
 */
 
-package org.apache.lcf.core;
+package org.apache.lcf.core.tests;
 
 import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.core.system.LCF;
@@ -28,7 +28,7 @@ public class UILockSpinner
   public static void main(String[] argv)
     throws Exception
   {
-    LCF.initializeSystem();
+    LCF.initializeEnvironment();
 
 
     // Create a thread context object.
