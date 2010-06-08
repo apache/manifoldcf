@@ -3,6 +3,7 @@
     <target name="clean">
         <delete dir="build"/>
         <delete dir="dist"/>
+        <delete dir="test-output"/>
         <ant dir="framework" target="clean"/>
         <delete dir="framework/lib"/>
         <ant dir="connectors/activedirectory" target="clean"/>
@@ -706,6 +707,54 @@
         <jar destfile="dist/web/war/lcf-authority-service.war" basedir="build/authority-service"/>
     </target>
 
+    <target name="calculate-tests-condition" depends="calculate-filesystem-condition,calculate-nulloutput-condition">
+      <condition property="tests.include">
+        <and>
+            <isset property="filesystem.include"/>
+            <isset property="nulloutput.include"/>
+        </and>
+      </condition>
+    </target>
+
+    <target name="compile-tests" depends="build-framework,calculate-tests-condition,build-filesystem-connector,build-nulloutput-connector" if="tests.include">
+        <mkdir dir="build/tests/classes"/>
+        <javac srcdir="tests" destdir="build/tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+            <classpath>
+                 <fileset dir="framework/lib"> 
+                    <include name="*.jar"/> 
+                </fileset>
+                <pathelement location="framework/build/core/classes"/>
+                <pathelement location="framework/build/ui-core/classes"/>
+                <pathelement location="framework/build/agents/classes"/>
+                <pathelement location="framework/build/pull-agent/classes"/>
+                <pathelement location="framework/build/tests/classes"/>
+                <pathelement location="connectors/filesystem/build/connector/classes"/>
+                <pathelement location="connectors/nulloutput/build/connector/classes"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="run-tests" depends="compile-tests,calculate-tests-condition" if="tests.include">
+        <mkdir dir="test-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-output" showoutput="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+                <pathelement location="framework/build/core/classes"/>
+                <pathelement location="framework/build/ui-core/classes"/>
+                <pathelement location="framework/build/agents/classes"/>
+                <pathelement location="framework/build/pull-agent/classes"/>
+                <pathelement location="framework/build/tests/classes"/>
+                <pathelement location="connectors/filesystem/build/connector/classes"/>
+                <pathelement location="connectors/nulloutput/build/connector/classes"/>
+                <pathelement location="build/tests/classes"/>
+            </classpath>
+            <test name="org.apache.lcf.tests.Sanity" todir="test-output"/>
+            <!-- MHL -->
+        </junit>
+    </target>
+
     <target name="deliver-open-connectors" depends="deliver-activedirectory-connector,deliver-filesystem-connector,deliver-rss-connector,deliver-webcrawler-connector,deliver-jdbc-connector"/>
     
     <target name="deliver-output-connectors" depends="deliver-gts-connector,deliver-solr-connector,deliver-nulloutput-connector"/>
@@ -714,7 +763,7 @@
     
     <target name="deliver-proprietary-connectors" depends="deliver-documentum-connector,deliver-filenet-connector,deliver-livelink-connector,deliver-memex-connector,deliver-meridio-connector,deliver-sharepoint-connector"/>
     
-    <target name="all" depends="deliver-database-support,deliver-framework,deliver-open-connectors,deliver-output-connectors,deliver-lgpl-connectors,deliver-proprietary-connectors,deliver-wars"/>
+    <target name="all" depends="deliver-database-support,deliver-framework,deliver-open-connectors,deliver-output-connectors,deliver-lgpl-connectors,deliver-proprietary-connectors,deliver-wars,run-tests"/>
 
     
 </project>

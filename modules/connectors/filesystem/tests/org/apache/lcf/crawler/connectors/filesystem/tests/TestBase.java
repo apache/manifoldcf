@@ -31,14 +31,14 @@ import org.junit.*;
 public class TestBase extends org.apache.lcf.crawler.tests.TestConnectorBase
 {
   
-  protected String getConnectorName()
+  protected String[] getConnectorNames()
   {
-    return "File Connector";
+    return new String[]{"File Connector"};
   }
   
-  protected String getConnectorClass()
+  protected String[] getConnectorClasses()
   {
-    return "org.apache.lcf.crawler.connectors.filesystem.FileConnector";
+    return new String[]{"org.apache.lcf.crawler.connectors.filesystem.FileConnector"};
   }
 
 }
