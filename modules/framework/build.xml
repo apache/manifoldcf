@@ -260,6 +260,7 @@
         </copy>
     </target>
 
+    
     <target name="compile-tests" depends="compile-core,compile-ui-core,compile-agents,compile-pull-agent,compile-authority-service">
         <mkdir dir="build/tests/classes"/>
         <javac srcdir="tests" destdir="build/tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
@@ -275,7 +276,21 @@
             </classpath>
         </javac>
     </target>
-    
+
+    <target name="jar-tests" depends="compile-tests">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/lcf-tests.jar" basedir="build/tests/classes"/>
+    </target>
+
+    <target name="tests" depends="jar-tests">
+        <mkdir dir="dist/tests/jar"/>
+        <copy todir="dist/tests/jar">
+            <fileset dir="build/jar">
+                <include name="lcf-tests.jar"/>
+            </fileset>
+        </copy>
+    </target>
+
     <target name="run-tests" depends="compile-tests">
         <mkdir dir="test-output"/>
         <junit fork="true" maxmemory="128m" dir="test-output" showoutput="true">
@@ -296,6 +311,6 @@
         </junit>
     </target>
     
-    <target name="all" depends="processes,war-authority-service,war-crawler-ui,doc,run-tests"/>
+    <target name="all" depends="processes,war-authority-service,war-crawler-ui,doc,tests,run-tests"/>
     
 </project>

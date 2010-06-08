@@ -65,11 +65,13 @@
                 <include name="commons-httpclient-lcf.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-logging*.jar"/>
+                <include name="derby*.jar"/>
                 <include name="jasper-compiler*.jar"/>
                 <include name="jasper-compiler-jdt*.jar"/>
                 <include name="jasper-runtime.jar*"/>
                 <include name="jdbcpool-0.99.jar"/>
                 <include name="jsp-api*.jar"/>
+                <include name="junit*.jar"/>
                 <include name="log4j*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="servlet-api*.jar"/>

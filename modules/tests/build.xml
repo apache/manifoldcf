@@ -2,19 +2,7 @@
 
     <target name="clean">
         <delete dir="build"/>
-        <delete dir="dist"/>
-        <delete dir="doc"/>
-        <delete dir="test-output"/>
-    </target>
-    
-    <target name="doc">
-        <mkdir dir="doc"/>
-        <javadoc destdir="doc" source="1.4">
-            <classpath>
-                <fileset dir="lib" includes="*.jar"/>
-            </classpath>
-            <fileset dir="connector" includes="**/*.java"/>
-        </javadoc>
+        <delete dir="results"/>
     </target>
 
     <target name="compile-connector">
@@ -87,55 +75,38 @@
     
     <target name="jar-connector" depends="compile-connector">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/lcf-filesystem-connector.jar" basedir="build/connector/classes"/>
+        <jar destfile="build/jar/lcf-activedirectory-connector.jar" basedir="build/connector/classes"/>
     </target>
 
     <target name="webapp-crawler-ui" depends="compile-crawler-ui,jar-connector">
         <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-filesystem-connector.jar"/>
+        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-activedirectory-connector.jar"/>
         <mkdir dir="build/webapp/crawler-ui"/>
         <copy todir="build/webapp/crawler-ui">
             <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
         </copy>
     </target>
-    
-    <target name="processes" depends="jar-connector">
-        <mkdir dir="dist/processes/jar"/>
-        <copy todir="dist/processes/jar" file="build/jar/lcf-filesystem-connector.jar"/>
+
+    <target name="webapp-authority-service" depends="jar-connector">
+        <mkdir dir="build/webapp/authority-service/WEB-INF/lib"/>
+        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="build/jar/lcf-activedirectory-connector.jar"/>
     </target>
 
     <target name="iar-crawler-ui" depends="webapp-crawler-ui">
         <mkdir dir="dist/web/war"/>
-        <jar destfile="dist/web/war/lcf-filesystemconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
+        <jar destfile="dist/web/war/lcf-activedirectoryconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
     </target>
 
-    <target name="compile-tests" depends="compile-connector">
-        <mkdir dir="build/tests/classes"/>
-        <javac srcdir="tests" destdir="build/tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
-            <classpath>
-                 <fileset dir="lib"> 
-                    <include name="*.jar"/> 
-                </fileset>
-                <pathelement location="build/connector/classes"/>
-            </classpath>
-        </javac>
-    </target>
-    
-    <target name="run-tests" depends="compile-tests">
-        <mkdir dir="test-output"/>
-        <junit fork="true" maxmemory="128m" dir="test-output" showoutput="true">
-            <classpath>
-                <fileset dir="lib">
-                    <include name="*.jar"/>
-                </fileset>
-                <pathelement location="build/connector/classes"/>
-                <pathelement location="build/tests/classes"/>
-            </classpath>
-            <test name="org.apache.lcf.crawler.connectors.filesystem.tests.Sanity" todir="test-output"/>
-            <!-- MHL -->
-        </junit>
+    <target name="iar-authority-service" depends="webapp-authority-service">
+        <mkdir dir="dist/web/war"/>
+        <jar destfile="dist/web/war/lcf-activedirectoryconnector-authority-service.iar" basedir="build/webapp/authority-service"/>
     </target>
 
-    <target name="all" depends="processes,iar-crawler-ui,doc,run-tests"/>
+    <target name="processes" depends="jar-connector">
+        <mkdir dir="dist/processes/jar"/>
+        <copy todir="dist/processes/jar" file="build/jar/lcf-activedirectory-connector.jar"/>
+    </target>
+
+    <target name="all" depends="processes,iar-crawler-ui,iar-authority-service,doc"/>
     
 </project>
