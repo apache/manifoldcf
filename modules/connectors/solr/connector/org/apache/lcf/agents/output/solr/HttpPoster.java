@@ -41,6 +41,17 @@ public class HttpPoster
 {
   public static final String _rcsid = "@(#)$Id$";
 
+  /** Ingestion buffer size property. */
+  public static String ingestBufferSizeProperty = "org.apache.lcf.ingest.buffersize";
+  public static String ingestCredentialsRealm = "org.apache.lcf.ingest.credentialrealm";
+  public static String ingestResponseRetryCount = "org.apache.lcf.ingest.responseretrycount";
+  public static String ingestResponseRetryInterval = "org.apache.lcf.ingest.retryinterval";
+  public static String ingestRescheduleInterval = "org.apache.lcf.ingest.rescheduleinterval";
+  public static String ingestURIProperty = "org.apache.lcf.ingest.uri";
+  public static String ingestUserProperty = "org.apache.lcf.ingest.user";
+  public static String ingestPasswordProperty = "org.apache.lcf.ingest.password";
+  public static String ingestMaxConnectionsProperty = "org.apache.lcf.ingest.maxconnections";
+
   // Chunk size for base64-encoded headers
   protected final static int HEADER_CHUNK = 4096;
 
@@ -145,16 +156,16 @@ public class HttpPoster
     postRemoveAction = webappName + removePath;
     postStatusAction = webappName + statusPath;
 
-    String x = LCF.getProperty(LCF.ingestBufferSizeProperty);
+    String x = LCF.getProperty(ingestBufferSizeProperty);
     if (x != null && x.length() > 0)
       buffersize = new Integer(x).intValue();
-    x = LCF.getProperty(LCF.ingestResponseRetryCount);
+    x = LCF.getProperty(ingestResponseRetryCount);
     if (x != null && x.length() > 0)
       responseRetries = new Integer(x).intValue();
-    x = LCF.getProperty(LCF.ingestResponseRetryInterval);
+    x = LCF.getProperty(ingestResponseRetryInterval);
     if (x != null && x.length() > 0)
       responseRetryWait = new Long(x).longValue();
-    x = LCF.getProperty(LCF.ingestRescheduleInterval);
+    x = LCF.getProperty(ingestRescheduleInterval);
     if (x != null && x.length() > 0)
       interruptionRetryTime = new Long(x).longValue();
   }

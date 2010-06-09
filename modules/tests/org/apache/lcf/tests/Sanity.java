@@ -28,28 +28,9 @@ import java.util.*;
 import org.junit.*;
 
 /** This is a very basic sanity check */
-public class Sanity extends org.apache.lcf.crawler.tests.TestConnectorBase
+public class Sanity extends TestBase
 {
   
-  protected String[] getConnectorNames()
-  {
-    return new String[]{"File Connector"};
-  }
-  
-  protected String[] getConnectorClasses()
-  {
-    return new String[]{"org.apache.lcf.crawler.connectors.filesystem.FileConnector"};
-  }
-  
-  protected String[] getOutputNames()
-  {
-    return new String[]{"Null Output"};
-  }
-  
-  protected String[] getOutputClasses()
-  {
-    return new String[]{"org.apache.lcf.agents.output.nullconnector.NullConnector"};
-  }
   
   @Test
   public void sanityCheck()

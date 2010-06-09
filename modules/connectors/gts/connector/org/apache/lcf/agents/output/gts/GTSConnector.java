@@ -203,7 +203,7 @@ public class GTSConnector extends org.apache.lcf.agents.output.BaseOutputConnect
   /** Detect if a mime type is indexable or not.  This method is used by participating repository connectors to pre-filter the number of
   * unusable documents that will be passed to this output connector.
   *@param mimeType is the mime type of the document.
-  *@param true if the mime type is indexable by this connector.
+  *@return true if the mime type is indexable by this connector.
   */
   public boolean checkMimeTypeIndexable(String mimeType)
     throws LCFException, ServiceInterruption

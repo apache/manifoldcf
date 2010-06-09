@@ -29,16 +29,6 @@ public class LCF extends org.apache.lcf.core.system.LCF
 
   protected static boolean initialized = false;
 
-  /** Ingestion buffer size property. */
-  public static String ingestBufferSizeProperty = "org.apache.lcf.ingest.buffersize";
-  public static String ingestCredentialsRealm = "org.apache.lcf.ingest.credentialrealm";
-  public static String ingestResponseRetryCount = "org.apache.lcf.ingest.responseretrycount";
-  public static String ingestResponseRetryInterval = "org.apache.lcf.ingest.retryinterval";
-  public static String ingestRescheduleInterval = "org.apache.lcf.ingest.rescheduleinterval";
-  public static String ingestURIProperty = "org.apache.lcf.ingest.uri";
-  public static String ingestUserProperty = "org.apache.lcf.ingest.user";
-  public static String ingestPasswordProperty = "org.apache.lcf.ingest.password";
-  public static String ingestMaxConnectionsProperty = "org.apache.lcf.ingest.maxconnections";
 
   /** This is the place we keep track of the agents we've started. */
   protected static HashMap runningHash = new HashMap();
@@ -97,7 +87,6 @@ public class LCF extends org.apache.lcf.core.system.LCF
     mgr.deinstall();
   }
 
-
   /** Start all not-running agents.
   *@param threadContext is the thread context.
   */
@@ -151,7 +140,6 @@ public class LCF extends org.apache.lcf.core.system.LCF
   {
     synchronized (runningHash)
     {
-      stopAgentsRun = true;
       HashMap iterHash = (HashMap)runningHash.clone();
       Iterator iter = iterHash.keySet().iterator();
       while (iter.hasNext())
@@ -194,6 +182,11 @@ public class LCF extends org.apache.lcf.core.system.LCF
     public void doCleanup()
       throws LCFException
     {
+      // Shutting down in this way must prevent startup from taking place.
+      synchronized (runningHash)
+      {
+        stopAgentsRun = true;
+      }
       IThreadContext tc = ThreadContextFactory.make();
       stopAgents(tc);
     }
