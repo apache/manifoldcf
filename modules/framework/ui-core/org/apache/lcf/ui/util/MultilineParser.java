@@ -46,7 +46,6 @@ public class MultilineParser
               break;
             if (nextString.length() == 0)
               continue;
-            nextString.trim();
             if (nextString.startsWith("#"))
               continue;
             list.add(nextString);
