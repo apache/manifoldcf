@@ -5,7 +5,7 @@ Lucene Connector Framework requires
 
 For building LCF:
 -----------------
-* Read the wiki page at http://cwiki.apache.org/confluence/display/CONNECTORS/How+to+Build+and+Deploy+Lucene+Connector+Framework
+* Read the wiki page at http://cwiki.apache.org/confluence/display/CONNECTORS/How+to+Build+and+Deploy+Lucene+Connectors+Framework
 
 For testing LCF:
 ----------------
