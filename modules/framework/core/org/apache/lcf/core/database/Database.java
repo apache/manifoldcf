@@ -755,7 +755,7 @@ public class Database
         }
         if (x instanceof TimeMarker)
         {
-          ps.setTimestamp(i+1,new java.sql.Timestamp(((Long)x).longValue()));
+          ps.setTimestamp(i+1,new java.sql.Timestamp(((TimeMarker)x).longValue()));
         }
         if (x instanceof Double)
         {
