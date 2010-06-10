@@ -88,7 +88,7 @@ public class ScheduleManager extends org.apache.lcf.core.database.BaseTable
           HashMap map = new HashMap();
           map.put(yearField,new ColumnDescription("VARCHAR(255)",false,true,null,null,false));
           performAlter(map,null,null,null);
-          performModification("UPDATE "+getTableName()+" SET ("+yearField+"=year)",null,null);
+          performModification("UPDATE "+getTableName()+" SET "+yearField+"=year",null,null);
           ArrayList list = new ArrayList();
           list.add("year");
           performAlter(null,null,list,null);

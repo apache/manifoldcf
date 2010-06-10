@@ -42,7 +42,15 @@ public class TestBase extends org.apache.lcf.core.tests.TestBase
     {
       System.out.println("Warning: Preclean failed: "+e.getMessage());
     }
-    localSetUp();
+    try
+    {
+      localSetUp();
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+      throw e;
+    }
   }
 
   protected void localSetUp()
@@ -61,7 +69,15 @@ public class TestBase extends org.apache.lcf.core.tests.TestBase
   public void cleanUp()
     throws Exception
   {
-    localCleanUp();
+    try
+    {
+      localCleanUp();
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+      throw e;
+    }
   }
 
   protected void localCleanUp()

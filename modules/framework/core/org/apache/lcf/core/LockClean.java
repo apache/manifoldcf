@@ -38,27 +38,35 @@ public class LockClean
       System.exit(1);
     }
 
-    LCF.initializeEnvironment();
-    String synchDir = LCF.getProperty(org.apache.lcf.core.lockmanager.LockManager.synchDirectoryProperty);
-    if (synchDir != null)
+    try
     {
-      // Recursively clean up the contents of the synch directory.
-      File dir = new File(synchDir);
-      if (dir.isDirectory())
+      LCF.initializeEnvironment();
+      String synchDir = LCF.getProperty(org.apache.lcf.core.lockmanager.LockManager.synchDirectoryProperty);
+      if (synchDir != null)
       {
-        File[] files = dir.listFiles();
-        int i = 0;
-        while (i < files.length)
+        // Recursively clean up the contents of the synch directory.
+        File dir = new File(synchDir);
+        if (dir.isDirectory())
         {
-          if (files[i].isDirectory())
-            removeDirectory(files[i]);
-          else
-            files[i].delete();
-          i++;
+          File[] files = dir.listFiles();
+          int i = 0;
+          while (i < files.length)
+          {
+            if (files[i].isDirectory())
+              removeDirectory(files[i]);
+            else
+              files[i].delete();
+            i++;
+          }
         }
       }
+      System.err.println("Synchronization storage cleaned up");
     }
-    System.err.println("Synchronization storage cleaned up");
+    catch (LCFException e)
+    {
+      e.printStackTrace(System.err);
+      System.exit(2);
+    }
   }
 
 

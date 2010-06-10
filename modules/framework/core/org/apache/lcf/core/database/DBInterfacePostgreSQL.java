@@ -43,8 +43,26 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   public DBInterfacePostgreSQL(IThreadContext tc, String databaseName, String userName, String password)
     throws LCFException
   {
-    super(tc,_url+((databaseName==null)?"template1":databaseName),_driver,((databaseName==null)?"template1":databaseName),userName,password);
+    super(tc,_url+databaseName,_driver,databaseName,userName,password);
     cacheKey = CacheKeyFactory.makeDatabaseKey(this.databaseName);
+  }
+
+  /** Initialize.  This method is called once per JVM instance, in order to set up
+  * database communication.
+  */
+  public void openDatabase()
+    throws LCFException
+  {
+    // Nothing to do
+  }
+  
+  /** Uninitialize.  This method is called during JVM shutdown, in order to close
+  * all database communication.
+  */
+  public void closeDatabase()
+    throws LCFException
+  {
+    // Nothing to do
   }
 
   /** Get the database general cache key.
@@ -460,113 +478,64 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   }
 
   /** Create user and database.
-  *@param userName is the user name.
-  *@param password is the user's desired password.
-  *@param databaseName is the database name.
+  *@param adminUserName is the admin user name.
+  *@param adminPassword is the admin password.
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
-  public void createUserAndDatabase(String userName, String password, String databaseName,
-    StringSet invalidateKeys)
+  public void createUserAndDatabase(String adminUserName, String adminPassword, StringSet invalidateKeys)
     throws LCFException
   {
-    if (lookupUser(userName,null,null) == false)
+    // Create a connection to the master database, using the credentials supplied
+    Database masterDatabase = new Database(context,_url+"template1",_driver,"template1",adminUserName,adminPassword);
+    try
     {
-      performCreateUser(userName,password,invalidateKeys);
+      // Create user
+      ArrayList params = new ArrayList();
+      params.add(userName);
+      IResultSet set = masterDatabase.executeQuery("SELECT * FROM pg_user WHERE usename=?",params,null,null,null,true,-1,null,null);
+      if (set.getRowCount() == 0)
+      {
+	masterDatabase.executeQuery("CREATE USER "+userName+" PASSWORD "+
+	  quoteSQLString(password),null,null,invalidateKeys,null,false,0,null,null);
+      }
+      
+      // Create database
+      params = new ArrayList();
+      params.add(userName);
+      set = masterDatabase.executeQuery("SELECT * FROM pg_database WHERE datname=?",params,null,null,null,true,-1,null,null);
+      if (set.getRowCount() == 0)
+      {
+	masterDatabase.executeQuery("CREATE DATABASE "+databaseName+" OWNER="+
+	  userName+" ENCODING="+quoteSQLString("utf8"),null,null,invalidateKeys,null,false,0,null,null);
+      }
     }
-
-    if (lookupDatabase(databaseName,null,null) == false)
+    catch (LCFException e)
     {
-      performCreateDatabase(databaseName,userName,password,invalidateKeys);
+      throw reinterpretException(e);
     }
-
   }
 
   /** Drop user and database.
-  *@param userName is the user name.
-  *@param databaseName is the database name.
+  *@param adminUserName is the admin user name.
+  *@param adminPassword is the admin password.
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
-  public void dropUserAndDatabase(String userName, String databaseName, StringSet invalidateKeys)
+  public void dropUserAndDatabase(String adminUserName, String adminPassword, StringSet invalidateKeys)
     throws LCFException
   {
-    performDropDatabase(databaseName,invalidateKeys);
-    performDropUser(userName,invalidateKeys);
-  }
-
-  /** Perform user lookup.
-  *@param userName is the user name to lookup.
-  *@return true if the user exists.
-  */
-  protected boolean lookupUser(String userName, StringSet cacheKeys, String queryClass)
-    throws LCFException
-  {
-    ArrayList params = new ArrayList();
-    params.add(userName);
-    IResultSet set = performQuery("SELECT * FROM pg_user WHERE usename=?",params,cacheKeys,queryClass);
-    if (set.getRowCount() == 0)
-      return false;
-    return true;
-  }
-
-  /** Perform user create.
-  *@param userName is the user name.
-  *@param password is the user's password.
-  */
-  protected void performCreateUser(String userName, String password, StringSet invalidateKeys)
-    throws LCFException
-  {
-    performModification("CREATE USER "+userName+" PASSWORD "+
-      quoteSQLString(password),null,invalidateKeys);
-  }
-
-  /** Perform user delete.
-  *@param userName is the user name.
-  */
-  protected void performDropUser(String userName, StringSet invalidateKeys)
-    throws LCFException
-  {
-    performModification("DROP USER "+userName,null,invalidateKeys);
-  }
-
-  /** Perform database lookup.
-  *@param databaseName is the database name.
-  *@param cacheKeys are the cache keys, if any.
-  *@return true if the database exists.
-  */
-  protected boolean lookupDatabase(String databaseName, StringSet cacheKeys, String queryClass)
-    throws LCFException
-  {
-    ArrayList params = new ArrayList();
-    params.add(databaseName);
-    IResultSet set = performQuery("SELECT * FROM pg_database WHERE datname=?",params,cacheKeys,queryClass);
-    if (set.getRowCount() == 0)
-      return false;
-    return true;
-  }
-
-  /** Perform database create.
-  *@param databaseName is the database name.
-  *@param databaseUser is the user to grant access to the database.
-  *@param databasePassword is the password of the user to grant access to the database.
-  *@param invalidateKeys are the cache keys that should be invalidated, if any.
-  */
-  protected void performCreateDatabase(String databaseName, String databaseUser, String databasePassword,
-    StringSet invalidateKeys)
-    throws LCFException
-  {
-    performModification("CREATE DATABASE "+databaseName+" OWNER="+
-      databaseUser+" ENCODING="+
-      quoteSQLString("utf8"),null,invalidateKeys);
-  }
-
-  /** Perform database drop.
-  *@param databaseName is the database name.
-  *@param invalidateKeys are the cache keys that should be invalidated, if any.
-  */
-  protected void performDropDatabase(String databaseName, StringSet invalidateKeys)
-    throws LCFException
-  {
-    performModification("DROP DATABASE "+databaseName,null,invalidateKeys);
+    // Create a connection to the master database, using the credentials supplied
+    Database masterDatabase = new Database(context,_url+"template1",_driver,"template1",adminUserName,adminPassword);
+    try
+    {
+      // Drop database
+      masterDatabase.executeQuery("DROP DATABASE "+databaseName,null,null,invalidateKeys,null,false,0,null,null);
+      // Drop user
+      masterDatabase.executeQuery("DROP USER "+userName,null,null,invalidateKeys,null,false,0,null,null);
+    }
+    catch (LCFException e)
+    {
+      throw reinterpretException(e);
+    }
   }
 
   /** Reinterpret an exception tossed by the database layer.  We need to disambiguate the various kinds of exception that
@@ -923,7 +892,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   public void beginTransaction()
     throws LCFException
   {
-    super.beginTransaction(TRANSACTION_ENCLOSING);
+    beginTransaction(TRANSACTION_ENCLOSING);
   }
 
   /** Begin a database transaction.  This method call MUST be paired with an endTransaction() call,
@@ -974,7 +943,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
       }
       break;
     default:
-      throw new LCFException("Bad transaction type");
+      throw new LCFException("Bad transaction type: "+Integer.toString(transactionType));
     }
   }
 

@@ -48,7 +48,7 @@ public class DBDrop
     {
       LCF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
-      LCF.dropSystemDatabase(tc,null,userName,password);
+      LCF.dropSystemDatabase(tc,userName,password);
       System.err.println("LCF database dropped");
     }
     catch (LCFException e)

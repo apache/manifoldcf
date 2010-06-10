@@ -41,16 +41,17 @@ public class AgentStop
       System.exit(1);
     }
 
-    LCF.initializeEnvironment();
-    IThreadContext tc = ThreadContextFactory.make();
     try
     {
+      LCF.initializeEnvironment();
+      IThreadContext tc = ThreadContextFactory.make();
       ILockManager lockManager = LockManagerFactory.make(tc);
       lockManager.setGlobalFlag(AgentRun.agentShutdownSignal);
+      System.err.println("Shutdown signal sent");
     }
     catch (LCFException e)
     {
-      e.printStackTrace();
+      e.printStackTrace(System.err);
       System.exit(1);
     }
   }

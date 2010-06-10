@@ -30,28 +30,22 @@ public class LCF
   
   // Shutdown hooks
   /** Temporary file collector */
-  protected static FileTrack tracker;
+  protected static FileTrack tracker = null;
   /** Database handle cleanup */
-  protected static DatabaseShutdown dbShutdown;
+  protected static DatabaseShutdown dbShutdown = null;
   
   /** Array of cleanup hooks (for managing shutdown) */
-  protected static ArrayList cleanupHooks; 
+  protected static ArrayList cleanupHooks = new ArrayList(); 
+  
   /** Shutdown thread */
   protected static Thread shutdownThread;
-  /** Static initializer for setting up shutdown thread etc. */
+  /** Static initializer for setting up shutdown thread */
   static
   {
-    cleanupHooks = new ArrayList();
-    shutdownThread = new ShutdownThread(cleanupHooks);
-    tracker = new FileTrack();
-    dbShutdown = new DatabaseShutdown();
+    shutdownThread = new ShutdownThread();
     try
     {
       Runtime.getRuntime().addShutdownHook(shutdownThread);
-      // Register the file tracker for cleanup on shutdown
-      addShutdownHook(tracker);
-      // Register the database cleanup hook
-      addShutdownHook(dbShutdown);
     }
     catch (Exception e)
     {
@@ -63,6 +57,11 @@ public class LCF
       e.printStackTrace();
     }
   }
+  
+  // Flag indicating whether system initialized or not, and synchronizer to protect that flag.
+  protected static boolean isInitialized = false;
+  protected static boolean alreadyClosed = false;
+  protected static Integer initializeFlagLock = new Integer(0);
 
   // Local member variables
   protected static String masterDatabaseName = null;
@@ -112,61 +111,73 @@ public class LCF
 
   /** Initialize environment.
   */
-  public static synchronized void initializeEnvironment()
+  public static void initializeEnvironment()
+    throws LCFException
   {
-    if (localProperties != null)
-      return;
-
-    try
+    synchronized (initializeFlagLock)
     {
-      // Get system properties
-      java.util.Properties props = System.getProperties();
-      // First, look for a define that might indicate where to look
-    
-      propertyFilePath = (String)props.get(lcfConfigFileProperty);
-      if (propertyFilePath == null)
+      if (isInitialized)
+        return;
+
+      try
       {
-	System.err.println("Couldn't find "+lcfConfigFileProperty+" property; using default");
-        String configPath = (String)props.get("user.home") + "/"+applicationName;
-        configPath = configPath.replace('\\', '/');
-        propertyFilePath = new File(configPath,"properties.ini").toString();
-      }
+        // Get system properties
+        java.util.Properties props = System.getProperties();
+        // First, look for a define that might indicate where to look
       
-      // Read .ini parameters
-      localProperties = new java.util.Properties();
-      checkProperties();
+        propertyFilePath = (String)props.get(lcfConfigFileProperty);
+        if (propertyFilePath == null)
+        {
+          System.err.println("Couldn't find "+lcfConfigFileProperty+" property; using default");
+          String configPath = (String)props.get("user.home") + "/"+applicationName;
+          configPath = configPath.replace('\\', '/');
+          propertyFilePath = new File(configPath,"properties.ini").toString();
+        }
+        
+        // Read .ini parameters
+        localProperties = new java.util.Properties();
+        checkProperties();
 
-      String logConfigFile = getProperty(logConfigFileProperty);
-      if (logConfigFile == null)
-      {
-	System.err.println("Couldn't find "+logConfigFileProperty+" property; using default");
-        String configPath = (String)props.get("user.home") + "/"+applicationName;
-        configPath = configPath.replace('\\', '/');
-        logConfigFile = new File(configPath,"logging.ini").toString();
+        String logConfigFile = getProperty(logConfigFileProperty);
+        if (logConfigFile == null)
+        {
+          System.err.println("Couldn't find "+logConfigFileProperty+" property; using default");
+          String configPath = (String)props.get("user.home") + "/"+applicationName;
+          configPath = configPath.replace('\\', '/');
+          logConfigFile = new File(configPath,"logging.ini").toString();
+        }
+
+        Logging.initializeLoggingSystem(logConfigFile);
+
+        // Set up local loggers
+        Logging.initializeLoggers();
+        Logging.setLogLevels();
+
+        masterDatabaseName = getProperty(masterDatabaseNameProperty);
+        if (masterDatabaseName == null)
+          masterDatabaseName = "dbname";
+        masterDatabaseUsername = getProperty(masterDatabaseUsernameProperty);
+        if (masterDatabaseUsername == null)
+          masterDatabaseUsername = "lcf";
+        masterDatabasePassword = getProperty(masterDatabasePasswordProperty);
+        if (masterDatabasePassword == null)
+          masterDatabasePassword = "local_pg_passwd";
+
+        // Register the file tracker for cleanup on shutdown
+        addShutdownHook(new FileTrack());
+        // Register the database cleanup hook
+        addShutdownHook(new DatabaseShutdown());
+
+        // Open the database.  Done once per JVM.
+        IThreadContext threadcontext = ThreadContextFactory.make();
+        DBInterfaceFactory.make(threadcontext,masterDatabaseName,masterDatabaseUsername,masterDatabasePassword).openDatabase();
+        isInitialized = true;
       }
-
-      masterDatabaseName = getProperty(masterDatabaseNameProperty);
-      if (masterDatabaseName == null)
-        masterDatabaseName = "dbname";
-      masterDatabaseUsername = getProperty(masterDatabaseUsernameProperty);
-      if (masterDatabaseUsername == null)
-        masterDatabaseUsername = "lcf";
-      masterDatabasePassword = getProperty(masterDatabasePasswordProperty);
-      if (masterDatabasePassword == null)
-        masterDatabasePassword = "local_pg_passwd";
-
-      Logging.initializeLoggingSystem(logConfigFile);
-
-      // Set up local loggers
-      Logging.initializeLoggers();
-      Logging.setLogLevels();
-
+      catch (LCFException e)
+      {
+        throw new LCFException("Initialization failed: "+e.getMessage(),e,LCFException.SETUP_ERROR);
+      }
     }
-    catch (LCFException e)
-    {
-      e.printStackTrace();
-    }
-
 
   }
 
@@ -534,34 +545,34 @@ public class LCF
 
   /** Install system database.
   *@param threadcontext is the thread context.
-  *@param masterName is the master database name ("mysql" for mysql).
   *@param masterUsername is the master database user name.
   *@param masterPassword is the master database password.
   */
-  public static void createSystemDatabase(IThreadContext threadcontext, String masterName,
-    String masterUsername, String masterPassword)
+  public static void createSystemDatabase(IThreadContext threadcontext, String masterUsername, String masterPassword)
     throws LCFException
   {
     String databaseName = getMasterDatabaseName();
     String databaseUsername = getMasterDatabaseUsername();
     String databasePassword = getMasterDatabasePassword();
 
-    IDBInterface master = DBInterfaceFactory.make(threadcontext,masterName,masterUsername,masterPassword);
-    master.createUserAndDatabase(databaseUsername,databasePassword,databaseName,null);
+    IDBInterface master = DBInterfaceFactory.make(threadcontext,databaseName,databaseUsername,databasePassword);
+    master.createUserAndDatabase(masterUsername,masterPassword,null);
   }
 
   /** Drop system database.
   *@param threadcontext is the thread context.
-  *@param masterName is the master database name ("mysql" for mysql).
   *@param masterUsername is the master database user name.
   *@param masterPassword is the master database password.
   */
-  public static void dropSystemDatabase(IThreadContext threadcontext, String masterName,
-    String masterUsername, String masterPassword)
+  public static void dropSystemDatabase(IThreadContext threadcontext, String masterUsername, String masterPassword)
     throws LCFException
   {
-    IDBInterface master = DBInterfaceFactory.make(threadcontext,masterName,masterUsername,masterPassword);
-    master.dropUserAndDatabase(getMasterDatabaseUsername(),getMasterDatabaseName(),null);
+    String databaseName = getMasterDatabaseName();
+    String databaseUsername = getMasterDatabaseUsername();
+    String databasePassword = getMasterDatabasePassword();
+
+    IDBInterface master = DBInterfaceFactory.make(threadcontext,databaseName,databaseUsername,databasePassword);
+    master.dropUserAndDatabase(masterUsername,masterPassword,null);
   }
 
   /** Add a file to the tracking system. */
@@ -1089,16 +1100,52 @@ public class LCF
       catch (InterruptedException e)
       {
       }
+      closeDatabase();
     }
+    
+    protected void closeDatabase()
+      throws LCFException
+    {
+      synchronized (initializeFlagLock)
+      {
+        if (isInitialized && !alreadyClosed)
+        {
+          IThreadContext threadcontext = ThreadContextFactory.make();
+          
+          String databaseName = getMasterDatabaseName();
+          String databaseUsername = getMasterDatabaseUsername();
+          String databasePassword = getMasterDatabasePassword();
+
+          DBInterfaceFactory.make(threadcontext,databaseName,databaseUsername,databasePassword).closeDatabase();
+          alreadyClosed = true;
+        }
+      }
+    }
+    
+    /** Finalizer, which is designed to catch class unloading that tomcat 5.5 does.
+    */
+    protected void finalize()
+      throws Throwable
+    {
+      try
+      {
+        // The database handle cleanup is handled inside the finalizers for the pools that hold onto connections.
+        closeDatabase();
+      }
+      finally
+      {
+        super.finalize();
+      }
+    }
+
   }
   
   /** Finisher thread, to be registered with the runtime */
   protected static class ShutdownThread extends Thread
   {
-    protected ArrayList cleanupHooks;
     /** Constructor.
     */
-    public ShutdownThread(ArrayList cleanupHooks)
+    public ShutdownThread()
     {
       super();
       setName("Shutdown thread");

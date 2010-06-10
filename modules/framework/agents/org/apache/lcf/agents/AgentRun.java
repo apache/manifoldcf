@@ -43,11 +43,11 @@ public class AgentRun
       System.exit(1);
     }
 
-    LCF.initializeEnvironment();
-    IThreadContext tc = ThreadContextFactory.make();
-
     try
     {
+      LCF.initializeEnvironment();
+      IThreadContext tc = ThreadContextFactory.make();
+
       ILockManager lockManager = LockManagerFactory.make(tc);
       // Clear the agents shutdown signal.
       lockManager.clearGlobalFlag(agentShutdownSignal);
@@ -75,7 +75,7 @@ public class AgentRun
     catch (LCFException e)
     {
       Logging.root.error("Exception: "+e.getMessage(),e);
-      e.printStackTrace();
+      e.printStackTrace(System.err);
       System.exit(1);
     }
   }

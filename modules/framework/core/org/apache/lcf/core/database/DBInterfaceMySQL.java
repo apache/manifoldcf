@@ -34,8 +34,26 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   public DBInterfaceMySQL(IThreadContext tc, String databaseName, String userName, String password)
     throws LCFException
   {
-    super(tc,_url+databaseName,_driver,(databaseName==null)?"mysql":databaseName,userName,password);
+    super(tc,_url+databaseName,_driver,databaseName,userName,password);
     cacheKey = CacheKeyFactory.makeDatabaseKey(this.databaseName);
+  }
+
+  /** Initialize.  This method is called once per JVM instance, in order to set up
+  * database communication.
+  */
+  public void openDatabase()
+    throws LCFException
+  {
+    // Nothing to do.
+  }
+  
+  /** Uninitialize.  This method is called during JVM shutdown, in order to close
+  * all database communication.
+  */
+  public void closeDatabase()
+    throws LCFException
+  {
+    // Nothing to do.
   }
 
   /** Get the database general cache key.
@@ -360,53 +378,37 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   }
 
   /** Create user and database.
-  *@param userName is the user name.
-  *@param password is the user's desired password.
-  *@param databaseName is the database name.
+  *@param adminUserName is the admin user name.
+  *@param adminPassword is the admin password.
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
-  public void createUserAndDatabase(String userName, String password, String databaseName,
-    StringSet invalidateKeys)
+  public void createUserAndDatabase(String adminUserName, String adminPassword, StringSet invalidateKeys)
     throws LCFException
   {
-    beginTransaction();
-    try
+    // Connect to super database
+    Database masterDatabase = new Database(context,_url+"mysql",_driver,"mysql",adminUserName,adminPassword);
+    masterDatabase.executeQuery("CREATE DATABASE "+databaseName+" CHARACTER SET "+
+      quoteSQLString("utf8"),null,null,invalidateKeys,null,false,0,null,null);
+    if (userName != null)
     {
-      performModification("CREATE DATABASE "+databaseName+" CHARACTER SET "+
-        quoteSQLString("utf8"),null,invalidateKeys);
-      if (userName != null)
-      {
-        performModification("GRANT ALL ON "+databaseName+".* TO "+
-          quoteSQLString(userName)+"@"+
-          quoteSQLString("localhost")+" IDENTIFIED BY "+
-          quoteSQLString(password),null,invalidateKeys);
-      }
-    }
-    catch (LCFException e)
-    {
-      signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      signalRollback();
-      throw e;
-    }
-    finally
-    {
-      endTransaction();
+      masterDatabase.executeQuery("GRANT ALL ON "+databaseName+".* TO "+
+        quoteSQLString(userName)+"@"+
+        quoteSQLString("localhost")+" IDENTIFIED BY "+
+        quoteSQLString(password),null,null,invalidateKeys,null,false,0,null,null);
     }
   }
 
   /** Drop user and database.
-  *@param userName is the user name.
-  *@param databaseName is the database name.
+  *@param adminUserName is the admin user name.
+  *@param adminPassword is the admin password.
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
-  public void dropUserAndDatabase(String userName, String databaseName, StringSet invalidateKeys)
+  public void dropUserAndDatabase(String adminUserName, String adminPassword, StringSet invalidateKeys)
     throws LCFException
   {
-    performModification("DROP DATABASE "+databaseName,null,invalidateKeys);
+    // Connect to super database
+    Database masterDatabase = new Database(context,_url+"mysql",_driver,"mysql",adminUserName,adminPassword);
+    masterDatabase.executeQuery("DROP DATABASE "+databaseName,null,null,invalidateKeys,null,false,0,null,null);
   }
 
   /** Perform a general database modification query.

@@ -74,7 +74,15 @@ public class TestConnectorBase extends org.apache.lcf.crawler.tests.TestBase
     {
       System.out.println("Warning: Preclean failed: "+e.getMessage());
     }
-    localSetUp();
+    try
+    {
+      localSetUp();
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+      throw e;
+    }
   }
 
   protected void localSetUp()
@@ -169,7 +177,15 @@ public class TestConnectorBase extends org.apache.lcf.crawler.tests.TestBase
   public void cleanUp()
     throws Exception
   {
-    localCleanUp();
+    try
+    {
+      localCleanUp();
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+      throw e;
+    }
   }
 
   protected void localCleanUp()

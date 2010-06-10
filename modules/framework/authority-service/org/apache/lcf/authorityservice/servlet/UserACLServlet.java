@@ -98,45 +98,45 @@ public class UserACLServlet extends HttpServlet
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException
   {
-    // Set up the environment
-    LCF.initializeEnvironment();
-
-    Logging.authorityService.debug("Received request");
-
-    String userID = request.getParameter("username");
-    if (userID == null)
-    {
-      response.sendError(response.SC_BAD_REQUEST);
-      return;
-    }
-
-    boolean idneeded = false;
-    boolean aclneeded = true;
-
-    String idneededValue = request.getParameter("idneeded");
-    if (idneededValue != null)
-    {
-      if (idneededValue.equals("true"))
-        idneeded = true;
-      else if (idneededValue.equals("false"))
-        idneeded = false;
-    }
-    String aclneededValue = request.getParameter("aclneeded");
-    if (aclneededValue != null)
-    {
-      if (aclneededValue.equals("true"))
-        aclneeded = true;
-      else if (aclneededValue.equals("false"))
-        aclneeded = false;
-    }
-
-    if (Logging.authorityService.isDebugEnabled())
-    {
-      Logging.authorityService.debug("Received authority request for user '"+userID+"'");
-    }
-
     try
     {
+      // Set up the environment
+      LCF.initializeEnvironment();
+
+      Logging.authorityService.debug("Received request");
+
+      String userID = request.getParameter("username");
+      if (userID == null)
+      {
+        response.sendError(response.SC_BAD_REQUEST);
+        return;
+      }
+
+      boolean idneeded = false;
+      boolean aclneeded = true;
+
+      String idneededValue = request.getParameter("idneeded");
+      if (idneededValue != null)
+      {
+        if (idneededValue.equals("true"))
+          idneeded = true;
+        else if (idneededValue.equals("false"))
+          idneeded = false;
+      }
+      String aclneededValue = request.getParameter("aclneeded");
+      if (aclneededValue != null)
+      {
+        if (aclneededValue.equals("true"))
+          aclneeded = true;
+        else if (aclneededValue.equals("false"))
+          aclneeded = false;
+      }
+
+      if (Logging.authorityService.isDebugEnabled())
+      {
+        Logging.authorityService.debug("Received authority request for user '"+userID+"'");
+      }
+
       RequestQueue queue = LCF.getRequestQueue();
       if (queue == null)
       {

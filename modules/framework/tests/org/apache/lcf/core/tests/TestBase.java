@@ -62,7 +62,15 @@ public class TestBase
     {
       System.out.println("Warning: Preclean error: "+e.getMessage());
     }
-    localSetUp();
+    try
+    {
+      localSetUp();
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+      throw e;
+    }
   }
 
 
@@ -86,7 +94,7 @@ public class TestBase
     IThreadContext tc = ThreadContextFactory.make();
     
     // Create the database
-    LCF.createSystemDatabase(tc,null,"","");
+    LCF.createSystemDatabase(tc,"","");
 
   }
   
@@ -94,7 +102,15 @@ public class TestBase
   public void cleanUp()
     throws Exception
   {
-    localCleanUp();
+    try
+    {
+      localCleanUp();
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+      throw e;
+    }
   }
 
   protected void localCleanUp()
@@ -107,7 +123,7 @@ public class TestBase
       IThreadContext tc = ThreadContextFactory.make();
       
       // Remove the database
-      LCF.dropSystemDatabase(tc,null,"","");
+      LCF.dropSystemDatabase(tc,"","");
       
       // Get rid of the property and logging files.
       logOutputFile.delete();

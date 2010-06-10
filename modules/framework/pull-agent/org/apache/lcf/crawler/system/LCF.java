@@ -29,9 +29,9 @@ public class LCF extends org.apache.lcf.agents.system.LCF
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  // Track whether initialized or not
-  protected static Integer isInitialized = null;
-
+  // Initialization flag.
+  protected static boolean crawlerInitialized = false;
+  
   // Thread objects.
   // These get filled in as threads are created.
   protected static InitializationThread initializationThread = null;
@@ -78,18 +78,21 @@ public class LCF extends org.apache.lcf.agents.system.LCF
   
   /** Initialize environment.
   */
-  public static synchronized void initializeEnvironment()
+  public static void initializeEnvironment()
+    throws LCFException
   {
-    org.apache.lcf.authorities.system.LCF.initializeEnvironment();
-
-    if (isInitialized != null)
-      return;
-
-    isInitialized = new Integer(0);
-    org.apache.lcf.agents.system.LCF.initializeEnvironment();
-    Logging.initializeLoggers();
-    Logging.setLogLevels();
-
+    synchronized (initializeFlagLock)
+    {
+      org.apache.lcf.authorities.system.LCF.initializeEnvironment();
+      
+      if (crawlerInitialized)
+        return;
+      
+      org.apache.lcf.agents.system.LCF.initializeEnvironment();
+      Logging.initializeLoggers();
+      Logging.setLogLevels();
+      crawlerInitialized = true;
+    }
   }
 
 

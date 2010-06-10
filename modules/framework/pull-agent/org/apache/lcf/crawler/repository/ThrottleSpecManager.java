@@ -75,7 +75,7 @@ public class ThrottleSpecManager extends org.apache.lcf.core.database.BaseTable
           HashMap map = new HashMap();
           map.put(matchField,new ColumnDescription("VARCHAR(255)",false,true,null,null,false));
           performAlter(map,null,null,null);
-          performModification("UPDATE "+getTableName()+" SET ("+matchField+"=match)",null,null);
+          performModification("UPDATE "+getTableName()+" SET "+matchField+"=match",null,null);
           ArrayList list = new ArrayList();
           list.add("match");
           performAlter(null,null,list,null);

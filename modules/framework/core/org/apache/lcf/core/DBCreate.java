@@ -47,7 +47,7 @@ public class DBCreate
     {
       LCF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
-      LCF.createSystemDatabase(tc,null,userName,password);
+      LCF.createSystemDatabase(tc,userName,password);
       System.err.println("LCF database created");
     }
     catch (LCFException e)

@@ -42,9 +42,9 @@ public class CheckAll
       System.exit(1);
     }
 
-    LCF.initializeEnvironment();
     try
     {
+      LCF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
       // Now, get a list of the authority connections
       IAuthorityConnectionManager mgr = AuthorityConnectionManagerFactory.make(tc);

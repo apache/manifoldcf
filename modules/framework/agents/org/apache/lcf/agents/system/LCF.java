@@ -27,9 +27,9 @@ public class LCF extends org.apache.lcf.core.system.LCF
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  protected static boolean initialized = false;
-
-
+  // Agents initialized flag
+  protected static boolean agentsInitialized = false;
+  
   /** This is the place we keep track of the agents we've started. */
   protected static HashMap runningHash = new HashMap();
   /** This flag prevents startAgents() from starting anything once stopAgents() has been called. */
@@ -37,20 +37,25 @@ public class LCF extends org.apache.lcf.core.system.LCF
   
   /** Initialize environment.
   */
-  public static synchronized void initializeEnvironment()
+  public static void initializeEnvironment()
+    throws LCFException
   {
-    if (initialized)
-      return;
+    synchronized (initializeFlagLock)
+    {
+      if (agentsInitialized)
+        return;
 
-    // Do core initialization
-    org.apache.lcf.core.system.LCF.initializeEnvironment();
-    
-    // Create the shutdown hook for agents.  All activity will be keyed off of runningHash, so it is safe to do this under all conditions.
-    org.apache.lcf.core.system.LCF.addShutdownHook(new AgentsShutdownHook());
-    
-    Logging.initializeLoggers();
-    Logging.setLogLevels();
-    initialized = true;
+      // Do core initialization
+      org.apache.lcf.core.system.LCF.initializeEnvironment();
+      
+      // Create the shutdown hook for agents.  All activity will be keyed off of runningHash, so it is safe to do this under all conditions.
+      org.apache.lcf.core.system.LCF.addShutdownHook(new AgentsShutdownHook());
+      
+      // Initialize the local loggers
+      Logging.initializeLoggers();
+      Logging.setLogLevels();
+      agentsInitialized = true;
+    }
   }
 
 

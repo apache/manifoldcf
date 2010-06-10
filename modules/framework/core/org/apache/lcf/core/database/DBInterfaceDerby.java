@@ -23,6 +23,7 @@ import org.apache.lcf.core.system.LCF;
 import org.apache.lcf.core.system.Logging;
 import java.util.*;
 import java.io.*;
+import java.sql.*;
 
 public class DBInterfaceDerby extends Database implements IDBInterface
 {
@@ -33,6 +34,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   
   public final static String databasePathProperty = "org.apache.lcf.derbydatabasepath";
   
+
   protected String userName;
   protected String password;
   
@@ -47,7 +49,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     String path = LCF.getProperty(databasePathProperty);
     if (path == null)
       throw new LCFException("Derby database requires '"+databasePathProperty+"' property, containing a full path");
-    path = path.replace("\\","/");
+    path = path.replace("\\\\","/");
     if (!path.endsWith("/"))
       path = path + "/";
     return path + databaseName;
@@ -56,10 +58,55 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   public DBInterfaceDerby(IThreadContext tc, String databaseName, String userName, String password)
     throws LCFException
   {
-    super(tc,_url+getFullDatabasePath((databaseName==null)?"default":databaseName)+";create=true;user="+userName+";password="+password,_driver,getFullDatabasePath((databaseName==null)?"default":databaseName),userName,password);
+    super(tc,_url+getFullDatabasePath(databaseName)+";user="+userName+";password="+password,_driver,getFullDatabasePath(databaseName),userName,password);
     cacheKey = CacheKeyFactory.makeDatabaseKey(this.databaseName);
     this.userName = userName;
     this.password = password;
+  }
+
+  /** Initialize.  This method is called once per JVM instance, in order to set up
+  * database communication.
+  */
+  public void openDatabase()
+    throws LCFException
+  {
+    try
+    {
+      // Force a load of the appropriate JDBC driver
+      Class.forName(_driver).newInstance();
+      DriverManager.getConnection(_url+databaseName+";create=true;user="+userName+";password="+password,userName,password).close();
+    }
+    catch (Exception e)
+    {
+      throw new LCFException(e.getMessage(),e,LCFException.SETUP_ERROR);
+    }
+  }
+  
+  /** Uninitialize.  This method is called during JVM shutdown, in order to close
+  * all database communication.
+  */
+  public void closeDatabase()
+    throws LCFException
+  {
+    try
+    {
+      // Force a load of the appropriate JDBC driver
+      Class.forName(_driver).newInstance();
+    }
+    catch (Exception e)
+    {
+      throw new LCFException(e.getMessage(),e);
+    }
+
+    // For the shutdown itself, eat the exception
+    try
+    {
+      DriverManager.getConnection(_url+databaseName+";shutdown=true;user="+userName+";password="+password,userName,password).close();
+    }
+    catch (Exception e)
+    {
+      // Never any exception!
+    }
   }
 
   /** Get the database general cache key.
@@ -471,119 +518,40 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   }
 
   /** Create user and database.
-  *@param userName is the user name.
-  *@param password is the user's desired password.
-  *@param databaseName is the database name.
+  *@param adminUserName is the admin user name.
+  *@param adminPassword is the admin password.
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
-  public void createUserAndDatabase(String userName, String password, String databaseName,
-    StringSet invalidateKeys)
+  public void createUserAndDatabase(String adminUserName, String adminPassword, StringSet invalidateKeys)
     throws LCFException
   {
-    if (lookupUser(userName,null,null) == false)
+    Database rootDatabase = new Database(context,_url+databaseName,_driver,databaseName,"","");
+    IResultSet set = rootDatabase.executeQuery("VALUES SYSCS_UTIL.SYSCS_GET_DATABASE_PROPERTY('derby.user."+userName+"')",null,null,null,null,true,-1,null,null);
+    if (set.getRowCount() == 0)
     {
-      performCreateUser(userName,password,invalidateKeys);
+      rootDatabase.executeQuery("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.user."+userName+"', '"+password+"')",null,invalidateKeys,null,null,false,0,null,null);
+      rootDatabase.executeQuery("CREATE SCHEMA "+userName+" AUTHORIZATION "+userName,null,invalidateKeys,null,null,false,0,null,null);
     }
-
-    if (lookupDatabase(databaseName,null,null) == false)
-    {
-      performCreateDatabase(databaseName,userName,password,invalidateKeys);
-    }
-
   }
 
   /** Drop user and database.
-  *@param userName is the user name.
-  *@param databaseName is the database name.
+  *@param adminUserName is the admin user name.
+  *@param adminPassword is the admin password.
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
-  public void dropUserAndDatabase(String userName, String databaseName, StringSet invalidateKeys)
-    throws LCFException
-  {
-    if (lookupDatabase(databaseName,null,null))
-    {
-      performDropDatabase(databaseName,invalidateKeys);
-    }
-  }
-
-  /** Perform user lookup.
-  *@param userName is the user name to lookup.
-  *@return true if the user exists.
-  */
-  protected boolean lookupUser(String userName, StringSet cacheKeys, String queryClass)
-    throws LCFException
-  {
-    Database rootDatabase = new Database(context,_url+databaseName+";create=true",_driver,databaseName,"","");
-    IResultSet set = rootDatabase.executeQuery("VALUES SYSCS_UTIL.SYSCS_GET_DATABASE_PROPERTY('derby.user."+userName+"')",null,cacheKeys,null,queryClass,true,-1,null,null);
-    if (set.getRowCount() == 0)
-      return false;
-    return true;
-  }
-
-  /** Perform user create.
-  *@param userName is the user name.
-  *@param password is the user's password.
-  */
-  protected void performCreateUser(String userName, String password, StringSet invalidateKeys)
-    throws LCFException
-  {
-    Database rootDatabase = new Database(context,_url+databaseName+";create=true",_driver,databaseName,"","");
-    rootDatabase.executeQuery("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.user."+userName+"', '"+password+"')",null,invalidateKeys,null,null,false,0,null,null);
-    rootDatabase.executeQuery("CREATE SCHEMA "+userName+" AUTHORIZATION "+userName,null,invalidateKeys,null,null,false,0,null,null);
-  }
-
-  /** Perform user delete.
-  *@param userName is the user name.
-  */
-  public void performDropUser(String userName, StringSet invalidateKeys)
-    throws LCFException
-  {
-    Database rootDatabase = new Database(context,_url+databaseName+";create=true",_driver,databaseName,"","");
-    rootDatabase.executeQuery("DROP SCHEMA "+userName+" RESTRICT",null,invalidateKeys,null,null,false,0,null,null);
-    rootDatabase.executeQuery("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.user."+userName+"', null)",null,invalidateKeys,null,null,false,0,null,null);
-  }
-
-  /** Perform database lookup.
-  *@param databaseName is the database name.
-  *@param cacheKeys are the cache keys, if any.
-  *@return true if the database exists.
-  */
-  protected boolean lookupDatabase(String databaseName, StringSet cacheKeys, String queryClass)
+  public void dropUserAndDatabase(String adminUserName, String adminPassword, StringSet invalidateKeys)
     throws LCFException
   {
     File f = new File(databaseName);
-    return f.exists();
-  }
-
-  /** Perform database create.
-  *@param databaseName is the database name.
-  *@param databaseUser is the user to grant access to the database.
-  *@param databasePassword is the password of the user to grant access to the database.
-  *@param invalidateKeys are the cache keys that should be invalidated, if any.
-  */
-  protected void performCreateDatabase(String databaseName, String databaseUser, String databasePassword,
-    StringSet invalidateKeys)
-    throws LCFException
-  {
-    // Do nothing here; we create the database automatically whenever we go try to do stuff.
-    //DatabaseFactory.make(context,_url+databaseName+";create=true",_driver,
-    //  database.getDatabaseName(),userName,password);
-  }
-
-  /** Perform database drop.
-  *@param databaseName is the database name.
-  *@param invalidateKeys are the cache keys that should be invalidated, if any.
-  */
-  protected void performDropDatabase(String databaseName, StringSet invalidateKeys)
-    throws LCFException
-  {
-    // Cause database to shut down
-    new Database(context,_url+databaseName+";shutdown=true",_driver,databaseName,"","");
-    // DO NOT delete user or shutdown database, since this is in fact impossible under java 1.5 (since Derby makes its directories read-only, and
-    // there's no way to undo that...
-    // rm -rf <databasename>
-    //File f = new File(databaseName);
-    //recursiveDelete(f);
+    if (f.exists())
+    {
+      // Try to guarantee that all connections are discarded before we shut the database down.  Otherwise we get pool warnings from bitstream.
+      ConnectionFactory.releaseAll();
+      // Make sure database is shut down.
+      closeDatabase();
+      // Now, it's OK to delete
+      recursiveDelete(f);
+    }
   }
 
   protected static void recursiveDelete(File f)

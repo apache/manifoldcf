@@ -25,8 +25,9 @@ import java.util.*;
 
 public class LCF extends org.apache.lcf.core.system.LCF
 {
-  protected static boolean needInit = true;
-
+  // Initialization needed flag
+  protected static boolean authoritiesInitialized = false;
+  
   // Threads
   protected static IdleCleanupThread idleCleanupThread = null;
   protected static AuthCheckThread[] authCheckThreads = null;
@@ -41,16 +42,19 @@ public class LCF extends org.apache.lcf.core.system.LCF
 
   /** Initialize environment.
   */
-  public static synchronized void initializeEnvironment()
+  public static void initializeEnvironment()
+    throws LCFException
   {
-    if (needInit == false)
-      return;
+    synchronized (initializeFlagLock)
+    {
+      if (authoritiesInitialized)
+        return;
 
-    org.apache.lcf.core.system.LCF.initializeEnvironment();
-    Logging.initializeLoggers();
-    Logging.setLogLevels();
-    needInit = false;
-
+      org.apache.lcf.core.system.LCF.initializeEnvironment();
+      Logging.initializeLoggers();
+      Logging.setLogLevels();
+      authoritiesInitialized = true;
+    }
   }
 
 

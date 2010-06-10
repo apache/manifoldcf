@@ -39,6 +39,18 @@ public interface IDBInterface
   public static int TRANSACTION_READCOMMITTED = 1;
   public static int TRANSACTION_SERIALIZED = 2;
 
+  /** Initialize.  This method is called once per JVM instance, in order to set up
+  * database communication.
+  */
+  public void openDatabase()
+    throws LCFException;
+  
+  /** Uninitialize.  This method is called during JVM shutdown, in order to close
+  * all database communication.
+  */
+  public void closeDatabase()
+    throws LCFException;
+  
   /** Get the database name.
   *@return the database name.
   */
@@ -155,21 +167,19 @@ public interface IDBInterface
     throws LCFException;
 
   /** Create user and database.
-  *@param userName is the user name.
-  *@param password is the user's desired password.
-  *@param databaseName is the database name.
+  *@param adminUserName is the admin user name.
+  *@param adminPassword is the admin password.
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
-  public void createUserAndDatabase(String userName, String password, String databaseName,
-    StringSet invalidateKeys)
+  public void createUserAndDatabase(String adminUserName, String adminPassword, StringSet invalidateKeys)
     throws LCFException;
 
   /** Drop user and database.
-  *@param userName is the user name.
-  *@param databaseName is the database name.
+  *@param adminUserName is the admin user name.
+  *@param adminPassword is the admin password.
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
-  public void dropUserAndDatabase(String userName, String databaseName, StringSet invalidateKeys)
+  public void dropUserAndDatabase(String adminUserName, String adminPassword, StringSet invalidateKeys)
     throws LCFException;
     
   /** Get a table's schema.
