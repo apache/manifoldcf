@@ -276,7 +276,7 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
           break;
         Object o = row.getValue(JDBCConstants.idReturnColumnName);
         if (o == null)
-          throw new LCFException("Bad seed query; doesn't return 'id' column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\".");
+          throw new LCFException("Bad seed query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\".");
         String idValue = o.toString();
         activities.addSeedDocument(idValue);
       }
@@ -383,7 +383,7 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
           break;
         Object o = row.getValue(JDBCConstants.idReturnColumnName);
         if (o == null)
-          throw new LCFException("Bad version query; doesn't return 'id' column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\".");
+          throw new LCFException("Bad version query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\".");
         String idValue = o.toString();
         o = row.getValue(JDBCConstants.versionReturnColumnName);
         String versionValue;
@@ -436,7 +436,6 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
   {
     getSession();
     TableSpec ts = new TableSpec(spec);
-    String[] specAcls = null;
 
     // For all the documents not marked "scan only", form a query and pick up the contents.
     // If the contents is not found, then explicitly call the delete action method.
@@ -496,7 +495,7 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
           break;
         Object o = row.getValue(JDBCConstants.idReturnColumnName);
         if (o == null)
-          throw new LCFException("Bad document query; doesn't return 'id' column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\".");
+          throw new LCFException("Bad document query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\".");
         String id = readAsString(o);
         String version = (String)map.get(id);
         if (version != null)
@@ -536,50 +535,8 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
                   // An ingestion will take place for this document.
                   RepositoryDocument rd = new RepositoryDocument();
 
-                  // Set up any acls
-                  String[] accessAcls = null;
-                  String[] denyAcls = null;
-
-                  if (version.length() == 0)
-                  {
-                    // Version is empty string, therefore acl information must be gathered from spec
-                    if (specAcls == null)
-                      specAcls = getAcls(spec);
-                    accessAcls = specAcls;
-                    if (specAcls.length != 0)
-		      denyAcls = new String[]{defaultAuthorityDenyToken};
-		    else
-		      denyAcls = new String[0];
-                  }
-                  else
-                  {
-                    // Unpack access tokens and the deny token too
-                    ArrayList acls = new ArrayList();
-                    StringBuffer denyAclBuffer = new StringBuffer();
-                    int startPos = unpackList(acls,version,0,'+');
-                    if (startPos < version.length() && version.charAt(startPos++) == '+')
-                    {
-                      startPos = unpack(denyAclBuffer,version,startPos,'+');
-                    }
-                    // Turn into acls and add into description
-                    accessAcls = new String[acls.size()];
-                    int j = 0;
-                    while (j < accessAcls.length)
-                    {
-                      accessAcls[j] = (String)acls.get(j);
-                      j++;
-                    }
-                    // Deny acl too
-                    if (denyAclBuffer.length() > 0)
-                    {
-                      denyAcls = new String[]{denyAclBuffer.toString()};
-                    }
-                  }
-
-                  if (accessAcls != null)
-                    rd.setACL(accessAcls);
-                  if (denyAcls != null)
-                    rd.setDenyACL(denyAcls);
+                  applyAccessTokens(rd,version,spec);
+                  applyMetadata(rd,row);
 
                   BinaryInput bi = (BinaryInput)contents;
                   try
@@ -621,6 +578,9 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
                   {
                     byte[] bytes = value.getBytes("utf-8");
                     RepositoryDocument rd = new RepositoryDocument();
+
+                    applyAccessTokens(rd,version,spec);
+                    applyMetadata(rd,row);
 
                     InputStream is = new ByteArrayInputStream(bytes);
                     try
@@ -677,6 +637,94 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
     }
   }
 
+  /** Special column names, as far as document queries are concerned */
+  protected static HashMap documentKnownColumns;
+  static
+  {
+    documentKnownColumns = new HashMap();
+    documentKnownColumns.put(JDBCConstants.idReturnColumnName,"");
+    documentKnownColumns.put(JDBCConstants.urlReturnColumnName,"");
+    documentKnownColumns.put(JDBCConstants.dataReturnColumnName,"");
+  }
+  
+  /** Apply metadata to a repository document.
+  *@param rd is the repository document to apply the metadata to.
+  *@param row is the resultset row to use to get the metadata.  All non-special columns from this row will be considered to be metadata.
+  */
+  protected void applyMetadata(RepositoryDocument rd, IResultRow row)
+    throws LCFException
+  {
+    // Cycle through the row's columns
+    Iterator iter = row.getColumns();
+    while (iter.hasNext())
+    {
+      String columnName = (String)iter.next();
+      if (documentKnownColumns.get(columnName) == null)
+      {
+        // Consider this column to contain metadata.
+        // We can only accept non-binary metadata at this time.
+        Object metadata = row.getValue(columnName);
+        if (metadata instanceof BinaryInput)
+          throw new LCFException("Metadata column '"+columnName+"' must be convertible to a string, and cannot be binary");
+        rd.addField(columnName,metadata.toString());
+      }
+    }
+  }
+  
+  /** Apply access tokens to a repository document.
+  *@param rd is the repository document to apply the access tokens to.
+  *@param version is the version string.
+  *@param spec is the document specification.
+  */
+  protected void applyAccessTokens(RepositoryDocument rd, String version, DocumentSpecification spec)
+    throws LCFException
+  {
+    // Set up any acls
+    String[] accessAcls = null;
+    String[] denyAcls = null;
+
+    if (version.length() == 0)
+    {
+      // Version is empty string, therefore acl information must be gathered from spec
+      String[] specAcls = getAcls(spec);
+      accessAcls = specAcls;
+      if (specAcls.length != 0)
+        denyAcls = new String[]{defaultAuthorityDenyToken};
+      else
+        denyAcls = new String[0];
+    }
+    else
+    {
+      // Unpack access tokens and the deny token too
+      ArrayList acls = new ArrayList();
+      StringBuffer denyAclBuffer = new StringBuffer();
+      int startPos = unpackList(acls,version,0,'+');
+      if (startPos < version.length() && version.charAt(startPos++) == '+')
+      {
+        startPos = unpack(denyAclBuffer,version,startPos,'+');
+      }
+      // Turn into acls and add into description
+      accessAcls = new String[acls.size()];
+      int j = 0;
+      while (j < accessAcls.length)
+      {
+        accessAcls[j] = (String)acls.get(j);
+        j++;
+      }
+      // Deny acl too
+      if (denyAclBuffer.length() > 0)
+      {
+        denyAcls = new String[]{denyAclBuffer.toString()};
+      }
+    }
+
+    if (accessAcls != null)
+      rd.setACL(accessAcls);
+    if (denyAcls != null)
+      rd.setDenyACL(denyAcls);
+
+  }
+  
   /** Get the maximum number of documents to amalgamate together into one batch, for this connector.
   *@return the maximum number. 0 indicates "unlimited".
   */

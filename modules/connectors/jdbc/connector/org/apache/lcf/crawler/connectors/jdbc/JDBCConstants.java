@@ -43,13 +43,13 @@ public class JDBCConstants
   public static String dataQueryNode = "dataquery";
 
   /** The name of the id return column */
-  public static String idReturnColumnName = "id";
+  public static String idReturnColumnName = "lcf__id";
   /** The name of the version return column */
-  public static String versionReturnColumnName = "version";
+  public static String versionReturnColumnName = "lcf__version";
   /** The name of the url return column */
-  public static String urlReturnColumnName = "url";
+  public static String urlReturnColumnName = "lcf__url";
   /** The name of the data return column */
-  public static String dataReturnColumnName = "data";
+  public static String dataReturnColumnName = "lcf__data";
 
   /** The name of the id return variable */
   public static String idReturnVariable = "IDCOLUMN";
