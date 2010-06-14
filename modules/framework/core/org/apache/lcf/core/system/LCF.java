@@ -164,7 +164,8 @@ public class LCF
           masterDatabasePassword = "local_pg_passwd";
 
         // Register the file tracker for cleanup on shutdown
-        addShutdownHook(new FileTrack());
+	tracker = new FileTrack();
+        addShutdownHook(tracker);
         // Register the database cleanup hook
         addShutdownHook(new DatabaseShutdown());
 
