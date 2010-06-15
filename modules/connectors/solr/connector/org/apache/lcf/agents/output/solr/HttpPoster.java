@@ -971,7 +971,7 @@ public class HttpPoster
                   while (k < values.length)
                   {
                     String value = (String)values[k++];
-                    totalLength += lengthField(fieldName,value);
+                    totalLength += lengthField(LITERAL+fieldName,value);
                   }
                 }
                 // Count the binary data
@@ -1027,7 +1027,7 @@ public class HttpPoster
                   while (k < values.length)
                   {
                     String value = (String)values[k++];
-                    writeField(out,fieldName,value);
+                    writeField(out,LITERAL+fieldName,value);
                   }
                 }
 
