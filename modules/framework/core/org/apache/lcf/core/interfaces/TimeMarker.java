@@ -38,4 +38,10 @@ public class TimeMarker
   {
     return timeValue;
   }
+  
+  public String toString()
+  {
+    return new Long(timeValue).toString();
+  }
+  
 }
