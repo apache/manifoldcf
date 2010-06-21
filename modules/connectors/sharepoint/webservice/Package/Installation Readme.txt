@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-How to install and upgrade the MetaCarta SharePoint Web Service
+How to install and upgrade the MCPermissions SharePoint Web Service
 =================================================
 
 This web service is deployed using the SharePoint stsadm utility.  There are several included batch files: setup.bat (for first-time installation),
@@ -25,8 +25,8 @@ Note: This web service is only functional on SharePoint 3.0 (2007) systems.  Do 
 First-time installation
 ================
 
-1) Unpack the MetaCartaSharePointWebServiceInstaller.zip into a directory on your SharePoint server.
-2) Open a "Command" prompt, and cd to the directory in which the zip was unpacked.
+1) Copy the contents of the Package directory into a directory on your SharePoint server.
+2) Open a "Command" prompt, and cd to the directory in which the files were copied.
 3) If your SharePoint has been installed with its default paths, enter the command "setup.bat".  Otherwise, you may need to
    modify the setup.bat file first for it to be able to locate stsadm.exe.
 4) Test your installation by browsing to the following SharePoint URL:
@@ -39,8 +39,8 @@ If everything was properly deployed, you should see a web page that describes th
 Repeat or upgrade installations
 =======================
 
-1) Unpack the MetaCartaSharePointWebServiceInstaller.zip into a directory on your SharePoint server.
-2) Open a "Command" prompt, and cd to the directory in which the zip was unpacked.
+1) Copy the contents of the Package directory into a directory on your SharePoint server.
+2) Open a "Command" prompt, and cd to the directory in which the files were copied.
 3) If your SharePoint has been installed with its default paths, enter the command "upgrade.bat".  Otherwise, you may need to
    modify the upgrade.bat file first for it to be able to locate stsadm.exe.
    
@@ -48,8 +48,8 @@ Repeat or upgrade installations
 Remove an installation
 =================
 
-1) Unpack the MetaCartaSharePointWebServiceInstaller.zip into a directory on your SharePoint server.
-2) Open a "Command" prompt, and cd to the directory in which the zip was unpacked.
+1) Copy the contents of the Package directory into a directory on your SharePoint server.
+2) Open a "Command" prompt, and cd to the directory in which the files were copied.
 3) If your SharePoint has been installed with its default paths, enter the command "remove.bat".  Otherwise, you may need to
    modify the remove.bat file first for it to be able to locate stsadm.exe.
 
