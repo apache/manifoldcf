@@ -68,6 +68,7 @@ public class HttpPoster
 
   private static final String LITERAL = "literal.";
   private static final String NOTHING = "__NOTHING__";
+  private static final String ID_METADATA = "lcf_metadata_id";
     
   private int buffersize = 32768;  // default buffer size
   double sizeCoefficient = 0.0005;    // 20 ms additional timeout per 2000 bytes, pulled out of my butt
@@ -966,6 +967,8 @@ public class HttpPoster
                 {
                   String fieldName = (String)iter.next();
                   Object[] values = document.getField(fieldName);
+		  if (fieldName.toLowerCase().equals("id"))
+		    fieldName = ID_METADATA;
                   // We only handle strings right now!!!
                   int k = 0;
                   while (k < values.length)
@@ -1022,6 +1025,8 @@ public class HttpPoster
                 {
                   String fieldName = (String)iter.next();
                   Object[] values = document.getField(fieldName);
+		  if (fieldName.toLowerCase().equals("id"))
+		    fieldName = ID_METADATA;
                   // We only handle strings right now!!!
                   int k = 0;
                   while (k < values.length)
