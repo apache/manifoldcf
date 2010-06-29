@@ -109,6 +109,10 @@ public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnec
       if (webapp == null || webapp.length() == 0)
         webapp = "";
 
+      String core = params.getParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_CORE);
+      if (core != null && core.length() == 0)
+        core = null;
+      
       String updatePath = params.getParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_UPDATEPATH);
       if (updatePath == null || updatePath.length() == 0)
         updatePath = "";
@@ -124,6 +128,14 @@ public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnec
       String userID = params.getParameter(SolrConfig.PARAM_USERID);
       String password = params.getObfuscatedParameter(SolrConfig.PARAM_PASSWORD);
       String realm = params.getParameter(SolrConfig.PARAM_REALM);
+      
+      if (core != null)
+      {
+        if (webapp.length() == 0)
+          throw new LCFException("Webapp must be specified if core is specified.");
+        webapp = webapp + "/" + core;
+      }
+      
       try
       {
         poster = new HttpPoster(protocol,server,Integer.parseInt(port),webapp,updatePath,removePath,statusPath,realm,userID,password,
@@ -331,6 +343,18 @@ public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnec
 "    editconnection.webappname.focus();\n"+
 "    return false;\n"+
 "  }\n"+
+"  if (editconnection.core.value != \"\" && editconnection.core.value.indexOf(\"/\") != -1)\n"+
+"  {\n"+
+"    alert(\"Core name cannot have '/' characters\");\n"+
+"    editconnection.core.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.webappname.value == \"\" && editconnection.core.value != \"\")\n"+
+"  {\n"+
+"    alert(\"Web application must be specified if core is specified\");\n"+
+"    editconnection.webappname.focus();\n"+
+"    return false;\n"+
+"  }\n"+
 "  if (editconnection.updatepath.value != \"\" && editconnection.updatepath.value.substring(0,1) != \"/\")\n"+
 "  {\n"+
 "    alert(\"Update path must start with a  '/' character\");\n"+
@@ -371,6 +395,20 @@ public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnec
 "  if (editconnection.webappname.value != \"\" && editconnection.webappname.value.indexOf(\"/\") != -1)\n"+
 "  {\n"+
 "    alert(\"Web application name cannot have '/' characters\");\n"+
+"    SelectTab(\"Server\");\n"+
+"    editconnection.webappname.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.core.value != \"\" && editconnection.core.value.indexOf(\"/\") != -1)\n"+
+"  {\n"+
+"    alert(\"Core name cannot have '/' characters\");\n"+
+"    SelectTab(\"Server\");\n"+
+"    editconnection.core.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.webappname.value == \"\" && editconnection.core.value != \"\")\n"+
+"  {\n"+
+"    alert(\"Web application must be specified if core is specified\");\n"+
 "    SelectTab(\"Server\");\n"+
 "    editconnection.webappname.focus();\n"+
 "    return false;\n"+
@@ -458,6 +496,10 @@ public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnec
     if (webapp == null)
       webapp = "solr";
 
+    String core = parameters.getParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_CORE);
+    if (core == null)
+      core = "";
+
     String updatePath = parameters.getParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_UPDATEPATH);
     if (updatePath == null)
       updatePath = "/update/extract";
@@ -510,9 +552,15 @@ public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnec
 "  </tr>\n"+
 "  <tr><td colspan=\"2\" class=\"separator\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Web application  name:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>Web application name:</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input name=\"webappname\" type=\"text\" size=\"16\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(webapp)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Core name:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"core\" type=\"text\" size=\"16\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(core)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
@@ -563,6 +611,7 @@ public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnec
 "<input type=\"hidden\" name=\"servername\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(server)+"\"/>\n"+
 "<input type=\"hidden\" name=\"serverport\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(port)+"\"/>\n"+
 "<input type=\"hidden\" name=\"webappname\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(webapp)+"\"/>\n"+
+"<input type=\"hidden\" name=\"core\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(core)+"\"/>\n"+
 "<input type=\"hidden\" name=\"updatepath\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(updatePath)+"\"/>\n"+
 "<input type=\"hidden\" name=\"removepath\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(removePath)+"\"/>\n"+
 "<input type=\"hidden\" name=\"statuspath\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(statusPath)+"\"/>\n"+
@@ -729,6 +778,10 @@ public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnec
     String webapp = variableContext.getParameter("webappname");
     if (webapp != null)
       parameters.setParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_WEBAPPNAME,webapp);
+
+    String core = variableContext.getParameter("core");
+    if (core != null)
+      parameters.setParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_CORE,core);
 
     String updatePath = variableContext.getParameter("updatepath");
     if (updatePath != null)

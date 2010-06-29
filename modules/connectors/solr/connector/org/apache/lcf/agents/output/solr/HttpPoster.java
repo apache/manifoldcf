@@ -123,7 +123,8 @@ public class HttpPoster
   * @param userID is the unencoded user name, or null.
   * @param password is the unencoded password, or null.
   */
-  public HttpPoster(String protocol, String server, int port, String webappName, String updatePath, String removePath, String statusPath,
+  public HttpPoster(String protocol, String server, int port, String webappName,
+    String updatePath, String removePath, String statusPath,
     String realm, String userID, String password, String allowAttributeName, String denyAttributeName)
     throws LCFException
   {
@@ -153,6 +154,7 @@ public class HttpPoster
 
     if (webappName.length() > 0)
       webappName = "/" + webappName;
+      
     postUpdateAction = webappName + updatePath;
     postRemoveAction = webappName + removePath;
     postStatusAction = webappName + statusPath;

@@ -35,6 +35,8 @@ public class SolrConfig
   public static final String PARAM_PORT = "Server port";
   /** Webapp */
   public static final String PARAM_WEBAPPNAME = "Server web application";
+  /** Core */
+  public static final String PARAM_CORE = "Solr core name";
   /** Update path */
   public static final String PARAM_UPDATEPATH = "Server update handler";
   /** Remove path */
