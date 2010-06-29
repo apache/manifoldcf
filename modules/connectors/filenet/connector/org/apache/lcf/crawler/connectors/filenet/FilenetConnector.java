@@ -1266,6 +1266,1400 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
     return 1;
   }
 
+  // UI support methods.
+  //
+  // These support methods come in two varieties.  The first bunch is involved in setting up connection configuration information.  The second bunch
+  // is involved in presenting and editing document specification information for a job.  The two kinds of methods are accordingly treated differently,
+  // in that the first bunch cannot assume that the current connector object is connected, while the second bunch can.  That is why the first bunch
+  // receives a thread context argument for all UI methods, while the second bunch does not need one (since it has already been applied via the connect()
+  // method, above).
+    
+  /** Output the configuration header section.
+  * This method is called in the head section of the connector's configuration page.  Its purpose is to add the required tabs to the list, and to output any
+  * javascript methods that might be needed by the configuration editing HTML.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
+    throws LCFException, IOException
+  {
+    tabsArray.add("Server");
+    tabsArray.add("Object Store");
+    tabsArray.add("Document URL");
+    tabsArray.add("Credentials");
+    out.print(
+"<script type=\"text/javascript\">\n"+
+"<!--\n"+
+"function checkConfig()\n"+
+"{\n"+
+"  if (editconnection.serverport.value != \"\" && !isInteger(editconnection.serverport.value))\n"+
+"  {\n"+
+"    alert(\"The server port must be an integer\");\n"+
+"    editconnection.serverport.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.urlport.value != \"\" && !isInteger(editconnection.urlport.value))\n"+
+"  {\n"+
+"    alert(\"The Document URL port must be an integer\");\n"+
+"    editconnection.urlport.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"\n"+
+"  return true;\n"+
+"}\n"+
+"	\n"+
+"function checkConfigForSave()\n"+
+"{\n"+
+"  if (editconnection.serverhostname.value == \"\")\n"+
+"  {\n"+
+"    alert(\"The connection requires a FileNet host name\");\n"+
+"    SelectTab(\"Server\");\n"+
+"    editconnection.serverhostname.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.serverport.value != \"\" && !isInteger(editconnection.serverport.value))\n"+
+"  {\n"+
+"    alert(\"The server port must be an integer\");\n"+
+"    SelectTab(\"Server\");\n"+
+"    editconnection.serverport.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.urlhostname.value == \"\")\n"+
+"  {\n"+
+"    alert(\"The Document URL requires a host name\");\n"+
+"    SelectTab(\"Document URL\");\n"+
+"    editconnection.urlhostname.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.urlport.value != \"\" && !isInteger(editconnection.urlport.value))\n"+
+"  {\n"+
+"    alert(\"The Document URL port must be an integer\");\n"+
+"    SelectTab(\"Document URL\");\n"+
+"    editconnection.urlport.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"\n"+
+"  if (editconnection.filenetdomain.value == \"\")\n"+
+"  {\n"+
+"    alert(\"The file net domain name cannot be null\");\n"+
+"    SelectTab(\"Object Store\");\n"+
+"    editconnection.filenetdomain.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.objectstore.value == \"\")\n"+
+"  {\n"+
+"    alert(\"The object store name cannot be null\");\n"+
+"    SelectTab(\"Object Store\");\n"+
+"    editconnection.objectstore.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.userid.value == \"\")\n"+
+"  {\n"+
+"    alert(\"The connection requires a valid FileNet user ID\");\n"+
+"    SelectTab(\"Credentials\");\n"+
+"    editconnection.userid.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.password.value == \"\")\n"+
+"  {\n"+
+"    alert(\"The connection requires the FileNet user's password\");\n"+
+"    SelectTab(\"Credentials\");\n"+
+"    editconnection.password.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"//-->\n"+
+"</script>\n"
+    );
+  }
+  
+  /** Output the configuration body section.
+  * This method is called in the body section of the connector's configuration page.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabName is the current tab name.
+  */
+  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
+    throws LCFException, IOException
+  {
+    String userID = parameters.getParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_USERID);
+    if (userID == null)
+      userID = "";
+    String password = parameters.getObfuscatedParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_PASSWORD);
+    if (password == null)
+      password = "";
+    String filenetdomain = parameters.getParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_FILENETDOMAIN);
+    if (filenetdomain == null)
+    {
+      filenetdomain = parameters.getParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_FILENETDOMAIN_OLD);
+      if (filenetdomain == null)
+        filenetdomain = "";
+    }
+    String objectstore = parameters.getParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_OBJECTSTORE);
+    if (objectstore == null)
+      objectstore = "";
+    String serverprotocol = parameters.getParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_SERVERPROTOCOL);
+    if (serverprotocol == null)
+      serverprotocol = "http";
+    String serverhostname = parameters.getParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_SERVERHOSTNAME);
+    if (serverhostname == null)
+      serverhostname = "";
+    String serverport = parameters.getParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_SERVERPORT);
+    if (serverport == null)
+      serverport = "";
+    String serverwsilocation = parameters.getParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_SERVERWSILOCATION);
+    if (serverwsilocation == null)
+      serverwsilocation = "wsi/FNCEWS40DIME";
+    String urlprotocol = parameters.getParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_URLPROTOCOL);
+    if (urlprotocol == null)
+      urlprotocol = "http";
+    String urlhostname = parameters.getParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_URLHOSTNAME);
+    if (urlhostname == null)
+      urlhostname = "";
+    String urlport = parameters.getParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_URLPORT);
+    if (urlport == null)
+      urlport = "";
+    String urllocation = parameters.getParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_URLLOCATION);
+    if (urllocation == null)
+      urllocation = "Workplace/Browse.jsp";
+
+    // "Server" tab
+    if (tabName.equals("Server"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Server protocol:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <select name=\"serverprotocol\" size=\"2\">\n"+
+"        <option value=\"http\" "+(serverprotocol.equals("http")?"selected=\"true\"":"")+">http</option>\n"+
+"        <option value=\"https\" "+(serverprotocol.equals("https")?"selected=\"true\"":"")+">https</option>\n"+
+"      </select>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Server host name:</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"serverhostname\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(serverhostname)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Server port:</nobr></td><td class=\"value\"><input type=\"text\" size=\"5\" name=\"serverport\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(serverport)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Server web service location:</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"serverwsilocation\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(serverwsilocation)+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for Server tab
+      out.print(
+"<input type=\"hidden\" name=\"serverprotocol\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(serverprotocol)+"\"/>\n"+
+"<input type=\"hidden\" name=\"serverhostname\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(serverhostname)+"\"/>\n"+
+"<input type=\"hidden\" name=\"serverport\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(serverport)+"\"/>\n"+
+"<input type=\"hidden\" name=\"serverwsilocation\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(serverwsilocation)+"\"/>\n"
+      );
+    }
+
+    // "Document URL" tab
+    if (tabName.equals("Document URL"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Document URL protocol:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <select name=\"urlprotocol\" size=\"2\">\n"+
+"        <option value=\"http\" "+(serverprotocol.equals("http")?"selected=\"true\"":"")+">http</option>\n"+
+"        <option value=\"https\" "+(serverprotocol.equals("https")?"selected=\"true\"":"")+">https</option>\n"+
+"      </select>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Document URL host name:</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"urlhostname\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(urlhostname)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Document URL port:</nobr></td><td class=\"value\"><input type=\"text\" size=\"5\" name=\"urlport\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(urlport)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Document URL location:</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"urllocation\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(urllocation)+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for Document URL tab
+      out.print(
+"<input type=\"hidden\" name=\"urlprotocol\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(urlprotocol)+"\"/>\n"+
+"<input type=\"hidden\" name=\"urlhostname\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(urlhostname)+"\"/>\n"+
+"<input type=\"hidden\" name=\"urlport\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(urlport)+"\"/>\n"+
+"<input type=\"hidden\" name=\"urllocation\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(urllocation)+"\"/>\n"
+      );
+    }
+
+    // "Object Store" tab
+    if (tabName.equals("Object Store"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>FileNet domain name:</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"filenetdomain\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(filenetdomain)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Object store name:</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"objectstore\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(objectstore)+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for Object Store tab
+      out.print(
+"<input type=\"hidden\" name=\"filenetdomain\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(filenetdomain)+"\"/>\n"+
+"<input type=\"hidden\" name=\"objectstore\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(objectstore)+"\"/>\n"
+      );
+    }
+
+
+    // "Credentials" tab
+    if (tabName.equals("Credentials"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>User ID:</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"userid\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(userID)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Password:</nobr></td><td class=\"value\"><input type=\"password\" size=\"32\" name=\"password\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(password)+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for Credentials tab
+      out.print(
+"<input type=\"hidden\" name=\"userid\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(userID)+"\"/>\n"+
+"<input type=\"hidden\" name=\"password\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(password)+"\"/>\n"
+      );
+    }
+
+  }
+  
+  /** Process a configuration post.
+  * This method is called at the start of the connector's configuration page, whenever there is a possibility that form data for a connection has been
+  * posted.  Its purpose is to gather form information and modify the configuration parameters accordingly.
+  * The name of the posted form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param variableContext is the set of variables available from the post, including binary file post information.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
+  */
+  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
+    throws LCFException
+  {
+    String serverprotocol = variableContext.getParameter("serverprotocol");
+    if (serverprotocol != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_SERVERPROTOCOL,serverprotocol);
+
+    String serverhostname = variableContext.getParameter("serverhostname");
+    if (serverhostname != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_SERVERHOSTNAME,serverhostname);
+    
+    String serverport = variableContext.getParameter("serverport");
+    if (serverport != null && serverport.length() > 0)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_SERVERPORT,serverport);
+
+    String serverwsilocation = variableContext.getParameter("serverwsilocation");
+    if (serverwsilocation != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_SERVERWSILOCATION,serverwsilocation);
+
+    String urlprotocol = variableContext.getParameter("urlprotocol");
+    if (urlprotocol != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_URLPROTOCOL,urlprotocol);
+
+    String urlhostname = variableContext.getParameter("urlhostname");
+    if (urlhostname != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_URLHOSTNAME,urlhostname);
+
+    String urlport = variableContext.getParameter("urlport");
+    if (urlport != null && urlport.length() > 0)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_URLPORT,urlport);
+
+    String urllocation = variableContext.getParameter("urllocation");
+    if (urllocation != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_URLLOCATION,urllocation);
+
+    String userID = variableContext.getParameter("userid");
+    if (userID != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_USERID,userID);
+
+    String password = variableContext.getParameter("password");
+    if (password != null)
+      parameters.setObfuscatedParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_PASSWORD,password);
+
+    String filenetdomain = variableContext.getParameter("filenetdomain");
+    if (filenetdomain != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_FILENETDOMAIN,filenetdomain);
+
+    String objectstore = variableContext.getParameter("objectstore");
+    if (objectstore != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_OBJECTSTORE,objectstore);
+    return null;
+  }
+  
+  /** View configuration.
+  * This method is called in the body section of the connector's view configuration page.  Its purpose is to present the connection information to the user.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  */
+  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
+    throws LCFException, IOException
+  {
+    out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>Parameters:</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"3\">\n"
+    );
+    Iterator iter = parameters.listParameters();
+    while (iter.hasNext())
+    {
+      String param = (String)iter.next();
+      String value = parameters.getParameter(param);
+      if (param.length() >= "password".length() && param.substring(param.length()-"password".length()).equalsIgnoreCase("password"))
+      {
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"=********</nobr><br/>\n"
+        );
+      }
+      else if (param.length() >="keystore".length() && param.substring(param.length()-"keystore".length()).equalsIgnoreCase("keystore"))
+      {
+        IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"=<"+Integer.toString(kmanager.getContents().length)+" certificate(s)></nobr><br/>\n"
+        );
+      }
+      else
+      {
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"="+org.apache.lcf.ui.util.Encoder.bodyEscape(value)+"</nobr><br/>\n"
+        );
+      }
+    }
+    out.print(
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+    );
+  }
+  
+  /** Output the specification header section.
+  * This method is called in the head section of a job page which has selected a repository connection of the current type.  Its purpose is to add the required tabs
+  * to the list, and to output any javascript methods that might be needed by the job editing HTML.
+  *@param out is the output to which any HTML should be sent.
+  *@param ds is the current document specification for this job.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
+  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
+    throws LCFException, IOException
+  {
+    tabsArray.add("Document Classes");
+    tabsArray.add("Mime Types");
+    tabsArray.add("Security");
+    out.print(
+"<script type=\"text/javascript\">\n"+
+"<!--\n"+
+"\n"+
+"function checkSpecification()\n"+
+"{\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"function SpecOp(n, opValue, anchorvalue)\n"+
+"{\n"+
+"  eval(\"editjob.\"+n+\".value = \\\"\"+opValue+\"\\\"\");\n"+
+"  postFormSetAnchor(anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function SpecAddMatch(docclass, anchorvalue)\n"+
+"{\n"+
+"  if (eval(\"editjob.matchfield_\"+docclass+\".value\") == \"\")\n"+
+"  {\n"+
+"    alert(\"Select a field first\");\n"+
+"    eval(\"editjob.matchfield_\"+docclass+\".focus()\");\n"+
+"    return;\n"+
+"  }\n"+
+"  if (eval(\"editjob.matchtype_\"+docclass+\".value\") == \"\")\n"+
+"  {\n"+
+"    alert(\"Select a match type\");\n"+
+"    eval(\"editjob.matchtype_\"+docclass+\".focus()\");\n"+
+"    return;\n"+
+"  }\n"+
+"\n"+
+"  SpecOp(\"matchop_\"+docclass,\"Add\",anchorvalue);\n"+
+"}\n"+
+"	\n"+
+"function SpecAddToken(anchorvalue)\n"+
+"{\n"+
+"  if (editjob.spectoken.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Null tokens not allowed\");\n"+
+"    editjob.spectoken.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"\n"+
+"  SpecOp(\"accessop\",\"Add\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"//-->\n"+
+"</script>\n"
+    );
+  }
+  
+  /** Output the specification body section.
+  * This method is called in the body section of a job page which has selected a repository connection of the current type.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * form is "editjob".
+  *@param out is the output to which any HTML should be sent.
+  *@param ds is the current document specification for this job.
+  *@param tabName is the current tab name.
+  */
+  public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
+    throws LCFException, IOException
+  {
+    int i;
+    Iterator iter;
+
+    // "Document Classes" tab
+    // Look for document classes
+    HashMap documentClasses = new HashMap();
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_DOCUMENTCLASS))
+      {
+        String value = sn.getAttributeValue(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE);
+        // Now, scan for metadata etc.
+        org.apache.lcf.crawler.connectors.filenet.DocClassSpec spec = new org.apache.lcf.crawler.connectors.filenet.DocClassSpec(sn);
+        documentClasses.put(value,spec);
+      }
+    }
+
+    if (tabName.equals("Document Classes"))
+    {
+      out.print(
+"<input type=\"hidden\" name=\"hasdocumentclasses\" value=\"true\"/>\n"+
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+      );
+      // Fetch the list of valid document classes from the connector
+      org.apache.lcf.crawler.common.filenet.DocumentClassDefinition[] documentClassArray = null;
+      HashMap documentClassFields = new HashMap();
+      String message = null;
+      try
+      {
+        documentClassArray = getDocumentClassesDetails();
+        int j = 0;
+        while (j < documentClassArray.length)
+        {
+          String documentClass = documentClassArray[j++].getSymbolicName();
+          org.apache.lcf.crawler.common.filenet.MetadataFieldDefinition[] metaFields = getDocumentClassMetadataFieldsDetails(documentClass);
+          documentClassFields.put(documentClass,metaFields);
+        }
+      }
+      catch (LCFException e)
+      {
+        message = e.getMessage();
+      }
+      catch (ServiceInterruption e)
+      {
+        message = "FileNet server temporarily unavailable: "+e.getMessage();
+      }
+
+      if (message != null)
+      {
+        out.print(
+"  <tr><td class=\"message\" colspan=\"2\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(message)+"</td></tr>\n"
+        );
+      }
+      else
+      {
+        i = 0;
+        while (i < documentClassArray.length)
+        {
+          org.apache.lcf.crawler.common.filenet.DocumentClassDefinition def = documentClassArray[i++];
+          String documentClass = def.getSymbolicName();
+          String displayName = def.getDisplayName();
+          org.apache.lcf.crawler.connectors.filenet.DocClassSpec spec = (org.apache.lcf.crawler.connectors.filenet.DocClassSpec)documentClasses.get(documentClass);
+          out.print(
+"  <tr>\n"+
+"    <td class=\"description\">\n"+
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(documentClass+" ("+displayName+")")+":</nobr>\n"+
+"    </td>\n"+
+"    <td class=\"boxcell\">\n"+
+"      <table class=\"displaytable\">\n"+
+"        <tr>\n"+
+"          <td class=\"description\">\n"+
+"            <nobr>Include?</nobr>\n"+
+"          </td>\n"+
+"          <td class=\"value\">\n"+
+"            <nobr><input type=\"checkbox\" name=\"documentclasses\" "+((spec != null)?"checked=\"true\"":"")+" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)+"\"></input></nobr>\n"+
+"          </td>\n"+
+"        </tr>\n"+
+"        <tr>\n"+
+"          <td class=\"description\">\n"+
+"            <nobr>Document criteria:</nobr>\n"+
+"          </td>\n"+
+"          <td class=\"boxcell\">\n"+
+"            <table class=\"displaytable\">\n"
+          );
+          org.apache.lcf.crawler.common.filenet.MetadataFieldDefinition[] fields = (org.apache.lcf.crawler.common.filenet.MetadataFieldDefinition[])documentClassFields.get(documentClass);
+          String[] fieldArray = new String[fields.length];
+          HashMap fieldMap = new HashMap();
+          int j = 0;
+          while (j < fieldArray.length)
+          {
+            org.apache.lcf.crawler.common.filenet.MetadataFieldDefinition field = fields[j];
+            fieldArray[j++] = field.getSymbolicName();
+            fieldMap.put(field.getSymbolicName(),field.getDisplayName());
+          }
+          java.util.Arrays.sort(fieldArray);
+
+          int q = 0;
+          int matchCount = ((spec==null)?0:spec.getMatchCount());
+          while (q < matchCount)
+          {
+            String matchType = spec.getMatchType(q);
+            String matchField = spec.getMatchField(q);
+            String matchValue = spec.getMatchValue(q);
+            String opName = "matchop_" + org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass) + "_" +Integer.toString(q);
+            String labelName = "match_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q);
+            out.print(
+"              <tr>\n"+
+"                <td class=\"description\">\n"+
+"                  <input type=\"hidden\" name=\""+opName+"\" value=\"\"/>\n"+
+"                  <a name=\""+labelName+"\">\n"+
+"                    <input type=\"button\" value=\"Delete\" alt=\""+"Delete "+documentClass+" match # "+Integer.toString(q)+"\" onClick='Javascript:SpecOp(\""+opName+"\",\"Delete\",\""+labelName+"\")'/>\n"+
+"                  </a>\n"+
+"                </td>\n"+
+"                <td class=\"value\">\n"+
+"                  <input type=\"hidden\" name=\""+"matchfield_" + org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass) + "_" + Integer.toString(q)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(matchField)+"\"/>\n"+
+"                  <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(matchField)+"</nobr>\n"+
+"                </td>\n"+
+"                <td class=\"value\">\n"+
+"                  <input type=\"hidden\" name=\""+"matchtype_" + org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass) + "_" + Integer.toString(q)+"\" value=\""+matchType+"\"/>\n"+
+"                  <nobr>"+matchType+"</nobr>\n"+
+"                </td>\n"+
+"                <td class=\"value\">\n"+
+"                  <input type=\"hidden\" name=\""+"matchvalue_" + org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass) + "_" + Integer.toString(q)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(matchValue)+"\"/>\n"+
+"                  <nobr>\""+org.apache.lcf.ui.util.Encoder.bodyEscape(matchValue)+"\"</nobr>\n"+
+"                </td>\n"+
+"              </tr>\n"
+            );
+            q++;
+          }
+          if (q == 0)
+          {
+            out.print(
+"              <tr><td class=\"message\" colspan=\"4\"><nobr>(No criteria specified - all documents will be taken)</nobr></td></tr>\n"
+            );
+          }
+          String addLabelName = "match_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q);
+          String addOpName = "matchop_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass);
+          out.print(
+"              <tr><td class=\"lightseparator\" colspan=\"4\"><hr/></td></tr>\n"+
+"              <tr>\n"+
+"                <td class=\"description\">\n"+
+"                  <input type=\"hidden\" name=\""+"matchcount_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)+"\" value=\""+Integer.toString(matchCount)+"\"/>\n"+
+"                  <input type=\"hidden\" name=\""+addOpName+"\" value=\"\"/>\n"+
+"                  <a name=\""+addLabelName+"\">\n"+
+"                    <input type=\"button\" value=\"Add\" alt=\""+"Add match for "+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)+"\" onClick='Javascript:SpecAddMatch(\""+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)+"\",\"match_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q+1)+"\")'/>\n"+
+"                  </a>\n"+
+"                </td>\n"+
+"                <td class=\"value\">\n"+
+"                  <select name=\""+"matchfield_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)+"\" size=\"5\">\n"
+          );
+          q = 0;
+          while (q < fieldArray.length)
+          {
+            String field = fieldArray[q++];
+            String dName = (String)fieldMap.get(field);
+            out.print(
+"                    <option value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(field)+"\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(field+" ("+dName+")")+"</option>\n"
+            );
+          }
+          out.print(
+"                  </select>\n"+
+"                </td>\n"+
+"                <td class=\"value\">\n"+
+"                  <select name=\""+"matchtype_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)+"\">\n"+
+"                    <option value=\"=\">Equals</option>\n"+
+"                    <option value="!=">Not equals</option>\n"+
+"                    <option value=\"LIKE\">'Like' (with % wildcards)</option>\n"+
+"                  </select>\n"+
+"                </td>\n"+
+"                <td class=\"value\">\n"+
+"                  <input name=\""+"matchvalue_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)+"\" type=\"text\" size=\"32\" value=\"\"/>\n"+
+"                </td>\n"+
+"              </tr>\n"+
+"            </table>\n"+
+"          </td>\n"+
+"        </tr>\n"+
+"        <tr>\n"+
+"          <td class=\"description\">\n"+
+"            <nobr>Ingest all metadata fields?</nobr>\n"+
+"          </td>\n"+
+"          <td class=\"value\">\n"+
+"            <nobr><input type=\"checkbox\" name=\""+"allmetadata_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)+"\" value=\"true\" "+((spec != null && spec.getAllMetadata())?"checked=\"\"":"")+"></input></nobr><br/>\n"+
+"          </td>\n"+
+"        </tr>\n"+
+"        <tr>\n"+
+"          <td class=\"description\">\n"+
+"            <nobr>Metadata fields:</nobr>\n"+
+"          </td>\n"+
+"          <td class=\"value\">\n"+
+"            <nobr>\n"+
+"              <select name=\""+"metadatafield_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)+"\" multiple=\"true\" size=\"5\">\n"
+          );
+          j = 0;
+          while (j < fieldArray.length)
+          {
+            String field = fieldArray[j++];
+            String dName = (String)fieldMap.get(field);
+            out.print(
+"                <option value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(field)+"\" "+((spec!=null && spec.getAllMetadata() == false && spec.checkMetadataIncluded(field))?"selected=\"true\"":"")+">"+org.apache.lcf.ui.util.Encoder.bodyEscape(field+" ("+dName+")")+"</option>\n"
+            );
+          }
+          out.print(
+"              </select>\n"+
+"            </nobr>\n"+
+"\n"+
+"          </td>\n"+
+"        </tr>\n"+
+"      </table>\n"+
+"    </td>\n"+
+"  </tr>\n"
+          );
+        }
+      }
+      out.print(
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"hasdocumentclasses\" value=\"true\"/>\n"
+      );
+      iter = documentClasses.keySet().iterator();
+      while (iter.hasNext())
+      {
+        String documentClass = (String)iter.next();
+        org.apache.lcf.crawler.connectors.filenet.DocClassSpec spec = (org.apache.lcf.crawler.connectors.filenet.DocClassSpec)documentClasses.get(documentClass);
+        if (spec.getAllMetadata())
+        {
+          out.print(
+"<input type=\"hidden\" name=\""+"allmetadata_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)+"\" value=\"true\"/>\n"
+          );
+        }
+        else
+        {
+          String[] metadataFields = spec.getMetadataFields();
+          int q = 0;
+          while (q < metadataFields.length)
+          {
+            String field = metadataFields[q++];
+            out.print(
+"<input type=\"hidden\" name=\""+"metadatafield_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(field)+"\"/>\n"
+            );
+          }
+        }
+                    
+        // Do matches
+        int matchCount = spec.getMatchCount();
+        int q = 0;
+        while (q < matchCount)
+        {
+          String matchType = spec.getMatchType(q);
+          String matchField = spec.getMatchField(q);
+          String matchValue = spec.getMatchValue(q);
+          out.print(
+"<input type=\"hidden\" name=\""+"matchfield_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(matchField)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"matchtype_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q)+"\" value=\""+matchType+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"matchvalue_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(matchValue)+"\"/>\n"
+          );
+          q++;
+        }
+        out.print(
+"<input type=\"hidden\" name=\""+"matchcount_"+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)+"\" value=\""+Integer.toString(matchCount)+"\"/>\n"+
+"<input type=\"hidden\" name=\"documentclasses\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(documentClass)+"\"/>\n"
+        );
+      }
+    }
+
+    // "Mime Types" tab
+    HashMap mimeTypes = null;
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_MIMETYPE))
+      {
+        String value = sn.getAttributeValue(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE);
+        if (mimeTypes == null)
+          mimeTypes = new HashMap();
+        mimeTypes.put(value,value);
+      }
+    }
+
+    if (tabName.equals("Mime Types"))
+    {
+      out.print(
+"<input type=\"hidden\" name=\"hasmimetypes\" value=\"true\"/>\n"+
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+      );
+      // Fetch the list of valid document classes from the connector
+      String[] mimeTypesArray = null;
+      String message = null;
+      try
+      {
+        mimeTypesArray = getMimeTypes();
+      }
+      catch (LCFException e)
+      {
+        message = e.getMessage();
+      }
+      catch (ServiceInterruption e)
+      {
+        message = "FileNet server temporarily unavailable: "+e.getMessage();
+      }
+      out.print(
+"  <tr>\n"
+      );
+      if (message != null)
+      {
+        out.print(
+"    <td class=\"message\" colspan=\"2\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(message)+"</td>\n"
+        );
+      }
+      else
+      {
+        out.print(
+"    <td class=\"description\"><nobr>Mime types to include:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <select name=\"mimetypes\" size=\"10\" multiple=\"true\">\n"
+        );
+        i = 0;
+        while (i < mimeTypesArray.length)
+        {
+          String mimeType = mimeTypesArray[i++];
+          if (mimeTypes == null || mimeTypes.get(mimeType) != null)
+          {
+            out.print(
+"        <option value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(mimeType)+"\" selected=\"true\">\n"+
+"          "+org.apache.lcf.ui.util.Encoder.bodyEscape(mimeType)+"\n"+
+"        </option>\n"
+            );
+          }
+          else
+          {
+            out.print(
+"        <option value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(mimeType)+"\">\n"+
+"          "+org.apache.lcf.ui.util.Encoder.bodyEscape(mimeType)+"\n"+
+"        </option>\n"
+            );
+          }
+        }
+        out.print(
+"      </select>\n"+
+"    </td>\n"
+        );
+      }
+      out.print(
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"hasmimetypes\" value=\"true\"/>\n"
+      );
+      if (mimeTypes != null)
+      {
+        iter = mimeTypes.keySet().iterator();
+        while (iter.hasNext())
+        {
+          String mimeType = (String)iter.next();
+          out.print(
+"<input type=\"hidden\" name=\"mimetypes\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(mimeType)+"\"/>\n"
+          );
+        }
+      }
+    }
+
+    // Security tab
+    int k;
+    // Find whether security is on or off
+    i = 0;
+    boolean securityOn = true;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("security"))
+      {
+        String securityValue = sn.getAttributeValue("value");
+        if (securityValue.equals("off"))
+          securityOn = false;
+        else if (securityValue.equals("on"))
+          securityOn = true;
+      }
+    }
+
+    if (tabName.equals("Security"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Security:</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"1\">\n"+
+"      <input type=\"radio\" name=\"specsecurity\" value=\"on\" "+((securityOn)?"checked=\"true\"":"")+" />Enabled&nbsp;\n"+
+"      <input type=\"radio\" name=\"specsecurity\" value=\"off\" "+((securityOn==false)?"checked=\"true\"":"")+" />Disabled\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+      );
+      // Finally, go through forced ACL
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals("access"))
+        {
+          String accessDescription = "_"+Integer.toString(k);
+          String accessOpName = "accessop"+accessDescription;
+          String token = sn.getAttributeValue("token");
+          out.print(
+"  <tr>\n"+
+"    <td class=\"description\">\n"+
+"      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
+"      <input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"+
+"      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Delete\" alt=\""+"Delete access token #"+Integer.toString(k)+"\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")'/>\n"+
+"      </a>\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(token)+"\n"+
+"    </td>\n"+
+"  </tr>\n"
+          );
+          k++;
+        }
+      }
+      if (k == 0)
+      {
+        out.print(
+"  <tr>\n"+
+"    <td class=\"message\" colspan=\"2\">No access tokens present</td>\n"+
+"  </tr>\n"
+        );
+      }
+      out.print(
+"  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\">\n"+
+"      <input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"      <input type=\"hidden\" name=\"accessop\" value=\"\"/>\n"+
+"      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Add\" alt=\"Add access token\" onClick='Javascript:SpecAddToken(\"token_"+Integer.toString(k+1)+"\")'/>\n"+
+"      </a>\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"text\" size=\"30\" name=\"spectoken\" value=\"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"specsecurity\" value=\""+(securityOn?"on":"off")+"\"/>\n"
+      );
+      // Finally, go through forced ACL
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals("access"))
+        {
+          String accessDescription = "_"+Integer.toString(k);
+          String token = sn.getAttributeValue("token");
+          out.print(
+"<input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"
+          );
+          k++;
+        }
+      }
+      out.print(
+"<input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"
+      );
+    }
+  }
+  
+  /** Process a specification post.
+  * This method is called at the start of job's edit or view page, whenever there is a possibility that form data for a connection has been
+  * posted.  Its purpose is to gather form information and modify the document specification accordingly.
+  * The name of the posted form is "editjob".
+  *@param variableContext contains the post data, including binary file-upload information.
+  *@param ds is the current document specification for this job.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
+  */
+  public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
+    throws LCFException
+  {
+    String[] x;
+    String y;
+    int i;
+
+    if (variableContext.getParameter("hasdocumentclasses") != null)
+    {
+      i = 0;
+      while (i < ds.getChildCount())
+      {
+        if (ds.getChild(i).getType().equals(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_DOCUMENTCLASS))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+      x = variableContext.getParameterValues("documentclasses");
+      if (x != null)
+      {
+        i = 0;
+        while (i < x.length)
+        {
+          String value = x[i++];
+          SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_DOCUMENTCLASS);
+          node.setAttribute(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE,value);
+          // Get the allmetadata value for this document class
+          String allmetadata = variableContext.getParameter("allmetadata_"+value);
+          if (allmetadata == null)
+            allmetadata = "false";
+          if (allmetadata.equals("true"))
+            node.setAttribute(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_ALLMETADATA,allmetadata);
+          else
+          {
+            String[] fields = variableContext.getParameterValues("metadatafield_"+value);
+            if (fields != null)
+            {
+              int j = 0;
+              while (j < fields.length)
+              {
+                String field = fields[j++];
+                SpecificationNode sp2 = new SpecificationNode(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_METADATAFIELD);
+                sp2.setAttribute(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE,field);
+                node.addChild(node.getChildCount(),sp2);
+              }
+            }
+          }
+			
+          // Now, gather up matches too
+          String matchCountString = variableContext.getParameter("matchcount_"+value);
+          int matchCount = Integer.parseInt(matchCountString);
+          int q = 0;
+          while (q < matchCount)
+          {
+            String matchOp = variableContext.getParameter("matchop_"+value+"_"+Integer.toString(q));
+            String matchType = variableContext.getParameter("matchtype_"+value+"_"+Integer.toString(q));
+            String matchField = variableContext.getParameter("matchfield_"+value+"_"+Integer.toString(q));
+            String matchValue = variableContext.getParameter("matchvalue_"+value+"_"+Integer.toString(q));
+            if (matchOp == null || !matchOp.equals("Delete"))
+            {
+              SpecificationNode matchNode = new SpecificationNode(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_MATCH);
+              matchNode.setAttribute(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_MATCHTYPE,matchType);
+              matchNode.setAttribute(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_FIELDNAME,matchField);
+              if (matchValue == null)
+                matchValue = "";
+              matchNode.setAttribute(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE,matchValue);
+              node.addChild(node.getChildCount(),matchNode);
+            }
+            q++;
+          }
+          ds.addChild(ds.getChildCount(),node);
+			
+          // Look for the add operation
+          String addMatchOp = variableContext.getParameter("matchop_"+value);
+          if (addMatchOp != null && addMatchOp.equals("Add"))
+          {
+            String matchType = variableContext.getParameter("matchtype_"+value);
+            String matchField = variableContext.getParameter("matchfield_"+value);
+            String matchValue = variableContext.getParameter("matchvalue_"+value);
+            SpecificationNode matchNode = new SpecificationNode(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_MATCH);
+            matchNode.setAttribute(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_MATCHTYPE,matchType);
+            matchNode.setAttribute(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_FIELDNAME,matchField);
+            if (matchValue == null)
+              matchValue = "";
+            matchNode.setAttribute(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE,matchValue);
+            node.addChild(node.getChildCount(),matchNode);
+          }
+			
+        }
+      }
+    }
+	
+    if (variableContext.getParameter("hasmimetypes") != null)
+    {
+      i = 0;
+      while (i < ds.getChildCount())
+      {
+        if (ds.getChild(i).getType().equals(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_MIMETYPE))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+      x = variableContext.getParameterValues("mimetypes");
+      if (x != null)
+      {
+        i = 0;
+        while (i < x.length)
+        {
+          String value = x[i++];
+          SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_MIMETYPE);
+          node.setAttribute(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE,value);
+          ds.addChild(ds.getChildCount(),node);
+        }
+      }
+    }
+
+    y = variableContext.getParameter("specsecurity");
+    if (y != null)
+    {
+      // Delete all security entries first
+      i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals("security"))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      SpecificationNode node = new SpecificationNode("security");
+      node.setAttribute("value",y);
+      ds.addChild(ds.getChildCount(),node);
+
+    }
+
+    y = variableContext.getParameter("tokencount");
+    if (y != null)
+    {
+      // Delete all file specs first
+      i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals("access"))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      int accessCount = Integer.parseInt(y);
+      i = 0;
+      while (i < accessCount)
+      {
+        String accessDescription = "_"+Integer.toString(i);
+        String accessOpName = "accessop"+accessDescription;
+        y = variableContext.getParameter(accessOpName);
+        if (y != null && y.equals("Delete"))
+        {
+          // Next row
+          i++;
+          continue;
+        }
+        // Get the stuff we need
+        String accessSpec = variableContext.getParameter("spectoken"+accessDescription);
+        SpecificationNode node = new SpecificationNode("access");
+        node.setAttribute("token",accessSpec);
+        ds.addChild(ds.getChildCount(),node);
+        i++;
+      }
+
+      String op = variableContext.getParameter("accessop");
+      if (op != null && op.equals("Add"))
+      {
+        String accessspec = variableContext.getParameter("spectoken");
+        SpecificationNode node = new SpecificationNode("access");
+        node.setAttribute("token",accessspec);
+        ds.addChild(ds.getChildCount(),node);
+      }
+    }
+
+    return null;
+  }
+  
+  /** View specification.
+  * This method is called in the body section of a job's view page.  Its purpose is to present the document specification information to the user.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  *@param out is the output to which any HTML should be sent.
+  *@param ds is the current document specification for this job.
+  */
+  public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
+    throws LCFException, IOException
+  {
+    int i;
+    Iterator iter;
+    out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr>\n"
+    );
+    // Look for document classes
+    HashMap documentClasses = new HashMap();
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_DOCUMENTCLASS))
+      {
+        String value = sn.getAttributeValue(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE);
+        org.apache.lcf.crawler.connectors.filenet.DocClassSpec spec = new org.apache.lcf.crawler.connectors.filenet.DocClassSpec(sn);
+        documentClasses.put(value,spec);
+      }
+    }
+    String[] sortedDocumentClasses = new String[documentClasses.size()];
+    i = 0;
+    iter = documentClasses.keySet().iterator();
+    while (iter.hasNext())
+    {
+      sortedDocumentClasses[i++] = (String)iter.next();
+    }
+    java.util.Arrays.sort(sortedDocumentClasses);
+
+    if (sortedDocumentClasses.length == 0)
+    {
+      out.print(
+"    <td class=\"message\" colspan=\"2\"><nobr>No included document classes</nobr></td>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"    <td class=\"description\"><nobr>Included document classes:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <table class=\"displaytable\">\n"
+      );
+      i = 0;
+      while (i < sortedDocumentClasses.length)
+      {
+        String docclass = sortedDocumentClasses[i++];
+        out.print(
+"        <tr>\n"+
+"          <td class=\"description\"><nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(docclass)+"</nobr></td>\n"+
+"          <td class=\"boxcell\">\n"+
+"            <table class=\"displaytable\">\n"+
+"              <tr>\n"+
+"                <td class=\"description\"><nobr>Metadata:</nobr></td>\n"+
+"                <td class=\"value\">\n"
+        );
+        org.apache.lcf.crawler.connectors.filenet.DocClassSpec fieldValues = (org.apache.lcf.crawler.connectors.filenet.DocClassSpec)documentClasses.get(docclass);
+        if (fieldValues.getAllMetadata())
+        {
+          out.print(
+"                  <nobr>(all metadata values)</nobr>\n"
+          );
+        }
+        else
+        {
+          String[] valuesList = fieldValues.getMetadataFields();
+          java.util.Arrays.sort(valuesList);
+          int j = 0;
+          while (j < valuesList.length)
+          {
+            String value = valuesList[j++];
+            out.print(
+"                  <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(value)+"</nobr><br/>\n"
+            );
+          }
+        }
+        out.print(
+"                </td>\n"+
+"              </tr>\n"+
+"              <tr>\n"+
+"                <td class=\"description\"><nobr>Documents matching:</nobr></td>\n"+
+"                <td class=\"value\">\n"
+        );
+        int matchCount = fieldValues.getMatchCount();
+        int q = 0;
+        while (q < matchCount)
+        {
+          String matchType = fieldValues.getMatchType(q);
+          String matchField = fieldValues.getMatchField(q);
+          String matchValue = fieldValues.getMatchValue(q);
+          q++;
+          out.print(
+"                  <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(matchField)+" "+matchType+" \""+org.apache.lcf.ui.util.Encoder.bodyEscape(matchValue)+"\"</nobr><br/>\n"
+          );
+        }
+
+        if (q == 0)
+        {
+          out.print(
+"                  <nobr>(All documents in class \""+org.apache.lcf.ui.util.Encoder.bodyEscape(docclass)+"\")</nobr>\n"
+          );
+        }
+        out.print(
+"                </td>\n"+
+"              </tr>\n"+
+"            </table>\n"+
+"          </td>\n"+
+"        </tr>\n"
+        );
+      }
+      out.print(
+"      </table>\n"+
+"    </td>\n"
+      );
+    }
+    out.print(
+"  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"
+    );
+    // Look for mime types
+    i = 0;
+    HashMap mimeTypes = null;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_MIMETYPE))
+      {
+        String value = sn.getAttributeValue(org.apache.lcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE);
+        if (mimeTypes == null)
+          mimeTypes = new HashMap();
+        mimeTypes.put(value,value);
+      }
+    }
+
+    if (mimeTypes != null)
+    {
+      String[] sortedMimeTypes = new String[mimeTypes.size()];
+      i = 0;
+      iter = mimeTypes.keySet().iterator();
+      while (iter.hasNext())
+      {
+        sortedMimeTypes[i++] = (String)iter.next();
+      }
+      java.util.Arrays.sort(sortedMimeTypes);
+      out.print(
+"    <td class=\"description\"><nobr>Included mime types:</nobr></td>\n"+
+"    <td class=\"value\">\n"
+      );
+      i = 0;
+      while (i < sortedMimeTypes.length)
+      {
+        String value = sortedMimeTypes[i++];
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(value)+"</nobr><br/>\n"
+        );
+      }
+      out.print(
+"    </td>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"    <td class=\"message\" colspan=\"2\"><nobr>No included mime types - ALL will be ingested</nobr></td>\n"
+      );
+    }
+    out.print(
+"  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+    );
+    // Find whether security is on or off
+    i = 0;
+    boolean securityOn = true;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("security"))
+      {
+        String securityValue = sn.getAttributeValue("value");
+        if (securityValue.equals("off"))
+          securityOn = false;
+        else if (securityValue.equals("on"))
+          securityOn = true;
+      }
+    }
+    out.print(
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Security:</nobr></td>\n"+
+"    <td class=\"value\">"+(securityOn?"Enabled":"Disabled")+"</td>\n"+
+"  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+    );
+    // Go through looking for access tokens
+    boolean seenAny = false;
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("access"))
+      {
+        if (seenAny == false)
+        {
+          out.print(
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Access tokens:</nobr></td>\n"+
+"    <td class=\"value\">\n"
+          );
+          seenAny = true;
+        }
+        String token = sn.getAttributeValue("token");
+        out.print(
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(token)+"<br/>\n"
+        );
+      }
+    }
+
+    if (seenAny)
+    {
+      out.print(
+"    </td>\n"+
+"  </tr>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"  <tr><td class=\"message\" colspan=\"2\">No access tokens specified</td></tr>\n"
+      );
+    }
+    out.print(
+"</table>\n"
+    );
+  }
+
   // UI support methods
 
   /** Get the set of available document classes, with details */

@@ -1509,6 +1509,1804 @@ public class RSSConnector extends org.apache.lcf.crawler.connectors.BaseReposito
     }
   }
 
+  // UI support methods.
+  //
+  // These support methods come in two varieties.  The first bunch is involved in setting up connection configuration information.  The second bunch
+  // is involved in presenting and editing document specification information for a job.  The two kinds of methods are accordingly treated differently,
+  // in that the first bunch cannot assume that the current connector object is connected, while the second bunch can.  That is why the first bunch
+  // receives a thread context argument for all UI methods, while the second bunch does not need one (since it has already been applied via the connect()
+  // method, above).
+    
+  /** Output the configuration header section.
+  * This method is called in the head section of the connector's configuration page.  Its purpose is to add the required tabs to the list, and to output any
+  * javascript methods that might be needed by the configuration editing HTML.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
+    throws LCFException, IOException
+  {
+    tabsArray.add("Email");
+    tabsArray.add("Robots");
+    tabsArray.add("Bandwidth");
+    tabsArray.add("Proxy");
+    out.print(
+"<script type=\"text/javascript\">\n"+
+"<!--\n"+
+"function checkConfig()\n"+
+"{\n"+
+"  if (editconnection.email.value != \"\" && editconnection.email.value.indexOf(\"@\") == -1)\n"+
+"  {\n"+
+"    alert(\"Need a valid email address\");\n"+
+"    editconnection.email.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.bandwidth.value != \"\" && !isInteger(editconnection.bandwidth.value))\n"+
+"  {\n"+
+"    alert(\"Enter a valid number, or blank for no limit\");\n"+
+"    editconnection.bandwidth.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.connections.value == \"\" || !isInteger(editconnection.connections.value))\n"+
+"  {\n"+
+"    alert(\"Enter a valid number for the max number of open connections per server\");\n"+
+"    editconnection.connections.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.fetches.value != \"\" && !isInteger(editconnection.fetches.value))\n"+
+"  {\n"+
+"    alert(\"Enter a valid number, or blank for no limit\");\n"+
+"    editconnection.fetches.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"function checkConfigForSave()\n"+
+"{\n"+
+"  if (editconnection.email.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Email address required, to be included in all request headers\");\n"+
+"    SelectTab(\"Email\");\n"+
+"    editconnection.email.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"//-->\n"+
+"</script>\n"
+    );
+  }
+  
+  /** Output the configuration body section.
+  * This method is called in the body section of the connector's configuration page.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabName is the current tab name.
+  */
+  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
+    throws LCFException, IOException
+  {
+    String email = parameters.getParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.emailParameter);
+    if (email == null)
+      email = "";
+    String robotsUsage = parameters.getParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.robotsUsageParameter);
+    if (robotsUsage == null)
+      robotsUsage = "all";
+    String bandwidth = parameters.getParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.bandwidthParameter);
+    if (bandwidth == null)
+      bandwidth = "";
+    String connections = parameters.getParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.maxOpenParameter);
+    if (connections == null)
+      connections = "10";
+    String fetches = parameters.getParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.maxFetchesParameter);
+    if (fetches == null)
+      fetches = "";
+    String throttleGroup = parameters.getParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.throttleGroupParameter);
+    if (throttleGroup == null)
+      throttleGroup = "";
+    String proxyHost = parameters.getParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.proxyHostParameter);
+    if (proxyHost == null)
+      proxyHost = "";
+    String proxyPort = parameters.getParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.proxyPortParameter);
+    if (proxyPort == null)
+      proxyPort = "";
+    String proxyAuthDomain = parameters.getParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.proxyAuthDomainParameter);
+    if (proxyAuthDomain == null)
+      proxyAuthDomain = "";
+    String proxyAuthUsername = parameters.getParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.proxyAuthUsernameParameter);
+    if (proxyAuthUsername == null)
+      proxyAuthUsername = "";
+    String proxyAuthPassword = parameters.getObfuscatedParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.proxyAuthPasswordParameter);
+    if (proxyAuthPassword == null)
+      proxyAuthPassword = "";
+      
+    // Email tab
+    if (tabName.equals("Email"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Email address to contact:</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"email\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(email)+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"email\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(email)+"\"/>\n"
+      );
+    }
+
+    // Robots tab
+    if (tabName.equals("Robots"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Robots.txt usage:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <select name=\"robotsusage\" size=\"3\">\n"+
+"        <option value=\"none\" "+(robotsUsage.equals("none")?"selected=\"selected\"":"")+">Don't look at robots.txt</option>\n"+
+"        <option value=\"data\" "+(robotsUsage.equals("data")?"selected=\"selected\"":"")+">Obey robots.txt for data fetches only</option>\n"+
+"        <option value=\"all\" "+(robotsUsage.equals("all")?"selected=\"selected\"":"")+">Obey robots.txt for all fetches</option>\n"+
+"      </select>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"robotsusage\" value=\""+robotsUsage+"\"/>\n"
+      );
+    }
+
+    // Bandwidth tab
+    if (tabName.equals("Bandwidth"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Max KBytes per second per server:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"6\" name=\"bandwidth\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(bandwidth)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Max connections per server:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"4\" name=\"connections\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(connections)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Max fetches per minute per server:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"4\" name=\"fetches\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(fetches)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Throttle group name:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"throttlegroup\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(throttleGroup)+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"bandwidth\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(bandwidth)+"\"/>\n"+
+"<input type=\"hidden\" name=\"connections\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(connections)+"\"/>\n"+
+"<input type=\"hidden\" name=\"fetches\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(fetches)+"\"/>\n"+
+"<input type=\"hidden\" name=\"throttlegroup\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(throttleGroup)+"\"/>\n"
+      );
+    }
+    
+    // Proxy tab
+    if (tabName.equals("Proxy"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Proxy host:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"40\" name=\"proxyhost\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(proxyHost)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Proxy port:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"proxyport\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(proxyPort)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Proxy authentication domain:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"proxyauthdomain\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(proxyAuthDomain)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Proxy authentication user name:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"proxyauthusername\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(proxyAuthUsername)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Proxy authentication password:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"password\" size=\"16\" name=\"proxyauthpassword\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(proxyAuthPassword)+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"proxyhost\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(proxyHost)+"\"/>\n"+
+"<input type=\"hidden\" name=\"proxyport\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(proxyPort)+"\"/>\n"+
+"<input type=\"hidden\" name=\"proxyauthusername\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(proxyAuthUsername)+"\"/>\n"+
+"<input type=\"hidden\" name=\"proxyauthdomain\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(proxyAuthDomain)+"\"/>\n"+
+"<input type=\"hidden\" name=\"proxyauthpassword\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(proxyAuthPassword)+"\"/>\n"
+      );
+    }
+  }
+  
+  /** Process a configuration post.
+  * This method is called at the start of the connector's configuration page, whenever there is a possibility that form data for a connection has been
+  * posted.  Its purpose is to gather form information and modify the configuration parameters accordingly.
+  * The name of the posted form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param variableContext is the set of variables available from the post, including binary file post information.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
+  */
+  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
+    throws LCFException
+  {
+    String email = variableContext.getParameter("email");
+    if (email != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.emailParameter,email);
+    String robotsUsage = variableContext.getParameter("robotsusage");
+    if (robotsUsage != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.robotsUsageParameter,robotsUsage);
+    String bandwidth = variableContext.getParameter("bandwidth");
+    if (bandwidth != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.bandwidthParameter,bandwidth);
+    String connections = variableContext.getParameter("connections");
+    if (connections != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.maxOpenParameter,connections);
+    String fetches = variableContext.getParameter("fetches");
+    if (fetches != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.maxFetchesParameter,fetches);
+    String throttleGroup = variableContext.getParameter("throttlegroup");
+    if (throttleGroup != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.throttleGroupParameter,throttleGroup);
+    String proxyHost = variableContext.getParameter("proxyhost");
+    if (proxyHost != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.proxyHostParameter,proxyHost);
+    String proxyPort = variableContext.getParameter("proxyport");
+    if (proxyPort != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.proxyPortParameter,proxyPort);
+    String proxyAuthDomain = variableContext.getParameter("proxyauthdomain");
+    if (proxyAuthDomain != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.proxyAuthDomainParameter,proxyAuthDomain);
+    String proxyAuthUsername = variableContext.getParameter("proxyauthusername");
+    if (proxyAuthUsername != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.proxyAuthUsernameParameter,proxyAuthUsername);
+    String proxyAuthPassword = variableContext.getParameter("proxyauthpassword");
+    if (proxyAuthPassword != null)
+      parameters.setObfuscatedParameter(org.apache.lcf.crawler.connectors.rss.RSSConnector.proxyAuthPasswordParameter,proxyAuthPassword);
+
+    return null;
+  }
+  
+  /** View configuration.
+  * This method is called in the body section of the connector's view configuration page.  Its purpose is to present the connection information to the user.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  */
+  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
+    throws LCFException, IOException
+  {
+    out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>Parameters:</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"3\">\n"
+    );
+    Iterator iter = parameters.listParameters();
+    while (iter.hasNext())
+    {
+      String param = (String)iter.next();
+      String value = parameters.getParameter(param);
+      if (param.length() >= "password".length() && param.substring(param.length()-"password".length()).equalsIgnoreCase("password"))
+      {
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"=********</nobr><br/>\n"
+        );
+      }
+      else if (param.length() >="keystore".length() && param.substring(param.length()-"keystore".length()).equalsIgnoreCase("keystore"))
+      {
+        IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"=<"+Integer.toString(kmanager.getContents().length)+" certificate(s)></nobr><br/>\n"
+        );
+      }
+      else
+      {
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"="+org.apache.lcf.ui.util.Encoder.bodyEscape(value)+"</nobr><br/>\n"
+        );
+      }
+    }
+    out.print(
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+    );
+  }
+  
+  /** Output the specification header section.
+  * This method is called in the head section of a job page which has selected a repository connection of the current type.  Its purpose is to add the required tabs
+  * to the list, and to output any javascript methods that might be needed by the job editing HTML.
+  *@param out is the output to which any HTML should be sent.
+  *@param ds is the current document specification for this job.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
+  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
+    throws LCFException, IOException
+  {
+    tabsArray.add("URLs");
+    tabsArray.add("Canonicalization");
+    tabsArray.add("Mappings");
+    tabsArray.add("Time Values");
+    tabsArray.add("Security");
+    tabsArray.add("Metadata");
+    tabsArray.add("Dechromed Content");
+    out.print(
+"<script type=\"text/javascript\">\n"+
+"<!--\n"+
+"function SpecOp(n, opValue, anchorvalue)\n"+
+"{\n"+
+"  eval(\"editjob.\"+n+\".value = \\\"\"+opValue+\"\\\"\");\n"+
+"  postFormSetAnchor(anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function AddRegexp(anchorvalue)\n"+
+"{\n"+
+"  if (editjob.rssmatch.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Match must have a regexp value\");\n"+
+"    editjob.rssmatch.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"\n"+
+"  SpecOp(\"rssop\",\"Add\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function RemoveRegexp(index, anchorvalue)\n"+
+"{\n"+
+"  editjob.rssindex.value = index;\n"+
+"  SpecOp(\"rssop\",\"Delete\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function SpecAddToken(anchorvalue)\n"+
+"{\n"+
+"  if (editjob.spectoken.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Type in an access token\");\n"+
+"    editjob.spectoken.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  SpecOp(\"accessop\",\"Add\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function SpecAddMetadata(anchorvalue)\n"+
+"{\n"+
+"  if (editjob.specmetaname.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Type in metadata name\");\n"+
+"    editjob.specmetaname.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  if (editjob.specmetavalue.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Type in metadata value\");\n"+
+"    editjob.specmetavalue.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  SpecOp(\"metadataop\",\"Add\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function URLRegexpDelete(index, anchorvalue)\n"+
+"{\n"+
+"  editjob.urlregexpnumber.value = index;\n"+
+"  SpecOp(\"urlregexpop\",\"Delete\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function URLRegexpAdd(anchorvalue)\n"+
+"{\n"+
+"  SpecOp(\"urlregexpop\",\"Add\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function checkSpecification()\n"+
+"{\n"+
+"  if (editjob.feedtimeout.value == \"\" || !isInteger(editjob.feedtimeout.value))\n"+
+"  {\n"+
+"    alert(\"A timeout value, in seconds, is required\");\n"+
+"    editjob.feedtimeout.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editjob.feedrefetch.value == \"\" || !isInteger(editjob.feedrefetch.value))\n"+
+"  {\n"+
+"    alert(\"A refetch interval, in minutes, is required\");\n"+
+"    editjob.feedrefetch.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editjob.minfeedrefetch.value == \"\" || !isInteger(editjob.minfeedrefetch.value))\n"+
+"  {\n"+
+"    alert(\"A minimum refetch interval, in minutes, is required\");\n"+
+"    editjob.minfeedrefetch.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editjob.badfeedrefetch.value != \"\" && !isInteger(editjob.badfeedrefetch.value))\n"+
+"  {\n"+
+"    alert(\"A bad feed refetch interval, in minutes, is required\");\n"+
+"    editjob.badfeedrefetch.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"//-->\n"+
+"</script>\n"
+    );
+  }
+  
+  /** Output the specification body section.
+  * This method is called in the body section of a job page which has selected a repository connection of the current type.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * form is "editjob".
+  *@param out is the output to which any HTML should be sent.
+  *@param ds is the current document specification for this job.
+  *@param tabName is the current tab name.
+  */
+  public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
+    throws LCFException, IOException
+  {
+    int i;
+    int k;
+
+
+    // Build the url seed string, and the url regexp match and map
+    StringBuffer sb = new StringBuffer();
+    ArrayList regexp = new ArrayList();
+    ArrayList matchStrings = new ArrayList();
+    int feedTimeoutValue = 60;
+    int feedRefetchValue = 60;
+    int minFeedRefetchValue = 15;
+    Integer badFeedRefetchValue = null;
+    
+    // Now, loop through paths
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("feed"))
+      {
+        String rssURL = sn.getAttributeValue("url");
+        if (rssURL != null)
+        {
+          sb.append(rssURL).append("\n");
+        }
+      }
+      else if (sn.getType().equals("map"))
+      {
+        String match = sn.getAttributeValue("match");
+        String map = sn.getAttributeValue("map");
+        if (match != null)
+        {
+          regexp.add(match);
+          if (map == null)
+            map = "";
+          matchStrings.add(map);
+        }
+      }
+      else if (sn.getType().equals("feedtimeout"))
+      {
+        String value = sn.getAttributeValue("value");
+        feedTimeoutValue = Integer.parseInt(value);
+      }
+      else if (sn.getType().equals("feedrescan"))
+      {
+        String value = sn.getAttributeValue("value");
+        feedRefetchValue = Integer.parseInt(value);
+      }
+      else if (sn.getType().equals("minfeedrescan"))
+      {
+        String value = sn.getAttributeValue("value");
+        minFeedRefetchValue = Integer.parseInt(value);
+      }
+      else if (sn.getType().equals("badfeedrescan"))
+      {
+        String value = sn.getAttributeValue("value");
+        badFeedRefetchValue = new Integer(value);
+      }
+    }
+
+    // URLs tab
+
+    if (tabName.equals("URLs"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"value\" colspan=\"2\">\n"+
+"      <textarea rows=\"25\" cols=\"80\" name=\"rssurls\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(sb.toString())+"</textarea>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"rssurls\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(sb.toString())+"\"/>\n"
+      );
+    }
+
+    // Canonicalization tab
+    if (tabName.equals("Canonicalization"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"boxcell\" colspan=\"2\">\n"+
+"      <input type=\"hidden\" name=\"urlregexpop\" value=\"Continue\"/>\n"+
+"      <input type=\"hidden\" name=\"urlregexpnumber\" value=\"\"/>\n"+
+"      <table class=\"formtable\">\n"+
+"        <tr class=\"formheaderrow\">\n"+
+"          <td class=\"formcolumnheader\"></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>URL regular expression</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Description</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Reorder?</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Remove JSP sessions?</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Remove ASP sessions?</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Remove PHP sessions?</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Remove BV sessions?</nobr></td>\n"+
+"        </tr>\n"
+      );
+      int q = 0;
+      int l = 0;
+      while (q < ds.getChildCount())
+      {
+        SpecificationNode specNode = ds.getChild(q++);
+        if (specNode.getType().equals("urlspec"))
+        {
+          // Ok, this node matters to us
+          String regexpString = specNode.getAttributeValue("regexp");
+          String description = specNode.getAttributeValue("description");
+          if (description == null)
+            description = "";
+          String allowReorder = specNode.getAttributeValue("reorder");
+          if (allowReorder == null || allowReorder.length() == 0)
+            allowReorder = "no";
+          String allowJavaSessionRemoval = specNode.getAttributeValue("javasessionremoval");
+          if (allowJavaSessionRemoval == null || allowJavaSessionRemoval.length() == 0)
+            allowJavaSessionRemoval = "no";
+          String allowASPSessionRemoval = specNode.getAttributeValue("aspsessionremoval");
+          if (allowASPSessionRemoval == null || allowASPSessionRemoval.length() == 0)
+            allowASPSessionRemoval = "no";
+          String allowPHPSessionRemoval = specNode.getAttributeValue("phpsessionremoval");
+          if (allowPHPSessionRemoval == null || allowPHPSessionRemoval.length() == 0)
+            allowPHPSessionRemoval = "no";
+          String allowBVSessionRemoval = specNode.getAttributeValue("bvsessionremoval");
+          if (allowBVSessionRemoval == null || allowBVSessionRemoval.length() == 0)
+            allowBVSessionRemoval = "no";
+          out.print(
+"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <a name=\""+"urlregexp_"+Integer.toString(l)+"\">\n"+
+"              <input type=\"button\" value=\"Delete\" alt=\""+"Delete url regexp "+org.apache.lcf.ui.util.Encoder.attributeEscape(regexpString)+"\" onclick='javascript:URLRegexpDelete("+Integer.toString(l)+",\"urlregexp_"+Integer.toString(l)+"\");'/>\n"+
+"            </a>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <input type=\"hidden\" name=\""+"urlregexp_"+Integer.toString(l)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(regexpString)+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+"urlregexpdesc_"+Integer.toString(l)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(description)+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+"urlregexpreorder_"+Integer.toString(l)+"\" value=\""+allowReorder+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+"urlregexpjava_"+Integer.toString(l)+"\" value=\""+allowJavaSessionRemoval+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+"urlregexpasp_"+Integer.toString(l)+"\" value=\""+allowASPSessionRemoval+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+"urlregexpphp_"+Integer.toString(l)+"\" value=\""+allowPHPSessionRemoval+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+"urlregexpbv_"+Integer.toString(l)+"\" value=\""+allowBVSessionRemoval+"\"/>\n"+
+"            <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(regexpString)+"</nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(description)+"</td>\n"+
+"          <td class=\"formcolumncell\">"+allowReorder+"</td>\n"+
+"          <td class=\"formcolumncell\">"+allowJavaSessionRemoval+"</td>\n"+
+"          <td class=\"formcolumncell\">"+allowASPSessionRemoval+"</td>\n"+
+"          <td class=\"formcolumncell\">"+allowPHPSessionRemoval+"</td>\n"+
+"          <td class=\"formcolumncell\">"+allowBVSessionRemoval+"</td>\n"+
+"        </tr>\n"
+          );
+
+          l++;
+        }
+      }
+      if (l == 0)
+      {
+        out.print(
+"        <tr class=\"formrow\"><td colspan=\"8\" class=\"formcolumnmessage\"><nobr>No canonicalization specified - all URLs will be reordered and have all sessions removed</nobr></td></tr>\n"
+        );
+      }
+      out.print(
+"        <tr class=\"formrow\"><td colspan=\"8\" class=\"formseparator\"><hr/></td></tr>\n"+
+"        <tr class=\"formrow\">\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <a name=\""+"urlregexp_"+Integer.toString(l)+"\">\n"+
+"              <input type=\"button\" value=\"Add\" alt=\"Add url regexp\" onclick='javascript:URLRegexpAdd(\"urlregexp_"+Integer.toString(l+1)+"\");'/>\n"+
+"              <input type=\"hidden\" name=\"urlregexpcount\" value=\""+Integer.toString(l)+"\"/>\n"+
+"            </a>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\"><input type=\"text\" name=\"urlregexp\" size=\"30\" value=\"\"/></td>\n"+
+"          <td class=\"formcolumncell\"><input type=\"text\" name=\"urlregexpdesc\" size=\"30\" value=\"\"/></td>\n"+
+"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\"urlregexpreorder\" value=\"yes\"/></td>\n"+
+"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\"urlregexpjava\" value=\"yes\" checked=\"true\"/></td>\n"+
+"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\"urlregexpasp\" value=\"yes\" checked=\"true\"/></td>\n"+
+"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\"urlregexpphp\" value=\"yes\" checked=\"true\"/></td>\n"+
+"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\"urlregexpbv\" value=\"yes\" checked=\"true\"/></td>\n"+
+"        </tr>\n"+
+"      </table>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Post the canonicalization specification
+      int q = 0;
+      int l = 0;
+      while (q < ds.getChildCount())
+      {
+        SpecificationNode specNode = ds.getChild(q++);
+        if (specNode.getType().equals("urlspec"))
+        {
+          // Ok, this node matters to us
+          String regexpString = specNode.getAttributeValue("regexp");
+          String description = specNode.getAttributeValue("description");
+          if (description == null)
+            description = "";
+          String allowReorder = specNode.getAttributeValue("reorder");
+          if (allowReorder == null || allowReorder.length() == 0)
+            allowReorder = "no";
+          String allowJavaSessionRemoval = specNode.getAttributeValue("javasessionremoval");
+          if (allowJavaSessionRemoval == null || allowJavaSessionRemoval.length() == 0)
+            allowJavaSessionRemoval = "no";
+          String allowASPSessionRemoval = specNode.getAttributeValue("aspsessionremoval");
+          if (allowASPSessionRemoval == null || allowASPSessionRemoval.length() == 0)
+            allowASPSessionRemoval = "no";
+          String allowPHPSessionRemoval = specNode.getAttributeValue("phpsessionremoval");
+          if (allowPHPSessionRemoval == null || allowPHPSessionRemoval.length() == 0)
+            allowPHPSessionRemoval = "no";
+          String allowBVSessionRemoval = specNode.getAttributeValue("bvsessionremoval");
+          if (allowBVSessionRemoval == null || allowBVSessionRemoval.length() == 0)
+            allowBVSessionRemoval = "no";
+          out.print(
+"<input type=\"hidden\" name=\""+"urlregexp_"+Integer.toString(l)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(regexpString)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"urlregexpdesc_"+Integer.toString(l)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(description)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"urlregexpreorder_"+Integer.toString(l)+"\" value=\""+allowReorder+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"urlregexpjava_"+Integer.toString(l)+"\" value=\""+allowJavaSessionRemoval+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"urlregexpasp_"+Integer.toString(l)+"\" value=\""+allowASPSessionRemoval+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"urlregexpphp_"+Integer.toString(l)+"\" value=\""+allowPHPSessionRemoval+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"urlregexpbv_"+Integer.toString(l)+"\" value=\""+allowBVSessionRemoval+"\"/>\n"
+          );
+          l++;
+        }
+      }
+      out.print(
+"<input type=\"hidden\" name=\"urlregexpcount\" value=\""+Integer.toString(l)+"\"/>\n"
+      );
+    }
+  
+    // Mappings tab
+
+    if (tabName.equals("Mappings"))
+    {
+      out.print(
+"<input type=\"hidden\" name=\"rssop\" value=\"\"/>\n"+
+"<input type=\"hidden\" name=\"rssindex\" value=\"\"/>\n"+
+"<input type=\"hidden\" name=\"rssmapcount\" value=\""+Integer.toString(regexp.size())+"\"/>\n"+
+"\n"+
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"
+      );
+
+      i = 0;
+      while (i < regexp.size())
+      {
+        String prefix = "rssregexp_"+Integer.toString(i)+"_";
+        out.print(
+"  <tr>\n"+
+"    <td class=\"value\">\n"+
+"      <a name=\""+"regexp_"+Integer.toString(i)+"\">\n"+
+"        <input type=\"button\" value=\"Remove\" onclick='javascript:RemoveRegexp("+Integer.toString(i)+",\"regexp_"+Integer.toString(i)+"\")' alt=\""+"Remove regexp #"+Integer.toString(i)+"\"/>\n"+
+"      </a>\n"+
+"    </td>\n"+
+"    <td class=\"value\"><input type=\"hidden\" name=\""+prefix+"match"+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape((String)regexp.get(i))+"\"/>"+org.apache.lcf.ui.util.Encoder.bodyEscape((String)regexp.get(i))+"</td>\n"+
+"    <td class=\"value\">==></td>\n"+
+"    <td class=\"value\">\n"
+        );
+        String match = (String)matchStrings.get(i);
+        out.print(
+"      <input type=\"hidden\" name=\""+prefix+"map"+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(match)+"\"/>\n"
+        );
+        if (match.length() == 0)
+        {
+          out.print(
+"      &lt;as is&gt;\n"
+          );
+        }
+        else
+        {
+          out.print(
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(match)+"\n"
+          );
+        }
+        out.print(
+"    </td>\n"+
+"  </tr>\n"
+        );
+        i++;
+      }
+      out.print(
+"  <tr>\n"+
+"    <td class=\"value\"><a name=\""+"regexp_"+Integer.toString(i)+"\"><input type=\"button\" value=\"Add\" onclick='javascript:AddRegexp(\"regexp_"+Integer.toString(i+1)+"\")' alt=\"Add regexp\"/></a></td>\n"+
+"    <td class=\"value\"><input type=\"text\" name=\"rssmatch\" size=\"16\" value=\"\"/></td>\n"+
+"    <td class=\"value\">==></td>\n"+
+"    <td class=\"value\"><input type=\"text\" name=\"rssmap\" size=\"16\" value=\"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"rssmapcount\" value=\""+Integer.toString(regexp.size())+"\"/>\n"
+      );
+      i = 0;
+      while (i < regexp.size())
+      {
+        String prefix = "rssregexp_"+Integer.toString(i)+"_";
+        String match = (String)matchStrings.get(i);
+        out.print(
+"<input type=\"hidden\" name=\""+prefix+"match"+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape((String)regexp.get(i))+"\"/>\n"+
+"<input type=\"hidden\" name=\""+prefix+"map"+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(match)+"\"/>\n"
+        );
+        i++;
+      }
+    }
+
+    // Timeout Value tab
+    if (tabName.equals("Time Values"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Feed connect timeout (seconds):</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"feedtimeout\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(Integer.toString(feedTimeoutValue))+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Default feed refetch time (minutes)</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"feedrefetch\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(Integer.toString(feedRefetchValue))+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Minimum feed refetch time (minutes)</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"minfeedrefetch\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(Integer.toString(minFeedRefetchValue))+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Bad feed refetch time (minutes)</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"hidden\" name=\"badfeedrefetch_present\" value=\"true\"/>\n"+
+"      <input type=\"text\" size=\"5\" name=\"badfeedrefetch\" value=\""+((badFeedRefetchValue==null)?"":org.apache.lcf.ui.util.Encoder.attributeEscape(badFeedRefetchValue.toString()))+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"feedtimeout\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(Integer.toString(feedTimeoutValue))+"\"/>\n"+
+"<input type=\"hidden\" name=\"feedrefetch\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(Integer.toString(feedRefetchValue))+"\"/>\n"+
+"<input type=\"hidden\" name=\"minfeedrefetch\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(Integer.toString(minFeedRefetchValue))+"\"/>\n"+
+"<input type=\"hidden\" name=\"badfeedrefetch_present\" value=\"true\"/>\n"+
+"<input type=\"hidden\" name=\"badfeedrefetch\" value=\""+((badFeedRefetchValue==null)?"":org.apache.lcf.ui.util.Encoder.attributeEscape(badFeedRefetchValue.toString()))+"\"/>\n"
+      );
+    }
+
+    // Dechromed content tab
+    String dechromedMode = "none";
+    String chromedMode = "use";
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("dechromedmode"))
+        dechromedMode = sn.getAttributeValue("mode");
+      else if (sn.getType().equals("chromedmode"))
+        chromedMode = sn.getAttributeValue("mode");
+    }
+    if (tabName.equals("Dechromed Content"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"1\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"value\"><nobr><input type=\"radio\" name=\"dechromedmode\" value=\"none\" "+(dechromedMode.equals("none")?"checked=\"true\"":"")+"/>&nbsp;No dechromed content</nobr></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"value\"><nobr><input type=\"radio\" name=\"dechromedmode\" value=\"description\" "+(dechromedMode.equals("description")?"checked=\"true\"":"")+"/>&nbsp;Dechromed content, if present, in 'description' field</nobr></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"value\"><nobr><input type=\"radio\" name=\"dechromedmode\" value=\"content\" "+(dechromedMode.equals("content")?"checked=\"true\"":"")+"/>&nbsp;Dechromed content, if present, in 'content' field</nobr></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"separator\"><hr/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"value\"><nobr><input type=\"radio\" name=\"chromedmode\" value=\"none\" "+(chromedMode.equals("use")?"checked=\"true\"":"")+"/>&nbsp;Use chromed content if no dechromed content found</nobr></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"value\"><nobr><input type=\"radio\" name=\"chromedmode\" value=\"skip\" "+(chromedMode.equals("skip")?"checked=\"true\"":"")+"/>&nbsp;Never use chromed content</nobr></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"dechromedmode\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(dechromedMode)+"\"/>\n"+
+"<input type=\"hidden\" name=\"chromedmode\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(chromedMode)+"\"/>\n"
+      );
+    }
+  
+    // Security tab
+    // There is no native security, so all we care about are the tokens.
+    i = 0;
+
+    if (tabName.equals("Security"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+      );
+      // Go through forced ACL
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals("access"))
+        {
+          String accessDescription = "_"+Integer.toString(k);
+          String accessOpName = "accessop"+accessDescription;
+          String token = sn.getAttributeValue("token");
+          out.print(
+"  <tr>\n"+
+"    <td class=\"description\">\n"+
+"      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
+"      <input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"+
+"      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")' alt=\""+"Delete token #"+Integer.toString(k)+"\"/>\n"+
+"      </a>&nbsp;\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(token)+"\n"+
+"    </td>\n"+
+"  </tr>\n"
+          );
+          k++;
+        }
+      }
+      if (k == 0)
+      {
+        out.print(
+"  <tr>\n"+
+"    <td class=\"message\" colspan=\"2\">No access tokens present</td>\n"+
+"  </tr>\n"
+        );
+      }
+      out.print(
+"  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\">\n"+
+"      <input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"      <input type=\"hidden\" name=\"accessop\" value=\"\"/>\n"+
+"      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddToken(\"token_"+Integer.toString(k+1)+"\")' alt=\"Add access token\"/>\n"+
+"      </a>&nbsp;\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"text\" size=\"30\" name=\"spectoken\" value=\"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Finally, go through forced ACL
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals("access"))
+        {
+          String accessDescription = "_"+Integer.toString(k);
+          String token = sn.getAttributeValue("token");
+          out.print(
+"<input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"
+          );
+          k++;
+        }
+      }
+      out.print(
+"<input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"
+      );
+    }
+
+    // "Metadata" tab
+    if (tabName.equals("Metadata"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"
+      );
+      // Go through metadata
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals("metadata"))
+        {
+          String metadataDescription = "_"+Integer.toString(k);
+          String metadataOpName = "metadataop"+metadataDescription;
+          String name = sn.getAttributeValue("name");
+          String value = sn.getAttributeValue("value");
+          out.print(
+"  <tr>\n"+
+"    <td class=\"description\">\n"+
+"      <input type=\"hidden\" name=\""+metadataOpName+"\" value=\"\"/>\n"+
+"      <input type=\"hidden\" name=\""+"specmetaname"+metadataDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(name)+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+"specmetavalue"+metadataDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(value)+"\"/>\n"+
+"      <a name=\""+"metadata_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+metadataOpName+"\",\"Delete\",\"metadata_"+Integer.toString(k)+"\")' alt=\""+"Delete metadata #"+Integer.toString(k)+"\"/>\n"+
+"      </a>&nbsp;\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(name)+"\n"+
+"    </td>\n"+
+"    <td class=\"value\">=</td>\n"+
+"    <td class=\"value\">\n"+
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(value)+"\n"+
+"    </td>\n"+
+"  </tr>\n"
+          );
+          k++;
+        }
+
+      }
+      if (k == 0)
+      {
+        out.print(
+"  <tr>\n"+
+"    <td class=\"message\" colspan=\"4\">No metadata present</td>\n"+
+"  </tr>\n"
+        );
+      }
+      out.print(
+"  <tr><td class=\"lightseparator\" colspan=\"4\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\">\n"+
+"      <input type=\"hidden\" name=\"metadatacount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"      <input type=\"hidden\" name=\"metadataop\" value=\"\"/>\n"+
+"      <a name=\""+"metadata_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddMetadata(\"metadata_"+Integer.toString(k+1)+"\")' alt=\"Add metadata\"/>\n"+
+"      </a>&nbsp;\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"text\" size=\"30\" name=\"specmetaname\" value=\"\"/>\n"+
+"    </td>\n"+
+"    <td class=\"value\">=</td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"text\" size=\"80\" name=\"specmetavalue\" value=\"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+
+    }
+    else
+    {
+      // Finally, go through metadata
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals("metadata"))
+        {
+          String metadataDescription = "_"+Integer.toString(k);
+          String name = sn.getAttributeValue("name");
+          String value = sn.getAttributeValue("value");
+          out.print(
+"<input type=\"hidden\" name=\""+"specmetaname"+metadataDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(name)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"specmetavalue"+metadataDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(value)+"\"/>\n"
+          );
+          k++;
+        }
+      }
+      out.print(
+"<input type=\"hidden\" name=\"metadatacount\" value=\""+Integer.toString(k)+"\"/>\n"
+      );
+    
+    }
+  }
+  
+  /** Process a specification post.
+  * This method is called at the start of job's edit or view page, whenever there is a possibility that form data for a connection has been
+  * posted.  Its purpose is to gather form information and modify the document specification accordingly.
+  * The name of the posted form is "editjob".
+  *@param variableContext contains the post data, including binary file-upload information.
+  *@param ds is the current document specification for this job.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
+  */
+  public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
+    throws LCFException
+  {
+    // Get the map
+    String value = variableContext.getParameter("rssmapcount");
+    if (value != null)
+    {
+      int mapsize = Integer.parseInt(value);
+
+      // Clear it first
+      int j = 0;
+      while (j < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(j);
+        if (sn.getType().equals("map"))
+          ds.removeChild(j);
+        else
+          j++;
+      }
+
+      // Grab the map values
+      j = 0;
+      while (j < mapsize)
+      {
+        String prefix = "rssregexp_"+Integer.toString(j)+"_";
+        String match = variableContext.getParameter(prefix+"match");
+        String map = variableContext.getParameter(prefix+"map");
+        if (map == null)
+          map = "";
+        // Add to the documentum specification
+        SpecificationNode node = new SpecificationNode("map");
+        node.setAttribute("match",match);
+        node.setAttribute("map",map);
+        ds.addChild(ds.getChildCount(),node);
+
+        j++;
+      }
+    }
+
+    // Get the cgiPath
+    String rssURLSequence = variableContext.getParameter("rssurls");
+    if (rssURLSequence != null)
+    {
+      // Delete all url specs first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals("feed"))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      try
+      {
+        java.io.Reader str = new java.io.StringReader(rssURLSequence);
+        try
+        {
+          java.io.BufferedReader is = new java.io.BufferedReader(str);
+          try
+          {
+            while (true)
+            {
+              String nextString = is.readLine();
+              if (nextString == null)
+                break;
+              if (nextString.length() == 0)
+                continue;
+              SpecificationNode node = new SpecificationNode("feed");
+              node.setAttribute("url",nextString);
+              ds.addChild(ds.getChildCount(),node);
+            }
+          }
+          finally
+          {
+            is.close();
+          }
+        }
+        finally
+        {
+          str.close();
+        }
+      }
+      catch (java.io.IOException e)
+      {
+        throw new LCFException("IO error",e);
+      }
+    }
+
+    // Read the url specs
+    String urlRegexpCount = variableContext.getParameter("urlregexpcount");
+    if (urlRegexpCount != null && urlRegexpCount.length() > 0)
+    {
+      int regexpCount = Integer.parseInt(urlRegexpCount);
+      int j = 0;
+      while (j < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(j);
+        if (sn.getType().equals("urlspec"))
+          ds.removeChild(j);
+        else
+          j++;
+      }
+      
+      // Grab the operation and the index (if any)
+      String operation = variableContext.getParameter("urlregexpop");
+      if (operation == null)
+        operation = "Continue";
+      int opIndex = -1;
+      if (operation.equals("Delete"))
+        opIndex = Integer.parseInt(variableContext.getParameter("urlregexpnumber"));
+      
+      // Reconstruct urlspec nodes
+      j = 0;
+      while (j < regexpCount)
+      {
+        // For each index, first look for a delete operation
+        if (!operation.equals("Delete") || j != opIndex)
+        {
+          // Add the jth node
+          String regexp = variableContext.getParameter("urlregexp_"+Integer.toString(j));
+          String regexpDescription = variableContext.getParameter("urlregexpdesc_"+Integer.toString(j));
+          String reorder = variableContext.getParameter("urlregexpreorder_"+Integer.toString(j));
+          String javaSession = variableContext.getParameter("urlregexpjava_"+Integer.toString(j));
+          String aspSession = variableContext.getParameter("urlregexpasp_"+Integer.toString(j));
+          String phpSession = variableContext.getParameter("urlregexpphp_"+Integer.toString(j));
+          String bvSession = variableContext.getParameter("urlregexpbv_"+Integer.toString(j));
+          SpecificationNode newSn = new SpecificationNode("urlspec");
+          newSn.setAttribute("regexp",regexp);
+          if (regexpDescription != null && regexpDescription.length() > 0)
+            newSn.setAttribute("description",regexpDescription);
+          if (reorder != null && reorder.length() > 0)
+            newSn.setAttribute("reorder",reorder);
+          if (javaSession != null && javaSession.length() > 0)
+            newSn.setAttribute("javasessionremoval",javaSession);
+          if (aspSession != null && aspSession.length() > 0)
+            newSn.setAttribute("aspsessionremoval",aspSession);
+          if (phpSession != null && phpSession.length() > 0)
+            newSn.setAttribute("phpsessionremoval",phpSession);
+          if (bvSession != null && bvSession.length() > 0)
+            newSn.setAttribute("bvsessionremoval",bvSession);
+          ds.addChild(ds.getChildCount(),newSn);
+        }
+        j++;
+      }
+      if (operation.equals("Add"))
+      {
+        String regexp = variableContext.getParameter("urlregexp");
+        String regexpDescription = variableContext.getParameter("urlregexpdesc");
+        String reorder = variableContext.getParameter("urlregexpreorder");
+        String javaSession = variableContext.getParameter("urlregexpjava");
+        String aspSession = variableContext.getParameter("urlregexpasp");
+        String phpSession = variableContext.getParameter("urlregexpphp");
+        String bvSession = variableContext.getParameter("urlregexpbv");
+
+        // Add a new node at the end
+        SpecificationNode newSn = new SpecificationNode("urlspec");
+        newSn.setAttribute("regexp",regexp);
+        if (regexpDescription != null && regexpDescription.length() > 0)
+          newSn.setAttribute("description",regexpDescription);
+        if (reorder != null && reorder.length() > 0)
+          newSn.setAttribute("reorder",reorder);
+        if (javaSession != null && javaSession.length() > 0)
+          newSn.setAttribute("javasessionremoval",javaSession);
+        if (aspSession != null && aspSession.length() > 0)
+          newSn.setAttribute("aspsessionremoval",aspSession);
+        if (phpSession != null && phpSession.length() > 0)
+          newSn.setAttribute("phpsessionremoval",phpSession);
+        if (bvSession != null && bvSession.length() > 0)
+          newSn.setAttribute("bvsessionremoval",bvSession);
+        ds.addChild(ds.getChildCount(),newSn);
+      }
+    }
+    
+    // Read the feed timeout, if present
+    String feedTimeoutValue = variableContext.getParameter("feedtimeout");
+    if (feedTimeoutValue != null && feedTimeoutValue.length() > 0)
+    {
+      int j = 0;
+      while (j < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(j);
+        if (sn.getType().equals("feedtimeout"))
+          ds.removeChild(j);
+        else
+          j++;
+      }
+      SpecificationNode node = new SpecificationNode("feedtimeout");
+      node.setAttribute("value",feedTimeoutValue);
+      ds.addChild(ds.getChildCount(),node);
+    }
+
+    // Read the feed refetch interval, if present
+    String feedRefetchValue = variableContext.getParameter("feedrefetch");
+    if (feedRefetchValue != null && feedRefetchValue.length() > 0)
+    {
+      int j = 0;
+      while (j < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(j);
+        if (sn.getType().equals("feedrescan"))
+          ds.removeChild(j);
+        else
+          j++;
+      }
+      SpecificationNode node = new SpecificationNode("feedrescan");
+      node.setAttribute("value",feedRefetchValue);
+      ds.addChild(ds.getChildCount(),node);
+    }
+
+    // Read the minimum feed refetch interval, if present
+    String minFeedRefetchValue = variableContext.getParameter("minfeedrefetch");
+    if (minFeedRefetchValue != null && minFeedRefetchValue.length() > 0)
+    {
+      int j = 0;
+      while (j < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(j);
+        if (sn.getType().equals("minfeedrescan"))
+          ds.removeChild(j);
+        else
+          j++;
+      }
+      SpecificationNode node = new SpecificationNode("minfeedrescan");
+      node.setAttribute("value",minFeedRefetchValue);
+      ds.addChild(ds.getChildCount(),node);
+    }
+    
+    // Read the bad feed refetch interval (which is allowed to be null)
+    String badFeedRefetchValuePresent = variableContext.getParameter("badfeedrefetch_present");
+    if (badFeedRefetchValuePresent != null && badFeedRefetchValuePresent.length() > 0)
+    {
+      String badFeedRefetchValue = variableContext.getParameter("badfeedrefetch");
+      int k = 0;
+      while (k < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(k);
+        if (sn.getType().equals("badfeedrescan"))
+          ds.removeChild(k);
+        else
+          k++;
+      }
+      if (badFeedRefetchValue != null && badFeedRefetchValue.length() > 0)
+      {
+        SpecificationNode node = new SpecificationNode("badfeedrescan");
+        node.setAttribute("value",badFeedRefetchValue);
+        ds.addChild(ds.getChildCount(),node);
+      }
+    }
+    
+    // Read the dechromed mode
+    String dechromedMode = variableContext.getParameter("dechromedmode");
+    if (dechromedMode != null && dechromedMode.length() > 0)
+    {
+      int j = 0;
+      while (j < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(j);
+        if (sn.getType().equals("dechromedmode"))
+          ds.removeChild(j);
+        else
+          j++;
+      }
+      SpecificationNode node = new SpecificationNode("dechromedmode");
+      node.setAttribute("mode",dechromedMode);
+      ds.addChild(ds.getChildCount(),node);
+    }
+    
+    // Read the chromed mode
+    String chromedMode = variableContext.getParameter("chromedmode");
+    if (chromedMode != null && chromedMode.length() > 0)
+    {
+      int j = 0;
+      while (j < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(j);
+        if (sn.getType().equals("chromedmode"))
+          ds.removeChild(j);
+        else
+          j++;
+      }
+      SpecificationNode node = new SpecificationNode("chromedmode");
+      node.setAttribute("mode",chromedMode);
+      ds.addChild(ds.getChildCount(),node);
+    }
+    
+    // Now, do whatever action we were told to do.
+    String rssop = variableContext.getParameter("rssop");
+    if (rssop != null && rssop.equals("Add"))
+    {
+      // Add a match to the end
+      String match = variableContext.getParameter("rssmatch");
+      String map = variableContext.getParameter("rssmap");
+      SpecificationNode node = new SpecificationNode("map");
+      node.setAttribute("match",match);
+      node.setAttribute("map",map);
+      ds.addChild(ds.getChildCount(),node);
+    }
+    else if (rssop != null && rssop.equals("Delete"))
+    {
+      int index = Integer.parseInt(variableContext.getParameter("rssindex"));
+      int j = 0;
+      while (j < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(j);
+        if (sn.getType().equals("map"))
+        {
+          if (index == 0)
+          {
+            ds.removeChild(j);
+            break;
+          }
+          index--;
+        }
+        j++;
+      }
+    }
+
+    String xc = variableContext.getParameter("tokencount");
+    if (xc != null)
+    {
+      // Delete all tokens first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals("access"))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      int accessCount = Integer.parseInt(xc);
+      i = 0;
+      while (i < accessCount)
+      {
+        String accessDescription = "_"+Integer.toString(i);
+        String accessOpName = "accessop"+accessDescription;
+        xc = variableContext.getParameter(accessOpName);
+        if (xc != null && xc.equals("Delete"))
+        {
+          // Next row
+          i++;
+          continue;
+        }
+        // Get the stuff we need
+        String accessSpec = variableContext.getParameter("spectoken"+accessDescription);
+        SpecificationNode node = new SpecificationNode("access");
+        node.setAttribute("token",accessSpec);
+        ds.addChild(ds.getChildCount(),node);
+        i++;
+      }
+
+      String op = variableContext.getParameter("accessop");
+      if (op != null && op.equals("Add"))
+      {
+        String accessspec = variableContext.getParameter("spectoken");
+        SpecificationNode node = new SpecificationNode("access");
+        node.setAttribute("token",accessspec);
+        ds.addChild(ds.getChildCount(),node);
+      }
+    }
+
+    xc = variableContext.getParameter("metadatacount");
+    if (xc != null)
+    {
+      // Delete all tokens first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals("metadata"))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      int metadataCount = Integer.parseInt(xc);
+      i = 0;
+      while (i < metadataCount)
+      {
+        String metadataDescription = "_"+Integer.toString(i);
+        String metadataOpName = "metadataop"+metadataDescription;
+        xc = variableContext.getParameter(metadataOpName);
+        if (xc != null && xc.equals("Delete"))
+        {
+          // Next row
+          i++;
+          continue;
+        }
+        // Get the stuff we need
+        String metaNameSpec = variableContext.getParameter("specmetaname"+metadataDescription);
+        String metaValueSpec = variableContext.getParameter("specmetavalue"+metadataDescription);
+        SpecificationNode node = new SpecificationNode("metadata");
+        node.setAttribute("name",metaNameSpec);
+        node.setAttribute("value",metaValueSpec);
+        ds.addChild(ds.getChildCount(),node);
+        i++;
+      }
+
+      String op = variableContext.getParameter("metadataop");
+      if (op != null && op.equals("Add"))
+      {
+        String metaNameSpec = variableContext.getParameter("specmetaname");
+        String metaValueSpec = variableContext.getParameter("specmetavalue");
+        
+        SpecificationNode node = new SpecificationNode("metadata");
+        node.setAttribute("name",metaNameSpec);
+        node.setAttribute("value",metaValueSpec);
+        
+        ds.addChild(ds.getChildCount(),node);
+      }
+    }
+    return null;
+  }
+  
+  /** View specification.
+  * This method is called in the body section of a job's view page.  Its purpose is to present the document specification information to the user.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  *@param out is the output to which any HTML should be sent.
+  *@param ds is the current document specification for this job.
+  */
+  public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
+    throws LCFException, IOException
+  {
+    out.print(
+"<table class=\"displaytable\">\n"
+    );
+    int i = 0;
+    boolean seenAny = false;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("feed"))
+      {
+        if (seenAny == false)
+        {
+          out.print(
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>RSS urls:</nobr></td>\n"+
+"    <td class=\"value\">\n"
+          );
+          seenAny = true;
+        }
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(sn.getAttributeValue("url"))+"</nobr><br/>\n"
+        );
+      }
+    }
+
+    if (seenAny)
+    {
+      out.print(
+"    </td>\n"+
+"  </tr>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"  <tr><td class=\"message\" colspan=\"2\"><nobr>No RSS urls specified</nobr></td></tr>\n"
+      );
+    }
+    out.print(
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+    );
+    i = 0;
+    int l = 0;
+    seenAny = false;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("urlspec"))
+      {
+        if (l == 0)
+        {
+          out.print(
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>URL canonicalization:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <table class=\"formtable\">\n"+
+"        <tr class=\"formheaderrow\">\n"+
+"          <td class=\"formcolumnheader\"><nobr>URL regexp</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Description</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Reorder?</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Remove JSP sessions?</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Remove ASP sessions?</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Remove PHP sessions?</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Remove BV sessions?</nobr></td>\n"+
+"        </tr>\n"
+          );
+        }
+        String regexpString = sn.getAttributeValue("regexp");
+        String description = sn.getAttributeValue("description");
+        if (description == null)
+          description = "";
+        String allowReorder = sn.getAttributeValue("reorder");
+        if (allowReorder == null || allowReorder.length() == 0)
+          allowReorder = "no";
+        String allowJavaSessionRemoval = sn.getAttributeValue("javasessionremoval");
+        if (allowJavaSessionRemoval == null || allowJavaSessionRemoval.length() == 0)
+          allowJavaSessionRemoval = "no";
+        String allowASPSessionRemoval = sn.getAttributeValue("aspsessionremoval");
+        if (allowASPSessionRemoval == null || allowASPSessionRemoval.length() == 0)
+          allowASPSessionRemoval = "no";
+        String allowPHPSessionRemoval = sn.getAttributeValue("phpsessionremoval");
+        if (allowPHPSessionRemoval == null || allowPHPSessionRemoval.length() == 0)
+          allowPHPSessionRemoval = "no";
+        String allowBVSessionRemoval = sn.getAttributeValue("bvsessionremoval");
+        if (allowBVSessionRemoval == null || allowBVSessionRemoval.length() == 0)
+          allowBVSessionRemoval = "no";
+        out.print(
+"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"          <td class=\"formcolumncell\"><nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(regexpString)+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(description)+"</td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+allowReorder+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+allowJavaSessionRemoval+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+allowASPSessionRemoval+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+allowPHPSessionRemoval+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+allowBVSessionRemoval+"</nobr></td>\n"+
+"        </tr>\n"
+        );
+        l++;
+      }
+    }
+    if (l > 0)
+    {
+      out.print(
+"      </table>\n"+
+"    </td>\n"+
+"  </tr>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"  <tr><td class=\"message\" colspan=\"2\"><nobr>No url canonicalization specified; will reorder all urls and remove all sessions</nobr></td></tr>\n"
+      );
+    }
+
+    out.print(
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+    );
+    i = 0;
+    seenAny = false;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("map"))
+      {
+        if (seenAny == false)
+        {
+          out.print(
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>URL mappings:</nobr></td>\n"+
+"    <td class=\"value\">\n"
+          );
+          seenAny = true;
+        }
+        String match = sn.getAttributeValue("match");
+        String map = sn.getAttributeValue("map");
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(match)+"</nobr>\n"
+        );
+        if (map != null && map.length() > 0)
+        {
+          out.print(
+"      &nbsp;--&gt;&nbsp;<nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(map)+"</nobr>\n"
+          );
+        }
+        out.print(
+"      <br/>\n"
+        );
+      }
+    }
+
+    if (seenAny)
+    {
+      out.print(
+"    </td>\n"+
+"  </tr>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"  <tr><td class=\"message\" colspan=\"2\"><nobr>No mappings specified; will accept all urls</nobr></td></tr>\n"
+      );
+    }
+    out.print(
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+    );
+    String feedTimeoutValue = "60";
+    String feedRefetchValue = "60";
+    String minFeedRefetchValue = "15";
+    String badFeedRefetchValue = null;
+    String dechromedMode = "none";
+    String chromedMode = "use";
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("feedtimeout"))
+      {
+        feedTimeoutValue = sn.getAttributeValue("value");
+      }
+      else if (sn.getType().equals("feedrescan"))
+      {
+        feedRefetchValue = sn.getAttributeValue("value");
+      }
+      else if (sn.getType().equals("minfeedrescan"))
+      {
+        minFeedRefetchValue = sn.getAttributeValue("value");
+      }
+      else if (sn.getType().equals("badfeedrescan"))
+      {
+        badFeedRefetchValue = sn.getAttributeValue("value");
+      }
+      else if (sn.getType().equals("dechromedmode"))
+      {
+        dechromedMode = sn.getAttributeValue("mode");
+      }
+      else if (sn.getType().equals("chromedmode"))
+      {
+        chromedMode = sn.getAttributeValue("mode");
+      }
+    }
+    out.print(
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Feed connection timeout (seconds):</nobr></td>\n"+
+"    <td class=\"value\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(feedTimeoutValue)+"</td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Default feed rescan interval (minutes):</nobr></td>\n"+
+"    <td class=\"value\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(feedRefetchValue)+"</td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Minimum feed rescan interval (minutes):</nobr></td>\n"+
+"    <td class=\"value\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(minFeedRefetchValue)+"</td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Bad feed rescan interval (minutes):</nobr></td>\n"+
+"    <td class=\"value\">"+((badFeedRefetchValue==null)?"(Default feed rescan value)":org.apache.lcf.ui.util.Encoder.bodyEscape(badFeedRefetchValue))+"</td>\n"+
+"  </tr>\n"+
+"      \n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Dechromed content source:</nobr></td>\n"+
+"    <td class=\"value\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(dechromedMode)+"</td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Chromed content:</nobr></td>\n"+
+"    <td class=\"value\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(chromedMode)+"</td>\n"+
+"  </tr>\n"+
+"\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+    );
+    // Go through looking for access tokens
+    seenAny = false;
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("access"))
+      {
+        if (seenAny == false)
+        {
+          out.print(
+"  <tr><td class=\"description\"><nobr>Access tokens:</nobr></td>\n"+
+"    <td class=\"value\">\n"
+          );
+          seenAny = true;
+        }
+        String token = sn.getAttributeValue("token");
+        out.print(
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(token)+"<br/>\n"
+        );
+      }
+    }
+
+    if (seenAny)
+    {
+      out.print(
+"    </td>\n"+
+"  </tr>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"  <tr><td class=\"message\" colspan=\"2\"><nobr>No access tokens specified</nobr></td></tr>\n"
+      );
+    }
+    out.print(
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+    );
+    // Go through looking for metadata
+    seenAny = false;
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("metadata"))
+      {
+        if (seenAny == false)
+        {
+          out.print(
+"  <tr><td class=\"description\"><nobr>Metadata:</nobr></td>\n"+
+"    <td class=\"value\">\n"
+          );
+          seenAny = true;
+        }
+        String name = sn.getAttributeValue("name");
+        String value = sn.getAttributeValue("value");
+        out.print(
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(name)+"&nbsp;=&nbsp;"+org.apache.lcf.ui.util.Encoder.bodyEscape(value)+"<br/>\n"
+        );
+      }
+    }
+
+    if (seenAny)
+    {
+      out.print(
+"    </td>\n"+
+"  </tr>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"  <tr><td class=\"message\" colspan=\"2\"><nobr>No metadata specified</nobr></td></tr>\n"
+      );
+    }
+    out.print(
+"</table>\n"
+    );
+  }
+
   /** Handle an RSS feed document, using SAX to limit the memory impact */
   protected void handleRSSFeedSAX(String documentIdentifier, IProcessActivity activities, Filter filter)
     throws LCFException, ServiceInterruption

@@ -86,8 +86,8 @@
 		ConfigParams parameters = connection.getConfigParams();
 
 		// Do stuff so we can call out to display the parameters
-		String JSPFolder = AuthorityConnectorFactory.getJSPFolder(threadContext,className);
-		threadContext.save("Parameters",parameters);
+		//String JSPFolder = AuthorityConnectorFactory.getJSPFolder(threadContext,className);
+		//threadContext.save("Parameters",parameters);
 
 		// Now, test the connection.
 		String connectionStatus;
@@ -136,12 +136,7 @@
 			<tr>
 				<td colspan="4">
 <%
-	if (JSPFolder != null)
-	{
-%>
-				<jsp:include page='<%="/authorities/"+JSPFolder+"/viewconfig.jsp"%>' flush="true"/>
-<%
-	}
+		AuthorityConnectorFactory.viewConfiguration(threadContext,className,new org.apache.lcf.ui.jsp.JspWrapper(out),parameters);
 %>
 
 				</td>

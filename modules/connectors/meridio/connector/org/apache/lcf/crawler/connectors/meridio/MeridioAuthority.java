@@ -34,6 +34,7 @@ import org.apache.commons.httpclient.protocol.ProtocolSocketFactory;
 
 import java.rmi.RemoteException;
 import java.util.*;
+import java.io.*;
 import java.net.*;
 
 
@@ -607,4 +608,653 @@ public class MeridioAuthority extends org.apache.lcf.authorities.authorities.Bas
   {
     return unreachableResponse;
   }
+  
+  // UI support methods.
+  //
+  // These support methods are involved in setting up authority connection configuration information. The configuration methods cannot assume that the
+  // current authority object is connected.  That is why they receive a thread context argument.
+    
+  /** Output the configuration header section.
+  * This method is called in the head section of the connector's configuration page.  Its purpose is to add the required tabs to the list, and to output any
+  * javascript methods that might be needed by the configuration editing HTML.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
+    throws LCFException, IOException
+  {
+    tabsArray.add("Document Server");
+    tabsArray.add("Records Server");
+    tabsArray.add("User Service Server");
+    tabsArray.add("Credentials");
+    out.print(
+"<script type=\"text/javascript\">\n"+
+"<!--\n"+
+"\n"+
+"function checkConfig()\n"+
+"{\n"+
+"  if (editconnection.dmwsServerPort.value != \"\" && !isInteger(editconnection.dmwsServerPort.value))\n"+
+"  {\n"+
+"    alert(\"Please supply a valid number\");\n"+
+"    editconnection.dmwsServerPort.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.rmwsServerPort.value != \"\" && !isInteger(editconnection.rmwsServerPort.value))\n"+
+"  {\n"+
+"    alert(\"Please supply a valid number\");\n"+
+"    editconnection.rmwsServerPort.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.dmwsProxyPort.value != \"\" && !isInteger(editconnection.dmwsProxyPort.value))\n"+
+"  {\n"+
+"    alert(\"Please supply a valid number\");\n"+
+"    editconnection.dmwsProxyPort.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.rmwsProxyPort.value != \"\" && !isInteger(editconnection.rmwsProxyPort.value))\n"+
+"  {\n"+
+"    alert(\"Please supply a valid number\");\n"+
+"    editconnection.rmwsProxyPort.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.metacartawsServerPort.value != \"\" && !isInteger(editconnection.metacartawsServerPort.value))\n"+
+"  {\n"+
+"    alert(\"Please supply a valid number\");\n"+
+"    editconnection.metacartawsServerPort.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.metacartawsProxyPort.value != \"\" && !isInteger(editconnection.metacartawsProxyPort.value))\n"+
+"  {\n"+
+"    alert(\"Please supply a valid number\");\n"+
+"    editconnection.metacartawsProxyPort.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.userName.value != \"\" && editconnection.userName.value.indexOf(\"\\\") <= 0)\n"+
+"  {\n"+
+"    alert(\"A valid Meridio user name has the form <domain>\\<user>\");\n"+
+"    editconnection.userName.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"function checkConfigForSave()\n"+
+"{\n"+
+"  if (editconnection.dmwsServerName.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Please fill in a Meridio document management server name\");\n"+
+"    SelectTab(\"Document Server\");\n"+
+"    editconnection.dmwsServerName.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.rmwsServerName.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Please fill in a Meridio records management server name\");\n"+
+"    SelectTab(\"Records Server\");\n"+
+"    editconnection.rmwsServerName.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.metacartawsServerName.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Please fill in a User Service server name\");\n"+
+"    SelectTab(\"User Service Server\");\n"+
+"    editconnection.metacartawsServerName.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"\n"+
+"  if (editconnection.dmwsServerPort.value != \"\" && !isInteger(editconnection.dmwsServerPort.value))\n"+
+"  {\n"+
+"    alert(\"Please supply a Meridio document management port number, or none for default\");\n"+
+"    SelectTab(\"Document Server\");\n"+
+"    editconnection.dmwsServerPort.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.rmwsServerPort.value != \"\" && !isInteger(editconnection.rmwsServerPort.value))\n"+
+"  {\n"+
+"    alert(\"Please supply a Meridio document management port number, or none for default\");\n"+
+"    SelectTab(\"Records Server\");\n"+
+"    editconnection.rmwsServerPort.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.metacartawsServerPort.value != \"\" && !isInteger(editconnection.metacartawsServerPort.value))\n"+
+"  {\n"+
+"    alert(\"Please supply a User Service port number, or none for default\");\n"+
+"    SelectTab(\"User Service Server\");\n"+
+"    editconnection.metacartawsServerPort.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"\n"+
+"  if (editconnection.userName.value == \"\" || editconnection.userName.value.indexOf(\"\\\") <= 0)\n"+
+"  {\n"+
+"    alert(\"The connection requires a valid Meridio user name of the form <domain>\\<user>\");\n"+
+"    SelectTab(\"Credentials\");\n"+
+"    editconnection.userName.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"function DeleteCertificate(aliasName)\n"+
+"{\n"+
+"  editconnection.keystorealias.value = aliasName;\n"+
+"  editconnection.configop.value = \"Delete\";\n"+
+"  postForm();\n"+
+"}\n"+
+"\n"+
+"function AddCertificate()\n"+
+"{\n"+
+"  if (editconnection.certificate.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Choose a certificate file\");\n"+
+"    editconnection.certificate.focus();\n"+
+"  }\n"+
+"  else\n"+
+"  {\n"+
+"    editconnection.configop.value = \"Add\";\n"+
+"    postForm();\n"+
+"  }\n"+
+"}\n"+
+"\n"+
+"//-->\n"+
+"</script>\n"
+    );
+  }
+  
+  /** Output the configuration body section.
+  * This method is called in the body section of the authority connector's configuration page.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabName is the current tab name.
+  */
+  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
+    throws LCFException, IOException
+  {
+    String dmwsServerProtocol = parameters.getParameter("DMWSServerProtocol");
+    if (dmwsServerProtocol == null)
+      dmwsServerProtocol = "http";
+    String rmwsServerProtocol = parameters.getParameter("RMWSServerProtocol");
+    if (rmwsServerProtocol == null)
+      rmwsServerProtocol = "http";
+    String metacartawsServerProtocol = parameters.getParameter("MetaCartaWSServerProtocol");
+    if (metacartawsServerProtocol == null)
+      metacartawsServerProtocol = "http";
+
+    String dmwsServerName = parameters.getParameter("DMWSServerName");
+    if (dmwsServerName == null)
+      dmwsServerName = "";
+    String rmwsServerName = parameters.getParameter("RMWSServerName");
+    if (rmwsServerName == null)
+      rmwsServerName = "";
+    String metacartawsServerName = parameters.getParameter("MetaCartaWSServerName");
+    if (metacartawsServerName == null)
+      metacartawsServerName = "";
+
+    String dmwsServerPort = parameters.getParameter("DMWSServerPort");
+    if (dmwsServerPort == null)
+      dmwsServerPort = "";
+    String rmwsServerPort = parameters.getParameter("RMWSServerPort");
+    if (rmwsServerPort == null)
+      rmwsServerPort = "";
+    String metacartawsServerPort = parameters.getParameter("MetaCartaWSServerPort");
+    if (metacartawsServerPort == null)
+      metacartawsServerPort = "";
+
+    String dmwsLocation = parameters.getParameter("DMWSLocation");
+    if (dmwsLocation == null)
+      dmwsLocation = "/DMWS/MeridioDMWS.asmx";
+    String rmwsLocation = parameters.getParameter("RMWSLocation");
+    if (rmwsLocation == null)
+      rmwsLocation = "/RMWS/MeridioRMWS.asmx";
+    String metacartawsLocation = parameters.getParameter("MetaCartaWSLocation");
+    if (metacartawsLocation == null)
+      metacartawsLocation = "/MetaCartaWebService/MetaCarta.asmx";
+
+    String dmwsProxyHost = parameters.getParameter("DMWSProxyHost");
+    if (dmwsProxyHost == null)
+      dmwsProxyHost = "";
+    String rmwsProxyHost = parameters.getParameter("RMWSProxyHost");
+    if (rmwsProxyHost == null)
+      rmwsProxyHost = "";
+    String metacartawsProxyHost = parameters.getParameter("MetaCartaWSProxyHost");
+    if (metacartawsProxyHost == null)
+      metacartawsProxyHost = "";
+
+    String dmwsProxyPort = parameters.getParameter("DMWSProxyPort");
+    if (dmwsProxyPort == null)
+      dmwsProxyPort = "";
+    String rmwsProxyPort = parameters.getParameter("RMWSProxyPort");
+    if (rmwsProxyPort == null)
+      rmwsProxyPort = "";
+    String metacartawsProxyPort = parameters.getParameter("MetaCartaWSProxyPort");
+    if (metacartawsProxyPort == null)
+      metacartawsProxyPort = "";
+
+    String userName = parameters.getParameter("UserName");
+    if (userName == null)
+      userName = "";
+
+    String password = parameters.getObfuscatedParameter("Password");
+    if (password == null)
+      password = "";
+
+    String meridioKeystore = parameters.getParameter("MeridioKeystore");
+    IKeystoreManager localKeystore;
+    if (meridioKeystore == null)
+      localKeystore = KeystoreManagerFactory.make("");
+    else
+      localKeystore = KeystoreManagerFactory.make("",meridioKeystore);
+
+    out.print(
+"<input name=\"configop\" type=\"hidden\" value=\"Continue\"/>\n"
+    );
+    
+    // "Document Server" tab
+    if (tabName.equals("Document Server"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Document webservice server protocol:</nobr></td><td class=\"value\"><select name=\"dmwsServerProtocol\"><option value=\"http\" "+(dmwsServerProtocol.equals("http")?"selected=\"true\"":"")+">http</option><option value=\"https\" "+(dmwsServerProtocol.equals("https")?"selected=\"true\"":"")+">https</option></select></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Document webservice server name:</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"dmwsServerName\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(dmwsServerName)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Document webservice server port:</nobr></td><td class=\"value\"><input type=\"text\" size=\"5\" name=\"dmwsServerPort\" value=\""+dmwsServerPort+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Document webservice location:</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"dmwsLocation\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(dmwsLocation)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"separator\" colspan=\"2\"><hr/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Document webservice server proxy host:</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"dmwsProxyHost\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(dmwsProxyHost)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Document webservice server proxy port:</nobr></td><td class=\"value\"><input type=\"text\" size=\"5\" name=\"dmwsProxyPort\" value=\""+dmwsProxyPort+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for the Document Server tab.
+      out.print(
+"<input type=\"hidden\" name=\"dmwsServerProtocol\" value=\""+dmwsServerProtocol+"\"/>\n"+
+"<input type=\"hidden\" name=\"dmwsServerName\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(dmwsServerName)+"\"/>\n"+
+"<input type=\"hidden\" name=\"dmwsServerPort\" value=\""+dmwsServerPort+"\"/>\n"+
+"<input type=\"hidden\" name=\"dmwsLocation\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(dmwsLocation)+"\"/>\n"+
+"<input type=\"hidden\" name=\"dmwsProxyHost\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(dmwsProxyHost)+"\"/>\n"+
+"<input type=\"hidden\" name=\"dmwsProxyPort\" value=\""+dmwsProxyPort+"\"/>\n"
+      );
+    }
+
+    // "Records Server" tab
+    if (tabName.equals("Records Server"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Record webservice server protocol:</nobr></td><td class=\"value\"><select name=\"rmwsServerProtocol\"><option value=\"http\" "+(rmwsServerProtocol.equals("http")?"selected=\"true\"":"")+">http</option><option value=\"https\" "+(rmwsServerProtocol.equals("https")?"selected=\"true\"":"")+">https</option></select></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Record webservice server name:</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"rmwsServerName\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(rmwsServerName)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Record webservice server port:</nobr></td><td class=\"value\"><input type=\"text\" size=\"5\" name=\"rmwsServerPort\" value=\""+rmwsServerPort+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Record webservice location:</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"rmwsLocation\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(rmwsLocation)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"separator\" colspan=\"2\"><hr/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Record webservice server proxy host:</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"rmwsProxyHost\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(rmwsProxyHost)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Record webservice server proxy port:</nobr></td><td class=\"value\"><input type=\"text\" size=\"5\" name=\"rmwsProxyPort\" value=\""+rmwsProxyPort+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for the Records Server tab.
+      out.print(
+"<input type=\"hidden\" name=\"rmwsServerProtocol\" value=\""+rmwsServerProtocol+"\"/>\n"+
+"<input type=\"hidden\" name=\"rmwsServerName\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(rmwsServerName)+"\"/>\n"+
+"<input type=\"hidden\" name=\"rmwsServerPort\" value=\""+rmwsServerPort+"\"/>\n"+
+"<input type=\"hidden\" name=\"rmwsLocation\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(rmwsLocation)+"\"/>\n"+
+"<input type=\"hidden\" name=\"rmwsProxyHost\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(rmwsProxyHost)+"\"/>\n"+
+"<input type=\"hidden\" name=\"rmwsProxyPort\" value=\""+rmwsProxyPort+"\"/>\n"
+      );
+    }
+
+    // The "User Service Server" tab
+    if (tabName.equals("User Service Server"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>User webservice server protocol:</nobr></td><td class=\"value\"><select name=\"metacartawsServerProtocol\"><option value=\"http\" "+(metacartawsServerProtocol.equals("http")?"selected=\"true\"":"")+">http</option><option value=\"https\" "+(metacartawsServerProtocol.equals("https")?"selected=\"true\"":"")+">https</option></select></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>User webservice server name:</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"metacartawsServerName\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(metacartawsServerName)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>User webservice server port:</nobr></td><td class=\"value\"><input type=\"text\" size=\"5\" name=\"metacartawsServerPort\" value=\""+metacartawsServerPort+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>User webservice location:</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"metacartawsLocation\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(metacartawsLocation)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"separator\" colspan=\"2\"><hr/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>User webservice server proxy host:</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"metacartawsProxyHost\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(metacartawsProxyHost)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>User webservice server proxy port:</nobr></td><td class=\"value\"><input type=\"text\" size=\"5\" name=\"metacartawsProxyPort\" value=\""+metacartawsProxyPort+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for the User Service Server tab.
+      out.print(
+"<input type=\"hidden\" name=\"metacartawsServerProtocol\" value=\""+metacartawsServerProtocol+"\"/>\n"+
+"<input type=\"hidden\" name=\"metacartawsServerName\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(metacartawsServerName)+"\"/>\n"+
+"<input type=\"hidden\" name=\"metacartawsServerPort\" value=\""+metacartawsServerPort+"\"/>\n"+
+"<input type=\"hidden\" name=\"metacartawsLocation\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(metacartawsLocation)+"\"/>\n"+
+"<input type=\"hidden\" name=\"metacartawsProxyHost\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(metacartawsProxyHost)+"\"/>\n"+
+"<input type=\"hidden\" name=\"metacartawsProxyPort\" value=\""+metacartawsProxyPort+"\"/>\n"
+      );
+    }
+
+    // The "Credentials" tab
+    // Always pass the whole keystore as a hidden.
+    if (meridioKeystore != null)
+    {
+      out.print(
+"<input type=\"hidden\" name=\"keystoredata\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(meridioKeystore)+"\"/>\n"
+      );
+    }
+
+    if (tabName.equals("Credentials"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>User name:</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"userName\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(userName)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Password:</nobr></td><td class=\"value\"><input type=\"password\" size=\"32\" name=\"password\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(password)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>SSL certificate list:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"hidden\" name=\"keystorealias\" value=\"\"/>\n"+
+"      <table class=\"displaytable\">\n"
+      );
+      // List the individual certificates in the store, with a delete button for each
+      String[] contents = localKeystore.getContents();
+      if (contents.length == 0)
+      {
+        out.print(
+"        <tr><td class=\"message\" colspan=\"2\"><nobr>No certificates present</nobr></td></tr>\n"
+        );
+      }
+      else
+      {
+        int i = 0;
+        while (i < contents.length)
+        {
+          String alias = contents[i];
+          String description = localKeystore.getDescription(alias);
+          if (description.length() > 128)
+          description = description.substring(0,125) + "...";
+          out.print(
+"        <tr>\n"+
+"          <td class=\"value\"><input type=\"button\" onclick='Javascript:DeleteCertificate(\""+org.apache.lcf.ui.util.Encoder.attributeJavascriptEscape(alias)+"\")' alt=\"Delete cert "+org.apache.lcf.ui.util.Encoder.attributeEscape(alias)+"\" value=\"Delete\"/></td>\n"+
+"          <td>"+org.apache.lcf.ui.util.Encoder.bodyEscape(description)+"</td>\n"+
+"        </tr>\n"
+          );
+          i++;
+        }
+      }
+      
+      out.print(
+"      </table>\n"+
+"      <input type=\"button\" onclick=\"Javascript:AddCertificate()\" alt=\"Add cert\" value=\"Add\"/>&nbsp;\n"+
+"        Certificate:&nbsp;<input name=\"certificate\" size=\"50\" type=\"file\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for the "Credentials" tab
+      out.print(
+"<input type=\"hidden\" name=\"userName\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(userName)+"\"/>\n"+
+"<input type=\"hidden\" name=\"password\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(password)+"\"/>\n"
+      );
+    }
+  }
+  
+  /** Process a configuration post.
+  * This method is called at the start of the authority connector's configuration page, whenever there is a possibility that form data for a connection has been
+  * posted.  Its purpose is to gather form information and modify the configuration parameters accordingly.
+  * The name of the posted form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param variableContext is the set of variables available from the post, including binary file post information.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
+  */
+  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
+    throws LCFException
+  {
+    String dmwsServerProtocol = variableContext.getParameter("dmwsServerProtocol");
+    if (dmwsServerProtocol != null)
+      parameters.setParameter("DMWSServerProtocol",dmwsServerProtocol);
+    String rmwsServerProtocol = variableContext.getParameter("rmwsServerProtocol");
+    if (rmwsServerProtocol != null)
+      parameters.setParameter("RMWSServerProtocol",rmwsServerProtocol);
+    String metacartawsServerProtocol = variableContext.getParameter("metacartawsServerProtocol");
+    if (metacartawsServerProtocol != null)
+      parameters.setParameter("MetaCartaWSServerProtocol",metacartawsServerProtocol);
+
+    String dmwsServerName = variableContext.getParameter("dmwsServerName");
+    if (dmwsServerName != null)
+      parameters.setParameter("DMWSServerName",dmwsServerName);
+    String rmwsServerName = variableContext.getParameter("rmwsServerName");
+    if (rmwsServerName != null)
+      parameters.setParameter("RMWSServerName",rmwsServerName);
+    String metacartawsServerName = variableContext.getParameter("metacartawsServerName");
+    if (metacartawsServerName != null)
+      parameters.setParameter("MetaCartaWSServerName",metacartawsServerName);
+
+    String dmwsServerPort = variableContext.getParameter("dmwsServerPort");
+    if (dmwsServerPort != null)
+    {
+      if (dmwsServerPort.length() > 0)
+        parameters.setParameter("DMWSServerPort",dmwsServerPort);
+      else
+        parameters.setParameter("DMWSServerPort",null);
+    }
+    String rmwsServerPort = variableContext.getParameter("rmwsServerPort");
+    if (rmwsServerPort != null)
+    {
+      if (rmwsServerPort.length() > 0)
+        parameters.setParameter("RMWSServerPort",rmwsServerPort);
+      else
+        parameters.setParameter("RMWSServerPort",null);
+    }
+    String metacartawsServerPort = variableContext.getParameter("metacartawsServerPort");
+    if (metacartawsServerPort != null)
+    {
+      if (metacartawsServerPort.length() > 0)
+        parameters.setParameter("MetaCartaWSServerPort",metacartawsServerPort);
+      else
+        parameters.setParameter("MetaCartaWSServerPort",null);
+    }
+
+    String dmwsLocation = variableContext.getParameter("dmwsLocation");
+    if (dmwsLocation != null)
+      parameters.setParameter("DMWSLocation",dmwsLocation);
+    String rmwsLocation = variableContext.getParameter("rmwsLocation");
+    if (rmwsLocation != null)
+      parameters.setParameter("RMWSLocation",rmwsLocation);
+    String metacartawsLocation = variableContext.getParameter("metacartawsLocation");
+    if (metacartawsLocation != null)
+      parameters.setParameter("MetaCartaWSLocation",metacartawsLocation);
+
+    String dmwsProxyHost = variableContext.getParameter("dmwsProxyHost");
+    if (dmwsProxyHost != null)
+      parameters.setParameter("DMWSProxyHost",dmwsProxyHost);
+    String rmwsProxyHost = variableContext.getParameter("rmwsProxyHost");
+    if (rmwsProxyHost != null)
+      parameters.setParameter("RMWSProxyHost",rmwsProxyHost);
+    String metacartawsProxyHost = variableContext.getParameter("metacartawsProxyHost");
+    if (metacartawsProxyHost != null)
+      parameters.setParameter("MetaCartaWSProxyHost",metacartawsProxyHost);
+		
+    String dmwsProxyPort = variableContext.getParameter("dmwsProxyPort");
+    if (dmwsProxyPort != null && dmwsProxyPort.length() > 0)
+      parameters.setParameter("DMWSProxyPort",dmwsProxyPort);
+    String rmwsProxyPort = variableContext.getParameter("rmwsProxyPort");
+    if (rmwsProxyPort != null && rmwsProxyPort.length() > 0)
+      parameters.setParameter("RMWSProxyPort",rmwsProxyPort);
+    String metacartawsProxyPort = variableContext.getParameter("metacartawsProxyPort");
+    if (metacartawsProxyPort != null && metacartawsProxyPort.length() > 0)
+      parameters.setParameter("MetaCartaWSProxyPort",metacartawsProxyPort);
+
+    String userName = variableContext.getParameter("userName");
+    if (userName != null)
+      parameters.setParameter("UserName",userName);
+
+    String password = variableContext.getParameter("password");
+    if (password != null)
+      parameters.setObfuscatedParameter("Password",password);
+
+    String configOp = variableContext.getParameter("configop");
+    if (configOp != null)
+    {
+      String keystoreValue;
+      if (configOp.equals("Delete"))
+      {
+        String alias = variableContext.getParameter("keystorealias");
+        keystoreValue = parameters.getParameter("MeridioKeystore");
+        IKeystoreManager mgr;
+        if (keystoreValue != null)
+          mgr = KeystoreManagerFactory.make("",keystoreValue);
+        else
+          mgr = KeystoreManagerFactory.make("");
+        mgr.remove(alias);
+        parameters.setParameter("MeridioKeystore",mgr.getString());
+      }
+      else if (configOp.equals("Add"))
+      {
+        String alias = IDFactory.make(threadContext);
+        byte[] certificateValue = variableContext.getBinaryBytes("certificate");
+        keystoreValue = parameters.getParameter("MeridioKeystore");
+        IKeystoreManager mgr;
+        if (keystoreValue != null)
+          mgr = KeystoreManagerFactory.make("",keystoreValue);
+        else
+          mgr = KeystoreManagerFactory.make("");
+        java.io.InputStream is = new java.io.ByteArrayInputStream(certificateValue);
+        String certError = null;
+        try
+        {
+          mgr.importCertificate(alias,is);
+        }
+        catch (Throwable e)
+        {
+          certError = e.getMessage();
+        }
+        finally
+        {
+          try
+          {
+            is.close();
+          }
+          catch (IOException e)
+          {
+            throw new LCFException(e.getMessage(),e);
+          }
+        }
+
+        if (certError != null)
+        {
+          // Redirect to error page
+          return "Illegal certificate: "+certError;
+        }
+        parameters.setParameter("MeridioKeystore",mgr.getString());
+      }
+    }
+    return null;
+  }
+  
+  /** View configuration.
+  * This method is called in the body section of the authority connector's view configuration page.  Its purpose is to present the connection information to the user.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  */
+  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
+    throws LCFException, IOException
+  {
+    out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>Parameters:</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"3\">\n"
+    );
+    Iterator iter = parameters.listParameters();
+    while (iter.hasNext())
+    {
+      String param = (String)iter.next();
+      String value = parameters.getParameter(param);
+      if (param.length() >= "password".length() && param.substring(param.length()-"password".length()).equalsIgnoreCase("password"))
+      {
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"=********</nobr><br/>\n"
+        );
+      }
+      else if (param.length() >="keystore".length() && param.substring(param.length()-"keystore".length()).equalsIgnoreCase("keystore"))
+      {
+        IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"=<"+Integer.toString(kmanager.getContents().length)+" certificate(s)></nobr><br/>\n"
+        );
+      }
+      else
+      {
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"="+org.apache.lcf.ui.util.Encoder.bodyEscape(value)+"</nobr><br/>\n"
+        );
+      }
+    }
+    out.print(
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+    );
+  }
+
 }

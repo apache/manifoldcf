@@ -40,8 +40,13 @@ import jcifs.smb.SmbFileFilter;
 
 import org.apache.lcf.agents.interfaces.RepositoryDocument;
 import org.apache.lcf.agents.interfaces.ServiceInterruption;
+import org.apache.lcf.core.interfaces.IThreadContext;
+import org.apache.lcf.core.interfaces.IHTTPOutput;
+import org.apache.lcf.core.interfaces.IPostParameters;
 import org.apache.lcf.core.interfaces.ConfigParams;
 import org.apache.lcf.core.interfaces.LCFException;
+import org.apache.lcf.core.interfaces.IKeystoreManager;
+import org.apache.lcf.core.interfaces.KeystoreManagerFactory;
 import org.apache.lcf.crawler.interfaces.DocumentSpecification;
 import org.apache.lcf.crawler.interfaces.IDocumentIdentifierStream;
 import org.apache.lcf.crawler.interfaces.IProcessActivity;
@@ -2535,6 +2540,1941 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
       ids = null;
     }
 
+  }
+
+  // UI support methods.
+  //
+  // These support methods come in two varieties.  The first bunch is involved in setting up connection configuration information.  The second bunch
+  // is involved in presenting and editing document specification information for a job.  The two kinds of methods are accordingly treated differently,
+  // in that the first bunch cannot assume that the current connector object is connected, while the second bunch can.  That is why the first bunch
+  // receives a thread context argument for all UI methods, while the second bunch does not need one (since it has already been applied via the connect()
+  // method, above).
+    
+  /** Output the configuration header section.
+  * This method is called in the head section of the connector's configuration page.  Its purpose is to add the required tabs to the list, and to output any
+  * javascript methods that might be needed by the configuration editing HTML.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
+    throws LCFException, IOException
+  {
+    tabsArray.add("Server");
+    out.print(
+"<script type=\"text/javascript\">\n"+
+"<!--\n"+
+"function checkConfigForSave()\n"+
+"{\n"+
+"  if (editconnection.server.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Need a server name\");\n"+
+"    SelectTab(\"Server\");\n"+
+"    editconnection.server.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"\n"+
+"  if (editconnection.server.value.indexOf(\"/\") != -1)\n"+
+"  {\n"+
+"    alert(\"Server name cannot include path information\");\n"+
+"    SelectTab(\"Server\");\n"+
+"    editconnection.server.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"		\n"+
+"  if (editconnection.username.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Need a user name\");\n"+
+"    SelectTab(\"Server\");\n"+
+"    editconnection.username.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"//-->\n"+
+"</script>\n"
+    );
+  }
+  
+  /** Output the configuration body section.
+  * This method is called in the body section of the connector's configuration page.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabName is the current tab name.
+  */
+  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
+    throws LCFException, IOException
+  {
+    String server   = parameters.getParameter(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveParameters.server);
+    if (server==null) server = "";
+    String domain = parameters.getParameter(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveParameters.domain);
+    if (domain==null) domain = "";
+    String username = parameters.getParameter(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveParameters.username);
+    if (username==null) username = "";
+    String password = parameters.getObfuscatedParameter(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveParameters.password);
+    if (password==null) password = "";
+
+    // "Server" tab
+    if (tabName.equals("Server"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Server:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"server\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(server)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Authentication domain (optional):</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"domain\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(domain)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>User name:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"username\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(username)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Password:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"password\" size=\"32\" name=\"password\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(password)+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"server\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(server)+"\"/>\n"+
+"<input type=\"hidden\" name=\"domain\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(domain)+"\"/>\n"+
+"<input type=\"hidden\" name=\"username\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(username)+"\"/>\n"+
+"<input type=\"hidden\" name=\"password\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(password)+"\"/>\n"
+      );
+    }
+  }
+  
+  /** Process a configuration post.
+  * This method is called at the start of the connector's configuration page, whenever there is a possibility that form data for a connection has been
+  * posted.  Its purpose is to gather form information and modify the configuration parameters accordingly.
+  * The name of the posted form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param variableContext is the set of variables available from the post, including binary file post information.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
+  */
+  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
+    throws LCFException
+  {
+    String server = variableContext.getParameter("server");
+    if (server != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveParameters.server,server);
+	
+    String domain = variableContext.getParameter("domain");
+    if (domain != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveParameters.domain,domain);
+	
+    String username = variableContext.getParameter("username");
+    if (username != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveParameters.username,username);
+		
+    String password = variableContext.getParameter("password");
+    if (password != null)
+      parameters.setObfuscatedParameter(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveParameters.password,password);
+    return null;
+  }
+  
+  /** View configuration.
+  * This method is called in the body section of the connector's view configuration page.  Its purpose is to present the connection information to the user.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  */
+  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
+    throws LCFException, IOException
+  {
+    out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>Parameters:</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"3\">\n"
+    );
+    Iterator iter = parameters.listParameters();
+    while (iter.hasNext())
+    {
+      String param = (String)iter.next();
+      String value = parameters.getParameter(param);
+      if (param.length() >= "password".length() && param.substring(param.length()-"password".length()).equalsIgnoreCase("password"))
+      {
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"=********</nobr><br/>\n"
+        );
+      }
+      else if (param.length() >="keystore".length() && param.substring(param.length()-"keystore".length()).equalsIgnoreCase("keystore"))
+      {
+        IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"=<"+Integer.toString(kmanager.getContents().length)+" certificate(s)></nobr><br/>\n"
+        );
+      }
+      else
+      {
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"="+org.apache.lcf.ui.util.Encoder.bodyEscape(value)+"</nobr><br/>\n"
+        );
+      }
+    }
+    out.print(
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+    );
+  }
+  
+  /** Output the specification header section.
+  * This method is called in the head section of a job page which has selected a repository connection of the current type.  Its purpose is to add the required tabs
+  * to the list, and to output any javascript methods that might be needed by the job editing HTML.
+  *@param out is the output to which any HTML should be sent.
+  *@param ds is the current document specification for this job.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
+  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
+    throws LCFException, IOException
+  {
+    tabsArray.add("Paths");
+    tabsArray.add("Security");
+    tabsArray.add("Metadata");
+    tabsArray.add("Content Length");
+    tabsArray.add("File Mapping");
+    tabsArray.add("URL Mapping");
+    out.print(
+"<script type=\"text/javascript\">\n"+
+"//<!--\n"+
+"\n"+
+"function checkSpecification()\n"+
+"{\n"+
+"  if (editjob.specmaxlength.value != \"\" && !isInteger(editjob.specmaxlength.value))\n"+
+"  {\n"+
+"    alert(\"Need a valid number for maximum document length\");\n"+
+"    editjob.specmaxlength.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"function SpecOp(n, opValue, anchorvalue)\n"+
+"{\n"+
+"  eval(\"editjob.\"+n+\".value = \\\"\"+opValue+\"\\\"\");\n"+
+"  postFormSetAnchor(anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function SpecAddToPath(anchorvalue)\n"+
+"{\n"+
+"  if (editjob.pathaddon.value == \"\" && editjob.pathtypein.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Select a folder or type in a path first\");\n"+
+"    editjob.pathaddon.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  if (editjob.pathaddon.value != \"\" && editjob.pathtypein.value != \"\")\n"+
+"  {\n"+
+"    alert(\"Either select a folder, OR type in a path\");\n"+
+"    editjob.pathaddon.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  SpecOp(\"pathop\",\"AddToPath\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function SpecAddSpec(suffix,anchorvalue)\n"+
+"{\n"+
+"  if (eval(\"editjob.specfile\"+suffix+\".value\") == \"\")\n"+
+"  {\n"+
+"    alert(\"Enter a file specification first\");\n"+
+"    eval(\"editjob.specfile\"+suffix+\".focus()\");\n"+
+"    return;\n"+
+"  }\n"+
+"  SpecOp(\"pathop\"+suffix,\"Add\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function SpecInsertSpec(postfix,anchorvalue)\n"+
+"{\n"+
+"  if (eval(\"editjob.specfile_i\"+postfix+\".value\") == \"\")\n"+
+"  {\n"+
+"    alert(\"Enter a file specification first\");\n"+
+"    eval(\"editjob.specfile_i\"+postfix+\".focus()\");\n"+
+"    return;\n"+
+"  }\n"+
+"  SpecOp(\"specop\"+postfix,\"Insert Here\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function SpecAddToken(anchorvalue)\n"+
+"{\n"+
+"  if (editjob.spectoken.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Null access tokens not allowed\");\n"+
+"    editjob.spectoken.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  SpecOp(\"accessop\",\"Add\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function SpecAddMapping(anchorvalue)\n"+
+"{\n"+
+"  if (editjob.specmatch.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Match string cannot be empty\");\n"+
+"    editjob.specmatch.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  if (!isRegularExpression(editjob.specmatch.value))\n"+
+"  {\n"+
+"    alert(\"Match string must be valid regular expression\");\n"+
+"    editjob.specmatch.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  SpecOp(\"specmappingop\",\"Add\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function SpecAddFMap(anchorvalue)\n"+
+"{\n"+
+"  if (editjob.specfmapmatch.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Match string cannot be empty\");\n"+
+"    editjob.specfmapmatch.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  if (!isRegularExpression(editjob.specfmapmatch.value))\n"+
+"  {\n"+
+"    alert(\"Match string must be valid regular expression\");\n"+
+"    editjob.specfmapmatch.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  SpecOp(\"specfmapop\",\"Add\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function SpecAddUMap(anchorvalue)\n"+
+"{\n"+
+"  if (editjob.specumapmatch.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Match string cannot be empty\");\n"+
+"    editjob.specumapmatch.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  if (!isRegularExpression(editjob.specumapmatch.value))\n"+
+"  {\n"+
+"    alert(\"Match string must be valid regular expression\");\n"+
+"    editjob.specumapmatch.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  SpecOp(\"specumapop\",\"Add\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"//-->\n"+
+"</script>\n"
+    );
+  }
+  
+  /** Output the specification body section.
+  * This method is called in the body section of a job page which has selected a repository connection of the current type.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * form is "editjob".
+  *@param out is the output to which any HTML should be sent.
+  *@param ds is the current document specification for this job.
+  *@param tabName is the current tab name.
+  */
+  public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
+    throws LCFException, IOException
+  {
+    int i;
+    int k;
+
+    // "Content Length" tab
+    i = 0;
+    String maxLength = null;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_MAXLENGTH))
+        maxLength = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_VALUE);
+    }
+    if (maxLength == null)
+      maxLength = "";
+
+    if (tabName.equals("Content Length"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Maximum document length:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" name=\"specmaxlength\" size=\"10\" value=\""+maxLength+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"specmaxlength\" value=\""+maxLength+"\"/>\n"
+      );
+    }
+
+    // Check for Paths tab
+    if (tabName.equals("Paths"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+      );
+      // Now, loop through paths.  There will be a row in the current table for each one.
+      // The row will contain a delete button on the left.  On the right will be the startpoint itself at the top,
+      // and underneath it the table where the filter criteria are edited.
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_STARTPOINT))
+        {
+          String pathDescription = "_"+Integer.toString(k);
+          String pathOpName = "pathop"+pathDescription;
+          String startPath = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_PATH);
+          out.print(
+"  <tr>\n"+
+"    <td class=\"value\">\n"+
+"      <a name=\""+"path_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Delete\" alt=\""+"Delete path #"+Integer.toString(k)+"\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")'/>\n"+
+"      </a>&nbsp;\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      <table class=\"displaytable\">\n"+
+"        <tr>\n"+
+"          <td class=\"value\">\n"+
+"            <input type=\"hidden\" name=\""+"specpath"+pathDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_PATH))+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+pathOpName+"\" value=\"\"/>\n"+
+"            <nobr>"+((startPath.length() == 0)?"(root)":org.apache.lcf.ui.util.Encoder.bodyEscape(startPath))+"</nobr>\n"+
+"          </td>\n"+
+"        </tr>\n"+
+"        <tr>\n"+
+"          <td class=\"boxcell\">\n"+
+"            <table class=\"displaytable\">\n"
+          );
+          // Now go through the include/exclude children of this node, and display one line per node, followed
+          // an "add" line.
+          int j = 0;
+          while (j < sn.getChildCount())
+          {
+            SpecificationNode excludeNode = sn.getChild(j);
+            String instanceDescription = "_"+Integer.toString(k)+"_"+Integer.toString(j);
+            String instanceOpName = "specop" + instanceDescription;
+
+            String nodeFlavor = excludeNode.getType();
+            String nodeType = excludeNode.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TYPE);
+            if (nodeType == null)
+              nodeType = "";
+            String filespec = excludeNode.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_FILESPEC);
+            String indexable = excludeNode.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_INDEXABLE);
+            if (indexable == null)
+              indexable = "";
+            out.print(
+"              <tr>\n"+
+"                <td class=\"value\">\n"+
+"                    <input type=\"button\" value=\"Insert\" onClick='Javascript:SpecInsertSpec(\""+instanceDescription+"\",\"filespec_"+Integer.toString(k)+"_"+Integer.toString(j+1)+"\") alt=\""+"Insert new match for path #"+Integer.toString(k)+" before position #"+Integer.toString(j)+"\"/>\n"+
+"                </td>\n"+
+"                <td class=\"value\">\n"+
+"                  <nobr>\n"+
+"                    <select name=\""+"specfl_i"+instanceDescription+"\">\n"+
+"                      <option value=\"include\">Include</option>\n"+
+"                      <option value=\"exclude\">Exclude</option>\n"+
+"                    </select>&nbsp;\n"+
+"                    <select name=\""+"spectin_i"+instanceDescription+"\">\n"+
+"                      <option value=\"\" selected=\"selected\">-- Any file or directory --</option>\n"+
+"                      <option value=\"file\">file(s)</option>\n"+
+"                      <option value=\"indexable-file\">indexable file(s)</option>\n"+
+"                      <option value=\"unindexable-file\">un-indexable file(s)</option>\n"+
+"                      <option value=\"directory\">directory(s)</option>\n"+
+"                    </select>&nbsp;matching&nbsp;\n"+
+"                    <input type=\"text\" size=\"20\" name=\""+"specfile_i"+instanceDescription+"\" value=\"\"/>\n"+
+"                  </nobr>\n"+
+"                </td>\n"+
+"\n"+
+"              </tr>\n"+
+"              <tr>\n"+
+"                <td class=\"value\">\n"+
+"                  <a name=\""+"filespec_"+Integer.toString(k)+"_"+Integer.toString(j)+"\">\n"+
+"                    <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+"specop"+instanceDescription+"\",\"Delete\",\"filespec_"+Integer.toString(k)+"_"+Integer.toString(j)+"\")' alt=\""+"Delete path #"+Integer.toString(k)+", match spec #"+Integer.toString(j)+"\"/>\n"+
+"                  </a>\n"+
+"                </td>\n"+
+"                <td class=\"value\">\n"+
+"                  <nobr>\n"+
+"                    <input type=\"hidden\" name=\""+"specop"+instanceDescription+"\" value=\"\"/>\n"+
+"                    <input type=\"hidden\" name=\""+"specfl"+instanceDescription+"\" value=\""+nodeFlavor+"\"/>\n"+
+"                    <input type=\"hidden\" name=\""+"specty"+instanceDescription+"\" value=\""+nodeType+"\"/>\n"+
+"                    <input type=\"hidden\" name=\""+"specin"+instanceDescription+"\" value=\""+indexable+"\"/>\n"+
+"                    <input type=\"hidden\" name=\""+"specfile"+instanceDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(filespec)+"\"/>\n"+
+"                    "+Integer.toString(j+1)+".&nbsp;"+(nodeFlavor.equals("include")?"Include":"")+""+(nodeFlavor.equals("exclude")?"Exclude":"")+""+(indexable.equals("yes")?"&nbsp;indexable":"")+""+(indexable.equals("no")?"&nbsp;un-indexable":"")+""+(nodeType.equals("file")?"&nbsp;file(s)":"")+""+(nodeType.equals("directory")?"&nbsp;directory(s)":"")+""+(nodeType.equals("")?"&nbsp;file(s)&nbsp;or&nbsp;directory(s)":"")+"&nbsp;matching&nbsp;"+org.apache.lcf.ui.util.Encoder.bodyEscape(filespec)+"\n"+
+"                  </nobr>\n"+
+"                </td>\n"+
+"              </tr>\n"
+            );
+            j++;
+          }
+          if (j == 0)
+          {
+            out.print(
+"              <tr><td class=\"message\" colspan=\"2\">No rules defined</td></tr>\n"
+            );
+          }
+          out.print(
+"              <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
+"              <tr>\n"+
+"                <td class=\"value\">\n"+
+"                  <input type=\"hidden\" name=\""+"specchildcount"+pathDescription+"\" value=\""+Integer.toString(j)+"\"/>\n"+
+"                  <a name=\""+"filespec_"+Integer.toString(k)+"_"+Integer.toString(j)+"\">\n"+
+"                    <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddSpec(\""+pathDescription+"\",\"filespec_"+Integer.toString(k)+"_"+Integer.toString(j+1)+"\")' alt=\""+"Add new match for path #"+Integer.toString(k)+"\"/>\n"+
+"                  </a>\n"+
+"                </td>\n"+
+"                <td class=\"value\">\n"+
+"                  <nobr>\n"+
+"                    <select name=\""+"specfl"+pathDescription+"\">\n"+
+"                      <option value=\"include\">Include</option>\n"+
+"                      <option value=\"exclude\">Exclude</option>\n"+
+"                    </select>&nbsp;\n"+
+"                    <select name=\""+"spectin"+pathDescription+"\">\n"+
+"                      <option value=\"\">-- Any file or directory --</option>\n"+
+"                      <option value=\"file\">file(s)</option>\n"+
+"                      <option value=\"indexable-file\">indexable file(s)</option>\n"+
+"                      <option value=\"unindexable-file\">un-indexable file(s)</option>\n"+
+"                      <option value=\"directory\">directory(s)</option>\n"+
+"                    </select>&nbsp;matching&nbsp;\n"+
+"                    <input type=\"text\" size=\"20\" name=\""+"specfile"+pathDescription+"\" value=\"\"/>\n"+
+"                  </nobr>\n"+
+"                </td>\n"+
+"              </tr>\n"+
+"            </table>\n"+
+"          </td>\n"+
+"        </tr>\n"+
+"      </table>\n"+
+"    </td>\n"+
+"  </tr>\n"
+          );
+          k++;
+        }
+      }
+      if (k == 0)
+      {
+        out.print(
+"  <tr>\n"+
+"    <td class=\"message\" colspan=\"2\">No starting points defined</td>\n"+
+"  </tr>\n"
+        );
+      }
+      out.print(
+"  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"value\" colspan=\"2\">\n"+
+"      <nobr>\n"+
+"        <input type=\"hidden\" name=\"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"        <a name=\""+"path_"+Integer.toString(k)+"\">\n"
+      );
+	
+      String pathSoFar = (String)currentContext.get("specpath");
+      if (pathSoFar == null)
+        pathSoFar = "";
+
+      // Grab next folder/project list
+      try
+      {
+        String[] childList;
+        childList = getChildFolderNames(pathSoFar);
+        if (childList == null)
+        {
+          // Illegal path - set it back
+          pathSoFar = "";
+          childList = getChildFolderNames("");
+          if (childList == null)
+            throw new LCFException("Can't find any children for root folder");
+        }
+        out.print(
+"          <input type=\"hidden\" name=\"specpath\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(pathSoFar)+"\"/>\n"+
+"          <input type=\"hidden\" name=\"pathop\" value=\"\"/>\n"+
+"          <input type=\"button\" value=\"Add\" alt=\"Add path\" onClick='Javascript:SpecOp(\"pathop\",\"Add\",\"path_"+Integer.toString(k+1)+"\")'/>\n"+
+"          &nbsp;"+((pathSoFar.length()==0)?"(root)":org.apache.lcf.ui.util.Encoder.bodyEscape(pathSoFar))+"\n"
+        );
+        if (pathSoFar.length() > 0)
+        {
+          out.print(
+"          <input type=\"button\" value=\"-\" alt=\"Remove from path\" onClick='Javascript:SpecOp(\"pathop\",\"Up\",\"path_"+Integer.toString(k)+"\")'/>\n"
+          );
+        }
+        if (childList.length > 0)
+        {
+          out.print(
+"          <nobr>\n"+
+"            <input type=\"button\" value=\"+\" alt=\"Add to path\" onClick='Javascript:SpecAddToPath(\"path_"+Integer.toString(k)+"\")'/>&nbsp;\n"+
+"            <select multiple=\"false\" name=\"pathaddon\" size=\"4\">\n"+
+"              <option value=\"\" selected=\"selected\">-- Pick a folder --</option>\n"
+          );
+          int j = 0;
+          while (j < childList.length)
+          {
+            String folder = org.apache.lcf.ui.util.Encoder.attributeEscape(childList[j]);
+            out.print(
+"              <option value=\""+folder+"\">"+folder+"</option>\n"
+            );
+            j++;
+          }
+          out.print(
+"            </select> or type a path:\n"+
+"            <input type=\"text\" name=\"pathtypein\" size=\"16\" value=\"\"/>\n"+
+"          </nobr>\n"
+          );
+        }
+      }
+      catch (LCFException e)
+      {
+        e.printStackTrace();
+        out.println(org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage()));
+      }
+      out.print(
+"        </a>\n"+
+"      </nobr>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Generate hiddens for the pathspec tab
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_STARTPOINT))
+        {
+          String pathDescription = "_"+Integer.toString(k);
+          String startPath = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_PATH);
+          out.print(
+"<input type=\"hidden\" name=\""+"specpath"+pathDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(startPath)+"\"/>\n"
+          );
+          // Now go through the include/exclude children of this node.
+          int j = 0;
+          while (j < sn.getChildCount())
+          {
+            SpecificationNode excludeNode = sn.getChild(j);
+            String instanceDescription = "_"+Integer.toString(k)+"_"+Integer.toString(j);
+
+            String nodeFlavor = excludeNode.getType();
+            String nodeType = excludeNode.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TYPE);
+            if (nodeType == null)
+              nodeType = "";
+            String filespec = excludeNode.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_FILESPEC);
+            String indexable = excludeNode.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_INDEXABLE);
+            if (indexable == null)
+              indexable = "";
+            out.print(
+"<input type=\"hidden\" name=\""+"specfl"+instanceDescription+"\" value=\""+nodeFlavor+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"specty"+instanceDescription+"\" value=\""+nodeType+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"specin"+instanceDescription+"\" value=\""+indexable+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"specfile"+instanceDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(filespec)+"\"/>\n"
+            );
+            j++;
+          }
+          k++;
+          out.print(
+"<input type=\"hidden\" name=\""+"specchildcount"+pathDescription+"\" value=\""+Integer.toString(j)+"\"/>\n"
+          );
+        }
+      }
+      out.print(
+"<input type=\"hidden\" name=\"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"
+      );
+    }
+
+
+    // Security tab
+
+    // Find whether security is on or off
+    i = 0;
+    boolean securityOn = true;
+    boolean shareSecurityOn = true;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_SECURITY))
+      {
+        String securityValue = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_VALUE);
+        if (securityValue.equals("off"))
+          securityOn = false;
+        else if (securityValue.equals("on"))
+          securityOn = true;
+      }
+      if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_SHARESECURITY))
+      {
+        String securityValue = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_VALUE);
+        if (securityValue.equals("off"))
+          shareSecurityOn = false;
+        else if (securityValue.equals("on"))
+          shareSecurityOn = true;
+      }
+    }
+
+    if (tabName.equals("Security"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"+
+"\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>File security:</nobr></td>\n"+
+"    <td colspan=\"3\" class=\"value\">\n"+
+"      <nobr>\n"+
+"        <input type=\"radio\" name=\"specsecurity\" value=\"on\" "+(securityOn?"checked=\"true\"":"")+" />Enabled&nbsp;\n"+
+"        <input type=\"radio\" name=\"specsecurity\" value=\"off\" "+((securityOn==false)?"checked=\"true\"":"")+" />Disabled\n"+
+"      </nobr>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"\n"+
+"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"+
+"\n"
+      );
+      // Finally, go through forced ACL
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_ACCESS))
+        {
+          String accessDescription = "_"+Integer.toString(k);
+          String accessOpName = "accessop"+accessDescription;
+          String token = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TOKEN);
+          out.print(
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\">\n"+
+"      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
+"      <input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"+
+"      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Delete\" alt=\""+"Delete token #"+Integer.toString(k)+"\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")'/>\n"+
+"      </a>\n"+
+"    </td>\n"+
+"    <td class=\"value\" colspan=\"3\">\n"+
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(token)+"</nobr>\n"+
+"    </td>\n"+
+"  </tr>\n"
+          );
+          k++;
+        }
+      }
+      if (k == 0)
+      {
+        out.print(
+"  <tr>\n"+
+"    <td class=\"message\" colspan=\"4\">No file access tokens present</td>\n"+
+"  </tr>\n"
+        );
+      }
+      out.print(
+"  <tr><td class=\"lightseparator\" colspan=\"4\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\">\n"+
+"      <input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"      <input type=\"hidden\" name=\"accessop\" value=\"\"/>\n"+
+"      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Add\" alt=\"Add token\" onClick='Javascript:SpecAddToken(\"token_"+Integer.toString(k+1)+"\")'/>\n"+
+"      </a>\n"+
+"    </td>\n"+
+"    <td class=\"value\" colspan=\"3\">\n"+
+"      <nobr><input type=\"text\" size=\"30\" name=\"spectoken\" value=\"\"/></nobr>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"\n"+
+"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"+
+"\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Share security:</nobr></td>\n"+
+"    <td colspan=\"3\" class=\"value\">\n"+
+"      <nobr>\n"+
+"        <input type=\"radio\" name=\"specsharesecurity\" value=\"on\" "+(shareSecurityOn?"checked=\"true\"":"")+" />Enabled&nbsp;\n"+
+"        <input type=\"radio\" name=\"specsharesecurity\" value=\"off\" "+((shareSecurityOn==false)?"checked=\"true\"":"")+" />Disabled\n"+
+"      </nobr>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"specsecurity\" value=\""+(securityOn?"on":"off")+"\"/>\n"
+      );
+      // Finally, go through forced ACL
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_ACCESS))
+        {
+          String accessDescription = "_"+Integer.toString(k);
+          String token = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TOKEN);
+          out.print(
+"<input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"
+          );
+          k++;
+        }
+      }
+      out.print(
+"<input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"<input type=\"hidden\" name=\"specsharesecurity\" value=\""+(shareSecurityOn?"on":"off")+"\"/>\n"
+      );
+    }
+
+
+
+    // Metadata tab
+
+    // Find the path-value metadata attribute name
+    // Find the path-value mapping data
+    i = 0;
+    String pathNameAttribute = "";
+    org.apache.lcf.crawler.connectors.sharedrive.MatchMap matchMap = new org.apache.lcf.crawler.connectors.sharedrive.MatchMap();
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_PATHNAMEATTRIBUTE))
+      {
+        pathNameAttribute = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_VALUE);
+      }
+      else if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_PATHMAP))
+      {
+        String pathMatch = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH);
+        String pathReplace = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE);
+        matchMap.appendMatchPair(pathMatch,pathReplace);
+      }
+    }
+
+    if (tabName.equals("Metadata"))
+    {
+      out.print(
+"<input type=\"hidden\" name=\"specmappingcount\" value=\""+Integer.toString(matchMap.getMatchCount())+"\"/>\n"+
+"<input type=\"hidden\" name=\"specmappingop\" value=\"\"/>\n"+
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"+
+"\n"+
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>Path attribute name:</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"3\">\n"+
+"      <input type=\"text\" name=\"specpathnameattribute\" size=\"20\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(pathNameAttribute)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"\n"+
+"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"+
+"\n"
+      );
+      i = 0;
+      while (i < matchMap.getMatchCount())
+      {
+        String matchString = matchMap.getMatchString(i);
+        String replaceString = matchMap.getReplaceString(i);
+        out.print(
+"  <tr>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"hidden\" name=\""+"specmappingop_"+Integer.toString(i)+"\" value=\"\"/>\n"+
+"      <a name=\""+"mapping_"+Integer.toString(i)+"\">\n"+
+"        <input type=\"button\" onClick='Javascript:SpecOp(\"specmappingop_"+Integer.toString(i)+"\",\"Delete\",\"mapping_"+Integer.toString(i)+"\")' alt=\""+"Delete mapping #"+Integer.toString(i)+"\" value=\"Delete\"/>\n"+
+"      </a>\n"+
+"    </td>\n"+
+"    <td class=\"value\"><input type=\"hidden\" name=\""+"specmatch_"+Integer.toString(i)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>"+org.apache.lcf.ui.util.Encoder.bodyEscape(matchString)+"</td>\n"+
+"    <td class=\"value\">==></td>\n"+
+"    <td class=\"value\"><input type=\"hidden\" name=\""+"specreplace_"+Integer.toString(i)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>"+org.apache.lcf.ui.util.Encoder.bodyEscape(replaceString)+"</td>\n"+
+"  </tr>\n"
+        );
+        i++;
+      }
+      if (i == 0)
+      {
+        out.print(
+"  <tr><td colspan=\"4\" class=\"message\">No mappings specified</td></tr>\n"
+        );
+      }
+      out.print(
+"  <tr><td class=\"lightseparator\" colspan=\"4\"><hr/></td></tr>\n"+
+"\n"+
+"  <tr>\n"+
+"    <td class=\"value\">\n"+
+"      <a name=\""+"mapping_"+Integer.toString(i)+"\">\n"+
+"        <input type=\"button\" onClick='Javascript:SpecAddMapping(\"mapping_"+Integer.toString(i+1)+"\")' alt=\"Add to mappings\" value=\"Add\"/>\n"+
+"      </a>\n"+
+"    </td>\n"+
+"    <td class=\"value\">Match regexp:&nbsp;<input type=\"text\" name=\"specmatch\" size=\"32\" value=\"\"/></td>\n"+
+"    <td class=\"value\">==></td>\n"+
+"    <td class=\"value\">Replace string:&nbsp;<input type=\"text\" name=\"specreplace\" size=\"32\" value=\"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"specpathnameattribute\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(pathNameAttribute)+"\"/>\n"+
+"<input type=\"hidden\" name=\"specmappingcount\" value=\""+Integer.toString(matchMap.getMatchCount())+"\"/>\n"
+      );
+      i = 0;
+      while (i < matchMap.getMatchCount())
+      {
+        String matchString = matchMap.getMatchString(i);
+        String replaceString = matchMap.getReplaceString(i);
+        out.print(
+"<input type=\"hidden\" name=\""+"specmatch_"+Integer.toString(i)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"specreplace_"+Integer.toString(i)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>\n"
+        );
+        i++;
+      }
+    }
+	
+    // File and URL Mapping tabs
+	
+    // Find the filename mapping data
+    // Find the URL mapping data
+    org.apache.lcf.crawler.connectors.sharedrive.MatchMap fileMap = new org.apache.lcf.crawler.connectors.sharedrive.MatchMap();
+    org.apache.lcf.crawler.connectors.sharedrive.MatchMap uriMap = new org.apache.lcf.crawler.connectors.sharedrive.MatchMap();
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_FILEMAP))
+      {
+        String pathMatch = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH);
+        String pathReplace = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE);
+        fileMap.appendMatchPair(pathMatch,pathReplace);
+      }
+      else if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_URIMAP))
+      {
+        String pathMatch = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH);
+        String pathReplace = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE);
+        uriMap.appendMatchPair(pathMatch,pathReplace);
+      }
+    }
+
+    if (tabName.equals("File Mapping"))
+    {
+      out.print(
+"<input type=\"hidden\" name=\"specfmapcount\" value=\""+Integer.toString(fileMap.getMatchCount())+"\"/>\n"+
+"<input type=\"hidden\" name=\"specfmapop\" value=\"\"/>\n"+
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"
+      );
+      i = 0;
+      while (i < fileMap.getMatchCount())
+      {
+        String matchString = fileMap.getMatchString(i);
+        String replaceString = fileMap.getReplaceString(i);
+        out.print(
+"  <tr>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"hidden\" name=\""+"specfmapop_"+Integer.toString(i)+"\" value=\"\"/>\n"+
+"      <a name=\""+"fmap_"+Integer.toString(i)+"\">\n"+
+"        <input type=\"button\" onClick='Javascript:SpecOp(\"specfmapop_"+Integer.toString(i)+"\",\"Delete\",\"fmap_"+Integer.toString(i)+"\")' alt=\""+"Delete file mapping #"+Integer.toString(i)+"\" value=\"Delete\"/>\n"+
+"      </a>\n"+
+"    </td>\n"+
+"    <td class=\"value\"><input type=\"hidden\" name=\""+"specfmapmatch_"+Integer.toString(i)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>"+org.apache.lcf.ui.util.Encoder.bodyEscape(matchString)+"</td>\n"+
+"    <td class=\"value\">==></td>\n"+
+"    <td class=\"value\"><input type=\"hidden\" name=\""+"specfmapreplace_"+Integer.toString(i)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>"+org.apache.lcf.ui.util.Encoder.bodyEscape(replaceString)+"</td>\n"+
+"  </tr>\n"
+        );
+        i++;
+      }
+      if (i == 0)
+      {
+        out.print(
+"  <tr><td colspan=\"4\" class=\"message\">No file mappings specified</td></tr>\n"
+        );
+      }
+      out.print(
+"  <tr><td class=\"lightseparator\" colspan=\"4\"><hr/></td></tr>\n"+
+"\n"+
+"  <tr>\n"+
+"    <td class=\"value\">\n"+
+"      <a name=\""+"fmap_"+Integer.toString(i)+"\">\n"+
+"        <input type=\"button\" onClick='Javascript:SpecAddFMap(\"fmap_"+Integer.toString(i+1)+"\")' alt=\"Add to file mappings\" value=\"Add\"/>\n"+
+"      </a>\n"+
+"    </td>\n"+
+"    <td class=\"value\">Match regexp:&nbsp;<input type=\"text\" name=\"specfmapmatch\" size=\"32\" value=\"\"/></td>\n"+
+"    <td class=\"value\">==></td>\n"+
+"    <td class=\"value\">Replace string:&nbsp;<input type=\"text\" name=\"specfmapreplace\" size=\"32\" value=\"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"specfmapcount\" value=\""+Integer.toString(fileMap.getMatchCount())+"\"/>\n"
+      );
+      i = 0;
+      while (i < fileMap.getMatchCount())
+      {
+        String matchString = fileMap.getMatchString(i);
+        String replaceString = fileMap.getReplaceString(i);
+        out.print(
+"<input type=\"hidden\" name=\""+"specfmapmatch_"+Integer.toString(i)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"specfmapreplace_"+Integer.toString(i)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>\n"
+        );
+        i++;
+      }
+    }
+	
+    if (tabName.equals("URL Mapping"))
+    {
+      out.print(
+"<input type=\"hidden\" name=\"specumapcount\" value=\""+Integer.toString(uriMap.getMatchCount())+"\"/>\n"+
+"<input type=\"hidden\" name=\"specumapop\" value=\"\"/>\n"+
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"
+      );
+      i = 0;
+      while (i < uriMap.getMatchCount())
+      {
+        String matchString = uriMap.getMatchString(i);
+        String replaceString = uriMap.getReplaceString(i);
+        out.print(
+"  <tr>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"hidden\" name=\""+"specumapop_"+Integer.toString(i)+"\" value=\"\"/>\n"+
+"      <a name=\""+"umap_"+Integer.toString(i)+"\">\n"+
+"        <input type=\"button\" onClick='Javascript:SpecOp(\"specumapop_"+Integer.toString(i)+"\",\"Delete\",\"umap_"+Integer.toString(i)+"\")' alt=\""+"Delete url mapping #"+Integer.toString(i)+"\" value=\"Delete\"/>\n"+
+"      </a>\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"hidden\" name=\""+"specumapmatch_"+Integer.toString(i)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>\n"+
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(matchString)+"\n"+
+"    </td>\n"+
+"    <td class=\"value\">==></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"hidden\" name=\""+"specumapreplace_"+Integer.toString(i)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>\n"+
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(replaceString)+"\n"+
+"    </td>\n"+
+"  </tr>\n"
+        );
+        i++;
+      }
+      if (i == 0)
+      {
+        out.print(
+"  <tr><td colspan=\"4\" class=\"message\">No URL mappings specified; will produce a file IRI</td></tr>\n"
+        );
+      }
+      out.print(
+"  <tr><td class=\"lightseparator\" colspan=\"4\"><hr/></td></tr>\n"+
+"      \n"+
+"  <tr>\n"+
+"    <td class=\"value\">\n"+
+"      <a name=\""+"umap_"+Integer.toString(i)+"\">\n"+
+"        <input type=\"button\" onClick='Javascript:SpecAddUMap(\"umap_"+Integer.toString(i+1)+"\")' alt=\"Add to URL mappings\" value=\"Add\"/>\n"+
+"      </a>\n"+
+"    </td>\n"+
+"    <td class=\"value\">Match regexp:&nbsp;<input type=\"text\" name=\"specumapmatch\" size=\"32\" value=\"\"/></td>\n"+
+"    <td class=\"value\">==></td>\n"+
+"    <td class=\"value\">Replace string:&nbsp;<input type=\"text\" name=\"specumapreplace\" size=\"32\" value=\"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"specumapcount\" value=\""+Integer.toString(uriMap.getMatchCount())+"\"/>\n"
+      );
+      i = 0;
+      while (i < uriMap.getMatchCount())
+      {
+        String matchString = uriMap.getMatchString(i);
+        String replaceString = uriMap.getReplaceString(i);
+        out.print(
+"<input type=\"hidden\" name=\""+"specumapmatch_"+Integer.toString(i)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"specumapreplace_"+Integer.toString(i)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>\n"
+        );
+        i++;
+      }
+    }
+  }
+  
+  /** Process a specification post.
+  * This method is called at the start of job's edit or view page, whenever there is a possibility that form data for a connection has been
+  * posted.  Its purpose is to gather form information and modify the document specification accordingly.
+  * The name of the posted form is "editjob".
+  *@param variableContext contains the post data, including binary file-upload information.
+  *@param ds is the current document specification for this job.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
+  */
+  public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
+    throws LCFException
+  {
+    String x = variableContext.getParameter("pathcount");
+    if (x != null)
+    {
+      // Delete all path specs first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_STARTPOINT))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      // Find out how many children were sent
+      int pathCount = Integer.parseInt(x);
+      // Gather up these
+      i = 0;
+      while (i < pathCount)
+      {
+        String pathDescription = "_"+Integer.toString(i);
+        String pathOpName = "pathop"+pathDescription;
+        x = variableContext.getParameter(pathOpName);
+        if (x != null && x.equals("Delete"))
+        {
+          // Skip to the next
+          i++;
+          continue;
+        }
+        // Path inserts won't happen until the very end
+        String path = variableContext.getParameter("specpath"+pathDescription);
+        SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_STARTPOINT);
+        node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_PATH,path);
+
+        // Now, get the number of children
+        String y = variableContext.getParameter("specchildcount"+pathDescription);
+        int childCount = Integer.parseInt(y);
+        int j = 0;
+        int w = 0;
+        while (j < childCount)
+        {
+          String instanceDescription = "_"+Integer.toString(i)+"_"+Integer.toString(j);
+          // Look for an insert or a delete at this point
+          String instanceOp = "specop"+instanceDescription;
+          String z = variableContext.getParameter(instanceOp);
+          String flavor;
+          String type;
+          String indexable;
+          String match;
+          SpecificationNode sn;
+          if (z != null && z.equals("Delete"))
+          {
+            // Process the deletion as we gather
+            j++;
+            continue;
+          }
+          if (z != null && z.equals("Insert Here"))
+          {
+            // Process the insertion as we gather.
+            flavor = variableContext.getParameter("specfl_i"+instanceDescription);
+            indexable = "";
+            type = "";
+            String xxx = variableContext.getParameter("spectin_i"+instanceDescription);
+            if (xxx.equals("file") || xxx.equals("directory"))
+              type = xxx;
+            else if (xxx.equals("indexable-file"))
+            {
+              indexable = "yes";
+              type = "file";
+            }
+            else if (xxx.equals("unindexable-file"))
+            {
+              indexable = "no";
+              type = "file";
+            }
+
+            match = variableContext.getParameter("specfile_i"+instanceDescription);
+            sn = new SpecificationNode(flavor);
+            if (type != null && type.length() > 0)
+              sn.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TYPE,type);
+            if (indexable != null && indexable.length() > 0)
+              sn.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_INDEXABLE,indexable);
+            sn.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_FILESPEC,match);
+            node.addChild(w++,sn);
+          }
+          flavor = variableContext.getParameter("specfl"+instanceDescription);
+          type = variableContext.getParameter("specty"+instanceDescription);
+          match = variableContext.getParameter("specfile"+instanceDescription);
+          indexable = variableContext.getParameter("specin"+instanceDescription);
+          sn = new SpecificationNode(flavor);
+          if (type != null && type.length() > 0)
+            sn.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TYPE,type);
+          if (indexable != null && indexable.length() > 0)
+            sn.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_INDEXABLE,indexable);
+          sn.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_FILESPEC,match);
+          node.addChild(w++,sn);
+          j++;
+        }
+        if (x != null && x.equals("Add"))
+        {
+          // Process adds to the end of the rules in-line
+          String match = variableContext.getParameter("specfile"+pathDescription);
+          String indexable = "";
+          String type = "";
+          String xxx = variableContext.getParameter("spectin"+pathDescription);
+          if (xxx.equals("file") || xxx.equals("directory"))
+            type = xxx;
+          else if (xxx.equals("indexable-file"))
+          {
+            indexable = "yes";
+            type = "file";
+          }
+          else if (xxx.equals("unindexable-file"))
+          {
+            indexable = "no";
+            type = "file";
+          }
+
+          String flavor = variableContext.getParameter("specfl"+pathDescription);
+          SpecificationNode sn = new SpecificationNode(flavor);
+          if (type != null && type.length() > 0)
+            sn.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TYPE,type);
+          if (indexable != null && indexable.length() > 0)
+            sn.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_INDEXABLE,indexable);
+          sn.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_FILESPEC,match);
+          node.addChild(w,sn);
+        }
+
+        ds.addChild(ds.getChildCount(),node);
+        i++;
+      }
+
+      // See if there's a global add operation
+      String op = variableContext.getParameter("pathop");
+      if (op != null && op.equals("Add"))
+      {
+        String path = variableContext.getParameter("specpath");
+        SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_STARTPOINT);
+        node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_PATH,path);
+        ds.addChild(ds.getChildCount(),node);
+
+        // Now add in the defaults; these will be "include all directories" and "include all indexable files".
+        SpecificationNode sn = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_INCLUDE);
+        sn.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TYPE,"file");
+        sn.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_INDEXABLE,"yes");
+        sn.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_FILESPEC,"*");
+        node.addChild(node.getChildCount(),sn);
+        sn = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_INCLUDE);
+        sn.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TYPE,"directory");
+        sn.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_FILESPEC,"*");
+        node.addChild(node.getChildCount(),sn);
+      }
+      else if (op != null && op.equals("Up"))
+      {
+        // Strip off end
+        String path = variableContext.getParameter("specpath");
+        int k = path.lastIndexOf("/");
+        if (k == -1)
+          path = "";
+        else
+          path = path.substring(0,k);
+        currentContext.save("specpath",path);
+      }
+      else if (op != null && op.equals("AddToPath"))
+      {
+        String path = variableContext.getParameter("specpath");
+        String addon = variableContext.getParameter("pathaddon");
+        String typein = variableContext.getParameter("pathtypein");
+        if (addon != null && addon.length() > 0)
+        {
+          if (path.length() == 0)
+            path = addon;
+          else
+            path += "/" + addon;
+        }
+        else if (typein != null && typein.length() > 0)
+        {
+          String trialPath = path;
+          if (trialPath.length() == 0)
+            trialPath = typein;
+          else
+            trialPath += "/" + typein;
+          // Validate trial path
+          try
+          {
+            trialPath = validateFolderName(trialPath);
+            if (trialPath != null)
+              path = trialPath;
+          }
+          catch (LCFException e)
+          {
+            // Effectively, this just means we can't add a typein to the path right now.
+          }
+        }
+        currentContext.save("specpath",path);
+      }
+    }
+
+    x = variableContext.getParameter("specmaxlength");
+    if (x != null)
+    {
+      // Delete max length entry
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_MAXLENGTH))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+      if (x.length() > 0)
+      {
+        SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_MAXLENGTH);
+        node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_VALUE,x);
+        ds.addChild(ds.getChildCount(),node);
+      }
+    }
+
+    x = variableContext.getParameter("specsecurity");
+    if (x != null)
+    {
+      // Delete all security entries first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_SECURITY))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_SECURITY);
+      node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_VALUE,x);
+      ds.addChild(ds.getChildCount(),node);
+
+    }
+
+    x = variableContext.getParameter("tokencount");
+    if (x != null)
+    {
+      // Delete all file specs first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_ACCESS))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      int accessCount = Integer.parseInt(x);
+      i = 0;
+      while (i < accessCount)
+      {
+        String accessDescription = "_"+Integer.toString(i);
+        String accessOpName = "accessop"+accessDescription;
+        x = variableContext.getParameter(accessOpName);
+        if (x != null && x.equals("Delete"))
+        {
+          // Next row
+          i++;
+          continue;
+        }
+        // Get the stuff we need
+        String accessSpec = variableContext.getParameter("spectoken"+accessDescription);
+        SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_ACCESS);
+        node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TOKEN,accessSpec);
+        ds.addChild(ds.getChildCount(),node);
+        i++;
+      }
+
+      String op = variableContext.getParameter("accessop");
+      if (op != null && op.equals("Add"))
+      {
+        String accessspec = variableContext.getParameter("spectoken");
+        SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_ACCESS);
+        node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TOKEN,accessspec);
+        ds.addChild(ds.getChildCount(),node);
+      }
+    }
+
+    x = variableContext.getParameter("specsharesecurity");
+    if (x != null)
+    {
+      // Delete all security entries first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_SHARESECURITY))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_SHARESECURITY);
+      node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_VALUE,x);
+      ds.addChild(ds.getChildCount(),node);
+
+    }
+
+    String xc = variableContext.getParameter("specpathnameattribute");
+    if (xc != null)
+    {
+      // Delete old one
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_PATHNAMEATTRIBUTE))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+      if (xc.length() > 0)
+      {
+        SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_PATHNAMEATTRIBUTE);
+        node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_VALUE,xc);
+        ds.addChild(ds.getChildCount(),node);
+      }
+    }
+
+    xc = variableContext.getParameter("specmappingcount");
+    if (xc != null)
+    {
+      // Delete old spec
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_PATHMAP))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      // Now, go through the data and assemble a new list.
+      int mappingCount = Integer.parseInt(xc);
+
+      // Gather up these
+      i = 0;
+      while (i < mappingCount)
+      {
+        String pathDescription = "_"+Integer.toString(i);
+        String pathOpName = "specmappingop"+pathDescription;
+        xc = variableContext.getParameter(pathOpName);
+        if (xc != null && xc.equals("Delete"))
+        {
+          // Skip to the next
+          i++;
+          continue;
+        }
+        // Inserts won't happen until the very end
+        String match = variableContext.getParameter("specmatch"+pathDescription);
+        String replace = variableContext.getParameter("specreplace"+pathDescription);
+        SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_PATHMAP);
+        node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH,match);
+        node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE,replace);
+        ds.addChild(ds.getChildCount(),node);
+        i++;
+      }
+
+      // Check for add
+      xc = variableContext.getParameter("specmappingop");
+      if (xc != null && xc.equals("Add"))
+      {
+        String match = variableContext.getParameter("specmatch");
+        String replace = variableContext.getParameter("specreplace");
+        SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_PATHMAP);
+        node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH,match);
+        node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE,replace);
+        ds.addChild(ds.getChildCount(),node);
+      }
+    }
+	
+    xc = variableContext.getParameter("specfmapcount");
+    if (xc != null)
+    {
+      // Delete old spec
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_FILEMAP))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      // Now, go through the data and assemble a new list.
+      int mappingCount = Integer.parseInt(xc);
+
+      // Gather up these
+      i = 0;
+      while (i < mappingCount)
+      {
+        String pathDescription = "_"+Integer.toString(i);
+        String pathOpName = "specfmapop"+pathDescription;
+        xc = variableContext.getParameter(pathOpName);
+        if (xc != null && xc.equals("Delete"))
+        {
+          // Skip to the next
+          i++;
+          continue;
+        }
+        // Inserts won't happen until the very end
+        String match = variableContext.getParameter("specfmapmatch"+pathDescription);
+        String replace = variableContext.getParameter("specfmapreplace"+pathDescription);
+        SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_FILEMAP);
+        node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH,match);
+        node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE,replace);
+        ds.addChild(ds.getChildCount(),node);
+        i++;
+      }
+
+      // Check for add
+      xc = variableContext.getParameter("specfmapop");
+      if (xc != null && xc.equals("Add"))
+      {
+        String match = variableContext.getParameter("specfmapmatch");
+        String replace = variableContext.getParameter("specfmapreplace");
+        SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_FILEMAP);
+        node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH,match);
+        node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE,replace);
+        ds.addChild(ds.getChildCount(),node);
+      }
+    }
+
+    xc = variableContext.getParameter("specumapcount");
+    if (xc != null)
+    {
+      // Delete old spec
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_URIMAP))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      // Now, go through the data and assemble a new list.
+      int mappingCount = Integer.parseInt(xc);
+
+      // Gather up these
+      i = 0;
+      while (i < mappingCount)
+      {
+        String pathDescription = "_"+Integer.toString(i);
+        String pathOpName = "specumapop"+pathDescription;
+        xc = variableContext.getParameter(pathOpName);
+        if (xc != null && xc.equals("Delete"))
+        {
+          // Skip to the next
+          i++;
+          continue;
+        }
+        // Inserts won't happen until the very end
+        String match = variableContext.getParameter("specumapmatch"+pathDescription);
+        String replace = variableContext.getParameter("specumapreplace"+pathDescription);
+        SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_URIMAP);
+        node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH,match);
+        node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE,replace);
+        ds.addChild(ds.getChildCount(),node);
+        i++;
+      }
+
+      // Check for add
+      xc = variableContext.getParameter("specumapop");
+      if (xc != null && xc.equals("Add"))
+      {
+        String match = variableContext.getParameter("specumapmatch");
+        String replace = variableContext.getParameter("specumapreplace");
+        SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_URIMAP);
+        node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH,match);
+        node.setAttribute(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE,replace);
+        ds.addChild(ds.getChildCount(),node);
+      }
+    }
+    return null;
+  }
+  
+  /** View specification.
+  * This method is called in the body section of a job's view page.  Its purpose is to present the document specification information to the user.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  *@param out is the output to which any HTML should be sent.
+  *@param ds is the current document specification for this job.
+  */
+  public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
+    throws LCFException, IOException
+  {
+    out.print(
+"<table class=\"displaytable\">\n"
+    );
+    int i = 0;
+    boolean seenAny = false;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode spn = ds.getChild(i++);
+      if (spn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_STARTPOINT))
+      {
+        if (seenAny == false)
+        {
+          seenAny = true;
+        }
+        out.print(
+"  <tr>\n"+
+"    <td class=\"description\">\n"+
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(spn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_PATH))+":"+"</nobr>\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"
+        );
+        int j = 0;
+        while (j < spn.getChildCount())
+        {
+          SpecificationNode sn = spn.getChild(j++);
+          // This is "include" or "exclude"
+          String nodeFlavor = sn.getType();
+          // This is the file/directory name match
+          String filespec = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_FILESPEC);
+          // This has a value of null, "", "file", or "directory".
+          String nodeType = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TYPE);
+          if (nodeType == null)
+            nodeType = "";
+          // This has a value of null, "", "yes", or "no".
+          String ingestableFlag = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_INDEXABLE);
+          if (ingestableFlag == null)
+            ingestableFlag = "";
+          out.print(
+"      <nobr>\n"+
+"        "+Integer.toString(j)+".\n"+
+"        "+(nodeFlavor.equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_INCLUDE)?"Include":"")+"\n"+
+"        "+(nodeFlavor.equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_EXCLUDE)?"Exclude":"")+"\n"+
+"        "+(ingestableFlag.equals("yes")?"&nbsp;indexable":"")+"\n"+
+"        "+(ingestableFlag.equals("no")?"&nbsp;un-indexable":"")+"\n"+
+"        "+(nodeType.equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.VALUE_FILE)?"&nbsp;file(s)":"")+"\n"+
+"        "+(nodeType.equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.VALUE_DIRECTORY)?"&nbsp;directory(s)":"")+"\n"+
+"        "+(nodeType.equals("")?"&nbsp;file(s)&nbsp;or&nbsp;directory(s)":"")+"&nbsp;matching&nbsp;\n"+
+"        "+org.apache.lcf.ui.util.Encoder.bodyEscape(filespec)+"\n"+
+"      </nobr>\n"+
+"      <br/>\n"
+          );
+        }
+        out.print(
+"    </td>\n"+
+"  </tr>\n"
+        );
+      }
+    }
+    if (seenAny == false)
+    {
+      out.print(
+"  <tr><td class=\"message\" colspan=\"2\">No documents specified</td></tr>\n"
+      );
+    }
+    out.print(
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"\n"
+    );
+    // Find whether security is on or off
+    i = 0;
+    boolean securityOn = true;
+    boolean shareSecurityOn = true;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_SECURITY))
+      {
+        String securityValue = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_VALUE);
+        if (securityValue.equals("off"))
+          securityOn = false;
+        else if (securityValue.equals("on"))
+          securityOn = true;
+      }
+      if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_SHARESECURITY))
+      {
+        String securityValue = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_VALUE);
+        if (securityValue.equals("off"))
+          shareSecurityOn = false;
+        else if (securityValue.equals("on"))
+          shareSecurityOn = true;
+      }
+    }
+    out.print(
+"\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>File security:</nobr></td>\n"+
+"    <td class=\"value\"><nobr>"+(securityOn?"Enabled":"Disabled")+"</nobr></td>\n"+
+"  </tr>\n"+
+"\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+    );
+    // Go through looking for access tokens
+    seenAny = false;
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_ACCESS))
+      {
+        if (seenAny == false)
+        {
+          out.print(
+"  <tr><td class=\"description\"><nobr>File access tokens:</nobr></td>\n"+
+"    <td class=\"value\">\n"
+          );
+          seenAny = true;
+        }
+        String token = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_TOKEN);
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(token)+"</nobr><br/>\n"
+        );
+      }
+    }
+
+    if (seenAny)
+    {
+      out.print(
+"    </td>\n"+
+"  </tr>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"  <tr><td class=\"message\" colspan=\"2\">No file access tokens specified</td></tr>\n"
+      );
+    }
+    out.print(
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"    \n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Share security:</nobr></td>\n"+
+"    <td class=\"value\"><nobr>"+(shareSecurityOn?"Enabled":"Disabled")+"</nobr></td>\n"+
+"  </tr>\n"+
+"\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+    );
+    // Find the path-name metadata attribute name
+    i = 0;
+    String pathNameAttribute = "";
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_PATHNAMEATTRIBUTE))
+      {
+        pathNameAttribute = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_VALUE);
+      }
+    }
+    out.print(
+"  <tr>\n"
+    );
+    if (pathNameAttribute.length() > 0)
+    {
+      out.print(
+"    <td class=\"description\"><nobr>Path-name metadata attribute:</nobr></td>\n"+
+"    <td class=\"value\"><nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(pathNameAttribute)+"</nobr></td>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"    <td class=\"message\" colspan=\"2\">No path-name metadata attribute specified</td>\n"
+      );
+    }
+    out.print(
+"  </tr>\n"+
+"\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"\n"+
+"  <tr>\n"+
+"\n"
+    );
+    
+    // Find the path-value mapping data
+    i = 0;
+    org.apache.lcf.crawler.connectors.sharedrive.MatchMap matchMap = new org.apache.lcf.crawler.connectors.sharedrive.MatchMap();
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_PATHMAP))
+      {
+        String pathMatch = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH);
+        String pathReplace = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE);
+        matchMap.appendMatchPair(pathMatch,pathReplace);
+      }
+    }
+    if (matchMap.getMatchCount() > 0)
+    {
+      out.print(
+"    <td class=\"description\"><nobr>Path-value mapping:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <table class=\"displaytable\">\n"
+      );
+      i = 0;
+      while (i < matchMap.getMatchCount())
+      {
+        String matchString = matchMap.getMatchString(i);
+        String replaceString = matchMap.getReplaceString(i);
+        out.print(
+"        <tr>\n"+
+"          <td class=\"value\"><nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(matchString)+"</nobr></td>\n"+
+"          <td class=\"value\">==></td>\n"+
+"          <td class=\"value\"><nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(replaceString)+"</nobr></td>\n"+
+"        </tr>\n"
+        );
+        i++;
+      }
+      out.print(
+"      </table>\n"+
+"    </td>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"    <td class=\"message\" colspan=\"2\">No mappings specified</td>\n"
+      );
+    }
+    out.print(
+"  </tr>\n"+
+"\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"\n"+
+"  <tr>\n"
+    );
+    // Find the file name mapping data
+    i = 0;
+    org.apache.lcf.crawler.connectors.sharedrive.MatchMap fileMap = new org.apache.lcf.crawler.connectors.sharedrive.MatchMap();
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_FILEMAP))
+      {
+        String pathMatch = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH);
+        String pathReplace = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE);
+        fileMap.appendMatchPair(pathMatch,pathReplace);
+      }
+    }
+    if (fileMap.getMatchCount() > 0)
+    {
+      out.print(
+"    <td class=\"description\"><nobr>File name mapping:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <table class=\"displaytable\">\n"
+      );
+      i = 0;
+      while (i < fileMap.getMatchCount())
+      {
+        String matchString = fileMap.getMatchString(i);
+        String replaceString = fileMap.getReplaceString(i);
+        out.print(
+"        <tr>\n"+
+"          <td class=\"value\"><nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(matchString)+"</nobr></td>\n"+
+"          <td class=\"value\">==></td>\n"+
+"          <td class=\"value\"><nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(replaceString)+"</nobr></td>\n"+
+"        </tr>\n"
+        );
+        i++;
+      }
+      out.print(
+"      </table>\n"+
+"    </td>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"    <td class=\"message\" colspan=\"2\">No file name mappings specified</td>\n"
+      );
+    }
+    out.print(
+"  </tr>\n"+
+"\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"\n"+
+"  <tr>\n"
+    );
+
+    // Find the url mapping data
+    i = 0;
+    org.apache.lcf.crawler.connectors.sharedrive.MatchMap uriMap = new org.apache.lcf.crawler.connectors.sharedrive.MatchMap();
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_URIMAP))
+      {
+        String pathMatch = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_MATCH);
+        String pathReplace = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_REPLACE);
+        uriMap.appendMatchPair(pathMatch,pathReplace);
+      }
+    }
+    if (uriMap.getMatchCount() > 0)
+    {
+      out.print(
+"    <td class=\"description\"><nobr>URL mapping:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <table class=\"displaytable\">\n"
+      );
+      i = 0;
+      while (i < uriMap.getMatchCount())
+      {
+        String matchString = uriMap.getMatchString(i);
+        String replaceString = uriMap.getReplaceString(i);
+        out.print(
+"        <tr>\n"+
+"          <td class=\"value\"><nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(matchString)+"</nobr></td>\n"+
+"          <td class=\"value\">==></td>\n"+
+"          <td class=\"value\"><nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(replaceString)+"</nobr></td>\n"+
+"        </tr>\n"
+        );
+        i++;
+      }
+      out.print(
+"      </table>\n"+
+"    </td>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"    <td class=\"message\" colspan=\"2\">No URL mappings specified; will produce a file IRI</td>\n"
+      );
+    }
+    out.print(
+"  </tr>\n"+
+"\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Maximum document length:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <nobr>\n"
+    );
+    // Find the path-value mapping data
+    i = 0;
+    String maxLength = null;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.NODE_MAXLENGTH))
+      {
+        maxLength = sn.getAttributeValue(org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector.ATTRIBUTE_VALUE);
+      }
+    }
+    if (maxLength == null || maxLength.length() == 0)
+      maxLength = "Unlimited";
+    out.print(
+"        "+maxLength+"\n"+
+"      </nobr>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+    );
   }
 
   /* The following are additional methods used by the UI */

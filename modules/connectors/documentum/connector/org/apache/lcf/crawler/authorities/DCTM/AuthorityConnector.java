@@ -909,5 +909,281 @@ public class AuthorityConnector extends org.apache.lcf.authorities.authorities.B
     releaseCheck();
   }
 
+  // UI support methods.
+  //
+  // These support methods are involved in setting up authority connection configuration information. The configuration methods cannot assume that the
+  // current authority object is connected.  That is why they receive a thread context argument.
+    
+  /** Output the configuration header section.
+  * This method is called in the head section of the connector's configuration page.  Its purpose is to add the required tabs to the list, and to output any
+  * javascript methods that might be needed by the configuration editing HTML.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
+    throws LCFException, IOException
+  {
+    tabsArray.add("Docbase");
+    tabsArray.add("User Mapping");
+    tabsArray.add("System ACLs");
+    out.print(
+"<script type=\"text/javascript\">\n"+
+"<!--\n"+
+"function checkConfigForSave()\n"+
+"{\n"+
+"  if (editconnection.docbasename.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Please supply the name of a Docbase\");\n"+
+"    SelectTab(\"Docbase\");\n"+
+"    editconnection.docbasename.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.docbaseusername.value == \"\")\n"+
+"  {\n"+
+"    alert(\"The connection requires a valid Documentum user name\");\n"+
+"    SelectTab(\"Docbase\");\n"+
+"    editconnection.docbaseusername.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.docbasepassword.value == \"\")\n"+
+"  {\n"+
+"    alert(\"The connection requires the Documentum user's password\");\n"+
+"    SelectTab(\"Docbase\");\n"+
+"    editconnection.docbasepassword.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"//-->\n"+
+"</script>\n"
+    );
+  }
+  
+  /** Output the configuration body section.
+  * This method is called in the body section of the authority connector's configuration page.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabName is the current tab name.
+  */
+  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
+    throws LCFException, IOException
+  {
+    String docbaseName = parameters.getParameter(org.apache.lcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_DOCBASE);
+    if (docbaseName == null)
+      docbaseName = "";
+
+    String docbaseUserName = parameters.getParameter(org.apache.lcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_USERNAME);
+    if (docbaseUserName == null)
+      docbaseUserName = "";
+
+    String docbasePassword = parameters.getObfuscatedParameter(org.apache.lcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_PASSWORD);
+    if (docbasePassword == null)
+      docbasePassword = "";
+
+    String docbaseDomain = parameters.getParameter(org.apache.lcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_DOMAIN);
+    if (docbaseDomain == null)
+      docbaseDomain = "";
+
+    String caseInsensitiveUser = parameters.getParameter(org.apache.lcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_CASEINSENSITIVE);
+    if (caseInsensitiveUser == null)
+      caseInsensitiveUser = "false";
+
+    String useSystemAcls = parameters.getParameter(org.apache.lcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_USESYSTEMACLS);
+    if (useSystemAcls == null)
+      useSystemAcls = "true";
+
+    // "Docbase" tab
+    if (tabName.equals("Docbase"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Docbase name:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"docbasename\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(docbaseName)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Docbase user name:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"docbaseusername\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(docbaseUserName)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Docbase password:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"password\" size=\"32\" name=\"docbasepassword\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(docbasePassword)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Docbase domain:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"docbasedomain\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(docbaseDomain)+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for "Docbase" tab
+      out.print(
+"<input type=\"hidden\" name=\"docbasename\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(docbaseName)+"\"/>\n"+
+"<input type=\"hidden\" name=\"docbaseusername\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(docbaseUserName)+"\"/>\n"+
+"<input type=\"hidden\" name=\"docbasepassword\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(docbasePassword)+"\"/>\n"+
+"<input type=\"hidden\" name=\"docbasedomain\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(docbaseDomain)+"\"/>\n"
+      );
+    }
+
+    // "User Mapping" tab
+    if (tabName.equals("User Mapping"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Authentication username matching:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <table class=\"displaytable\">\n"+
+"        <tr>\n"+
+"          <td class=\"description\"><input name=\"usernamecaseinsensitive\" type=\"radio\" value=\"true\" "+((caseInsensitiveUser.equals("true"))?"checked=\"true\"":"")+" /></td>\n"+
+"          <td class=\"value\"><nobr>Case insensitive</nobr></td>\n"+
+"        </tr>\n"+
+"        <tr>\n"+
+"          <td class=\"description\"><input name=\"usernamecaseinsensitive\" type=\"radio\" value=\"false\" "+((!caseInsensitiveUser.equals("true"))?"checked=\"true\"":"")+" /></td>\n"+
+"          <td class=\"value\"><nobr>Case sensitive</nobr></td>\n"+
+"        </tr>\n"+
+"      </table>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for "User Mapping" tab
+      out.print(
+"<input type=\"hidden\" name=\"usernamecaseinsensitive\" value=\""+caseInsensitiveUser+"\"/>\n"
+      );
+    }
+
+    // "System ACLs" tab
+    if (tabName.equals("System ACLs"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Use system acls:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <table class=\"displaytable\">\n"+
+"        <tr>\n"+
+"          <td class=\"description\"><input name=\"usesystemacls\" type=\"radio\" value=\"true\" "+((useSystemAcls.equals("true"))?"checked=\"true\"":"")+" /></td>\n"+
+"          <td class=\"value\"><nobr>Use system acls</nobr></td>\n"+
+"        </tr>\n"+
+"        <tr>\n"+
+"          <td class=\"description\"><input name=\"usesystemacls\" type=\"radio\" value=\"false\" "+((!useSystemAcls.equals("true"))?"checked=\"true\"":"")+" /></td>\n"+
+"          <td class=\"value\"><nobr>Don't use system acls</nobr></td>\n"+
+"        </tr>\n"+
+"      </table>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for "System ACLs" tab
+      out.print(
+"<input type=\"hidden\" name=\"usesystemacls\" value=\""+useSystemAcls+"\"/>\n"
+      );
+    }
+  }
+  
+  /** Process a configuration post.
+  * This method is called at the start of the authority connector's configuration page, whenever there is a possibility that form data for a connection has been
+  * posted.  Its purpose is to gather form information and modify the configuration parameters accordingly.
+  * The name of the posted form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param variableContext is the set of variables available from the post, including binary file post information.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
+  */
+  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
+    throws LCFException
+  {
+    String docbaseName = variableContext.getParameter("docbasename");
+    if (docbaseName != null)
+      parameters.setParameter(org.apache.lcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_DOCBASE,docbaseName);
+	
+    String docbaseUserName = variableContext.getParameter("docbaseusername");
+    if (docbaseUserName != null)
+      parameters.setParameter(org.apache.lcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_USERNAME,docbaseUserName);
+	
+    String docbasePassword = variableContext.getParameter("docbasepassword");
+    if (docbasePassword != null)
+      parameters.setObfuscatedParameter(org.apache.lcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_PASSWORD,docbasePassword);
+	
+    String docbaseDomain = variableContext.getParameter("docbasedomain");
+    if (docbaseDomain != null)
+      parameters.setParameter(org.apache.lcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_DOMAIN,docbaseDomain);
+
+    String caseInsensitiveUser = variableContext.getParameter("usernamecaseinsensitive");
+    if (caseInsensitiveUser != null)
+      parameters.setParameter(org.apache.lcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_CASEINSENSITIVE,caseInsensitiveUser);
+
+    String useSystemAcls = variableContext.getParameter("usesystemacls");
+    if (useSystemAcls != null)
+      parameters.setParameter(org.apache.lcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_USESYSTEMACLS,useSystemAcls);
+    
+    return null;
+  }
+  
+  /** View configuration.
+  * This method is called in the body section of the authority connector's view configuration page.  Its purpose is to present the connection information to the user.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  */
+  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
+    throws LCFException, IOException
+  {
+    out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>Parameters:</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"3\">\n"
+    );
+    Iterator iter = parameters.listParameters();
+    while (iter.hasNext())
+    {
+      String param = (String)iter.next();
+      String value = parameters.getParameter(param);
+      if (param.length() >= "password".length() && param.substring(param.length()-"password".length()).equalsIgnoreCase("password"))
+      {
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"=********</nobr><br/>\n"
+        );
+      }
+      else if (param.length() >="keystore".length() && param.substring(param.length()-"keystore".length()).equalsIgnoreCase("keystore"))
+      {
+        IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"=<"+Integer.toString(kmanager.getContents().length)+" certificate(s)></nobr><br/>\n"
+        );
+      }
+      else
+      {
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"="+org.apache.lcf.ui.util.Encoder.bodyEscape(value)+"</nobr><br/>\n"
+        );
+      }
+    }
+    out.print(
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+    );
+  }
 
 }

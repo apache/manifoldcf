@@ -1283,7 +1283,6 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
     }
   }
 
-
   /** Get the maximum number of documents to amalgamate together into one batch, for this connector.
   *@return the maximum number. 0 indicates "unlimited".
   */
@@ -1291,6 +1290,3047 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
   {
     // The web in general does not batch well.  Multiple chunks have no advantage over one-at-a-time requests.
     return 1;
+  }
+
+  // UI support methods.
+  //
+  // These support methods come in two varieties.  The first bunch is involved in setting up connection configuration information.  The second bunch
+  // is involved in presenting and editing document specification information for a job.  The two kinds of methods are accordingly treated differently,
+  // in that the first bunch cannot assume that the current connector object is connected, while the second bunch can.  That is why the first bunch
+  // receives a thread context argument for all UI methods, while the second bunch does not need one (since it has already been applied via the connect()
+  // method, above).
+    
+  /** Output the configuration header section.
+  * This method is called in the head section of the connector's configuration page.  Its purpose is to add the required tabs to the list, and to output any
+  * javascript methods that might be needed by the configuration editing HTML.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
+    throws LCFException, IOException
+  {
+    tabsArray.add("Email");
+    tabsArray.add("Robots");
+    tabsArray.add("Bandwidth");
+    tabsArray.add("Access Credentials");
+    tabsArray.add("Certificates");
+    out.print(
+"<script type=\"text/javascript\">\n"+
+"<!--\n"+
+"function checkConfig()\n"+
+"{\n"+
+"  if (editconnection.email.value != \"\" && editconnection.email.value.indexOf(\"@\") == -1)\n"+
+"  {\n"+
+"    alert(\"Need a valid email address\");\n"+
+"    editconnection.email.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"\n"+
+"  // If the Bandwidth tab is up, check to be sure we have valid numbers and regexps everywhere.\n"+
+"  var i = 0;\n"+
+"  var count = editconnection.bandwidth_count.value;\n"+
+"  while (i < count)\n"+
+"  {\n"+
+"    var connections = eval(\"editconnection.connections_bandwidth_\"+i+\".value\");\n"+
+"    if (connections != \"\" && !isInteger(connections))\n"+
+"    {\n"+
+"      alert(\"Maximum connections must be an integer\");\n"+
+"      eval(\"editconnection.connections_bandwidth_\"+i+\".focus()\");\n"+
+"      return false;\n"+
+"    }\n"+
+"    var rate = eval(\"editconnection.rate_bandwidth_\"+i+\".value\");\n"+
+"    if (rate != \"\" && !isInteger(rate))\n"+
+"    {\n"+
+"      alert(\"Maximum Kbytes per second must be an integer\");\n"+
+"      eval(\"editconnection.rate_bandwidth_\"+i+\".focus()\");\n"+
+"      return false;\n"+
+"    }\n"+
+"    var fetches = eval(\"editconnection.fetches_bandwidth_\"+i+\".value\");\n"+
+"    if (fetches != \"\" && !isInteger(fetches))\n"+
+"    {\n"+
+"      alert(\"Maximum fetches per minute must be an integer\");\n"+
+"      eval(\"editconnection.fetches_bandwidth_\"+i+\".focus()\");\n"+
+"      return false;\n"+
+"    }\n"+
+"\n"+
+"    i = i + 1;\n"+
+"  }\n"+
+"    \n"+
+"  // Make sure access credentials are all legal\n"+
+"  i = 0;\n"+
+"  count = editconnection.acredential_count.value;\n"+
+"  while (i < count)\n"+
+"  {\n"+
+"    var username = eval(\"editconnection.username_acredential_\"+i+\".value\");\n"+
+"    if (username == \"\")\n"+
+"    {\n"+
+"      alert(\"Credential must have non-null user name\");\n"+
+"      eval(\"editconnection.username_acredential_\"+i+\".focus()\");\n"+
+"      return false;\n"+
+"    }\n"+
+"    i = i + 1;\n"+
+"  }\n"+
+"\n"+
+"  // Make sure session credentials are all legal\n"+
+"  i = 0;\n"+
+"  count = editconnection.scredential_count.value;\n"+
+"  while (i < count)\n"+
+"  {\n"+
+"    var loginpagecount = eval(\"editconnection.scredential_\"+i+\"_loginpagecount.value\");\n"+
+"    var j = 0;\n"+
+"    while (j < loginpagecount)\n"+
+"    {\n"+
+"      var matchregexp = eval(\"editconnection.scredential_\"+i+\"_\"+j+\"_matchregexp.value\");\n"+
+"      if (!isRegularExpression(matchregexp))\n"+
+"      {\n"+
+"        alert(\"Match expression must be a valid regular expression\");\n"+
+"        eval(\"editconnection.scredential_\"+i+\"_\"+j+\"_matchregexp.focus()\");\n"+
+"        return false;\n"+
+"      }\n"+
+"      if (eval(\"editconnection.scredential_\"+i+\"_\"+j+\"_type.value\") == \"form\")\n"+
+"      {\n"+
+"        var paramcount = eval(\"editconnection.scredential_\"+i+\"_\"+j+\"_loginparamcount.value\");\n"+
+"        var k = 0;\n"+
+"        while (k < paramcount)\n"+
+"        {\n"+
+"          var paramname = eval(\"editconnection.scredential_\"+i+\"_\"+j+\"_\"+k+\"_param.value\");\n"+
+"          if (paramname == \"\")\n"+
+"          {\n"+
+"            alert(\"Parameter must have non-empty name\");\n"+
+"            eval(\"editconnection.scredential_\"+i+\"_\"+j+\"_\"+k+\"_param.focus()\");\n"+
+"            return false;\n"+
+"          }\n"+
+"          var paramvalue = eval(\"editconnection.scredential_\"+i+\"_\"+j+\"_\"+k+\"_value.value\");\n"+
+"          var parampassword = eval(\"editconnection.scredential_\"+i+\"_\"+j+\"_\"+k+\"_password.value\");\n"+
+"          if (paramvalue != \"\" && parampassword != \"\")\n"+
+"          {\n"+
+"            alert(\"Parameter can either be hidden or not, but can't be both\");\n"+
+"            eval(\"editconnection.scredential_\"+i+\"_\"+j+\"_\"+k+\"_value.focus()\");\n"+
+"            return false;\n"+
+"          }\n"+
+"          k = k + 1;\n"+
+"        }\n"+
+"      }\n"+
+"      j = j + 1;\n"+
+"    }\n"+
+"    i = i + 1;\n"+
+"  }\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"function checkConfigForSave()\n"+
+"{\n"+
+"  if (editconnection.email.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Email address required, to be included in all request headers\");\n"+
+"    SelectTab(\"Email\");\n"+
+"    editconnection.email.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"function deleteRegexp(i)\n"+
+"{\n"+
+"  // Set the operation\n"+
+"  eval(\"editconnection.op_bandwidth_\"+i+\".value=\\\"Delete\\\"\");\n"+
+"  // Submit\n"+
+"  if (editconnection.bandwidth_count.value==i)\n"+
+"    postFormSetAnchor(\"bandwidth\");\n"+
+"  else\n"+
+"    postFormSetAnchor(\"bandwidth_\"+i)\n"+
+"  // Undo, so we won't get two deletes next time\n"+
+"  eval(\"editconnection.op_bandwidth_\"+i+\".value=\\\"Continue\\\"\");\n"+
+"}\n"+
+"\n"+
+"function addRegexp()\n"+
+"{\n"+
+"  if (editconnection.connections_bandwidth.value != \"\" && !isInteger(editconnection.connections_bandwidth.value))\n"+
+"  {\n"+
+"    alert(\"Maximum connections must be an integer\");\n"+
+"    editconnection.connections_bandwidth.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  if (editconnection.rate_bandwidth.value != \"\" && !isInteger(editconnection.rate_bandwidth.value))\n"+
+"  {\n"+
+"    alert(\"Maximum Kbytes per second must be an integer\");\n"+
+"    editconnection.rate_bandwidth.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  if (editconnection.fetches_bandwidth.value != \"\" && !isInteger(editconnection.fetches_bandwidth.value))\n"+
+"  {\n"+
+"    alert(\"Maximum fetches per minute must be an integer\");\n"+
+"    editconnection.fetches_bandwidth.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  if (!isRegularExpression(editconnection.regexp_bandwidth.value))\n"+
+"  {\n"+
+"    alert(\"A valid regular expression is required\");\n"+
+"    editconnection.regexp_bandwidth.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  editconnection.bandwidth_op.value=\"Add\";\n"+
+"  postFormSetAnchor(\"bandwidth\");\n"+
+"}\n"+
+"\n"+
+"function deleteARegexp(i)\n"+
+"{\n"+
+"  // Set the operation\n"+
+"  eval(\"editconnection.op_acredential_\"+i+\".value=\\\"Delete\\\"\");\n"+
+"  // Submit\n"+
+"  if (editconnection.acredential_count.value==i)\n"+
+"    postFormSetAnchor(\"acredential\");\n"+
+"  else\n"+
+"    postFormSetAnchor(\"acredential_\"+i)\n"+
+"  // Undo, so we won't get two deletes next time\n"+
+"  eval(\"editconnection.op_acredential_\"+i+\".value=\\\"Continue\\\"\");\n"+
+"}\n"+
+"\n"+
+"function addARegexp()\n"+
+"{\n"+
+"  if (editconnection.username_acredential.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Credential must include a non-null user name\");\n"+
+"    editconnection.username_acredential.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  if (!isRegularExpression(editconnection.regexp_acredential.value))\n"+
+"  {\n"+
+"    alert(\"A valid regular expression is required\");\n"+
+"    editconnection.regexp_acredential.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  editconnection.acredential_op.value=\"Add\";\n"+
+"  postFormSetAnchor(\"acredential\");\n"+
+"}\n"+
+"\n"+
+"function deleteSRegexp(i)\n"+
+"{\n"+
+"  // Set the operation\n"+
+"  eval(\"editconnection.scredential_\"+i+\"_op.value=\\\"Delete\\\"\");\n"+
+"  // Submit\n"+
+"  if (editconnection.scredential_count.value==i)\n"+
+"    postFormSetAnchor(\"scredential\");\n"+
+"  else\n"+
+"    postFormSetAnchor(\"scredential_\"+i)\n"+
+"  // Undo, so we won't get two deletes next time\n"+
+"  eval(\"editconnection.scredential_\"+i+\"_op.value=\\\"Continue\\\"\");\n"+
+"}\n"+
+"\n"+
+"function addSRegexp()\n"+
+"{\n"+
+"  if (!isRegularExpression(editconnection.scredential_regexp.value))\n"+
+"  {\n"+
+"    alert(\"A valid regular expression is required\");\n"+
+"    editconnection.scredential_regexp.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  editconnection.scredential_op.value=\"Add\";\n"+
+"  postFormSetAnchor(\"scredential\");\n"+
+"}\n"+
+"\n"+
+"function deleteLoginPage(credential,loginpage)\n"+
+"{\n"+
+"  // Set the operation\n"+
+"  eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_op.value=\\\"Delete\\\"\");\n"+
+"  // Submit\n"+
+"  if (eval(\"editconnection.scredential_\"+credential+\"_loginpagecount.value\")==credential)\n"+
+"    postFormSetAnchor(\"scredential_loginpage\");\n"+
+"  else\n"+
+"    postFormSetAnchor(\"scredential_\"+credential+\"_\"+loginpage)\n"+
+"  // Undo, so we won't get two deletes next time\n"+
+"  eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_op.value=\\\"Continue\\\"\");\n"+
+"\n"+
+"}\n"+
+"  \n"+
+"function addLoginPage(credential)\n"+
+"{\n"+
+"  if (!isRegularExpression(eval(\"editconnection.scredential_\"+credential+\"_loginpageregexp.value\")))\n"+
+"  {\n"+
+"    alert(\"A valid regular expression is required\");\n"+
+"    eval(\"editconnection.scredential_\"+credential+\"_loginpageregexp.focus()\");\n"+
+"    return;\n"+
+"  }\n"+
+"  if (!isRegularExpression(eval(\"editconnection.scredential_\"+credential+\"_loginpagematchregexp.value\")))\n"+
+"  {\n"+
+"    alert(\"A valid regular expression is required\");\n"+
+"    eval(\"editconnection.scredential_\"+credential+\"_loginpagematchregexp.focus()\");\n"+
+"    return;\n"+
+"  }\n"+
+"  eval(\"editconnection.scredential_\"+credential+\"_loginpageop.value=\\\"Add\\\"\");\n"+
+"  postFormSetAnchor(\"scredential_\"+credential);\n"+
+"}\n"+
+"  \n"+
+"function deleteLoginPageParameter(credential,loginpage,parameter)\n"+
+"{\n"+
+"  // Set the operation\n"+
+"  eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_\"+parameter+\"_op.value=\\\"Delete\\\"\");\n"+
+"  // Submit\n"+
+"  if (eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_loginparamcount.value\")==credential)\n"+
+"    postFormSetAnchor(\"scredential_\"+credential+\"_loginparam\");\n"+
+"  else\n"+
+"    postFormSetAnchor(\"scredential_\"+credential+\"_\"+loginpage+\"_\"+parameter)\n"+
+"  // Undo, so we won't get two deletes next time\n"+
+"  eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_\"+parameter+\"_op.value=\\\"Continue\\\"\");\n"+
+"}\n"+
+"  \n"+
+"function addLoginPageParameter(credential,loginpage)\n"+
+"{\n"+
+"  if (!isRegularExpression(eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_loginparamname.value\")))\n"+
+"  {\n"+
+"    alert(\"Parameter name must be a regular expression\");\n"+
+"    eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_loginparamname.focus()\");\n"+
+"    return;\n"+
+"  }\n"+
+"  if (eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_loginparamvalue.value\") != \"\" && eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_loginparampassword.value\") != \"\")\n"+
+"  {\n"+
+"    alert(\"Parameter can either be hidden or not but can't be both\");\n"+
+"    eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_loginparamvalue.focus()\");\n"+
+"    return;\n"+
+"  }\n"+
+"  eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_loginparamop.value=\\\"Add\\\"\");\n"+
+"  postFormSetAnchor(\"scredential_\"+credential+\"_\"+loginpage);\n"+
+"}\n"+
+"  \n"+
+"function deleteTRegexp(i)\n"+
+"{\n"+
+"  // Set the operation\n"+
+"  eval(\"editconnection.op_trust_\"+i+\".value=\\\"Delete\\\"\");\n"+
+"  // Submit\n"+
+"  if (editconnection.trust_count.value==i)\n"+
+"    postFormSetAnchor(\"trust\");\n"+
+"  else\n"+
+"    postFormSetAnchor(\"trust_\"+i)\n"+
+"  // Undo, so we won't get two deletes next time\n"+
+"  eval(\"editconnection.op_trust_\"+i+\".value=\\\"Continue\\\"\");\n"+
+"}\n"+
+"\n"+
+"function addTRegexp()\n"+
+"{\n"+
+"  if (editconnection.certificate_trust.value == \"\" && editconnection.all_trust.checked == false)\n"+
+"  {\n"+
+"    alert(\"Specify a trust certificate file to upload first, or check 'Trust everything'\");\n"+
+"    editconnection.certificate_trust.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  if (!isRegularExpression(editconnection.regexp_trust.value))\n"+
+"  {\n"+
+"    alert(\"A valid regular expression is required\");\n"+
+"    editconnection.regexp_trust.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  editconnection.trust_op.value=\"Add\";\n"+
+"  postFormSetAnchor(\"trust\");\n"+
+"}\n"+
+"  \n"+
+"//-->\n"+
+"</script>\n"
+    );
+  }
+  
+  /** Output the configuration body section.
+  * This method is called in the body section of the connector's configuration page.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabName is the current tab name.
+  */
+  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
+    throws LCFException, IOException
+  {
+    String email = parameters.getParameter(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.PARAMETER_EMAIL);
+    if (email == null)
+      email = "";
+    String robotsUsage = parameters.getParameter(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.PARAMETER_ROBOTSUSAGE);
+    if (robotsUsage == null)
+      robotsUsage = "all";
+
+    // Email tab
+    if (tabName.equals("Email"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Email address to contact:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"text\" size=\"32\" name=\"email\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(email)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"email\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(email)+"\"/>\n"
+      );
+    }
+
+    // Robots tab
+    if (tabName.equals("Robots"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Robots.txt usage:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <select name=\"robotsusage\" size=\"3\">\n"+
+"        <option value=\"none\" "+(robotsUsage.equals("none")?"selected=\"selected\"":"")+">Don't look at robots.txt</option>\n"+
+"        <option value=\"data\" "+(robotsUsage.equals("data")?"selected=\"selected\"":"")+">Obey robots.txt for data fetches only</option>\n"+
+"        <option value=\"all\" "+(robotsUsage.equals("all")?"selected=\"selected\"":"")+">Obey robots.txt for all fetches</option>\n"+
+"      </select>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"robotsusage\" value=\""+robotsUsage+"\"/>\n"
+      );
+    }
+
+    // Bandwidth tab
+    if (tabName.equals("Bandwidth"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Throttles:</nobr></td>\n"+
+"    <td class=\"boxcell\">\n"+
+"      <table class=\"formtable\">\n"+
+"        <tr class=\"formheaderrow\">\n"+
+"          <td class=\"formcolumnheader\"></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Bin regular expression</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Case insensitive?</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Max connections</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Max Kbytes/sec</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Max fetches/min</nobr></td>\n"+
+"        </tr>\n"
+      );
+      int i = 0;
+      int binCounter = 0;
+      while (i < parameters.getChildCount())
+      {
+        ConfigNode cn = parameters.getChild(i++);
+        if (cn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_BINDESC))
+        {
+          // A bin description node!  Look for all its parameters.
+          String regexp = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_BINREGEXP);
+          String isCaseInsensitive = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_INSENSITIVE);
+          String maxConnections = null;
+          String maxKBPerSecond = null;
+          String maxFetchesPerMinute = null;
+          int j = 0;
+          while (j < cn.getChildCount())
+          {
+            ConfigNode childNode = cn.getChild(j++);
+            if (childNode.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXCONNECTIONS))
+              maxConnections = childNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
+            else if (childNode.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXKBPERSECOND))
+              maxKBPerSecond = childNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
+            else if (childNode.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXFETCHESPERMINUTE))
+              maxFetchesPerMinute = childNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
+          }
+          if (maxConnections == null)
+            maxConnections = "";
+          if (maxKBPerSecond == null)
+            maxKBPerSecond = "";
+          if (maxFetchesPerMinute == null)
+            maxFetchesPerMinute = "";
+            
+          if (isCaseInsensitive == null || isCaseInsensitive.length() == 0)
+            isCaseInsensitive = "false";
+
+          // It's prefix will be...
+          String prefix = "bandwidth_" + Integer.toString(binCounter);
+          out.print(
+"        <tr class=\""+(((binCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <a name=\""+prefix+"\">\n"+
+"              <input type=\"button\" value=\"Delete\" alt=\""+"Delete bin regular expression #"+Integer.toString(binCounter+1)+"\" onclick='javascript:deleteRegexp("+Integer.toString(binCounter)+");'/>\n"+
+"              <input type=\"hidden\" name=\""+"op_"+prefix+"\" value=\"Continue\"/>\n"+
+"              <input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(regexp)+"\"/>\n"+
+"            </a>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(regexp)+"</nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr><input type=\"checkbox\" name=\"insensitive_"+prefix+"\" value=\"true\" "+(isCaseInsensitive.equals("true")?"checked=\"\"":"")+" /></nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr><input type=\"text\" size=\"5\" name=\"connections_"+prefix+"\" value=\""+maxConnections+"\"/></nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr><input type=\"text\" size=\"5\" name=\"rate_"+prefix+"\" value=\""+maxKBPerSecond+"\"/></nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr><input type=\"text\" size=\"5\" name=\"fetches_"+prefix+"\" value=\""+maxFetchesPerMinute+"\"/></nobr>\n"+
+"          </td>\n"+
+"        </tr>\n"
+          );
+          binCounter++;
+        }
+      }
+
+      if (binCounter == 0)
+      {
+        out.print(
+"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"6\">No bandwidth or connection throttling specified</td></tr>\n"
+        );
+      }
+      out.print(
+"        <tr class=\"formrow\"><td class=\"formseparator\" colspan=\"6\"><hr/></td></tr>\n"+
+"        <tr class=\"formrow\">\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <a name=\"bandwidth\">\n"+
+"              <input type=\"button\" value=\"Add\" alt=\"Add bin regular expression\" onclick=\"javascript:addRegexp();\"/>\n"+
+"            </a>\n"+
+"            <input type=\"hidden\" name=\"bandwidth_count\" value=\""+binCounter+"\"/>\n"+
+"            <input type=\"hidden\" name=\"bandwidth_op\" value=\"Continue\"/>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr><input type=\"text\" size=\"30\" name=\"regexp_bandwidth\" value=\"\"/></nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr><input type=\"checkbox\" name=\"insensitive_bandwidth\" value=\"true\"/></nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr><input type=\"text\" size=\"5\" name=\"connections_bandwidth\" value=\"\"/></nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr><input type=\"text\" size=\"5\" name=\"rate_bandwidth\" value=\"\"/></nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr><input type=\"text\" size=\"5\" name=\"fetches_bandwidth\" value=\"\"/></nobr>\n"+
+"          </td>\n"+
+"        </tr>\n"+
+"      </table>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for bandwidth tab.
+      int i = 0;
+      int binCounter = 0;
+      while (i < parameters.getChildCount())
+      {
+        ConfigNode cn = parameters.getChild(i++);
+        if (cn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_BINDESC))
+        {
+          // A bin description node!  Look for all its parameters.
+          String regexp = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_BINREGEXP);
+          String isCaseInsensitive = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_INSENSITIVE);
+          String maxConnections = null;
+          String maxKBPerSecond = null;
+          String maxFetchesPerMinute = null;
+          int j = 0;
+          while (j < cn.getChildCount())
+          {
+            ConfigNode childNode = cn.getChild(j++);
+            if (childNode.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXCONNECTIONS))
+              maxConnections = childNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
+            else if (childNode.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXKBPERSECOND))
+              maxKBPerSecond = childNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
+            else if (childNode.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXFETCHESPERMINUTE))
+              maxFetchesPerMinute = childNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
+          }
+          if (maxConnections == null)
+            maxConnections = "";
+          if (maxKBPerSecond == null)
+            maxKBPerSecond = "";
+          if (maxFetchesPerMinute == null)
+            maxFetchesPerMinute = "";
+          if (isCaseInsensitive == null || isCaseInsensitive.length() == 0)
+            isCaseInsensitive = "false";
+
+          // It's prefix will be...
+          String prefix = "bandwidth_" + Integer.toString(binCounter);
+          out.print(
+"<input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(regexp)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"insensitive_"+prefix+"\" value=\""+isCaseInsensitive+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"connections_"+prefix+"\" value=\""+maxConnections+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"rate_"+prefix+"\" value=\""+maxKBPerSecond+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"fetches_"+prefix+"\" value=\""+maxFetchesPerMinute+"\"/>\n"
+          );
+          binCounter++;
+        }
+      }
+      out.print(
+"<input type=\"hidden\" name=\"bandwidth_count\" value=\""+binCounter+"\"/>\n"
+      );
+    }
+
+    // Access Credentials tab
+    if (tabName.equals("Access Credentials"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Page access credentials:</nobr></td>\n"+
+"    <td class=\"boxcell\">\n"+
+"      <table class=\"formtable\">\n"+
+"        <tr class=\"formheaderrow\">\n"+
+"          <td class=\"formcolumnheader\"></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>URL regular expression</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Authentication type</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Domain</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>User name</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Password</nobr></td>\n"+
+"        </tr>\n"
+      );
+      int i = 0;
+      int accessCounter = 0;
+      while (i < parameters.getChildCount())
+      {
+        ConfigNode cn = parameters.getChild(i++);
+        if (cn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
+        {
+          // A bin description node!  Look for all its parameters.
+          String type = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE);
+          if (!type.equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION))
+          {
+            String regexp = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
+            String domain = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_DOMAIN);
+            if (domain == null)
+              domain = "";
+            String userName = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_USERNAME);
+            String password = org.apache.lcf.crawler.system.LCF.deobfuscate(cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD));
+                                        
+            // It's prefix will be...
+            String prefix = "acredential_" + Integer.toString(accessCounter);
+            out.print(
+"        <tr class=\""+(((accessCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <a name=\""+prefix+"\">\n"+
+"              <input type=\"button\" value=\"Delete\" alt=\""+"Delete page authentication url regular expression #"+Integer.toString(accessCounter+1)+"\" onclick='javascript:deleteARegexp("+Integer.toString(accessCounter)+");'/>\n"+
+"              <input type=\"hidden\" name=\"op_"+prefix+"\" value=\"Continue\"/>\n"+
+"              <input type=\"hidden\" name=\"regexp_"+prefix+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(regexp)+"\"/>\n"+
+"            </a>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(regexp)+"</nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr><input type=\"radio\" name=\"type_"+prefix+"\" value=\"basic\" "+(type.equals("basic")?"checked=\"\"":"")+" />&nbsp;Basic authentication</nobr><br/>\n"+
+"            <nobr><input type=\"radio\" name=\"type_"+prefix+"\" value=\"ntlm\" "+(type.equals("ntlm")?"checked=\"\"":"")+" />&nbsp;NTLM authentication</nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr><input type=\"text\" size=\"16\" name=\""+"domain_"+prefix+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(domain)+"\"/></nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr><input type=\"text\" size=\"16\" name=\""+"username_"+prefix+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(userName)+"\"/></nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr><input type=\"password\" size=\"16\" name=\""+"password_"+prefix+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(password)+"\"/></nobr>\n"+
+"          </td>\n"+
+"        </tr>\n"
+            );
+            accessCounter++;
+          }
+        }
+      }
+
+      if (accessCounter == 0)
+      {
+        out.print(
+"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"6\">No page access credentials specified</td></tr>\n"
+        );
+      }
+      out.print(
+"        <tr class=\"formrow\"><td class=\"formseparator\" colspan=\"6\"><hr/></td></tr>\n"+
+"        <tr class=\"formrow\">\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <a name=\"acredential\">\n"+
+"              <input type=\"button\" value=\"Add\" alt=\"Add page authentication url regular expression\" onclick=\"javascript:addARegexp();\"/>\n"+
+"            </a>\n"+
+"            <input type=\"hidden\" name=\"acredential_count\" value=\""+accessCounter+"\"/>\n"+
+"            <input type=\"hidden\" name=\"acredential_op\" value=\"Continue\"/>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr><input type=\"text\" size=\"30\" name=\"regexp_acredential\" value=\"\"/></nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr><input type=\"radio\" name=\"type_acredential\" value=\"basic\" checked=\"\" />&nbsp;Basic authentication</nobr><br/>\n"+
+"            <nobr><input type=\"radio\" name=\"type_acredential\" value=\"ntlm\" />&nbsp;NTLM authentication</nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr><input type=\"text\" size=\"16\" name=\"domain_acredential\" value=\"\"/></nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr><input type=\"text\" size=\"16\" name=\"username_acredential\" value=\"\"/></nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr><input type=\"password\" size=\"16\" name=\"password_acredential\" value=\"\"/></nobr>\n"+
+"          </td>\n"+
+"        </tr>\n"+
+"      </table>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"        \n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Session-based access credentials:</nobr></td>\n"+
+"    <td class=\"boxcell\">\n"+
+"      <table class=\"formtable\">\n"+
+"        <tr class=\"formheaderrow\">\n"+
+"          <td class=\"formcolumnheader\"></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>URL regular expression</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Login pages</nobr></td>\n"+
+"        </tr>\n"
+      );
+      i = 0;
+      accessCounter = 0;
+      while (i < parameters.getChildCount())
+      {
+        ConfigNode cn = parameters.getChild(i++);
+        if (cn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
+        {
+          // A bin description node!  Look for all its parameters.
+          String type = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE);
+          if (type.equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION))
+          {
+            String regexp = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
+                                        
+            // It's prefix will be...
+            String prefix = "scredential_" + Integer.toString(accessCounter);
+            out.print(
+"        <tr class=\""+(((accessCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <a name=\""+prefix+"\">\n"+
+"              <input type=\"button\" value=\"Delete\" alt=\""+"Delete session authentication url regular expression #"+Integer.toString(accessCounter+1)+"\" onclick='javascript:deleteSRegexp("+Integer.toString(accessCounter)+");'/>\n"+
+"              <input type=\"hidden\" name=\""+prefix+"_op"+"\" value=\"Continue\"/>\n"+
+"              <input type=\"hidden\" name=\""+prefix+"_regexp"+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(regexp)+"\"/>\n"+
+"            </a>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(regexp)+"</nobr>\n"+
+"          </td>\n"+
+"          <td class=\"boxcell\">\n"+
+"            <table class=\"formtable\">\n"+
+"              <tr class=\"formheaderrow\">\n"+
+"                <td class=\"formcolumnheader\"></td>\n"+
+"                <td class=\"formcolumnheader\"><nobr>Login URL regular expression</nobr></td>\n"+
+"                <td class=\"formcolumnheader\"><nobr>Page type</nobr></td>\n"+
+"                <td class=\"formcolumnheader\"><nobr>Form name/link target regular expression</nobr></td>\n"+
+"                <td class=\"formcolumnheader\"><nobr>Override form parameters</nobr></td>\n"+
+"              </tr>\n"
+            );
+            int q = 0;
+            int authPageCounter = 0;
+            while (q < cn.getChildCount())
+            {
+              ConfigNode authPageNode = cn.getChild(q++);
+              if (authPageNode.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPAGE))
+              {
+                String pageRegexp = authPageNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
+                String pageType = authPageNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE);
+                String matchRegexp = authPageNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_MATCHREGEXP);
+                if (matchRegexp == null)
+                  matchRegexp = "";
+                String authpagePrefix = prefix + "_" + authPageCounter;
+                out.print(
+"              <tr class=\""+(((authPageCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <a name=\""+authpagePrefix+"\">\n"+
+"                    <input type=\"button\" value=\"Delete\" alt=\""+"Delete login page #"+(authPageCounter+1)+" for url regular expression #"+Integer.toString(accessCounter+1)+"\" onclick='javascript:deleteLoginPage("+Integer.toString(accessCounter)+","+Integer.toString(authPageCounter)+");'/>\n"+
+"                    <input type=\"hidden\" name=\""+authpagePrefix+"_op"+"\" value=\"Continue\"/>\n"+
+"                    <input type=\"hidden\" name=\""+authpagePrefix+"_regexp"+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(pageRegexp)+"\"/>\n"+
+"                    <input type=\"hidden\" name=\""+authpagePrefix+"_type"+"\" value=\""+pageType+"\"/>\n"+
+"                  </a>\n"+
+"                </td>\n"+
+"\n"+
+"                <td class=\"formcolumncell\"><nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(pageRegexp)+"</nobr></td>\n"+
+"                <td class=\"formcolumncell\"><nobr>"+pageType+"</nobr></td>\n"+
+"                <td class=\"formcolumncell\"><nobr><input type=\"text\" size=\"30\" name=\""+authpagePrefix+"_matchregexp"+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(matchRegexp)+"\"/></nobr></td>\n"
+                );
+                if (pageType.equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_FORM))
+                {
+                  out.print(
+"                <td class=\"boxcell\">\n"+
+"                  <table class=\"formtable\">\n"+
+"                    <tr class=\"formheaderrow\">\n"+
+"                      <td class=\"formcolumnheader\"></td>\n"+
+"                      <td class=\"formcolumnheader\"><nobr>Parameter regular expression</nobr></td>\n"+
+"                      <td class=\"formcolumnheader\"><nobr>Value</nobr></td>\n"+
+"                      <td class=\"formcolumnheader\"><nobr>Password</nobr></td>\n"+
+"                    </tr>\n"
+                  );
+                  int z = 0;
+                  int paramCounter = 0;
+                  while (z < authPageNode.getChildCount())
+                  {
+                    ConfigNode paramNode = authPageNode.getChild(z++);
+                    if (paramNode.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPARAMETER))
+                    {
+                      String param = paramNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_NAMEREGEXP);
+                      if (param == null)
+                        param = "";
+                      String value = paramNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
+                      if (value == null)
+                        value = "";
+                      String password = paramNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD);
+                      if (password == null)
+                        password = "";
+                      String authParamPrefix = authpagePrefix + "_" + paramCounter;
+                      out.print(
+"                    <tr class=\""+(((paramCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"                      <td class=\"formcolumncell\">\n"+
+"                        <a name=\""+authParamPrefix+"\">\n"+
+"                          <input type=\"button\" value=\"Delete\" alt=\""+"Delete parameter #"+(paramCounter+1)+" for login page #"+(authPageCounter+1)+" for credential #"+(accessCounter+1)+"\" onclick='javascript:deleteLoginPageParameter("+accessCounter+","+authPageCounter+","+paramCounter+");'/>\n"+
+"                          <input type=\"hidden\" name=\""+authParamPrefix+"_op"+"\" value=\"Continue\"/>\n"+
+"                        </a>\n"+
+"                      </td>\n"+
+"                      <td class=\"formcolumncell\">\n"+
+"                        <nobr><input type=\"text\" size=\"30\" name=\""+authParamPrefix+"_param"+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(param)+"\"/></nobr>\n"+
+"                      </td>\n"+
+"                      <td class=\"formcolumncell\">\n"+
+"                        <nobr><input type=\"text\" size=\"15\" name=\""+authParamPrefix+"_value"+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(value)+"\"/></nobr>\n"+
+"                      </td>\n"+
+"                      <td class=\"formcolumncell\">\n"+
+"                        <nobr><input type=\"password\" size=\"15\" name=\""+authParamPrefix+"_password"+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(org.apache.lcf.crawler.system.LCF.deobfuscate(password))+"\"/></nobr>\n"+
+"                      </td>\n"+
+"                    </tr>\n"
+                      );
+                      paramCounter++;
+                    }
+                  }
+                  out.print(
+"                    <tr class=\"formrow\"><td class=\"formseparator\" colspan=\"4\"><hr/></td></tr>\n"+
+"                    <tr class=\"formrow\">\n"+
+"                      <td class=\"formcolumncell\">\n"+
+"                        <a name=\""+authpagePrefix+"_loginparam"+"\">\n"+
+"                          <input type=\"button\" value=\"Add\" alt=\""+"Add parameter to login page #"+(authPageCounter+1)+" for credential #"+(accessCounter+1)+"\" onclick='javascript:addLoginPageParameter("+accessCounter+","+authPageCounter+");'/>\n"+
+"                        </a>\n"+
+"                        <input type=\"hidden\" name=\""+authpagePrefix+"_loginparamcount"+"\" value=\""+paramCounter+"\"/>\n"+
+"                        <input type=\"hidden\" name=\""+authpagePrefix+"_loginparamop"+"\" value=\"Continue\"/>\n"+
+"                      </td>\n"+
+"                      <td class=\"formcolumncell\">\n"+
+"                        <nobr><input type=\"text\" size=\"30\" name=\""+authpagePrefix+"_loginparamname"+"\" value=\"\"/></nobr>\n"+
+"                      </td>\n"+
+"                      <td class=\"formcolumncell\">\n"+
+"                        <nobr><input type=\"text\" size=\"15\" name=\""+authpagePrefix+"_loginparamvalue"+"\" value=\"\"/></nobr>\n"+
+"                      </td>\n"+
+"                      <td class=\"formcolumncell\">\n"+
+"                        <nobr><input type=\"password\" size=\"15\" name=\""+authpagePrefix+"_loginparampassword"+"\" value=\"\"/></nobr>\n"+
+"                      </td>\n"+
+"                    </tr>\n"+
+"                  </table>\n"+
+"                </td>\n"
+                  );
+                }
+                else
+                {
+                  out.print(
+"                <td class=\"formcolumncell\"></td>\n"
+                  );
+                }
+                out.print(
+"              </tr>\n"
+                );
+                authPageCounter++;
+              }
+            }
+            out.print(
+"              <tr class=\"formrow\"><td class=\"formseparator\" colspan=\"5\"><hr/></td></tr>\n"+
+"              <tr class=\"formrow\">\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <a name=\""+prefix+"_loginpage"+"\">\n"+
+"                    <input type=\"button\" value=\"Add\" alt=\""+"Add login page to credential #"+(accessCounter+1)+"\" onclick='javascript:addLoginPage("+accessCounter+");'/>\n"+
+"                  </a>\n"+
+"                  <input type=\"hidden\" name=\""+prefix+"_loginpagecount"+"\" value=\""+authPageCounter+"\"/>\n"+
+"                  <input type=\"hidden\" name=\""+prefix+"_loginpageop"+"\" value=\"Continue\"/>\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <nobr><input type=\"text\" size=\"30\" name=\""+prefix+"_loginpageregexp"+"\" value=\"\"/></nobr>\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <nobr><input type=\"radio\" name=\""+prefix+"_loginpagetype"+"\" value=\""+org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_FORM+"\" checked=\"\"/>&nbsp;Form name</nobr><br/>\n"+
+"                  <nobr><input type=\"radio\" name=\""+prefix+"_loginpagetype"+"\" value=\""+org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_LINK+"\"/>&nbsp;Link target</nobr>\n"+
+"                  <nobr><input type=\"radio\" name=\""+prefix+"_loginpagetype"+"\" value=\""+org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_REDIRECTION+"\"/>&nbsp;Redirection</nobr>\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <nobr><input type=\"text\" size=\"30\" name=\""+prefix+"_loginpagematchregexp"+"\" value=\"\"/></nobr>\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                </td>\n"+
+"              </tr>\n"+
+"\n"+
+"            </table>\n"+
+"          </td>\n"+
+"        </tr>\n"
+            );
+            accessCounter++;
+          }
+        }
+      }
+
+      if (accessCounter == 0)
+      {
+        out.print(
+"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"3\">No session-based access credentials specified</td></tr>\n"
+        );
+      }
+      out.print(
+"        <tr class=\"formrow\"><td class=\"formseparator\" colspan=\"3\"><hr/></td></tr>\n"+
+"        <tr class=\"formrow\">\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <a name=\"scredential\">\n"+
+"              <input type=\"button\" value=\"Add\" alt=\"Add session authentication url regular expression\" onclick=\"javascript:addSRegexp();\"/>\n"+
+"            </a>\n"+
+"            <input type=\"hidden\" name=\"scredential_count\" value=\""+accessCounter+"\"/>\n"+
+"            <input type=\"hidden\" name=\"scredential_op\" value=\"Continue\"/>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr><input type=\"text\" size=\"30\" name=\"scredential_regexp\" value=\"\"/></nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"          </td>\n"+
+"        </tr>\n"+
+"      </table>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for Access Credentials tab.
+      
+      // Page credentials first.
+      int i = 0;
+      int accessCounter = 0;
+      while (i < parameters.getChildCount())
+      {
+        ConfigNode cn = parameters.getChild(i++);
+        if (cn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
+        {
+          // A bin description node!  Look for all its parameters.
+          String type = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE);
+          if (!type.equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION))
+          {
+            String regexp = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
+            String domain = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_DOMAIN);
+            if (domain == null)
+              domain = "";
+            String userName = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_USERNAME);
+            String password = org.apache.lcf.crawler.system.LCF.deobfuscate(cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD));
+
+            // It's prefix will be...
+            String prefix = "acredential_" + Integer.toString(accessCounter);
+            out.print(
+"<input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(regexp)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"type_"+prefix+"\" value=\""+type+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"domain_"+prefix+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(domain)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"username_"+prefix+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(userName)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"password_"+prefix+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(password)+"\"/>\n"
+            );
+            accessCounter++;
+          }
+        }
+      }
+      out.print(
+"<input type=\"hidden\" name=\"acredential_count\" value=\""+accessCounter+"\"/>\n"
+      );
+
+      // Now, session credentials
+      i = 0;
+      accessCounter = 0;
+      while (i < parameters.getChildCount())
+      {
+        ConfigNode cn = parameters.getChild(i++);
+        if (cn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
+        {
+          // A bin description node!  Look for all its parameters.
+          String type = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE);
+          if (type.equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION))
+          {
+            String regexp = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
+            // It's identifier will be...
+            String prefix = "scredential_" + Integer.toString(accessCounter);
+            out.print(
+"<input type=\"hidden\" name=\""+prefix+"_regexp"+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(regexp)+"\"/>\n"
+            );
+            // Loop through login pages...
+            int q = 0;
+            int authPageCounter = 0;
+            while (q < cn.getChildCount())
+            {
+              ConfigNode authPageNode = cn.getChild(q++);
+              if (authPageNode.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPAGE))
+              {
+                String pageRegexp = authPageNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
+                String pageType = authPageNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE);
+                String matchRegexp = authPageNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_MATCHREGEXP);
+                if (matchRegexp == null)
+                  matchRegexp = "";
+                String authpagePrefix = prefix + "_" + authPageCounter;
+                out.print(
+"<input type=\"hidden\" name=\""+authpagePrefix+"_regexp"+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(pageRegexp)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+authpagePrefix+"_type"+"\" value=\""+pageType+"\"/>\n"+
+"<input type=\"hidden\" name=\""+authpagePrefix+"_matchregexp"+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(matchRegexp)+"\"/>\n"
+                );
+                if (pageType.equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_FORM))
+                {
+                  int z = 0;
+                  int paramCounter = 0;
+                  while (z < authPageNode.getChildCount())
+                  {
+                    ConfigNode paramNode = authPageNode.getChild(z++);
+                    if (paramNode.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPARAMETER))
+                    {
+                      String param = paramNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_NAMEREGEXP);
+                      if (param == null)
+                        param = "";
+                      String value = paramNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
+                      if (value == null)
+                        value = "";
+                      String password = paramNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD);
+                      if (password == null)
+                        password = "";
+                      String authParamPrefix = authpagePrefix + "_" + paramCounter;
+                      out.print(
+"<input type=\"hidden\" name=\""+authParamPrefix+"_param"+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(param)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+authParamPrefix+"_value"+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(value)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+authParamPrefix+"_password"+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(org.apache.lcf.crawler.system.LCF.deobfuscate(password))+"\"/>\n"
+                      );
+                      paramCounter++;
+                    }
+                  }
+                  out.print(
+"<input type=\"hidden\" name=\""+authpagePrefix+"_loginparamcount"+"\" value=\""+paramCounter+"\"/>\n"
+                  );
+                }
+                authPageCounter++;
+              }
+            }
+            out.print(
+"<input type=\"hidden\" name=\""+prefix+"_loginpagecount"+"\" value=\""+authPageCounter+"\"/>\n"
+            );
+            accessCounter++;
+          }
+        }
+      }
+      out.print(
+"<input type=\"hidden\" name=\"scredential_count\" value=\""+accessCounter+"\"/>\n"
+      );
+    }
+
+    // "Certificates" tab
+    if (tabName.equals("Certificates"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Trust certificates:</nobr></td>\n"+
+"    <td class=\"boxcell\">\n"+
+"      <table class=\"formtable\">\n"+
+"        <tr class=\"formheaderrow\">\n"+
+"          <td class=\"formcolumnheader\"></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>URL regular expression</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Certificate</nobr></td>\n"+
+"        </tr>\n"
+      );
+      int i = 0;
+      int trustsCounter = 0;
+      while (i < parameters.getChildCount())
+      {
+        ConfigNode cn = parameters.getChild(i++);
+        if (cn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_TRUST))
+        {
+          // It's prefix will be...
+          String prefix = "trust_" + Integer.toString(trustsCounter);
+          // A bin description node!  Look for all its parameters.
+          String regexp = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
+          String trustEverything = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTEVERYTHING);
+          if (trustEverything != null && trustEverything.equals("true"))
+          {
+            // We trust everything that matches this regexp
+            out.print(
+"        <tr class=\""+(((trustsCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <a name=\""+prefix+"\"><input type=\"button\" value=\"Delete\" alt=\""+"Delete trust url regular expression #"+Integer.toString(trustsCounter+1)+"\" onclick='javascript:deleteTRegexp("+Integer.toString(trustsCounter)+");'/>\n"+
+"            <input type=\"hidden\" name=\""+"op_"+prefix+"\" value=\"Continue\"/>\n"+
+"            <input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(regexp)+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+"trustall_"+prefix+"\" value=\"true\"/>\n"+
+"            <input type=\"hidden\" name=\""+"truststore_"+prefix+"\" value=\"\"/>\n"+
+"            </a>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(regexp)+"</nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr><i>Trust everything</i></nobr>\n"+
+"          </td>\n"+
+"        </tr>\n"
+            );
+            trustsCounter++;
+          }
+          else
+          {
+            String trustStore = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTSTORE);
+            IKeystoreManager localTruststore = KeystoreManagerFactory.make("",trustStore);
+            String[] truststoreContents = localTruststore.getContents();
+            
+            // Each trust store will have only at most one cert in it at this level.  These individual certs are assembled into the proper trust store
+            // for each individual url at fetch time.
+            
+            if (truststoreContents.length == 1)
+            {
+              String alias = truststoreContents[0];
+              String description = localTruststore.getDescription(alias);
+              String shortenedDescription = description;
+              if (shortenedDescription.length() > 100)
+                shortenedDescription = shortenedDescription.substring(0,100) + "...";
+              out.print(
+"        <tr class=\""+(((trustsCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <a name=\""+prefix+"\">\n"+
+"              <input type=\"button\" value=\"Delete\" alt=\""+"Delete trust url regular expression #"+Integer.toString(trustsCounter+1)+"\" onclick='javascript:deleteTRegexp("+Integer.toString(trustsCounter)+");'/>\n"+
+"              <input type=\"hidden\" name=\""+"op_"+prefix+"\" value=\"Continue\"/>\n"+
+"              <input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(regexp)+"\"/>\n"+
+"              <input type=\"hidden\" name=\""+"trustall_"+prefix+"\" value=\"false\"/>\n"+
+"              <input type=\"hidden\" name=\""+"truststore_"+prefix+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(trustStore)+"\"/>\n"+
+"            </a>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(regexp)+"</nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(shortenedDescription)+"</nobr>\n"+
+"          </td>\n"+
+"        </tr>\n"
+              );
+              trustsCounter++;
+            }
+          }
+
+        }
+      }
+
+      if (trustsCounter == 0)
+      {
+        out.print(
+"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"3\">No trust certificates specified</td></tr>\n"
+        );
+      }
+      out.print(
+"        <tr class=\"formrow\"><td class=\"formseparator\" colspan=\"3\"><hr/></td></tr>\n"+
+"        <tr class=\"formrow\">\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <a name=\"trust\"><input type=\"button\" value=\"Add\" alt=\"Add url regular expression for truststore\" onclick=\"javascript:addTRegexp();\"/></a>\n"+
+"            <input type=\"hidden\" name=\"trust_count\" value=\""+trustsCounter+"\"/>\n"+
+"            <input type=\"hidden\" name=\"trust_op\" value=\"Continue\"/>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr><input type=\"text\" size=\"30\" name=\"regexp_trust\" value=\"\"/></nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>Upload certificate: <input name=\"certificate_trust\" size=\"50\" type=\"file\"/>&nbsp;<input name=\"all_trust\" type=\"checkbox\" value=\"true\">Trust everything</input></nobr>\n"+
+"          </td>\n"+
+"        </tr>\n"+
+"      </table>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for Certificates tab.
+      int i = 0;
+      int trustsCounter = 0;
+      while (i < parameters.getChildCount())
+      {
+        ConfigNode cn = parameters.getChild(i++);
+        if (cn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_TRUST))
+        {
+          // It's prefix will be...
+          String prefix = "trust_" + Integer.toString(trustsCounter);
+
+          // A bin description node!  Look for all its parameters.
+          String regexp = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
+          String trustEverything = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTEVERYTHING);
+          if (trustEverything != null && trustEverything.equals("true"))
+          {
+            // We trust everything that matches this regexp
+            out.print(
+"<input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(regexp)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"truststore_"+prefix+"\" value=\"\"/>\n"+
+"<input type=\"hidden\" name=\""+"trustall_"+prefix+"\" value=\"true\"/>\n"
+            );
+            trustsCounter++;
+          }
+          else
+          {
+            String trustStore = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTSTORE);
+            out.print(
+"<input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(regexp)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"truststore_"+prefix+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(trustStore)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"trustall_"+prefix+"\" value=\"false\"/>\n"
+            );
+            trustsCounter++;
+          }
+        }
+      }
+      out.print(
+"<input type=\"hidden\" name=\"trust_count\" value=\""+trustsCounter+"\"/>\n"
+      );
+    }
+
+  }
+  
+  /** Process a configuration post.
+  * This method is called at the start of the connector's configuration page, whenever there is a possibility that form data for a connection has been
+  * posted.  Its purpose is to gather form information and modify the configuration parameters accordingly.
+  * The name of the posted form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param variableContext is the set of variables available from the post, including binary file post information.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
+  */
+  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
+    throws LCFException
+  {
+    String email = variableContext.getParameter("email");
+    if (email != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.PARAMETER_EMAIL,email);
+    String robotsUsage = variableContext.getParameter("robotsusage");
+    if (robotsUsage != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.PARAMETER_ROBOTSUSAGE,robotsUsage);
+
+    String x = variableContext.getParameter("bandwidth_count");
+    if (x != null && x.length() > 0)
+    {
+      // About to gather the bandwidth nodes, so get rid of the old ones.
+      int i = 0;
+      while (i < parameters.getChildCount())
+      {
+        ConfigNode node = parameters.getChild(i);
+        if (node.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_BINDESC))
+          parameters.removeChild(i);
+        else
+          i++;
+      }
+      int count = Integer.parseInt(x);
+      i = 0;
+      while (i < count)
+      {
+        String prefix = "bandwidth_"+Integer.toString(i);
+        String op = variableContext.getParameter("op_"+prefix);
+        if (op == null || !op.equals("Delete"))
+        {
+          // Gather the regexp etc.
+          String regexp = variableContext.getParameter("regexp_"+prefix);
+          String isCaseInsensitive = variableContext.getParameter("insensitive_"+prefix);
+          String maxConnections = variableContext.getParameter("connections_"+prefix);
+          String rate = variableContext.getParameter("rate_"+prefix);
+          String fetches = variableContext.getParameter("fetches_"+prefix);
+          ConfigNode node = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_BINDESC);
+          node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_BINREGEXP,regexp);
+          if (isCaseInsensitive != null && isCaseInsensitive.length() > 0)
+            node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_INSENSITIVE,isCaseInsensitive);
+          if (maxConnections != null && maxConnections.length() > 0)
+          {
+            ConfigNode child = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXCONNECTIONS);
+            child.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,maxConnections);
+            node.addChild(node.getChildCount(),child);
+          }
+          if (rate != null && rate.length() > 0)
+          {
+            ConfigNode child = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXKBPERSECOND);
+            child.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,rate);
+            node.addChild(node.getChildCount(),child);
+          }
+          if (fetches != null && fetches.length() > 0)
+          {
+            ConfigNode child = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXFETCHESPERMINUTE);
+            child.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,fetches);
+            node.addChild(node.getChildCount(),child);
+          }
+          parameters.addChild(parameters.getChildCount(),node);
+        }
+        i++;
+      }
+      String addop = variableContext.getParameter("bandwidth_op");
+      if (addop != null && addop.equals("Add"))
+      {
+        String regexp = variableContext.getParameter("regexp_bandwidth");
+        String isCaseInsensitive = variableContext.getParameter("insensitive_bandwidth");
+        String maxConnections = variableContext.getParameter("connections_bandwidth");
+        String rate = variableContext.getParameter("rate_bandwidth");
+        String fetches = variableContext.getParameter("fetches_bandwidth");
+        ConfigNode node = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_BINDESC);
+        node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_BINREGEXP,regexp);
+        if (isCaseInsensitive != null && isCaseInsensitive.length() > 0)
+          node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_INSENSITIVE,isCaseInsensitive);
+        if (maxConnections != null && maxConnections.length() > 0)
+        {
+          ConfigNode child = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXCONNECTIONS);
+          child.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,maxConnections);
+          node.addChild(node.getChildCount(),child);
+        }
+        if (rate != null && rate.length() > 0)
+        {
+          ConfigNode child = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXKBPERSECOND);
+          child.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,rate);
+          node.addChild(node.getChildCount(),child);
+        }
+        if (fetches != null && fetches.length() > 0)
+        {
+          ConfigNode child = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXFETCHESPERMINUTE);
+          child.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,fetches);
+          node.addChild(node.getChildCount(),child);
+        }
+        parameters.addChild(parameters.getChildCount(),node);
+      }
+    }
+    
+    x = variableContext.getParameter("acredential_count");
+    if (x != null && x.length() > 0)
+    {
+      // About to gather the access credential nodes, so get rid of the old ones.
+      int i = 0;
+      while (i < parameters.getChildCount())
+      {
+        ConfigNode node = parameters.getChild(i);
+        if (node.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL)
+                                  && !node.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE).equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION))
+          parameters.removeChild(i);
+        else
+          i++;
+      }
+      int count = Integer.parseInt(x);
+      i = 0;
+      while (i < count)
+      {
+        String prefix = "acredential_"+Integer.toString(i);
+        String op = variableContext.getParameter("op_"+prefix);
+        if (op == null || !op.equals("Delete"))
+        {
+          // Gather the regexp etc.
+          String regexp = variableContext.getParameter("regexp_"+prefix);
+          String type = variableContext.getParameter("type_"+prefix);
+          String domain = variableContext.getParameter("domain_"+prefix);
+          if (domain == null)
+            domain = "";
+          String userName = variableContext.getParameter("username_"+prefix);
+          String password = variableContext.getParameter("password_"+prefix);
+          ConfigNode node = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL);
+          node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,regexp);
+          node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE,type);
+          node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_DOMAIN,domain);
+          node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_USERNAME,userName);
+          node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD,
+            org.apache.lcf.crawler.system.LCF.obfuscate(password));
+          parameters.addChild(parameters.getChildCount(),node);
+        }
+        i++;
+      }
+      String addop = variableContext.getParameter("acredential_op");
+      if (addop != null && addop.equals("Add"))
+      {
+        String regexp = variableContext.getParameter("regexp_acredential");
+        String type = variableContext.getParameter("type_acredential");
+        String domain = variableContext.getParameter("domain_acredential");
+        String userName = variableContext.getParameter("username_acredential");
+        String password = variableContext.getParameter("password_acredential");
+        ConfigNode node = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL);
+        node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,regexp);
+        node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE,type);
+        node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_DOMAIN,domain);
+        node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_USERNAME,userName);
+        node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD,
+          org.apache.lcf.crawler.system.LCF.obfuscate(password));
+        parameters.addChild(parameters.getChildCount(),node);
+      }
+    }
+
+    x = variableContext.getParameter("scredential_count");
+    if (x != null && x.length() > 0)
+    {
+      // About to gather the access credential nodes, so get rid of the old ones.
+      int i = 0;
+      while (i < parameters.getChildCount())
+      {
+        ConfigNode node = parameters.getChild(i);
+        if (node.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL)
+                                  && node.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE).equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION))
+          parameters.removeChild(i);
+        else
+          i++;
+      }
+      int count = Integer.parseInt(x);
+      i = 0;
+      while (i < count)
+      {
+        String prefix = "scredential_"+Integer.toString(i);
+        String op = variableContext.getParameter(prefix+"_op");
+        if (op == null || !op.equals("Delete"))
+        {
+          // Gather the regexp etc.
+          String regexp = variableContext.getParameter(prefix+"_regexp");
+          ConfigNode node = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL);
+          node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,regexp);
+          node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE,org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION);
+          // How many login pages are there?
+          int loginPageCount = Integer.parseInt(variableContext.getParameter(prefix+"_loginpagecount"));
+          int q = 0;
+          while (q < loginPageCount)
+          {
+            String authpagePrefix = prefix + "_" + Integer.toString(q);
+            String authpageOp = variableContext.getParameter(authpagePrefix+"_op");
+            if (authpageOp == null || !authpageOp.equals("Delete"))
+            {
+              String pageRegexp = variableContext.getParameter(authpagePrefix+"_regexp");
+              String pageType = variableContext.getParameter(authpagePrefix+"_type");
+              String matchRegexp = variableContext.getParameter(authpagePrefix+"_matchregexp");
+              if (matchRegexp == null)
+                matchRegexp = "";
+              ConfigNode authPageNode = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPAGE);
+              authPageNode.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,pageRegexp);
+              authPageNode.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE,pageType);
+              authPageNode.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_MATCHREGEXP,matchRegexp);
+              if (pageType.equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_FORM))
+              {
+                // How many parameters are there?
+                int paramCount = Integer.parseInt(variableContext.getParameter(authpagePrefix+"_loginparamcount"));
+                int z = 0;
+                while (z < paramCount)
+                {
+                  String paramPrefix = authpagePrefix+"_"+Integer.toString(z);
+                  String paramOp = variableContext.getParameter(paramPrefix+"_op");
+                  if (paramOp == null || !paramOp.equals("Delete"))
+                  {
+                    String name = variableContext.getParameter(paramPrefix+"_param");
+                    String value = variableContext.getParameter(paramPrefix+"_value");
+                    String password = variableContext.getParameter(paramPrefix+"_password");
+                    ConfigNode paramNode = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPARAMETER);
+                    paramNode.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_NAMEREGEXP,name);
+                    if (value != null && value.length() > 0)
+                      paramNode.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,value);
+                    if (password != null && password.length() > 0)
+                      paramNode.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD,org.apache.lcf.crawler.system.LCF.obfuscate(password));
+                    authPageNode.addChild(authPageNode.getChildCount(),paramNode);
+                  }
+                  z++;
+                }
+                                                  
+                // Look for add op
+                String paramAddOp = variableContext.getParameter(authpagePrefix+"_loginparamop");
+                if (paramAddOp != null && paramAddOp.equals("Add"))
+                {
+                  String name = variableContext.getParameter(authpagePrefix+"_loginparamname");
+                  String value = variableContext.getParameter(authpagePrefix+"_loginparamvalue");
+                  String password = variableContext.getParameter(authpagePrefix+"_loginparampassword");
+                  ConfigNode paramNode = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPARAMETER);
+                  paramNode.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_NAMEREGEXP,name);
+                  if (value != null && value.length() > 0)
+                    paramNode.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,value);
+                  if (password != null && password.length() > 0)
+                    paramNode.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD,org.apache.lcf.crawler.system.LCF.obfuscate(password));
+                  authPageNode.addChild(authPageNode.getChildCount(),paramNode);
+                }
+              }
+              
+              node.addChild(node.getChildCount(),authPageNode);
+            }
+            q++;
+          }
+          // Look for add op
+          String authpageAddop = variableContext.getParameter(prefix+"_loginpageop");
+          if (authpageAddop != null && authpageAddop.equals("Add"))
+          {
+            String pageRegexp = variableContext.getParameter(prefix+"_loginpageregexp");
+            String pageType = variableContext.getParameter(prefix+"_loginpagetype");
+            String matchRegexp = variableContext.getParameter(prefix+"_loginpagematchregexp");
+            if (matchRegexp == null)
+              matchRegexp = "";
+            ConfigNode authPageNode = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPAGE);
+            authPageNode.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,pageRegexp);
+            authPageNode.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE,pageType);
+            authPageNode.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_MATCHREGEXP,matchRegexp);
+            node.addChild(node.getChildCount(),authPageNode);
+          }
+
+          parameters.addChild(parameters.getChildCount(),node);
+        }
+        i++;
+      }
+      String addop = variableContext.getParameter("scredential_op");
+      if (addop != null && addop.equals("Add"))
+      {
+        String regexp = variableContext.getParameter("scredential_regexp");
+        ConfigNode node = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL);
+        node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,regexp);
+        node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE,org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION);
+        parameters.addChild(parameters.getChildCount(),node);
+      }
+    }
+
+    x = variableContext.getParameter("trust_count");
+    if (x != null && x.length() > 0)
+    {
+      // About to gather the trust nodes, so get rid of the old ones.
+      int i = 0;
+      while (i < parameters.getChildCount())
+      {
+        ConfigNode node = parameters.getChild(i);
+        if (node.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_TRUST))
+          parameters.removeChild(i);
+        else
+          i++;
+      }
+      int count = Integer.parseInt(x);
+      i = 0;
+      while (i < count)
+      {
+        String prefix = "trust_"+Integer.toString(i);
+        String op = variableContext.getParameter("op_"+prefix);
+        if (op == null || !op.equals("Delete"))
+        {
+          // Gather the regexp etc.
+          String regexp = variableContext.getParameter("regexp_"+prefix);
+          String trustall = variableContext.getParameter("trustall_"+prefix);
+          String truststore = variableContext.getParameter("truststore_"+prefix);
+          ConfigNode node = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_TRUST);
+          node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,regexp);
+          if (trustall != null && trustall.equals("true"))
+            node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTEVERYTHING,"true");
+          else
+            node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTSTORE,truststore);
+          parameters.addChild(parameters.getChildCount(),node);
+        }
+        i++;
+      }
+      String addop = variableContext.getParameter("trust_op");
+      if (addop != null && addop.equals("Add"))
+      {
+        String regexp = variableContext.getParameter("regexp_trust");
+        String trustall = variableContext.getParameter("all_trust");
+        if (trustall != null && trustall.equals("true"))
+        {
+          ConfigNode node = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_TRUST);
+          node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,regexp);
+          node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTEVERYTHING,"true");
+          parameters.addChild(parameters.getChildCount(),node);
+        }
+        else
+        {
+          byte[] certificateValue = variableContext.getBinaryBytes("certificate_trust");
+          IKeystoreManager mgr = KeystoreManagerFactory.make("");
+          java.io.InputStream is = new java.io.ByteArrayInputStream(certificateValue);
+          String certError = null;
+          try
+          {
+            mgr.importCertificate("Certificate",is);
+          }
+          catch (Throwable e)
+          {
+            certError = e.getMessage();
+          }
+          finally
+          {
+            try
+            {
+              is.close();
+            }
+            catch (IOException e)
+            {
+              // Ignore this
+            }
+          }
+
+          if (certError != null)
+          {
+            // Redirect to error page
+            return "Illegal certificate: "+certError;
+          }
+
+          ConfigNode node = new ConfigNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_TRUST);
+          node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,regexp);
+          node.setAttribute(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTSTORE,mgr.getString());
+          parameters.addChild(parameters.getChildCount(),node);
+        }
+      }
+    }
+    return null;
+  }
+  
+  /** View configuration.
+  * This method is called in the body section of the connector's view configuration page.  Its purpose is to present the connection information to the user.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  */
+  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
+    throws LCFException, IOException
+  {
+    String email = parameters.getParameter(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.PARAMETER_EMAIL);
+    String robots = parameters.getParameter(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.PARAMETER_ROBOTSUSAGE);
+    if (robots.equals("none"))
+      robots = "Ignore robots.txt";
+    else if (robots.equals("data"))
+      robots = "Obey robots.txt for data fetches only";
+    else if (robots.equals("all"))
+      robots = "Obey robots.txt for all fetches";
+    out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>Email address:</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"1\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(email)+"</td>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>Robots usage:</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"1\"><nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(robots)+"</nobr></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>Bandwidth throttling:</nobr></td>\n"+
+"    <td class=\"boxcell\" colspan=\"3\">\n"+
+"      <table class=\"formtable\">\n"+
+"        <tr class=\"formheaderrow\">\n"+
+"          <td class=\"formcolumnheader\"><nobr>Bin regular expression</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Case insensitive?</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Max connections</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Max kbytes/sec</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Max fetches/min</nobr></td>\n"+
+"        </tr>\n"
+    );
+    int i = 0;
+    int instanceNumber = 0;
+    while (i < parameters.getChildCount())
+    {
+      ConfigNode cn = parameters.getChild(i++);
+      if (cn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_BINDESC))
+      {
+        // A bin description node!  Look for all its parameters.
+        String regexp = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_BINREGEXP);
+        String isCaseInsensitive = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_INSENSITIVE);
+        String maxConnections = null;
+        String maxKBPerSecond = null;
+        String maxFetchesPerMinute = null;
+        int j = 0;
+        while (j < cn.getChildCount())
+        {
+          ConfigNode childNode = cn.getChild(j++);
+          if (childNode.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXCONNECTIONS))
+            maxConnections = childNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
+          else if (childNode.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXKBPERSECOND))
+            maxKBPerSecond = childNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
+          else if (childNode.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXFETCHESPERMINUTE))
+            maxFetchesPerMinute = childNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
+        }
+        if (maxConnections == null)
+          maxConnections = "Not limited";
+        if (maxKBPerSecond == null)
+          maxKBPerSecond = "Not limited";
+        if (maxFetchesPerMinute == null)
+          maxFetchesPerMinute = "Not limited";
+        if (isCaseInsensitive == null || isCaseInsensitive.length() == 0)
+          isCaseInsensitive = "false";
+        out.print(
+"        <tr class=\""+(((instanceNumber % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"          <td class=\"formcolumncell\"><nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(regexp)+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\">"+isCaseInsensitive+"</td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+maxConnections+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+maxKBPerSecond+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+maxFetchesPerMinute+"</nobr></td>\n"+
+"        </tr>\n"
+        );
+        instanceNumber++;
+      }
+    }
+    if (instanceNumber == 0)
+    {
+      out.print(
+"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"5\">No bandwidth throttling</td></tr>\n"
+      );
+    }
+    out.print(
+"      </table>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  \n"+
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>Page access credentials:</nobr></td>\n"+
+"    <td class=\"boxcell\" colspan=\"3\">\n"+
+"      <table class=\"formtable\">\n"+
+"        <tr class=\"formheaderrow\">\n"+
+"          <td class=\"formcolumnheader\"><nobr>URL regular expression</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Credential type</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Credential domain</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>User name</nobr></td>\n"+
+"        </tr>\n"
+    );
+    i = 0;
+    instanceNumber = 0;
+    while (i < parameters.getChildCount())
+    {
+      ConfigNode cn = parameters.getChild(i++);
+      if (cn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
+      {
+        // A bin description node!  Look for all its parameters.
+        String type = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE);
+        if (!type.equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION))
+        {
+          String regexp = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
+          // Page-based auth
+          String domain = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_DOMAIN);
+          if (domain == null)
+            domain = "";
+          String userName = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_USERNAME);
+          out.print(
+"        <tr>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(regexp)+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+type+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(domain)+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(userName)+"</nobr></td>\n"+
+"        </tr>\n"
+          );
+          instanceNumber++;
+        }
+      }
+    }
+    if (instanceNumber == 0)
+    {
+      out.print(
+"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"4\"><nobr>No page access credentials</nobr></td></tr>\n"
+      );
+    }
+    out.print(
+"      </table>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"\n"+
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>Session-based access credentials:</nobr></td>\n"+
+"    <td class=\"boxcell\" colspan=\"3\">\n"+
+"      <table class=\"formtable\">\n"+
+"        <tr class=\"formheaderrow\">\n"+
+"          <td class=\"formcolumnheader\"><nobr>URL regular expression</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Login pages</nobr></td>\n"+
+"        </tr>\n"
+    );
+    i = 0;
+    instanceNumber = 0;
+    while (i < parameters.getChildCount())
+    {
+      ConfigNode cn = parameters.getChild(i++);
+      if (cn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
+      {
+        // A bin description node!  Look for all its parameters.
+        String type = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE);
+        if (type.equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION))
+        {
+          String regexp = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
+          // Session-based auth.  Display this as a nested table.
+          out.print(
+"        <tr class=\""+(((instanceNumber % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"          <td class=\"formcolumncell\"><nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(regexp)+"</nobr></td>\n"+
+"          <td class=\"boxcell\">\n"
+          );
+          int q = 0;
+          int authPageInstanceNumber = 0;
+          while (q < cn.getChildCount())
+          {
+            ConfigNode authPageNode = cn.getChild(q++);
+            if (authPageNode.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPAGE))
+            {
+              String authURLRegexp = authPageNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
+              String pageType = authPageNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE);
+              String authMatchRegexp = authPageNode.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_MATCHREGEXP);
+              if (authMatchRegexp == null)
+                authMatchRegexp = "";
+              if (authPageInstanceNumber == 0)
+              {
+                out.print(
+"            <table class=\"formtable\">\n"+
+"              <tr class=\"formheaderrow\">\n"+
+"                <td class=\"formcolumnheader\"><nobr>Login URL regular expression</nobr></td>\n"+
+"                <td class=\"formcolumnheader\"><nobr>Page type</nobr></td>\n"+
+"                <td class=\"formcolumnheader\"><nobr>Form name/link target regular expression</nobr></td>\n"+
+"                <td class=\"formcolumnheader\"><nobr>Override form parameters</nobr></td>\n"+
+"              </tr>\n"
+                );
+              }
+              out.print(
+"              <tr class=\""+(((authPageInstanceNumber % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"                <td class=\"formcolumncell\"><nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(authURLRegexp)+"</nobr></td>\n"+
+"                <td class=\"formcolumncell\"><nobr>"+pageType+"</nobr></td>\n"+
+"                <td class=\"formcolumncell\"><nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(authMatchRegexp)+"</nobr></td>\n"+
+"                <td class=\"formcolumncell\">\n"
+              );
+              if (pageType.equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_FORM))
+              {
+                int z = 0;
+                while (z < authPageNode.getChildCount())
+                {
+                  ConfigNode authParameter = authPageNode.getChild(z++);
+                  if (authParameter.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPARAMETER))
+                  {
+                    String paramName = authParameter.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_NAMEREGEXP);
+                    if (paramName == null)
+                      paramName = "";
+                    String paramValue = authParameter.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
+                    if (paramValue == null)
+                      paramValue = "";
+                    String password = authParameter.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD);
+                    if (password != null && password.length() > 0)
+                      paramValue = "*****";
+                    out.print(
+"                  <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(paramName+": "+paramValue)+"</nobr><br/>\n"
+                    );
+                  }
+                }
+              }
+              out.print(
+"                </td>\n"+
+"              </tr>\n"
+              );
+              authPageInstanceNumber++;
+            }
+          }
+          if (authPageInstanceNumber == 0)
+          {
+            out.print(
+"            <nobr>No login pages specified</nobr>\n"
+            );
+          }
+          else
+          {
+            out.print(
+"            </table>\n"
+            );
+          }
+          out.print(
+"          </td>\n"+
+"        </tr>\n"
+          );
+          instanceNumber++;
+        }
+      }
+    }
+    if (instanceNumber == 0)
+    {
+      out.print(
+"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"2\"><nobr>No session-based access credentials</nobr></td></tr>\n"
+      );
+    }
+    out.print(
+"      </table>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  \n"+
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>Trust certificates:</nobr></td>\n"+
+"    <td class=\"boxcell\" colspan=\"3\">\n"+
+"      <table class=\"formtable\">\n"+
+"        <tr class=\"formheaderrow\">\n"+
+"          <td class=\"formcolumnheader\"><nobr>URL regular expression</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Certificate</nobr></td>\n"+
+"        </tr>\n"
+    );
+    i = 0;
+    instanceNumber = 0;
+    while (i < parameters.getChildCount())
+    {
+      ConfigNode cn = parameters.getChild(i++);
+      if (cn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_TRUST))
+      {
+        // A bin description node!  Look for all its parameters.
+        String regexp = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
+        String trustEverything = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTEVERYTHING);
+        if (trustEverything != null && trustEverything.equals("true"))
+        {
+          // We trust everything that matches this regexp
+          out.print(
+"        <tr class=\""+(((instanceNumber % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"          <td class=\"formcolumncell\"><nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(regexp)+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\"><i>Trust everything</i></td>\n"+
+"        </tr>\n"
+          );
+          instanceNumber++;
+        }
+        else
+        {
+          String trustStore = cn.getAttributeValue(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTSTORE);
+          IKeystoreManager localTruststore = KeystoreManagerFactory.make("",trustStore);
+          String[] truststoreContents = localTruststore.getContents();
+            
+          // Each trust store will have only at most one cert in it at this level.  These individual certs are assembled into the proper trust store
+          // for each individual url at fetch time.
+            
+          if (truststoreContents.length == 1)
+          {
+            String alias = truststoreContents[0];
+            String description = localTruststore.getDescription(alias);
+            String shortenedDescription = description;
+            if (shortenedDescription.length() > 100)
+              shortenedDescription = shortenedDescription.substring(0,100) + "...";
+            out.print(
+"        <tr class=\""+(((instanceNumber % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"          <td class=\"formcolumncell\"><nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(regexp)+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(shortenedDescription)+"</td>\n"+
+"        </tr>\n"
+            );
+            instanceNumber++;
+          }
+        }
+      }
+    }
+    if (instanceNumber == 0)
+    {
+      out.print(
+"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"2\">No trust certificates</td></tr>\n"
+      );
+    }
+    out.print(
+"      </table>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+    );
+  }
+  
+  /** Output the specification header section.
+  * This method is called in the head section of a job page which has selected a repository connection of the current type.  Its purpose is to add the required tabs
+  * to the list, and to output any javascript methods that might be needed by the job editing HTML.
+  *@param out is the output to which any HTML should be sent.
+  *@param ds is the current document specification for this job.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
+  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
+    throws LCFException, IOException
+  {
+    tabsArray.add("Seeds");
+    tabsArray.add("Canonicalization");
+    tabsArray.add("Inclusions");
+    tabsArray.add("Exclusions");
+    tabsArray.add("Security");
+    tabsArray.add("Metadata");
+    out.print(
+"<script type=\"text/javascript\">\n"+
+"<!--\n"+
+"\n"+
+"function SpecOp(n, opValue, anchorvalue)\n"+
+"{\n"+
+"  eval(\"editjob.\"+n+\".value = \\\"\"+opValue+\"\\\"\");\n"+
+"  postFormSetAnchor(anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function URLRegexpDelete(index, anchorvalue)\n"+
+"{\n"+
+"  editjob.urlregexpnumber.value = index;\n"+
+"  SpecOp(\"urlregexpop\",\"Delete\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function URLRegexpAdd(anchorvalue)\n"+
+"{\n"+
+"  SpecOp(\"urlregexpop\",\"Add\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function checkSpecification()\n"+
+"{\n"+
+"  if (check_expressions(\"inclusions\",editjob.inclusions.value) == false)\n"+
+"  {\n"+
+"    editjob.inclusions.focus();\n"+
+"    return false;\n"+
+"  }  \n"+
+"  if (check_expressions(\"exclusions\",editjob.exclusions.value) == false)\n"+
+"  {\n"+
+"    editjob.exclusions.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"function check_expressions(thecontext,theexpressionlist)\n"+
+"{\n"+
+"  var rval = true;\n"+
+"  var theArray = theexpressionlist.split(\"\\n\");\n"+
+"  var i = 0;\n"+
+"  while (i < theArray.length)\n"+
+"  {\n"+
+"    // For legality check, we must cut out anything useful that is java-only\n"+
+"    var theexp = theArray[i];\n"+
+"    var trimmed = theexp.replace(/^\\s+/,\"\");\n"+
+"    i = i + 1;\n"+
+"    if (trimmed.length == 0 || (trimmed.length >= 1 && trimmed.substring(0,1) == \"#\"))\n"+
+"      continue;\n"+
+"    try\n"+
+"    {\n"+
+"      var foo = \"teststring\";\n"+
+"      foo.search(theexp.replace(/\\(\\?i\\)/,\"\"));\n"+
+"    }\n"+
+"    catch (e)\n"+
+"    {\n"+
+"      alert(\"Found an illegal regular expression in \"+thecontext+\": '\"+theexp+\"'.  Error was: \"+e);\n"+
+"      rval = false;\n"+
+"    }\n"+
+"  }\n"+
+"  return rval;\n"+
+"}\n"+
+"\n"+
+"function SpecAddToken(anchorvalue)\n"+
+"{\n"+
+"  if (editjob.spectoken.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Type in an access token\");\n"+
+"    editjob.spectoken.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  SpecOp(\"accessop\",\"Add\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function SpecAddMetadata(anchorvalue)\n"+
+"{\n"+
+"  if (editjob.specmetaname.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Type in metadata name\");\n"+
+"    editjob.specmetaname.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  if (editjob.specmetavalue.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Type in metadata value\");\n"+
+"    editjob.specmetavalue.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  SpecOp(\"metadataop\",\"Add\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"//-->\n"+
+"</script>\n"
+    );
+  }
+  
+  /** Output the specification body section.
+  * This method is called in the body section of a job page which has selected a repository connection of the current type.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * form is "editjob".
+  *@param out is the output to which any HTML should be sent.
+  *@param ds is the current document specification for this job.
+  *@param tabName is the current tab name.
+  */
+  public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
+    throws LCFException, IOException
+  {
+    int i;
+    int k;
+
+    // Find the various strings
+    String seeds = "";
+    String inclusions = ".*\n";
+    String exclusions = "";
+
+    // Now, loop through description
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_SEEDS))
+      {
+        seeds = sn.getValue();
+      }
+      else if (sn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_INCLUDES))
+      {
+        inclusions = sn.getValue();
+      }
+      else if (sn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_EXCLUDES))
+      {
+        exclusions = sn.getValue();
+      }
+    }
+
+    // Seeds tab
+
+    if (tabName.equals("Seeds"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"value\" colspan=\"2\">\n"+
+"      <textarea rows=\"25\" cols=\"80\" name=\"seeds\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(seeds)+"</textarea>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"seeds\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(seeds)+"\"/>\n"
+      );
+    }
+
+    // Canonicalization tab
+
+    if (tabName.equals("Canonicalization"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"boxcell\" colspan=\"2\">\n"+
+"      <input type=\"hidden\" name=\"urlregexpop\" value=\"Continue\"/>\n"+
+"      <input type=\"hidden\" name=\"urlregexpnumber\" value=\"\"/>\n"+
+"      <table class=\"formtable\">\n"+
+"        <tr class=\"formheaderrow\">\n"+
+"          <td class=\"formcolumnheader\"></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>URL regular expression</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Description</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Reorder?</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Remove JSP sessions?</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Remove ASP sessions?</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Remove PHP sessions?</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Remove BV sessions?</nobr></td>\n"+
+"        </tr>\n"
+      );
+      int q = 0;
+      int l = 0;
+      while (q < ds.getChildCount())
+      {
+        SpecificationNode specNode = ds.getChild(q++);
+        if (specNode.getType().equals("urlspec"))
+        {
+          // Ok, this node matters to us
+          String regexpString = specNode.getAttributeValue("regexp");
+          String description = specNode.getAttributeValue("description");
+          if (description == null)
+            description = "";
+          String allowReorder = specNode.getAttributeValue("reorder");
+          if (allowReorder == null || allowReorder.length() == 0)
+            allowReorder = "no";
+          String allowJavaSessionRemoval = specNode.getAttributeValue("javasessionremoval");
+          if (allowJavaSessionRemoval == null || allowJavaSessionRemoval.length() == 0)
+            allowJavaSessionRemoval = "no";
+          String allowASPSessionRemoval = specNode.getAttributeValue("aspsessionremoval");
+          if (allowASPSessionRemoval == null || allowASPSessionRemoval.length() == 0)
+            allowASPSessionRemoval = "no";
+          String allowPHPSessionRemoval = specNode.getAttributeValue("phpsessionremoval");
+          if (allowPHPSessionRemoval == null || allowPHPSessionRemoval.length() == 0)
+            allowPHPSessionRemoval = "no";
+          String allowBVSessionRemoval = specNode.getAttributeValue("bvsessionremoval");
+          if (allowBVSessionRemoval == null || allowBVSessionRemoval.length() == 0)
+            allowBVSessionRemoval = "no";
+          out.print(
+"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <a name=\""+"urlregexp_"+Integer.toString(l)+"\">\n"+
+"              <input type=\"button\" value=\"Delete\" alt=\""+"Delete url regexp "+org.apache.lcf.ui.util.Encoder.attributeEscape(regexpString)+"\" onclick='javascript:URLRegexpDelete("+Integer.toString(l)+",\"urlregexp_"+Integer.toString(l)+"\");'/>\n"+
+"            </a>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <input type=\"hidden\" name=\""+"urlregexp_"+Integer.toString(l)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(regexpString)+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+"urlregexpdesc_"+Integer.toString(l)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(description)+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+"urlregexpreorder_"+Integer.toString(l)+"\" value=\""+allowReorder+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+"urlregexpjava_"+Integer.toString(l)+"\" value=\""+allowJavaSessionRemoval+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+"urlregexpasp_"+Integer.toString(l)+"\" value=\""+allowASPSessionRemoval+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+"urlregexpphp_"+Integer.toString(l)+"\" value=\""+allowPHPSessionRemoval+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+"urlregexpbv_"+Integer.toString(l)+"\" value=\""+allowBVSessionRemoval+"\"/>\n"+
+"            <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(regexpString)+"</nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(description)+"</td>\n"+
+"          <td class=\"formcolumncell\">"+allowReorder+"</td>\n"+
+"          <td class=\"formcolumncell\">"+allowJavaSessionRemoval+"</td>\n"+
+"          <td class=\"formcolumncell\">"+allowASPSessionRemoval+"</td>\n"+
+"          <td class=\"formcolumncell\">"+allowPHPSessionRemoval+"</td>\n"+
+"          <td class=\"formcolumncell\">"+allowBVSessionRemoval+"</td>\n"+
+"        </tr>\n"
+          );
+
+          l++;
+        }
+      }
+      if (l == 0)
+      {
+        out.print(
+"        <tr class=\"formrow\"><td colspan=\"8\" class=\"formcolumnmessage\"><nobr>No canonicalization specified - all URLs will be reordered and have all sessions removed</nobr></td></tr>\n"
+        );
+      }
+      out.print(
+"        <tr class=\"formrow\"><td colspan=\"8\" class=\"formseparator\"><hr/></td></tr>\n"+
+"        <tr class=\"formrow\">\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <a name=\""+"urlregexp_"+Integer.toString(l)+"\">\n"+
+"              <input type=\"button\" value=\"Add\" alt=\"Add url regexp\" onclick='javascript:URLRegexpAdd(\"urlregexp_"+Integer.toString(l+1)+"\");'/>\n"+
+"              <input type=\"hidden\" name=\"urlregexpcount\" value=\""+Integer.toString(l)+"\"/>\n"+
+"            </a>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\"><input type=\"text\" name=\"urlregexp\" size=\"30\" value=\"\"/></td>\n"+
+"          <td class=\"formcolumncell\"><input type=\"text\" name=\"urlregexpdesc\" size=\"30\" value=\"\"/></td>\n"+
+"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\"urlregexpreorder\" value=\"yes\"/></td>\n"+
+"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\"urlregexpjava\" value=\"yes\" checked=\"true\"/></td>\n"+
+"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\"urlregexpasp\" value=\"yes\" checked=\"true\"/></td>\n"+
+"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\"urlregexpphp\" value=\"yes\" checked=\"true\"/></td>\n"+
+"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\"urlregexpbv\" value=\"yes\" checked=\"true\"/></td>\n"+
+"        </tr>\n"+
+"      </table>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Post the canonicalization specification
+      int q = 0;
+      int l = 0;
+      while (q < ds.getChildCount())
+      {
+        SpecificationNode specNode = ds.getChild(q++);
+        if (specNode.getType().equals("urlspec"))
+        {
+          // Ok, this node matters to us
+          String regexpString = specNode.getAttributeValue("regexp");
+          String description = specNode.getAttributeValue("description");
+          if (description == null)
+            description = "";
+          String allowReorder = specNode.getAttributeValue("reorder");
+          if (allowReorder == null || allowReorder.length() == 0)
+            allowReorder = "no";
+          String allowJavaSessionRemoval = specNode.getAttributeValue("javasessionremoval");
+          if (allowJavaSessionRemoval == null || allowJavaSessionRemoval.length() == 0)
+            allowJavaSessionRemoval = "no";
+          String allowASPSessionRemoval = specNode.getAttributeValue("aspsessionremoval");
+          if (allowASPSessionRemoval == null || allowASPSessionRemoval.length() == 0)
+            allowASPSessionRemoval = "no";
+          String allowPHPSessionRemoval = specNode.getAttributeValue("phpsessionremoval");
+          if (allowPHPSessionRemoval == null || allowPHPSessionRemoval.length() == 0)
+            allowPHPSessionRemoval = "no";
+          String allowBVSessionRemoval = specNode.getAttributeValue("bvsessionremoval");
+          if (allowBVSessionRemoval == null || allowBVSessionRemoval.length() == 0)
+            allowBVSessionRemoval = "no";
+          out.print(
+"<input type=\"hidden\" name=\""+"urlregexp_"+Integer.toString(l)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(regexpString)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"urlregexpdesc_"+Integer.toString(l)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(description)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"urlregexpreorder_"+Integer.toString(l)+"\" value=\""+allowReorder+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"urlregexpjava_"+Integer.toString(l)+"\" value=\""+allowJavaSessionRemoval+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"urlregexpasp_"+Integer.toString(l)+"\" value=\""+allowASPSessionRemoval+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"urlregexpphp_"+Integer.toString(l)+"\" value=\""+allowPHPSessionRemoval+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"urlregexpbv_"+Integer.toString(l)+"\" value=\""+allowBVSessionRemoval+"\"/>\n"
+          );
+          l++;
+        }
+      }
+      out.print(
+"<input type=\"hidden\" name=\"urlregexpcount\" value=\""+Integer.toString(l)+"\"/>\n"
+      );
+    }
+
+    // Inclusions tab
+
+    if (tabName.equals("Inclusions"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"value\" colspan=\"2\">\n"+
+"      <textarea rows=\"25\" cols=\"80\" name=\"inclusions\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(inclusions)+"</textarea>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"inclusions\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(inclusions)+"\"/>\n"
+      );
+    }
+
+    // Exclusions tab
+
+    if (tabName.equals("Exclusions"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"value\" colspan=\"2\">\n"+
+"      <textarea rows=\"25\" cols=\"80\" name=\"exclusions\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(exclusions)+"</textarea>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"exclusions\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(exclusions)+"\"/>\n"
+      );
+    }
+  
+    // Security tab
+    // There is no native security, so all we care about are the tokens.
+    i = 0;
+
+    if (tabName.equals("Security"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+      );
+      // Go through forced ACL
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals("access"))
+        {
+          String accessDescription = "_"+Integer.toString(k);
+          String accessOpName = "accessop"+accessDescription;
+          String token = sn.getAttributeValue("token");
+          out.print(
+"  <tr>\n"+
+"    <td class=\"description\">\n"+
+"      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
+"      <input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"+
+"      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")' alt=\""+"Delete token #"+Integer.toString(k)+"\"/>\n"+
+"      </a>&nbsp;\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(token)+"\n"+
+"    </td>\n"+
+"  </tr>\n"
+          );
+          k++;
+        }
+      }
+      if (k == 0)
+      {
+        out.print(
+"  <tr>\n"+
+"    <td class=\"message\" colspan=\"2\">No access tokens present</td>\n"+
+"  </tr>\n"
+        );
+      }
+      out.print(
+"  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\">\n"+
+"      <input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"      <input type=\"hidden\" name=\"accessop\" value=\"\"/>\n"+
+"      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddToken(\"token_"+Integer.toString(k+1)+"\")' alt=\"Add access token\"/>\n"+
+"      </a>&nbsp;\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"text\" size=\"30\" name=\"spectoken\" value=\"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Finally, go through forced ACL
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals("access"))
+        {
+          String accessDescription = "_"+Integer.toString(k);
+          String token = sn.getAttributeValue("token");
+          out.print(
+"<input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"
+          );
+          k++;
+        }
+      }
+      out.print(
+"<input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"
+      );
+    }
+
+    // "Metadata" tab
+    if (tabName.equals("Metadata"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"
+      );
+      // Go through metadata
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals("metadata"))
+        {
+          String metadataDescription = "_"+Integer.toString(k);
+          String metadataOpName = "metadataop"+metadataDescription;
+          String name = sn.getAttributeValue("name");
+          String value = sn.getAttributeValue("value");
+          out.print(
+"  <tr>\n"+
+"    <td class=\"description\">\n"+
+"      <input type=\"hidden\" name=\""+metadataOpName+"\" value=\"\"/>\n"+
+"      <input type=\"hidden\" name=\""+"specmetaname"+metadataDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(name)+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+"specmetavalue"+metadataDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(value)+"\"/>\n"+
+"      <a name=\""+"metadata_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+metadataOpName+"\",\"Delete\",\"metadata_"+Integer.toString(k)+"\")' alt=\""+"Delete metadata #"+Integer.toString(k)+"\"/>\n"+
+"      </a>&nbsp;\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(name)+"\n"+
+"    </td>\n"+
+"    <td class=\"value\">=</td>\n"+
+"    <td class=\"value\">\n"+
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(value)+"\n"+
+"    </td>\n"+
+"  </tr>\n"
+          );
+          k++;
+        }
+
+      }
+      if (k == 0)
+      {
+        out.print(
+"  <tr>\n"+
+"    <td class=\"message\" colspan=\"4\">No metadata present</td>\n"+
+"  </tr>\n"
+        );
+      }
+      out.print(
+"  <tr><td class=\"lightseparator\" colspan=\"4\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\">\n"+
+"      <input type=\"hidden\" name=\"metadatacount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"      <input type=\"hidden\" name=\"metadataop\" value=\"\"/>\n"+
+"      <a name=\""+"metadata_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddMetadata(\"metadata_"+Integer.toString(k+1)+"\")' alt=\"Add metadata\"/>\n"+
+"      </a>&nbsp;\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"text\" size=\"30\" name=\"specmetaname\" value=\"\"/>\n"+
+"    </td>\n"+
+"    <td class=\"value\">=</td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"text\" size=\"80\" name=\"specmetavalue\" value=\"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+
+    }
+    else
+    {
+      // Finally, go through metadata
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals("metadata"))
+        {
+          String metadataDescription = "_"+Integer.toString(k);
+          String name = sn.getAttributeValue("name");
+          String value = sn.getAttributeValue("value");
+          out.print(
+"<input type=\"hidden\" name=\""+"specmetaname"+metadataDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(name)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"specmetavalue"+metadataDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(value)+"\"/>\n"
+          );
+          k++;
+        }
+      }
+      out.print(
+"<input type=\"hidden\" name=\"metadatacount\" value=\""+Integer.toString(k)+"\"/>\n"
+      );
+    
+    }
+  }
+  
+  /** Process a specification post.
+  * This method is called at the start of job's edit or view page, whenever there is a possibility that form data for a connection has been
+  * posted.  Its purpose is to gather form information and modify the document specification accordingly.
+  * The name of the posted form is "editjob".
+  *@param variableContext contains the post data, including binary file-upload information.
+  *@param ds is the current document specification for this job.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
+  */
+  public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
+    throws LCFException
+  {
+    // Get the seeds
+    String seeds = variableContext.getParameter("seeds");
+    if (seeds != null)
+    {
+      // Delete existing seeds record first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_SEEDS))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      SpecificationNode cn = new SpecificationNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_SEEDS);
+      cn.setValue(seeds);
+      ds.addChild(ds.getChildCount(),cn);
+    }
+
+    // Get the inclusions
+    String inclusions = variableContext.getParameter("inclusions");
+    if (inclusions != null)
+    {
+      // Delete existing inclusions record first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_INCLUDES))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      SpecificationNode cn = new SpecificationNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_INCLUDES);
+      cn.setValue(inclusions);
+      ds.addChild(ds.getChildCount(),cn);
+    }
+
+    // Get the exclusions
+    String exclusions = variableContext.getParameter("exclusions");
+    if (exclusions != null)
+    {
+      // Delete existing exclusions record first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_EXCLUDES))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      SpecificationNode cn = new SpecificationNode(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_EXCLUDES);
+      cn.setValue(exclusions);
+      ds.addChild(ds.getChildCount(),cn);
+    }
+
+    // Read the url specs
+    String urlRegexpCount = variableContext.getParameter("urlregexpcount");
+    if (urlRegexpCount != null && urlRegexpCount.length() > 0)
+    {
+      int regexpCount = Integer.parseInt(urlRegexpCount);
+      int j = 0;
+      while (j < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(j);
+        if (sn.getType().equals("urlspec"))
+          ds.removeChild(j);
+        else
+          j++;
+      }
+      
+      // Grab the operation and the index (if any)
+      String operation = variableContext.getParameter("urlregexpop");
+      if (operation == null)
+        operation = "Continue";
+      int opIndex = -1;
+      if (operation.equals("Delete"))
+        opIndex = Integer.parseInt(variableContext.getParameter("urlregexpnumber"));
+      
+      // Reconstruct urlspec nodes
+      j = 0;
+      while (j < regexpCount)
+      {
+        // For each index, first look for a delete operation
+        if (!operation.equals("Delete") || j != opIndex)
+        {
+          // Add the jth node
+          String regexp = variableContext.getParameter("urlregexp_"+Integer.toString(j));
+          String regexpDescription = variableContext.getParameter("urlregexpdesc_"+Integer.toString(j));
+          String reorder = variableContext.getParameter("urlregexpreorder_"+Integer.toString(j));
+          String javaSession = variableContext.getParameter("urlregexpjava_"+Integer.toString(j));
+          String aspSession = variableContext.getParameter("urlregexpasp_"+Integer.toString(j));
+          String phpSession = variableContext.getParameter("urlregexpphp_"+Integer.toString(j));
+          String bvSession = variableContext.getParameter("urlregexpbv_"+Integer.toString(j));
+          SpecificationNode newSn = new SpecificationNode("urlspec");
+          newSn.setAttribute("regexp",regexp);
+          if (regexpDescription != null && regexpDescription.length() > 0)
+            newSn.setAttribute("description",regexpDescription);
+          if (reorder != null && reorder.length() > 0)
+            newSn.setAttribute("reorder",reorder);
+          if (javaSession != null && javaSession.length() > 0)
+            newSn.setAttribute("javasessionremoval",javaSession);
+          if (aspSession != null && aspSession.length() > 0)
+            newSn.setAttribute("aspsessionremoval",aspSession);
+          if (phpSession != null && phpSession.length() > 0)
+            newSn.setAttribute("phpsessionremoval",phpSession);
+          if (bvSession != null && bvSession.length() > 0)
+            newSn.setAttribute("bvsessionremoval",bvSession);
+          ds.addChild(ds.getChildCount(),newSn);
+        }
+        j++;
+      }
+      if (operation.equals("Add"))
+      {
+        String regexp = variableContext.getParameter("urlregexp");
+        String regexpDescription = variableContext.getParameter("urlregexpdesc");
+        String reorder = variableContext.getParameter("urlregexpreorder");
+        String javaSession = variableContext.getParameter("urlregexpjava");
+        String aspSession = variableContext.getParameter("urlregexpasp");
+        String phpSession = variableContext.getParameter("urlregexpphp");
+        String bvSession = variableContext.getParameter("urlregexpbv");
+
+        // Add a new node at the end
+        SpecificationNode newSn = new SpecificationNode("urlspec");
+        newSn.setAttribute("regexp",regexp);
+        if (regexpDescription != null && regexpDescription.length() > 0)
+          newSn.setAttribute("description",regexpDescription);
+        if (reorder != null && reorder.length() > 0)
+          newSn.setAttribute("reorder",reorder);
+        if (javaSession != null && javaSession.length() > 0)
+          newSn.setAttribute("javasessionremoval",javaSession);
+        if (aspSession != null && aspSession.length() > 0)
+          newSn.setAttribute("aspsessionremoval",aspSession);
+        if (phpSession != null && phpSession.length() > 0)
+          newSn.setAttribute("phpsessionremoval",phpSession);
+        if (bvSession != null && bvSession.length() > 0)
+          newSn.setAttribute("bvsessionremoval",bvSession);
+        ds.addChild(ds.getChildCount(),newSn);
+      }
+    }
+
+    String xc = variableContext.getParameter("tokencount");
+    if (xc != null)
+    {
+      // Delete all tokens first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals("access"))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      int accessCount = Integer.parseInt(xc);
+      i = 0;
+      while (i < accessCount)
+      {
+        String accessDescription = "_"+Integer.toString(i);
+        String accessOpName = "accessop"+accessDescription;
+        xc = variableContext.getParameter(accessOpName);
+        if (xc != null && xc.equals("Delete"))
+        {
+          // Next row
+          i++;
+          continue;
+        }
+        // Get the stuff we need
+        String accessSpec = variableContext.getParameter("spectoken"+accessDescription);
+        SpecificationNode node = new SpecificationNode("access");
+        node.setAttribute("token",accessSpec);
+        ds.addChild(ds.getChildCount(),node);
+        i++;
+      }
+
+      String op = variableContext.getParameter("accessop");
+      if (op != null && op.equals("Add"))
+      {
+        String accessspec = variableContext.getParameter("spectoken");
+        SpecificationNode node = new SpecificationNode("access");
+        node.setAttribute("token",accessspec);
+        ds.addChild(ds.getChildCount(),node);
+      }
+    }
+
+    xc = variableContext.getParameter("metadatacount");
+    if (xc != null)
+    {
+      // Delete all tokens first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals("metadata"))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      int metadataCount = Integer.parseInt(xc);
+      i = 0;
+      while (i < metadataCount)
+      {
+        String metadataDescription = "_"+Integer.toString(i);
+        String metadataOpName = "metadataop"+metadataDescription;
+        xc = variableContext.getParameter(metadataOpName);
+        if (xc != null && xc.equals("Delete"))
+        {
+          // Next row
+          i++;
+          continue;
+        }
+        // Get the stuff we need
+        String metaNameSpec = variableContext.getParameter("specmetaname"+metadataDescription);
+        String metaValueSpec = variableContext.getParameter("specmetavalue"+metadataDescription);
+        SpecificationNode node = new SpecificationNode("metadata");
+        node.setAttribute("name",metaNameSpec);
+        node.setAttribute("value",metaValueSpec);
+        ds.addChild(ds.getChildCount(),node);
+        i++;
+      }
+
+      String op = variableContext.getParameter("metadataop");
+      if (op != null && op.equals("Add"))
+      {
+        String metaNameSpec = variableContext.getParameter("specmetaname");
+        String metaValueSpec = variableContext.getParameter("specmetavalue");
+        
+        SpecificationNode node = new SpecificationNode("metadata");
+        node.setAttribute("name",metaNameSpec);
+        node.setAttribute("value",metaValueSpec);
+        
+        ds.addChild(ds.getChildCount(),node);
+      }
+    }
+    return null;
+  }
+  
+  /** View specification.
+  * This method is called in the body section of a job's view page.  Its purpose is to present the document specification information to the user.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  *@param out is the output to which any HTML should be sent.
+  *@param ds is the current document specification for this job.
+  */
+  public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
+    throws LCFException, IOException
+  {
+    int j;
+    boolean seenAny;
+
+    String seeds = "";
+    String inclusions = ".*\n";
+    String exclusions = "";
+
+    int i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_SEEDS))
+        seeds = sn.getValue();
+      else if (sn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_INCLUDES))
+        inclusions = sn.getValue();
+      else if (sn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_EXCLUDES))
+        exclusions = sn.getValue();
+    }
+    out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Seeds:</nobr></td>\n"+
+"    <td class=\"value\">\n"
+    );
+    try
+    {
+      java.io.Reader str = new java.io.StringReader(seeds);
+      try
+      {
+        java.io.BufferedReader is = new java.io.BufferedReader(str);
+        try
+        {
+          while (true)
+          {
+            String nextString = is.readLine();
+            if (nextString == null)
+              break;
+            if (nextString.length() == 0)
+              continue;
+            out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(nextString)+"</nobr><br/>\n"
+            );
+          }
+        }
+        finally
+        {
+          is.close();
+        }
+      }
+      finally
+      {
+        str.close();
+      }
+    }
+    catch (java.io.IOException e)
+    {
+      throw new LCFException("IO error: "+e.getMessage(),e);
+    }
+    out.print(
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+    );
+    i = 0;
+    int l = 0;
+    seenAny = false;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("urlspec"))
+      {
+        if (l == 0)
+        {
+          out.print(
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>URL canonicalization:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <table class=\"formtable\">\n"+
+"        <tr class=\"formheaderrow\">\n"+
+"          <td class=\"formcolumnheader\"><nobr>URL regexp</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Description</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Reorder?</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Remove JSP sessions?</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Remove ASP sessions?</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Remove PHP sessions?</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Remove BV sessions?</nobr></td>\n"+
+"        </tr>\n"
+          );
+        }
+        String regexpString = sn.getAttributeValue("regexp");
+        String description = sn.getAttributeValue("description");
+        if (description == null)
+          description = "";
+        String allowReorder = sn.getAttributeValue("reorder");
+        if (allowReorder == null || allowReorder.length() == 0)
+          allowReorder = "no";
+        String allowJavaSessionRemoval = sn.getAttributeValue("javasessionremoval");
+        if (allowJavaSessionRemoval == null || allowJavaSessionRemoval.length() == 0)
+          allowJavaSessionRemoval = "no";
+        String allowASPSessionRemoval = sn.getAttributeValue("aspsessionremoval");
+        if (allowASPSessionRemoval == null || allowASPSessionRemoval.length() == 0)
+          allowASPSessionRemoval = "no";
+        String allowPHPSessionRemoval = sn.getAttributeValue("phpsessionremoval");
+        if (allowPHPSessionRemoval == null || allowPHPSessionRemoval.length() == 0)
+          allowPHPSessionRemoval = "no";
+        String allowBVSessionRemoval = sn.getAttributeValue("bvsessionremoval");
+        if (allowBVSessionRemoval == null || allowBVSessionRemoval.length() == 0)
+          allowBVSessionRemoval = "no";
+        out.print(
+"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"          <td class=\"formcolumncell\"><nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(regexpString)+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(description)+"</td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+allowReorder+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+allowJavaSessionRemoval+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+allowASPSessionRemoval+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+allowPHPSessionRemoval+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+allowBVSessionRemoval+"</nobr></td>\n"+
+"        </tr>\n"
+        );
+        l++;
+      }
+    }
+    if (l > 0)
+    {
+      out.print(
+"      </table>\n"+
+"    </td>\n"+
+"  </tr>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"  <tr><td class=\"message\" colspan=\"2\"><nobr>No url canonicalization specified; will reorder all urls and remove all sessions</nobr></td></tr>\n"
+      );
+    }
+    out.print(
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Includes:</nobr></td>\n"+
+"    <td class=\"value\">\n"
+    );
+    try
+    {
+      java.io.Reader str = new java.io.StringReader(inclusions);
+      try
+      {
+        java.io.BufferedReader is = new java.io.BufferedReader(str);
+        try
+        {
+          while (true)
+          {
+            String nextString = is.readLine();
+            if (nextString == null)
+              break;
+            if (nextString.length() == 0)
+              continue;
+            out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(nextString)+"</nobr><br/>\n"
+            );
+          }
+        }
+        finally
+        {
+          is.close();
+        }
+      }
+      finally
+      {
+        str.close();
+      }
+    }
+    catch (java.io.IOException e)
+    {
+      throw new LCFException("IO error: "+e.getMessage(),e);
+    }
+    out.print(
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Excludes:</nobr></td>\n"+
+"    <td class=\"value\">\n"
+    );
+    try
+    {
+      java.io.Reader str = new java.io.StringReader(exclusions);
+      try
+      {
+        java.io.BufferedReader is = new java.io.BufferedReader(str);
+        try
+        {
+          while (true)
+          {
+            String nextString = is.readLine();
+            if (nextString == null)
+              break;
+            if (nextString.length() == 0)
+              continue;
+            out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(nextString)+"</nobr><br/>\n"
+            );
+          }
+        }
+        finally
+        {
+          is.close();
+        }
+      }
+      finally
+      {
+        str.close();
+      }
+    }
+    catch (java.io.IOException e)
+    {
+      throw new LCFException("IO error: "+e.getMessage(),e);
+    }
+    out.print(
+"    </td>\n"+
+"  </tr>\n"+
+"    \n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+    );
+    // Go through looking for access tokens
+    seenAny = false;
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("access"))
+      {
+        if (seenAny == false)
+        {
+          out.print(
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Access tokens:</nobr></td>\n"+
+"    <td class=\"value\">\n"
+          );
+          seenAny = true;
+        }
+        String token = sn.getAttributeValue("token");
+        out.print(
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(token)+"<br/>\n"
+        );
+      }
+    }
+
+    if (seenAny)
+    {
+      out.print(
+"    </td>\n"+
+"  </tr>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"  <tr><td class=\"message\" colspan=\"2\"><nobr>No access tokens specified</nobr></td></tr>\n"
+      );
+    }
+    out.print(
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+    );
+    // Go through looking for metadata
+    seenAny = false;
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("metadata"))
+      {
+        if (seenAny == false)
+        {
+          out.print(
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Metadata:</nobr></td>\n"+
+"    <td class=\"value\">\n"
+          );
+          seenAny = true;
+        }
+        String name = sn.getAttributeValue("name");
+        String value = sn.getAttributeValue("value");
+        out.print(
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(name)+"&nbsp;=&nbsp;"+org.apache.lcf.ui.util.Encoder.bodyEscape(value)+"<br/>\n"
+        );
+      }
+    }
+
+    if (seenAny)
+    {
+      out.print(
+"    </td>\n"+
+"  </tr>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"  <tr><td class=\"message\" colspan=\"2\"><nobr>No metadata specified</nobr></td></tr>\n"
+      );
+    }
+    out.print(
+"</table>\n"
+    );
   }
 
   // Protected methods and classes

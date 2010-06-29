@@ -1386,6 +1386,2005 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
     return 1;
   }
 
+  // UI support methods.
+  //
+  // These support methods come in two varieties.  The first bunch is involved in setting up connection configuration information.  The second bunch
+  // is involved in presenting and editing document specification information for a job.  The two kinds of methods are accordingly treated differently,
+  // in that the first bunch cannot assume that the current connector object is connected, while the second bunch can.  That is why the first bunch
+  // receives a thread context argument for all UI methods, while the second bunch does not need one (since it has already been applied via the connect()
+  // method, above).
+    
+  /** Output the configuration header section.
+  * This method is called in the head section of the connector's configuration page.  Its purpose is to add the required tabs to the list, and to output any
+  * javascript methods that might be needed by the configuration editing HTML.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
+    throws LCFException, IOException
+  {
+    tabsArray.add("Memex Server");
+    tabsArray.add("Web Server");
+    out.print(
+"<script type=\"text/javascript\">\n"+
+"<!--\n"+
+"\n"+
+"function checkConfig()\n"+
+"{\n"+
+"  if (editconnection.memexserverport.value != \"\" && !isInteger(editconnection.memexserverport.value))\n"+
+"  {\n"+
+"    alert(\"A valid number is required\");\n"+
+"    editconnection.memexserverport.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.webserverport.value != \"\" && !isInteger(editconnection.webserverport.value))\n"+
+"  {\n"+
+"    alert(\"A valid number, or blank, is required\");\n"+
+"    editconnection.webserverport.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"function checkConfigForSave()\n"+
+"{\n"+
+"  if (editconnection.crawluser.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Please supply the name of a crawl user\");\n"+
+"    SelectTab(\"Memex Server\");\n"+
+"    editconnection.crawluser.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.memexservername.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Please supply the name of a Memex server\");\n"+
+"    SelectTab(\"Memex Server\");\n"+
+"    editconnection.memexservername.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.memexserverport.value == \"\")\n"+
+"  {\n"+
+"    alert(\"A Memex server port is required\");\n"+
+"    SelectTab(\"Memex Server\");\n"+
+"    editconnection.memexserverport.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"//-->\n"+
+"</script>\n"
+    );
+  }
+  
+  // Legal character sets for java 1.5
+  private static String[] legalCharsets;
+  private static String[] legalTimezones;
+  
+  static
+  {
+    legalCharsets = new String[]
+    {
+      "ISO-8859-1",
+      "ISO-8859-2",
+      "ISO-8859-4",
+      "ISO-8859-5",
+      "ISO-8859-7",
+      "ISO-8859-9",
+      "ISO-8859-13",
+      "ISO-8859-15",
+      "KOI8-R",
+      "US-ASCII",
+      "UTF-8",
+      "UTF-16",
+      "UTF-16BE",
+      "UTF-16LE",
+      "windows-1250",
+      "windows-1251",
+      "windows-1252",
+      "windows-1253",
+      "windows-1254",
+      "windows-1257",
+      "Big5",
+      "Big5-HKSCS",
+      "EUC-JP",
+      "EUC-KR",
+      "GB18030",
+      "GB2312",
+      "GBK",
+      "IBM-Thai",
+      "IBM00858",
+      "IBM01140",
+      "IBM01141",
+      "IBM01142",
+      "IBM01143",
+      "IBM01144",
+      "IBM01145",
+      "IBM01146",
+      "IBM01147",
+      "IBM01148",
+      "IBM01149",
+      "IBM037",
+      "IBM1026",
+      "IBM1047",
+      "IBM273",
+      "IBM277",
+      "IBM278",
+      "IBM280",
+      "IBM284",
+      "IBM285",
+      "IBM297",
+      "IBM420",
+      "IBM424",
+      "IBM437",
+      "IBM500",
+      "IBM775",
+      "IBM850",
+      "IBM852",
+      "IBM855",
+      "IBM857",
+      "IBM860",
+      "IBM861",
+      "IBM862",
+      "IBM863",
+      "IBM864",
+      "IBM865",
+      "IBM866",
+      "IBM868",
+      "IBM869",
+      "IBM870",
+      "IBM871",
+      "IBM918",
+      "ISO-2022-CN",
+      "ISO-2022-JP",
+      "ISO-2022-KR",
+      "ISO-8859-3",
+      "ISO-8859-6",
+      "ISO-8859-8",
+      "Shift_JIS",
+      "TIS-620",
+      "windows-1255",
+      "windows-1256",
+      "windows-1258",
+      "windows-31j",
+      "x-Big5_Solaris",
+      "x-euc-jp-linux",
+      "x-EUC-TW",
+      "x-eucJP-Open",
+      "x-IBM1006",
+      "x-IBM1025",
+      "x-IBM1046",
+      "x-IBM1097",
+      "x-IBM1098",
+      "x-IBM1112",
+      "x-IBM1122",
+      "x-IBM1123",
+      "x-IBM1124",
+      "x-IBM1381",
+      "x-IBM1383",
+      "x-IBM33722",
+      "x-IBM737",
+      "x-IBM856",
+      "x-IBM874",
+      "x-IBM875",
+      "x-IBM921",
+      "x-IBM922",
+      "x-IBM930",
+      "x-IBM933",
+      "x-IBM935",
+      "x-IBM937",
+      "x-IBM939",
+      "x-IBM942",
+      "x-IBM942C",
+      "x-IBM943",
+      "x-IBM943C",
+      "x-IBM948",
+      "x-IBM949",
+      "x-IBM949C",
+      "x-IBM950",
+      "x-IBM964",
+      "x-IBM970",
+      "x-ISCII91",
+      "x-ISO2022-CN-CNS",
+      "x-ISO2022-CN-GB",
+      "x-iso-8859-11",
+      "x-Johab",
+      "x-MacArabic",
+      "x-MacCentralEurope",
+      "x-MacCroatian",
+      "x-MacCyrillic",
+      "x-MacDingbat",
+      "x-MacGreek",
+      "x-MacHebrew",
+      "x-MacIceland",
+      "x-MacRoman",
+      "x-MacRomania",
+      "x-MacSymbol",
+      "x-MacThai",
+      "x-MacTurkish",
+      "x-MacUkraine",
+      "x-MS950-HKSCS",
+      "x-mswin-936",
+      "x-PCK",
+      "x-windows-874",
+      "x-windows-949",
+      "x-windows-950"
+    };
+
+    legalTimezones = java.util.TimeZone.getAvailableIDs();
+    
+    java.util.Arrays.sort(legalTimezones);
+    java.util.Arrays.sort(legalCharsets);
+  }
+  
+  /** Output the configuration body section.
+  * This method is called in the body section of the connector's configuration page.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabName is the current tab name.
+  */
+  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
+    throws LCFException, IOException
+  {
+    String memexServerName = parameters.getParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_MEMEXSERVERNAME);
+    if (memexServerName == null)
+      memexServerName = "";
+    String memexServerPort = parameters.getParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_MEMEXSERVERPORT);
+    if (memexServerPort == null)
+      memexServerPort = "";
+    String crawlUser = parameters.getParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_USERID);
+    if (crawlUser == null)
+      crawlUser = "";
+    String crawlUserPassword = parameters.getObfuscatedParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_PASSWORD);
+    if (crawlUserPassword == null)
+      crawlUserPassword = "";
+    String webServerProtocol = parameters.getParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_WEBSERVERPROTOCOL);
+    if (webServerProtocol == null)
+      webServerProtocol = "http";
+    String webServerName = parameters.getParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_WEBSERVERNAME);
+    if (webServerName == null)
+      webServerName = "";
+    String webServerPort = parameters.getParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_WEBSERVERPORT);
+    if (webServerPort == null)
+      webServerPort = "";
+    String characterEncoding = parameters.getParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_CHARACTERENCODING);
+    if (characterEncoding == null)
+      characterEncoding = "windows-1252";
+    String serverTimezone = parameters.getParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_SERVERTIMEZONE);
+    if (serverTimezone == null)
+      serverTimezone = "GMT";
+
+    // "Memex Server" tab
+    if (tabName.equals("Memex Server"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Memex server name:</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"memexservername\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(memexServerName)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Memex server port:</nobr></td><td class=\"value\"><input type=\"text\" size=\"5\" name=\"memexserverport\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(memexServerPort)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Crawl user name:</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"crawluser\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(crawlUser)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Crawl user password:</nobr></td><td class=\"value\"><input type=\"password\" size=\"32\" name=\"crawluserpassword\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(crawlUserPassword)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Character encoding:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <select name=\"characterencoding\" size=\"10\">\n"
+      );
+      int k = 0;
+      while (k < legalCharsets.length)
+      {
+        String charSet = legalCharsets[k++];
+        out.print(
+"        <option value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(charSet)+"\" "+(charSet.equals(characterEncoding)?" selected=\"selected\"":"")+">"+org.apache.lcf.ui.util.Encoder.bodyEscape(charSet)+"</option>\n"
+        );
+      }
+      out.print(
+"      </select>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Server time zone:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <select name=\"servertimezone\" size=\"10\">\n"
+      );
+      k = 0;
+      while (k < legalTimezones.length)
+      {
+        String timezone = legalTimezones[k++];
+        out.print(
+"        <option value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(timezone)+"\" "+(timezone.equals(serverTimezone)?" selected=\"selected\"":"")+">"+org.apache.lcf.ui.util.Encoder.bodyEscape(timezone)+"</option>\n"
+        );
+      }
+      out.print(
+"      </select>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for Memex Server tab
+      out.print(
+"<input type=\"hidden\" name=\"memexservername\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(memexServerName)+"\"/>\n"+
+"<input type=\"hidden\" name=\"memexserverport\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(memexServerPort)+"\"/>\n"+
+"<input type=\"hidden\" name=\"crawluser\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(crawlUser)+"\"/>\n"+
+"<input type=\"hidden\" name=\"crawluserpassword\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(crawlUserPassword)+"\"/>\n"+
+"<input type=\"hidden\" name=\"characterencoding\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(characterEncoding)+"\"/>\n"+
+"<input type=\"hidden\" name=\"servertimezone\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(serverTimezone)+"\"/>\n"
+      );
+    }
+
+    // "Web Server" tab
+    if (tabName.equals("Web Server"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\">Web server protocol:</td>\n"+
+"    <td class=\"value\">\n"+
+"      <select name=\"webserverprotocol\" size=\"2\">\n"+
+"        <option value=\"http\" "+((webServerProtocol.equals("http"))?"selected=\"selected\"":"")+">http</option>\n"+
+"        <option value=\"https\" "+((webServerProtocol.equals("https"))?"selected=\"selected\"":"")+">https</option>\n"+
+"      </select>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Web server name:</nobr><br/><nobr>(blank if same as Memex server)</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"64\" name=\"webservername\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(webServerName)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Web server port:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"webserverport\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(webServerPort)+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for Web Server tab
+      out.print(
+"<input type=\"hidden\" name=\"webserverprotocol\" value=\""+webServerProtocol+"\"/>\n"+
+"<input type=\"hidden\" name=\"webservername\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(webServerName)+"\"/>\n"+
+"<input type=\"hidden\" name=\"webserverport\" value=\""+webServerPort+"\"/>\n"
+      );
+    }
+  }
+  
+  /** Process a configuration post.
+  * This method is called at the start of the connector's configuration page, whenever there is a possibility that form data for a connection has been
+  * posted.  Its purpose is to gather form information and modify the configuration parameters accordingly.
+  * The name of the posted form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param variableContext is the set of variables available from the post, including binary file post information.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
+  */
+  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
+    throws LCFException
+  {
+    String memexServerName = variableContext.getParameter("memexservername");
+    if (memexServerName != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_MEMEXSERVERNAME,memexServerName);
+      
+    String memexServerPort = variableContext.getParameter("memexserverport");
+    if (memexServerPort != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_MEMEXSERVERPORT,memexServerPort);
+    
+    String crawlUser = variableContext.getParameter("crawluser");
+    if (crawlUser != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_USERID,crawlUser);
+
+    String crawlUserPassword = variableContext.getParameter("crawluserpassword");
+    if (crawlUserPassword != null)
+      parameters.setObfuscatedParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_PASSWORD,crawlUserPassword);
+
+    String webServerProtocol = variableContext.getParameter("webserverprotocol");
+    if (webServerProtocol != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_WEBSERVERPROTOCOL,webServerProtocol);
+      
+    String webServerName = variableContext.getParameter("webservername");
+    if (webServerName != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_WEBSERVERNAME,webServerName);
+      
+    String webServerPort = variableContext.getParameter("webserverport");
+    if (webServerPort != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_WEBSERVERPORT,webServerPort);
+
+    String characterEncoding = variableContext.getParameter("characterencoding");
+    if (characterEncoding != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_CHARACTERENCODING,characterEncoding);
+      
+    String serverTimezone = variableContext.getParameter("servertimezone");
+    if (serverTimezone != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_SERVERTIMEZONE,serverTimezone);
+    return null;
+  }
+  
+  /** View configuration.
+  * This method is called in the body section of the connector's view configuration page.  Its purpose is to present the connection information to the user.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  */
+  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
+    throws LCFException, IOException
+  {
+    out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>Parameters:</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"3\">\n"
+    );
+    Iterator iter = parameters.listParameters();
+    while (iter.hasNext())
+    {
+      String param = (String)iter.next();
+      String value = parameters.getParameter(param);
+      if (param.length() >= "password".length() && param.substring(param.length()-"password".length()).equalsIgnoreCase("password"))
+      {
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"=********</nobr><br/>\n"
+        );
+      }
+      else if (param.length() >="keystore".length() && param.substring(param.length()-"keystore".length()).equalsIgnoreCase("keystore"))
+      {
+        IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"=<"+Integer.toString(kmanager.getContents().length)+" certificate(s)></nobr><br/>\n"
+        );
+      }
+      else
+      {
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"="+org.apache.lcf.ui.util.Encoder.bodyEscape(value)+"</nobr><br/>\n"
+        );
+      }
+    }
+    out.print(
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+    );
+  }
+  
+  /** Output the specification header section.
+  * This method is called in the head section of a job page which has selected a repository connection of the current type.  Its purpose is to add the required tabs
+  * to the list, and to output any javascript methods that might be needed by the job editing HTML.
+  *@param out is the output to which any HTML should be sent.
+  *@param ds is the current document specification for this job.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
+  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
+    throws LCFException, IOException
+  {
+    tabsArray.add("Record Criteria");
+    tabsArray.add("Entities");
+    tabsArray.add("Security");
+    out.print(
+"<script type=\"text/javascript\">\n"+
+"<!--\n"+
+"\n"+
+"function selectValues(formelementName)\n"+
+"{\n"+
+"  // The problem here is that we don't actually know if the form\n"+
+"  // element is a select or a hidden, so first we have to figure that\n"+
+"  // out.\n"+
+"  if (eval(formelementName) && eval(formelementName+\".type\") == \"select-multiple\")\n"+
+"  {\n"+
+"    // It's a multiselect, so we need to select all of them,\n"+
+"    // except for the spacer element\n"+
+"    var selectLength = eval(formelementName+\".length\");\n"+
+"    var i = 1;\n"+
+"    while (i < selectLength)\n"+
+"    {\n"+
+"      eval(formelementName+\".options[i].selected = true\");\n"+
+"      i = i+1;\n"+
+"    }\n"+
+"  }\n"+
+"}\n"+
+"  \n"+
+"function selectAllValues(formelementName)\n"+
+"{\n"+
+"  if (!editjob.entitytypecount)\n"+
+"    return;\n"+
+"  var elementCount = editjob.entitytypecount.value;\n"+
+"  var i = 0;\n"+
+"  while (i < elementCount)\n"+
+"  {\n"+
+"    selectValues(\"editjob.\"+formelementName+\"_\"+i);\n"+
+"    i = i+1;\n"+
+"  }\n"+
+"}\n"+
+"  \n"+
+"function checkSpecification()\n"+
+"{\n"+
+"  selectAllValues(\"primaryfields\");\n"+
+"  selectAllValues(\"metadatafields\");\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"function SpecOp(n, opValue, anchorvalue)\n"+
+"{\n"+
+"  eval(\"editjob.\"+n+\".value = \\\"\"+opValue+\"\\\"\");\n"+
+"  postFormSetAnchor(anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function deleteSelectedOptions(formelementName)\n"+
+"{\n"+
+"  // Run through the multiselect, and collapse the entries.  Also clear the selection of the first element, if set.\n"+
+"  eval(formelementName+\".options[0].selected=false\");\n"+
+"  var formLength = eval(formelementName+\".length\");\n"+
+"  var i = 1;\n"+
+"  var outputPosition = 1;\n"+
+"  while (i < formLength)\n"+
+"  {\n"+
+"    if (eval(formelementName+\".options[i].selected\") == false)\n"+
+"    {\n"+
+"      // Do the copy\n"+
+"      eval(formelementName+\".options[outputPosition]=new Option(\"+formelementName+\".options[i].text,\"+formelementName+\".options[i].value)\");\n"+
+"      outputPosition = outputPosition + 1;\n"+
+"    }\n"+
+"    i = i+1;\n"+
+"  }\n"+
+"  while (outputPosition < formLength)\n"+
+"  {\n"+
+"    eval(formelementName+\".options[outputPosition]=null\");\n"+
+"    outputPosition = outputPosition + 1;\n"+
+"  }\n"+
+"}\n"+
+"  \n"+
+"function addAtEnd(sourceFormelementName,targetFormelementName,message)\n"+
+"{\n"+
+"  if (eval(sourceFormelementName+\".selectedIndex\") == -1)\n"+
+"    alert(message);\n"+
+"  else\n"+
+"  {\n"+
+"    // Always add the fields at the end\n"+
+"    var addIndex = eval(targetFormelementName+\".length\");\n"+
+"    var sourceLength = eval(sourceFormelementName+\".length\");\n"+
+"    var i = 1;\n"+
+"    while (i < sourceLength)\n"+
+"    {\n"+
+"      if (eval(sourceFormelementName+\".options[i].selected\"))\n"+
+"      {\n"+
+"        // Copy text and value\n"+
+"        eval(targetFormelementName+\".options[addIndex]=new Option(\"+sourceFormelementName+\".options[i].text,\"+sourceFormelementName+\".options[i].value)\");\n"+
+"        addIndex = addIndex + 1;\n"+
+"      }\n"+
+"      i = i + 1;\n"+
+"    }\n"+
+"    deleteSelectedOptions(sourceFormelementName);\n"+
+"  }\n"+
+"}\n"+
+"\n"+
+"function insertSorted(sourceFormelementName,targetFormelementName,message)\n"+
+"{\n"+
+"  if (eval(sourceFormelementName+\".selectedIndex\") == -1)\n"+
+"    alert(message);\n"+
+"  else\n"+
+"  {\n"+
+"    var sourceLength = eval(sourceFormelementName+\".length\");\n"+
+"    var i = 1;\n"+
+"    while (i < sourceLength)\n"+
+"    {\n"+
+"      if (eval(sourceFormelementName+\".options[i].selected\"))\n"+
+"      {\n"+
+"        // Find the right insert point in the target\n"+
+"        var sourceText = eval(sourceFormelementName+\".options[i].text\");\n"+
+"        var sourceValue = eval(sourceFormelementName+\".options[i].value\");\n"+
+"        var targetLength = eval(targetFormelementName+\".length\");\n"+
+"        var j = 1;\n"+
+"        while (j < targetLength)\n"+
+"        {\n"+
+"          var targetText = eval(targetFormelementName+\".options[j].text\");\n"+
+"          if (targetText > sourceText)\n"+
+"            break;\n"+
+"          j = j+1;\n"+
+"        }\n"+
+"        // Copy text and value, shuffling the rest of the element down\n"+
+"        var existObject = new Option(sourceText,sourceValue);\n"+
+"        while (j < targetLength)\n"+
+"        {\n"+
+"          var nextObject = eval(targetFormelementName+\".options[j]\");\n"+
+"          eval(targetFormelementName+\".options[j]=existObject\");\n"+
+"          existObject = nextObject;\n"+
+"          j = j+1;\n"+
+"        }\n"+
+"        eval(targetFormelementName+\".options[j]=existObject\");\n"+
+"      }\n"+
+"      i = i+1;\n"+
+"    }\n"+
+"    deleteSelectedOptions(sourceFormelementName);\n"+
+"\n"+
+"  }\n"+
+"}\n"+
+"\n"+
+"function addToPrimary(indexValue)\n"+
+"{\n"+
+"  var sourceFormelementName = \"editjob.availablefields_\"+indexValue;\n"+
+"  var targetFormelementName = \"editjob.primaryfields_\"+indexValue;\n"+
+"  addAtEnd(sourceFormelementName,targetFormelementName,\"Please select the attribute(s) you wish to append to the tagged field list\");\n"+
+"}\n"+
+"  \n"+
+"  \n"+
+"function moveFromPrimary(indexValue)\n"+
+"{\n"+
+"  var sourceFormelementName = \"editjob.primaryfields_\"+indexValue;\n"+
+"  var targetFormelementName = \"editjob.availablefields_\"+indexValue;\n"+
+"  insertSorted(sourceFormelementName,targetFormelementName,\"Please select the attribute(s) you wish to remove from the tagged field list\");\n"+
+"}\n"+
+"  \n"+
+"function moveToMetadata(indexValue)\n"+
+"{\n"+
+"  var sourceFormelementName = \"editjob.availablefields_\"+indexValue;\n"+
+"  var targetFormelementName = \"editjob.metadatafields_\"+indexValue;\n"+
+"  insertSorted(sourceFormelementName,targetFormelementName,\"Please select the attribute(s) you wish to add to the metadata field list\");\n"+
+"}\n"+
+"  \n"+
+"function moveFromMetadata(indexValue)\n"+
+"{\n"+
+"  var sourceFormelementName = \"editjob.metadatafields_\"+indexValue;\n"+
+"  var targetFormelementName = \"editjob.availablefields_\"+indexValue;\n"+
+"  insertSorted(sourceFormelementName,targetFormelementName,\"Please select the attribute(s) you wish to remove from the metadata field list\");\n"+
+"}\n"+
+"\n"+
+"function SpecAddToken(anchorvalue)\n"+
+"{\n"+
+"  if (editjob.spectoken.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Type in an access token\");\n"+
+"    editjob.spectoken.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  SpecOp(\"accessop\",\"Add\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function SpecDeleteRule(ruleIndex)\n"+
+"{\n"+
+"  SpecOp(\"specop_\"+ruleIndex,\"Delete\",\"rule_\"+ruleIndex);\n"+
+"}\n"+
+"        \n"+
+"function SpecAddRule(ruleIndex)\n"+
+"{\n"+
+"  SpecOp(\"specop\",\"Add\",\"rule_\"+ruleIndex);\n"+
+"}\n"+
+"        \n"+
+"function SpecRuleReset()\n"+
+"{\n"+
+"  editjob.rulevirtualserver.value = \"\";\n"+
+"  editjob.ruleentityprefix.value = \"\";\n"+
+"  editjob.ruleentitydescription.value = \"\";\n"+
+"  editjob.rulefieldname.value = \"\";\n"+
+"  editjob.ruleoperation.value = \"\";\n"+
+"  editjob.rulefieldvalue.value = \"\";\n"+
+"  SpecOp(\"specop\",\"Continue\",\"rule\");\n"+
+"}\n"+
+"        \n"+
+"function SpecRuleRemoveFieldMatch()\n"+
+"{\n"+
+"  editjob.rulefieldname.value = \"\";\n"+
+"  editjob.ruleoperation.value = \"\";\n"+
+"  editjob.rulefieldvalue.value = \"\";\n"+
+"  SpecOp(\"specop\",\"Continue\",\"rule\");\n"+
+"}\n"+
+"        \n"+
+"function SpecRuleRemoveEntity()\n"+
+"{\n"+
+"  editjob.ruleentityprefix.value = \"\";\n"+
+"  editjob.ruleentitydescription.value = \"\";\n"+
+"  SpecOp(\"specop\",\"Continue\",\"rule\");\n"+
+"}\n"+
+"        \n"+
+"function SpecRuleRemoveVirtualServer()\n"+
+"{\n"+
+"  editjob.rulevirtualserver.value = \"\";\n"+
+"  SpecOp(\"specop\",\"Continue\",\"rule\");\n"+
+"}\n"+
+"        \n"+
+"function SpecRuleSetVirtualServer()\n"+
+"{\n"+
+"  if (editjob.rulevirtualserverselect.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Select a virtual server first.\");\n"+
+"    editjob.rulevirtualserverselect.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  editjob.rulevirtualserver.value = editjob.rulevirtualserverselect.value;\n"+
+"  SpecOp(\"specop\",\"Continue\",\"rule\");\n"+
+"}\n"+
+"        \n"+
+"function SpecRuleSetEntity()\n"+
+"{\n"+
+"  if (editjob.ruleentityselect.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Select an entity first.\");\n"+
+"    editjob.ruleentityselect.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  var value = editjob.ruleentityselect.value;\n"+
+"  editjob.ruleentityprefix.value = value.substring(0,value.indexOf(\":\"));\n"+
+"  editjob.ruleentitydescription.value = value.substring(value.indexOf(\":\")+1);\n"+
+"  SpecOp(\"specop\",\"Continue\",\"rule\");\n"+
+"}\n"+
+"        \n"+
+"function SpecRuleSetCriteria()\n"+
+"{\n"+
+"  if (editjob.rulefieldnameselect.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Select a field name first.\");\n"+
+"    editjob.rulefieldnameselect.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  if (editjob.ruleoperationselect.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Select an operation first.\");\n"+
+"    editjob.ruleoperationselect.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  editjob.rulefieldname.value = editjob.rulefieldnameselect.value;\n"+
+"  editjob.ruleoperation.value = editjob.ruleoperationselect.value;\n"+
+"  editjob.rulefieldvalue.value = editjob.rulefieldvalueselect.value;\n"+
+"  SpecOp(\"specop\",\"Continue\",\"rule\");\n"+
+"}\n"+
+"\n"+
+"//-->\n"+
+"</script>\n"
+    );
+  }
+  
+  /** Output the specification body section.
+  * This method is called in the body section of a job page which has selected a repository connection of the current type.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * form is "editjob".
+  *@param out is the output to which any HTML should be sent.
+  *@param ds is the current document specification for this job.
+  *@param tabName is the current tab name.
+  */
+  public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
+    throws LCFException, IOException
+  {
+    int i;
+    int k;
+
+    // Entities tab
+
+    // Always build a hash map containing all the currently selected entities, primary fields, and corresponding metafields first
+    // Primary fields are ordered.  This map is keyed by entity name, and has an arraylist of primary fields as contents.
+    HashMap entityMap = new HashMap();
+    // Metadata fields are not ordered.  This map is keyed by entity name, and contains a hashmap of metadata field names.
+    HashMap entityMetadataMap = new HashMap();
+    // Finally, a map describing *all* the fields that have been selected for one purpose or another
+    HashMap overallEntityFieldMap = new HashMap();
+    // Descriptions are used to make the 'view' look interpretable
+    HashMap descriptionMap = new HashMap();
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_ENTITY))
+      {
+        String entityName = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_NAME);
+        String entityDescription = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_DESCRIPTION);
+        if (entityDescription == null)
+          entityDescription = entityName;
+
+        HashMap attrMap = new HashMap();
+        ArrayList primaryList = new ArrayList();
+        HashMap overallMap = new HashMap();
+        // Go through the children and look for metafield records
+        int kk = 0;
+        while (kk < sn.getChildCount())
+        {
+          SpecificationNode dsn = sn.getChild(kk++);
+          if (dsn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_PRIMARYFIELD))
+          {
+            String fieldName = dsn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_NAME);
+            primaryList.add(fieldName);
+            overallMap.put(fieldName,fieldName);
+          }
+          else if (dsn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_METAFIELD))
+          {
+            String fieldName = dsn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_NAME);
+            attrMap.put(fieldName,fieldName);
+            overallMap.put(fieldName,fieldName);
+          }
+        }
+        
+        entityMap.put(entityName,primaryList);
+        entityMetadataMap.put(entityName,attrMap);
+        overallEntityFieldMap.put(entityName,overallMap);
+        descriptionMap.put(entityName,entityDescription);
+      }
+    }
+
+    if (tabName.equals("Entities"))
+    {
+      out.print(
+"<table class=\"formtable\">\n"+
+"  <tr class=\"formheaderrow\">\n"+
+"    <td class=\"formcolumnheader\"><nobr>Entity name</nobr></td>\n"+
+"    <td class=\"formcolumnheader\"><nobr>Tagged fields</nobr></td>\n"+
+"    <td class=\"formcolumnheader\"></td>\n"+
+"    <td class=\"formcolumnheader\"><nobr>Available fields</nobr></td>\n"+
+"    <td class=\"formcolumnheader\"></td>\n"+
+"    <td class=\"formcolumnheader\"><nobr>Metadata fields</nobr></td>\n"+
+"  </tr>\n"
+      );
+      // Need to catch a potential license exception here
+      try
+      {
+        org.apache.lcf.crawler.connectors.memex.NameDescription[] entityTypes = listEntityTypes();
+        out.print(
+"  <input type=\"hidden\" name=\"entitytypecount\" value=\""+Integer.toString(entityTypes.length)+"\"/>\n"
+        );
+        int ii = 0;
+        while (ii < entityTypes.length)
+        {
+          org.apache.lcf.crawler.connectors.memex.NameDescription entityType = entityTypes[ii];
+          String entityPrefix = entityType.getSymbolicName();
+          String entityDisplayName = entityType.getDisplayName();
+          ArrayList primaryFields = (ArrayList)entityMap.get(entityPrefix);
+          HashMap attrMap = (HashMap)entityMetadataMap.get(entityPrefix);
+          HashMap overallMap = (HashMap)overallEntityFieldMap.get(entityPrefix);
+          
+          // For this entity type, grab a complete list of metadata fields
+          String[] legalFields = listFieldNames(entityPrefix);
+          out.print(
+"  <tr class=\""+(((ii % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"    <td class=\"formcolumncell\">\n"+
+"      <input type=\"hidden\" name=\""+"entitytype_"+Integer.toString(ii)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(entityPrefix)+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+"entitydesc_"+Integer.toString(ii)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(entityDisplayName)+"\"/>\n"+
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(entityDisplayName)+":</nobr>\n"+
+"    </td>\n"+
+"    <td class=\"formcolumncell\">\n"+
+"      <select name=\""+"primaryfields_"+Integer.toString(ii)+"\" size=\"5\" multiple=\"true\">\n"+
+"        <option value=\"\">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>\n"
+          );
+          int jj;
+          if (primaryFields != null)
+          {
+            jj = 0;
+            while (jj < primaryFields.size())
+            {
+              String primaryField = (String)primaryFields.get(jj++);
+              out.print(
+"        <option value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(primaryField)+"\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(primaryField)+"</option>\n"
+              );
+            }
+          }
+          out.print(
+"      </select>\n"+
+"    </td>\n"+
+"    <td class=\"formcolumncell\">\n"+
+"      <input type=\"button\" value=\"&lt;--\" alt=\""+"Add "+Integer.toString(ii)+" to tagged fields"+"\" onclick='javascript:addToPrimary("+Integer.toString(ii)+");'/><br/>\n"+
+"      <input type=\"button\" value=\"--&gt;\" alt=\""+"Move "+Integer.toString(ii)+" from tagged fields"+"\" onclick='javascript:moveFromPrimary("+Integer.toString(ii)+");'/><br/>\n"+
+"    </td>\n"+
+"    <td class=\"formcolumncell\">\n"+
+"      <select name=\""+"availablefields_"+Integer.toString(ii)+"\" size=\"5\" multiple=\"true\">\n"+
+"        <option value=\"\">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>\n"
+          );
+          jj = 0;
+          while (jj < legalFields.length)
+          {
+            String legalFieldValue = legalFields[jj++];
+            if (overallMap == null || overallMap.get(legalFieldValue) == null)
+            {
+              out.print(
+"        <option value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(legalFieldValue)+"\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(legalFieldValue)+"</option>\n"
+              );
+            }
+          }
+          out.print(
+"      </select>\n"+
+"    </td>\n"+
+"    <td class=\"formcolumncell\">\n"+
+"      <input type=\"button\" value=\"&lt;--\" alt=\""+"Move "+Integer.toString(ii)+" from metadata fields"+"\" onclick='javascript:moveFromMetadata("+Integer.toString(ii)+");'/><br/>\n"+
+"      <input type=\"button\" value=\"--&gt;\" alt=\""+"Move "+Integer.toString(ii)+" to metadata fields"+"\" onclick='javascript:moveToMetadata("+Integer.toString(ii)+");'/><br/>\n"+
+"    </td>\n"+
+"    <td class=\"formcolumncell\">\n"+
+"      <select name=\""+"metadatafields_"+Integer.toString(ii)+"\" size=\"5\" multiple=\"true\">\n"+
+"        <option value=\"\">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>\n"
+          );
+          if (attrMap != null)
+          {
+            jj = 0;
+            while (jj < legalFields.length)
+            {
+              String legalFieldValue = legalFields[jj++];
+              if (attrMap.get(legalFieldValue) != null)
+              {
+                out.print(
+"        <option value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(legalFieldValue)+"\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(legalFieldValue)+"</option>\n"
+                );
+              }
+            }
+          }
+          out.print(
+"      </select>\n"+
+"    </td>\n"+
+"  </tr>\n"
+          );
+          ii++;
+        }
+      }
+      catch (LCFException e)
+      {
+        out.print(
+"  <tr>\n"+
+"    <td class=\"message\" colspan=\"6\">\n"+
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())+"\n"+
+"    </td>\n"+
+"  </tr>\n"
+        );
+      }
+      catch (ServiceInterruption e)
+      {
+        out.print(
+"  <tr>\n"+
+"    <td class=\"message\" colspan=\"6\">\n"+
+"      <nobr>Service interruption - check your repository connection</nobr>\n"+
+"    </td>\n"+
+"  </tr>\n"
+        );
+      }
+      out.print(
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Do the hiddens for the Entities tab
+      out.print(
+"<input type=\"hidden\" name=\"entitytypecount\" value=\""+Integer.toString(entityMap.size())+"\"/>\n"
+      );
+      Iterator iter = entityMap.keySet().iterator();
+      int ii = 0;
+      while (iter.hasNext())
+      {
+        String entityType = (String)iter.next();
+        String displayName = (String)descriptionMap.get(entityType);
+        ArrayList primaryFields = (ArrayList)entityMap.get(entityType);
+        HashMap attrMap = (HashMap)entityMetadataMap.get(entityType);
+        out.print(
+"<input type=\"hidden\" name=\""+"entitytype_"+Integer.toString(ii)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(entityType)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"entitydesc_"+Integer.toString(ii)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(displayName)+"\"/>\n"
+        );
+        int jj = 0;
+        while (jj < primaryFields.size())
+        {
+          String primaryField = (String)primaryFields.get(jj++);
+          out.print(
+"<input type=\"hidden\" name=\""+"primaryfields_"+Integer.toString(ii)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(primaryField)+"\"/>\n"
+          );
+        }
+        Iterator iter2 = attrMap.keySet().iterator();
+        while (iter2.hasNext())
+        {
+          String attrName = (String)iter2.next();
+          out.print(
+"<input type=\"hidden\" name=\""+"metadatafields_"+Integer.toString(ii)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(attrName)+"\"/>\n"
+          );
+        }
+        ii++;
+      }
+    }
+
+    // Record Criteria tab
+
+    // This tab displays a sequence of rules.  Rules are constructed from (in order) virtual server, entity, and a (fieldname,operation,fieldvalue) tuple
+
+    if (tabName.equals("Record Criteria"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Record inclusion rules:</nobr></td>\n"+
+"    <td class=\"boxcell\">\n"+
+"      <table class=\"formtable\">\n"+
+"        <tr class=\"formheaderrow\">\n"+
+"          <td class=\"formcolumnheader\"></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Virtual Server</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Entity Name</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Match Criteria</nobr></td>\n"+
+"        </tr>\n"
+      );
+      // Loop through the existing rules
+      int q = 0;
+      int l = 0;
+      while (q < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(q++);
+        if (sn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_SPECIFICATIONRULE))
+        {
+          // Grab the appropriate rule data
+          String virtualServer = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_VIRTUALSERVER);
+          if (virtualServer == null)
+            virtualServer = "";
+          String entityPrefix = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_ENTITY);
+          if (entityPrefix == null)
+            entityPrefix = "";
+          String entityDescription = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_DESCRIPTION);
+          if (entityDescription == null)
+            entityDescription = entityPrefix;
+          String fieldName = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_FIELDNAME);
+          if (fieldName == null)
+            fieldName = "";
+          String operation = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_OPERATION);
+          if (operation == null)
+            operation = "";
+          String fieldValue = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_FIELDVALUE);
+          if (fieldValue == null)
+            fieldValue = "";
+
+          String pathDescription = "_"+Integer.toString(l);
+          String pathOpName = "specop"+pathDescription;
+
+          out.print(
+"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"          <td class=\"formcolumncell\"><nobr>\n"+
+"            <a name=\""+"rule_"+Integer.toString(l)+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+pathOpName+"\" value=\"\"/>\n"+
+"            <input type=\"hidden\" name=\""+"virtualserver"+pathDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(virtualServer)+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+"entityprefix"+pathDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(entityPrefix)+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+"entitydescription"+pathDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(entityDescription)+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+"fieldname"+pathDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(fieldName)+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+"operation"+pathDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(operation)+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+"fieldvalue"+pathDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(fieldValue)+"\"/>\n"+
+"            <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecDeleteRule("+Integer.toString(l)+")' alt=\""+"Delete rule #"+Integer.toString(l)+"\"/></nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape((virtualServer.length()==0)?"(All)":virtualServer)+"</nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape((entityPrefix.length()==0)?"(All)":(entityDescription==null)?entityPrefix:entityDescription)+"</nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape((fieldName.length()==0)?"(All)":(fieldName+" "+operation+" "+fieldValue))+"</nobr>\n"+
+"          </td>\n"+
+"        </tr>\n"
+          );
+          l++;
+        }
+      }
+      if (l == 0)
+      {
+        out.print(
+"        <tr class=\"formrow\"><td colspan=\"4\" class=\"formmessage\"><nobr>No records currently included</nobr></td></tr>\n"
+        );
+      }
+
+      // Now, present the rule building area
+  
+      out.print(
+"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"          <td class=\"formcolumncell\"><nobr>\n"+
+"            <a name=\""+"rule_"+Integer.toString(l)+"\"/>\n"+
+"            <input type=\"hidden\" name=\"specop\" value=\"\"/>\n"+
+"            <input type=\"hidden\" name=\"specrulecount\" value=\""+Integer.toString(l)+"\"/>\n"+
+"            <input type=\"button\" value=\"Add New Rule\" onClick='Javascript:SpecAddRule("+Integer.toString(l)+")' alt=\"Add rule\"/></nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\" colspan=\"3\"></td>\n"+
+"        </tr>\n"+
+"        <tr class=\"formrow\"><td colspan=\"4\" class=\"formseparator\"><hr/></td></tr>\n"+
+"        <tr class=\"formrow\">\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>New rule:\n"+
+"              <a name=\"rule\"/>\n"
+      );
+      // These represent the state of the rule building widget, which is maintained in the current thread context from the post element
+      String ruleVirtualServer = (String)currentContext.get("rulevirtualserver");
+      if (ruleVirtualServer == null)
+        ruleVirtualServer = "";
+      String ruleEntityPrefix = (String)currentContext.get("ruleentityprefix");
+      if (ruleEntityPrefix == null)
+        ruleEntityPrefix = "";
+      String ruleEntityDescription = (String)currentContext.get("ruleentitydescription");
+      if (ruleEntityDescription == null)
+        ruleEntityDescription = ruleEntityPrefix;
+      String ruleFieldName = (String)currentContext.get("rulefieldname");
+      if (ruleFieldName == null)
+        ruleFieldName = "";
+      String ruleOperation = (String)currentContext.get("ruleoperation");
+      if (ruleOperation == null)
+        ruleOperation = "";
+      String ruleFieldValue = (String)currentContext.get("rulefieldvalue");
+      if (ruleFieldValue == null)
+        ruleFieldValue = "";
+
+      out.print(
+"              <input type=\"hidden\" name=\"rulevirtualserver\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(ruleVirtualServer)+"\"/>\n"+
+"              <input type=\"hidden\" name=\"ruleentityprefix\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(ruleEntityPrefix)+"\"/>\n"+
+"              <input type=\"hidden\" name=\"ruleentitydescription\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(ruleEntityDescription)+"\"/>\n"+
+"              <input type=\"hidden\" name=\"rulefieldname\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(ruleFieldName)+"\"/>\n"+
+"              <input type=\"hidden\" name=\"ruleoperation\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(ruleOperation)+"\"/>\n"+
+"              <input type=\"hidden\" name=\"rulefieldvalue\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(ruleFieldValue)+"\"/>\n"+
+"            </nobr>\n"+
+"            <br/>\n"+
+"            <nobr>\n"+
+"              <input type=\"button\" value=\"Reset Path\" onClick='Javascript:SpecRuleReset()' alt=\"Reset rule values\"/>\n"
+      );
+      if (ruleFieldName.length() > 0)
+      {
+        out.print(
+"              <input type=\"button\" value=\"-\" onClick='Javascript:SpecRuleRemoveFieldMatch()' alt=\"Remove field match\"/>\n"
+        );
+      }
+      else
+      {
+        if (ruleEntityPrefix.length() > 0)
+        {
+          out.print(
+"              <input type=\"button\" value=\"-\" onClick='Javascript:SpecRuleRemoveEntity()' alt=\"Remove entity\"/>\n"
+          );
+        }
+        else
+        {
+          if (ruleVirtualServer.length() > 0)
+          {
+            out.print(
+"              <input type=\"button\" value=\"-\" onClick='Javascript:SpecRuleRemoveVirtualServer()' alt=\"Remove virtual server\"/>\n"
+            );
+          }
+        }
+      }
+      out.print(
+"            </nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>\n"
+      );
+      // If we've already selected the virtual server, display it, otherwise create a pulldown for selection
+      if (ruleVirtualServer.length() > 0)
+      {
+        // Display what was chosen
+        out.print(
+"              "+org.apache.lcf.ui.util.Encoder.bodyEscape(ruleVirtualServer)+"\n"
+        );
+      }
+      else
+      {
+        // Generate a selection list, and display that
+        // Need to catch potential license exception here
+        try
+        {
+          // Now, go through the list and preselect those that are selected
+          // Fetch the legal virtual servers
+          String[] virtualServers = listVirtualServers();
+          out.print(
+"              <input type=\"button\" value=\"Set Virtual Server\" onClick='Javascript:SpecRuleSetVirtualServer()' alt=\"Set virtual server in rule\"/>\n"+
+"              <select name=\"rulevirtualserverselect\" size=\"5\">\n"+
+"                <option value=\"\" selected=\"true\">-- Select Virtual Server --</option>\n"
+          );
+          int ii = 0;
+          while (ii < virtualServers.length)
+          {
+            out.print(
+"                <option value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(virtualServers[ii])+"\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(virtualServers[ii])+"</option>\n"
+            );
+            ii++;
+          }
+          out.print(
+"              </select>\n"
+          );
+        }
+        catch (LCFException e)
+        {
+          out.print(
+"              "+org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())+"\n"
+          );
+        }
+        catch (ServiceInterruption e)
+        {
+          out.print(
+"              Transient service interruption - "+org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())+"\n"
+          );
+        }
+
+      }
+      out.print(
+"            </nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>\n"
+      );
+      // If we've already selected the entity, display it, otherwise create a pulldown for selection
+      if (ruleEntityPrefix.length() > 0)
+      {
+        // Display what was chosen
+        out.print(
+"              "+org.apache.lcf.ui.util.Encoder.bodyEscape(ruleEntityDescription)+"\n"
+        );
+      }
+      else
+      {
+        // It's either too early, or we need to display the available entities
+        if (ruleVirtualServer.length() > 0)
+        {
+          // Generate list of available entities
+          // Need to catch potential license exception here
+          try
+          {
+            // Fetch the legal entity prefixes and descriptions
+            org.apache.lcf.crawler.connectors.memex.NameDescription[] allowedEntities = listDatabasesForVirtualServer(ruleVirtualServer);
+            out.print(
+"              <input type=\"button\" value=\"Set Entity\" onClick='Javascript:SpecRuleSetEntity()' alt=\"Set entity in rule\"/>\n"+
+"              <select name=\"ruleentityselect\" size=\"5\">\n"
+            );
+            int ii = 0;
+            while (ii < allowedEntities.length)
+            {
+              out.print(
+"                <option value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(allowedEntities[ii].getSymbolicName()+":"+allowedEntities[ii].getDisplayName())+"\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(allowedEntities[ii].getDisplayName())+"</option>\n"
+              );
+              ii++;
+            }
+            out.print(
+"              </select>\n"
+            );
+          }
+          catch (LCFException e)
+          {
+            out.print(
+"              "+org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())+"\n"
+            );
+          }
+          catch (ServiceInterruption e)
+          {
+            out.print(
+"              Transient service interruption - "+org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())+"\n"
+            );
+          }
+        }
+        else
+        {
+          // Display nothing!
+        }
+      }
+      out.print(
+"            </nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>\n"
+      );
+      // If we've already selected the criteria, display it, otherwise create a pulldown for selection, and a field value to fill in
+      if (ruleFieldName.length() > 0)
+      {
+        // Display the field criteria
+        out.print(
+"              "+org.apache.lcf.ui.util.Encoder.bodyEscape(ruleFieldName)+" "+org.apache.lcf.ui.util.Encoder.bodyEscape(ruleOperation)+" "+org.apache.lcf.ui.util.Encoder.bodyEscape(ruleFieldValue)+"\n"
+        );
+      }
+      else
+      {
+        // It's either too early, or we need to display the available field names etc.
+        if (ruleEntityPrefix.length() > 0)
+        {
+          // Generate list
+          // Need to catch potential license exception here
+          try
+          {
+            // Fetch the legal field names for this entity
+            String[] fieldNames = listMatchableFieldNames(ruleEntityPrefix);
+            out.print(
+"              <input type=\"button\" value=\"Set Criteria\" onClick='Javascript:SpecRuleSetCriteria()' alt=\"Set criteria in rule\"/>\n"+
+"              <select name=\"rulefieldnameselect\" size=\"5\">\n"+
+"                <option value=\"\" selected=\"true\">-- Select Field Name --</option>\n"
+            );
+            int ii = 0;
+            while (ii < fieldNames.length)
+            {
+              out.print(
+"                <option value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(fieldNames[ii])+"\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(fieldNames[ii])+"</option>\n"
+              );
+              ii++;
+            }
+            out.print(
+"              </select>\n"+
+"              <select name=\"ruleoperationselect\" size=\"5\">\n"+
+"                <option value=\"\" selected=\"true\">-- Select operation --</option>\n"+
+"                <option value=\"=\">equals</option>\n"+
+"                <option value=\"&lt;\">less than</option>\n"+
+"                <option value=\"&gt;\">greater than</option>\n"+
+"                <option value=\"&lt;=\">less than or equal to</option>\n"+
+"                <option value=\"&gt;=\">greater than or equal to</option>\n"+
+"              </select>\n"+
+"              <input type=\"text\" name=\"rulefieldvalueselect\" size=\"32\" value=\"\"/>\n"
+            );
+          }
+          catch (LCFException e)
+          {
+            out.print(
+"              "+org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())+"\n"
+            );
+          }
+          catch (ServiceInterruption e)
+          {
+            out.print(
+"              Transient service interruption - "+org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())+"\n"
+            );
+          }
+        }
+        else
+        {
+          // Display nothing!
+        }
+      }
+      out.print(
+"              </nobr>\n"+
+"            </td>\n"+
+"          </tr>\n"+
+"        </table>\n"+
+"      </td>\n"+
+"    </tr>\n"+
+"  </table>\n"
+      );
+    }
+    else
+    {
+      // Loop through the existing rules
+      int q = 0;
+      int l = 0;
+      while (q < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(q++);
+        if (sn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_SPECIFICATIONRULE))
+        {
+          // Grab the appropriate rule data
+          String virtualServer = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_VIRTUALSERVER);
+          if (virtualServer == null)
+            virtualServer = "";
+          String entityPrefix = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_ENTITY);
+          if (entityPrefix == null)
+            entityPrefix = "";
+          String entityDescription = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_DESCRIPTION);
+          if (entityDescription == null)
+            entityDescription = entityPrefix;
+          String fieldName = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_FIELDNAME);
+          if (fieldName == null)
+            fieldName = "";
+          String operation = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_OPERATION);
+          if (operation == null)
+            operation = "";
+          String fieldValue = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_FIELDVALUE);
+          if (fieldValue == null)
+            fieldValue = "";
+            
+          String pathDescription = "_"+Integer.toString(l);
+          out.print(
+"<input type=\"hidden\" name=\""+"virtualserver"+pathDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(virtualServer)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"entityprefix"+pathDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(entityPrefix)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"entitydescription"+pathDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(entityDescription)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"fieldname"+pathDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(fieldName)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"operation"+pathDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(operation)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"fieldvalue"+pathDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(fieldValue)+"\"/>\n"
+          );
+          l++;
+        }
+      }
+      out.print(
+"<input type=\"hidden\" name=\"specrulecount\" value=\""+Integer.toString(l)+"\"/>\n"
+      );
+    }
+
+    // Security tab
+    // Find whether security is on or off
+    i = 0;
+    boolean securityOn = true;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_SECURITY))
+      {
+        String securityValue = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_VALUE);
+        if (securityValue.equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_VALUE_OFF))
+          securityOn = false;
+        else if (securityValue.equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_VALUE_ON))
+          securityOn = true;
+      }
+    }
+
+    if (tabName.equals("Security"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Security:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"radio\" name=\"specsecurity\" value=\"on\" "+(securityOn?"checked=\"true\"":"")+" />Enabled&nbsp;\n"+
+"      <input type=\"radio\" name=\"specsecurity\" value=\"off\" "+((securityOn==false)?"checked=\"true\"":"")+" />Disabled\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+      );
+      // Go through forced ACL
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_ACCESS))
+        {
+          String accessDescription = "_"+Integer.toString(k);
+          String accessOpName = "accessop"+accessDescription;
+          String token = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_TOKEN);
+          out.print(
+"  <tr>\n"+
+"    <td class=\"description\">\n"+
+"      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
+"      <input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"+
+"      <a name=\""+"token_"+Integer.toString(k)+"\"><input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")' alt=\""+"Delete token #"+Integer.toString(k)+"\"/></a>&nbsp;\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(token)+"\n"+
+"    </td>\n"+
+"  </tr>\n"
+          );
+          k++;
+        }
+      }
+      if (k == 0)
+      {
+        out.print(
+"  <tr>\n"+
+"    <td class=\"message\" colspan=\"2\">No access tokens present</td>\n"+
+"  </tr>\n"
+        );
+      }
+      out.print(
+"  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\">\n"+
+"      <input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"      <input type=\"hidden\" name=\"accessop\" value=\"\"/>\n"+
+"      <a name=\""+"token_"+Integer.toString(k)+"\"><input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddToken(\"token_"+Integer.toString(k+1)+"\")' alt=\"Add access token\"/></a>&nbsp;\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"text\" size=\"30\" name=\"spectoken\" value=\"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"specsecurity\" value=\""+(securityOn?org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_VALUE_ON:org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_VALUE_OFF)+"\"/>\n"
+      );
+      // Finally, go through forced ACL
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_ACCESS))
+        {
+          String accessDescription = "_"+Integer.toString(k);
+          String token = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_TOKEN);
+          out.print(
+"<input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"
+          );
+          k++;
+        }
+      }
+      out.print(
+"<input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"
+      );
+    }
+  }
+  
+  /** Process a specification post.
+  * This method is called at the start of job's edit or view page, whenever there is a possibility that form data for a connection has been
+  * posted.  Its purpose is to gather form information and modify the document specification accordingly.
+  * The name of the posted form is "editjob".
+  *@param variableContext contains the post data, including binary file-upload information.
+  *@param ds is the current document specification for this job.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
+  */
+  public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
+    throws LCFException
+  {
+    String x = variableContext.getParameter("entitytypecount");
+    if (x != null && x.length() > 0)
+    {
+      // Delete all entity records first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_ENTITY))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      // Loop through specs
+      int count = Integer.parseInt(x);
+      i = 0;
+      while (i < count)
+      {
+        String entityType = variableContext.getParameter("entitytype_"+Integer.toString(i));
+        String displayName = variableContext.getParameter("entitydesc_"+Integer.toString(i));
+        String[] primaryFields = variableContext.getParameterValues("primaryfields_"+Integer.toString(i));
+        if (primaryFields != null && primaryFields.length > 0)
+        {
+          // At least one primary field was selected for this entity type!
+          SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_ENTITY);
+          node.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_NAME,entityType);
+          node.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_DESCRIPTION,displayName);
+          
+          int k = 0;
+          while (k < primaryFields.length)
+          {
+            SpecificationNode primaryNode = new SpecificationNode(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_PRIMARYFIELD);
+            primaryNode.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_NAME,primaryFields[k++]);
+            node.addChild(node.getChildCount(),primaryNode);
+          }
+          
+          String[] z = variableContext.getParameterValues("metadatafields_"+Integer.toString(i));
+          if (z != null)
+          {
+            k = 0;
+            while (k < z.length)
+            {
+              SpecificationNode attrNode = new SpecificationNode(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_METAFIELD);
+              attrNode.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_NAME,z[k++]);
+              node.addChild(node.getChildCount(),attrNode);
+            }
+          }
+          ds.addChild(ds.getChildCount(),node);
+        }
+        i++;
+      }
+    }
+
+    // Next, process the record criteria
+    x = variableContext.getParameter("specrulecount");
+    if (x != null && x.length() > 0)
+    {
+      // Delete all rules first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_SPECIFICATIONRULE))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      // Loop through specs
+      int count = Integer.parseInt(x);
+      i = 0;
+      while (i < count)
+      {
+        String ruleSuffix = "_"+Integer.toString(i);
+        // Grab the rule data
+        String virtualServer = variableContext.getParameter("virtualserver"+ruleSuffix);
+        if (virtualServer == null)
+          virtualServer = "";
+        String entityPrefix = variableContext.getParameter("entityprefix"+ruleSuffix);
+        if (entityPrefix == null)
+          entityPrefix = "";
+        String entityDescription = variableContext.getParameter("entitydescription"+ruleSuffix);
+        if (entityDescription == null)
+          entityDescription = "";
+        String fieldName = variableContext.getParameter("fieldname"+ruleSuffix);
+        if (fieldName == null)
+          fieldName = "";
+        String operation = variableContext.getParameter("operation"+ruleSuffix);
+        if (operation == null)
+          operation = "";
+        String fieldValue = variableContext.getParameter("fieldvalue"+ruleSuffix);
+        if (fieldValue == null)
+          fieldValue = "";
+        String opcode = variableContext.getParameter("specop"+ruleSuffix);
+        if (opcode != null && opcode.equals("Delete"))
+        {
+          // Do not include this row in the new set
+        }
+        else
+        {
+          SpecificationNode sn = new SpecificationNode(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_SPECIFICATIONRULE);
+          if (virtualServer.length() > 0)
+            sn.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_VIRTUALSERVER,virtualServer);
+          if (entityPrefix.length() > 0)
+            sn.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_ENTITY,entityPrefix);
+          if (entityDescription.length() > 0)
+            sn.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_DESCRIPTION,entityDescription);
+          if (fieldName.length() > 0)
+            sn.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_FIELDNAME,fieldName);
+          if (operation.length() > 0)
+            sn.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_OPERATION,operation);
+          if (fieldValue.length() > 0)
+            sn.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_FIELDVALUE,fieldValue);
+          ds.addChild(ds.getChildCount(),sn);
+        }
+        i++;
+      }
+      
+      // Pull out rule fields and put them into the thread context
+      String ruleVirtualServer = variableContext.getParameter("rulevirtualserver");
+      if (ruleVirtualServer == null)
+        ruleVirtualServer = "";
+      String ruleEntityPrefix = variableContext.getParameter("ruleentityprefix");
+      if (ruleEntityPrefix == null)
+        ruleEntityPrefix = "";
+      String ruleEntityDescription = variableContext.getParameter("ruleentitydescription");
+      if (ruleEntityDescription == null)
+        ruleEntityDescription = "";
+      String ruleFieldName = variableContext.getParameter("rulefieldname");
+      if (ruleFieldName == null)
+        ruleFieldName = "";
+      String ruleOperation = variableContext.getParameter("ruleoperation");
+      if (ruleOperation == null)
+        ruleOperation = "";
+      String ruleFieldValue = variableContext.getParameter("rulefieldvalue");
+      if (ruleFieldValue == null)
+        ruleFieldValue = "";
+        
+      // Now, look at global opcode.
+      String globalOpcode = variableContext.getParameter("specop");
+      if (globalOpcode != null && globalOpcode.equals("Add"))
+      {
+        // Add the specified rule to the end of the list, and clear out all the rule parameters.
+        SpecificationNode sn = new SpecificationNode(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_SPECIFICATIONRULE);
+        if (ruleVirtualServer.length() > 0)
+          sn.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_VIRTUALSERVER,ruleVirtualServer);
+        if (ruleEntityPrefix.length() > 0)
+          sn.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_ENTITY,ruleEntityPrefix);
+        if (ruleEntityDescription.length() > 0)
+          sn.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_DESCRIPTION,ruleEntityDescription);
+        if (ruleFieldName.length() > 0)
+          sn.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_FIELDNAME,ruleFieldName);
+        if (ruleOperation.length() > 0)
+          sn.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_OPERATION,ruleOperation);
+        if (ruleFieldValue.length() > 0)
+          sn.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_FIELDVALUE,ruleFieldValue);
+        ds.addChild(ds.getChildCount(),sn);
+        ruleVirtualServer = "";
+        ruleEntityPrefix = "";
+        ruleEntityDescription = "";
+        ruleFieldName = "";
+        ruleOperation = "";
+        ruleFieldValue = "";
+      }
+        
+      currentContext.save("rulevirtualserver",ruleVirtualServer);
+      currentContext.save("ruleentityprefix",ruleEntityPrefix);
+      currentContext.save("ruleentitydescription",ruleEntityDescription);
+      currentContext.save("rulefieldname",ruleFieldName);
+      currentContext.save("ruleoperation",ruleOperation);
+      currentContext.save("rulefieldvalue",ruleFieldValue);
+    }
+
+    // Look whether security is on or off
+    String xc = variableContext.getParameter("specsecurity");
+    if (xc != null)
+    {
+      // Delete all security entries first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_SECURITY))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_SECURITY);
+      node.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_VALUE,xc);
+      ds.addChild(ds.getChildCount(),node);
+
+    }
+
+    xc = variableContext.getParameter("tokencount");
+    if (xc != null)
+    {
+      // Delete all file specs first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_ACCESS))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      int accessCount = Integer.parseInt(xc);
+      i = 0;
+      while (i < accessCount)
+      {
+        String accessDescription = "_"+Integer.toString(i);
+        String accessOpName = "accessop"+accessDescription;
+        xc = variableContext.getParameter(accessOpName);
+        if (xc != null && xc.equals("Delete"))
+        {
+          // Next row
+          i++;
+          continue;
+        }
+        // Get the stuff we need
+        String accessSpec = variableContext.getParameter("spectoken"+accessDescription);
+        SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_ACCESS);
+        node.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_TOKEN,accessSpec);
+        ds.addChild(ds.getChildCount(),node);
+        i++;
+      }
+
+      String op = variableContext.getParameter("accessop");
+      if (op != null && op.equals("Add"))
+      {
+        String accessspec = variableContext.getParameter("spectoken");
+        SpecificationNode node = new SpecificationNode(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_ACCESS);
+        node.setAttribute(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_TOKEN,accessspec);
+        ds.addChild(ds.getChildCount(),node);
+      }
+    }
+    return null;
+  }
+  
+  /** View specification.
+  * This method is called in the body section of a job's view page.  Its purpose is to present the document specification information to the user.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  *@param out is the output to which any HTML should be sent.
+  *@param ds is the current document specification for this job.
+  */
+  public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
+    throws LCFException, IOException
+  {
+    out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr>\n"
+    );
+    int i = 0;
+    int l = 0;
+    boolean seenAny = false;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_SPECIFICATIONRULE))
+      {
+        String virtualServer = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_VIRTUALSERVER);
+        if (virtualServer == null)
+          virtualServer = "";
+        String entityPrefix = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_ENTITY);
+        if (entityPrefix == null)
+          entityPrefix = "";
+        String entityDescription = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_DESCRIPTION);
+        if (entityDescription == null)
+          entityDescription = "";
+        String fieldName = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_FIELDNAME);
+        if (fieldName == null)
+          fieldName = "";
+        String operation = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_OPERATION);
+        if (operation == null)
+          operation = "";
+        String fieldValue = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_FIELDVALUE);
+        if (fieldValue == null)
+          fieldValue = "";
+                          
+                          
+        if (seenAny == false)
+        {
+          seenAny = true;
+          out.print(
+"    <td class=\"description\"><nobr>Inclusion rules:</nobr></td>\n"+
+"    <td class=\"boxcell\">\n"+
+"      <table class=\"formtable\">\n"+
+"        <tr class=\"formheaderrow\">\n"+
+"          <td class=\"formcolumnheader\"><nobr>Virtual server</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Entity</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Criteria</nobr></td>\n"+
+"        </tr>\n"
+          );
+        }
+        out.print(
+"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"          <td class=\"formcolumncell\"><nobr>"+((virtualServer.length()==0)?"(all)":org.apache.lcf.ui.util.Encoder.bodyEscape(virtualServer))+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+((entityPrefix.length()==0)?"(all)":org.apache.lcf.ui.util.Encoder.bodyEscape(entityDescription))+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+((fieldName.length()==0)?"(all)":org.apache.lcf.ui.util.Encoder.bodyEscape(fieldName+" "+operation+" "+fieldValue))+"</nobr></td>\n"+
+"        </tr>\n"
+        );
+        l++;
+      }
+    }
+
+    if (seenAny)
+    {
+      out.print(
+"      </table>\n"+
+"    </td>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"    <td colspan=\"2\" class=\"message\"><nobr>No rules specified (no records will be scanned)</nobr></td>\n"
+      );
+    }
+    out.print(
+"  </tr>\n"+
+"\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"\n"+
+"  <tr>\n"
+    );
+    seenAny = false;
+    i = 0;
+    int z = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_ENTITY))
+      {
+        if (seenAny == false)
+        {
+          out.print(
+"    <td class=\"description\"><nobr>Entity tagged fields and metadata:</nobr></td>\n"+
+"    <td class=\"boxcell\">\n"+
+"      <table class=\"formtable\">\n"+
+"        <tr class=\"formheaderrow\">\n"+
+"          <td class=\"formcolumnheader\"><nobr>Entity name</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Tagged fields</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Metadata fields</nobr></td>\n"+
+"        </tr>\n"
+          );
+          seenAny = true;
+        }
+        String strEntityName = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_NAME);
+        String strEntityDescription = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_DESCRIPTION);
+        out.print(
+"        <tr class=\""+(((z % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(strEntityDescription)+"</nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"
+        );
+        int k = 0;
+        while (k < sn.getChildCount())
+        {
+          SpecificationNode dsn = sn.getChild(k++);
+          if (dsn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_PRIMARYFIELD))
+          {
+            String attrName = dsn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_NAME);
+            out.print(
+"            <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(attrName)+"</nobr><br/>\n"
+            );
+          }
+        }
+        out.print(
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"
+        );
+        l = 0;
+        k = 0;
+        while (k < sn.getChildCount())
+        {
+          SpecificationNode dsn = sn.getChild(k++);
+          if (dsn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_METAFIELD))
+          {
+            String attrName = dsn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_NAME);
+            out.print(
+"            <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(attrName)+"</nobr><br/>\n"
+            );
+
+            l++;
+          }
+        }
+        if (l == 0)
+        {
+          out.print(
+"            <nobr>(No metadata attributes chosen)</nobr>\n"
+          );
+        }
+        out.print(
+"          </td>\n"+
+"        </tr>\n"
+        );
+        z++;
+      }
+    }
+    if (seenAny)
+    {
+      out.print(
+"      </table>\n"+
+"    </td>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"    <td colspan=\"2\" class=\"message\">No entities specified; nothing will be crawled</td>\n"
+      );
+    }
+    out.print(
+"  </tr>\n"
+    );
+    // Find whether security is on or off
+    i = 0;
+    boolean securityOn = true;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_SECURITY))
+      {
+        String securityValue = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_VALUE);
+        if (securityValue.equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_VALUE_OFF))
+          securityOn = false;
+        else if (securityValue.equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_VALUE_ON))
+          securityOn = true;
+      }
+    }
+    out.print(
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Security:</nobr></td>\n"+
+"    <td class=\"value\">"+(securityOn?"Enabled":"Disabled")+"</td>\n"+
+"  </tr>\n"+
+"\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+    );
+    // Go through looking for access tokens
+    seenAny = false;
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_NODE_ACCESS))
+      {
+        if (seenAny == false)
+        {
+          out.print(
+"  <tr><td class=\"description\"><nobr>Access tokens:</nobr></td>\n"+
+"    <td class=\"value\">\n"
+          );
+          seenAny = true;
+        }
+        String token = sn.getAttributeValue(org.apache.lcf.crawler.connectors.memex.MemexConnector.SPEC_ATTRIBUTE_TOKEN);
+        out.print(
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(token)+"<br/>\n"
+        );
+      }
+    }
+
+    if (seenAny)
+    {
+      out.print(
+"    </td>\n"+
+"  </tr>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"  <tr><td class=\"message\" colspan=\"2\">No access tokens specified</td></tr>\n"
+      );
+    }
+    out.print(
+"</table>\n"
+    );
+  }
+
   // UI support methods
 
   /** Return a list of databases (instances of an entity type) on a given virtual server*/

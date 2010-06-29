@@ -636,6 +636,704 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
       result.close();
     }
   }
+  
+  // UI support methods.
+  //
+  // These support methods come in two varieties.  The first bunch is involved in setting up connection configuration information.  The second bunch
+  // is involved in presenting and editing document specification information for a job.  The two kinds of methods are accordingly treated differently,
+  // in that the first bunch cannot assume that the current connector object is connected, while the second bunch can.  That is why the first bunch
+  // receives a thread context argument for all UI methods, while the second bunch does not need one (since it has already been applied via the connect()
+  // method, above).
+    
+  /** Output the configuration header section.
+  * This method is called in the head section of the connector's configuration page.  Its purpose is to add the required tabs to the list, and to output any
+  * javascript methods that might be needed by the configuration editing HTML.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
+    throws LCFException, IOException
+  {
+    tabsArray.add("Database Type");
+    tabsArray.add("Server");
+    tabsArray.add("Credentials");
+
+    out.print(
+"<script type=\"text/javascript\">\n"+
+"<!--\n"+
+"function checkConfigForSave()\n"+
+"{\n"+
+"  if (editconnection.databasehost.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Please fill in a database server name\");\n"+
+"    SelectTab(\"Server\");\n"+
+"    editconnection.databasehost.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.databasename.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Please fill in the name of the database\");\n"+
+"    SelectTab(\"Server\");\n"+
+"    editconnection.databasename.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.username.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Please supply the database username for this connection\");\n"+
+"    SelectTab(\"Credentials\");\n"+
+"    editconnection.username.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"//-->\n"+
+"</script>\n"
+    );
+  }
+  
+  /** Output the configuration body section.
+  * This method is called in the body section of the connector's configuration page.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabName is the current tab name.
+  */
+  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
+    throws LCFException, IOException
+  {
+    String jdbcProvider = parameters.getParameter(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.providerParameter);
+    if (jdbcProvider == null)
+      jdbcProvider = "oracle:thin:@";
+    String host = parameters.getParameter(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.hostParameter);
+    if (host == null)
+      host = "localhost";
+    String databaseName = parameters.getParameter(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.databaseNameParameter);
+    if (databaseName == null)
+      databaseName = "database";
+    String databaseUser = parameters.getParameter(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.databaseUserName);
+    if (databaseUser == null)
+      databaseUser = "";
+    String databasePassword = parameters.getObfuscatedParameter(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.databasePassword);
+    if (databasePassword == null)
+      databasePassword = "";
+
+    // "Database Type" tab
+    if (tabName.equals("Database Type"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Database type:</nobr></td><td class=\"value\">\n"+
+"      <select multiple=\"false\" name=\"databasetype\" size=\"2\">\n"+
+"        <option value=\"oracle:thin:@\" "+(jdbcProvider.equals("oracle:thin:@")?"selected=\"selected\"":"")+">Oracle</option>\n"+
+"        <option value=\"postgresql:\" "+(jdbcProvider.equals("postgresql:")?"selected=\"selected\"":"")+">Postgres SQL</option>\n"+
+"        <option value=\"jtds:sqlserver:\" "+(jdbcProvider.equals("jtds:sqlserver:")?"selected=\"selected\"":"")+">MS SQL Server (&gt; V6.5)</option>\n"+
+"        <option value=\"jtds:sybase:\" "+(jdbcProvider.equals("jtds:sybase:")?"selected=\"selected\"":"")+">Sybase (&gt;= V10)</option>\n"+
+"      </select>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"databasetype\" value=\""+jdbcProvider+"\"/>\n"
+      );
+    }
+
+    // "Server" tab
+    if (tabName.equals("Server"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Database host and port:</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"databasehost\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(host)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Database service name or instance/database:</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"databasename\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(databaseName)+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"databasehost\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(host)+"\"/>\n"+
+"<input type=\"hidden\" name=\"databasename\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(databaseName)+"\"/>\n"
+      );
+    }
+
+    // "Credentials" tab
+    if (tabName.equals("Credentials"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>User name:</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"username\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(databaseUser)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Password:</nobr></td><td class=\"value\"><input type=\"password\" size=\"32\" name=\"password\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(databasePassword)+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"username\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(databaseUser)+"\"/>\n"+
+"<input type=\"hidden\" name=\"password\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(databasePassword)+"\"/>\n"
+      );
+    }
+  }
+  
+  /** Process a configuration post.
+  * This method is called at the start of the connector's configuration page, whenever there is a possibility that form data for a connection has been
+  * posted.  Its purpose is to gather form information and modify the configuration parameters accordingly.
+  * The name of the posted form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param variableContext is the set of variables available from the post, including binary file post information.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
+  */
+  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
+    throws LCFException
+  {
+    String type = variableContext.getParameter("databasetype");
+    if (type != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.providerParameter,type);
+
+    String host = variableContext.getParameter("databasehost");
+    if (host != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.hostParameter,host);
+
+    String databaseName = variableContext.getParameter("databasename");
+    if (databaseName != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.databaseNameParameter,databaseName);
+
+    String userName = variableContext.getParameter("username");
+    if (userName != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.databaseUserName,userName);
+
+    String password = variableContext.getParameter("password");
+    if (password != null)
+      parameters.setObfuscatedParameter(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.databasePassword,password);
+    
+    return null;
+  }
+  
+  /** View configuration.
+  * This method is called in the body section of the connector's view configuration page.  Its purpose is to present the connection information to the user.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  */
+  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
+    throws LCFException, IOException
+  {
+    out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>Parameters:</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"3\">\n"
+    );
+    Iterator iter = parameters.listParameters();
+    while (iter.hasNext())
+    {
+      String param = (String)iter.next();
+      String value = parameters.getParameter(param);
+      if (param.length() >= "password".length() && param.substring(param.length()-"password".length()).equalsIgnoreCase("password"))
+      {
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"=********</nobr><br/>\n"
+        );
+      }
+      else if (param.length() >="keystore".length() && param.substring(param.length()-"keystore".length()).equalsIgnoreCase("keystore"))
+      {
+        IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"=<"+Integer.toString(kmanager.getContents().length)+" certificate(s)></nobr><br/>\n"
+        );
+      }
+      else
+      {
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"="+org.apache.lcf.ui.util.Encoder.bodyEscape(value)+"</nobr><br/>\n"
+        );
+      }
+    }
+    out.print(
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+    );
+  }
+  
+  /** Output the specification header section.
+  * This method is called in the head section of a job page which has selected a repository connection of the current type.  Its purpose is to add the required tabs
+  * to the list, and to output any javascript methods that might be needed by the job editing HTML.
+  *@param out is the output to which any HTML should be sent.
+  *@param ds is the current document specification for this job.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
+  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
+    throws LCFException, IOException
+  {
+    tabsArray.add("Queries");
+    tabsArray.add("Security");
+
+    out.print(
+"<script type=\"text/javascript\">\n"+
+"<!--\n"+
+"\n"+
+"function SpecOp(n, opValue, anchorvalue)\n"+
+"{\n"+
+"  eval(\"editjob.\"+n+\".value = \\\"\"+opValue+\"\\\"\");\n"+
+"  postFormSetAnchor(anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function SpecAddToken(anchorvalue)\n"+
+"{\n"+
+"  if (editjob.spectoken.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Type in an access token\");\n"+
+"    editjob.spectoken.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  SpecOp(\"accessop\",\"Add\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function checkSpecification()\n"+
+"{\n"+
+"  if (editjob.idquery.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Enter a seeding query\");\n"+
+"    editjob.idquery.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editjob.idquery.value.indexOf(\"$(IDCOLUMN)\") == -1)\n"+
+"  {\n"+
+"    alert(\"Must return $(IDCOLUMN) in the result.\\nExample: SELECT idfield AS $(IDCOLUMN) FROM ...\");\n"+
+"    editjob.idquery.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editjob.versionquery.value != \"\")\n"+
+"  {\n"+
+"    if (editjob.versionquery.value.indexOf(\"$(IDCOLUMN)\") == -1)\n"+
+"    {\n"+
+"      alert(\"Must return $(IDCOLUMN) in the result.\\nExample: SELECT idfield AS $(IDCOLUMN), ...\");\n"+
+"      editjob.versionquery.focus();\n"+
+"      return false;\n"+
+"    }\n"+
+"    if (editjob.versionquery.value.indexOf(\"$(VERSIONCOLUMN)\") == -1)\n"+
+"    {\n"+
+"      alert(\"Must return $(VERSIONCOLUMN) in the result, containing the document version.\\nExample: SELECT versionfield AS $(VERSIONCOLUMN), ...\");\n"+
+"      editjob.versionquery.focus();\n"+
+"      return false;\n"+
+"    }\n"+
+"    if (editjob.versionquery.value.indexOf(\"$(IDLIST)\") == -1)\n"+
+"    {\n"+
+"      alert(\"Must use $(IDLIST) in WHERE clause.\\nExample: SELECT ... WHERE idfield IN $(IDLIST) ...\");\n"+
+"      editjob.versionquery.focus();\n"+
+"      return false;\n"+
+"    }\n"+
+"  }\n"+
+"  if (editjob.dataquery.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Enter a data query\");\n"+
+"    editjob.dataquery.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editjob.dataquery.value.indexOf(\"$(IDCOLUMN)\") == -1)\n"+
+"  {\n"+
+"    alert(\"Must return $(IDCOLUMN) in the result.\\nExample: SELECT idfield AS $(IDCOLUMN), ...\");\n"+
+"    editjob.dataquery.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editjob.dataquery.value.indexOf(\"$(URLCOLUMN)\") == -1)\n"+
+"  {\n"+
+"    alert(\"Must return $(URLCOLUMN) in the result, containing the url to use to reach the document.\\nExample: SELECT urlfield AS $(URLCOLUMN), ...\");\n"+
+"    editjob.dataquery.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editjob.dataquery.value.indexOf(\"$(DATACOLUMN)\") == -1)\n"+
+"  {\n"+
+"    alert(\"Must return $(DATACOLUMN) in the result, containing the document data.\\nExample: SELECT datafield AS $(DATACOLUMN), ...\");\n"+
+"    editjob.dataquery.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editjob.dataquery.value.indexOf(\"$(IDLIST)\") == -1)\n"+
+"  {\n"+
+"    alert(\"Must use $(IDLIST) in WHERE clause.\\nExample: SELECT ... WHERE idfield IN $(IDLIST) ...\");\n"+
+"    editjob.dataquery.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"//-->\n"+
+"</script>\n"
+    );
+  }
+  
+  /** Output the specification body section.
+  * This method is called in the body section of a job page which has selected a repository connection of the current type.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * form is "editjob".
+  *@param out is the output to which any HTML should be sent.
+  *@param ds is the current document specification for this job.
+  *@param tabName is the current tab name.
+  */
+  public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
+    throws LCFException, IOException
+  {
+    String idQuery = null;
+    String versionQuery = null;
+    String dataQuery = null;
+
+    int i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.idQueryNode))
+        idQuery = sn.getValue();
+      else if (sn.getType().equals(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.versionQueryNode))
+        versionQuery = sn.getValue();
+      else if (sn.getType().equals(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.dataQueryNode))
+        dataQuery = sn.getValue();
+    }
+
+    if (idQuery == null)
+      idQuery = "SELECT idfield AS $(IDCOLUMN) FROM documenttable WHERE modifydatefield > $(STARTTIME) AND modifydatefield <= $(ENDTIME)";
+    if (versionQuery == null)
+      versionQuery = "SELECT idfield AS $(IDCOLUMN), versionfield AS $(VERSIONCOLUMN) FROM documenttable WHERE idfield IN $(IDLIST)";
+    if (dataQuery == null)
+      dataQuery = "SELECT idfield AS $(IDCOLUMN), urlfield AS $(URLCOLUMN), datafield AS $(DATACOLUMN) FROM documenttable WHERE idfield IN $(IDLIST)";
+
+    // The Queries tab
+
+    if (tabName.equals("Queries"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Seeding query:</nobr><br/><nobr>(return ids that need to be checked)</nobr></td>\n"+
+"    <td class=\"value\"><textarea name=\"idquery\" cols=\"64\" rows=\"6\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(idQuery)+"</textarea></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Version check query:</nobr><br/><nobr>(return ids and versions for a set of documents;</nobr><br/><nobr>leave blank if no versioning capability)</nobr></td>\n"+
+"    <td class=\"value\"><textarea name=\"versionquery\" cols=\"64\" rows=\"6\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(versionQuery)+"</textarea></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Data query:</nobr><br/><nobr>(return ids, urls, and data for a set of documents)</nobr></td>\n"+
+"    <td class=\"value\"><textarea name=\"dataquery\" cols=\"64\" rows=\"6\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(dataQuery)+"</textarea></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"idquery\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(idQuery)+"\"/>\n"+
+"<input type=\"hidden\" name=\"versionquery\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(versionQuery)+"\"/>\n"+
+"<input type=\"hidden\" name=\"dataquery\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(dataQuery)+"\"/>\n"
+      );
+    }
+	
+    // Security tab
+    // There is no native security, so all we care about are the tokens.
+    i = 0;
+
+    if (tabName.equals("Security"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+      );
+      // Go through forced ACL
+      i = 0;
+      int k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals("access"))
+        {
+          String accessDescription = "_"+Integer.toString(k);
+          String accessOpName = "accessop"+accessDescription;
+          String token = sn.getAttributeValue("token");
+          out.print(
+"  <tr>\n"+
+"    <td class=\"description\">\n"+
+"      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
+"      <input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"+
+"      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")' alt=\"Delete token #\""+Integer.toString(k)+"\"/>\n"+
+"      </a>&nbsp;\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(token)+"\n"+
+"    </td>\n"+
+"  </tr>\n"
+          );
+          k++;
+        }
+      }
+      if (k == 0)
+      {
+        out.print(
+"  <tr>\n"+
+"    <td class=\"message\" colspan=\"2\">No access tokens present</td>\n"+
+"  </tr>\n"
+        );
+      }
+      out.print(
+"  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\">\n"+
+"      <input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"      <input type=\"hidden\" name=\"accessop\" value=\"\"/>\n"+
+"      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddToken(\"token_"+Integer.toString(k+1)+"\")' alt=\"Add access token\"/>\n"+
+"      </a>&nbsp;\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"text\" size=\"30\" name=\"spectoken\" value=\"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Finally, go through forced ACL
+      i = 0;
+      int k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals("access"))
+        {
+          String accessDescription = "_"+Integer.toString(k);
+          String token = sn.getAttributeValue("token");
+          out.print(
+"<input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"
+          );
+          k++;
+        }
+      }
+      out.print(
+"<input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"
+      );
+    }
+  }
+  
+  /** Process a specification post.
+  * This method is called at the start of job's edit or view page, whenever there is a possibility that form data for a connection has been
+  * posted.  Its purpose is to gather form information and modify the document specification accordingly.
+  * The name of the posted form is "editjob".
+  *@param variableContext contains the post data, including binary file-upload information.
+  *@param ds is the current document specification for this job.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
+  */
+  public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
+    throws LCFException
+  {
+    String idQuery = variableContext.getParameter("idquery");
+    String versionQuery = variableContext.getParameter("versionquery");
+    String dataQuery = variableContext.getParameter("dataquery");
+
+    SpecificationNode sn;
+    if (idQuery != null)
+    {
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        if (ds.getChild(i).getType().equals(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.idQueryNode))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+      sn = new SpecificationNode(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.idQueryNode);
+      sn.setValue(idQuery);
+      ds.addChild(ds.getChildCount(),sn);
+    }
+    if (versionQuery != null)
+    {
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        if (ds.getChild(i).getType().equals(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.versionQueryNode))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+      sn = new SpecificationNode(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.versionQueryNode);
+      sn.setValue(versionQuery);
+      ds.addChild(ds.getChildCount(),sn);
+    }
+    if (dataQuery != null)
+    {
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        if (ds.getChild(i).getType().equals(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.dataQueryNode))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+      sn = new SpecificationNode(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.dataQueryNode);
+      sn.setValue(dataQuery);
+      ds.addChild(ds.getChildCount(),sn);
+    }
+	
+    String xc = variableContext.getParameter("tokencount");
+    if (xc != null)
+    {
+      // Delete all tokens first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        sn = ds.getChild(i);
+        if (sn.getType().equals("access"))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      int accessCount = Integer.parseInt(xc);
+      i = 0;
+      while (i < accessCount)
+      {
+        String accessDescription = "_"+Integer.toString(i);
+        String accessOpName = "accessop"+accessDescription;
+        xc = variableContext.getParameter(accessOpName);
+        if (xc != null && xc.equals("Delete"))
+        {
+          // Next row
+          i++;
+          continue;
+        }
+        // Get the stuff we need
+        String accessSpec = variableContext.getParameter("spectoken"+accessDescription);
+        SpecificationNode node = new SpecificationNode("access");
+        node.setAttribute("token",accessSpec);
+        ds.addChild(ds.getChildCount(),node);
+        i++;
+      }
+
+      String op = variableContext.getParameter("accessop");
+      if (op != null && op.equals("Add"))
+      {
+        String accessspec = variableContext.getParameter("spectoken");
+        SpecificationNode node = new SpecificationNode("access");
+        node.setAttribute("token",accessspec);
+        ds.addChild(ds.getChildCount(),node);
+      }
+    }
+    return null;
+  }
+  
+  /** View specification.
+  * This method is called in the body section of a job's view page.  Its purpose is to present the document specification information to the user.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  *@param out is the output to which any HTML should be sent.
+  *@param ds is the current document specification for this job.
+  */
+  public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
+    throws LCFException, IOException
+  {
+    String idQuery = null;
+    String versionQuery = null;
+    String dataQuery = null;
+
+    int i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.idQueryNode))
+        idQuery = sn.getValue();
+      else if (sn.getType().equals(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.versionQueryNode))
+        versionQuery = sn.getValue();
+      else if (sn.getType().equals(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.dataQueryNode))
+        dataQuery = sn.getValue();
+    }
+
+    if (idQuery == null)
+      idQuery = "";
+    if (versionQuery == null)
+      versionQuery = "";
+    if (dataQuery == null)
+      dataQuery = "";
+
+    out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Seeding query:</nobr></td>\n"+
+"    <td class=\"value\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(idQuery)+"</td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Version check query:</nobr></td>\n"+
+"    <td class=\"value\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(versionQuery)+"</td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Data query:</nobr></td>\n"+
+"    <td class=\"value\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(dataQuery)+"</td>\n"+
+"  </tr>\n"+
+"\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+    );
+    // Go through looking for access tokens
+    boolean seenAny = false;
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("access"))
+      {
+        if (seenAny == false)
+        {
+          out.print(
+"  <tr><td class=\"description\"><nobr>Access tokens:</nobr></td>\n"+
+"    <td class=\"value\">\n"
+          );
+          seenAny = true;
+        }
+        String token = sn.getAttributeValue("token");
+        out.print(
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(token)+"<br/>\n"
+        );
+      }
+    }
+
+    if (seenAny)
+    {
+      out.print(
+"    </td>\n"+
+"  </tr>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"  <tr><td class=\"message\" colspan=\"2\"><nobr>No access tokens specified</nobr></td></tr>\n"
+      );
+    }
+
+    out.print(
+"</table>\n"
+    );
+  }
 
   /** Special column names, as far as document queries are concerned */
   protected static HashMap documentKnownColumns;

@@ -389,6 +389,434 @@ public class MemexAuthority extends org.apache.lcf.authorities.authorities.BaseA
     return new AuthorizationResponse(new String[] {MemexConnector.defaultAuthorityDenyToken}, AuthorizationResponse.RESPONSE_UNREACHABLE);
   }
 
+  // UI support methods.
+  //
+  // These support methods are involved in setting up authority connection configuration information. The configuration methods cannot assume that the
+  // current authority object is connected.  That is why they receive a thread context argument.
+    
+  /** Output the configuration header section.
+  * This method is called in the head section of the connector's configuration page.  Its purpose is to add the required tabs to the list, and to output any
+  * javascript methods that might be needed by the configuration editing HTML.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
+    throws LCFException, IOException
+  {
+    tabsArray.add("Memex Server");
+    tabsArray.add("User Mapping");
+    out.print(
+"<script type=\"text/javascript\">\n"+
+"<!--\n"+
+"\n"+
+"function checkConfig()\n"+
+"{\n"+
+"  if (editconnection.memexserverport.value != \"\" && !isInteger(editconnection.memexserverport.value))\n"+
+"  {\n"+
+"    alert(\"A valid number is required\");\n"+
+"    editconnection.memexserverport.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"function checkConfigForSave()\n"+
+"{\n"+
+"  if (editconnection.crawluser.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Please supply the name of a crawl user\");\n"+
+"    SelectTab(\"Memex Server\");\n"+
+"    editconnection.crawluser.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.memexservername.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Please supply the name of a Memex server\");\n"+
+"    SelectTab(\"Memex Server\");\n"+
+"    editconnection.memexservername.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.memexserverport.value == \"\")\n"+
+"  {\n"+
+"    alert(\"A Memex server port is required\");\n"+
+"    SelectTab(\"Memex Server\");\n"+
+"    editconnection.memexserverport.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.usernameregexp.value == \"\")\n"+
+"  {\n"+
+"    alert(\"User name regular expression cannot be null\");\n"+
+"    SelectTab(\"User Mapping\");\n"+
+"    editconnection.usernameregexp.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"//-->\n"+
+"</script>\n"
+    );
+  }
+
+  // Legal character sets for java 1.5
+  protected static String[] legalCharsets;
+  static
+  {
+    legalCharsets = new String[]{
+      "ISO-8859-1",
+      "ISO-8859-2",
+      "ISO-8859-4",
+      "ISO-8859-5",
+      "ISO-8859-7",
+      "ISO-8859-9",
+      "ISO-8859-13",
+      "ISO-8859-15",
+      "KOI8-R",
+      "US-ASCII",
+      "UTF-8",
+      "UTF-16",
+      "UTF-16BE",
+      "UTF-16LE",
+      "windows-1250",
+      "windows-1251",
+      "windows-1252",
+      "windows-1253",
+      "windows-1254",
+      "windows-1257",
+      "Big5",
+      "Big5-HKSCS",
+      "EUC-JP",
+      "EUC-KR",
+      "GB18030",
+      "GB2312",
+      "GBK",
+      "IBM-Thai",
+      "IBM00858",
+      "IBM01140",
+      "IBM01141",
+      "IBM01142",
+      "IBM01143",
+      "IBM01144",
+      "IBM01145",
+      "IBM01146",
+      "IBM01147",
+      "IBM01148",
+      "IBM01149",
+      "IBM037",
+      "IBM1026",
+      "IBM1047",
+      "IBM273",
+      "IBM277",
+      "IBM278",
+      "IBM280",
+      "IBM284",
+      "IBM285",
+      "IBM297",
+      "IBM420",
+      "IBM424",
+      "IBM437",
+      "IBM500",
+      "IBM775",
+      "IBM850",
+      "IBM852",
+      "IBM855",
+      "IBM857",
+      "IBM860",
+      "IBM861",
+      "IBM862",
+      "IBM863",
+      "IBM864",
+      "IBM865",
+      "IBM866",
+      "IBM868",
+      "IBM869",
+      "IBM870",
+      "IBM871",
+      "IBM918",
+      "ISO-2022-CN",
+      "ISO-2022-JP",
+      "ISO-2022-KR",
+      "ISO-8859-3",
+      "ISO-8859-6",
+      "ISO-8859-8",
+      "Shift_JIS",
+      "TIS-620",
+      "windows-1255",
+      "windows-1256",
+      "windows-1258",
+      "windows-31j",
+      "x-Big5_Solaris",
+      "x-euc-jp-linux",
+      "x-EUC-TW",
+      "x-eucJP-Open",
+      "x-IBM1006",
+      "x-IBM1025",
+      "x-IBM1046",
+      "x-IBM1097",
+      "x-IBM1098",
+      "x-IBM1112",
+      "x-IBM1122",
+      "x-IBM1123",
+      "x-IBM1124",
+      "x-IBM1381",
+      "x-IBM1383",
+      "x-IBM33722",
+      "x-IBM737",
+      "x-IBM856",
+      "x-IBM874",
+      "x-IBM875",
+      "x-IBM921",
+      "x-IBM922",
+      "x-IBM930",
+      "x-IBM933",
+      "x-IBM935",
+      "x-IBM937",
+      "x-IBM939",
+      "x-IBM942",
+      "x-IBM942C",
+      "x-IBM943",
+      "x-IBM943C",
+      "x-IBM948",
+      "x-IBM949",
+      "x-IBM949C",
+      "x-IBM950",
+      "x-IBM964",
+      "x-IBM970",
+      "x-ISCII91",
+      "x-ISO2022-CN-CNS",
+      "x-ISO2022-CN-GB",
+      "x-iso-8859-11",
+      "x-Johab",
+      "x-MacArabic",
+      "x-MacCentralEurope",
+      "x-MacCroatian",
+      "x-MacCyrillic",
+      "x-MacDingbat",
+      "x-MacGreek",
+      "x-MacHebrew",
+      "x-MacIceland",
+      "x-MacRoman",
+      "x-MacRomania",
+      "x-MacSymbol",
+      "x-MacThai",
+      "x-MacTurkish",
+      "x-MacUkraine",
+      "x-MS950-HKSCS",
+      "x-mswin-936",
+      "x-PCK",
+      "x-windows-874",
+      "x-windows-949",
+      "x-windows-950"
+      };
+    java.util.Arrays.sort(legalCharsets);
+  }
+  
+  /** Output the configuration body section.
+  * This method is called in the body section of the authority connector's configuration page.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabName is the current tab name.
+  */
+  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
+    throws LCFException, IOException
+  {
+    String memexServerName = parameters.getParameter(org.apache.lcf.crawler.connectors.memex.MemexAuthority.CONFIG_PARAM_MEMEXSERVERNAME);
+    if (memexServerName == null)
+      memexServerName = "";
+    String memexServerPort = parameters.getParameter(org.apache.lcf.crawler.connectors.memex.MemexAuthority.CONFIG_PARAM_MEMEXSERVERPORT);
+    if (memexServerPort == null)
+      memexServerPort = "";
+    String crawlUser = parameters.getParameter(org.apache.lcf.crawler.connectors.memex.MemexAuthority.CONFIG_PARAM_USERID);
+    if (crawlUser == null)
+      crawlUser = "";
+    String crawlUserPassword = parameters.getObfuscatedParameter(org.apache.lcf.crawler.connectors.memex.MemexAuthority.CONFIG_PARAM_PASSWORD);
+    if (crawlUserPassword == null)
+      crawlUserPassword = "";
+    String userNameMapping = parameters.getParameter(org.apache.lcf.crawler.connectors.memex.MemexAuthority.CONFIG_PARAM_USERNAMEMAPPING);
+    if (userNameMapping == null)
+      userNameMapping = "^([^\\\\@]*).*$=$(1)";
+    String characterEncoding = parameters.getParameter(org.apache.lcf.crawler.connectors.memex.MemexAuthority.CONFIG_PARAM_CHARACTERENCODING);
+    if (characterEncoding == null)
+      characterEncoding = "windows-1252";
+
+    org.apache.lcf.crawler.connectors.memex.MatchMap matchMap = new org.apache.lcf.crawler.connectors.memex.MatchMap(userNameMapping);
+
+    String usernameRegexp = matchMap.getMatchString(0);
+    String memexUserExpr = matchMap.getReplaceString(0);
+
+    // "Memex Server" tab
+    if (tabName.equals("Memex Server"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Memex server name:</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"memexservername\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(memexServerName)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Memex server port:</nobr></td><td class=\"value\"><input type=\"text\" size=\"5\" name=\"memexserverport\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(memexServerPort)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Authorization user name:</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"crawluser\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(crawlUser)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Authorization user password:</nobr></td><td class=\"value\"><input type=\"password\" size=\"32\" name=\"crawluserpassword\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(crawlUserPassword)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Character encoding:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <select name=\"characterencoding\" size=\"10\">\n"
+      );
+      int k = 0;
+      while (k < legalCharsets.length)
+      {
+        String charSet = legalCharsets[k++];
+        out.print(
+"        <option value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(charSet)+"\" "+((charSet.equals(characterEncoding))?" selected=\"selected\"":"")+">"+org.apache.lcf.ui.util.Encoder.bodyEscape(charSet)+"</option>\n"
+        );
+      }
+      out.print(
+"      </select>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for Memex Server tab
+      out.print(
+"<input type=\"hidden\" name=\"memexservername\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(memexServerName)+"\"/>\n"+
+"<input type=\"hidden\" name=\"memexserverport\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(memexServerPort)+"\"/>\n"+
+"<input type=\"hidden\" name=\"crawluser\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(crawlUser)+"\"/>\n"+
+"<input type=\"hidden\" name=\"crawluserpassword\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(crawlUserPassword)+"\"/>\n"+
+"<input type=\"hidden\" name=\"characterencoding\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(characterEncoding)+"\"/>\n"
+      );
+    }
+
+    // The "User Mapping" tab
+    if (tabName.equals("User Mapping"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>User name regular expression:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"40\" name=\"usernameregexp\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(usernameRegexp)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Memex user expression:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"40\" name=\"memexuserexpr\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(memexUserExpr)+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for "User Mapping" tab
+      out.print(
+"<input type=\"hidden\" name=\"usernameregexp\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(usernameRegexp)+"\"/>\n"+
+"<input type=\"hidden\" name=\"memexuserexpr\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(memexUserExpr)+"\"/>\n"
+      );
+    }
+  }
+  
+  /** Process a configuration post.
+  * This method is called at the start of the authority connector's configuration page, whenever there is a possibility that form data for a connection has been
+  * posted.  Its purpose is to gather form information and modify the configuration parameters accordingly.
+  * The name of the posted form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param variableContext is the set of variables available from the post, including binary file post information.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
+  */
+  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
+    throws LCFException
+  {
+    String memexServerName = variableContext.getParameter("memexservername");
+    if (memexServerName != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.memex.MemexAuthority.CONFIG_PARAM_MEMEXSERVERNAME,memexServerName);
+		
+    String memexServerPort = variableContext.getParameter("memexserverport");
+    if (memexServerPort != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.memex.MemexAuthority.CONFIG_PARAM_MEMEXSERVERPORT,memexServerPort);
+	
+    String crawlUser = variableContext.getParameter("crawluser");
+    if (crawlUser != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.memex.MemexAuthority.CONFIG_PARAM_USERID,crawlUser);
+
+    String crawlUserPassword = variableContext.getParameter("crawluserpassword");
+    if (crawlUserPassword != null)
+      parameters.setObfuscatedParameter(org.apache.lcf.crawler.connectors.memex.MemexAuthority.CONFIG_PARAM_PASSWORD,crawlUserPassword);
+
+    String characterEncoding = variableContext.getParameter("characterencoding");
+    if (characterEncoding != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.memex.MemexAuthority.CONFIG_PARAM_CHARACTERENCODING,characterEncoding);
+
+    String usernameRegexp = variableContext.getParameter("usernameregexp");
+    String memexUserExpr = variableContext.getParameter("memexuserexpr");
+    if (usernameRegexp != null && memexUserExpr != null)
+    {
+      org.apache.lcf.crawler.connectors.memex.MatchMap matchMap = new org.apache.lcf.crawler.connectors.memex.MatchMap();
+      matchMap.appendMatchPair(usernameRegexp,memexUserExpr);
+      parameters.setParameter(org.apache.lcf.crawler.connectors.memex.MemexAuthority.CONFIG_PARAM_USERNAMEMAPPING,matchMap.toString());
+    }
+    return null;
+  }
+  
+  /** View configuration.
+  * This method is called in the body section of the authority connector's view configuration page.  Its purpose is to present the connection information to the user.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  */
+  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
+    throws LCFException, IOException
+  {
+    out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>Parameters:</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"3\">\n"
+    );
+    Iterator iter = parameters.listParameters();
+    while (iter.hasNext())
+    {
+      String param = (String)iter.next();
+      String value = parameters.getParameter(param);
+      if (param.length() >= "password".length() && param.substring(param.length()-"password".length()).equalsIgnoreCase("password"))
+      {
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"=********</nobr><br/>\n"
+        );
+      }
+      else if (param.length() >="keystore".length() && param.substring(param.length()-"keystore".length()).equalsIgnoreCase("keystore"))
+      {
+        IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"=<"+Integer.toString(kmanager.getContents().length)+" certificate(s)></nobr><br/>\n"
+        );
+      }
+      else
+      {
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"="+org.apache.lcf.ui.util.Encoder.bodyEscape(value)+"</nobr><br/>\n"
+        );
+      }
+    }
+    out.print(
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+    );
+  }
+
   //////////////////////////////////////////////////////////////////////
   //
   //Method that looks to see if a connection has been established and

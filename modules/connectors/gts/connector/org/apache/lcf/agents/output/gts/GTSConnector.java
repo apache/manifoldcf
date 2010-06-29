@@ -345,6 +345,433 @@ public class GTSConnector extends org.apache.lcf.agents.output.BaseOutputConnect
     poster.deletePost(documentURI,activities);
   }
 
+  // UI support methods.
+  //
+  // These support methods come in two varieties.  The first bunch is involved in setting up connection configuration information.  The second bunch
+  // is involved in presenting and editing output specification information for a job.  The two kinds of methods are accordingly treated differently,
+  // in that the first bunch cannot assume that the current connector object is connected, while the second bunch can.  That is why the first bunch
+  // receives a thread context argument for all UI methods, while the second bunch does not need one (since it has already been applied via the connect()
+  // method, above).
+    
+  /** Output the configuration header section.
+  * This method is called in the head section of the connector's configuration page.  Its purpose is to add the required tabs to the list, and to output any
+  * javascript methods that might be needed by the configuration editing HTML.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
+    throws LCFException, IOException
+  {
+    tabsArray.add("Appliance");
+    out.print(
+"\n"+
+"<script type=\"text/javascript\">\n"+
+"<!--\n"+
+"function checkConfig()\n"+
+"{\n"+
+"  if (editconnection.ingesturi.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Please supply a valid ingestion URI\");\n"+
+"    editconnection.ingesturi.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"function checkConfigForSave()\n"+
+"{\n"+
+"  if (editconnection.ingesturi.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Please supply a valid ingestion URI\");\n"+
+"    SelectTab(\"Appliance\");\n"+
+"    editconnection.ingesturi.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"//-->\n"+
+"</script>\n"
+    );
+
+  }
+  
+  /** Output the configuration body section.
+  * This method is called in the body section of the connector's configuration page.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabName is the current tab name.
+  */
+  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
+    throws LCFException, IOException
+  {
+    String ingestURI = parameters.getParameter(org.apache.lcf.agents.output.gts.GTSConfig.PARAM_INGESTURI);
+    if (ingestURI == null)
+      ingestURI = "http://localhost:7031/HTTPIngest";
+
+    String realm = parameters.getParameter(org.apache.lcf.agents.output.gts.GTSConfig.PARAM_REALM);
+    if (realm == null)
+      realm = "";
+
+    String userID = parameters.getParameter(org.apache.lcf.agents.output.gts.GTSConfig.PARAM_USERID);
+    if (userID == null)
+      userID = "";
+		
+    String password = parameters.getObfuscatedParameter(org.apache.lcf.agents.output.gts.GTSConfig.PARAM_PASSWORD);
+    if (password == null)
+      password = "";
+		
+    // "Appliance" tab
+    if (tabName.equals("Appliance"))
+    {
+      out.print(
+"\n"+
+"<table class=\"displaytable\">\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Ingest URI:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"ingesturi\" type=\"text\" size=\"32\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(ingestURI)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Realm:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"realm\" type=\"text\" size=\"32\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(realm)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>User ID:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"userid\" type=\"text\" size=\"32\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(userID)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Password:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"password\" size=\"32\" name=\"password\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(password)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Appliance tab hiddens
+      out.print("\n"+
+"<input type=\"hidden\" name=\"ingesturi\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(ingestURI)+"\"/>\n"+
+"<input type=\"hidden\" name=\"userid\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(userID)+"\"/>\n"+
+"<input type=\"hidden\" name=\"password\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(password)+"\"/>\n"
+      );
+    }
+  }
+  
+  /** Process a configuration post.
+  * This method is called at the start of the connector's configuration page, whenever there is a possibility that form data for a connection has been
+  * posted.  Its purpose is to gather form information and modify the configuration parameters accordingly.
+  * The name of the posted form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param variableContext is the set of variables available from the post, including binary file post information.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
+  */
+  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
+    throws LCFException
+  {
+    String ingestURI = variableContext.getParameter("ingesturi");
+    if (ingestURI != null)
+      parameters.setParameter(org.apache.lcf.agents.output.gts.GTSConfig.PARAM_INGESTURI,ingestURI);
+
+    String realm = variableContext.getParameter("realm");
+    if (realm != null)
+      parameters.setParameter(org.apache.lcf.agents.output.gts.GTSConfig.PARAM_REALM,realm);
+
+    String userID = variableContext.getParameter("userid");
+    if (userID != null)
+      parameters.setParameter(org.apache.lcf.agents.output.gts.GTSConfig.PARAM_USERID,userID);
+		
+    String password = variableContext.getParameter("password");
+    if (password != null)
+      parameters.setObfuscatedParameter(org.apache.lcf.agents.output.gts.GTSConfig.PARAM_PASSWORD,password);
+    
+    return null;
+  }
+  
+  /** View configuration.
+  * This method is called in the body section of the connector's view configuration page.  Its purpose is to present the connection information to the user.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  */
+  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
+    throws LCFException, IOException
+  {
+    out.print(
+"\n"+
+"<table class=\"displaytable\">\n"+
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>Parameters:</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"3\">\n"
+    );
+    
+    Iterator iter = parameters.listParameters();
+    while (iter.hasNext())
+    {
+      String param = (String)iter.next();
+      String value = parameters.getParameter(param);
+      if (param.length() >= "password".length() && param.substring(param.length()-"password".length()).equalsIgnoreCase("password"))
+      {
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"=********</nobr><br/>\n"
+        );
+      }
+      else if (param.length() >="keystore".length() && param.substring(param.length()-"keystore".length()).equalsIgnoreCase("keystore"))
+      {
+        IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"=<"+Integer.toString(kmanager.getContents().length)+" certificate(s)</nobr><br/>\n"
+        );
+      }
+      else
+      {
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"="+org.apache.lcf.ui.util.Encoder.bodyEscape(value)+"</nobr><br/>\n"
+        );
+      }
+    }
+    out.print(
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+    );
+  }
+  
+  /** Output the specification header section.
+  * This method is called in the head section of a job page which has selected an output connection of the current type.  Its purpose is to add the required tabs
+  * to the list, and to output any javascript methods that might be needed by the job editing HTML.
+  *@param out is the output to which any HTML should be sent.
+  *@param os is the current output specification for this job.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
+  public void outputSpecificationHeader(IHTTPOutput out, OutputSpecification os, ArrayList tabsArray)
+    throws LCFException, IOException
+  {
+    tabsArray.add("Collections");
+    tabsArray.add("Template");
+    out.print(
+"\n"+
+"<script type=\"text/javascript\">\n"+
+"<!--\n"+
+"\n"+
+"function checkOutputSpecification()\n"+
+"{\n"+
+"  if (editjob.gts_collectionname.value.length > 230)\n"+
+"  {\n"+
+"    alert(\"Collection name must be less than or equal to 230 characters\");\n"+
+"    editjob.gts_collectionname.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"//-->\n"+
+"</script>\n"
+    );
+  }
+  
+  /** Output the specification body section.
+  * This method is called in the body section of a job page which has selected an output connection of the current type.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * form is "editjob".
+  *@param out is the output to which any HTML should be sent.
+  *@param os is the current output specification for this job.
+  *@param tabName is the current tab name.
+  */
+  public void outputSpecificationBody(IHTTPOutput out, OutputSpecification os, String tabName)
+    throws LCFException, IOException
+  {
+    int i = 0;
+    String collectionName = null;
+    String documentTemplate = null;
+    while (i < os.getChildCount())
+    {
+      SpecificationNode sn = os.getChild(i++);
+      if (sn.getType().equals(org.apache.lcf.agents.output.gts.GTSConfig.NODE_COLLECTION))
+      {
+        collectionName = sn.getAttributeValue(org.apache.lcf.agents.output.gts.GTSConfig.ATTRIBUTE_VALUE);
+      }
+      else if (sn.getType().equals(org.apache.lcf.agents.output.gts.GTSConfig.NODE_DOCUMENTTEMPLATE))
+      {
+        documentTemplate = sn.getAttributeValue(org.apache.lcf.agents.output.gts.GTSConfig.ATTRIBUTE_VALUE);
+      }
+    }
+    if (collectionName == null)
+      collectionName = "";
+    if (documentTemplate == null)
+      documentTemplate = "";
+
+    // Collections tab
+    if (tabName.equals("Collections"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Collection name:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"gts_collectionname\" type=\"text\" size=\"32\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(collectionName)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for collections
+      out.print(
+"<input type=\"hidden\" name=\"gts_collectionname\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(collectionName)+"\"/>\n"
+      );
+    }
+
+    // Template tab
+    if (tabName.equals("Template"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Document template:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <textarea rows=\"10\" cols=\"96\" name=\"gts_documenttemplate\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(documentTemplate)+"</textarea>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for document template
+      out.print(
+"<input type=\"hidden\" name=\"gts_documenttemplate\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(documentTemplate)+"\"/>\n"
+      );
+    }
+  }
+  
+  /** Process a specification post.
+  * This method is called at the start of job's edit or view page, whenever there is a possibility that form data for a connection has been
+  * posted.  Its purpose is to gather form information and modify the output specification accordingly.
+  * The name of the posted form is "editjob".
+  *@param variableContext contains the post data, including binary file-upload information.
+  *@param os is the current output specification for this job.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
+  */
+  public String processSpecificationPost(IPostParameters variableContext, OutputSpecification os)
+    throws LCFException
+  {
+    // Collection name
+    String collectionName = variableContext.getParameter("gts_collectionname");
+    if (collectionName != null)
+    {
+      int i = 0;
+      while (i < os.getChildCount())
+      {
+        SpecificationNode sn = os.getChild(i);
+        if (sn.getType().equals(org.apache.lcf.agents.output.gts.GTSConfig.NODE_COLLECTION))
+          os.removeChild(i);
+        else
+          i++;
+      }
+      if (collectionName.length() > 0)
+      {
+        SpecificationNode newspec = new SpecificationNode(org.apache.lcf.agents.output.gts.GTSConfig.NODE_COLLECTION);
+        newspec.setAttribute(org.apache.lcf.agents.output.gts.GTSConfig.ATTRIBUTE_VALUE,collectionName);
+        os.addChild(os.getChildCount(),newspec);
+      }
+    }
+
+    // Document template
+    String documentTemplate = variableContext.getParameter("gts_documenttemplate");
+    if (documentTemplate != null)
+    {
+      int i = 0;
+      while (i < os.getChildCount())
+      {
+        SpecificationNode sn = os.getChild(i);
+        if (sn.getType().equals(org.apache.lcf.agents.output.gts.GTSConfig.NODE_DOCUMENTTEMPLATE))
+          os.removeChild(i);
+        else
+          i++;
+      }
+      SpecificationNode newspec = new SpecificationNode(org.apache.lcf.agents.output.gts.GTSConfig.NODE_DOCUMENTTEMPLATE);
+      newspec.setAttribute(org.apache.lcf.agents.output.gts.GTSConfig.ATTRIBUTE_VALUE,documentTemplate);
+      os.addChild(os.getChildCount(),newspec);
+    }
+
+    return null;
+  }
+  
+  /** View specification.
+  * This method is called in the body section of a job's view page.  Its purpose is to present the output specification information to the user.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  *@param out is the output to which any HTML should be sent.
+  *@param os is the current output specification for this job.
+  */
+  public void viewSpecification(IHTTPOutput out, OutputSpecification os)
+    throws LCFException, IOException
+  {
+    int i = 0;
+    String collectionName = null;
+    String documentTemplate = null;
+    while (i < os.getChildCount())
+    {
+      SpecificationNode sn = os.getChild(i++);
+      if (sn.getType().equals(org.apache.lcf.agents.output.gts.GTSConfig.NODE_COLLECTION))
+      {
+        collectionName = sn.getAttributeValue(org.apache.lcf.agents.output.gts.GTSConfig.ATTRIBUTE_VALUE);
+      }
+      else if (sn.getType().equals(org.apache.lcf.agents.output.gts.GTSConfig.NODE_DOCUMENTTEMPLATE))
+      {
+        documentTemplate = sn.getAttributeValue(org.apache.lcf.agents.output.gts.GTSConfig.ATTRIBUTE_VALUE);
+      }
+    }
+    if (collectionName == null)
+      collectionName = "";
+    if (documentTemplate == null)
+      documentTemplate = "";
+
+    // Display collections
+    out.print(
+"\n"+
+"<table class=\"displaytable\">\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Collection:</nobr></td>\n"+
+"    <td class=\"value\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(collectionName)+"</td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Document template:</nobr></td>\n"+
+"    <td class=\"value\">\n"
+    );
+    if (documentTemplate == null || documentTemplate.length() == 0)
+      out.println("None specified");
+    else
+    {
+      out.print(
+"        <textarea name=\"documenttemplate\" cols=\"96\" rows=\"5\" readonly=\"true\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(documentTemplate)+"</textarea>\n"
+      );
+    }
+    out.print(
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+    );
+  }
+
+
   // Protected methods
 
   /** Stuffer for packing a single string with an end delimiter */

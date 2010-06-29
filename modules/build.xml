@@ -149,9 +149,9 @@
         <mkdir dir="connectors/gts/war"/>
         <copy todir="connectors/gts/lib">
             <fileset dir="framework/lib"/>
-	    <fileset dir="lib">
+            <fileset dir="lib">
 	      <include name="poi*.jar"/>
-	    </fileset>
+            </fileset>
         </copy>
         <copy todir="connectors/gts/lib">
             <fileset dir="framework/build/jar"/>

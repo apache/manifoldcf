@@ -22,6 +22,7 @@ import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.agents.interfaces.*;
 import org.apache.lcf.crawler.interfaces.*;
 import org.apache.lcf.crawler.system.Logging;
+import java.util.*;
 import java.io.*;
 
 /** This is the "repository connector" for a file system.  It's a relative of the share crawler, and should have
@@ -298,7 +299,464 @@ public class FileConnector extends org.apache.lcf.crawler.connectors.BaseReposit
     }
   }
 
+  // UI support methods.
+  //
+  // These support methods come in two varieties.  The first bunch is involved in setting up connection configuration information.  The second bunch
+  // is involved in presenting and editing document specification information for a job.  The two kinds of methods are accordingly treated differently,
+  // in that the first bunch cannot assume that the current connector object is connected, while the second bunch can.  That is why the first bunch
+  // receives a thread context argument for all UI methods, while the second bunch does not need one (since it has already been applied via the connect()
+  // method, above).
+    
+  /** Output the configuration header section.
+  * This method is called in the head section of the connector's configuration page.  Its purpose is to add the required tabs to the list, and to output any
+  * javascript methods that might be needed by the configuration editing HTML.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
+    throws LCFException, IOException
+  {
+    out.print(
+"<script type=\"text/javascript\">\n"+
+"<!--\n"+
+"function checkConfigForSave()\n"+
+"{\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"//-->\n"+
+"</script>\n"
+    );
+  }
+  
+  /** Output the configuration body section.
+  * This method is called in the body section of the connector's configuration page.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabName is the current tab name.
+  */
+  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
+    throws LCFException, IOException
+  {
+  }
+  
+  /** Process a configuration post.
+  * This method is called at the start of the connector's configuration page, whenever there is a possibility that form data for a connection has been
+  * posted.  Its purpose is to gather form information and modify the configuration parameters accordingly.
+  * The name of the posted form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param variableContext is the set of variables available from the post, including binary file post information.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
+  */
+  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
+    throws LCFException
+  {
+    return null;
+  }
+  
+  /** View configuration.
+  * This method is called in the body section of the connector's view configuration page.  Its purpose is to present the connection information to the user.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  */
+  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
+    throws LCFException, IOException
+  {
+  }
+  
+  /** Output the specification header section.
+  * This method is called in the head section of a job page which has selected a repository connection of the current type.  Its purpose is to add the required tabs
+  * to the list, and to output any javascript methods that might be needed by the job editing HTML.
+  *@param out is the output to which any HTML should be sent.
+  *@param ds is the current document specification for this job.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
+  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
+    throws LCFException, IOException
+  {
+    tabsArray.add("Paths");
 
+    out.print(
+"<script type=\"text/javascript\">\n"+
+"<!--\n"+
+"function checkSpecification()\n"+
+"{\n"+
+"  // Does nothing right now.\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"function SpecOp(n, opValue, anchorvalue)\n"+
+"{\n"+
+"  eval(\"editjob.\"+n+\".value = \\\"\"+opValue+\"\\\"\");\n"+
+"  postFormSetAnchor(anchorvalue);\n"+
+"}\n"+
+"//-->\n"+
+"</script>\n"
+    );
+  }
+  
+  /** Output the specification body section.
+  * This method is called in the body section of a job page which has selected a repository connection of the current type.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * form is "editjob".
+  *@param out is the output to which any HTML should be sent.
+  *@param ds is the current document specification for this job.
+  *@param tabName is the current tab name.
+  */
+  public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
+    throws LCFException, IOException
+  {
+    int i;
+    int k;
+
+    // Paths tab
+    if (tabName.equals("Paths"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+      );
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals("startpoint"))
+        {
+          String pathDescription = "_"+Integer.toString(k);
+          String pathOpName = "specop"+pathDescription;
+          out.print(
+"  <tr>\n"+
+"    <td class=\"description\">\n"+
+"      <input type=\"hidden\" name=\""+pathOpName+"\" value=\"\"/>\n"+
+"      <input type=\"hidden\" name=\""+"specpath"+pathDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(sn.getAttributeValue("path"))+"\"/>\n"+
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(sn.getAttributeValue("path"))+" \n"+
+"      <a name=\""+"path_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")' alt=\""+"Delete path #"+Integer.toString(k)+"\"/>\n"+
+"      </a>\n"+
+"    </td>\n"+
+"    <td class=\"boxcell\">\n"+
+"      <input type=\"hidden\" name=\""+"specchildcount"+pathDescription+"\" value=\""+Integer.toString(sn.getChildCount())+"\"/>\n"+
+"      <table class=\"displaytable\">\n"
+          );
+          int j = 0;
+          while (j < sn.getChildCount())
+          {
+            SpecificationNode excludeNode = sn.getChild(j);
+            String instanceDescription = "_"+Integer.toString(k)+"_"+Integer.toString(j);
+            String instanceOpName = "specop" + instanceDescription;
+
+            String nodeFlavor = excludeNode.getType();
+            String nodeType = excludeNode.getAttributeValue("type");
+            String nodeMatch = excludeNode.getAttributeValue("match");
+            out.print(
+"        <tr>\n"+
+"          <td class=\"description\">\n"+
+"            <nobr>\n"+
+"              <input type=\"hidden\" name=\""+"specop"+instanceDescription+"\" value=\"\"/>\n"+
+"              <input type=\"hidden\" name=\""+"specfl"+instanceDescription+"\" value=\""+nodeFlavor+"\"/>\n"+
+"              <input type=\"hidden\" name=\""+"specty"+instanceDescription+"\" value=\""+nodeType+"\"/>\n"+
+"              <input type=\"hidden\" name=\""+"specma"+instanceDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(nodeMatch)+"\"/>\n"+
+"              "+(nodeFlavor.equals("include")?"Include ":"")+"\n"+
+"              "+(nodeFlavor.equals("exclude")?"Exclude ":"")+"\n"+
+"              "+(nodeType.equals("file")?"file ":"")+"\n"+
+"              "+(nodeType.equals("directory")?"directory ":"")+"\n"+
+"              "+org.apache.lcf.ui.util.Encoder.bodyEscape(nodeMatch)+":\n"+
+"              <a name=\""+"match_"+Integer.toString(k)+"_"+Integer.toString(j)+"\">\n"+
+"                <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\"specop"+instanceDescription+"\",\"Delete\",\"match_"+Integer.toString(k)+"_"+Integer.toString(j)+"\")' alt=\""+"Delete path #"+Integer.toString(k)+", match spec #"+Integer.toString(j)+"\"/>\n"+
+"              </a>\n"+
+"            </nobr>\n"+
+"          </td>\n"+
+"          <td class=\"value\">\n"+
+"            <nobr>\n"+
+"              Match: <input type=\"text\" size=\"10\" name=\""+"specmatch"+instanceDescription+"\" value=\"\"/>\n"+
+"              Type:\n"+
+"              <select name=\""+"spectype"+instanceDescription+"\">\n"+
+"                <option value=\"file\">File</option>\n"+
+"                <option value=\"directory\">Directory</option>\n"+
+"              </select>\n"+
+"              Operation:\n"+
+"              <select name=\""+"specflavor"+instanceDescription+"\">\n"+
+"                <option value=\"include\">Include</option>\n"+
+"                <option value=\"exclude\">Exclude</option>\n"+
+"              </select>\n"+
+"              <input type=\"button\" value=\"Insert Here\" onClick='Javascript:SpecOp(\"specop"+instanceDescription+"\",\"Insert Here\",\"match_"+Integer.toString(k)+"_"+Integer.toString(j+1)+"\")' alt=\""+"Insert new match for path #"+Integer.toString(k)+" before position #"+Integer.toString(j)+"\"/>\n"+
+"            </nobr>\n"+
+"          </td>\n"+
+"        </tr>\n"
+            );
+            j++;
+          }
+          if (j == 0)
+          {
+            out.print(
+"        <tr><td class=\"message\" colspan=\"2\">No rules defined</td></tr>\n"
+            );
+          }
+          out.print(
+"        <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
+"        <tr>\n"+
+"          <td class=\"value\">\n"+
+"            <a name=\""+"match_"+Integer.toString(k)+"_"+Integer.toString(j)+"\">\n"+
+"              <input type=\"button\" value=\"Add\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Add\",\"match_"+Integer.toString(k)+"_"+Integer.toString(j+1)+"\")' alt=\""+"Add new match for path #"+Integer.toString(k)+"\"/>\n"+
+"            </a>\n"+
+"          </td>\n"+
+"          <td class=\"value\">\n"+
+"            <nobr>\n"+
+"              Match:&nbsp;\n"+
+"              <input type=\"text\" size=\"10\" name=\""+"specmatch"+pathDescription+"\" value=\"\"/>\n"+
+"              Type:&nbsp;\n"+
+"              <select name=\""+"spectype"+pathDescription+"\">\n"+
+"                <option value=\"file\">File</option>\n"+
+"                <option value=\"directory\">Directory</option>\n"+
+"              </select>\n"+
+"              Operation:&nbsp;\n"+
+"              <select name=\""+"specflavor"+pathDescription+"\">\n"+
+"                <option value=\"include\">Include</option>\n"+
+"                <option value=\"exclude\">Exclude</option>\n"+
+"              </select>\n"+
+"            </nobr>\n"+
+"          </td>\n"+
+"        </tr>\n"+
+"      </table>\n"+
+"    </td>\n"+
+"  </tr>\n"
+          );
+          k++;
+        }
+      }
+      if (k == 0)
+      {
+        out.print(
+"  <tr><td class=\"message\" colspan=\"2\">No documents specified</td></tr>\n"
+        );
+      }
+      out.print(
+"  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"value\">\n"+
+"      <a name=\""+"path_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecOp(\"specop\",\"Add\",\"path_"+Integer.toString(i+1)+"\")' alt=\"Add new path\"/>\n"+
+"        <input type=\"hidden\" name=\"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"        <input type=\"hidden\" name=\"specop\" value=\"\"/>\n"+
+"      </a>\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"text\" size=\"80\" name=\"specpath\" value=\"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals("startpoint"))
+        {
+          String pathDescription = "_"+Integer.toString(k);
+          out.print(
+"<input type=\"hidden\" name=\"specpath"+pathDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(sn.getAttributeValue("path"))+"\"/>\n"+
+"<input type=\"hidden\" name=\"specchildcount"+pathDescription+"\" value=\""+Integer.toString(sn.getChildCount())+"\"/>\n"
+          );
+
+          int j = 0;
+	  while (j < sn.getChildCount())
+	  {
+            SpecificationNode excludeNode = sn.getChild(j);
+            String instanceDescription = "_"+Integer.toString(k)+"_"+Integer.toString(j);
+
+            String nodeFlavor = excludeNode.getType();
+            String nodeType = excludeNode.getAttributeValue("type");
+            String nodeMatch = excludeNode.getAttributeValue("match");
+            out.print(
+"<input type=\"hidden\" name=\"specfl"+instanceDescription+"\" value=\""+nodeFlavor+"\"/>\n"+
+"<input type=\"hidden\" name=\"specty"+instanceDescription+"\" value=\""+nodeType+"\"/>\n"+
+"<input type=\"hidden\" name=\"specma"+instanceDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(nodeMatch)+"\"/>\n"
+            );
+            j++;
+          }
+          k++;
+        }
+      }
+      out.print(
+"<input type=\"hidden\" name=\"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"
+      );
+    }
+  }
+  
+  /** Process a specification post.
+  * This method is called at the start of job's edit or view page, whenever there is a possibility that form data for a connection has been
+  * posted.  Its purpose is to gather form information and modify the document specification accordingly.
+  * The name of the posted form is "editjob".
+  *@param variableContext contains the post data, including binary file-upload information.
+  *@param ds is the current document specification for this job.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
+  */
+  public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
+    throws LCFException
+  {
+    String x = variableContext.getParameter("pathcount");
+    if (x != null)
+    {
+      ds.clearChildren();
+      // Find out how many children were sent
+      int pathCount = Integer.parseInt(x);
+      // Gather up these
+      int i = 0;
+      int k = 0;
+      while (i < pathCount)
+      {
+        String pathDescription = "_"+Integer.toString(i);
+        String pathOpName = "specop"+pathDescription;
+        x = variableContext.getParameter(pathOpName);
+        if (x != null && x.equals("Delete"))
+        {
+          // Skip to the next
+          i++;
+          continue;
+        }
+        // Path inserts won't happen until the very end
+        String path = variableContext.getParameter("specpath"+pathDescription);
+        SpecificationNode node = new SpecificationNode("startpoint");
+        node.setAttribute("path",path);
+        // Now, get the number of children
+        String y = variableContext.getParameter("specchildcount"+pathDescription);
+        int childCount = Integer.parseInt(y);
+        int j = 0;
+        int w = 0;
+        while (j < childCount)
+        {
+          String instanceDescription = "_"+Integer.toString(i)+"_"+Integer.toString(j);
+          // Look for an insert or a delete at this point
+          String instanceOp = "specop"+instanceDescription;
+          String z = variableContext.getParameter(instanceOp);
+          String flavor;
+          String type;
+          String match;
+          SpecificationNode sn;
+          if (z != null && z.equals("Delete"))
+          {
+            // Process the deletion as we gather
+            j++;
+            continue;
+          }
+          if (z != null && z.equals("Insert Here"))
+          {
+            // Process the insertion as we gather.
+            flavor = variableContext.getParameter("specflavor"+instanceDescription);
+            type = variableContext.getParameter("spectype"+instanceDescription);
+            match = variableContext.getParameter("specmatch"+instanceDescription);
+            sn = new SpecificationNode(flavor);
+            sn.setAttribute("type",type);
+            sn.setAttribute("match",match);
+            node.addChild(w++,sn);
+          }
+          flavor = variableContext.getParameter("specfl"+instanceDescription);
+          type = variableContext.getParameter("specty"+instanceDescription);
+          match = variableContext.getParameter("specma"+instanceDescription);
+          sn = new SpecificationNode(flavor);
+          sn.setAttribute("type",type);
+          sn.setAttribute("match",match);
+          node.addChild(w++,sn);
+          j++;
+        }
+        if (x != null && x.equals("Add"))
+        {
+          // Process adds to the end of the rules in-line
+          String match = variableContext.getParameter("specmatch"+pathDescription);
+          String type = variableContext.getParameter("spectype"+pathDescription);
+          String flavor = variableContext.getParameter("specflavor"+pathDescription);
+          SpecificationNode sn = new SpecificationNode(flavor);
+          sn.setAttribute("type",type);
+          sn.setAttribute("match",match);
+          node.addChild(w,sn);
+        }
+        ds.addChild(k++,node);
+        i++;
+      }
+
+      // See if there's a global add operation
+      String op = variableContext.getParameter("specop");
+      if (op != null && op.equals("Add"))
+      {
+        String path = variableContext.getParameter("specpath");
+        SpecificationNode node = new SpecificationNode("startpoint");
+        node.setAttribute("path",path);
+        ds.addChild(k,node);
+      }
+    }
+    return null;
+  }
+  
+  /** View specification.
+  * This method is called in the body section of a job's view page.  Its purpose is to present the document specification information to the user.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  *@param out is the output to which any HTML should be sent.
+  *@param ds is the current document specification for this job.
+  */
+  public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
+    throws LCFException, IOException
+  {
+    out.print(
+"<table class=\"displaytable\">\n"
+    );
+
+    int i = 0;
+    boolean seenAny = false;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("startpoint"))
+      {
+        if (seenAny == false)
+        {
+          seenAny = true;
+        }
+        out.print(
+"  <tr>\n"+
+"    <td class=\"description\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(sn.getAttributeValue("path"))+":"+"</td>\n"+
+"    <td class=\"value\">\n"
+        );
+        int j = 0;
+        while (j < sn.getChildCount())
+        {
+          SpecificationNode excludeNode = sn.getChild(j++);
+          out.print(
+"      "+(excludeNode.getType().equals("include")?"Include ":"")+"\n"+
+"      "+(excludeNode.getType().equals("exclude")?"Exclude ":"")+"\n"+
+"      "+(excludeNode.getAttributeValue("type").equals("file")?"file ":"")+"\n"+
+"      "+(excludeNode.getAttributeValue("type").equals("directory")?"directory ":"")+"\n"+
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(excludeNode.getAttributeValue("match"))+"<br/>\n"
+          );
+        }
+        out.print(
+"    </td>\n"+
+"  </tr>\n"
+        );
+      }
+    }
+    if (seenAny == false)
+    {
+      out.print(
+"  <tr><td class=\"message\">No documents specified</td></tr>\n"
+      );
+    }
+    out.print(
+"</table>\n"
+    );
+  }
 
   // Protected static methods
 

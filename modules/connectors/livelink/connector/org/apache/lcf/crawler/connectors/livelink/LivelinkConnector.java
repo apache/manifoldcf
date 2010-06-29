@@ -1291,6 +1291,2163 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
     return 6;
   }
 
+  // UI support methods.
+  //
+  // These support methods come in two varieties.  The first bunch is involved in setting up connection configuration information.  The second bunch
+  // is involved in presenting and editing document specification information for a job.  The two kinds of methods are accordingly treated differently,
+  // in that the first bunch cannot assume that the current connector object is connected, while the second bunch can.  That is why the first bunch
+  // receives a thread context argument for all UI methods, while the second bunch does not need one (since it has already been applied via the connect()
+  // method, above).
+    
+  /** Output the configuration header section.
+  * This method is called in the head section of the connector's configuration page.  Its purpose is to add the required tabs to the list, and to output any
+  * javascript methods that might be needed by the configuration editing HTML.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
+    throws LCFException, IOException
+  {
+    tabsArray.add("Server");
+    tabsArray.add("Document Access");
+    tabsArray.add("Document View");
+    out.print(
+"<script type=\"text/javascript\">\n"+
+"<!--\n"+
+"function LLDeleteCertificate(aliasName)\n"+
+"{\n"+
+"  editconnection.llkeystorealias.value = aliasName;\n"+
+"  editconnection.configop.value = \"Delete\";\n"+
+"  postForm();\n"+
+"}\n"+
+"\n"+
+"function LLAddCertificate()\n"+
+"{\n"+
+"  if (editconnection.llcertificate.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Choose a certificate file\");\n"+
+"    editconnection.llcertificate.focus();\n"+
+"  }\n"+
+"  else\n"+
+"  {\n"+
+"    editconnection.configop.value = \"Add\";\n"+
+"    postForm();\n"+
+"  }\n"+
+"}\n"+
+"\n"+
+"function checkConfig()\n"+
+"{\n"+
+"  if (editconnection.serverport.value != \"\" && !isInteger(editconnection.serverport.value))\n"+
+"  {\n"+
+"    alert(\"A valid number is required\");\n"+
+"    editconnection.serverport.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.ingestport.value != \"\" && !isInteger(editconnection.ingestport.value))\n"+
+"  {\n"+
+"    alert(\"A valid number, or blank, is required\");\n"+
+"    editconnection.ingestport.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.viewport.value != \"\" && !isInteger(editconnection.viewport.value))\n"+
+"  {\n"+
+"    alert(\"A valid number, or blank, is required\");\n"+
+"    editconnection.viewport.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"function checkConfigForSave()\n"+
+"{\n"+
+"  if (editconnection.servername.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Enter a livelink server name\");\n"+
+"    SelectTab(\"Server\");\n"+
+"    editconnection.servername.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.serverport.value == \"\")\n"+
+"  {\n"+
+"    alert(\"A server port number is required\");\n"+
+"    SelectTab(\"Server\");\n"+
+"    editconnection.serverport.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.ingestcgipath.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Enter the crawl cgi path to livelink\");\n"+
+"    SelectTab(\"Document Access\");\n"+
+"    editconnection.ingestcgipath.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.ingestcgipath.value.substring(0,1) != \"/\")\n"+
+"  {\n"+
+"    alert(\"The ingest cgi path must begin with a / character\");\n"+
+"    SelectTab(\"Document Access\");\n"+
+"    editconnection.ingestcgipath.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.viewcgipath.value != \"\" && editconnection.viewcgipath.value.substring(0,1) != \"/\")\n"+
+"  {\n"+
+"    alert(\"The view cgi path must be blank, or begin with a / character\");\n"+
+"    SelectTab(\"Document View\");\n"+
+"    editconnection.viewcgipath.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"//-->\n"+
+"</script>\n"
+    );
+  }
+  
+  /** Output the configuration body section.
+  * This method is called in the body section of the connector's configuration page.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabName is the current tab name.
+  */
+  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
+    throws LCFException, IOException
+  {
+    String ingestProtocol = parameters.getParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.ingestProtocol);
+    if (ingestProtocol == null)
+      ingestProtocol = "http";
+    String ingestPort = parameters.getParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.ingestPort);
+    if (ingestPort == null)
+      ingestPort = "";
+    String ingestCgiPath = parameters.getParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.ingestCgiPath);
+    if (ingestCgiPath == null)
+      ingestCgiPath = "/livelink/livelink.exe";
+    String viewProtocol = parameters.getParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.viewProtocol);
+    if (viewProtocol == null)
+      viewProtocol = "";
+    String viewServerName = parameters.getParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.viewServerName);
+    if (viewServerName == null)
+      viewServerName = "";
+    String viewPort = parameters.getParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.viewPort);
+    if (viewPort == null)
+      viewPort = "";
+    String viewCgiPath = parameters.getParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.viewCgiPath);
+    if (viewCgiPath == null)
+      viewCgiPath = "";
+    String serverName = parameters.getParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.serverName);
+    if (serverName == null)
+      serverName = "localhost";
+    String serverPort = parameters.getParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.serverPort);
+    if (serverPort == null)
+      serverPort = "2099";
+    String serverUserName = parameters.getParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.serverUsername);
+    if (serverUserName == null)
+      serverUserName = "";
+    String serverPassword = parameters.getObfuscatedParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.serverPassword);
+    if (serverPassword == null)
+      serverPassword = "";
+    String ntlmUsername = parameters.getParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.ntlmUsername);
+    if (ntlmUsername == null)
+      ntlmUsername = "";
+    String ntlmPassword = parameters.getObfuscatedParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.ntlmPassword);
+    if (ntlmPassword == null)
+      ntlmPassword = "";
+    String ntlmDomain = parameters.getParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.ntlmDomain);
+    if (ntlmDomain == null)
+      ntlmDomain = "";
+    String livelinkKeystore = parameters.getParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.livelinkKeystore);
+    IKeystoreManager localKeystore;
+    if (livelinkKeystore == null)
+      localKeystore = KeystoreManagerFactory.make("");
+    else
+      localKeystore = KeystoreManagerFactory.make("",livelinkKeystore);
+    out.print(
+"<input name=\"configop\" type=\"hidden\" value=\"Continue\"/>\n"
+    );
+    // The "Server" tab
+    if (tabName.equals("Server"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Server name:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"64\" name=\"servername\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(serverName)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Server port:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"serverport\" value=\""+serverPort+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Server user name:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"serverusername\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(serverUserName)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Server password:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"password\" size=\"32\" name=\"serverpassword\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(serverPassword)+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for Server tab
+      out.print(
+"<input type=\"hidden\" name=\"servername\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(serverName)+"\"/>\n"+
+"<input type=\"hidden\" name=\"serverport\" value=\""+serverPort+"\"/>\n"+
+"<input type=\"hidden\" name=\"serverusername\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(serverUserName)+"\"/>\n"+
+"<input type=\"hidden\" name=\"serverpassword\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(serverPassword)+"\"/>\n"
+      );
+    }
+
+    // The "Document Access" tab
+    // Always pass the whole keystore as a hidden.
+    if (livelinkKeystore != null)
+    {
+      out.print(
+"<input type=\"hidden\" name=\"keystoredata\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(livelinkKeystore)+"\"/>\n"
+      );
+    }
+    if (tabName.equals("Document Access"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\">Document fetch protocol:</td>\n"+
+"    <td class=\"value\">\n"+
+"      <select name=\"ingestprotocol\" size=\"2\">\n"+
+"        <option value=\"http\" "+((ingestProtocol.equals("http"))?"selected=\"selected\"":"")+">http</option>\n"+
+"        <option value=\"https\" "+((ingestProtocol.equals("https"))?"selected=\"selected\"":"")+">https</option>\n"+
+"      </select>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Document fetch port:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"ingestport\" value=\""+ingestPort+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Document fetch SSL certificate list:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"hidden\" name=\"llkeystorealias\" value=\"\"/>\n"+
+"      <table class=\"displaytable\">\n"
+      );
+      // List the individual certificates in the store, with a delete button for each
+      String[] contents = localKeystore.getContents();
+      if (contents.length == 0)
+      {
+        out.print(
+"        <tr><td class=\"message\" colspan=\"2\"><nobr>No certificates present</nobr></td></tr>\n"
+        );
+      }
+      else
+      {
+        int i = 0;
+        while (i < contents.length)
+        {
+          String alias = contents[i];
+          String description = localKeystore.getDescription(alias);
+          if (description.length() > 128)
+            description = description.substring(0,125) + "...";
+          out.print(
+"        <tr>\n"+
+"          <td class=\"value\"><input type=\"button\" onclick='Javascript:LLDeleteCertificate(\""+org.apache.lcf.ui.util.Encoder.attributeJavascriptEscape(alias)+"\")' alt=\""+"Delete cert "+org.apache.lcf.ui.util.Encoder.attributeEscape(alias)+"\" value=\"Delete\"/></td>\n"+
+"          <td>"+org.apache.lcf.ui.util.Encoder.bodyEscape(description)+"</td>\n"+
+"        </tr>\n"
+          );
+          i++;
+        }
+      }
+      out.print(
+"      </table>\n"+
+"      <input type=\"button\" onclick='Javascript:LLAddCertificate()' alt=\"Add cert\" value=\"Add\"/>&nbsp;\n"+
+"      Certificate:&nbsp;<input name=\"llcertificate\" size=\"50\" type=\"file\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Document fetch CGI path:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"ingestcgipath\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(ingestCgiPath)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Document fetch NTLM domain:</nobr><br/><nobr>(set if NTLM auth desired)</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"text\" size=\"32\" name=\"ntlmdomain\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(ntlmDomain)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Document fetch NTLM user name:</nobr><br/><nobr>(set if different from server user name)</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"text\" size=\"32\" name=\"ntlmusername\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(ntlmUsername)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Document fetch NTLM password:</nobr><br/><nobr>(set if different from server password)</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"password\" size=\"32\" name=\"ntlmpassword\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(ntlmPassword)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for Document Access tab
+      out.print(
+"<input type=\"hidden\" name=\"ingestprotocol\" value=\""+ingestProtocol+"\"/>\n"+
+"<input type=\"hidden\" name=\"ingestport\" value=\""+ingestPort+"\"/>\n"+
+"<input type=\"hidden\" name=\"ingestcgipath\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(ingestCgiPath)+"\"/>\n"+
+"<input type=\"hidden\" name=\"ntlmusername\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(ntlmUsername)+"\"/>\n"+
+"<input type=\"hidden\" name=\"ntlmpassword\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(ntlmPassword)+"\"/>\n"+
+"<input type=\"hidden\" name=\"ntlmdomain\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(ntlmDomain)+"\"/>\n"
+      );
+  }
+
+    // Document View tab
+    if (tabName.equals("Document View"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\">Document view protocol:</td>\n"+
+"    <td class=\"value\">\n"+
+"      <select name=\"viewprotocol\" size=\"3\">\n"+
+"        <option value=\"\" "+((viewProtocol.equals(""))?"selected=\"selected\"":"")+">Same as fetch protocol</option>\n"+
+"        <option value=\"http\" "+((viewProtocol.equals("http"))?"selected=\"selected\"":"")+">http</option>\n"+
+"        <option value=\"https\" "+((viewProtocol.equals("https"))?"selected=\"selected\"":"")+">https</option>\n"+
+"      </select>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Document view server name:</nobr><br/><nobr>(blank = same as fetch server)</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"64\" name=\"viewservername\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(viewServerName)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Document view port:</nobr><br/><nobr>(blank = same as fetch port)</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"viewport\" value=\""+viewPort+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Document view CGI path:</nobr><br/><nobr>(blank = same as fetch path)</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"viewcgipath\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(viewCgiPath)+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for Document View tab
+      out.print(
+"<input type=\"hidden\" name=\"viewprotocol\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(viewProtocol)+"\"/>\n"+
+"<input type=\"hidden\" name=\"viewservername\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(viewServerName)+"\"/>\n"+
+"<input type=\"hidden\" name=\"viewport\" value=\""+viewPort+"\"/>\n"+
+"<input type=\"hidden\" name=\"viewcgipath\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(viewCgiPath)+"\"/>\n"
+      );
+    }
+  }
+  
+  /** Process a configuration post.
+  * This method is called at the start of the connector's configuration page, whenever there is a possibility that form data for a connection has been
+  * posted.  Its purpose is to gather form information and modify the configuration parameters accordingly.
+  * The name of the posted form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param variableContext is the set of variables available from the post, including binary file post information.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
+  */
+  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
+    throws LCFException
+  {
+    String serverName = variableContext.getParameter("servername");
+    if (serverName != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.serverName,serverName);
+    String serverPort = variableContext.getParameter("serverport");
+    if (serverPort != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.serverPort,serverPort);
+    String ingestProtocol = variableContext.getParameter("ingestprotocol");
+    if (ingestProtocol != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.ingestProtocol,ingestProtocol);
+    String ingestPort = variableContext.getParameter("ingestport");
+    if (ingestPort != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.ingestPort,ingestPort);
+    String ingestCgiPath = variableContext.getParameter("ingestcgipath");
+    if (ingestCgiPath != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.ingestCgiPath,ingestCgiPath);
+    String viewProtocol = variableContext.getParameter("viewprotocol");
+    if (viewProtocol != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.viewProtocol,viewProtocol);
+    String viewServerName = variableContext.getParameter("viewservername");
+    if (viewServerName != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.viewServerName,viewServerName);
+    String viewPort = variableContext.getParameter("viewport");
+    if (viewPort != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.viewPort,viewPort);
+    String viewCgiPath = variableContext.getParameter("viewcgipath");
+    if (viewCgiPath != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.viewCgiPath,viewCgiPath);
+    String serverUserName = variableContext.getParameter("serverusername");
+    if (serverUserName != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.serverUsername,serverUserName);
+    String serverPassword = variableContext.getParameter("serverpassword");
+    if (serverPassword != null)
+      parameters.setObfuscatedParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.serverPassword,serverPassword);
+    String ntlmDomain = variableContext.getParameter("ntlmdomain");
+    if (ntlmDomain != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.ntlmDomain,ntlmDomain);
+    String ntlmUsername = variableContext.getParameter("ntlmusername");
+    if (ntlmUsername != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.ntlmUsername,ntlmUsername);
+    String ntlmPassword = variableContext.getParameter("ntlmpassword");
+    if (ntlmPassword != null)
+      parameters.setObfuscatedParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.ntlmPassword,ntlmPassword);
+    String keystoreValue = variableContext.getParameter("keystoredata");
+    if (keystoreValue != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.livelinkKeystore,keystoreValue);
+
+    String configOp = variableContext.getParameter("configop");
+    if (configOp != null)
+    {
+      if (configOp.equals("Delete"))
+      {
+        String alias = variableContext.getParameter("llkeystorealias");
+        keystoreValue = parameters.getParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.livelinkKeystore);
+        IKeystoreManager mgr;
+        if (keystoreValue != null)
+          mgr = KeystoreManagerFactory.make("",keystoreValue);
+        else
+          mgr = KeystoreManagerFactory.make("");
+        mgr.remove(alias);
+        parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.livelinkKeystore,mgr.getString());
+      }
+      else if (configOp.equals("Add"))
+      {
+        String alias = IDFactory.make(threadContext);
+        byte[] certificateValue = variableContext.getBinaryBytes("llcertificate");
+        keystoreValue = parameters.getParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.livelinkKeystore);
+        IKeystoreManager mgr;
+        if (keystoreValue != null)
+          mgr = KeystoreManagerFactory.make("",keystoreValue);
+        else
+          mgr = KeystoreManagerFactory.make("");
+        java.io.InputStream is = new java.io.ByteArrayInputStream(certificateValue);
+        String certError = null;
+        try
+        {
+          mgr.importCertificate(alias,is);
+        }
+        catch (Throwable e)
+        {
+          certError = e.getMessage();
+        }
+        finally
+        {
+          try
+          {
+            is.close();
+          }
+          catch (IOException e)
+          {
+            // Eat this exception
+          }
+        }
+
+        if (certError != null)
+        {
+          return "Illegal certificate: "+certError;
+        }
+        parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.livelinkKeystore,mgr.getString());
+      }
+    }
+
+    return null;
+  }
+  
+  /** View configuration.
+  * This method is called in the body section of the connector's view configuration page.  Its purpose is to present the connection information to the user.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  */
+  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
+    throws LCFException, IOException
+  {
+    out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>Parameters:</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"3\">\n"
+    );
+    Iterator iter = parameters.listParameters();
+    while (iter.hasNext())
+    {
+      String param = (String)iter.next();
+      String value = parameters.getParameter(param);
+      if (param.length() >= "password".length() && param.substring(param.length()-"password".length()).equalsIgnoreCase("password"))
+      {
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"=********</nobr><br/>\n"
+        );
+      }
+      else if (param.length() >="keystore".length() && param.substring(param.length()-"keystore".length()).equalsIgnoreCase("keystore"))
+      {
+        IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"=<"+Integer.toString(kmanager.getContents().length)+" certificate(s)></nobr><br/>\n"
+        );
+      }
+      else
+      {
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"="+org.apache.lcf.ui.util.Encoder.bodyEscape(value)+"</nobr><br/>\n"
+        );
+      }
+    }
+    out.print(
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+    );
+  }
+  
+  /** Output the specification header section.
+  * This method is called in the head section of a job page which has selected a repository connection of the current type.  Its purpose is to add the required tabs
+  * to the list, and to output any javascript methods that might be needed by the job editing HTML.
+  *@param out is the output to which any HTML should be sent.
+  *@param ds is the current document specification for this job.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
+  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
+    throws LCFException, IOException
+  {
+    tabsArray.add("Paths");
+    tabsArray.add("Filters");
+    tabsArray.add("Security");
+    tabsArray.add("Metadata");
+    out.print(
+"<script type=\"text/javascript\">\n"+
+"<!--\n"+
+"\n"+
+"function checkSpecification()\n"+
+"{\n"+
+"  // Does nothing right now.\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"function SpecOp(n, opValue, anchorvalue)\n"+
+"{\n"+
+"  eval(\"editjob.\"+n+\".value = \\\"\"+opValue+\"\\\"\");\n"+
+"  postFormSetAnchor(anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function SpecAddToPath(anchorvalue)\n"+
+"{\n"+
+"  if (editjob.pathaddon.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Select a folder first\");\n"+
+"    editjob.pathaddon.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"\n"+
+"  SpecOp(\"pathop\",\"AddToPath\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function SpecAddFilespec(anchorvalue)\n"+
+"{\n"+
+"  if (editjob.specfile.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Type in a file specification\");\n"+
+"    editjob.specfile.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  SpecOp(\"fileop\",\"Add\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function SpecAddToken(anchorvalue)\n"+
+"{\n"+
+"  if (editjob.spectoken.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Type in an access token\");\n"+
+"    editjob.spectoken.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  SpecOp(\"accessop\",\"Add\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function SpecAddToMetadata(anchorvalue)\n"+
+"{\n"+
+"  if (editjob.metadataaddon.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Select a folder first\");\n"+
+"    editjob.metadataaddon.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  SpecOp(\"metadataop\",\"AddToPath\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function SpecSetWorkspace(anchorvalue)\n"+
+"{\n"+
+"  if (editjob.metadataaddon.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Select a workspace first\");\n"+
+"    editjob.metadataaddon.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  SpecOp(\"metadataop\",\"SetWorkspace\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function SpecAddCategory(anchorvalue)\n"+
+"{\n"+
+"  if (editjob.categoryaddon.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Select a category first\");\n"+
+"    editjob.categoryaddon.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  SpecOp(\"metadataop\",\"AddCategory\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function SpecAddMetadata(anchorvalue)\n"+
+"{\n"+
+"  if (editjob.attributeselect.value == \"\" && editjob.attributeall.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Select at least one attribute first, and do not select the pulldown title\");\n"+
+"    editjob.attributeselect.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  SpecOp(\"metadataop\",\"Add\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function SpecAddMapping(anchorvalue)\n"+
+"{\n"+
+"  if (editjob.specmatch.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Match string cannot be empty\");\n"+
+"    editjob.specmatch.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  if (!isRegularExpression(editjob.specmatch.value))\n"+
+"  {\n"+
+"    alert(\"Match string must be valid regular expression\");\n"+
+"    editjob.specmatch.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  SpecOp(\"specmappingop\",\"Add\",anchorvalue);\n"+
+"}\n"+
+"//-->\n"+
+"</script>\n"
+    );
+  }
+  
+  /** Output the specification body section.
+  * This method is called in the body section of a job page which has selected a repository connection of the current type.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * form is "editjob".
+  *@param out is the output to which any HTML should be sent.
+  *@param ds is the current document specification for this job.
+  *@param tabName is the current tab name.
+  */
+  public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
+    throws LCFException, IOException
+  {
+    int i;
+    int k;
+
+    // Paths tab
+    if (tabName.equals("Paths"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+      );
+      // Now, loop through paths
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals("startpoint"))
+        {
+          String pathDescription = "_"+Integer.toString(k);
+          String pathOpName = "pathop"+pathDescription;
+          out.print(
+"  <tr>\n"+
+"    <td class=\"description\">\n"+
+"      <input type=\"hidden\" name=\""+"specpath"+pathDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(sn.getAttributeValue("path"))+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+pathOpName+"\" value=\"\"/>\n"+
+"      <a name=\""+"path_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")' alt=\""+"Delete path #"+Integer.toString(k)+"\"/>\n"+
+"      </a>\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      "+((sn.getAttributeValue("path").length() == 0)?"(root)":org.apache.lcf.ui.util.Encoder.bodyEscape(sn.getAttributeValue("path")))+"\n"+
+"    </td>\n"+
+"  </tr>\n"
+          );
+          k++;
+        }
+      }
+      if (k == 0)
+      {
+        out.print(
+"  <tr>\n"+
+"    <td class=\"message\" colspan=\"2\">No starting points defined</td>\n"+
+"  </tr>\n"
+        );
+      }
+      out.print(
+"  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\">\n"+
+"      <input type=\"hidden\" name=\"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"
+      );
+  
+      String pathSoFar = (String)currentContext.get("specpath");
+      if (pathSoFar == null)
+      pathSoFar = "";
+
+      // Grab next folder/project list
+      try
+      {
+        String[] childList;
+        childList = getChildFolderNames(pathSoFar);
+        if (childList == null)
+        {
+          // Illegal path - set it back
+          pathSoFar = "";
+          childList = getChildFolderNames("");
+          if (childList == null)
+            throw new LCFException("Can't find any children for root folder");
+        }
+        out.print(
+"      <input type=\"hidden\" name=\"specpath\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(pathSoFar)+"\"/>\n"+
+"      <input type=\"hidden\" name=\"pathop\" value=\"\"/>\n"+
+"      <a name=\""+"path_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecOp(\"pathop\",\"Add\",\"path_"+Integer.toString(k+1)+"\")' alt=\"Add path\"/>\n"+
+"      </a>&nbsp;\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      "+((pathSoFar.length()==0)?"(root)":org.apache.lcf.ui.util.Encoder.bodyEscape(pathSoFar))+"\n"
+        );
+        if (pathSoFar.length() > 0)
+        {
+          out.print(
+"      <input type=\"button\" value=\"-\" onClick='Javascript:SpecOp(\"pathop\",\"Up\",\"path_"+Integer.toString(k)+"\")' alt=\"Back up path\"/>\n"
+          );
+        }
+        if (childList.length > 0)
+        {
+          out.print(
+"      <input type=\"button\" value=\"+\" onClick='Javascript:SpecAddToPath(\"path_"+Integer.toString(k)+"\")' alt=\"Add to path\"/>&nbsp;\n"+
+"      <select multiple=\"false\" name=\"pathaddon\" size=\"2\">\n"+
+"        <option value=\"\" selected=\"selected\">-- Pick a folder --</option>\n"
+          );
+          int j = 0;
+          while (j < childList.length)
+          {
+            out.print(
+"        <option value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(childList[j])+"\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(childList[j])+"</option>\n"
+            );
+            j++;
+          }
+          out.print(
+"      </select>\n"
+          );
+        }
+      }
+      catch (LCFException e)
+      {
+        e.printStackTrace();
+        out.println(org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage()));
+      }
+      out.print(
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Now, loop through paths
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals("startpoint"))
+        {
+          String pathDescription = "_"+Integer.toString(k);
+          out.print(
+"<input type=\"hidden\" name=\""+"specpath"+pathDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(sn.getAttributeValue("path"))+"\"/>\n"
+          );
+          k++;
+        }
+      }
+      out.print(
+"<input type=\"hidden\" name=\"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"
+      );
+    }
+
+    // Filter tab
+    if (tabName.equals("Filters"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+      );
+      // Next, go through include/exclude filespecs
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals("include") || sn.getType().equals("exclude"))
+        {
+          String fileSpecDescription = "_"+Integer.toString(k);
+          String fileOpName = "fileop"+fileSpecDescription;
+          String filespec = sn.getAttributeValue("filespec");
+          out.print(
+"  <tr>\n"+
+"    <td class=\"description\">\n"+
+"      <input type=\"hidden\" name=\""+"specfiletype"+fileSpecDescription+"\" value=\""+sn.getType()+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+fileOpName+"\" value=\"\"/>\n"+
+"      <a name=\""+"filespec_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+fileOpName+"\",\"Delete\",\"filespec_"+Integer.toString(k)+"\")' alt=\""+"Delete filespec #"+Integer.toString(k)+"\"/>\n"+
+"      </a>\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      "+(sn.getType().equals("include")?"Include:":"")+"\n"+
+"      "+(sn.getType().equals("exclude")?"Exclude:":"")+"\n"+
+"      &nbsp;<input type=\"hidden\" name=\""+"specfile"+fileSpecDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(filespec)+"\"/>\n"+
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(filespec)+"\n"+
+"    </td>\n"+
+"  </tr>\n"
+          );
+          k++;
+        }
+      }
+      if (k == 0)
+      {
+        out.print(
+"  <tr>\n"+
+"    <td class=\"message\" colspan=\"2\">No include/exclude files defined</td>\n"+
+"  </tr>\n"
+        );
+      }
+      out.print(
+"  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\">\n"+
+"      <input type=\"hidden\" name=\"filecount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"      <input type=\"hidden\" name=\"fileop\" value=\"\"/>\n"+
+"      <a name=\""+"filespec_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddFilespec(\"filespec_"+Integer.toString(k+1)+"\")' alt=\"Add file specification\"/>\n"+
+"      </a>&nbsp;\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      <select name=\"specfiletype\" size=\"1\">\n"+
+"        <option value=\"include\" selected=\"selected\">Include</option>\n"+
+"        <option value=\"exclude\">Exclude</option>\n"+
+"      </select>&nbsp;\n"+
+"      <input type=\"text\" size=\"30\" name=\"specfile\" value=\"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Next, go through include/exclude filespecs
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals("include") || sn.getType().equals("exclude"))
+        {
+          String fileSpecDescription = "_"+Integer.toString(k);
+          String filespec = sn.getAttributeValue("filespec");
+          out.print(
+"<input type=\"hidden\" name=\""+"specfiletype"+fileSpecDescription+"\" value=\""+sn.getType()+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"specfile"+fileSpecDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(filespec)+"\"/>\n"
+          );
+          k++;
+        }
+      }
+      out.print(
+"<input type=\"hidden\" name=\"filecount\" value=\""+Integer.toString(k)+"\"/>\n"
+      );
+    }
+
+
+    // Security tab
+    // Find whether security is on or off
+    i = 0;
+    boolean securityOn = true;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("security"))
+      {
+        String securityValue = sn.getAttributeValue("value");
+        if (securityValue.equals("off"))
+          securityOn = false;
+        else if (securityValue.equals("on"))
+          securityOn = true;
+      }
+    }
+
+    if (tabName.equals("Security"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Security:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"radio\" name=\"specsecurity\" value=\"on\" "+(securityOn?"checked=\"true\"":"")+" />Enabled&nbsp;\n"+
+"      <input type=\"radio\" name=\"specsecurity\" value=\"off\" "+((securityOn==false)?"checked=\"true\"":"")+" />Disabled\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+      );
+      // Go through forced ACL
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals("access"))
+        {
+          String accessDescription = "_"+Integer.toString(k);
+          String accessOpName = "accessop"+accessDescription;
+          String token = sn.getAttributeValue("token");
+          out.print(
+"  <tr>\n"+
+"    <td class=\"description\">\n"+
+"      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
+"      <input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"+
+"      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")' alt=\""+"Delete token #"+Integer.toString(k)+"\"/>\n"+
+"      </a>&nbsp;\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(token)+"\n"+
+"    </td>\n"+
+"  </tr>\n"
+          );
+          k++;
+        }
+      }
+      if (k == 0)
+      {
+        out.print(
+"  <tr>\n"+
+"    <td class=\"message\" colspan=\"2\">No access tokens present</td>\n"+
+"  </tr>\n"
+        );
+      }
+      out.print(
+"  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\">\n"+
+"      <input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"      <input type=\"hidden\" name=\"accessop\" value=\"\"/>\n"+
+"      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddToken(\"token_"+Integer.toString(k+1)+"\")' alt=\"Add access token\"/>\n"+
+"      </a>&nbsp;\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"text\" size=\"30\" name=\"spectoken\" value=\"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"specsecurity\" value=\""+(securityOn?"on":"off")+"\"/>\n"
+      );
+      // Finally, go through forced ACL
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals("access"))
+        {
+          String accessDescription = "_"+Integer.toString(k);
+          String token = sn.getAttributeValue("token");
+          out.print(
+"<input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"
+          );
+          k++;
+        }
+      }
+      out.print(
+"<input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"
+      );
+    }
+
+
+    // Metadata tab
+
+    // Find the path-value metadata attribute name
+    i = 0;
+    String pathNameAttribute = "";
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("pathnameattribute"))
+      {
+        pathNameAttribute = sn.getAttributeValue("value");
+      }
+    }
+
+    // Find the path-value mapping data
+    i = 0;
+    org.apache.lcf.crawler.connectors.livelink.MatchMap matchMap = new org.apache.lcf.crawler.connectors.livelink.MatchMap();
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("pathmap"))
+      {
+        String pathMatch = sn.getAttributeValue("match");
+        String pathReplace = sn.getAttributeValue("replace");
+        matchMap.appendMatchPair(pathMatch,pathReplace);
+      }
+    }
+
+
+    i = 0;
+    String ingestAllMetadata = "false";
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("allmetadata"))
+      {
+        ingestAllMetadata = sn.getAttributeValue("all");
+        if (ingestAllMetadata == null)
+          ingestAllMetadata = "false";
+      }
+    }
+
+    if (tabName.equals("Metadata"))
+    {
+      out.print(
+"<input type=\"hidden\" name=\"specmappingcount\" value=\""+Integer.toString(matchMap.getMatchCount())+"\"/>\n"+
+"<input type=\"hidden\" name=\"specmappingop\" value=\"\"/>\n"+
+"\n"+
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>Ingest ALL metadata?</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"3\">\n"+
+"      <nobr><input type=\"radio\" name=\"specallmetadata\" value=\"true\" "+(ingestAllMetadata.equals("true")?"checked=\"true\"":"")+"/>Yes</nobr>&nbsp;\n"+
+"      <nobr><input type=\"radio\" name=\"specallmetadata\" value=\"false\" "+(ingestAllMetadata.equals("false")?"checked=\"true\"":"")+"/>No</nobr>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"
+      );
+      // Go through the selected metadata attributes
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals("metadata"))
+        {
+          String accessDescription = "_"+Integer.toString(k);
+          String accessOpName = "metadataop"+accessDescription;
+          String categoryPath = sn.getAttributeValue("category");
+          String isAll = sn.getAttributeValue("all");
+          if (isAll == null)
+            isAll = "false";
+          String attributeName = sn.getAttributeValue("attribute");
+          if (attributeName == null)
+            attributeName = "";
+          out.print(
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\">\n"+
+"      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
+"      <input type=\"hidden\" name=\""+"speccategory"+accessDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(categoryPath)+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+"specattributeall"+accessDescription+"\" value=\""+isAll+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+"specattribute"+accessDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(attributeName)+"\"/>\n"+
+"      <a name=\""+"metadata_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"metadata_"+Integer.toString(k)+"\")' alt=\""+"Delete metadata #"+Integer.toString(k)+"\"/>\n"+
+"      </a>&nbsp;\n"+
+"    </td>\n"+
+"    <td class=\"value\" colspan=\"3\">\n"+
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(categoryPath)+":"+((isAll!=null&&isAll.equals("true"))?"(All metadata attributes)":org.apache.lcf.ui.util.Encoder.bodyEscape(attributeName))+"\n"+
+"    </td>\n"+
+"  </tr>\n"
+          );
+          k++;
+        }
+      }
+      if (k == 0)
+      {
+        out.print(
+"  <tr>\n"+
+"    <td class=\"message\" colspan=\"4\">No metadata specified</td>\n"+
+"  </tr>\n"
+        );
+      }
+      out.print(
+"  <tr><td class=\"lightseparator\" colspan=\"4\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\">\n"+
+"      <a name=\""+"metadata_"+Integer.toString(k)+"\"></a>\n"+
+"      <input type=\"hidden\" name=\"metadatacount\" value=\""+Integer.toString(k)+"\"/>\n"
+      );
+      String categorySoFar = (String)currentContext.get("speccategory");
+      if (categorySoFar == null)
+      categorySoFar = "";
+      // Grab next folder/project list, and the appropriate category list
+      try
+      {
+        String[] childList = null;
+        String[] workspaceList = null;
+        String[] categoryList = null;
+        String[] attributeList = null;
+        if (categorySoFar.length() == 0)
+        {
+          workspaceList = getWorkspaceNames();
+        }
+        else
+        {
+          attributeList = getCategoryAttributes(categorySoFar);
+          if (attributeList == null)
+          {
+            childList = getChildFolderNames(categorySoFar);
+            if (childList == null)
+            {
+              // Illegal path - set it back
+              categorySoFar = "";
+              childList = getChildFolderNames("");
+              if (childList == null)
+                throw new LCFException("Can't find any children for root folder");
+            }
+            categoryList = getChildCategoryNames(categorySoFar);
+            if (categoryList == null)
+              throw new LCFException("Can't find any categories for root folder folder");
+          }
+        }
+        out.print(
+"      <input type=\"hidden\" name=\"speccategory\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(categorySoFar)+"\"/>\n"+
+"      <input type=\"hidden\" name=\"metadataop\" value=\"\"/>\n"
+        );
+        if (attributeList != null)
+        {
+          // We have a valid category!
+          out.print(
+"      <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddMetadata(\"metadata_"+Integer.toString(k+1)+"\")' alt=\"Add metadata item\"/>&nbsp;\n"+
+"    </td>\n"+
+"    <td class=\"value\" colspan=\"3\">\n"+
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(categorySoFar)+":<input type=\"button\" value=\"-\" onClick='Javascript:SpecOp(\"metadataop\",\"Up\",\"metadata_"+Integer.toString(k)+"\")' alt=\"Back up metadata path\"/>&nbsp;\n"+
+"      <table class=\"displaytable\">\n"+
+"        <tr>\n"+
+"          <td class=\"value\">\n"+
+"            <input type=\"checkbox\" name=\"attributeall\" value=\"true\"/>&nbsp;All attributes in this category<br/>\n"+
+"            <select multiple=\"true\" name=\"attributeselect\" size=\"2\">\n"+
+"              <option value=\"\" selected=\"selected\">-- Pick attributes --</option>\n"
+          );
+          int l = 0;
+          while (l < attributeList.length)
+          {
+            String attributeName = attributeList[l++];
+            out.print(
+"              <option value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(attributeName)+"\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(attributeName)+"</option>\n"
+            );
+          }
+          out.print(
+"            </select>\n"+
+"          </td>\n"+
+"        </tr>\n"+
+"      </table>\n"
+          );
+        }
+        else if (workspaceList != null)
+        {
+          out.print(
+"    </td>\n"+
+"    <td class=\"value\" colspan=\"3\">\n"+
+"      <input type=\"button\" value=\"+\" onClick='Javascript:SpecSetWorkspace(\"metadata_"+Integer.toString(k)+"\")' alt=\"Add to metadata path\"/>&nbsp;\n"+
+"      <select multiple=\"false\" name=\"metadataaddon\" size=\"2\">\n"+
+"        <option value=\"\" selected=\"selected\">-- Pick workspace --</option>\n"
+          );
+          int j = 0;
+          while (j < workspaceList.length)
+          {
+            out.print(
+"        <option value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(workspaceList[j])+"\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(workspaceList[j])+"</option>\n"
+            );
+            j++;
+          }
+          out.print(
+"      </select>\n"
+          );
+        }
+        else
+        {
+          out.print(
+"    </td>\n"+
+"    <td class=\"value\" colspan=\"3\">\n"+
+"      "+((categorySoFar.length()==0)?"(root)":org.apache.lcf.ui.util.Encoder.bodyEscape(categorySoFar))+"&nbsp;\n"
+          );
+          if (categorySoFar.length() > 0)
+          {
+            out.print(
+"      <input type=\"button\" value=\"-\" onClick='Javascript:SpecOp(\"metadataop\",\"Up\",\"metadata_"+Integer.toString(k)+"\")' alt=\"Back up metadata path\"/>&nbsp;\n"
+            );
+          }
+          if (childList.length > 0)
+          {
+            out.print(
+"      <input type=\"button\" value=\"+\" onClick='Javascript:SpecAddToMetadata(\"metadata_"+Integer.toString(k)+"\")' alt=\"Add to metadata path\"/>&nbsp;\n"+
+"      <select multiple=\"false\" name=\"metadataaddon\" size=\"2\">\n"+
+"        <option value=\"\" selected=\"selected\">-- Pick a folder --</option>\n"
+            );
+            int j = 0;
+            while (j < childList.length)
+            {
+              out.print(
+"        <option value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(childList[j])+"\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(childList[j])+"</option>\n"
+              );
+              j++;
+            }
+            out.print(
+"      </select>\n"
+            );
+          }
+          if (categoryList.length > 0)
+          {
+            out.print(
+"      <input type=\"button\" value=\"+\" onClick='Javascript:SpecAddCategory(\"metadata_"+Integer.toString(k)+"\")' alt=\"Add category\"/>&nbsp;\n"+
+"      <select multiple=\"false\" name=\"categoryaddon\" size=\"2\">\n"+
+"        <option value=\"\" selected=\"selected\">-- Pick a category --</option>\n"
+            );
+            int j = 0;
+            while (j < categoryList.length)
+            {
+              out.print(
+"        <option value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(categoryList[j])+"\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(categoryList[j])+"</option>\n"
+              );
+              j++;
+            }
+            out.print(
+"      </select>\n"
+            );
+          }
+        }
+      }
+      catch (ServiceInterruption e)
+      {
+        e.printStackTrace();
+        out.println(org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage()));
+      }
+      catch (LCFException e)
+      {
+        e.printStackTrace();
+        out.println(org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage()));
+      }
+      out.print(
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>Path attribute name:</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"3\">\n"+
+"      <input type=\"text\" name=\"specpathnameattribute\" size=\"20\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(pathNameAttribute)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"
+      );
+      i = 0;
+      while (i < matchMap.getMatchCount())
+      {
+        String matchString = matchMap.getMatchString(i);
+        String replaceString = matchMap.getReplaceString(i);
+        out.print(
+"  <tr>\n"+
+"    <td class=\"description\">\n"+
+"      <input type=\"hidden\" name=\""+"specmappingop_"+Integer.toString(i)+"\" value=\"\"/>\n"+
+"      <a name=\""+"mapping_"+Integer.toString(i)+"\">\n"+
+"        <input type=\"button\" onClick='Javascript:SpecOp(\"specmappingop_"+Integer.toString(i)+"\",\"Delete\",\"mapping_"+Integer.toString(i)+"\")' alt=\""+"Delete mapping #"+Integer.toString(i)+"\" value=\"Delete\"/>\n"+
+"      </a>\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"hidden\" name=\""+"specmatch_"+Integer.toString(i)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>"+org.apache.lcf.ui.util.Encoder.bodyEscape(matchString)+"\n"+
+"    </td>\n"+
+"    <td class=\"value\">==></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"hidden\" name=\""+"specreplace_"+Integer.toString(i)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>"+org.apache.lcf.ui.util.Encoder.bodyEscape(replaceString)+"\n"+
+"    </td>\n"+
+"  </tr>\n"
+        );
+        i++;
+      }
+      if (i == 0)
+      {
+        out.print(
+"  <tr><td colspan=\"4\" class=\"message\">No mappings specified</td></tr>\n"
+        );
+      }
+      out.print(
+"  <tr><td class=\"lightseparator\" colspan=\"4\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\">\n"+
+"      <a name=\""+"mapping_"+Integer.toString(i)+"\">\n"+
+"        <input type=\"button\" onClick='Javascript:SpecAddMapping(\"mapping_"+Integer.toString(i+1)+"\")' alt=\"Add to mappings\" value=\"Add\"/>\n"+
+"      </a>\n"+
+"    </td>\n"+
+"    <td class=\"value\">Match regexp:&nbsp;<input type=\"text\" name=\"specmatch\" size=\"32\" value=\"\"/></td>\n"+
+"    <td class=\"value\">==></td>\n"+
+"    <td class=\"value\">Replace string:&nbsp;<input type=\"text\" name=\"specreplace\" size=\"32\" value=\"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"specallmetadata\" value=\""+ingestAllMetadata+"\"/>\n"
+      );
+      // Go through the selected metadata attributes
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals("metadata"))
+        {
+          String accessDescription = "_"+Integer.toString(k);
+          String categoryPath = sn.getAttributeValue("category");
+          String isAll = sn.getAttributeValue("all");
+          if (isAll == null)
+            isAll = "false";
+          String attributeName = sn.getAttributeValue("attribute");
+          if (attributeName == null)
+            attributeName = "";
+          out.print(
+"<input type=\"hidden\" name=\""+"speccategory"+accessDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(categoryPath)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"specattributeall"+accessDescription+"\" value=\""+isAll+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"specattribute"+accessDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(attributeName)+"\"/>\n"
+          );
+          k++;
+        }
+      }
+      out.print(
+"<input type=\"hidden\" name=\"metadatacount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"<input type=\"hidden\" name=\"specpathnameattribute\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(pathNameAttribute)+"\"/>\n"+
+"<input type=\"hidden\" name=\"specmappingcount\" value=\""+Integer.toString(matchMap.getMatchCount())+"\"/>\n"
+      );
+      i = 0;
+      while (i < matchMap.getMatchCount())
+      {
+        String matchString = matchMap.getMatchString(i);
+        String replaceString = matchMap.getReplaceString(i);
+        out.print(
+"<input type=\"hidden\" name=\""+"specmatch_"+Integer.toString(i)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"specreplace_"+Integer.toString(i)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>\n"
+        );
+        i++;
+      }
+    }
+  }
+  
+  /** Process a specification post.
+  * This method is called at the start of job's edit or view page, whenever there is a possibility that form data for a connection has been
+  * posted.  Its purpose is to gather form information and modify the document specification accordingly.
+  * The name of the posted form is "editjob".
+  *@param variableContext contains the post data, including binary file-upload information.
+  *@param ds is the current document specification for this job.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
+  */
+  public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
+    throws LCFException
+  {
+    String xc = variableContext.getParameter("pathcount");
+    if (xc != null)
+    {
+      // Delete all path specs first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals("startpoint"))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      // Find out how many children were sent
+      int pathCount = Integer.parseInt(xc);
+      // Gather up these
+      i = 0;
+      while (i < pathCount)
+      {
+        String pathDescription = "_"+Integer.toString(i);
+        String pathOpName = "pathop"+pathDescription;
+        xc = variableContext.getParameter(pathOpName);
+        if (xc != null && xc.equals("Delete"))
+        {
+          // Skip to the next
+          i++;
+          continue;
+        }
+        // Path inserts won't happen until the very end
+        String path = variableContext.getParameter("specpath"+pathDescription);
+        SpecificationNode node = new SpecificationNode("startpoint");
+        node.setAttribute("path",path);
+        ds.addChild(ds.getChildCount(),node);
+        i++;
+      }
+
+      // See if there's a global add operation
+      String op = variableContext.getParameter("pathop");
+      if (op != null && op.equals("Add"))
+      {
+        String path = variableContext.getParameter("specpath");
+        SpecificationNode node = new SpecificationNode("startpoint");
+        node.setAttribute("path",path);
+        ds.addChild(ds.getChildCount(),node);
+      }
+      else if (op != null && op.equals("Up"))
+      {
+        // Strip off end
+        String path = variableContext.getParameter("specpath");
+        int lastSlash = -1;
+        int k = 0;
+        while (k < path.length())
+        {
+          char x = path.charAt(k++);
+          if (x == '/')
+          {
+            lastSlash = k-1;
+            continue;
+          }
+          if (x == '\\')
+            k++;
+        }
+        if (lastSlash == -1)
+          path = "";
+        else
+          path = path.substring(0,lastSlash);
+        currentContext.save("specpath",path);
+      }
+      else if (op != null && op.equals("AddToPath"))
+      {
+        String path = variableContext.getParameter("specpath");
+        String addon = variableContext.getParameter("pathaddon");
+        if (addon != null && addon.length() > 0)
+        {
+          StringBuffer sb = new StringBuffer();
+          int k = 0;
+          while (k < addon.length())
+          {
+            char x = addon.charAt(k++);
+            if (x == '/' || x == '\\' || x == ':')
+              sb.append('\\');
+            sb.append(x);
+          }
+          if (path.length() == 0)
+            path = sb.toString();
+          else
+            path += "/" + sb.toString();
+        }
+        currentContext.save("specpath",path);
+      }
+    }
+
+    xc = variableContext.getParameter("filecount");
+    if (xc != null)
+    {
+      // Delete all file specs first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals("include") || sn.getType().equals("exclude"))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      int fileCount = Integer.parseInt(xc);
+      i = 0;
+      while (i < fileCount)
+      {
+        String fileSpecDescription = "_"+Integer.toString(i);
+        String fileOpName = "fileop"+fileSpecDescription;
+        xc = variableContext.getParameter(fileOpName);
+        if (xc != null && xc.equals("Delete"))
+        {
+          // Next row
+          i++;
+          continue;
+        }
+        // Get the stuff we need
+        String filespecType = variableContext.getParameter("specfiletype"+fileSpecDescription);
+        String filespec = variableContext.getParameter("specfile"+fileSpecDescription);
+        SpecificationNode node = new SpecificationNode(filespecType);
+        node.setAttribute("filespec",filespec);
+        ds.addChild(ds.getChildCount(),node);
+        i++;
+      }
+
+      String op = variableContext.getParameter("fileop");
+      if (op != null && op.equals("Add"))
+      {
+        String filespec = variableContext.getParameter("specfile");
+        String filespectype = variableContext.getParameter("specfiletype");
+        SpecificationNode node = new SpecificationNode(filespectype);
+        node.setAttribute("filespec",filespec);
+        ds.addChild(ds.getChildCount(),node);
+      }
+    }
+
+    xc = variableContext.getParameter("specsecurity");
+    if (xc != null)
+    {
+      // Delete all security entries first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals("security"))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      SpecificationNode node = new SpecificationNode("security");
+      node.setAttribute("value",xc);
+      ds.addChild(ds.getChildCount(),node);
+
+    }
+
+    xc = variableContext.getParameter("tokencount");
+    if (xc != null)
+    {
+      // Delete all file specs first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals("access"))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      int accessCount = Integer.parseInt(xc);
+      i = 0;
+      while (i < accessCount)
+      {
+        String accessDescription = "_"+Integer.toString(i);
+        String accessOpName = "accessop"+accessDescription;
+        xc = variableContext.getParameter(accessOpName);
+        if (xc != null && xc.equals("Delete"))
+        {
+          // Next row
+          i++;
+          continue;
+        }
+        // Get the stuff we need
+        String accessSpec = variableContext.getParameter("spectoken"+accessDescription);
+        SpecificationNode node = new SpecificationNode("access");
+        node.setAttribute("token",accessSpec);
+        ds.addChild(ds.getChildCount(),node);
+        i++;
+      }
+
+      String op = variableContext.getParameter("accessop");
+      if (op != null && op.equals("Add"))
+      {
+        String accessspec = variableContext.getParameter("spectoken");
+        SpecificationNode node = new SpecificationNode("access");
+        node.setAttribute("token",accessspec);
+        ds.addChild(ds.getChildCount(),node);
+      }
+    }
+
+    xc = variableContext.getParameter("specallmetadata");
+    if (xc != null)
+    {
+      // Look for the 'all metadata' checkbox
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals("allmetadata"))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      if (xc.equals("true"))
+      {
+        SpecificationNode newNode = new SpecificationNode("allmetadata");
+        newNode.setAttribute("all",xc);
+        ds.addChild(ds.getChildCount(),newNode);
+      }
+    }
+
+    xc = variableContext.getParameter("metadatacount");
+    if (xc != null)
+    {
+      // Delete all metadata specs first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals("metadata"))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      // Find out how many children were sent
+      int metadataCount = Integer.parseInt(xc);
+      // Gather up these
+      i = 0;
+      while (i < metadataCount)
+      {
+        String pathDescription = "_"+Integer.toString(i);
+        String pathOpName = "metadataop"+pathDescription;
+        xc = variableContext.getParameter(pathOpName);
+        if (xc != null && xc.equals("Delete"))
+        {
+          // Skip to the next
+          i++;
+          continue;
+        }
+        // Metadata inserts won't happen until the very end
+        String category = variableContext.getParameter("speccategory"+pathDescription);
+        String attributeName = variableContext.getParameter("specattribute"+pathDescription);
+        String isAll = variableContext.getParameter("specattributeall"+pathDescription);
+        SpecificationNode node = new SpecificationNode("metadata");
+        node.setAttribute("category",category);
+        if (isAll != null && isAll.equals("true"))
+          node.setAttribute("all","true");
+        else
+          node.setAttribute("attribute",attributeName);
+        ds.addChild(ds.getChildCount(),node);
+        i++;
+      }
+
+      // See if there's a global add operation
+      String op = variableContext.getParameter("metadataop");
+      if (op != null && op.equals("Add"))
+      {
+        String category = variableContext.getParameter("speccategory");
+        String isAll = variableContext.getParameter("attributeall");
+        if (isAll != null && isAll.equals("true"))
+        {
+          SpecificationNode node = new SpecificationNode("metadata");
+          node.setAttribute("category",category);
+          node.setAttribute("all","true");
+          ds.addChild(ds.getChildCount(),node);
+        }
+        else
+        {
+          String[] attributes = variableContext.getParameterValues("attributeselect");
+          if (attributes != null && attributes.length > 0)
+          {
+            int k = 0;
+            while (k < attributes.length)
+            {
+              String attribute = attributes[k++];
+              SpecificationNode node = new SpecificationNode("metadata");
+              node.setAttribute("category",category);
+              node.setAttribute("attribute",attribute);
+              ds.addChild(ds.getChildCount(),node);
+            }
+          }
+        }
+      }
+      else if (op != null && op.equals("Up"))
+      {
+        // Strip off end
+        String category = variableContext.getParameter("speccategory");
+        int lastSlash = -1;
+        int firstColon = -1;      
+        int k = 0;
+        while (k < category.length())
+        {
+          char x = category.charAt(k++);
+          if (x == '/')
+          {
+            lastSlash = k-1;
+            continue;
+          }
+          if (x == ':')
+          {
+            firstColon = k;
+            continue;
+          }
+          if (x == '\\')
+            k++;
+        }
+
+        if (lastSlash == -1)
+        {
+          if (firstColon == -1 || firstColon == category.length())
+            category = "";
+          else
+            category = category.substring(0,firstColon);
+        }
+        else
+          category = category.substring(0,lastSlash);
+        currentContext.save("speccategory",category);
+      }
+      else if (op != null && op.equals("AddToPath"))
+      {
+        String category = variableContext.getParameter("speccategory");
+        String addon = variableContext.getParameter("metadataaddon");
+        if (addon != null && addon.length() > 0)
+        {
+          StringBuffer sb = new StringBuffer();
+          int k = 0;
+          while (k < addon.length())
+          {
+            char x = addon.charAt(k++);
+            if (x == '/' || x == '\\' || x == ':')
+              sb.append('\\');
+            sb.append(x);
+          }
+          if (category.length() == 0 || category.endsWith(":"))
+            category += sb.toString();
+          else
+            category += "/" + sb.toString();
+        }
+        currentContext.save("speccategory",category);
+      }
+      else if (op != null && op.equals("SetWorkspace"))
+      {
+        String addon = variableContext.getParameter("metadataaddon");
+        if (addon != null && addon.length() > 0)
+        {
+          StringBuffer sb = new StringBuffer();
+          int k = 0;
+          while (k < addon.length())
+          {
+            char x = addon.charAt(k++);
+            if (x == '/' || x == '\\' || x == ':')
+              sb.append('\\');
+            sb.append(x);
+          }
+
+          String category = sb.toString() + ":";
+          currentContext.save("speccategory",category);
+        }
+      }
+      else if (op != null && op.equals("AddCategory"))
+      {
+        String category = variableContext.getParameter("speccategory");
+        String addon = variableContext.getParameter("categoryaddon");
+        if (addon != null && addon.length() > 0)
+        {
+          StringBuffer sb = new StringBuffer();
+          int k = 0;
+          while (k < addon.length())
+          {
+            char x = addon.charAt(k++);
+            if (x == '/' || x == '\\' || x == ':')
+              sb.append('\\');
+            sb.append(x);
+          }
+          if (category.length() == 0 || category.endsWith(":"))
+            category += sb.toString();
+          else
+            category += "/" + sb.toString();
+        }
+        currentContext.save("speccategory",category);
+      }
+    }
+
+    xc = variableContext.getParameter("specpathnameattribute");
+    if (xc != null)
+    {
+      // Delete old one
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals("pathnameattribute"))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+      if (xc.length() > 0)
+      {
+        SpecificationNode node = new SpecificationNode("pathnameattribute");
+        node.setAttribute("value",xc);
+        ds.addChild(ds.getChildCount(),node);
+      }
+    }
+
+    xc = variableContext.getParameter("specmappingcount");
+    if (xc != null)
+    {
+      // Delete old spec
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals("pathmap"))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      // Now, go through the data and assemble a new list.
+      int mappingCount = Integer.parseInt(xc);
+
+      // Gather up these
+      i = 0;
+      while (i < mappingCount)
+      {
+        String pathDescription = "_"+Integer.toString(i);
+        String pathOpName = "specmappingop"+pathDescription;
+        xc = variableContext.getParameter(pathOpName);
+        if (xc != null && xc.equals("Delete"))
+        {
+          // Skip to the next
+          i++;
+          continue;
+        }
+        // Inserts won't happen until the very end
+        String match = variableContext.getParameter("specmatch"+pathDescription);
+        String replace = variableContext.getParameter("specreplace"+pathDescription);
+        SpecificationNode node = new SpecificationNode("pathmap");
+        node.setAttribute("match",match);
+        node.setAttribute("replace",replace);
+        ds.addChild(ds.getChildCount(),node);
+        i++;
+      }
+
+      // Check for add
+      xc = variableContext.getParameter("specmappingop");
+      if (xc != null && xc.equals("Add"))
+      {
+        String match = variableContext.getParameter("specmatch");
+        String replace = variableContext.getParameter("specreplace");
+        SpecificationNode node = new SpecificationNode("pathmap");
+        node.setAttribute("match",match);
+        node.setAttribute("replace",replace);
+        ds.addChild(ds.getChildCount(),node);
+      }
+    }
+    return null;
+  }
+  
+  /** View specification.
+  * This method is called in the body section of a job's view page.  Its purpose is to present the document specification information to the user.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  *@param out is the output to which any HTML should be sent.
+  *@param ds is the current document specification for this job.
+  */
+  public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
+    throws LCFException, IOException
+  {
+    out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr>\n"
+    );
+    int i = 0;
+    boolean seenAny = false;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("startpoint"))
+      {
+        if (seenAny == false)
+        {
+          out.print(
+"    <td class=\"description\">Roots:</td>\n"+
+"    <td class=\"value\">\n"
+          );
+          seenAny = true;
+        }
+        out.print(
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(sn.getAttributeValue("path"))+"<br/>\n"
+        );
+      }
+    }
+
+    if (seenAny)
+    {
+      out.print(
+"    </td>\n"+
+"  </tr>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"  <tr><td class=\"message\" colspan=\"2\">No start points specified</td></tr>\n"
+      );
+    }
+    out.print(
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+    );
+
+    seenAny = false;
+    // Go through looking for include or exclude file specs
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("include") || sn.getType().equals("exclude"))
+      {
+        if (seenAny == false)
+        {
+          out.print(
+"  <tr><td class=\"description\">File specs:</td>\n"+
+"    <td class=\"value\">\n"
+          );
+          seenAny = true;
+        }
+        String filespec = sn.getAttributeValue("filespec");
+        out.print(
+"      "+(sn.getType().equals("include")?"Include file:":"")+"\n"+
+"      "+(sn.getType().equals("exclude")?"Exclude file:":"")+"\n"+
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(filespec)+"<br/>\n"
+        );
+      }
+    }
+
+    if (seenAny)
+    {
+      out.print(
+"    </td>\n"+
+"  </tr>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"  <tr><td class=\"message\" colspan=\"2\">No file specs specified</td></tr>\n"
+      );
+    }
+    out.print(
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+    );
+    // Find whether security is on or off
+    i = 0;
+    boolean securityOn = true;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("security"))
+      {
+        String securityValue = sn.getAttributeValue("value");
+        if (securityValue.equals("off"))
+          securityOn = false;
+        else if (securityValue.equals("on"))
+          securityOn = true;
+      }
+    }
+    out.print(
+"  <tr>\n"+
+"    <td class=\"description\">Security:</td>\n"+
+"    <td class=\"value\">"+(securityOn?"Enabled":"Disabled")+"</td>\n"+
+"  </tr>\n"+
+"\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+    );
+    // Go through looking for access tokens
+    seenAny = false;
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("access"))
+      {
+        if (seenAny == false)
+        {
+          out.print(
+"  <tr><td class=\"description\">Access tokens:</td>\n"+
+"    <td class=\"value\">\n"
+          );
+          seenAny = true;
+        }
+        String token = sn.getAttributeValue("token");
+        out.print(
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(token)+"<br/>\n"
+        );
+      }
+    }
+
+    if (seenAny)
+    {
+      out.print(
+"    </td>\n"+
+"  </tr>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"  <tr><td class=\"message\" colspan=\"2\">No access tokens specified</td></tr>\n"
+      );
+    }
+    out.print(
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+    );
+    i = 0;
+    String allMetadata = "Only specified metadata will be ingested";
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("allmetadata"))
+      {
+        String value = sn.getAttributeValue("all");
+        if (value != null && value.equals("true"))
+        {
+          allMetadata="All document metadata will be ingested";
+        }
+      }
+    }
+    out.print(
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Metadata specification:</nobr></td>\n"+
+"    <td class=\"value\"><nobr>"+allMetadata+"</nobr></td>\n"+
+"  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+    );
+    // Go through looking for metadata spec
+    seenAny = false;
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("metadata"))
+      {
+        if (seenAny == false)
+        {
+          out.print(
+"  <tr><td class=\"description\"><nobr>Specific metadata:</nobr></td>\n"+
+"    <td class=\"value\">\n"
+          );
+          seenAny = true;
+        }
+        String category = sn.getAttributeValue("category");
+        String attribute = sn.getAttributeValue("attribute");
+        String isAll = sn.getAttributeValue("all");
+        out.print(
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(category)+":"+((isAll!=null&&isAll.equals("true"))?"(All metadata attributes)":org.apache.lcf.ui.util.Encoder.bodyEscape(attribute))+"<br/>\n"
+        );
+      }
+    }
+
+    if (seenAny)
+    {
+      out.print(
+"    </td>\n"+
+"  </tr>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"  <tr><td class=\"message\" colspan=\"2\">No metadata specified</td></tr>\n"
+      );
+    }
+    out.print(
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+    );
+    // Find the path-name metadata attribute name
+    i = 0;
+    String pathNameAttribute = "";
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("pathnameattribute"))
+      {
+        pathNameAttribute = sn.getAttributeValue("value");
+      }
+    }
+    out.print(
+"  <tr>\n"
+    );
+    if (pathNameAttribute.length() > 0)
+    {
+      out.print(
+"    <td class=\"description\">Path-name metadata attribute:</td>\n"+
+"    <td class=\"value\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(pathNameAttribute)+"</td>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"    <td class=\"message\" colspan=\"2\">No path-name metadata attribute specified</td>\n"
+      );
+    }
+    out.print(
+"  </tr>\n"+
+"\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"\n"+
+"  <tr>\n"
+    );
+    // Find the path-value mapping data
+    i = 0;
+    org.apache.lcf.crawler.connectors.livelink.MatchMap matchMap = new org.apache.lcf.crawler.connectors.livelink.MatchMap();
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("pathmap"))
+      {
+        String pathMatch = sn.getAttributeValue("match");
+        String pathReplace = sn.getAttributeValue("replace");
+        matchMap.appendMatchPair(pathMatch,pathReplace);
+      }
+    }
+    if (matchMap.getMatchCount() > 0)
+    {
+      out.print(
+"    <td class=\"description\">Path-value mapping:</td>\n"+
+"    <td class=\"value\">\n"+
+"      <table class=\"displaytable\">\n"
+      );
+      i = 0;
+      while (i < matchMap.getMatchCount())
+      {
+        String matchString = matchMap.getMatchString(i);
+        String replaceString = matchMap.getReplaceString(i);
+        out.print(
+"        <tr>\n"+
+"          <td class=\"value\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(matchString)+"</td>\n"+
+"          <td class=\"value\">--></td>\n"+
+"          <td class=\"value\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(replaceString)+"</td>\n"+
+"        </tr>\n"
+        );
+        i++;
+      }
+      out.print(
+"      </table>\n"+
+"    </td>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"    <td class=\"message\" colspan=\"2\">No mappings specified</td>\n"
+      );
+    }
+    out.print(
+"  </tr>\n"+
+"</table>\n"
+    );
+  }
+
   // The following public methods are NOT part of the interface.  They are here so that the UI can present information
   // that will allow users to select what they need.
 

@@ -74,7 +74,7 @@ public class RobotsManager extends org.apache.lcf.core.database.BaseTable
         HashMap map = new HashMap();
         map.put(hostField,new ColumnDescription("VARCHAR(255)",true,false,null,null,false));
         map.put(expirationField,new ColumnDescription("BIGINT",false,false,null,null,false));
-        map.put(robotsField,new ColumnDescription("BYTEA",false,true,null,null,false));
+        map.put(robotsField,new ColumnDescription("BLOB",false,true,null,null,false));
         performCreate(map,null);
       }
       else

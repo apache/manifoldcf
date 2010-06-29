@@ -159,16 +159,7 @@
 		}
 	}
 
-	String JSPFolder = null;
 	ArrayList tabsArray = new ArrayList();
-
-	if (className.length() > 0)
-	{
-		JSPFolder = RepositoryConnectorFactory.getJSPFolder(threadContext,className);
-		threadContext.save("Parameters",parameters);
-		threadContext.save("Tabs",tabsArray);
-		threadContext.save("TabName",tabName);
-	}
 
 	// Set up the predefined tabs
 	tabsArray.add("Name");
@@ -179,11 +170,17 @@
 %>
 
 <%
-	if (JSPFolder != null)
+	if (className.length() > 0)
 	{
+		String error = RepositoryConnectorFactory.processConfigurationPost(threadContext,className,variableContext,parameters);
+		if (error != null)
+		{
+			variableContext.setParameter("text",error);
+			variableContext.setParameter("target","listconnections.jsp");
 %>
-		<jsp:include page='<%="/connectors/"+JSPFolder+"/postconfig.jsp"%>' flush="false"/>
+<jsp:forward page="error.jsp"/>
 <%
+		}
 	}
 %>
 
@@ -338,14 +335,7 @@
 	//-->
 	</script>
 <%
-	if (JSPFolder != null)
-	{
-%>
-		<jsp:include page='<%="/connectors/"+JSPFolder+"/headerconfig.jsp"%>' flush="true"/>
-<%
-	}
-
-
+	RepositoryConnectorFactory.outputConfigurationHeader(threadContext,className,new org.apache.lcf.ui.jsp.JspWrapper(out),parameters,tabsArray);
 %>
 
 </head>
@@ -656,12 +646,8 @@
 		}
 	  }
 
-	  if (JSPFolder != null)
-	  {
-%>
-		    <jsp:include page='<%="/connectors/"+JSPFolder+"/editconfig.jsp"%>' flush="true"/>
-<%
-	  }
+	  if (className.length() > 0)
+		RepositoryConnectorFactory.outputConfigurationBody(threadContext,className,new org.apache.lcf.ui.jsp.JspWrapper(out),parameters,tabName);
 %>
 		    <table class="displaytable">
 			<tr><td class="separator" colspan="4"><hr/></td></tr>

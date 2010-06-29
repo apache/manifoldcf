@@ -120,17 +120,15 @@
 
 		IRepositoryConnection connection = connManager.load(job.getConnectionName());
 		IOutputConnection outputConnection = outputManager.load(job.getOutputConnectionName());
-		String JSPFolder = RepositoryConnectorFactory.getJSPFolder(threadContext,connection.getClassName());
-		String outputJSPFolder = OutputConnectorFactory.getJSPFolder(threadContext,outputConnection.getClassName());
 		int model = RepositoryConnectorFactory.getConnectorModel(threadContext,connection.getClassName());
 		String[] relationshipTypes = RepositoryConnectorFactory.getRelationshipTypes(threadContext,connection.getClassName());
 		Map hopCountFilters = job.getHopCountFilters();
 		int hopcountMode = job.getHopcountMode();
 
-		threadContext.save("OutputSpecification",job.getOutputSpecification());
-		threadContext.save("OutputConnection",outputConnection);
-		threadContext.save("DocumentSpecification",job.getSpecification());
-		threadContext.save("RepositoryConnection",connection);
+		//threadContext.save("OutputSpecification",job.getOutputSpecification());
+		//threadContext.save("OutputConnection",outputConnection);
+		//threadContext.save("DocumentSpecification",job.getSpecification());
+		//threadContext.save("RepositoryConnection",connection);
 %>
 		<table class="displaytable">
 			<tr>
@@ -546,11 +544,21 @@
 			<tr>
 				<td colspan="4">
 <%
-		if (outputJSPFolder != null)
+		if (outputConnection != null)
 		{
-%>
-				<jsp:include page='<%="/output/"+outputJSPFolder+"/viewspec.jsp"%>' flush="true"/>
-<%
+			IOutputConnector outputConnector = OutputConnectorFactory.grab(threadContext,outputConnection.getClassName(),outputConnection.getConfigParams(),
+				outputConnection.getMaxConnections());
+			if (outputConnector != null)
+			{
+				try
+				{
+					outputConnector.viewSpecification(new org.apache.lcf.ui.jsp.JspWrapper(out),job.getOutputSpecification());
+				}
+				finally
+				{
+					OutputConnectorFactory.release(outputConnector);
+				}
+			}
 		}
 %>
 				</td>
@@ -561,11 +569,21 @@
 			<tr>
 				<td colspan="4">
 <%
-		if (JSPFolder != null)
+		if (connection != null)
 		{
-%>
-				<jsp:include page='<%="/connectors/"+JSPFolder+"/viewspec.jsp"%>' flush="true"/>
-<%
+			IRepositoryConnector repositoryConnector = RepositoryConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),
+				connection.getMaxConnections());
+			if (repositoryConnector != null)
+			{
+				try
+				{
+					repositoryConnector.viewSpecification(new org.apache.lcf.ui.jsp.JspWrapper(out),job.getSpecification());
+				}
+				finally
+				{
+					RepositoryConnectorFactory.release(repositoryConnector);
+				}
+			}
 		}
 %>
 				</td>

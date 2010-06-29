@@ -20,6 +20,7 @@ package org.apache.lcf.authorities.interfaces;
 
 import org.apache.lcf.core.interfaces.*;
 import java.util.*;
+import java.io.*;
 import java.lang.reflect.*;
 
 /** This class manages a pool of authority connectors.
@@ -54,19 +55,6 @@ public class AuthorityConnectorFactory
     connector.deinstall(threadContext);
   }
 
-  /** Get the JSP folder for a connector.
-  *@param className is the class name.
-  *@return the folder string.
-  */
-  public static String getJSPFolder(IThreadContext threadContext, String className)
-    throws LCFException
-  {
-    IAuthorityConnector connector = getConnector(threadContext,className);
-    if (connector == null)
-      return null;
-    return connector.getJSPFolder();
-  }
-
   /** Get the default response from a connector.  Called if the connection attempt fails.
   */
   public static AuthorizationResponse getDefaultAuthorizationResponse(IThreadContext threadContext, String className, String userName)
@@ -76,6 +64,51 @@ public class AuthorityConnectorFactory
     if (connector == null)
       return null;
     return connector.getDefaultAuthorizationResponse(userName);
+  }
+
+  /** Output the configuration header section.
+  */
+  public static void outputConfigurationHeader(IThreadContext threadContext, String className, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
+    throws LCFException, IOException
+  {
+    IAuthorityConnector connector = getConnector(threadContext, className);
+    if (connector == null)
+      return;
+    connector.outputConfigurationHeader(threadContext,out,parameters,tabsArray);
+  }
+
+  /** Output the configuration body section.
+  */
+  public static void outputConfigurationBody(IThreadContext threadContext, String className, IHTTPOutput out, ConfigParams parameters, String tabName)
+    throws LCFException, IOException
+  {
+    IAuthorityConnector connector = getConnector(threadContext, className);
+    if (connector == null)
+      return;
+    connector.outputConfigurationBody(threadContext,out,parameters,tabName);
+  }
+
+  /** Process configuration post data for a connector.
+  */
+  public static String processConfigurationPost(IThreadContext threadContext, String className, IPostParameters variableContext, ConfigParams configParams)
+    throws LCFException
+  {
+    IAuthorityConnector connector = getConnector(threadContext, className);
+    if (connector == null)
+      return null;
+    return connector.processConfigurationPost(threadContext,variableContext,configParams);
+  }
+  
+  /** View connector configuration.
+  */
+  public static void viewConfiguration(IThreadContext threadContext, String className, IHTTPOutput out, ConfigParams configParams)
+    throws LCFException, IOException
+  {
+    IAuthorityConnector connector = getConnector(threadContext, className);
+    // We want to be able to view connections even if they have unregistered connectors.
+    if (connector == null)
+      return;
+    connector.viewConfiguration(threadContext,out,configParams);
   }
 
   /** Get a repository connector instance, but do NOT check if class is installed first!

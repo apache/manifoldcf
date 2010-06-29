@@ -217,8 +217,6 @@
 
 					IRepositoryConnection connection = connManager.load(job.getConnectionName());
 					IOutputConnection outputConnection = outputManager.load(job.getOutputConnectionName());
-					String JSPFolder = RepositoryConnectorFactory.getJSPFolder(threadContext,connection.getClassName());
-					String outputJSPFolder = OutputConnectorFactory.getJSPFolder(threadContext,outputConnection.getClassName());
 					String[] relationshipTypes = RepositoryConnectorFactory.getRelationshipTypes(threadContext,connection.getClassName());
 
 					// Gather hopcount filters
@@ -238,24 +236,51 @@
 							}
 						}
 					}
-						
-					if (outputJSPFolder != null)
+					
+					IOutputConnector outputConnector = OutputConnectorFactory.grab(threadContext,
+						outputConnection.getClassName(),outputConnection.getConfigParams(),outputConnection.getMaxConnections());
+					if (outputConnector != null)
 					{
-						threadContext.save("OutputSpecification",job.getOutputSpecification());
-						threadContext.save("OutputConnection",outputConnection);
+						try
+						{
+							String error = outputConnector.processSpecificationPost(variableContext,job.getOutputSpecification());
+							if (error != null)
+							{
+								variableContext.setParameter("text",error);
+								variableContext.setParameter("target","listjobs.jsp");
 %>
-					<jsp:include page='<%="/output/"+outputJSPFolder+"/postspec.jsp"%>' flush="false"/>
+								<jsp:forward page="error.jsp"/>
 <%
+							}
+						}
+						finally
+						{
+							OutputConnectorFactory.release(outputConnector);
+						}
 					}
 
-					if (JSPFolder != null)
+					IRepositoryConnector repositoryConnector = RepositoryConnectorFactory.grab(threadContext,
+						connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+					if (repositoryConnector != null)
 					{
-						threadContext.save("DocumentSpecification",job.getSpecification());
-						threadContext.save("RepositoryConnection",connection);
+						try
+						{
+							String error = repositoryConnector.processSpecificationPost(variableContext,job.getSpecification());
+							if (error != null)
+							{
+								variableContext.setParameter("text",error);
+								variableContext.setParameter("target","listjobs.jsp");
 %>
-					<jsp:include page='<%="/connectors/"+JSPFolder+"/postspec.jsp"%>' flush="false"/>
+								<jsp:forward page="error.jsp"/>
 <%
+							}
+						}
+						finally
+						{
+							RepositoryConnectorFactory.release(repositoryConnector);
+						}
 					}
+
 					manager.save(job);
 					// Reset the job schedule. We may want to make this explicit at some point; having
 					// this happen all the time seems wrong.
@@ -300,13 +325,14 @@
 					if (x != null && x.length() > 0)
 						connection.setMaxConnections(Integer.parseInt(x));
 
-					String JSPFolder = OutputConnectorFactory.getJSPFolder(threadContext,connection.getClassName());
-
-					threadContext.save("Parameters",connection.getConfigParams());
-					if (JSPFolder != null)
+					String error = OutputConnectorFactory.processConfigurationPost(threadContext,connection.getClassName(),variableContext,connection.getConfigParams());
+					
+					if (error != null)
 					{
+						variableContext.setParameter("text",error);
+						variableContext.setParameter("target","listoutputs.jsp");
 %>
-					<jsp:include page='<%="/output/"+JSPFolder+"/postconfig.jsp"%>' flush="false"/>
+						<jsp:forward page="error.jsp"/>
 <%
 					}
 					outputManager.save(connection);
@@ -394,15 +420,17 @@
 						}
 					}
 
-					String JSPFolder = RepositoryConnectorFactory.getJSPFolder(threadContext,connection.getClassName());
-
-					threadContext.save("Parameters",connection.getConfigParams());
-					if (JSPFolder != null)
+					String error = RepositoryConnectorFactory.processConfigurationPost(threadContext,connection.getClassName(),variableContext,connection.getConfigParams());
+					
+					if (error != null)
 					{
+						variableContext.setParameter("text",error);
+						variableContext.setParameter("target","listconnections.jsp");
 %>
-					<jsp:include page='<%="/connectors/"+JSPFolder+"/postconfig.jsp"%>' flush="false"/>
+						<jsp:forward page="error.jsp"/>
 <%
 					}
+
 					connManager.save(connection);
 					variableContext.setParameter("connname",connectionName);
 %>
@@ -443,15 +471,17 @@
 					if (x != null && x.length() > 0)
 						connection.setMaxConnections(Integer.parseInt(x));
 
-					String JSPFolder = AuthorityConnectorFactory.getJSPFolder(threadContext,connection.getClassName());
-
-					threadContext.save("Parameters",connection.getConfigParams());
-					if (JSPFolder != null)
+					String error = AuthorityConnectorFactory.processConfigurationPost(threadContext,connection.getClassName(),variableContext,connection.getConfigParams());
+					
+					if (error != null)
 					{
+						variableContext.setParameter("text",error);
+						variableContext.setParameter("target","listauthorities.jsp");
 %>
-					<jsp:include page='<%="/authorities/"+JSPFolder+"/postconfig.jsp"%>' flush="false"/>
+						<jsp:forward page="error.jsp"/>
 <%
 					}
+
 					authConnManager.save(connection);
 					variableContext.setParameter("connname",connectionName);
 %>

@@ -29,7 +29,7 @@ import java.io.*;
 * multipart forms.  It is styled much like HttpServletRequest, but wraps this interface so
 * that code can access either standard post data or multipart data transparently.
 */
-public class MultipartWrapper
+public class MultipartWrapper implements IPostParameters
 {
   public static final String _rcsid = "@(#)$Id$";
 
@@ -134,7 +134,6 @@ public class MultipartWrapper
     return rval;
   }
 
-  /** We need to be able to set a parameter
   /** Get single parameter value.
   */
   public String getParameter(String name)

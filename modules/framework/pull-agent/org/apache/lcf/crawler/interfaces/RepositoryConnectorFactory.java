@@ -23,6 +23,7 @@ import org.apache.lcf.agents.interfaces.*;
 import org.apache.lcf.crawler.system.Logging;
 
 import java.util.*;
+import java.io.*;
 import java.lang.reflect.*;
 
 /** This is the factory class for IRepositoryConnector objects.
@@ -91,19 +92,6 @@ public class RepositoryConnectorFactory
     return values;
   }
 
-  /** Get the JSP folder for a connector.
-  *@param className is the class name.
-  *@return the folder string.
-  */
-  public static String getJSPFolder(IThreadContext threadContext, String className)
-    throws LCFException
-  {
-    IRepositoryConnector connector = getConnector(threadContext, className);
-    if (connector == null)
-      return null;
-    return connector.getJSPFolder();
-  }
-
   /** Get the operating mode for a connector.
   *@param className is the class name.
   *@return the connector operating model, as specified in IRepositoryConnector.
@@ -115,6 +103,51 @@ public class RepositoryConnectorFactory
     if (connector == null)
       return -1;
     return connector.getConnectorModel();
+  }
+
+  /** Output the configuration header section.
+  */
+  public static void outputConfigurationHeader(IThreadContext threadContext, String className, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
+    throws LCFException, IOException
+  {
+    IRepositoryConnector connector = getConnector(threadContext, className);
+    if (connector == null)
+      return;
+    connector.outputConfigurationHeader(threadContext,out,parameters,tabsArray);
+  }
+
+  /** Output the configuration body section.
+  */
+  public static void outputConfigurationBody(IThreadContext threadContext, String className, IHTTPOutput out, ConfigParams parameters, String tabName)
+    throws LCFException, IOException
+  {
+    IRepositoryConnector connector = getConnector(threadContext, className);
+    if (connector == null)
+      return;
+    connector.outputConfigurationBody(threadContext,out,parameters,tabName);
+  }
+
+  /** Process configuration post data for a connector.
+  */
+  public static String processConfigurationPost(IThreadContext threadContext, String className, IPostParameters variableContext, ConfigParams configParams)
+    throws LCFException
+  {
+    IRepositoryConnector connector = getConnector(threadContext, className);
+    if (connector == null)
+      return null;
+    return connector.processConfigurationPost(threadContext,variableContext,configParams);
+  }
+  
+  /** View connector configuration.
+  */
+  public static void viewConfiguration(IThreadContext threadContext, String className, IHTTPOutput out, ConfigParams configParams)
+    throws LCFException, IOException
+  {
+    IRepositoryConnector connector = getConnector(threadContext, className);
+    // We want to be able to view connections even if they have unregistered connectors.
+    if (connector == null)
+      return;
+    connector.viewConfiguration(threadContext,out,configParams);
   }
 
   /** Get a repository connector instance, without checking for installed connector.

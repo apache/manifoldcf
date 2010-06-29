@@ -325,35 +325,31 @@
 	// 3) a jobid and a connection name, which indicates that we are editing an existing connection.
 	// There are similar combinations for output connections.
 
-	String JSPFolder = null;
-	String outputJSPFolder = null;
 	int model = IRepositoryConnector.MODEL_ADD_CHANGE_DELETE;
 	String[] relationshipTypes = null;
 	ArrayList tabsArray = new ArrayList();
+	
+	IRepositoryConnection connection = null;
+	IOutputConnection outputConnection = null;
 	if (connectionName.length() > 0)
 	{
-
-		IRepositoryConnection connection = connMgr.load(connectionName);
-		JSPFolder = RepositoryConnectorFactory.getJSPFolder(threadContext,connection.getClassName());
+		connection = connMgr.load(connectionName);
 		model = RepositoryConnectorFactory.getConnectorModel(threadContext,connection.getClassName());
 		relationshipTypes = RepositoryConnectorFactory.getRelationshipTypes(threadContext,connection.getClassName());
-
-		threadContext.save("DocumentSpecification",documentSpecification);
-		threadContext.save("RepositoryConnection",connection);
+		//threadContext.save("DocumentSpecification",documentSpecification);
+		//threadContext.save("RepositoryConnection",connection);
 	}
 	if (outputName.length() > 0)
 	{
-		IOutputConnection connection = outputMgr.load(outputName);
-		outputJSPFolder = OutputConnectorFactory.getJSPFolder(threadContext,connection.getClassName());
-		
-		threadContext.save("OutputSpecification",outputSpecification);
-		threadContext.save("OutputConnection",connection);
+		outputConnection = outputMgr.load(outputName);
+		//threadContext.save("OutputSpecification",outputSpecification);
+		//threadContext.save("OutputConnection",connection);
 	}
 
 	// Assert the following variables regardless of connection choice/non-choice
-	threadContext.save("ScheduleCount",Integer.toString(scheduleRecords.size()));
-	threadContext.save("Tabs",tabsArray);
-	threadContext.save("TabName",tabName);
+	//threadContext.save("ScheduleCount",Integer.toString(scheduleRecords.size()));
+	//threadContext.save("Tabs",tabsArray);
+	//threadContext.save("TabName",tabName);
 
 	// Set up the predefined tabs
 	tabsArray.add("Name");
@@ -386,20 +382,56 @@
 %>
 
 <%
-	if (outputJSPFolder != null)
+	if (outputConnection != null)
 	{
+		IOutputConnector outputConnector = OutputConnectorFactory.grab(threadContext,outputConnection.getClassName(),outputConnection.getConfigParams(),
+			outputConnection.getMaxConnections());
+		if (outputConnector != null)
+		{
+			try
+			{
+				String error = outputConnector.processSpecificationPost(variableContext,outputSpecification);
+				if (error != null)
+				{
+					variableContext.setParameter("text",error);
+					variableContext.setParameter("target","listjobs.jsp");
 %>
-		<jsp:include page='<%="/output/"+outputJSPFolder+"/postspec.jsp"%>' flush="true"/>
+					<jsp:forward page="error.jsp"/>
 <%
+				}
+			}
+			finally
+			{
+				OutputConnectorFactory.release(outputConnector);
+			}
+		}
 	}
 %>
 
 <%
-	if (JSPFolder != null)
+	if (connection != null)
 	{
+		IRepositoryConnector repositoryConnector = RepositoryConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),
+			connection.getMaxConnections());
+		if (repositoryConnector != null)
+		{
+			try
+			{
+				String error = repositoryConnector.processSpecificationPost(variableContext,documentSpecification);
+				if (error != null)
+				{
+					variableContext.setParameter("text",error);
+					variableContext.setParameter("target","listjobs.jsp");
 %>
-		<jsp:include page='<%="/connectors/"+JSPFolder+"/postspec.jsp"%>' flush="true"/>
+					<jsp:forward page="error.jsp"/>
 <%
+				}
+			}
+			finally
+			{
+				RepositoryConnectorFactory.release(repositoryConnector);
+			}
+		}
 	}
 %>
 
@@ -619,20 +651,40 @@
 	//-->
 	</script>
 <%
-	if (outputJSPFolder != null)
+	if (outputConnection != null)
 	{
-%>
-		<jsp:include page='<%="/output/"+outputJSPFolder+"/headerspec.jsp"%>' flush="true"/>
-<%
+		IOutputConnector outputConnector = OutputConnectorFactory.grab(threadContext,outputConnection.getClassName(),outputConnection.getConfigParams(),
+			outputConnection.getMaxConnections());
+		if (outputConnector != null)
+		{
+			try
+			{
+				outputConnector.outputSpecificationHeader(new org.apache.lcf.ui.jsp.JspWrapper(out),outputSpecification,tabsArray);
+			}
+			finally
+			{
+				OutputConnectorFactory.release(outputConnector);
+			}
+		}
 	}
 %>
 
 <%
-	if (JSPFolder != null)
+	if (connection != null)
 	{
-%>
-		<jsp:include page='<%="/connectors/"+JSPFolder+"/headerspec.jsp"%>' flush="true"/>
-<%
+		IRepositoryConnector repositoryConnector = RepositoryConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),
+			connection.getMaxConnections());
+		if (repositoryConnector != null)
+		{
+			try
+			{
+				repositoryConnector.outputSpecificationHeader(new org.apache.lcf.ui.jsp.JspWrapper(out),documentSpecification,tabsArray);
+			}
+			finally
+			{
+				RepositoryConnectorFactory.release(repositoryConnector);
+			}
+		}
 	}
 %>
 
@@ -1326,18 +1378,38 @@
 	      }
 	}
 
-	if (outputJSPFolder != null)
+	if (outputConnection != null)
 	{
-%>
-		  <jsp:include page='<%="/output/"+outputJSPFolder+"/editspec.jsp"%>' flush="true"/>
-<%
+		IOutputConnector outputConnector = OutputConnectorFactory.grab(threadContext,outputConnection.getClassName(),outputConnection.getConfigParams(),
+			outputConnection.getMaxConnections());
+		if (outputConnector != null)
+		{
+			try
+			{
+				outputConnector.outputSpecificationBody(new org.apache.lcf.ui.jsp.JspWrapper(out),outputSpecification,tabName);
+			}
+			finally
+			{
+				OutputConnectorFactory.release(outputConnector);
+			}
+		}
 	}
 
-	if (JSPFolder != null)
+	if (connection != null)
 	{
-%>
-		  <jsp:include page='<%="/connectors/"+JSPFolder+"/editspec.jsp"%>' flush="true"/>
-<%
+		IRepositoryConnector repositoryConnector = RepositoryConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),
+			connection.getMaxConnections());
+		if (repositoryConnector != null)
+		{
+			try
+			{
+				repositoryConnector.outputSpecificationBody(new org.apache.lcf.ui.jsp.JspWrapper(out),documentSpecification,tabName);
+			}
+			finally
+			{
+				RepositoryConnectorFactory.release(repositoryConnector);
+			}
+		}
 	}
 %>
 		  <table class="displaytable">

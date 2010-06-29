@@ -242,6 +242,181 @@ public class ActiveDirectoryAuthority extends org.apache.lcf.authorities.authori
     return unreachableResponse;
   }
 
+  // UI support methods.
+  //
+  // These support methods are involved in setting up authority connection configuration information. The configuration methods cannot assume that the
+  // current authority object is connected.  That is why they receive a thread context argument.
+    
+  /** Output the configuration header section.
+  * This method is called in the head section of the connector's configuration page.  Its purpose is to add the required tabs to the list, and to output any
+  * javascript methods that might be needed by the configuration editing HTML.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
+    throws LCFException, IOException
+  {
+    tabsArray.add("Domain Controller");
+    out.print(
+"<script type=\"text/javascript\">\n"+
+"<!--\n"+
+"function checkConfig()\n"+
+"{\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"function checkConfigForSave()\n"+
+"{\n"+
+"  if (editconnection.domaincontrollername.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Enter a domain controller server name\");\n"+
+"    SelectTab(\"Domain Controller\");\n"+
+"    editconnection.domaincontrollername.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.username.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Administrative user name cannot be null\");\n"+
+"    SelectTab(\"Domain Controller\");\n"+
+"    editconnection.username.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"//-->\n"+
+"</script>\n"
+    );
+  }
+  
+  /** Output the configuration body section.
+  * This method is called in the body section of the authority connector's configuration page.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabName is the current tab name.
+  */
+  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
+    throws LCFException, IOException
+  {
+    String domainControllerName = parameters.getParameter(org.apache.lcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_DOMAINCONTROLLER);
+    if (domainControllerName == null)
+      domainControllerName = "";
+    String userName = parameters.getParameter(org.apache.lcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_USERNAME);
+    if (userName == null)
+      userName = "";
+    String password = parameters.getObfuscatedParameter(org.apache.lcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_PASSWORD);
+    if (password == null)
+      password = "";
+
+    // The "Domain Controller" tab
+    if (tabName.equals("Domain Controller"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Domain controller name:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"64\" name=\"domaincontrollername\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(domainControllerName)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Administrative user name:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"username\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(userName)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Administrative password:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"password\" size=\"32\" name=\"password\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(password)+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for Domain Controller tab
+      out.print(
+"<input type=\"hidden\" name=\"domaincontrollername\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(domainControllerName)+"\"/>\n"+
+"<input type=\"hidden\" name=\"username\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(userName)+"\"/>\n"+
+"<input type=\"hidden\" name=\"password\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(password)+"\"/>\n"
+      );
+    }
+  }
+  
+  /** Process a configuration post.
+  * This method is called at the start of the authority connector's configuration page, whenever there is a possibility that form data for a connection has been
+  * posted.  Its purpose is to gather form information and modify the configuration parameters accordingly.
+  * The name of the posted form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param variableContext is the set of variables available from the post, including binary file post information.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
+  */
+  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
+    throws LCFException
+  {
+    String domainControllerName = variableContext.getParameter("domaincontrollername");
+    if (domainControllerName != null)
+      parameters.setParameter(org.apache.lcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_DOMAINCONTROLLER,domainControllerName);
+    String userName = variableContext.getParameter("username");
+    if (userName != null)
+      parameters.setParameter(org.apache.lcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_USERNAME,userName);
+    String password = variableContext.getParameter("password");
+    if (password != null)
+      parameters.setObfuscatedParameter(org.apache.lcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_PASSWORD,password);
+    return null;
+  }
+  
+  /** View configuration.
+  * This method is called in the body section of the authority connector's view configuration page.  Its purpose is to present the connection information to the user.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  */
+  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
+    throws LCFException, IOException
+  {
+    out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>Parameters:</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"3\">\n"
+    );
+    Iterator iter = parameters.listParameters();
+    while (iter.hasNext())
+    {
+      String param = (String)iter.next();
+      String value = parameters.getParameter(param);
+      if (param.length() >= "password".length() && param.substring(param.length()-"password".length()).equalsIgnoreCase("password"))
+      {
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"=********</nobr><br/>\n"
+        );
+      }
+      else if (param.length() >="keystore".length() && param.substring(param.length()-"keystore".length()).equalsIgnoreCase("keystore"))
+      {
+        IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"=<"+Integer.toString(kmanager.getContents().length)+" certificate(s)></nobr><br/>\n"
+        );
+      }
+      else
+      {
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"="+org.apache.lcf.ui.util.Encoder.bodyEscape(value)+"</nobr><br/>\n"
+        );
+      }
+    }
+    out.print(
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+    );
+  }
+
   // Protected methods
   
   protected void getSession()

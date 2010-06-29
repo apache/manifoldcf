@@ -391,6 +391,269 @@ public class LivelinkAuthority extends org.apache.lcf.authorities.authorities.Ba
     return unreachableResponse;
   }
 
+  // UI support methods.
+  //
+  // These support methods are involved in setting up authority connection configuration information. The configuration methods cannot assume that the
+  // current authority object is connected.  That is why they receive a thread context argument.
+    
+  /** Output the configuration header section.
+  * This method is called in the head section of the connector's configuration page.  Its purpose is to add the required tabs to the list, and to output any
+  * javascript methods that might be needed by the configuration editing HTML.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
+    throws LCFException, IOException
+  {
+    tabsArray.add("Server");
+    tabsArray.add("User Mapping");
+    out.print(
+"<script type=\"text/javascript\">\n"+
+"<!--\n"+
+"function checkConfig()\n"+
+"{\n"+
+"  if (editconnection.serverport.value != \"\" && !isInteger(editconnection.serverport.value))\n"+
+"  {\n"+
+"    alert(\"A valid number is required\");\n"+
+"    editconnection.serverport.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.usernameregexp.value != \"\" && !isRegularExpression(editconnection.usernameregexp.value))\n"+
+"  {\n"+
+"    alert(\"User name regular expression must be valid regular expression\");\n"+
+"    editconnection.usernameregexp.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"function checkConfigForSave()\n"+
+"{\n"+
+"  if (editconnection.servername.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Enter a livelink server name\");\n"+
+"    SelectTab(\"Server\");\n"+
+"    editconnection.servername.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.serverport.value == \"\")\n"+
+"  {\n"+
+"    alert(\"A server port number is required\");\n"+
+"    SelectTab(\"Server\");\n"+
+"    editconnection.serverport.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.usernameregexp.value == \"\")\n"+
+"  {\n"+
+"    alert(\"User name regular expression cannot be null\");\n"+
+"    SelectTab(\"User Mapping\");\n"+
+"    editconnection.usernameregexp.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"//-->\n"+
+"</script>\n"
+    );
+  }
+  
+  /** Output the configuration body section.
+  * This method is called in the body section of the authority connector's configuration page.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabName is the current tab name.
+  */
+  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
+    throws LCFException, IOException
+  {
+    String serverName = parameters.getParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.serverName);
+    if (serverName == null)
+      serverName = "localhost";
+    String serverPort = parameters.getParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.serverPort);
+    if (serverPort == null)
+      serverPort = "2099";
+    String serverUserName = parameters.getParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.serverUsername);
+    if (serverUserName == null)
+      serverUserName = "";
+    String serverPassword = parameters.getObfuscatedParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.serverPassword);
+    if (serverPassword == null)
+      serverPassword = "";
+    org.apache.lcf.crawler.connectors.livelink.MatchMap matchMap = null;
+    String usernameRegexp = parameters.getParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.userNameRegexp);
+    String livelinkUserExpr = parameters.getParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.livelinkNameSpec);
+    if (usernameRegexp != null && usernameRegexp.length() > 0 && livelinkUserExpr != null)
+    {
+      // Old-style configuration.  Convert to the new.
+      matchMap = new org.apache.lcf.crawler.connectors.livelink.MatchMap();
+      matchMap.appendOldstyleMatchPair(usernameRegexp,livelinkUserExpr);
+    }
+    else
+    {
+      // New style configuration.
+      String userNameMapping = parameters.getParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.userNameMapping);
+      if (userNameMapping == null)
+        userNameMapping = "^(.*)\\\\@([A-Z|a-z|0-9|_|-]*)\\\\.(.*)$=$(2)\\\\$(1l)";
+      matchMap = new org.apache.lcf.crawler.connectors.livelink.MatchMap(userNameMapping);
+    }
+
+    usernameRegexp = matchMap.getMatchString(0);
+    livelinkUserExpr = matchMap.getReplaceString(0);
+
+    // The "Server" tab
+    if (tabName.equals("Server"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Server name:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"64\" name=\"servername\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(serverName)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Server port:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"serverport\" value=\""+serverPort+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Server user name:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"serverusername\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(serverUserName)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Server password:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"password\" size=\"32\" name=\"serverpassword\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(serverPassword)+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for Server tab
+      out.print(
+"<input type=\"hidden\" name=\"servername\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(serverName)+"\"/>\n"+
+"<input type=\"hidden\" name=\"serverport\" value=\""+serverPort+"\"/>\n"+
+"<input type=\"hidden\" name=\"serverusername\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(serverUserName)+"\"/>\n"+
+"<input type=\"hidden\" name=\"serverpassword\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(serverPassword)+"\"/>\n"
+      );
+    }
+
+    // The "User Mapping" tab
+    if (tabName.equals("User Mapping"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>User name regular expression:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"40\" name=\"usernameregexp\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(usernameRegexp)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Livelink user expression:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"40\" name=\"livelinkuserexpr\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(livelinkUserExpr)+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for "User Mapping" tab
+      out.print(
+"<input type=\"hidden\" name=\"usernameregexp\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(usernameRegexp)+"\"/>\n"+
+"<input type=\"hidden\" name=\"livelinkuserexpr\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(livelinkUserExpr)+"\"/>\n"
+      );
+    }
+  }
+  
+  /** Process a configuration post.
+  * This method is called at the start of the authority connector's configuration page, whenever there is a possibility that form data for a connection has been
+  * posted.  Its purpose is to gather form information and modify the configuration parameters accordingly.
+  * The name of the posted form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param variableContext is the set of variables available from the post, including binary file post information.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
+  */
+  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
+    throws LCFException
+  {
+    String serverName = variableContext.getParameter("servername");
+    if (serverName != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.serverName,serverName);
+    String serverPort = variableContext.getParameter("serverport");
+    if (serverPort != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.serverPort,serverPort);
+    String serverUserName = variableContext.getParameter("serverusername");
+    if (serverUserName != null)
+      parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.serverUsername,serverUserName);
+    String serverPassword = variableContext.getParameter("serverpassword");
+    if (serverPassword != null)
+      parameters.setObfuscatedParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.serverPassword,serverPassword);
+    String usernameRegexp = variableContext.getParameter("usernameregexp");
+    String livelinkUserExpr = variableContext.getParameter("livelinkuserexpr");
+    if (usernameRegexp != null && livelinkUserExpr != null)
+    {
+      parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.userNameRegexp,null);
+      parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.livelinkNameSpec,null);
+
+      org.apache.lcf.crawler.connectors.livelink.MatchMap matchMap = new org.apache.lcf.crawler.connectors.livelink.MatchMap();
+      matchMap.appendMatchPair(usernameRegexp,livelinkUserExpr);
+      parameters.setParameter(org.apache.lcf.crawler.connectors.livelink.LiveLinkParameters.userNameMapping,matchMap.toString());
+    }
+    return null;
+  }
+  
+  /** View configuration.
+  * This method is called in the body section of the authority connector's view configuration page.  Its purpose is to present the connection information to the user.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  */
+  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
+    throws LCFException, IOException
+  {
+    out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>Parameters:</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"3\">\n"
+    );
+    Iterator iter = parameters.listParameters();
+    while (iter.hasNext())
+    {
+      String param = (String)iter.next();
+      String value = parameters.getParameter(param);
+      if (param.length() >= "password".length() && param.substring(param.length()-"password".length()).equalsIgnoreCase("password"))
+      {
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"=********</nobr><br/>\n"
+        );
+      }
+      else if (param.length() >="keystore".length() && param.substring(param.length()-"keystore".length()).equalsIgnoreCase("keystore"))
+      {
+        IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"=<"+Integer.toString(kmanager.getContents().length)+" certificate(s)></nobr><br/>\n"
+        );
+      }
+      else
+      {
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"="+org.apache.lcf.ui.util.Encoder.bodyEscape(value)+"</nobr><br/>\n"
+        );
+      }
+    }
+    out.print(
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+    );
+  }
+
   /** Interpret runtimeexception to search for livelink API errors.  Throws an appropriately reinterpreted exception, or
   * just returns if the exception indicates that a short-cycle retry attempt should be made.  (In that case, the appropriate
   * wait has been already performed).

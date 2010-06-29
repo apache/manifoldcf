@@ -1367,6 +1367,2205 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
     }
   }
 
+  // UI support methods.
+  //
+  // These support methods come in two varieties.  The first bunch is involved in setting up connection configuration information.  The second bunch
+  // is involved in presenting and editing document specification information for a job.  The two kinds of methods are accordingly treated differently,
+  // in that the first bunch cannot assume that the current connector object is connected, while the second bunch can.  That is why the first bunch
+  // receives a thread context argument for all UI methods, while the second bunch does not need one (since it has already been applied via the connect()
+  // method, above).
+    
+  /** Output the configuration header section.
+  * This method is called in the head section of the connector's configuration page.  Its purpose is to add the required tabs to the list, and to output any
+  * javascript methods that might be needed by the configuration editing HTML.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
+    throws LCFException, IOException
+  {
+    tabsArray.add("Document Server");
+    tabsArray.add("Records Server");
+    tabsArray.add("Credentials");
+    tabsArray.add("Web Client");
+    out.print(
+"<script type=\"text/javascript\">\n"+
+"<!--\n"+
+"\n"+
+"function checkConfig()\n"+
+"{\n"+
+"  if (editconnection.dmwsServerPort.value != \"\" && !isInteger(editconnection.dmwsServerPort.value))\n"+
+"  {\n"+
+"    alert(\"Please supply a valid number\");\n"+
+"    editconnection.dmwsServerPort.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.rmwsServerPort.value != \"\" && !isInteger(editconnection.rmwsServerPort.value))\n"+
+"  {\n"+
+"    alert(\"Please supply a valid number\");\n"+
+"    editconnection.dmwsServerPort.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.dmwsProxyPort.value != \"\" && !isInteger(editconnection.dmwsProxyPort.value))\n"+
+"  {\n"+
+"    alert(\"Please supply a valid number\");\n"+
+"    editconnection.dmwsProxyPort.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.rmwsProxyPort.value != \"\" && !isInteger(editconnection.rmwsProxyPort.value))\n"+
+"  {\n"+
+"    alert(\"Please supply a valid number\");\n"+
+"    editconnection.dmwsProxyPort.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"\n"+
+"  if (editconnection.webClientServerPort.value != \"\" && !isInteger(editconnection.webClientServerPort.value))\n"+
+"  {\n"+
+"    alert(\"Please supply a valid number\");\n"+
+"    editconnection.webClientServerPort.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.userName.value != \"\" && editconnection.userName.value.indexOf(\"\\\\\") <= 0)\n"+
+"  {\n"+
+"    alert(\"A valid Meridio user name has the form <domain>\\\\<user>\");\n"+
+"    editconnection.userName.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"function checkConfigForSave()\n"+
+"{\n"+
+"  if (editconnection.dmwsServerName.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Please fill in a Meridio document management server name\");\n"+
+"    SelectTab(\"Document Server\");\n"+
+"    editconnection.dmwsServerName.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.rmwsServerName.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Please fill in a Meridio records management server name\");\n"+
+"    SelectTab(\"Records Server\");\n"+
+"    editconnection.rmwsServerName.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.webClientServerName.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Please fill in a Meridio web client server name\");\n"+
+"    SelectTab(\"Web Client\");\n"+
+"    editconnection.webClientServerName.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.dmwsServerPort.value != \"\" && !isInteger(editconnection.dmwsServerPort.value))\n"+
+"  {\n"+
+"    alert(\"Please supply a Meridio document management port number, or none for default\");\n"+
+"    SelectTab(\"Document Server\");\n"+
+"    editconnection.dmwsServerPort.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.rmwsServerPort.value != \"\" && !isInteger(editconnection.rmwsServerPort.value))\n"+
+"  {\n"+
+"    alert(\"Please supply a Meridio document management port number, or none for default\");\n"+
+"    SelectTab(\"Records Server\");\n"+
+"    editconnection.rmwsServerPort.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.webClientServerPort.value != \"\" && !isInteger(editconnection.webClientServerPort.value))\n"+
+"  {\n"+
+"    alert(\"Please supply a Meridio web client port number, or none for default\");\n"+
+"    SelectTab(\"Web Client\");\n"+
+"    editconnection.webClientServerPort.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.userName.value == \"\" || editconnection.userName.value.indexOf(\"\\\\\") <= 0)\n"+
+"  {\n"+
+"    alert(\"The connection requires a valid Meridio user name of the form <domain>\\\\<user>\");\n"+
+"    SelectTab(\"Credentials\");\n"+
+"    editconnection.userName.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"function DeleteCertificate(aliasName)\n"+
+"{\n"+
+"  editconnection.keystorealias.value = aliasName;\n"+
+"  editconnection.configop.value = \"Delete\";\n"+
+"  postForm();\n"+
+"}\n"+
+"\n"+
+"function AddCertificate()\n"+
+"{\n"+
+"  if (editconnection.certificate.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Choose a certificate file\");\n"+
+"    editconnection.certificate.focus();\n"+
+"  }\n"+
+"  else\n"+
+"  {\n"+
+"    editconnection.configop.value = \"Add\";\n"+
+"    postForm();\n"+
+"  }\n"+
+"}\n"+
+"\n"+
+"//-->\n"+
+"</script>\n"
+    );
+  }
+  
+  /** Output the configuration body section.
+  * This method is called in the body section of the connector's configuration page.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabName is the current tab name.
+  */
+  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
+    throws LCFException, IOException
+  {
+    String dmwsServerProtocol = parameters.getParameter("DMWSServerProtocol");
+    if (dmwsServerProtocol == null)
+      dmwsServerProtocol = "http";
+    String rmwsServerProtocol = parameters.getParameter("RMWSServerProtocol");
+    if (rmwsServerProtocol == null)
+      rmwsServerProtocol = "http";
+
+    String dmwsServerName = parameters.getParameter("DMWSServerName");
+    if (dmwsServerName == null)
+      dmwsServerName = "";
+    String rmwsServerName = parameters.getParameter("RMWSServerName");
+    if (rmwsServerName == null)
+      rmwsServerName = "";
+
+    String dmwsServerPort = parameters.getParameter("DMWSServerPort");
+    if (dmwsServerPort == null)
+      dmwsServerPort = "";
+    String rmwsServerPort = parameters.getParameter("RMWSServerPort");
+    if (rmwsServerPort == null)
+      rmwsServerPort = "";
+
+    String dmwsLocation = parameters.getParameter("DMWSLocation");
+    if (dmwsLocation == null)
+      dmwsLocation = "/DMWS/MeridioDMWS.asmx";
+    String rmwsLocation = parameters.getParameter("RMWSLocation");
+    if (rmwsLocation == null)
+      rmwsLocation = "/RMWS/MeridioRMWS.asmx";
+
+    String dmwsProxyHost = parameters.getParameter("DMWSProxyHost");
+    if (dmwsProxyHost == null)
+      dmwsProxyHost = "";
+    String rmwsProxyHost = parameters.getParameter("RMWSProxyHost");
+    if (rmwsProxyHost == null)
+      rmwsProxyHost = "";
+
+    String dmwsProxyPort = parameters.getParameter("DMWSProxyPort");
+    if (dmwsProxyPort == null)
+      dmwsProxyPort = "";
+    String rmwsProxyPort = parameters.getParameter("RMWSProxyPort");
+    if (rmwsProxyPort == null)
+      rmwsProxyPort = "";
+
+    String userName = parameters.getParameter("UserName");
+    if (userName == null)
+      userName = "";
+
+    String password = parameters.getObfuscatedParameter("Password");
+    if (password == null)
+      password = "";
+
+    String webClientProtocol = parameters.getParameter("MeridioWebClientProtocol");
+    if (webClientProtocol == null)
+      webClientProtocol = "http";
+    String webClientServerName = parameters.getParameter("MeridioWebClientServerName");
+    if (webClientServerName == null)
+      webClientServerName = "";
+    String webClientServerPort = parameters.getParameter("MeridioWebClientServerPort");
+    if (webClientServerPort == null)
+      webClientServerPort = "";
+    String webClientDocDownloadLocation = parameters.getParameter("MeridioWebClientDocDownloadLocation");
+    if (webClientDocDownloadLocation == null)
+      webClientDocDownloadLocation = "/meridio/browse/downloadcontent.aspx";
+
+    String meridioKeystore = parameters.getParameter("MeridioKeystore");
+    IKeystoreManager localKeystore;
+    if (meridioKeystore == null)
+      localKeystore = KeystoreManagerFactory.make("");
+    else
+      localKeystore = KeystoreManagerFactory.make("",meridioKeystore);
+    out.print(
+"<input name=\"configop\" type=\"hidden\" value=\"Continue\"/>\n"
+    );
+
+    // "Document Server" tab
+    if (tabName.equals("Document Server"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Document webservice server protocol:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <select name=\"dmwsServerProtocol\">\n"+
+"        <option value=\"http\" "+((dmwsServerProtocol.equals("http"))?"selected=\"true\"":"")+">http</option>\n"+
+"        <option value=\"https\" "+(dmwsServerProtocol.equals("https")?"selected=\"true\"":"")+">https</option>\n"+
+"      </select>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Document webservice server name:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"64\" name=\"dmwsServerName\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(dmwsServerName)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Document webservice server port:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"dmwsServerPort\" value=\""+dmwsServerPort+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Document webservice location:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"64\" name=\"dmwsLocation\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(dmwsLocation)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"separator\" colspan=\"2\"><hr/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Document webservice server proxy host:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"64\" name=\"dmwsProxyHost\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(dmwsProxyHost)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Document webservice server proxy port:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"dmwsProxyPort\" value=\""+dmwsProxyPort+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for the Document Server tab.
+      out.print(
+"<input type=\"hidden\" name=\"dmwsServerProtocol\" value=\""+dmwsServerProtocol+"\"/>\n"+
+"<input type=\"hidden\" name=\"dmwsServerName\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(dmwsServerName)+"\"/>\n"+
+"<input type=\"hidden\" name=\"dmwsServerPort\" value=\""+dmwsServerPort+"\"/>\n"+
+"<input type=\"hidden\" name=\"dmwsLocation\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(dmwsLocation)+"\"/>\n"+
+"<input type=\"hidden\" name=\"dmwsProxyHost\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(dmwsProxyHost)+"\"/>\n"+
+"<input type=\"hidden\" name=\"dmwsProxyPort\" value=\""+dmwsProxyPort+"\"/>\n"
+      );
+    }
+
+    // "Records Server" tab
+    if (tabName.equals("Records Server"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Record webservice server protocol:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <select name=\"rmwsServerProtocol\">\n"+
+"        <option value=\"http\" "+((rmwsServerProtocol.equals("http"))?"selected=\"true\"":"")+">http</option>\n"+
+"        <option value=\"https\" "+(rmwsServerProtocol.equals("https")?"selected=\"true\"":"")+">https</option>\n"+
+"      </select>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Record webservice server name:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"64\" name=\"rmwsServerName\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(rmwsServerName)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Record webservice server port:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"rmwsServerPort\" value=\""+rmwsServerPort+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Record webservice location:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"64\" name=\"rmwsLocation\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(rmwsLocation)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"separator\" colspan=\"2\"><hr/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Record webservice server proxy host:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"64\" name=\"rmwsProxyHost\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(rmwsProxyHost)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Record webservice server proxy port:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"rmwsProxyPort\" value=\""+rmwsProxyPort+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for the Records Server tab.
+      out.print(
+"<input type=\"hidden\" name=\"rmwsServerProtocol\" value=\""+rmwsServerProtocol+"\"/>\n"+
+"<input type=\"hidden\" name=\"rmwsServerName\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(rmwsServerName)+"\"/>\n"+
+"<input type=\"hidden\" name=\"rmwsServerPort\" value=\""+rmwsServerPort+"\"/>\n"+
+"<input type=\"hidden\" name=\"rmwsLocation\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(rmwsLocation)+"\"/>\n"+
+"<input type=\"hidden\" name=\"rmwsProxyHost\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(rmwsProxyHost)+"\"/>\n"+
+"<input type=\"hidden\" name=\"rmwsProxyPort\" value=\""+rmwsProxyPort+"\"/>\n"
+      );
+    }
+
+    // The "Credentials" tab
+    // Always pass the whole keystore as a hidden.
+    if (meridioKeystore != null)
+    {
+      out.print(
+"<input type=\"hidden\" name=\"keystoredata\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(meridioKeystore)+"\"/>\n"
+      );
+    }
+    if (tabName.equals("Credentials"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>User name:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"userName\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(userName)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Password:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"password\" size=\"32\" name=\"password\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(password)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>SSL certificate list:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"hidden\" name=\"keystorealias\" value=\"\"/>\n"+
+"      <table class=\"displaytable\">\n"
+      );
+      // List the individual certificates in the store, with a delete button for each
+      String[] contents = localKeystore.getContents();
+      if (contents.length == 0)
+      {
+        out.print(
+"        <tr><td class=\"message\" colspan=\"2\"><nobr>No certificates present</nobr></td></tr>\n"
+        );
+      }
+      else
+      {
+        int i = 0;
+        while (i < contents.length)
+        {
+          String alias = contents[i];
+          String description = localKeystore.getDescription(alias);
+          if (description.length() > 128)
+            description = description.substring(0,125) + "...";
+          out.print(
+"        <tr>\n"+
+"          <td class=\"value\"><input type=\"button\" onclick='Javascript:DeleteCertificate(\""+org.apache.lcf.ui.util.Encoder.attributeJavascriptEscape(alias)+"\")' alt=\""+"Delete cert "+org.apache.lcf.ui.util.Encoder.attributeEscape(alias)+"\" value=\"Delete\"/></td>\n"+
+"          <td>"+org.apache.lcf.ui.util.Encoder.bodyEscape(description)+"</td>\n"+
+"        </tr>\n"
+          );
+
+          i++;
+        }
+      }
+      out.print(
+"      </table>\n"+
+"      <input type=\"button\" onclick='Javascript:AddCertificate()' alt=\"Add cert\" value=\"Add\"/>&nbsp;\n"+
+"      Certificate:&nbsp;<input name=\"certificate\" size=\"50\" type=\"file\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for the "Credentials" tab
+      out.print(
+"<input type=\"hidden\" name=\"userName\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(userName)+"\"/>\n"+
+"<input type=\"hidden\" name=\"password\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(password)+"\"/>\n"
+      );
+    }
+
+    // Web Client tab
+    if (tabName.equals("Web Client"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Web client protocol:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <select name=\"webClientProtocol\">\n"+
+"        <option value=\"http\" "+((webClientProtocol.equals("http"))?"selected=\"true\"":"")+">http</option>\n"+
+"        <option value=\"https\" "+(webClientProtocol.equals("https")?"selected=\"true\"":"")+">https</option>\n"+
+"      </select>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Web client server name:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"64\" name=\"webClientServerName\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(webClientServerName)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Web client server port:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"webClientServerPort\" value=\""+webClientServerPort+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Web client server doc location:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"64\" name=\"webClientDocDownloadLocation\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(webClientDocDownloadLocation)+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for the "Web Client" tab
+      out.print(
+"<input type=\"hidden\" name=\"webClientProtocol\" value=\""+webClientProtocol+"\"/>\n"+
+"<input type=\"hidden\" name=\"webClientServerName\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(webClientServerName)+"\"/>\n"+
+"<input type=\"hidden\" name=\"webClientServerPort\" value=\""+webClientServerPort+"\"/>\n"+
+"<input type=\"hidden\" name=\"webClientDocDownloadLocation\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(webClientDocDownloadLocation)+"\"/>\n"
+      );
+    }
+  }
+  
+  /** Process a configuration post.
+  * This method is called at the start of the connector's configuration page, whenever there is a possibility that form data for a connection has been
+  * posted.  Its purpose is to gather form information and modify the configuration parameters accordingly.
+  * The name of the posted form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param variableContext is the set of variables available from the post, including binary file post information.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
+  */
+  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
+    throws LCFException
+  {
+    String dmwsServerProtocol = variableContext.getParameter("dmwsServerProtocol");
+    if (dmwsServerProtocol != null)
+      parameters.setParameter("DMWSServerProtocol",dmwsServerProtocol);
+    String rmwsServerProtocol = variableContext.getParameter("rmwsServerProtocol");
+    if (rmwsServerProtocol != null)
+      parameters.setParameter("RMWSServerProtocol",rmwsServerProtocol);
+
+    String dmwsServerName = variableContext.getParameter("dmwsServerName");
+    if (dmwsServerName != null)
+      parameters.setParameter("DMWSServerName",dmwsServerName);
+    String rmwsServerName = variableContext.getParameter("rmwsServerName");
+    if (rmwsServerName != null)
+      parameters.setParameter("RMWSServerName",rmwsServerName);
+
+    String dmwsServerPort = variableContext.getParameter("dmwsServerPort");
+    if (dmwsServerPort != null)
+    {
+      if (dmwsServerPort.length() > 0)
+        parameters.setParameter("DMWSServerPort",dmwsServerPort);
+      else
+        parameters.setParameter("DMWSServerPort",null);
+    }
+    String rmwsServerPort = variableContext.getParameter("rmwsServerPort");
+    if (rmwsServerPort != null)
+    {
+      if (rmwsServerPort.length() > 0)
+        parameters.setParameter("RMWSServerPort",rmwsServerPort);
+      else
+        parameters.setParameter("RMWSServerPort",null);
+    }
+
+    String dmwsLocation = variableContext.getParameter("dmwsLocation");
+    if (dmwsLocation != null)
+      parameters.setParameter("DMWSLocation",dmwsLocation);
+    String rmwsLocation = variableContext.getParameter("rmwsLocation");
+    if (rmwsLocation != null)
+      parameters.setParameter("RMWSLocation",rmwsLocation);
+
+    String dmwsProxyHost = variableContext.getParameter("dmwsProxyHost");
+    if (dmwsProxyHost != null)
+      parameters.setParameter("DMWSProxyHost",dmwsProxyHost);
+    String rmwsProxyHost = variableContext.getParameter("rmwsProxyHost");
+    if (rmwsProxyHost != null)
+      parameters.setParameter("RMWSProxyHost",rmwsProxyHost);
+    String dmwsProxyPort = variableContext.getParameter("dmwsProxyPort");
+    if (dmwsProxyPort != null && dmwsProxyPort.length() > 0)
+      parameters.setParameter("DMWSProxyPort",dmwsProxyPort);
+    String rmwsProxyPort = variableContext.getParameter("rmwsProxyPort");
+    if (rmwsProxyPort != null && rmwsProxyPort.length() > 0)
+      parameters.setParameter("RMWSProxyPort",rmwsProxyPort);
+
+    String userName = variableContext.getParameter("userName");
+    if (userName != null)
+      parameters.setParameter("UserName",userName);
+
+    String password = variableContext.getParameter("password");
+    if (password != null)
+      parameters.setObfuscatedParameter("Password",password);
+
+    String webClientProtocol = variableContext.getParameter("webClientProtocol");
+    if (webClientProtocol != null)
+      parameters.setParameter("MeridioWebClientProtocol",webClientProtocol);
+    String webClientServerName = variableContext.getParameter("webClientServerName");
+    if (webClientServerName != null)
+      parameters.setParameter("MeridioWebClientServerName",webClientServerName);
+    String webClientServerPort = variableContext.getParameter("webClientServerPort");
+    if (webClientServerPort != null)
+    {
+      if (webClientServerPort.length() > 0)
+        parameters.setParameter("MeridioWebClientServerPort",webClientServerPort);
+      else
+        parameters.setParameter("MeridioWebClientServerPort",null);
+    }
+
+    String webClientDocDownloadLocation = variableContext.getParameter("webClientDocDownloadLocation");
+    if (webClientDocDownloadLocation != null)
+      parameters.setParameter("MeridioWebClientDocDownloadLocation",webClientDocDownloadLocation);
+
+    String configOp = variableContext.getParameter("configop");
+    if (configOp != null)
+    {
+      String keystoreValue;
+      if (configOp.equals("Delete"))
+      {
+        String alias = variableContext.getParameter("keystorealias");
+        keystoreValue = parameters.getParameter("MeridioKeystore");
+        IKeystoreManager mgr;
+        if (keystoreValue != null)
+          mgr = KeystoreManagerFactory.make("",keystoreValue);
+        else
+          mgr = KeystoreManagerFactory.make("");
+        mgr.remove(alias);
+        parameters.setParameter("MeridioKeystore",mgr.getString());
+      }
+      else if (configOp.equals("Add"))
+      {
+        String alias = IDFactory.make(threadContext);
+        byte[] certificateValue = variableContext.getBinaryBytes("certificate");
+        keystoreValue = parameters.getParameter("MeridioKeystore");
+        IKeystoreManager mgr;
+        if (keystoreValue != null)
+          mgr = KeystoreManagerFactory.make("",keystoreValue);
+        else
+          mgr = KeystoreManagerFactory.make("");
+        java.io.InputStream is = new java.io.ByteArrayInputStream(certificateValue);
+        String certError = null;
+        try
+        {
+          mgr.importCertificate(alias,is);
+        }
+        catch (Throwable e)
+        {
+          certError = e.getMessage();
+        }
+        finally
+        {
+          try
+          {
+            is.close();
+          }
+          catch (IOException e)
+          {
+            // Eat this exception
+          }
+        }
+
+        if (certError != null)
+        {
+          // Redirect to error page
+          return "Illegal certificate: "+certError;
+        }
+        parameters.setParameter("MeridioKeystore",mgr.getString());
+      }
+    }
+    return null;
+  }
+  
+  /** View configuration.
+  * This method is called in the body section of the connector's view configuration page.  Its purpose is to present the connection information to the user.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  */
+  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
+    throws LCFException, IOException
+  {
+    out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>Parameters:</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"3\">\n"
+    );
+    Iterator iter = parameters.listParameters();
+    while (iter.hasNext())
+    {
+      String param = (String)iter.next();
+      String value = parameters.getParameter(param);
+      if (param.length() >= "password".length() && param.substring(param.length()-"password".length()).equalsIgnoreCase("password"))
+      {
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"=********</nobr><br/>\n"
+        );
+      }
+      else if (param.length() >="keystore".length() && param.substring(param.length()-"keystore".length()).equalsIgnoreCase("keystore"))
+      {
+        IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"=<"+Integer.toString(kmanager.getContents().length)+" certificate(s)></nobr><br/>\n"
+        );
+      }
+      else
+      {
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(param)+"="+org.apache.lcf.ui.util.Encoder.bodyEscape(value)+"</nobr><br/>\n"
+        );
+      }
+    }
+    out.print(
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+    );
+  }
+
+  // The allowed mime types, which are those that the ingestion API understands
+  private static String[] allowedMimeTypes;
+  static
+  {
+    allowedMimeTypes = new String[]
+    {
+      "application/excel",
+      "application/powerpoint",
+      "application/ppt",
+      "application/rtf",
+      "application/xls",
+      "text/html",
+      "text/rtf",
+      "text/pdf",
+      "application/x-excel",
+      "application/x-msexcel",
+      "application/x-mspowerpoint",
+      "application/x-msword-doc",
+      "application/x-msword",
+      "application/x-word",
+      "Application/pdf",
+      "text/xml",
+      "no-type",
+      "text/plain",
+      "application/pdf",
+      "application/x-rtf",
+      "application/vnd.ms-excel",
+      "application/vnd.ms-pps",
+      "application/vnd.ms-powerpoint",
+      "application/vnd.ms-word",
+      "application/msword",
+      "application/msexcel",
+      "application/mspowerpoint",
+      "application/ms-powerpoint",
+      "application/ms-word",
+      "application/ms-excel",
+      "Adobe",
+      "application/Vnd.Ms-Excel",
+      "vnd.ms-powerpoint",
+      "application/x-pdf",
+      "winword",
+      "text/richtext",
+      "Text",
+      "Text/html",
+      "application/MSWORD",
+      "application/PDF",
+      "application/MSEXCEL",
+      "application/MSPOWERPOINT"
+    };
+    java.util.Arrays.sort(allowedMimeTypes);
+  }
+
+  /** Output the specification header section.
+  * This method is called in the head section of a job page which has selected a repository connection of the current type.  Its purpose is to add the required tabs
+  * to the list, and to output any javascript methods that might be needed by the job editing HTML.
+  *@param out is the output to which any HTML should be sent.
+  *@param ds is the current document specification for this job.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
+  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
+    throws LCFException, IOException
+  {
+    tabsArray.add("Search Paths");
+    tabsArray.add("Content Types");
+    tabsArray.add("Categories");
+    tabsArray.add("Data Types");
+    tabsArray.add("Security");
+    tabsArray.add("Metadata");
+    out.print(
+"<script type=\"text/javascript\">\n"+
+"<!--\n"+
+"\n"+
+"function checkSpecification()\n"+
+"{\n"+
+"  // Does nothing right now.\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"function SpecDeletePath(n)\n"+
+"{\n"+
+"  var anchor;\n"+
+"  if (n == 0)\n"+
+"    anchor = \"SpecPathAdd\";\n"+
+"  else\n"+
+"    anchor = \"SpecPath_\"+(n-1);\n"+
+"  SpecOp(\"specpathop_\"+n,\"Delete\",anchor);\n"+
+"}\n"+
+"\n"+
+"function SpecAddPath()\n"+
+"{\n"+
+"  SpecOp(\"specpathop\",\"Add\",\"SpecPathAdd\");\n"+
+"}\n"+
+"\n"+
+"function SpecDeleteFromPath()\n"+
+"{\n"+
+"  SpecOp(\"specpathop\",\"DeleteFromPath\",\"SpecPathAdd\");\n"+
+"}\n"+
+"\n"+
+"function SpecAddToPath()\n"+
+"{\n"+
+"  if (editjob.specpath.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Select a folder or class first\");\n"+
+"    editjob.specpath.focus();\n"+
+"  }\n"+
+"  else\n"+
+"    SpecOp(\"specpathop\",\"AddToPath\",\"SpecPathAdd\");\n"+
+"}\n"+
+"\n"+
+"function SpecAddAccessToken(anchorvalue)\n"+
+"{\n"+
+"  if (editjob.spectoken.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Access token cannot be null\");\n"+
+"    editjob.spectoken.focus();\n"+
+"  }\n"+
+"  else\n"+
+"    SpecOp(\"accessop\",\"Add\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function SpecDeleteMapping(item, anchorvalue)\n"+
+"{\n"+
+"  SpecOp(\"specmappingop_\"+item,\"Delete\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function SpecAddMapping(anchorvalue)\n"+
+"{\n"+
+"  if (editjob.specmatch.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Match string cannot be empty\");\n"+
+"    editjob.specmatch.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  SpecOp(\"specmappingop\",\"Add\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function SpecOp(n, opValue, anchorvalue)\n"+
+"{\n"+
+"  eval(\"editjob.\"+n+\".value = \\\"\"+opValue+\"\\\"\");\n"+
+"  postFormSetAnchor(anchorvalue);\n"+
+"}\n"+
+"//-->\n"+
+"</script>\n"
+    );
+  }
+  
+  /** Output the specification body section.
+  * This method is called in the body section of a job page which has selected a repository connection of the current type.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * form is "editjob".
+  *@param out is the output to which any HTML should be sent.
+  *@param ds is the current document specification for this job.
+  *@param tabName is the current tab name.
+  */
+  public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
+    throws LCFException, IOException
+  {
+    int i;
+    int k;
+
+    // Search Paths tab
+    if (tabName.equals("Search Paths"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+      );
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals("SearchPath"))
+        {
+          // Found a search path.  Not clear from the spec what the attribute is, or whether this is
+          // body data, so I'm going to presume it's a path attribute.
+          String pathString = sn.getAttributeValue("path");
+          out.print(
+"  <tr>\n"+
+"    <td class=\"description\">\n"+
+"      <input type=\"hidden\" name=\""+"specpathop_"+Integer.toString(k)+"\" value=\"Continue\"/>\n"+
+"      <input type=\"hidden\" name=\""+"specpath_"+Integer.toString(k)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(pathString)+"\"/>\n"+
+"      <a name=\""+"SpecPath_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Delete\" onclick='javascript:SpecDeletePath("+Integer.toString(k)+");' alt=\""+"Delete path #"+Integer.toString(k)+"\"/>\n"+
+"      </a>\n"+
+"    </td>\n"+
+"    <td class=\"value\"><nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(pathString)+"</nobr></td>\n"+
+"  </tr>\n"
+          );
+          k++;
+        }
+      }
+      if (k == 0)
+      {
+        out.print(
+"  <tr><td class=\"message\" colspan=\"2\"><nobr>No paths specified.</nobr></td></tr>\n"
+        );
+      }
+      out.print(
+"  <tr>\n"+
+"    <td class=\"lightseparator\" colspan=\"2\"><input type=\"hidden\" name=\"specpath_total\" value=\""+Integer.toString(k)+"\"/><hr/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"
+      );
+      // The path, and the corresponding IDs
+      String pathSoFar = (String)currentContext.get("specpath");
+      String idsSoFar = (String)currentContext.get("specpathids");
+
+      // The type of the object described by the path
+      Integer containerType = (Integer)currentContext.get("specpathtype");
+
+      if (pathSoFar == null)
+        pathSoFar = "/";
+      if (idsSoFar == null)
+        idsSoFar = "0";
+      if (containerType == null)
+        containerType = new Integer(org.apache.lcf.crawler.connectors.meridio.MeridioClassContents.CLASS);
+
+      int currentInt = 0;
+      if (idsSoFar.length() > 0)
+      {
+        String[] ids = idsSoFar.split(",");
+        currentInt = Integer.parseInt(ids[ids.length-1]);
+      }
+
+      // Grab next folder/project list
+      try
+      {
+        org.apache.lcf.crawler.connectors.meridio.MeridioClassContents[] childList;
+        if (containerType.intValue() == org.apache.lcf.crawler.connectors.meridio.MeridioClassContents.CLASS)
+        {
+          childList = getClassOrFolderContents(currentInt);
+        }
+        else
+          childList = new org.apache.lcf.crawler.connectors.meridio.MeridioClassContents[0];
+        out.print(
+"    <td class=\"description\">\n"+
+"      <input type=\"hidden\" name=\"specpathop\" value=\"Continue\"/>\n"+
+"      <input type=\"hidden\" name=\"specpathbase\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(pathSoFar)+"\"/>\n"+
+"      <input type=\"hidden\" name=\"specidsbase\" value=\""+idsSoFar+"\"/>\n"+
+"      <input type=\"hidden\" name=\"spectype\" value=\""+containerType.toString()+"\"/>\n"+
+"      <a name=\"SpecPathAdd\"><input type=\"button\" value=\"Add\" onclick=\"javascript:SpecAddPath();\" alt=\"Add path\"/></a>\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      <nobr>\n"+
+"        "+org.apache.lcf.ui.util.Encoder.bodyEscape(pathSoFar)+"\n"
+        );
+        if (pathSoFar.length() > 1)
+        {
+          out.print(
+"        <input type=\"button\" value=\"-\" onclick=\"javascript:SpecDeleteFromPath();\" alt=\"Delete from path\"/>\n"
+          );
+        }
+        if (childList.length > 0)
+        {
+          out.print(
+"        <input type=\"button\" value=\"+\" onclick=\"javascript:SpecAddToPath();\" alt=\"Add to path\"/>\n"+
+"        <select name=\"specpath\" size=\"10\">\n"+
+"          <option value=\"\" selected=\"\">-- Pick a folder --</option>\n"
+          );
+          int j = 0;
+          while (j < childList.length)
+          {
+            // The option selected needs to include both the id and the name, since I have no way
+            // to get to the name from the id.  So, put the id first, then a semicolon, then the name.
+            out.print(
+"          <option value=\""+Integer.toString(childList[j].classOrFolderId)+";"+Integer.toString(childList[j].containerType)+";"+org.apache.lcf.ui.util.Encoder.attributeEscape(childList[j].classOrFolderName)+"\">\n"+
+"            "+org.apache.lcf.ui.util.Encoder.bodyEscape(childList[j].classOrFolderName)+"\n"+
+"          </option>\n"
+            );
+            j++;
+          }
+          out.print(
+"        </select>\n"
+          );
+        }
+        out.print(
+"      </nobr>\n"+
+"    </td>\n"
+        );
+
+      }
+      catch (ServiceInterruption e)
+      {
+        e.printStackTrace();
+        out.print(
+"    <td class=\"message\" colspan=\"2\">Service interruption: "+org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())+"</td>\n"
+        );
+      }
+      catch (LCFException e)
+      {
+        e.printStackTrace();
+        out.print(
+"    <td class=\"message\" colspan=\"2\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())+"</td>\n"
+        );
+      }
+      out.print(
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // The path tab is hidden; just preserve the contents
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals("SearchPath"))
+        {
+          // Found a search path.  Not clear from the spec what the attribute is, or whether this is
+          // body data, so I'm going to presume it's a value attribute.
+          String pathString = sn.getAttributeValue("path");
+          out.print(
+"<input type=\"hidden\" name=\""+"specpath_"+Integer.toString(k)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(pathString)+"\"/>\n"
+          );
+          k++;
+        }
+      }
+      out.print(
+"<input type=\"hidden\" name=\"specpath_total\" value=\""+Integer.toString(k)+"\"/>\n"
+      );
+    }
+
+    // Content Types tab
+    HashMap mimeTypeMap = new HashMap();
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("MIMEType"))
+      {
+        String type = sn.getAttributeValue("type");
+        mimeTypeMap.put(type,type);
+      }
+    }
+    // If there are none selected, then check them all, since no mime types would be nonsensical.
+    if (mimeTypeMap.size() == 0)
+    {
+      i = 0;
+      while (i < allowedMimeTypes.length)
+      {
+        String allowedMimeType = allowedMimeTypes[i++];
+        mimeTypeMap.put(allowedMimeType,allowedMimeType);
+      }
+    }
+
+    if (tabName.equals("Content Types"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Mime types:</nobr></td>\n"+
+"    <td class=\"value\">\n"
+      );
+      i = 0;
+      while (i < allowedMimeTypes.length)
+      {
+        String mimeType = allowedMimeTypes[i++];
+        out.print(
+"      <nobr>\n"+
+"        <input type=\"checkbox\" name=\"specmimetypes\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(mimeType)+"\" "+((mimeTypeMap.get(mimeType)!=null)?"checked=\"true\"":"")+">\n"+
+"          "+org.apache.lcf.ui.util.Encoder.bodyEscape(mimeType)+"\n"+
+"        </input>\n"+
+"      </nobr>\n"+
+"      <br/>\n"
+        );
+      }
+      out.print(
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Tab is not selected.  Submit a separate hidden for each value that was selected before.
+      Iterator iter = mimeTypeMap.keySet().iterator();
+      while (iter.hasNext())
+      {
+        String mimeType = (String)iter.next();
+        out.print(
+"<input type=\"hidden\" name=\"specmimetypes\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(mimeType)+"\"/>\n"
+        );
+      }
+    }
+
+    // Categories tab
+
+    HashMap categoriesMap = new HashMap();
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("SearchCategory"))
+      {
+        String category = sn.getAttributeValue("category");
+        categoriesMap.put(category,category);
+      }
+    }
+
+    if (tabName.equals("Categories"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"
+      );
+      // Grab the list of available categories from Meridio
+      try
+      {
+        String[] categoryList;
+        categoryList = getMeridioCategories();
+        out.print(
+"    <td class=\"description\"><nobr>Categories:</nobr></td>\n"+
+"    <td class=\"value\">\n"
+        );
+        k = 0;
+        while (k < categoryList.length)
+        {
+          String category = categoryList[k++];
+          out.print(
+"      <nobr>\n"+
+"        <input type=\"checkbox\" name=\"speccategories\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(category)+"\" "+((categoriesMap.get(category)!=null)?"checked=\"true\"":"")+">\n"+
+"        "+org.apache.lcf.ui.util.Encoder.bodyEscape(category)+"\n"+
+"        </input>\n"+
+"      </nobr>\n"+
+"      <br/>\n"
+          );
+        }
+        out.print(
+"    </td>\n"
+        );
+      }
+      catch (ServiceInterruption e)
+      {
+        e.printStackTrace();
+        out.print(
+"    <td class=\"message\" colspan=\"2\">Service interruption: "+org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())+"</td>\n"
+        );
+      }
+      catch (LCFException e)
+      {
+        e.printStackTrace();
+        out.print(
+"    <td class=\"message\" colspan=\"2\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())+"</td>\n"
+        );
+      }
+
+      out.print(
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Tab is not selected.  Submit a separate hidden for each value that was selected before.
+      Iterator iter = categoriesMap.keySet().iterator();
+      while (iter.hasNext())
+      {
+        String category = (String)iter.next();
+        out.print(
+"<input type=\"hidden\" name=\"speccategories\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(category)+"\"/>\n"
+        );
+      }
+    }
+
+    // Data Types tab
+    String mode = "DOCUMENTS_AND_RECORDS";
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("SearchOn"))
+        mode = sn.getAttributeValue("value");
+    }
+
+    if (tabName.equals("Data Types"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Data types to ingest:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <nobr><input type=\"radio\" name=\"specsearchon\" value=\"DOCUMENTS\" "+(mode.equals("DOCUMENTS")?"checked=\"true\"":"")+"/>Documents</nobr><br/>\n"+
+"      <nobr><input type=\"radio\" name=\"specsearchon\" value=\"RECORDS\" "+(mode.equals("RECORDS")?"checked=\"true\"":"")+"/>Records</nobr><br/>\n"+
+"      <nobr><input type=\"radio\" name=\"specsearchon\" value=\"DOCUMENTS_AND_RECORDS\" "+(mode.equals("DOCUMENTS_AND_RECORDS")?"checked=\"true\"":"")+"/>Documents and records</nobr><br/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"specsearchon\" value=\""+mode+"\"/>\n"
+      );
+    }
+
+    // Security tab
+
+    // Find whether security is on or off
+    i = 0;
+    boolean securityOn = true;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("security"))
+      {
+        String securityValue = sn.getAttributeValue("value");
+        if (securityValue.equals("off"))
+          securityOn = false;
+        else if (securityValue.equals("on"))
+          securityOn = true;
+      }
+    }
+
+    if (tabName.equals("Security"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Security:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"radio\" name=\"specsecurity\" value=\"on\" "+(securityOn?"checked=\"true\"":"")+" />Enabled&nbsp;\n"+
+"      <input type=\"radio\" name=\"specsecurity\" value=\"off\" "+((securityOn==false)?"checked=\"true\"":"")+" />Disabled\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+      );
+      // Go through forced ACL
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals("access"))
+        {
+          String accessDescription = "_"+Integer.toString(k);
+          String accessOpName = "accessop"+accessDescription;
+          String token = sn.getAttributeValue("token");
+          out.print(
+"  <tr>\n"+
+"    <td class=\"description\">\n"+
+"      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
+"      <input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"+
+"      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")' alt=\""+"Delete token #"+Integer.toString(k)+"\"/>\n"+
+"      </a>&nbsp;\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(token)+"\n"+
+"    </td>\n"+
+"  </tr>\n"
+          );
+          k++;
+        }
+      }
+      if (k == 0)
+      {
+        out.print(
+"  <tr>\n"+
+"    <td class=\"message\" colspan=\"2\">No access tokens present</td>\n"+
+"  </tr>\n"
+        );
+      }
+      out.print(
+"  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\">\n"+
+"      <input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"      <input type=\"hidden\" name=\"accessop\" value=\"\"/>\n"+
+"      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddAccessToken(\"token_"+Integer.toString(k+1)+"\")' alt=\"Add access token\"/>\n"+
+"      </a>&nbsp;\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"text\" size=\"30\" name=\"spectoken\" value=\"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"specsecurity\" value=\""+(securityOn?"on":"off")+"\"/>\n"
+      );
+      // Finally, go through forced ACL
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals("access"))
+        {
+          String accessDescription = "_"+Integer.toString(k);
+          String token = sn.getAttributeValue("token");
+          out.print(
+"<input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"
+          );
+          k++;
+        }
+      }
+      out.print(
+"<input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"
+      );
+    }
+
+    // Metadata tab
+
+    // Find the path-value metadata attribute name
+    i = 0;
+    String pathNameAttribute = "";
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("pathnameattribute"))
+      {
+        pathNameAttribute = sn.getAttributeValue("value");
+      }
+    }
+
+    // Find the path-value mapping data
+    i = 0;
+    org.apache.lcf.crawler.connectors.meridio.MatchMap matchMap = new org.apache.lcf.crawler.connectors.meridio.MatchMap();
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("pathmap"))
+      {
+        String pathMatch = sn.getAttributeValue("match");
+        String pathReplace = sn.getAttributeValue("replace");
+        matchMap.appendMatchPair(pathMatch,pathReplace);
+      }
+    }
+
+    boolean allMetadata = false;
+    HashMap metadataSelected = new HashMap();
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("ReturnedMetadata"))
+      {
+        String category = sn.getAttributeValue("category");
+        String property = sn.getAttributeValue("property");
+        String descriptor;
+        if (category == null || category.length() == 0)
+          descriptor = property;
+        else
+          descriptor = category + "." + property;
+        metadataSelected.put(descriptor,descriptor);
+      }
+      else if (sn.getType().equals("AllMetadata"))
+      {
+        String value = sn.getAttributeValue("value");
+        if (value != null && value.equals("true"))
+        {
+          allMetadata = true;
+        }
+        else
+          allMetadata = false;
+      }
+    }
+    if (tabName.equals("Metadata"))
+    {
+      out.print(
+"<input type=\"hidden\" name=\"specmappingcount\" value=\""+Integer.toString(matchMap.getMatchCount())+"\"/>\n"+
+"<input type=\"hidden\" name=\"specmappingop\" value=\"\"/>\n"+
+"\n"+
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\">\n"+
+"      <nobr>Include all metadata:</nobr>\n"+
+"    </td>\n"+
+"    <td class=\"value\" colspan=\"3\">\n"+
+"      <nobr>\n"+
+"        <input type=\"radio\" name=\"allmetadata\" value=\"false\" "+((allMetadata==false)?"checked=\"true\"":"")+">Include specified</input>\n"+
+"        <input type=\"radio\" name=\"allmetadata\" value=\"true\" "+(allMetadata?"checked=\"true\"":"")+">Include all</input>\n"+
+"      </nobr>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"+
+"  <tr>\n"
+      );
+      // get the list of properties from the repository
+      try
+      {
+        String[] propertyList;
+        propertyList = getMeridioDocumentProperties();
+        out.print(
+"    <td class=\"description\" colspan=\"1\"><nobr>Metadata:</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"3\">\n"+
+"      <input type=\"hidden\" name=\"specproperties_edit\" value=\"true\"/>\n"
+        );
+        k = 0;
+        while (k < propertyList.length)
+        {
+          String descriptor = propertyList[k++];
+          out.print(
+"      <nobr>\n"+
+"        <input type=\"checkbox\" name=\"specproperties\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(descriptor)+"\" "+((metadataSelected.get(descriptor)!=null)?"checked=\"true\"":"")+">\n"+
+"          "+org.apache.lcf.ui.util.Encoder.bodyEscape(descriptor)+"\n"+
+"        </input>\n"+
+"      </nobr>\n"+
+"      <br/>\n"
+          );
+        }
+        out.print(
+"    </td>\n"
+        );
+      }
+      catch (ServiceInterruption e)
+      {
+        e.printStackTrace();
+        out.print(
+"    <td class=\"message\" colspan=\"4\">Service interruption: "+org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())+"</td>\n"
+        );
+      }
+      catch (LCFException e)
+      {
+        e.printStackTrace();
+        out.print(
+"    <td class=\"message\" colspan=\"4\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage())+"</td>\n"
+        );
+      }
+      out.print(
+"  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Path attribute metadata name:</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"3\"><nobr>\n"+
+"      <input type=\"text\" size=\"16\" name=\"specpathnameattribute\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(pathNameAttribute)+"\"/></nobr>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"
+      );
+      i = 0;
+      while (i < matchMap.getMatchCount())
+      {
+        String matchString = matchMap.getMatchString(i);
+        String replaceString = matchMap.getReplaceString(i);
+        out.print(
+"  <tr>\n"+
+"    <td class=\"description\"><input type=\"hidden\" name=\""+"specmappingop_"+Integer.toString(i)+"\" value=\"\"/>\n"+
+"      <a name=\""+"mapping_"+Integer.toString(i)+"\">\n"+
+"        <input type=\"button\" onClick='Javascript:SpecDeleteMapping(Integer.toString(i),\"mapping_"+Integer.toString(i)+"\")' alt=\""+"Delete mapping #"+Integer.toString(i)+"\" value=\"Delete\"/>\n"+
+"      </a>\n"+
+"    </td>\n"+
+"    <td class=\"value\"><input type=\"hidden\" name=\""+"specmatch_"+Integer.toString(i)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>"+org.apache.lcf.ui.util.Encoder.bodyEscape(matchString)+"</td>\n"+
+"    <td class=\"value\">==></td>\n"+
+"    <td class=\"value\"><input type=\"hidden\" name=\""+"specreplace_"+Integer.toString(i)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>"+org.apache.lcf.ui.util.Encoder.bodyEscape(replaceString)+"</td>\n"+
+"  </tr>\n"
+        );
+        i++;
+      }
+      if (i == 0)
+      {
+        out.print(
+"  <tr><td colspan=\"4\" class=\"message\">No mappings specified</td></tr>\n"
+        );
+      }
+      out.print(
+"  <tr><td class=\"lightseparator\" colspan=\"4\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\">\n"+
+"      <a name=\""+"mapping_"+Integer.toString(i)+"\">\n"+
+"        <input type=\"button\" onClick='Javascript:SpecAddMapping(\"mapping_"+Integer.toString(i+1)+"\")' alt=\"Add to mappings\" value=\"Add\"/>\n"+
+"      </a>\n"+
+"    </td>\n"+
+"    <td class=\"value\">Match regexp:&nbsp;<input type=\"text\" name=\"specmatch\" size=\"32\" value=\"\"/></td>\n"+
+"    <td class=\"value\">==></td>\n"+
+"    <td class=\"value\">Replace string:&nbsp;<input type=\"text\" name=\"specreplace\" size=\"32\" value=\"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"specproperties_edit\" value=\"true\"/>\n"
+      );
+      Iterator iter = metadataSelected.keySet().iterator();
+      while (iter.hasNext())
+      {
+        String descriptor = (String)iter.next();
+        out.print(
+"<input type=\"hidden\" name=\"specproperties\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(descriptor)+"\"/>\n"
+        );
+      }
+      out.print(
+"<input type=\"hidden\" name=\"allmetadata\" value=\""+(allMetadata?"true":"false")+"\"/>\n"+
+"<input type=\"hidden\" name=\"specpathnameattribute\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(pathNameAttribute)+"\"/>\n"+
+"<input type=\"hidden\" name=\"specmappingcount\" value=\""+Integer.toString(matchMap.getMatchCount())+"\"/>\n"
+      );
+      i = 0;
+      while (i < matchMap.getMatchCount())
+      {
+        String matchString = matchMap.getMatchString(i);
+        String replaceString = matchMap.getReplaceString(i);
+        out.print(
+"<input type=\"hidden\" name=\""+"specmatch_"+Integer.toString(i)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+"specreplace_"+Integer.toString(i)+"\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>\n"
+        );
+        i++;
+      }
+    }
+
+  }
+  
+  /** Process a specification post.
+  * This method is called at the start of job's edit or view page, whenever there is a possibility that form data for a connection has been
+  * posted.  Its purpose is to gather form information and modify the document specification accordingly.
+  * The name of the posted form is "editjob".
+  *@param variableContext contains the post data, including binary file-upload information.
+  *@param ds is the current document specification for this job.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
+  */
+  public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
+    throws LCFException
+  {
+    int i;
+
+    // Gather the path names
+    String x = variableContext.getParameter("specpath_total");
+    if (x != null)
+    {
+      // Get rid of old specpath entries
+      i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals("SearchPath"))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      // Gather into spec node, paying attention to any delete requests.
+      i = 0;
+      int count = Integer.parseInt(x);
+      while (i < count)
+      {
+        String path = variableContext.getParameter("specpath_"+Integer.toString(i));
+        String pathOp = variableContext.getParameter("specpathop_"+Integer.toString(i));
+        if (pathOp == null || !pathOp.equals("Delete"))
+        {
+          SpecificationNode sn = new SpecificationNode("SearchPath");
+          sn.setAttribute("path",path);
+          ds.addChild(ds.getChildCount(),sn);
+        }
+        i++;
+      }
+
+
+      // Do operation
+      x = variableContext.getParameter("specpathop");
+      if (x != null)
+      {
+        // Retrieve current state information
+        String pathSoFar = variableContext.getParameter("specpathbase");
+        String idsSoFar = variableContext.getParameter("specidsbase");
+        Integer containerType = new Integer(variableContext.getParameter("spectype"));
+
+        if (x.equals("Add"))
+        {
+          // Tack the current path onto the specification
+          SpecificationNode sn = new SpecificationNode("SearchPath");
+          sn.setAttribute("path",pathSoFar);
+          ds.addChild(ds.getChildCount(),sn);
+          pathSoFar = null;
+          idsSoFar = null;
+          containerType = null;
+        }
+        else if (x.equals("AddToPath"))
+        {
+          String pathField = variableContext.getParameter("specpath");
+          int index = pathField.indexOf(";");
+          int secondIndex = pathField.indexOf(";",index+1);
+          pathSoFar = pathSoFar + pathField.substring(secondIndex+1) + "/";
+          idsSoFar = idsSoFar + "," + pathField.substring(0,index);
+          containerType = new Integer(pathField.substring(index+1,secondIndex));
+        }
+        else if (x.equals("DeleteFromPath"))
+        {
+          pathSoFar = pathSoFar.substring(0,pathSoFar.lastIndexOf("/"));
+          pathSoFar = pathSoFar.substring(0,pathSoFar.lastIndexOf("/")+1);
+          idsSoFar = idsSoFar.substring(0,idsSoFar.lastIndexOf(",")-1);
+          containerType = new Integer(org.apache.lcf.crawler.connectors.meridio.MeridioClassContents.CLASS);
+        }
+
+        currentContext.save("specpath",pathSoFar);
+        currentContext.save("specpathids",idsSoFar);
+        currentContext.save("specpathtype",containerType);
+      }
+
+    }
+
+    // Searchon parameter
+    x = variableContext.getParameter("specsearchon");
+    if (x != null)
+    {
+      i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals("SearchOn"))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      SpecificationNode newNode = new SpecificationNode("SearchOn");
+      newNode.setAttribute("value",x);
+      ds.addChild(ds.getChildCount(),newNode);
+    }
+
+    // Categories parameter
+    String[] y = variableContext.getParameterValues("speccategories");
+    if (y != null)
+    {
+      i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals("SearchCategory"))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      i = 0;
+      while (i < y.length)
+      {
+        String category = y[i++];
+        SpecificationNode newNode = new SpecificationNode("SearchCategory");
+        newNode.setAttribute("category",category);
+        ds.addChild(ds.getChildCount(),newNode);
+      }
+    }
+
+    // Properties parameter
+    x = variableContext.getParameter("specproperties_edit");
+    if (x != null && x.length() > 0)
+    {
+      i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals("ReturnedMetadata"))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      y = variableContext.getParameterValues("specproperties");
+      if (y != null)
+      {
+        i = 0;
+        while (i < y.length)
+        {
+          String descriptor = y[i++];
+          SpecificationNode newNode = new SpecificationNode("ReturnedMetadata");
+          int index = descriptor.indexOf(".");
+          String category;
+          String property;
+          if (index == -1)
+          {
+            category = null;
+            property = descriptor;
+          }
+          else
+          {
+            category = descriptor.substring(0,index);
+            property = descriptor.substring(index+1);
+          }
+          if (category != null)
+            newNode.setAttribute("category",category);
+          newNode.setAttribute("property",property);
+          ds.addChild(ds.getChildCount(),newNode);
+        }
+      }
+    }
+
+
+    // Mime types parameter
+    y = variableContext.getParameterValues("specmimetypes");
+    if (y != null)
+    {
+      i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals("MIMEType"))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      i = 0;
+      while (i < y.length)
+      {
+        String category = y[i++];
+        SpecificationNode newNode = new SpecificationNode("MIMEType");
+        newNode.setAttribute("type",category);
+        ds.addChild(ds.getChildCount(),newNode);
+      }
+    }
+
+    x = variableContext.getParameter("specsecurity");
+    if (x != null)
+    {
+      // Delete all security entries first
+      i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals("security"))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      SpecificationNode node = new SpecificationNode("security");
+      node.setAttribute("value",x);
+      ds.addChild(ds.getChildCount(),node);
+
+    }
+
+    x = variableContext.getParameter("tokencount");
+    if (x != null)
+    {
+      // Delete all file specs first
+      i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals("access"))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      int accessCount = Integer.parseInt(x);
+      i = 0;
+      while (i < accessCount)
+      {
+        String accessDescription = "_"+Integer.toString(i);
+        String accessOpName = "accessop"+accessDescription;
+        String xc = variableContext.getParameter(accessOpName);
+        if (xc != null && xc.equals("Delete"))
+        {
+          // Next row
+          i++;
+          continue;
+        }
+        // Get the stuff we need
+        String accessSpec = variableContext.getParameter("spectoken"+accessDescription);
+        SpecificationNode node = new SpecificationNode("access");
+        node.setAttribute("token",accessSpec);
+        ds.addChild(ds.getChildCount(),node);
+        i++;
+      }
+
+      String op = variableContext.getParameter("accessop");
+      if (op != null && op.equals("Add"))
+      {
+        String accessspec = variableContext.getParameter("spectoken");
+        SpecificationNode node = new SpecificationNode("access");
+        node.setAttribute("token",accessspec);
+        ds.addChild(ds.getChildCount(),node);
+      }
+    }
+
+    x = variableContext.getParameter("specpathnameattribute");
+    if (x != null && x.length() > 0)
+    {
+      i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals("pathnameattribute"))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+      SpecificationNode node = new SpecificationNode("pathnameattribute");
+      node.setAttribute("value",x);
+      ds.addChild(ds.getChildCount(),node);
+    }
+    
+    x = variableContext.getParameter("specmappingcount");
+    if (x != null && x.length() > 0)
+    {
+      // Delete old spec
+      i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals("pathmap"))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      // Now, go through the data and assemble a new list.
+      int mappingCount = Integer.parseInt(x);
+
+      // Gather up these
+      i = 0;
+      while (i < mappingCount)
+      {
+        String pathDescription = "_"+Integer.toString(i);
+        String pathOpName = "specmappingop"+pathDescription;
+        x = variableContext.getParameter(pathOpName);
+        if (x != null && x.equals("Delete"))
+        {
+          // Skip to the next
+          i++;
+          continue;
+        }
+        // Inserts won't happen until the very end
+        String match = variableContext.getParameter("specmatch"+pathDescription);
+        String replace = variableContext.getParameter("specreplace"+pathDescription);
+        SpecificationNode node = new SpecificationNode("pathmap");
+        node.setAttribute("match",match);
+        node.setAttribute("replace",replace);
+        ds.addChild(ds.getChildCount(),node);
+        i++;
+      }
+
+      // Check for add
+      x = variableContext.getParameter("specmappingop");
+      if (x != null && x.equals("Add"))
+      {
+        String match = variableContext.getParameter("specmatch");
+        String replace = variableContext.getParameter("specreplace");
+        SpecificationNode node = new SpecificationNode("pathmap");
+        node.setAttribute("match",match);
+        node.setAttribute("replace",replace);
+        ds.addChild(ds.getChildCount(),node);
+      }
+    }
+
+    x = variableContext.getParameter("allmetadata");
+    if (x != null)
+    {
+      i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals("AllMetadata"))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+      SpecificationNode node = new SpecificationNode("AllMetadata");
+      node.setAttribute("value",x);
+      ds.addChild(ds.getChildCount(),node);
+    }
+    return null;
+  }
+  
+  /** View specification.
+  * This method is called in the body section of a job's view page.  Its purpose is to present the document specification information to the user.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  *@param out is the output to which any HTML should be sent.
+  *@param ds is the current document specification for this job.
+  */
+  public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
+    throws LCFException, IOException
+  {
+    out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr>\n"
+    );
+    int i = 0;
+    boolean seenAny = false;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("SearchPath"))
+      {
+        if (seenAny == false)
+        {
+          out.print(
+"    <td class=\"description\"><nobr>Paths:</nobr></td>\n"+
+"    <td class=\"value\">\n"
+          );
+          seenAny = true;
+        }
+        out.print(
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(sn.getAttributeValue("path"))+"<br/>\n"
+        );
+      }
+    }
+
+    if (seenAny)
+    {
+      out.print(
+"    </td>\n"+
+"  </tr>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"  <tr><td class=\"message\" colspan=\"2\">No paths specified</td></tr>\n"
+      );
+    }
+    out.print(
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Data Type:</nobr>\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      <nobr>\n"
+    );
+    i = 0;
+    String mode = "DOCUMENTS_AND_RECORDS";
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("SearchOn"))
+        mode = sn.getAttributeValue("value");
+    }
+    String displayMode;
+    if (mode.equals("DOCUMENTS"))
+      displayMode = "Documents only";
+    else if (mode.equals("RECORDS"))
+      displayMode = "Records only";
+    else
+      displayMode = "Documents and Records";
+    out.print(
+"        "+displayMode+"\n"+
+"      </nobr>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Categories:</nobr>\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"
+    );
+    int count = 0;
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("SearchCategory"))
+        count++;
+    }
+    String[] sortArray = new String[count];
+    count = 0;
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("SearchCategory"))
+        sortArray[count++] = sn.getAttributeValue("category");
+    }
+    java.util.Arrays.sort(sortArray);
+    i = 0;
+    while (i < sortArray.length)
+    {
+      String category = sortArray[i++];
+      out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(category)+"</nobr><br/>\n"
+      );
+    }
+    out.print(
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Mime types:</nobr>\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"
+    );
+    count = 0;
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("MIMEType"))
+        count++;
+    }
+    sortArray = new String[count];
+    count = 0;
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("MIMEType"))
+        sortArray[count++] = sn.getAttributeValue("type");
+    }
+    java.util.Arrays.sort(sortArray);
+    i = 0;
+    while (i < sortArray.length)
+    {
+      String mimeType = sortArray[i++];
+      out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(mimeType)+"</nobr><br/>\n"
+      );
+    }
+    out.print(
+"    </td>\n"+
+"  </tr>\n"+
+"\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"\n"
+    );
+    // Find whether security is on or off
+    i = 0;
+    boolean securityOn = true;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("security"))
+      {
+        String securityValue = sn.getAttributeValue("value");
+        if (securityValue.equals("off"))
+          securityOn = false;
+        else if (securityValue.equals("on"))
+          securityOn = true;
+      }
+    }
+    out.print(
+"  <tr>\n"+
+"    <td class=\"description\">Security:</td>\n"+
+"    <td class=\"value\">"+(securityOn?"Enabled":"Disabled")+"</td>\n"+
+"  </tr>\n"+
+"\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+    );
+    // Go through looking for access tokens
+    seenAny = false;
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("access"))
+      {
+        if (seenAny == false)
+        {
+          out.print(
+"  <tr>\n"+
+"    <td class=\"description\">Access tokens:</td>\n"+
+"    <td class=\"value\">\n"
+          );
+          seenAny = true;
+        }
+        String token = sn.getAttributeValue("token");
+        out.print(
+"      "+org.apache.lcf.ui.util.Encoder.bodyEscape(token)+"<br/>\n"
+        );
+      }
+    }
+
+    if (seenAny)
+    {
+      out.print(
+"    </td>\n"+
+"  </tr>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"  <tr><td class=\"message\" colspan=\"2\">No access tokens specified</td></tr>\n"
+      );
+    }
+    out.print(
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"
+    );
+    count = 0;
+    i = 0;
+    boolean allMetadata = false;
+
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("ReturnedMetadata"))
+        count++;
+      else if (sn.getType().equals("AllMetadata"))
+      {
+        String value = sn.getAttributeValue("value");
+        if (value != null && value.equals("true"))
+        {
+          allMetadata = true;
+        }
+      }
+    }
+
+    if (allMetadata)
+    {
+      out.print(
+"    <td class=\"description\"><nobr>Metadata properties to ingest:</nobr>\n"+
+"    </td>\n"+
+"    <td class=\"value\"><nobr><b>All metadata</b></nobr></td>\n"
+      );
+    }
+    else if (count > 0)
+    {
+      out.print(
+"    <td class=\"description\"><nobr>Metadata properties to ingest:</nobr>\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"
+      );
+      sortArray = new String[count];
+      i = 0;
+      count = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals("ReturnedMetadata"))
+        {
+          String category = sn.getAttributeValue("category");
+          String property = sn.getAttributeValue("property");
+          String descriptor;
+          if (category == null || category.length() == 0)
+            descriptor = property;
+          else
+            descriptor = category + "." + property;
+
+          sortArray[count++] = descriptor;
+        }
+      }
+
+      java.util.Arrays.sort(sortArray);  
+      i = 0;
+      while (i < sortArray.length)
+      {
+        String descriptor = sortArray[i++];
+        out.print(
+"      <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(descriptor)+"</nobr><br/>\n"
+        );
+      }
+      out.print(
+"    </td>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"    <td class=\"message\" colspan=\"2\"><nobr>No metadata properties to ingest</nobr></td> \n"
+      );
+    } 
+    out.print(
+"  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+    );
+    // Find the path-name metadata attribute name i = 0;
+    String pathNameAttribute = "";
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("pathnameattribute"))
+      {
+        pathNameAttribute = sn.getAttributeValue("value");
+      }
+    }
+    out.print(
+"  <tr>\n"
+    );
+    if (pathNameAttribute.length() > 0)
+    {
+      out.print(
+"    <td class=\"description\"><nobr>Path-name metadata attribute:</nobr></td>\n"+
+"    <td class=\"value\"><nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(pathNameAttribute)+"</nobr></td>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"    <td class=\"message\" colspan=\"2\"><nobr>No path-name metadata attribute specified</nobr></td>\n"
+      );
+    }
+    out.print(
+"  </tr>\n"+
+"\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"\n"+
+"  <tr>\n"
+    );
+    // Find the path-value mapping data
+    i = 0;
+    org.apache.lcf.crawler.connectors.meridio.MatchMap matchMap = new org.apache.lcf.crawler.connectors.meridio.MatchMap();
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("pathmap"))
+      {
+        String pathMatch = sn.getAttributeValue("match");
+        String pathReplace = sn.getAttributeValue("replace");
+        matchMap.appendMatchPair(pathMatch,pathReplace);
+      }
+    }
+    if (matchMap.getMatchCount() > 0)
+    {
+      out.print(
+"    <td class=\"description\"><nobr>Path-value mapping:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <table class=\"displaytable\">\n"
+      );
+      i = 0;
+      while (i < matchMap.getMatchCount())
+      {
+        String matchString = matchMap.getMatchString(i);
+        String replaceString = matchMap.getReplaceString(i);
+        out.print(
+"        <tr>\n"+
+"          <td class=\"value\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(matchString)+"</td>\n"+
+"          <td class=\"value\">--></td><td class=\"value\">"+org.apache.lcf.ui.util.Encoder.bodyEscape(replaceString)+"</td>\n"+
+"        </tr>\n"
+        );
+        i++;
+      }
+      out.print(
+"      </table>\n"+
+"    </td>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"    <td class=\"message\" colspan=\"2\"><nobr>No mappings specified</nobr></td>\n"
+      );
+    }
+    out.print(
+"  </tr>\n"+
+"</table>\n"
+    );
+  }
+
+// Protected methods
+
   /** Grab forced acl out of document specification.
   *@param spec is the document specification.
   *@return the acls.
@@ -1554,7 +3753,7 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
   private DMSearchResults documentSpecificationSearch
   (
     DocumentSpecification docSpec,      // The castor representation of the Document Specification
-  long startTime,
+    long startTime,
     long endTime,
     int startPositionOfHits,
     int maxHitsToReturn
@@ -1588,7 +3787,7 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
   private DMSearchResults documentSpecificationSearch
   (
     DocumentSpecification docSpec,      // The castor representation of the Document Specification
-  long startTime,
+    long startTime,
     long endTime,
     int startPositionOfHits,
     int maxHitsToReturn,
