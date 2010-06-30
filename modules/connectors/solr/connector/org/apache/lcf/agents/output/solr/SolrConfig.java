@@ -43,6 +43,8 @@ public class SolrConfig
   public static final String PARAM_REMOVEPATH = "Server remove handler";
   /** Status path */
   public static final String PARAM_STATUSPATH = "Server status handler";
+  /** Id field */
+  public static final String PARAM_IDFIELD = "Solr id field name";
   /** Optional basic auth realm */
   public static final String PARAM_REALM = "Realm";
   /** Optional user ID */
@@ -58,6 +60,11 @@ public class SolrConfig
   
   // Output specification
 
-  // Nothing yet...
+  /** Node describing a fieldmap */
+  public static final String NODE_FIELDMAP = "fieldmap";
+  /** Attribute describing a source field name */
+  public static final String ATTRIBUTE_SOURCE = "source";
+  /** Attribute describing a target field name */
+  public static final String ATTRIBUTE_TARGET = "target";
 
 }

@@ -65,10 +65,10 @@ public class HttpPoster
   private String postStatusAction;
   private String allowAttributeName;
   private String denyAttributeName;
+  private String idAttributeName;
 
   private static final String LITERAL = "literal.";
   private static final String NOTHING = "__NOTHING__";
-  private static final String ID_METADATA = "lcf_metadata_id";
     
   private int buffersize = 32768;  // default buffer size
   double sizeCoefficient = 0.0005;    // 20 ms additional timeout per 2000 bytes, pulled out of my butt
@@ -125,12 +125,14 @@ public class HttpPoster
   */
   public HttpPoster(String protocol, String server, int port, String webappName,
     String updatePath, String removePath, String statusPath,
-    String realm, String userID, String password, String allowAttributeName, String denyAttributeName)
+    String realm, String userID, String password,
+    String allowAttributeName, String denyAttributeName, String idAttributeName)
     throws LCFException
   {
     this.allowAttributeName = allowAttributeName;
     this.denyAttributeName = denyAttributeName;
-      
+    this.idAttributeName = idAttributeName;
+    
     this.host = server;
     this.port = port;
     this.protocol = protocol;
@@ -185,7 +187,7 @@ public class HttpPoster
   * @throws LCFException, ServiceInterruption
   */
   public boolean indexPost(String documentURI,
-    RepositoryDocument document, Map arguments,
+    RepositoryDocument document, Map arguments, Map sourceTargets,
     String authorityNameString, IOutputAddActivity activities)
     throws LCFException, ServiceInterruption
   {
@@ -207,7 +209,7 @@ public class HttpPoster
     {
       try
       {
-        IngestThread t = new IngestThread(documentURI,document,arguments,shareAcls,shareDenyAcls,acls,denyAcls);
+        IngestThread t = new IngestThread(documentURI,document,arguments,sourceTargets,shareAcls,shareDenyAcls,acls,denyAcls);
         try
         {
           t.start();
@@ -874,6 +876,7 @@ public class HttpPoster
     protected String documentURI;
     protected RepositoryDocument document;
     protected Map arguments;
+    protected Map sourceTargets;
     protected String[] shareAcls;
     protected String[] shareDenyAcls;
     protected String[] acls;
@@ -887,7 +890,8 @@ public class HttpPoster
     protected boolean readFromDocumentStreamYet = false;
     protected boolean rval = false;
 
-    public IngestThread(String documentURI, RepositoryDocument document, Map arguments, String[] shareAcls, String[] shareDenyAcls, String[] acls, String[] denyAcls)
+    public IngestThread(String documentURI, RepositoryDocument document, Map arguments, Map sourceTargets,
+      String[] shareAcls, String[] shareDenyAcls, String[] acls, String[] denyAcls)
     {
       super();
       setDaemon(true);
@@ -946,7 +950,7 @@ public class HttpPoster
 
                 int totalLength = 0;
                 // Count the id.
-                totalLength += lengthField("literal.id",documentURI);
+                totalLength += lengthField(LITERAL+idAttributeName,documentURI);
                 // Count the acls
                 totalLength += lengthACLs("share",shareAcls,shareDenyAcls);
                 totalLength += lengthACLs("document",acls,denyAcls);
@@ -968,15 +972,19 @@ public class HttpPoster
                 while (iter.hasNext())
                 {
                   String fieldName = (String)iter.next();
-                  Object[] values = document.getField(fieldName);
-		  if (fieldName.toLowerCase().equals("id"))
-		    fieldName = ID_METADATA;
-                  // We only handle strings right now!!!
-                  int k = 0;
-                  while (k < values.length)
+                  String newFieldName = (String)sourceTargets.get(fieldName);
+                  if (newFieldName == null)
+                    newFieldName = fieldName;
+                  if (newFieldName.length() > 0)
                   {
-                    String value = (String)values[k++];
-                    totalLength += lengthField(LITERAL+fieldName,value);
+                    Object[] values = document.getField(fieldName);
+                    // We only handle strings right now!!!
+                    int k = 0;
+                    while (k < values.length)
+                    {
+                      String value = (String)values[k++];
+                      totalLength += lengthField(LITERAL+newFieldName,value);
+                    }
                   }
                 }
                 // Count the binary data
@@ -1001,7 +1009,7 @@ public class HttpPoster
                 out.write(tmp, 0, tmp.length);
 
                 // Write the id field
-                writeField(out,"literal.id",documentURI);
+                writeField(out,LITERAL+idAttributeName,documentURI);
 
 		// Write the access token information
                 writeACLs(out,"share",shareAcls,shareDenyAcls);
@@ -1026,15 +1034,19 @@ public class HttpPoster
                 while (iter.hasNext())
                 {
                   String fieldName = (String)iter.next();
-                  Object[] values = document.getField(fieldName);
-		  if (fieldName.toLowerCase().equals("id"))
-		    fieldName = ID_METADATA;
-                  // We only handle strings right now!!!
-                  int k = 0;
-                  while (k < values.length)
+                  String newFieldName = (String)sourceTargets.get(fieldName);
+                  if (newFieldName == null)
+                    newFieldName = fieldName;
+                  if (newFieldName.length() > 0)
                   {
-                    String value = (String)values[k++];
-                    writeField(out,LITERAL+fieldName,value);
+                    Object[] values = document.getField(fieldName);
+                    // We only handle strings right now!!!
+                    int k = 0;
+                    while (k < values.length)
+                    {
+                      String value = (String)values[k++];
+                      writeField(out,LITERAL+newFieldName,value);
+                    }
                   }
                 }
 

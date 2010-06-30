@@ -125,6 +125,10 @@ public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnec
       if (statusPath == null || statusPath.length() == 0)
         statusPath = "";
 
+      String idAttributeName = params.getParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_IDFIELD);
+      if (idAttributeName == null || idAttributeName.length() == 0)
+        idAttributeName = "id";
+      
       String userID = params.getParameter(SolrConfig.PARAM_USERID);
       String password = params.getObfuscatedParameter(SolrConfig.PARAM_PASSWORD);
       String realm = params.getParameter(SolrConfig.PARAM_REALM);
@@ -139,7 +143,7 @@ public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnec
       try
       {
         poster = new HttpPoster(protocol,server,Integer.parseInt(port),webapp,updatePath,removePath,statusPath,realm,userID,password,
-          allowAttributeName,denyAttributeName);
+          allowAttributeName,denyAttributeName,idAttributeName);
       }
       catch (NumberFormatException e)
       {
@@ -180,6 +184,8 @@ public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnec
   public String getOutputDescription(OutputSpecification spec)
     throws LCFException
   {
+    StringBuffer sb = new StringBuffer();
+
     // All the arguments need to go into this string, since they affect ingestion.
     Map args = new HashMap();
     int i = 0;
@@ -229,9 +235,48 @@ public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnec
       }
     }
     
-    StringBuffer sb = new StringBuffer();
     packList(sb,nameValues,'+');
     
+    Map fieldMap = new HashMap();
+    i = 0;
+    while (i < spec.getChildCount())
+    {
+      SpecificationNode sn = spec.getChild(i++);
+      if (sn.getType().equals(SolrConfig.NODE_FIELDMAP))
+      {
+        String source = sn.getAttributeValue(SolrConfig.ATTRIBUTE_SOURCE);
+        String target = sn.getAttributeValue(SolrConfig.ATTRIBUTE_TARGET);
+        if (target == null)
+          target = "";
+        fieldMap.put(source,target);
+      }
+    }
+    
+    sortArray = new String[fieldMap.size()];
+    i = 0;
+    iter = fieldMap.keySet().iterator();
+    while (iter.hasNext())
+    {
+      sortArray[i++] = (String)iter.next();
+    }
+    java.util.Arrays.sort(sortArray);
+    
+    ArrayList sourceTargets = new ArrayList();
+    
+    i = 0;
+    while (i < sortArray.length)
+    {
+      String source = sortArray[i++];
+      String target = (String)fieldMap.get(source);
+      fixedList[0] = source;
+      fixedList[1] = target;
+      StringBuffer pairBuffer = new StringBuffer();
+      packFixedList(pairBuffer,fixedList,'=');
+      sourceTargets.add(pairBuffer.toString());
+    }
+    
+    packList(sb,sourceTargets,'+');
+
     return sb.toString();
   }
 
@@ -253,30 +298,45 @@ public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnec
     throws LCFException, ServiceInterruption
   {
     // Build the argument map we'll send.
-    // There's no point doing it from packed values; this is configuration based, which cannot change or we'd get a new connection instance.
     Map args = new HashMap();
+    Map sourceTargets = new HashMap();
+    int index = 0;
+    ArrayList nameValues = new ArrayList();
+    index = unpackList(nameValues,outputDescription,index,'+');
+    ArrayList sts = new ArrayList();
+    index = unpackList(sts,outputDescription,index,'+');
+    String[] fixedBuffer = new String[2];
+    
+    // Do the name/value pairs
     int i = 0;
-    while (i < params.getChildCount())
+    while (i < nameValues.size())
     {
-      ConfigNode node = params.getChild(i++);
-      if (node.getType().equals(SolrConfig.NODE_ARGUMENT))
+      String x = (String)nameValues.get(i++);
+      unpackFixedList(fixedBuffer,x,0,'=');
+      String attrName = fixedBuffer[0];
+      ArrayList list = (ArrayList)args.get(attrName);
+      if (list == null)
       {
-        String attrName = node.getAttributeValue(SolrConfig.ATTRIBUTE_NAME);
-        ArrayList list = (ArrayList)args.get(attrName);
-        if (list == null)
-        {
-          list = new ArrayList();
-          args.put(attrName,list);
-        }
-        list.add(node.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE));
+        list = new ArrayList();
+        args.put(attrName,list);
       }
+      list.add(fixedBuffer[1]);
+    }
+    
+    // Do the source/target pairs
+    i = 0;
+    while (i < sts.size())
+    {
+      String x = (String)sts.get(i++);
+      unpackFixedList(fixedBuffer,x,0,'=');
+      sourceTargets.put(fixedBuffer[0],fixedBuffer[1]);
     }
 
     // Establish a session
     getSession();
 
     // Now, go off and call the ingest API.
-    if (poster.indexPost(documentURI,document,args,authorityNameString,activities))
+    if (poster.indexPost(documentURI,document,args,sourceTargets,authorityNameString,activities))
       return DOCUMENTSTATUS_ACCEPTED;
     return DOCUMENTSTATUS_REJECTED;
   }
@@ -318,6 +378,7 @@ public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnec
     throws LCFException, IOException
   {
     tabsArray.add("Server");
+    tabsArray.add("Schema");
     tabsArray.add("Arguments");
 
     out.print(
@@ -512,6 +573,10 @@ public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnec
     if (statusPath == null)
       statusPath = "/admin/ping";
 
+    String idField = parameters.getParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_IDFIELD);
+    if (idField == null)
+      idField = "id";
+    
     String realm = parameters.getParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_REALM);
     if (realm == null)
       realm = "";
@@ -524,7 +589,7 @@ public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnec
     if (password == null)
       password = "";
 		
-    // "Appliance" tab
+    // "Server" tab
     if (tabName.equals("Server"))
     {
       out.print(
@@ -621,6 +686,27 @@ public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnec
       );
     }
 
+    // "Schema" tab
+    if (tabName.equals("Schema"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>ID field name:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"idfield\" type=\"text\" size=\"32\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(idField)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"idfield\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(idField)+"\"/>\n"
+      );
+    }
+    
     // Prepare for the argument tab
     Map argumentMap = new HashMap();
     int i = 0;
@@ -795,6 +881,10 @@ public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnec
     if (statusPath != null)
       parameters.setParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_STATUSPATH,statusPath);
 
+    String idField = variableContext.getParameter("idfield");
+    if (idField != null)
+      parameters.setParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_IDFIELD,idField);
+
     String realm = variableContext.getParameter("realm");
     if (realm != null)
       parameters.setParameter(org.apache.lcf.agents.output.solr.SolrConfig.PARAM_REALM,realm);
@@ -954,6 +1044,7 @@ public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnec
   public void outputSpecificationHeader(IHTTPOutput out, OutputSpecification os, ArrayList tabsArray)
     throws LCFException, IOException
   {
+    tabsArray.add("Field Mapping");
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
@@ -961,6 +1052,31 @@ public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnec
 "function checkOutputSpecification()\n"+
 "{\n"+
 "  return true;\n"+
+"}\n"+
+"\n"+
+"function addFieldMapping()\n"+
+"{\n"+
+"  if (editjob.solr_fieldmapping_source.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Field map must have non-null source\");\n"+
+"    editjob.solr_fieldmapping_source.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  editjob.solr_fieldmapping_op.value=\"Add\";\n"+
+"  postFormSetAnchor(\"solr_fieldmapping\");\n"+
+"}\n"+
+"\n"+
+"function deleteFieldMapping(i)\n"+
+"{\n"+
+"  // Set the operation\n"+
+"  eval(\"editjob.solr_fieldmapping_\"+i+\"_op.value=\\\"Delete\\\"\");\n"+
+"  // Submit\n"+
+"  if (editjob.solr_fieldmapping_count.value==i)\n"+
+"    postFormSetAnchor(\"solr_fieldmapping\");\n"+
+"  else\n"+
+"    postFormSetAnchor(\"solr_fieldmapping_\"+i)\n"+
+"  // Undo, so we won't get two deletes next time\n"+
+"  eval(\"editjob.solr_fieldmapping_\"+i+\"_op.value=\\\"Continue\\\"\");\n"+
 "}\n"+
 "\n"+
 "//-->\n"+
@@ -979,6 +1095,136 @@ public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnec
   public void outputSpecificationBody(IHTTPOutput out, OutputSpecification os, String tabName)
     throws LCFException, IOException
   {
+    // Prep for field mapping tab
+    HashMap fieldMap = new HashMap();
+    int i = 0;
+    while (i < os.getChildCount())
+    {
+      SpecificationNode sn = os.getChild(i++);
+      if (sn.getType().equals(SolrConfig.NODE_FIELDMAP))
+      {
+        String source = sn.getAttributeValue(SolrConfig.ATTRIBUTE_SOURCE);
+        String target = sn.getAttributeValue(SolrConfig.ATTRIBUTE_TARGET);
+        if (target != null && target.length() == 0)
+          target = null;
+        fieldMap.put(source,target);
+      }
+    }
+    
+    // Field Mapping tab
+    if (tabName.equals("Field Mapping"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Field mappings:</nobr></td>\n"+
+"    <td class=\"boxcell\">\n"+
+"      <table class=\"formtable\">\n"+
+"        <tr class=\"formheaderrow\">\n"+
+"          <td class=\"formcolumnheader\"></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Metadata field name</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Solr field name</nobr></td>\n"+
+"        </tr>\n"
+      );
+
+      String[] sourceFieldNames = new String[fieldMap.size()];
+      Iterator iter = fieldMap.keySet().iterator();
+      i = 0;
+      while (iter.hasNext())
+      {
+        sourceFieldNames[i++] = (String)iter.next();
+      }
+      java.util.Arrays.sort(sourceFieldNames);
+      
+      int fieldCounter = 0;
+      i = 0;
+      while (i < sourceFieldNames.length)
+      {
+        String source = sourceFieldNames[i++];
+        String target = (String)fieldMap.get(source);
+        String targetDisplay = target;
+        if (target == null)
+        {
+          target = "";
+          targetDisplay = "(remove)";
+        }
+        // It's prefix will be...
+        String prefix = "solr_fieldmapping_" + Integer.toString(fieldCounter);
+        out.print(
+"        <tr class=\""+(((fieldCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <a name=\""+prefix+"\">\n"+
+"              <input type=\"button\" value=\"Delete\" alt=\""+"Delete field mapping #"+Integer.toString(fieldCounter+1)+"\" onclick='javascript:deleteFieldMapping("+Integer.toString(fieldCounter)+");'/>\n"+
+"              <input type=\"hidden\" name=\""+prefix+"_op\" value=\"Continue\"/>\n"+
+"              <input type=\"hidden\" name=\""+prefix+"_source\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(source)+"\"/>\n"+
+"              <input type=\"hidden\" name=\""+prefix+"_target\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(target)+"\"/>\n"+
+"            </a>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(source)+"</nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(targetDisplay)+"</nobr>\n"+
+"          </td>\n"+
+"        </tr>\n"
+        );
+        fieldCounter++;
+      }
+      
+      if (fieldCounter == 0)
+      {
+        out.print(
+"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"3\">No field mapping specified</td></tr>\n"
+        );
+      }
+      out.print(
+"        <tr class=\"formrow\"><td class=\"formseparator\" colspan=\"3\"><hr/></td></tr>\n"+
+"        <tr class=\"formrow\">\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <a name=\"solr_fieldmapping\">\n"+
+"              <input type=\"button\" value=\"Add\" alt=\"Add field mapping\" onclick=\"javascript:addFieldMapping();\"/>\n"+
+"            </a>\n"+
+"            <input type=\"hidden\" name=\"solr_fieldmapping_count\" value=\""+fieldCounter+"\"/>\n"+
+"            <input type=\"hidden\" name=\"solr_fieldmapping_op\" value=\"Continue\"/>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr><input type=\"text\" size=\"15\" name=\"solr_fieldmapping_source\" value=\"\"/></nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr><input type=\"text\" size=\"15\" name=\"solr_fieldmapping_target\" value=\"\"/></nobr>\n"+
+"          </td>\n"+
+"        </tr>\n"+
+"      </table>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for field mapping
+      out.print(
+"<input type=\"hidden\" name=\"solr_fieldmapping_count\" value=\""+Integer.toString(fieldMap.size())+"\"/>\n"
+      );
+      Iterator iter = fieldMap.keySet().iterator();
+      int fieldCounter = 0;
+      while (iter.hasNext())
+      {
+        String source = (String)iter.next();
+        String target = (String)fieldMap.get(source);
+        if (target == null)
+          target = "";
+        // It's prefix will be...
+        String prefix = "solr_fieldmapping_" + Integer.toString(fieldCounter);
+        out.print(
+"<input type=\"hidden\" name=\""+prefix+"_source\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(source)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+prefix+"_target\" value=\""+org.apache.lcf.ui.util.Encoder.attributeEscape(target)+"\"/>\n"
+        );
+        fieldCounter++;
+      }
+    }
+
   }
   
   /** Process a specification post.
@@ -992,6 +1238,52 @@ public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnec
   public String processSpecificationPost(IPostParameters variableContext, OutputSpecification os)
     throws LCFException
   {
+    String x = variableContext.getParameter("solr_fieldmapping_count");
+    if (x != null && x.length() > 0)
+    {
+      // About to gather the fieldmapping nodes, so get rid of the old ones.
+      int i = 0;
+      while (i < os.getChildCount())
+      {
+        SpecificationNode node = os.getChild(i);
+        if (node.getType().equals(SolrConfig.NODE_FIELDMAP))
+          os.removeChild(i);
+        else
+          i++;
+      }
+      int count = Integer.parseInt(x);
+      i = 0;
+      while (i < count)
+      {
+        String prefix = "solr_fieldmapping_"+Integer.toString(i);
+        String op = variableContext.getParameter(prefix+"_op");
+        if (op == null || !op.equals("Delete"))
+        {
+          // Gather the fieldmap etc.
+          String source = variableContext.getParameter(prefix+"_source");
+          String target = variableContext.getParameter(prefix+"_target");
+          if (target == null)
+            target = "";
+          SpecificationNode node = new SpecificationNode(SolrConfig.NODE_FIELDMAP);
+          node.setAttribute(SolrConfig.ATTRIBUTE_SOURCE,source);
+          node.setAttribute(SolrConfig.ATTRIBUTE_TARGET,target);
+          os.addChild(os.getChildCount(),node);
+        }
+        i++;
+      }
+      String addop = variableContext.getParameter("solr_fieldmapping_op");
+      if (addop != null && addop.equals("Add"))
+      {
+        String source = variableContext.getParameter("solr_fieldmapping_source");
+        String target = variableContext.getParameter("solr_fieldmapping_target");
+        if (target == null)
+          target = "";
+        SpecificationNode node = new SpecificationNode(SolrConfig.NODE_FIELDMAP);
+        node.setAttribute(SolrConfig.ATTRIBUTE_SOURCE,source);
+        node.setAttribute(SolrConfig.ATTRIBUTE_TARGET,target);
+        os.addChild(os.getChildCount(),node);
+      }
+    }
     return null;
   }
   
@@ -1004,6 +1296,82 @@ public class SolrConnector extends org.apache.lcf.agents.output.BaseOutputConnec
   public void viewSpecification(IHTTPOutput out, OutputSpecification os)
     throws LCFException, IOException
   {
+    // Prep for field mappings
+    HashMap fieldMap = new HashMap();
+    int i = 0;
+    while (i < os.getChildCount())
+    {
+      SpecificationNode sn = os.getChild(i++);
+      if (sn.getType().equals(SolrConfig.NODE_FIELDMAP))
+      {
+        String source = sn.getAttributeValue(SolrConfig.ATTRIBUTE_SOURCE);
+        String target = sn.getAttributeValue(SolrConfig.ATTRIBUTE_TARGET);
+        if (target != null && target.length() == 0)
+          target = null;
+        fieldMap.put(source,target);
+      }
+    }
+
+    String[] sourceFieldNames = new String[fieldMap.size()];
+    Iterator iter = fieldMap.keySet().iterator();
+    i = 0;
+    while (iter.hasNext())
+    {
+      sourceFieldNames[i++] = (String)iter.next();
+    }
+    java.util.Arrays.sort(sourceFieldNames);
+
+    // Display field mappings
+    out.print(
+"\n"+
+"<table class=\"displaytable\">\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Field mappings:</nobr></td>\n"+
+"    <td class=\"boxcell\">\n"+
+"      <table class=\"formtable\">\n"+
+"        <tr class=\"formheaderrow\">\n"+
+"          <td class=\"formcolumnheader\"><nobr>Metadata field name</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Solr field name</nobr></td>\n"+
+"        </tr>\n"
+    );
+
+    int fieldCounter = 0;
+    while (fieldCounter < sourceFieldNames.length)
+    {
+      String source = sourceFieldNames[fieldCounter++];
+      String target = (String)fieldMap.get(source);
+      String targetDisplay = target;
+      if (target == null)
+      {
+        target = "";
+        targetDisplay = "(remove)";
+      }
+      out.print(
+"        <tr class=\""+(((fieldCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(source)+"</nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>"+org.apache.lcf.ui.util.Encoder.bodyEscape(targetDisplay)+"</nobr>\n"+
+"          </td>\n"+
+"        </tr>\n"
+      );
+      fieldCounter++;
+    }
+    
+    if (fieldCounter == 0)
+    {
+      out.print(
+"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"3\">No field mapping specified</td></tr>\n"
+      );
+    }
+    out.print(
+"      </table>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+    );
+
   }
 
   // Protected methods
