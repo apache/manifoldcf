@@ -49,40 +49,417 @@
 		IAuthorityConnectionManager authConnManager = AuthorityConnectionManagerFactory.make(threadContext);
 		IOutputConnectionManager outputManager = OutputConnectionManagerFactory.make(threadContext);
 		
+		String type = variableContext.getParameter("type");
 		String op = variableContext.getParameter("op");
-
-		if (op != null)
+		if (type != null && op != null && type.equals("connection"))
 		{
-		    if (op.equals("Report") || op.equals("Status"))
-		    {
-			String type = variableContext.getParameter("type");
-			if (type != null)
+			// -- Connection editing operations --
+			if (op.equals("Save") || op.equals("Continue"))
+			{
+				try
+				{
+					// Set up a connection object that is a merge of an existing connection object plus what was posted.
+					IRepositoryConnection connection = null;
+					String connectionName = variableContext.getParameter("connname");
+					// If the connectionname is not null, load the connection description and prepopulate everything with what comes from it.
+					if (connectionName != null && connectionName.length() > 0)
+					{
+						connection = connManager.load(connectionName);
+					}
+					
+					if (connection == null)
+					{
+						connection = connManager.create();
+						if (connectionName != null && connectionName.length() > 0)
+							connection.setName(connectionName);
+					}
+					
+					// Fill in connection object from posted data
+					String x = variableContext.getParameter("description");
+					if (x != null)
+						connection.setDescription(x);
+					x = variableContext.getParameter("classname");
+					if (x != null)
+						connection.setClassName(x);
+					x = variableContext.getParameter("authorityname");
+					if (x != null && x.length() > 0)
+					{
+						if (x.equals("_none_"))
+							connection.setACLAuthority(null);
+						else
+							connection.setACLAuthority(x);
+					}
+					x = variableContext.getParameter("maxconnections");
+					if (x != null && x.length() > 0)
+						connection.setMaxConnections(Integer.parseInt(x));
+
+					// Gather and save throttles
+					x = variableContext.getParameter("throttlecount");
+					if (x != null)
+					{
+						int throttleCount = Integer.parseInt(x);
+						connection.clearThrottleValues();
+						int j = 0;
+						while (j < throttleCount)
+						{
+							String regexp = variableContext.getParameter("throttle_"+Integer.toString(j));
+							String desc = variableContext.getParameter("throttledesc_"+Integer.toString(j));
+							if (desc == null)
+								desc = "";
+							String value = variableContext.getParameter("throttlevalue_"+Integer.toString(j));
+							connection.addThrottleValue(regexp,desc,(float)(((double)new Long(value).longValue())/(double)(60000.0)));
+							j++;
+						}
+						x = variableContext.getParameter("throttleop");
+						if (x != null && x.equals("Delete"))
+						{
+							// Delete an item from the throttles list
+							x = variableContext.getParameter("throttlenumber");
+							String regexp = variableContext.getParameter("throttle_"+x);
+							connection.deleteThrottleValue(regexp);
+						}
+						else if (x != null && x.equals("Add"))
+						{
+							// Add an item to the throttles list
+							String regexp = variableContext.getParameter("throttle");
+							String desc = variableContext.getParameter("throttledesc");
+							if (desc == null)
+								desc = "";
+							Long value = new Long(variableContext.getParameter("throttlevalue"));
+							connection.addThrottleValue(regexp,desc,(float)(((double)value.longValue())/(double)(60000.0)));
+						}
+					}
+
+					String error = RepositoryConnectorFactory.processConfigurationPost(threadContext,connection.getClassName(),variableContext,connection.getConfigParams());
+						
+					if (error != null)
+					{
+						variableContext.setParameter("text",error);
+						variableContext.setParameter("target","listconnections.jsp");
+%>
+						<jsp:forward page="error.jsp"/>
+<%
+					}
+
+					if (op.equals("Continue"))
+					{
+						threadContext.save("ConnectionObject",connection);
+%>
+						<jsp:forward page="editconnection.jsp"/>
+<%
+					}
+					else if (op.equals("Save"))
+					{
+						connManager.save(connection);
+						variableContext.setParameter("connname",connectionName);
+%>
+						<jsp:forward page="viewconnection.jsp"/>
+<%
+					}
+				}
+				catch (LCFException e)
+				{
+					e.printStackTrace();
+					variableContext.setParameter("text",e.getMessage());
+					variableContext.setParameter("target","listconnections.jsp");
+%>
+					<jsp:forward page="error.jsp"/>
+<%
+				}
+			}
+			else if (op.equals("Delete"))
+			{
+				try
+				{
+					String connectionName = variableContext.getParameter("connname");
+					if (connectionName == null)
+						throw new LCFException("Missing connection parameter");
+					connManager.delete(connectionName);
+%>
+					<jsp:forward page="listconnections.jsp"/>
+<%
+				}
+				catch (LCFException e)
+				{
+					e.printStackTrace();
+					variableContext.setParameter("text",e.getMessage());
+					variableContext.setParameter("target","listconnections.jsp");
+%>
+					<jsp:forward page="error.jsp"/>
+<%
+				}
+			}
+			else if (op.equals("Cancel"))
 			{
 %>
-				<jsp:forward page='<%=type+".jsp"%>'/>
+				<jsp:forward page="listconnections.jsp"/>
 <%
 			}
-		    }
-		    else if (op.equals("Save"))
-		    {
-			// Save operation.
-			// There are two different kinds of save: for jobs, and for repository connections.
-			String type = variableContext.getParameter("type");
-			if (type != null && type.equals("job"))
+			else
 			{
-				// Saving a job.
+				// Error
+				variableContext.setParameter("text","Illegal parameter to connection execution page");
+				variableContext.setParameter("target","listconnections.jsp");
+%>
+				<jsp:forward page="error.jsp"/>
+<%
+			}
+		}
+		else if (type != null && op != null && type.equals("authority"))
+		{
+			// -- Authority editing operations --
+			if (op.equals("Save") || op.equals("Continue"))
+			{
+				try
+				{
+					// Set up a connection object that is a merge of an existing connection object plus what was posted.
+					IAuthorityConnection connection = null;
+					String connectionName = variableContext.getParameter("connname");
+					// If the connectionname is not null, load the connection description and prepopulate everything with what comes from it.
+					if (connectionName != null && connectionName.length() > 0)
+					{
+						connection = authConnManager.load(connectionName);
+					}
+					
+					if (connection == null)
+					{
+						connection = authConnManager.create();
+						if (connectionName != null && connectionName.length() > 0)
+							connection.setName(connectionName);
+					}
+
+					// Gather all the data from the form.
+					String x = variableContext.getParameter("description");
+					if (x != null)
+						connection.setDescription(x);
+					x = variableContext.getParameter("classname");
+					if (x != null)
+						connection.setClassName(x);
+					x = variableContext.getParameter("maxconnections");
+					if (x != null && x.length() > 0)
+						connection.setMaxConnections(Integer.parseInt(x));
+
+					String error = AuthorityConnectorFactory.processConfigurationPost(threadContext,connection.getClassName(),variableContext,connection.getConfigParams());
+					
+					if (error != null)
+					{
+						variableContext.setParameter("text",error);
+						variableContext.setParameter("target","listauthorities.jsp");
+%>
+						<jsp:forward page="error.jsp"/>
+<%
+					}
+					
+					if (op.equals("Continue"))
+					{
+						threadContext.save("ConnectionObject",connection);
+%>
+						<jsp:forward page="editauthority.jsp"/>
+<%
+					}
+					else if (op.equals("Save"))
+					{
+						authConnManager.save(connection);
+						variableContext.setParameter("connname",connectionName);
+%>
+						<jsp:forward page="viewauthority.jsp"/>
+<%
+					}
+				}
+				catch (LCFException e)
+				{
+					e.printStackTrace();
+					variableContext.setParameter("text",e.getMessage());
+					variableContext.setParameter("target","listauthorities.jsp");
+%>
+					<jsp:forward page="error.jsp"/>
+<%
+				}
+			}
+			else if (op.equals("Delete"))
+			{
+				try
+				{
+					String connectionName = variableContext.getParameter("connname");
+					if (connectionName == null)
+						throw new LCFException("Missing connection parameter");
+					authConnManager.delete(connectionName);
+%>
+					<jsp:forward page="listauthorities.jsp"/>
+<%
+				}
+				catch (LCFException e)
+				{
+					e.printStackTrace();
+					variableContext.setParameter("text",e.getMessage());
+					variableContext.setParameter("target","listauthorities.jsp");
+%>
+					<jsp:forward page="error.jsp"/>
+<%
+				}
+			}
+			else if (op.equals("Cancel"))
+			{
+%>
+				<jsp:forward page="listauthorities.jsp"/>
+<%
+			}
+			else
+			{
+				// Error
+				variableContext.setParameter("text","Illegal parameter to authority execution page");
+				variableContext.setParameter("target","listauthorities.jsp");
+%>
+				<jsp:forward page="error.jsp"/>
+<%
+			}
+		}
+		else if (type != null && op != null && type.equals("output"))
+		{
+			// -- Output connection editing operations --
+			if (op.equals("Save") || op.equals("Continue"))
+			{
+				try
+				{
+					// Set up a connection object that is a merge of an existing connection object plus what was posted.
+					IOutputConnection connection = null;
+					String connectionName = variableContext.getParameter("connname");
+					// If the connectionname is not null, load the connection description and prepopulate everything with what comes from it.
+					if (connectionName != null && connectionName.length() > 0)
+					{
+						connection = outputManager.load(connectionName);
+					}
+					
+					if (connection == null)
+					{
+						connection = outputManager.create();
+						if (connectionName != null && connectionName.length() > 0)
+							connection.setName(connectionName);
+					}
+
+					// Gather all the data from the form.
+					String x = variableContext.getParameter("description");
+					if (x != null)
+						connection.setDescription(x);
+					x = variableContext.getParameter("classname");
+					if (x != null)
+						connection.setClassName(x);
+					x = variableContext.getParameter("maxconnections");
+					if (x != null && x.length() > 0)
+						connection.setMaxConnections(Integer.parseInt(x));
+
+					String error = OutputConnectorFactory.processConfigurationPost(threadContext,connection.getClassName(),variableContext,connection.getConfigParams());
+					
+					if (error != null)
+					{
+						variableContext.setParameter("text",error);
+						variableContext.setParameter("target","listoutputs.jsp");
+%>
+						<jsp:forward page="error.jsp"/>
+<%
+					}
+					
+					if (op.equals("Continue"))
+					{
+						threadContext.save("ConnectionObject",connection);
+%>
+						<jsp:forward page="editoutput.jsp"/>
+<%
+					}
+					else if (op.equals("Save"))
+					{
+						outputManager.save(connection);
+						variableContext.setParameter("connname",connectionName);
+%>
+						<jsp:forward page="viewoutput.jsp"/>
+<%
+					}
+				}
+				catch (LCFException e)
+				{
+					e.printStackTrace();
+					variableContext.setParameter("text",e.getMessage());
+					variableContext.setParameter("target","listoutputs.jsp");
+%>
+					<jsp:forward page="error.jsp"/>
+<%
+				}
+			}
+			else if (op.equals("Delete"))
+			{
+				try
+				{
+					String connectionName = variableContext.getParameter("connname");
+					if (connectionName == null)
+						throw new LCFException("Missing connection parameter");
+					outputManager.delete(connectionName);
+%>
+					<jsp:forward page="listoutputs.jsp"/>
+<%
+				}
+				catch (LCFException e)
+				{
+					e.printStackTrace();
+					variableContext.setParameter("text",e.getMessage());
+					variableContext.setParameter("target","listoutputs.jsp");
+%>
+					<jsp:forward page="error.jsp"/>
+<%
+				}
+			}
+			else if (op.equals("Cancel"))
+			{
+%>
+				<jsp:forward page="listoutputs.jsp"/>
+<%
+			}
+			else if (op.equals("ReingestAll"))
+			{
+				try
+				{
+					String connectionName = variableContext.getParameter("connname");
+					if (connectionName == null)
+						throw new LCFException("Missing connection parameter");
+					org.apache.lcf.agents.system.LCF.signalOutputConnectionRedo(threadContext,connectionName);
+%>
+					<jsp:forward page="listoutputs.jsp"/>
+<%
+				}
+				catch (LCFException e)
+				{
+					e.printStackTrace();
+					variableContext.setParameter("text",e.getMessage());
+					variableContext.setParameter("target","listoutputs.jsp");
+%>
+					<jsp:forward page="error.jsp"/>
+<%
+				}
+			}
+			else
+			{
+				// Error
+				variableContext.setParameter("text","Illegal parameter to output connection execution page");
+				variableContext.setParameter("target","listoutputs.jsp");
+%>
+				<jsp:forward page="error.jsp"/>
+<%
+			}
+		}
+		else if (type != null && op != null && type.equals("job"))
+		{
+			// -- Job editing operations --
+			if (op.equals("Save") || op.equals("Continue"))
+			{
 				try
 				{
 					String jobID = variableContext.getParameter("jobid");
-					IJobDescription job;
-					if (jobID == null)
-						job = manager.createJob();
-					else
+					IJobDescription job = null;
+					if (jobID != null)
 					{
 						job = manager.load(new Long(jobID));
-						if (job == null)
-							throw new LCFException("No such job: "+jobID);
 					}
+					if (job == null)
+						job = manager.createJob();
 
 					// Gather all the data from the form.
 					String x = variableContext.getParameter("description");
@@ -180,11 +557,89 @@
 								else
 									srDuration = new Long(new Long(x).longValue()*60000L);
 							}
-							ScheduleRecord sr = new ScheduleRecord(srDayOfWeek,srMonthOfYear,srDayOfMonth,srYear,srHourOfDay,srMinutesOfHour,
-								null,srDuration);
-							job.addScheduleRecord(sr);
+							
+							x = variableContext.getParameter("recordop"+j);
+							if (x == null || !x.equals("Remove Schedule"))
+							{
+								ScheduleRecord sr = new ScheduleRecord(srDayOfWeek,srMonthOfYear,srDayOfMonth,srYear,srHourOfDay,srMinutesOfHour,
+									null,srDuration);
+								job.addScheduleRecord(sr);
+							}
 							j++;
 						}
+					}
+
+					// Check for operation that adds to schedule
+					x = variableContext.getParameter("recordop");
+					if (x != null && x.equals("Add Scheduled Time"))
+					{
+						EnumeratedValues srDayOfWeek = null;
+						EnumeratedValues srDayOfMonth = null;
+						EnumeratedValues srMonthOfYear = null;
+						EnumeratedValues srYear = null;
+						EnumeratedValues srHourOfDay = null;
+						EnumeratedValues srMinutesOfHour = null;
+						Long srDuration = null;
+
+						y = variableContext.getParameterValues("dayofweek");
+						if (y != null)
+						{
+							if (y.length >= 1 && y[0].equals("none"))
+								srDayOfWeek = null;
+							else
+								srDayOfWeek = new EnumeratedValues(y);
+						}
+						y = variableContext.getParameterValues("dayofmonth");
+						if (y != null)
+						{
+							if (y.length >= 1 && y[0].equals("none"))
+								srDayOfMonth = null;
+							else
+								srDayOfMonth = new EnumeratedValues(y);
+						}
+						y = variableContext.getParameterValues("monthofyear");
+						if (y != null)
+						{
+							if (y.length >= 1 && y[0].equals("none"))
+								srMonthOfYear = null;
+							else
+								srMonthOfYear = new EnumeratedValues(y);
+						}
+						y = variableContext.getParameterValues("year");
+						if (y != null)
+						{
+							if (y.length >= 1 && y[0].equals("none"))
+								srYear = null;
+							else
+								srYear = new EnumeratedValues(y);
+						}
+						y = variableContext.getParameterValues("hourofday");
+						if (y != null)
+						{
+							if (y.length >= 1 && y[0].equals("none"))
+								srHourOfDay = null;
+							else
+								srHourOfDay = new EnumeratedValues(y);
+						}
+						y = variableContext.getParameterValues("minutesofhour");
+						if (y != null)
+						{
+							if (y.length >= 1 && y[0].equals("none"))
+								srMinutesOfHour = null;
+							else
+								srMinutesOfHour = new EnumeratedValues(y);
+						}
+						x = variableContext.getParameter("duration");
+						if (x != null)
+						{
+							if (x.length() == 0)
+								srDuration = null;
+							else
+								srDuration = new Long(new Long(x).longValue() * 60000L);
+						}
+						ScheduleRecord sr = new ScheduleRecord(srDayOfWeek,srMonthOfYear,srDayOfMonth,srYear,srHourOfDay,srMinutesOfHour,
+							null,srDuration);
+						job.addScheduleRecord(sr);
 					}
 
 					x = variableContext.getParameter("priority");
@@ -215,81 +670,104 @@
 							job.setExpiration(new Long(new Long(x).longValue() * 60000L));
 					}
 
-					IRepositoryConnection connection = connManager.load(job.getConnectionName());
-					IOutputConnection outputConnection = outputManager.load(job.getOutputConnectionName());
-					String[] relationshipTypes = RepositoryConnectorFactory.getRelationshipTypes(threadContext,connection.getClassName());
-
-					// Gather hopcount filters
-					x = variableContext.getParameter("hopfilters");
-					if (x != null && relationshipTypes != null)
+					IRepositoryConnection connection = null;
+					if (job.getConnectionName() != null && job.getConnectionName().length() > 0)
+						connection = connManager.load(job.getConnectionName());
+					IOutputConnection outputConnection = null;
+					if (job.getOutputConnectionName() != null && job.getOutputConnectionName().length() > 0)
+						outputConnection = outputManager.load(job.getOutputConnectionName());
+					
+					if (connection != null)
 					{
-						job.clearHopCountFilters();
-						int j = 0;
-						job.clearHopCountFilters();
-						while (j < relationshipTypes.length)
+						String[] relationshipTypes = RepositoryConnectorFactory.getRelationshipTypes(threadContext,connection.getClassName());
+
+						// Gather hopcount filters
+						x = variableContext.getParameter("hopfilters");
+						if (x != null && relationshipTypes != null)
 						{
-							String relationshipType = relationshipTypes[j++];
-							x = variableContext.getParameter("hopmax_"+relationshipType);
-							if (x != null && x.length() > 0)
+							job.clearHopCountFilters();
+							int j = 0;
+							job.clearHopCountFilters();
+							while (j < relationshipTypes.length)
 							{
-								job.addHopCountFilter(relationshipType,new Long(x));
+								String relationshipType = relationshipTypes[j++];
+								x = variableContext.getParameter("hopmax_"+relationshipType);
+								if (x != null && x.length() > 0)
+								{
+									job.addHopCountFilter(relationshipType,new Long(x));
+								}
 							}
 						}
 					}
 					
-					IOutputConnector outputConnector = OutputConnectorFactory.grab(threadContext,
-						outputConnection.getClassName(),outputConnection.getConfigParams(),outputConnection.getMaxConnections());
-					if (outputConnector != null)
+					if (outputConnection != null)
 					{
-						try
+						IOutputConnector outputConnector = OutputConnectorFactory.grab(threadContext,
+							outputConnection.getClassName(),outputConnection.getConfigParams(),outputConnection.getMaxConnections());
+						if (outputConnector != null)
 						{
-							String error = outputConnector.processSpecificationPost(variableContext,job.getOutputSpecification());
-							if (error != null)
+							try
 							{
-								variableContext.setParameter("text",error);
-								variableContext.setParameter("target","listjobs.jsp");
+								String error = outputConnector.processSpecificationPost(variableContext,job.getOutputSpecification());
+								if (error != null)
+								{
+									variableContext.setParameter("text",error);
+									variableContext.setParameter("target","listjobs.jsp");
 %>
-								<jsp:forward page="error.jsp"/>
+									<jsp:forward page="error.jsp"/>
 <%
+								}
+							}
+							finally
+							{
+								OutputConnectorFactory.release(outputConnector);
 							}
 						}
-						finally
-						{
-							OutputConnectorFactory.release(outputConnector);
-						}
 					}
-
-					IRepositoryConnector repositoryConnector = RepositoryConnectorFactory.grab(threadContext,
-						connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
-					if (repositoryConnector != null)
+					
+					if (connection != null)
 					{
-						try
+						IRepositoryConnector repositoryConnector = RepositoryConnectorFactory.grab(threadContext,
+							connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+						if (repositoryConnector != null)
 						{
-							String error = repositoryConnector.processSpecificationPost(variableContext,job.getSpecification());
-							if (error != null)
+							try
 							{
-								variableContext.setParameter("text",error);
-								variableContext.setParameter("target","listjobs.jsp");
+								String error = repositoryConnector.processSpecificationPost(variableContext,job.getSpecification());
+								if (error != null)
+								{
+									variableContext.setParameter("text",error);
+									variableContext.setParameter("target","listjobs.jsp");
 %>
-								<jsp:forward page="error.jsp"/>
+									<jsp:forward page="error.jsp"/>
 <%
+								}
+							}
+							finally
+							{
+								RepositoryConnectorFactory.release(repositoryConnector);
 							}
 						}
-						finally
-						{
-							RepositoryConnectorFactory.release(repositoryConnector);
-						}
 					}
-
-					manager.save(job);
-					// Reset the job schedule. We may want to make this explicit at some point; having
-					// this happen all the time seems wrong.
-					manager.resetJobSchedule(job.getID());
-					variableContext.setParameter("jobid",job.getID().toString());
+					
+					if (op.equals("Continue"))
+					{
+						threadContext.save("JobObject",job);
 %>
-					<jsp:forward page="viewjob.jsp"/>
+						<jsp:forward page="editjob.jsp"/>
 <%
-
+					}
+					else if (op.equals("Save"))
+					{
+						manager.save(job);
+						// Reset the job schedule. We may want to make this explicit at some point; having
+						// this happen all the time seems wrong.
+						manager.resetJobSchedule(job.getID());
+						variableContext.setParameter("jobid",job.getID().toString());
+%>
+						<jsp:forward page="viewjob.jsp"/>
+<%
+					}
 				}
 				catch (LCFException e)
 				{
@@ -301,307 +779,7 @@
 <%
 				}
 			}
-			else if (type != null && type.equals("output"))
-			{
-				// Saving a connection.
-				try
-				{
-					String connectionName = variableContext.getParameter("connname");
-					IOutputConnection connection = outputManager.load(connectionName);
-					if (connection == null)
-					{
-						connection = outputManager.create();
-						connection.setName(connectionName);
-					}
-
-					// Gather all the data from the form.
-					String x = variableContext.getParameter("description");
-					if (x != null)
-						connection.setDescription(x);
-					x = variableContext.getParameter("classname");
-					if (x != null)
-						connection.setClassName(x);
-					x = variableContext.getParameter("maxconnections");
-					if (x != null && x.length() > 0)
-						connection.setMaxConnections(Integer.parseInt(x));
-
-					String error = OutputConnectorFactory.processConfigurationPost(threadContext,connection.getClassName(),variableContext,connection.getConfigParams());
-					
-					if (error != null)
-					{
-						variableContext.setParameter("text",error);
-						variableContext.setParameter("target","listoutputs.jsp");
-%>
-						<jsp:forward page="error.jsp"/>
-<%
-					}
-					outputManager.save(connection);
-					variableContext.setParameter("connname",connectionName);
-%>
-					<jsp:forward page="viewoutput.jsp"/>
-<%
-				}
-				catch (LCFException e)
-				{
-					e.printStackTrace();
-					variableContext.setParameter("text",e.getMessage());
-					variableContext.setParameter("target","listoutputs.jsp");
-%>
-					<jsp:forward page="error.jsp"/>
-<%
-				}
-			}
-			else if (type != null && type.equals("connection"))
-			{
-				// Saving a connection.
-				try
-				{
-					String connectionName = variableContext.getParameter("connname");
-					IRepositoryConnection connection = connManager.load(connectionName);
-					if (connection == null)
-					{
-						connection = connManager.create();
-						connection.setName(connectionName);
-					}
-
-					// Gather all the data from the form.
-					String x = variableContext.getParameter("description");
-					if (x != null)
-						connection.setDescription(x);
-					x = variableContext.getParameter("classname");
-					if (x != null)
-						connection.setClassName(x);
-					x = variableContext.getParameter("authorityname");
-					if (x != null && x.length() > 0)
-					{
-						if (x.equals("_none_"))
-							connection.setACLAuthority(null);
-						else
-							connection.setACLAuthority(x);
-					}
-					x = variableContext.getParameter("maxconnections");
-					if (x != null && x.length() > 0)
-						connection.setMaxConnections(Integer.parseInt(x));
-
-					// Gather and save throttles
-					x = variableContext.getParameter("throttlecount");
-					if (x != null)
-					{
-						int throttleCount = Integer.parseInt(x);
-						connection.clearThrottleValues();
-						int j = 0;
-						while (j < throttleCount)
-						{
-							String regexp = variableContext.getParameter("throttle_"+Integer.toString(j));
-							String desc = variableContext.getParameter("throttledesc_"+Integer.toString(j));
-							if (desc == null)
-								desc = "";
-							String value = variableContext.getParameter("throttlevalue_"+Integer.toString(j));
-							connection.addThrottleValue(regexp,desc,(float)(((double)new Long(value).longValue())/(double)(60000.0)));
-							j++;
-						}
-						x = variableContext.getParameter("throttleop");
-						if (x != null && x.equals("Delete"))
-						{
-							// Delete an item from the throttles list
-							x = variableContext.getParameter("throttlenumber");
-							String regexp = variableContext.getParameter("throttle_"+x);
-							connection.deleteThrottleValue(regexp);
-						}
-						else if (x != null && x.equals("Add"))
-						{
-							// Add an item to the throttles list
-							String regexp = variableContext.getParameter("throttle");
-							String desc = variableContext.getParameter("throttledesc");
-							if (desc == null)
-								desc = "";
-							Long value = new Long(variableContext.getParameter("throttlevalue"));
-							connection.addThrottleValue(regexp,desc,(float)(((double)value.longValue())/(double)(60000.0)));
-						}
-					}
-
-					String error = RepositoryConnectorFactory.processConfigurationPost(threadContext,connection.getClassName(),variableContext,connection.getConfigParams());
-					
-					if (error != null)
-					{
-						variableContext.setParameter("text",error);
-						variableContext.setParameter("target","listconnections.jsp");
-%>
-						<jsp:forward page="error.jsp"/>
-<%
-					}
-
-					connManager.save(connection);
-					variableContext.setParameter("connname",connectionName);
-%>
-					<jsp:forward page="viewconnection.jsp"/>
-<%
-				}
-				catch (LCFException e)
-				{
-					e.printStackTrace();
-					variableContext.setParameter("text",e.getMessage());
-					variableContext.setParameter("target","listconnections.jsp");
-%>
-					<jsp:forward page="error.jsp"/>
-<%
-				}
-			}
-			else if (type != null && type.equals("authority"))
-			{
-				// Saving a connection.
-				try
-				{
-					String connectionName = variableContext.getParameter("connname");
-					IAuthorityConnection connection = authConnManager.load(connectionName);
-					if (connection == null)
-					{
-						connection = authConnManager.create();
-						connection.setName(connectionName);
-					}
-
-					// Gather all the data from the form.
-					String x = variableContext.getParameter("description");
-					if (x != null)
-						connection.setDescription(x);
-					x = variableContext.getParameter("classname");
-					if (x != null)
-						connection.setClassName(x);
-					x = variableContext.getParameter("maxconnections");
-					if (x != null && x.length() > 0)
-						connection.setMaxConnections(Integer.parseInt(x));
-
-					String error = AuthorityConnectorFactory.processConfigurationPost(threadContext,connection.getClassName(),variableContext,connection.getConfigParams());
-					
-					if (error != null)
-					{
-						variableContext.setParameter("text",error);
-						variableContext.setParameter("target","listauthorities.jsp");
-%>
-						<jsp:forward page="error.jsp"/>
-<%
-					}
-
-					authConnManager.save(connection);
-					variableContext.setParameter("connname",connectionName);
-%>
-					<jsp:forward page="viewauthority.jsp"/>
-<%
-				}
-				catch (LCFException e)
-				{
-					e.printStackTrace();
-					variableContext.setParameter("text",e.getMessage());
-					variableContext.setParameter("target","listauthorities.jsp");
-%>
-					<jsp:forward page="error.jsp"/>
-<%
-				}
-			}
-			else
-			{
-				// Error
-				variableContext.setParameter("text","Illegal parameter to page");
-				variableContext.setParameter("target","index.jsp");
-%>
-				<jsp:forward page="error.jsp"/>
-<%
-			}
-		    }
-
-
-		    else if (op.equals("Continue"))
-		    {
-			// Continue (while editing a job)
-			String type = variableContext.getParameter("type");
-			if (type != null && (type.equals("simplereport") || type.equals("maxactivityreport") ||
-				type.equals("maxbandwidthreport") || type.equals("resultreport") ||
-				type.equals("documentstatus") || type.equals("queuestatus")))
-			{
-%>
-				<jsp:forward page='<%=type+".jsp"%>'/>
-<%
-			}
-			else if (type != null && type.equals("job"))
-			{
-%>
-				<jsp:forward page="editjob.jsp"/>
-<%
-			}
-			else if (type != null && type.equals("output"))
-			{
-%>
-				<jsp:forward page="editoutput.jsp"/>
-<%
-			}
-			else if (type != null && type.equals("connection"))
-			{
-%>
-				<jsp:forward page="editconnection.jsp"/>
-<%
-			}
-			else if (type != null && type.equals("authority"))
-			{
-%>
-				<jsp:forward page="editauthority.jsp"/>
-<%
-			}
-			else
-			{
-				// Error
-				variableContext.setParameter("text","Illegal parameter to page");
-				variableContext.setParameter("target","index.jsp");
-%>
-				<jsp:forward page="error.jsp"/>
-<%
-			}
-		    }
-
-
-		    else if (op.equals("ReingestAll"))
-		    {
-			// Reingest signal operation
-			String type = variableContext.getParameter("type");
-			if (type != null && type.equals("output"))
-			{
-				try
-				{
-					String connectionName = variableContext.getParameter("connname");
-					if (connectionName == null)
-						throw new LCFException("Missing connection parameter");
-					org.apache.lcf.agents.system.LCF.signalOutputConnectionRedo(threadContext,connectionName);
-%>
-					<jsp:forward page="listoutputs.jsp"/>
-<%
-				}
-				catch (LCFException e)
-				{
-					e.printStackTrace();
-					variableContext.setParameter("text",e.getMessage());
-					variableContext.setParameter("target","listoutputs.jsp");
-%>
-					<jsp:forward page="error.jsp"/>
-<%
-				}
-			}
-			else
-			{
-				// Error
-				variableContext.setParameter("text","Illegal parameter to page");
-				variableContext.setParameter("target","index.jsp");
-%>
-				<jsp:forward page="error.jsp"/>
-<%
-			}
-
-		    }
-		    
-		    
-		    else if (op.equals("Delete"))
-		    {
-			// Delete operation
-			String type = variableContext.getParameter("type");
-			if (type != null && type.equals("job"))
+			else if (op.equals("Delete"))
 			{
 				try
 				{
@@ -623,220 +801,114 @@
 <%
 				}
 			}
-			else if (type != null && type.equals("output"))
+			else if (op.equals("Cancel"))
 			{
-				try
-				{
-					String connectionName = variableContext.getParameter("connname");
-					if (connectionName == null)
-						throw new LCFException("Missing connection parameter");
-					outputManager.delete(connectionName);
+				// Cancel operation
 %>
-					<jsp:forward page="listoutputs.jsp"/>
-<%
-				}
-				catch (LCFException e)
-				{
-					e.printStackTrace();
-					variableContext.setParameter("text",e.getMessage());
-					variableContext.setParameter("target","listoutputs.jsp");
-%>
-					<jsp:forward page="error.jsp"/>
-<%
-				}
-			}
-			else if (type != null && type.equals("connection"))
-			{
-				try
-				{
-					String connectionName = variableContext.getParameter("connname");
-					if (connectionName == null)
-						throw new LCFException("Missing connection parameter");
-					connManager.delete(connectionName);
-%>
-					<jsp:forward page="listconnections.jsp"/>
-<%
-				}
-				catch (LCFException e)
-				{
-					e.printStackTrace();
-					variableContext.setParameter("text",e.getMessage());
-					variableContext.setParameter("target","listconnections.jsp");
-%>
-					<jsp:forward page="error.jsp"/>
-<%
-				}
-			}
-			else if (type != null && type.equals("authority"))
-			{
-				try
-				{
-					String connectionName = variableContext.getParameter("connname");
-					if (connectionName == null)
-						throw new LCFException("Missing connection parameter");
-					authConnManager.delete(connectionName);
-%>
-					<jsp:forward page="listauthorities.jsp"/>
-<%
-				}
-				catch (LCFException e)
-				{
-					e.printStackTrace();
-					variableContext.setParameter("text",e.getMessage());
-					variableContext.setParameter("target","listauthorities.jsp");
-%>
-					<jsp:forward page="error.jsp"/>
-<%
-				}
-			}
-			else
-			{
-				// Error
-				variableContext.setParameter("text","Illegal parameter to page");
-				variableContext.setParameter("target","index.jsp");
-%>
-				<jsp:forward page="error.jsp"/>
-<%
-			}
-		    }
-		    else if (op.equals("Cancel"))
-		    {
-			// Cancel operation
-			// Once again, lots of different cancels
-			String type = variableContext.getParameter("type");
-			if (type != null && type.equals("job"))
-			{
-				String jobID = variableContext.getParameter("jobid");
-				if (jobID != null)
-				{
-					variableContext.setParameter("jobid",jobID);
-%>
-					<jsp:forward page="viewjob.jsp"/>
-<%
-				}
-				else
-				{
-%>
-					<jsp:forward page="listjobs.jsp"/>
-<%
-				}
-			}
-			else if (type != null && type.equals("output"))
-			{
-%>
-				<jsp:forward page="listoutputs.jsp"/>
-<%
-			}
-			else if (type != null && type.equals("connection"))
-			{
-%>
-				<jsp:forward page="listconnections.jsp"/>
-<%
-			}
-			else if (type != null && type.equals("authority"))
-			{
-%>
-				<jsp:forward page="listauthorities.jsp"/>
+				<jsp:forward page="listjobs.jsp"/>
 <%
 			}
 			else
 			{
 				// Error
-				variableContext.setParameter("text","Illegal parameter to page");
+				variableContext.setParameter("text","Illegal parameter to job definition execution page");
+				variableContext.setParameter("target","listjobs.jsp");
+%>
+				<jsp:forward page="error.jsp"/>
+<%
+			}
+		}
+		else if (type != null && op != null && (type.equals("simplereport") || type.equals("maxactivityreport") ||
+				type.equals("maxbandwidthreport") || type.equals("resultreport") ||
+				type.equals("documentstatus") || type.equals("queuestatus")))
+		{
+			// -- Report handling operations --
+			if (op.equals("Continue") || op.equals("Report") || op.equals("Status"))
+			{
+%>
+				<jsp:forward page='<%=type+".jsp"%>'/>
+<%
+			}
+			else
+			{
+				// Error
+				variableContext.setParameter("text","Illegal parameter to report/status execution page");
 				variableContext.setParameter("target","index.jsp");
 %>
 				<jsp:forward page="error.jsp"/>
 <%
 			}
-		    }
-
-
-
-		    else if (op.equals("Start"))
-		    {
-			// Start a job.
+		}
+		else if (op != null && op.equals("Start"))
+		{
+			// -- Start a job --
 			String jobID = variableContext.getParameter("jobid");
 			manager.manualStart(new Long(jobID));
 			// Forward to showjobstatus
 %>
 			<jsp:forward page="showjobstatus.jsp"/>
 <%
-		    }
-
-
-
-		    else if (op.equals("Pause"))
-		    {
-			// Pause a job
+		}
+		else if (op != null && op.equals("Pause"))
+		{
+			// -- Pause a job --
 			String jobID = variableContext.getParameter("jobid");
 			manager.pauseJob(new Long(jobID));
 			// Forward to showjobstatus
 %>
 			<jsp:forward page="showjobstatus.jsp"/>
 <%
-		    }
-
-
-
-		    else if (op.equals("Abort"))
-		    {
-			// Abort a job
+		}
+		else if (op != null && op.equals("Abort"))
+		{
+			// -- Abort a job --
 			String jobID = variableContext.getParameter("jobid");
 			manager.manualAbort(new Long(jobID));
 			// Forward to showjobstatus
 %>
 			<jsp:forward page="showjobstatus.jsp"/>
 <%
-		    }
-
-
-		    else if (op.equals("Restart"))
-		    {
-			// Abort a job
+		}
+		else if (op != null && op.equals("Restart"))
+		{
+			// -- Restart a job --
 			String jobID = variableContext.getParameter("jobid");
 			manager.manualAbortRestart(new Long(jobID));
 			// Forward to showjobstatus
 %>
 			<jsp:forward page="showjobstatus.jsp"/>
 <%
-		    }
-
-
-		    else if (op.equals("Resume"))
-		    {
-			// Pause a job
+		}
+		else if (op != null && op.equals("Resume"))
+		{
+			// -- Resume a job --
 			String jobID = variableContext.getParameter("jobid");
 			manager.restartJob(new Long(jobID));
 			// Forward to showjobstatus
 %>
 			<jsp:forward page="showjobstatus.jsp"/>
 <%
-		    }
+		}
+		else
+		{
+			/*
+			// If we didn't have an op, then we transfer control back to where the page said to.
+			String target = variableContext.getParameter("target");
+			if (target != null)
+			{
+				<jsp:forward page='<%=target%'/>
+			}
 
+			<jsp:forward page="index.jsp"/>
+			*/
 
-		    else
-		    {
-			variableContext.setParameter("text","Illegal operation to page");
+			// Error
+			variableContext.setParameter("text","Illegal parameter to page");
 			variableContext.setParameter("target","index.jsp");
-
 %>
 			<jsp:forward page="error.jsp"/>
 <%
-		    }
 		}
-
-		// If we didn't have an op, then we transfer control back to where the page said to.
-		String target = variableContext.getParameter("target");
-		if (target != null)
-		{
-%>
-			<jsp:forward page='<%=target%>'/>
-<%
-
-		}
-%>
-		<jsp:forward page="index.jsp"/>
-<%
 	}
 	catch (LCFException e)
 	{

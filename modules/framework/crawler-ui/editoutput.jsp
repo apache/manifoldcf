@@ -23,6 +23,9 @@
 %>
 
 <%
+    // The contract of this edit page is as follows.  It is either called directly, in which case it is expected to be creating
+    // a connection or beginning the process of editing an existing connection, or it is called via redirection from execute.jsp, in which case
+    // the connection object being edited will be placed in the thread context under the name "ConnectionObject".
     try
     {
 	// Get the connection manager handle
@@ -30,51 +33,45 @@
 	// Also get the list of available connectors
 	IOutputConnectorManager connectorManager = OutputConnectorManagerFactory.make(threadContext);
 
+	// Figure out what the current tab name is.
 	String tabName = variableContext.getParameter("tabname");
 	if (tabName == null || tabName.length() == 0)
 		tabName = "Name";
 
-	// In case this form posts to itself, we need to pick up everything we can.
-	String connectionName = variableContext.getParameter("connname");
-	if (connectionName == null)
-		connectionName = "";
+	String connectionName = null;
+	IOutputConnection connection = (IOutputConnection)threadContext.get("ConnectionObject");
+	if (connection == null)
+	{
+		// We did not go through execute.jsp
+		// We might have received an argument specifying the connection name.
+		connectionName = variableContext.getParameter("connname");
+		// If the connectionname is not null, load the connection description and prepopulate everything with what comes from it.
+		if (connectionName != null && connectionName.length() > 0)
+		{
+			connection = connMgr.load(connectionName);
+		}
+	}
+
+	// Set up default fields.
 	String description = "";
 	String className = "";
 	int maxConnections = 10;
 	ConfigParams parameters = new ConfigParams();
 
-	IOutputConnection connection = null;
-
-	// If the connectionname is not null, load the connection description and prepopulate everything with what comes from it.
-	if (connectionName != null && connectionName.length() > 0)
+	// If there's a connection object, set up all our parameters from it.
+	if (connection != null)
 	{
-		connection = connMgr.load(connectionName);
-		if (connection != null)
-		{
-			// Set up values
-			description = connection.getDescription();
-			className = connection.getClassName();
-			parameters = connection.getConfigParams();
-			maxConnections = connection.getMaxConnections();
-		}
+		// Set up values
+		connectionName = connection.getName();
+		description = connection.getDescription();
+		className = connection.getClassName();
+		parameters = connection.getConfigParams();
+		maxConnections = connection.getMaxConnections();
 	}
 	else
-		connectionName = "";
+		connectionName = null;
 
-	// Passed-in parameters override the current values
-	String x;
-	x = variableContext.getParameter("description");
-	if (x != null)
-		description = x;
-	x = variableContext.getParameter("classname");
-	if (x != null)
-		className = x;
-	x = variableContext.getParameter("maxconnections");
-	if (x != null && x.length() > 0)
-	{
-		maxConnections = Integer.parseInt(x);
-	}
-
+	// Initialize tabs array.
 	ArrayList tabsArray = new ArrayList();
 
 	// Set up the predefined tabs
@@ -83,21 +80,6 @@
 	if (className.length() > 0)
 		tabsArray.add("Throttling");
 
-%>
-
-<%
-	if (className.length() > 0)
-	{
-		String error = OutputConnectorFactory.processConfigurationPost(threadContext,className,variableContext,parameters);
-		if (error != null)
-		{
-			variableContext.setParameter("text",error);
-			variableContext.setParameter("target","listoutputs.jsp");
-%>
-<jsp:forward page="error.jsp"/>
-<%
-		}
-	}
 %>
 
 <?xml version="1.0" encoding="utf-8"?>

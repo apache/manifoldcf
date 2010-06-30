@@ -23,6 +23,9 @@
 %>
 
 <%
+    // The contract of this edit page is as follows.  It is either called directly, in which case it is expected to be creating
+    // a connection or beginning the process of editing an existing connection, or it is called via redirection from execute.jsp, in which case
+    // the connection object being edited will be placed in the thread context under the name "ConnectionObject".
     try
     {
 	// Get the connection manager handle
@@ -31,14 +34,26 @@
 	IConnectorManager connectorManager = ConnectorManagerFactory.make(threadContext);
 	IAuthorityConnectionManager authConnectionManager = AuthorityConnectionManagerFactory.make(threadContext);
 
+	// Figure out what the current tab name is.
 	String tabName = variableContext.getParameter("tabname");
 	if (tabName == null || tabName.length() == 0)
 		tabName = "Name";
 
-	// In case this form posts to itself, we need to pick up everything we can.
-	String connectionName = variableContext.getParameter("connname");
-	if (connectionName == null)
-		connectionName = "";
+	String connectionName = null;
+	IRepositoryConnection connection = (IRepositoryConnection)threadContext.get("ConnectionObject");
+	if (connection == null)
+	{
+		// We did not go through execute.jsp
+		// We might have received an argument specifying the connection name.
+		connectionName = variableContext.getParameter("connname");
+		// If the connectionname is not null, load the connection description and prepopulate everything with what comes from it.
+		if (connectionName != null && connectionName.length() > 0)
+		{
+			connection = connMgr.load(connectionName);
+		}
+	}
+	
+	// Set up default fields.
 	String description = "";
 	String className = "";
 	String authorityName = null;
@@ -47,118 +62,35 @@
 	ArrayList throttles = new ArrayList();
 	ConfigParams parameters = new ConfigParams();
 
-	IRepositoryConnection connection = null;
-
-	// If the connectionname is not null, load the connection description and prepopulate everything with what comes from it.
-	if (connectionName != null && connectionName.length() > 0)
+	// If there's a connection object, set up all our parameters from it.
+	if (connection != null)
 	{
-		connection = connMgr.load(connectionName);
-		if (connection != null)
+		// Set up values
+		connectionName = connection.getName();
+		description = connection.getDescription();
+		className = connection.getClassName();
+		parameters = connection.getConfigParams();
+		authorityName = connection.getACLAuthority();
+		maxConnections = connection.getMaxConnections();
+		String[] throttlesX = connection.getThrottles();
+		int j = 0;
+		while (j < throttlesX.length)
 		{
-			// Set up values
-			description = connection.getDescription();
-			className = connection.getClassName();
-			parameters = connection.getConfigParams();
-			authorityName = connection.getACLAuthority();
-			maxConnections = connection.getMaxConnections();
-			String[] throttlesX = connection.getThrottles();
-			int j = 0;
-			while (j < throttlesX.length)
-			{
-				String throttleRegexp = throttlesX[j++];
-				Map map = new HashMap();
-				map.put("regexp",throttleRegexp);
-				map.put("description",connection.getThrottleDescription(throttleRegexp));
-				map.put("value",new Long((long)(((double)connection.getThrottleValue(throttleRegexp) * (double)60000.0) + 0.5)));
-				throttles.add(map);
-			}
+			String throttleRegexp = throttlesX[j++];
+			Map map = new HashMap();
+			map.put("regexp",throttleRegexp);
+			map.put("description",connection.getThrottleDescription(throttleRegexp));
+			map.put("value",new Long((long)(((double)connection.getThrottleValue(throttleRegexp) * (double)60000.0) + 0.5)));
+			throttles.add(map);
 		}
 	}
 	else
+		connectionName = null;
+
+	if (connectionName == null)
 		connectionName = "";
 
-	// Passed-in parameters override the current values
-	String x;
-	x = variableContext.getParameter("description");
-	if (x != null)
-		description = x;
-	x = variableContext.getParameter("classname");
-	if (x != null)
-		className = x;
-	x = variableContext.getParameter("authorityname");
-	if (x != null && x.length() > 0)
-	{
-		if (x.equals("_none_"))
-			authorityName = null;
-		else
-			authorityName = x;
-	}
-	x = variableContext.getParameter("maxconnections");
-	if (x != null && x.length() > 0)
-	{
-		maxConnections = Integer.parseInt(x);
-	}
-
-	// Gather and edit the throttle stuff
-	x = variableContext.getParameter("throttlecount");
-	if (x != null)
-	{
-		int throttleCount = Integer.parseInt(x);
-		throttles.clear();
-		int j = 0;
-		while (j < throttleCount)
-		{
-			Map map = new HashMap();
-			String regexp = variableContext.getParameter("throttle_"+Integer.toString(j));
-			map.put("regexp",regexp);
-			String desc = variableContext.getParameter("throttledesc_"+Integer.toString(j));
-			map.put("description",desc);
-			String value = variableContext.getParameter("throttlevalue_"+Integer.toString(j));
-			map.put("value",new Long(value));
-			throttles.add(map);
-			j++;
-		}
-		x = variableContext.getParameter("throttleop");
-		if (x != null && x.equals("Delete"))
-		{
-			// Delete an item from the throttles list
-			x = variableContext.getParameter("throttlenumber");
-			throttles.remove(Integer.parseInt(x));
-		}
-		else if (x != null && x.equals("Add"))
-		{
-			// Add an item to the throttles list
-			String regexp = variableContext.getParameter("throttle");
-			String desc = variableContext.getParameter("throttledesc");
-			Long value = new Long(variableContext.getParameter("throttlevalue"));
-			Map newMap = new HashMap();
-			newMap.put("regexp",regexp);
-			newMap.put("description",desc);
-			newMap.put("value",value);
-			j = 0;
-			while (j < throttles.size())
-			{
-				Map currentPos = (Map)throttles.get(j);
-				String currentRegexp = (String)currentPos.get("regexp");
-				int pos = regexp.compareTo(currentRegexp);
-				if (pos == 0)
-				{
-					throttles.remove(j);
-					throttles.add(j,newMap);
-					break;
-				}
-				if (pos < 0)
-				{
-					throttles.add(j,newMap);
-					break;
-				}
-				j++;
-			}
-			if (j == throttles.size())
-				throttles.add(newMap);
-		}
-	}
-
+	// Initialize tabs array.
 	ArrayList tabsArray = new ArrayList();
 
 	// Set up the predefined tabs
@@ -167,21 +99,6 @@
 	if (className.length() > 0)
 		tabsArray.add("Throttling");
 
-%>
-
-<%
-	if (className.length() > 0)
-	{
-		String error = RepositoryConnectorFactory.processConfigurationPost(threadContext,className,variableContext,parameters);
-		if (error != null)
-		{
-			variableContext.setParameter("text",error);
-			variableContext.setParameter("target","listconnections.jsp");
-%>
-<jsp:forward page="error.jsp"/>
-<%
-		}
-	}
 %>
 
 <?xml version="1.0" encoding="utf-8"?>

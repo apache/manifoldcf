@@ -23,6 +23,10 @@
 %>
 
 <%
+    // The contract of this edit page is as follows.  It is either called directly, in which case it is expected to be creating
+    // a job or beginning the process of editing an existing job, or it is called via redirection from execute.jsp, in which case
+    // the job object being edited will be placed in the thread context under the name "JobObject".
+    // It may also be called directly with a parameter of "origjobid", which implies that a copy operation should be started.
     try
     {
 	// Get the job manager handle
@@ -32,16 +36,29 @@
 	IOutputConnectionManager outputMgr = OutputConnectionManagerFactory.make(threadContext);
 	IOutputConnection[] outputList = outputMgr.getAllConnections();
 
-	// Since this form posts to itself, we need to pick up everything we can.
-	String jobID = variableContext.getParameter("jobid");
-	String origJobID = variableContext.getParameter("origjobid");
-	if (origJobID == null || origJobID.length() == 0)
-		origJobID = jobID;
-
+	// Figure out tab name
 	String tabName = variableContext.getParameter("tabname");
 	if (tabName == null || tabName.length() == 0)
 		tabName = "Name";
 
+	// Get a loaded job object, somehow.
+	String jobID = null;
+	IJobDescription job = (IJobDescription)threadContext.get("JobObject");
+	if (job == null)
+	{
+		// We did not go through execute.jsp
+		// We might have received an argument specifying the connection name.
+		jobID = variableContext.getParameter("jobid");
+		String origJobID = variableContext.getParameter("origjobid");
+		if (origJobID == null || origJobID.length() == 0)
+			origJobID = jobID;
+		if (origJobID != null)
+			job = manager.load(new Long(origJobID));
+	}
+	else
+		jobID = job.getID().toString();
+
+	// Setup default fields
 	String connectionName = "";
 	String outputName = "";
 	String description = "";
@@ -74,10 +91,9 @@
 	// Hop filters
 	Map hopFilterMap = new HashMap();
 
-	// If the jobID is not null, load the job description and prepopulate everything with what comes from it.
-	if (origJobID != null)
+	// If the job is not null, prepopulate everything with what comes from it.
+	if (job != null)
 	{
-		IJobDescription job = manager.load(new Long(origJobID));
 		// Set up values
 		description = job.getDescription();
 		outputName = job.getOutputConnectionName();
@@ -104,218 +120,6 @@
 		hopFilterMap = job.getHopCountFilters();
 	}
 
-	// Passed-in parameters override the current values
-	String x;
-	x = variableContext.getParameter("outputname");
-	if (x != null)
-		outputName = x;
-	x = variableContext.getParameter("connectionname");
-	if (x != null)
-		connectionName = x;
-	x = variableContext.getParameter("description");
-	if (x != null)
-		description = x;
-	x = variableContext.getParameter("scheduletype");
-	if (x != null)
-		type = Integer.parseInt(x);
-	x = variableContext.getParameter("priority");
-	if (x != null)
-		priority = Integer.parseInt(x);
-	x = variableContext.getParameter("recrawlinterval");
-	if (x != null)
-	{
-		if (x.length() == 0)
-			recrawlInterval = null;
-		else
-			recrawlInterval = new Long(x);
-	}
-	x = variableContext.getParameter("reseedinterval");
-	if (x != null)
-	{
-		if (x.length() == 0)
-			reseedInterval = null;
-		else
-			reseedInterval = new Long(x);
-	}
-	x = variableContext.getParameter("expirationinterval");
-	if (x != null)
-	{
-		if (x.length() == 0)
-			expirationInterval = null;
-		else
-			expirationInterval = new Long(x);
-	}
-	x = variableContext.getParameter("startmethod");
-	if (x != null)
-		startMethod = Integer.parseInt(x);
-	x = variableContext.getParameter("hopcountmode");
-	if (x != null)
-		hopcountMode = Integer.parseInt(x);
-
-	String[] y;
-
-	// First, get the number of entries
-	x = variableContext.getParameter("schedulerecords");
-	if (x != null)
-	{
-		// Scan the schedule records that came in, and fill in the appropriate structure.
-		scheduleRecords.clear();
-		int recordCount = Integer.parseInt(x);
-		int j = 0;
-		while (j < recordCount)
-		{
-			String indexValue = Integer.toString(j);
-			EnumeratedValues srDayOfWeek = null;
-			EnumeratedValues srDayOfMonth = null;
-			EnumeratedValues srMonthOfYear = null;
-			EnumeratedValues srYear = null;
-			EnumeratedValues srHourOfDay = null;
-			EnumeratedValues srMinutesOfHour = null;
-			Long srDuration = null;
-
-			y = variableContext.getParameterValues("dayofweek"+indexValue);
-			if (y != null)
-			{
-				if (y.length >= 1 && y[0].equals("none"))
-					srDayOfWeek = null;
-				else
-					srDayOfWeek = new EnumeratedValues(y);
-			}
-			y = variableContext.getParameterValues("dayofmonth"+indexValue);
-			if (y != null)
-			{
-				if (y.length >= 1 && y[0].equals("none"))
-					srDayOfMonth = null;
-				else
-					srDayOfMonth = new EnumeratedValues(y);
-			}
-			y = variableContext.getParameterValues("monthofyear"+indexValue);
-			if (y != null)
-			{
-				if (y.length >= 1 && y[0].equals("none"))
-					srMonthOfYear = null;
-				else
-					srMonthOfYear = new EnumeratedValues(y);
-			}
-			y = variableContext.getParameterValues("year"+indexValue);
-			if (y != null)
-			{
-				if (y.length >= 1 && y[0].equals("none"))
-					srYear = null;
-				else
-					srYear = new EnumeratedValues(y);
-			}
-			y = variableContext.getParameterValues("hourofday"+indexValue);
-			if (y != null)
-			{
-				if (y.length >= 1 && y[0].equals("none"))
-					srHourOfDay = null;
-				else
-					srHourOfDay = new EnumeratedValues(y);
-			}
-			y = variableContext.getParameterValues("minutesofhour"+indexValue);
-			if (y != null)
-			{
-				if (y.length >= 1 && y[0].equals("none"))
-					srMinutesOfHour = null;
-				else
-					srMinutesOfHour = new EnumeratedValues(y);
-			}
-			x = variableContext.getParameter("duration"+indexValue);
-			if (x != null)
-			{
-				if (x.length() == 0)
-					srDuration = null;
-				else
-					srDuration = new Long(new Long(x).longValue()*60000L);
-			}
-
-			x = variableContext.getParameter("recordop"+indexValue);
-			if (x == null || !x.equals("Remove Schedule"))
-			{
-				ScheduleRecord sr = new ScheduleRecord(srDayOfWeek,srMonthOfYear,srDayOfMonth,srYear,srHourOfDay,srMinutesOfHour,
-					null,srDuration);
-				scheduleRecords.add(sr);
-			}
-			j++;
-		}
-	}
-
-	x = variableContext.getParameter("recordop");
-	if (x != null && x.equals("Add Scheduled Time"))
-	{
-		EnumeratedValues srDayOfWeek = null;
-		EnumeratedValues srDayOfMonth = null;
-		EnumeratedValues srMonthOfYear = null;
-		EnumeratedValues srYear = null;
-		EnumeratedValues srHourOfDay = null;
-		EnumeratedValues srMinutesOfHour = null;
-		Long srDuration = null;
-
-		y = variableContext.getParameterValues("dayofweek");
-		if (y != null)
-		{
-			if (y.length >= 1 && y[0].equals("none"))
-				srDayOfWeek = null;
-			else
-				srDayOfWeek = new EnumeratedValues(y);
-		}
-		y = variableContext.getParameterValues("dayofmonth");
-		if (y != null)
-		{
-			if (y.length >= 1 && y[0].equals("none"))
-				srDayOfMonth = null;
-			else
-				srDayOfMonth = new EnumeratedValues(y);
-		}
-		y = variableContext.getParameterValues("monthofyear");
-		if (y != null)
-		{
-			if (y.length >= 1 && y[0].equals("none"))
-				srMonthOfYear = null;
-			else
-				srMonthOfYear = new EnumeratedValues(y);
-		}
-		y = variableContext.getParameterValues("year");
-		if (y != null)
-		{
-			if (y.length >= 1 && y[0].equals("none"))
-				srYear = null;
-			else
-				srYear = new EnumeratedValues(y);
-		}
-		y = variableContext.getParameterValues("hourofday");
-		if (y != null)
-		{
-			if (y.length >= 1 && y[0].equals("none"))
-				srHourOfDay = null;
-			else
-				srHourOfDay = new EnumeratedValues(y);
-		}
-		y = variableContext.getParameterValues("minutesofhour");
-		if (y != null)
-		{
-			if (y.length >= 1 && y[0].equals("none"))
-				srMinutesOfHour = null;
-			else
-				srMinutesOfHour = new EnumeratedValues(y);
-		}
-		x = variableContext.getParameter("duration");
-		if (x != null)
-		{
-			if (x.length() == 0)
-				srDuration = null;
-			else
-				srDuration = new Long(new Long(x).longValue() * 60000L);
-		}
-		ScheduleRecord sr = new ScheduleRecord(srDayOfWeek,srMonthOfYear,srDayOfMonth,srYear,srHourOfDay,srMinutesOfHour,
-			null,srDuration);
-		scheduleRecords.add(sr);
-	}
-
-	x = variableContext.getParameter("priority");
-	if (x != null)
-		priority = Integer.parseInt(x);
 
 	// This form reposts to itself.  It basically only allows the connection to be picked once; once done, the repost occurs
 	// and cannot be undone.
@@ -336,20 +140,11 @@
 		connection = connMgr.load(connectionName);
 		model = RepositoryConnectorFactory.getConnectorModel(threadContext,connection.getClassName());
 		relationshipTypes = RepositoryConnectorFactory.getRelationshipTypes(threadContext,connection.getClassName());
-		//threadContext.save("DocumentSpecification",documentSpecification);
-		//threadContext.save("RepositoryConnection",connection);
 	}
 	if (outputName.length() > 0)
 	{
 		outputConnection = outputMgr.load(outputName);
-		//threadContext.save("OutputSpecification",outputSpecification);
-		//threadContext.save("OutputConnection",connection);
 	}
-
-	// Assert the following variables regardless of connection choice/non-choice
-	//threadContext.save("ScheduleCount",Integer.toString(scheduleRecords.size()));
-	//threadContext.save("Tabs",tabsArray);
-	//threadContext.save("TabName",tabName);
 
 	// Set up the predefined tabs
 	tabsArray.add("Name");
@@ -361,78 +156,7 @@
 			tabsArray.add("Hop Filters");
 	}
 
-	// Gather hopcount filters
-	if (relationshipTypes != null)
-	{
-		x = variableContext.getParameter("hopfilters");
-		if (x != null)
-		{
-			hopFilterMap.clear();
-			int j = 0;
-			while (j < relationshipTypes.length)
-			{
-				String relationshipType = relationshipTypes[j++];
-				String hopMax = variableContext.getParameter("hopmax_"+relationshipType);
-				if (hopMax != null && hopMax.length() > 0)
-					hopFilterMap.put(relationshipType,new Long(hopMax));
-			}
-		}
-	}
 
-%>
-
-<%
-	if (outputConnection != null)
-	{
-		IOutputConnector outputConnector = OutputConnectorFactory.grab(threadContext,outputConnection.getClassName(),outputConnection.getConfigParams(),
-			outputConnection.getMaxConnections());
-		if (outputConnector != null)
-		{
-			try
-			{
-				String error = outputConnector.processSpecificationPost(variableContext,outputSpecification);
-				if (error != null)
-				{
-					variableContext.setParameter("text",error);
-					variableContext.setParameter("target","listjobs.jsp");
-%>
-					<jsp:forward page="error.jsp"/>
-<%
-				}
-			}
-			finally
-			{
-				OutputConnectorFactory.release(outputConnector);
-			}
-		}
-	}
-%>
-
-<%
-	if (connection != null)
-	{
-		IRepositoryConnector repositoryConnector = RepositoryConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),
-			connection.getMaxConnections());
-		if (repositoryConnector != null)
-		{
-			try
-			{
-				String error = repositoryConnector.processSpecificationPost(variableContext,documentSpecification);
-				if (error != null)
-				{
-					variableContext.setParameter("text",error);
-					variableContext.setParameter("target","listjobs.jsp");
-%>
-					<jsp:forward page="error.jsp"/>
-<%
-				}
-			}
-			finally
-			{
-				RepositoryConnectorFactory.release(repositoryConnector);
-			}
-		}
-	}
 %>
 
 <?xml version="1.0" encoding="utf-8"?>
