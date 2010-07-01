@@ -155,66 +155,14 @@
         <jar destfile="build/jar/lcf-meridio-xsdstub.jar" basedir="build/xsdclasses"/>
     </target>
 
-    <target name="webapp-crawler-ui" depends="jar-connector,jar-wsdls,jar-xsds,precompile-check" if="canBuild">
-        <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib">
-            <fileset dir="build/jar">
-                <include name="lcf-meridio-connector.jar"/>
-                <include name="lcf-meridio-wsdlstub.jar"/>
-                <include name="lcf-meridio-xsdstub.jar"/>
-            </fileset>
-            <fileset dir="lib">
-                <include name="axis*.jar"/>
-                <include name="wsdl4j*.jar"/>
-                <include name="commons-discovery*.jar"/>
-                <include name="castor*.jar"/>
-                <include name="geronimo-activation_1.1_spec*.jar"/>
-                <include name="geronimo-javamail_1.4_spec*.jar"/>
-            </fileset>
-        </copy>
-        <mkdir dir="build/webapp/crawler-ui"/>
-        <copy todir="build/webapp/crawler-ui">
-            <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
-        </copy>
-    </target>
-
-    <target name="webapp-authority-service" depends="jar-connector,jar-wsdls,jar-xsds,precompile-check" if="canBuild">
-        <mkdir dir="build/webapp/authority-service/WEB-INF/lib"/>
-        <copy todir="build/webapp/authority-service/WEB-INF/lib">
-            <fileset dir="build/jar">
-                <include name="lcf-meridio-connector.jar"/>
-                <include name="lcf-meridio-wsdlstub.jar"/>
-                <include name="lcf-meridio-xsdstub.jar"/>
-            </fileset>
-            <fileset dir="lib">
-                <include name="axis*.jar"/>
-                <include name="wsdl4j*.jar"/>
-                <include name="commons-discovery*.jar"/>
-                <include name="castor*.jar"/>
-                <include name="geronimo-activation_1.1_spec*.jar"/>
-                <include name="geronimo-javamail_1.4_spec*.jar"/>
-            </fileset>
-        </copy>
-    </target>
-
     <target name="wsdd" depends="precompile-check" if="canBuild">
         <mkdir dir="dist/wsdd"/>
         <copy todir="dist/wsdd" file="meridio-client-config.wsdd"/>
     </target>
     
-    <target name="iar-crawler-ui" depends="webapp-crawler-ui,precompile-check" if="canBuild">
-        <mkdir dir="dist/web/war"/>
-        <jar destfile="dist/web/war/lcf-meridioconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
-    </target>
-
-    <target name="iar-authority-service" depends="webapp-authority-service,precompile-check" if="canBuild">
-        <mkdir dir="dist/web/war"/>
-        <jar destfile="dist/web/war/lcf-meridioconnector-authority-service.iar" basedir="build/webapp/authority-service"/>
-    </target>
-
-    <target name="processes" depends="jar-connector,jar-wsdls,jar-xsds,precompile-check" if="canBuild">
-        <mkdir dir="dist/processes/jar"/>
-        <copy todir="dist/processes/jar">
+    <target name="lib" depends="jar-connector,jar-wsdls,jar-xsds,precompile-check" if="canBuild">
+        <mkdir dir="dist/lib"/>
+        <copy todir="dist/lib">
             <fileset dir="build/jar">
                 <include name="lcf-meridio-connector.jar"/>
                 <include name="lcf-meridio-wsdlstub.jar"/>
@@ -231,6 +179,6 @@
         </copy>
     </target>
 
-    <target name="all" depends="processes,wsdd,iar-crawler-ui,iar-authority-service,doc"/>
+    <target name="all" depends="lib,wsdd,doc"/>
     
 </project>

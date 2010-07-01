@@ -43,44 +43,13 @@
         <jar destfile="build/jar/lcf-jcifs-connector.jar" basedir="build/connector/classes"/>
     </target>
 
-    <target name="webapp-crawler-ui" depends="jar-connector,precompile-check" if="canBuild">
-        <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib">
-            <fileset dir="build/jar">
-                <include name="lcf-jcifs-connector.jar"/>
-            </fileset>
-            <fileset dir="jcifs" includes="*.jar"/>
+    <target name="lib" depends="jar-connector,precompile-check" if="canBuild">
+        <mkdir dir="dist/lib"/>
+        <copy todir="dist/lib" file="build/jar/lcf-jcifs-connector.jar"/>
+        <copy todir="dist/lib">
             <fileset dir="lib">
                 <include name="poi*.jar"/>
             </fileset>
-        </copy>
-        <mkdir dir="build/webapp/crawler-ui"/>
-        <copy todir="build/webapp/crawler-ui">
-            <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
-        </copy>
-    </target>
-    
-    <target name="iar-crawler-ui" depends="webapp-crawler-ui,precompile-check" if="canBuild">
-        <mkdir dir="dist/web/war"/>
-        <jar destfile="dist/web/war/lcf-jcifsconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
-        <!-- Copy flag values, too -->
-        <mkdir dir="dist/web/define"/>
-        <copy todir="dist/web/define" file="jcifs.resolveOrder"/>
-        <copy todir="dist/web/define" file="jcifs.smb.client.dfs.strictView"/>
-        <copy todir="dist/web/define" file="jcifs.smb.client.listCount"/>
-        <copy todir="dist/web/define" file="jcifs.smb.client.responseTimeout"/>
-        <copy todir="dist/web/define" file="jcifs.smb.client.soTimeout"/>
-    </target>
-
-    <target name="processes" depends="jar-connector,precompile-check" if="canBuild">
-        <mkdir dir="dist/processes/jar"/>
-        <copy todir="dist/processes/jar" file="build/jar/lcf-jcifs-connector.jar"/>
-        <copy todir="dist/processes/jar">
-            <fileset dir="lib">
-                <include name="poi*.jar"/>
-            </fileset>
-        </copy>
-        <copy todir="dist/processes/jar">
             <fileset dir="jcifs" includes="*.jar"/>
         </copy>
         <!-- Copy flag values, too -->
@@ -92,6 +61,6 @@
         <copy todir="dist/processes/define" file="jcifs.smb.client.soTimeout"/>
     </target>
 
-    <target name="all" depends="processes,iar-crawler-ui,doc"/>
+    <target name="all" depends="lib,doc"/>
     
 </project>

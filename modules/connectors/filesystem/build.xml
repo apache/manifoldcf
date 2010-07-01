@@ -31,23 +31,9 @@
         <jar destfile="build/jar/lcf-filesystem-connector.jar" basedir="build/connector/classes"/>
     </target>
 
-    <target name="webapp-crawler-ui" depends="jar-connector">
-        <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-filesystem-connector.jar"/>
-        <mkdir dir="build/webapp/crawler-ui"/>
-        <copy todir="build/webapp/crawler-ui">
-            <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
-        </copy>
-    </target>
-    
-    <target name="processes" depends="jar-connector">
-        <mkdir dir="dist/processes/jar"/>
-        <copy todir="dist/processes/jar" file="build/jar/lcf-filesystem-connector.jar"/>
-    </target>
-
-    <target name="iar-crawler-ui" depends="webapp-crawler-ui">
-        <mkdir dir="dist/web/war"/>
-        <jar destfile="dist/web/war/lcf-filesystemconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
+    <target name="lib" depends="jar-connector">
+        <mkdir dir="dist/lib"/>
+        <copy todir="dist/lib" file="build/jar/lcf-filesystem-connector.jar"/>
     </target>
 
     <target name="compile-tests" depends="compile-connector">
@@ -77,6 +63,6 @@
         </junit>
     </target>
 
-    <target name="all" depends="processes,iar-crawler-ui,doc,run-tests"/>
+    <target name="all" depends="lib,doc,run-tests"/>
     
 </project>

@@ -111,41 +111,6 @@ public class TestBase extends org.apache.lcf.crawler.tests.TestConnectorBase
       throw currentException;
   }
   
-  @Test
-  public void sanityCheck()
-    throws Exception
-  {
-    // Hey, we were able to install the file system connector etc.
-    // Now, create a local test job and run it.
-    IThreadContext tc = ThreadContextFactory.make();
-    ILockManager lockManager = LockManagerFactory.make(tc);
-    lockManager.setGlobalFlag(agentShutdownSignal);
-
-    // Create a basic file system connection, and save it.
-    IRepositoryConnectionManager mgr = RepositoryConnectionManagerFactory.make(tc);
-    IRepositoryConnection conn = mgr.create();
-    conn.setName("File Connection");
-    conn.setDescription("File Connection");
-    conn.setClassName("org.apache.lcf.crawler.connectors.filesystem.FileConnector");
-    conn.setMaxConnections(100);
-    // Now, save
-    mgr.save(conn);
-    
-    // Create a basic null output connection, and save it.
-    IOutputConnectionManager outputMgr = OutputConnectionManagerFactory.make(tc);
-    IOutputConnection outputConn = outputMgr.create();
-    outputConn.setName("Null Connection");
-    outputConn.setDescription("Null Connection");
-    outputConn.setClassName("org.apache.lcf.agents.output.nullconnector.NullConnector");
-    outputConn.setMaxConnections(100);
-    // Now, save
-    outputMgr.save(outputConn);
-
-    // MHL
-    
-    // Cleanup is automatic by the base class, so we can feel free to leave jobs and connections lying around.
-  }
-  
   protected static class DaemonThread extends Thread
   {
     protected Exception daemonException = null;

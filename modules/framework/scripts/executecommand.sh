@@ -8,7 +8,7 @@ fi
 
 #Make sure environment variables are properly set
 if [ -e "$JAVA_HOME"/bin/java ] ; then
-    if [ -f "$LCF_HOME"/properties.ini ] ; then
+    if [ -f "$LCF_HOME"/properties.xml ] ; then
     
         # Build the classpath
         CLASSPATH=""
@@ -21,7 +21,7 @@ if [ -e "$JAVA_HOME"/bin/java ] ; then
         done
         
         # Build the defines
-        DEFINES="-Dorg.apache.lcf.configfile=$LCF_HOME/properties.ini"
+        DEFINES="-Dorg.apache.lcf.configfile=$LCF_HOME/properties.xml"
         if [ -e "$LCF_HOME/processes/define" ] ; then
             for filename in $(ls -1 "$LCF_HOME"/processes/define) ; do
                 DEFINEVAR=-D"$filename"=$(cat "$LCF_HOME"/processes/define/"$filename")

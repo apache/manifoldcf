@@ -155,11 +155,14 @@
                 <include name="commons-logging*.jar"/>
                 <include name="jdbcpool-0.99.jar"/>
                 <include name="log4j*.jar"/>
-                <include name="postgresql*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl-lcf.jar"/>
                 <include name="xml-apis*.jar"/>
+            </fileset>
+            <fileset dir="lib">
+                <include name="postgresql*.jar"/>
+                <include name="derby*.jar"/>
             </fileset>
         </copy>
         <copy todir="build/webapp/authority-service/WEB-INF/lib">
@@ -190,11 +193,14 @@
                 <include name="commons-logging*.jar"/>
                 <include name="jdbcpool-0.99.jar"/>
                 <include name="log4j*.jar"/>
-                <include name="postgresql*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl-lcf.jar"/>
                 <include name="xml-apis*.jar"/>
+            </fileset>
+            <fileset dir="lib">
+                <include name="postgresql*.jar"/>
+                <include name="derby*.jar"/>
             </fileset>
         </copy>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib">
@@ -239,12 +245,15 @@
                 <include name="commons-logging*.jar"/>
                 <include name="jdbcpool-0.99.jar"/>
                 <include name="log4j*.jar"/>
-                <include name="postgresql*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="servlet-api*.jar"/>
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl-lcf.jar"/>
                 <include name="xml-apis*.jar"/>
+            </fileset>
+            <fileset dir="lib">
+                <include name="postgresql*.jar"/>
+                <include name="derby*.jar"/>
             </fileset>
         </copy>
         <copy todir="dist/processes/jar">

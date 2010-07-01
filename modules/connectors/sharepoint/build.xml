@@ -117,38 +117,14 @@
         <jar destfile="build/jar/lcf-sharepoint-wsdlstub.jar" basedir="build/wsdlclasses"/>
     </target>
 
-    <target name="webapp-crawler-ui" depends="jar-connector,jar-wsdls,precompile-check" if="canBuild">
-        <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib">
-            <fileset dir="build/jar">
-                <include name="lcf-sharepoint-connector.jar"/>
-                <include name="lcf-sharepoint-wsdlstub.jar"/>
-            </fileset>
-            <fileset dir="lib">
-                <include name="axis*.jar"/>
-                <include name="wsdl4j*.jar"/>
-                <include name="commons-discovery*.jar"/>
-            </fileset>
-        </copy>
-        <mkdir dir="build/webapp/crawler-ui"/>
-        <copy todir="build/webapp/crawler-ui">
-            <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
-        </copy>
-    </target>
-
     <target name="wsdd" depends="precompile-check" if="canBuild">
         <mkdir dir="dist/wsdd"/>
         <copy todir="dist/wsdd" file="sharepoint-client-config.wsdd"/>
     </target>
 
-    <target name="iar-crawler-ui" depends="webapp-crawler-ui,precompile-check" if="canBuild">
-        <mkdir dir="dist/web/war"/>
-        <jar destfile="dist/web/war/lcf-sharepointconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
-    </target>
-
-    <target name="processes" depends="jar-connector,jar-wsdls,precompile-check" if="canBuild">
-        <mkdir dir="dist/processes/jar"/>
-        <copy todir="dist/processes/jar">
+    <target name="lib" depends="jar-connector,jar-wsdls,precompile-check" if="canBuild">
+        <mkdir dir="dist/lib"/>
+        <copy todir="dist/lib">
             <fileset dir="build/jar">
                 <include name="lcf-sharepoint-connector.jar"/>
                 <include name="lcf-sharepoint-wsdlstub.jar"/>
@@ -161,6 +137,6 @@
         </copy>
     </target>
 
-    <target name="all" depends="processes,iar-crawler-ui,wsdd,doc"/>
+    <target name="all" depends="lib,wsdd,doc"/>
     
 </project>

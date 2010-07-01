@@ -146,29 +146,9 @@
         <jar destfile="build/jar/lcf-filenet-connector.jar" basedir="build/connector/classes"/>
     </target>
 
-    <target name="webapp-crawler-ui" depends="jar-rmistub,jar-interface,jar-connector,precompile-check" if="canBuild">
-        <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib">
-            <fileset dir="build/jar">
-                <include name="lcf-filenet-connector.jar"/>
-                <include name="lcf-filenet-rmistub.jar"/>
-                <include name="lcf-filenet-interface.jar"/>
-            </fileset>
-        </copy>
-        <mkdir dir="build/webapp/crawler-ui"/>
-        <copy todir="build/webapp/crawler-ui">
-            <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
-        </copy>
-    </target>
-    
-    <target name="iar-crawler-ui" depends="webapp-crawler-ui,precompile-check" if="canBuild">
-        <mkdir dir="dist/web/war"/>
-        <jar destfile="dist/web/war/lcf-filenetconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
-    </target>
-
-    <target name="processes" depends="jar-interface,jar-rmistub,jar-connector,precompile-check" if="canBuild">
-        <mkdir dir="dist/processes/jar"/>
-        <copy todir="dist/processes/jar">
+    <target name="lib" depends="jar-interface,jar-rmistub,jar-connector,precompile-check" if="canBuild">
+        <mkdir dir="dist/lib"/>
+        <copy todir="dist/lib">
             <fileset dir="build/jar">
                 <include name="lcf-filenet-interface.jar"/>
                 <include name="lcf-filenet-rmistub.jar"/>
@@ -196,6 +176,6 @@
         <copy todir="dist/registry-process/jar" file="build/jar/lcf-filenet-registry.jar"/>
     </target>
 
-    <target name="all" depends="processes,server-process,registry-process,iar-crawler-ui,doc"/>
+    <target name="all" depends="lib,server-process,registry-process,doc"/>
     
 </project>

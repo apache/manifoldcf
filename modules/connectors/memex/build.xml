@@ -43,44 +43,14 @@
         <jar destfile="build/jar/lcf-memex-connector.jar" basedir="build/connector/classes"/>
     </target>
 
-    <target name="webapp-crawler-ui" depends="jar-connector,precompile-check" if="canBuild">
-        <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib" file="build/jar/lcf-memex-connector.jar"/>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib">
-            <fileset dir="mxie-java" includes="*.jar"/>
-        </copy>
-        <mkdir dir="build/webapp/crawler-ui"/>
-        <copy todir="build/webapp/crawler-ui">
-            <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
-        </copy>
-    </target>
-
-    <target name="webapp-authority-service" depends="jar-connector,precompile-check" if="canBuild">
-        <mkdir dir="build/webapp/authority-service/WEB-INF/lib"/>
-        <copy todir="build/webapp/authority-service/WEB-INF/lib" file="build/jar/lcf-memex-connector.jar"/>
-        <copy todir="build/webapp/authority-service/WEB-INF/lib">
+    <target name="lib" depends="jar-connector,precompile-check" if="canBuild">
+        <mkdir dir="dist/lib"/>
+        <copy todir="dist/lib" file="build/jar/lcf-memex-connector.jar"/>
+        <copy todir="dist/lib">
             <fileset dir="mxie-java" includes="*.jar"/>
         </copy>
     </target>
 
-    <target name="iar-crawler-ui" depends="webapp-crawler-ui,precompile-check" if="canBuild">
-        <mkdir dir="dist/web/war"/>
-        <jar destfile="dist/web/war/lcf-memexconnector-crawler-ui.iar" basedir="build/webapp/crawler-ui"/>
-    </target>
-
-    <target name="iar-authority-service" depends="webapp-authority-service,precompile-check" if="canBuild">
-        <mkdir dir="dist/web/war"/>
-        <jar destfile="dist/web/war/lcf-memexconnector-authority-service.iar" basedir="build/webapp/authority-service"/>
-    </target>
-
-    <target name="processes" depends="jar-connector,precompile-check" if="canBuild">
-        <mkdir dir="dist/processes/jar"/>
-        <copy todir="dist/processes/jar" file="build/jar/lcf-memex-connector.jar"/>
-        <copy todir="dist/processes/jar">
-            <fileset dir="mxie-java" includes="*.jar"/>
-        </copy>
-    </target>
-
-    <target name="all" depends="processes,iar-crawler-ui,iar-authority-service,doc"/>
+    <target name="all" depends="lib,doc"/>
     
 </project>

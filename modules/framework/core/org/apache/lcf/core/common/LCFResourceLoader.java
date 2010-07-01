@@ -181,7 +181,7 @@ public class LCFResourceLoader
         }
       }
       else
-        throw new LCFException("Supposed directory '"+base.toString()+"' is either not readable, or is not a directory");
+        throw new LCFException("Supposed directory '"+base.toString()+"' is either not a directory, or is unreadable.");
       i++;
     }
   }

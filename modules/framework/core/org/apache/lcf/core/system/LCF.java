@@ -132,8 +132,6 @@ public class LCF
 
       try
       {
-        // Initialize resource loader
-        resourceLoader = new LCFResourceLoader(System.getProperty("user.dir"),Thread.currentThread().getContextClassLoader());
         
         // Get system properties
         java.util.Properties props = System.getProperties();
@@ -147,6 +145,12 @@ public class LCF
           configPath = configPath.replace('\\', '/');
           propertyFilePath = new File(configPath,"properties.xml").toString();
         }
+
+        // Initialize resource loader.
+        // To do this, we need the "working directory".  But we cannot use the actual system cwd, because different LCF processes will have different ones.
+        // So, instead, we use the location of the property file itself, and call that the "working directory".
+        File wd = new File(propertyFilePath).getAbsoluteFile().getParentFile();
+        resourceLoader = new LCFResourceLoader(wd.toString(),Thread.currentThread().getContextClassLoader());
         
         // Read configuration
         localConfiguration = new ConfigParams();
