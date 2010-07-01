@@ -69,7 +69,8 @@ public class HttpPoster
 
   private static final String LITERAL = "literal.";
   private static final String NOTHING = "__NOTHING__";
-    
+  private static final String ID_METADATA = "lcf_metadata_id";
+  
   private int buffersize = 32768;  // default buffer size
   double sizeCoefficient = 0.0005;    // 20 ms additional timeout per 2000 bytes, pulled out of my butt
   /** the number of times we should poll for the response */
@@ -975,8 +976,11 @@ public class HttpPoster
                   String newFieldName = (String)sourceTargets.get(fieldName);
                   if (newFieldName == null)
                     newFieldName = fieldName;
-                  if (newFieldName.length() > 0)
-                  {
+		  // Make SURE we can't double up on the id field inadvertantly!
+		  if (newFieldName.length() > 0)
+		  {
+		    if (newFieldName.toLowerCase().equals(idAttributeName.toLowerCase()))
+		      newFieldName = ID_METADATA;
                     Object[] values = document.getField(fieldName);
                     // We only handle strings right now!!!
                     int k = 0;
@@ -1037,8 +1041,10 @@ public class HttpPoster
                   String newFieldName = (String)sourceTargets.get(fieldName);
                   if (newFieldName == null)
                     newFieldName = fieldName;
-                  if (newFieldName.length() > 0)
-                  {
+		  if (newFieldName.length() > 0)
+		  {
+		    if (newFieldName.toLowerCase().equals(idAttributeName.toLowerCase()))
+		      newFieldName = ID_METADATA;
                     Object[] values = document.getField(fieldName);
                     // We only handle strings right now!!!
                     int k = 0;
