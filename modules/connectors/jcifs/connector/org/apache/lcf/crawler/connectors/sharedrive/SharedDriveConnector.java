@@ -16,6 +16,7 @@
 */
 package org.apache.lcf.crawler.connectors.sharedrive;
 
+import org.apache.lcf.crawler.system.LCF;
 import java.io.FileOutputStream;
 import java.io.FileInputStream;
 import java.io.File;
@@ -89,6 +90,9 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
   public static final String VALUE_DIRECTORY = "directory";
   public static final String VALUE_FILE = "file";
 
+  // Properties this connector needs (that can only be configured once)
+  public final static String PROPERTY_JCIFS_USE_NTLM_V1 = "org.apache.lcf.crawler.connectors.jcifs.usentlmv1";
+  
   // Static initialization of various system properties.  This hopefully takes place
   // before jcifs is loaded.
   static
@@ -115,6 +119,18 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
   */
   public SharedDriveConnector()
   {
+    // We need to know whether to operate in NTLMv2 mode, or in NTLM mode.
+    String value = LCF.getProperty(PROPERTY_JCIFS_USE_NTLM_V1);
+    if (value == null || value.toLowerCase().equals("false"))
+    {
+      System.setProperty("jcifs.smb.lmCompatibility","3");
+      System.setProperty("jcifs.smb.client.useExtendedSecurity","true");
+    }
+    else
+    {
+      System.setProperty("jcifs.smb.lmCompatibility","0");
+      System.setProperty("jcifs.smb.client.useExtendedSecurity","false");
+    }
   }
 
   /** Establish a "session".  In the case of the jcifs connector, this just builds the appropriate smbconnectionPath string, and does the necessary checks. */

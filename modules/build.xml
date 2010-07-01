@@ -380,10 +380,6 @@
         <copy todir="dist/lib">
             <fileset dir="connectors/jcifs/dist/lib"/>
         </copy>
-        <mkdir dir="dist/processes"/>
-        <copy todir="dist/processes">
-            <fileset dir="connectors/jcifs/dist/processes"/>
-        </copy>
     </target>
 
     <target name="calculate-livelink-condition" depends="build-livelink-connector">

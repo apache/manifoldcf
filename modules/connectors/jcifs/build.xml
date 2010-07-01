@@ -52,13 +52,6 @@
             </fileset>
             <fileset dir="jcifs" includes="*.jar"/>
         </copy>
-        <!-- Copy flag values, too -->
-        <mkdir dir="dist/processes/define"/>
-        <copy todir="dist/processes/define" file="jcifs.resolveOrder"/>
-        <copy todir="dist/processes/define" file="jcifs.smb.client.dfs.strictView"/>
-        <copy todir="dist/processes/define" file="jcifs.smb.client.listCount"/>
-        <copy todir="dist/processes/define" file="jcifs.smb.client.responseTimeout"/>
-        <copy todir="dist/processes/define" file="jcifs.smb.client.soTimeout"/>
     </target>
 
     <target name="all" depends="lib,doc"/>
