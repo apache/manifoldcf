@@ -75,6 +75,15 @@ public class ConfigParams
     fromXML(xml);
   }
 
+  /** Construct from XML.
+  *@param xmlstream is the input XML stream.  Does NOT close the stream.
+  */
+  public ConfigParams(InputStream xmlstream)
+    throws LCFException
+  {
+    fromXML(xmlstream);
+  }
+
   /** Get as XML
   *@return the xml corresponding to these ConfigParams.
   */
@@ -133,9 +142,25 @@ public class ConfigParams
   public void fromXML(String xml)
     throws LCFException
   {
+    XMLDoc doc = new XMLDoc(xml);
+    initializeFromDoc(doc);
+  }
+  
+  /** Read from an XML binary stream.
+  *@param xmlstream is the input XML stream.  Does NOT close the stream.
+  */
+  public void fromXML(InputStream xmlstream)
+    throws LCFException
+  {
+    XMLDoc doc = new XMLDoc(xmlstream);
+    initializeFromDoc(doc);
+  }
+
+  protected void initializeFromDoc(XMLDoc doc)
+    throws LCFException
+  {
     children.clear();
     params.clear();
-    XMLDoc doc = new XMLDoc(xml);
     ArrayList list = new ArrayList();
     doc.processPath(list, "*", null);
 

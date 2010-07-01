@@ -192,7 +192,7 @@ public class TestConnectorBase extends org.apache.lcf.crawler.tests.TestBase
     throws Exception
   {
     initialize();
-    if (propertiesFile.exists())
+    if (isInitialized())
     {
       // Test the uninstall
       LCF.initializeEnvironment();

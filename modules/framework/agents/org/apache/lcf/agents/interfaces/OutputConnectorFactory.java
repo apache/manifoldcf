@@ -19,6 +19,7 @@
 package org.apache.lcf.agents.interfaces;
 
 import org.apache.lcf.core.interfaces.*;
+import org.apache.lcf.agents.system.LCF;
 
 import java.util.*;
 import java.io.*;
@@ -129,7 +130,7 @@ public class OutputConnectorFactory
   {
     try
     {
-      Class theClass = Class.forName(className);
+      Class theClass = LCF.findClass(className);
       Class[] argumentClasses = new Class[0];
       // Look for a constructor
       Constructor c = theClass.getConstructor(argumentClasses);
@@ -149,8 +150,7 @@ public class OutputConnectorFactory
     }
     catch (ClassNotFoundException e)
     {
-      throw new LCFException("No class implementing IOutputConnector called '"+
-        className+"'.",
+      throw new LCFException("No output connector class '"+className+"' was found.",
         e);
     }
     catch (NoSuchMethodException e)
@@ -199,7 +199,7 @@ public class OutputConnectorFactory
 
     try
     {
-      Class theClass = Class.forName(className);
+      Class theClass = LCF.findClass(className);
       Class[] argumentClasses = new Class[0];
       // Look for a constructor
       Constructor c = theClass.getConstructor(argumentClasses);
@@ -224,8 +224,7 @@ public class OutputConnectorFactory
       if (connMgr.isInstalled(className) == false)
         return null;
 
-      throw new LCFException("No class implementing IOutputConnector called '"+
-        className+"'.",
+      throw new LCFException("No output connector class '"+className+"' was found.",
         e);
     }
     catch (NoSuchMethodException e)
@@ -552,7 +551,7 @@ public class OutputConnectorFactory
 
         try
         {
-          Class theClass = Class.forName(className);
+          Class theClass = LCF.findClass(className);
           Class[] argumentClasses = new Class[0];
           // Look for a constructor
           Constructor c = theClass.getConstructor(argumentClasses);
@@ -579,8 +578,7 @@ public class OutputConnectorFactory
           if (connMgr.isInstalled(className) == false)
             return null;
 
-          throw new LCFException("No class implementing IOutputConnector called '"+
-            className+"'.",
+          throw new LCFException("No output connector class '"+className+"' was found.",
             e);
         }
         catch (NoSuchMethodException e)

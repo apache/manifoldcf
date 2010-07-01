@@ -84,7 +84,7 @@ public class TestBase extends org.apache.lcf.core.tests.TestBase
     throws Exception
   {
     initialize();
-    if (propertiesFile.exists())
+    if (isInitialized())
     {
       // Test the uninstall
       LCF.initializeEnvironment();

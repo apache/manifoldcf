@@ -19,6 +19,7 @@
 package org.apache.lcf.core.system;
 
 import org.apache.lcf.core.interfaces.*;
+import org.apache.lcf.core.common.LCFResourceLoader;
 import java.io.*;
 import java.util.*;
 import java.security.MessageDigest;
@@ -27,7 +28,17 @@ public class LCF
 {
   public static final String _rcsid = "@(#)$Id$";
 
+  // Configuration XML node names and attribute names
+  public static final String NODE_PROPERTY = "property";
+  public static final String ATTRIBUTE_NAME = "name";
+  public static final String ATTRIBUTE_VALUE = "value";
+  public static final String NODE_LIBDIR = "libdir";
+  public static final String ATTRIBUTE_PATH = "path";
   
+  // Class loader
+  /** The object that manages LCF plugin class loading.  This is initialized when the initialize method is called. */
+  protected static LCFResourceLoader resourceLoader = null;
+
   // Shutdown hooks
   /** Temporary file collector */
   protected static FileTrack tracker = null;
@@ -67,8 +78,8 @@ public class LCF
   protected static String masterDatabaseName = null;
   protected static String masterDatabaseUsername = null;
   protected static String masterDatabasePassword = null;
-  protected static java.util.Properties localProperties = null;
-  //protected static String configPath = null;
+  protected static ConfigParams localConfiguration = null;
+  protected static Map localProperties = null;
   protected static long propertyFilelastMod = -1L;
   protected static String propertyFilePath = null;
 
@@ -77,7 +88,7 @@ public class LCF
   // System property names
   public static final String lcfConfigFileProperty = "org.apache.lcf.configfile";
 
-  // System property/property file property names
+  // System property/config file property names
   
   // Database access properties
   /** Database name property */
@@ -121,6 +132,9 @@ public class LCF
 
       try
       {
+        // Initialize resource loader
+        resourceLoader = new LCFResourceLoader(System.getProperty("user.dir"),Thread.currentThread().getContextClassLoader());
+        
         // Get system properties
         java.util.Properties props = System.getProperties();
         // First, look for a define that might indicate where to look
@@ -131,11 +145,12 @@ public class LCF
           System.err.println("Couldn't find "+lcfConfigFileProperty+" property; using default");
           String configPath = (String)props.get("user.home") + "/"+applicationName;
           configPath = configPath.replace('\\', '/');
-          propertyFilePath = new File(configPath,"properties.ini").toString();
+          propertyFilePath = new File(configPath,"properties.xml").toString();
         }
         
-        // Read .ini parameters
-        localProperties = new java.util.Properties();
+        // Read configuration
+        localConfiguration = new ConfigParams();
+        localProperties = new HashMap();
         checkProperties();
 
         String logConfigFile = getProperty(logConfigFileProperty);
@@ -195,8 +210,8 @@ public class LCF
         InputStream is = new FileInputStream(f);
         try
         {
-          localProperties.load(is);
-	  System.err.println("Property file successfully read");
+          localConfiguration.fromXML(is);
+	  System.err.println("Configuration file successfully read");
           propertyFilelastMod = f.lastModified();
         }
         finally
@@ -205,12 +220,44 @@ public class LCF
         }
       }
       else
-	System.err.println("Property file not read because it didn't change");
+      {
+	System.err.println("Configuration file not read because it didn't change");
+        return;
+      }
     }
     catch (Exception e)
     {
-      throw new LCFException("Could not read property file '"+f.toString()+"'",e);
+      throw new LCFException("Could not read configuration file '"+f.toString()+"'",e);
     }
+    
+    // For convenience, post-process all "property" nodes so that we have a semblance of the earlier name/value pairs available, by default.
+    // e.g. <property name= value=/>
+    localProperties.clear();
+    ArrayList libDirs = new ArrayList();
+    int i = 0;
+    while (i < localConfiguration.getChildCount())
+    {
+      ConfigNode cn = localConfiguration.getChild(i++);
+      if (cn.getType().equals(NODE_PROPERTY))
+      {
+        String name = cn.getAttributeValue(ATTRIBUTE_NAME);
+        String value = cn.getAttributeValue(ATTRIBUTE_VALUE);
+        if (name == null)
+          throw new LCFException("Node type '"+NODE_PROPERTY+"' requires a '"+ATTRIBUTE_NAME+"' attribute");
+        localProperties.put(name,value);
+      }
+      else if (cn.getType().equals(NODE_LIBDIR))
+      {
+        String path = cn.getAttributeValue(ATTRIBUTE_PATH);
+        if (path == null)
+          throw new LCFException("Node type '"+NODE_LIBDIR+"' requires a '"+ATTRIBUTE_PATH+" attribute");
+        // What exactly should I do with this classpath information?  The classloader can be dynamically updated, but if I do that will everything work?
+        // I'm going to presume the answer is "yes" for now...
+        libDirs.add(path);
+      }
+    }
+    // Apply libdirs to the resource loader.
+    resourceLoader.setClassPath(libDirs);
   }
 
   /** Read a property, either from the system properties, or from the local property file image.
@@ -221,7 +268,7 @@ public class LCF
   {
     String rval = System.getProperty(s);
     if (rval == null)
-      rval = localProperties.getProperty(s);
+      rval = (String)localProperties.get(s);
     return rval;
   }
 
@@ -996,6 +1043,16 @@ public class LCF
     {
       cleanupHooks.add(hook);
     }
+  }
+  
+  
+  /** Locate a class in the configuration-determined class path.  This method
+  * is designed for loading plugin classes, and their downstream dependents.
+  */
+  public static Class findClass(String cname)
+    throws ClassNotFoundException,LCFException
+  {
+    return resourceLoader.findClass(cname);
   }
   
   /** Perform system shutdown, using the registered shutdown hooks. */

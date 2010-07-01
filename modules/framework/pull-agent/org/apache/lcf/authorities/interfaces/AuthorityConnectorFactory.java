@@ -19,6 +19,7 @@
 package org.apache.lcf.authorities.interfaces;
 
 import org.apache.lcf.core.interfaces.*;
+import org.apache.lcf.core.system.LCF;
 import java.util.*;
 import java.io.*;
 import java.lang.reflect.*;
@@ -120,7 +121,7 @@ public class AuthorityConnectorFactory
   {
     try
     {
-      Class theClass = Class.forName(className);
+      Class theClass = LCF.findClass(className);
       Class[] argumentClasses = new Class[0];
       // Look for a constructor
       Constructor c = theClass.getConstructor(argumentClasses);
@@ -140,8 +141,7 @@ public class AuthorityConnectorFactory
     }
     catch (ClassNotFoundException e)
     {
-      throw new LCFException("No class implementing IAuthorityConnector called '"+
-        className+"'.",
+      throw new LCFException("No authority connector class '"+className+"' was found.",
         e);
     }
     catch (NoSuchMethodException e)
@@ -190,7 +190,7 @@ public class AuthorityConnectorFactory
 
     try
     {
-      Class theClass = Class.forName(className);
+      Class theClass = LCF.findClass(className);
       Class[] argumentClasses = new Class[0];
       // Look for a constructor
       Constructor c = theClass.getConstructor(argumentClasses);
@@ -214,8 +214,7 @@ public class AuthorityConnectorFactory
       if (connMgr.isInstalled(className) == false)
         return null;
 
-      throw new LCFException("No class implementing IAuthorityConnector called '"+
-        className+"'.",
+      throw new LCFException("No authority connector class '"+className+"' was found.",
         e);
     }
     catch (NoSuchMethodException e)
@@ -452,7 +451,7 @@ public class AuthorityConnectorFactory
 
         try
         {
-          Class theClass = Class.forName(className);
+          Class theClass = LCF.findClass(className);
           Class[] argumentClasses = new Class[0];
           // Look for a constructor
           Constructor c = theClass.getConstructor(argumentClasses);
@@ -479,8 +478,7 @@ public class AuthorityConnectorFactory
           if (connMgr.isInstalled(className) == false)
             return null;
 
-          throw new LCFException("No class implementing IAuthorityConnector called '"+
-            className+"'.",
+          throw new LCFException("No authority connector class '"+className+"' was found.",
             e);
         }
         catch (NoSuchMethodException e)

@@ -29,7 +29,7 @@ import org.junit.*;
 public class TestBase
 {
   protected File currentPath = null;
-  protected File propertiesFile = null;
+  protected File configFile = null;
   protected File loggingFile = null;
   protected File logOutputFile = null;
 
@@ -41,13 +41,18 @@ public class TestBase
       currentPath = new File(".").getCanonicalFile();
 
       // First, write a properties file and a logging file, in the current directory.
-      propertiesFile = new File("properties.ini").getCanonicalFile();
+      configFile = new File("properties.xml").getCanonicalFile();
       loggingFile = new File("logging.ini").getCanonicalFile();
       logOutputFile = new File("lcf.log").getCanonicalFile();
 
       // Set a system property that will point us to the proper place to find the properties file
-      System.setProperty("org.apache.lcf.configfile",propertiesFile.getCanonicalFile().getAbsolutePath());
+      System.setProperty("org.apache.lcf.configfile",configFile.getCanonicalFile().getAbsolutePath());
     }
+  }
+  
+  protected boolean isInitialized()
+  {
+    return configFile.exists();
   }
   
   @Before
@@ -85,10 +90,13 @@ public class TestBase
       "log4j.appender.MAIN=org.apache.log4j.RollingFileAppender\n" +
       "log4j.appender.MAIN.layout=org.apache.log4j.PatternLayout\n");
 
-    writeFile(propertiesFile,
-      "org.apache.lcf.databaseimplementationclass=org.apache.lcf.core.database.DBInterfaceDerby\n" +
-      "org.apache.lcf.derbydatabasepath="+currentPathString.replaceAll("\\\\","/")+"\n" +
-      "org.apache.lcf.logconfigfile="+loggingFile.getAbsolutePath().replaceAll("\\\\","/")+"\n");
+    writeFile(configFile,
+      "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n" +
+      "<configuration>\n"+
+      "  <property name=\"org.apache.lcf.databaseimplementationclass\" value=\"org.apache.lcf.core.database.DBInterfaceDerby\"/>\n" +
+      "  <property name=\"org.apache.lcf.derbydatabasepath\" value=\""+currentPathString.replaceAll("\\\\","/")+"\"/>\n" +
+      "  <property name=\"org.apache.lcf.logconfigfile\" value=\""+loggingFile.getAbsolutePath().replaceAll("\\\\","/")+"\"/>\n" +
+      "</configuration>\n");
 
     LCF.initializeEnvironment();
     IThreadContext tc = ThreadContextFactory.make();
@@ -117,7 +125,7 @@ public class TestBase
     throws Exception
   {
     initialize();
-    if (propertiesFile.exists())
+    if (isInitialized())
     {
       LCF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
@@ -127,7 +135,7 @@ public class TestBase
       
       // Get rid of the property and logging files.
       logOutputFile.delete();
-      propertiesFile.delete();
+      configFile.delete();
       loggingFile.delete();
     }
   }
@@ -138,7 +146,7 @@ public class TestBase
     OutputStream os = new FileOutputStream(f);
     try
     {
-      Writer w = new OutputStreamWriter(os);
+      Writer w = new OutputStreamWriter(os,"utf-8");
       try
       {
         w.write(fileContents);

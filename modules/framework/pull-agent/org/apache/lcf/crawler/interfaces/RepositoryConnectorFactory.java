@@ -21,6 +21,7 @@ package org.apache.lcf.crawler.interfaces;
 import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.agents.interfaces.*;
 import org.apache.lcf.crawler.system.Logging;
+import org.apache.lcf.crawler.system.LCF;
 
 import java.util.*;
 import java.io.*;
@@ -159,7 +160,7 @@ public class RepositoryConnectorFactory
   {
     try
     {
-      Class theClass = Class.forName(className);
+      Class theClass = LCF.findClass(className);
       Class[] argumentClasses = new Class[0];
       // Look for a constructor
       Constructor c = theClass.getConstructor(argumentClasses);
@@ -179,8 +180,7 @@ public class RepositoryConnectorFactory
     }
     catch (ClassNotFoundException e)
     {
-      throw new LCFException("No class implementing IRepositoryConnector called '"+
-        className+"'.",
+      throw new LCFException("No repository connector class '"+className+"' was found.",
         e);
     }
     catch (NoSuchMethodException e)
@@ -229,7 +229,7 @@ public class RepositoryConnectorFactory
 
     try
     {
-      Class theClass = Class.forName(className);
+      Class theClass = LCF.findClass(className);
       Class[] argumentClasses = new Class[0];
       // Look for a constructor
       Constructor c = theClass.getConstructor(argumentClasses);
@@ -254,8 +254,7 @@ public class RepositoryConnectorFactory
       if (connMgr.isInstalled(className) == false)
         return null;
 
-      throw new LCFException("No class implementing IRepositoryConnector called '"+
-        className+"'.",
+      throw new LCFException("No repository connector class '"+className+"' was found.",
         e);
     }
     catch (NoSuchMethodException e)
@@ -605,7 +604,7 @@ public class RepositoryConnectorFactory
 
         try
         {
-          Class theClass = Class.forName(className);
+          Class theClass = LCF.findClass(className);
           Class[] argumentClasses = new Class[0];
           // Look for a constructor
           Constructor c = theClass.getConstructor(argumentClasses);
@@ -632,8 +631,7 @@ public class RepositoryConnectorFactory
           if (connMgr.isInstalled(className) == false)
             return null;
 
-          throw new LCFException("No class implementing IRepositoryConnector called '"+
-            className+"'.",
+          throw new LCFException("No repository connector class '"+className+"' was found.",
             e);
         }
         catch (NoSuchMethodException e)
