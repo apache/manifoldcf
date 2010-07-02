@@ -643,7 +643,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     while (i < set.getRowCount())
     {
       IResultRow row = set.getRow(i++);
-      String fieldName = (String)row.getValue("columnname");
+      String fieldName = ((String)row.getValue("columnname")).toLowerCase();
       String type = (String)row.getValue("columndatatype");
       boolean isNull = false;
       boolean isPrimaryKey = false;
