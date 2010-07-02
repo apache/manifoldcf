@@ -70,6 +70,19 @@
         </javac>
     </target>
 
+    <target name="compile-jetty-runner" depends="compile-core,compile-agents">
+        <mkdir dir="build/jetty-runner/classes"/>
+        <javac srcdir="jetty-runner" destdir="build/jetty-runner/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
+            <classpath>
+                 <fileset dir="lib"> 
+                    <include name="*.jar"/> 
+                </fileset>
+                <pathelement location="build/core/classes"/>
+                <pathelement location="build/agents/classes"/>
+            </classpath>
+        </javac>
+    </target>
+
     <target name="compile-authority-service" depends="compile-core,compile-agents,compile-pull-agent">
         <mkdir dir="build/authority-service/classes"/>
         <javac srcdir="authority-service" destdir="build/authority-service/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
@@ -98,7 +111,7 @@
                 <pathelement location="build/agents/classes"/>
                 <pathelement location="build/pull-agent/classes"/>
             </classpath> 
-        </taskdef> 
+        </taskdef > 
         <!-- Compile jsp's to java -->
         <mkdir dir="build/crawler-ui/java"/>
         <jasper2 validateXml="false" uriroot="crawler-ui" webXmlFragment="crawler-ui/WEB-INF/web-generated.xml" outputDir="build/crawler-ui/java" /> 
@@ -140,6 +153,11 @@
     <target name="jar-pull-agent" depends="compile-pull-agent">
         <mkdir dir="build/jar"/>
         <jar destfile="build/jar/lcf-pull-agent.jar" basedir="build/pull-agent/classes"/>
+    </target>
+
+    <target name="jar-jetty-runner" depends="compile-jetty-runner">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/lcf-jetty-runner.jar" basedir="build/jetty-runner/classes"/>
     </target>
 
     <target name="webapp-authority-service" depends="jar-core,jar-agents,jar-pull-agent,compile-authority-service">
@@ -269,6 +287,60 @@
         </copy>
     </target>
 
+    <target name="jetty-runner" depends="war-crawler-ui,war-authority-service,jar-jetty-runner,jar-core,jar-agents,jar-pull-agent">
+        <mkdir dir="dist/jetty-runner/lib"/>
+        <copy todir="dist/jetty-runner/lib">
+            <fileset dir="lib">
+                <include name="commons-codec*.jar"/>
+                <include name="commons-collections*.jar"/>
+                <include name="commons-el*.jar"/>
+                <include name="commons-fileupload*.jar"/>
+                <include name="commons-httpclient-lcf.jar"/>
+                <include name="commons-io*.jar"/>
+                <include name="commons-logging*.jar"/>
+                <include name="eclipse*.jar"/>
+                <include name="jasper*.jar"/>
+                <include name="jdbcpool-0.99.jar"/>
+                <include name="jetty*.jar"/>
+                <include name="jsp-api*.jar"/>
+                <include name="jsp-2.5*.jar"/>
+                <include name="log4j*.jar"/>
+                <include name="serializer*.jar"/>
+                <include name="servlet-api*.jar"/>
+                <include name="tomcat-juli*.jar"/>
+                <include name="xalan*.jar"/>
+                <include name="xercesImpl-lcf.jar"/>
+                <include name="xml-apis*.jar"/>
+            </fileset>
+            <fileset dir="lib">
+                <include name="postgresql*.jar"/>
+                <include name="derby*.jar"/>
+            </fileset>
+        </copy>
+        <copy todir="dist/jetty-runner/lib">
+            <fileset dir="build/jar">
+                <include name="lcf-core.jar"/>
+                <include name="lcf-ui-core.jar"/>
+                <include name="lcf-agents.jar"/>
+                <include name="lcf-pull-agent.jar"/>
+                <include name="lcf-jetty-runner.jar"/>
+            </fileset>
+        </copy>
+        <mkdir dir="dist/jetty-runner/war"/>
+        <copy todir="dist/jetty-runner/war">
+            <fileset dir="dist/web/war"/>
+        </copy>
+        <mkdir dir="dist/jetty-runner/connector-lib"/>
+        <mkdir dir="dist/jetty-runner/logs"/>
+        <copy todir="dist/jetty-runner">
+            <fileset dir="jetty-example">
+                <include name="properties.xml"/>
+                <include name="logging.ini"/>
+                <include name="executecommand.sh"/>
+                <include name="lcf.sh"/>
+            </fileset>
+        </copy>
+    </target>
     
     <target name="compile-tests" depends="compile-core,compile-ui-core,compile-agents,compile-pull-agent,compile-authority-service">
         <mkdir dir="build/tests/classes"/>
@@ -320,6 +392,6 @@
         </junit>
     </target>
     
-    <target name="all" depends="processes,war-authority-service,war-crawler-ui,doc,tests,run-tests"/>
+    <target name="all" depends="processes,war-authority-service,war-crawler-ui,jetty-runner,doc,tests,run-tests"/>
     
 </project>

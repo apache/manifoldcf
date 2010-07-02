@@ -1,0 +1,6 @@
+<configuration>
+  <property name="org.apache.lcf.databaseimplementationclass" value="org.apache.lcf.core.database.DBInterfaceDerby"/>
+  <property name="org.apache.lcf.derbydatabasepath" value="."/>
+  <property name="org.apache.lcf.logconfigfile" value="./logging.ini"/>
+  <libdir path="./connector-lib"/>
+</configuration>
