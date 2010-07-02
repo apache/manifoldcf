@@ -214,7 +214,7 @@ public class MeridioAuthority extends org.apache.lcf.authorities.authorities.Bas
         * Now try and login to Meridio; the wrapper's constructor can be
         * used as it calls the Meridio login method
         *================================================================*/
-        String meridioWSDDLocation = LCF.getProperty(wsddPathProperty);
+        File meridioWSDDLocation = LCF.getFileProperty(wsddPathProperty);
         if (meridioWSDDLocation == null)
           throw new LCFException("Meridio wsdd location path (property "+wsddPathProperty+") must be specified!");
 
@@ -223,7 +223,7 @@ public class MeridioAuthority extends org.apache.lcf.authorities.authorities.Bas
           UserName, Password,
           InetAddress.getLocalHost().getHostName(),
           myFactory,
-          meridioWSDDLocation);
+          meridioWSDDLocation.toString());
       }
       catch (UnknownHostException unknownHostException)
       {

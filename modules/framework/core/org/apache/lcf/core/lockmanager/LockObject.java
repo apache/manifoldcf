@@ -47,7 +47,7 @@ public class LockObject
   private static final String LOCKEDANOTHERJVM = "Locked by another JVM";
 
 
-  public LockObject(LockPool lockPool, Object lockKey, String synchDir)
+  public LockObject(LockPool lockPool, Object lockKey, File synchDir)
   {
     this.lockPool = lockPool;
     this.lockKey = lockKey;
@@ -58,7 +58,7 @@ public class LockObject
       int hashcode = lockKey.hashCode();
       int outerDirNumber = (hashcode & (1023));
       int innerDirNumber = ((hashcode >> 10) & (1023));
-      String fullDir = synchDir;
+      String fullDir = synchDir.toString();
       if (fullDir.length() == 0 || !fullDir.endsWith(SLASH))
         fullDir = fullDir + SLASH;
       fullDir = fullDir + Integer.toString(outerDirNumber)+SLASH+Integer.toString(innerDirNumber);

@@ -194,7 +194,7 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
         * Now try and login to Meridio; the wrapper's constructor can be
         * used as it calls the Meridio login method
         *================================================================*/
-        String meridioWSDDLocation = LCF.getProperty(wsddPathProperty);
+        File meridioWSDDLocation = LCF.getFileProperty(wsddPathProperty);
         if (meridioWSDDLocation == null)
           throw new LCFException("Meridio wsdd location path (property "+wsddPathProperty+") must be specified!");
 
@@ -209,7 +209,7 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
           params.getObfuscatedParameter("Password"),
           InetAddress.getLocalHost().getHostName(),
           myFactory,
-          meridioWSDDLocation);
+          meridioWSDDLocation.toString());
       }
       catch (UnknownHostException unknownHostException)
       {

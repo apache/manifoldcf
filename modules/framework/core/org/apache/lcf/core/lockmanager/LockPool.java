@@ -19,6 +19,7 @@
 package org.apache.lcf.core.lockmanager;
 
 import java.util.*;
+import java.io.*;
 
 public class LockPool
 {
@@ -26,7 +27,7 @@ public class LockPool
 
   private HashMap myLocks = new HashMap();
 
-  public synchronized LockObject getObject(Object lockKey, String synchDir)
+  public synchronized LockObject getObject(Object lockKey, File synchDir)
   {
     LockObject lo = (LockObject)myLocks.get(lockKey);
     if (lo == null)

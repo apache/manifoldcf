@@ -187,11 +187,11 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
 
       fileBaseUrl = serverUrl + encodedServerLocation;
 
-      String sharepointWSDDLocation = LCF.getProperty(wsddPathProperty);
+      File sharepointWSDDLocation = LCF.getFileProperty(wsddPathProperty);
       if (sharepointWSDDLocation == null)
         throw new LCFException("SharePoint wsdd location path (property "+wsddPathProperty+") must be specified!");
 
-      proxy = new SPSProxyHelper( serverUrl, encodedServerLocation, serverLocation, userName, password, myFactory, sharepointWSDDLocation,
+      proxy = new SPSProxyHelper( serverUrl, encodedServerLocation, serverLocation, userName, password, myFactory, sharepointWSDDLocation.toString(),
         connectionManager );
     }
   }

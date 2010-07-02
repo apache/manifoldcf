@@ -51,7 +51,7 @@ public class Logging
 
   /** Initialize logger setup.
   */
-  public static synchronized void initializeLoggingSystem(String logConfigFile)
+  public static synchronized void initializeLoggingSystem(File logConfigFile)
   {
     if (logLevelMap != null)
       return;
@@ -70,7 +70,7 @@ public class Logging
     loggerTable = new HashMap();
 
     // Initialize the logger
-    PropertyConfigurator.configure(logConfigFile);
+    PropertyConfigurator.configure(logConfigFile.toString());
 
     //System.err.println("LCF logger setup complete");
   }

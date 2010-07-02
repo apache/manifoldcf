@@ -48,15 +48,15 @@ public class LockManager implements ILockManager
   protected static LockPool mySections = new LockPool();
 
   // This is the directory used for cross-JVM synchronization, or null if off
-  protected String synchDirectory = null;
+  protected File synchDirectory = null;
 
   public LockManager()
     throws LCFException
   {
-    synchDirectory = LCF.getProperty(synchDirectoryProperty);
+    synchDirectory = LCF.getFileProperty(synchDirectoryProperty);
     if (synchDirectory != null)
     {
-      if (!new File(synchDirectory).isDirectory())
+      if (!synchDirectory.isDirectory())
         throw new LCFException("Property "+synchDirectoryProperty+" must point to an existing, writeable directory!",LCFException.SETUP_ERROR);
     }
   }
@@ -1842,7 +1842,7 @@ public class LockManager implements ILockManager
     int hashcode = key.hashCode();
     int outerDirNumber = (hashcode & (1023));
     int innerDirNumber = ((hashcode >> 10) & (1023));
-    String fullDir = synchDirectory;
+    String fullDir = synchDirectory.toString();
     if (fullDir.length() == 0 || !fullDir.endsWith("/"))
       fullDir = fullDir + "/";
     fullDir = fullDir + Integer.toString(outerDirNumber)+"/"+Integer.toString(innerDirNumber);

@@ -35,7 +35,13 @@ public class LCF
   public static final String NODE_LIBDIR = "libdir";
   public static final String ATTRIBUTE_PATH = "path";
   
+  // "Working directory"
+  
+  /** This is the working directory file object. */
+  protected static File workingDirectory = null;
+  
   // Class loader
+  
   /** The object that manages LCF plugin class loading.  This is initialized when the initialize method is called. */
   protected static LCFResourceLoader resourceLoader = null;
 
@@ -146,24 +152,25 @@ public class LCF
           propertyFilePath = new File(configPath,"properties.xml").toString();
         }
 
-        // Initialize resource loader.
-        // To do this, we need the "working directory".  But we cannot use the actual system cwd, because different LCF processes will have different ones.
+        // Initialize working directory.  We cannot use the actual system cwd, because different LCF processes will have different ones.
         // So, instead, we use the location of the property file itself, and call that the "working directory".
-        File wd = new File(propertyFilePath).getAbsoluteFile().getParentFile();
-        resourceLoader = new LCFResourceLoader(wd.toString(),Thread.currentThread().getContextClassLoader());
+        workingDirectory = new File(propertyFilePath).getAbsoluteFile().getParentFile();
+
+        // Initialize resource loader.
+        resourceLoader = new LCFResourceLoader(Thread.currentThread().getContextClassLoader());
         
-        // Read configuration
+        // Read configuration!
         localConfiguration = new ConfigParams();
         localProperties = new HashMap();
         checkProperties();
 
-        String logConfigFile = getProperty(logConfigFileProperty);
+        File logConfigFile = getFileProperty(logConfigFileProperty);
         if (logConfigFile == null)
         {
           System.err.println("Couldn't find "+logConfigFileProperty+" property; using default");
           String configPath = (String)props.get("user.home") + "/"+applicationName;
           configPath = configPath.replace('\\', '/');
-          logConfigFile = new File(configPath,"logging.ini").toString();
+          logConfigFile = new File(configPath,"logging.ini");
         }
 
         Logging.initializeLoggingSystem(logConfigFile);
@@ -257,18 +264,28 @@ public class LCF
           throw new LCFException("Node type '"+NODE_LIBDIR+"' requires a '"+ATTRIBUTE_PATH+" attribute");
         // What exactly should I do with this classpath information?  The classloader can be dynamically updated, but if I do that will everything work?
         // I'm going to presume the answer is "yes" for now...
-        libDirs.add(path);
+        libDirs.add(resolvePath(path));
       }
     }
     // Apply libdirs to the resource loader.
     resourceLoader.setClassPath(libDirs);
   }
 
-  /** Read a property, either from the system properties, or from the local property file image.
+  /** Resolve a file path, possibly relative to LCF's concept of its "working directory".
+  *@param path is the path, to be calculated relative to the LCF "working directory".
+  *@return the resolved file.
+  */
+  public static File resolvePath(String path)
+  {
+    File r = new File(path);
+    return r.isAbsolute() ? r : new File(workingDirectory, path);
+  }
+
+  /** Read a (string) property, either from the system properties, or from the local configuration file.
   *@param s is the property name.
   *@return the property value, as a string.
   */
-  public static final String getProperty(String s)
+  public static String getProperty(String s)
   {
     String rval = System.getProperty(s);
     if (rval == null)
@@ -276,6 +293,17 @@ public class LCF
     return rval;
   }
 
+  /** Read a File property, either from the system properties, or from the local configuration file.
+  * Relative file references are resolved according to the "working directory" for LCF.
+  */
+  public static File getFileProperty(String s)
+  {
+    String value = getProperty(s);
+    if (value == null)
+      return null;
+    return resolvePath(value);
+  }
+  
   /** Attempt to make sure a path is a folder
   * @param path
   */

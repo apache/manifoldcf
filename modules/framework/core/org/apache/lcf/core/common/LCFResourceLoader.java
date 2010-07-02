@@ -31,8 +31,6 @@ public class LCFResourceLoader
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  /** The current 'working directory' */
-  protected String instanceDir;
   /** The parent class loader */
   protected ClassLoader parent;
   /** The class loader we're caching */
@@ -41,17 +39,16 @@ public class LCFResourceLoader
   protected ArrayList currentClasspath = new ArrayList();
   
   /** Construct a resource manager.
-  *@param instanceDir is the current "working path" of the instance.
   *@param parent is the parent class loader.
   */
-  public LCFResourceLoader(String instanceDir, ClassLoader parent)
+  public LCFResourceLoader(ClassLoader parent)
     throws LCFException
   {
-    this.instanceDir = makeLegalDir(instanceDir);
     this.parent = parent;
   }
 
   /** Set the classpath to a given list of libdirs.
+  *@param libdirList is an arraylist of File objects, each representing a directory.
   */
   public synchronized void setClassPath(ArrayList libdirList)
     throws LCFException
@@ -64,8 +61,8 @@ public class LCFResourceLoader
     int i = 0;
     while (i < libdirList.size())
     {
-      String path = (String)libdirList.get(i++);
-      addToClassPath(path,null);
+      File dir = (File)libdirList.get(i++);
+      addToClassPath(dir,null);
     }
   }
   
@@ -80,12 +77,11 @@ public class LCFResourceLoader
   }
   
   /** Add to the class-search path.
-  *@param path is the path to a jar or class root, relative to the "working path" of this loader.
+  *@param file is the jar or class root.
   */
-  public synchronized void addToClassPath(String path)
+  public synchronized void addToClassPath(final File file)
     throws LCFException
   {
-    final File file = resolvePath(new File(instanceDir), path);
     if (file.canRead())
     {
       addDirsToClassPath(new File[]{file.getParentFile()},
@@ -97,18 +93,17 @@ public class LCFResourceLoader
         } } );
     }
     else
-      throw new LCFException("Path '"+path+"' does not exist or is not readable");
+      throw new LCFException("Path '"+file.toString()+"' does not exist or is not readable");
   }
   
   /** Add to the class-search path.
   *@param dir is the directory to add.
   *@param filter is the file filter to use on that directory.
   */
-  public synchronized void addToClassPath(String dir, FileFilter filter)
+  public synchronized void addToClassPath(File dir, FileFilter filter)
     throws LCFException
   {
-    File base = resolvePath(new File(instanceDir), dir);
-    addDirsToClassPath(new File[]{base}, new FileFilter[]{filter});
+    addDirsToClassPath(new File[]{dir}, new FileFilter[]{filter});
   }
 
   /** Get the specified class using the proper classloader.
@@ -186,21 +181,5 @@ public class LCFResourceLoader
     }
   }
   
-  
-  /** Ensures a path is always interpreted as a directory */
-  protected static String makeLegalDir(String path)
-  {
-    return (path != null && (!(path.endsWith("/") || path.endsWith("\\"))))?path+File.separator: path;
-  }
-
-  /** Resolve a path.
-  *@param base is the "working directory".
-  *@param path is the path, to be calculated relative to the base.
-  */
-  protected static File resolvePath(File base,String path)
-  {
-    File r = new File(path);
-    return r.isAbsolute() ? r : new File(base, path);
-  }
 
 }
