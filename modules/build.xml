@@ -504,6 +504,144 @@
         </copy>
     </target>
 
+    <target name="cleanup-example">
+        <delete file="dist/example/connectors.xml"/>
+    </target>
+    
+    <target name="deliver-framework-example" depends="cleanup-example,build-framework">
+        <mkdir dir="dist/example"/>
+        <copy todir="dist/example">
+            <fileset dir="framework/dist/example"/>
+        </copy>
+    </target>
+    
+    <target name="deliver-activedirectory-example" depends="deliver-framework-example,build-activedirectory-connector,calculate-activedirectory-condition" if="activedirectory.include">
+        <mkdir dir="dist/example/connector-lib"/>
+        <copy todir="dist/example/connector-lib">
+            <fileset dir="connectors/activedirectory/dist/lib"/>
+        </copy>
+        <replace file="dist/example/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;authorityconnector name=&quot;Active Directory&quot; class=&quot;org.apache.lcf.authorities.authorities.activedirectory.ActiveDirectoryAuthority&quot;/&gt;"/>
+    </target>
+
+    <target name="deliver-documentum-example" depends="deliver-framework-example,build-documentum-connector,calculate-documentum-condition" if="documentum.include">
+        <mkdir dir="dist/example/connector-lib"/>
+        <copy todir="dist/example/connector-lib">
+            <fileset dir="connectors/documentum/dist/lib"/>
+        </copy>
+        <replace file="dist/example/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;authorityconnector name=&quot;Documentum&quot; class=&quot;org.apache.lcf.crawler.authorities.DCTM.AuthorityConnector&quot;/&gt;"/>
+        <replace file="dist/example/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;Documentum&quot; class=&quot;org.apache.lcf.crawler.connectors.DCTM.DCTM&quot;/&gt;"/>
+    </target>
+
+    <target name="deliver-filesystem-example" depends="deliver-framework-example,build-filesystem-connector,calculate-filesystem-condition" if="filesystem.include">
+        <mkdir dir="dist/example/connector-lib"/>
+        <copy todir="dist/example/connector-lib">
+            <fileset dir="connectors/filesystem/dist/lib"/>
+        </copy>
+        <replace file="dist/example/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;File system&quot; class=&quot;org.apache.lcf.crawler.connectors.filesystem.FileConnector&quot;/&gt;"/>
+    </target>
+
+    <target name="deliver-filenet-example" depends="deliver-framework-example,build-filenet-connector,calculate-filenet-condition" if="filenet.include">
+        <mkdir dir="dist/example/connector-lib"/>
+        <copy todir="dist/example/connector-lib">
+            <fileset dir="connectors/filenet/dist/lib"/>
+        </copy>
+        <replace file="dist/example/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;FileNet&quot; class=&quot;org.apache.lcf.crawler.connectors.filenet.FilenetConnector&quot;/&gt;"/>
+    </target>
+
+    <target name="deliver-gts-example" depends="deliver-framework-example,build-gts-connector,calculate-gts-condition" if="gts.include">
+        <mkdir dir="dist/example/connector-lib"/>
+        <copy todir="dist/example/connector-lib">
+            <fileset dir="connectors/gts/dist/lib"/>
+        </copy>
+        <replace file="dist/example/connectors.xml" token="&lt;!-- Add your output connectors here --&gt;" value="&lt;!-- Add your output connectors here --&gt;&#0010;  &lt;outputconnector name=&quot;MetaCarta GTS&quot; class=&quot;org.apache.lcf.agents.output.gts.GTSConnector&quot;/&gt;"/>
+    </target>
+
+    <target name="deliver-jcifs-example" depends="deliver-framework-example,build-jcifs-connector,calculate-jcifs-condition" if="jcifs.include">
+        <mkdir dir="dist/example/connector-lib"/>
+        <copy todir="dist/example/connector-lib">
+            <fileset dir="connectors/jcifs/dist/lib"/>
+        </copy>
+        <replace file="dist/example/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;Windows shares&quot; class=&quot;org.apache.lcf.crawler.connectors.sharedrive.SharedDriveConnector&quot;/&gt;"/>
+    </target>
+
+    <target name="deliver-jdbc-example" depends="deliver-framework-example,build-jdbc-connector,calculate-jdbc-condition" if="jdbc.include">
+        <mkdir dir="dist/example/connector-lib"/>
+        <copy todir="dist/example/connector-lib">
+            <fileset dir="connectors/jdbc/dist/lib"/>
+        </copy>
+        <replace file="dist/example/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;JDBC&quot; class=&quot;org.apache.lcf.crawler.connectors.jdbc.JDBCConnector&quot;/&gt;"/>
+    </target>
+
+    <target name="deliver-livelink-example" depends="deliver-framework-example,build-livelink-connector,calculate-livelink-condition" if="livelink.include">
+        <mkdir dir="dist/example/connector-lib"/>
+        <copy todir="dist/example/connector-lib">
+            <fileset dir="connectors/livelink/dist/lib"/>
+        </copy>
+        <replace file="dist/example/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;authorityconnector name=&quot;LiveLink&quot; class=&quot;org.apache.lcf.crawler.connectors.livelink.LivelinkAuthority&quot;/&gt;"/>
+        <replace file="dist/example/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;LiveLink&quot; class=&quot;org.apache.lcf.crawler.connectors.livelink.LivelinkConnector&quot;/&gt;"/>
+    </target>
+
+    <target name="deliver-memex-example" depends="deliver-framework-example,build-memex-connector,calculate-memex-condition" if="memex.include">
+        <mkdir dir="dist/example/connector-lib"/>
+        <copy todir="dist/example/connector-lib">
+            <fileset dir="connectors/memex/dist/lib"/>
+        </copy>
+        <replace file="dist/example/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;authorityconnector name=&quot;Memex Patriarch&quot; class=&quot;org.apache.lcf.crawler.connectors.memex.MemexAuthority&quot;/&gt;"/>
+        <replace file="dist/example/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;Memex Patriarch&quot; class=&quot;org.apache.lcf.crawler.connectors.memex.MemexConnector&quot;/&gt;"/>
+    </target>
+
+    <target name="deliver-meridio-example" depends="deliver-framework-example,build-meridio-connector,calculate-meridio-condition" if="meridio.include">
+        <mkdir dir="dist/example/connector-lib"/>
+        <copy todir="dist/example/connector-lib">
+            <fileset dir="connectors/meridio/dist/lib"/>
+        </copy>
+        <replace file="dist/example/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;authorityconnector name=&quot;Meridio&quot; class=&quot;org.apache.lcf.crawler.connectors.meridio.MeridioAuthority&quot;/&gt;"/>
+        <replace file="dist/example/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;Meridio&quot; class=&quot;org.apache.lcf.crawler.connectors.meridio.MeridioConnector&quot;/&gt;"/>
+    </target>
+
+    <target name="deliver-nulloutput-example" depends="deliver-framework-example,build-nulloutput-connector,calculate-nulloutput-condition" if="nulloutput.include">
+        <mkdir dir="dist/example/connector-lib"/>
+        <copy todir="dist/example/connector-lib">
+            <fileset dir="connectors/nulloutput/dist/lib"/>
+        </copy>
+        <replace file="dist/example/connectors.xml" token="&lt;!-- Add your output connectors here --&gt;" value="&lt;!-- Add your output connectors here --&gt;&#0010;  &lt;outputconnector name=&quot;Null&quot; class=&quot;org.apache.lcf.agents.output.nullconnector.NullConnector&quot;/&gt;"/>
+    </target>
+
+    <target name="deliver-rss-example" depends="deliver-framework-example,build-rss-connector,calculate-rss-condition" if="rss.include">
+        <mkdir dir="dist/example/connector-lib"/>
+        <copy todir="dist/example/connector-lib">
+            <fileset dir="connectors/rss/dist/lib"/>
+        </copy>
+        <replace file="dist/example/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;RSS&quot; class=&quot;org.apache.lcf.crawler.connectors.rss.RSSConnector&quot;/&gt;"/>
+    </target>
+
+    <target name="deliver-sharepoint-example" depends="deliver-framework-example,build-sharepoint-connector,calculate-sharepoint-condition" if="sharepoint.include">
+        <mkdir dir="dist/example/connector-lib"/>
+        <copy todir="dist/example/connector-lib">
+            <fileset dir="connectors/sharepoint/dist/lib"/>
+        </copy>
+        <replace file="dist/example/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;SharePoint&quot; class=&quot;org.apache.lcf.crawler.connectors.sharepoint.SharePointRepository&quot;/&gt;"/>
+    </target>
+
+    <target name="deliver-solr-example" depends="deliver-framework-example,build-solr-connector,calculate-solr-condition" if="solr.include">
+        <mkdir dir="dist/example/connector-lib"/>
+        <copy todir="dist/example/connector-lib">
+            <fileset dir="connectors/solr/dist/lib"/>
+        </copy>
+        <replace file="dist/example/connectors.xml" token="&lt;!-- Add your output connectors here --&gt;" value="&lt;!-- Add your output connectors here --&gt;&#0010;  &lt;outputconnector name=&quot;Solr&quot; class=&quot;org.apache.lcf.agents.output.solr.SolrConnector&quot;/&gt;"/>
+    </target>
+
+    <target name="deliver-webcrawler-example" depends="deliver-framework-example,build-webcrawler-connector,calculate-webcrawler-condition" if="webcrawler.include">
+        <mkdir dir="dist/example/connector-lib"/>
+        <copy todir="dist/example/connector-lib">
+            <fileset dir="connectors/webcrawler/dist/lib"/>
+        </copy>
+        <replace file="dist/example/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;Web&quot; class=&quot;org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConnector&quot;/&gt;"/>
+    </target>
+
+    <target name="deliver-example" depends="deliver-framework-example,deliver-activedirectory-example,deliver-documentum-example,deliver-filesystem-example,deliver-filenet-example,deliver-gts-example,deliver-jcifs-example,deliver-jdbc-example,deliver-livelink-example,deliver-memex-example,deliver-meridio-example,deliver-nulloutput-example,deliver-rss-example,deliver-sharepoint-example,deliver-solr-example,deliver-webcrawler-example">
+    </target>
+    
     <target name="calculate-tests-condition" depends="calculate-filesystem-condition,calculate-nulloutput-condition">
       <condition property="tests.include">
         <and>
@@ -560,7 +698,7 @@
     
     <target name="deliver-proprietary-connectors" depends="deliver-documentum-connector,deliver-filenet-connector,deliver-livelink-connector,deliver-memex-connector,deliver-meridio-connector,deliver-sharepoint-connector"/>
     
-    <target name="all" depends="deliver-framework,deliver-open-connectors,deliver-output-connectors,deliver-lgpl-connectors,deliver-proprietary-connectors,run-tests"/>
+    <target name="all" depends="deliver-framework,deliver-open-connectors,deliver-output-connectors,deliver-lgpl-connectors,deliver-proprietary-connectors,deliver-example,run-tests"/>
 
     
 </project>

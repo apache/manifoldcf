@@ -16,47 +16,48 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.lcf.core.interfaces;
+package org.apache.lcf.core.system;
 
-import java.io.*;
+import org.apache.lcf.core.interfaces.*;
 import java.util.*;
+import java.io.*;
 
-/** This class represents a node in a repository configuration structure.  Its existence apart from ConfigurationNode is
-* largely a relic.
+/** This class represents the configuration data read from the main LCF configuration
+* XML file.
 */
-public class ConfigNode extends ConfigurationNode
+public class LCFConfiguration extends Configuration
 {
   public static final String _rcsid = "@(#)$Id$";
 
   /** Constructor.
   */
-  public ConfigNode(String type)
+  public LCFConfiguration()
   {
-    super(type);
+    super();
   }
 
-  /** Create a new node of this same type and class.
+  /** Construct from XML.
+  *@param xmlStream is the input XML stream.
   */
-  protected ConfigurationNode createNewNode()
+  public LCFConfiguration(InputStream xmlStream)
+    throws LCFException
   {
-    return new ConfigNode(type);
+    super(xmlStream);
+  }
+
+  /** Return the root node type.
+  *@return the node type name.
+  */
+  protected String getRootNodeLabel()
+  {
+    return "configuration";
   }
   
-  /** Duplicate.
-  *@return the duplicate.
+  /** Create a new object of the appropriate class.
   */
-  public ConfigNode duplicate(boolean readOnly)
+  protected Configuration createNew()
   {
-    return (ConfigNode)createDuplicate(readOnly);
+    return new LCFConfiguration();
   }
-
-  /** Get child n.
-  *@param index is the child number.
-  *@return the child node.
-  */
-  public ConfigNode getChild(int index)
-  {
-    return (ConfigNode)findChild(index);
-  }
-
+  
 }

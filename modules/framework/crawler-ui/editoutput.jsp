@@ -71,6 +71,9 @@
 	else
 		connectionName = null;
 
+	if (connectionName == null)
+		connectionName = "";
+
 	// Initialize tabs array.
 	ArrayList tabsArray = new ArrayList();
 

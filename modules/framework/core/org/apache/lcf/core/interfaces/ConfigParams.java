@@ -27,7 +27,7 @@ import org.apache.lcf.core.common.XMLDoc;
 /** This class represents a set of configuration parameters, with structure, which is a generalized hierarchy of nodes that
 * can be interpreted by a repository or authority connector in an appropriate way.
 */
-public class ConfigParams
+public class ConfigParams extends Configuration
 {
   public static final String _rcsid = "@(#)$Id$";
 
@@ -35,9 +35,6 @@ public class ConfigParams
   protected final static String PARAMETER_TYPE = "_PARAMETER_";
   protected final static String ATTR_NAME = "name";
 
-
-  // The children
-  protected ArrayList children = new ArrayList();
   // The parameter map (which stores name/value pairs also listed in the children)
   protected HashMap params = new HashMap();
 
@@ -45,6 +42,7 @@ public class ConfigParams
   */
   public ConfigParams()
   {
+    super();
   }
 
   /** Constructor.
@@ -53,6 +51,7 @@ public class ConfigParams
   */
   public ConfigParams(Map map)
   {
+    super();
     Iterator iter = map.keySet().iterator();
     while (iter.hasNext())
     {
@@ -61,8 +60,7 @@ public class ConfigParams
       ConfigNode cn = new ConfigNode(PARAMETER_TYPE);
       cn.setAttribute(ATTR_NAME,key);
       cn.setValue(value);
-      children.add(cn);
-      params.put(key,value);
+      addChild(getChildCount(),cn);
     }
   }
 
@@ -72,6 +70,7 @@ public class ConfigParams
   public ConfigParams(String xml)
     throws LCFException
   {
+    super();
     fromXML(xml);
   }
 
@@ -81,150 +80,64 @@ public class ConfigParams
   public ConfigParams(InputStream xmlstream)
     throws LCFException
   {
+    super();
     fromXML(xmlstream);
   }
 
-  /** Get as XML
-  *@return the xml corresponding to these ConfigParams.
+  /** Return the root node type.
+  *@return the node type name.
   */
-  public String toXML()
-    throws LCFException
+  protected String getRootNodeLabel()
   {
-    XMLDoc doc = new XMLDoc();
-    // name of root node in definition
-    Object top = doc.createElement(null,"configuration");
-    // Now, go through all children
-    int i = 0;
-    while (i < children.size())
-    {
-      ConfigNode node = (ConfigNode)children.get(i++);
-      writeNode(doc,top,node);
-    }
-
-    return doc.getXML();
-  }
-
-  /** Write a specification node.
-  *@param doc is the document.
-  *@param parent is the parent.
-  *@param node is the node.
-  */
-  protected static void writeNode(XMLDoc doc, Object parent, ConfigNode node)
-    throws LCFException
-  {
-    // Get the type
-    String type = node.getType();
-    String value = node.getValue();
-    Object o = doc.createElement(parent,type);
-    Iterator iter = node.getAttributes();
-    while (iter.hasNext())
-    {
-      String attribute = (String)iter.next();
-      String attrValue = node.getAttributeValue(attribute);
-      // Add to the element
-      doc.setAttribute(o,attribute,attrValue);
-    }
-
-    if (value != null)
-      doc.createText(o,value);
-    // Now, do children
-    int i = 0;
-    while (i < node.getChildCount())
-    {
-      ConfigNode child = node.getChild(i++);
-      writeNode(doc,o,child);
-    }
-  }
-
-  /** Read from XML.
-  *@param xml is the input XML.
-  */
-  public void fromXML(String xml)
-    throws LCFException
-  {
-    XMLDoc doc = new XMLDoc(xml);
-    initializeFromDoc(doc);
+    return "configuration";
   }
   
-  /** Read from an XML binary stream.
-  *@param xmlstream is the input XML stream.  Does NOT close the stream.
+  /** Create a new object of the appropriate class.
   */
-  public void fromXML(InputStream xmlstream)
-    throws LCFException
+  protected Configuration createNew()
   {
-    XMLDoc doc = new XMLDoc(xmlstream);
-    initializeFromDoc(doc);
+    return new ConfigParams();
   }
 
-  protected void initializeFromDoc(XMLDoc doc)
-    throws LCFException
+  /** Create a new child node of the appropriate type and class.
+  */
+  protected ConfigurationNode createNewNode(String type)
   {
-    children.clear();
+    return new ConfigNode(type);
+  }
+  
+  /** Note the removal of all outer nodes.
+  */
+  protected void clearOuterNodes()
+  {
     params.clear();
-    ArrayList list = new ArrayList();
-    doc.processPath(list, "*", null);
-
-    if (list.size() != 1)
+  }
+  
+  /** Note the addition of a new outer node.
+  *@param node is the node that was just read.
+  */
+  protected void addOuterNode(ConfigurationNode node)
+  {
+    if (node.getType().equals(PARAMETER_TYPE))
     {
-      throw new LCFException("Bad xml - missing outer 'configuration' node - there are "+Integer.toString(list.size())+" nodes");
-    }
-    Object parent = list.get(0);
-    if (!doc.getNodeName(parent).equals("configuration"))
-      throw new LCFException("Bad xml - outer node is not 'configuration'");
-
-    list.clear();
-    doc.processPath(list, "*", parent);
-
-    // Outer level processing.
-    int i = 0;
-    while (i < list.size())
-    {
-      Object o = list.get(i++);
-      ConfigNode node = readNode(doc,o);
-      children.add(node);
-      // Populate the params too.
-      if (node.getType().equals(PARAMETER_TYPE))
-      {
-        String name = node.getAttributeValue(ATTR_NAME);
-        String value = node.getValue();
-        if (name != null && value != null)
-          params.put(name,value);
-      }
+      String name = node.getAttributeValue(ATTR_NAME);
+      String value = node.getValue();
+      if (name != null && value != null)
+        params.put(name,value);
     }
   }
-
-  /** Read a specification node from XML.
-  *@param doc is the document.
-  *@param object is the object.
-  *@return the specification node.
+  
+  /** Note the removal of an outer node.
+  *@param node is the node that was just removed.
   */
-  protected static ConfigNode readNode(XMLDoc doc, Object object)
-    throws LCFException
+  protected void removeOuterNode(ConfigurationNode node)
   {
-    String type = doc.getNodeName(object);
-    ConfigNode rval = new ConfigNode(type);
-    String value = doc.getData(object);
-    rval.setValue(value);
-    // Do attributes
-    ArrayList list = doc.getAttributes(object);
-    int i = 0;
-    while (i < list.size())
+    if (node.getType().equals(PARAMETER_TYPE))
     {
-      String attribute = (String)list.get(i++);
-      String attrValue = doc.getValue(object,attribute);
-      rval.setAttribute(attribute,attrValue);
+      String name = node.getAttributeValue(ATTR_NAME);
+      if (name != null)
+        params.remove(name);
     }
-    // Now, do children
-    list.clear();
-    doc.processPath(list,"*",object);
-    i = 0;
-    while (i < list.size())
-    {
-      Object o = list.get(i);
-      ConfigNode node = readNode(doc,o);
-      rval.addChild(i++,node);
-    }
-    return rval;
   }
 
   /** Get a parameter value.
@@ -286,8 +199,7 @@ public class ConfigParams
     ConfigNode cn = new ConfigNode(PARAMETER_TYPE);
     cn.setAttribute(ATTR_NAME,key);
     cn.setValue(value);
-    children.add(cn);
-    params.put(key,value);
+    addChild(getChildCount(),cn);
   }
 
   /** Set an obfuscated parameter.
@@ -323,106 +235,16 @@ public class ConfigParams
   */
   public ConfigParams duplicate()
   {
-    ConfigParams rval = new ConfigParams();
-    int i = 0;
-    while (i < children.size())
-    {
-      ConfigNode node = (ConfigNode)children.get(i++);
-      rval.children.add(node.duplicate());
-      if (node.getType().equals(PARAMETER_TYPE))
-      {
-        String name = node.getAttributeValue(ATTR_NAME);
-        String value = node.getValue();
-        if (value != null)
-          rval.params.put(name,value);
-      }
-    }
-    return rval;
+    return (ConfigParams)createDuplicate(false);
   }
 
-  /** Get child count.
-  *@return the count.
-  */
-  public int getChildCount()
-  {
-    return children.size();
-  }
-
-  /** Get child n.
-  *@param index is the child number.
-  *@return the child node.
+  /** Get child node.
+  *@param index is the node number.
+  *@return the node.
   */
   public ConfigNode getChild(int index)
   {
-    return (ConfigNode)children.get(index);
+    return (ConfigNode)findChild(index);
   }
-
-  /** Remove child n.
-  *@param index is the child to remove.
-  */
-  public void removeChild(int index)
-  {
-    ConfigNode node = (ConfigNode)children.remove(index);
-    if (node.getType().equals(PARAMETER_TYPE))
-    {
-      String name = node.getAttributeValue(ATTR_NAME);
-      if (name != null)
-        params.remove(name);
-    }
-  }
-
-  /** Add child at specified position.
-  *@param index is the position to add the child.
-  *@param child is the child to add.
-  */
-  public void addChild(int index, ConfigNode child)
-  {
-    children.add(index,child);
-    if (child.getType().equals(PARAMETER_TYPE))
-    {
-      String name = child.getAttributeValue(ATTR_NAME);
-      String value = child.getValue();
-      if (name != null && value != null)
-        params.put(name,value);
-    }
-  }
-
-  /** Clear children.
-  */
-  public void clearChildren()
-  {
-    children.clear();
-    params.clear();
-  }
-
-  /** Calculate a hash code */
-  public int hashCode()
-  {
-    int rval = 0;
-    int i = 0;
-    while (i < children.size())
-    {
-      rval += children.get(i++).hashCode();
-    }
-    return rval;
-  }
-
-  /** Do a comparison */
-  public boolean equals(Object o)
-  {
-    if (!(o instanceof ConfigParams))
-      return false;
-    ConfigParams p = (ConfigParams)o;
-    if (children.size() != p.children.size())
-      return false;
-    int i = 0;
-    while (i < children.size())
-    {
-      if (!children.get(i).equals(p.children.get(i)))
-        return false;
-      i++;
-    }
-    return true;
-  }
-
+  
 }

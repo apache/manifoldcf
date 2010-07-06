@@ -23,7 +23,7 @@ if [ -e "$JAVA_HOME"/bin/java ] ; then
         # Build the defines
         DEFINES="-Dorg.apache.lcf.configfile=./properties.xml"
 
-        "$JAVA_HOME/bin/java" $DEFINES -cp "$CLASSPATH" org.apache.lcf.jettyrunner.LCFJettyRunner 8888 war/lcf-crawler-ui.war war/lcf-authority-service.war
+        "$JAVA_HOME/bin/java" $DEFINES -cp "$CLASSPATH" org.apache.lcf.jettyrunner.LCFJettyRunner
         exit $?
         
     else

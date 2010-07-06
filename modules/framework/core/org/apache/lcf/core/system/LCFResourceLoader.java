@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.lcf.core.common;
+package org.apache.lcf.core.system;
 
 import org.apache.lcf.core.interfaces.*;
 import java.net.URL;

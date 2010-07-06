@@ -79,6 +79,7 @@
                 </fileset>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/agents/classes"/>
+                <pathelement location="build/pull-agent/classes"/>
             </classpath>
         </javac>
     </target>
@@ -287,9 +288,9 @@
         </copy>
     </target>
 
-    <target name="jetty-runner" depends="war-crawler-ui,war-authority-service,jar-jetty-runner,jar-core,jar-agents,jar-pull-agent">
-        <mkdir dir="dist/jetty-runner/lib"/>
-        <copy todir="dist/jetty-runner/lib">
+    <target name="example" depends="war-crawler-ui,war-authority-service,jar-jetty-runner,jar-core,jar-agents,jar-pull-agent">
+        <mkdir dir="dist/example/lib"/>
+        <copy todir="dist/example/lib">
             <fileset dir="lib">
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -317,7 +318,7 @@
                 <include name="derby*.jar"/>
             </fileset>
         </copy>
-        <copy todir="dist/jetty-runner/lib">
+        <copy todir="dist/example/lib">
             <fileset dir="build/jar">
                 <include name="lcf-core.jar"/>
                 <include name="lcf-ui-core.jar"/>
@@ -326,15 +327,16 @@
                 <include name="lcf-jetty-runner.jar"/>
             </fileset>
         </copy>
-        <mkdir dir="dist/jetty-runner/war"/>
-        <copy todir="dist/jetty-runner/war">
+        <mkdir dir="dist/example/war"/>
+        <copy todir="dist/example/war">
             <fileset dir="dist/web/war"/>
         </copy>
-        <mkdir dir="dist/jetty-runner/connector-lib"/>
-        <mkdir dir="dist/jetty-runner/logs"/>
-        <copy todir="dist/jetty-runner">
+        <mkdir dir="dist/example/connector-lib"/>
+        <mkdir dir="dist/example/logs"/>
+        <copy todir="dist/example">
             <fileset dir="jetty-example">
                 <include name="properties.xml"/>
+                <include name="connectors.xml"/>
                 <include name="logging.ini"/>
                 <include name="executecommand.sh"/>
                 <include name="lcf.sh"/>
@@ -392,6 +394,6 @@
         </junit>
     </target>
     
-    <target name="all" depends="processes,war-authority-service,war-crawler-ui,jetty-runner,doc,tests,run-tests"/>
+    <target name="all" depends="processes,war-authority-service,war-crawler-ui,example,doc,tests,run-tests"/>
     
 </project>

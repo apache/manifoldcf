@@ -19,7 +19,6 @@
 package org.apache.lcf.core.system;
 
 import org.apache.lcf.core.interfaces.*;
-import org.apache.lcf.core.common.LCFResourceLoader;
 import java.io.*;
 import java.util.*;
 import java.security.MessageDigest;
@@ -84,7 +83,7 @@ public class LCF
   protected static String masterDatabaseName = null;
   protected static String masterDatabaseUsername = null;
   protected static String masterDatabasePassword = null;
-  protected static ConfigParams localConfiguration = null;
+  protected static LCFConfiguration localConfiguration = null;
   protected static Map localProperties = null;
   protected static long propertyFilelastMod = -1L;
   protected static String propertyFilePath = null;
@@ -160,7 +159,7 @@ public class LCF
         resourceLoader = new LCFResourceLoader(Thread.currentThread().getContextClassLoader());
         
         // Read configuration!
-        localConfiguration = new ConfigParams();
+        localConfiguration = new LCFConfiguration();
         localProperties = new HashMap();
         checkProperties();
 
@@ -248,7 +247,7 @@ public class LCF
     int i = 0;
     while (i < localConfiguration.getChildCount())
     {
-      ConfigNode cn = localConfiguration.getChild(i++);
+      ConfigurationNode cn = localConfiguration.findChild(i++);
       if (cn.getType().equals(NODE_PROPERTY))
       {
         String name = cn.getAttributeValue(ATTRIBUTE_NAME);

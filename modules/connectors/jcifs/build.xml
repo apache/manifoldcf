@@ -47,9 +47,6 @@
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib" file="build/jar/lcf-jcifs-connector.jar"/>
         <copy todir="dist/lib">
-            <fileset dir="lib">
-                <include name="poi*.jar"/>
-            </fileset>
             <fileset dir="jcifs" includes="*.jar"/>
         </copy>
     </target>

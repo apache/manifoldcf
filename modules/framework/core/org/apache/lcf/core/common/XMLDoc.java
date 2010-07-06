@@ -27,7 +27,7 @@ import javax.xml.parsers.*;
 import org.xml.sax.*;
 import org.w3c.dom.*;
 
-import org.apache.lcf.core.interfaces.*;
+import org.apache.lcf.core.interfaces.LCFException;
 
 public class XMLDoc
 {

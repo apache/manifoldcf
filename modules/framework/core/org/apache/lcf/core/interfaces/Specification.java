@@ -22,22 +22,18 @@ import java.util.*;
 import java.io.*;
 import org.apache.lcf.core.common.XMLDoc;
 
-/** This class represents a document specification, which is a generalized hierarchy of nodes that
-* can be interpreted by a repository connector in an appropriate way.
+/** This class represents a specification, which is a generalized hierarchy of nodes that
+* can be interpreted by an appropriate connector in an appropriate way.
 */
-public class Specification
+public class Specification extends Configuration
 {
   public static final String _rcsid = "@(#)$Id$";
-
-  // The children
-  protected ArrayList children = new ArrayList();
-  // Read-only flag
-  protected boolean readOnly = false;
 
   /** Constructor.
   */
   public Specification()
   {
+    super();
   }
 
   /** Construct from XML.
@@ -46,152 +42,29 @@ public class Specification
   public Specification(String xml)
     throws LCFException
   {
-    fromXML(xml);
+    super(xml);
   }
 
-  /** Make the specification read-only */
-  public void makeReadOnly()
-  {
-    if (readOnly)
-      return;
-    if (children != null)
-    {
-      int i = 0;
-      while (i < children.size())
-      {
-        SpecificationNode child = (SpecificationNode)children.get(i++);
-        child.makeReadOnly();
-      }
-    }
-    readOnly = true;
-  }
-
-  /** Get as XML
-  *@return the xml corresponding to this DocumentSpecification.
+  /** Return the root node type.
+  *@return the node type name.
   */
-  public String toXML()
-    throws LCFException
+  protected String getRootNodeLabel()
   {
-    XMLDoc doc = new XMLDoc();
-    // name of root node in definition
-    Object top = doc.createElement(null,"specification");
-    // Now, go through all children
-    int i = 0;
-    while (i < children.size())
-    {
-      SpecificationNode node = (SpecificationNode)children.get(i++);
-      writeNode(doc,top,node);
-    }
-
-    return doc.getXML();
+    return "specification";
   }
-
-  /** Write a specification node.
-  *@param doc is the document.
-  *@param parent is the parent.
-  *@param node is the node.
+  
+  /** Create a new object of the appropriate class.
   */
-  protected static void writeNode(XMLDoc doc, Object parent, SpecificationNode node)
-    throws LCFException
+  protected Configuration createNew()
   {
-    // Get the type
-    String type = node.getType();
-    String value = node.getValue();
-    Object o = doc.createElement(parent,type);
-    Iterator iter = node.getAttributes();
-    while (iter.hasNext())
-    {
-      String attribute = (String)iter.next();
-      String attrValue = node.getAttributeValue(attribute);
-      // Add to the element
-      doc.setAttribute(o,attribute,attrValue);
-    }
-
-    if (value != null)
-      doc.createText(o,value);
-    // Now, do children
-    int i = 0;
-    while (i < node.getChildCount())
-    {
-      SpecificationNode child = node.getChild(i++);
-      writeNode(doc,o,child);
-    }
+    return new Specification();
   }
-
-  /** Read from XML.
-  *@param xml is the input XML.
+  
+  /** Create a new child node of the appropriate type and class.
   */
-  public void fromXML(String xml)
-    throws LCFException
+  protected ConfigurationNode createNewNode(String type)
   {
-    if (readOnly)
-      throw new IllegalStateException("Attempt to change read-only object");
-    children.clear();
-    XMLDoc doc = new XMLDoc(xml);
-    ArrayList list = new ArrayList();
-    doc.processPath(list, "*", null);
-
-    if (list.size() != 1)
-    {
-      throw new LCFException("Bad xml - missing outer 'specification' node - there are "+Integer.toString(list.size())+" nodes");
-    }
-    Object parent = list.get(0);
-    if (!doc.getNodeName(parent).equals("specification"))
-      throw new LCFException("Bad xml - outer node is not 'specification'");
-
-    list.clear();
-    doc.processPath(list, "*", parent);
-
-    // Outer level processing.
-    int i = 0;
-    while (i < list.size())
-    {
-      Object o = list.get(i++);
-      SpecificationNode node = readNode(doc,o);
-      children.add(node);
-    }
-  }
-
-  /** Read a specification node from XML.
-  *@param doc is the document.
-  *@param object is the object.
-  *@return the specification node.
-  */
-  protected static SpecificationNode readNode(XMLDoc doc, Object object)
-    throws LCFException
-  {
-    String type = doc.getNodeName(object);
-    SpecificationNode rval = new SpecificationNode(type);
-    String value = doc.getData(object);
-    rval.setValue(value);
-    // Do attributes
-    ArrayList list = doc.getAttributes(object);
-    int i = 0;
-    while (i < list.size())
-    {
-      String attribute = (String)list.get(i++);
-      String attrValue = doc.getValue(object,attribute);
-      rval.setAttribute(attribute,attrValue);
-    }
-    // Now, do children
-    list.clear();
-    doc.processPath(list,"*",object);
-    i = 0;
-    while (i < list.size())
-    {
-      Object o = list.get(i);
-      SpecificationNode node = readNode(doc,o);
-      rval.addChild(i++,node);
-    }
-    return rval;
-  }
-
-  /** Get child count.
-  *@return the count.
-  */
-  public int getChildCount()
-  {
-    return children.size();
+    return new SpecificationNode(type);
   }
 
   /** Get child n.
@@ -200,37 +73,7 @@ public class Specification
   */
   public SpecificationNode getChild(int index)
   {
-    return (SpecificationNode)children.get(index);
-  }
-
-  /** Remove child n.
-  *@param index is the child to remove.
-  */
-  public void removeChild(int index)
-  {
-    if (readOnly)
-      throw new IllegalStateException("Attempt to change read-only object");
-    children.remove(index);
-  }
-
-  /** Add child at specified position.
-  *@param index is the position to add the child.
-  *@param child is the child to add.
-  */
-  public void addChild(int index, SpecificationNode child)
-  {
-    if (readOnly)
-      throw new IllegalStateException("Attempt to change read-only object");
-    children.add(index,child);
-  }
-
-  /** Clear children.
-  */
-  public void clearChildren()
-  {
-    if (readOnly)
-      throw new IllegalStateException("Attempt to change read-only object");
-    children.clear();
+    return (SpecificationNode)findChild(index);
   }
 
 }
