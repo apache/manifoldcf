@@ -338,8 +338,6 @@
                 <include name="properties.xml"/>
                 <include name="connectors.xml"/>
                 <include name="logging.ini"/>
-                <include name="executecommand.sh"/>
-                <include name="lcf.sh"/>
             </fileset>
         </copy>
     </target>

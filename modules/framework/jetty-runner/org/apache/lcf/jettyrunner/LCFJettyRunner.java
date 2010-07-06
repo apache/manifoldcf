@@ -167,7 +167,7 @@ public class LCFJettyRunner
     }
     
     // Ready to begin in earnest...
-        
+    System.setProperty(LCF.lcfConfigFileProperty,"./properties.xml");
     try
     {
       LCF.initializeEnvironment();
@@ -433,7 +433,8 @@ public class LCFJettyRunner
     }
     catch (LCFException e)
     {
-      Logging.root.error("Exception: "+e.getMessage(),e);
+      if (Logging.root != null)
+        Logging.root.error("Exception: "+e.getMessage(),e);
       e.printStackTrace(System.err);
       System.exit(1);
     }
