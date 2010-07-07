@@ -36,34 +36,135 @@ public class Sanity extends TestBase
   public void sanityCheck()
     throws Exception
   {
-    // Hey, we were able to install the file system connector etc.
-    // Now, create a local test job and run it.
-    IThreadContext tc = ThreadContextFactory.make();
-    
-    // Create a basic file system connection, and save it.
-    IRepositoryConnectionManager mgr = RepositoryConnectionManagerFactory.make(tc);
-    IRepositoryConnection conn = mgr.create();
-    conn.setName("File Connection");
-    conn.setDescription("File Connection");
-    conn.setClassName("org.apache.lcf.crawler.connectors.filesystem.FileConnector");
-    conn.setMaxConnections(100);
-    // Now, save
-    mgr.save(conn);
-    
-    // Create a basic null output connection, and save it.
-    IOutputConnectionManager outputMgr = OutputConnectionManagerFactory.make(tc);
-    IOutputConnection outputConn = outputMgr.create();
-    outputConn.setName("Null Connection");
-    outputConn.setDescription("Null Connection");
-    outputConn.setClassName("org.apache.lcf.agents.output.nullconnector.NullConnector");
-    outputConn.setMaxConnections(100);
-    // Now, save
-    outputMgr.save(outputConn);
+    try
+    {
+      // Hey, we were able to install the file system connector etc.
+      // Now, create a local test job and run it.
+      IThreadContext tc = ThreadContextFactory.make();
+      
+      // Create a basic file system connection, and save it.
+      IRepositoryConnectionManager mgr = RepositoryConnectionManagerFactory.make(tc);
+      IRepositoryConnection conn = mgr.create();
+      conn.setName("File Connection");
+      conn.setDescription("File Connection");
+      conn.setClassName("org.apache.lcf.crawler.connectors.filesystem.FileConnector");
+      conn.setMaxConnections(100);
+      // Now, save
+      mgr.save(conn);
+      
+      // Create a basic null output connection, and save it.
+      IOutputConnectionManager outputMgr = OutputConnectionManagerFactory.make(tc);
+      IOutputConnection outputConn = outputMgr.create();
+      outputConn.setName("Null Connection");
+      outputConn.setDescription("Null Connection");
+      outputConn.setClassName("org.apache.lcf.agents.output.nullconnector.NullConnector");
+      outputConn.setMaxConnections(100);
+      // Now, save
+      outputMgr.save(outputConn);
 
-    // MHL
-    
-    // Cleanup is automatic by the base class, so we can feel free to leave jobs and connections lying around.
+      // Create a job.
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      IJobDescription job = jobManager.createJob();
+      job.setDescription("Test Job");
+      job.setConnectionName("File Connection");
+      job.setOutputConnectionName("Null Connection");
+      job.setType(job.TYPE_SPECIFIED);
+      job.setStartMethod(job.START_DISABLE);
+      job.setHopcountMode(job.HOPCOUNT_ACCURATE);
+      
+      // Now, set up the document specification.
+      DocumentSpecification ds = job.getSpecification();
+      // Crawl everything underneath the 'testdata' area
+      File testDataFile = new File("../testdata").getCanonicalFile();
+      if (!testDataFile.exists())
+        throw new LCFException("Test data area not found!  Looking in "+testDataFile.toString());
+      if (!testDataFile.isDirectory())
+        throw new LCFException("Test data area not a directory!  Looking in "+testDataFile.toString());
+      SpecificationNode sn = new SpecificationNode("startpoint");
+      sn.setAttribute("path",testDataFile.toString());
+      SpecificationNode n = new SpecificationNode("include");
+      n.setAttribute("type","file");
+      n.setAttribute("match","*");
+      sn.addChild(sn.getChildCount(),n);
+      n = new SpecificationNode("exclude");
+      n.setAttribute("type","directory");
+      n.setAttribute("match","*.svn");
+      sn.addChild(sn.getChildCount(),n);
+      n = new SpecificationNode("include");
+      n.setAttribute("type","directory");
+      n.setAttribute("match","*");
+      sn.addChild(sn.getChildCount(),n);
+      ds.addChild(ds.getChildCount(),sn);
+      
+      // Set up the output specification.
+      OutputSpecification os = job.getOutputSpecification();
+      // Null output connections have no output specification, so this is a no-op.
+      
+      // Save the job.
+      jobManager.save(job);
+      
+      // Now, start the job, and wait until it completes.
+      jobManager.manualStart(job.getID());
+      waitJobInactive(jobManager,job.getID());
+
+      // Check to be sure we actually processed the right number of documents.
+      JobStatus status = jobManager.getStatus(job.getID());
+      // The test data area has 3 documents and one directory, and we have to count the root directory too.
+      if (status.getDocumentsProcessed() != 5)
+        throw new LCFException("Wrong number of documents processed - expected 5, saw "+new Long(status.getDocumentsProcessed()).toString());
+      
+      // May want to do an incremental crawl or two also.
+      // MHL
+
+      // Now, delete the job.
+      jobManager.deleteJob(job.getID());
+      waitJobDeleted(jobManager,job.getID());
+      
+      // Cleanup is automatic by the base class, so we can feel free to leave jobs and connections lying around.
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+      throw e;
+    }
   }
   
+  protected void waitJobInactive(IJobManager jobManager, Long jobID)
+    throws LCFException, InterruptedException
+  {
+    while (true)
+    {
+      JobStatus status = jobManager.getStatus(jobID);
+      if (status == null)
+        throw new LCFException("No such job: '"+jobID+"'");
+      int statusValue = status.getStatus();
+      switch (statusValue)
+      {
+        case JobStatus.JOBSTATUS_NOTYETRUN:
+          throw new LCFException("Job was never started.");
+        case JobStatus.JOBSTATUS_COMPLETED:
+          break;
+        case JobStatus.JOBSTATUS_ERROR:
+          throw new LCFException("Job reports error status: "+status.getErrorText());
+        default:
+          LCF.sleep(10000L);
+          continue;
+      }
+      break;
+    }
+  }
+  
+  protected void waitJobDeleted(IJobManager jobManager, Long jobID)
+    throws LCFException, InterruptedException
+  {
+    while (true)
+    {
+      JobStatus status = jobManager.getStatus(jobID);
+      if (status == null)
+        break;
+      LCF.sleep(10000L);
+    }
+  }
+    
 
 }

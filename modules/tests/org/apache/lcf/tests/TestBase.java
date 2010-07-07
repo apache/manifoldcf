@@ -73,42 +73,123 @@ public class TestBase extends org.apache.lcf.crawler.tests.TestConnectorBase
   public void cleanUp()
     throws Exception
   {
-    // Shut down daemon
-    Exception currentException = null;
-    
-    if (daemonThread != null)
+    initialize();
+    if (isInitialized())
     {
+      Exception currentException = null;
       IThreadContext tc = ThreadContextFactory.make();
-      ILockManager lockManager = LockManagerFactory.make(tc);
-      lockManager.setGlobalFlag(agentShutdownSignal);
-    
-      // Wait for daemon thread to exit.
-      while (true)
-      {
-        if (daemonThread.isAlive())
-        {
-          Thread.sleep(1000L);
-          continue;
-        }
-        break;
-      }
 
-      Exception e = daemonThread.getDaemonException();
-      if (e != null)
-        currentException = e;
+      // Delete all jobs (and wait for them to go away)
+      if (daemonThread != null)
+      {
+        IJobManager jobManager = JobManagerFactory.make(tc);
+        
+        // Get a list of the current active jobs
+        IJobDescription[] jobs = jobManager.getAllJobs();
+        int i = 0;
+        while (i < jobs.length)
+        {
+          IJobDescription desc = jobs[i++];
+          // Abort this job, if it is running
+          try
+          {
+            jobManager.manualAbort(desc.getID());
+          }
+          catch (LCFException e)
+          {
+            // This generally means that the job was not running
+          }
+        }
+        i = 0;
+        while (i < jobs.length)
+        {
+          IJobDescription desc = jobs[i++];
+          // Wait for this job to stop
+          while (true)
+          {
+            JobStatus status = jobManager.getStatus(desc.getID());
+            if (status != null)
+            {
+              int statusValue = status.getStatus();
+              switch (statusValue)
+              {
+              case JobStatus.JOBSTATUS_NOTYETRUN:
+              case JobStatus.JOBSTATUS_COMPLETED:
+              case JobStatus.JOBSTATUS_ERROR:
+                break;
+              default:
+                LCF.sleep(10000);
+                continue;
+              }
+            }
+            break;
+          }
+        }
+
+        // Now, delete them all
+        i = 0;
+        while (i < jobs.length)
+        {
+          IJobDescription desc = jobs[i++];
+          try
+          {
+            jobManager.deleteJob(desc.getID());
+          }
+          catch (LCFException e)
+          {
+            // This usually means that the job is already being deleted
+          }
+        }
+
+        i = 0;
+        while (i < jobs.length)
+        {
+          IJobDescription desc = jobs[i++];
+          // Wait for this job to disappear
+          while (true)
+          {
+            JobStatus status = jobManager.getStatus(desc.getID());
+            if (status != null)
+            {
+              LCF.sleep(10000);
+              continue;
+            }
+            break;
+          }
+        }
+
+        // Shut down daemon
+        ILockManager lockManager = LockManagerFactory.make(tc);
+        lockManager.setGlobalFlag(agentShutdownSignal);
+      
+        // Wait for daemon thread to exit.
+        while (true)
+        {
+          if (daemonThread.isAlive())
+          {
+            Thread.sleep(1000L);
+            continue;
+          }
+          break;
+        }
+
+        Exception e = daemonThread.getDaemonException();
+        if (e != null)
+          currentException = e;
+      }
+      // Clean up everything else
+      try
+      {
+        super.cleanUp();
+      }
+      catch (Exception e)
+      {
+        if (currentException == null)
+          currentException = e;
+      }
+      if (currentException != null)
+        throw currentException;
     }
-    // Clean up everything else
-    try
-    {
-      super.cleanUp();
-    }
-    catch (Exception e)
-    {
-      if (currentException == null)
-        currentException = e;
-    }
-    if (currentException != null)
-      throw currentException;
   }
   
   protected static class DaemonThread extends Thread
