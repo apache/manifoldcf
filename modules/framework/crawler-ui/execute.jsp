@@ -811,7 +811,7 @@
 			else
 			{
 				// Error
-				variableContext.setParameter("text","Illegal parameter to job definition execution page");
+				variableContext.setParameter("text","Illegal parameter to job definition execution page: "+op);
 				variableContext.setParameter("target","listjobs.jsp");
 %>
 				<jsp:forward page="error.jsp"/>
@@ -832,62 +832,74 @@
 			else
 			{
 				// Error
-				variableContext.setParameter("text","Illegal parameter to report/status execution page");
+				variableContext.setParameter("text","Illegal parameter to report/status execution page: "+op);
 				variableContext.setParameter("target","index.jsp");
 %>
 				<jsp:forward page="error.jsp"/>
 <%
 			}
 		}
-		else if (op != null && op.equals("Start"))
+		else if (op != null && type != null && type.equals("jobstatus"))
 		{
-			// -- Start a job --
-			String jobID = variableContext.getParameter("jobid");
-			manager.manualStart(new Long(jobID));
-			// Forward to showjobstatus
+			if (op.equals("Start"))
+			{
+				// -- Start a job --
+				String jobID = variableContext.getParameter("jobid");
+				manager.manualStart(new Long(jobID));
+				// Forward to showjobstatus
 %>
-			<jsp:forward page="showjobstatus.jsp"/>
+				<jsp:forward page="showjobstatus.jsp"/>
 <%
-		}
-		else if (op != null && op.equals("Pause"))
-		{
-			// -- Pause a job --
-			String jobID = variableContext.getParameter("jobid");
-			manager.pauseJob(new Long(jobID));
-			// Forward to showjobstatus
+			}
+			else if (op.equals("Pause"))
+			{
+				// -- Pause a job --
+				String jobID = variableContext.getParameter("jobid");
+				manager.pauseJob(new Long(jobID));
+				// Forward to showjobstatus
 %>
-			<jsp:forward page="showjobstatus.jsp"/>
+				<jsp:forward page="showjobstatus.jsp"/>
 <%
-		}
-		else if (op != null && op.equals("Abort"))
-		{
-			// -- Abort a job --
-			String jobID = variableContext.getParameter("jobid");
-			manager.manualAbort(new Long(jobID));
-			// Forward to showjobstatus
+			}
+			else if (op.equals("Abort"))
+			{
+				// -- Abort a job --
+				String jobID = variableContext.getParameter("jobid");
+				manager.manualAbort(new Long(jobID));
+				// Forward to showjobstatus
 %>
-			<jsp:forward page="showjobstatus.jsp"/>
+				<jsp:forward page="showjobstatus.jsp"/>
 <%
-		}
-		else if (op != null && op.equals("Restart"))
-		{
-			// -- Restart a job --
-			String jobID = variableContext.getParameter("jobid");
-			manager.manualAbortRestart(new Long(jobID));
-			// Forward to showjobstatus
+			}
+			else if (op.equals("Restart"))
+			{
+				// -- Restart a job --
+				String jobID = variableContext.getParameter("jobid");
+				manager.manualAbortRestart(new Long(jobID));
+				// Forward to showjobstatus
 %>
-			<jsp:forward page="showjobstatus.jsp"/>
+				<jsp:forward page="showjobstatus.jsp"/>
 <%
-		}
-		else if (op != null && op.equals("Resume"))
-		{
-			// -- Resume a job --
-			String jobID = variableContext.getParameter("jobid");
-			manager.restartJob(new Long(jobID));
-			// Forward to showjobstatus
+			}
+			else if (op.equals("Resume"))
+			{
+				// -- Resume a job --
+				String jobID = variableContext.getParameter("jobid");
+				manager.restartJob(new Long(jobID));
+				// Forward to showjobstatus
 %>
-			<jsp:forward page="showjobstatus.jsp"/>
+				<jsp:forward page="showjobstatus.jsp"/>
 <%
+			}
+			else
+			{
+				// Error
+				variableContext.setParameter("text","Illegal parameter to jobstatus execution page: "+op);
+				variableContext.setParameter("target","index.jsp");
+%>
+				<jsp:forward page="error.jsp"/>
+<%
+			}
 		}
 		else
 		{

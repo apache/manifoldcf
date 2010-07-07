@@ -90,7 +90,7 @@ if (maintenanceUnderway == false)
 %>
 	<form class="standardform" name="liststatuses" action="execute.jsp" method="POST">
 		<input type="hidden" name="op" value="Continue"/>
-		<input type="hidden" name="type" value="job"/>
+		<input type="hidden" name="type" value="jobstatus"/>
 		<input type="hidden" name="jobid" value=""/>
 
 <%
