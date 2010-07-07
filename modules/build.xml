@@ -506,6 +506,7 @@
 
     <target name="cleanup-example">
         <delete file="dist/example/connectors.xml"/>
+        <delete file="dist/example/properties.xml"/>
     </target>
     
     <target name="deliver-framework-example" depends="cleanup-example,build-framework">
@@ -595,8 +596,13 @@
         <copy todir="dist/example/connector-lib">
             <fileset dir="connectors/meridio/dist/lib"/>
         </copy>
+        <mkdir dir="dist/example/wsdd"/>
+        <copy todir="dist/example/wsdd">
+            <fileset dir="connectors/meridio/dist/wsdd"/>
+        </copy>
         <replace file="dist/example/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;authorityconnector name=&quot;Meridio&quot; class=&quot;org.apache.lcf.crawler.connectors.meridio.MeridioAuthority&quot;/&gt;"/>
         <replace file="dist/example/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;Meridio&quot; class=&quot;org.apache.lcf.crawler.connectors.meridio.MeridioConnector&quot;/&gt;"/>
+        <replace file="dist/example/properties.xml" token="&lt;!-- WSDD references --&gt;" value="&lt;!-- WSDD references --&gt;&#0010;  &lt;property name=&quot;org.apache.lcf.meridio.wsddpath&quot; value=&quot;./wsdd/meridio-client-config.wsdd&quot;/&gt;"/>
     </target>
 
     <target name="deliver-nulloutput-example" depends="deliver-framework-example,build-nulloutput-connector,calculate-nulloutput-condition" if="nulloutput.include">
@@ -620,7 +626,12 @@
         <copy todir="dist/example/connector-lib">
             <fileset dir="connectors/sharepoint/dist/lib"/>
         </copy>
+        <mkdir dir="dist/example/wsdd"/>
+        <copy todir="dist/example/wsdd">
+            <fileset dir="connectors/sharepoint/dist/wsdd"/>
+        </copy>
         <replace file="dist/example/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;SharePoint&quot; class=&quot;org.apache.lcf.crawler.connectors.sharepoint.SharePointRepository&quot;/&gt;"/>
+        <replace file="dist/example/properties.xml" token="&lt;!-- WSDD references --&gt;" value="&lt;!-- WSDD references --&gt;&#0010;  &lt;property name=&quot;org.apache.lcf.sharepoint.wsddpath&quot; value=&quot;./wsdd/sharepoint-client-config.wsdd&quot;/&gt;"/>
     </target>
 
     <target name="deliver-solr-example" depends="deliver-framework-example,build-solr-connector,calculate-solr-condition" if="solr.include">
