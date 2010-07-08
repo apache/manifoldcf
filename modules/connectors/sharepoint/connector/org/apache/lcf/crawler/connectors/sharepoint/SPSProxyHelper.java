@@ -1179,6 +1179,8 @@ public class SPSProxyHelper {
             throw new LCFException("Crawl user did not authenticate properly, or has insufficient permissions to access "+baseUrl+site+": "+e.getMessage(),e);
           else if (httpErrorCode.equals("403"))
             throw new LCFException("Http error "+httpErrorCode+" while reading from "+baseUrl+site+" - check IIS and SharePoint security settings! "+e.getMessage(),e);
+	  else if (httpErrorCode.equals("302"))
+	    throw new LCFException("LCF's MCPermissions web service may not be installed on the target SharePoint server.  MCPermissions service is needed for SharePoint repositories version 3.0 or higher, to allow access to security information for files and folders.  Consult your system administrator.");
           else
             throw new LCFException("Unexpected http error code "+httpErrorCode+" accessing SharePoint at "+baseUrl+site+": "+e.getMessage(),e);
         }
