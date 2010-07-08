@@ -31,6 +31,38 @@ import org.junit.*;
 public class Sanity extends TestBase
 {
   
+  @Before
+  public void createTestArea()
+    throws Exception
+  {
+    try
+    {
+      File f = new File("testdata");
+      removeDirectory(f);
+      createDirectory(f);
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+      throw e;
+    }
+  }
+  
+  @After
+  public void removeTestArea()
+    throws Exception
+  {
+    try
+    {
+      File f = new File("testdata");
+      removeDirectory(f);
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+      throw e;
+    }
+  }
   
   @Test
   public void sanityCheck()
@@ -75,7 +107,7 @@ public class Sanity extends TestBase
       // Now, set up the document specification.
       DocumentSpecification ds = job.getSpecification();
       // Crawl everything underneath the 'testdata' area
-      File testDataFile = new File("../testdata").getCanonicalFile();
+      File testDataFile = new File("testdata").getCanonicalFile();
       if (!testDataFile.exists())
         throw new LCFException("Test data area not found!  Looking in "+testDataFile.toString());
       if (!testDataFile.isDirectory())
@@ -85,10 +117,6 @@ public class Sanity extends TestBase
       SpecificationNode n = new SpecificationNode("include");
       n.setAttribute("type","file");
       n.setAttribute("match","*");
-      sn.addChild(sn.getChildCount(),n);
-      n = new SpecificationNode("exclude");
-      n.setAttribute("type","directory");
-      n.setAttribute("match","*.svn");
       sn.addChild(sn.getChildCount(),n);
       n = new SpecificationNode("include");
       n.setAttribute("type","directory");
@@ -102,6 +130,12 @@ public class Sanity extends TestBase
       
       // Save the job.
       jobManager.save(job);
+
+      // Create the test data files.
+      createFile(new File("testdata/test1.txt"),"This is a test file");
+      createFile(new File("testdata/test2.txt"),"This is another test file");
+      createDirectory(new File("testdata/testdir"));
+      createFile(new File("testdata/testdir/test3.txt"),"This is yet another test file");
       
       // Now, start the job, and wait until it completes.
       jobManager.manualStart(job.getID());
@@ -113,8 +147,44 @@ public class Sanity extends TestBase
       if (status.getDocumentsProcessed() != 5)
         throw new LCFException("Wrong number of documents processed - expected 5, saw "+new Long(status.getDocumentsProcessed()).toString());
       
-      // May want to do an incremental crawl or two also.
+      // Add a file and recrawl
+      createFile(new File("testdata/testdir/test4.txt"),"Added file");
+
+      // Now, start the job, and wait until it completes.
+      jobManager.manualStart(job.getID());
+      waitJobInactive(jobManager,job.getID());
+
+      status = jobManager.getStatus(job.getID());
+      // The test data area has 4 documents and one directory, and we have to count the root directory too.
+      if (status.getDocumentsProcessed() != 6)
+        throw new LCFException("Wrong number of documents processed after add - expected 6, saw "+new Long(status.getDocumentsProcessed()).toString());
+
+      // Change a file, and recrawl
+      changeFile(new File("testdata/test1.txt"),"Modified contents");
+      
+      // Now, start the job, and wait until it completes.
+      jobManager.manualStart(job.getID());
+      waitJobInactive(jobManager,job.getID());
+
+      status = jobManager.getStatus(job.getID());
+      // The test data area has 4 documents and one directory, and we have to count the root directory too.
+      if (status.getDocumentsProcessed() != 6)
+        throw new LCFException("Wrong number of documents processed after change - expected 6, saw "+new Long(status.getDocumentsProcessed()).toString());
+      // We also need to make sure the new document was indexed.  Have to think about how to do this though.
       // MHL
+      
+      // Delete a file, and recrawl
+      removeFile(new File("testdata/test2.txt"));
+      
+      // Now, start the job, and wait until it completes.
+      jobManager.manualStart(job.getID());
+      waitJobInactive(jobManager,job.getID());
+
+      // Check to be sure we actually processed the right number of documents.
+      status = jobManager.getStatus(job.getID());
+      // The test data area has 3 documents and one directory, and we have to count the root directory too.
+      if (status.getDocumentsProcessed() != 5)
+        throw new LCFException("Wrong number of documents processed after delete - expected 5, saw "+new Long(status.getDocumentsProcessed()).toString());
 
       // Now, delete the job.
       jobManager.deleteJob(job.getID());
