@@ -46,13 +46,13 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   protected static String getFullDatabasePath(String databaseName)
     throws LCFException
   {
-    String path = LCF.getProperty(databasePathProperty);
+    File path = LCF.getFileProperty(databasePathProperty);
     if (path == null)
-      throw new LCFException("Derby database requires '"+databasePathProperty+"' property, containing a full path");
-    path = path.replace("\\\\","/");
-    if (!path.endsWith("/"))
-      path = path + "/";
-    return path + databaseName;
+      throw new LCFException("Derby database requires '"+databasePathProperty+"' property, containing a relative path");
+    String pathString = path.toString().replace("\\\\","/");
+    if (!pathString.endsWith("/"))
+      pathString = pathString + "/";
+    return pathString + databaseName;
   }
   
   public DBInterfaceDerby(IThreadContext tc, String databaseName, String userName, String password)
