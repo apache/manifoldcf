@@ -988,6 +988,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
   
   protected static final String API_ERRORNODE = "error";
   protected static final String API_JOBNODE = "job";
+  protected static final String API_JOBSTATUSNODE = "jobstatus";
   protected static final String API_JOBIDNODE = "job_id";
   
   /** Execute specified command.  Note that the command is a string, and that it is permitted to accept at most one argument, which
@@ -1008,8 +1009,9 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       int i = 0;
       while (i < jobs.length)
       {
-        ConfigurationNode job = formatJobDescription(API_JOBNODE,jobs[i++]);
-        rval.addChild(rval.getChildCount(),job);
+        ConfigurationNode jobNode = new ConfigurationNode(API_JOBNODE);
+        formatJobDescription(jobNode,jobs[i++]);
+        rval.addChild(rval.getChildCount(),jobNode);
       }
     }
     else if (command.equals("job/get"))
@@ -1037,7 +1039,8 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       if (job != null)
       {
         // Fill the return object with job information
-        ConfigurationNode jobNode = formatJobDescription(API_JOBNODE,job);
+        ConfigurationNode jobNode = new ConfigurationNode(API_JOBNODE);
+        formatJobDescription(jobNode,job);
         rval.addChild(rval.getChildCount(),jobNode);
       }
     }
@@ -1062,8 +1065,18 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       }
       
       // Turn the configuration node into a JobDescription
-      IJobDescription job = readJobDescription(tc,jobNode);
+      org.apache.lcf.crawler.jobs.JobDescription job = new org.apache.lcf.crawler.jobs.JobDescription();
+      processJobDescription(job,jobNode);
       
+      // We need to determine whether we are creating a new job, or saving an existing one.
+      if (job.getID() == null)
+      {
+        job.setID(new Long(IDFactory.make(tc)));
+        job.setIsNew(true);
+      }
+      else
+        job.setIsNew(false);
+
       // Save the job.
       IJobManager jobManager = JobManagerFactory.make(tc);
       jobManager.save(job);
@@ -1093,21 +1106,130 @@ public class LCF extends org.apache.lcf.agents.system.LCF
     }
     else if (command.equals("jobstatus/list"))
     {
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      JobStatus[] jobStatuses = jobManager.getAllStatus();
+      int i = 0;
+      while (i < jobStatuses.length)
+      {
+        ConfigurationNode jobStatusNode = new ConfigurationNode(API_JOBSTATUSNODE);
+        formatJobStatus(jobStatusNode,jobStatuses[i++]);
+        rval.addChild(rval.getChildCount(),jobStatusNode);
+      }
     }
     else if (command.equals("jobstatus/start"))
     {
+      // Get the job id from the argument
+      if (inputArgument == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument required");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      String jobID = getRootArgument(inputArgument,API_JOBIDNODE);
+      if (jobID == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument must have '"+API_JOBIDNODE+"' field");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      jobManager.manualStart(new Long(jobID));
     }
     else if (command.equals("jobstatus/abort"))
     {
+      // Get the job id from the argument
+      if (inputArgument == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument required");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      String jobID = getRootArgument(inputArgument,API_JOBIDNODE);
+      if (jobID == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument must have '"+API_JOBIDNODE+"' field");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      jobManager.manualAbort(new Long(jobID));
     }
     else if (command.equals("jobstatus/restart"))
     {
+      // Get the job id from the argument
+      if (inputArgument == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument required");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      String jobID = getRootArgument(inputArgument,API_JOBIDNODE);
+      if (jobID == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument must have '"+API_JOBIDNODE+"' field");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      jobManager.manualAbortRestart(new Long(jobID));
     }
     else if (command.equals("jobstatus/pause"))
     {
+      // Get the job id from the argument
+      if (inputArgument == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument required");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      String jobID = getRootArgument(inputArgument,API_JOBIDNODE);
+      if (jobID == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument must have '"+API_JOBIDNODE+"' field");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      jobManager.pauseJob(new Long(jobID));
     }
     else if (command.equals("jobstatus/resume"))
     {
+      // Get the job id from the argument
+      if (inputArgument == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument required");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      String jobID = getRootArgument(inputArgument,API_JOBIDNODE);
+      if (jobID == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument must have '"+API_JOBIDNODE+"' field");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      jobManager.restartJob(new Long(jobID));
     }
     else if (command.equals("outputconnection/list"))
     {
@@ -1181,6 +1303,9 @@ public class LCF extends org.apache.lcf.agents.system.LCF
     return rval;
   }
   
+  // The following chunk of code is responsible for formatting a job description into a set of nodes, and for reading back a formatted job description.
+  // This is needed to support the job-related API methods, above.
+  
   // Job node types
   protected static final String JOBNODE_ID = "id";
   protected static final String JOBNODE_DESCRIPTION = "description";
@@ -1207,11 +1332,13 @@ public class LCF extends org.apache.lcf.agents.system.LCF
   protected static final String JOBNODE_MINUTESOFHOUR = "minutesofhour";
   protected static final String JOBNODE_ENUMVALUE = "value";
   
-  /** Convert a node into a job description */
-  protected static IJobDescription readJobDescription(IThreadContext tc, ConfigurationNode jobNode)
+  /** Convert a node into a job description.
+  *@param job is the job to be filled in.
+  *@param jobNode is the configuration node corresponding to the whole job itself.
+  */
+  protected static void processJobDescription(org.apache.lcf.crawler.jobs.JobDescription jobDescription, ConfigurationNode jobNode)
     throws LCFException
   {
-    org.apache.lcf.crawler.jobs.JobDescription jobDescription = new org.apache.lcf.crawler.jobs.JobDescription();
     // Walk through the node's children
     int i = 0;
     while (i < jobNode.getChildCount())
@@ -1366,20 +1493,14 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       else
         throw new LCFException("Unrecognized job field: '"+childType+"'");
     }
-    if (jobDescription.getID() == null)
-    {
-      jobDescription.setID(new Long(IDFactory.make(tc)));
-      jobDescription.setIsNew(true);
-    }
-    else
-      jobDescription.setIsNew(false);
-    return jobDescription;
   }
 
-  /** Convert a job description into a ConfigurationNode */
-  protected static ConfigurationNode formatJobDescription(String nodeType, IJobDescription job)
+  /** Convert a job description into a ConfigurationNode.
+  *@param nodeType is the type of the node we want to create to represent the job.
+  *@param job is the job description.
+  */
+  protected static void formatJobDescription(ConfigurationNode jobNode, IJobDescription job)
   {
-    ConfigurationNode jobNode = new ConfigurationNode(nodeType);
     // For each field of the job, add an appropriate child node, with value.
     ConfigurationNode child;
     int j;
@@ -1526,8 +1647,6 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       child.addChild(child.getChildCount(),recordNode);
     }
     jobNode.addChild(jobNode.getChildCount(),child);
-    
-    return jobNode;
   }
 
   protected static void formatEnumeratedValues(ConfigurationNode recordNode, String childType, EnumeratedValues value)
@@ -1664,6 +1783,114 @@ public class LCF extends org.apache.lcf.agents.system.LCF
     else
       throw new LCFException("Unrecognized hopcount method: '"+mode+"'");
   }
+  
+  // End of job API support code.
+  
+  // The following chunk of code supports job statuses in the API.  Only a formatting method is required, since we never "save" a status.
+
+  // Node types used to handle job statuses.
+  protected static final String JOBSTATUSNODE_JOBID = "job_id";
+  protected static final String JOBSTATUSNODE_STATUS = "status";
+  protected static final String JOBSTATUSNODE_ERRORTEXT = "errortext";
+  protected static final String JOBSTATUSNODE_STARTTIME = "start_time";
+  protected static final String JOBSTATUSNODE_ENDTIME = "end_time";
+  protected static final String JOBSTATUSNODE_DOCUMENTSINQUEUE = "documents_in_queue";
+  protected static final String JOBSTATUSNODE_DOCUMENTSOUTSTANDING = "documents_outstanding";
+  protected static final String JOBSTATUSNODE_DOCUMENTSPROCESSED = "documents_processed";
+  
+  /** Format a job status.
+  */
+  protected static void formatJobStatus(ConfigurationNode jobStatusNode, JobStatus jobStatus)
+  {
+    // For each field of the job, add an appropriate child node, with value.
+    ConfigurationNode child;
+    int j;
+    
+    // id
+    child = new ConfigurationNode(JOBSTATUSNODE_JOBID);
+    child.setValue(jobStatus.getJobID().toString());
+    jobStatusNode.addChild(jobStatusNode.getChildCount(),child);
+
+    // status
+    child = new ConfigurationNode(JOBSTATUSNODE_STATUS);
+    child.setValue(statusMap(jobStatus.getStatus()));
+    jobStatusNode.addChild(jobStatusNode.getChildCount(),child);
+
+    // error text
+    if (jobStatus.getErrorText() != null)
+    {
+      child = new ConfigurationNode(JOBSTATUSNODE_ERRORTEXT);
+      child.setValue(jobStatus.getErrorText());
+      jobStatusNode.addChild(jobStatusNode.getChildCount(),child);
+    }
+    
+    // start time
+    if (jobStatus.getStartTime() != -1L)
+    {
+      child = new ConfigurationNode(JOBSTATUSNODE_STARTTIME);
+      child.setValue(new Long(jobStatus.getStartTime()).toString());
+      jobStatusNode.addChild(jobStatusNode.getChildCount(),child);
+    }
+    
+    // end time
+    if (jobStatus.getEndTime() != -1L)
+    {
+      child = new ConfigurationNode(JOBSTATUSNODE_ENDTIME);
+      child.setValue(new Long(jobStatus.getEndTime()).toString());
+      jobStatusNode.addChild(jobStatusNode.getChildCount(),child);
+    }
+
+    // documents in queue
+    child = new ConfigurationNode(JOBSTATUSNODE_DOCUMENTSINQUEUE);
+    child.setValue(new Long(jobStatus.getDocumentsInQueue()).toString());
+    jobStatusNode.addChild(jobStatusNode.getChildCount(),child);
+
+    // documents outstanding
+    child = new ConfigurationNode(JOBSTATUSNODE_DOCUMENTSOUTSTANDING);
+    child.setValue(new Long(jobStatus.getDocumentsOutstanding()).toString());
+    jobStatusNode.addChild(jobStatusNode.getChildCount(),child);
+
+    // documents processed
+    child = new ConfigurationNode(JOBSTATUSNODE_DOCUMENTSPROCESSED);
+    child.setValue(new Long(jobStatus.getDocumentsProcessed()).toString());
+    jobStatusNode.addChild(jobStatusNode.getChildCount(),child);
+
+  }
+
+  protected static String statusMap(int status)
+  {
+    switch (status)
+    {
+    case JobStatus.JOBSTATUS_NOTYETRUN:
+      return "not yet run";
+    case JobStatus.JOBSTATUS_RUNNING:
+      return "running";
+    case JobStatus.JOBSTATUS_PAUSED:
+      return "paused";
+    case JobStatus.JOBSTATUS_COMPLETED:
+      return "done";
+    case JobStatus.JOBSTATUS_WINDOWWAIT:
+      return "waiting";
+    case JobStatus.JOBSTATUS_STARTING:
+      return "starting up";
+    case JobStatus.JOBSTATUS_DESTRUCTING:
+      return "cleaning up";
+    case JobStatus.JOBSTATUS_ERROR:
+      return "error";
+    case JobStatus.JOBSTATUS_ABORTING:
+      return "aborting";
+    case JobStatus.JOBSTATUS_RESTARTING:
+      return "restarting";
+    case JobStatus.JOBSTATUS_RUNNING_UNINSTALLED:
+      return "running no connector";
+    case JobStatus.JOBSTATUS_JOBENDCLEANUP:
+      return "terminating";
+    default:
+      return "unknown";
+    }
+  }
+
+  // End of jobstatus API support.
   
   protected static ConfigurationNode findConfigurationNode(Configuration input, String argumentName)
   {
