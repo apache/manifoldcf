@@ -989,7 +989,12 @@ public class LCF extends org.apache.lcf.agents.system.LCF
   protected static final String API_ERRORNODE = "error";
   protected static final String API_JOBNODE = "job";
   protected static final String API_JOBSTATUSNODE = "jobstatus";
+  protected static final String API_REPOSITORYCONNECTIONNODE = "repositoryconnection";
+  protected static final String API_OUTPUTCONNECTIONNODE = "outputconnection";
+  protected static final String API_AUTHORITYCONNECTIONNODE = "authorityconnection";
+  protected static final String API_CHECKRESULTNODE = "check_result";
   protected static final String API_JOBIDNODE = "job_id";
+  protected static final String API_CONNECTIONNAMENODE = "connection_name";
   
   /** Execute specified command.  Note that the command is a string, and that it is permitted to accept at most one argument, which
   * will be a Configuration object, and return the same.
@@ -1233,66 +1238,470 @@ public class LCF extends org.apache.lcf.agents.system.LCF
     }
     else if (command.equals("outputconnection/list"))
     {
+      IOutputConnectionManager connManager = OutputConnectionManagerFactory.make(tc);
+      IOutputConnection[] connections = connManager.getAllConnections();
+      int i = 0;
+      while (i < connections.length)
+      {
+        ConfigurationNode connectionNode = new ConfigurationNode(API_OUTPUTCONNECTIONNODE);
+        formatOutputConnection(connectionNode,connections[i++]);
+        rval.addChild(rval.getChildCount(),connectionNode);
+      }
     }
     else if (command.equals("outputconnection/get"))
     {
+      // Get the job id from the argument
+      if (inputArgument == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument required");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
+      if (connectionName == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
+      IOutputConnection connection = connectionManager.load(connectionName);
+      if (connection != null)
+      {
+        // Fill the return object with job information
+        ConfigurationNode connectionNode = new ConfigurationNode(API_OUTPUTCONNECTIONNODE);
+        formatOutputConnection(connectionNode,connection);
+        rval.addChild(rval.getChildCount(),connectionNode);
+      }
     }
     else if (command.equals("outputconnection/save"))
     {
+      // Get the connection from the argument
+      if (inputArgument == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument required");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+
+      ConfigurationNode connectionNode = findConfigurationNode(inputArgument,API_OUTPUTCONNECTIONNODE);
+      if (connectionNode == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument must have '"+API_OUTPUTCONNECTIONNODE+"' field");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      // Turn the configuration node into an OutputConnection
+      org.apache.lcf.agents.outputconnection.OutputConnection outputConnection = new org.apache.lcf.agents.outputconnection.OutputConnection();
+      processOutputConnection(outputConnection,connectionNode);
+      
+      // Save the connection.
+      IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
+      connectionManager.save(outputConnection);
     }
     else if (command.equals("outputconnection/delete"))
     {
+      // Get the job id from the argument
+      if (inputArgument == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument required");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
+      if (connectionName == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
+      connectionManager.delete(connectionName);
     }
     else if (command.equals("outputconnection/checkstatus"))
     {
+      // Get the job id from the argument
+      if (inputArgument == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument required");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
+      if (connectionName == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
+      IOutputConnection connection = connectionManager.load(connectionName);
+      if (connection == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Connection '"+connectionName+"' does not exist");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      String results;
+      // Grab a connection handle, and call the test method
+      IOutputConnector connector = OutputConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+      try
+      {
+        results = connector.check();
+      }
+      catch (LCFException e)
+      {
+        results = e.getMessage();
+      }
+      finally
+      {
+        OutputConnectorFactory.release(connector);
+      }
+      
+      ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
+      response.setValue(results);
+      rval.addChild(rval.getChildCount(),response);
     }
     else if (command.equals("repositoryconnection/list"))
     {
+      IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(tc);
+      IRepositoryConnection[] connections = connManager.getAllConnections();
+      int i = 0;
+      while (i < connections.length)
+      {
+        ConfigurationNode connectionNode = new ConfigurationNode(API_REPOSITORYCONNECTIONNODE);
+        formatRepositoryConnection(connectionNode,connections[i++]);
+        rval.addChild(rval.getChildCount(),connectionNode);
+      }
+
     }
     else if (command.equals("repositoryconnection/get"))
     {
+      // Get the job id from the argument
+      if (inputArgument == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument required");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
+      if (connectionName == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
+      IRepositoryConnection connection = connectionManager.load(connectionName);
+      if (connection != null)
+      {
+        // Fill the return object with job information
+        ConfigurationNode connectionNode = new ConfigurationNode(API_REPOSITORYCONNECTIONNODE);
+        formatRepositoryConnection(connectionNode,connection);
+        rval.addChild(rval.getChildCount(),connectionNode);
+      }
+
     }
     else if (command.equals("repositoryconnection/save"))
     {
+      // Get the connection from the argument
+      if (inputArgument == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument required");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+
+      ConfigurationNode connectionNode = findConfigurationNode(inputArgument,API_REPOSITORYCONNECTIONNODE);
+      if (connectionNode == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument must have '"+API_REPOSITORYCONNECTIONNODE+"' field");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      // Turn the configuration node into an OutputConnection
+      org.apache.lcf.crawler.repository.RepositoryConnection repositoryConnection = new org.apache.lcf.crawler.repository.RepositoryConnection();
+      processRepositoryConnection(repositoryConnection,connectionNode);
+      
+      // Save the connection.
+      IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
+      connectionManager.save(repositoryConnection);
     }
     else if (command.equals("repositoryconnection/delete"))
     {
+      // Get the job id from the argument
+      if (inputArgument == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument required");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
+      if (connectionName == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
+      connectionManager.delete(connectionName);
     }
     else if (command.equals("repositoryconnection/checkstatus"))
     {
+      // Get the job id from the argument
+      if (inputArgument == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument required");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
+      if (connectionName == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
+      IRepositoryConnection connection = connectionManager.load(connectionName);
+      if (connection == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Connection '"+connectionName+"' does not exist");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      String results;
+      // Grab a connection handle, and call the test method
+      IRepositoryConnector connector = RepositoryConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+      try
+      {
+        results = connector.check();
+      }
+      catch (LCFException e)
+      {
+        results = e.getMessage();
+      }
+      finally
+      {
+        RepositoryConnectorFactory.release(connector);
+      }
+      
+      ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
+      response.setValue(results);
+      rval.addChild(rval.getChildCount(),response);
     }
     else if (command.equals("authorityconnection/list"))
     {
+      IAuthorityConnectionManager connManager = AuthorityConnectionManagerFactory.make(tc);
+      IAuthorityConnection[] connections = connManager.getAllConnections();
+      int i = 0;
+      while (i < connections.length)
+      {
+        ConfigurationNode connectionNode = new ConfigurationNode(API_AUTHORITYCONNECTIONNODE);
+        formatAuthorityConnection(connectionNode,connections[i++]);
+        rval.addChild(rval.getChildCount(),connectionNode);
+      }
     }
     else if (command.equals("authorityconnection/get"))
     {
+      // Get the job id from the argument
+      if (inputArgument == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument required");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
+      if (connectionName == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
+      IAuthorityConnection connection = connectionManager.load(connectionName);
+      if (connection != null)
+      {
+        // Fill the return object with job information
+        ConfigurationNode connectionNode = new ConfigurationNode(API_AUTHORITYCONNECTIONNODE);
+        formatAuthorityConnection(connectionNode,connection);
+        rval.addChild(rval.getChildCount(),connectionNode);
+      }
     }
     else if (command.equals("authorityconnection/save"))
     {
+      // Get the connection from the argument
+      if (inputArgument == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument required");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+
+      ConfigurationNode connectionNode = findConfigurationNode(inputArgument,API_AUTHORITYCONNECTIONNODE);
+      if (connectionNode == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument must have '"+API_AUTHORITYCONNECTIONNODE+"' field");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      // Turn the configuration node into an OutputConnection
+      org.apache.lcf.authorities.authority.AuthorityConnection authorityConnection = new org.apache.lcf.authorities.authority.AuthorityConnection();
+      processAuthorityConnection(authorityConnection,connectionNode);
+      
+      // Save the connection.
+      IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
+      connectionManager.save(authorityConnection);
     }
     else if (command.equals("authorityconnection/delete"))
     {
+      // Get the job id from the argument
+      if (inputArgument == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument required");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
+      if (connectionName == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
+      connectionManager.delete(connectionName);
     }
     else if (command.equals("authorityconnection/checkstatus"))
     {
+      // Get the job id from the argument
+      if (inputArgument == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument required");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
+      if (connectionName == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
+      IAuthorityConnection connection = connectionManager.load(connectionName);
+      if (connection == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Connection '"+connectionName+"' does not exist");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      String results;
+      // Grab a connection handle, and call the test method
+      IAuthorityConnector connector = AuthorityConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+      try
+      {
+        results = connector.check();
+      }
+      catch (LCFException e)
+      {
+        results = e.getMessage();
+      }
+      finally
+      {
+        AuthorityConnectorFactory.release(connector);
+      }
+      
+      ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
+      response.setValue(results);
+      rval.addChild(rval.getChildCount(),response);
     }
     else if (command.equals("report/documentstatus"))
     {
+      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+      error.setValue("Command '"+command+"' not yet implemented");
+      rval.addChild(rval.getChildCount(),error);
     }
     else if (command.equals("report/queuestatus"))
     {
+      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+      error.setValue("Command '"+command+"' not yet implemented");
+      rval.addChild(rval.getChildCount(),error);
     }
     else if (command.equals("report/simplehistory"))
     {
+      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+      error.setValue("Command '"+command+"' not yet implemented");
+      rval.addChild(rval.getChildCount(),error);
     }
     else if (command.equals("report/maximumbandwidth"))
     {
+      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+      error.setValue("Command '"+command+"' not yet implemented");
+      rval.addChild(rval.getChildCount(),error);
     }
     else if (command.equals("report/maximumactivity"))
     {
+      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+      error.setValue("Command '"+command+"' not yet implemented");
+      rval.addChild(rval.getChildCount(),error);
     }
     else if (command.equals("report/resultsummary"))
     {
+      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+      error.setValue("Command '"+command+"' not yet implemented");
+      rval.addChild(rval.getChildCount(),error);
     }
     else
     {
@@ -1333,7 +1742,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
   protected static final String JOBNODE_ENUMVALUE = "value";
   
   /** Convert a node into a job description.
-  *@param job is the job to be filled in.
+  *@param jobDescription is the job to be filled in.
   *@param jobNode is the configuration node corresponding to the whole job itself.
   */
   protected static void processJobDescription(org.apache.lcf.crawler.jobs.JobDescription jobDescription, ConfigurationNode jobNode)
@@ -1496,7 +1905,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
   }
 
   /** Convert a job description into a ConfigurationNode.
-  *@param nodeType is the type of the node we want to create to represent the job.
+  *@param jobNode is the node to be filled in.
   *@param job is the job description.
   */
   protected static void formatJobDescription(ConfigurationNode jobNode, IJobDescription job)
@@ -1891,6 +2300,420 @@ public class LCF extends org.apache.lcf.agents.system.LCF
   }
 
   // End of jobstatus API support.
+  
+  // Connection API
+  
+  protected static final String CONNECTIONNODE_NAME = "name";
+  protected static final String CONNECTIONNODE_CLASSNAME = "class_name";
+  protected static final String CONNECTIONNODE_MAXCONNECTIONS = "max_connections";
+  protected static final String CONNECTIONNODE_DESCRIPTION = "description";
+  protected static final String CONNECTIONNODE_CONFIGURATION = "configuration";
+  protected static final String CONNECTIONNODE_ACLAUTHORITY = "acl_authority";
+  protected static final String CONNECTIONNODE_THROTTLES = "throttles";
+  protected static final String CONNECTIONNODE_THROTTLE = "throttle";
+  protected static final String CONNECTIONNODE_MATCH = "match";
+  protected static final String CONNECTIONNODE_MATCHDESCRIPTION = "match_description";
+  protected static final String CONNECTIONNODE_RATE = "rate";
+  
+  // Output connection API support.
+  
+  /** Convert input hierarchy into an OutputConnection object.
+  */
+  protected static void processOutputConnection(org.apache.lcf.agents.outputconnection.OutputConnection connection, ConfigurationNode connectionNode)
+    throws LCFException
+  {
+    // Walk through the node's children
+    int i = 0;
+    while (i < connectionNode.getChildCount())
+    {
+      ConfigurationNode child = connectionNode.findChild(i++);
+      String childType = child.getType();
+      if (childType.equals(CONNECTIONNODE_NAME))
+      {
+        if (child.getValue() == null)
+          throw new LCFException("Connection name node requires a value");
+        connection.setName(child.getValue());
+      }
+      else if (childType.equals(CONNECTIONNODE_CLASSNAME))
+      {
+        if (child.getValue() == null)
+          throw new LCFException("Connection classname node requires a value");
+        connection.setClassName(child.getValue());
+      }
+      else if (childType.equals(CONNECTIONNODE_MAXCONNECTIONS))
+      {
+        if (child.getValue() == null)
+          throw new LCFException("Connection maxconnections node requires a value");
+        try
+        {
+          connection.setMaxConnections(Integer.parseInt(child.getValue()));
+        }
+        catch (NumberFormatException e)
+        {
+          throw new LCFException("Error parsing max connections: "+e.getMessage(),e);
+        }
+      }
+      else if (childType.equals(CONNECTIONNODE_DESCRIPTION))
+      {
+        if (child.getValue() == null)
+          throw new LCFException("Connection description node requires a value");
+        connection.setDescription(child.getValue());
+      }
+      else if (childType.equals(CONNECTIONNODE_CONFIGURATION))
+      {
+        // Get the connection's configuration, clear out the children, and copy new ones from the child.
+        ConfigParams cp = connection.getConfigParams();
+        cp.clearChildren();
+        int j = 0;
+        while (j < child.getChildCount())
+        {
+          ConfigurationNode cn = child.findChild(j++);
+          cp.addChild(cp.getChildCount(),new ConfigNode(cn));
+        }
+      }
+      else
+        throw new LCFException("Unrecognized output connection field: '"+childType+"'");
+    }
+    if (connection.getName() == null)
+      throw new LCFException("Missing connection field: '"+CONNECTIONNODE_NAME+"'");
+    if (connection.getClassName() == null)
+      throw new LCFException("Missing connection field: '"+CONNECTIONNODE_CLASSNAME+"'");
+
+  }
+  
+  /** Format an output connection.
+  */
+  protected static void formatOutputConnection(ConfigurationNode connectionNode, IOutputConnection connection)
+  {
+    ConfigurationNode child;
+    int j;
+    
+    child = new ConfigurationNode(CONNECTIONNODE_NAME);
+    child.setValue(connection.getName());
+    connectionNode.addChild(connectionNode.getChildCount(),child);
+
+    child = new ConfigurationNode(CONNECTIONNODE_CLASSNAME);
+    child.setValue(connection.getClassName());
+    connectionNode.addChild(connectionNode.getChildCount(),child);
+
+    child = new ConfigurationNode(CONNECTIONNODE_MAXCONNECTIONS);
+    child.setValue(Integer.toString(connection.getMaxConnections()));
+    connectionNode.addChild(connectionNode.getChildCount(),child);
+
+    if (connection.getDescription() != null)
+    {
+      child = new ConfigurationNode(CONNECTIONNODE_DESCRIPTION);
+      child.setValue(connection.getDescription());
+      connectionNode.addChild(connectionNode.getChildCount(),child);
+    }
+    
+    ConfigParams cp = connection.getConfigParams();
+    child = new ConfigurationNode(CONNECTIONNODE_CONFIGURATION);
+    j = 0;
+    while (j < cp.getChildCount())
+    {
+      ConfigurationNode cn = cp.findChild(j++);
+      child.addChild(child.getChildCount(),cn);
+    }
+    connectionNode.addChild(connectionNode.getChildCount(),child);
+
+  }
+
+  // Authority connection API support
+  
+  /** Convert input hierarchy into an AuthorityConnection object.
+  */
+  protected static void processAuthorityConnection(org.apache.lcf.authorities.authority.AuthorityConnection connection, ConfigurationNode connectionNode)
+    throws LCFException
+  {
+    // Walk through the node's children
+    int i = 0;
+    while (i < connectionNode.getChildCount())
+    {
+      ConfigurationNode child = connectionNode.findChild(i++);
+      String childType = child.getType();
+      if (childType.equals(CONNECTIONNODE_NAME))
+      {
+        if (child.getValue() == null)
+          throw new LCFException("Connection name node requires a value");
+        connection.setName(child.getValue());
+      }
+      else if (childType.equals(CONNECTIONNODE_CLASSNAME))
+      {
+        if (child.getValue() == null)
+          throw new LCFException("Connection classname node requires a value");
+        connection.setClassName(child.getValue());
+      }
+      else if (childType.equals(CONNECTIONNODE_MAXCONNECTIONS))
+      {
+        if (child.getValue() == null)
+          throw new LCFException("Connection maxconnections node requires a value");
+        try
+        {
+          connection.setMaxConnections(Integer.parseInt(child.getValue()));
+        }
+        catch (NumberFormatException e)
+        {
+          throw new LCFException("Error parsing max connections: "+e.getMessage(),e);
+        }
+      }
+      else if (childType.equals(CONNECTIONNODE_DESCRIPTION))
+      {
+        if (child.getValue() == null)
+          throw new LCFException("Connection description node requires a value");
+        connection.setDescription(child.getValue());
+      }
+      else if (childType.equals(CONNECTIONNODE_CONFIGURATION))
+      {
+        // Get the connection's configuration, clear out the children, and copy new ones from the child.
+        ConfigParams cp = connection.getConfigParams();
+        cp.clearChildren();
+        int j = 0;
+        while (j < child.getChildCount())
+        {
+          ConfigurationNode cn = child.findChild(j++);
+          cp.addChild(cp.getChildCount(),new ConfigNode(cn));
+        }
+      }
+      else
+        throw new LCFException("Unrecognized authority connection field: '"+childType+"'");
+    }
+    if (connection.getName() == null)
+      throw new LCFException("Missing connection field: '"+CONNECTIONNODE_NAME+"'");
+    if (connection.getClassName() == null)
+      throw new LCFException("Missing connection field: '"+CONNECTIONNODE_CLASSNAME+"'");
+
+  }
+  
+  /** Format an authority connection.
+  */
+  protected static void formatAuthorityConnection(ConfigurationNode connectionNode, IAuthorityConnection connection)
+  {
+    ConfigurationNode child;
+    int j;
+    
+    child = new ConfigurationNode(CONNECTIONNODE_NAME);
+    child.setValue(connection.getName());
+    connectionNode.addChild(connectionNode.getChildCount(),child);
+
+    child = new ConfigurationNode(CONNECTIONNODE_CLASSNAME);
+    child.setValue(connection.getClassName());
+    connectionNode.addChild(connectionNode.getChildCount(),child);
+
+    child = new ConfigurationNode(CONNECTIONNODE_MAXCONNECTIONS);
+    child.setValue(Integer.toString(connection.getMaxConnections()));
+    connectionNode.addChild(connectionNode.getChildCount(),child);
+
+    if (connection.getDescription() != null)
+    {
+      child = new ConfigurationNode(CONNECTIONNODE_DESCRIPTION);
+      child.setValue(connection.getDescription());
+      connectionNode.addChild(connectionNode.getChildCount(),child);
+    }
+    
+    ConfigParams cp = connection.getConfigParams();
+    child = new ConfigurationNode(CONNECTIONNODE_CONFIGURATION);
+    j = 0;
+    while (j < cp.getChildCount())
+    {
+      ConfigurationNode cn = cp.findChild(j++);
+      child.addChild(child.getChildCount(),cn);
+    }
+    connectionNode.addChild(connectionNode.getChildCount(),child);
+
+  }
+
+  // Repository connection API support methods
+  
+  /** Convert input hierarchy into a RepositoryConnection object.
+  */
+  protected static void processRepositoryConnection(org.apache.lcf.crawler.repository.RepositoryConnection connection, ConfigurationNode connectionNode)
+    throws LCFException
+  {
+    // Walk through the node's children
+    int i = 0;
+    while (i < connectionNode.getChildCount())
+    {
+      ConfigurationNode child = connectionNode.findChild(i++);
+      String childType = child.getType();
+      if (childType.equals(CONNECTIONNODE_NAME))
+      {
+        if (child.getValue() == null)
+          throw new LCFException("Connection name node requires a value");
+        connection.setName(child.getValue());
+      }
+      else if (childType.equals(CONNECTIONNODE_CLASSNAME))
+      {
+        if (child.getValue() == null)
+          throw new LCFException("Connection classname node requires a value");
+        connection.setClassName(child.getValue());
+      }
+      else if (childType.equals(CONNECTIONNODE_MAXCONNECTIONS))
+      {
+        if (child.getValue() == null)
+          throw new LCFException("Connection maxconnections node requires a value");
+        try
+        {
+          connection.setMaxConnections(Integer.parseInt(child.getValue()));
+        }
+        catch (NumberFormatException e)
+        {
+          throw new LCFException("Error parsing max connections: "+e.getMessage(),e);
+        }
+      }
+      else if (childType.equals(CONNECTIONNODE_DESCRIPTION))
+      {
+        if (child.getValue() == null)
+          throw new LCFException("Connection description node requires a value");
+        connection.setDescription(child.getValue());
+      }
+      else if (childType.equals(CONNECTIONNODE_CONFIGURATION))
+      {
+        // Get the connection's configuration, clear out the children, and copy new ones from the child.
+        ConfigParams cp = connection.getConfigParams();
+        cp.clearChildren();
+        int j = 0;
+        while (j < child.getChildCount())
+        {
+          ConfigurationNode cn = child.findChild(j++);
+          cp.addChild(cp.getChildCount(),new ConfigNode(cn));
+        }
+      }
+      else if (childType.equals(CONNECTIONNODE_ACLAUTHORITY))
+      {
+        if (child.getValue() == null)
+          throw new LCFException("Connection aclauthority node requires a value");
+        connection.setACLAuthority(child.getValue());
+      }
+      else if (childType.equals(CONNECTIONNODE_THROTTLES))
+      {
+        // Go through children
+        connection.clearThrottleValues();
+        int k = 0;
+        while (k < child.getChildCount())
+        {
+          ConfigurationNode throttleNode = child.findChild(k++);
+          if (throttleNode.getType().equals(CONNECTIONNODE_THROTTLE))
+          {
+            String match = null;
+            String description = null;
+            Float rate = null;
+            
+            int q = 0;
+            while (q < throttleNode.getChildCount())
+            {
+              ConfigurationNode throttleField = throttleNode.findChild(q++);
+              String fieldType = throttleField.getType();
+              if (fieldType.equals(CONNECTIONNODE_MATCH))
+              {
+                match = throttleField.getValue();
+              }
+              else if (fieldType.equals(CONNECTIONNODE_MATCHDESCRIPTION))
+              {
+                description = throttleField.getValue();
+              }
+              else if (fieldType.equals(CONNECTIONNODE_RATE))
+              {
+                rate = new Float(throttleField.getValue());
+              }
+              else
+                throw new LCFException("Unrecognized throttle field: '"+fieldType+"'");
+            }
+            if (match == null)
+              throw new LCFException("Missing throttle field: '"+CONNECTIONNODE_MATCH+"'");
+            if (rate == null)
+              throw new LCFException("Missing throttle field: '"+CONNECTIONNODE_RATE+"'");
+            connection.addThrottleValue(match,description,rate.floatValue());
+          }
+          else
+            throw new LCFException("Unrecognized throttles node: '"+throttleNode.getType()+"'");
+        }
+      }
+      else
+        throw new LCFException("Unrecognized repository connection field: '"+childType+"'");
+    }
+    if (connection.getName() == null)
+      throw new LCFException("Missing connection field: '"+CONNECTIONNODE_NAME+"'");
+    if (connection.getClassName() == null)
+      throw new LCFException("Missing connection field: '"+CONNECTIONNODE_CLASSNAME+"'");
+
+  }
+  
+  /** Format a repository connection.
+  */
+  protected static void formatRepositoryConnection(ConfigurationNode connectionNode, IRepositoryConnection connection)
+  {
+    ConfigurationNode child;
+    int j;
+    
+    child = new ConfigurationNode(CONNECTIONNODE_NAME);
+    child.setValue(connection.getName());
+    connectionNode.addChild(connectionNode.getChildCount(),child);
+
+    child = new ConfigurationNode(CONNECTIONNODE_CLASSNAME);
+    child.setValue(connection.getClassName());
+    connectionNode.addChild(connectionNode.getChildCount(),child);
+
+    child = new ConfigurationNode(CONNECTIONNODE_MAXCONNECTIONS);
+    child.setValue(Integer.toString(connection.getMaxConnections()));
+    connectionNode.addChild(connectionNode.getChildCount(),child);
+
+    if (connection.getDescription() != null)
+    {
+      child = new ConfigurationNode(CONNECTIONNODE_DESCRIPTION);
+      child.setValue(connection.getDescription());
+      connectionNode.addChild(connectionNode.getChildCount(),child);
+    }
+    
+    ConfigParams cp = connection.getConfigParams();
+    child = new ConfigurationNode(CONNECTIONNODE_CONFIGURATION);
+    j = 0;
+    while (j < cp.getChildCount())
+    {
+      ConfigurationNode cn = cp.findChild(j++);
+      child.addChild(child.getChildCount(),cn);
+    }
+    connectionNode.addChild(connectionNode.getChildCount(),child);
+
+    if (connection.getACLAuthority() != null)
+    {
+      child = new ConfigurationNode(CONNECTIONNODE_ACLAUTHORITY);
+      child.setValue(connection.getACLAuthority());
+      connectionNode.addChild(connectionNode.getChildCount(),child);
+    }
+    
+    child = new ConfigurationNode(CONNECTIONNODE_THROTTLES);
+    String[] throttles = connection.getThrottles();
+    j = 0;
+    while (j < throttles.length)
+    {
+      String match = throttles[j++];
+      String description = connection.getThrottleDescription(match);
+      float rate = connection.getThrottleValue(match);
+      ConfigurationNode throttleNode = new ConfigurationNode(CONNECTIONNODE_THROTTLE);
+      ConfigurationNode throttleChildNode;
+      
+      throttleChildNode = new ConfigurationNode(CONNECTIONNODE_MATCH);
+      throttleChildNode.setValue(match);
+      throttleNode.addChild(throttleNode.getChildCount(),throttleChildNode);
+      
+      if (description != null)
+      {
+        throttleChildNode = new ConfigurationNode(CONNECTIONNODE_MATCHDESCRIPTION);
+        throttleChildNode.setValue(description);
+        throttleNode.addChild(throttleNode.getChildCount(),throttleChildNode);
+      }
+
+      throttleChildNode = new ConfigurationNode(CONNECTIONNODE_RATE);
+      throttleChildNode.setValue(new Float(rate).toString());
+      throttleNode.addChild(throttleNode.getChildCount(),throttleChildNode);
+
+      child.addChild(child.getChildCount(),throttleNode);
+    }
+    
+  }
+
+  // End of connection API code
   
   protected static ConfigurationNode findConfigurationNode(Configuration input, String argumentName)
   {
