@@ -983,5 +983,735 @@ public class LCF extends org.apache.lcf.agents.system.LCF
   {
     return outputActivityName+" ("+outputConnectionName+")";
   }
+  
+  // API support
+  
+  protected static final String API_ERRORNODE = "error";
+  protected static final String API_JOBNODE = "job";
+  protected static final String API_JOBIDNODE = "job_id";
+  
+  /** Execute specified command.  Note that the command is a string, and that it is permitted to accept at most one argument, which
+  * will be a Configuration object, and return the same.
+  *@param tc is the thread context.
+  *@param command is the command.
+  *@param inputArgument is the (optional) argument.
+  *@return the response, which cannot be null.
+  */
+  public static Configuration executeCommand(IThreadContext tc, String command, Configuration inputArgument)
+    throws LCFException
+  {
+    Configuration rval = new ResponseValue();
+    if (command.equals("job/list"))
+    {
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      IJobDescription[] jobs = jobManager.getAllJobs();
+      int i = 0;
+      while (i < jobs.length)
+      {
+        ConfigurationNode job = formatJobDescription(API_JOBNODE,jobs[i++]);
+        rval.addChild(rval.getChildCount(),job);
+      }
+    }
+    else if (command.equals("job/get"))
+    {
+      // Get the job id from the argument
+      if (inputArgument == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument required");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      String jobID = getRootArgument(inputArgument,API_JOBIDNODE);
+      if (jobID == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument must have '"+API_JOBIDNODE+"' field");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      IJobDescription job = jobManager.load(new Long(jobID));
+      if (job != null)
+      {
+        // Fill the return object with job information
+        ConfigurationNode jobNode = formatJobDescription(API_JOBNODE,job);
+        rval.addChild(rval.getChildCount(),jobNode);
+      }
+    }
+    else if (command.equals("job/save"))
+    {
+      // Get the job from the argument
+      if (inputArgument == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument required");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+
+      ConfigurationNode jobNode = findConfigurationNode(inputArgument,API_JOBNODE);
+      if (jobNode == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument must have '"+API_JOBNODE+"' field");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      // Turn the configuration node into a JobDescription
+      IJobDescription job = readJobDescription(tc,jobNode);
+      
+      // Save the job.
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      jobManager.save(job);
+    }
+    else if (command.equals("job/delete"))
+    {
+      // Get the job id from the argument
+      if (inputArgument == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument required");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+      
+      String jobID = getRootArgument(inputArgument,API_JOBIDNODE);
+      if (jobID == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Input argument must have '"+API_JOBIDNODE+"' field");
+        rval.addChild(rval.getChildCount(),error);
+        return rval;
+      }
+
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      jobManager.deleteJob(new Long(jobID));
+    }
+    else if (command.equals("jobstatus/list"))
+    {
+    }
+    else if (command.equals("jobstatus/start"))
+    {
+    }
+    else if (command.equals("jobstatus/abort"))
+    {
+    }
+    else if (command.equals("jobstatus/restart"))
+    {
+    }
+    else if (command.equals("jobstatus/pause"))
+    {
+    }
+    else if (command.equals("jobstatus/resume"))
+    {
+    }
+    else if (command.equals("outputconnection/list"))
+    {
+    }
+    else if (command.equals("outputconnection/get"))
+    {
+    }
+    else if (command.equals("outputconnection/save"))
+    {
+    }
+    else if (command.equals("outputconnection/delete"))
+    {
+    }
+    else if (command.equals("outputconnection/checkstatus"))
+    {
+    }
+    else if (command.equals("repositoryconnection/list"))
+    {
+    }
+    else if (command.equals("repositoryconnection/get"))
+    {
+    }
+    else if (command.equals("repositoryconnection/save"))
+    {
+    }
+    else if (command.equals("repositoryconnection/delete"))
+    {
+    }
+    else if (command.equals("repositoryconnection/checkstatus"))
+    {
+    }
+    else if (command.equals("authorityconnection/list"))
+    {
+    }
+    else if (command.equals("authorityconnection/get"))
+    {
+    }
+    else if (command.equals("authorityconnection/save"))
+    {
+    }
+    else if (command.equals("authorityconnection/delete"))
+    {
+    }
+    else if (command.equals("authorityconnection/checkstatus"))
+    {
+    }
+    else if (command.equals("report/documentstatus"))
+    {
+    }
+    else if (command.equals("report/queuestatus"))
+    {
+    }
+    else if (command.equals("report/simplehistory"))
+    {
+    }
+    else if (command.equals("report/maximumbandwidth"))
+    {
+    }
+    else if (command.equals("report/maximumactivity"))
+    {
+    }
+    else if (command.equals("report/resultsummary"))
+    {
+    }
+    else
+    {
+      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+      error.setValue("Unrecognized command: "+command);
+      rval.addChild(rval.getChildCount(),error);
+    }
+    return rval;
+  }
+  
+  // Job node types
+  protected static final String JOBNODE_ID = "id";
+  protected static final String JOBNODE_DESCRIPTION = "description";
+  protected static final String JOBNODE_CONNECTIONNAME = "repository_connection";
+  protected static final String JOBNODE_OUTPUTNAME = "output_connection";
+  protected static final String JOBNODE_DOCUMENTSPECIFICATION = "document_specification";
+  protected static final String JOBNODE_OUTPUTSPECIFICATION = "output_specification";
+  protected static final String JOBNODE_STARTMODE = "start_mode";
+  protected static final String JOBNODE_RUNMODE = "run_mode";
+  protected static final String JOBNODE_HOPCOUNTMODE = "hopcount_mode";
+  protected static final String JOBNODE_PRIORITY = "priority";
+  protected static final String JOBNODE_RECRAWLINTERVAL = "recrawl_interval";
+  protected static final String JOBNODE_EXPIRATIONINTERVAL = "expiration_interval";
+  protected static final String JOBNODE_RESEEDINTERVAL = "reseed_interval";
+  protected static final String JOBNODE_SCHEDULE = "schedule";
+  protected static final String JOBNODE_RECORD = "record";
+  protected static final String JOBNODE_TIMEZONE = "timezone";
+  protected static final String JOBNODE_DURATION = "duration";
+  protected static final String JOBNODE_DAYOFWEEK = "dayofweek";
+  protected static final String JOBNODE_MONTHOFYEAR = "monthofyear";
+  protected static final String JOBNODE_DAYOFMONTH = "dayofmonth";
+  protected static final String JOBNODE_YEAR = "year";
+  protected static final String JOBNODE_HOUROFDAY = "hourofday";
+  protected static final String JOBNODE_MINUTESOFHOUR = "minutesofhour";
+  protected static final String JOBNODE_ENUMVALUE = "value";
+  
+  /** Convert a node into a job description */
+  protected static IJobDescription readJobDescription(IThreadContext tc, ConfigurationNode jobNode)
+    throws LCFException
+  {
+    org.apache.lcf.crawler.jobs.JobDescription jobDescription = new org.apache.lcf.crawler.jobs.JobDescription();
+    // Walk through the node's children
+    int i = 0;
+    while (i < jobNode.getChildCount())
+    {
+      ConfigurationNode child = jobNode.findChild(i++);
+      String childType = child.getType();
+      if (childType.equals(JOBNODE_ID))
+      {
+        if (child.getValue() == null)
+          throw new LCFException("Job id node requires a value");
+        jobDescription.setID(new Long(child.getValue()));
+      }
+      else if (childType.equals(JOBNODE_DESCRIPTION))
+      {
+        jobDescription.setDescription(child.getValue());
+      }
+      else if (childType.equals(JOBNODE_CONNECTIONNAME))
+      {
+        jobDescription.setConnectionName(child.getValue());
+      }
+      else if (childType.equals(JOBNODE_OUTPUTNAME))
+      {
+        jobDescription.setOutputConnectionName(child.getValue());
+      }
+      else if (childType.equals(JOBNODE_DOCUMENTSPECIFICATION))
+      {
+        // Get the job's document specification, clear out the children, and copy new ones from the child.
+        DocumentSpecification ds = jobDescription.getSpecification();
+        ds.clearChildren();
+        int j = 0;
+        while (j < child.getChildCount())
+        {
+          ConfigurationNode cn = child.findChild(j++);
+          ds.addChild(ds.getChildCount(),new SpecificationNode(cn));
+        }
+      }
+      else if (childType.equals(JOBNODE_OUTPUTSPECIFICATION))
+      {
+        // Get the job's output specification, clear out the children, and copy new ones from the child.
+        OutputSpecification os = jobDescription.getOutputSpecification();
+        os.clearChildren();
+        int j = 0;
+        while (j < child.getChildCount())
+        {
+          ConfigurationNode cn = child.findChild(j++);
+          os.addChild(os.getChildCount(),new SpecificationNode(cn));
+        }
+      }
+      else if (childType.equals(JOBNODE_STARTMODE))
+      {
+        jobDescription.setStartMethod(mapToStartMode(child.getValue()));
+      }
+      else if (childType.equals(JOBNODE_RUNMODE))
+      {
+        jobDescription.setType(mapToRunMode(child.getValue()));
+      }
+      else if (childType.equals(JOBNODE_HOPCOUNTMODE))
+      {
+        jobDescription.setHopcountMode(mapToHopcountMode(child.getValue()));
+      }
+      else if (childType.equals(JOBNODE_PRIORITY))
+      {
+        try
+        {
+          jobDescription.setPriority(Integer.parseInt(child.getValue()));
+        }
+        catch (NumberFormatException e)
+        {
+          throw new LCFException(e.getMessage(),e);
+        }
+      }
+      else if (childType.equals(JOBNODE_RECRAWLINTERVAL))
+      {
+        jobDescription.setInterval(interpretInterval(child.getValue()));
+      }
+      else if (childType.equals(JOBNODE_EXPIRATIONINTERVAL))
+      {
+        jobDescription.setExpiration(interpretInterval(child.getValue()));
+      }
+      else if (childType.equals(JOBNODE_RESEEDINTERVAL))
+      {
+        jobDescription.setReseedInterval(interpretInterval(child.getValue()));
+      }
+      else if (childType.equals(JOBNODE_SCHEDULE))
+      {
+        // The children of this node should be schedule records.  Walk through them.
+        int k = 0;
+        while (k < child.getChildCount())
+        {
+          ConfigurationNode scheduleNode = child.findChild(k++);
+          if (scheduleNode.getType().equals(JOBNODE_RECORD))
+          {
+            // Create a schedule record.
+            String timezone = null;
+            Long duration = null;
+            EnumeratedValues dayOfWeek = null;
+            EnumeratedValues monthOfYear = null;
+            EnumeratedValues dayOfMonth = null;
+            EnumeratedValues year = null;
+            EnumeratedValues hourOfDay = null;
+            EnumeratedValues minutesOfHour = null;
+            
+            // Now, walk through children of the schedule node.
+            int q = 0;
+            while (q < scheduleNode.getChildCount())
+            {
+              ConfigurationNode scheduleField = scheduleNode.findChild(q++);
+              String fieldType = scheduleField.getType();
+              if (fieldType.equals(JOBNODE_TIMEZONE))
+              {
+                timezone = scheduleField.getValue();
+              }
+              else if (fieldType.equals(JOBNODE_DURATION))
+              {
+                duration = new Long(scheduleField.getValue());
+              }
+              else if (fieldType.equals(JOBNODE_DAYOFWEEK))
+              {
+                dayOfWeek = processEnumeratedValues(scheduleField);
+              }
+              else if (fieldType.equals(JOBNODE_MONTHOFYEAR))
+              {
+                monthOfYear = processEnumeratedValues(scheduleField);
+              }
+              else if (fieldType.equals(JOBNODE_YEAR))
+              {
+                year = processEnumeratedValues(scheduleField);
+              }
+              else if (fieldType.equals(JOBNODE_DAYOFMONTH))
+              {
+                dayOfMonth = processEnumeratedValues(scheduleField);
+              }
+              else if (fieldType.equals(JOBNODE_HOUROFDAY))
+              {
+                hourOfDay = processEnumeratedValues(scheduleField);
+              }
+              else if (fieldType.equals(JOBNODE_MINUTESOFHOUR))
+              {
+                minutesOfHour = processEnumeratedValues(scheduleField);
+              }
+              else
+                throw new LCFException("Unrecognized field in schedule record: '"+fieldType+"'");
+            }
+            ScheduleRecord sr = new ScheduleRecord(dayOfWeek,monthOfYear,dayOfMonth,year,hourOfDay,minutesOfHour,timezone,duration);
+            // Add the schedule record to the job.
+            jobDescription.addScheduleRecord(sr);
+          }
+          else
+            throw new LCFException("Encountered an unexpected node type in schedule: '"+scheduleNode.getType()+"'");
+        }
+      }
+      else
+        throw new LCFException("Unrecognized job field: '"+childType+"'");
+    }
+    if (jobDescription.getID() == null)
+    {
+      jobDescription.setID(new Long(IDFactory.make(tc)));
+      jobDescription.setIsNew(true);
+    }
+    else
+      jobDescription.setIsNew(false);
+    return jobDescription;
+  }
+
+  /** Convert a job description into a ConfigurationNode */
+  protected static ConfigurationNode formatJobDescription(String nodeType, IJobDescription job)
+  {
+    ConfigurationNode jobNode = new ConfigurationNode(nodeType);
+    // For each field of the job, add an appropriate child node, with value.
+    ConfigurationNode child;
+    int j;
+    
+    // id
+    if (job.getID() != null)
+    {
+      child = new ConfigurationNode(JOBNODE_ID);
+      child.setValue(job.getID().toString());
+      jobNode.addChild(jobNode.getChildCount(),child);
+    }
+    
+    // description
+    if (job.getDescription() != null)
+    {
+      child = new ConfigurationNode(JOBNODE_DESCRIPTION);
+      child.setValue(job.getDescription());
+      jobNode.addChild(jobNode.getChildCount(),child);
+    }
+    
+    // connection
+    if (job.getConnectionName() != null)
+    {
+      child = new ConfigurationNode(JOBNODE_CONNECTIONNAME);
+      child.setValue(job.getConnectionName());
+      jobNode.addChild(jobNode.getChildCount(),child);
+    }
+
+    // output connection
+    if (job.getOutputConnectionName() != null)
+    {
+      child = new ConfigurationNode(JOBNODE_OUTPUTNAME);
+      child.setValue(job.getOutputConnectionName());
+      jobNode.addChild(jobNode.getChildCount(),child);
+    }
+
+    // Document specification
+    DocumentSpecification ds = job.getSpecification();
+    child = new ConfigurationNode(JOBNODE_DOCUMENTSPECIFICATION);
+    j = 0;
+    while (j < ds.getChildCount())
+    {
+      ConfigurationNode cn = ds.getChild(j++);
+      child.addChild(child.getChildCount(),cn);
+    }
+    jobNode.addChild(jobNode.getChildCount(),child);
+
+    // Output specification
+    OutputSpecification os = job.getOutputSpecification();
+    child = new ConfigurationNode(JOBNODE_OUTPUTSPECIFICATION);
+    j = 0;
+    while (j < os.getChildCount())
+    {
+      ConfigurationNode cn = os.getChild(j++);
+      child.addChild(child.getChildCount(),cn);
+    }
+    jobNode.addChild(jobNode.getChildCount(),child);
+
+    // Start mode
+    child = new ConfigurationNode(JOBNODE_STARTMODE);
+    child.setValue(startModeMap(job.getStartMethod()));
+    jobNode.addChild(jobNode.getChildCount(),child);
+
+    // Run mode
+    child = new ConfigurationNode(JOBNODE_RUNMODE);
+    child.setValue(runModeMap(job.getType()));
+    jobNode.addChild(jobNode.getChildCount(),child);
+
+    // Hopcount mode
+    child = new ConfigurationNode(JOBNODE_HOPCOUNTMODE);
+    child.setValue(hopcountModeMap(job.getHopcountMode()));
+    jobNode.addChild(jobNode.getChildCount(),child);
+
+    // Priority
+    child = new ConfigurationNode(JOBNODE_PRIORITY);
+    child.setValue(Integer.toString(job.getPriority()));
+    jobNode.addChild(jobNode.getChildCount(),child);
+
+    // Recrawl interval
+    if (job.getInterval() != null)
+    {
+      child = new ConfigurationNode(JOBNODE_RECRAWLINTERVAL);
+      child.setValue(job.getInterval().toString());
+      jobNode.addChild(jobNode.getChildCount(),child);
+    }
+    
+    // Expiration interval
+    if (job.getExpiration() != null)
+    {
+      child = new ConfigurationNode(JOBNODE_EXPIRATIONINTERVAL);
+      child.setValue(job.getExpiration().toString());
+      jobNode.addChild(jobNode.getChildCount(),child);
+    }
+    
+    // Reseed interval
+    if (job.getReseedInterval() != null)
+    {
+      child = new ConfigurationNode(JOBNODE_RESEEDINTERVAL);
+      child.setValue(job.getReseedInterval().toString());
+      jobNode.addChild(jobNode.getChildCount(),child);
+    }
+    
+    // Schedule records
+    child = new ConfigurationNode(JOBNODE_SCHEDULE);
+    j = 0;
+    while (j < job.getScheduleRecordCount())
+    {
+      ScheduleRecord sr = job.getScheduleRecord(j++);
+      ConfigurationNode recordNode = new ConfigurationNode(JOBNODE_RECORD);
+      ConfigurationNode recordChild;
+      
+      // timezone
+      if (sr.getTimezone() != null)
+      {
+        recordChild = new ConfigurationNode(JOBNODE_TIMEZONE);
+        recordChild.setValue(sr.getTimezone());
+        recordNode.addChild(recordNode.getChildCount(),recordChild);
+      }
+
+      // duration
+      if (sr.getDuration() != null)
+      {
+        recordChild = new ConfigurationNode(JOBNODE_DURATION);
+        recordChild.setValue(sr.getDuration().toString());
+        recordNode.addChild(recordNode.getChildCount(),recordChild);
+      }
+      
+      // Schedule specification values
+      
+      // day of week
+      if (sr.getDayOfWeek() != null)
+        formatEnumeratedValues(recordNode,JOBNODE_DAYOFWEEK,sr.getDayOfWeek());
+      if (sr.getMonthOfYear() != null)
+        formatEnumeratedValues(recordNode,JOBNODE_MONTHOFYEAR,sr.getMonthOfYear());
+      if (sr.getDayOfMonth() != null)
+        formatEnumeratedValues(recordNode,JOBNODE_DAYOFMONTH,sr.getDayOfMonth());
+      if (sr.getYear() != null)
+        formatEnumeratedValues(recordNode,JOBNODE_YEAR,sr.getYear());
+      if (sr.getHourOfDay() != null)
+        formatEnumeratedValues(recordNode,JOBNODE_HOUROFDAY,sr.getHourOfDay());
+      if (sr.getMinutesOfHour() != null)
+        formatEnumeratedValues(recordNode,JOBNODE_MINUTESOFHOUR,sr.getMinutesOfHour());
+
+      child.addChild(child.getChildCount(),recordNode);
+    }
+    jobNode.addChild(jobNode.getChildCount(),child);
+    
+    return jobNode;
+  }
+
+  protected static void formatEnumeratedValues(ConfigurationNode recordNode, String childType, EnumeratedValues value)
+  {
+    ConfigurationNode child = new ConfigurationNode(childType);
+    Iterator iter = value.getValues();
+    while (iter.hasNext())
+    {
+      Integer theValue = (Integer)iter.next();
+      ConfigurationNode valueNode = new ConfigurationNode(JOBNODE_ENUMVALUE);
+      valueNode.setValue(theValue.toString());
+      child.addChild(child.getChildCount(),valueNode);
+    }
+    recordNode.addChild(recordNode.getChildCount(),child);
+  }
+  
+  protected static EnumeratedValues processEnumeratedValues(ConfigurationNode fieldNode)
+    throws LCFException
+  {
+    ArrayList values = new ArrayList();
+    int i = 0;
+    while (i < fieldNode.getChildCount())
+    {
+      ConfigurationNode cn = fieldNode.findChild(i++);
+      if (cn.getType().equals(JOBNODE_ENUMVALUE))
+      {
+        try
+        {
+          values.add(new Integer(cn.getValue()));
+        }
+        catch (NumberFormatException e)
+        {
+          throw new LCFException("Error processing enumerated value node: "+e.getMessage(),e);
+        }
+      }
+      else
+        throw new LCFException("Error processing enumerated value nodes: Unrecognized node type '"+cn.getType()+"'");
+    }
+    return new EnumeratedValues(values);
+  }
+  
+  protected static String presentInterval(Long interval)
+  {
+    if (interval == null)
+      return "infinite";
+    return interval.toString();
+  }
+
+  protected static Long interpretInterval(String interval)
+    throws LCFException
+  {
+    if (interval == null || interval.equals("infinite"))
+      return null;
+    else
+      return new Long(interval);
+  }
+  
+  protected static String startModeMap(int startMethod)
+  {
+    switch (startMethod)
+    {
+    case IJobDescription.START_WINDOWBEGIN:
+      return "schedule window start";
+    case IJobDescription.START_WINDOWINSIDE:
+      return "schedule window anytime";
+    case IJobDescription.START_DISABLE:
+      return "manual";
+    default:
+      return "unknown";
+    }
+  }
+
+  protected static int mapToStartMode(String startMethod)
+    throws LCFException
+  {
+    if (startMethod.equals("schedule window start"))
+      return IJobDescription.START_WINDOWBEGIN;
+    else if (startMethod.equals("schedule window anytime"))
+      return IJobDescription.START_WINDOWINSIDE;
+    else if (startMethod.equals("manual"))
+      return IJobDescription.START_DISABLE;
+    else
+      throw new LCFException("Unrecognized start method: '"+startMethod+"'");
+  }
+  
+  protected static String runModeMap(int type)
+  {
+    switch (type)
+    {
+    case IJobDescription.TYPE_CONTINUOUS:
+      return "continuous";
+    case IJobDescription.TYPE_SPECIFIED:
+      return "scan once";
+    default:
+      return "unknown";
+    }
+  }
+
+  protected static int mapToRunMode(String mode)
+    throws LCFException
+  {
+    if (mode.equals("continuous"))
+      return IJobDescription.TYPE_CONTINUOUS;
+    else if (mode.equals("scan once"))
+      return IJobDescription.TYPE_SPECIFIED;
+    else
+      throw new LCFException("Unrecognized run method: '"+mode+"'");
+  }
+  
+  protected static String hopcountModeMap(int mode)
+  {
+    switch (mode)
+    {
+    case IJobDescription.HOPCOUNT_ACCURATE:
+      return "accurate";
+    case IJobDescription.HOPCOUNT_NODELETE:
+      return "no delete";
+    case IJobDescription.HOPCOUNT_NEVERDELETE:
+      return "never delete";
+    default:
+      return "unknown";
+    }
+  }
+
+  protected static int mapToHopcountMode(String mode)
+    throws LCFException
+  {
+    if (mode.equals("accurate"))
+      return IJobDescription.HOPCOUNT_ACCURATE;
+    else if (mode.equals("no delete"))
+      return IJobDescription.HOPCOUNT_NODELETE;
+    else if (mode.equals("never delete"))
+      return IJobDescription.HOPCOUNT_NEVERDELETE;
+    else
+      throw new LCFException("Unrecognized hopcount method: '"+mode+"'");
+  }
+  
+  protected static ConfigurationNode findConfigurationNode(Configuration input, String argumentName)
+  {
+    // Look for argument among the children
+    int i = 0;
+    while (i < input.getChildCount())
+    {
+      ConfigurationNode cn = input.findChild(i++);
+      if (cn.getType().equals(argumentName))
+        return cn;
+    }
+    return null;
+
+  }
+  
+  protected static String getRootArgument(Configuration input, String argumentName)
+  {
+    ConfigurationNode node = findConfigurationNode(input,argumentName);
+    if (node == null)
+      return null;
+    return node.getValue();
+  }
+  
+  protected static class ResponseValue extends Configuration
+  {
+    /** Constructor.
+    */
+    public ResponseValue()
+    {
+      super();
+    }
+
+    /** Return the root node type.
+    *@return the node type name.
+    */
+    protected String getRootNodeLabel()
+    {
+      return "response";
+    }
+    
+    /** Create a new object of the appropriate class.
+    */
+    protected Configuration createNew()
+    {
+      return new ResponseValue();
+    }
+
+  }
+  
 }
 

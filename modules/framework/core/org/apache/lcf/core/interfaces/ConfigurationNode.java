@@ -43,6 +43,28 @@ public class ConfigurationNode
     this.type = type;
   }
 
+  /** Duplication constructor.
+  */
+  public ConfigurationNode(ConfigurationNode source)
+  {
+    this.type = source.type;
+    this.value = source.value;
+    this.readOnly = source.readOnly;
+    Iterator iter = source.attributes.keySet().iterator();
+    while (iter.hasNext())
+    {
+      String attribute = (String)iter.next();
+      String attrValue = (String)source.attributes.get(attribute);
+      this.attributes.put(attribute,attrValue);
+    }
+    int i = 0;
+    while (i < source.getChildCount())
+    {
+      ConfigurationNode child = source.findChild(i++);
+      this.addChild(this.getChildCount(),createNewNode(child));
+    }
+  }
+  
   /** Make a new blank node identical in type and class to the current node.
   *@return the new node.
   */
@@ -50,7 +72,14 @@ public class ConfigurationNode
   {
     return new ConfigurationNode(type);
   }
-    
+  
+  /** Make a new node that is a copy of the specified node.
+  */
+  protected ConfigurationNode createNewNode(ConfigurationNode source)
+  {
+    return new ConfigurationNode(source);
+  }
+  
   /** Make this node (and its children) read-only
   */
   public void makeReadOnly()
@@ -109,6 +138,8 @@ public class ConfigurationNode
   {
     if (readOnly)
       throw new IllegalStateException("Attempt to change read-only object");
+    if (value != null && value.length() == 0)
+      value = null;
     this.value = value;
   }
 
@@ -144,7 +175,14 @@ public class ConfigurationNode
   */
   public void removeChild(int index)
   {
-    children.remove(index);
+    if (readOnly)
+      throw new IllegalStateException("Attempt to change read-only object");
+    if (children != null)
+    {
+      children.remove(index);
+      if (children.size() == 0)
+        children = null;
+    }
   }
 
   /** Add child at specified position.
@@ -153,6 +191,9 @@ public class ConfigurationNode
   */
   public void addChild(int index, ConfigurationNode child)
   {
+    if (readOnly)
+      throw new IllegalStateException("Attempt to change read-only object");
+
     if (children == null)
       children = new ArrayList();
     children.add(index,child);
@@ -169,7 +210,11 @@ public class ConfigurationNode
     if (value == null)
     {
       if (attributes != null)
+      {
         attributes.remove(attribute);
+        if (attributes.size() == 0)
+          attributes = null;
+      }
     }
     else
     {
@@ -179,6 +224,17 @@ public class ConfigurationNode
     }
   }
 
+  /** Get the attribute count.
+  *@return the attribute count.
+  */
+  public int getAttributeCount()
+  {
+    if (attributes == null)
+      return 0;
+    else
+      return attributes.size();
+  }
+  
   /** Iterate over attributes.
   *@return the attribute iterator.
   */

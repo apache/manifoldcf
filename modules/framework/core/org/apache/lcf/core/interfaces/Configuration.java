@@ -23,12 +23,19 @@ import java.util.*;
 import java.io.*;
 import org.apache.lcf.core.system.LCF;
 import org.apache.lcf.core.common.XMLDoc;
+import org.json.*;
 
 /** This class represents XML configuration information, in its most basic incarnation.
 */
 public abstract class Configuration
 {
   public static final String _rcsid = "@(#)$Id$";
+
+  // JSON special key values
+  
+  protected static final String JSON_ATTRIBUTE = "_attribute_";
+  protected static final String JSON_VALUE = "_value_";
+  
 
   // The children
   protected ArrayList children = new ArrayList();
@@ -139,7 +146,7 @@ public abstract class Configuration
   }
 
   /** Get as XML
-  *@return the xml corresponding to these ConfigParams.
+  *@return the xml corresponding to these Configuration.
   */
   public String toXML()
     throws LCFException
@@ -158,6 +165,35 @@ public abstract class Configuration
     return doc.getXML();
   }
 
+  /** Get as JSON.
+  *@return the json corresponding to this Configuration.
+  */
+  public String toJSON()
+    throws LCFException
+  {
+    try
+    {
+      JSONWriter writer = new JSONStringer();
+      writer.object();
+      // We do NOT use the root node label, unlike XML.
+      // Now, go through all children
+      int i = 0;
+      while (i < children.size())
+      {
+        ConfigurationNode node = (ConfigurationNode)children.get(i++);
+        writeNode(writer,node,true);
+      }
+      writer.endObject();
+      
+      // Convert to a string.
+      return writer.toString();
+    }
+    catch (JSONException e)
+    {
+      throw new LCFException(e.getMessage(),e);
+    }
+  }
+  
   /** Write a specification node.
   *@param doc is the document.
   *@param parent is the parent.
@@ -190,6 +226,103 @@ public abstract class Configuration
     }
   }
 
+  
+  /** Write a JSON specification node.
+  *@param writer is the JSON writer.
+  *@param node is the node.
+  *@param writeKey is true if the key needs to be written, false otherwise.
+  */
+  protected static void writeNode(JSONWriter writer, ConfigurationNode node, boolean writeKey)
+    throws LCFException
+  {
+    try
+    {
+      // Node types correspond directly to keys.  Attributes correspond to "_attribute_<attribute_name>".
+      // Get the type
+      if (writeKey)
+      {
+        String type = node.getType();
+        writer.key(type);
+      }
+      // Problem: Two ways of handling a naked 'value'.  First way is to NOT presume a nested object is needed.  Second way is to require a nested
+      // object.  On reconstruction, the right thing will happen, and a naked value will become a node with a value, while an object will become
+      // a node that has an optional "_value_" key inside it.
+      String value = node.getValue();
+      if (value != null && node.getAttributeCount() == 0 && node.getChildCount() == 0)
+      {
+        writer.value(value);
+      }
+      else
+      {
+        writer.object();
+        
+        if (value != null)
+        {
+          writer.key(JSON_VALUE);
+          writer.value(value);
+        }
+        
+        Iterator iter = node.getAttributes();
+        while (iter.hasNext())
+        {
+          String attribute = (String)iter.next();
+          String attrValue = node.getAttributeValue(attribute);
+          writer.key(JSON_ATTRIBUTE+attribute);
+          writer.value(attrValue);
+        }
+
+        // Now, do children.  To get the arrays right, we need to glue together all children with the
+        // same type, which requires us to do an appropriate pass to gather that stuff together.
+        Map childMap = new HashMap();
+        int i = 0;
+        while (i < node.getChildCount())
+        {
+          ConfigurationNode child = node.findChild(i++);
+          String key = child.getType();
+          ArrayList list = (ArrayList)childMap.get(key);
+          if (list == null)
+          {
+            list = new ArrayList();
+            childMap.put(key,list);
+          }
+          list.add(child);
+        }
+        
+        iter = childMap.keySet().iterator();
+        while (iter.hasNext())
+        {
+          String key = (String)iter.next();
+          ArrayList list = (ArrayList)childMap.get(key);
+          if (list.size() > 1)
+          {
+            // Write the key
+            writer.key(key);
+            // Write it as an array
+            writer.array();
+            i = 0;
+            while (i < list.size())
+            {
+              ConfigurationNode child = (ConfigurationNode)list.get(i++);
+              writeNode(writer,child,false);
+            }
+            writer.endArray();
+          }
+          else
+          {
+            // Write it as a singleton
+            writeNode(writer,(ConfigurationNode)list.get(0),true);
+          }
+        }
+
+        writer.endObject();
+      }
+    }
+    catch (JSONException e)
+    {
+      throw new LCFException(e.getMessage(),e);
+    }
+  }
+  
   /** Read from XML.
   *@param xml is the input XML.
   */
@@ -200,6 +333,134 @@ public abstract class Configuration
     initializeFromDoc(doc);
   }
   
+  /** Read from JSON.
+  *@param json is the input JSON.
+  */
+  public void fromJSON(String json)
+    throws LCFException
+  {
+    if (readOnly)
+      throw new IllegalStateException("Attempt to change read-only object");
+
+    clearChildren();
+    try
+    {
+      JSONObject object = new JSONObject(json);
+      // Convert the object into our configuration
+      Iterator iter = object.keys();
+      while (iter.hasNext())
+      {
+        String key = (String)iter.next();
+        Object x = object.opt(key);
+        if (x instanceof JSONArray)
+        {
+          // Iterate through.
+          JSONArray array = (JSONArray)x;
+          int i = 0;
+          while (i < array.length())
+          {
+            x = array.opt(i++);
+            processObject(key,x);
+          }
+        }
+        else
+          processObject(key,x);
+      }
+    }
+    catch (JSONException e)
+    {
+      throw new LCFException("Json syntax error - "+e.getMessage(),e);
+    }
+  }
+  
+  /** Process a JSON object */
+  protected void processObject(String key, Object x)
+  {
+    if (x instanceof JSONObject)
+    {
+      // Nested single object
+      ConfigurationNode cn = readNode(key,(JSONObject)x);
+      addChild(getChildCount(),cn);
+    }
+    else if (x == JSONObject.NULL)
+    {
+      // Null object.  Don't enter the key.
+    }
+    else
+    {
+      // It's a string or a number or some scalar value
+      String value = x.toString();
+      ConfigurationNode cn = createNewNode(key);
+      cn.setValue(value);
+      addChild(getChildCount(),cn);
+    }
+  }
+  
+  /** Read a node from a json object */
+  protected ConfigurationNode readNode(String key, JSONObject object)
+  {
+    ConfigurationNode rval = createNewNode(key);
+    Iterator iter = object.keys();
+    while (iter.hasNext())
+    {
+      String nestedKey = (String)iter.next();
+      Object x = object.opt(nestedKey);
+      if (x instanceof JSONArray)
+      {
+        // Iterate through.
+        JSONArray array = (JSONArray)x;
+        int i = 0;
+        while (i < array.length())
+        {
+          x = array.opt(i++);
+          processObject(rval,nestedKey,x);
+        }
+      }
+      else
+        processObject(rval,nestedKey,x);
+    }
+    return rval;
+  }
+  
+  /** Process a JSON object */
+  protected void processObject(ConfigurationNode cn, String key, Object x)
+  {
+    if (x instanceof JSONObject)
+    {
+      // Nested single object
+      ConfigurationNode nestedCn = readNode(key,(JSONObject)x);
+      cn.addChild(cn.getChildCount(),nestedCn);
+    }
+    else if (x == JSONObject.NULL)
+    {
+      // Null object.  Don't enter the key.
+    }
+    else
+    {
+      // It's a string or a number or some scalar value
+      String value = x.toString();
+      // Is it an attribute, or a value?
+      if (key.startsWith(JSON_ATTRIBUTE))
+      {
+        // Attribute.  Set the attribute in the current node.
+        cn.setAttribute(key.substring(JSON_ATTRIBUTE.length()),value);
+      }
+      else if (key.equals(JSON_VALUE))
+      {
+        // Value.  Set the value in the current node.
+        cn.setValue(value);
+      }
+      else
+      {
+        // Something we don't recognize, which can only be a simplified key/value pair.
+        // Create a child node representing the key/value pair.
+        ConfigurationNode nestedCn = createNewNode(key);
+        nestedCn.setValue(value);
+        cn.addChild(cn.getChildCount(),nestedCn);
+      }
+    }
+  }
+
   /** Read from an XML binary stream.
   *@param xmlstream is the input XML stream.  Does NOT close the stream.
   */

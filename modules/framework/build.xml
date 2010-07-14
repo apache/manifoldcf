@@ -98,6 +98,20 @@
         </javac>
     </target>
 
+    <target name="compile-api" depends="compile-core,compile-ui-core,compile-agents,compile-pull-agent">
+        <mkdir dir="build/api/classes"/>
+        <javac srcdir="api" destdir="build/api/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
+            <classpath>
+                 <fileset dir="lib"> 
+                    <include name="*.jar"/> 
+                </fileset>
+                <pathelement location="build/core/classes"/>
+                <pathelement location="build/ui-core/classes"/>
+                <pathelement location="build/agents/classes"/>
+                <pathelement location="build/pull-agent/classes"/>
+            </classpath>
+        </javac>
+    </target>
 
     <target name="compile-crawler-ui" depends="compile-core,compile-ui-core,compile-agents,compile-pull-agent">
         <!-- Define the jsp compilation task using tomcat libraries -->
@@ -173,6 +187,7 @@
                 <include name="commons-io*.jar"/>
                 <include name="commons-logging*.jar"/>
                 <include name="jdbcpool-0.99.jar"/>
+                <include name="json.jar"/>
                 <include name="log4j*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
@@ -193,7 +208,42 @@
         </copy>
         <jar destfile="build/webapp/authority-service/WEB-INF/lib/lcf-authority-servlet.jar" basedir="build/authority-service/classes"/>
     </target>
-    
+
+    <target name="webapp-api" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,compile-api">
+        <mkdir dir="build/webapp/api/WEB-INF/lib"/>
+        <copy todir="build/webapp/api/WEB-INF/lib">
+            <fileset dir="lib">
+                <include name="commons-codec*.jar"/>
+                <include name="commons-collections*.jar"/>
+                <include name="commons-el*.jar"/>
+                <include name="commons-fileupload*.jar"/>
+                <include name="commons-httpclient-lcf.jar"/>
+                <include name="commons-io*.jar"/>
+                <include name="commons-logging*.jar"/>
+                <include name="jdbcpool-0.99.jar"/>
+                <include name="json.jar"/>
+                <include name="log4j*.jar"/>
+                <include name="serializer*.jar"/>
+                <include name="xalan*.jar"/>
+                <include name="xercesImpl-lcf.jar"/>
+                <include name="xml-apis*.jar"/>
+            </fileset>
+            <fileset dir="lib">
+                <include name="postgresql*.jar"/>
+                <include name="derby*.jar"/>
+            </fileset>
+        </copy>
+        <copy todir="build/webapp/api/WEB-INF/lib">
+            <fileset dir="build/jar">
+                <include name="lcf-core.jar"/>
+                <include name="lcf-ui-core.jar"/>
+                <include name="lcf-agents.jar"/>
+                <include name="lcf-pull-agent.jar"/>
+            </fileset>
+        </copy>
+        <jar destfile="build/webapp/api/WEB-INF/lib/lcf-api-servlet.jar" basedir="build/api/classes"/>
+    </target>
+
     <target name="webapp-crawler-ui" depends="compile-crawler-ui,jar-core,jar-ui-core,jar-agents,jar-pull-agent">
         <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib">
@@ -211,6 +261,7 @@
                 <include name="commons-io*.jar"/>
                 <include name="commons-logging*.jar"/>
                 <include name="jdbcpool-0.99.jar"/>
+                <include name="json.jar"/>
                 <include name="log4j*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
@@ -245,7 +296,12 @@
         <mkdir dir="dist/web/war"/>
         <war destfile="dist/web/war/lcf-authority-service.war" webxml="authority-service/WEB-INF/web.xml" basedir="build/webapp/authority-service"/>
     </target>
-    
+
+    <target name="war-api" depends="webapp-api">
+        <mkdir dir="dist/web/war"/>
+        <war destfile="dist/web/war/lcf-api.war" webxml="api/WEB-INF/web.xml" basedir="build/webapp/api"/>
+    </target>
+
     <target name="war-crawler-ui" depends="webapp-crawler-ui">
         <mkdir dir="dist/web/war"/>
         <war destfile="dist/web/war/lcf-crawler-ui.war" webxml="crawler-ui/WEB-INF/web.xml" basedir="build/webapp/crawler-ui"/>
@@ -263,6 +319,7 @@
                 <include name="commons-io*.jar"/>
                 <include name="commons-logging*.jar"/>
                 <include name="jdbcpool-0.99.jar"/>
+                <include name="json.jar"/>
                 <include name="log4j*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="servlet-api*.jar"/>
@@ -288,7 +345,7 @@
         </copy>
     </target>
 
-    <target name="example" depends="war-crawler-ui,war-authority-service,jar-jetty-runner,jar-core,jar-agents,jar-pull-agent">
+    <target name="example" depends="war-crawler-ui,war-api,war-authority-service,jar-jetty-runner,jar-core,jar-agents,jar-pull-agent">
         <mkdir dir="dist/example/lib"/>
         <copy todir="dist/example/lib">
             <fileset dir="lib">
@@ -303,6 +360,7 @@
                 <include name="jasper*.jar"/>
                 <include name="jdbcpool-0.99.jar"/>
                 <include name="jetty*.jar"/>
+                <include name="json.jar"/>
                 <include name="jsp-api*.jar"/>
                 <include name="jsp-2.5*.jar"/>
                 <include name="log4j*.jar"/>
@@ -342,7 +400,7 @@
         </copy>
     </target>
     
-    <target name="compile-tests" depends="compile-core,compile-ui-core,compile-agents,compile-pull-agent,compile-authority-service">
+    <target name="compile-tests" depends="compile-core,compile-ui-core,compile-agents,compile-pull-agent,compile-authority-service,compile-api">
         <mkdir dir="build/tests/classes"/>
         <javac srcdir="tests" destdir="build/tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
@@ -354,6 +412,7 @@
                 <pathelement location="build/agents/classes"/>
                 <pathelement location="build/pull-agent/classes"/>
                 <pathelement location="build/authority-service/classes"/>
+                <pathelement location="build/api/classes"/>
             </classpath>
         </javac>
     </target>
@@ -384,6 +443,7 @@
                 <pathelement location="build/agents/classes"/>
                 <pathelement location="build/pull-agent/classes"/>
                 <pathelement location="build/authority-service/classes"/>
+                <pathelement location="build/api/classes"/>
                 <pathelement location="build/tests/classes"/>
             </classpath>
             <test name="org.apache.lcf.agents.tests.Sanity" todir="test-output"/>
@@ -392,6 +452,6 @@
         </junit>
     </target>
     
-    <target name="all" depends="processes,war-authority-service,war-crawler-ui,example,doc,tests,run-tests"/>
+    <target name="all" depends="processes,war-authority-service,war-crawler-ui,war-api,example,doc,tests,run-tests"/>
     
 </project>

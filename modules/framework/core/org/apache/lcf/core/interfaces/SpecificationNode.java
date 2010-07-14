@@ -35,11 +35,25 @@ public class SpecificationNode extends ConfigurationNode
     super(type);
   }
 
+  /** Copy constructor.
+  */
+  public SpecificationNode(ConfigurationNode source)
+  {
+    super(source);
+  }
+  
   /** Create a new node of this same type and class.
   */
   protected ConfigurationNode createNewNode()
   {
     return new SpecificationNode(type);
+  }
+
+  /** Make a new node that is a copy of the specified node.
+  */
+  protected ConfigurationNode createNewNode(ConfigurationNode source)
+  {
+    return new SpecificationNode(source);
   }
   
   /** Duplicate.

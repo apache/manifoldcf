@@ -63,7 +63,7 @@ public class LCFJettyRunner
   
   protected Server server;
   
-  public LCFJettyRunner( int port, String crawlerWarPath, String authorityServiceWarPath )
+  public LCFJettyRunner( int port, String crawlerWarPath, String authorityServiceWarPath, String apiWarPath )
   {
     server = new Server( port );    
     server.setStopAtShutdown( true );
@@ -77,6 +77,9 @@ public class LCFJettyRunner
     // This will cause jetty to ignore all of the framework and jdbc jars in the war, which is what we want.
     lcfAuthorityService.setParentLoaderPriority(true);
     server.addHandler(lcfAuthorityService);
+    WebAppContext lcfApi = new WebAppContext(apiWarPath,"/lcf-api");
+    lcfApi.setParentLoaderPriority(true);
+    server.addHandler(lcfApi);
   }
 
   public void start()
@@ -138,9 +141,9 @@ public class LCFJettyRunner
    */
   public static void main( String[] args )
   {
-    if (args.length != 3 && args.length != 1 && args.length != 0)
+    if (args.length != 4 && args.length != 1 && args.length != 0)
     {
-      System.err.println("Usage: LCFJettyRunner [<port> [<crawler-war-path> <authority-service-war-path>]]");
+      System.err.println("Usage: LCFJettyRunner [<port> [<crawler-war-path> <authority-service-war-path> <api-war-path>]]");
       System.exit(1);
     }
 
@@ -160,10 +163,12 @@ public class LCFJettyRunner
     
     String crawlerWarPath = "war/lcf-crawler-ui.war";
     String authorityserviceWarPath = "war/lcf-authority-service.war";
-    if (args.length == 3)
+    String apiWarPath = "war/lcf-api.war";
+    if (args.length == 4)
     {
       crawlerWarPath = args[1];
       authorityserviceWarPath = args[2];
+      apiWarPath = args[3];
     }
     
     // Ready to begin in earnest...
@@ -404,7 +409,7 @@ public class LCFJettyRunner
       System.err.println("Starting jetty...");
       
       // Create a jetty instance
-      LCFJettyRunner jetty = new LCFJettyRunner(jettyPort,crawlerWarPath,authorityserviceWarPath);
+      LCFJettyRunner jetty = new LCFJettyRunner(jettyPort,crawlerWarPath,authorityserviceWarPath,apiWarPath);
       // This will register a shutdown hook as well.
       jetty.start();
 
