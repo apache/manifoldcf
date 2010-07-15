@@ -1009,663 +1009,782 @@ public class LCF extends org.apache.lcf.agents.system.LCF
     Configuration rval = new ResponseValue();
     if (command.equals("job/list"))
     {
-      IJobManager jobManager = JobManagerFactory.make(tc);
-      IJobDescription[] jobs = jobManager.getAllJobs();
-      int i = 0;
-      while (i < jobs.length)
+      try
       {
-        ConfigurationNode jobNode = new ConfigurationNode(API_JOBNODE);
-        formatJobDescription(jobNode,jobs[i++]);
-        rval.addChild(rval.getChildCount(),jobNode);
+        IJobManager jobManager = JobManagerFactory.make(tc);
+        IJobDescription[] jobs = jobManager.getAllJobs();
+        int i = 0;
+        while (i < jobs.length)
+        {
+          ConfigurationNode jobNode = new ConfigurationNode(API_JOBNODE);
+          formatJobDescription(jobNode,jobs[i++]);
+          rval.addChild(rval.getChildCount(),jobNode);
+        }
+      }
+      catch (LCFException e)
+      {
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          throw e;
+        Logging.api.error(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
       }
     }
     else if (command.equals("job/get"))
     {
       // Get the job id from the argument
       if (inputArgument == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument required");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
+        throw new LCFException("Input argument required");
       
       String jobID = getRootArgument(inputArgument,API_JOBIDNODE);
       if (jobID == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument must have '"+API_JOBIDNODE+"' field");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
+        throw new LCFException("Input argument must have '"+API_JOBIDNODE+"' field");
       
-      IJobManager jobManager = JobManagerFactory.make(tc);
-      IJobDescription job = jobManager.load(new Long(jobID));
-      if (job != null)
+      try
       {
-        // Fill the return object with job information
-        ConfigurationNode jobNode = new ConfigurationNode(API_JOBNODE);
-        formatJobDescription(jobNode,job);
-        rval.addChild(rval.getChildCount(),jobNode);
+        IJobManager jobManager = JobManagerFactory.make(tc);
+        IJobDescription job = jobManager.load(new Long(jobID));
+        if (job != null)
+        {
+          // Fill the return object with job information
+          ConfigurationNode jobNode = new ConfigurationNode(API_JOBNODE);
+          formatJobDescription(jobNode,job);
+          rval.addChild(rval.getChildCount(),jobNode);
+        }
+      }
+      catch (LCFException e)
+      {
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          throw e;
+        Logging.api.error(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
       }
     }
     else if (command.equals("job/save"))
     {
       // Get the job from the argument
       if (inputArgument == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument required");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
+        throw new LCFException("Input argument required");
 
       ConfigurationNode jobNode = findConfigurationNode(inputArgument,API_JOBNODE);
       if (jobNode == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument must have '"+API_JOBNODE+"' field");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
+        throw new LCFException("Input argument must have '"+API_JOBNODE+"' field");
       
       // Turn the configuration node into a JobDescription
       org.apache.lcf.crawler.jobs.JobDescription job = new org.apache.lcf.crawler.jobs.JobDescription();
       processJobDescription(job,jobNode);
       
-      // We need to determine whether we are creating a new job, or saving an existing one.
-      if (job.getID() == null)
+      try
       {
-        job.setID(new Long(IDFactory.make(tc)));
-        job.setIsNew(true);
-      }
-      else
-        job.setIsNew(false);
+        // We need to determine whether we are creating a new job, or saving an existing one.
+        if (job.getID() == null)
+        {
+          job.setID(new Long(IDFactory.make(tc)));
+          job.setIsNew(true);
+        }
+        else
+          job.setIsNew(false);
 
-      // Save the job.
-      IJobManager jobManager = JobManagerFactory.make(tc);
-      jobManager.save(job);
+        // Save the job.
+        IJobManager jobManager = JobManagerFactory.make(tc);
+        jobManager.save(job);
+        
+        // Respond with the ID.
+        ConfigurationNode response = new ConfigurationNode(API_JOBIDNODE);
+        response.setValue(job.getID().toString());
+        rval.addChild(rval.getChildCount(),response);
+      }
+      catch (LCFException e)
+      {
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          throw e;
+        Logging.api.error(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
+      }
     }
     else if (command.equals("job/delete"))
     {
       // Get the job id from the argument
       if (inputArgument == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument required");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
+        throw new LCFException("Input argument required");
       
       String jobID = getRootArgument(inputArgument,API_JOBIDNODE);
       if (jobID == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument must have '"+API_JOBIDNODE+"' field");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
+        throw new LCFException("Input argument must have '"+API_JOBIDNODE+"' field");
 
-      IJobManager jobManager = JobManagerFactory.make(tc);
-      jobManager.deleteJob(new Long(jobID));
+      try
+      {
+        IJobManager jobManager = JobManagerFactory.make(tc);
+        jobManager.deleteJob(new Long(jobID));
+      }
+      catch (LCFException e)
+      {
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          throw e;
+        Logging.api.error(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
+      }
     }
     else if (command.equals("jobstatus/list"))
     {
-      IJobManager jobManager = JobManagerFactory.make(tc);
-      JobStatus[] jobStatuses = jobManager.getAllStatus();
-      int i = 0;
-      while (i < jobStatuses.length)
+      try
       {
-        ConfigurationNode jobStatusNode = new ConfigurationNode(API_JOBSTATUSNODE);
-        formatJobStatus(jobStatusNode,jobStatuses[i++]);
-        rval.addChild(rval.getChildCount(),jobStatusNode);
+        IJobManager jobManager = JobManagerFactory.make(tc);
+        JobStatus[] jobStatuses = jobManager.getAllStatus();
+        int i = 0;
+        while (i < jobStatuses.length)
+        {
+          ConfigurationNode jobStatusNode = new ConfigurationNode(API_JOBSTATUSNODE);
+          formatJobStatus(jobStatusNode,jobStatuses[i++]);
+          rval.addChild(rval.getChildCount(),jobStatusNode);
+        }
+      }
+      catch (LCFException e)
+      {
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          throw e;
+        Logging.api.error(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
       }
     }
     else if (command.equals("jobstatus/start"))
     {
       // Get the job id from the argument
       if (inputArgument == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument required");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
+        throw new LCFException("Input argument required");
       
       String jobID = getRootArgument(inputArgument,API_JOBIDNODE);
       if (jobID == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument must have '"+API_JOBIDNODE+"' field");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
+        throw new LCFException("Input argument must have '"+API_JOBIDNODE+"' field");
 
-      IJobManager jobManager = JobManagerFactory.make(tc);
-      jobManager.manualStart(new Long(jobID));
+      try
+      {
+        IJobManager jobManager = JobManagerFactory.make(tc);
+        jobManager.manualStart(new Long(jobID));
+      }
+      catch (LCFException e)
+      {
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          throw e;
+        Logging.api.error(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
+      }
     }
     else if (command.equals("jobstatus/abort"))
     {
       // Get the job id from the argument
       if (inputArgument == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument required");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
+        throw new LCFException("Input argument required");
       
       String jobID = getRootArgument(inputArgument,API_JOBIDNODE);
       if (jobID == null)
+        throw new LCFException("Input argument must have '"+API_JOBIDNODE+"' field");
+
+      try
       {
+        IJobManager jobManager = JobManagerFactory.make(tc);
+        jobManager.manualAbort(new Long(jobID));
+      }
+      catch (LCFException e)
+      {
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          throw e;
+        Logging.api.error(e.getMessage(),e);
         ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument must have '"+API_JOBIDNODE+"' field");
+        error.setValue(e.getMessage());
         rval.addChild(rval.getChildCount(),error);
-        return rval;
       }
 
-      IJobManager jobManager = JobManagerFactory.make(tc);
-      jobManager.manualAbort(new Long(jobID));
     }
     else if (command.equals("jobstatus/restart"))
     {
       // Get the job id from the argument
       if (inputArgument == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument required");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
+        throw new LCFException("Input argument required");
       
       String jobID = getRootArgument(inputArgument,API_JOBIDNODE);
       if (jobID == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument must have '"+API_JOBIDNODE+"' field");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
+        throw new LCFException("Input argument must have '"+API_JOBIDNODE+"' field");
 
-      IJobManager jobManager = JobManagerFactory.make(tc);
-      jobManager.manualAbortRestart(new Long(jobID));
+      try
+      {
+        IJobManager jobManager = JobManagerFactory.make(tc);
+        jobManager.manualAbortRestart(new Long(jobID));
+      }
+      catch (LCFException e)
+      {
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          throw e;
+        Logging.api.error(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
+      }
     }
     else if (command.equals("jobstatus/pause"))
     {
       // Get the job id from the argument
       if (inputArgument == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument required");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
+        throw new LCFException("Input argument required");
       
       String jobID = getRootArgument(inputArgument,API_JOBIDNODE);
       if (jobID == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument must have '"+API_JOBIDNODE+"' field");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
+        throw new LCFException("Input argument must have '"+API_JOBIDNODE+"' field");
 
-      IJobManager jobManager = JobManagerFactory.make(tc);
-      jobManager.pauseJob(new Long(jobID));
+      try
+      {
+        IJobManager jobManager = JobManagerFactory.make(tc);
+        jobManager.pauseJob(new Long(jobID));
+      }
+      catch (LCFException e)
+      {
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          throw e;
+        Logging.api.error(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
+      }
     }
     else if (command.equals("jobstatus/resume"))
     {
       // Get the job id from the argument
       if (inputArgument == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument required");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
+        throw new LCFException("Input argument required");
       
       String jobID = getRootArgument(inputArgument,API_JOBIDNODE);
       if (jobID == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument must have '"+API_JOBIDNODE+"' field");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
+        throw new LCFException("Input argument must have '"+API_JOBIDNODE+"' field");
 
-      IJobManager jobManager = JobManagerFactory.make(tc);
-      jobManager.restartJob(new Long(jobID));
+      try
+      {
+        IJobManager jobManager = JobManagerFactory.make(tc);
+        jobManager.restartJob(new Long(jobID));
+      }
+      catch (LCFException e)
+      {
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          throw e;
+        Logging.api.error(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
+      }
     }
     else if (command.equals("outputconnection/list"))
     {
-      IOutputConnectionManager connManager = OutputConnectionManagerFactory.make(tc);
-      IOutputConnection[] connections = connManager.getAllConnections();
-      int i = 0;
-      while (i < connections.length)
+      try
       {
-        ConfigurationNode connectionNode = new ConfigurationNode(API_OUTPUTCONNECTIONNODE);
-        formatOutputConnection(connectionNode,connections[i++]);
-        rval.addChild(rval.getChildCount(),connectionNode);
+        IOutputConnectionManager connManager = OutputConnectionManagerFactory.make(tc);
+        IOutputConnection[] connections = connManager.getAllConnections();
+        int i = 0;
+        while (i < connections.length)
+        {
+          ConfigurationNode connectionNode = new ConfigurationNode(API_OUTPUTCONNECTIONNODE);
+          formatOutputConnection(connectionNode,connections[i++]);
+          rval.addChild(rval.getChildCount(),connectionNode);
+        }
+      }
+      catch (LCFException e)
+      {
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          throw e;
+        Logging.api.error(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
       }
     }
     else if (command.equals("outputconnection/get"))
     {
       // Get the job id from the argument
       if (inputArgument == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument required");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
+        throw new LCFException("Input argument required");
       
       String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
       if (connectionName == null)
+        throw new LCFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+
+      try
       {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
+        IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
+        IOutputConnection connection = connectionManager.load(connectionName);
+        if (connection != null)
+        {
+          // Fill the return object with job information
+          ConfigurationNode connectionNode = new ConfigurationNode(API_OUTPUTCONNECTIONNODE);
+          formatOutputConnection(connectionNode,connection);
+          rval.addChild(rval.getChildCount(),connectionNode);
+        }
       }
-      
-      IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
-      IOutputConnection connection = connectionManager.load(connectionName);
-      if (connection != null)
+      catch (LCFException e)
       {
-        // Fill the return object with job information
-        ConfigurationNode connectionNode = new ConfigurationNode(API_OUTPUTCONNECTIONNODE);
-        formatOutputConnection(connectionNode,connection);
-        rval.addChild(rval.getChildCount(),connectionNode);
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          throw e;
+        Logging.api.error(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
       }
     }
     else if (command.equals("outputconnection/save"))
     {
       // Get the connection from the argument
       if (inputArgument == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument required");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
+        throw new LCFException("Input argument required");
 
       ConfigurationNode connectionNode = findConfigurationNode(inputArgument,API_OUTPUTCONNECTIONNODE);
       if (connectionNode == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument must have '"+API_OUTPUTCONNECTIONNODE+"' field");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
+        throw new LCFException("Input argument must have '"+API_OUTPUTCONNECTIONNODE+"' field");
       
       // Turn the configuration node into an OutputConnection
       org.apache.lcf.agents.outputconnection.OutputConnection outputConnection = new org.apache.lcf.agents.outputconnection.OutputConnection();
       processOutputConnection(outputConnection,connectionNode);
       
-      // Save the connection.
-      IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
-      connectionManager.save(outputConnection);
+      try
+      {
+        // Save the connection.
+        IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
+        connectionManager.save(outputConnection);
+        
+        // Respond with the connection name.
+        ConfigurationNode response = new ConfigurationNode(API_CONNECTIONNAMENODE);
+        response.setValue(outputConnection.getName());
+        rval.addChild(rval.getChildCount(),response);
+      }
+      catch (LCFException e)
+      {
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          throw e;
+        Logging.api.error(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
+      }
     }
     else if (command.equals("outputconnection/delete"))
     {
       // Get the job id from the argument
       if (inputArgument == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument required");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
+        throw new LCFException("Input argument required");
       
       String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
       if (connectionName == null)
+        throw new LCFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+
+      try
       {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
+        IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
+        connectionManager.delete(connectionName);
       }
-      
-      IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
-      connectionManager.delete(connectionName);
+      catch (LCFException e)
+      {
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          throw e;
+        Logging.api.error(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
+      }
     }
     else if (command.equals("outputconnection/checkstatus"))
     {
       // Get the job id from the argument
       if (inputArgument == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument required");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
+        throw new LCFException("Input argument required");
       
       String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
       if (connectionName == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
-      
-      IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
-      IOutputConnection connection = connectionManager.load(connectionName);
-      if (connection == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Connection '"+connectionName+"' does not exist");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
-      
-      String results;
-      // Grab a connection handle, and call the test method
-      IOutputConnector connector = OutputConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+        throw new LCFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+
       try
       {
-        results = connector.check();
+        IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
+        IOutputConnection connection = connectionManager.load(connectionName);
+        if (connection == null)
+        {
+          ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+          error.setValue("Connection '"+connectionName+"' does not exist");
+          rval.addChild(rval.getChildCount(),error);
+          return rval;
+        }
+        
+        String results;
+        // Grab a connection handle, and call the test method
+        IOutputConnector connector = OutputConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+        try
+        {
+          results = connector.check();
+        }
+        catch (LCFException e)
+        {
+          results = e.getMessage();
+        }
+        finally
+        {
+          OutputConnectorFactory.release(connector);
+        }
+        
+        ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
+        response.setValue(results);
+        rval.addChild(rval.getChildCount(),response);
       }
       catch (LCFException e)
       {
-        results = e.getMessage();
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          throw e;
+        Logging.api.error(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
       }
-      finally
-      {
-        OutputConnectorFactory.release(connector);
-      }
-      
-      ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
-      response.setValue(results);
-      rval.addChild(rval.getChildCount(),response);
     }
     else if (command.equals("repositoryconnection/list"))
     {
-      IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(tc);
-      IRepositoryConnection[] connections = connManager.getAllConnections();
-      int i = 0;
-      while (i < connections.length)
+      try
       {
-        ConfigurationNode connectionNode = new ConfigurationNode(API_REPOSITORYCONNECTIONNODE);
-        formatRepositoryConnection(connectionNode,connections[i++]);
-        rval.addChild(rval.getChildCount(),connectionNode);
+        IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(tc);
+        IRepositoryConnection[] connections = connManager.getAllConnections();
+        int i = 0;
+        while (i < connections.length)
+        {
+          ConfigurationNode connectionNode = new ConfigurationNode(API_REPOSITORYCONNECTIONNODE);
+          formatRepositoryConnection(connectionNode,connections[i++]);
+          rval.addChild(rval.getChildCount(),connectionNode);
+        }
       }
-
+      catch (LCFException e)
+      {
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          throw e;
+        Logging.api.error(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
+      }
     }
     else if (command.equals("repositoryconnection/get"))
     {
       // Get the job id from the argument
       if (inputArgument == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument required");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
+        throw new LCFException("Input argument required");
       
       String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
       if (connectionName == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
-      
-      IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
-      IRepositoryConnection connection = connectionManager.load(connectionName);
-      if (connection != null)
-      {
-        // Fill the return object with job information
-        ConfigurationNode connectionNode = new ConfigurationNode(API_REPOSITORYCONNECTIONNODE);
-        formatRepositoryConnection(connectionNode,connection);
-        rval.addChild(rval.getChildCount(),connectionNode);
-      }
+        throw new LCFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
 
+      try
+      {
+        IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
+        IRepositoryConnection connection = connectionManager.load(connectionName);
+        if (connection != null)
+        {
+          // Fill the return object with job information
+          ConfigurationNode connectionNode = new ConfigurationNode(API_REPOSITORYCONNECTIONNODE);
+          formatRepositoryConnection(connectionNode,connection);
+          rval.addChild(rval.getChildCount(),connectionNode);
+        }
+      }
+      catch (LCFException e)
+      {
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          throw e;
+        Logging.api.error(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
+      }
     }
     else if (command.equals("repositoryconnection/save"))
     {
       // Get the connection from the argument
       if (inputArgument == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument required");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
+        throw new LCFException("Input argument required");
 
       ConfigurationNode connectionNode = findConfigurationNode(inputArgument,API_REPOSITORYCONNECTIONNODE);
       if (connectionNode == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument must have '"+API_REPOSITORYCONNECTIONNODE+"' field");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
+        throw new LCFException("Input argument must have '"+API_REPOSITORYCONNECTIONNODE+"' field");
       
       // Turn the configuration node into an OutputConnection
       org.apache.lcf.crawler.repository.RepositoryConnection repositoryConnection = new org.apache.lcf.crawler.repository.RepositoryConnection();
       processRepositoryConnection(repositoryConnection,connectionNode);
       
-      // Save the connection.
-      IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
-      connectionManager.save(repositoryConnection);
+      try
+      {
+        // Save the connection.
+        IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
+        connectionManager.save(repositoryConnection);
+        
+        // Respond with the connection name.
+        ConfigurationNode response = new ConfigurationNode(API_CONNECTIONNAMENODE);
+        response.setValue(repositoryConnection.getName());
+        rval.addChild(rval.getChildCount(),response);
+      }
+      catch (LCFException e)
+      {
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          throw e;
+        Logging.api.error(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
+      }
     }
     else if (command.equals("repositoryconnection/delete"))
     {
       // Get the job id from the argument
       if (inputArgument == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument required");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
+        throw new LCFException("Input argument required");
       
       String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
       if (connectionName == null)
+        throw new LCFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+
+      try
       {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
+        IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
+        connectionManager.delete(connectionName);
       }
-      
-      IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
-      connectionManager.delete(connectionName);
+      catch (LCFException e)
+      {
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          throw e;
+        Logging.api.error(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
+      }
     }
     else if (command.equals("repositoryconnection/checkstatus"))
     {
       // Get the job id from the argument
       if (inputArgument == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument required");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
+        throw new LCFException("Input argument required");
       
       String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
       if (connectionName == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
-      
-      IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
-      IRepositoryConnection connection = connectionManager.load(connectionName);
-      if (connection == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Connection '"+connectionName+"' does not exist");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
-      
-      String results;
-      // Grab a connection handle, and call the test method
-      IRepositoryConnector connector = RepositoryConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+        throw new LCFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+
       try
       {
-        results = connector.check();
+        IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
+        IRepositoryConnection connection = connectionManager.load(connectionName);
+        if (connection == null)
+        {
+          ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+          error.setValue("Connection '"+connectionName+"' does not exist");
+          rval.addChild(rval.getChildCount(),error);
+          return rval;
+        }
+        
+        String results;
+        // Grab a connection handle, and call the test method
+        IRepositoryConnector connector = RepositoryConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+        try
+        {
+          results = connector.check();
+        }
+        catch (LCFException e)
+        {
+          results = e.getMessage();
+        }
+        finally
+        {
+          RepositoryConnectorFactory.release(connector);
+        }
+        
+        ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
+        response.setValue(results);
+        rval.addChild(rval.getChildCount(),response);
       }
       catch (LCFException e)
       {
-        results = e.getMessage();
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          throw e;
+        Logging.api.error(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
       }
-      finally
-      {
-        RepositoryConnectorFactory.release(connector);
-      }
-      
-      ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
-      response.setValue(results);
-      rval.addChild(rval.getChildCount(),response);
     }
     else if (command.equals("authorityconnection/list"))
     {
-      IAuthorityConnectionManager connManager = AuthorityConnectionManagerFactory.make(tc);
-      IAuthorityConnection[] connections = connManager.getAllConnections();
-      int i = 0;
-      while (i < connections.length)
+      try
       {
-        ConfigurationNode connectionNode = new ConfigurationNode(API_AUTHORITYCONNECTIONNODE);
-        formatAuthorityConnection(connectionNode,connections[i++]);
-        rval.addChild(rval.getChildCount(),connectionNode);
+        IAuthorityConnectionManager connManager = AuthorityConnectionManagerFactory.make(tc);
+        IAuthorityConnection[] connections = connManager.getAllConnections();
+        int i = 0;
+        while (i < connections.length)
+        {
+          ConfigurationNode connectionNode = new ConfigurationNode(API_AUTHORITYCONNECTIONNODE);
+          formatAuthorityConnection(connectionNode,connections[i++]);
+          rval.addChild(rval.getChildCount(),connectionNode);
+        }
+      }
+      catch (LCFException e)
+      {
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          throw e;
+        Logging.api.error(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
       }
     }
     else if (command.equals("authorityconnection/get"))
     {
       // Get the job id from the argument
       if (inputArgument == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument required");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
+        throw new LCFException("Input argument required");
       
       String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
       if (connectionName == null)
+        throw new LCFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+
+      try
       {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
+        IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
+        IAuthorityConnection connection = connectionManager.load(connectionName);
+        if (connection != null)
+        {
+          // Fill the return object with job information
+          ConfigurationNode connectionNode = new ConfigurationNode(API_AUTHORITYCONNECTIONNODE);
+          formatAuthorityConnection(connectionNode,connection);
+          rval.addChild(rval.getChildCount(),connectionNode);
+        }
       }
-      
-      IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
-      IAuthorityConnection connection = connectionManager.load(connectionName);
-      if (connection != null)
+      catch (LCFException e)
       {
-        // Fill the return object with job information
-        ConfigurationNode connectionNode = new ConfigurationNode(API_AUTHORITYCONNECTIONNODE);
-        formatAuthorityConnection(connectionNode,connection);
-        rval.addChild(rval.getChildCount(),connectionNode);
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          throw e;
+        Logging.api.error(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
       }
     }
     else if (command.equals("authorityconnection/save"))
     {
       // Get the connection from the argument
       if (inputArgument == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument required");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
+        throw new LCFException("Input argument required");
 
       ConfigurationNode connectionNode = findConfigurationNode(inputArgument,API_AUTHORITYCONNECTIONNODE);
       if (connectionNode == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument must have '"+API_AUTHORITYCONNECTIONNODE+"' field");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
+        throw new LCFException("Input argument must have '"+API_AUTHORITYCONNECTIONNODE+"' field");
       
       // Turn the configuration node into an OutputConnection
       org.apache.lcf.authorities.authority.AuthorityConnection authorityConnection = new org.apache.lcf.authorities.authority.AuthorityConnection();
       processAuthorityConnection(authorityConnection,connectionNode);
       
-      // Save the connection.
-      IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
-      connectionManager.save(authorityConnection);
+      try
+      {
+        // Save the connection.
+        IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
+        connectionManager.save(authorityConnection);
+        
+        // Respond with the connection name.
+        ConfigurationNode response = new ConfigurationNode(API_CONNECTIONNAMENODE);
+        response.setValue(authorityConnection.getName());
+        rval.addChild(rval.getChildCount(),response);
+      }
+      catch (LCFException e)
+      {
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          throw e;
+        Logging.api.error(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
+      }
     }
     else if (command.equals("authorityconnection/delete"))
     {
       // Get the job id from the argument
       if (inputArgument == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument required");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
+        throw new LCFException("Input argument required");
       
       String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
       if (connectionName == null)
+        throw new LCFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+
+      try
       {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
+        IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
+        connectionManager.delete(connectionName);
       }
-      
-      IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
-      connectionManager.delete(connectionName);
+      catch (LCFException e)
+      {
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          throw e;
+        Logging.api.error(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
+      }
     }
     else if (command.equals("authorityconnection/checkstatus"))
     {
       // Get the job id from the argument
       if (inputArgument == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument required");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
+        throw new LCFException("Input argument required");
       
       String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
       if (connectionName == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
-      
-      IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
-      IAuthorityConnection connection = connectionManager.load(connectionName);
-      if (connection == null)
-      {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Connection '"+connectionName+"' does not exist");
-        rval.addChild(rval.getChildCount(),error);
-        return rval;
-      }
-      
-      String results;
-      // Grab a connection handle, and call the test method
-      IAuthorityConnector connector = AuthorityConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+        throw new LCFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+
       try
       {
-        results = connector.check();
+        IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
+        IAuthorityConnection connection = connectionManager.load(connectionName);
+        if (connection == null)
+        {
+          ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+          error.setValue("Connection '"+connectionName+"' does not exist");
+          rval.addChild(rval.getChildCount(),error);
+          return rval;
+        }
+        
+        String results;
+        // Grab a connection handle, and call the test method
+        IAuthorityConnector connector = AuthorityConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+        try
+        {
+          results = connector.check();
+        }
+        catch (LCFException e)
+        {
+          results = e.getMessage();
+        }
+        finally
+        {
+          AuthorityConnectorFactory.release(connector);
+        }
+        
+        ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
+        response.setValue(results);
+        rval.addChild(rval.getChildCount(),response);
       }
       catch (LCFException e)
       {
-        results = e.getMessage();
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          throw e;
+        Logging.api.error(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
       }
-      finally
-      {
-        AuthorityConnectorFactory.release(connector);
-      }
-      
-      ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
-      response.setValue(results);
-      rval.addChild(rval.getChildCount(),response);
     }
     else if (command.equals("report/documentstatus"))
     {
