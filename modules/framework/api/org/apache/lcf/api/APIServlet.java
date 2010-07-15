@@ -129,7 +129,7 @@ public class APIServlet extends HttpServlet
         Configuration input;
         if (argument != null)
         {
-          input = new Argument();
+          input = new Configuration();
           input.fromJSON(argument);
         }
         else

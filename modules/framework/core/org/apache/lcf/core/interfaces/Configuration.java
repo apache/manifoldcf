@@ -27,7 +27,7 @@ import org.json.*;
 
 /** This class represents XML configuration information, in its most basic incarnation.
 */
-public abstract class Configuration
+public class Configuration
 {
   public static final String _rcsid = "@(#)$Id$";
 
@@ -69,12 +69,18 @@ public abstract class Configuration
   /** Return the root node type.
   *@return the node type name.
   */
-  protected abstract String getRootNodeLabel();
+  protected String getRootNodeLabel()
+  {
+    return "data";
+  }
   
   /** Create a new object of the appropriate class.
   *@return the newly-created configuration object.
   */
-  protected abstract Configuration createNew();
+  protected Configuration createNew()
+  {
+    return new Configuration();
+  }
   
   /** Create a new child node of the appropriate type and class.
   *@return the newly-created node.

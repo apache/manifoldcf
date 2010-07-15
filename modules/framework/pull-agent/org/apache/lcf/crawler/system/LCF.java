@@ -1006,7 +1006,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
   public static Configuration executeCommand(IThreadContext tc, String command, Configuration inputArgument)
     throws LCFException
   {
-    Configuration rval = new ResponseValue();
+    Configuration rval = new Configuration();
     if (command.equals("job/list"))
     {
       try
@@ -2851,32 +2851,6 @@ public class LCF extends org.apache.lcf.agents.system.LCF
     if (node == null)
       return null;
     return node.getValue();
-  }
-  
-  protected static class ResponseValue extends Configuration
-  {
-    /** Constructor.
-    */
-    public ResponseValue()
-    {
-      super();
-    }
-
-    /** Return the root node type.
-    *@return the node type name.
-    */
-    protected String getRootNodeLabel()
-    {
-      return "response";
-    }
-    
-    /** Create a new object of the appropriate class.
-    */
-    protected Configuration createNew()
-    {
-      return new ResponseValue();
-    }
-
   }
   
 }

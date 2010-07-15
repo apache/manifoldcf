@@ -27,13 +27,26 @@ import java.io.*;
 import java.util.*;
 import org.junit.*;
 
+import org.mortbay.jetty.Handler;
+import org.mortbay.jetty.Server;
+import org.mortbay.jetty.Connector;
+import org.mortbay.jetty.webapp.WebAppContext;
+import org.mortbay.jetty.servlet.Context;
+import org.mortbay.jetty.servlet.FilterHolder;
+import org.mortbay.log.Logger;
+
+import org.apache.commons.httpclient.*;
+import org.apache.commons.httpclient.methods.*;
+
 /** Tests that run the "agents daemon" should be derived from this */
 public class TestBase extends org.apache.lcf.crawler.tests.TestConnectorBase
 {
   public static final String agentShutdownSignal = "agent-process";
+  public static final int testPort = 8346;
   
   protected DaemonThread daemonThread = null;
-  
+  protected Server server = null;
+
   protected String[] getConnectorNames()
   {
     return new String[]{"File Connector"};
@@ -116,11 +129,73 @@ public class TestBase extends org.apache.lcf.crawler.tests.TestConnectorBase
     createFile(f,newContents);
   }
   
+  // API support
+  
+  // These methods allow communication with the LCF api webapp, via the locally-instantiated jetty
+  
+  /** Perform an json API operation.
+  *@param command is the operation.
+  *@param argument is the json argument, or null if none.
+  *@return the json response.
+  */
+  protected String performAPIOperation(String command, String argument)
+    throws Exception
+  {
+    HttpClient client = new HttpClient();
+    HttpMethod method = new GetMethod("http://localhost:"+Integer.toString(testPort)+"/lcf-api/json/"+command+((argument==null)?"":"?object="+
+      java.net.URLEncoder.encode(argument,"utf-8")));
+    int response = client.executeMethod(method);
+    byte[] responseData = method.getResponseBody();
+    String responseString = new String(responseData,"utf-8");
+    if (response != 200)
+      throw new Exception("API http error "+Integer.toString(response)+": "+responseString);
+    // We presume that the data is utf-8, since that's what the API uses throughout.
+    return responseString;
+  }
+  
+  /** Perform a json API operation, using Configuration structures to represent the json.  This is for testing convenience,
+  * mostly.
+  */
+  protected Configuration performAPIOperationViaNodes(String command, Configuration argument)
+    throws Exception
+  {
+    String argumentJson;
+    if (argument != null)
+      argumentJson = argument.toJSON();
+    else
+      argumentJson = null;
+    
+    String result = performAPIOperation(command,argumentJson);
+    Configuration cfg = new Configuration();
+    cfg.fromJSON(result);
+    return cfg;
+  }
+  
+  // Setup/teardown
+  
   @Before
   public void setUp()
     throws Exception
   {
     super.setUp();
+    // Start jetty
+    server = new Server( testPort );    
+    server.setStopAtShutdown( true );
+    
+    // Initialize the servlets
+    WebAppContext lcfCrawlerUI = new WebAppContext("../../framework/dist/web/war/lcf-crawler-ui.war","/lcf-crawler-ui");
+    // This will cause jetty to ignore all of the framework and jdbc jars in the war, which is what we want.
+    lcfCrawlerUI.setParentLoaderPriority(true);
+    server.addHandler(lcfCrawlerUI);
+    WebAppContext lcfAuthorityService = new WebAppContext("../../framework/dist/web/war/lcf-authority-service.war","/lcf-authority-service");
+    // This will cause jetty to ignore all of the framework and jdbc jars in the war, which is what we want.
+    lcfAuthorityService.setParentLoaderPriority(true);
+    server.addHandler(lcfAuthorityService);
+    WebAppContext lcfApi = new WebAppContext("../../framework/dist/web/war/lcf-api.war","/lcf-api");
+    lcfApi.setParentLoaderPriority(true);
+    server.addHandler(lcfApi);
+    server.start();
+
     // If all worked, then we can start the daemon.
     // Clear the agents shutdown signal.
     IThreadContext tc = ThreadContextFactory.make();
@@ -239,6 +314,14 @@ public class TestBase extends org.apache.lcf.crawler.tests.TestConnectorBase
         if (e != null)
           currentException = e;
       }
+      
+      if (server != null)
+      {
+        server.stop();
+        server.join();
+        server = null;
+      }
+      
       // Clean up everything else
       try
       {
@@ -313,5 +396,5 @@ public class TestBase extends org.apache.lcf.crawler.tests.TestConnectorBase
     }
     
   }
-  
+
 }
