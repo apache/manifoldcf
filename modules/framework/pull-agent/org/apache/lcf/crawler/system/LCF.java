@@ -1823,11 +1823,8 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       rval.addChild(rval.getChildCount(),error);
     }
     else
-    {
-      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-      error.setValue("Unrecognized command: "+command);
-      rval.addChild(rval.getChildCount(),error);
-    }
+      throw new LCFException("Unrecognized API command: "+command);
+    
     return rval;
   }
   
