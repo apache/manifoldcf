@@ -746,7 +746,7 @@
                 <pathelement location="connectors/nulloutput/build/connector/classes"/>
                 <pathelement location="build/filesystem-tests/classes"/>
             </classpath>
-            <test name="org.apache.lcf.tests.Sanity" todir="test-output/filesystem"/>
+            <test name="org.apache.lcf.filesystem_tests.Sanity" todir="test-output/filesystem"/>
             <!-- MHL -->
         </junit>
     </target>

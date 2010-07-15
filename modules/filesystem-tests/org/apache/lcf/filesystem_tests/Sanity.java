@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.lcf.tests;
+package org.apache.lcf.filesystem_tests;
 
 import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.agents.interfaces.*;
