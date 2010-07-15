@@ -50,12 +50,17 @@ public class ConfigurationNode
     this.type = source.type;
     this.value = source.value;
     this.readOnly = source.readOnly;
-    Iterator iter = source.attributes.keySet().iterator();
-    while (iter.hasNext())
+    if (source.attributes != null)
     {
-      String attribute = (String)iter.next();
-      String attrValue = (String)source.attributes.get(attribute);
-      this.attributes.put(attribute,attrValue);
+      Iterator iter = source.attributes.keySet().iterator();
+      while (iter.hasNext())
+      {
+        String attribute = (String)iter.next();
+        String attrValue = (String)source.attributes.get(attribute);
+        if (this.attributes == null)
+          this.attributes = new HashMap();
+        this.attributes.put(attribute,attrValue);
+      }
     }
     int i = 0;
     while (i < source.getChildCount())

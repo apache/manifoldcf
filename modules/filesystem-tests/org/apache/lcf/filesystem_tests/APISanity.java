@@ -73,10 +73,16 @@ public class APISanity extends TestBase
       // Hey, we were able to install the file system connector etc.
       // Now, create a local test job and run it.
       IThreadContext tc = ThreadContextFactory.make();
-      
+      int i;
+      IJobManager jobManager = JobManagerFactory.make(tc);
+
       // Create a basic file system connection, and save it.
-      ConfigurationNode connectionObject = new ConfigurationNode("repositoryconnection");
+      ConfigurationNode connectionObject;
       ConfigurationNode child;
+      Configuration requestObject;
+      Configuration result;
+      
+      connectionObject = new ConfigurationNode("repositoryconnection");
       
       child = new ConfigurationNode("name");
       child.setValue("File Connection");
@@ -94,105 +100,160 @@ public class APISanity extends TestBase
       child.setValue("100");
       connectionObject.addChild(connectionObject.getChildCount(),child);
 
-      Configuration requestObject = new Configuration();
+      requestObject = new Configuration();
       requestObject.addChild(0,connectionObject);
       
-      Configuration result = performAPIOperationViaNodes("repositoryconnection/save",requestObject);
+      result = performAPIOperationViaNodes("repositoryconnection/save",requestObject);
       
-      int i = 0;
+      i = 0;
       while (i < result.getChildCount())
       {
         ConfigurationNode resultNode = result.findChild(i++);
-        if (resultNode.getType() == "error")
+        if (resultNode.getType().equals("error"))
           throw new Exception(resultNode.getValue());
       }
       
       // Create a basic null output connection, and save it.
-      IOutputConnectionManager outputMgr = OutputConnectionManagerFactory.make(tc);
-      IOutputConnection outputConn = outputMgr.create();
-      outputConn.setName("Null Connection");
-      outputConn.setDescription("Null Connection");
-      outputConn.setClassName("org.apache.lcf.agents.output.nullconnector.NullConnector");
-      outputConn.setMaxConnections(100);
-      // Now, save
-      outputMgr.save(outputConn);
+      connectionObject = new ConfigurationNode("outputconnection");
+      
+      child = new ConfigurationNode("name");
+      child.setValue("Null Connection");
+      connectionObject.addChild(connectionObject.getChildCount(),child);
+      
+      child = new ConfigurationNode("class_name");
+      child.setValue("org.apache.lcf.agents.output.nullconnector.NullConnector");
+      connectionObject.addChild(connectionObject.getChildCount(),child);
+      
+      child = new ConfigurationNode("description");
+      child.setValue("Null Connection");
+      connectionObject.addChild(connectionObject.getChildCount(),child);
+
+      child = new ConfigurationNode("max_connections");
+      child.setValue("100");
+      connectionObject.addChild(connectionObject.getChildCount(),child);
+
+      requestObject = new Configuration();
+      requestObject.addChild(0,connectionObject);
+      
+      result = performAPIOperationViaNodes("outputconnection/save",requestObject);
+      
+      i = 0;
+      while (i < result.getChildCount())
+      {
+        ConfigurationNode resultNode = result.findChild(i++);
+        if (resultNode.getType().equals("error"))
+          throw new Exception(resultNode.getValue());
+      }
 
       // Create a job.
-      IJobManager jobManager = JobManagerFactory.make(tc);
-      IJobDescription job = jobManager.createJob();
-      job.setDescription("Test Job");
-      job.setConnectionName("File Connection");
-      job.setOutputConnectionName("Null Connection");
-      job.setType(job.TYPE_SPECIFIED);
-      job.setStartMethod(job.START_DISABLE);
-      job.setHopcountMode(job.HOPCOUNT_ACCURATE);
+      ConfigurationNode jobObject = new ConfigurationNode("job");
       
-      // Now, set up the document specification.
-      DocumentSpecification ds = job.getSpecification();
+      child = new ConfigurationNode("description");
+      child.setValue("Test Job");
+      jobObject.addChild(jobObject.getChildCount(),child);
+
+      child = new ConfigurationNode("repository_connection");
+      child.setValue("File Connection");
+      jobObject.addChild(jobObject.getChildCount(),child);
+
+      child = new ConfigurationNode("output_connection");
+      child.setValue("Null Connection");
+      jobObject.addChild(jobObject.getChildCount(),child);
+
+      child = new ConfigurationNode("run_mode");
+      child.setValue("scan once");
+      jobObject.addChild(jobObject.getChildCount(),child);
+
+      child = new ConfigurationNode("start_mode");
+      child.setValue("manual");
+      jobObject.addChild(jobObject.getChildCount(),child);
+
+      child = new ConfigurationNode("hopcount_mode");
+      child.setValue("accurate");
+      jobObject.addChild(jobObject.getChildCount(),child);
+
+      child = new ConfigurationNode("document_specification");
       // Crawl everything underneath the 'testdata' area
       File testDataFile = new File("testdata").getCanonicalFile();
       if (!testDataFile.exists())
         throw new LCFException("Test data area not found!  Looking in "+testDataFile.toString());
       if (!testDataFile.isDirectory())
         throw new LCFException("Test data area not a directory!  Looking in "+testDataFile.toString());
-      SpecificationNode sn = new SpecificationNode("startpoint");
+      ConfigurationNode sn = new ConfigurationNode("startpoint");
       sn.setAttribute("path",testDataFile.toString());
-      SpecificationNode n = new SpecificationNode("include");
+      ConfigurationNode n = new ConfigurationNode("include");
       n.setAttribute("type","file");
       n.setAttribute("match","*");
       sn.addChild(sn.getChildCount(),n);
-      n = new SpecificationNode("include");
+      n = new ConfigurationNode("include");
       n.setAttribute("type","directory");
       n.setAttribute("match","*");
       sn.addChild(sn.getChildCount(),n);
-      ds.addChild(ds.getChildCount(),sn);
+      child.addChild(child.getChildCount(),sn);
+      jobObject.addChild(jobObject.getChildCount(),child);
       
-      // Set up the output specification.
-      OutputSpecification os = job.getOutputSpecification();
-      // Null output connections have no output specification, so this is a no-op.
+      requestObject = new Configuration();
+      requestObject.addChild(0,jobObject);
       
-      // Save the job.
-      jobManager.save(job);
-
+      result = performAPIOperationViaNodes("job/save",requestObject);
+      
+      String jobIDString = null;
+      i = 0;
+      while (i < result.getChildCount())
+      {
+        ConfigurationNode resultNode = result.findChild(i++);
+        if (resultNode.getType().equals("error"))
+          throw new Exception(resultNode.getValue());
+        else if (resultNode.getType().equals("job_id"))
+          jobIDString = resultNode.getValue();
+      }
+      if (jobIDString == null)
+        throw new Exception("Missing job_id from return!");
+      
+      Long jobID = new Long(jobIDString);
+      
       // Create the test data files.
       createFile(new File("testdata/test1.txt"),"This is a test file");
       createFile(new File("testdata/test2.txt"),"This is another test file");
       createDirectory(new File("testdata/testdir"));
       createFile(new File("testdata/testdir/test3.txt"),"This is yet another test file");
       
+      ConfigurationNode requestNode;
+      
       // Now, start the job, and wait until it completes.
-      jobManager.manualStart(job.getID());
-      waitJobInactive(jobManager,job.getID());
+      startJob(jobIDString);
+      waitJobInactive(jobIDString);
 
       // Check to be sure we actually processed the right number of documents.
-      JobStatus status = jobManager.getStatus(job.getID());
       // The test data area has 3 documents and one directory, and we have to count the root directory too.
-      if (status.getDocumentsProcessed() != 5)
-        throw new LCFException("Wrong number of documents processed - expected 5, saw "+new Long(status.getDocumentsProcessed()).toString());
+      long count;
+      count = getJobDocumentsProcessed(jobIDString);
+      if (count != 5)
+        throw new LCFException("Wrong number of documents processed - expected 5, saw "+new Long(count).toString());
       
       // Add a file and recrawl
       createFile(new File("testdata/testdir/test4.txt"),"Added file");
 
       // Now, start the job, and wait until it completes.
-      jobManager.manualStart(job.getID());
-      waitJobInactive(jobManager,job.getID());
+      startJob(jobIDString);
+      waitJobInactive(jobIDString);
 
-      status = jobManager.getStatus(job.getID());
       // The test data area has 4 documents and one directory, and we have to count the root directory too.
-      if (status.getDocumentsProcessed() != 6)
-        throw new LCFException("Wrong number of documents processed after add - expected 6, saw "+new Long(status.getDocumentsProcessed()).toString());
+      count = getJobDocumentsProcessed(jobIDString);
+      if (count != 6)
+        throw new LCFException("Wrong number of documents processed after add - expected 6, saw "+new Long(count).toString());
 
       // Change a file, and recrawl
       changeFile(new File("testdata/test1.txt"),"Modified contents");
       
       // Now, start the job, and wait until it completes.
-      jobManager.manualStart(job.getID());
-      waitJobInactive(jobManager,job.getID());
+      startJob(jobIDString);
+      waitJobInactive(jobIDString);
 
-      status = jobManager.getStatus(job.getID());
       // The test data area has 4 documents and one directory, and we have to count the root directory too.
-      if (status.getDocumentsProcessed() != 6)
-        throw new LCFException("Wrong number of documents processed after change - expected 6, saw "+new Long(status.getDocumentsProcessed()).toString());
+      count = getJobDocumentsProcessed(jobIDString);
+      if (count != 6)
+        throw new LCFException("Wrong number of documents processed after change - expected 6, saw "+new Long(count).toString());
       // We also need to make sure the new document was indexed.  Have to think about how to do this though.
       // MHL
       
@@ -200,18 +261,19 @@ public class APISanity extends TestBase
       removeFile(new File("testdata/test2.txt"));
       
       // Now, start the job, and wait until it completes.
-      jobManager.manualStart(job.getID());
-      waitJobInactive(jobManager,job.getID());
+      startJob(jobIDString);
+      waitJobInactive(jobIDString);
 
       // Check to be sure we actually processed the right number of documents.
-      status = jobManager.getStatus(job.getID());
       // The test data area has 3 documents and one directory, and we have to count the root directory too.
-      if (status.getDocumentsProcessed() != 5)
-        throw new LCFException("Wrong number of documents processed after delete - expected 5, saw "+new Long(status.getDocumentsProcessed()).toString());
+      count = getJobDocumentsProcessed(jobIDString);
+      if (count != 5)
+        throw new LCFException("Wrong number of documents processed after delete - expected 5, saw "+new Long(count).toString());
 
       // Now, delete the job.
-      jobManager.deleteJob(job.getID());
-      waitJobDeleted(jobManager,job.getID());
+      deleteJob(jobIDString);
+
+      waitJobDeleted(jobIDString);
       
       // Cleanup is automatic by the base class, so we can feel free to leave jobs and connections lying around.
     }
@@ -222,37 +284,130 @@ public class APISanity extends TestBase
     }
   }
   
-  protected void waitJobInactive(IJobManager jobManager, Long jobID)
-    throws LCFException, InterruptedException
+  protected void startJob(String jobIDString)
+    throws Exception
   {
-    while (true)
+    ConfigurationNode requestNode = new ConfigurationNode("job_id");
+    requestNode.setValue(jobIDString);
+    Configuration requestObject = new Configuration();
+    requestObject.addChild(0,requestNode);
+    
+    Configuration result = performAPIOperationViaNodes("jobstatus/start",requestObject);
+    int i = 0;
+    while (i < result.getChildCount())
     {
-      JobStatus status = jobManager.getStatus(jobID);
-      if (status == null)
-        throw new LCFException("No such job: '"+jobID+"'");
-      int statusValue = status.getStatus();
-      switch (statusValue)
-      {
-        case JobStatus.JOBSTATUS_NOTYETRUN:
-          throw new LCFException("Job was never started.");
-        case JobStatus.JOBSTATUS_COMPLETED:
-          break;
-        case JobStatus.JOBSTATUS_ERROR:
-          throw new LCFException("Job reports error status: "+status.getErrorText());
-        default:
-          LCF.sleep(10000L);
-          continue;
-      }
-      break;
+      ConfigurationNode resultNode = result.findChild(i++);
+      if (resultNode.getType().equals("error"))
+        throw new Exception(resultNode.getValue());
     }
   }
   
-  protected void waitJobDeleted(IJobManager jobManager, Long jobID)
-    throws LCFException, InterruptedException
+  protected void deleteJob(String jobIDString)
+    throws Exception
+  {
+    ConfigurationNode requestNode = new ConfigurationNode("job_id");
+    requestNode.setValue(jobIDString);
+    Configuration requestObject = new Configuration();
+    requestObject.addChild(0,requestNode);
+      
+    Configuration result = performAPIOperationViaNodes("job/delete",requestObject);
+    int i = 0;
+    while (i < result.getChildCount())
+    {
+      ConfigurationNode resultNode = result.findChild(i++);
+      if (resultNode.getType().equals("error"))
+        throw new Exception(resultNode.getValue());
+    }
+
+  }
+  
+  protected String getJobStatus(String jobIDString)
+    throws Exception
+  {
+    ConfigurationNode requestNode = new ConfigurationNode("job_id");
+    requestNode.setValue(jobIDString);
+    Configuration requestObject = new Configuration();
+    requestObject.addChild(0,requestNode);
+    
+    Configuration result = performAPIOperationViaNodes("jobstatus/get",requestObject);
+    String status = null;
+    int i = 0;
+    while (i < result.getChildCount())
+    {
+      ConfigurationNode resultNode = result.findChild(i++);
+      if (resultNode.getType().equals("error"))
+        throw new Exception(resultNode.getValue());
+      else if (resultNode.getType().equals("jobstatus"))
+      {
+        int j = 0;
+        while (j < resultNode.getChildCount())
+        {
+          ConfigurationNode childNode = resultNode.findChild(j++);
+          if (childNode.getType().equals("status"))
+            status = childNode.getValue();
+        }
+      }
+    }
+    return status;
+  }
+
+  protected long getJobDocumentsProcessed(String jobIDString)
+    throws Exception
+  {
+    ConfigurationNode requestNode = new ConfigurationNode("job_id");
+    requestNode.setValue(jobIDString);
+    Configuration requestObject = new Configuration();
+    requestObject.addChild(0,requestNode);
+    
+    Configuration result = performAPIOperationViaNodes("jobstatus/get",requestObject);
+    String documentsProcessed = null;
+    int i = 0;
+    while (i < result.getChildCount())
+    {
+      ConfigurationNode resultNode = result.findChild(i++);
+      if (resultNode.getType().equals("error"))
+        throw new Exception(resultNode.getValue());
+      else if (resultNode.getType().equals("jobstatus"))
+      {
+        int j = 0;
+        while (j < resultNode.getChildCount())
+        {
+          ConfigurationNode childNode = resultNode.findChild(j++);
+          if (childNode.getType().equals("documents_processed"))
+            documentsProcessed = childNode.getValue();
+        }
+      }
+    }
+    if (documentsProcessed == null)
+      throw new Exception("Expected a documents_processed field, didn't find it");
+    return new Long(documentsProcessed).longValue();
+  }
+
+  protected void waitJobInactive(String jobIDString)
+    throws Exception
   {
     while (true)
     {
-      JobStatus status = jobManager.getStatus(jobID);
+      String status = getJobStatus(jobIDString);
+      if (status == null)
+        throw new Exception("No such job: '"+jobIDString+"'");
+      if (status.equals("not yet run"))
+        throw new Exception("Job was never started.");
+      if (status.equals("done"))
+        break;
+      if (status.equals("error"))
+        throw new Exception("Job reports error.");
+      LCF.sleep(10000L);
+      continue;
+    }
+  }
+  
+  protected void waitJobDeleted(String jobIDString)
+    throws Exception
+  {
+    while (true)
+    {
+      String status = getJobStatus(jobIDString);
       if (status == null)
         break;
       LCF.sleep(10000L);

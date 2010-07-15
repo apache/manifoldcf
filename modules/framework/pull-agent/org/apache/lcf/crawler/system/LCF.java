@@ -1156,6 +1156,37 @@ public class LCF extends org.apache.lcf.agents.system.LCF
         rval.addChild(rval.getChildCount(),error);
       }
     }
+    else if (command.equals("jobstatus/get"))
+    {
+      // Get the job id from the argument
+      if (inputArgument == null)
+        throw new LCFException("Input argument required");
+      
+      String jobID = getRootArgument(inputArgument,API_JOBIDNODE);
+      if (jobID == null)
+        throw new LCFException("Input argument must have '"+API_JOBIDNODE+"' field");
+
+      try
+      {
+        IJobManager jobManager = JobManagerFactory.make(tc);
+        JobStatus status = jobManager.getStatus(new Long(jobID));
+	if (status != null)
+        {
+          ConfigurationNode jobStatusNode = new ConfigurationNode(API_JOBSTATUSNODE);
+          formatJobStatus(jobStatusNode,status);
+          rval.addChild(rval.getChildCount(),jobStatusNode);
+        }
+      }
+      catch (LCFException e)
+      {
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          throw e;
+        Logging.api.error(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
+      }
+    }
     else if (command.equals("jobstatus/start"))
     {
       // Get the job id from the argument
@@ -1845,8 +1876,10 @@ public class LCF extends org.apache.lcf.agents.system.LCF
   protected static final String JOBNODE_RECRAWLINTERVAL = "recrawl_interval";
   protected static final String JOBNODE_EXPIRATIONINTERVAL = "expiration_interval";
   protected static final String JOBNODE_RESEEDINTERVAL = "reseed_interval";
+  protected static final String JOBNODE_HOPCOUNT = "hopcount";
   protected static final String JOBNODE_SCHEDULE = "schedule";
-  protected static final String JOBNODE_RECORD = "record";
+  protected static final String JOBNODE_LINKTYPE = "link_type";
+  protected static final String JOBNODE_COUNT = "count";
   protected static final String JOBNODE_TIMEZONE = "timezone";
   protected static final String JOBNODE_DURATION = "duration";
   protected static final String JOBNODE_DAYOFWEEK = "dayofweek";
@@ -1947,73 +1980,85 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       {
         jobDescription.setReseedInterval(interpretInterval(child.getValue()));
       }
+      else if (childType.equals(JOBNODE_HOPCOUNT))
+      {
+        // Read the hopcount values
+        String linkType = null;
+        String hopCount = null;
+        
+        int q = 0;
+        while (q < child.getChildCount())
+        {
+          ConfigurationNode cn = child.findChild(q++);
+          if (cn.getType().equals(JOBNODE_LINKTYPE))
+            linkType = cn.getValue();
+          else if (cn.getType().equals(JOBNODE_COUNT))
+            hopCount = cn.getValue();
+          else
+            throw new LCFException("Found an unexpected node type: '"+cn.getType()+"'");
+        }
+        if (linkType == null)
+          throw new LCFException("Missing required field: '"+JOBNODE_LINKTYPE+"'");
+        if (hopCount == null)
+          throw new LCFException("Missing required field: '"+JOBNODE_COUNT+"'");
+        jobDescription.addHopCountFilter(linkType,new Long(hopCount));
+      }
       else if (childType.equals(JOBNODE_SCHEDULE))
       {
-        // The children of this node should be schedule records.  Walk through them.
-        int k = 0;
-        while (k < child.getChildCount())
-        {
-          ConfigurationNode scheduleNode = child.findChild(k++);
-          if (scheduleNode.getType().equals(JOBNODE_RECORD))
-          {
-            // Create a schedule record.
-            String timezone = null;
-            Long duration = null;
-            EnumeratedValues dayOfWeek = null;
-            EnumeratedValues monthOfYear = null;
-            EnumeratedValues dayOfMonth = null;
-            EnumeratedValues year = null;
-            EnumeratedValues hourOfDay = null;
-            EnumeratedValues minutesOfHour = null;
+        // Create a schedule record.
+        String timezone = null;
+        Long duration = null;
+        EnumeratedValues dayOfWeek = null;
+        EnumeratedValues monthOfYear = null;
+        EnumeratedValues dayOfMonth = null;
+        EnumeratedValues year = null;
+        EnumeratedValues hourOfDay = null;
+        EnumeratedValues minutesOfHour = null;
             
-            // Now, walk through children of the schedule node.
-            int q = 0;
-            while (q < scheduleNode.getChildCount())
-            {
-              ConfigurationNode scheduleField = scheduleNode.findChild(q++);
-              String fieldType = scheduleField.getType();
-              if (fieldType.equals(JOBNODE_TIMEZONE))
-              {
-                timezone = scheduleField.getValue();
-              }
-              else if (fieldType.equals(JOBNODE_DURATION))
-              {
-                duration = new Long(scheduleField.getValue());
-              }
-              else if (fieldType.equals(JOBNODE_DAYOFWEEK))
-              {
-                dayOfWeek = processEnumeratedValues(scheduleField);
-              }
-              else if (fieldType.equals(JOBNODE_MONTHOFYEAR))
-              {
-                monthOfYear = processEnumeratedValues(scheduleField);
-              }
-              else if (fieldType.equals(JOBNODE_YEAR))
-              {
-                year = processEnumeratedValues(scheduleField);
-              }
-              else if (fieldType.equals(JOBNODE_DAYOFMONTH))
-              {
-                dayOfMonth = processEnumeratedValues(scheduleField);
-              }
-              else if (fieldType.equals(JOBNODE_HOUROFDAY))
-              {
-                hourOfDay = processEnumeratedValues(scheduleField);
-              }
-              else if (fieldType.equals(JOBNODE_MINUTESOFHOUR))
-              {
-                minutesOfHour = processEnumeratedValues(scheduleField);
-              }
-              else
-                throw new LCFException("Unrecognized field in schedule record: '"+fieldType+"'");
-            }
-            ScheduleRecord sr = new ScheduleRecord(dayOfWeek,monthOfYear,dayOfMonth,year,hourOfDay,minutesOfHour,timezone,duration);
-            // Add the schedule record to the job.
-            jobDescription.addScheduleRecord(sr);
+        // Now, walk through children of the schedule node.
+        int q = 0;
+        while (q < child.getChildCount())
+        {
+          ConfigurationNode scheduleField = child.findChild(q++);
+          String fieldType = scheduleField.getType();
+          if (fieldType.equals(JOBNODE_TIMEZONE))
+          {
+            timezone = scheduleField.getValue();
+          }
+          else if (fieldType.equals(JOBNODE_DURATION))
+          {
+            duration = new Long(scheduleField.getValue());
+          }
+          else if (fieldType.equals(JOBNODE_DAYOFWEEK))
+          {
+            dayOfWeek = processEnumeratedValues(scheduleField);
+          }
+          else if (fieldType.equals(JOBNODE_MONTHOFYEAR))
+          {
+            monthOfYear = processEnumeratedValues(scheduleField);
+          }
+          else if (fieldType.equals(JOBNODE_YEAR))
+          {
+            year = processEnumeratedValues(scheduleField);
+          }
+          else if (fieldType.equals(JOBNODE_DAYOFMONTH))
+          {
+            dayOfMonth = processEnumeratedValues(scheduleField);
+          }
+          else if (fieldType.equals(JOBNODE_HOUROFDAY))
+          {
+            hourOfDay = processEnumeratedValues(scheduleField);
+          }
+          else if (fieldType.equals(JOBNODE_MINUTESOFHOUR))
+          {
+            minutesOfHour = processEnumeratedValues(scheduleField);
           }
           else
-            throw new LCFException("Encountered an unexpected node type in schedule: '"+scheduleNode.getType()+"'");
+            throw new LCFException("Unrecognized field in schedule record: '"+fieldType+"'");
         }
+        ScheduleRecord sr = new ScheduleRecord(dayOfWeek,monthOfYear,dayOfMonth,year,hourOfDay,minutesOfHour,timezone,duration);
+        // Add the schedule record to the job.
+        jobDescription.addScheduleRecord(sr);
       }
       else
         throw new LCFException("Unrecognized job field: '"+childType+"'");
@@ -2128,13 +2173,30 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       jobNode.addChild(jobNode.getChildCount(),child);
     }
     
+    // Hopcount records
+    Map filters = job.getHopCountFilters();
+    Iterator iter = filters.keySet().iterator();
+    while (iter.hasNext())
+    {
+      String linkType = (String)iter.next();
+      Long hopCount = (Long)filters.get(linkType);
+      child = new ConfigurationNode(JOBNODE_HOPCOUNT);
+      ConfigurationNode cn;
+      cn = new ConfigurationNode(JOBNODE_LINKTYPE);
+      cn.setValue(linkType);
+      child.addChild(child.getChildCount(),cn);
+      cn = new ConfigurationNode(JOBNODE_COUNT);
+      cn.setValue(hopCount.toString());
+      child.addChild(child.getChildCount(),cn);
+      jobNode.addChild(jobNode.getChildCount(),child);
+    }
+    
     // Schedule records
     child = new ConfigurationNode(JOBNODE_SCHEDULE);
     j = 0;
     while (j < job.getScheduleRecordCount())
     {
       ScheduleRecord sr = job.getScheduleRecord(j++);
-      ConfigurationNode recordNode = new ConfigurationNode(JOBNODE_RECORD);
       ConfigurationNode recordChild;
       
       // timezone
@@ -2142,7 +2204,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       {
         recordChild = new ConfigurationNode(JOBNODE_TIMEZONE);
         recordChild.setValue(sr.getTimezone());
-        recordNode.addChild(recordNode.getChildCount(),recordChild);
+        child.addChild(child.getChildCount(),recordChild);
       }
 
       // duration
@@ -2150,26 +2212,24 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       {
         recordChild = new ConfigurationNode(JOBNODE_DURATION);
         recordChild.setValue(sr.getDuration().toString());
-        recordNode.addChild(recordNode.getChildCount(),recordChild);
+        child.addChild(child.getChildCount(),recordChild);
       }
       
       // Schedule specification values
       
       // day of week
       if (sr.getDayOfWeek() != null)
-        formatEnumeratedValues(recordNode,JOBNODE_DAYOFWEEK,sr.getDayOfWeek());
+        formatEnumeratedValues(child,JOBNODE_DAYOFWEEK,sr.getDayOfWeek());
       if (sr.getMonthOfYear() != null)
-        formatEnumeratedValues(recordNode,JOBNODE_MONTHOFYEAR,sr.getMonthOfYear());
+        formatEnumeratedValues(child,JOBNODE_MONTHOFYEAR,sr.getMonthOfYear());
       if (sr.getDayOfMonth() != null)
-        formatEnumeratedValues(recordNode,JOBNODE_DAYOFMONTH,sr.getDayOfMonth());
+        formatEnumeratedValues(child,JOBNODE_DAYOFMONTH,sr.getDayOfMonth());
       if (sr.getYear() != null)
-        formatEnumeratedValues(recordNode,JOBNODE_YEAR,sr.getYear());
+        formatEnumeratedValues(child,JOBNODE_YEAR,sr.getYear());
       if (sr.getHourOfDay() != null)
-        formatEnumeratedValues(recordNode,JOBNODE_HOUROFDAY,sr.getHourOfDay());
+        formatEnumeratedValues(child,JOBNODE_HOUROFDAY,sr.getHourOfDay());
       if (sr.getMinutesOfHour() != null)
-        formatEnumeratedValues(recordNode,JOBNODE_MINUTESOFHOUR,sr.getMinutesOfHour());
-
-      child.addChild(child.getChildCount(),recordNode);
+        formatEnumeratedValues(child,JOBNODE_MINUTESOFHOUR,sr.getMinutesOfHour());
     }
     jobNode.addChild(jobNode.getChildCount(),child);
   }
@@ -2425,7 +2485,6 @@ public class LCF extends org.apache.lcf.agents.system.LCF
   protected static final String CONNECTIONNODE_DESCRIPTION = "description";
   protected static final String CONNECTIONNODE_CONFIGURATION = "configuration";
   protected static final String CONNECTIONNODE_ACLAUTHORITY = "acl_authority";
-  protected static final String CONNECTIONNODE_THROTTLES = "throttles";
   protected static final String CONNECTIONNODE_THROTTLE = "throttle";
   protected static final String CONNECTIONNODE_MATCH = "match";
   protected static final String CONNECTIONNODE_MATCHDESCRIPTION = "match_description";
@@ -2701,49 +2760,37 @@ public class LCF extends org.apache.lcf.agents.system.LCF
           throw new LCFException("Connection aclauthority node requires a value");
         connection.setACLAuthority(child.getValue());
       }
-      else if (childType.equals(CONNECTIONNODE_THROTTLES))
+      else if (childType.equals(CONNECTIONNODE_THROTTLE))
       {
-        // Go through children
-        connection.clearThrottleValues();
-        int k = 0;
-        while (k < child.getChildCount())
-        {
-          ConfigurationNode throttleNode = child.findChild(k++);
-          if (throttleNode.getType().equals(CONNECTIONNODE_THROTTLE))
-          {
-            String match = null;
-            String description = null;
-            Float rate = null;
+        String match = null;
+        String description = null;
+        Float rate = null;
             
-            int q = 0;
-            while (q < throttleNode.getChildCount())
-            {
-              ConfigurationNode throttleField = throttleNode.findChild(q++);
-              String fieldType = throttleField.getType();
-              if (fieldType.equals(CONNECTIONNODE_MATCH))
-              {
-                match = throttleField.getValue();
-              }
-              else if (fieldType.equals(CONNECTIONNODE_MATCHDESCRIPTION))
-              {
-                description = throttleField.getValue();
-              }
-              else if (fieldType.equals(CONNECTIONNODE_RATE))
-              {
-                rate = new Float(throttleField.getValue());
-              }
-              else
-                throw new LCFException("Unrecognized throttle field: '"+fieldType+"'");
-            }
-            if (match == null)
-              throw new LCFException("Missing throttle field: '"+CONNECTIONNODE_MATCH+"'");
-            if (rate == null)
-              throw new LCFException("Missing throttle field: '"+CONNECTIONNODE_RATE+"'");
-            connection.addThrottleValue(match,description,rate.floatValue());
+        int q = 0;
+        while (q < child.getChildCount())
+        {
+          ConfigurationNode throttleField = child.findChild(q++);
+          String fieldType = throttleField.getType();
+          if (fieldType.equals(CONNECTIONNODE_MATCH))
+          {
+            match = throttleField.getValue();
+          }
+          else if (fieldType.equals(CONNECTIONNODE_MATCHDESCRIPTION))
+          {
+            description = throttleField.getValue();
+          }
+          else if (fieldType.equals(CONNECTIONNODE_RATE))
+          {
+            rate = new Float(throttleField.getValue());
           }
           else
-            throw new LCFException("Unrecognized throttles node: '"+throttleNode.getType()+"'");
+            throw new LCFException("Unrecognized throttle field: '"+fieldType+"'");
         }
+        if (match == null)
+          throw new LCFException("Missing throttle field: '"+CONNECTIONNODE_MATCH+"'");
+        if (rate == null)
+          throw new LCFException("Missing throttle field: '"+CONNECTIONNODE_RATE+"'");
+        connection.addThrottleValue(match,description,rate.floatValue());
       }
       else
         throw new LCFException("Unrecognized repository connection field: '"+childType+"'");
@@ -2798,7 +2845,6 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       connectionNode.addChild(connectionNode.getChildCount(),child);
     }
     
-    child = new ConfigurationNode(CONNECTIONNODE_THROTTLES);
     String[] throttles = connection.getThrottles();
     j = 0;
     while (j < throttles.length)
@@ -2806,25 +2852,25 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       String match = throttles[j++];
       String description = connection.getThrottleDescription(match);
       float rate = connection.getThrottleValue(match);
-      ConfigurationNode throttleNode = new ConfigurationNode(CONNECTIONNODE_THROTTLE);
+      child = new ConfigurationNode(CONNECTIONNODE_THROTTLE);
       ConfigurationNode throttleChildNode;
       
       throttleChildNode = new ConfigurationNode(CONNECTIONNODE_MATCH);
       throttleChildNode.setValue(match);
-      throttleNode.addChild(throttleNode.getChildCount(),throttleChildNode);
+      child.addChild(child.getChildCount(),throttleChildNode);
       
       if (description != null)
       {
         throttleChildNode = new ConfigurationNode(CONNECTIONNODE_MATCHDESCRIPTION);
         throttleChildNode.setValue(description);
-        throttleNode.addChild(throttleNode.getChildCount(),throttleChildNode);
+        child.addChild(child.getChildCount(),throttleChildNode);
       }
 
       throttleChildNode = new ConfigurationNode(CONNECTIONNODE_RATE);
       throttleChildNode.setValue(new Float(rate).toString());
-      throttleNode.addChild(throttleNode.getChildCount(),throttleChildNode);
+      child.addChild(child.getChildCount(),throttleChildNode);
 
-      child.addChild(child.getChildCount(),throttleNode);
+      connectionNode.addChild(connectionNode.getChildCount(),child);
     }
     
   }
