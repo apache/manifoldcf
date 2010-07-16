@@ -987,6 +987,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
   // API support
   
   protected static final String API_ERRORNODE = "error";
+  protected static final String API_SERVICEINTERRUPTIONNODE = "service_interruption";
   protected static final String API_JOBNODE = "job";
   protected static final String API_JOBSTATUSNODE = "jobstatus";
   protected static final String API_REPOSITORYCONNECTORNODE = "repositoryconnector";
@@ -998,6 +999,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
   protected static final String API_CHECKRESULTNODE = "check_result";
   protected static final String API_JOBIDNODE = "job_id";
   protected static final String API_CONNECTIONNAMENODE = "connection_name";
+  protected static final String API_ARGUMENTNODE = "argument";
   
   // Connector nodes
   protected static final String CONNECTORNODE_DESCRIPTION = "description";
@@ -1565,12 +1567,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
         IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
         IOutputConnection connection = connectionManager.load(connectionName);
         if (connection == null)
-        {
-          ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-          error.setValue("Connection '"+connectionName+"' does not exist");
-          rval.addChild(rval.getChildCount(),error);
-          return rval;
-        }
+          throw new LCFException("Connection '"+connectionName+"' does not exist");
         
         String results;
         // Grab a connection handle, and call the test method
@@ -1591,6 +1588,55 @@ public class LCF extends org.apache.lcf.agents.system.LCF
         ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
         response.setValue(results);
         rval.addChild(rval.getChildCount(),response);
+      }
+      catch (LCFException e)
+      {
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          throw e;
+        Logging.api.error(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
+      }
+    }
+    else if (command.startsWith("outputconnection/execute/"))
+    {
+      // Peel off the subcommand
+      String subcommand = command.substring("outputconnection/execute/".length());
+      // We also need the connection name, and the command argument.
+      if (inputArgument == null)
+        throw new LCFException("Input argument required");
+      
+      String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
+      if (connectionName == null)
+        throw new LCFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+
+      ConfigurationNode argumentNode = findConfigurationNode(inputArgument,API_ARGUMENTNODE);
+      try
+      {
+        IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
+        IOutputConnection connection = connectionManager.load(connectionName);
+        if (connection == null)
+          throw new LCFException("Connection '"+connectionName+"' does not exist");
+
+        // Grab a connection handle, and call the test method
+        IOutputConnector connector = OutputConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+        try
+        {
+          ConfigurationNode responseNode = connector.executeCommand(subcommand,argumentNode);
+          rval.addChild(rval.getChildCount(),responseNode);
+        }
+        finally
+        {
+          OutputConnectorFactory.release(connector);
+        }
+      }
+      catch (ServiceInterruption e)
+      {
+        Logging.api.warn(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_SERVICEINTERRUPTIONNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
       }
       catch (LCFException e)
       {
@@ -1733,12 +1779,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
         IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
         IRepositoryConnection connection = connectionManager.load(connectionName);
         if (connection == null)
-        {
-          ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-          error.setValue("Connection '"+connectionName+"' does not exist");
-          rval.addChild(rval.getChildCount(),error);
-          return rval;
-        }
+          throw new LCFException("Connection '"+connectionName+"' does not exist");
         
         String results;
         // Grab a connection handle, and call the test method
@@ -1759,6 +1800,55 @@ public class LCF extends org.apache.lcf.agents.system.LCF
         ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
         response.setValue(results);
         rval.addChild(rval.getChildCount(),response);
+      }
+      catch (LCFException e)
+      {
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          throw e;
+        Logging.api.error(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
+      }
+    }
+    else if (command.startsWith("repositoryconnection/execute/"))
+    {
+      // Peel off the subcommand
+      String subcommand = command.substring("repositoryconnection/execute/".length());
+      // We also need the connection name, and the command argument.
+      if (inputArgument == null)
+        throw new LCFException("Input argument required");
+      
+      String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
+      if (connectionName == null)
+        throw new LCFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+
+      ConfigurationNode argumentNode = findConfigurationNode(inputArgument,API_ARGUMENTNODE);
+      try
+      {
+        IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
+        IRepositoryConnection connection = connectionManager.load(connectionName);
+        if (connection == null)
+          throw new LCFException("Connection '"+connectionName+"' does not exist");
+
+        // Grab a connection handle, and call the test method
+        IRepositoryConnector connector = RepositoryConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+        try
+        {
+          ConfigurationNode responseNode = connector.executeCommand(subcommand,argumentNode);
+          rval.addChild(rval.getChildCount(),responseNode);
+        }
+        finally
+        {
+          RepositoryConnectorFactory.release(connector);
+        }
+      }
+      catch (ServiceInterruption e)
+      {
+        Logging.api.warn(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_SERVICEINTERRUPTIONNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
       }
       catch (LCFException e)
       {
@@ -1901,12 +1991,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
         IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
         IAuthorityConnection connection = connectionManager.load(connectionName);
         if (connection == null)
-        {
-          ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-          error.setValue("Connection '"+connectionName+"' does not exist");
-          rval.addChild(rval.getChildCount(),error);
-          return rval;
-        }
+          throw new LCFException("Connection '"+connectionName+"' does not exist");
         
         String results;
         // Grab a connection handle, and call the test method

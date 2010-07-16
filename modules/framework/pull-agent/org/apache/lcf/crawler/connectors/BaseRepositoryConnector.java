@@ -195,6 +195,23 @@ public abstract class BaseRepositoryConnector implements IRepositoryConnector
     return params;
   }
 
+  /** Execute an arbitrary connector command.
+  * This method is called directly from the API in order to allow API users to perform any one of several connector-specific actions or
+  * queries.
+  * Exceptions thrown by this method are handled specially at the API level, so that they result in specific kinds of responses that are
+  * distinct from the non-exception case.
+  *@param command is the command, which is taken directly from the API request.
+  *@param input is the optional and arbitrarily complex request object, which should contain whatever information the connector needs to perform the
+  *  command.
+  *@return the response, which can once again be an arbitrarily complex hierarchy.
+  */
+  public ConfigurationNode executeCommand(String command, ConfigurationNode input)
+    throws LCFException, ServiceInterruption
+  {
+    // By definition, the base connector has no commands.
+    throw new LCFException("Unrecognized repository connector command '"+command+"'");
+  }
+
   /** Queue "seed" documents.  Seed documents are the starting places for crawling activity.  Documents
   * are seeded when this method calls appropriate methods in the passed in ISeedingActivity object.
   *
