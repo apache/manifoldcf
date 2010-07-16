@@ -989,12 +989,19 @@ public class LCF extends org.apache.lcf.agents.system.LCF
   protected static final String API_ERRORNODE = "error";
   protected static final String API_JOBNODE = "job";
   protected static final String API_JOBSTATUSNODE = "jobstatus";
+  protected static final String API_REPOSITORYCONNECTORNODE = "repositoryconnector";
+  protected static final String API_OUTPUTCONNECTORNODE = "outputconnector";
+  protected static final String API_AUTHORITYCONNECTORNODE = "authorityconnector";
   protected static final String API_REPOSITORYCONNECTIONNODE = "repositoryconnection";
   protected static final String API_OUTPUTCONNECTIONNODE = "outputconnection";
   protected static final String API_AUTHORITYCONNECTIONNODE = "authorityconnection";
   protected static final String API_CHECKRESULTNODE = "check_result";
   protected static final String API_JOBIDNODE = "job_id";
   protected static final String API_CONNECTIONNAMENODE = "connection_name";
+  
+  // Connector nodes
+  protected static final String CONNECTORNODE_DESCRIPTION = "description";
+  protected static final String CONNECTORNODE_CLASSNAME = "class_name";
   
   /** Execute specified command.  Note that the command is a string, and that it is permitted to accept at most one argument, which
   * will be a Configuration object, and return the same.
@@ -1302,6 +1309,120 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       {
         IJobManager jobManager = JobManagerFactory.make(tc);
         jobManager.restartJob(new Long(jobID));
+      }
+      catch (LCFException e)
+      {
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          throw e;
+        Logging.api.error(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
+      }
+    }
+    else if (command.equals("outputconnector/list"))
+    {
+      // List registered output connectors
+      try
+      {
+        IOutputConnectorManager manager = OutputConnectorManagerFactory.make(tc);
+        IResultSet resultSet = manager.getConnectors();
+        int j = 0;
+        while (j < resultSet.getRowCount())
+        {
+          IResultRow row = resultSet.getRow(j++);
+          ConfigurationNode child = new ConfigurationNode(API_OUTPUTCONNECTORNODE);
+          String description = (String)row.getValue("description");
+          String className = (String)row.getValue("classname");
+          ConfigurationNode node;
+          if (description != null)
+          {
+            node = new ConfigurationNode(CONNECTORNODE_DESCRIPTION);
+            node.setValue(description);
+            child.addChild(child.getChildCount(),node);
+          }
+          node = new ConfigurationNode(CONNECTORNODE_CLASSNAME);
+          node.setValue(className);
+          child.addChild(child.getChildCount(),node);
+
+          rval.addChild(rval.getChildCount(),child);
+        }
+      }
+      catch (LCFException e)
+      {
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          throw e;
+        Logging.api.error(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
+      }
+    }
+    else if (command.equals("authorityconnector/list"))
+    {
+      // List registered authority connectors
+      try
+      {
+        IAuthorityConnectorManager manager = AuthorityConnectorManagerFactory.make(tc);
+        IResultSet resultSet = manager.getConnectors();
+        int j = 0;
+        while (j < resultSet.getRowCount())
+        {
+          IResultRow row = resultSet.getRow(j++);
+          ConfigurationNode child = new ConfigurationNode(API_AUTHORITYCONNECTORNODE);
+          String description = (String)row.getValue("description");
+          String className = (String)row.getValue("classname");
+          ConfigurationNode node;
+          if (description != null)
+          {
+            node = new ConfigurationNode(CONNECTORNODE_DESCRIPTION);
+            node.setValue(description);
+            child.addChild(child.getChildCount(),node);
+          }
+          node = new ConfigurationNode(CONNECTORNODE_CLASSNAME);
+          node.setValue(className);
+          child.addChild(child.getChildCount(),node);
+
+          rval.addChild(rval.getChildCount(),child);
+        }
+      }
+      catch (LCFException e)
+      {
+        if (e.getErrorCode() == LCFException.INTERRUPTED)
+          throw e;
+        Logging.api.error(e.getMessage(),e);
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue(e.getMessage());
+        rval.addChild(rval.getChildCount(),error);
+      }
+    }
+    else if (command.equals("repositoryconnector/list"))
+    {
+      // List registered repository connectors
+      try
+      {
+        IConnectorManager manager = ConnectorManagerFactory.make(tc);
+        IResultSet resultSet = manager.getConnectors();
+        int j = 0;
+        while (j < resultSet.getRowCount())
+        {
+          IResultRow row = resultSet.getRow(j++);
+          ConfigurationNode child = new ConfigurationNode(API_REPOSITORYCONNECTORNODE);
+          String description = (String)row.getValue("description");
+          String className = (String)row.getValue("classname");
+          ConfigurationNode node;
+          if (description != null)
+          {
+            node = new ConfigurationNode(CONNECTORNODE_DESCRIPTION);
+            node.setValue(description);
+            child.addChild(child.getChildCount(),node);
+          }
+          node = new ConfigurationNode(CONNECTORNODE_CLASSNAME);
+          node.setValue(className);
+          child.addChild(child.getChildCount(),node);
+
+          rval.addChild(rval.getChildCount(),child);
+        }
       }
       catch (LCFException e)
       {
