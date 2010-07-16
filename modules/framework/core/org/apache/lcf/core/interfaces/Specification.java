@@ -20,7 +20,6 @@ package org.apache.lcf.core.interfaces;
 
 import java.util.*;
 import java.io.*;
-import org.apache.lcf.core.common.XMLDoc;
 
 /** This class represents a specification, which is a generalized hierarchy of nodes that
 * can be interpreted by an appropriate connector in an appropriate way.
@@ -33,7 +32,7 @@ public class Specification extends Configuration
   */
   public Specification()
   {
-    super();
+    super("specification");
   }
 
   /** Construct from XML.
@@ -42,17 +41,10 @@ public class Specification extends Configuration
   public Specification(String xml)
     throws LCFException
   {
-    super(xml);
+    super("specification");
+    fromXML(xml);
   }
 
-  /** Return the root node type.
-  *@return the node type name.
-  */
-  protected String getRootNodeLabel()
-  {
-    return "specification";
-  }
-  
   /** Create a new object of the appropriate class.
   */
   protected Configuration createNew()

@@ -33,7 +33,7 @@ public class LCFConfiguration extends Configuration
   */
   public LCFConfiguration()
   {
-    super();
+    super("configuration");
   }
 
   /** Construct from XML.
@@ -42,17 +42,10 @@ public class LCFConfiguration extends Configuration
   public LCFConfiguration(InputStream xmlStream)
     throws LCFException
   {
-    super(xmlStream);
+    super("configuration");
+    fromXML(xmlStream);
   }
 
-  /** Return the root node type.
-  *@return the node type name.
-  */
-  protected String getRootNodeLabel()
-  {
-    return "configuration";
-  }
-  
   /** Create a new object of the appropriate class.
   */
   protected Configuration createNew()

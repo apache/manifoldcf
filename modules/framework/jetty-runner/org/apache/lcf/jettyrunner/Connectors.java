@@ -33,7 +33,7 @@ public class Connectors extends Configuration
   */
   public Connectors()
   {
-    super();
+    super("connectors");
   }
 
   /** Construct from XML.
@@ -42,17 +42,10 @@ public class Connectors extends Configuration
   public Connectors(InputStream xmlStream)
     throws LCFException
   {
-    super(xmlStream);
+    super("connectors");
+    fromXML(xmlStream);
   }
 
-  /** Return the root node type.
-  *@return the node type name.
-  */
-  protected String getRootNodeLabel()
-  {
-    return "connectors";
-  }
-  
   /** Create a new object of the appropriate class.
   */
   protected Configuration createNew()

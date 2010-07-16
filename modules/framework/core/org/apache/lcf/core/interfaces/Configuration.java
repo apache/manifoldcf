@@ -36,7 +36,8 @@ public class Configuration
   protected static final String JSON_ATTRIBUTE = "_attribute_";
   protected static final String JSON_VALUE = "_value_";
   
-
+  // The root node type
+  protected String rootNodeLabel;
   // The children
   protected ArrayList children = new ArrayList();
   // Read-only flag
@@ -46,34 +47,17 @@ public class Configuration
   */
   public Configuration()
   {
+    rootNodeLabel = "data";
   }
 
-  /** Construct from XML.
-  *@param xml is the input XML.
+  /** Constructor.
+  *@param rootNodeLabel is the root node label to use.
   */
-  public Configuration(String xml)
-    throws LCFException
+  public Configuration(String rootNodeLabel)
   {
-    fromXML(xml);
+    this.rootNodeLabel = rootNodeLabel;
   }
 
-  /** Construct from XML.
-  *@param xmlstream is the input XML stream.  Does NOT close the stream.
-  */
-  public Configuration(InputStream xmlstream)
-    throws LCFException
-  {
-    fromXML(xmlstream);
-  }
-
-  /** Return the root node type.
-  *@return the node type name.
-  */
-  protected String getRootNodeLabel()
-  {
-    return "data";
-  }
-  
   /** Create a new object of the appropriate class.
   *@return the newly-created configuration object.
   */
@@ -159,7 +143,7 @@ public class Configuration
   {
     XMLDoc doc = new XMLDoc();
     // name of root node in definition
-    Object top = doc.createElement(null,getRootNodeLabel());
+    Object top = doc.createElement(null,rootNodeLabel);
     // Now, go through all children
     int i = 0;
     while (i < children.size())
@@ -488,11 +472,11 @@ public class Configuration
 
     if (list.size() != 1)
     {
-      throw new LCFException("Bad xml - missing outer '"+getRootNodeLabel()+"' node - there are "+Integer.toString(list.size())+" nodes");
+      throw new LCFException("Bad xml - missing outer '"+rootNodeLabel+"' node - there are "+Integer.toString(list.size())+" nodes");
     }
     Object parent = list.get(0);
-    if (!doc.getNodeName(parent).equals(getRootNodeLabel()))
-      throw new LCFException("Bad xml - outer node is not '"+getRootNodeLabel()+"'");
+    if (!doc.getNodeName(parent).equals(rootNodeLabel))
+      throw new LCFException("Bad xml - outer node is not '"+rootNodeLabel+"'");
 
     list.clear();
     doc.processPath(list, "*", parent);

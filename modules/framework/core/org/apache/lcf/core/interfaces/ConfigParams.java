@@ -22,7 +22,6 @@ import org.apache.lcf.core.interfaces.*;
 import java.util.*;
 import java.io.*;
 import org.apache.lcf.core.system.LCF;
-import org.apache.lcf.core.common.XMLDoc;
 
 /** This class represents a set of configuration parameters, with structure, which is a generalized hierarchy of nodes that
 * can be interpreted by a repository or authority connector in an appropriate way.
@@ -42,7 +41,7 @@ public class ConfigParams extends Configuration
   */
   public ConfigParams()
   {
-    super();
+    super("configuration");
   }
 
   /** Constructor.
@@ -51,7 +50,7 @@ public class ConfigParams extends Configuration
   */
   public ConfigParams(Map map)
   {
-    super();
+    super("configuration");
     Iterator iter = map.keySet().iterator();
     while (iter.hasNext())
     {
@@ -70,7 +69,7 @@ public class ConfigParams extends Configuration
   public ConfigParams(String xml)
     throws LCFException
   {
-    super();
+    super("configuration");
     fromXML(xml);
   }
 
@@ -80,18 +79,10 @@ public class ConfigParams extends Configuration
   public ConfigParams(InputStream xmlstream)
     throws LCFException
   {
-    super();
+    super("configuration");
     fromXML(xmlstream);
   }
 
-  /** Return the root node type.
-  *@return the node type name.
-  */
-  protected String getRootNodeLabel()
-  {
-    return "configuration";
-  }
-  
   /** Create a new object of the appropriate class.
   */
   protected Configuration createNew()
