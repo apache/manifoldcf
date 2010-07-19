@@ -37,7 +37,6 @@ public class Logging extends org.apache.lcf.agents.system.Logging
   public static Logger connectors = null;
   public static Logger hopcount = null;
   public static Logger scheduling = null;
-  public static Logger api = null;
 
   /** Initialize logger setup.
   */
@@ -54,7 +53,6 @@ public class Logging extends org.apache.lcf.agents.system.Logging
     connectors = newLogger("org.apache.lcf.connectors");
     hopcount = newLogger("org.apache.lcf.hopcount");
     scheduling = newLogger("org.apache.lcf.scheduling");
-    api = newLogger("org.apache.lcf.api");
   }
 
 

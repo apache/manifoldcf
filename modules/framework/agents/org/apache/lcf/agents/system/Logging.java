@@ -33,6 +33,7 @@ public class Logging extends org.apache.lcf.core.system.Logging
   // Public logger objects
   public static Logger agents = null;
   public static Logger ingest = null;
+  public static Logger api = null;
 
   /** Initialize logger setup.
   */
@@ -46,6 +47,7 @@ public class Logging extends org.apache.lcf.core.system.Logging
     // package loggers
     agents = newLogger("org.apache.lcf.agents");
     ingest = newLogger("org.apache.lcf.ingest");
+    api = newLogger("org.apache.lcf.api");
 
   }
 

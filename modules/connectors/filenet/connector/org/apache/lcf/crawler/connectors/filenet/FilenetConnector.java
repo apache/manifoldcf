@@ -23,6 +23,7 @@ import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.agents.interfaces.*;
 import org.apache.lcf.crawler.interfaces.*;
 import org.apache.lcf.crawler.system.Logging;
+import org.apache.lcf.crawler.system.LCF;
 import java.util.*;
 import java.io.*;
 import org.apache.lcf.crawler.common.filenet.*;
@@ -531,6 +532,105 @@ public class FilenetConnector extends org.apache.lcf.crawler.connectors.BaseRepo
     docURIPrefix = null;
   }
 
+  /** Execute an arbitrary connector command.
+  * This method is called directly from the API in order to allow API users to perform any one of several connector-specific actions or
+  * queries.
+  * Exceptions thrown by this method are considered to be usage errors, and cause a 400 response to be returned.
+  *@param output is the response object, to be filled in by this method.
+  *@param command is the command, which is taken directly from the API request.
+  *@param input is the request object.
+  */
+  public void executeCommand(Configuration output, String command, Configuration input)
+    throws LCFException
+  {
+    if (command.equals("documentclass/metadatafields"))
+    {
+      String documentClass = LCF.getRootArgument(input,"document_class");
+      if (documentClass == null)
+        throw new LCFException("Missing required field 'document_class'");
+      try
+      {
+        MetadataFieldDefinition[] metaFields = getDocumentClassMetadataFieldsDetails(documentClass);
+        int i = 0;
+        while (i < metaFields.length)
+        {
+          MetadataFieldDefinition def = metaFields[i++];
+          ConfigurationNode node = new ConfigurationNode("metadata_field");
+          ConfigurationNode child;
+          child = new ConfigurationNode("display_name");
+          child.setValue(def.getDisplayName());
+          node.addChild(node.getChildCount(),child);
+          child = new ConfigurationNode("symbolic_name");
+          child.setValue(def.getSymbolicName());
+          node.addChild(node.getChildCount(),child);
+          output.addChild(output.getChildCount(),node);
+        }
+      }
+      catch (ServiceInterruption e)
+      {
+        LCF.createServiceInterruptionNode(output,e);
+      }
+      catch (LCFException e)
+      {
+        LCF.createErrorNode(output,e);
+      }
+    }
+    else if (command.equals("documentclass/list"))
+    {
+      try
+      {
+        DocumentClassDefinition[] definitions = getDocumentClassesDetails();
+        int i = 0;
+        while (i < definitions.length)
+        {
+          DocumentClassDefinition def = definitions[i++];
+          ConfigurationNode node = new ConfigurationNode("document_class");
+          ConfigurationNode child;
+          child = new ConfigurationNode("display_name");
+          child.setValue(def.getDisplayName());
+          node.addChild(node.getChildCount(),child);
+          child = new ConfigurationNode("symbolic_name");
+          child.setValue(def.getSymbolicName());
+          node.addChild(node.getChildCount(),child);
+          output.addChild(output.getChildCount(),node);
+        }
+      }
+      catch (ServiceInterruption e)
+      {
+        LCF.createServiceInterruptionNode(output,e);
+      }
+      catch (LCFException e)
+      {
+        LCF.createErrorNode(output,e);
+      }
+    }
+    else if (command.equals("mimetype/list"))
+    {
+      try
+      {
+        String[] mimeTypesArray = getMimeTypes();
+        int i = 0;
+        while (i < mimeTypesArray.length)
+        {
+          String mimeType = mimeTypesArray[i++];
+          ConfigurationNode node = new ConfigurationNode("mime_type");
+          node.setValue(mimeType);
+          output.addChild(output.getChildCount(),node);
+        }
+      }
+      catch (ServiceInterruption e)
+      {
+        LCF.createServiceInterruptionNode(output,e);
+      }
+      catch (LCFException e)
+      {
+        LCF.createErrorNode(output,e);
+      }
+    }
+    else
+      super.executeCommand(output,command,input);
+  }
+  
   /** Queue "seed" documents.  Seed documents are the starting places for crawling activity.  Documents
   * are seeded when this method calls appropriate methods in the passed in ISeedingActivity object.
   *@param activities is the interface this method should use to perform whatever framework actions are desired.

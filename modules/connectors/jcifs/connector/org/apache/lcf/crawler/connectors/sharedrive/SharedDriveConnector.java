@@ -48,6 +48,8 @@ import org.apache.lcf.core.interfaces.ConfigParams;
 import org.apache.lcf.core.interfaces.LCFException;
 import org.apache.lcf.core.interfaces.IKeystoreManager;
 import org.apache.lcf.core.interfaces.KeystoreManagerFactory;
+import org.apache.lcf.core.interfaces.Configuration;
+import org.apache.lcf.core.interfaces.ConfigurationNode;
 import org.apache.lcf.crawler.interfaces.DocumentSpecification;
 import org.apache.lcf.crawler.interfaces.IDocumentIdentifierStream;
 import org.apache.lcf.crawler.interfaces.IProcessActivity;
@@ -55,6 +57,7 @@ import org.apache.lcf.crawler.interfaces.IFingerprintActivity;
 import org.apache.lcf.core.interfaces.SpecificationNode;
 import org.apache.lcf.crawler.interfaces.IVersionActivity;
 import org.apache.lcf.crawler.system.Logging;
+import org.apache.lcf.crawler.system.LCF;
 
 /** This is the "repository connector" for a smb/cifs shared drive file system.  It's a relative of the share crawler, and should have
 * comparable basic functionality.
@@ -367,7 +370,66 @@ public class SharedDriveConnector extends org.apache.lcf.crawler.connectors.Base
     }
   }
 
-
+  /** Execute an arbitrary connector command.
+  * This method is called directly from the API in order to allow API users to perform any one of several connector-specific actions or
+  * queries.
+  * Exceptions thrown by this method are considered to be usage errors, and cause a 400 response to be returned.
+  *@param output is the response object, to be filled in by this method.
+  *@param command is the command, which is taken directly from the API request.
+  *@param input is the request object.
+  */
+  public void executeCommand(Configuration output, String command, Configuration input)
+    throws LCFException
+  {
+    if (command.equals("folder/list"))
+    {
+      String parentFolder = LCF.getRootArgument(input,"parent_folder");
+      if (parentFolder == null)
+        throw new LCFException("Missing required field 'parent_folder'");
+      
+      try
+      {
+        String[] folders = getChildFolderNames(parentFolder);
+        int i = 0;
+        while (i < folders.length)
+        {
+          String folder = folders[i++];
+          ConfigurationNode node = new ConfigurationNode("folder");
+          node.setValue(folder);
+          output.addChild(output.getChildCount(),node);
+        }
+      }
+      catch (LCFException e)
+      {
+        LCF.createErrorNode(output,e);
+      }
+    }
+    else if (command.equals("folder/validate"))
+    {
+      String folder = LCF.getRootArgument(input,"folder");
+      if (folder == null)
+        throw new LCFException("Missing required field 'folder'");
+      
+      try
+      {
+        String canonicalFolder = validateFolderName(folder);
+        if (canonicalFolder != null)
+        {
+          ConfigurationNode node = new ConfigurationNode("folder");
+          node.setValue(canonicalFolder);
+          output.addChild(output.getChildCount(),node);
+        }
+      }
+      catch (LCFException e)
+      {
+        LCF.createErrorNode(output,e);
+      }
+    }
+    else
+      super.executeCommand(output,command,input);
+  }
+  
+  
   /** Given a document specification, get either a list of starting document identifiers (seeds),
   * or a list of changes (deltas), depending on whether this is a "crawled" connector or not.
   * These document identifiers will be loaded into the job's queue at the beginning of the

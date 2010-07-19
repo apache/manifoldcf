@@ -198,5 +198,58 @@ public class LCF extends org.apache.lcf.core.system.LCF
     
   }
   
+  // Helper methods for API support.  These are made public so connectors can use them to implement the executeCommand method.
+  
+  // These are the universal node types.
+  
+  protected static final String API_ERRORNODE = "error";
+  protected static final String API_SERVICEINTERRUPTIONNODE = "service_interruption";
+  
+  /** Find a configuration node given a name */
+  public static ConfigurationNode findConfigurationNode(Configuration input, String argumentName)
+  {
+    // Look for argument among the children
+    int i = 0;
+    while (i < input.getChildCount())
+    {
+      ConfigurationNode cn = input.findChild(i++);
+      if (cn.getType().equals(argumentName))
+        return cn;
+    }
+    return null;
+
+  }
+  
+  /** Find a configuration value given a name */
+  public static String getRootArgument(Configuration input, String argumentName)
+  {
+    ConfigurationNode node = findConfigurationNode(input,argumentName);
+    if (node == null)
+      return null;
+    return node.getValue();
+  }
+  
+  /** Handle an exception, by converting it to an error node. */
+  public static void createErrorNode(Configuration output, LCFException e)
+    throws LCFException
+  {
+    if (e.getErrorCode() == LCFException.INTERRUPTED)
+      throw e;
+    Logging.api.error(e.getMessage(),e);
+    ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+    error.setValue(e.getMessage());
+    output.addChild(output.getChildCount(),error);
+  }
+
+  /** Handle a service interruption, by converting it to a serviceinterruption node. */
+  public static void createServiceInterruptionNode(Configuration output, ServiceInterruption e)
+  {
+    Logging.api.warn(e.getMessage(),e);
+    ConfigurationNode error = new ConfigurationNode(API_SERVICEINTERRUPTIONNODE);
+    error.setValue(e.getMessage());
+    output.addChild(output.getChildCount(),error);
+  }
+
+
 }
 

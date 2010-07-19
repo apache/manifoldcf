@@ -321,6 +321,112 @@ public class SharePointRepository extends org.apache.lcf.crawler.connectors.Base
       connectionManager.closeIdleConnections(60000L);
   }
 
+  /** Execute an arbitrary connector command.
+  * This method is called directly from the API in order to allow API users to perform any one of several connector-specific actions or
+  * queries.
+  * Exceptions thrown by this method are considered to be usage errors, and cause a 400 response to be returned.
+  *@param output is the response object, to be filled in by this method.
+  *@param command is the command, which is taken directly from the API request.
+  *@param input is the request object.
+  */
+  public void executeCommand(Configuration output, String command, Configuration input)
+    throws LCFException
+  {
+    if (command.equals("field/list"))
+    {
+      String sitePath = LCF.getRootArgument(input,"site_path");
+      if (sitePath == null)
+        throw new LCFException("Missing required argument 'site_path'");
+      String library = LCF.getRootArgument(input,"library");
+      if (library == null)
+        throw new LCFException("Missing required argument 'library'");
+      
+      try
+      {
+        Map fieldSet = getFieldList(sitePath,library);
+        Iterator iter = fieldSet.keySet().iterator();
+        while (iter.hasNext())
+        {
+          String fieldName = (String)iter.next();
+          String displayName = (String)fieldSet.get(fieldName);
+          ConfigurationNode node = new ConfigurationNode("field");
+          ConfigurationNode child;
+          child = new ConfigurationNode("name");
+          child.setValue(fieldName);
+          node.addChild(node.getChildCount(),child);
+          child = new ConfigurationNode("display_name");
+          child.setValue(displayName);
+          node.addChild(node.getChildCount(),child);
+          output.addChild(output.getChildCount(),node);
+        }
+      }
+      catch (ServiceInterruption e)
+      {
+        LCF.createServiceInterruptionNode(output,e);
+      }
+      catch (LCFException e)
+      {
+        LCF.createErrorNode(output,e);
+      }
+    }
+    else if (command.equals("site/list"))
+    {
+      String sitePath = LCF.getRootArgument(input,"site_path");
+      if (sitePath == null)
+        throw new LCFException("Missing required argument 'site_path'");
+
+      try
+      {
+        ArrayList sites = getSites(sitePath);
+        int i = 0;
+        while (i < sites.size())
+        {
+          String site = (String)sites.get(i++);
+          ConfigurationNode node = new ConfigurationNode("site");
+          node.setValue(site);
+          output.addChild(output.getChildCount(),node);
+        }
+      }
+      catch (ServiceInterruption e)
+      {
+        LCF.createServiceInterruptionNode(output,e);
+      }
+      catch (LCFException e)
+      {
+        LCF.createErrorNode(output,e);
+      }
+    }
+    else if (command.equals("library/list"))
+    {
+      String sitePath = LCF.getRootArgument(input,"site_path");
+      if (sitePath == null)
+        throw new LCFException("Missing required argument 'site_path'");
+
+      try
+      {
+        ArrayList libs = getDocLibsBySite(sitePath);
+        int i = 0;
+        while (i < libs.size())
+        {
+          String lib = (String)libs.get(i++);
+          ConfigurationNode node = new ConfigurationNode("library");
+          node.setValue(lib);
+          output.addChild(output.getChildCount(),node);
+        }
+      }
+      catch (ServiceInterruption e)
+      {
+        LCF.createServiceInterruptionNode(output,e);
+      }
+      catch (LCFException e)
+      {
+        LCF.createErrorNode(output,e);
+      }
+    }
+    else
+      super.executeCommand(output,command,input);
+  }
+  
   /** Queue "seed" documents.  Seed documents are the starting places for crawling activity.  Documents
   * are seeded when this method calls appropriate methods in the passed in ISeedingActivity object.
   *

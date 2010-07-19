@@ -23,6 +23,7 @@ import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.agents.interfaces.*;
 import org.apache.lcf.crawler.interfaces.*;
 import org.apache.lcf.crawler.system.Logging;
+import org.apache.lcf.crawler.system.LCF;
 import java.util.*;
 import java.io.*;
 import org.apache.lcf.crawler.common.DCTM.*;
@@ -843,6 +844,117 @@ public class DCTM extends org.apache.lcf.crawler.connectors.BaseRepositoryConnec
 
   }
 
+  /** Execute an arbitrary connector command.
+  * This method is called directly from the API in order to allow API users to perform any one of several connector-specific actions or
+  * queries.
+  * Exceptions thrown by this method are considered to be usage errors, and cause a 400 response to be returned.
+  *@param output is the response object, to be filled in by this method.
+  *@param command is the command, which is taken directly from the API request.
+  *@param input is the request object.
+  */
+  public void executeCommand(Configuration output, String command, Configuration input)
+    throws LCFException
+  {
+    if (command.equals("contenttype/list"))
+    {
+      try
+      {
+        String[] contentTypes = getContentTypes();
+        int i = 0;
+        while (i < contentTypes.length)
+        {
+          String contentType = contentTypes[i++];
+          ConfigurationNode node = new ConfigurationNode("content_type");
+          node.setValue(contentType);
+          output.addChild(output.getChildCount(),node);
+        }
+      }
+      catch (ServiceInterruption e)
+      {
+        LCF.createServiceInterruptionNode(output,e);
+      }
+      catch (LCFException e)
+      {
+        LCF.createErrorNode(output,e);
+      }
+    }
+    else if (command.equals("objecttype/list"))
+    {
+      try
+      {
+        String[] objectTypes = getObjectTypes();
+        int i = 0;
+        while (i < objectTypes.length)
+        {
+          String objectType = objectTypes[i++];
+          ConfigurationNode node = new ConfigurationNode("object_type");
+          node.setValue(objectType);
+          output.addChild(output.getChildCount(),node);
+        }
+      }
+      catch (ServiceInterruption e)
+      {
+        LCF.createServiceInterruptionNode(output,e);
+      }
+      catch (LCFException e)
+      {
+        LCF.createErrorNode(output,e);
+      }
+    }
+    else if (command.equals("folder/list"))
+    {
+      String parentFolder = LCF.getRootArgument(input,"parent_folder");
+      try
+      {
+        String[] folders = getChildFolderNames(parentFolder);
+        int i = 0;
+        while (i < folders.length)
+        {
+          String folder = folders[i++];
+          ConfigurationNode node = new ConfigurationNode("folder");
+          node.setValue(folder);
+          output.addChild(output.getChildCount(),node);
+        }
+      }
+      catch (ServiceInterruption e)
+      {
+        LCF.createServiceInterruptionNode(output,e);
+      }
+      catch (LCFException e)
+      {
+        LCF.createErrorNode(output,e);
+      }
+    }
+    else if (command.equals("indexableattributes/list"))
+    {
+      String objectType = LCF.getRootArgument(input,"object_type");
+      if (objectType == null)
+        throw new LCFException("Missing required field 'object_type'");
+      try
+      {
+        String[] indexableAttributes = getIngestableAttributes(objectType);
+        int i = 0;
+        while (i < indexableAttributes.length)
+        {
+          String indexableAttribute = indexableAttributes[i++];
+          ConfigurationNode node = new ConfigurationNode("attribute");
+          node.setValue(indexableAttribute);
+          output.addChild(output.getChildCount(),node);
+        }
+      }
+      catch (ServiceInterruption e)
+      {
+        LCF.createServiceInterruptionNode(output,e);
+      }
+      catch (LCFException e)
+      {
+        LCF.createErrorNode(output,e);
+      }
+    }
+    else
+      super.executeCommand(output,command,input);
+  }
+  
   /** Queue "seed" documents.  Seed documents are the starting places for crawling activity.  Documents
   * are seeded when this method calls appropriate methods in the passed in ISeedingActivity object.
   *@param activities is the interface this method should use to perform whatever framework actions are desired.

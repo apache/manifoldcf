@@ -465,7 +465,117 @@ public class MeridioConnector extends org.apache.lcf.crawler.connectors.BaseRepo
     return 10;
   }
 
-
+  /** Execute an arbitrary connector command.
+  * This method is called directly from the API in order to allow API users to perform any one of several connector-specific actions or
+  * queries.
+  * Exceptions thrown by this method are considered to be usage errors, and cause a 400 response to be returned.
+  *@param output is the response object, to be filled in by this method.
+  *@param command is the command, which is taken directly from the API request.
+  *@param input is the request object.
+  */
+  public void executeCommand(Configuration output, String command, Configuration input)
+    throws LCFException
+  {
+    if (command.equals("category/list"))
+    {
+      try
+      {
+        String[] categories = getMeridioCategories();
+        int i = 0;
+        while (i < categories.length)
+        {
+          String category = categories[i++];
+          ConfigurationNode node = new ConfigurationNode("category");
+          node.setValue(category);
+          output.addChild(output.getChildCount(),node);
+        }
+      }
+      catch (ServiceInterruption e)
+      {
+        LCF.createServiceInterruptionNode(output,e);
+      }
+      catch (LCFException e)
+      {
+        LCF.createErrorNode(output,e);
+      }
+    }
+    else if (command.equals("documentproperties/list"))
+    {
+      try
+      {
+        String[] properties = getMeridioDocumentProperties();
+        int i = 0;
+        while (i < properties.length)
+        {
+          String property = properties[i++];
+          ConfigurationNode node = new ConfigurationNode("document_property");
+          node.setValue(property);
+          output.addChild(output.getChildCount(),node);
+        }
+      }
+      catch (ServiceInterruption e)
+      {
+        LCF.createServiceInterruptionNode(output,e);
+      }
+      catch (LCFException e)
+      {
+        LCF.createErrorNode(output,e);
+      }
+    }
+    else if (command.equals("classorfolder/list"))
+    {
+      String classOrFolderIdString = LCF.getRootArgument(input,"class_or_folder_id");
+      if (classOrFolderIdString == null)
+        throw new LCFException("Missing required argument 'class_or_folder_id'");
+      int classOrFolderId;
+      try
+      {
+        classOrFolderId = Integer.parseInt(classOrFolderIdString);
+      }
+      catch (NumberFormatException e)
+      {
+        throw new LCFException("Argument 'class_or_folder_id' must be an integer: "+e.getMessage(),e);
+      }
+      try
+      {
+        MeridioClassContents[] contents = getClassOrFolderContents(classOrFolderId);
+        int i = 0;
+        while (i < contents.length)
+        {
+          MeridioClassContents content = contents[i++];
+          ConfigurationNode node = new ConfigurationNode("content");
+          ConfigurationNode child;
+          child = new ConfigurationNode("id");
+          child.setValue(Integer.toString(content.classOrFolderId));
+          node.addChild(node.getChildCount(),child);
+          child = new ConfigurationNode("name");
+          child.setValue(content.classOrFolderName);
+          node.addChild(node.getChildCount(),child);
+          child = new ConfigurationNode("type");
+          String typeString;
+          if (content.containerType == MeridioClassContents.CLASS)
+            typeString = "class";
+          else if (content.containerType == MeridioClassContents.FOLDER)
+            typeString = "folder";
+          else
+            typeString = "unknown";
+          child.setValue(typeString);
+          node.addChild(node.getChildCount(),child);
+          output.addChild(output.getChildCount(),node);
+        }
+      }
+      catch (ServiceInterruption e)
+      {
+        LCF.createServiceInterruptionNode(output,e);
+      }
+      catch (LCFException e)
+      {
+        LCF.createErrorNode(output,e);
+      }
+    }
+    else
+      super.executeCommand(output,command,input);
+  }
 
   /** Given a document specification, get either a list of starting document identifiers (seeds),
   * or a list of changes (deltas), depending on whether this is a "crawled" connector or not.

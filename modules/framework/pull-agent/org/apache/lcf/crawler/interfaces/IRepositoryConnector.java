@@ -182,15 +182,13 @@ public interface IRepositoryConnector
   /** Execute an arbitrary connector command.
   * This method is called directly from the API in order to allow API users to perform any one of several connector-specific actions or
   * queries.
-  * Exceptions thrown by this method are handled specially at the API level, so that they result in specific kinds of responses that are
-  * distinct from the non-exception case.
+  * Exceptions thrown by this method are considered to be usage errors, and cause a 400 response to be returned.
+  *@param output is the response object, to be filled in by this method.
   *@param command is the command, which is taken directly from the API request.
-  *@param input is the optional and arbitrarily complex request object, which should contain whatever information the connector needs to perform the
-  *  command.
-  *@return the response, which can once again be an arbitrarily complex hierarchy.
+  *@param input is the request object.
   */
-  public ConfigurationNode executeCommand(String command, ConfigurationNode input)
-    throws LCFException, ServiceInterruption;
+  public void executeCommand(Configuration output, String command, Configuration input)
+    throws LCFException;
 
   /** Queue "seed" documents.  Seed documents are the starting places for crawling activity.  Documents
   * are seeded when this method calls appropriate methods in the passed in ISeedingActivity object.

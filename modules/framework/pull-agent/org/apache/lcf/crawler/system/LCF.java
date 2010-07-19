@@ -986,8 +986,6 @@ public class LCF extends org.apache.lcf.agents.system.LCF
   
   // API support
   
-  protected static final String API_ERRORNODE = "error";
-  protected static final String API_SERVICEINTERRUPTIONNODE = "service_interruption";
   protected static final String API_JOBNODE = "job";
   protected static final String API_JOBSTATUSNODE = "jobstatus";
   protected static final String API_REPOSITORYCONNECTORNODE = "repositoryconnector";
@@ -999,7 +997,6 @@ public class LCF extends org.apache.lcf.agents.system.LCF
   protected static final String API_CHECKRESULTNODE = "check_result";
   protected static final String API_JOBIDNODE = "job_id";
   protected static final String API_CONNECTIONNAMENODE = "connection_name";
-  protected static final String API_ARGUMENTNODE = "argument";
   
   // Connector nodes
   protected static final String CONNECTORNODE_DESCRIPTION = "description";
@@ -1032,12 +1029,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       }
       catch (LCFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
-          throw e;
-        Logging.api.error(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
+        createErrorNode(rval,e);
       }
     }
     else if (command.equals("job/get"))
@@ -1064,12 +1056,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       }
       catch (LCFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
-          throw e;
-        Logging.api.error(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
+        createErrorNode(rval,e);
       }
     }
     else if (command.equals("job/save"))
@@ -1108,12 +1095,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       }
       catch (LCFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
-          throw e;
-        Logging.api.error(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
+        createErrorNode(rval,e);
       }
     }
     else if (command.equals("job/delete"))
@@ -1133,12 +1115,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       }
       catch (LCFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
-          throw e;
-        Logging.api.error(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
+        createErrorNode(rval,e);
       }
     }
     else if (command.equals("jobstatus/list"))
@@ -1157,12 +1134,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       }
       catch (LCFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
-          throw e;
-        Logging.api.error(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
+        createErrorNode(rval,e);
       }
     }
     else if (command.equals("jobstatus/get"))
@@ -1188,12 +1160,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       }
       catch (LCFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
-          throw e;
-        Logging.api.error(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
+        createErrorNode(rval,e);
       }
     }
     else if (command.equals("jobstatus/start"))
@@ -1213,12 +1180,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       }
       catch (LCFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
-          throw e;
-        Logging.api.error(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
+        createErrorNode(rval,e);
       }
     }
     else if (command.equals("jobstatus/abort"))
@@ -1238,12 +1200,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       }
       catch (LCFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
-          throw e;
-        Logging.api.error(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
+        createErrorNode(rval,e);
       }
 
     }
@@ -1264,12 +1221,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       }
       catch (LCFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
-          throw e;
-        Logging.api.error(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
+        createErrorNode(rval,e);
       }
     }
     else if (command.equals("jobstatus/pause"))
@@ -1289,12 +1241,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       }
       catch (LCFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
-          throw e;
-        Logging.api.error(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
+        createErrorNode(rval,e);
       }
     }
     else if (command.equals("jobstatus/resume"))
@@ -1314,12 +1261,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       }
       catch (LCFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
-          throw e;
-        Logging.api.error(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
+        createErrorNode(rval,e);
       }
     }
     else if (command.equals("outputconnector/list"))
@@ -1352,12 +1294,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       }
       catch (LCFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
-          throw e;
-        Logging.api.error(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
+        createErrorNode(rval,e);
       }
     }
     else if (command.equals("authorityconnector/list"))
@@ -1390,12 +1327,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       }
       catch (LCFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
-          throw e;
-        Logging.api.error(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
+        createErrorNode(rval,e);
       }
     }
     else if (command.equals("repositoryconnector/list"))
@@ -1428,12 +1360,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       }
       catch (LCFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
-          throw e;
-        Logging.api.error(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
+        createErrorNode(rval,e);
       }
     }
     else if (command.equals("outputconnection/list"))
@@ -1452,12 +1379,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       }
       catch (LCFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
-          throw e;
-        Logging.api.error(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
+        createErrorNode(rval,e);
       }
     }
     else if (command.equals("outputconnection/get"))
@@ -1484,12 +1406,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       }
       catch (LCFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
-          throw e;
-        Logging.api.error(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
+        createErrorNode(rval,e);
       }
     }
     else if (command.equals("outputconnection/save"))
@@ -1519,12 +1436,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       }
       catch (LCFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
-          throw e;
-        Logging.api.error(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
+        createErrorNode(rval,e);
       }
     }
     else if (command.equals("outputconnection/delete"))
@@ -1544,12 +1456,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       }
       catch (LCFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
-          throw e;
-        Logging.api.error(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
+        createErrorNode(rval,e);
       }
     }
     else if (command.equals("outputconnection/checkstatus"))
@@ -1591,12 +1498,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       }
       catch (LCFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
-          throw e;
-        Logging.api.error(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
+        createErrorNode(rval,e);
       }
     }
     else if (command.startsWith("outputconnection/execute/"))
@@ -1611,7 +1513,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       if (connectionName == null)
         throw new LCFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
 
-      ConfigurationNode argumentNode = findConfigurationNode(inputArgument,API_ARGUMENTNODE);
+      LCFException usageException = null;
       try
       {
         IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
@@ -1623,30 +1525,23 @@ public class LCF extends org.apache.lcf.agents.system.LCF
         IOutputConnector connector = OutputConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
         try
         {
-          ConfigurationNode responseNode = connector.executeCommand(subcommand,argumentNode);
-          rval.addChild(rval.getChildCount(),responseNode);
+          connector.executeCommand(rval,subcommand,inputArgument);
+        }
+        catch (LCFException e)
+        {
+          usageException = e;
         }
         finally
         {
           OutputConnectorFactory.release(connector);
         }
       }
-      catch (ServiceInterruption e)
-      {
-        Logging.api.warn(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_SERVICEINTERRUPTIONNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
-      }
       catch (LCFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
-          throw e;
-        Logging.api.error(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
+        createErrorNode(rval,e);
       }
+      if (usageException != null)
+        throw usageException;
     }
     else if (command.equals("repositoryconnection/list"))
     {
@@ -1664,12 +1559,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       }
       catch (LCFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
-          throw e;
-        Logging.api.error(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
+        createErrorNode(rval,e);
       }
     }
     else if (command.equals("repositoryconnection/get"))
@@ -1696,12 +1586,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       }
       catch (LCFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
-          throw e;
-        Logging.api.error(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
+        createErrorNode(rval,e);
       }
     }
     else if (command.equals("repositoryconnection/save"))
@@ -1731,12 +1616,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       }
       catch (LCFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
-          throw e;
-        Logging.api.error(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
+        createErrorNode(rval,e);
       }
     }
     else if (command.equals("repositoryconnection/delete"))
@@ -1756,12 +1636,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       }
       catch (LCFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
-          throw e;
-        Logging.api.error(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
+        createErrorNode(rval,e);
       }
     }
     else if (command.equals("repositoryconnection/checkstatus"))
@@ -1803,12 +1678,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       }
       catch (LCFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
-          throw e;
-        Logging.api.error(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
+        createErrorNode(rval,e);
       }
     }
     else if (command.startsWith("repositoryconnection/execute/"))
@@ -1823,7 +1693,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       if (connectionName == null)
         throw new LCFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
 
-      ConfigurationNode argumentNode = findConfigurationNode(inputArgument,API_ARGUMENTNODE);
+      LCFException usageException = null;
       try
       {
         IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
@@ -1835,30 +1705,23 @@ public class LCF extends org.apache.lcf.agents.system.LCF
         IRepositoryConnector connector = RepositoryConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
         try
         {
-          ConfigurationNode responseNode = connector.executeCommand(subcommand,argumentNode);
-          rval.addChild(rval.getChildCount(),responseNode);
+          connector.executeCommand(rval,subcommand,inputArgument);
+        }
+        catch (LCFException e)
+        {
+          usageException = e;
         }
         finally
         {
           RepositoryConnectorFactory.release(connector);
         }
       }
-      catch (ServiceInterruption e)
-      {
-        Logging.api.warn(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_SERVICEINTERRUPTIONNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
-      }
       catch (LCFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
-          throw e;
-        Logging.api.error(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
+        createErrorNode(rval,e);
       }
+      if (usageException != null)
+        throw usageException;
     }
     else if (command.equals("authorityconnection/list"))
     {
@@ -1876,12 +1739,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       }
       catch (LCFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
-          throw e;
-        Logging.api.error(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
+        createErrorNode(rval,e);
       }
     }
     else if (command.equals("authorityconnection/get"))
@@ -1908,12 +1766,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       }
       catch (LCFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
-          throw e;
-        Logging.api.error(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
+        createErrorNode(rval,e);
       }
     }
     else if (command.equals("authorityconnection/save"))
@@ -1943,12 +1796,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       }
       catch (LCFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
-          throw e;
-        Logging.api.error(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
+        createErrorNode(rval,e);
       }
     }
     else if (command.equals("authorityconnection/delete"))
@@ -1968,12 +1816,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       }
       catch (LCFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
-          throw e;
-        Logging.api.error(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
+        createErrorNode(rval,e);
       }
     }
     else if (command.equals("authorityconnection/checkstatus"))
@@ -2015,12 +1858,7 @@ public class LCF extends org.apache.lcf.agents.system.LCF
       }
       catch (LCFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
-          throw e;
-        Logging.api.error(e.getMessage(),e);
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue(e.getMessage());
-        rval.addChild(rval.getChildCount(),error);
+        createErrorNode(rval,e);
       }
     }
     else if (command.equals("report/documentstatus"))
@@ -3083,27 +2921,6 @@ public class LCF extends org.apache.lcf.agents.system.LCF
 
   // End of connection API code
   
-  protected static ConfigurationNode findConfigurationNode(Configuration input, String argumentName)
-  {
-    // Look for argument among the children
-    int i = 0;
-    while (i < input.getChildCount())
-    {
-      ConfigurationNode cn = input.findChild(i++);
-      if (cn.getType().equals(argumentName))
-        return cn;
-    }
-    return null;
-
-  }
-  
-  protected static String getRootArgument(Configuration input, String argumentName)
-  {
-    ConfigurationNode node = findConfigurationNode(input,argumentName);
-    if (node == null)
-      return null;
-    return node.getValue();
-  }
   
 }
 

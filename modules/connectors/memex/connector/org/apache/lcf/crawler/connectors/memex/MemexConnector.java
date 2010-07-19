@@ -297,7 +297,158 @@ public class MemexConnector extends org.apache.lcf.crawler.connectors.BaseReposi
     super.disconnect();
   }
 
-
+  /** Execute an arbitrary connector command.
+  * This method is called directly from the API in order to allow API users to perform any one of several connector-specific actions or
+  * queries.
+  * Exceptions thrown by this method are considered to be usage errors, and cause a 400 response to be returned.
+  *@param output is the response object, to be filled in by this method.
+  *@param command is the command, which is taken directly from the API request.
+  *@param input is the request object.
+  */
+  public void executeCommand(Configuration output, String command, Configuration input)
+    throws LCFException
+  {
+    if (command.equals("database/list"))
+    {
+      String virtualServer = LCF.getRootArgument(input,"virtual_server");
+      if (virtualServer == null)
+        throw new LCFException("Missing required argument 'virtual_server'");
+      
+      try
+      {
+        NameDescription[] databases = listDatabasesForVirtualServer(virtualServer);
+        int i = 0;
+        while (i < databases.length)
+        {
+          NameDescription database = databases[i++];
+          ConfigurationNode node = new ConfigurationNode("database");
+          ConfigurationNode child;
+          child = new ConfigurationNode("display_name");
+          child.setValue(database.getDisplayName());
+          node.addChild(node.getChildCount(),child);
+          child = new ConfigurationNode("symbolic_name");
+          child.setValue(database.getSymbolicName());
+          node.addChild(node.getChildCount(),child);
+          output.addChild(output.getChildCount(),node);
+        }
+      }
+      catch (ServiceInterruption e)
+      {
+        LCF.createServiceInterruptionNode(output,e);
+      }
+      catch (LCFException e)
+      {
+        LCF.createErrorNode(output,e);
+      }
+    }
+    else if (command.equals("virtualserver/list"))
+    {
+      try
+      {
+        String[] virtualServers = listVirtualServers();
+        int i = 0;
+        while (i < virtualServers.length)
+        {
+          String virtualServer = virtualServers[i++];
+          ConfigurationNode node = new ConfigurationNode("virtual_server");
+          node.setValue(virtualServer);
+          output.addChild(output.getChildCount(),node);
+        }
+      }
+      catch (ServiceInterruption e)
+      {
+        LCF.createServiceInterruptionNode(output,e);
+      }
+      catch (LCFException e)
+      {
+        LCF.createErrorNode(output,e);
+      }
+    }
+    else if (command.equals("entitytype/list"))
+    {
+      try
+      {
+        NameDescription[] entityTypes = listEntityTypes();
+        int i = 0;
+        while (i < entityTypes.length)
+        {
+          NameDescription entityType = entityTypes[i++];
+          ConfigurationNode node = new ConfigurationNode("entity_type");
+          ConfigurationNode child;
+          child = new ConfigurationNode("display_name");
+          child.setValue(entityType.getDisplayName());
+          node.addChild(node.getChildCount(),child);
+          child = new ConfigurationNode("symbolic_name");
+          child.setValue(entityType.getSymbolicName());
+          node.addChild(node.getChildCount(),child);
+          output.addChild(output.getChildCount(),node);
+        }
+      }
+      catch (ServiceInterruption e)
+      {
+        LCF.createServiceInterruptionNode(output,e);
+      }
+      catch (LCFException e)
+      {
+        LCF.createErrorNode(output,e);
+      }
+    }
+    else if (command.equals("field/list"))
+    {
+      String entityPrefix = LCF.getRootArgument(input,"entity_type_name");
+      if (entityPrefix == null)
+        throw new LCFException("Missing required argument 'entity_type_name'");
+      try
+      {
+        String[] fieldNames = listFieldNames(entityPrefix);
+        int i = 0;
+        while (i < fieldNames.length)
+        {
+          String fieldName = fieldNames[i++];
+          ConfigurationNode node = new ConfigurationNode("field_name");
+          node.setValue(fieldName);
+          output.addChild(output.getChildCount(),node);
+        }
+      }
+      catch (ServiceInterruption e)
+      {
+        LCF.createServiceInterruptionNode(output,e);
+      }
+      catch (LCFException e)
+      {
+        LCF.createErrorNode(output,e);
+      }
+    }
+    else if (command.equals("field/listmatchable"))
+    {
+      String entityPrefix = LCF.getRootArgument(input,"entity_type_name");
+      if (entityPrefix == null)
+        throw new LCFException("Missing required argument 'entity_type_name'");
+      try
+      {
+        String[] fieldNames = listMatchableFieldNames(entityPrefix);
+        int i = 0;
+        while (i < fieldNames.length)
+        {
+          String fieldName = fieldNames[i++];
+          ConfigurationNode node = new ConfigurationNode("field_name");
+          node.setValue(fieldName);
+          output.addChild(output.getChildCount(),node);
+        }
+      }
+      catch (ServiceInterruption e)
+      {
+        LCF.createServiceInterruptionNode(output,e);
+      }
+      catch (LCFException e)
+      {
+        LCF.createErrorNode(output,e);
+      }
+    }
+    else
+      super.executeCommand(output,command,input);
+  }
+  
   /** Queue "seed" documents.  Seed documents are the starting places for crawling activity.  Documents
   * are seeded when this method calls appropriate methods in the passed in ISeedingActivity object.
   *

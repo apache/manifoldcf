@@ -707,7 +707,126 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
     }
   }
 
+  /** Execute an arbitrary connector command.
+  * This method is called directly from the API in order to allow API users to perform any one of several connector-specific actions or
+  * queries.
+  * Exceptions thrown by this method are considered to be usage errors, and cause a 400 response to be returned.
+  *@param output is the response object, to be filled in by this method.
+  *@param command is the command, which is taken directly from the API request.
+  *@param input is the request object.
+  */
+  public void executeCommand(Configuration output, String command, Configuration input)
+    throws LCFException
+  {
+    if (command.equals("workspace/list"))
+    {
+      try
+      {
+        String[] workspaces = getWorkspaceNames();
+        int i = 0;
+        while (i < workspaces.length)
+        {
+          String workspace = workspaces[i++];
+          ConfigurationNode node = new ConfigurationNode("workspace");
+          node.setValue(workspace);
+          output.addChild(output.getChildCount(),node);
+        }
+      }
+      catch (ServiceInterruption e)
+      {
+        LCF.createServiceInterruptionNode(output,e);
+      }
+      catch (LCFException e)
+      {
+        LCF.createErrorNode(output,e);
+      }
+    }
+    else if (command.equals("folder/list"))
+    {
+      String path = LCF.getRootArgument(input,"path");
+      if (path == null)
+        throw new LCFException("Missing required argument 'path'");
+      
+      try
+      {
+        String[] folders = getChildFolderNames(path);
+        int i = 0;
+        while (i < folders.length)
+        {
+          String folder = folders[i++];
+          ConfigurationNode node = new ConfigurationNode("folder");
+          node.setValue(folder);
+          output.addChild(output.getChildCount(),node);
+        }
+      }
+      catch (ServiceInterruption e)
+      {
+        LCF.createServiceInterruptionNode(output,e);
+      }
+      catch (LCFException e)
+      {
+        LCF.createErrorNode(output,e);
+      }
+    }
+    else if (command.equals("category/list"))
+    {
+      String path = LCF.getRootArgument(input,"path");
+      if (path == null)
+        throw new LCFException("Missing required argument 'path'");
 
+      try
+      {
+        String[] categories = getChildCategoryNames(path);
+        int i = 0;
+        while (i < categories.length)
+        {
+          String category = categories[i++];
+          ConfigurationNode node = new ConfigurationNode("category");
+          node.setValue(category);
+          output.addChild(output.getChildCount(),node);
+        }
+      }
+      catch (ServiceInterruption e)
+      {
+        LCF.createServiceInterruptionNode(output,e);
+      }
+      catch (LCFException e)
+      {
+        LCF.createErrorNode(output,e);
+      }
+
+    }
+    else if (command.equals("categoryattributes/list"))
+    {
+      String path = LCF.getRootArgument(input,"path");
+      if (path == null)
+        throw new LCFException("Missing required argument 'path'");
+
+      try
+      {
+        String[] attributes = getCategoryAttributes(path);
+        int i = 0;
+        while (i < attributes.length)
+        {
+          String attribute = attributes[i++];
+          ConfigurationNode node = new ConfigurationNode("attribute");
+          node.setValue(attribute);
+          output.addChild(output.getChildCount(),node);
+        }
+      }
+      catch (ServiceInterruption e)
+      {
+        LCF.createServiceInterruptionNode(output,e);
+      }
+      catch (LCFException e)
+      {
+        LCF.createErrorNode(output,e);
+      }
+    }
+    else
+      super.executeCommand(output,command,input);
+  }
+  
   /** Queue "seed" documents.  Seed documents are the starting places for crawling activity.  Documents
   * are seeded when this method calls appropriate methods in the passed in ISeedingActivity object.
   *@param activities is the interface this method should use to perform whatever framework actions are desired.
@@ -2057,6 +2176,11 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
 "      </select>\n"
           );
         }
+      }
+      catch (ServiceInterruption e)
+      {
+        e.printStackTrace();
+        out.println(org.apache.lcf.ui.util.Encoder.bodyEscape(e.getMessage()));
       }
       catch (LCFException e)
       {
@@ -3458,7 +3582,7 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
   *@return a list of workspace names.
   */
   public String[] getWorkspaceNames()
-    throws LCFException
+    throws LCFException, ServiceInterruption
   {
     return new String[]{CATEGORY_NAME,ENTWKSPACE_NAME};
   }
@@ -3468,17 +3592,10 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
   *@return a list of folder and project names, in sorted order, or null if the path was invalid.
   */
   public String[] getChildFolderNames(String pathString)
-    throws LCFException
+    throws LCFException, ServiceInterruption
   {
-    try
-    {
-      getSession();
-      return getChildFolders(pathString);
-    }
-    catch (ServiceInterruption e)
-    {
-      throw new LCFException("Livelink server seems to be down: "+e.getMessage());
-    }
+    getSession();
+    return getChildFolders(pathString);
   }
 
 
@@ -3487,16 +3604,10 @@ public class LivelinkConnector extends org.apache.lcf.crawler.connectors.BaseRep
   *@return a list of category names, in sorted order, or null if the path was invalid.
   */
   public String[] getChildCategoryNames(String pathString)
-    throws LCFException
+    throws LCFException, ServiceInterruption
   {
-    try
-    {
-      return getChildCategories(pathString);
-    }
-    catch (ServiceInterruption e)
-    {
-      throw new LCFException("Livelink server seems to be down: "+e.getMessage());
-    }
+    getSession();
+    return getChildCategories(pathString);
   }
 
   /** Given a category path, get a list of legal attribute names.
