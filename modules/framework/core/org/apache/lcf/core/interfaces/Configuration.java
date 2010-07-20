@@ -35,6 +35,8 @@ public class Configuration
   
   protected static final String JSON_ATTRIBUTE = "_attribute_";
   protected static final String JSON_VALUE = "_value_";
+  protected static final String JSON_CHILDREN = "_children_";
+  protected static final String JSON_TYPE = "_type_";
   
   // The root node type
   protected String rootNodeLabel;
@@ -166,15 +168,91 @@ public class Configuration
       JSONWriter writer = new JSONStringer();
       writer.object();
       // We do NOT use the root node label, unlike XML.
-      // Now, go through all children
+      
+      // Now, do children.  To get the arrays right, we need to glue together all children with the
+      // same type, which requires us to do an appropriate pass to gather that stuff together.
+      // Since we also need to maintain order, it is essential that we detect the out-of-order condition
+      // properly, and use an alternate representation if we should find it.
+      Map childMap = new HashMap();
+      ArrayList childList = new ArrayList();
+      String lastChildType = null;
+      boolean needAlternate = false;
       int i = 0;
-      while (i < children.size())
+      while (i < getChildCount())
       {
-        ConfigurationNode node = (ConfigurationNode)children.get(i++);
-        writeNode(writer,node,true);
+        ConfigurationNode child = findChild(i++);
+        String key = child.getType();
+        ArrayList list = (ArrayList)childMap.get(key);
+        if (list == null)
+        {
+          list = new ArrayList();
+          childMap.put(key,list);
+          childList.add(key);
+        }
+        else
+        {
+          if (!lastChildType.equals(key))
+          {
+            needAlternate = true;
+            break;
+          }
+        }
+        list.add(child);
+        lastChildType = key;
+      }
+        
+      if (needAlternate)
+      {
+        // Can't use the array representation.  We'll need to start do a _children_ object, and enumerate
+        // each child.  So, the JSON will look like:
+        // <key>:{_attribute_<attr>:xxx,_children_:[{_type_:<child_key>, ...},{_type_:<child_key_2>, ...}, ...]}
+        writer.key(JSON_CHILDREN);
+        writer.array();
+        i = 0;
+        while (i < getChildCount())
+        {
+          ConfigurationNode child = findChild(i++);
+          writer.object();
+          writer.key(JSON_TYPE);
+          writer.value(child.getType());
+          writeNode(writer,child,false);
+          writer.endObject();
+        }
+        writer.endArray();
+      }
+      else
+      {
+        // We can collapse child nodes to arrays and still maintain order.
+        // The JSON will look like this:
+        // <key>:{_attribute_<attr>:xxx,<child_key>:[stuff],<child_key_2>:[more_stuff] ...}
+        int q = 0;
+        while (q < childList.size())
+        {
+          String key = (String)childList.get(q++);
+          ArrayList list = (ArrayList)childMap.get(key);
+          if (list.size() > 1)
+          {
+            // Write the key
+            writer.key(key);
+            // Write it as an array
+            writer.array();
+            i = 0;
+            while (i < list.size())
+            {
+              ConfigurationNode child = (ConfigurationNode)list.get(i++);
+              writeNode(writer,child,false);
+            }
+            writer.endArray();
+          }
+          else
+          {
+            // Write it as a singleton
+            writeNode(writer,(ConfigurationNode)list.get(0),true);
+          }
+        }
       }
       writer.endObject();
-      
+
       // Convert to a string.
       return writer.toString();
     }
@@ -263,7 +341,12 @@ public class Configuration
 
         // Now, do children.  To get the arrays right, we need to glue together all children with the
         // same type, which requires us to do an appropriate pass to gather that stuff together.
+	// Since we also need to maintain order, it is essential that we detect the out-of-order condition
+	// properly, and use an alternate representation if we should find it.
         Map childMap = new HashMap();
+	ArrayList childList = new ArrayList();
+	String lastChildType = null;
+        boolean needAlternate = false;
         int i = 0;
         while (i < node.getChildCount())
         {
@@ -274,36 +357,70 @@ public class Configuration
           {
             list = new ArrayList();
             childMap.put(key,list);
+            childList.add(key);
+          }
+	  else
+          {
+            if (!lastChildType.equals(key))
+            {
+              needAlternate = true;
+              break;
+            }
           }
           list.add(child);
+          lastChildType = key;
         }
         
-        iter = childMap.keySet().iterator();
-        while (iter.hasNext())
+        if (needAlternate)
         {
-          String key = (String)iter.next();
-          ArrayList list = (ArrayList)childMap.get(key);
-          if (list.size() > 1)
+          // Can't use the array representation.  We'll need to start do a _children_ object, and enumerate
+          // each child.  So, the JSON will look like:
+          // <key>:{_attribute_<attr>:xxx,_children_:[{_type_:<child_key>, ...},{_type_:<child_key_2>, ...}, ...]}
+          writer.key(JSON_CHILDREN);
+          writer.array();
+          i = 0;
+          while (i < node.getChildCount())
           {
-            // Write the key
-            writer.key(key);
-            // Write it as an array
-            writer.array();
-            i = 0;
-            while (i < list.size())
-            {
-              ConfigurationNode child = (ConfigurationNode)list.get(i++);
-              writeNode(writer,child,false);
-            }
-            writer.endArray();
+            ConfigurationNode child = node.findChild(i++);
+            writer.object();
+            writer.key(JSON_TYPE);
+            writer.value(child.getType());
+            writeNode(writer,child,false);
+            writer.endObject();
           }
-          else
+          writer.endArray();
+        }
+        else
+        {
+          // We can collapse child nodes to arrays and still maintain order.
+          // The JSON will look like this:
+          // <key>:{_attribute_<attr>:xxx,<child_key>:[stuff],<child_key_2>:[more_stuff] ...}
+          int q = 0;
+          while (q < childList.size())
           {
-            // Write it as a singleton
-            writeNode(writer,(ConfigurationNode)list.get(0),true);
+            String key = (String)childList.get(q++);
+            ArrayList list = (ArrayList)childMap.get(key);
+            if (list.size() > 1)
+            {
+              // Write the key
+              writer.key(key);
+              // Write it as an array
+              writer.array();
+              i = 0;
+              while (i < list.size())
+              {
+                ConfigurationNode child = (ConfigurationNode)list.get(i++);
+                writeNode(writer,child,false);
+              }
+              writer.endArray();
+            }
+            else
+            {
+              // Write it as a singleton
+              writeNode(writer,(ConfigurationNode)list.get(0),true);
+            }
           }
         }
-
         writer.endObject();
       }
     }
@@ -365,6 +482,7 @@ public class Configuration
   
   /** Process a JSON object */
   protected void processObject(String key, Object x)
+    throws LCFException
   {
     if (x instanceof JSONObject)
     {
@@ -375,6 +493,22 @@ public class Configuration
     else if (x == JSONObject.NULL)
     {
       // Null object.  Don't enter the key.
+    }
+    else if (key.equals(JSON_CHILDREN))
+    {
+      // Children, as a list of separately enumerated child nodes.
+      if (!(x instanceof JSONArray))
+        throw new LCFException("Expected array contents for '"+JSON_CHILDREN+"' node");
+      JSONArray array = (JSONArray)x;
+      int i = 0;
+      while (i < array.length())
+      {
+        Object z = array.opt(i++);
+        if (!(z instanceof JSONObject))
+          throw new LCFException("Expected object as array member");
+        ConfigurationNode nestedCn = readNode((String)null,(JSONObject)z);
+        addChild(getChildCount(),nestedCn);
+      }
     }
     else
     {
@@ -388,32 +522,52 @@ public class Configuration
   
   /** Read a node from a json object */
   protected ConfigurationNode readNode(String key, JSONObject object)
+    throws LCFException
   {
+    // Override key if type field is found.
+    if (object.has(JSON_TYPE))
+    {
+      try
+      {
+        key = object.getString(JSON_TYPE);
+      }
+      catch (JSONException e)
+      {
+        throw new LCFException("Exception decoding JSON: "+e.getMessage());
+      }
+    }
+    if (key == null)
+      throw new LCFException("No type found for node");
+    Iterator iter;
     ConfigurationNode rval = createNewNode(key);
-    Iterator iter = object.keys();
+    iter = object.keys();
     while (iter.hasNext())
     {
       String nestedKey = (String)iter.next();
-      Object x = object.opt(nestedKey);
-      if (x instanceof JSONArray)
+      if (!nestedKey.equals(JSON_TYPE))
       {
-        // Iterate through.
-        JSONArray array = (JSONArray)x;
-        int i = 0;
-        while (i < array.length())
+        Object x = object.opt(nestedKey);
+        if (x instanceof JSONArray)
         {
-          x = array.opt(i++);
-          processObject(rval,nestedKey,x);
+          // Iterate through.
+          JSONArray array = (JSONArray)x;
+          int i = 0;
+          while (i < array.length())
+          {
+            x = array.opt(i++);
+            processObject(rval,nestedKey,x);
+          }
         }
+        else
+          processObject(rval,nestedKey,x);
       }
-      else
-        processObject(rval,nestedKey,x);
     }
     return rval;
   }
   
   /** Process a JSON object */
   protected void processObject(ConfigurationNode cn, String key, Object x)
+    throws LCFException
   {
     if (x instanceof JSONObject)
     {
@@ -439,6 +593,22 @@ public class Configuration
       {
         // Value.  Set the value in the current node.
         cn.setValue(value);
+      }
+      else if (key.equals(JSON_CHILDREN))
+      {
+        // Children, as a list of separately enumerated child nodes.
+        if (!(x instanceof JSONArray))
+          throw new LCFException("Expected array contents for '"+JSON_CHILDREN+"' node");
+        JSONArray array = (JSONArray)x;
+        int i = 0;
+        while (i < array.length())
+        {
+          Object z = array.opt(i++);
+          if (!(z instanceof JSONObject))
+            throw new LCFException("Expected object as array member");
+          ConfigurationNode nestedCn = readNode((String)null,(JSONObject)z);
+          cn.addChild(cn.getChildCount(),nestedCn);
+        }
       }
       else
       {
