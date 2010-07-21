@@ -903,6 +903,7 @@ public class HttpPoster
       this.shareDenyAcls = shareDenyAcls;
       this.acls = acls;
       this.denyAcls = denyAcls;
+      this.sourceTargets = sourceTargets;
     }
 
     public void run()
