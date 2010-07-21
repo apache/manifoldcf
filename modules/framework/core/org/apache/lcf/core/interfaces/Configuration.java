@@ -212,11 +212,7 @@ public class Configuration
         while (i < getChildCount())
         {
           ConfigurationNode child = findChild(i++);
-          writer.object();
-          writer.key(JSON_TYPE);
-          writer.value(child.getType());
-          writeNode(writer,child,false);
-          writer.endObject();
+          writeNode(writer,child,false,true);
         }
         writer.endArray();
       }
@@ -240,14 +236,14 @@ public class Configuration
             while (i < list.size())
             {
               ConfigurationNode child = (ConfigurationNode)list.get(i++);
-              writeNode(writer,child,false);
+              writeNode(writer,child,false,false);
             }
             writer.endArray();
           }
           else
           {
             // Write it as a singleton
-            writeNode(writer,(ConfigurationNode)list.get(0),true);
+            writeNode(writer,(ConfigurationNode)list.get(0),true,false);
           }
         }
       }
@@ -300,7 +296,7 @@ public class Configuration
   *@param node is the node.
   *@param writeKey is true if the key needs to be written, false otherwise.
   */
-  protected static void writeNode(JSONWriter writer, ConfigurationNode node, boolean writeKey)
+  protected static void writeNode(JSONWriter writer, ConfigurationNode node, boolean writeKey, boolean writeSpecialKey)
     throws LCFException
   {
     try
@@ -312,6 +308,13 @@ public class Configuration
         String type = node.getType();
         writer.key(type);
       }
+      else if (writeSpecialKey)
+      {
+        writer.object();
+        writer.key(JSON_TYPE);
+        writer.value(node.getType());
+      }
+      
       // Problem: Two ways of handling a naked 'value'.  First way is to NOT presume a nested object is needed.  Second way is to require a nested
       // object.  On reconstruction, the right thing will happen, and a naked value will become a node with a value, while an object will become
       // a node that has an optional "_value_" key inside it.
@@ -322,7 +325,8 @@ public class Configuration
       }
       else
       {
-        writer.object();
+        if (!writeSpecialKey)
+          writer.object();
         
         if (value != null)
         {
@@ -382,11 +386,7 @@ public class Configuration
           while (i < node.getChildCount())
           {
             ConfigurationNode child = node.findChild(i++);
-            writer.object();
-            writer.key(JSON_TYPE);
-            writer.value(child.getType());
-            writeNode(writer,child,false);
-            writer.endObject();
+            writeNode(writer,child,false,true);
           }
           writer.endArray();
         }
@@ -410,19 +410,22 @@ public class Configuration
               while (i < list.size())
               {
                 ConfigurationNode child = (ConfigurationNode)list.get(i++);
-                writeNode(writer,child,false);
+                writeNode(writer,child,false,false);
               }
               writer.endArray();
             }
             else
             {
               // Write it as a singleton
-              writeNode(writer,(ConfigurationNode)list.get(0),true);
+              writeNode(writer,(ConfigurationNode)list.get(0),true,false);
             }
           }
         }
-        writer.endObject();
+        if (!writeSpecialKey)
+          writer.endObject();
       }
+      if (writeSpecialKey)
+        writer.endObject();
     }
     catch (JSONException e)
     {

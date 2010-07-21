@@ -138,7 +138,18 @@ public class APIServlet extends HttpServlet
         Configuration output = LCF.executeCommand(tc,command,input);
           
         // Format the response
-        outputText = output.toJSON();
+        try
+        {
+          outputText = output.toJSON();
+        }
+        catch (LCFException e)
+        {
+          // Log it
+          Logging.api.error("Error forming JSON response: "+e.getMessage(),e);
+          // Internal server error
+          response.sendError(response.SC_INTERNAL_SERVER_ERROR);
+          return;
+        }
       }
       else
       {
@@ -170,7 +181,6 @@ public class APIServlet extends HttpServlet
     catch (LCFException e)
     {
       // We should only see this error if there's an API problem, not if there's an actual problem with the method being called.
-      //Logging.authorityService.error("API servlet error: "+e.getMessage(),e);
       response.sendError(response.SC_BAD_REQUEST,e.getMessage());
     }
   }
