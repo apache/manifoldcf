@@ -554,15 +554,19 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
       return theException;
     if (Logging.db.isDebugEnabled())
       Logging.db.debug("Exception "+theException.getMessage()+" is possibly a transaction abort signal");
-    String message = e.getMessage();
-    if (message.indexOf("deadlock detected") != -1)
+    java.sql.SQLException sqlException = (java.sql.SQLException)e;
+    String message = sqlException.getMessage();
+    String sqlState = sqlException.getSQLState();
+    // Could not serialize
+    if (sqlState != null && sqlState.equals("40001"))
       return new LCFException(message,e,LCFException.DATABASE_TRANSACTION_ABORT);
-    if (message.indexOf("could not serialize") != -1)
+    // Deadlock detected
+    if (sqlState != null && sqlState.equals("40P01"))
       return new LCFException(message,e,LCFException.DATABASE_TRANSACTION_ABORT);
     // Note well: We also have to treat 'duplicate key' as a transaction abort, since this is what you get when two threads attempt to
     // insert the same row.  (Everything only works, then, as long as there is a unique constraint corresponding to every bad insert that
     // one could make.)
-    if (message.indexOf("duplicate key") != -1)
+    if (sqlState != null && sqlState.equals("23505"))
       return new LCFException(message,e,LCFException.DATABASE_TRANSACTION_ABORT);
     if (Logging.db.isDebugEnabled())
       Logging.db.debug("Exception "+theException.getMessage()+" is NOT a transaction abort signal");
