@@ -3346,14 +3346,20 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
       if (sn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_SEEDS))
       {
         seeds = sn.getValue();
+        if (seeds == null)
+          seeds = "";
       }
       else if (sn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_INCLUDES))
       {
         inclusions = sn.getValue();
+        if (inclusions == null)
+          inclusions = "";
       }
       else if (sn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_EXCLUDES))
       {
         exclusions = sn.getValue();
+        if (exclusions == null)
+          exclusions = "";
       }
     }
 
