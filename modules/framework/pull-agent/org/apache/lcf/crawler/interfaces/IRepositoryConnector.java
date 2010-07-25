@@ -48,12 +48,16 @@ import java.util.*;
 * It therefore establishes a space of document identifiers.  Each connector will only ever be
 * asked to deal with identifiers that have in some way originated from the connector.
 *
-* Documents are fetched in three stages.  First, the getDocuments() method is called in the connector
-* implementation.  This returns a set of document identifiers.  The document identifiers are used to
-* obtain the current document version strings in the second stage, using the getDocumentVersions() method.
-* The last stage is processDocuments(), which queues up any additional documents needed, and also ingests.
-* This method will not be called if the document version seems to indicate that no document change took
-* place.
+* Documents are fetched by LCF in three stages.  First, the addSeedDocuments() method is called in the connector
+* implementation.  This method is meant to add a set of document identifiers to the queue.  When LCF is ready
+* to process a document, the document identifier is used to obtain a current document version string, using the
+* getDocumentVersions() method (the second stage).  This version string is used to decide whether or not the
+* third stage need be called for the document or not.  The third stage is responsible for sending document content
+* to the output, and for extracting any references to additional documents, and consists of the processDocuments() method.
+*
+* All of these methods interact with LCF by means of an "activity" interface.  For example, an IVersionActivity object
+* is passed to the getDocumentVersions() method, and that object contains methods that are necessary for getDocumentVersions()
+* to do its job.  A similar architecture is used throughout the connector framework.
 */
 public interface IRepositoryConnector
 {
