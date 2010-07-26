@@ -143,8 +143,6 @@ public class ConfigurationNode
   {
     if (readOnly)
       throw new IllegalStateException("Attempt to change read-only object");
-    if (value != null && value.length() == 0)
-      value = null;
     this.value = value;
   }
 
