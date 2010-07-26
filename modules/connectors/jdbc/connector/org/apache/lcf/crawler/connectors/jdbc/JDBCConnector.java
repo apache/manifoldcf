@@ -997,28 +997,33 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
   public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
     throws LCFException, IOException
   {
-    String idQuery = null;
-    String versionQuery = null;
-    String dataQuery = null;
+    String idQuery = "SELECT idfield AS $(IDCOLUMN) FROM documenttable WHERE modifydatefield > $(STARTTIME) AND modifydatefield <= $(ENDTIME)";
+    String versionQuery = "SELECT idfield AS $(IDCOLUMN), versionfield AS $(VERSIONCOLUMN) FROM documenttable WHERE idfield IN $(IDLIST)";
+    String dataQuery = "SELECT idfield AS $(IDCOLUMN), urlfield AS $(URLCOLUMN), datafield AS $(DATACOLUMN) FROM documenttable WHERE idfield IN $(IDLIST)";
 
     int i = 0;
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
       if (sn.getType().equals(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.idQueryNode))
+      {
         idQuery = sn.getValue();
+        if (idQuery == null)
+          idQuery = "";
+      }
       else if (sn.getType().equals(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.versionQueryNode))
+      {
         versionQuery = sn.getValue();
+        if (versionQuery == null)
+          versionQuery = "";
+      }
       else if (sn.getType().equals(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.dataQueryNode))
+      {
         dataQuery = sn.getValue();
+        if (dataQuery == null)
+          dataQuery = "";
+      }
     }
-
-    if (idQuery == null)
-      idQuery = "SELECT idfield AS $(IDCOLUMN) FROM documenttable WHERE modifydatefield > $(STARTTIME) AND modifydatefield <= $(ENDTIME)";
-    if (versionQuery == null)
-      versionQuery = "SELECT idfield AS $(IDCOLUMN), versionfield AS $(VERSIONCOLUMN) FROM documenttable WHERE idfield IN $(IDLIST)";
-    if (dataQuery == null)
-      dataQuery = "SELECT idfield AS $(IDCOLUMN), urlfield AS $(URLCOLUMN), datafield AS $(DATACOLUMN) FROM documenttable WHERE idfield IN $(IDLIST)";
 
     // The Queries tab
 
@@ -1253,28 +1258,33 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
   public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
     throws LCFException, IOException
   {
-    String idQuery = null;
-    String versionQuery = null;
-    String dataQuery = null;
+    String idQuery = "";
+    String versionQuery = "";
+    String dataQuery = "";
 
     int i = 0;
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
       if (sn.getType().equals(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.idQueryNode))
+      {
         idQuery = sn.getValue();
+        if (idQuery == null)
+          idQuery = "";
+      }
       else if (sn.getType().equals(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.versionQueryNode))
+      {
         versionQuery = sn.getValue();
+        if (versionQuery == null)
+          versionQuery = "";
+      }
       else if (sn.getType().equals(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.dataQueryNode))
+      {
         dataQuery = sn.getValue();
+        if (dataQuery == null)
+          dataQuery = "";
+      }
     }
-
-    if (idQuery == null)
-      idQuery = "";
-    if (versionQuery == null)
-      versionQuery = "";
-    if (dataQuery == null)
-      dataQuery = "";
 
     out.print(
 "<table class=\"displaytable\">\n"+
@@ -1820,11 +1830,23 @@ public class JDBCConnector extends org.apache.lcf.crawler.connectors.BaseReposit
       {
         SpecificationNode sn = ds.getChild(i++);
         if (sn.getType().equals(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.idQueryNode))
+        {
           idQuery = sn.getValue();
+          if (idQuery == null)
+            idQuery = "";
+        }
         else if (sn.getType().equals(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.versionQueryNode))
+        {
           versionQuery = sn.getValue();
+          if (versionQuery == null)
+            versionQuery = "";
+        }
         else if (sn.getType().equals(org.apache.lcf.crawler.connectors.jdbc.JDBCConstants.dataQueryNode))
+        {
           dataQuery = sn.getValue();
+          if (dataQuery == null)
+            dataQuery = "";
+        }
       }
 
     }
