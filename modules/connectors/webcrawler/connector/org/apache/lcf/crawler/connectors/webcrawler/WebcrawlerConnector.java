@@ -4044,11 +4044,23 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
     {
       SpecificationNode sn = ds.getChild(i++);
       if (sn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_SEEDS))
+      {
         seeds = sn.getValue();
+        if (seeds == null)
+          seeds = "";
+      }
       else if (sn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_INCLUDES))
+      {
         inclusions = sn.getValue();
+        if (inclusions == null)
+          inclusions = "";
+      }
       else if (sn.getType().equals(org.apache.lcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_EXCLUDES))
+      {
         exclusions = sn.getValue();
+        if (exclusions == null)
+          exclusions = "";
+      }
     }
     out.print(
 "<table class=\"displaytable\">\n"+
@@ -7074,9 +7086,17 @@ public class WebcrawlerConnector extends org.apache.lcf.crawler.connectors.BaseR
       {
         SpecificationNode sn = spec.getChild(i++);
         if (sn.getType().equals(WebcrawlerConfig.NODE_INCLUDES))
+        {
           includes = sn.getValue();
+          if (includes == null)
+            includes = "";
+        }
         else if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDES))
+        {
           excludes = sn.getValue();
+          if (excludes == null)
+            excludes = "";
+        }
         else if (sn.getType().equals("urlspec"))
         {
           String urlRegexp = sn.getAttributeValue("regexp");
