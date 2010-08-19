@@ -1,12 +1,12 @@
-Apache Lucene Connector Framework
-=================================
+Apache Connectors Framework
+=======================
 
-Welcome to the Connector Framework component of the Apache Lucene project.
+Welcome to the Apache Connectors Framework top-level Apache project.
 
 Licensing
 ---------
 
-Apache Lucene Connector Framework is licensed under the
+Apache Connectors Framework is licensed under the
 Apache License 2.0. See the files called LICENSE.txt and NOTICE.txt
 for more information.
 
@@ -35,17 +35,17 @@ code and source code.
 The following provides more details on the included software that
 may be subject to export controls on cryptographic software:
 
-  Apache Lucene Connector Framework interfaces with the
+  Apache Connectors Framework interfaces with the
   Java Secure Socket Extension (JSSE) API to provide
 
     - HTTPS support
 
-  Apache Lucene Connector Framework interfaces with the
+  Apache Connectors Framework interfaces with the
   Java Cryptography Extension (JCE) API to provide
 
     - NTLM authentication
 
-  Apache Lucene Connector Framework does not include any
+  Apache Connectors Framework does not include any
   implementation of JSSE or JCE.
 
 Contact

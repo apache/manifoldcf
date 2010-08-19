@@ -1,4 +1,4 @@
-Lucene Connectors Framework Change Log
+Apache Connectors Framework Change Log
 $Id$
 
 ======================= Trunk (not yet released) =======================
@@ -26,3 +26,7 @@ $Id$
 
 - Schema change to the repohistory table; the activitytype column was too narrow
   to contain both a 32-character connection name and an activity string.
+
+8/19/2010, 18:26 EDT
+
+- Project officially renamed to "Apache Connectors Framework"

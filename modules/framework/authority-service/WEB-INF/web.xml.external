@@ -21,13 +21,13 @@
 -->
 
 <web-app>
-  <display-name>Lucene Connectors Framework Authorities API</display-name>
+  <display-name>Apache Connectors Framework Authorities API</display-name>
 
-  <description>Lucene Connectors Framework Authorities API</description>
+  <description>Apache Connectors Framework Authorities API</description>
 
   <servlet>
 	<servlet-name>UserACLServlet</servlet-name>
-    	<servlet-class>com.metacarta.authorityservice.servlet.UserACLServlet</servlet-class>
+    	<servlet-class>org.apache.lcf.authorityservice.servlet.UserACLServlet</servlet-class>
   </servlet>
 
   <servlet-mapping>

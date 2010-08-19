@@ -91,7 +91,7 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
 	<title>
-		Lucene Connectors Framework: Edit Authority
+		Apache Connectors Framework: Edit Authority
 	</title>
 
 	<script type="text/javascript">

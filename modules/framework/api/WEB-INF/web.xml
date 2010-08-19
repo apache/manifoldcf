@@ -21,9 +21,9 @@
 -->
 
 <web-app>
-  <display-name>Lucene Connectors Framework General API</display-name>
+  <display-name>Apache Connectors Framework General API</display-name>
 
-  <description>Lucene Connectors Framework General API</description>
+  <description>Apache Connectors Framework General API</description>
 
   <servlet>
 	<servlet-name>APIServlet</servlet-name>

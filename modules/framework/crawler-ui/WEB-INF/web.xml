@@ -5,9 +5,9 @@
 	"http://java.sun.com/j2ee/dtds/web-app_2.2.dtd">
 
 <web-app>
-  <display-name>Lucene Connectors Framework Crawler Interface</display-name>
+  <display-name>Apache Connectors Framework Crawler Interface</display-name>
 
-  <description>Lucene Connectors Framework Crawler Interface</description>
+  <description>Apache Connectors Framework Crawler Interface</description>
 
   <session-config>
 	<session-timeout>5</session-timeout>
