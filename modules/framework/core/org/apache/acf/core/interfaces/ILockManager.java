@@ -1,4 +1,4 @@
-/* $Id: ILockManager.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -24,7 +24,7 @@ package org.apache.acf.core.interfaces;
 */
 public interface ILockManager
 {
-  public static final String _rcsid = "@(#)$Id: ILockManager.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Raise a flag.  Use this method to assert a condition, or send a global signal.  The flag will be reset when the
   * entire system is restarted.

@@ -1,4 +1,4 @@
-/* $Id: WorkerThread.java 933464 2010-04-13 02:14:44Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -31,7 +31,7 @@ import java.lang.reflect.*;
 */
 public class WorkerThread extends Thread
 {
-  public static final String _rcsid = "@(#)$Id: WorkerThread.java 933464 2010-04-13 02:14:44Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
 
   // Local data

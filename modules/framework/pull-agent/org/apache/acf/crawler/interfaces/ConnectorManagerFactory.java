@@ -1,4 +1,4 @@
-/* $Id: ConnectorManagerFactory.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -25,7 +25,7 @@ import org.apache.acf.crawler.system.*;
 */
 public class ConnectorManagerFactory
 {
-  public static final String _rcsid = "@(#)$Id: ConnectorManagerFactory.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   protected static final String connMgr = "_ConnectorManager_";
 

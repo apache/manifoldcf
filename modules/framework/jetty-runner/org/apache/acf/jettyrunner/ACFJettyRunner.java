@@ -47,7 +47,7 @@ import org.mortbay.log.Logger;
 public class ACFJettyRunner
 {
 
-  public static final String _rcsid = "@(#)$Id: ACFJettyRunner.java 964035 2010-07-14 12:55:26Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   public static final String agentShutdownSignal = org.apache.acf.agents.AgentRun.agentShutdownSignal;
 

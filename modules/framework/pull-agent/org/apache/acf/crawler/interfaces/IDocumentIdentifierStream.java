@@ -1,4 +1,4 @@
-/* $Id: IDocumentIdentifierStream.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -31,7 +31,7 @@ import org.apache.acf.agents.interfaces.*;
 */
 public interface IDocumentIdentifierStream
 {
-  public static final String _rcsid = "@(#)$Id: IDocumentIdentifierStream.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Get the next local document identifier.
   *@return the next document identifier, or null if there are no more.

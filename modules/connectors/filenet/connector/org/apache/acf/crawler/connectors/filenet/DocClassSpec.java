@@ -1,4 +1,4 @@
-/* $Id: DocClassSpec.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -24,7 +24,7 @@ import java.util.*;
 
 public class DocClassSpec
 {
-  public static final String _rcsid = "@(#)$Id: DocClassSpec.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Each doc class has a set of metadata fields that should be ingested with it, as well as a set of matches that
   // describe WHICH documents to select.

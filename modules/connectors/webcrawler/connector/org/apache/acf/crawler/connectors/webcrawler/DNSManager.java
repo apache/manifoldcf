@@ -1,4 +1,4 @@
-/* $Id: DNSManager.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -35,7 +35,7 @@ import org.apache.acf.crawler.system.Logging;
 */
 public class DNSManager extends org.apache.acf.core.database.BaseTable
 {
-  public static final String _rcsid = "@(#)$Id: DNSManager.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Robots cache class.  Only one needed.
   protected static DNSCacheClass dnsCacheClass = new DNSCacheClass();

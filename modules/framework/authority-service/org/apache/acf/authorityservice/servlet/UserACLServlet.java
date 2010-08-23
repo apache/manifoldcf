@@ -1,4 +1,4 @@
-/* $Id: UserACLServlet.java 953331 2010-06-10 14:22:50Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -44,7 +44,7 @@ import javax.servlet.http.*;
 */
 public class UserACLServlet extends HttpServlet
 {
-  public static final String _rcsid = "@(#)$Id: UserACLServlet.java 953331 2010-06-10 14:22:50Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   protected final static String AUTHORIZED_VALUE = "AUTHORIZED:";
   protected final static String UNREACHABLE_VALUE = "UNREACHABLEAUTHORITY:";

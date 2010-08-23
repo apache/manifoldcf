@@ -21,7 +21,7 @@ package org.apache.acf.crawler.connectors.sharedrive;
 */
 public class SharedDriveParameters
 {
-  public static final String _rcsid = "@(#)$Id: SharedDriveParameters.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /* SMB/CIFS share server */
   public final static String server = "Server";

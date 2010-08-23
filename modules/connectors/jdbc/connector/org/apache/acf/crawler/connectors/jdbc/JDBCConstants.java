@@ -1,4 +1,4 @@
-/* $Id: JDBCConstants.java 953386 2010-06-10 16:48:06Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -22,7 +22,7 @@ package org.apache.acf.crawler.connectors.jdbc;
 */
 public class JDBCConstants
 {
-  public static final String _rcsid = "@(#)$Id: JDBCConstants.java 953386 2010-06-10 16:48:06Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** The jdbc provider parameter */
   public static String providerParameter = "JDBC Provider";

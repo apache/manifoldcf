@@ -1,4 +1,4 @@
-/* $Id: DBInterfacePostgreSQL.java 966217 2010-07-21 13:15:14Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -24,7 +24,7 @@ import java.util.*;
 
 public class DBInterfacePostgreSQL extends Database implements IDBInterface
 {
-  public static final String _rcsid = "@(#)$Id: DBInterfacePostgreSQL.java 966217 2010-07-21 13:15:14Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   private static final String _url = "jdbc:postgresql://localhost/";
   private static final String _driver = "org.postgresql.Driver";

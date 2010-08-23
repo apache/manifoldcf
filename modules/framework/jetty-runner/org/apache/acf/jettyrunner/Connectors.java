@@ -1,4 +1,4 @@
-/* $Id: Connectors.java 964702 2010-07-16 07:45:44Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -27,7 +27,7 @@ import java.io.*;
 */
 public class Connectors extends Configuration
 {
-  public static final String _rcsid = "@(#)$Id: Connectors.java 964702 2010-07-16 07:45:44Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Constructor.
   */

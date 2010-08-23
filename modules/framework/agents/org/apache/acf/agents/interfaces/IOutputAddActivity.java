@@ -1,4 +1,4 @@
-/* $Id: IOutputAddActivity.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -26,7 +26,7 @@ when adding or replacing documents.
 */
 public interface IOutputAddActivity extends IOutputHistoryActivity
 {
-  public static final String _rcsid = "@(#)$Id: IOutputAddActivity.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Qualify an access token appropriately, to match access tokens as returned by mod_aa.  This method
   * includes the authority name with the access token, if any, so that each authority may establish its own token space.

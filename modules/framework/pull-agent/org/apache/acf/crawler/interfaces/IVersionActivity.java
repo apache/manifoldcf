@@ -1,4 +1,4 @@
-/* $Id: IVersionActivity.java 933029 2010-04-11 23:51:11Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -27,7 +27,7 @@ import java.util.*;
 */
 public interface IVersionActivity extends IHistoryActivity, IEventActivity, IAbortActivity, IFingerprintActivity
 {
-  public static final String _rcsid = "@(#)$Id: IVersionActivity.java 933029 2010-04-11 23:51:11Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Retrieve data passed from parents to a specified child document.
   *@param localIdentifier is the document identifier of the document we want the recorded data for.

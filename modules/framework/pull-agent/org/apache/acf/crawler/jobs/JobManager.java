@@ -1,4 +1,4 @@
-/* $Id: JobManager.java 951176 2010-06-03 21:33:59Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -30,7 +30,7 @@ import org.apache.acf.crawler.system.ACF;
 */
 public class JobManager implements IJobManager
 {
-  public static final String _rcsid = "@(#)$Id: JobManager.java 951176 2010-06-03 21:33:59Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   protected static final String hopLock = "_HOPLOCK_";
 

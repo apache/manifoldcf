@@ -1,4 +1,4 @@
-/* $Id: INamingActivity.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -27,7 +27,7 @@ import java.util.*;
 */
 public interface INamingActivity
 {
-  public static final String _rcsid = "@(#)$Id: INamingActivity.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Create a global string from a simple string.
   *@param simpleString is the simple string.

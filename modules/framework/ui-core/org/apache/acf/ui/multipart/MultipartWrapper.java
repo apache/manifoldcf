@@ -1,4 +1,4 @@
-/* $Id: MultipartWrapper.java 959015 2010-06-29 16:00:57Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -31,7 +31,7 @@ import java.io.*;
 */
 public class MultipartWrapper implements IPostParameters
 {
-  public static final String _rcsid = "@(#)$Id: MultipartWrapper.java 959015 2010-06-29 16:00:57Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** This is the HttpServletRequest object, which will be used for parameters only if
   * the form is not multipart. */

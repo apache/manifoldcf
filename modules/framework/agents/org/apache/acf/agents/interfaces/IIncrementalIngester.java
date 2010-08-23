@@ -1,4 +1,4 @@
-/* $Id: IIncrementalIngester.java 944298 2010-05-14 14:47:35Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -41,7 +41,7 @@ import java.io.*;
 */
 public interface IIncrementalIngester
 {
-  public static final String _rcsid = "@(#)$Id: IIncrementalIngester.java 944298 2010-05-14 14:47:35Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Install the incremental ingestion manager.
   */

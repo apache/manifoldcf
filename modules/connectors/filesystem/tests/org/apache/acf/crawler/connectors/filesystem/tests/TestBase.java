@@ -1,4 +1,4 @@
-/* $Id: TestBase.java 952805 2010-06-08 20:27:54Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more

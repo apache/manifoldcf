@@ -1,4 +1,4 @@
-/* $Id: ICacheDescription.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -28,7 +28,7 @@ package org.apache.acf.core.interfaces;
 */
 public interface ICacheDescription
 {
-  public static final String _rcsid = "@(#)$Id: ICacheDescription.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Get the cache keys for an object (which may or may not exist yet in
   * the cache).  This method is called in order for cache manager to throw the correct locks.

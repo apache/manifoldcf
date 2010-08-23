@@ -1,4 +1,4 @@
-/* $Id: SolrConnector.java 959167 2010-06-30 02:12:11Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -28,7 +28,7 @@ import java.io.*;
 */
 public class SolrConnector extends org.apache.acf.agents.output.BaseOutputConnector
 {
-  public static final String _rcsid = "@(#)$Id: SolrConnector.java 959167 2010-06-30 02:12:11Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Activities we log
 

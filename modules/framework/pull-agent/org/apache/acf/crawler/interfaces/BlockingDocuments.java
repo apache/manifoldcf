@@ -1,4 +1,4 @@
-/* $Id: BlockingDocuments.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -30,7 +30,7 @@ import java.util.*;
 */
 public class BlockingDocuments
 {
-  public static final String _rcsid = "@(#)$Id: BlockingDocuments.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // It's a simple queue.  This is the set of DocumentDescription objects that have been placed here by the stuffer.
   // Since there is a chance that the same document will be entered more than once, it's stored as a hash.

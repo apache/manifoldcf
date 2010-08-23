@@ -1,4 +1,4 @@
-/* $Id: RepositoryConnectionManager.java 944298 2010-05-14 14:47:35Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -33,7 +33,7 @@ import org.apache.acf.crawler.system.ACF;
 */
 public class RepositoryConnectionManager extends org.apache.acf.core.database.BaseTable implements IRepositoryConnectionManager
 {
-  public static final String _rcsid = "@(#)$Id: RepositoryConnectionManager.java 944298 2010-05-14 14:47:35Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Special field suffix
   private final static String passwordSuffix = "password";

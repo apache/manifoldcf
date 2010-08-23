@@ -1,4 +1,4 @@
-/* $Id: LockPool.java 959936 2010-07-02 10:17:58Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -23,7 +23,7 @@ import java.io.*;
 
 public class LockPool
 {
-  public static final String _rcsid = "@(#)$Id: LockPool.java 959936 2010-07-02 10:17:58Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   private HashMap myLocks = new HashMap();
 

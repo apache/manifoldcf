@@ -1,4 +1,4 @@
-/* $Id: IPostParameters.java 959015 2010-06-29 16:00:57Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -24,7 +24,7 @@ import java.util.*;
 */
 public interface IPostParameters
 {
-  public static final String _rcsid = "@(#)$Id: IPostParameters.java 959015 2010-06-29 16:00:57Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Read an array of parameter values.
   *@param name is the parameter name.

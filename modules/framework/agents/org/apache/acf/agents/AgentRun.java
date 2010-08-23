@@ -1,4 +1,4 @@
-/* $Id: AgentRun.java 988101 2010-08-23 12:18:13Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -26,7 +26,7 @@ import org.apache.acf.agents.system.*;
  */
 public class AgentRun extends BaseAgentsInitializationCommand
 {
-  public static final String _rcsid = "@(#)$Id: AgentRun.java 988101 2010-08-23 12:18:13Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   public static final String agentShutdownSignal = "_AGENTRUN_";
   

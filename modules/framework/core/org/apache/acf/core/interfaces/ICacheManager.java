@@ -1,4 +1,4 @@
-/* $Id: ICacheManager.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -23,7 +23,7 @@ package org.apache.acf.core.interfaces;
 */
 public interface ICacheManager
 {
-  public static final String _rcsid = "@(#)$Id: ICacheManager.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Locate or create a set of objects in the cached object pool, and/or destroy and invalidate
   * the same or other objects.

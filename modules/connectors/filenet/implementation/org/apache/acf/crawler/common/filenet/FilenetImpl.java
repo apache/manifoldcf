@@ -1,4 +1,4 @@
-/* $Id: FilenetImpl.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -46,7 +46,7 @@ import com.filenet.api.property.*;
 */
 public class FilenetImpl extends UnicastRemoteObject implements IFilenet
 {
-  public static final String _rcsid = "@(#)$Id: FilenetImpl.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   //Web service login module name
   private static final String PARAM_LOGIN_MODULE = "FileNetP8WSI";

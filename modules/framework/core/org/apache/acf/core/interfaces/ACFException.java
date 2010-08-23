@@ -1,4 +1,4 @@
-/* $Id: ACFException.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -20,7 +20,7 @@ package org.apache.acf.core.interfaces;
 
 public class ACFException extends Exception
 {
-  public static final String _rcsid = "@(#)$Id: ACFException.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   public final static int GENERAL_ERROR = 0;
   public final static int DATABASE_ERROR = 1;

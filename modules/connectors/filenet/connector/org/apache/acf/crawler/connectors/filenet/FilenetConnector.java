@@ -1,4 +1,4 @@
-/* $Id: FilenetConnector.java 965362 2010-07-19 06:15:50Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -33,7 +33,7 @@ import java.text.SimpleDateFormat;
 
 public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepositoryConnector
 {
-  public static final String _rcsid = "@(#)$Id: FilenetConnector.java 965362 2010-07-19 06:15:50Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Parameters
   public static final String CONFIG_PARAM_USERID = "User ID";

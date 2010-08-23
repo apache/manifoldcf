@@ -1,4 +1,4 @@
-/* $Id: ConfigParams.java 964702 2010-07-16 07:45:44Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -28,7 +28,7 @@ import org.apache.acf.core.system.ACF;
 */
 public class ConfigParams extends Configuration
 {
-  public static final String _rcsid = "@(#)$Id: ConfigParams.java 964702 2010-07-16 07:45:44Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** The parameter type node */
   protected final static String PARAMETER_TYPE = "_PARAMETER_";

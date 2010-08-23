@@ -1,4 +1,4 @@
-/* $Id: FileConnector.java 959015 2010-06-29 16:00:57Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -30,7 +30,7 @@ import java.io.*;
 */
 public class FileConnector extends org.apache.acf.crawler.connectors.BaseRepositoryConnector
 {
-  public static final String _rcsid = "@(#)$Id: FileConnector.java 959015 2010-06-29 16:00:57Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Activities that we know about
   protected final static String ACTIVITY_READ = "read document";

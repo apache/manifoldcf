@@ -1,4 +1,4 @@
-/* $Id: MultilineParser.java 953161 2010-06-09 21:01:23Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -24,7 +24,7 @@ import java.util.*;
 */
 public class MultilineParser
 {
-  public static final String _rcsid = "@(#)$Id: MultilineParser.java 953161 2010-06-09 21:01:23Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Read a string as a sequence of individual expressions, urls, etc.
   */

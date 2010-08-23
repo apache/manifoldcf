@@ -1,4 +1,4 @@
-/* $Id: CrawlerAgent.java 944298 2010-05-14 14:47:35Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -26,7 +26,7 @@ import org.apache.acf.crawler.interfaces.*;
 */
 public class CrawlerAgent implements IAgent
 {
-  public static final String _rcsid = "@(#)$Id: CrawlerAgent.java 944298 2010-05-14 14:47:35Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   protected IThreadContext threadContext;
 

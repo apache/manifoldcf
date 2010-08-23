@@ -1,4 +1,4 @@
-/* $Id: IDBInterface.java 953331 2010-06-10 14:22:50Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -33,7 +33,7 @@ import java.util.*;
 */
 public interface IDBInterface
 {
-  public static final String _rcsid = "@(#)$Id: IDBInterface.java 953331 2010-06-10 14:22:50Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   public static int TRANSACTION_ENCLOSING = 0;
   public static int TRANSACTION_READCOMMITTED = 1;

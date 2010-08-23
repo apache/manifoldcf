@@ -1,4 +1,4 @@
-/* $Id: ActiveDirectoryConfig.java 931248 2010-04-06 18:03:48Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -23,7 +23,7 @@ package org.apache.acf.authorities.authorities.activedirectory;
 */
 public class ActiveDirectoryConfig
 {
-  public static final String _rcsid = "@(#)$Id: ActiveDirectoryConfig.java 931248 2010-04-06 18:03:48Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Configuration parameters
 

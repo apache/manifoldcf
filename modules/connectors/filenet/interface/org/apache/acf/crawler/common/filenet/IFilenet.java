@@ -1,4 +1,4 @@
-/* $Id: IFilenet.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -32,7 +32,7 @@ import java.util.*;
 */
 public interface IFilenet extends Remote
 {
-  public static final String _rcsid = "@(#)$Id: IFilenet.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Create a session.
   *@param userID is the userID to use to establish the session.

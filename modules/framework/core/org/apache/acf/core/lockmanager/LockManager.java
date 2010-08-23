@@ -1,4 +1,4 @@
-/* $Id: LockManager.java 959936 2010-07-02 10:17:58Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -29,7 +29,7 @@ import java.io.*;
 */
 public class LockManager implements ILockManager
 {
-  public static final String _rcsid = "@(#)$Id: LockManager.java 959936 2010-07-02 10:17:58Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Synchronization directory property - local to this implementation of ILockManager */
   public static final String synchDirectoryProperty = "org.apache.acf.synchdirectory";

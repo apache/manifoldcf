@@ -1,4 +1,4 @@
-/* $Id: ThrottledFetcher.java 939308 2010-04-29 13:53:05Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -45,7 +45,7 @@ import org.apache.commons.httpclient.auth.*;
 */
 public class ThrottledFetcher
 {
-  public static final String _rcsid = "@(#)$Id: ThrottledFetcher.java 939308 2010-04-29 13:53:05Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** This flag determines whether we record everything to the disk, as a means of doing a web snapshot */
   protected static final boolean recordEverything = false;

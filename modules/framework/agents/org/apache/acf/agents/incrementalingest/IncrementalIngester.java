@@ -1,4 +1,4 @@
-/* $Id: IncrementalIngester.java 952302 2010-06-07 16:07:04Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -36,7 +36,7 @@ import java.io.*;
 */
 public class IncrementalIngester extends org.apache.acf.core.database.BaseTable implements IIncrementalIngester
 {
-  public static final String _rcsid = "@(#)$Id: IncrementalIngester.java 952302 2010-06-07 16:07:04Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Fields
   protected final static String idField = "id";

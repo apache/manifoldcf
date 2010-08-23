@@ -1,4 +1,4 @@
-/* $Id: JDBCConnector.java 979199 2010-07-26 08:41:44Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -64,7 +64,7 @@ import java.util.*;
 */
 public class JDBCConnector extends org.apache.acf.crawler.connectors.BaseRepositoryConnector
 {
-  public static final String _rcsid = "@(#)$Id: JDBCConnector.java 979199 2010-07-26 08:41:44Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Activities that we know about
   protected final static String ACTIVITY_EXTERNAL_QUERY = "external query";

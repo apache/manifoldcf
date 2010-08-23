@@ -43,7 +43,7 @@ using JCifs from the appliance.  Basic operations are: addDocument, deleteDocume
 */
 public class SharedDriveHelpers
 {
-  public static final String _rcsid = "@(#)$Id: SharedDriveHelpers.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   private NtlmPasswordAuthentication pa;
   private SmbFile smbconnection;

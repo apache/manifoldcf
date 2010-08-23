@@ -1,4 +1,4 @@
-/* $Id: SequenceCredentials.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -25,7 +25,7 @@ import java.util.*;
 */
 public interface SequenceCredentials extends AuthenticationCredentials
 {
-  public static final String _rcsid = "@(#)$Id: SequenceCredentials.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Fetch the unique key value for this particular credential.  (This is used to enforce the proper page ordering).
   */

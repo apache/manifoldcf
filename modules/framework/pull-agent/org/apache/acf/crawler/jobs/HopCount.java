@@ -1,4 +1,4 @@
-/* $Id: HopCount.java 951095 2010-06-03 18:20:53Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -30,7 +30,7 @@ import org.apache.acf.crawler.system.ACF;
 */
 public class HopCount extends org.apache.acf.core.database.BaseTable
 {
-  public static final String _rcsid = "@(#)$Id: HopCount.java 951095 2010-06-03 18:20:53Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Answer constants
   public static final int ANSWER_UNKNOWN = -1;

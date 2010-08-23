@@ -1,4 +1,4 @@
-/* $Id: SolrConfig.java 959167 2010-06-30 02:12:11Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -23,7 +23,7 @@ package org.apache.acf.agents.output.solr;
 */
 public class SolrConfig
 {
-  public static final String _rcsid = "@(#)$Id: SolrConfig.java 959167 2010-06-30 02:12:11Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Configuration parameters
 

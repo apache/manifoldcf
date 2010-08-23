@@ -1,4 +1,4 @@
-/* $Id: SetPriorityThread.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -35,7 +35,7 @@ import java.lang.reflect.*;
 */
 public class SetPriorityThread extends Thread
 {
-  public static final String _rcsid = "@(#)$Id: SetPriorityThread.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Local data
   // This is the queue tracker object.

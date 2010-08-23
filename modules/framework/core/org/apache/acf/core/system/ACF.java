@@ -1,4 +1,4 @@
-/* $Id: ACF.java 960994 2010-07-06 19:45:53Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -25,7 +25,7 @@ import java.security.MessageDigest;
 
 public class ACF
 {
-  public static final String _rcsid = "@(#)$Id: ACF.java 960994 2010-07-06 19:45:53Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Configuration XML node names and attribute names
   public static final String NODE_PROPERTY = "property";

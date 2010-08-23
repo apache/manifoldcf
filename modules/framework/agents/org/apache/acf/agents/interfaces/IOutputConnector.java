@@ -1,4 +1,4 @@
-/* $Id: IOutputConnector.java 983795 2010-08-09 19:47:21Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -48,7 +48,7 @@ import java.util.*;
 */
 public interface IOutputConnector extends IConnector
 {
-  public static final String _rcsid = "@(#)$Id: IOutputConnector.java 983795 2010-08-09 19:47:21Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Document statuses
 

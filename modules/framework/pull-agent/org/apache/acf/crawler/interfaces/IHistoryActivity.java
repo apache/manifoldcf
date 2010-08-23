@@ -1,4 +1,4 @@
-/* $Id: IHistoryActivity.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -26,7 +26,7 @@ import java.util.*;
 */
 public interface IHistoryActivity
 {
-  public static final String _rcsid = "@(#)$Id: IHistoryActivity.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Record time-stamped information about the activity of the connector.
   *@param startTime is either null or the time since the start of epoch in milliseconds (Jan 1, 1970).  Every

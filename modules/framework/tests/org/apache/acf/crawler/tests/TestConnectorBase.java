@@ -1,4 +1,4 @@
-/* $Id: TestConnectorBase.java 961432 2010-07-07 16:50:42Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more

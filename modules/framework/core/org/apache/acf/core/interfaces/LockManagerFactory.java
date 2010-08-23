@@ -1,4 +1,4 @@
-/* $Id: LockManagerFactory.java 927379 2010-03-25 13:02:42Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -22,7 +22,7 @@ import org.apache.acf.core.system.ACF;
 
 public class LockManagerFactory
 {
-  public static final String _rcsid = "@(#)$Id: LockManagerFactory.java 927379 2010-03-25 13:02:42Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   private final static String lockManager = "_LockManager_";
 

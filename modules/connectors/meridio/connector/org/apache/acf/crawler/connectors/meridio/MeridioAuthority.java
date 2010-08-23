@@ -1,4 +1,4 @@
-/* $Id: MeridioAuthority.java 959936 2010-07-02 10:17:58Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -44,7 +44,7 @@ import java.net.*;
 */
 public class MeridioAuthority extends org.apache.acf.authorities.authorities.BaseAuthorityConnector
 {
-  public static final String _rcsid = "@(#)$Id: MeridioAuthority.java 959936 2010-07-02 10:17:58Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Properties we need
   public final static String wsddPathProperty = "org.apache.acf.meridio.wsddpath";

@@ -1,4 +1,4 @@
-/* $Id: IJobDescription.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -35,7 +35,7 @@ import java.util.*;
 */
 public interface IJobDescription
 {
-  public static final String _rcsid = "@(#)$Id: IJobDescription.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Kinds of document scheduling that are allowed
   public final static int TYPE_CONTINUOUS = 0;    // Never stops, just reschedules individual documents indefinitely

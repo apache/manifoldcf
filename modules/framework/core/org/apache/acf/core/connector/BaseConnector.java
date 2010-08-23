@@ -1,4 +1,4 @@
-/* $Id: BaseConnector.java 983795 2010-08-09 19:47:21Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -26,7 +26,7 @@ import java.util.*;
 */
 public abstract class BaseConnector implements IConnector
 {
-  public static final String _rcsid = "@(#)$Id: BaseConnector.java 983795 2010-08-09 19:47:21Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Config params
   protected ConfigParams params = null;

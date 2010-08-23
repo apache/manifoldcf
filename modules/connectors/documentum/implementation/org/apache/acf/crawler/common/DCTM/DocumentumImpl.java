@@ -1,4 +1,4 @@
-/* $Id: DocumentumImpl.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -35,7 +35,7 @@ import java.util.*;
 */
 public class DocumentumImpl extends UnicastRemoteObject implements IDocumentum
 {
-  public static final String _rcsid = "@(#)$Id: DocumentumImpl.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // All the parameters we need to set up a session
   protected String docBaseName = null;

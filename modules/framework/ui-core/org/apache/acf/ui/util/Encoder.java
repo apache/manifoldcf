@@ -1,4 +1,4 @@
-/* $Id: Encoder.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -22,7 +22,7 @@ package org.apache.acf.ui.util;
 */
 public class Encoder
 {
-  public static final String _rcsid = "@(#)$Id: Encoder.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Escape a string that's inside an html attribute and thence inside javascript.
   *@param value is the input.

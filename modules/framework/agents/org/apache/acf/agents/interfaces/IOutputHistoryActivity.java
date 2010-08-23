@@ -1,4 +1,4 @@
-/* $Id: IOutputHistoryActivity.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -25,7 +25,7 @@ import org.apache.acf.agents.interfaces.*;
 */
 public interface IOutputHistoryActivity
 {
-  public static final String _rcsid = "@(#)$Id: IOutputHistoryActivity.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Record time-stamped information about the activity of the output connector.
   *@param startTime is either null or the time since the start of epoch in milliseconds (Jan 1, 1970).  Every

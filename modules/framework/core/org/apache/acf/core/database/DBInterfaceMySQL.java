@@ -1,4 +1,4 @@
-/* $Id: DBInterfaceMySQL.java 953331 2010-06-10 14:22:50Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -23,7 +23,7 @@ import java.util.*;
 
 public class DBInterfaceMySQL extends Database implements IDBInterface
 {
-  public static final String _rcsid = "@(#)$Id: DBInterfaceMySQL.java 953331 2010-06-10 14:22:50Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   private static final String _url = "jdbc:mysql://localhost/";
   private static final String _driver = "org.gjt.mm.mysql.Driver";

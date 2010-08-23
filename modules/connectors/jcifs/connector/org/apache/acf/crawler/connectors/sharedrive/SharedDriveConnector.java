@@ -64,7 +64,7 @@ import org.apache.acf.crawler.system.ACF;
 */
 public class SharedDriveConnector extends org.apache.acf.crawler.connectors.BaseRepositoryConnector
 {
-  public static final String _rcsid = "@(#)$Id: SharedDriveConnector.java 965362 2010-07-19 06:15:50Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Activities we log
   public final static String ACTIVITY_ACCESS = "access";

@@ -1,4 +1,4 @@
-/* $Id: ICacheCreateHandle.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -23,7 +23,7 @@ package org.apache.acf.core.interfaces;
 */
 public interface ICacheCreateHandle
 {
-  public static final String _rcsid = "@(#)$Id: ICacheCreateHandle.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Get the critical section names.
   *@return the critical section names.

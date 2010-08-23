@@ -1,4 +1,4 @@
-/* $Id: IAbortActivity.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -26,7 +26,7 @@ import java.util.*;
 */
 public interface IAbortActivity
 {
-  public static final String _rcsid = "@(#)$Id: IAbortActivity.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Check whether current job is still active.
   * This method is provided to allow an individual connector that needs to wait on some long-term condition to give up waiting due to the job

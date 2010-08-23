@@ -1,4 +1,4 @@
-/* $Id: IAuthorityConnector.java 983795 2010-08-09 19:47:21Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more

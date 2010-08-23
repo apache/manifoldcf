@@ -1,4 +1,4 @@
-/* $Id: IDynamicResultSet.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -28,7 +28,7 @@ import org.apache.acf.agents.interfaces.*;
 */
 public interface IDynamicResultSet
 {
-  public static final String _rcsid = "@(#)$Id: IDynamicResultSet.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Get the next row from the resultset.
   *@return the immutable row description, or null if there is no such row.

@@ -1,4 +1,4 @@
-/* $Id: TimeMarker.java 955332 2010-06-16 18:08:56Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -22,7 +22,7 @@ package org.apache.acf.core.interfaces;
 */
 public class TimeMarker
 {
-  public static final String _rcsid = "@(#)$Id: TimeMarker.java 955332 2010-06-16 18:08:56Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   long timeValue;
 

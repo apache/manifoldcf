@@ -1,4 +1,4 @@
-/* $Id: IResultSet.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -25,7 +25,7 @@ import java.util.*;
 */
 public interface IResultSet
 {
-  public static final String _rcsid = "@(#)$Id: IResultSet.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Get a specific row in the resultset.
   *@param rowNumber is the number of the row.

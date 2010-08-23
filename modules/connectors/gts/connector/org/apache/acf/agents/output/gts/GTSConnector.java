@@ -1,4 +1,4 @@
-/* $Id: GTSConnector.java 959015 2010-06-29 16:00:57Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -43,7 +43,7 @@ import java.io.*;
 */
 public class GTSConnector extends org.apache.acf.agents.output.BaseOutputConnector
 {
-  public static final String _rcsid = "@(#)$Id: GTSConnector.java 959015 2010-06-29 16:00:57Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Activities we log
 

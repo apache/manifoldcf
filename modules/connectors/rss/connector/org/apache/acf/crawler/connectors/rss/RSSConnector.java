@@ -1,4 +1,4 @@
-/* $Id: RSSConnector.java 959015 2010-06-29 16:00:57Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -52,7 +52,7 @@ import org.apache.commons.httpclient.params.*;
 */
 public class RSSConnector extends org.apache.acf.crawler.connectors.BaseRepositoryConnector
 {
-  public static final String _rcsid = "@(#)$Id: RSSConnector.java 959015 2010-06-29 16:00:57Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
 
   /** Robots usage parameter */

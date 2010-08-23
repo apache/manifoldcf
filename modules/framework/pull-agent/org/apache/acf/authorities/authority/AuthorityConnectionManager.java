@@ -1,4 +1,4 @@
-/* $Id: AuthorityConnectionManager.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -31,7 +31,7 @@ import org.apache.acf.crawler.interfaces.RepositoryConnectionManagerFactory;
 */
 public class AuthorityConnectionManager extends org.apache.acf.core.database.BaseTable implements IAuthorityConnectionManager
 {
-  public static final String _rcsid = "@(#)$Id: AuthorityConnectionManager.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Special field suffix
   private final static String passwordSuffix = "password";

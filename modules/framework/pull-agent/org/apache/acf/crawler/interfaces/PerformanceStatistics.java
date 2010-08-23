@@ -1,4 +1,4 @@
-/* $Id: PerformanceStatistics.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -28,7 +28,7 @@ import java.util.*;
 */
 public class PerformanceStatistics
 {
-  public static final String _rcsid = "@(#)$Id: PerformanceStatistics.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** This is the fetch rate that will be returned in the complete absence of any other information.  This represents a 'wild guess' of a sort,
   * used only at the very start of a job, and designed to not hopelessly overload the queue with stuff from one connection only. */

@@ -1,4 +1,4 @@
-/* $Id: QueryDescription.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -25,7 +25,7 @@ import java.util.*;
 */
 public class QueryDescription extends org.apache.acf.core.cachemanager.BaseDescription
 {
-  public static final String _rcsid = "@(#)$Id: QueryDescription.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Store an id for the transaction, not the actual transaction handle.
   // We don't want to hold onto the actual open database handle!

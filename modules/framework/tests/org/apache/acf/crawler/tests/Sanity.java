@@ -1,4 +1,4 @@
-/* $Id: Sanity.java 952658 2010-06-08 14:21:27Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more

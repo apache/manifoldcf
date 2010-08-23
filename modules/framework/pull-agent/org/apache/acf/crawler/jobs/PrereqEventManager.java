@@ -1,4 +1,4 @@
-/* $Id: PrereqEventManager.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -29,7 +29,7 @@ import java.util.*;
 */
 public class PrereqEventManager extends org.apache.acf.core.database.BaseTable
 {
-  public static final String _rcsid = "@(#)$Id: PrereqEventManager.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Field names
   public final static String ownerField = "owner";

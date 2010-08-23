@@ -1,4 +1,4 @@
-/* $Id: IAgent.java 944298 2010-05-14 14:47:35Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -29,7 +29,7 @@ import org.apache.acf.core.interfaces.*;
 */
 public interface IAgent
 {
-  public static final String _rcsid = "@(#)$Id: IAgent.java 944298 2010-05-14 14:47:35Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Install agent.  This usually installs the agent's database tables etc.
   */

@@ -1,4 +1,4 @@
-/* $Id: JspWrapper.java 959015 2010-06-29 16:00:57Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -27,7 +27,7 @@ import java.io.*;
 */
 public class JspWrapper implements IHTTPOutput
 {
-  public static final String _rcsid = "@(#)$Id: JspWrapper.java 959015 2010-06-29 16:00:57Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   protected JspWriter writer;
 

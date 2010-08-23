@@ -1,4 +1,4 @@
-/* $Id: ConfigurationNode.java 979203 2010-07-26 09:00:19Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -25,7 +25,7 @@ import java.util.*;
 */
 public class ConfigurationNode
 {
-  public static final String _rcsid = "@(#)$Id: ConfigurationNode.java 979203 2010-07-26 09:00:19Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Member variables
   protected ArrayList children = null;

@@ -1,4 +1,4 @@
-/* $Id: SpecificationNode.java 964035 2010-07-14 12:55:26Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -26,7 +26,7 @@ import java.util.*;
 */
 public class SpecificationNode extends ConfigurationNode
 {
-  public static final String _rcsid = "@(#)$Id: SpecificationNode.java 964035 2010-07-14 12:55:26Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Constructor.
   */

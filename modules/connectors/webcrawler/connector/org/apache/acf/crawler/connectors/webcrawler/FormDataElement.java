@@ -1,4 +1,4 @@
-/* $Id: FormDataElement.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -22,7 +22,7 @@ package org.apache.acf.crawler.connectors.webcrawler;
 */
 public interface FormDataElement
 {
-  public static final String _rcsid = "@(#)$Id: FormDataElement.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Get the element name */
   public String getElementName();

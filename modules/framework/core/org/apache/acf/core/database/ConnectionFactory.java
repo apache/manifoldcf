@@ -1,4 +1,4 @@
-/* $Id: ConnectionFactory.java 948843 2010-05-27 14:10:47Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -34,7 +34,7 @@ import com.bitmechanic.sql.*;
 */
 public class ConnectionFactory
 {
-  public static final String _rcsid = "@(#)$Id: ConnectionFactory.java 948843 2010-05-27 14:10:47Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
 
   private static final int defaultMaxDBConnections = 200;

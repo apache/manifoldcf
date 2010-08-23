@@ -1,4 +1,4 @@
-/* $Id: ACF.java 965362 2010-07-19 06:15:50Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -25,7 +25,7 @@ import java.util.*;
 
 public class ACF extends org.apache.acf.core.system.ACF
 {
-  public static final String _rcsid = "@(#)$Id: ACF.java 965362 2010-07-19 06:15:50Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Agents initialized flag
   protected static boolean agentsInitialized = false;

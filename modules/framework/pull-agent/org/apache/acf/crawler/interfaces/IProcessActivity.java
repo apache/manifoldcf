@@ -1,4 +1,4 @@
-/* $Id: IProcessActivity.java 924788 2010-03-18 14:08:41Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -26,7 +26,7 @@ import java.util.*;
 */
 public interface IProcessActivity extends IHistoryActivity, IEventActivity, IAbortActivity, IFingerprintActivity
 {
-  public static final String _rcsid = "@(#)$Id: IProcessActivity.java 924788 2010-03-18 14:08:41Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Add a document description to the current job's queue.
   *@param localIdentifier is the local document identifier to add (for the connector that

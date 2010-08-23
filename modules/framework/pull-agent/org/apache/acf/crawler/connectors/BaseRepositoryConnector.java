@@ -1,4 +1,4 @@
-/* $Id: BaseRepositoryConnector.java 983795 2010-08-09 19:47:21Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -58,7 +58,7 @@ import java.util.*;
 */
 public abstract class BaseRepositoryConnector extends org.apache.acf.core.connector.BaseConnector implements IRepositoryConnector
 {
-  public static final String _rcsid = "@(#)$Id: BaseRepositoryConnector.java 983795 2010-08-09 19:47:21Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Tell the world what model this connector uses for getDocumentIdentifiers().
   * This must return a model value as specified above.

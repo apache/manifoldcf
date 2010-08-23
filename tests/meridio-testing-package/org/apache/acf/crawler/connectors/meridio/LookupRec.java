@@ -1,4 +1,4 @@
-/* $Id: LookupRec.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -23,7 +23,7 @@ import org.apache.acf.crawler.connectors.meridio.meridiowrapper.MeridioTestWrapp
 
 public class LookupRec
 {
-        public static final String _rcsid = "@(#)$Id: LookupRec.java 921329 2010-03-10 12:44:20Z kwright $";
+        public static final String _rcsid = "@(#)$Id$";
 
         private LookupRec()
         {

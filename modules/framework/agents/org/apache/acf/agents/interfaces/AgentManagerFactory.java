@@ -1,4 +1,4 @@
-/* $Id: AgentManagerFactory.java 944298 2010-05-14 14:47:35Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -25,7 +25,7 @@ import org.apache.acf.agents.system.*;
 */
 public class AgentManagerFactory
 {
-  public static final String _rcsid = "@(#)$Id: AgentManagerFactory.java 944298 2010-05-14 14:47:35Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   protected final static String agentManager = "_AgentManager_";
 

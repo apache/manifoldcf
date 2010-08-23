@@ -1,4 +1,4 @@
-/* $Id: CacheManager.java 935622 2010-04-19 15:22:58Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -31,7 +31,7 @@ import java.io.*;
 */
 public class CacheManager implements ICacheManager
 {
-  public static final String _rcsid = "@(#)$Id: CacheManager.java 935622 2010-04-19 15:22:58Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   protected final static String cacheLockPrefix = "_Cache_";
 

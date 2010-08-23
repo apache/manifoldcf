@@ -1,4 +1,4 @@
-/* $Id: ChangeJobDocSpec.java 939667 2010-04-30 13:34:54Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -28,7 +28,7 @@ import java.util.*;
 */
 public class ChangeJobDocSpec
 {
-        public static final String _rcsid = "@(#)$Id: ChangeJobDocSpec.java 939667 2010-04-30 13:34:54Z kwright $";
+        public static final String _rcsid = "@(#)$Id$";
 
         private ChangeJobDocSpec()
         {

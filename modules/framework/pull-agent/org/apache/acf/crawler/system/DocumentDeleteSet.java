@@ -1,4 +1,4 @@
-/* $Id: DocumentDeleteSet.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -28,7 +28,7 @@ import java.util.*;
 */
 public class DocumentDeleteSet
 {
-  public static final String _rcsid = "@(#)$Id: DocumentDeleteSet.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** This is the array of documents to delete. */
   protected DeleteQueuedDocument[] documents;

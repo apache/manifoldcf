@@ -1,4 +1,4 @@
-/* $Id: LocalClientSocket.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -26,7 +26,7 @@ import java.io.IOException;
 */
 public class LocalClientSocket extends Socket
 {
-  public static final String _rcsid = "@(#)$Id: LocalClientSocket.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   protected static InetAddress loopbackAddress;
 

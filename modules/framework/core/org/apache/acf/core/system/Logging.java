@@ -1,4 +1,4 @@
-/* $Id: Logging.java 959936 2010-07-02 10:17:58Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -35,7 +35,7 @@ import org.apache.log4j.PropertyConfigurator;
 */
 public class Logging
 {
-  public static final String _rcsid = "@(#)$Id: Logging.java 959936 2010-07-02 10:17:58Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Public logger objects.  Initialized by initializeLoggers() method.
   public static Logger root = null;

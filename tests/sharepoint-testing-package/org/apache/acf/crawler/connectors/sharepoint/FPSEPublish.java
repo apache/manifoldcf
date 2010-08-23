@@ -1,4 +1,4 @@
-/* $Id: FPSEPublish.java 927840 2010-03-26 13:27:59Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -38,7 +38,7 @@ import com.microsoft.schemas.sharepoint.soap.directory.*;
 */
 public class FPSEPublish
 {
-        public static final String _rcsid = "@(#)$Id: FPSEPublish.java 927840 2010-03-26 13:27:59Z kwright $";
+        public static final String _rcsid = "@(#)$Id$";
 
         protected String userName       = null;
         protected String passWord       = null;

@@ -1,4 +1,4 @@
-/* $Id: ThrottleSpecManager.java 953331 2010-06-10 14:22:50Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -29,7 +29,7 @@ import java.util.*;
 */
 public class ThrottleSpecManager extends org.apache.acf.core.database.BaseTable
 {
-  public static final String _rcsid = "@(#)$Id: ThrottleSpecManager.java 953331 2010-06-10 14:22:50Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Schema
   public final static String ownerNameField = "ownername";

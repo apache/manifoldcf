@@ -1,4 +1,4 @@
-/* $Id: AddRec.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -30,7 +30,7 @@ import com.meridio.www.MeridioRMWS.*;
 
 public class AddRec
 {
-        public static final String _rcsid = "@(#)$Id: AddRec.java 921329 2010-03-10 12:44:20Z kwright $";
+        public static final String _rcsid = "@(#)$Id$";
 
         private AddRec()
         {

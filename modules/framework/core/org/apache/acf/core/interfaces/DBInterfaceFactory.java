@@ -1,4 +1,4 @@
-/* $Id: DBInterfaceFactory.java 948822 2010-05-27 13:20:48Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -25,7 +25,7 @@ import java.lang.reflect.*;
 */
 public class DBInterfaceFactory
 {
-  public static final String _rcsid = "@(#)$Id: DBInterfaceFactory.java 948822 2010-05-27 13:20:48Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   private final static String dbinterfaceInstancePrefix = "_DBInterface:";
 

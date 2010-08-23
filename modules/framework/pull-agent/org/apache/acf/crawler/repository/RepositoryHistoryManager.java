@@ -1,4 +1,4 @@
-/* $Id: RepositoryHistoryManager.java 951095 2010-06-03 18:20:53Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -26,7 +26,7 @@ import java.util.*;
 */
 public class RepositoryHistoryManager extends org.apache.acf.core.database.BaseTable
 {
-  public static final String _rcsid = "@(#)$Id: RepositoryHistoryManager.java 951095 2010-06-03 18:20:53Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Fields
   protected final static String idField = "id";

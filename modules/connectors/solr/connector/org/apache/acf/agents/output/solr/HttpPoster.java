@@ -1,4 +1,4 @@
-/* $Id: HttpPoster.java 966209 2010-07-21 12:32:43Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -39,7 +39,7 @@ import org.apache.log4j.*;
 */
 public class HttpPoster
 {
-  public static final String _rcsid = "@(#)$Id: HttpPoster.java 966209 2010-07-21 12:32:43Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Ingestion buffer size property. */
   public static String ingestBufferSizeProperty = "org.apache.acf.ingest.buffersize";

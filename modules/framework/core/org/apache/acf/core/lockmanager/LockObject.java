@@ -1,4 +1,4 @@
-/* $Id: LockObject.java 959936 2010-07-02 10:17:58Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -27,7 +27,7 @@ import java.io.*;
 */
 public class LockObject
 {
-  public static final String _rcsid = "@(#)$Id: LockObject.java 959936 2010-07-02 10:17:58Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   private final static int STATUS_WRITELOCKED = -1;
 

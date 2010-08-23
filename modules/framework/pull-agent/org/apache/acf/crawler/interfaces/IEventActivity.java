@@ -1,4 +1,4 @@
-/* $Id: IEventActivity.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -64,7 +64,7 @@ import java.util.*;
 */
 public interface IEventActivity extends INamingActivity
 {
-  public static final String _rcsid = "@(#)$Id: IEventActivity.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Begin an event sequence.
   * This method should be called by a connector when a sequencing event should enter the "pending" state.  If the event is already in that state,

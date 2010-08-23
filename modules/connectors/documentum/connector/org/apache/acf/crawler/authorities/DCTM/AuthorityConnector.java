@@ -1,4 +1,4 @@
-/* $Id: AuthorityConnector.java 959015 2010-06-29 16:00:57Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more

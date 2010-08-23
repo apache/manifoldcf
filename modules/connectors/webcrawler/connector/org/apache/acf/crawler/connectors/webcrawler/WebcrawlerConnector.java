@@ -1,4 +1,4 @@
-/* $Id: WebcrawlerConnector.java 979192 2010-07-26 08:25:19Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -48,7 +48,7 @@ import org.apache.commons.httpclient.params.*;
 */
 public class WebcrawlerConnector extends org.apache.acf.crawler.connectors.BaseRepositoryConnector
 {
-  public static final String _rcsid = "@(#)$Id: WebcrawlerConnector.java 979192 2010-07-26 08:25:19Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // First, a couple of very important points.
   // The canonical document identifier is simply a legal URL.  It may have been processed in some way to

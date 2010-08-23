@@ -1,4 +1,4 @@
-/* $Id: MemexAuthority.java 959015 2010-06-29 16:00:57Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -41,7 +41,7 @@ import javax.xml.parsers.*;
 */
 public class MemexAuthority extends org.apache.acf.authorities.authorities.BaseAuthorityConnector
 {
-  public static final String _rcsid = "@(#)$Id: MemexAuthority.java 959015 2010-06-29 16:00:57Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Parameters
   public static final String CONFIG_PARAM_MEMEXSERVERNAME = "Memex server name";

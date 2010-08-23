@@ -1,4 +1,4 @@
-/* $Id: UnRegisterOutput.java 988101 2010-08-23 12:18:13Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -27,7 +27,7 @@ import org.apache.acf.agents.system.*;
  */
 public class UnRegisterOutput extends TransactionalAgentsInitializationCommand
 {
-  public static final String _rcsid = "@(#)$Id: UnRegisterOutput.java 988101 2010-08-23 12:18:13Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   private final String className;
 

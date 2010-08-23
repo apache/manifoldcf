@@ -1,4 +1,4 @@
-/* $Id: LockClean.java 988101 2010-08-23 12:18:13Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -27,7 +27,7 @@ import org.apache.acf.core.system.*;
  */
 public class LockClean implements InitializationCommand
 {
-  public static final String _rcsid = "@(#)$Id: LockClean.java 988101 2010-08-23 12:18:13Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   public LockClean()
   {

@@ -1,4 +1,4 @@
-/* $Id: IThrottledConnection.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -27,7 +27,7 @@ import java.io.*;
 */
 public interface IThrottledConnection
 {
-  public static final String _rcsid = "@(#)$Id: IThrottledConnection.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Issue codes.
   public static final int FETCH_NOT_TRIED = -1;

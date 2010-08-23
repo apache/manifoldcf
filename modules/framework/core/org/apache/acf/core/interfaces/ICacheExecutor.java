@@ -1,4 +1,4 @@
-/* $Id: ICacheExecutor.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -39,7 +39,7 @@ package org.apache.acf.core.interfaces;
 */
 public interface ICacheExecutor
 {
-  public static final String _rcsid = "@(#)$Id: ICacheExecutor.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Create a set of new objects to operate on and cache.  This method is called only
   * if the specified object(s) are NOT available in the cache.  The specified objects

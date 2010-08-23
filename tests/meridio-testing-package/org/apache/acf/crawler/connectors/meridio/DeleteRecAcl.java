@@ -1,4 +1,4 @@
-/* $Id: DeleteRecAcl.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -27,7 +27,7 @@ import org.apache.acf.crawler.connectors.meridio.DMDataSet.ACCESSCONTROL;
 
 public class DeleteRecAcl
 {
-        public static final String _rcsid = "@(#)$Id: DeleteRecAcl.java 921329 2010-03-10 12:44:20Z kwright $";
+        public static final String _rcsid = "@(#)$Id$";
 
         protected static HashMap map;
         static

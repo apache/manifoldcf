@@ -1,4 +1,4 @@
-/* $Id: MeridioConnector.java 965362 2010-07-19 06:15:50Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -61,7 +61,7 @@ import org.apache.acf.crawler.connectors.meridio.RMDataSet.*;
 */
 public class MeridioConnector extends org.apache.acf.crawler.connectors.BaseRepositoryConnector
 {
-  public static final String _rcsid = "@(#)$Id: MeridioConnector.java 965362 2010-07-19 06:15:50Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Properties we need
   public final static String wsddPathProperty = "org.apache.acf.meridio.wsddpath";

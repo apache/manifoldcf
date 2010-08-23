@@ -1,4 +1,4 @@
-/* $Id: FileSeedInfo.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -22,7 +22,7 @@ import java.util.*;
 
 public class FileSeedInfo implements java.io.Serializable
 {
-  public static final String _rcsid = "@(#)$Id: FileSeedInfo.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   protected String docId;
   protected int elementCount;

@@ -1,4 +1,4 @@
-/* $Id: APIServlet.java 966280 2010-07-21 15:32:53Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -35,7 +35,7 @@ import javax.servlet.http.*;
 */
 public class APIServlet extends HttpServlet
 {
-  public static final String _rcsid = "@(#)$Id: APIServlet.java 966280 2010-07-21 15:32:53Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** The init method.
   */

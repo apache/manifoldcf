@@ -1,4 +1,4 @@
-/* $Id: IHTTPOutput.java 959015 2010-06-29 16:00:57Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -25,7 +25,7 @@ import java.io.*;
 */
 public interface IHTTPOutput
 {
-  public static final String _rcsid = "@(#)$Id: IHTTPOutput.java 959015 2010-06-29 16:00:57Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Flush the stream */
   public void flush()

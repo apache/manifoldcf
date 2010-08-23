@@ -1,4 +1,4 @@
-/* $Id: IDocumentum.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -30,7 +30,7 @@ import java.rmi.*;
 */
 public interface IDocumentum extends Remote
 {
-  public static final String _rcsid = "@(#)$Id: IDocumentum.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Create a session.
   *@param docbaseName is the name of the docbase we want to connect to.

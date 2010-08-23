@@ -1,4 +1,4 @@
-/* $Id: Jobs.java 951176 2010-06-03 21:33:59Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -28,7 +28,7 @@ import java.util.*;
 */
 public class Jobs extends org.apache.acf.core.database.BaseTable
 {
-  public static final String _rcsid = "@(#)$Id: Jobs.java 951176 2010-06-03 21:33:59Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Status field values
   public static final int STATUS_INACTIVE = 0;                            // Not running

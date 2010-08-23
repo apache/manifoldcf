@@ -1,4 +1,4 @@
-/* $Id: OutputConnectorManager.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -27,7 +27,7 @@ import java.util.*;
 */
 public class OutputConnectorManager extends org.apache.acf.core.database.BaseTable implements IOutputConnectorManager
 {
-  public static final String _rcsid = "@(#)$Id: OutputConnectorManager.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Fields
   protected static final String descriptionField = "description";

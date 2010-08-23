@@ -1,4 +1,4 @@
-/* $Id: DBInterfaceDerby.java 966217 2010-07-21 13:15:14Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -27,7 +27,7 @@ import java.sql.*;
 
 public class DBInterfaceDerby extends Database implements IDBInterface
 {
-  public static final String _rcsid = "@(#)$Id: DBInterfaceDerby.java 966217 2010-07-21 13:15:14Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   protected final static String _url = "jdbc:derby:";
   protected final static String _driver = "org.apache.derby.jdbc.EmbeddedDriver";

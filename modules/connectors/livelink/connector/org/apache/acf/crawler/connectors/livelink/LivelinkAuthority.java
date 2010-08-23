@@ -1,4 +1,4 @@
-/* $Id: LivelinkAuthority.java 959015 2010-06-29 16:00:57Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -48,7 +48,7 @@ import org.apache.commons.httpclient.params.*;
 */
 public class LivelinkAuthority extends org.apache.acf.authorities.authorities.BaseAuthorityConnector
 {
-  public static final String _rcsid = "@(#)$Id: LivelinkAuthority.java 959015 2010-06-29 16:00:57Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Data from the parameters
   private String serverName = null;

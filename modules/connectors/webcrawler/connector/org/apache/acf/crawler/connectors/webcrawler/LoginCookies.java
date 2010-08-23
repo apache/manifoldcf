@@ -1,4 +1,4 @@
-/* $Id: LoginCookies.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -24,7 +24,7 @@ import org.apache.commons.httpclient.*;
 */
 public interface LoginCookies
 {
-  public static final String _rcsid = "@(#)$Id: LoginCookies.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Get the cookie count */
   public int getCookieCount();

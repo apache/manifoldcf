@@ -1,4 +1,4 @@
-/* $Id: Logging.java 965362 2010-07-19 06:15:50Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -28,7 +28,7 @@ import org.apache.log4j.Logger;
 */
 public class Logging extends org.apache.acf.agents.system.Logging
 {
-  public static final String _rcsid = "@(#)$Id: Logging.java 965362 2010-07-19 06:15:50Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
 
   // Public logger objects

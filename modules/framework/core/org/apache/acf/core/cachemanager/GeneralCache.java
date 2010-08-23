@@ -1,4 +1,4 @@
-/* $Id: GeneralCache.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -29,7 +29,7 @@ import java.util.*;
 */
 public class GeneralCache
 {
-  public static final String _rcsid = "@(#)$Id: GeneralCache.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // This table is for looking stuff up by object description
   protected ObjectRecordTable hashtable = new ObjectRecordTable();

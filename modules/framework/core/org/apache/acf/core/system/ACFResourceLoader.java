@@ -29,7 +29,7 @@ import java.io.*;
 */
 public class ACFResourceLoader
 {
-  public static final String _rcsid = "@(#)$Id: ACFResourceLoader.java 960994 2010-07-06 19:45:53Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** The parent class loader */
   protected ClassLoader parent;

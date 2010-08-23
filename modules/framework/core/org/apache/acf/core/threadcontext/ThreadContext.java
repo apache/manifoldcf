@@ -1,4 +1,4 @@
-/* $Id: ThreadContext.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -25,7 +25,7 @@ import java.util.*;
 */
 public class ThreadContext implements IThreadContext
 {
-  public static final String _rcsid = "@(#)$Id: ThreadContext.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   protected Hashtable hashtable = new Hashtable();
 

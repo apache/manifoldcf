@@ -1,4 +1,4 @@
-/* $Id: MetadataFieldDefinition.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -20,7 +20,7 @@ package org.apache.acf.crawler.common.filenet;
 
 public class MetadataFieldDefinition extends NameDescription
 {
-  public static final String _rcsid = "@(#)$Id: MetadataFieldDefinition.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   public MetadataFieldDefinition(String displayName, String symbolicName)
   {

@@ -1,4 +1,4 @@
-/* $Id: IntrinsicLink.java 950850 2010-06-03 01:20:45Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -29,7 +29,7 @@ import org.apache.acf.crawler.system.ACF;
 */
 public class IntrinsicLink extends org.apache.acf.core.database.BaseTable
 {
-  public static final String _rcsid = "@(#)$Id: IntrinsicLink.java 950850 2010-06-03 01:20:45Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // "new" field values
 

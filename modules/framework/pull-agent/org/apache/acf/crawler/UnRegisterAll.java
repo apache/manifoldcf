@@ -1,4 +1,4 @@
-/* $Id: UnRegisterAll.java 988101 2010-08-23 12:18:13Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -27,7 +27,7 @@ import org.apache.acf.crawler.system.*;
  */
 public class UnRegisterAll extends BaseCrawlerInitializationCommand
 {
-  public static final String _rcsid = "@(#)$Id: UnRegisterAll.java 988101 2010-08-23 12:18:13Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   public UnRegisterAll()
   {

@@ -1,4 +1,4 @@
-/* $Id: RepositoryConnectorFactory.java 959660 2010-07-01 13:46:10Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -31,7 +31,7 @@ import java.lang.reflect.*;
 */
 public class RepositoryConnectorFactory
 {
-  public static final String _rcsid = "@(#)$Id: RepositoryConnectorFactory.java 959660 2010-07-01 13:46:10Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Pool hash table.
   // Keyed by PoolKey; value is Pool

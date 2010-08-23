@@ -1,4 +1,4 @@
-/* $Id: LiveLinkParameters.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -24,7 +24,7 @@ import org.apache.acf.crawler.interfaces.*;
 */
 public class LiveLinkParameters
 {
-  public static final String _rcsid = "@(#)$Id: LiveLinkParameters.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Ingestion CGI protocol */
   public final static String ingestProtocol = "Protocol";

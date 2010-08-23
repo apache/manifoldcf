@@ -1,4 +1,4 @@
-/* $Id: DBDrop.java 988101 2010-08-23 12:18:13Z kwright $ */
+/* $Id$ */
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -29,7 +29,7 @@ import org.apache.acf.core.system.Logging;
  */
 public class DBDrop extends DBInitializationCommand
 {
-  public static final String _rcsid = "@(#)$Id: DBDrop.java 988101 2010-08-23 12:18:13Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /**
    * The userName and password for the database to be dropped

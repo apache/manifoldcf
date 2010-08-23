@@ -1,4 +1,4 @@
-/* $Id: Configuration.java 966280 2010-07-21 15:32:53Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -29,7 +29,7 @@ import org.json.*;
 */
 public class Configuration
 {
-  public static final String _rcsid = "@(#)$Id: Configuration.java 966280 2010-07-21 15:32:53Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // JSON special key values
   

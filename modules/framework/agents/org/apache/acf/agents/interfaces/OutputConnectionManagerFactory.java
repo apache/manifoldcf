@@ -1,4 +1,4 @@
-/* $Id: OutputConnectionManagerFactory.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -27,7 +27,7 @@ import java.util.*;
 */
 public class OutputConnectionManagerFactory
 {
-  public static final String _rcsid = "@(#)$Id: OutputConnectionManagerFactory.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // name to use in thread context pool of objects
   private final static String objectName = "_OutputConnectionMgr_";

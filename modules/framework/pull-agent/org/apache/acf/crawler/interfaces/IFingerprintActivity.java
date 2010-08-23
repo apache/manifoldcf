@@ -1,4 +1,4 @@
-/* $Id: IFingerprintActivity.java 933029 2010-04-11 23:51:11Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -27,7 +27,7 @@ import java.io.*;
 */
 public interface IFingerprintActivity
 {
-  public static final String _rcsid = "@(#)$Id: IFingerprintActivity.java 933029 2010-04-11 23:51:11Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Detect if a mime type is indexable or not.  This method is used by participating repository connectors to pre-filter the number of
   * unusable documents that will be passed to this output connector.

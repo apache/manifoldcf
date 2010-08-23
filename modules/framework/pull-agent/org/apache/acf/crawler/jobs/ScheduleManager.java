@@ -1,4 +1,4 @@
-/* $Id: ScheduleManager.java 953331 2010-06-10 14:22:50Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -28,7 +28,7 @@ import java.util.*;
 */
 public class ScheduleManager extends org.apache.acf.core.database.BaseTable
 {
-  public static final String _rcsid = "@(#)$Id: ScheduleManager.java 953331 2010-06-10 14:22:50Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Schema
   public final static String ownerIDField = "ownerid";

@@ -1,4 +1,4 @@
-/* $Id: IResultRow.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -24,7 +24,7 @@ import java.util.*;
 */
 public interface IResultRow
 {
-  public static final String _rcsid = "@(#)$Id: IResultRow.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Obtain the number of columns in the row.
   *@return the number of columns that row contains.

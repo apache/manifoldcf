@@ -1,4 +1,4 @@
-/* $Id: RemoveDoc.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -21,7 +21,7 @@ package org.apache.acf.crawler.connectors.filenet;
 
 public class RemoveDoc
 {
-        public static final String _rcsid = "@(#)$Id: RemoveDoc.java 921329 2010-03-10 12:44:20Z kwright $";
+        public static final String _rcsid = "@(#)$Id$";
 
         private RemoveDoc()
         {

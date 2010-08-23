@@ -1,4 +1,4 @@
-/* $Id: IncrementalIngesterFactory.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -25,7 +25,7 @@ import org.apache.acf.agents.system.*;
 */
 public class IncrementalIngesterFactory
 {
-  public static final String _rcsid = "@(#)$Id: IncrementalIngesterFactory.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   protected final static String ingestManager = "_IncrIngester_";
 

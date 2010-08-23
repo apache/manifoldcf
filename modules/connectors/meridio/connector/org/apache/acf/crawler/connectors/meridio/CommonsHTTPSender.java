@@ -13,7 +13,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *
-* $Id: CommonsHTTPSender.java 943229 2010-05-11 18:59:31Z kwright $
+* $Id$
 */
 package org.apache.acf.crawler.connectors.meridio;
 

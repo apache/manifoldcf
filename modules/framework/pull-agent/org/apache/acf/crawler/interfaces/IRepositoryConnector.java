@@ -1,4 +1,4 @@
-/* $Id: IRepositoryConnector.java 983795 2010-08-09 19:47:21Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -61,7 +61,7 @@ import java.util.*;
 */
 public interface IRepositoryConnector extends IConnector
 {
-  public static final String _rcsid = "@(#)$Id: IRepositoryConnector.java 983795 2010-08-09 19:47:21Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Connector models.
   // These values describe what the connector returns for the getDocumentIdentifiers() method.  The framework

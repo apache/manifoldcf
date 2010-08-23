@@ -1,4 +1,4 @@
-/* $Id: DCTM.java 965362 2010-07-19 06:15:50Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -31,7 +31,7 @@ import java.rmi.*;
 
 public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnector
 {
-  public static final String _rcsid = "@(#)$Id: DCTM.java 965362 2010-07-19 06:15:50Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   public static String CONFIG_PARAM_DOCBASE = "docbasename";
   public static String CONFIG_PARAM_USERNAME = "docbaseusername";

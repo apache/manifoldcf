@@ -1,4 +1,4 @@
-/* $Id: UnRegister.java 988101 2010-08-23 12:18:13Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -27,7 +27,7 @@ import org.apache.acf.crawler.system.*;
  */
 public class UnRegister extends TransactionalCrawlerInitializationCommand
 {
-  public static final String _rcsid = "@(#)$Id: UnRegister.java 988101 2010-08-23 12:18:13Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   private final String className;
 

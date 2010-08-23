@@ -1,4 +1,4 @@
-/* $Id: ISeedingActivity.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -29,7 +29,7 @@ import java.util.*;
 */
 public interface ISeedingActivity extends IHistoryActivity, INamingActivity, IAbortActivity
 {
-  public static final String _rcsid = "@(#)$Id: ISeedingActivity.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Record a "seed" document identifier.
   * Seeds passed to this method will be loaded into the job's queue at the beginning of the

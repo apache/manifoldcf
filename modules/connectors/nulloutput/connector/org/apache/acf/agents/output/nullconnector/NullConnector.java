@@ -1,4 +1,4 @@
-/* $Id: NullConnector.java 922256 2010-03-12 13:54:25Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -27,7 +27,7 @@ import java.util.*;
 */
 public class NullConnector extends org.apache.acf.agents.output.BaseOutputConnector
 {
-  public static final String _rcsid = "@(#)$Id: NullConnector.java 922256 2010-03-12 13:54:25Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Activities we log
 

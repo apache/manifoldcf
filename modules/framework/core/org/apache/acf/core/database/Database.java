@@ -1,4 +1,4 @@
-/* $Id: Database.java 953163 2010-06-09 21:15:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -34,7 +34,7 @@ import javax.sql.*;
 */
 public class Database
 {
-  public static final String _rcsid = "@(#)$Id: Database.java 953163 2010-06-09 21:15:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   protected ICacheManager cacheManager;
   protected IThreadContext context;

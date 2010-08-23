@@ -1,4 +1,4 @@
-/* $Id: LivelinkConnector.java 965362 2010-07-19 06:15:50Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -49,7 +49,7 @@ import org.apache.commons.httpclient.protocol.*;
 */
 public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRepositoryConnector
 {
-  public static final String _rcsid = "@(#)$Id: LivelinkConnector.java 965362 2010-07-19 06:15:50Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Activities we will report on
   private final static String ACTIVITY_SEED = "find documents";

@@ -1,4 +1,4 @@
-/* $Id: LiveLinkSupport.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -39,7 +39,7 @@ import com.opentext.api.*;
 */
 public class LiveLinkSupport
 {
-        public static final String _rcsid = "@(#)$Id: LiveLinkSupport.java 921329 2010-03-10 12:44:20Z kwright $";
+        public static final String _rcsid = "@(#)$Id$";
 
         // Data required for maintaining livelink connection
         private LAPI_DOCUMENTS LLDocs = null;

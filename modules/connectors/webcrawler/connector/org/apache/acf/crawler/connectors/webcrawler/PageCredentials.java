@@ -1,4 +1,4 @@
-/* $Id: PageCredentials.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -28,7 +28,7 @@ import org.apache.commons.httpclient.params.*;
 */
 public interface PageCredentials extends AuthenticationCredentials
 {
-  public static final String _rcsid = "@(#)$Id: PageCredentials.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Turn this instance into a Credentials object, given the specified target host name */
   public Credentials makeCredentialsObject(String targetHostName)

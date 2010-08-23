@@ -1,4 +1,4 @@
-/* $Id: IShutdownHook.java 952221 2010-06-07 13:39:40Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more

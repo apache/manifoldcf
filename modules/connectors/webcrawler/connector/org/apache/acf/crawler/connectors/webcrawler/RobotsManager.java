@@ -1,4 +1,4 @@
-/* $Id: RobotsManager.java 959015 2010-06-29 16:00:57Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -34,7 +34,7 @@ import org.apache.acf.crawler.system.Logging;
 */
 public class RobotsManager extends org.apache.acf.core.database.BaseTable
 {
-  public static final String _rcsid = "@(#)$Id: RobotsManager.java 959015 2010-06-29 16:00:57Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   // Robots cache class.  Only one needed.
   protected static RobotsCacheClass robotsCacheClass = new RobotsCacheClass();

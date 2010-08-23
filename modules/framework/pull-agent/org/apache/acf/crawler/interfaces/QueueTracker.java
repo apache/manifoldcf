@@ -1,4 +1,4 @@
-/* $Id: QueueTracker.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -52,7 +52,7 @@ import java.util.regex.*;
 */
 public class QueueTracker
 {
-  public static final String _rcsid = "@(#)$Id: QueueTracker.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Factor by which bins are reduced */
   protected final static double binReductionFactor = 1.0;

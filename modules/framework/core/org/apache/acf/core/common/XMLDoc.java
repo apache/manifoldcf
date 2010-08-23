@@ -1,4 +1,4 @@
-/* $Id: XMLDoc.java 960994 2010-07-06 19:45:53Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -31,7 +31,7 @@ import org.apache.acf.core.interfaces.ACFException;
 
 public class XMLDoc
 {
-  public static final String _rcsid = "@(#)$Id: XMLDoc.java 960994 2010-07-06 19:45:53Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   private static final String _wildchar = "*";
   private static final String _slash = "/";

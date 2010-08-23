@@ -1,4 +1,4 @@
-/* $Id: BaseAuthorityConnector.java 983795 2010-08-09 19:47:21Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -32,7 +32,7 @@ import java.io.*;
 */
 public abstract class BaseAuthorityConnector extends org.apache.acf.core.connector.BaseConnector implements IAuthorityConnector
 {
-  public static final String _rcsid = "@(#)$Id: BaseAuthorityConnector.java 983795 2010-08-09 19:47:21Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Obtain the access tokens for a given user name.
   *@param userName is the user name or identifier.

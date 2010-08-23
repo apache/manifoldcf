@@ -1,4 +1,4 @@
-/* $Id: IDocumentumResult.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -24,7 +24,7 @@ import java.rmi.*;
 * query. */
 public interface IDocumentumResult extends Remote
 {
-  public static final String _rcsid = "@(#)$Id: IDocumentumResult.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** Check if we are done with the resultset.
   *@return true if there is still a valid row to read out of, or false if the list is done. */
