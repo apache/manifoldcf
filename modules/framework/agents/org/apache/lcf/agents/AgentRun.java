@@ -18,20 +18,47 @@
 */
 package org.apache.lcf.agents;
 
-import java.io.*;
 import org.apache.lcf.core.interfaces.*;
-import org.apache.lcf.agents.interfaces.*;
 import org.apache.lcf.agents.system.*;
-import java.lang.reflect.*;
 
-public class AgentRun
+/**
+ * Main agents process class
+ */
+public class AgentRun extends BaseAgentsInitializationCommand
 {
   public static final String _rcsid = "@(#)$Id$";
 
   public static final String agentShutdownSignal = "_AGENTRUN_";
   
-  private AgentRun()
+  public AgentRun()
   {
+  }
+
+  protected void doExecute(IThreadContext tc) throws LCFException
+  {
+    ILockManager lockManager = LockManagerFactory.make(tc);
+    // Clear the agents shutdown signal.
+    lockManager.clearGlobalFlag(agentShutdownSignal);
+    Logging.root.info("Running...");
+    while (true)
+    {
+      // Any shutdown signal yet?
+      if (lockManager.checkGlobalFlag(agentShutdownSignal))
+        break;
+
+      // Start whatever agents need to be started
+      LCF.startAgents(tc);
+
+      try
+      {
+        LCF.sleep(5000);
+      }
+      catch (InterruptedException e)
+      {
+        break;
+      }
+    }
+    Logging.root.info("Shutting down...");
   }
 
 
@@ -45,31 +72,9 @@ public class AgentRun
 
     try
     {
-      LCF.initializeEnvironment();
-      IThreadContext tc = ThreadContextFactory.make();
-
-      ILockManager lockManager = LockManagerFactory.make(tc);
-      // Clear the agents shutdown signal.
-      lockManager.clearGlobalFlag(agentShutdownSignal);
       System.err.println("Running...");
-      while (true)
-      {
-        // Any shutdown signal yet?
-        if (lockManager.checkGlobalFlag(agentShutdownSignal))
-          break;
-          
-        // Start whatever agents need to be started
-        LCF.startAgents(tc);
-
-        try
-        {
-          LCF.sleep(5000);
-        }
-        catch (InterruptedException e)
-        {
-          break;
-        }
-      }
+      AgentRun agentRun = new AgentRun();
+      agentRun.execute();
       System.err.println("Shutting down...");
     }
     catch (LCFException e)
@@ -79,8 +84,4 @@ public class AgentRun
       System.exit(1);
     }
   }
-
-
-
-
 }

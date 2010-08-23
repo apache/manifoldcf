@@ -18,20 +18,27 @@
 */
 package org.apache.lcf.crawler;
 
-import java.io.*;
 import org.apache.lcf.core.interfaces.*;
-import org.apache.lcf.crawler.interfaces.*;
 import org.apache.lcf.crawler.system.*;
-import java.util.*;
 
-/** This class provides a script hook to export the crawler configuration to a file.
-*/
-public class ExportConfiguration
+/**
+ * This class provides a script hook to export the crawler configuration to a file.
+ */
+public class ExportConfiguration extends BaseCrawlerInitializationCommand
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  private ExportConfiguration()
+  private final String exportFilename;
+
+  public ExportConfiguration(String exportFilename)
   {
+    this.exportFilename = exportFilename;
+  }
+
+  protected void doExecute(IThreadContext tc) throws LCFException
+  {
+    LCF.exportConfiguration(tc,exportFilename);
+    Logging.root.info("Configuration exported");
   }
 
   public static void main(String[] args)
@@ -44,12 +51,10 @@ public class ExportConfiguration
 
     String exportFilename = args[0];
 
-
     try
     {
-      LCF.initializeEnvironment();
-      IThreadContext tc = ThreadContextFactory.make();
-      LCF.exportConfiguration(tc,exportFilename);
+      ExportConfiguration exportConfiguration = new ExportConfiguration(exportFilename);
+      exportConfiguration.execute();
       System.err.println("Configuration exported");
     }
     catch (Exception e)
@@ -58,5 +63,4 @@ public class ExportConfiguration
       System.exit(2);
     }
   }
-
 }

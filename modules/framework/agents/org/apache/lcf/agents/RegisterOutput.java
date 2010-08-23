@@ -18,19 +18,40 @@
 */
 package org.apache.lcf.agents;
 
-import java.io.*;
 import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.agents.interfaces.*;
 import org.apache.lcf.agents.system.*;
 
-public class RegisterOutput
+/**
+ * Register an output connector class
+ */
+public class RegisterOutput extends TransactionalAgentsInitializationCommand
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  private RegisterOutput()
+  private final String className;
+  private final String description;
+
+  public RegisterOutput(String className, String description)
   {
+
+    this.className = className;
+    this.description = description;
   }
 
+  protected void doExecute(IThreadContext tc) throws LCFException
+  {
+    IOutputConnectorManager mgr = OutputConnectorManagerFactory.make(tc);
+    IOutputConnectionManager connManager = OutputConnectionManagerFactory.make(tc);
+    // First, register connector
+    mgr.registerConnector(description,className);
+    // Then, signal to all jobs that might depend on this connector that they can switch state
+    // Find the connection names that come with this class
+    String[] connectionNames = connManager.findConnectionsForConnector(className);
+    // For all connection names, notify all agents of the registration
+    AgentManagerFactory.noteOutputConnectorRegistration(tc,connectionNames);
+    Logging.root.info("Successfully registered output connector '"+className+"'");
+  }
 
   public static void main(String[] args)
   {
@@ -45,41 +66,8 @@ public class RegisterOutput
 
     try
     {
-      LCF.initializeEnvironment();
-      IThreadContext tc = ThreadContextFactory.make();
-      IDBInterface database = DBInterfaceFactory.make(tc,
-        LCF.getMasterDatabaseName(),
-        LCF.getMasterDatabaseUsername(),
-        LCF.getMasterDatabasePassword());
-      IOutputConnectorManager mgr = OutputConnectorManagerFactory.make(tc);
-      IOutputConnectionManager connManager = OutputConnectionManagerFactory.make(tc);
-      // Deregistration should be done in a transaction
-      database.beginTransaction();
-      try
-      {
-        // First, register connector
-        mgr.registerConnector(description,className);
-        // Then, signal to all jobs that might depend on this connector that they can switch state
-        // Find the connection names that come with this class
-        String[] connectionNames = connManager.findConnectionsForConnector(className);
-        // For all connection names, notify all agents of the registration
-        AgentManagerFactory.noteOutputConnectorRegistration(tc,connectionNames);
-      }
-      catch (LCFException e)
-      {
-        database.signalRollback();
-        throw e;
-      }
-      catch (Error e)
-      {
-        database.signalRollback();
-        throw e;
-      }
-      finally
-      {
-        database.endTransaction();
-      }
-
+      RegisterOutput registerOutput = new RegisterOutput(className, description);
+      registerOutput.execute();
       System.err.println("Successfully registered output connector '"+className+"'");
     }
     catch (LCFException e)
@@ -88,8 +76,4 @@ public class RegisterOutput
       System.exit(1);
     }
   }
-
-
-
-
 }

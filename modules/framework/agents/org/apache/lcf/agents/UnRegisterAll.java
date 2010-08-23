@@ -18,17 +18,31 @@
 */
 package org.apache.lcf.agents;
 
-import java.io.*;
 import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.agents.interfaces.*;
 import org.apache.lcf.agents.system.*;
 
-public class UnRegisterAll
+/**
+ * Un-register all current agent classes
+ */
+public class UnRegisterAll extends BaseAgentsInitializationCommand
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  private UnRegisterAll()
+  public UnRegisterAll()
   {
+  }
+
+  protected void doExecute(IThreadContext tc) throws LCFException
+  {
+    IAgentManager mgr = AgentManagerFactory.make(tc);
+    String[] classnames = mgr.getAllAgents();
+    int i = 0;
+    while (i < classnames.length)
+    {
+      mgr.unregisterAgent(classnames[i++]);
+    }
+    Logging.root.info("Successfully unregistered all agents");
   }
 
 
@@ -42,15 +56,8 @@ public class UnRegisterAll
 
     try
     {
-      LCF.initializeEnvironment();
-      IThreadContext tc = ThreadContextFactory.make();
-      IAgentManager mgr = AgentManagerFactory.make(tc);
-      String[] classnames = mgr.getAllAgents();
-      int i = 0;
-      while (i < classnames.length)
-      {
-        mgr.unregisterAgent(classnames[i++]);
-      }
+      UnRegisterAll unRegisterAll = new UnRegisterAll();
+      unRegisterAll.execute();
       System.err.println("Successfully unregistered all agents");
     }
     catch (LCFException e)
@@ -59,8 +66,4 @@ public class UnRegisterAll
       System.exit(1);
     }
   }
-
-
-
-
 }

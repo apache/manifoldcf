@@ -18,19 +18,30 @@
 */
 package org.apache.lcf.agents;
 
-import java.io.*;
 import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.agents.interfaces.*;
 import org.apache.lcf.agents.system.*;
 
-public class Register
+/**
+ * Use to register an agent by providing its class
+ */
+public class Register extends BaseAgentsInitializationCommand
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  private Register()
+  private final String className;
+
+  public Register(String className)
   {
+    this.className = className;
   }
 
+  protected void doExecute(IThreadContext tc) throws LCFException
+  {
+    IAgentManager mgr = AgentManagerFactory.make(tc);
+    mgr.registerAgent(className);
+    Logging.root.info("Successfully registered agent '"+className+"'");
+  }
 
   public static void main(String[] args)
   {
@@ -43,10 +54,8 @@ public class Register
     String className = args[0];
     try
     {
-      LCF.initializeEnvironment();
-      IThreadContext tc = ThreadContextFactory.make();
-      IAgentManager mgr = AgentManagerFactory.make(tc);
-      mgr.registerAgent(className);
+      Register register = new Register(className);
+      register.execute();
       System.err.println("Successfully registered agent '"+className+"'");
     }
     catch (LCFException e)
@@ -55,8 +64,4 @@ public class Register
       System.exit(1);
     }
   }
-
-
-
-
 }

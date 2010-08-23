@@ -18,17 +18,72 @@
 */
 package org.apache.lcf.crawler;
 
-import java.io.*;
 import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.crawler.interfaces.*;
-import org.apache.lcf.crawler.system.*;
+import org.apache.lcf.crawler.system.LCF;
+import org.apache.lcf.crawler.system.Logging;
 
-public class SynchronizeConnectors
+
+/**
+ * Un-register all registered repository connector classes that can't be found
+ */
+public class SynchronizeConnectors extends BaseCrawlerInitializationCommand
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  private SynchronizeConnectors()
+  public SynchronizeConnectors()
   {
+  }
+
+  protected void doExecute(IThreadContext tc) throws LCFException
+  {
+    IDBInterface database = DBInterfaceFactory.make(tc,
+      LCF.getMasterDatabaseName(),
+      LCF.getMasterDatabaseUsername(),
+      LCF.getMasterDatabasePassword());
+    IConnectorManager mgr = ConnectorManagerFactory.make(tc);
+    IJobManager jobManager = JobManagerFactory.make(tc);
+    IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(tc);
+    IResultSet classNames = mgr.getConnectors();
+    int i = 0;
+    while (i < classNames.getRowCount())
+    {
+      IResultRow row = classNames.getRow(i++);
+      String className = (String)row.getValue("classname");
+      try
+      {
+        RepositoryConnectorFactory.getConnectorNoCheck(className);
+      }
+      catch (LCFException e)
+      {
+        // Deregistration should be done in a transaction
+        database.beginTransaction();
+        try
+        {
+          // Find the connection names that come with this class
+          String[] connectionNames = connManager.findConnectionsForConnector(className);
+          // For each connection name, modify the jobs to note that the connector is no longer installed
+          jobManager.noteConnectorDeregistration(connectionNames);
+          // Now that all jobs have been placed into an appropriate state, actually do the deregistration itself.
+          mgr.removeConnector(className);
+        }
+        catch (LCFException e2)
+        {
+          database.signalRollback();
+          throw e2;
+        }
+        catch (Error e2)
+        {
+          database.signalRollback();
+          throw e2;
+        }
+        finally
+        {
+          database.endTransaction();
+        }
+      }
+    }
+    Logging.root.info("Successfully synchronized all connectors");
   }
 
 
@@ -42,54 +97,8 @@ public class SynchronizeConnectors
 
     try
     {
-      LCF.initializeEnvironment();
-      IThreadContext tc = ThreadContextFactory.make();
-      IDBInterface database = DBInterfaceFactory.make(tc,
-        LCF.getMasterDatabaseName(),
-        LCF.getMasterDatabaseUsername(),
-        LCF.getMasterDatabasePassword());
-      IConnectorManager mgr = ConnectorManagerFactory.make(tc);
-      IJobManager jobManager = JobManagerFactory.make(tc);
-      IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(tc);
-      IResultSet classNames = mgr.getConnectors();
-      int i = 0;
-      while (i < classNames.getRowCount())
-      {
-        IResultRow row = classNames.getRow(i++);
-        String className = (String)row.getValue("classname");
-        try
-        {
-          RepositoryConnectorFactory.getConnectorNoCheck(className);
-        }
-        catch (LCFException e)
-        {
-          // Deregistration should be done in a transaction
-          database.beginTransaction();
-          try
-          {
-            // Find the connection names that come with this class
-            String[] connectionNames = connManager.findConnectionsForConnector(className);
-            // For each connection name, modify the jobs to note that the connector is no longer installed
-            jobManager.noteConnectorDeregistration(connectionNames);
-            // Now that all jobs have been placed into an appropriate state, actually do the deregistration itself.
-            mgr.removeConnector(className);
-          }
-          catch (LCFException e2)
-          {
-            database.signalRollback();
-            throw e2;
-          }
-          catch (Error e2)
-          {
-            database.signalRollback();
-            throw e2;
-          }
-          finally
-          {
-            database.endTransaction();
-          }
-        }
-      }
+      SynchronizeConnectors synchronizeConnectors = new SynchronizeConnectors();
+      synchronizeConnectors.execute();
       System.err.println("Successfully synchronized all connectors");
     }
     catch (LCFException e)
@@ -98,8 +107,4 @@ public class SynchronizeConnectors
       System.exit(1);
     }
   }
-
-
-
-
 }

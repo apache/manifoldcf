@@ -21,15 +21,77 @@ import java.io.*;
 import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.core.system.*;
 
-public class LockClean
+/**
+ * LCF makes use of a synchronization directory to store data about the current state of the synchronization between
+ * the repository connection and the output connection. This class is used to clear this directory.
+ */
+public class LockClean implements InitializationCommand
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  private LockClean()
+  public LockClean()
   {
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  public void execute() throws LCFException
+  {
+    LCF.initializeEnvironment();
+    String synchDir = LCF.getProperty(org.apache.lcf.core.lockmanager.LockManager.synchDirectoryProperty);
+    if (synchDir != null)
+    {
+      // Recursively clean up the contents of the synch directory. But don't remove the directory itself
+      File dir = new File(synchDir);
+      if (dir.isDirectory())
+      {
+        removeContentsOfDirectory(dir);
+      }
+    }
+    Logging.root.info("Synchronization storage cleaned up");
+  }
 
+  /**
+   * Removes the contents of the directory but not the directory itself.
+   *
+   * @param directory File representing the directory to remove
+   */
+  private void removeContentsOfDirectory(File directory)
+  {
+    File[] files = directory.listFiles();
+    int i = 0;
+    while (i < files.length)
+    {
+      if (files[i].isDirectory())
+      {
+        removeDirectory(files[i]);
+      }
+      else
+      {
+        files[i].delete();
+      }
+      i++;
+    }
+  }
+
+  /**
+   * Removes the contents of the directory as well as the directory itself.
+   *
+   * @param directory File representing the directory to completely remove
+   */
+  private void removeDirectory(File directory)
+  {
+    removeContentsOfDirectory(directory);
+    // Remove the directory itself
+    directory.delete();
+  }
+
+  /**
+   * Useful when running this class standalone. You should not provide any arguments
+   *
+   * @param args String[] containing the arguments
+   */
   public static void main(String[] args)
   {
     if (args.length != 0)
@@ -38,28 +100,11 @@ public class LockClean
       System.exit(1);
     }
 
+    LockClean lockClean = new LockClean();
+
     try
     {
-      LCF.initializeEnvironment();
-      String synchDir = LCF.getProperty(org.apache.lcf.core.lockmanager.LockManager.synchDirectoryProperty);
-      if (synchDir != null)
-      {
-        // Recursively clean up the contents of the synch directory.
-        File dir = new File(synchDir);
-        if (dir.isDirectory())
-        {
-          File[] files = dir.listFiles();
-          int i = 0;
-          while (i < files.length)
-          {
-            if (files[i].isDirectory())
-              removeDirectory(files[i]);
-            else
-              files[i].delete();
-            i++;
-          }
-        }
-      }
+      lockClean.execute();
       System.err.println("Synchronization storage cleaned up");
     }
     catch (LCFException e)
@@ -68,23 +113,4 @@ public class LockClean
       System.exit(2);
     }
   }
-
-
-  protected static void removeDirectory(File directory)
-  {
-    File[] files = directory.listFiles();
-    int i = 0;
-    while (i < files.length)
-    {
-      if (files[i].isDirectory())
-        removeDirectory(files[i]);
-      else
-        files[i].delete();
-      i++;
-    }
-    // Remove the directory itself
-    directory.delete();
-  }
-
-
 }

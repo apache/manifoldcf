@@ -18,20 +18,27 @@
 */
 package org.apache.lcf.crawler;
 
-import java.io.*;
 import org.apache.lcf.core.interfaces.*;
-import org.apache.lcf.crawler.interfaces.*;
 import org.apache.lcf.crawler.system.*;
-import java.util.*;
 
-/** This class provides a script hook to allow import of crawler configuration information from a file.
-*/
-public class ImportConfiguration
+/**
+ * This class provides a script hook to allow import of crawler configuration information from a file.
+ */
+public class ImportConfiguration extends BaseCrawlerInitializationCommand
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  private ImportConfiguration()
+  private final String importFilename;
+
+  public ImportConfiguration(String importFilename)
   {
+    this.importFilename = importFilename;
+  }
+
+  protected void doExecute(IThreadContext tc) throws LCFException
+  {
+    LCF.importConfiguration(tc,importFilename);
+    Logging.root.info("Configuration imported");
   }
 
   public static void main(String[] args)
@@ -44,12 +51,10 @@ public class ImportConfiguration
 
     String importFilename = args[0];
 
-
     try
     {
-      LCF.initializeEnvironment();
-      IThreadContext tc = ThreadContextFactory.make();
-      LCF.importConfiguration(tc,importFilename);
+      ImportConfiguration importConfiguration = new ImportConfiguration(importFilename);
+      importConfiguration.execute();
       System.err.println("Configuration imported");
     }
     catch (Exception e)
@@ -58,5 +63,4 @@ public class ImportConfiguration
       System.exit(2);
     }
   }
-
 }

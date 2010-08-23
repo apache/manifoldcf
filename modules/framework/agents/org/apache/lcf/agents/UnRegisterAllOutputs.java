@@ -18,17 +18,62 @@
 */
 package org.apache.lcf.agents;
 
-import java.io.*;
 import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.agents.interfaces.*;
 import org.apache.lcf.agents.system.*;
 
-public class UnRegisterAllOutputs
+/**
+ * Un-register all current output connector classes
+ */
+public class UnRegisterAllOutputs extends BaseAgentsInitializationCommand
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  private UnRegisterAllOutputs()
+  public UnRegisterAllOutputs()
   {
+  }
+
+  protected void doExecute(IThreadContext tc) throws LCFException
+  {
+    IDBInterface database = DBInterfaceFactory.make(tc,
+      LCF.getMasterDatabaseName(),
+      LCF.getMasterDatabaseUsername(),
+      LCF.getMasterDatabasePassword());
+    IOutputConnectorManager mgr = OutputConnectorManagerFactory.make(tc);
+    IOutputConnectionManager connManager = OutputConnectionManagerFactory.make(tc);
+    IResultSet classNames = mgr.getConnectors();
+    int i = 0;
+    while (i < classNames.getRowCount())
+    {
+      IResultRow row = classNames.getRow(i++);
+      String className = (String)row.getValue("classname");
+      // Deregistration should be done in a transaction
+      database.beginTransaction();
+      try
+      {
+        // Find the connection names that come with this class
+        String[] connectionNames = connManager.findConnectionsForConnector(className);
+        // For all connection names, notify all agents of the deregistration
+        AgentManagerFactory.noteOutputConnectorDeregistration(tc,connectionNames);
+        // Now that all jobs have been placed into an appropriate state, actually do the deregistration itself.
+        mgr.unregisterConnector(className);
+      }
+      catch (LCFException e)
+      {
+        database.signalRollback();
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+      }
+    }
+    Logging.root.info("Successfully unregistered all output connectors");
   }
 
 
@@ -42,46 +87,8 @@ public class UnRegisterAllOutputs
 
     try
     {
-      LCF.initializeEnvironment();
-      IThreadContext tc = ThreadContextFactory.make();
-      IDBInterface database = DBInterfaceFactory.make(tc,
-        LCF.getMasterDatabaseName(),
-        LCF.getMasterDatabaseUsername(),
-        LCF.getMasterDatabasePassword());
-      IOutputConnectorManager mgr = OutputConnectorManagerFactory.make(tc);
-      IOutputConnectionManager connManager = OutputConnectionManagerFactory.make(tc);
-      IResultSet classNames = mgr.getConnectors();
-      int i = 0;
-      while (i < classNames.getRowCount())
-      {
-        IResultRow row = classNames.getRow(i++);
-        String className = (String)row.getValue("classname");
-        // Deregistration should be done in a transaction
-        database.beginTransaction();
-        try
-        {
-          // Find the connection names that come with this class
-          String[] connectionNames = connManager.findConnectionsForConnector(className);
-          // For all connection names, notify all agents of the deregistration
-          AgentManagerFactory.noteOutputConnectorDeregistration(tc,connectionNames);
-          // Now that all jobs have been placed into an appropriate state, actually do the deregistration itself.
-          mgr.unregisterConnector(className);
-        }
-        catch (LCFException e)
-        {
-          database.signalRollback();
-          throw e;
-        }
-        catch (Error e)
-        {
-          database.signalRollback();
-          throw e;
-        }
-        finally
-        {
-          database.endTransaction();
-        }
-      }
+      UnRegisterAllOutputs unRegisterAllOutputs = new UnRegisterAllOutputs();
+      unRegisterAllOutputs.execute();
       System.err.println("Successfully unregistered all output connectors");
     }
     catch (LCFException e)
@@ -90,8 +97,4 @@ public class UnRegisterAllOutputs
       System.exit(1);
     }
   }
-
-
-
-
 }

@@ -18,17 +18,69 @@
 */
 package org.apache.lcf.agents;
 
-import java.io.*;
 import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.agents.interfaces.*;
 import org.apache.lcf.agents.system.*;
 
-public class SynchronizeOutputs
+/**
+ * Un-register all registered output connector classes that can't be found
+ */
+public class SynchronizeOutputs extends BaseAgentsInitializationCommand
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  private SynchronizeOutputs()
+  public SynchronizeOutputs()
   {
+  }
+
+  protected void doExecute(IThreadContext tc) throws LCFException
+  {
+    IDBInterface database = DBInterfaceFactory.make(tc,
+      LCF.getMasterDatabaseName(),
+      LCF.getMasterDatabaseUsername(),
+      LCF.getMasterDatabasePassword());
+    IOutputConnectorManager mgr = OutputConnectorManagerFactory.make(tc);
+    IOutputConnectionManager connManager = OutputConnectionManagerFactory.make(tc);
+    IResultSet classNames = mgr.getConnectors();
+    int i = 0;
+    while (i < classNames.getRowCount())
+    {
+      IResultRow row = classNames.getRow(i++);
+      String className = (String)row.getValue("classname");
+      try
+      {
+        OutputConnectorFactory.getConnectorNoCheck(className);
+      }
+      catch (LCFException e)
+      {
+        // Deregistration should be done in a transaction
+        database.beginTransaction();
+        try
+        {
+          // Find the connection names that come with this class
+          String[] connectionNames = connManager.findConnectionsForConnector(className);
+          // For all connection names, notify all agents of the deregistration
+          AgentManagerFactory.noteOutputConnectorDeregistration(tc,connectionNames);
+          // Now that all jobs have been placed into an appropriate state, actually do the deregistration itself.
+          mgr.removeConnector(className);
+        }
+        catch (LCFException e2)
+        {
+          database.signalRollback();
+          throw e2;
+        }
+        catch (Error e2)
+        {
+          database.signalRollback();
+          throw e2;
+        }
+        finally
+        {
+          database.endTransaction();
+        }
+      }
+    }
+    Logging.root.info("Successfully synchronized all outputs");
   }
 
 
@@ -42,53 +94,8 @@ public class SynchronizeOutputs
 
     try
     {
-      LCF.initializeEnvironment();
-      IThreadContext tc = ThreadContextFactory.make();
-      IDBInterface database = DBInterfaceFactory.make(tc,
-        LCF.getMasterDatabaseName(),
-        LCF.getMasterDatabaseUsername(),
-        LCF.getMasterDatabasePassword());
-      IOutputConnectorManager mgr = OutputConnectorManagerFactory.make(tc);
-      IOutputConnectionManager connManager = OutputConnectionManagerFactory.make(tc);
-      IResultSet classNames = mgr.getConnectors();
-      int i = 0;
-      while (i < classNames.getRowCount())
-      {
-        IResultRow row = classNames.getRow(i++);
-        String className = (String)row.getValue("classname");
-        try
-        {
-          OutputConnectorFactory.getConnectorNoCheck(className);
-        }
-        catch (LCFException e)
-        {
-          // Deregistration should be done in a transaction
-          database.beginTransaction();
-          try
-          {
-            // Find the connection names that come with this class
-            String[] connectionNames = connManager.findConnectionsForConnector(className);
-            // For all connection names, notify all agents of the deregistration
-            AgentManagerFactory.noteOutputConnectorDeregistration(tc,connectionNames);
-            // Now that all jobs have been placed into an appropriate state, actually do the deregistration itself.
-            mgr.removeConnector(className);
-          }
-          catch (LCFException e2)
-          {
-            database.signalRollback();
-            throw e2;
-          }
-          catch (Error e2)
-          {
-            database.signalRollback();
-            throw e2;
-          }
-          finally
-          {
-            database.endTransaction();
-          }
-        }
-      }
+      SynchronizeOutputs synchronizeOutputs = new SynchronizeOutputs();
+      synchronizeOutputs.execute();
       System.err.println("Successfully synchronized all outputs");
     }
     catch (LCFException e)
@@ -97,8 +104,4 @@ public class SynchronizeOutputs
       System.exit(1);
     }
   }
-
-
-
-
 }

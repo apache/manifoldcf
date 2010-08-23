@@ -18,20 +18,25 @@
 */
 package org.apache.lcf.agents;
 
-import java.io.*;
 import org.apache.lcf.core.interfaces.*;
-import org.apache.lcf.agents.interfaces.*;
 import org.apache.lcf.agents.system.*;
-import java.lang.reflect.*;
 
-public class Uninstall
+/**
+ * Use to uninstall the agent. Results in cleaning up the persistent storage.
+ */
+public class Uninstall extends BaseAgentsInitializationCommand
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  private Uninstall()
+  public Uninstall()
   {
   }
 
+  protected void doExecute(IThreadContext tc) throws LCFException
+  {
+    LCF.deinstallTables(tc);
+    Logging.root.info("Agent tables uninstalled");
+  }
 
   public static void main(String[] args)
   {
@@ -43,9 +48,8 @@ public class Uninstall
 
     try
     {
-      LCF.initializeEnvironment();
-      IThreadContext tc = ThreadContextFactory.make();
-      LCF.deinstallTables(tc);
+      Uninstall uninstall = new Uninstall();
+      uninstall.execute();
       System.err.println("Agent tables uninstalled");
     }
     catch (LCFException e)
@@ -54,5 +58,4 @@ public class Uninstall
       System.exit(1);
     }
   }
-
 }

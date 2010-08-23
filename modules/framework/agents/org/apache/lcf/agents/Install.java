@@ -18,13 +18,10 @@
 */
 package org.apache.lcf.agents;
 
-import java.io.*;
 import org.apache.lcf.core.interfaces.*;
-import org.apache.lcf.agents.interfaces.*;
 import org.apache.lcf.agents.system.*;
-import java.lang.reflect.*;
 
-public class Install
+public class Install extends BaseAgentsInitializationCommand
 {
   public static final String _rcsid = "@(#)$Id$";
 
@@ -32,6 +29,11 @@ public class Install
   {
   }
 
+  protected void doExecute(IThreadContext tc) throws LCFException
+  {
+    LCF.installTables(tc);
+    Logging.root.info("Agent tables installed");
+  }
 
   public static void main(String[] args)
   {
@@ -43,9 +45,8 @@ public class Install
 
     try
     {
-      LCF.initializeEnvironment();
-      IThreadContext tc = ThreadContextFactory.make();
-      LCF.installTables(tc);
+      Install install = new Install();
+      install.execute();
       System.err.println("Agent tables installed");
     }
     catch (LCFException e)
@@ -54,5 +55,4 @@ public class Install
       System.exit(1);
     }
   }
-
 }

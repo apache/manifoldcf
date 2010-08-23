@@ -23,12 +23,24 @@ import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.authorities.interfaces.*;
 import org.apache.lcf.authorities.system.*;
 
-public class UnRegisterAllAuthorities
+public class UnRegisterAllAuthorities extends BaseAuthoritiesInitializationCommand
 {
   public static final String _rcsid = "@(#)$Id$";
 
   private UnRegisterAllAuthorities()
   {
+  }
+
+  protected void doExecute(IAuthorityConnectorManager mgr) throws LCFException
+  {
+    IResultSet classNames = mgr.getConnectors();
+    int i = 0;
+    while (i < classNames.getRowCount())
+    {
+      IResultRow row = classNames.getRow(i++);
+      mgr.unregisterConnector((String)row.getValue("classname"));
+    }
+    Logging.root.info("Successfully unregistered all connectors");
   }
 
 
@@ -43,16 +55,8 @@ public class UnRegisterAllAuthorities
 
     try
     {
-      LCF.initializeEnvironment();
-      IThreadContext tc = ThreadContextFactory.make();
-      IAuthorityConnectorManager mgr = AuthorityConnectorManagerFactory.make(tc);
-      IResultSet classNames = mgr.getConnectors();
-      int i = 0;
-      while (i < classNames.getRowCount())
-      {
-        IResultRow row = classNames.getRow(i++);
-        mgr.unregisterConnector((String)row.getValue("classname"));
-      }
+      UnRegisterAllAuthorities unRegisterAllAuthorities = new UnRegisterAllAuthorities();
+      unRegisterAllAuthorities.execute();
       System.err.println("Successfully unregistered all connectors");
     }
     catch (LCFException e)
@@ -61,8 +65,4 @@ public class UnRegisterAllAuthorities
       System.exit(1);
     }
   }
-
-
-
-
 }

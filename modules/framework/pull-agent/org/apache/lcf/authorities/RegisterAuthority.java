@@ -18,19 +18,28 @@
 */
 package org.apache.lcf.authorities;
 
-import java.io.*;
 import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.authorities.interfaces.*;
 import org.apache.lcf.authorities.system.*;
 
-public class RegisterAuthority
+public class RegisterAuthority extends BaseAuthoritiesInitializationCommand
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  private RegisterAuthority()
+  private final String className;
+  private final String description;
+
+  public RegisterAuthority(String className, String description)
   {
+    this.className = className;
+    this.description = description;
   }
 
+  protected void doExecute(IAuthorityConnectorManager mgr) throws LCFException
+  {
+    mgr.registerConnector(description,className);
+    Logging.root.info("Successfully registered connector '"+className+"'");
+  }
 
   public static void main(String[] args)
   {
@@ -45,10 +54,8 @@ public class RegisterAuthority
 
     try
     {
-      LCF.initializeEnvironment();
-      IThreadContext tc = ThreadContextFactory.make();
-      IAuthorityConnectorManager mgr = AuthorityConnectorManagerFactory.make(tc);
-      mgr.registerConnector(description,className);
+      RegisterAuthority registerAuthority = new RegisterAuthority(className,description);
+      registerAuthority.execute();
       System.err.println("Successfully registered connector '"+className+"'");
     }
     catch (LCFException e)
@@ -57,8 +64,4 @@ public class RegisterAuthority
       System.exit(1);
     }
   }
-
-
-
-
 }

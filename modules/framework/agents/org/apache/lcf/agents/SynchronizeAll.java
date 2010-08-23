@@ -18,19 +18,41 @@
 */
 package org.apache.lcf.agents;
 
-import java.io.*;
 import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.agents.interfaces.*;
 import org.apache.lcf.agents.system.*;
 
-public class SynchronizeAll
+/**
+ * Un-register all registered agent classes that can't be found
+ */
+public class SynchronizeAll extends BaseAgentsInitializationCommand
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  private SynchronizeAll()
+  public SynchronizeAll()
   {
   }
 
+  protected void doExecute(IThreadContext tc) throws LCFException
+  {
+    IAgentManager mgr = AgentManagerFactory.make(tc);
+    String[] classnames = mgr.getAllAgents();
+    int i = 0;
+    while (i < classnames.length)
+    {
+      String classname = classnames[i++];
+      try
+      {
+        AgentFactory.make(tc,classname);
+      }
+      catch (LCFException e)
+      {
+        // Couldn't instantiate the agent: Remove from database table
+        mgr.removeAgent(classname);
+      }
+    }
+    Logging.root.info("Successfully synchronized all agents");
+  }
 
   public static void main(String[] args)
   {
@@ -42,24 +64,8 @@ public class SynchronizeAll
 
     try
     {
-      LCF.initializeEnvironment();
-      IThreadContext tc = ThreadContextFactory.make();
-      IAgentManager mgr = AgentManagerFactory.make(tc);
-      String[] classnames = mgr.getAllAgents();
-      int i = 0;
-      while (i < classnames.length)
-      {
-        String classname = classnames[i++];
-        try
-        {
-          AgentFactory.make(tc,classname);
-        }
-        catch (LCFException e)
-        {
-          // Couldn't instantiate the agent: Remove from database table
-          mgr.removeAgent(classname);
-        }
-      }
+      SynchronizeAll synchronizeAll = new SynchronizeAll();
+      synchronizeAll.execute();
       System.err.println("Successfully synchronized all agents");
     }
     catch (LCFException e)
@@ -68,8 +74,4 @@ public class SynchronizeAll
       System.exit(1);
     }
   }
-
-
-
-
 }

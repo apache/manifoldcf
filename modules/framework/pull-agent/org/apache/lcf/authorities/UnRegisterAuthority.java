@@ -23,14 +23,22 @@ import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.authorities.interfaces.*;
 import org.apache.lcf.authorities.system.*;
 
-public class UnRegisterAuthority
+public class UnRegisterAuthority extends BaseAuthoritiesInitializationCommand
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  private UnRegisterAuthority()
+  private final String className;
+
+  public UnRegisterAuthority(String className)
   {
+    this.className = className;
   }
 
+  protected void doExecute(IAuthorityConnectorManager mgr) throws LCFException
+  {
+    mgr.unregisterConnector(className);
+    Logging.root.info("Successfully unregistered connector '"+className+"'");
+  }
 
   public static void main(String[] args)
   {
@@ -44,10 +52,8 @@ public class UnRegisterAuthority
 
     try
     {
-      LCF.initializeEnvironment();
-      IThreadContext tc = ThreadContextFactory.make();
-      IAuthorityConnectorManager mgr = AuthorityConnectorManagerFactory.make(tc);
-      mgr.unregisterConnector(className);
+      UnRegisterAuthority unRegisterAuthority = new UnRegisterAuthority(className);
+      unRegisterAuthority.execute();
       System.err.println("Successfully unregistered connector '"+className+"'");
     }
     catch (LCFException e)
@@ -56,8 +62,4 @@ public class UnRegisterAuthority
       System.exit(1);
     }
   }
-
-
-
-
 }

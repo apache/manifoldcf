@@ -23,12 +23,33 @@ import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.authorities.interfaces.*;
 import org.apache.lcf.authorities.system.*;
 
-public class SynchronizeAuthorities
+public class SynchronizeAuthorities extends BaseAuthoritiesInitializationCommand
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  private SynchronizeAuthorities()
+  public SynchronizeAuthorities()
   {
+  }
+
+
+  protected void doExecute(IAuthorityConnectorManager mgr) throws LCFException
+  {
+    IResultSet classNames = mgr.getConnectors();
+    int i = 0;
+    while (i < classNames.getRowCount())
+    {
+      IResultRow row = classNames.getRow(i++);
+      String classname = (String)row.getValue("classname");
+      try
+      {
+        AuthorityConnectorFactory.getConnectorNoCheck(classname);
+      }
+      catch (LCFException e)
+      {
+        mgr.removeConnector(classname);
+      }
+    }
+    Logging.root.info("Successfully synchronized all authorities");
   }
 
 
@@ -43,24 +64,8 @@ public class SynchronizeAuthorities
 
     try
     {
-      LCF.initializeEnvironment();
-      IThreadContext tc = ThreadContextFactory.make();
-      IAuthorityConnectorManager mgr = AuthorityConnectorManagerFactory.make(tc);
-      IResultSet classNames = mgr.getConnectors();
-      int i = 0;
-      while (i < classNames.getRowCount())
-      {
-        IResultRow row = classNames.getRow(i++);
-        String classname = (String)row.getValue("classname");
-        try
-        {
-          AuthorityConnectorFactory.getConnectorNoCheck(classname);
-        }
-        catch (LCFException e)
-        {
-          mgr.removeConnector(classname);
-        }
-      }
+      SynchronizeAuthorities synchronizeAuthorities = new SynchronizeAuthorities();
+      synchronizeAuthorities.execute();
       System.err.println("Successfully synchronized all authorities");
     }
     catch (LCFException e)
@@ -69,8 +74,4 @@ public class SynchronizeAuthorities
       System.exit(1);
     }
   }
-
-
-
-
 }

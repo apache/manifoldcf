@@ -18,18 +18,25 @@
 */
 package org.apache.lcf.agents;
 
-import java.io.*;
 import org.apache.lcf.core.interfaces.*;
-import org.apache.lcf.agents.interfaces.*;
 import org.apache.lcf.agents.system.*;
-import java.lang.reflect.*;
 
-public class AgentStop
+/**
+ * Stops the running agents process
+ */
+public class AgentStop extends BaseAgentsInitializationCommand
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  private AgentStop()
+  public AgentStop()
   {
+  }
+
+  protected void doExecute(IThreadContext tc) throws LCFException
+  {
+    ILockManager lockManager = LockManagerFactory.make(tc);
+    lockManager.setGlobalFlag(AgentRun.agentShutdownSignal);
+    Logging.root.info("Shutdown signal sent");
   }
 
 
@@ -43,10 +50,8 @@ public class AgentStop
 
     try
     {
-      LCF.initializeEnvironment();
-      IThreadContext tc = ThreadContextFactory.make();
-      ILockManager lockManager = LockManagerFactory.make(tc);
-      lockManager.setGlobalFlag(AgentRun.agentShutdownSignal);
+      AgentStop agentStop = new AgentStop();
+      agentStop.execute();
       System.err.println("Shutdown signal sent");
     }
     catch (LCFException e)
@@ -55,8 +60,4 @@ public class AgentStop
       System.exit(1);
     }
   }
-
-
-
-
 }

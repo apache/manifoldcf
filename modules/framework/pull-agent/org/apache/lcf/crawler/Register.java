@@ -18,19 +18,41 @@
 */
 package org.apache.lcf.crawler;
 
-import java.io.*;
 import org.apache.lcf.core.interfaces.*;
 import org.apache.lcf.crawler.interfaces.*;
 import org.apache.lcf.crawler.system.*;
 
-public class Register
+/**
+ * Register a repository connector class
+ */
+public class Register extends TransactionalCrawlerInitializationCommand
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  private Register()
+  private final String className;
+  private final String description;
+
+  private Register(String className, String description)
   {
+    this.className = className;
+    this.description = description;
   }
 
+  protected void doExecute(IThreadContext tc) throws LCFException
+  {
+    IConnectorManager mgr = ConnectorManagerFactory.make(tc);
+    IJobManager jobManager = JobManagerFactory.make(tc);
+    IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(tc);
+    // First, register connector
+    mgr.registerConnector(description,className);
+    // Then, signal to all jobs that might depend on this connector that they can switch state
+    // Find the connection names that come with this class
+    String[] connectionNames = connManager.findConnectionsForConnector(className);
+    // For each connection name, modify the jobs to note that the connector is now installed
+    jobManager.noteConnectorRegistration(connectionNames);
+
+    Logging.root.info("Successfully registered connector '"+className+"'");
+  }
 
   public static void main(String[] args)
   {
@@ -45,42 +67,8 @@ public class Register
 
     try
     {
-      LCF.initializeEnvironment();
-      IThreadContext tc = ThreadContextFactory.make();
-      IDBInterface database = DBInterfaceFactory.make(tc,
-        LCF.getMasterDatabaseName(),
-        LCF.getMasterDatabaseUsername(),
-        LCF.getMasterDatabasePassword());
-      IConnectorManager mgr = ConnectorManagerFactory.make(tc);
-      IJobManager jobManager = JobManagerFactory.make(tc);
-      IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(tc);
-      // Deregistration should be done in a transaction
-      database.beginTransaction();
-      try
-      {
-        // First, register connector
-        mgr.registerConnector(description,className);
-        // Then, signal to all jobs that might depend on this connector that they can switch state
-        // Find the connection names that come with this class
-        String[] connectionNames = connManager.findConnectionsForConnector(className);
-        // For each connection name, modify the jobs to note that the connector is now installed
-        jobManager.noteConnectorRegistration(connectionNames);
-      }
-      catch (LCFException e)
-      {
-        database.signalRollback();
-        throw e;
-      }
-      catch (Error e)
-      {
-        database.signalRollback();
-        throw e;
-      }
-      finally
-      {
-        database.endTransaction();
-      }
-
+      Register register = new Register(className,description);
+      register.execute();
       System.err.println("Successfully registered connector '"+className+"'");
     }
     catch (LCFException e)
@@ -89,8 +77,4 @@ public class Register
       System.exit(1);
     }
   }
-
-
-
-
 }
