@@ -58,7 +58,7 @@
                 <pathelement location="build/connector/classes"/>
                 <pathelement location="build/tests/classes"/>
             </classpath>
-            <test name="org.apache.lcf.crawler.connectors.filesystem.tests.Sanity" todir="test-output"/>
+            <test name="org.apache.acf.crawler.connectors.filesystem.tests.Sanity" todir="test-output"/>
             <!-- MHL -->
         </junit>
     </target>

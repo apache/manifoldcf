@@ -420,7 +420,7 @@
 					String connectionName = variableContext.getParameter("connname");
 					if (connectionName == null)
 						throw new LCFException("Missing connection parameter");
-					org.apache.lcf.agents.system.LCF.signalOutputConnectionRedo(threadContext,connectionName);
+					org.apache.acf.agents.system.LCF.signalOutputConnectionRedo(threadContext,connectionName);
 %>
 					<jsp:forward page="listoutputs.jsp"/>
 <%

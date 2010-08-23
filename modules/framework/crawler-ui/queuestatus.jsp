@@ -20,7 +20,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-boolean maintenanceUnderway = org.apache.lcf.crawler.system.LCF.checkMaintenanceUnderway();
+boolean maintenanceUnderway = org.apache.acf.crawler.system.LCF.checkMaintenanceUnderway();
 
 %>
 
@@ -279,7 +279,7 @@ if (maintenanceUnderway == false)
 		if (thisDescription == null || thisDescription.length() == 0)
 			thisDescription = thisConnectionName;
 %>
-						<option <%=(thisConnectionName.equals(statusConnection))?"selected=\"selected\"":""%> value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(thisConnectionName)%>'><%=org.apache.lcf.ui.util.Encoder.bodyEscape(thisDescription)%></option>
+						<option <%=(thisConnectionName.equals(statusConnection))?"selected=\"selected\"":""%> value='<%=org.apache.acf.ui.util.Encoder.attributeEscape(thisConnectionName)%>'><%=org.apache.acf.ui.util.Encoder.bodyEscape(thisDescription)%></option>
 <%
 	}
 %>
@@ -299,7 +299,7 @@ if (maintenanceUnderway == false)
 		String description = job.getDescription();
 		Long identifier = job.getID();
 %>
-						<option <%=((selectedJobs.get(identifier)==null)?"":"selected=\"selected\"")%> value='<%=identifier.toString()%>'><%=org.apache.lcf.ui.util.Encoder.bodyEscape(description)%></option>
+						<option <%=((selectedJobs.get(identifier)==null)?"":"selected=\"selected\"")%> value='<%=identifier.toString()%>'><%=org.apache.acf.ui.util.Encoder.bodyEscape(description)%></option>
 <%
 	    }
 %>
@@ -355,11 +355,11 @@ if (maintenanceUnderway == false)
 			</tr>
 			<tr>
 				<td class="description"><nobr>Document identifier match:</nobr></td>
-				<td class="value" colspan="3"><input type="text" name="statusidentifiermatch" size="40" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(identifierMatch)%>'/></td>
+				<td class="value" colspan="3"><input type="text" name="statusidentifiermatch" size="40" value='<%=org.apache.acf.ui.util.Encoder.attributeEscape(identifierMatch)%>'/></td>
 			</tr>
 			<tr>
 				<td class="description"><nobr>Identifier class description:</nobr></td>
-				<td class="value" colspan="3"><input type="text" name="statusbucketdesc" size="40" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(statusBucketDesc)%>'/></td>
+				<td class="value" colspan="3"><input type="text" name="statusbucketdesc" size="40" value='<%=org.apache.acf.ui.util.Encoder.attributeEscape(statusBucketDesc)%>'/></td>
 			</tr>
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
@@ -438,7 +438,7 @@ if (maintenanceUnderway == false)
 %>
 		<input type="hidden" name="clickcolumn" value=""/>
 		<input type="hidden" name="startrow" value='<%=Integer.toString(startRow)%>'/>
-		<input type="hidden" name="sortorder" value='<%=org.apache.lcf.ui.util.Encoder.attributeEscape(sortOrder.toString())%>'/>
+		<input type="hidden" name="sortorder" value='<%=org.apache.acf.ui.util.Encoder.attributeEscape(sortOrder.toString())%>'/>
 
 		<table class="displaytable">
 		    <tr class="headerrow">
@@ -468,7 +468,7 @@ if (maintenanceUnderway == false)
 		    String idBucketValue = (String)row.getValue("idbucket");
 		    if (idBucketValue == null)
 			idBucketValue = "";
-		    String[] identifierBreakdown = org.apache.lcf.ui.util.Formatter.formatString(idBucketValue,64,true,true);
+		    String[] identifierBreakdown = org.apache.acf.ui.util.Formatter.formatString(idBucketValue,64,true,true);
 			
 %>
 		    <tr <%="class=\""+((zz%2==0)?"evendatarow":"odddatarow")+"\""%>>
@@ -478,20 +478,20 @@ if (maintenanceUnderway == false)
 		    while (q < identifierBreakdown.length)
 		    {
 %>
-				<nobr><%=org.apache.lcf.ui.util.Encoder.bodyEscape(identifierBreakdown[q++])%></nobr><br/>
+				<nobr><%=org.apache.acf.ui.util.Encoder.bodyEscape(identifierBreakdown[q++])%></nobr><br/>
 <%
 		    }
 %>
 			</td>
-			<td class="reportcolumncell"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(row.getValue("inactive").toString())%></td>
-			<td class="reportcolumncell"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(row.getValue("processing").toString())%></td>
-			<td class="reportcolumncell"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(row.getValue("expiring").toString())%></td>
-			<td class="reportcolumncell"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(row.getValue("deleting").toString())%></td>
-			<td class="reportcolumncell"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(row.getValue("processready").toString())%></td>
-			<td class="reportcolumncell"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(row.getValue("expireready").toString())%></td>
-			<td class="reportcolumncell"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(row.getValue("processwaiting").toString())%></td>
-			<td class="reportcolumncell"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(row.getValue("expirewaiting").toString())%></td>
-			<td class="reportcolumncell"><%=org.apache.lcf.ui.util.Encoder.bodyEscape(row.getValue("waitingforever").toString())%></td>
+			<td class="reportcolumncell"><%=org.apache.acf.ui.util.Encoder.bodyEscape(row.getValue("inactive").toString())%></td>
+			<td class="reportcolumncell"><%=org.apache.acf.ui.util.Encoder.bodyEscape(row.getValue("processing").toString())%></td>
+			<td class="reportcolumncell"><%=org.apache.acf.ui.util.Encoder.bodyEscape(row.getValue("expiring").toString())%></td>
+			<td class="reportcolumncell"><%=org.apache.acf.ui.util.Encoder.bodyEscape(row.getValue("deleting").toString())%></td>
+			<td class="reportcolumncell"><%=org.apache.acf.ui.util.Encoder.bodyEscape(row.getValue("processready").toString())%></td>
+			<td class="reportcolumncell"><%=org.apache.acf.ui.util.Encoder.bodyEscape(row.getValue("expireready").toString())%></td>
+			<td class="reportcolumncell"><%=org.apache.acf.ui.util.Encoder.bodyEscape(row.getValue("processwaiting").toString())%></td>
+			<td class="reportcolumncell"><%=org.apache.acf.ui.util.Encoder.bodyEscape(row.getValue("expirewaiting").toString())%></td>
+			<td class="reportcolumncell"><%=org.apache.acf.ui.util.Encoder.bodyEscape(row.getValue("waitingforever").toString())%></td>
 		    </tr>
 <%
 			zz++;

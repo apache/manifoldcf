@@ -15,8 +15,8 @@
 * limitations under the License.
 */
 
-import org.apache.lcf.core.interfaces.*;
-import org.apache.lcf.core.system.LCF;
+import org.apache.acf.core.interfaces.*;
+import org.apache.acf.core.system.LCF;
 
 public class ThreadLockSpinner
 {

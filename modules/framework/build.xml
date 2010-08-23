@@ -446,8 +446,8 @@
                 <pathelement location="build/api/classes"/>
                 <pathelement location="build/tests/classes"/>
             </classpath>
-            <test name="org.apache.lcf.agents.tests.Sanity" todir="test-output"/>
-            <test name="org.apache.lcf.crawler.tests.Sanity" todir="test-output"/>
+            <test name="org.apache.acf.agents.tests.Sanity" todir="test-output"/>
+            <test name="org.apache.acf.crawler.tests.Sanity" todir="test-output"/>
             <!-- MHL -->
         </junit>
     </target>

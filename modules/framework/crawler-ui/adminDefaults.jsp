@@ -1,8 +1,8 @@
 <%@ page language="java" %>
-<%@ page import="org.apache.lcf.core.interfaces.*" %>
-<%@ page import="org.apache.lcf.agents.interfaces.*" %>
-<%@ page import="org.apache.lcf.authorities.interfaces.*" %>
-<%@ page import="org.apache.lcf.crawler.interfaces.*" %>
+<%@ page import="org.apache.acf.core.interfaces.*" %>
+<%@ page import="org.apache.acf.agents.interfaces.*" %>
+<%@ page import="org.apache.acf.authorities.interfaces.*" %>
+<%@ page import="org.apache.acf.crawler.interfaces.*" %>
 <%@ page import="java.util.*" %>
 
 <%
@@ -28,11 +28,11 @@
 %>
 
 <%
-	org.apache.lcf.crawler.system.LCF.initializeEnvironment();
+	org.apache.acf.crawler.system.LCF.initializeEnvironment();
 %>
 
-<jsp:useBean id="thread" class="org.apache.lcf.ui.beans.ThreadContext" scope="request"/>
-<jsp:useBean id="adminprofile" class="org.apache.lcf.ui.beans.AdminProfile" scope="session"/>
+<jsp:useBean id="thread" class="org.apache.acf.ui.beans.ThreadContext" scope="request"/>
+<jsp:useBean id="adminprofile" class="org.apache.acf.ui.beans.AdminProfile" scope="session"/>
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jstl/core" %>
 <%@ taglib prefix="x" uri="http://java.sun.com/jstl/xml" %>
@@ -42,10 +42,10 @@
 
 <%
 	IThreadContext threadContext = thread.getThreadContext();
-	org.apache.lcf.ui.multipart.MultipartWrapper variableContext = (org.apache.lcf.ui.multipart.MultipartWrapper)threadContext.get("__WRAPPER__");
+	org.apache.acf.ui.multipart.MultipartWrapper variableContext = (org.apache.acf.ui.multipart.MultipartWrapper)threadContext.get("__WRAPPER__");
 	if (variableContext == null)
 	{
-		variableContext = new org.apache.lcf.ui.multipart.MultipartWrapper(request);
+		variableContext = new org.apache.acf.ui.multipart.MultipartWrapper(request);
 		threadContext.save("__WRAPPER__",variableContext);
 	}
 %>
