@@ -142,7 +142,7 @@ public class TestBase extends org.apache.acf.crawler.tests.TestConnectorBase
     throws Exception
   {
     HttpClient client = new HttpClient();
-    HttpMethod method = new GetMethod("http://localhost:"+Integer.toString(testPort)+"/lcf-api/json/"+command+((argument==null)?"":"?object="+
+    HttpMethod method = new GetMethod("http://localhost:"+Integer.toString(testPort)+"/acf-api/json/"+command+((argument==null)?"":"?object="+
       java.net.URLEncoder.encode(argument,"utf-8")));
     int response = client.executeMethod(method);
     byte[] responseData = method.getResponseBody();
@@ -183,15 +183,15 @@ public class TestBase extends org.apache.acf.crawler.tests.TestConnectorBase
     server.setStopAtShutdown( true );
     
     // Initialize the servlets
-    WebAppContext lcfCrawlerUI = new WebAppContext("../../framework/dist/web/war/lcf-crawler-ui.war","/lcf-crawler-ui");
+    WebAppContext lcfCrawlerUI = new WebAppContext("../../framework/dist/web/war/acf-crawler-ui.war","/acf-crawler-ui");
     // This will cause jetty to ignore all of the framework and jdbc jars in the war, which is what we want.
     lcfCrawlerUI.setParentLoaderPriority(true);
     server.addHandler(lcfCrawlerUI);
-    WebAppContext lcfAuthorityService = new WebAppContext("../../framework/dist/web/war/lcf-authority-service.war","/lcf-authority-service");
+    WebAppContext lcfAuthorityService = new WebAppContext("../../framework/dist/web/war/acf-authority-service.war","/acf-authority-service");
     // This will cause jetty to ignore all of the framework and jdbc jars in the war, which is what we want.
     lcfAuthorityService.setParentLoaderPriority(true);
     server.addHandler(lcfAuthorityService);
-    WebAppContext lcfApi = new WebAppContext("../../framework/dist/web/war/lcf-api.war","/lcf-api");
+    WebAppContext lcfApi = new WebAppContext("../../framework/dist/web/war/acf-api.war","/acf-api");
     lcfApi.setParentLoaderPriority(true);
     server.addHandler(lcfApi);
     server.start();

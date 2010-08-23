@@ -40,12 +40,12 @@
 
     <target name="jar-connector" depends="compile-connector,precompile-check" if="canBuild">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/lcf-jcifs-connector.jar" basedir="build/connector/classes"/>
+        <jar destfile="build/jar/acf-jcifs-connector.jar" basedir="build/connector/classes"/>
     </target>
 
     <target name="lib" depends="jar-connector,precompile-check" if="canBuild">
         <mkdir dir="dist/lib"/>
-        <copy todir="dist/lib" file="build/jar/lcf-jcifs-connector.jar"/>
+        <copy todir="dist/lib" file="build/jar/acf-jcifs-connector.jar"/>
         <copy todir="dist/lib">
             <fileset dir="jcifs" includes="*.jar"/>
         </copy>

@@ -27,12 +27,12 @@
 
     <target name="jar-connector" depends="compile-connector">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/lcf-rss-connector.jar" basedir="build/connector/classes"/>
+        <jar destfile="build/jar/acf-rss-connector.jar" basedir="build/connector/classes"/>
     </target>
 
     <target name="lib" depends="jar-connector">
         <mkdir dir="dist/lib"/>
-        <copy todir="dist/lib" file="build/jar/lcf-rss-connector.jar"/>
+        <copy todir="dist/lib" file="build/jar/acf-rss-connector.jar"/>
     </target>
 
     <target name="all" depends="lib,doc"/>

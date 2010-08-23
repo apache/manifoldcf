@@ -113,46 +113,46 @@
 
     <target name="jar-interface" depends="compile-interface,precompile-check" if="canBuild">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/lcf-filenet-interface.jar" basedir="build/interface/classes"/>
+        <jar destfile="build/jar/acf-filenet-interface.jar" basedir="build/interface/classes"/>
     </target>
 
     <target name="jar-implementation" depends="compile-implementation,precompile-check" if="canBuild">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/lcf-filenet-implementation.jar" basedir="build/implementation/classes"/>
+        <jar destfile="build/jar/acf-filenet-implementation.jar" basedir="build/implementation/classes"/>
     </target>
 
     <target name="jar-rmiskel" depends="compile-rmic,precompile-check" if="canBuild">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/lcf-filenet-rmiskel.jar" basedir="build/rmiskel/classes"/>
+        <jar destfile="build/jar/acf-filenet-rmiskel.jar" basedir="build/rmiskel/classes"/>
     </target>
 
     <target name="jar-rmistub" depends="compile-rmic,precompile-check" if="canBuild">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/lcf-filenet-rmistub.jar" basedir="build/rmistub/classes"/>
+        <jar destfile="build/jar/acf-filenet-rmistub.jar" basedir="build/rmistub/classes"/>
     </target>
 
     <target name="jar-server" depends="compile-server,precompile-check" if="canBuild">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/lcf-filenet-server.jar" basedir="build/server/classes"/>
+        <jar destfile="build/jar/acf-filenet-server.jar" basedir="build/server/classes"/>
     </target>
 
     <target name="jar-registry" depends="compile-registry,precompile-check" if="canBuild">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/lcf-filenet-registry.jar" basedir="build/registry/classes"/>
+        <jar destfile="build/jar/acf-filenet-registry.jar" basedir="build/registry/classes"/>
     </target>
     
     <target name="jar-connector" depends="compile-connector,precompile-check" if="canBuild">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/lcf-filenet-connector.jar" basedir="build/connector/classes"/>
+        <jar destfile="build/jar/acf-filenet-connector.jar" basedir="build/connector/classes"/>
     </target>
 
     <target name="lib" depends="jar-interface,jar-rmistub,jar-connector,precompile-check" if="canBuild">
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
             <fileset dir="build/jar">
-                <include name="lcf-filenet-interface.jar"/>
-                <include name="lcf-filenet-rmistub.jar"/>
-                <include name="lcf-filenet-connector.jar"/>
+                <include name="acf-filenet-interface.jar"/>
+                <include name="acf-filenet-rmistub.jar"/>
+                <include name="acf-filenet-connector.jar"/>
             </fileset>
         </copy>
     </target>
@@ -164,16 +164,16 @@
         </copy>
         <copy todir="dist/server-process/jar">
             <fileset dir="build/jar">
-                <include name="lcf-filenet-interface.jar"/>
-                <include name="lcf-filenet-rmiskel.jar"/>
-                <include name="lcf-filenet-implementation.jar"/>
+                <include name="acf-filenet-interface.jar"/>
+                <include name="acf-filenet-rmiskel.jar"/>
+                <include name="acf-filenet-implementation.jar"/>
             </fileset>
         </copy>
     </target>
 
     <target name="registry-process" depends="jar-registry,precompile-check" if="canBuild">
         <mkdir dir="dist/registry-process/jar"/>
-        <copy todir="dist/registry-process/jar" file="build/jar/lcf-filenet-registry.jar"/>
+        <copy todir="dist/registry-process/jar" file="build/jar/acf-filenet-registry.jar"/>
     </target>
 
     <target name="all" depends="lib,server-process,registry-process,doc"/>

@@ -19,7 +19,7 @@
 
     <target name="doc" depends="precompile-check" if="canBuild">
         <mkdir dir="doc"/>
-        <javadoc destdir="doc" classpath="mxie-java/JavaMXIELIB.jar:lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient-lcf.jar:lib/lcf-core.jar:lib/lcf-agents.jar:lib/lcf-pull-agent.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar" source="1.5">
+        <javadoc destdir="doc" classpath="mxie-java/JavaMXIELIB.jar:lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient-lcf.jar:lib/acf-core.jar:lib/acf-agents.jar:lib/acf-pull-agent.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar" source="1.5">
             <classpath>
                 <fileset dir="lib" includes="*.jar"/>
                 <fileset dir="mxie-java" includes="*.jar"/>
@@ -40,12 +40,12 @@
 
     <target name="jar-connector" depends="compile-connector,precompile-check" if="canBuild">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/lcf-memex-connector.jar" basedir="build/connector/classes"/>
+        <jar destfile="build/jar/acf-memex-connector.jar" basedir="build/connector/classes"/>
     </target>
 
     <target name="lib" depends="jar-connector,precompile-check" if="canBuild">
         <mkdir dir="dist/lib"/>
-        <copy todir="dist/lib" file="build/jar/lcf-memex-connector.jar"/>
+        <copy todir="dist/lib" file="build/jar/acf-memex-connector.jar"/>
         <copy todir="dist/lib">
             <fileset dir="mxie-java" includes="*.jar"/>
         </copy>

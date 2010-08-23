@@ -40,7 +40,7 @@
 
     <target name="jar-connector" depends="compile-connector,precompile-check" if="canBuild">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/lcf-livelink-connector.jar" basedir="build/connector/classes"/>
+        <jar destfile="build/jar/acf-livelink-connector.jar" basedir="build/connector/classes"/>
     </target>
 
     <target name="lib" depends="jar-connector,precompile-check" if="canBuild">

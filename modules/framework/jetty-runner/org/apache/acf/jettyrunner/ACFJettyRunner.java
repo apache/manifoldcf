@@ -69,15 +69,15 @@ public class ACFJettyRunner
     server.setStopAtShutdown( true );
     
     // Initialize the servlets
-    WebAppContext lcfCrawlerUI = new WebAppContext(crawlerWarPath,"/lcf-crawler-ui");
+    WebAppContext lcfCrawlerUI = new WebAppContext(crawlerWarPath,"/acf-crawler-ui");
     // This will cause jetty to ignore all of the framework and jdbc jars in the war, which is what we want.
     lcfCrawlerUI.setParentLoaderPriority(true);
     server.addHandler(lcfCrawlerUI);
-    WebAppContext lcfAuthorityService = new WebAppContext(authorityServiceWarPath,"/lcf-authority-service");
+    WebAppContext lcfAuthorityService = new WebAppContext(authorityServiceWarPath,"/acf-authority-service");
     // This will cause jetty to ignore all of the framework and jdbc jars in the war, which is what we want.
     lcfAuthorityService.setParentLoaderPriority(true);
     server.addHandler(lcfAuthorityService);
-    WebAppContext lcfApi = new WebAppContext(apiWarPath,"/lcf-api");
+    WebAppContext lcfApi = new WebAppContext(apiWarPath,"/acf-api");
     lcfApi.setParentLoaderPriority(true);
     server.addHandler(lcfApi);
   }
@@ -137,7 +137,7 @@ public class ACFJettyRunner
   }
 
   /**
-   * A main class that starts jetty+lcf
+   * A main class that starts jetty+acf
    */
   public static void main( String[] args )
   {
@@ -161,9 +161,9 @@ public class ACFJettyRunner
       }
     }
     
-    String crawlerWarPath = "war/lcf-crawler-ui.war";
-    String authorityserviceWarPath = "war/lcf-authority-service.war";
-    String apiWarPath = "war/lcf-api.war";
+    String crawlerWarPath = "war/acf-crawler-ui.war";
+    String authorityserviceWarPath = "war/acf-authority-service.war";
+    String apiWarPath = "war/acf-api.war";
     if (args.length == 4)
     {
       crawlerWarPath = args[1];
