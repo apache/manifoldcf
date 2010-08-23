@@ -22,7 +22,7 @@ import java.io.*;
 
 /** This interface describes a class that manages keys and certificates in a secure manner.
 * It's built on top of the JDK 1.4+ JSSE integration, and provides all the necessary logic
-* to work well within the LCF java environment.
+* to work well within the ACF java environment.
 */
 public interface IKeystoreManager
 {
@@ -32,48 +32,48 @@ public interface IKeystoreManager
   *@return the list, as a string array.
   */
   public String[] getContents()
-    throws LCFException;
+    throws ACFException;
 
   /** For an alias, get some descriptive information from the object in the keystore.
   *@param alias is the alias name.
   *@return a description of what's in the alias.
   */
   public String getDescription(String alias)
-    throws LCFException;
+    throws ACFException;
 
   /** Import a certificate or key into the list.  The data must be added as binary.
   *@param alias is the name of the certificate.
   *@param certData is the binary data for the certificate.
   */
   public void importCertificate(String alias, InputStream certData)
-    throws LCFException;
+    throws ACFException;
 
   /** Remove a certificate.
   *@param alias is the name of the certificate to remove.
   */
   public void remove(String alias)
-    throws LCFException;
+    throws ACFException;
 
   /** Convert to a base64 string.
   *@return the base64-encoded string.
   */
   public String getString()
-    throws LCFException;
+    throws ACFException;
 
   /** Read a certificate from the keystore.
   */
   public java.security.cert.Certificate getCertificate(String alias)
-    throws LCFException;
+    throws ACFException;
 
   /** Add a certificate to the keystore.
   */
   public void addCertificate(String alias, java.security.cert.Certificate certificate)
-    throws LCFException;
+    throws ACFException;
 
   /** Build a secure socket factory based on this keystore.
   */
   public javax.net.ssl.SSLSocketFactory getSecureSocketFactory()
-    throws LCFException;
+    throws ACFException;
 
 
 

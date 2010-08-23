@@ -71,7 +71,7 @@
 	IAuthorityConnection connection = manager.load(connectionName);
 	if (connection == null)
 	{
-		throw new LCFException("No such authority: '"+connectionName+"'");
+		throw new ACFException("No such authority: '"+connectionName+"'");
 	}
 	else
 	{
@@ -110,7 +110,7 @@
 				}
 			}
 		}
-		catch (LCFException e)
+		catch (ACFException e)
 		{
 			connectionStatus = "Threw exception: '"+org.apache.acf.ui.util.Encoder.bodyEscape(e.getMessage())+"'";
 		}
@@ -157,7 +157,7 @@
 <%
 	}
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
 	e.printStackTrace();
 	variableContext.setParameter("text",e.getMessage());

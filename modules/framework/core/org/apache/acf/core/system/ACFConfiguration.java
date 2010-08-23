@@ -1,4 +1,4 @@
-/* $Id: LCFConfiguration.java 964702 2010-07-16 07:45:44Z kwright $ */
+/* $Id: ACFConfiguration.java 964702 2010-07-16 07:45:44Z kwright $ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -22,16 +22,16 @@ import org.apache.acf.core.interfaces.*;
 import java.util.*;
 import java.io.*;
 
-/** This class represents the configuration data read from the main LCF configuration
+/** This class represents the configuration data read from the main ACF configuration
 * XML file.
 */
-public class LCFConfiguration extends Configuration
+public class ACFConfiguration extends Configuration
 {
-  public static final String _rcsid = "@(#)$Id: LCFConfiguration.java 964702 2010-07-16 07:45:44Z kwright $";
+  public static final String _rcsid = "@(#)$Id: ACFConfiguration.java 964702 2010-07-16 07:45:44Z kwright $";
 
   /** Constructor.
   */
-  public LCFConfiguration()
+  public ACFConfiguration()
   {
     super("configuration");
   }
@@ -39,8 +39,8 @@ public class LCFConfiguration extends Configuration
   /** Construct from XML.
   *@param xmlStream is the input XML stream.
   */
-  public LCFConfiguration(InputStream xmlStream)
-    throws LCFException
+  public ACFConfiguration(InputStream xmlStream)
+    throws ACFException
   {
     super("configuration");
     fromXML(xmlStream);
@@ -50,7 +50,7 @@ public class LCFConfiguration extends Configuration
   */
   protected Configuration createNew()
   {
-    return new LCFConfiguration();
+    return new ACFConfiguration();
   }
   
 }

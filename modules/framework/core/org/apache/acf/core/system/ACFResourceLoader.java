@@ -27,9 +27,9 @@ import java.io.*;
 /** An instance of this class is capable of minting URLClassLoader objects on
 * demand, for the purpose of loading plugins.
 */
-public class LCFResourceLoader
+public class ACFResourceLoader
 {
-  public static final String _rcsid = "@(#)$Id: LCFResourceLoader.java 960994 2010-07-06 19:45:53Z kwright $";
+  public static final String _rcsid = "@(#)$Id: ACFResourceLoader.java 960994 2010-07-06 19:45:53Z kwright $";
 
   /** The parent class loader */
   protected ClassLoader parent;
@@ -41,8 +41,8 @@ public class LCFResourceLoader
   /** Construct a resource manager.
   *@param parent is the parent class loader.
   */
-  public LCFResourceLoader(ClassLoader parent)
-    throws LCFException
+  public ACFResourceLoader(ClassLoader parent)
+    throws ACFException
   {
     this.parent = parent;
   }
@@ -51,7 +51,7 @@ public class LCFResourceLoader
   *@param libdirList is an arraylist of File objects, each representing a directory.
   */
   public synchronized void setClassPath(ArrayList libdirList)
-    throws LCFException
+    throws ACFException
   {
     if (currentClasspath.size() > 0)
     {
@@ -80,7 +80,7 @@ public class LCFResourceLoader
   *@param file is the jar or class root.
   */
   public synchronized void addToClassPath(final File file)
-    throws LCFException
+    throws ACFException
   {
     if (file.canRead())
     {
@@ -93,7 +93,7 @@ public class LCFResourceLoader
         } } );
     }
     else
-      throw new LCFException("Path '"+file.toString()+"' does not exist or is not readable");
+      throw new ACFException("Path '"+file.toString()+"' does not exist or is not readable");
   }
   
   /** Add to the class-search path.
@@ -101,7 +101,7 @@ public class LCFResourceLoader
   *@param filter is the file filter to use on that directory.
   */
   public synchronized void addToClassPath(File dir, FileFilter filter)
-    throws LCFException
+    throws ACFException
   {
     addDirsToClassPath(new File[]{dir}, new FileFilter[]{filter});
   }
@@ -110,7 +110,7 @@ public class LCFResourceLoader
   *@param cname is the fully-qualified class name.
   */
   public synchronized Class findClass(String cname)
-    throws ClassNotFoundException,LCFException
+    throws ClassNotFoundException,ACFException
   {
     if (classLoader == null)
     {
@@ -131,7 +131,7 @@ public class LCFResourceLoader
           catch (MalformedURLException e)
           {
             // Should never happen, but...
-            throw new LCFException(e.getMessage(),e);
+            throw new ACFException(e.getMessage(),e);
           }
         }
         classLoader = URLClassLoader.newInstance(elements, parent);
@@ -147,7 +147,7 @@ public class LCFResourceLoader
   *@param filterList is the corresponding list of filters.
   */
   protected void addDirsToClassPath(File[] baseList, FileFilter[] filterList)
-    throws LCFException
+    throws ACFException
   {
     int i = 0;
     while (i < baseList.length)
@@ -176,7 +176,7 @@ public class LCFResourceLoader
         }
       }
       else
-        throw new LCFException("Supposed directory '"+base.toString()+"' is either not a directory, or is unreadable.");
+        throw new ACFException("Supposed directory '"+base.toString()+"' is either not a directory, or is unreadable.");
       i++;
     }
   }

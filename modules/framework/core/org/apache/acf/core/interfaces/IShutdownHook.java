@@ -24,6 +24,6 @@ public interface IShutdownHook
   /** Do the requisite cleanup.
   */
   public void doCleanup()
-    throws LCFException;
+    throws ACFException;
 }
 

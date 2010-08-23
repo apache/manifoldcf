@@ -46,7 +46,7 @@ public interface ISeedingActivity extends IHistoryActivity, INamingActivity, IAb
   *@param prereqEventNames is the list of prerequisite events required for this document, or null if none.
   */
   public void addSeedDocument(String documentIdentifier, String[] prereqEventNames)
-    throws LCFException;
+    throws ACFException;
 
   /** Record a "seed" document identifier.
   * Seeds passed to this method will be loaded into the job's queue at the beginning of the
@@ -62,7 +62,7 @@ public interface ISeedingActivity extends IHistoryActivity, INamingActivity, IAb
   *@param documentIdentifier is the identifier of the document to add to the "pending" queue.
   */
   public void addSeedDocument(String documentIdentifier)
-    throws LCFException;
+    throws ACFException;
 
   /** This method receives document identifiers that should be considered part of the seeds, but do not need to be
   * queued for processing at this time.  (This method is used to keep the hopcount tables up to date.)  It is
@@ -76,6 +76,6 @@ public interface ISeedingActivity extends IHistoryActivity, INamingActivity, IAb
   * "pending" queue.
   */
   public void addUnqueuedSeedDocument(String documentIdentifier)
-    throws LCFException;
+    throws ACFException;
 
 }

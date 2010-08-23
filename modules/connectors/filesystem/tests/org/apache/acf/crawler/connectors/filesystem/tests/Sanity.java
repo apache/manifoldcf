@@ -21,7 +21,7 @@ package org.apache.acf.crawler.connectors.filesystem.tests;
 import org.apache.acf.core.interfaces.*;
 import org.apache.acf.agents.interfaces.*;
 import org.apache.acf.crawler.interfaces.*;
-import org.apache.acf.crawler.system.LCF;
+import org.apache.acf.crawler.system.ACF;
 
 import java.io.*;
 import java.util.*;

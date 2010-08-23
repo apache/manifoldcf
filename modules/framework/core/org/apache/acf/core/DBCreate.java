@@ -19,12 +19,12 @@
 package org.apache.acf.core;
 
 import org.apache.acf.core.interfaces.IThreadContext;
-import org.apache.acf.core.interfaces.LCFException;
-import org.apache.acf.core.system.LCF;
+import org.apache.acf.core.interfaces.ACFException;
+import org.apache.acf.core.system.ACF;
 import org.apache.acf.core.system.Logging;
 
 /**
- * Create the database using the name as specified through the {@see LCF}. The username and password for the
+ * Create the database using the name as specified through the {@see ACF}. The username and password for the
  * configured database need to be specified during construction.
  */
 public class DBCreate extends DBInitializationCommand
@@ -46,10 +46,10 @@ public class DBCreate extends DBInitializationCommand
   /**
    * {@inheritDoc}
    */
-  public void doExecute(IThreadContext tc) throws LCFException
+  public void doExecute(IThreadContext tc) throws ACFException
   {
-    LCF.createSystemDatabase(tc, getUserName(), getPassword());
-    Logging.root.info("LCF database created");
+    ACF.createSystemDatabase(tc, getUserName(), getPassword());
+    Logging.root.info("ACF database created");
   }
 
   /**
@@ -78,9 +78,9 @@ public class DBCreate extends DBInitializationCommand
     try
     {
       dbCreate.execute();
-      System.err.println("LCF database created");
+      System.err.println("ACF database created");
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       e.printStackTrace();
       System.exit(1);

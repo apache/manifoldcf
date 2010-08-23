@@ -21,7 +21,7 @@ package org.apache.acf.crawler.tests;
 import org.apache.acf.core.interfaces.*;
 import org.apache.acf.agents.interfaces.*;
 import org.apache.acf.crawler.interfaces.*;
-import org.apache.acf.crawler.system.LCF;
+import org.apache.acf.crawler.system.ACF;
 
 import java.io.*;
 import java.util.*;
@@ -61,7 +61,7 @@ public class TestBase extends org.apache.acf.agents.tests.TestBase
     
     // Install the agents tables
     initialize();
-    LCF.initializeEnvironment();
+    ACF.initializeEnvironment();
     IThreadContext tc = ThreadContextFactory.make();
     IAgentManager mgr = AgentManagerFactory.make(tc);
     mgr.registerAgent("org.apache.acf.crawler.system.CrawlerAgent");
@@ -89,7 +89,7 @@ public class TestBase extends org.apache.acf.agents.tests.TestBase
     if (isInitialized())
     {
       // Test the uninstall
-      LCF.initializeEnvironment();
+      ACF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
       
       Exception currentException = null;

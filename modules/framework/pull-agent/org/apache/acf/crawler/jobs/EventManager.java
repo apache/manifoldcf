@@ -39,7 +39,7 @@ public class EventManager extends org.apache.acf.core.database.BaseTable
   *@param database is the database handle.
   */
   public EventManager(IDBInterface database)
-    throws LCFException
+    throws ACFException
   {
     super(database,"events");
   }
@@ -47,7 +47,7 @@ public class EventManager extends org.apache.acf.core.database.BaseTable
   /** Install or upgrade this table.
   */
   public void install()
-    throws LCFException
+    throws ACFException
   {
     // Standard practice: outer loop for installs
     while (true)
@@ -73,14 +73,14 @@ public class EventManager extends org.apache.acf.core.database.BaseTable
   /** Uninstall.
   */
   public void deinstall()
-    throws LCFException
+    throws ACFException
   {
     beginTransaction();
     try
     {
       performDrop(null);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -99,7 +99,7 @@ public class EventManager extends org.apache.acf.core.database.BaseTable
   /** Prepare for restart.
   */
   public void restart()
-    throws LCFException
+    throws ACFException
   {
     // Delete all rows in this table.
     performDelete("",null,null);
@@ -107,7 +107,7 @@ public class EventManager extends org.apache.acf.core.database.BaseTable
 
   /** Atomically create an event - and return false if the event already exists */
   public void createEvent(String eventName)
-    throws LCFException
+    throws ACFException
   {
     HashMap map = new HashMap();
     map.put(eventNameField,eventName);
@@ -116,7 +116,7 @@ public class EventManager extends org.apache.acf.core.database.BaseTable
 
   /** Destroy an event */
   public void destroyEvent(String eventName)
-    throws LCFException
+    throws ACFException
   {
     ArrayList list = new ArrayList();
     list.add(eventName);

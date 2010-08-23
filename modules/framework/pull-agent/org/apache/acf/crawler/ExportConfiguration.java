@@ -35,9 +35,9 @@ public class ExportConfiguration extends BaseCrawlerInitializationCommand
     this.exportFilename = exportFilename;
   }
 
-  protected void doExecute(IThreadContext tc) throws LCFException
+  protected void doExecute(IThreadContext tc) throws ACFException
   {
-    LCF.exportConfiguration(tc,exportFilename);
+    ACF.exportConfiguration(tc,exportFilename);
     Logging.root.info("Configuration exported");
   }
 

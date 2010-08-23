@@ -28,7 +28,7 @@
 %>
 
 <%
-	org.apache.acf.crawler.system.LCF.initializeEnvironment();
+	org.apache.acf.crawler.system.ACF.initializeEnvironment();
 %>
 
 <jsp:useBean id="thread" class="org.apache.acf.ui.beans.ThreadContext" scope="request"/>

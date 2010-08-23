@@ -68,7 +68,7 @@ public class DefineJob
 
                 try
                 {
-                        LCF.initializeEnvironment();
+                        ACF.initializeEnvironment();
                         IThreadContext tc = ThreadContextFactory.make();
                         IJobManager jobManager = JobManagerFactory.make(tc);
                         IJobDescription desc = jobManager.createJob();
@@ -82,7 +82,7 @@ public class DefineJob
                         else if (typeString.equals("specified"))
                                 desc.setType(IJobDescription.TYPE_SPECIFIED);
                         else
-                                throw new LCFException("Unknown type: '"+typeString+"'");
+                                throw new ACFException("Unknown type: '"+typeString+"'");
                         if (startString.equals("windowbegin"))
                                 desc.setStartMethod(IJobDescription.START_WINDOWBEGIN);
                         else if (startString.equals("windowinside"))
@@ -90,7 +90,7 @@ public class DefineJob
                         else if (startString.equals("disable"))
                                 desc.setStartMethod(IJobDescription.START_DISABLE);
                         else
-                                throw new LCFException("Unknown start method: '"+startString+"'");
+                                throw new ACFException("Unknown start method: '"+startString+"'");
 
                         if (hopcountString.equals("accurate"))
                                 desc.setHopcountMode(IJobDescription.HOPCOUNT_ACCURATE);
@@ -99,7 +99,7 @@ public class DefineJob
                         else if (hopcountString.equals("neverdelete"))
                                 desc.setHopcountMode(IJobDescription.HOPCOUNT_NEVERDELETE);
                         else
-                                throw new LCFException("Unknown hopcount mode: '"+hopcountString+"'");
+                                throw new ACFException("Unknown hopcount mode: '"+hopcountString+"'");
                         
                         if (recrawlInterval.length() > 0)
                                 desc.setInterval(new Long(recrawlInterval));

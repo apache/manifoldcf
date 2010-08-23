@@ -31,7 +31,7 @@ public class KeystoreManagerFactory
   /** Mint a keystore manager.
   */
   public static IKeystoreManager make(String passcode)
-    throws LCFException
+    throws ACFException
   {
     return new KeystoreManager(passcode);
   }
@@ -39,7 +39,7 @@ public class KeystoreManagerFactory
   /** Mint a keystore manager from a base-64 encoded string.
   */
   public static IKeystoreManager make(String passcode, String base64String)
-    throws LCFException
+    throws ACFException
   {
     return new KeystoreManager(passcode,base64String);
   }
@@ -49,7 +49,7 @@ public class KeystoreManagerFactory
   /** Build a secure socket factory that pays no attention to certificates in trust store, and just trusts everything.
   */
   public static javax.net.ssl.SSLSocketFactory getTrustingSecureSocketFactory()
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -63,11 +63,11 @@ public class KeystoreManagerFactory
     }
     catch (java.security.NoSuchAlgorithmException e)
     {
-      throw new LCFException("No such algorithm: "+e.getMessage(),e);
+      throw new ACFException("No such algorithm: "+e.getMessage(),e);
     }
     catch (java.security.KeyManagementException e)
     {
-      throw new LCFException("Key management exception: "+e.getMessage(),e);
+      throw new ACFException("Key management exception: "+e.getMessage(),e);
     }
   }
 

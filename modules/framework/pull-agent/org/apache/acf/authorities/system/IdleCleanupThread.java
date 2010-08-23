@@ -38,7 +38,7 @@ public class IdleCleanupThread extends Thread
   /** Constructor.
   */
   public IdleCleanupThread()
-    throws LCFException
+    throws ACFException
   {
     super();
     setName("Idle cleanup thread");
@@ -60,17 +60,17 @@ public class IdleCleanupThread extends Thread
         AuthorityConnectorFactory.pollAllConnectors(threadContext);
 
         // Sleep for the retry interval.
-        LCF.sleep(15000L);
+        ACF.sleep(15000L);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
+        if (e.getErrorCode() == ACFException.INTERRUPTED)
           break;
 
         // Log it, but keep the thread alive
         Logging.authorityService.error("Exception tossed",e);
 
-        if (e.getErrorCode() == LCFException.SETUP_ERROR)
+        if (e.getErrorCode() == ACFException.SETUP_ERROR)
         {
           // Shut the whole system down!
           System.exit(1);

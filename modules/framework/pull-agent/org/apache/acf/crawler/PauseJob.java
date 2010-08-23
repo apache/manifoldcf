@@ -49,7 +49,7 @@ public class PauseJob
 
                 try
                 {
-                        LCF.initializeEnvironment();
+                        ACF.initializeEnvironment();
                         IThreadContext tc = ThreadContextFactory.make();
                         IJobManager jobManager = JobManagerFactory.make(tc);
                         jobManager.pauseJob(new Long(jobID));

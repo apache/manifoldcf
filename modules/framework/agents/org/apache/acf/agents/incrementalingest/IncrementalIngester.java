@@ -21,7 +21,7 @@ package org.apache.acf.agents.incrementalingest;
 import org.apache.acf.core.interfaces.*;
 import org.apache.acf.agents.interfaces.*;
 import org.apache.acf.agents.system.Logging;
-import org.apache.acf.agents.system.LCF;
+import org.apache.acf.agents.system.ACF;
 import java.util.*;
 import java.io.*;
 
@@ -64,7 +64,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
   /** Constructor.
   */
   public IncrementalIngester(IThreadContext threadContext, IDBInterface database)
-    throws LCFException
+    throws ACFException
   {
     super(database,"ingeststatus");
     this.threadContext = threadContext;
@@ -75,7 +75,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
   /** Install the incremental ingestion manager.
   */
   public void install()
-    throws LCFException
+    throws ACFException
   {
     String outputConnectionTableName = connectionManager.getTableName();
     String outputConnectionNameField = connectionManager.getConnectionNameColumn();
@@ -146,16 +146,16 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
   *@return the time, in minutes.
   */
   public int getAnalyzeTime()
-    throws LCFException
+    throws ACFException
   {
     // For this table, we base the wait time on the number of rows in it.
     IResultSet set = performQuery("SELECT COUNT("+idField+") FROM "+getTableName(),null,null,null);
     if (set.getRowCount() < 1)
-      throw new LCFException("Expected result with one row");
+      throw new ACFException("Expected result with one row");
     IResultRow row = set.getRow(0);
     Iterator columnNames = row.getColumns();
     if (!columnNames.hasNext())
-      throw new LCFException("Expected result with one column");
+      throw new ACFException("Expected result with one column");
     String columnName = (String)columnNames.next();
     long value = new Long(row.getValue(columnName).toString()).longValue();
     if (value < 10000L)
@@ -170,7 +170,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
   /** Analyze database tables.
   */
   public void analyzeTables()
-    throws LCFException
+    throws ACFException
   {
     analyzeTable();
   }
@@ -178,7 +178,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
   /** Uninstall the incremental ingestion manager.
   */
   public void deinstall()
-    throws LCFException
+    throws ACFException
   {
     performDrop(null);
   }
@@ -186,7 +186,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
   /** Flush all knowledge of what was ingested before.
   */
   public void clearAll()
-    throws LCFException
+    throws ACFException
   {
     performDelete("",null,null);
   }
@@ -197,7 +197,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
   *@return true if the mimeType is indexable.
   */
   public boolean checkMimeTypeIndexable(String outputConnectionName, String mimeType)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     IOutputConnection connection = connectionManager.load(outputConnectionName);
     IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
@@ -220,7 +220,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
   *@return true if the local file is indexable.
   */
   public boolean checkDocumentIndexable(String outputConnectionName, File localFile)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     IOutputConnection connection = connectionManager.load(outputConnectionName);
     IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
@@ -251,7 +251,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
     String identifierClass, String identifierHash,
     String documentVersion,
     long recordTime, IOutputActivity activities)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     IOutputConnection connection = connectionManager.load(outputConnectionName);
 
@@ -290,7 +290,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
     RepositoryDocument data,
     long ingestTime, String documentURI,
     IOutputActivity activities)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     IOutputConnection connection = connectionManager.load(outputConnectionName);
 
@@ -312,14 +312,14 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
     RepositoryDocument data,
     long ingestTime, String documentURI,
     IOutputActivity activities)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     // No transactions; not safe because post may take too much time
 
     // First, calculate a document uri hash value
     String documentURIHash = null;
     if (documentURI != null)
-      documentURIHash = LCF.hash(documentURI);
+      documentURIHash = ACF.hash(documentURI);
 
     // See what uri was used before for this doc, if any
     ArrayList list = new ArrayList();
@@ -432,7 +432,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
   public void documentCheckMultiple(String outputConnectionName,
     String[] identifierClasses, String[] identifierHashes,
     long checkTime)
-    throws LCFException
+    throws ACFException
   {
     beginTransaction();
     try
@@ -500,7 +500,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
       if (j > 0)
         updateRowIds(list,sb.toString(),checkTime);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -526,7 +526,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
   public void documentCheck(String outputConnectionName,
     String identifierClass, String identifierHash,
     long checkTime)
-    throws LCFException
+    throws ACFException
   {
     documentCheckMultiple(outputConnectionName,new String[]{identifierClass},new String[]{identifierHash},checkTime);
   }
@@ -534,7 +534,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
   /** Update a chunk of row ids.
   */
   protected void updateRowIds(ArrayList list, String queryPart, long checkTime)
-    throws LCFException
+    throws ACFException
   {
     HashMap map = new HashMap();
     map.put(lastIngestField,new Long(checkTime));
@@ -550,7 +550,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
   public void documentDeleteMultiple(String[] outputConnectionNames,
     String[] identifierClasses, String[] identifierHashes,
     IOutputRemoveActivity activities)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     // Segregate request by connection names
     HashMap keyMap = new HashMap();
@@ -597,7 +597,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
   public void documentDeleteMultiple(String outputConnectionName,
     String[] identifierClasses, String[] identifierHashes,
     IOutputRemoveActivity activities)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     IOutputConnection connection = connectionManager.load(outputConnectionName);
 
@@ -677,7 +677,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
         while (j < validURIArray.length)
         {
           String docDBString = validURIArray[j++];
-          String docDBHashString = LCF.hash(docDBString);
+          String docDBHashString = ACF.hash(docDBString);
           docURIValues.put(docDBString,docDBString);
           docURIHashValues.put(docDBHashString,docDBHashString);
         }
@@ -797,7 +797,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
           deleteRowIds(list,sb.toString());
 
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         signalRollback();
         throw e;
@@ -823,7 +823,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
   */
   protected void findRowIdsForURIs(String outputConnectionName, HashMap rowIDSet, HashMap uris, ArrayList hashParamValues,
     String paramList)
-    throws LCFException
+    throws ACFException
   {
     hashParamValues.add(outputConnectionName);
     IResultSet set = performQuery("SELECT "+idField+","+docURIField+" FROM "+
@@ -849,7 +849,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
   */
   protected void findRowIdsForDocIds(String outputConnectionName, HashMap rowIDSet, ArrayList paramValues,
     String paramList)
-    throws LCFException
+    throws ACFException
   {
     paramValues.add(outputConnectionName);
     IResultSet set = performQuery("SELECT "+idField+" FROM "+
@@ -866,7 +866,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
   /** Delete a chunk of row ids.
   */
   protected void deleteRowIds(ArrayList list, String queryPart)
-    throws LCFException
+    throws ACFException
   {
     performDelete("WHERE "+idField+" IN ("+queryPart+")",list,null);
   }
@@ -880,7 +880,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
   public void documentDelete(String outputConnectionName,
     String identifierClass, String identifierHash,
     IOutputRemoveActivity activities)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     documentDeleteMultiple(outputConnectionName,new String[]{identifierClass},new String[]{identifierHash},activities);
   }
@@ -891,7 +891,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
   * that don't exist in the index.
   */
   protected DeleteInfo[] getDocumentURIMultiple(String outputConnectionName, String[] identifierClasses, String[] identifierHashes)
-    throws LCFException
+    throws ACFException
   {
     DeleteInfo[] rval = new DeleteInfo[identifierHashes.length];
     HashMap map = new HashMap();
@@ -930,7 +930,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
         getDocumentURIChunk(rval,map,outputConnectionName,sb.toString(),list);
       return rval;
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -955,7 +955,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
   */
   public DocumentIngestStatus[] getDocumentIngestDataMultiple(String[] outputConnectionNames,
     String[] identifierClasses, String[] identifierHashes)
-    throws LCFException
+    throws ACFException
   {
     // Segregate request by connection names
     HashMap keyMap = new HashMap();
@@ -1011,7 +1011,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
   */
   public DocumentIngestStatus[] getDocumentIngestDataMultiple(String outputConnectionName,
     String[] identifierClasses, String[] identifierHashes)
-    throws LCFException
+    throws ACFException
   {
     // Build the return array
     DocumentIngestStatus[] rval = new DocumentIngestStatus[identifierHashes.length];
@@ -1053,7 +1053,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
         getDocumentIngestDataChunk(rval,indexMap,outputConnectionName,sb.toString(),list);
       return rval;
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -1077,7 +1077,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
   */
   public DocumentIngestStatus getDocumentIngestData(String outputConnectionName,
     String identifierClass, String identifierHash)
-    throws LCFException
+    throws ACFException
   {
     return getDocumentIngestDataMultiple(outputConnectionName,new String[]{identifierClass},new String[]{identifierHash})[0];
   }
@@ -1091,7 +1091,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
   */
   public long getDocumentUpdateInterval(String outputConnectionName,
     String identifierClass, String identifierHash)
-    throws LCFException
+    throws ACFException
   {
     return getDocumentUpdateIntervalMultiple(outputConnectionName,new String[]{identifierClass},new String[]{identifierHash})[0];
   }
@@ -1105,7 +1105,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
   */
   public long[] getDocumentUpdateIntervalMultiple(String outputConnectionName,
     String[] identifierClasses, String[] identifierHashes)
-    throws LCFException
+    throws ACFException
   {
     // Do these all at once!!
     // First, create a return array
@@ -1164,7 +1164,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
   *@param returnMap is a mapping from document id to rval index.
   */
   protected void getIntervals(long[] rval, String outputConnectionName, ArrayList list, String queryPart, HashMap returnMap)
-    throws LCFException
+    throws ACFException
   {
     list.add(outputConnectionName);
     IResultSet set = performQuery("SELECT "+docKeyField+","+changeCountField+","+firstIngestField+","+lastIngestField+
@@ -1193,7 +1193,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
   *@param outputConnectionName is the name of the output connection associated with this action.
   */
   public void resetOutputConnection(String outputConnectionName)
-    throws LCFException
+    throws ACFException
   {
     // We're not going to blow away the records, but we are going to set their versions to mean, "reindex required"
     HashMap map = new HashMap();
@@ -1218,7 +1218,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
     String docKey, String documentVersion,
     String outputVersion, String authorityNameString,
     long ingestTime, String documentURI, String documentURIHash)
-    throws LCFException
+    throws ACFException
   {
     while (true)
     {
@@ -1268,11 +1268,11 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
         conditionallyAnalyzeInsert();
         return;
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         signalRollback();
         // If this is simply a constraint violation, we just want to fall through and try the update!
-        if (e.getErrorCode() != LCFException.DATABASE_TRANSACTION_ABORT)
+        if (e.getErrorCode() != ACFException.DATABASE_TRANSACTION_ABORT)
           throw e;
         // Otherwise, exit transaction and fall through to 'update' attempt
       }
@@ -1329,7 +1329,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
 
         // Update failed to find a matching record, so cycle back to retry the insert
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         signalRollback();
         throw e;
@@ -1353,7 +1353,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
   *@param list is the parameter list for the query.
   */
   protected void getDocumentURIChunk(DeleteInfo[] rval, Map map, String outputConnectionName, String clause, ArrayList list)
-    throws LCFException
+    throws ACFException
   {
     list.add(outputConnectionName);
     IResultSet set = performQuery("SELECT "+docKeyField+","+docURIField+","+lastOutputVersionField+" FROM "+getTableName()+" WHERE "+
@@ -1383,7 +1383,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
   *@param list is the parameter list for the query.
   */
   protected void getDocumentIngestDataChunk(DocumentIngestStatus[] rval, Map map, String outputConnectionName, String clause, ArrayList list)
-    throws LCFException
+    throws ACFException
   {
     // Get the primary records associated with this hash value
     list.add(outputConnectionName);
@@ -1413,7 +1413,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
   /** Add or replace document, using the specified output connection, via the standard pool.
   */
   protected int addOrReplaceDocument(IOutputConnection connection, String documentURI, String outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
     if (connector == null)
@@ -1432,7 +1432,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
   /** Remove document, using the specified output connection, via the standard pool.
   */
   protected void removeDocument(IOutputConnection connection, String documentURI, String outputDescription, IOutputRemoveActivity activities)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
     if (connector == null)
@@ -1457,7 +1457,7 @@ public class IncrementalIngester extends org.apache.acf.core.database.BaseTable 
   /** Conditionally do analyze operation.
   */
   protected void conditionallyAnalyzeInsert()
-    throws LCFException
+    throws ACFException
   {
     synchronized (tracker)
     {

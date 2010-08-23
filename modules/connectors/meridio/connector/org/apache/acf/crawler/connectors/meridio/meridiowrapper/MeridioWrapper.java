@@ -63,7 +63,7 @@ import org.apache.acf.crawler.connectors.meridio.ConnectionConfig;
 public class MeridioWrapper
 {
 
-  public static final String CONFIGURATION_PROPERTY = "LCF_Configuration";
+  public static final String CONFIGURATION_PROPERTY = "ACF_Configuration";
 
   // This is the local cache
   protected long meridioCategoriesTime                    = -1L;
@@ -145,7 +145,7 @@ public class MeridioWrapper
     Logger log,
     URL    meridioDmwsUrl,
     URL    meridioRmwsUrl,
-    URL    meridioLCFWSUrl,
+    URL    meridioACFWSUrl,
     String dmwsProxyHost,
     String dmwsProxyPort,
     String rmwsProxyHost,
@@ -234,11 +234,11 @@ public class MeridioWrapper
     /*=================================================================
     * Get a handle to the MeridioMetaCarta Web Service
     *================================================================*/
-    if (meridioLCFWSUrl != null)
+    if (meridioACFWSUrl != null)
     {
       MetaCartaLocator meridioMCWS = new MetaCartaLocator(engineConfiguration);
       Service McWsService = null;
-      MetaCartaSoapStub meridioMetaCartaWebService = new MetaCartaSoapStub(meridioLCFWSUrl, McWsService);
+      MetaCartaSoapStub meridioMetaCartaWebService = new MetaCartaSoapStub(meridioACFWSUrl, McWsService);
 
       meridioMetaCartaWebService.setPortName(meridioMCWS.getMetaCartaSoapWSDDServiceName());
       meridioMetaCartaWebService.setUsername(userName);

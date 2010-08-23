@@ -33,7 +33,7 @@ public class SynchronizeAll extends BaseAgentsInitializationCommand
   {
   }
 
-  protected void doExecute(IThreadContext tc) throws LCFException
+  protected void doExecute(IThreadContext tc) throws ACFException
   {
     IAgentManager mgr = AgentManagerFactory.make(tc);
     String[] classnames = mgr.getAllAgents();
@@ -45,7 +45,7 @@ public class SynchronizeAll extends BaseAgentsInitializationCommand
       {
         AgentFactory.make(tc,classname);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         // Couldn't instantiate the agent: Remove from database table
         mgr.removeAgent(classname);
@@ -68,7 +68,7 @@ public class SynchronizeAll extends BaseAgentsInitializationCommand
       synchronizeAll.execute();
       System.err.println("Successfully synchronized all agents");
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       e.printStackTrace();
       System.exit(1);

@@ -22,7 +22,7 @@ import org.apache.acf.core.interfaces.*;
 import org.apache.acf.agents.interfaces.*;
 import org.apache.acf.crawler.interfaces.*;
 import org.apache.acf.crawler.system.Logging;
-import org.apache.acf.crawler.system.LCF;
+import org.apache.acf.crawler.system.ACF;
 import org.apache.acf.core.common.*;
 
 import java.io.*;
@@ -108,7 +108,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
 
   /** Set up a session */
   protected void getSession()
-    throws LCFException
+    throws ACFException
   {
     if (proxy == null)
     {
@@ -135,7 +135,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
       }
       catch (NumberFormatException e)
       {
-        throw new LCFException(e.getMessage(),e);
+        throw new ACFException(e.getMessage(),e);
       }
       serverLocation = params.getParameter("serverLocation");
       if (serverLocation == null)
@@ -156,7 +156,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
         ntlmDomain = userName.substring(0,index);
       }
       else
-        throw new LCFException("Invalid user name - need <domain>\\<name>");
+        throw new ACFException("Invalid user name - need <domain>\\<name>");
 
       serverUrl = serverProtocol + "://" + serverName;
       if (serverProtocol.equals("https"))
@@ -187,9 +187,9 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
 
       fileBaseUrl = serverUrl + encodedServerLocation;
 
-      File sharepointWSDDLocation = LCF.getFileProperty(wsddPathProperty);
+      File sharepointWSDDLocation = ACF.getFileProperty(wsddPathProperty);
       if (sharepointWSDDLocation == null)
-        throw new LCFException("SharePoint wsdd location path (property "+wsddPathProperty+") must be specified!");
+        throw new ACFException("SharePoint wsdd location path (property "+wsddPathProperty+") must be specified!");
 
       proxy = new SPSProxyHelper( serverUrl, encodedServerLocation, serverLocation, userName, password, myFactory, sharepointWSDDLocation.toString(),
         connectionManager );
@@ -230,7 +230,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
   /** Close the connection.  Call this before discarding the repository connector.
   */
   public void disconnect()
-    throws LCFException
+    throws ACFException
   {
     serverUrl = null;
     fileBaseUrl = null;
@@ -283,7 +283,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
   *@return the connection's status as a displayable string.
   */
   public String check()
-    throws LCFException
+    throws ACFException
   {
     getSession();
     try
@@ -303,7 +303,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
     {
       return "SharePoint temporarily unavailable: "+e.getMessage();
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       return e.getMessage();
     }
@@ -315,7 +315,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
   * in active use.
   */
   public void poll()
-    throws LCFException
+    throws ACFException
   {
     if (connectionManager != null)
       connectionManager.closeIdleConnections(60000L);
@@ -330,16 +330,16 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
   *@param input is the request object.
   */
   public void executeCommand(Configuration output, String command, Configuration input)
-    throws LCFException
+    throws ACFException
   {
     if (command.equals("field/list"))
     {
-      String sitePath = LCF.getRootArgument(input,"site_path");
+      String sitePath = ACF.getRootArgument(input,"site_path");
       if (sitePath == null)
-        throw new LCFException("Missing required argument 'site_path'");
-      String library = LCF.getRootArgument(input,"library");
+        throw new ACFException("Missing required argument 'site_path'");
+      String library = ACF.getRootArgument(input,"library");
       if (library == null)
-        throw new LCFException("Missing required argument 'library'");
+        throw new ACFException("Missing required argument 'library'");
       
       try
       {
@@ -362,18 +362,18 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
       }
       catch (ServiceInterruption e)
       {
-        LCF.createServiceInterruptionNode(output,e);
+        ACF.createServiceInterruptionNode(output,e);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
-        LCF.createErrorNode(output,e);
+        ACF.createErrorNode(output,e);
       }
     }
     else if (command.equals("site/list"))
     {
-      String sitePath = LCF.getRootArgument(input,"site_path");
+      String sitePath = ACF.getRootArgument(input,"site_path");
       if (sitePath == null)
-        throw new LCFException("Missing required argument 'site_path'");
+        throw new ACFException("Missing required argument 'site_path'");
 
       try
       {
@@ -389,18 +389,18 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
       }
       catch (ServiceInterruption e)
       {
-        LCF.createServiceInterruptionNode(output,e);
+        ACF.createServiceInterruptionNode(output,e);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
-        LCF.createErrorNode(output,e);
+        ACF.createErrorNode(output,e);
       }
     }
     else if (command.equals("library/list"))
     {
-      String sitePath = LCF.getRootArgument(input,"site_path");
+      String sitePath = ACF.getRootArgument(input,"site_path");
       if (sitePath == null)
-        throw new LCFException("Missing required argument 'site_path'");
+        throw new ACFException("Missing required argument 'site_path'");
 
       try
       {
@@ -416,11 +416,11 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
       }
       catch (ServiceInterruption e)
       {
-        LCF.createServiceInterruptionNode(output,e);
+        ACF.createServiceInterruptionNode(output,e);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
-        LCF.createErrorNode(output,e);
+        ACF.createErrorNode(output,e);
       }
     }
     else
@@ -455,7 +455,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
   */
   public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
     long startTime, long endTime, int jobMode)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     // Check the session
     getSession();
@@ -483,7 +483,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
   */
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
     DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     getSession();
 
@@ -789,7 +789,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
         }
       }
       else
-        throw new LCFException("Invalid document identifier discovered: '"+documentIdentifier+"'");
+        throw new ACFException("Invalid document identifier discovered: '"+documentIdentifier+"'");
       i++;
     }
     return rval;
@@ -807,7 +807,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
   * should only find other references, and should not actually call the ingestion methods.
   */
   public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     getSession();
 
@@ -926,7 +926,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
                 {
                   // Unexpected processing error; the path to the folder or document did not start with the location
                   // offset, so throw up.
-                  throw new LCFException("Internal error: Relative path '"+relPath+"' was expected to start with '"+
+                  throw new ACFException("Internal error: Relative path '"+relPath+"' was expected to start with '"+
                     serverLocation+"'");
                 }
 
@@ -1068,7 +1068,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
                       {
                         activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
                           null,documentIdentifier,"Error","Http status "+Integer.toString(returnCode),null);
-                        throw new LCFException("Error fetching document '"+fileUrl+"': "+Integer.toString(returnCode));
+                        throw new ACFException("Error fetching document '"+fileUrl+"': "+Integer.toString(returnCode));
                       }
 
                       // int contentSize = (int)method.getResponseContentLength();
@@ -1100,7 +1100,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
                         }
                         catch (InterruptedIOException e)
                         {
-                          throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+                          throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
                         }
                         catch (IOException e)
                         {
@@ -1120,7 +1120,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
                   }
                   catch (InterruptedException e)
                   {
-                    throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+                    throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
                   }
                   catch (java.net.SocketTimeoutException e)
                   {
@@ -1142,14 +1142,14 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
                   }
                   catch (InterruptedIOException e)
                   {
-                    throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+                    throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
                   }
                   catch (IllegalArgumentException e)
                   {
                     Logging.connectors.error("SharePoint: Illegal argument", e);
                     activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
                       new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
-                    throw new LCFException("SharePoint: Illegal argument: "+e.getMessage(),e);
+                    throw new ACFException("SharePoint: Illegal argument: "+e.getMessage(),e);
                   }
                   catch (HttpException e)
                   {
@@ -1289,7 +1289,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
                   }
                   catch (InterruptedIOException e)
                   {
-                    throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+                    throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
                   }
                   catch (IOException e)
                   {
@@ -1305,25 +1305,25 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
             }
             catch (java.net.SocketTimeoutException e)
             {
-              throw new LCFException("Socket timeout error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
+              throw new ACFException("Socket timeout error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
             }
             catch (org.apache.commons.httpclient.ConnectTimeoutException e)
             {
-              throw new LCFException("Connect timeout error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
+              throw new ACFException("Connect timeout error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
             }
             catch (InterruptedIOException e)
             {
-              throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+              throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
             }
             catch (IOException e)
             {
-              throw new LCFException("IO error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
+              throw new ACFException("IO error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
             }
           }
         }
       }
       else
-        throw new LCFException("Found illegal document identifier in processDocuments: '"+documentIdentifier+"'");
+        throw new ACFException("Found illegal document identifier in processDocuments: '"+documentIdentifier+"'");
 
       i++;
     }
@@ -1346,7 +1346,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     tabsArray.add("Server");
     out.print(
@@ -1472,7 +1472,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
   *@param tabName is the current tab name.
   */
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     String serverVersion = parameters.getParameter("serverVersion");
     if (serverVersion == null)
@@ -1629,7 +1629,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
-    throws LCFException
+    throws ACFException
   {
     String serverVersion = variableContext.getParameter("serverVersion");
     if (serverVersion != null)
@@ -1729,7 +1729,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
@@ -1777,7 +1777,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     tabsArray.add("Paths");
     tabsArray.add("Security");
@@ -1953,7 +1953,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
   *@param tabName is the current tab name.
   */
   public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     int i;
     int k;
@@ -2224,7 +2224,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
             pathLibrary = null;
           }
         }
-        catch (LCFException e)
+        catch (ACFException e)
         {
           e.printStackTrace();
           message = e.getMessage();
@@ -2851,7 +2851,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
         {
           metaFieldList = getFieldList(site,lib);
         }
-        catch (LCFException e)
+        catch (ACFException e)
         {
           e.printStackTrace();
           message = e.getMessage();
@@ -2897,7 +2897,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
             metaPathState = "unknown";
           }
         }
-        catch (LCFException e)
+        catch (ACFException e)
         {
           e.printStackTrace();
           message = e.getMessage();
@@ -3228,7 +3228,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
-    throws LCFException
+    throws ACFException
   {
     // Remove old-style rules, but only if the information would not be lost
     if (variableContext.getParameter("specpathcount") != null && variableContext.getParameter("metapathcount") != null)
@@ -3744,7 +3744,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
   *@param ds is the current document specification for this job.
   */
   public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     // Display path rules
     out.print(
@@ -4195,7 +4195,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
   * @return list of the fields
   */
   public Map getFieldList( String parentSite, String docLibrary )
-    throws ServiceInterruption, LCFException
+    throws ServiceInterruption, ACFException
   {
     getSession();
     return proxy.getFieldList( encodePath(parentSite), proxy.getDocLibID( encodePath(parentSite), parentSite, docLibrary) );
@@ -4207,7 +4207,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
   * @return list of the sites
   */
   public ArrayList getSites( String parentSite )
-    throws ServiceInterruption, LCFException
+    throws ServiceInterruption, ACFException
   {
     getSession();
     return proxy.getSites( encodePath(parentSite) );
@@ -4219,7 +4219,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
   * @return list of the libraries
   */
   public ArrayList getDocLibsBySite( String parentSite )
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     getSession();
     return proxy.getDocumentLibraries( encodePath(parentSite), parentSite );
@@ -5058,7 +5058,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
 
     /** Constructor */
     public SystemMetadataDescription(DocumentSpecification spec)
-      throws LCFException
+      throws ACFException
     {
       pathAttributeName = null;
       int i = 0;
@@ -5087,7 +5087,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
     /** Given an identifier, get the translated string that goes into the metadata.
     */
     public String getPathAttributeValue(String documentIdentifier)
-      throws LCFException
+      throws ACFException
     {
       String path = getPathString(documentIdentifier);
       return matchMap.translate(path);
@@ -5098,7 +5098,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
     * is easy to calculate.
     */
     public String getPathString(String documentIdentifier)
-      throws LCFException
+      throws ACFException
     {
       // There will be a "//" somewhere in the string.  Remove it!
       int dslashIndex = documentIdentifier.indexOf("//");
@@ -5118,7 +5118,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
     /** Constructor.  Pass the keystore.
     */
     public MySSLSocketFactory(IKeystoreManager keystore)
-      throws LCFException
+      throws ACFException
     {
       this.keystore = keystore;
       thisSocketFactory = keystore.getSecureSocketFactory();
@@ -5199,7 +5199,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
       {
         return keystore.getString().equals(other.keystore.getString());
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         return false;
       }
@@ -5211,7 +5211,7 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
       {
         return keystore.getString().hashCode();
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         return 0;
       }

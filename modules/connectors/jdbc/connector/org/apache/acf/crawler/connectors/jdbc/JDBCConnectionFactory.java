@@ -21,7 +21,7 @@ package org.apache.acf.crawler.connectors.jdbc;
 import org.apache.acf.core.interfaces.*;
 import org.apache.acf.agents.interfaces.*;
 import org.apache.acf.crawler.system.Logging;
-import org.apache.acf.crawler.system.LCF;
+import org.apache.acf.crawler.system.ACF;
 
 import java.util.*;
 import java.sql.*;
@@ -66,14 +66,14 @@ public class JDBCConnectionFactory
 
 
   public static Connection getConnection(String providerName, String host, String database, String userName, String password)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     if (database.length() == 0)
       database = "_root_";
 
     String driverClassName = (String)driverMap.get(providerName);
     if (driverClassName == null)
-      throw new LCFException("Unrecognized jdbc provider: '"+providerName+"'");
+      throw new ACFException("Unrecognized jdbc provider: '"+providerName+"'");
 
     String instanceName = null;
     // Special for MSSQL: Allow database spec to contain an instance name too, in form:
@@ -111,7 +111,7 @@ public class JDBCConnectionFactory
         // Better include the credentials on the pool key, or we won't be able to change those and have it build new connections
         // The password value is SHA-1 hashed, because the pool driver reports the password in many exceptions and we don't want it
         // to be displayed.
-        poolKey += "/" + userName + "/" + LCF.hash(password);
+        poolKey += "/" + userName + "/" + ACF.hash(password);
 
         synchronized (_pool)
         {
@@ -134,7 +134,7 @@ public class JDBCConnectionFactory
           ConnectionPoolManager.URL_PREFIX + poolKey, null, null);
       }
       else
-        throw new LCFException("Can't get connection since pool driver did not initialize properly");
+        throw new ACFException("Can't get connection since pool driver did not initialize properly");
     }
     catch (java.sql.SQLException e)
     {
@@ -153,7 +153,7 @@ public class JDBCConnectionFactory
       }
       catch (java.sql.SQLException e2)
       {
-        throw new LCFException("Error getting connection: "+e2.getMessage(),e2,LCFException.SETUP_ERROR);
+        throw new ACFException("Error getting connection: "+e2.getMessage(),e2,ACFException.SETUP_ERROR);
       }
       // By definition, this must be a service interruption, because the direct route in setting up the connection succeeded.
       long currentTime = System.currentTimeMillis();
@@ -161,20 +161,20 @@ public class JDBCConnectionFactory
     }
     catch (java.lang.ClassNotFoundException e)
     {
-      throw new LCFException("Driver class not found: "+e.getMessage(),e,LCFException.SETUP_ERROR);
+      throw new ACFException("Driver class not found: "+e.getMessage(),e,ACFException.SETUP_ERROR);
     }
     catch (java.lang.InstantiationException e)
     {
-      throw new LCFException("Driver class not instantiable: "+e.getMessage(),e,LCFException.SETUP_ERROR);
+      throw new ACFException("Driver class not instantiable: "+e.getMessage(),e,ACFException.SETUP_ERROR);
     }
     catch (java.lang.IllegalAccessException e)
     {
-      throw new LCFException("Driver class not accessible: "+e.getMessage(),e,LCFException.SETUP_ERROR);
+      throw new ACFException("Driver class not accessible: "+e.getMessage(),e,ACFException.SETUP_ERROR);
     }
   }
 
   public static void releaseConnection(Connection c)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     try
     {
@@ -182,7 +182,7 @@ public class JDBCConnectionFactory
     }
     catch (java.sql.SQLException e)
     {
-      throw new LCFException("Error releasing connection: "+e.getMessage(),e);
+      throw new ACFException("Error releasing connection: "+e.getMessage(),e);
     }
   }
 

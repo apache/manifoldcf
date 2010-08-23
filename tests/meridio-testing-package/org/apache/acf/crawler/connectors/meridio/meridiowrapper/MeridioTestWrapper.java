@@ -91,7 +91,7 @@ public class MeridioTestWrapper extends MeridioWrapper
         throws RemoteException, MalformedURLException, UnknownHostException
         {
                 super(null,new URL(meridioDmwsUrlString),new URL(meridioRmwsUrlString),null,null,null,null,null,null,null,userName,password,
-                      InetAddress.getLocalHost().getHostName(),new ProtocolFactory(),LCF.getProperty("org.apache.acf.meridio.wsddpath"));
+                      InetAddress.getLocalHost().getHostName(),new ProtocolFactory(),ACF.getProperty("org.apache.acf.meridio.wsddpath"));
                 this.meridioDmwsUrl = new URL(meridioDmwsUrlString);
                 this.meridioRmwsUrl = new URL(meridioRmwsUrlString);
                 this.userName = userName;

@@ -157,7 +157,7 @@
 <%
 					}
 				}
-				catch (LCFException e)
+				catch (ACFException e)
 				{
 					e.printStackTrace();
 					variableContext.setParameter("text",e.getMessage());
@@ -173,13 +173,13 @@
 				{
 					String connectionName = variableContext.getParameter("connname");
 					if (connectionName == null)
-						throw new LCFException("Missing connection parameter");
+						throw new ACFException("Missing connection parameter");
 					connManager.delete(connectionName);
 %>
 					<jsp:forward page="listconnections.jsp"/>
 <%
 				}
-				catch (LCFException e)
+				catch (ACFException e)
 				{
 					e.printStackTrace();
 					variableContext.setParameter("text",e.getMessage());
@@ -266,7 +266,7 @@
 <%
 					}
 				}
-				catch (LCFException e)
+				catch (ACFException e)
 				{
 					e.printStackTrace();
 					variableContext.setParameter("text",e.getMessage());
@@ -282,13 +282,13 @@
 				{
 					String connectionName = variableContext.getParameter("connname");
 					if (connectionName == null)
-						throw new LCFException("Missing connection parameter");
+						throw new ACFException("Missing connection parameter");
 					authConnManager.delete(connectionName);
 %>
 					<jsp:forward page="listauthorities.jsp"/>
 <%
 				}
-				catch (LCFException e)
+				catch (ACFException e)
 				{
 					e.printStackTrace();
 					variableContext.setParameter("text",e.getMessage());
@@ -375,7 +375,7 @@
 <%
 					}
 				}
-				catch (LCFException e)
+				catch (ACFException e)
 				{
 					e.printStackTrace();
 					variableContext.setParameter("text",e.getMessage());
@@ -391,13 +391,13 @@
 				{
 					String connectionName = variableContext.getParameter("connname");
 					if (connectionName == null)
-						throw new LCFException("Missing connection parameter");
+						throw new ACFException("Missing connection parameter");
 					outputManager.delete(connectionName);
 %>
 					<jsp:forward page="listoutputs.jsp"/>
 <%
 				}
-				catch (LCFException e)
+				catch (ACFException e)
 				{
 					e.printStackTrace();
 					variableContext.setParameter("text",e.getMessage());
@@ -419,13 +419,13 @@
 				{
 					String connectionName = variableContext.getParameter("connname");
 					if (connectionName == null)
-						throw new LCFException("Missing connection parameter");
-					org.apache.acf.agents.system.LCF.signalOutputConnectionRedo(threadContext,connectionName);
+						throw new ACFException("Missing connection parameter");
+					org.apache.acf.agents.system.ACF.signalOutputConnectionRedo(threadContext,connectionName);
 %>
 					<jsp:forward page="listoutputs.jsp"/>
 <%
 				}
-				catch (LCFException e)
+				catch (ACFException e)
 				{
 					e.printStackTrace();
 					variableContext.setParameter("text",e.getMessage());
@@ -769,7 +769,7 @@
 <%
 					}
 				}
-				catch (LCFException e)
+				catch (ACFException e)
 				{
 					e.printStackTrace();
 					variableContext.setParameter("text",e.getMessage());
@@ -785,13 +785,13 @@
 				{
 					String jobID = variableContext.getParameter("jobid");
 					if (jobID == null)
-						throw new LCFException("Missing job parameter");
+						throw new ACFException("Missing job parameter");
 					manager.deleteJob(new Long(jobID));
 %>
 					<jsp:forward page="listjobs.jsp"/>
 <%
 				}
-				catch (LCFException e)
+				catch (ACFException e)
 				{
 					e.printStackTrace();
 					variableContext.setParameter("text",e.getMessage());
@@ -922,7 +922,7 @@
 <%
 		}
 	}
-	catch (LCFException e)
+	catch (ACFException e)
 	{
 		e.printStackTrace();
 		variableContext.setParameter("text",e.getMessage());

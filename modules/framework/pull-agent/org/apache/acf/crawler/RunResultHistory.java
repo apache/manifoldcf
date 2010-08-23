@@ -73,7 +73,7 @@ public class RunResultHistory
 
     try
     {
-      LCF.initializeEnvironment();
+      ACF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
       IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(tc);
 

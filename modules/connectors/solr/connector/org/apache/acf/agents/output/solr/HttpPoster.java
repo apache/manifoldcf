@@ -111,7 +111,7 @@ public class HttpPoster
     {
       secureSocketFactory = getSecureSocketFactory();
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       // If we can't create, print and fail
       e.printStackTrace();
@@ -128,7 +128,7 @@ public class HttpPoster
     String updatePath, String removePath, String statusPath,
     String realm, String userID, String password,
     String allowAttributeName, String denyAttributeName, String idAttributeName)
-    throws LCFException
+    throws ACFException
   {
     this.allowAttributeName = allowAttributeName;
     this.denyAttributeName = denyAttributeName;
@@ -146,7 +146,7 @@ public class HttpPoster
       }
       catch (java.io.UnsupportedEncodingException e)
       {
-        throw new LCFException("Couldn't convert to utf-8 bytes: "+e.getMessage(),e);
+        throw new ACFException("Couldn't convert to utf-8 bytes: "+e.getMessage(),e);
       }
       this.realm = realm;
     }
@@ -162,16 +162,16 @@ public class HttpPoster
     postRemoveAction = webappName + removePath;
     postStatusAction = webappName + statusPath;
 
-    String x = LCF.getProperty(ingestBufferSizeProperty);
+    String x = ACF.getProperty(ingestBufferSizeProperty);
     if (x != null && x.length() > 0)
       buffersize = new Integer(x).intValue();
-    x = LCF.getProperty(ingestResponseRetryCount);
+    x = ACF.getProperty(ingestResponseRetryCount);
     if (x != null && x.length() > 0)
       responseRetries = new Integer(x).intValue();
-    x = LCF.getProperty(ingestResponseRetryInterval);
+    x = ACF.getProperty(ingestResponseRetryInterval);
     if (x != null && x.length() > 0)
       responseRetryWait = new Long(x).longValue();
-    x = LCF.getProperty(ingestRescheduleInterval);
+    x = ACF.getProperty(ingestRescheduleInterval);
     if (x != null && x.length() > 0)
       interruptionRetryTime = new Long(x).longValue();
   }
@@ -185,12 +185,12 @@ public class HttpPoster
   * @param authorityNameString is the name of the governing authority for this document's acls, or null if none.
   * @param activities is the activities object, so we can report what's happening.
   * @return true if the ingestion was successful, or false if the ingestion is illegal.
-  * @throws LCFException, ServiceInterruption
+  * @throws ACFException, ServiceInterruption
   */
   public boolean indexPost(String documentURI,
     RepositoryDocument document, Map arguments, Map sourceTargets,
     String authorityNameString, IOutputAddActivity activities)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     if (Logging.ingest.isDebugEnabled())
       Logging.ingest.debug("indexPost(): '" + documentURI + "'");
@@ -227,8 +227,8 @@ public class HttpPoster
           {
             if (thr instanceof ServiceInterruption)
               throw (ServiceInterruption)thr;
-            if (thr instanceof LCFException)
-              throw (LCFException)thr;
+            if (thr instanceof ACFException)
+              throw (ACFException)thr;
             if (thr instanceof IOException)
               throw (IOException)thr;
             if (thr instanceof RuntimeException)
@@ -241,7 +241,7 @@ public class HttpPoster
         catch (InterruptedException e)
         {
           t.interrupt();
-          throw new LCFException("Interrupted: "+e.getMessage(),LCFException.INTERRUPTED);
+          throw new ACFException("Interrupted: "+e.getMessage(),ACFException.INTERRUPTED);
         }
       }
       catch (java.net.SocketTimeoutException ioe)
@@ -276,11 +276,11 @@ public class HttpPoster
       // Sleep for a time, and retry
       try
       {
-        LCF.sleep(10000L);
+        ACF.sleep(10000L);
       }
       catch (InterruptedException e)
       {
-        throw new LCFException("Interrupted: "+e.getMessage(),LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),ACFException.INTERRUPTED);
       }
       ioErrorRetry--;
 
@@ -293,7 +293,7 @@ public class HttpPoster
   /** Post a check request.
   */
   public void checkPost()
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     if (Logging.ingest.isDebugEnabled())
       Logging.ingest.debug("checkPost()");
@@ -315,8 +315,8 @@ public class HttpPoster
           {
             if (thr instanceof ServiceInterruption)
               throw (ServiceInterruption)thr;
-            if (thr instanceof LCFException)
-              throw (LCFException)thr;
+            if (thr instanceof ACFException)
+              throw (ACFException)thr;
             if (thr instanceof IOException)
               throw (IOException)thr;
             if (thr instanceof RuntimeException)
@@ -329,7 +329,7 @@ public class HttpPoster
         catch (InterruptedException e)
         {
           t.interrupt();
-          throw new LCFException("Interrupted: "+e.getMessage(),LCFException.INTERRUPTED);
+          throw new ACFException("Interrupted: "+e.getMessage(),ACFException.INTERRUPTED);
         }
       }
       catch (IOException ioe)
@@ -350,11 +350,11 @@ public class HttpPoster
       // Sleep for a time, and retry
       try
       {
-        LCF.sleep(10000L);
+        ACF.sleep(10000L);
       }
       catch (InterruptedException e)
       {
-        throw new LCFException("Interrupted",LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted",ACFException.INTERRUPTED);
       }
       ioErrorRetry--;
 
@@ -366,7 +366,7 @@ public class HttpPoster
   *@param documentURI is the document's URI.
   */
   public void deletePost(String documentURI, IOutputRemoveActivity activities)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     if (Logging.ingest.isDebugEnabled())
       Logging.ingest.debug("deletePost(): '" + documentURI + "'");
@@ -391,8 +391,8 @@ public class HttpPoster
           {
             if (thr instanceof ServiceInterruption)
               throw (ServiceInterruption)thr;
-            if (thr instanceof LCFException)
-              throw (LCFException)thr;
+            if (thr instanceof ACFException)
+              throw (ACFException)thr;
             if (thr instanceof IOException)
               throw (IOException)thr;
             if (thr instanceof RuntimeException)
@@ -405,7 +405,7 @@ public class HttpPoster
         catch (InterruptedException e)
         {
           t.interrupt();
-          throw new LCFException("Interrupted: "+e.getMessage(),LCFException.INTERRUPTED);
+          throw new ACFException("Interrupted: "+e.getMessage(),ACFException.INTERRUPTED);
         }
       }
       catch (IOException ioe)
@@ -427,11 +427,11 @@ public class HttpPoster
       // Sleep for a time, and retry
       try
       {
-        LCF.sleep(10000L);
+        ACF.sleep(10000L);
       }
       catch (InterruptedException e)
       {
-        throw new LCFException("Interrupted",LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted",ACFException.INTERRUPTED);
       }
 
       ioErrorRetry--;
@@ -447,7 +447,7 @@ public class HttpPoster
   * @return the modified ACL.
   */
   protected static String[] convertACL(String[] acl, String authorityNameString, IOutputAddActivity activities)
-    throws LCFException
+    throws ACFException
   {
     if (acl != null)
     {
@@ -489,9 +489,9 @@ public class HttpPoster
   * Get the response code of the post
   * @param in the stream the response is going to come from
   * @return the response details.
-  * @throws LCFException
+  * @throws ACFException
   */
-  protected CodeDetails getResponse(InputStream in) throws LCFException, ServiceInterruption
+  protected CodeDetails getResponse(InputStream in) throws ACFException, ServiceInterruption
   {
     Logging.ingest.debug("Waiting for response stream");
 
@@ -536,7 +536,7 @@ public class HttpPoster
       {
         doc = new XMLDoc(in);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         // Syntax errors should be eaten; we'll just return a null doc in that case.
         e.printStackTrace();
@@ -558,7 +558,7 @@ public class HttpPoster
     }
     catch (InterruptedIOException e)
     {
-      throw new LCFException("Interrupted",LCFException.INTERRUPTED);
+      throw new ACFException("Interrupted",ACFException.INTERRUPTED);
     }
     catch (java.net.ConnectException e)
     {
@@ -611,7 +611,7 @@ public class HttpPoster
   /** Build a secure socket factory based on no keystore and a lax trust manager.
   * This allows use of SSL for privacy but not identification. */
   protected static javax.net.ssl.SSLSocketFactory getSecureSocketFactory()
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -624,18 +624,18 @@ public class HttpPoster
     }
     catch (java.security.NoSuchAlgorithmException e)
     {
-      throw new LCFException("No such algorithm: "+e.getMessage(),e);
+      throw new ACFException("No such algorithm: "+e.getMessage(),e);
     }
     catch (java.security.KeyManagementException e)
     {
-      throw new LCFException("Key management exception: "+e.getMessage(),e);
+      throw new ACFException("Key management exception: "+e.getMessage(),e);
     }
   }
 
   /** Create a socket in a manner consistent with all of our specified parameters.
   */
   protected Socket createSocket(long responseRetryCount)
-    throws IOException, LCFException
+    throws IOException, ACFException
   {
     Socket socket;
     if (protocol.equals("https"))
@@ -651,7 +651,7 @@ public class HttpPoster
       }
       catch (IOException e)
       {
-        throw new LCFException("Couldn't set up SSL connection to ingestion API: "+e.getMessage(),e);
+        throw new ACFException("Couldn't set up SSL connection to ingestion API: "+e.getMessage(),e);
       }
     }
     else
@@ -1193,7 +1193,7 @@ public class HttpPoster
 
                 // A negative number means http error of some kind.
                 if (codeValue < 0)
-                  throw new LCFException("Http protocol error");
+                  throw new ACFException("Http protocol error");
 
                 // 200 means we got a status document back
                 if (codeValue == 200)
@@ -1211,11 +1211,11 @@ public class HttpPoster
                 //    If the situation is (2), then we CAN'T retry if we already read any of the stream; therefore
                 //    we are forced to throw a "service interrupted" exception, and let the caller reschedule
                 //    the ingestion.
-                // 3) Something is wrong with the setup, e.g. bad credentials.  In this case we chuck a LCFException,
+                // 3) Something is wrong with the setup, e.g. bad credentials.  In this case we chuck a ACFException,
                 //    since this will abort the current activity entirely.
 
                 if (codeValue == 401)
-                  throw new LCFException("Bad credentials for ingestion",LCFException.SETUP_ERROR);
+                  throw new ACFException("Bad credentials for ingestion",ACFException.SETUP_ERROR);
 
                 if (codeValue >= 400 && codeValue < 500)
                 {
@@ -1226,7 +1226,7 @@ public class HttpPoster
                 // If this continues, we should indeed abort the job.  Retries should not go on indefinitely either; 2 hours is plenty
                 long currentTime = System.currentTimeMillis();
                 throw new ServiceInterruption("Error "+Integer.toString(codeValue)+" from ingestion request; ingestion will be retried again later",
-                  new LCFException("Ingestion HTTP error code "+Integer.toString(codeValue)),
+                  new ACFException("Ingestion HTTP error code "+Integer.toString(codeValue)),
                   currentTime + interruptionRetryTime,
                   currentTime + 2L * 60L * 60000L,
                   -1,
@@ -1261,7 +1261,7 @@ public class HttpPoster
         }
         catch (UnsupportedEncodingException ioe)
         {
-          throw new LCFException("Fatal ingestion error: "+ioe.getMessage(),ioe);
+          throw new ACFException("Fatal ingestion error: "+ioe.getMessage(),ioe);
         }
         catch (java.net.SocketTimeoutException ioe)
         {
@@ -1431,7 +1431,7 @@ public class HttpPoster
                 int codeValue = cd.getCodeValue();
 
                 if (codeValue < 0)
-                  throw new LCFException("Http protocol error");
+                  throw new ACFException("Http protocol error");
 
                 // 200 means we got an xml document back
                 if (codeValue == 200)
@@ -1443,13 +1443,13 @@ public class HttpPoster
 
                 // We ignore everything in the range from 400-500 now
                 if (codeValue == 401)
-                  throw new LCFException("Bad credentials for ingestion",LCFException.SETUP_ERROR);
+                  throw new ACFException("Bad credentials for ingestion",ACFException.SETUP_ERROR);
 
                 if (codeValue >= 400 && codeValue < 500)
                   return;
 
                 // Anything else means the document didn't delete.  Throw the error.
-                throw new LCFException("Error deleting document: '"+cd.getDescription()+"'");
+                throw new ACFException("Error deleting document: '"+cd.getDescription()+"'");
               }
               finally
               {
@@ -1480,7 +1480,7 @@ public class HttpPoster
         }
         catch (UnsupportedEncodingException ioe)
         {
-          throw new LCFException("Fatal ingestion error: "+ioe.getMessage(),ioe);
+          throw new ACFException("Fatal ingestion error: "+ioe.getMessage(),ioe);
         }
         catch (InterruptedIOException ioe)
         {
@@ -1577,7 +1577,7 @@ public class HttpPoster
 
                 int codeValue = cd.getCodeValue();
                 if (codeValue < 0)
-                  throw new LCFException("Http protocol error");
+                  throw new ACFException("Http protocol error");
 
                 // 200 means everything went OK
                 if (codeValue == 200)
@@ -1588,10 +1588,10 @@ public class HttpPoster
 
                 // We ignore everything in the range from 400-500 now
                 if (codeValue == 401)
-                  throw new LCFException("Bad credentials for ingestion",LCFException.SETUP_ERROR);
+                  throw new ACFException("Bad credentials for ingestion",ACFException.SETUP_ERROR);
 
                 // Anything else means the info request failed.
-                throw new LCFException("Error connecting to ingestion API: '"+cd.getDescription()+"'");
+                throw new ACFException("Error connecting to ingestion API: '"+cd.getDescription()+"'");
               }
               finally
               {
@@ -1622,7 +1622,7 @@ public class HttpPoster
         }
         catch (UnsupportedEncodingException ioe)
         {
-          throw new LCFException("Fatal ingestion error: "+ioe.getMessage(),ioe);
+          throw new ACFException("Fatal ingestion error: "+ioe.getMessage(),ioe);
         }
         catch (InterruptedIOException ioe)
         {
@@ -1708,13 +1708,13 @@ public class HttpPoster
     }
 
     public String getDescription()
-      throws LCFException
+      throws ACFException
     {
       return res + "\r\n" + ((returnDoc!=null)?returnDoc.getXML():"");
     }
 
     public void parseIngestionResponse()
-      throws LCFException
+      throws ACFException
     {
       // Look at response XML
       String statusValue = "unknown";
@@ -1763,20 +1763,20 @@ public class HttpPoster
         if (statusValue.equals("0"))
           return;
 
-        throw new LCFException("Ingestion returned error: "+statusValue);
+        throw new ACFException("Ingestion returned error: "+statusValue);
       }
       else
-        throw new LCFException("XML parsing error on response");
+        throw new ACFException("XML parsing error on response");
     }
 
     public void parseRemovalResponse()
-      throws LCFException
+      throws ACFException
     {
       parseIngestionResponse();
     }
 
     public void parseStatusResponse()
-      throws LCFException
+      throws ACFException
     {
       // Look at response XML
       String statusValue = "unknown";
@@ -1812,10 +1812,10 @@ public class HttpPoster
         if (statusValue.equals("OK"))
           return;
 
-        throw new LCFException("Status error: "+statusValue);
+        throw new ACFException("Status error: "+statusValue);
       }
       else
-        throw new LCFException("XML parsing error on response");
+        throw new ACFException("XML parsing error on response");
     }
   }
 

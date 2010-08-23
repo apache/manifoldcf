@@ -23,7 +23,7 @@ import java.util.*;
 import org.apache.acf.core.interfaces.*;
 import org.apache.acf.crawler.interfaces.*;
 import org.apache.acf.crawler.system.Logging;
-import org.apache.acf.crawler.system.LCF;
+import org.apache.acf.crawler.system.ACF;
 
 /** This class manages the table that keeps track of intrinsic relationships between documents.
 */
@@ -65,7 +65,7 @@ public class Carrydown extends org.apache.acf.core.database.BaseTable
   *@param database is the database handle.
   */
   public Carrydown(IDBInterface database)
-    throws LCFException
+    throws ACFException
   {
     super(database,"carrydown");
   }
@@ -73,7 +73,7 @@ public class Carrydown extends org.apache.acf.core.database.BaseTable
   /** Install or upgrade.
   */
   public void install(String jobsTable, String jobsColumn)
-    throws LCFException
+    throws ACFException
   {
     // Standard practice: Outer loop, to support upgrade requirements.
     while (true)
@@ -153,7 +153,7 @@ public class Carrydown extends org.apache.acf.core.database.BaseTable
   /** Uninstall.
   */
   public void deinstall()
-    throws LCFException
+    throws ACFException
   {
     performDrop(null);
   }
@@ -161,7 +161,7 @@ public class Carrydown extends org.apache.acf.core.database.BaseTable
   /** Analyze job tables that need analysis.
   */
   public void analyzeTables()
-    throws LCFException
+    throws ACFException
   {
     long startTime = System.currentTimeMillis();
     Logging.perf.debug("Beginning to analyze carrydown table");
@@ -172,7 +172,7 @@ public class Carrydown extends org.apache.acf.core.database.BaseTable
   /** Delete an owning job (and clean up the corresponding carrydown rows).
   */
   public void deleteOwner(Long jobID)
-    throws LCFException
+    throws ACFException
   {
     ArrayList list = new ArrayList();
     list.add(jobID);
@@ -192,7 +192,7 @@ public class Carrydown extends org.apache.acf.core.database.BaseTable
   /** Reset, at startup time.
   */
   public void reset()
-    throws LCFException
+    throws ACFException
   {
     // Delete "new" rows
     HashMap map = new HashMap();
@@ -213,7 +213,7 @@ public class Carrydown extends org.apache.acf.core.database.BaseTable
   */
   public boolean recordCarrydownData(Long jobID, String parentDocumentIDHash, String childDocumentIDHash,
     String[] documentDataNames, String[][] documentDataValueHashes, Object[][] documentDataValues)
-    throws LCFException
+    throws ACFException
   {
     return recordCarrydownDataMultiple(jobID,parentDocumentIDHash,new String[]{childDocumentIDHash},
       new String[][]{documentDataNames},new String[][][]{documentDataValueHashes},new Object[][][]{documentDataValues})[0];
@@ -223,7 +223,7 @@ public class Carrydown extends org.apache.acf.core.database.BaseTable
   */
   public boolean[] recordCarrydownDataMultiple(Long jobID, String parentDocumentIDHash, String[] childDocumentIDHashes,
     String[][] dataNames, String[][][] dataValueHashes, Object[][][] dataValues)
-    throws LCFException
+    throws ACFException
   {
 
     // Need to go into a transaction because we need to distinguish between update and insert.
@@ -384,7 +384,7 @@ public class Carrydown extends org.apache.acf.core.database.BaseTable
 
   /** Do the exists check, in batch. */
   protected void performExistsCheck(Map presentMap, String query, ArrayList list)
-    throws LCFException
+    throws ACFException
   {
     // Note well: presentMap is only checked for the *existence* of a record, so we do not need to populate the datavalue field!
     // This is crucial, because otherwise we'd either be using an undetermined amount of memory, or we'd need to read into a temporary file.
@@ -406,7 +406,7 @@ public class Carrydown extends org.apache.acf.core.database.BaseTable
   * and delete the old (eliminated) child records.
   */
   public void restoreRecords(Long jobID, String[] parentDocumentIDHashes)
-    throws LCFException
+    throws ACFException
   {
     beginTransaction();
     try
@@ -438,7 +438,7 @@ public class Carrydown extends org.apache.acf.core.database.BaseTable
       if (k > 0)
         performRestoreRecords(sb.toString(),list);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -455,7 +455,7 @@ public class Carrydown extends org.apache.acf.core.database.BaseTable
   }
 
   protected void performRestoreRecords(String query, ArrayList list)
-    throws LCFException
+    throws ACFException
   {
     // Delete
     StringBuffer sb = new StringBuffer("WHERE (");
@@ -477,7 +477,7 @@ public class Carrydown extends org.apache.acf.core.database.BaseTable
   /** Delete all records that mention a particular set of document identifiers.
   */
   public void deleteRecords(Long jobID, String[] documentIDHashes)
-    throws LCFException
+    throws ACFException
   {
     beginTransaction();
     try
@@ -524,7 +524,7 @@ public class Carrydown extends org.apache.acf.core.database.BaseTable
 
 
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -542,7 +542,7 @@ public class Carrydown extends org.apache.acf.core.database.BaseTable
   }
 
   protected void performDeleteRecords(String query, String query2, ArrayList list, ArrayList list2)
-    throws LCFException
+    throws ACFException
   {
     performDelete("WHERE "+query,list,null);
     performDelete("WHERE "+query2,list2,null);
@@ -550,7 +550,7 @@ public class Carrydown extends org.apache.acf.core.database.BaseTable
 
   /** Get unique values given a document identifier, data name, an job identifier */
   public String[] getDataValues(Long jobID, String documentIdentifierHash, String dataName)
-    throws LCFException
+    throws ACFException
   {
     ArrayList list = new ArrayList();
     list.add(jobID);
@@ -575,7 +575,7 @@ public class Carrydown extends org.apache.acf.core.database.BaseTable
 
   /** Get unique values given a document identifier, data name, an job identifier */
   public CharacterInput[] getDataValuesAsFiles(Long jobID, String documentIdentifierHash, String dataName)
-    throws LCFException
+    throws ACFException
   {
     ArrayList list = new ArrayList();
     list.add(jobID);
@@ -624,7 +624,7 @@ public class Carrydown extends org.apache.acf.core.database.BaseTable
   /** Conditionally do analyze operation.
   */
   public void conditionallyAnalyzeTables()
-    throws LCFException
+    throws ACFException
   {
     if (tracker.checkAnalyze())
     {
@@ -678,7 +678,7 @@ public class Carrydown extends org.apache.acf.core.database.BaseTable
     *@return true if it should be included, false otherwise.
     */
     public boolean checkInclude(IResultRow row)
-      throws LCFException
+      throws ACFException
     {
       // Check to be sure that this row is different from the last; only then agree to include it.
       String value = (String)row.getValue(dataValueHashField);
@@ -696,7 +696,7 @@ public class Carrydown extends org.apache.acf.core.database.BaseTable
     *@return true if we need to keep going, or false if we are done.
     */
     public boolean checkContinue()
-      throws LCFException
+      throws ACFException
     {
       return true;
     }
@@ -868,7 +868,7 @@ public class Carrydown extends org.apache.acf.core.database.BaseTable
     *@return true if it should be included, false otherwise.
     */
     public boolean checkInclude(IResultRow row)
-      throws LCFException
+      throws ACFException
     {
       Long jobID = (Long)row.getValue(jobIDField);
       String parentIDHash = (String)row.getValue(parentIDHashField);
@@ -897,7 +897,7 @@ public class Carrydown extends org.apache.acf.core.database.BaseTable
     *@return true if we need to keep going, or false if we are done.
     */
     public boolean checkContinue()
-      throws LCFException
+      throws ACFException
     {
       return true;
     }

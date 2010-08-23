@@ -20,7 +20,7 @@ package org.apache.acf.crawler.tests;
 
 import org.apache.acf.core.interfaces.*;
 import org.apache.acf.agents.interfaces.*;
-import org.apache.acf.agents.system.LCF;
+import org.apache.acf.agents.system.ACF;
 
 import java.io.*;
 import java.util.*;

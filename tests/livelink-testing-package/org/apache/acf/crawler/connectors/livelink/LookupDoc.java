@@ -51,7 +51,7 @@ public class LookupDoc
                         }
                         System.err.println("Successfully looked up");
                 }
-                catch (LCFException e)
+                catch (ACFException e)
                 {
                         e.printStackTrace(System.err);
                         System.exit(2);

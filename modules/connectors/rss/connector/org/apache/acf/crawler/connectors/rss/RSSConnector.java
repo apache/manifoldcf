@@ -22,7 +22,7 @@ import org.apache.acf.core.interfaces.*;
 import org.apache.acf.agents.interfaces.*;
 import org.apache.acf.crawler.interfaces.*;
 import org.apache.acf.crawler.system.Logging;
-import org.apache.acf.crawler.system.LCF;
+import org.apache.acf.crawler.system.ACF;
 
 import org.xml.sax.Attributes;
 
@@ -163,7 +163,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
 
   /** Establish a session */
   protected void getSession()
-    throws LCFException
+    throws ACFException
   {
     if (!isInitialized)
     {
@@ -171,8 +171,8 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
 
       String emailAddress = params.getParameter(emailParameter);
       if (emailAddress == null)
-        throw new LCFException("Missing email address");
-      userAgent = "ApacheLCFRSSFeedReader; "+((emailAddress==null)?"":emailAddress)+")";
+        throw new ACFException("Missing email address");
+      userAgent = "ApacheACFRSSFeedReader; "+((emailAddress==null)?"":emailAddress)+")";
       from = emailAddress;
 
       String robotsUsageString = params.getParameter(robotsUsageParameter);
@@ -199,7 +199,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
         }
         catch (NumberFormatException e)
         {
-          throw new LCFException(e.getMessage(),e);
+          throw new ACFException(e.getMessage(),e);
         }
       }
 
@@ -219,7 +219,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
         }
         catch (NumberFormatException e)
         {
-          throw new LCFException("Bad number: "+e.getMessage(),e);
+          throw new ACFException("Bad number: "+e.getMessage(),e);
         }
       }
 
@@ -232,7 +232,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
         }
         catch (NumberFormatException e)
         {
-          throw new LCFException("Bad number: "+e.getMessage(),e);
+          throw new ACFException("Bad number: "+e.getMessage(),e);
         }
       }
 
@@ -248,7 +248,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
         }
         catch (NumberFormatException e)
         {
-          throw new LCFException("Bad number: "+e.getMessage(),e);
+          throw new ACFException("Bad number: "+e.getMessage(),e);
         }
 
       }
@@ -315,7 +315,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
   * in active use.
   */
   public void poll()
-    throws LCFException
+    throws ACFException
   {
     fetcher.poll();
     robots.poll();
@@ -324,7 +324,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
   /** Check status of connection.
   */
   public String check()
-    throws LCFException
+    throws ACFException
   {
     getSession();
     return super.check();
@@ -333,7 +333,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
   /** Close the connection.  Call this before discarding the repository connector.
   */
   public void disconnect()
-    throws LCFException
+    throws ACFException
   {
     isInitialized = false;
 
@@ -407,7 +407,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
   */
   public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
     long startTime, long endTime)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     getSession();
 
@@ -433,7 +433,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
   *@return the canonical URL (the document identifier), or null if the url was illegal.
   */
   protected static String makeDocumentIdentifier(CanonicalizationPolicies policies, String parentIdentifier, String rawURL)
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -532,7 +532,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
   /** Code to canonicalize a URL.  If URL cannot be canonicalized (and is illegal) return null.
   */
   protected static String doCanonicalization(CanonicalizationPolicy p, java.net.URI url)
-    throws LCFException, java.net.URISyntaxException
+    throws ACFException, java.net.URISyntaxException
   {
     // Note well: The java.net.URI class mistreats the query part of the URI, near as I can tell, in the following ways:
     // (1) It decodes the whole thing without regards to the argument interpretation, so the escaped ampersands etc in the arguments are converted
@@ -745,7 +745,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
   */
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
     DocumentSpecification spec, int jobType, boolean usesDefaultAuthority)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     getSession();
 
@@ -892,19 +892,19 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
             }
             catch (UnsupportedEncodingException e)
             {
-              throw new LCFException("Unsupported encoding: "+e.getMessage(),e);
+              throw new ACFException("Unsupported encoding: "+e.getMessage(),e);
             }
             catch (java.net.SocketTimeoutException e)
             {
-              throw new LCFException("IO exception reading data from string: "+e.getMessage(),e);
+              throw new ACFException("IO exception reading data from string: "+e.getMessage(),e);
             }
             catch (InterruptedIOException e)
             {
-              throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+              throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
             }
             catch (IOException e)
             {
-              throw new LCFException("IO exception reading data from string: "+e.getMessage(),e);
+              throw new ACFException("IO exception reading data from string: "+e.getMessage(),e);
             }
           }
           else
@@ -1151,7 +1151,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
                     }
                     catch (InterruptedIOException e)
                     {
-                      throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+                      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
                     }
                     catch (IOException e)
                     {
@@ -1220,7 +1220,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
   */
   public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities,
     DocumentSpecification spec, boolean[] scanOnly, int jobType)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     getSession();
 
@@ -1462,15 +1462,15 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
               }
               catch (java.net.SocketTimeoutException e)
               {
-                throw new LCFException("IO error closing stream: "+e.getMessage(),e);
+                throw new ACFException("IO error closing stream: "+e.getMessage(),e);
               }
               catch (InterruptedIOException e)
               {
-                throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+                throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
               }
               catch (IOException e)
               {
-                throw new LCFException("IO error closing stream: "+e.getMessage(),e);
+                throw new ACFException("IO error closing stream: "+e.getMessage(),e);
               }
             }
           }
@@ -1494,7 +1494,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
   *@param versions is the corresponding set of version identifiers (individual identifiers may be null).
   */
   public void releaseDocumentVersions(String[] documentIdentifiers, String[] versions)
-    throws LCFException
+    throws ACFException
   {
     int i = 0;
     while (i < documentIdentifiers.length)
@@ -1526,7 +1526,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     tabsArray.add("Email");
     tabsArray.add("Robots");
@@ -1591,7 +1591,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
   *@param tabName is the current tab name.
   */
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     String email = parameters.getParameter(org.apache.acf.crawler.connectors.rss.RSSConnector.emailParameter);
     if (email == null)
@@ -1758,7 +1758,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
-    throws LCFException
+    throws ACFException
   {
     String email = variableContext.getParameter("email");
     if (email != null)
@@ -1805,7 +1805,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
@@ -1853,7 +1853,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     tabsArray.add("URLs");
     tabsArray.add("Canonicalization");
@@ -1972,7 +1972,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
   *@param tabName is the current tab name.
   */
   public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     int i;
     int k;
@@ -2568,7 +2568,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
-    throws LCFException
+    throws ACFException
   {
     // Get the map
     String value = variableContext.getParameter("rssmapcount");
@@ -2653,7 +2653,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
       }
       catch (java.io.IOException e)
       {
-        throw new LCFException("IO error",e);
+        throw new ACFException("IO error",e);
       }
     }
 
@@ -2991,7 +2991,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
   *@param ds is the current document specification for this job.
   */
   public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"
@@ -3309,7 +3309,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
 
   /** Handle an RSS feed document, using SAX to limit the memory impact */
   protected void handleRSSFeedSAX(String documentIdentifier, IProcessActivity activities, Filter filter)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     // The SAX model uses parsing events to control parsing, which allows me to manage memory usage much better.
     // This is essential for when a feed contains dechromed content as well as links.
@@ -3336,7 +3336,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
           {
             x.parse(is);
           }
-          catch (LCFException e)
+          catch (ACFException e)
           {
             // Ignore XML parsing errors.
             if (e.getMessage().indexOf("pars") >= 0)
@@ -3366,19 +3366,19 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
     }
     catch (java.net.SocketTimeoutException e)
     {
-      throw new LCFException("Socket timeout error: "+e.getMessage(),e);
+      throw new ACFException("Socket timeout error: "+e.getMessage(),e);
     }
     catch (org.apache.commons.httpclient.ConnectTimeoutException e)
     {
-      throw new LCFException("Socket connect timeout error: "+e.getMessage(),e);
+      throw new ACFException("Socket connect timeout error: "+e.getMessage(),e);
     }
     catch (InterruptedIOException e)
     {
-      throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new LCFException("IO error: "+e.getMessage(),e);
+      throw new ACFException("IO error: "+e.getMessage(),e);
     }
 
   }
@@ -3417,7 +3417,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
 
     /** Check if the rescan flag was set or not, and if not, make sure it gets set properly */
     public void setDefaultRescanTimeIfNeeded()
-      throws LCFException
+      throws ACFException
     {
       if (rescanTimeSet == false)
       {
@@ -3439,7 +3439,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
 
     /** Handle the tag beginning to set the correct second-level parsing context */
     protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       if (qName.equals("rss"))
       {
@@ -3468,7 +3468,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
 
     /** Handle the tag ending */
     protected void endTag()
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       XMLContext context = theStream.getContext();
       String tagName = context.getQname();
@@ -3510,7 +3510,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
     }
 
     protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       // Handle each channel
       if (qName.equals("channel"))
@@ -3524,7 +3524,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
     }
 
     protected void endTag()
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       // If it's our channel tag, process global channel information
       XMLContext context = theStream.getContext();
@@ -3539,7 +3539,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
 
     /** Process this data */
     protected boolean process()
-      throws LCFException
+      throws ACFException
     {
       return rescanTimeSet;
     }
@@ -3567,7 +3567,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
     }
 
     protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       // The tags we care about are "ttl" and "item", nothing else.
       if (qName.equals("ttl"))
@@ -3585,7 +3585,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
     }
 
     protected void endTag()
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       XMLContext theContext = theStream.getContext();
       String theTag = theContext.getQname();
@@ -3615,7 +3615,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
 
     /** Process this data, return true if rescan time was set */
     protected boolean process()
-      throws LCFException
+      throws ACFException
     {
       // Deal with the ttlvalue, if it was found
       // Use the ttl value as a signal for when we ought to look at this feed again.  If not present, use the default.
@@ -3673,7 +3673,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
     }
 
     protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       // The tags we care about are "ttl" and "item", nothing else.
       if (qName.equals("link"))
@@ -3717,15 +3717,15 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
             }
             catch (java.net.SocketTimeoutException e)
             {
-              throw new LCFException("IO exception creating temp file: "+e.getMessage(),e);
+              throw new ACFException("IO exception creating temp file: "+e.getMessage(),e);
             }
             catch (InterruptedIOException e)
             {
-              throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+              throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
             }
             catch (IOException e)
             {
-              throw new LCFException("IO exception creating temp file: "+e.getMessage(),e);
+              throw new ACFException("IO exception creating temp file: "+e.getMessage(),e);
             }
           }
           break;
@@ -3739,15 +3739,15 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
             }
             catch (java.net.SocketTimeoutException e)
             {
-              throw new LCFException("IO exception creating temp file: "+e.getMessage(),e);
+              throw new ACFException("IO exception creating temp file: "+e.getMessage(),e);
             }
             catch (InterruptedIOException e)
             {
-              throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+              throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
             }
             catch (IOException e)
             {
-              throw new LCFException("IO exception creating temp file: "+e.getMessage(),e);
+              throw new ACFException("IO exception creating temp file: "+e.getMessage(),e);
             }
           }
           break;
@@ -3761,7 +3761,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
 
     /** Convert the individual sub-fields of the item context into their final forms */
     protected void endTag()
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       XMLContext theContext = theStream.getContext();
       String theTag = theContext.getQname();
@@ -3818,7 +3818,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
     }
 
     protected void tagCleanup()
-      throws LCFException
+      throws ACFException
     {
       // Delete the contents file if it is there.
       if (contentsFile != null)
@@ -3830,7 +3830,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
 
     /** Process the data accumulated for this item */
     public void process(String documentIdentifier, IProcessActivity activities, Filter filter)
-      throws LCFException
+      throws ACFException
     {
       if (linkField == null || linkField.length() == 0)
         linkField = guidField;
@@ -3958,7 +3958,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
     }
 
     protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       // The tags we care about are "ttl" and "item", nothing else.
       if (qName.equals("ttl"))
@@ -3976,7 +3976,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
     }
 
     protected void endTag()
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       XMLContext theContext = theStream.getContext();
       String theTag = theContext.getQname();
@@ -4006,7 +4006,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
 
     /** Process this data */
     protected boolean process()
-      throws LCFException
+      throws ACFException
     {
       // Deal with the ttlvalue, if it was found
       // Use the ttl value as a signal for when we ought to look at this feed again.  If not present, use the default.
@@ -4062,7 +4062,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
     }
 
     protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       // The tags we care about are "ttl" and "item", nothing else.
       if (qName.equals("link"))
@@ -4096,15 +4096,15 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
             }
             catch (java.net.SocketTimeoutException e)
             {
-              throw new LCFException("IO exception creating temp file: "+e.getMessage(),e);
+              throw new ACFException("IO exception creating temp file: "+e.getMessage(),e);
             }
             catch (InterruptedIOException e)
             {
-              throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+              throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
             }
             catch (IOException e)
             {
-              throw new LCFException("IO exception creating temp file: "+e.getMessage(),e);
+              throw new ACFException("IO exception creating temp file: "+e.getMessage(),e);
             }
           }
           break;
@@ -4118,15 +4118,15 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
             }
             catch (java.net.SocketTimeoutException e)
             {
-              throw new LCFException("IO exception creating temp file: "+e.getMessage(),e);
+              throw new ACFException("IO exception creating temp file: "+e.getMessage(),e);
             }
             catch (InterruptedIOException e)
             {
-              throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+              throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
             }
             catch (IOException e)
             {
-              throw new LCFException("IO exception creating temp file: "+e.getMessage(),e);
+              throw new ACFException("IO exception creating temp file: "+e.getMessage(),e);
             }
           }
           break;
@@ -4140,7 +4140,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
 
     /** Convert the individual sub-fields of the item context into their final forms */
     protected void endTag()
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       XMLContext theContext = theStream.getContext();
       String theTag = theContext.getQname();
@@ -4189,7 +4189,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
     }
 
     protected void tagCleanup()
-      throws LCFException
+      throws ACFException
     {
       // Delete the contents file if it is there.
       if (contentsFile != null)
@@ -4201,7 +4201,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
 
     /** Process the data accumulated for this item */
     public void process(String documentIdentifier, IProcessActivity activities, Filter filter)
-      throws LCFException
+      throws ACFException
     {
       if (linkField != null && linkField.length() > 0)
       {
@@ -4305,7 +4305,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
     }
 
     protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       // The tags we care about are "ttl" and "item", nothing else.
       if (qName.equals("ttl"))
@@ -4323,7 +4323,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
     }
 
     protected void endTag()
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       XMLContext theContext = theStream.getContext();
       String theTag = theContext.getQname();
@@ -4353,7 +4353,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
 
     /** Process this data */
     protected boolean process()
-      throws LCFException
+      throws ACFException
     {
       // Deal with the ttlvalue, if it was found
       // Use the ttl value as a signal for when we ought to look at this feed again.  If not present, use the default.
@@ -4410,7 +4410,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
     }
 
     protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       // The tags we care about are "ttl" and "item", nothing else.
       if (qName.equals("link"))
@@ -4452,15 +4452,15 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
             }
             catch (java.net.SocketTimeoutException e)
             {
-              throw new LCFException("IO exception creating temp file: "+e.getMessage(),e);
+              throw new ACFException("IO exception creating temp file: "+e.getMessage(),e);
             }
             catch (InterruptedIOException e)
             {
-              throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+              throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
             }
             catch (IOException e)
             {
-              throw new LCFException("IO exception creating temp file: "+e.getMessage(),e);
+              throw new ACFException("IO exception creating temp file: "+e.getMessage(),e);
             }
           }
           break;
@@ -4474,15 +4474,15 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
             }
             catch (java.net.SocketTimeoutException e)
             {
-              throw new LCFException("IO exception creating temp file: "+e.getMessage(),e);
+              throw new ACFException("IO exception creating temp file: "+e.getMessage(),e);
             }
             catch (InterruptedIOException e)
             {
-              throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+              throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
             }
             catch (IOException e)
             {
-              throw new LCFException("IO exception creating temp file: "+e.getMessage(),e);
+              throw new ACFException("IO exception creating temp file: "+e.getMessage(),e);
             }
           }
           break;
@@ -4496,7 +4496,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
 
     /** Convert the individual sub-fields of the item context into their final forms */
     protected void endTag()
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       XMLContext theContext = theStream.getContext();
       String theTag = theContext.getQname();
@@ -4541,7 +4541,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
     }
 
     protected void tagCleanup()
-      throws LCFException
+      throws ACFException
     {
       // Delete the contents file if it is there.
       if (contentsFile != null)
@@ -4553,7 +4553,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
 
     /** Process the data accumulated for this item */
     public void process(String documentIdentifier, IProcessActivity activities, Filter filter)
-      throws LCFException
+      throws ACFException
     {
       if (linkField != null && linkField.length() > 0)
       {
@@ -5024,7 +5024,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
   /** Code to check if data is interesting, based on response code and content type.
   */
   protected boolean isContentInteresting(IFingerprintActivity activities, String contentType)
-    throws ServiceInterruption, LCFException
+    throws ServiceInterruption, ACFException
   {
     // Look at the content type and decide if it's a kind we want.  This is defined
     // as something we think we can either ingest, or extract links from.
@@ -5287,7 +5287,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
     /** Get current token.
     */
     public EvaluatorToken peek()
-      throws LCFException
+      throws ACFException
     {
       if (token == null)
       {
@@ -5304,7 +5304,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
     }
 
     protected EvaluatorToken nextToken()
-      throws LCFException
+      throws ACFException
     {
       char x;
       // Fetch the next token
@@ -5396,7 +5396,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
         else if (modifier.startsWith("m"))
           style = EvaluatorToken.GROUPSTYLE_MIXED;
         else
-          throw new LCFException("Unknown style: "+modifier);
+          throw new ACFException("Unknown style: "+modifier);
       }
       return new EvaluatorToken(groupNumber,style);
     }
@@ -5502,7 +5502,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
     }
 
     public String map(String url)
-      throws LCFException
+      throws ACFException
     {
       // Create a matcher, and attempt to do a match
       Matcher matcher = matchPattern.matcher(url);
@@ -5550,7 +5550,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
             }
             break;
           default:
-            throw new LCFException("Illegal group style");
+            throw new ACFException("Illegal group style");
           }
           break;
         case EvaluatorToken.TYPE_TEXT:
@@ -5558,7 +5558,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
           sb.append(t.getTextValue());
           break;
         default:
-          throw new LCFException("Illegal token type");
+          throw new ACFException("Illegal token type");
         }
       }
       return sb.toString();
@@ -5596,7 +5596,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
     }
 
     public String map(String url)
-      throws LCFException
+      throws ACFException
     {
       if (mappings.size() == 0)
         return url;
@@ -5633,7 +5633,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
 
     /** Constructor. */
     public Filter(DocumentSpecification spec, boolean warnOnBadSeed)
-      throws LCFException
+      throws ACFException
     {
       // To save allocation, preallocate the seeds map assuming that it will require 1.5x the number of nodes in the spec
       int initialSize = spec.getChildCount();
@@ -5660,7 +5660,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
             }
             catch (java.util.regex.PatternSyntaxException e)
             {
-              throw new LCFException("Regular expression '"+match+"' is illegal: "+e.getMessage(),e);
+              throw new ACFException("Regular expression '"+match+"' is illegal: "+e.getMessage(),e);
             }
             if (map == null)
               map = "";
@@ -5738,7 +5738,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
           }
           catch (java.util.regex.PatternSyntaxException e)
           {
-            throw new LCFException("Canonicalization regular expression '"+urlRegexp+"' is illegal: "+e.getMessage(),e);
+            throw new ACFException("Canonicalization regular expression '"+urlRegexp+"' is illegal: "+e.getMessage(),e);
           }
         }
       }
@@ -5788,7 +5788,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
             }
             catch (NumberFormatException e)
             {
-              throw new LCFException("Bad number: "+e.getMessage(),e);
+              throw new ACFException("Bad number: "+e.getMessage(),e);
             }
           }
         }
@@ -5803,7 +5803,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
             }
             catch (NumberFormatException e)
             {
-              throw new LCFException("Bad number: "+e.getMessage(),e);
+              throw new ACFException("Bad number: "+e.getMessage(),e);
             }
           }
         }
@@ -5818,7 +5818,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
             }
             catch (NumberFormatException e)
             {
-              throw new LCFException("Bad number: "+e.getMessage(),e);
+              throw new ACFException("Bad number: "+e.getMessage(),e);
             }
           }
         }
@@ -5833,7 +5833,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
             }
             catch (NumberFormatException e)
             {
-              throw new LCFException("Bad number: "+e.getMessage(),e);
+              throw new ACFException("Bad number: "+e.getMessage(),e);
             }
           }
         }
@@ -5952,7 +5952,7 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
     * @return null if the url doesn't match or should not be ingested, or the new string if it does.
     */
     public String mapDocumentURL(String url)
-      throws LCFException
+      throws ACFException
     {
       if (seeds.get(url) != null)
         return null;

@@ -39,7 +39,7 @@ public class AgentManager extends org.apache.acf.core.database.BaseTable impleme
   *@param database is the database instance.
   */
   public AgentManager(IThreadContext threadContext, IDBInterface database)
-    throws LCFException
+    throws ACFException
   {
     super(database,"agents");
     this.threadContext = threadContext;
@@ -48,7 +48,7 @@ public class AgentManager extends org.apache.acf.core.database.BaseTable impleme
   /** Install or upgrade.
   */
   public void install()
-    throws LCFException
+    throws ACFException
   {
     // We always use an outer loop, in case the upgrade will need it.
     while (true)
@@ -75,7 +75,7 @@ public class AgentManager extends org.apache.acf.core.database.BaseTable impleme
   /** Uninstall.  Also uninstalls all remaining agents.
   */
   public void deinstall()
-    throws LCFException
+    throws ACFException
   {
     // Since we are uninstalling agents, better do this inside a transaction
     beginTransaction();
@@ -93,7 +93,7 @@ public class AgentManager extends org.apache.acf.core.database.BaseTable impleme
       }
       performDrop(null);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -114,7 +114,7 @@ public class AgentManager extends org.apache.acf.core.database.BaseTable impleme
   *@param className is the class.
   */
   public void registerAgent(String className)
-    throws LCFException
+    throws ACFException
   {
     // Do in a transaction, so the installation is atomic
     beginTransaction();
@@ -135,7 +135,7 @@ public class AgentManager extends org.apache.acf.core.database.BaseTable impleme
       IAgent agent = AgentFactory.make(threadContext,className);
       agent.install();
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -156,7 +156,7 @@ public class AgentManager extends org.apache.acf.core.database.BaseTable impleme
   *@param className is the class to unregister.
   */
   public void unregisterAgent(String className)
-    throws LCFException
+    throws ACFException
   {
     // Do in a transaction, so the installation is atomic
     beginTransaction();
@@ -169,7 +169,7 @@ public class AgentManager extends org.apache.acf.core.database.BaseTable impleme
       // Remove from table
       removeAgent(className);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -191,7 +191,7 @@ public class AgentManager extends org.apache.acf.core.database.BaseTable impleme
   *@param className is the class to remove.
   */
   public void removeAgent(String className)
-    throws LCFException
+    throws ACFException
   {
     // Remove from table
     ArrayList list = new ArrayList();
@@ -203,7 +203,7 @@ public class AgentManager extends org.apache.acf.core.database.BaseTable impleme
   *@return the classnames in an array.
   */
   public String[] getAllAgents()
-    throws LCFException
+    throws ACFException
   {
     IResultSet set = performQuery("SELECT * FROM "+getTableName(),null,null,null);
     String[] rval = new String[set.getRowCount()];

@@ -20,7 +20,7 @@ package org.apache.acf.authorities.interfaces;
 
 import org.apache.acf.core.interfaces.*;
 import java.util.*;
-import org.apache.acf.authorities.system.LCF;
+import org.apache.acf.authorities.system.ACF;
 
 /** This class is the factory for the Authority Connector Manager.
 */
@@ -37,16 +37,16 @@ public class AuthorityConnectorManagerFactory
   *@return the connector manager handle.
   */
   public static IAuthorityConnectorManager make(IThreadContext tc)
-    throws LCFException
+    throws ACFException
   {
     Object o = tc.get(connMgr);
     if (o == null || !(o instanceof IAuthorityConnectorManager))
     {
 
       IDBInterface database = DBInterfaceFactory.make(tc,
-        LCF.getMasterDatabaseName(),
-        LCF.getMasterDatabaseUsername(),
-        LCF.getMasterDatabasePassword());
+        ACF.getMasterDatabaseName(),
+        ACF.getMasterDatabaseUsername(),
+        ACF.getMasterDatabasePassword());
 
       o = new org.apache.acf.authorities.authconnmgr.AuthorityConnectorManager(tc,database);
       tc.save(connMgr,o);

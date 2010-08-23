@@ -30,12 +30,12 @@ public interface IOutputConnectorManager
   /** Install.
   */
   public void install()
-    throws LCFException;
+    throws ACFException;
 
   /** Uninstall.  This also unregisters all connectors.
   */
   public void deinstall()
-    throws LCFException;
+    throws ACFException;
 
   /** Register a new connector.
   * The connector's install method will also be called.
@@ -43,14 +43,14 @@ public interface IOutputConnectorManager
   *@param className is the class name.
   */
   public void registerConnector(String description, String className)
-    throws LCFException;
+    throws ACFException;
 
   /** Unregister a connector.
   * The connector's deinstall method will also be called.
   *@param className is the connector class to unregister.
   */
   public void unregisterConnector(String className)
-    throws LCFException;
+    throws ACFException;
 
   /** Remove a connector.
   * Use this method when the connector doesn't seem to be in the
@@ -58,27 +58,27 @@ public interface IOutputConnectorManager
   *@param className is the connector class to remove.
   */
   public void removeConnector(String className)
-    throws LCFException;
+    throws ACFException;
 
   /** Get ordered list of connectors.
   *@return a resultset with the columns "description" and "classname".
   * These will be ordered by description.
   */
   public IResultSet getConnectors()
-    throws LCFException;
+    throws ACFException;
 
   /** Get a description given a class name.
   *@param className is the class name.
   *@return the description, or null if the class is not registered.
   */
   public String getDescription(String className)
-    throws LCFException;
+    throws ACFException;
 
   /** Check if a particular connector is installed or not.
   *@param className is the class name of the connector.
   *@return true if installed, false otherwise.
   */
   public boolean isInstalled(String className)
-    throws LCFException;
+    throws ACFException;
 
 }

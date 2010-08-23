@@ -21,7 +21,7 @@ package org.apache.acf.filesystem_tests;
 import org.apache.acf.core.interfaces.*;
 import org.apache.acf.agents.interfaces.*;
 import org.apache.acf.crawler.interfaces.*;
-import org.apache.acf.crawler.system.LCF;
+import org.apache.acf.crawler.system.ACF;
 
 import java.io.*;
 import java.util.*;
@@ -131,7 +131,7 @@ public class TestBase extends org.apache.acf.crawler.tests.TestConnectorBase
   
   // API support
   
-  // These methods allow communication with the LCF api webapp, via the locally-instantiated jetty
+  // These methods allow communication with the ACF api webapp, via the locally-instantiated jetty
   
   /** Perform an json API operation.
   *@param command is the operation.
@@ -232,7 +232,7 @@ public class TestBase extends org.apache.acf.crawler.tests.TestConnectorBase
           {
             jobManager.manualAbort(desc.getID());
           }
-          catch (LCFException e)
+          catch (ACFException e)
           {
             // This generally means that the job was not running
           }
@@ -255,7 +255,7 @@ public class TestBase extends org.apache.acf.crawler.tests.TestConnectorBase
               case JobStatus.JOBSTATUS_ERROR:
                 break;
               default:
-                LCF.sleep(10000);
+                ACF.sleep(10000);
                 continue;
               }
             }
@@ -272,7 +272,7 @@ public class TestBase extends org.apache.acf.crawler.tests.TestConnectorBase
           {
             jobManager.deleteJob(desc.getID());
           }
-          catch (LCFException e)
+          catch (ACFException e)
           {
             // This usually means that the job is already being deleted
           }
@@ -288,7 +288,7 @@ public class TestBase extends org.apache.acf.crawler.tests.TestConnectorBase
             JobStatus status = jobManager.getStatus(desc.getID());
             if (status != null)
             {
-              LCF.sleep(10000);
+              ACF.sleep(10000);
               continue;
             }
             break;
@@ -361,11 +361,11 @@ public class TestBase extends org.apache.acf.crawler.tests.TestConnectorBase
             break;
             
           // Start whatever agents need to be started
-          LCF.startAgents(tc);
+          ACF.startAgents(tc);
 
           try
           {
-            LCF.sleep(5000);
+            ACF.sleep(5000);
           }
           catch (InterruptedException e)
           {
@@ -373,7 +373,7 @@ public class TestBase extends org.apache.acf.crawler.tests.TestConnectorBase
           }
         }
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         daemonException = e;
       }
@@ -381,9 +381,9 @@ public class TestBase extends org.apache.acf.crawler.tests.TestConnectorBase
       {
         try
         {
-          LCF.stopAgents(tc);
+          ACF.stopAgents(tc);
         }
-        catch (LCFException e)
+        catch (ACFException e)
         {
           daemonException = e;
         }

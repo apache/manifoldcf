@@ -190,7 +190,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@param database is the database handle.
   */
   public Jobs(IThreadContext threadContext, IDBInterface database)
-    throws LCFException
+    throws ACFException
   {
     super(database,"jobs");
     this.threadContext = threadContext;
@@ -205,7 +205,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   /** Install or upgrade this table.
   */
   public void install(String outputTableName, String outputNameField, String connectionTableName, String connectionNameField)
-    throws LCFException
+    throws ACFException
   {
     // Standard practice: Have a loop around everything, in case upgrade needs it.
     while (true)
@@ -276,7 +276,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   /** Uninstall.
   */
   public void deinstall()
-    throws LCFException
+    throws ACFException
   {
     beginTransaction();
     try
@@ -285,7 +285,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
       scheduleManager.deinstall();
       performDrop(null);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -305,7 +305,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@return the time, in minutes.
   */
   public int getAnalyzeTime()
-    throws LCFException
+    throws ACFException
   {
     // Since we never expect jobs to grow rapidly, every 24hrs should always be fine
     return 24 * 60;
@@ -314,7 +314,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   /** Analyze job tables that need analysis.
   */
   public void analyzeTables()
-    throws LCFException
+    throws ACFException
   {
     analyzeTable();
   }
@@ -322,7 +322,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   /** Read schedule records for a specified set of jobs.  Cannot use caching!
   */
   public ScheduleRecord[][] readScheduleRecords(Long[] jobIDs)
-    throws LCFException
+    throws ACFException
   {
     Map uniqueIDs = new HashMap();
     int i = 0;
@@ -364,7 +364,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
       signalRollback();
       throw e;
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -403,7 +403,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@return the array of all jobs.
   */
   public IJobDescription[] getAll()
-    throws LCFException
+    throws ACFException
   {
     // Begin transaction
     beginTransaction();
@@ -431,7 +431,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
       }
       return loadMultiple(ids,readOnlies);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -451,7 +451,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@return a resultset with "jobid" and "connectionname" fields.
   */
   public IResultSet getActiveJobConnections()
-    throws LCFException
+    throws ACFException
   {
     return performQuery("SELECT "+idField+" AS jobid,"+connectionNameField+" AS connectionname FROM "+getTableName()+" WHERE "+
       statusField+" IN ("+
@@ -463,7 +463,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@return the array of connection names corresponding to active jobs.
   */
   public String[] getActiveConnectionNames()
-    throws LCFException
+    throws ACFException
   {
     IResultSet set = performQuery("SELECT DISTINCT "+connectionNameField+" FROM "+getTableName()+" WHERE "+
       statusField+" IN ("+
@@ -482,7 +482,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
 
   /** Are there any jobs that have a specified priority level */
   public boolean hasPriorityJobs(int priority)
-    throws LCFException
+    throws ACFException
   {
     IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+priorityField+"="+Integer.toString(priority)+
       " AND "+
@@ -495,7 +495,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   /** Create a job.
   */
   public IJobDescription create()
-    throws LCFException
+    throws ACFException
   {
     JobDescription rval = new JobDescription();
     rval.setIsNew(true);
@@ -507,7 +507,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@param id is the job id.
   */
   public void delete(Long id)
-    throws LCFException
+    throws ACFException
   {
     StringSetBuffer ssb = new StringSetBuffer();
     ssb.add(getJobsKey());
@@ -523,7 +523,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
       params.add(id);
       performDelete("WHERE "+idField+"=?",params,cacheKeys);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -544,7 +544,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@return the editable job description.
   */
   public IJobDescription load(Long id, boolean readOnly)
-    throws LCFException
+    throws ACFException
   {
     return loadMultiple(new Long[]{id}, new boolean[]{readOnly})[0];
   }
@@ -555,7 +555,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@return the array of objects, in order.
   */
   public IJobDescription[] loadMultiple(Long[] ids, boolean[] readOnlies)
-    throws LCFException
+    throws ACFException
   {
     // Build description objects
     JobObjectDescription[] objectDescriptions = new JobObjectDescription[ids.length];
@@ -578,7 +578,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@param jobDescription is the job description.
   */
   public void save(IJobDescription jobDescription)
-    throws LCFException
+    throws ACFException
   {
     // The invalidation keys for this are both the general and the specific.
     Long id = jobDescription.getID();
@@ -672,7 +672,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
 
         cacheManager.invalidateKeys(ch);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         signalRollback();
         throw e;
@@ -696,7 +696,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   /** This method is called on a restart.
   */
   public void restart()
-    throws LCFException
+    throws ACFException
   {
     beginTransaction();
     try
@@ -758,7 +758,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
       // No need to do anything to the queue; it looks like it can take care of
       // itself.
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -779,7 +779,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@param oldStatusValue is the current status value for the job.
   */
   public void noteOutputConnectorDeregistration(Long jobID, int oldStatusValue)
-    throws LCFException
+    throws ACFException
   {
     int newStatusValue;
     // The following states are special, in that when the underlying connector goes away, the jobs
@@ -826,7 +826,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@param oldStatusValue is the current status value for the job.
   */
   public void noteOutputConnectorRegistration(Long jobID, int oldStatusValue)
-    throws LCFException
+    throws ACFException
   {
     int newStatusValue;
     // The following states are special, in that when the underlying connector returns, the jobs
@@ -869,7 +869,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@param oldStatusValue is the current status value for the job.
   */
   public void noteConnectorDeregistration(Long jobID, int oldStatusValue)
-    throws LCFException
+    throws ACFException
   {
     int newStatusValue;
     // The following states are special, in that when the underlying connector goes away, the jobs
@@ -913,7 +913,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@param oldStatusValue is the current status value for the job.
   */
   public void noteConnectorRegistration(Long jobID, int oldStatusValue)
-    throws LCFException
+    throws ACFException
   {
     int newStatusValue;
     // The following states are special, in that when the underlying connector returns, the jobs
@@ -953,7 +953,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   * is signalled.
   */
   public void noteConnectionChange(String connectionName)
-    throws LCFException
+    throws ACFException
   {
     // No cache keys need invalidation, since we're changing the start time, not the status.
     HashMap newValues = new HashMap();
@@ -968,7 +968,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   * is signalled.
   */
   public void noteOutputConnectionChange(String connectionName)
-    throws LCFException
+    throws ACFException
   {
     // No cache keys need invalidation, since we're changing the start time, not the status.
     HashMap newValues = new HashMap();
@@ -981,7 +981,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   /** Check whether a job's status indicates that it is in ACTIVE or ACTIVESEEDING state.
   */
   public boolean checkJobActive(Long jobID)
-    throws LCFException
+    throws ACFException
   {
     StringSet cacheKeys = new StringSet(getJobStatusKey());
     ArrayList list = new ArrayList();
@@ -1000,7 +1000,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   /** Reset startup worker thread status.
   */
   public void resetStartupWorkerStatus()
-    throws LCFException
+    throws ACFException
   {
     // We have to handle all states that the startup thread would resolve, and change them to something appropriate.
 
@@ -1025,7 +1025,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   /** Reset as part of restoring seeding worker threads.
   */
   public void resetSeedingWorkerStatus()
-    throws LCFException
+    throws ACFException
   {
     beginTransaction();
     try
@@ -1072,7 +1072,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
       performUpdate(map,"WHERE "+statusField+"=?",list,invKey);
 
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -1095,7 +1095,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@param windowEnd is the window end time, if any
   */
   public void startJob(Long jobID, Long windowEnd)
-    throws LCFException
+    throws ACFException
   {
     ArrayList list = new ArrayList();
     list.add(jobID);
@@ -1113,7 +1113,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@param startTime is the current time in milliseconds from start of epoch.
   */
   public void noteJobStarted(Long jobID, long startTime)
-    throws LCFException
+    throws ACFException
   {
     beginTransaction();
     try
@@ -1123,7 +1123,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
       IResultSet set = performQuery("SELECT "+statusField+","+connectionNameField+","+outputNameField+" FROM "+getTableName()+" WHERE "+
         idField+"=? FOR UPDATE",list,null,null);
       if (set.getRowCount() == 0)
-        throw new LCFException("Can't find job "+jobID.toString());
+        throw new ACFException("Can't find job "+jobID.toString());
       IResultRow row = set.getRow(0);
       int status = stringToStatus((String)row.getValue(statusField));
       int newStatus;
@@ -1153,7 +1153,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
         break;
       default:
         // Complain!
-        throw new LCFException("Unexpected job status encountered: "+Integer.toString(status));
+        throw new ACFException("Unexpected job status encountered: "+Integer.toString(status));
       }
 
       HashMap map = new HashMap();
@@ -1165,7 +1165,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
       map.put(lastCheckTimeField,new Long(startTime));
       performUpdate(map,"WHERE "+idField+"=?",list,new StringSet(getJobStatusKey()));
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -1186,7 +1186,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@param seedTime is the job seed time.
   */
   public void noteJobSeeded(Long jobID, long seedTime)
-    throws LCFException
+    throws ACFException
   {
     // We have to convert the current status to the non-seeding equivalent
     beginTransaction();
@@ -1197,7 +1197,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
       IResultSet set = performQuery("SELECT "+statusField+" FROM "+getTableName()+" WHERE "+
         idField+"=? FOR UPDATE",list,null,null);
       if (set.getRowCount() == 0)
-        throw new LCFException("Can't find job "+jobID.toString());
+        throw new ACFException("Can't find job "+jobID.toString());
       IResultRow row = set.getRow(0);
       int status = stringToStatus((String)row.getValue(statusField));
       int newStatus;
@@ -1231,7 +1231,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
         newStatus = STATUS_ABORTINGFORRESTART;
         break;
       default:
-        throw new LCFException("Unexpected job status encountered: "+Integer.toString(status));
+        throw new ACFException("Unexpected job status encountered: "+Integer.toString(status));
       }
       HashMap map = new HashMap();
       map.put(statusField,statusToString(newStatus));
@@ -1243,7 +1243,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
       signalRollback();
       throw e;
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -1261,7 +1261,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@param windowEnd is the window end time, if any.
   */
   public void unwaitJob(Long jobID, int newStatus, Long windowEnd)
-    throws LCFException
+    throws ACFException
   {
     ArrayList list = new ArrayList();
     list.add(jobID);
@@ -1277,7 +1277,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *  STATUS_ACTIVEWAITSEEDING or STATUS_PAUSEDWAITSEEDING)
   */
   public void waitJob(Long jobID, int newStatus)
-    throws LCFException
+    throws ACFException
   {
     ArrayList list = new ArrayList();
     list.add(jobID);
@@ -1293,7 +1293,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@return true if there wasn't an abort already logged for this job.
   */
   public boolean abortJob(Long jobID, String errorText)
-    throws LCFException
+    throws ACFException
   {
     beginTransaction();
     try
@@ -1304,7 +1304,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
       IResultSet set = performQuery("SELECT "+statusField+" FROM "+getTableName()+
         " WHERE "+idField+"=? FOR UPDATE",list,null,null);
       if (set.getRowCount() == 0)
-        throw new LCFException("Job does not exist: "+jobID);
+        throw new ACFException("Job does not exist: "+jobID);
       IResultRow row = set.getRow(0);
       int status = stringToStatus(row.getValue(statusField).toString());
       if (status == STATUS_ABORTING || status == STATUS_ABORTINGSEEDING || status == STATUS_ABORTINGSTARTINGUP)
@@ -1338,7 +1338,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
         newStatus = STATUS_ABORTINGSEEDING;
         break;
       default:
-        throw new LCFException("Job "+jobID+" is not active");
+        throw new ACFException("Job "+jobID+" is not active");
       }
       // Pause the job
       HashMap map = new HashMap();
@@ -1347,7 +1347,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
       performUpdate(map,"WHERE "+idField+"=?",list,new StringSet(getJobStatusKey()));
       return true;
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -1367,7 +1367,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@param jobID is the job id.
   */
   public void abortRestartJob(Long jobID)
-    throws LCFException
+    throws ACFException
   {
     beginTransaction();
     try
@@ -1378,7 +1378,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
       IResultSet set = performQuery("SELECT "+statusField+" FROM "+getTableName()+
         " WHERE "+idField+"=? FOR UPDATE",list,null,null);
       if (set.getRowCount() == 0)
-        throw new LCFException("Job does not exist: "+jobID);
+        throw new ACFException("Job does not exist: "+jobID);
       IResultRow row = set.getRow(0);
       int status = stringToStatus(row.getValue(statusField).toString());
       if (status == STATUS_ABORTINGFORRESTART || status == STATUS_ABORTINGFORRESTARTSEEDING || status == STATUS_ABORTINGSTARTINGUPFORRESTART)
@@ -1409,14 +1409,14 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
         newStatus = STATUS_ABORTINGFORRESTARTSEEDING;
         break;
       default:
-        throw new LCFException("Job "+jobID+" is not restartable");
+        throw new ACFException("Job "+jobID+" is not restartable");
       }
       // reset the job
       HashMap map = new HashMap();
       map.put(statusField,statusToString(newStatus));
       performUpdate(map,"WHERE "+idField+"=?",list,new StringSet(getJobStatusKey()));
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -1436,7 +1436,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@param jobID is the job id.
   */
   public void pauseJob(Long jobID)
-    throws LCFException
+    throws ACFException
   {
     beginTransaction();
     try
@@ -1447,7 +1447,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
       IResultSet set = performQuery("SELECT "+statusField+" FROM "+getTableName()+
         " WHERE "+idField+"=? FOR UPDATE",list,null,null);
       if (set.getRowCount() == 0)
-        throw new LCFException("Job does not exist: "+jobID);
+        throw new ACFException("Job does not exist: "+jobID);
       IResultRow row = set.getRow(0);
       int status = stringToStatus(row.getValue(statusField).toString());
       int newStatus;
@@ -1472,14 +1472,14 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
         newStatus = STATUS_PAUSEDWAITSEEDING;
         break;
       default:
-        throw new LCFException("Job "+jobID+" is not active");
+        throw new ACFException("Job "+jobID+" is not active");
       }
       // Pause the job
       HashMap map = new HashMap();
       map.put(statusField,statusToString(newStatus));
       performUpdate(map,"WHERE "+idField+"=?",list,new StringSet(getJobStatusKey()));
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -1499,7 +1499,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@param jobID is the job id.
   */
   public void restartJob(Long jobID)
-    throws LCFException
+    throws ACFException
   {
     beginTransaction();
     try
@@ -1510,7 +1510,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
       IResultSet set = performQuery("SELECT "+statusField+","+connectionNameField+","+outputNameField+" FROM "+getTableName()+
         " WHERE "+idField+"=? FOR UPDATE",list,null,null);
       if (set.getRowCount() == 0)
-        throw new LCFException("Job does not exist: "+jobID);
+        throw new ACFException("Job does not exist: "+jobID);
       IResultRow row = set.getRow(0);
       int status = stringToStatus(row.getValue(statusField).toString());
       String connectionName = (String)row.getValue(connectionNameField);
@@ -1557,14 +1557,14 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
         newStatus = STATUS_ACTIVEWAITSEEDING;
         break;
       default:
-        throw new LCFException("Job "+jobID+" is not paused");
+        throw new ACFException("Job "+jobID+" is not paused");
       }
       // Pause the job
       HashMap map = new HashMap();
       map.put(statusField,statusToString(newStatus));
       performUpdate(map,"WHERE "+idField+"=?",list,new StringSet(getJobStatusKey()));
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -1586,7 +1586,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@param reseedTime is the reseed time.
   */
   public void writeStatus(Long jobID, int status, Long reseedTime)
-    throws LCFException
+    throws ACFException
   {
     ArrayList list = new ArrayList();
     list.add(jobID);
@@ -1601,7 +1601,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@param status is the desired status.
   */
   public void writeStatus(Long jobID, int status)
-    throws LCFException
+    throws ACFException
   {
     ArrayList list = new ArrayList();
     list.add(jobID);
@@ -1615,7 +1615,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@param currentTime is the current time.
   */
   public void updateLastTime(Long jobID, long currentTime)
-    throws LCFException
+    throws ACFException
   {
     ArrayList list = new ArrayList();
     list.add(jobID);
@@ -1630,7 +1630,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@param finishTime is the finish time.
   */
   public void finishJob(Long jobID, long finishTime)
-    throws LCFException
+    throws ACFException
   {
     ArrayList list = new ArrayList();
     list.add(jobID);
@@ -1649,7 +1649,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@param jobID is the job id.
   */
   public void finishAbortJob(Long jobID, long abortTime)
-    throws LCFException
+    throws ACFException
   {
     ArrayList list = new ArrayList();
     list.add(jobID);
@@ -1668,7 +1668,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@return true if there is a reference, false otherwise.
   */
   public boolean checkIfReference(String connectionName)
-    throws LCFException
+    throws ACFException
   {
     ArrayList list = new ArrayList();
     list.add(connectionName);
@@ -1682,7 +1682,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@return true if there is a reference, false otherwise.
   */
   public boolean checkIfOutputReference(String connectionName)
-    throws LCFException
+    throws ACFException
   {
     ArrayList list = new ArrayList();
     list.add(connectionName);
@@ -1696,7 +1696,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@return the set of job id's associated with that connection.
   */
   public IJobDescription[] findJobsForConnection(String connectionName)
-    throws LCFException
+    throws ACFException
   {
     // Begin transaction
     beginTransaction();
@@ -1725,7 +1725,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
       }
       return loadMultiple(ids,readOnlies);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -1748,7 +1748,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@return true if such jobs exist.
   */
   public boolean deletingJobsPresent()
-    throws LCFException
+    throws ACFException
   {
     IResultSet set = performQuery("SELECT "+idField+" FROM "+getTableName()+" WHERE "+
       statusField+" IN ("+quoteSQLString(statusToString(STATUS_READYFORDELETE))+","+
@@ -1763,7 +1763,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@return true if such jobs exist.
   */
   public boolean activeJobsPresent()
-    throws LCFException
+    throws ACFException
   {
     // To improve the postgres CPU usage of the system at rest, we do a *fast* check to be
     // sure there are ANY jobs in an active state.
@@ -1782,11 +1782,11 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@return the status value.
   */
   public static int stringToStatus(String value)
-    throws LCFException
+    throws ACFException
   {
     Integer x = (Integer)statusMap.get(value);
     if (x == null)
-      throw new LCFException("Bad status value: '"+value+"'");
+      throw new ACFException("Bad status value: '"+value+"'");
     return x.intValue();
   }
 
@@ -1795,7 +1795,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@return the string.
   */
   public static String statusToString(int status)
-    throws LCFException
+    throws ACFException
   {
     switch (status)
     {
@@ -1853,7 +1853,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
       return "D";
 
     default:
-      throw new LCFException("Bad status value: "+Integer.toString(status));
+      throw new ACFException("Bad status value: "+Integer.toString(status));
     }
   }
 
@@ -1862,11 +1862,11 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@return the type value.
   */
   public static int stringToType(String value)
-    throws LCFException
+    throws ACFException
   {
     Integer x = (Integer)typeMap.get(value);
     if (x == null)
-      throw new LCFException("Bad type value: '"+value+"'");
+      throw new ACFException("Bad type value: '"+value+"'");
     return x.intValue();
   }
 
@@ -1875,7 +1875,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@return the string.
   */
   public static String typeToString(int type)
-    throws LCFException
+    throws ACFException
   {
     switch (type)
     {
@@ -1884,27 +1884,27 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
     case TYPE_SPECIFIED:
       return "S";
     default:
-      throw new LCFException("Bad type: "+Integer.toString(type));
+      throw new ACFException("Bad type: "+Integer.toString(type));
     }
   }
 
   /** Go from string to hopcount mode.
   */
   public static int stringToHopcountMode(String value)
-    throws LCFException
+    throws ACFException
   {
     if (value == null || value.length() == 0)
       return HOPCOUNT_ACCURATE;
     Integer x = (Integer)hopmodeMap.get(value);
     if (x == null)
-      throw new LCFException("Bad hopcount mode value: '"+value+"'");
+      throw new ACFException("Bad hopcount mode value: '"+value+"'");
     return x.intValue();
   }
 
   /** Go from hopcount mode to string.
   */
   public static String hopcountModeToString(int value)
-    throws LCFException
+    throws ACFException
   {
     switch(value)
     {
@@ -1915,7 +1915,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
     case HOPCOUNT_NEVERDELETE:
       return "V";
     default:
-      throw new LCFException("Unknown hopcount mode value "+Integer.toString(value));
+      throw new ACFException("Unknown hopcount mode value "+Integer.toString(value));
     }
   }
 
@@ -1924,11 +1924,11 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@return the start method value.
   */
   public static int stringToStartMethod(String value)
-    throws LCFException
+    throws ACFException
   {
     Integer x = (Integer)startMap.get(value);
     if (x == null)
-      throw new LCFException("Bad start method value: '"+value+"'");
+      throw new ACFException("Bad start method value: '"+value+"'");
     return x.intValue();
   }
 
@@ -1937,7 +1937,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@return a string.
   */
   public static String startMethodToString(int startMethod)
-    throws LCFException
+    throws ACFException
   {
     switch(startMethod)
     {
@@ -1948,7 +1948,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
     case START_DISABLE:
       return "D";
     default:
-      throw new LCFException("Bad start method: "+Integer.toString(startMethod));
+      throw new ACFException("Bad start method: "+Integer.toString(startMethod));
     }
   }
 
@@ -1958,7 +1958,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@return the enumerated value.
   */
   public static EnumeratedValues stringToEnumeratedValue(String value)
-    throws LCFException
+    throws ACFException
   {
     if (value == null)
       return null;
@@ -1984,7 +1984,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
     }
     catch (NumberFormatException e)
     {
-      throw new LCFException("Bad number: '"+value+"'",e);
+      throw new ACFException("Bad number: '"+value+"'",e);
     }
 
   }
@@ -2036,7 +2036,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@return the corresponding job descriptions.
   */
   protected JobDescription[] getJobsMultiple(Long[] ids)
-    throws LCFException
+    throws ACFException
   {
     // Fetch all the jobs, but only once for each ID.  Then, assign each one by id into the final array.
     HashMap uniqueIDs = new HashMap();
@@ -2078,7 +2078,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
       signalRollback();
       throw e;
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -2109,7 +2109,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   *@param params is the set of parameters.
   */
   protected void getJobsChunk(Map returnValues, String idList, ArrayList params)
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -2150,7 +2150,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
     }
     catch (NumberFormatException e)
     {
-      throw new LCFException("Bad number",e);
+      throw new ACFException("Bad number",e);
     }
   }
 
@@ -2257,7 +2257,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
     * @return the newly created objects to cache, or null, if any object cannot be created.
     *  The order of the returned objects must correspond to the order of the object descriptinos.
     */
-    public Object[] create(ICacheDescription[] objectDescriptions) throws LCFException
+    public Object[] create(ICacheDescription[] objectDescriptions) throws ACFException
     {
       // Turn the object descriptions into the parameters for the ToolInstance requests
       Long[] ids = new Long[objectDescriptions.length];
@@ -2280,7 +2280,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
     * @param objectDescription is the unique identifier of the object.
     * @param cachedObject is the cached object.
     */
-    public void exists(ICacheDescription objectDescription, Object cachedObject) throws LCFException
+    public void exists(ICacheDescription objectDescription, Object cachedObject) throws ACFException
     {
       // Cast what came in as what it really is
       JobObjectDescription objectDesc = (JobObjectDescription)objectDescription;
@@ -2296,7 +2296,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
     /** Perform the desired operation.  This method is called after either createGetObject()
     * or exists() is called for every requested object.
     */
-    public void execute() throws LCFException
+    public void execute() throws ACFException
     {
       // Does nothing; we only want to fetch objects in this cacher.
     }

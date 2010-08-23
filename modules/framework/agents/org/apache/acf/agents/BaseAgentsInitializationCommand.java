@@ -1,9 +1,9 @@
 package org.apache.acf.agents;
 
-import org.apache.acf.agents.system.LCF;
+import org.apache.acf.agents.system.ACF;
 import org.apache.acf.core.InitializationCommand;
 import org.apache.acf.core.interfaces.IThreadContext;
-import org.apache.acf.core.interfaces.LCFException;
+import org.apache.acf.core.interfaces.ACFException;
 import org.apache.acf.core.interfaces.ThreadContextFactory;
 
 /**
@@ -11,12 +11,12 @@ import org.apache.acf.core.interfaces.ThreadContextFactory;
  */
 public abstract class BaseAgentsInitializationCommand implements InitializationCommand
 {
-  public void execute() throws LCFException
+  public void execute() throws ACFException
   {
-    LCF.initializeEnvironment();
+    ACF.initializeEnvironment();
     IThreadContext tc = ThreadContextFactory.make();
     doExecute(tc);
   }
 
-  protected abstract void doExecute(IThreadContext tc) throws LCFException;
+  protected abstract void doExecute(IThreadContext tc) throws ACFException;
 }

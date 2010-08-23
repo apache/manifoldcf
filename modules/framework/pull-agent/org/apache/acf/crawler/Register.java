@@ -38,7 +38,7 @@ public class Register extends TransactionalCrawlerInitializationCommand
     this.description = description;
   }
 
-  protected void doExecute(IThreadContext tc) throws LCFException
+  protected void doExecute(IThreadContext tc) throws ACFException
   {
     IConnectorManager mgr = ConnectorManagerFactory.make(tc);
     IJobManager jobManager = JobManagerFactory.make(tc);
@@ -71,7 +71,7 @@ public class Register extends TransactionalCrawlerInitializationCommand
       register.execute();
       System.err.println("Successfully registered connector '"+className+"'");
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       e.printStackTrace();
       System.exit(1);

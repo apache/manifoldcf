@@ -39,7 +39,7 @@ public class JobDeleteThread extends Thread
   /** Constructor.
   */
   public JobDeleteThread()
-    throws LCFException
+    throws ACFException
   {
     super();
     setName("Job delete thread");
@@ -72,20 +72,20 @@ public class JobDeleteThread extends Thread
           jobManager.deleteJobsReadyForDelete();
 
           // Sleep for the retry interval.
-          LCF.sleep(waitTime);
+          ACF.sleep(waitTime);
         }
-        catch (LCFException e)
+        catch (ACFException e)
         {
-          if (e.getErrorCode() == LCFException.INTERRUPTED)
+          if (e.getErrorCode() == ACFException.INTERRUPTED)
             break;
 
-          if (e.getErrorCode() == LCFException.DATABASE_CONNECTION_ERROR)
+          if (e.getErrorCode() == ACFException.DATABASE_CONNECTION_ERROR)
           {
             Logging.threads.error("Job delete thread aborting and restarting due to database connection reset: "+e.getMessage(),e);
             try
             {
               // Give the database a chance to catch up/wake up
-              LCF.sleep(10000L);
+              ACF.sleep(10000L);
             }
             catch (InterruptedException se)
             {
@@ -97,7 +97,7 @@ public class JobDeleteThread extends Thread
           // Log it, but keep the thread alive
           Logging.threads.error("Exception tossed: "+e.getMessage(),e);
 
-          if (e.getErrorCode() == LCFException.SETUP_ERROR)
+          if (e.getErrorCode() == ACFException.SETUP_ERROR)
           {
             // Shut the whole system down!
             System.exit(1);

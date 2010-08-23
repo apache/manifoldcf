@@ -39,15 +39,15 @@ public class JobManagerFactory
   *@return the handle.
   */
   public static IJobManager make(IThreadContext threadContext)
-    throws LCFException
+    throws ACFException
   {
     Object o = threadContext.get(jobManagerName);
     if (o == null || !(o instanceof IJobManager))
     {
       IDBInterface database = DBInterfaceFactory.make(threadContext,
-        LCF.getMasterDatabaseName(),
-        LCF.getMasterDatabaseUsername(),
-        LCF.getMasterDatabasePassword());
+        ACF.getMasterDatabaseName(),
+        ACF.getMasterDatabaseUsername(),
+        ACF.getMasterDatabasePassword());
 
       o = new org.apache.acf.crawler.jobs.JobManager(threadContext,database);
       threadContext.save(jobManagerName,o);

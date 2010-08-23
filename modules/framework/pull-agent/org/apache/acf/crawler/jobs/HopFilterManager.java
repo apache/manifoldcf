@@ -40,7 +40,7 @@ public class HopFilterManager extends org.apache.acf.core.database.BaseTable
   *@param database is the database instance.
   */
   public HopFilterManager(IThreadContext threadContext, IDBInterface database)
-    throws LCFException
+    throws ACFException
   {
     super(database,"jobhopfilters");
   }
@@ -50,7 +50,7 @@ public class HopFilterManager extends org.apache.acf.core.database.BaseTable
   *@param owningTablePrimaryKey is the primary key of the owning table.
   */
   public void install(String ownerTable, String owningTablePrimaryKey)
-    throws LCFException
+    throws ACFException
   {
     // Standard practice: outer loop
     while (true)
@@ -99,7 +99,7 @@ public class HopFilterManager extends org.apache.acf.core.database.BaseTable
   /** Uninstall.
   */
   public void deinstall()
-    throws LCFException
+    throws ACFException
   {
     performDrop(null);
   }
@@ -109,7 +109,7 @@ public class HopFilterManager extends org.apache.acf.core.database.BaseTable
   *@return a map of link type to max hop count (as a Long).
   */
   public Map readRows(Long id)
-    throws LCFException
+    throws ACFException
   {
     ArrayList list = new ArrayList();
     list.add(id);
@@ -136,7 +136,7 @@ public class HopFilterManager extends org.apache.acf.core.database.BaseTable
   *@param ownerIDParams is the corresponding set of owner id parameters.
   */
   public void getRows(Map returnValues, String ownerIDList, ArrayList ownerIDParams)
-    throws LCFException
+    throws ACFException
   {
     IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+ownerIDField+" IN ("+ownerIDList+")",ownerIDParams,
       null,null);
@@ -157,7 +157,7 @@ public class HopFilterManager extends org.apache.acf.core.database.BaseTable
   *@param list is the job description to write hopcount filters for.
   */
   public void writeRows(Long ownerID, IJobDescription list)
-    throws LCFException
+    throws ACFException
   {
     beginTransaction();
     try
@@ -177,7 +177,7 @@ public class HopFilterManager extends org.apache.acf.core.database.BaseTable
         performInsert(map,null);
       }
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -197,7 +197,7 @@ public class HopFilterManager extends org.apache.acf.core.database.BaseTable
   *@param ownerID is the owner whose rows to delete.
   */
   public void deleteRows(Long ownerID)
-    throws LCFException
+    throws ACFException
   {
     ArrayList list = new ArrayList();
     list.add(ownerID);

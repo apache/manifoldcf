@@ -23,7 +23,7 @@ import org.apache.acf.core.interfaces.*;
 import org.apache.acf.agents.interfaces.*;
 import org.apache.acf.crawler.interfaces.*;
 import org.apache.acf.crawler.system.Logging;
-import org.apache.acf.crawler.system.LCF;
+import org.apache.acf.crawler.system.ACF;
 import java.util.*;
 import java.io.*;
 import org.w3c.dom.*;
@@ -99,9 +99,9 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
   protected String webServerPort = null;
 
   //mieConnection is the connection to the main Configuration Server.
-  //There will be further LCFMemexConnection objects for each
+  //There will be further ACFMemexConnection objects for each
   //physical server accessed through the physicalServers collection.
-  private LCFMemexConnection mieConnection = null;
+  private ACFMemexConnection mieConnection = null;
   private MemexConnectionPool miePool = new MemexConnectionPool();
 
   //Collection describing the logical servers making up this system
@@ -109,7 +109,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
   private Hashtable<String, LogicalServer> logicalServersByPrefix = null;
 
   //Collection describing the physical servers making up this system
-  private Hashtable<String, LCFMemexConnection> physicalServers = null;
+  private Hashtable<String, ACFMemexConnection> physicalServers = null;
 
   //Two collections describing the entities in the set-up - one keyed by the entities' name, the other
   //by their label - generally speaking, we should use labels for anything being presented to the users
@@ -199,7 +199,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
       }
       return new String[]{""};
     }
-    catch(LCFException e){
+    catch(ACFException e){
       Logging.connectors.warn("Memex connection error: "+e.getMessage(),e);
       return new String[]{""};
     }
@@ -249,7 +249,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
   *@return the connection's status as a displayable string.
   */
   public String check()
-    throws LCFException
+    throws ACFException
   {
     try{
       this.setupConnection();
@@ -264,7 +264,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
   * in active use.
   */
   public void poll()
-    throws LCFException
+    throws ACFException
   {
     // Is the connection still valid?
     if (this.physicalServers != null && !this.physicalServers.isEmpty())
@@ -283,7 +283,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
   /** Disconnect from Memex.
   */
   public void disconnect()
-    throws LCFException
+    throws ACFException
   {
     this.cleanUpConnections();
     userName = null;
@@ -306,13 +306,13 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
   *@param input is the request object.
   */
   public void executeCommand(Configuration output, String command, Configuration input)
-    throws LCFException
+    throws ACFException
   {
     if (command.equals("database/list"))
     {
-      String virtualServer = LCF.getRootArgument(input,"virtual_server");
+      String virtualServer = ACF.getRootArgument(input,"virtual_server");
       if (virtualServer == null)
-        throw new LCFException("Missing required argument 'virtual_server'");
+        throw new ACFException("Missing required argument 'virtual_server'");
       
       try
       {
@@ -334,11 +334,11 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
       }
       catch (ServiceInterruption e)
       {
-        LCF.createServiceInterruptionNode(output,e);
+        ACF.createServiceInterruptionNode(output,e);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
-        LCF.createErrorNode(output,e);
+        ACF.createErrorNode(output,e);
       }
     }
     else if (command.equals("virtualserver/list"))
@@ -357,11 +357,11 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
       }
       catch (ServiceInterruption e)
       {
-        LCF.createServiceInterruptionNode(output,e);
+        ACF.createServiceInterruptionNode(output,e);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
-        LCF.createErrorNode(output,e);
+        ACF.createErrorNode(output,e);
       }
     }
     else if (command.equals("entitytype/list"))
@@ -386,18 +386,18 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
       }
       catch (ServiceInterruption e)
       {
-        LCF.createServiceInterruptionNode(output,e);
+        ACF.createServiceInterruptionNode(output,e);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
-        LCF.createErrorNode(output,e);
+        ACF.createErrorNode(output,e);
       }
     }
     else if (command.equals("field/list"))
     {
-      String entityPrefix = LCF.getRootArgument(input,"entity_type_name");
+      String entityPrefix = ACF.getRootArgument(input,"entity_type_name");
       if (entityPrefix == null)
-        throw new LCFException("Missing required argument 'entity_type_name'");
+        throw new ACFException("Missing required argument 'entity_type_name'");
       try
       {
         String[] fieldNames = listFieldNames(entityPrefix);
@@ -412,18 +412,18 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
       }
       catch (ServiceInterruption e)
       {
-        LCF.createServiceInterruptionNode(output,e);
+        ACF.createServiceInterruptionNode(output,e);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
-        LCF.createErrorNode(output,e);
+        ACF.createErrorNode(output,e);
       }
     }
     else if (command.equals("field/listmatchable"))
     {
-      String entityPrefix = LCF.getRootArgument(input,"entity_type_name");
+      String entityPrefix = ACF.getRootArgument(input,"entity_type_name");
       if (entityPrefix == null)
-        throw new LCFException("Missing required argument 'entity_type_name'");
+        throw new ACFException("Missing required argument 'entity_type_name'");
       try
       {
         String[] fieldNames = listMatchableFieldNames(entityPrefix);
@@ -438,11 +438,11 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
       }
       catch (ServiceInterruption e)
       {
-        LCF.createServiceInterruptionNode(output,e);
+        ACF.createServiceInterruptionNode(output,e);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
-        LCF.createErrorNode(output,e);
+        ACF.createErrorNode(output,e);
       }
     }
     else
@@ -490,7 +490,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
   */
   public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
     long startTime, long endTime)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     //start by making sure we have a connection
     this.setupConnection();
@@ -676,11 +676,11 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
         {
           try
           {
-            LCF.sleep(100L);
+            ACF.sleep(100L);
           }
           catch (InterruptedException e)
           {
-            throw new LCFException(e.getMessage(),e,LCFException.INTERRUPTED);
+            throw new ACFException(e.getMessage(),e,ACFException.INTERRUPTED);
           }
         }
       }
@@ -697,7 +697,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
   }
 
   protected static boolean checkCriteria(Map<String,DecodedField> fields, List<CrawlMatchDescription> specificMatchCriteria)
-    throws LCFException
+    throws ACFException
   {
     // An empty array means EVERYTHING.
     if (specificMatchCriteria.size() == 0)
@@ -745,7 +745,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
             return true;
         }
         else
-          throw new LCFException("Bad operator value: "+operator);
+          throw new ACFException("Bad operator value: "+operator);
       }
     }
     return false;
@@ -753,7 +753,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
 
   protected void doDecode(ArrayList fieldListX, List<Map<String,DecodedField>> fieldsPerRecord, List<CrawlMatchDescription> specificMatchCriteria,
     LogicalServer ls, ISeedingActivity activities)
-    throws MemexException, LCFException
+    throws MemexException, ACFException
   {
     // First, do the decode
     ls.getMIE().mie.mxie_decode_fields(fieldListX);
@@ -850,7 +850,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
   */
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activity,
     DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     String[] newVersions = new String[documentIdentifiers.length];
     // Build a hash of the indices for each document identifier
@@ -1278,7 +1278,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
   */
   public void processDocuments(String[] documentIdentifiers, String[] documentVersions,
     IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
 
     // First, create the CrawlDescription object
@@ -1310,7 +1310,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
           Hashtable currentRec = lookupCachedRecord(recordURN);
           if (currentRec == null)
             // This should never happen!!
-            throw new LCFException("Process request for a record whose version was never requested!!");
+            throw new ACFException("Process request for a record whose version was never requested!!");
 
           // Now, unpack the version string to obtain what fields we should ingest etc.
           ArrayList<String> primaryList = new ArrayList<String>();
@@ -1468,7 +1468,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
         }
       }
     }catch(java.io.UnsupportedEncodingException e){
-      throw new LCFException("Unsupported encoding: "+e.getMessage(),e);
+      throw new ACFException("Unsupported encoding: "+e.getMessage(),e);
     }
 
   }
@@ -1521,7 +1521,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
   *@param versions is the corresponding set of version identifiers (individual identifiers may be null).
   */
   public void releaseDocumentVersions(String[] documentIdentifiers, String[] versions)
-    throws LCFException
+    throws ACFException
   {
     // Clean up our part of the cache.
     for (int i = 0; i < documentIdentifiers.length; i++)
@@ -1554,7 +1554,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     tabsArray.add("Memex Server");
     tabsArray.add("Web Server");
@@ -1780,7 +1780,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
   *@param tabName is the current tab name.
   */
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     String memexServerName = parameters.getParameter(org.apache.acf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_MEMEXSERVERNAME);
     if (memexServerName == null)
@@ -1925,7 +1925,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
-    throws LCFException
+    throws ACFException
   {
     String memexServerName = variableContext.getParameter("memexservername");
     if (memexServerName != null)
@@ -1973,7 +1973,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
@@ -2021,7 +2021,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     tabsArray.add("Record Criteria");
     tabsArray.add("Entities");
@@ -2307,7 +2307,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
   *@param tabName is the current tab name.
   */
   public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     int i;
     int k;
@@ -2473,7 +2473,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
           ii++;
         }
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         out.print(
 "  <tr>\n"+
@@ -2734,7 +2734,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
 "              </select>\n"
           );
         }
-        catch (LCFException e)
+        catch (ACFException e)
         {
           out.print(
 "              "+org.apache.acf.ui.util.Encoder.bodyEscape(e.getMessage())+"\n"
@@ -2789,7 +2789,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
 "              </select>\n"
             );
           }
-          catch (LCFException e)
+          catch (ACFException e)
           {
             out.print(
 "              "+org.apache.acf.ui.util.Encoder.bodyEscape(e.getMessage())+"\n"
@@ -2858,7 +2858,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
 "              <input type=\"text\" name=\"rulefieldvalueselect\" size=\"32\" value=\"\"/>\n"
             );
           }
-          catch (LCFException e)
+          catch (ACFException e)
           {
             out.print(
 "              "+org.apache.acf.ui.util.Encoder.bodyEscape(e.getMessage())+"\n"
@@ -3049,7 +3049,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
-    throws LCFException
+    throws ACFException
   {
     String x = variableContext.getParameter("entitytypecount");
     if (x != null && x.length() > 0)
@@ -3300,7 +3300,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
   *@param ds is the current document specification for this job.
   */
   public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
@@ -3540,7 +3540,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
 
   /** Return a list of databases (instances of an entity type) on a given virtual server*/
   public NameDescription[] listDatabasesForVirtualServer(String virtualServerName)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     //Start by making sure we're connected
     this.setupConnection();
@@ -3549,11 +3549,11 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
     if(!(logicalServers.containsKey(virtualServerName))){
       //If we can't find the virtual server, its unlikely we can
       //recover
-      throw new LCFException("Memex error: Virtual server "+virtualServerName+" not found");
+      throw new ACFException("Memex error: Virtual server "+virtualServerName+" not found");
     }
     LogicalServer ls = logicalServers.get(virtualServerName);
     if (ls == null)
-      throw new LCFException("Memex error: Virtual server "+virtualServerName+" not found");
+      throw new ACFException("Memex error: Virtual server "+virtualServerName+" not found");
 
     ArrayList<String> dblist = new ArrayList<String>();
     for(int i = 0; i < ls.getDatabaseCount(); i++){
@@ -3582,7 +3582,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
 
   /** Return a list of virtual servers for the connection, in sorted alphabetic order */
   public String[] listVirtualServers()
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     //Start by making sure we're connected
     this.setupConnection();
@@ -3615,7 +3615,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
 
   /** Return a list of the entity types there are for the connection, in sorted alphabetic order */
   public NameDescription[] listEntityTypes()
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     //Start by making sure we're connected
     this.setupConnection();
@@ -3652,7 +3652,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
 
   /** Return a list of the field names for the entity prefix in the implied connection, in sorted alphabetic order */
   public String[] listFieldNames(String entityPrefix)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     //Start by making sure we're connected
     this.setupConnection();
@@ -3662,12 +3662,12 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
       if (entity != null)
         return entity.getFields();
     }
-    throw new LCFException("Entity type '"+entityPrefix+"' does not exist");
+    throw new ACFException("Entity type '"+entityPrefix+"' does not exist");
   }
 
   /** Return a list of the field names that mie can directly fetch from a record (for document specification) */
   public String[] listMatchableFieldNames(String entityPrefix)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     String[] candidates = listFieldNames(entityPrefix);
     if (candidates == null)
@@ -3813,7 +3813,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
   //
   ///////////////////////////////////////////////////////////////////////
   private void setupConnection()
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
 
     boolean connected = false;
@@ -3822,7 +3822,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
       connected = true;
       for(Enumeration serverkeys = physicalServers.keys(); serverkeys.hasMoreElements();){
         String serverkey = (String)serverkeys.nextElement();
-        LCFMemexConnection pserver = physicalServers.get(serverkey);
+        ACFMemexConnection pserver = physicalServers.get(serverkey);
         if(!(pserver.isConnected())){
           connected = false;
         }
@@ -3842,10 +3842,10 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
         miePool.setCharset(characterEncoding);
 
         //Initialise data structures
-        mieConnection = new LCFMemexConnection();
+        mieConnection = new ACFMemexConnection();
         logicalServers = new Hashtable<String, LogicalServer>();
         logicalServersByPrefix = new Hashtable<String, LogicalServer>();
-        physicalServers = new Hashtable<String, LCFMemexConnection>();
+        physicalServers = new Hashtable<String, ACFMemexConnection>();
         entitiesByName = new Hashtable<String, MemexEntity>();
         entitiesByLabel = new Hashtable<String, MemexEntity>();
         entitiesByPrefix = new Hashtable<String, MemexEntity>();
@@ -3873,7 +3873,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
 
       }
       catch(PoolAuthenticationException e){
-        throw new LCFException("Authentication failure connecting to Memex Server " + miePool.getHostname() + ":" + Integer.toString(miePool.getPort())+": "+e.getMessage(),e);
+        throw new ACFException("Authentication failure connecting to Memex Server " + miePool.getHostname() + ":" + Integer.toString(miePool.getPort())+": "+e.getMessage(),e);
       }
       catch(PoolException e){
         Logging.connectors.warn("Memex: Pool error connecting to Memex Server " + miePool.getHostname() + ":" + Integer.toString(miePool.getPort()) + " - " + e.getMessage() + " - retrying",e);
@@ -3913,7 +3913,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
       while (i < serverKeyArray.length)
       {
         String serverkey = serverKeyArray[i++];
-        LCFMemexConnection currentMIE = physicalServers.get(serverkey);
+        ACFMemexConnection currentMIE = physicalServers.get(serverkey);
         try{
           // Remove history directories belonging to this session
           physicalServers.remove(serverkey);
@@ -3943,7 +3943,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
   /**Creates an alphabetically ordered list of entity objects.
   */
   private void getEntities()
-    throws MemexException, LCFException, ServiceInterruption
+    throws MemexException, ACFException, ServiceInterruption
   {
     String mxEntityPath = null;
     String[] entityReturn = new String[1];
@@ -4013,11 +4013,11 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
                   // Parse it!
                   entityForm = db.parse(formStream);
                 }catch(ParserConfigurationException e){
-                  throw new LCFException("Can't find a valid parser: "+e.getMessage(),e);
+                  throw new ACFException("Can't find a valid parser: "+e.getMessage(),e);
                 }catch(SAXException e){
-                  throw new LCFException("XML had parse errors: "+e.getMessage(),e);
+                  throw new ACFException("XML had parse errors: "+e.getMessage(),e);
                 }catch(InterruptedIOException e){
-                  throw new LCFException(e.getMessage(),e,LCFException.INTERRUPTED);
+                  throw new ACFException(e.getMessage(),e,ACFException.INTERRUPTED);
                 }catch(IOException e){
                   // I/O problem; treat as  a service interruption
                   long currentTime = System.currentTimeMillis();
@@ -4032,11 +4032,11 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
                   }
                   catch (InterruptedIOException e)
                   {
-                    throw new LCFException(e.getMessage(),e,LCFException.INTERRUPTED);
+                    throw new ACFException(e.getMessage(),e,ACFException.INTERRUPTED);
                   }
                   catch (IOException e)
                   {
-                    throw new LCFException("Error reading memex form data: "+e.getMessage(),e);
+                    throw new ACFException("Error reading memex form data: "+e.getMessage(),e);
                   }
                 }
               }catch(MemexException e){
@@ -4116,7 +4116,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
             serverFields.add(serversource);
             //mieConnection.mie.mxie_goto_record(hist, x);
             mieConnection.mie.mxie_decode_fields(serverFields);
-            LCFMemexConnection mie;
+            ACFMemexConnection mie;
             if(serversource.getText().equals("configuration-server")){
               mie = mieConnection;
             }else{
@@ -4137,14 +4137,14 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
     }
   }
 
-  private LCFMemexConnection getPhysicalServer(String server, int port){
+  private ACFMemexConnection getPhysicalServer(String server, int port){
 
     String key = server + ":" + Integer.toString(port);
 
     if(physicalServers.containsKey(key)){
-      return (LCFMemexConnection)physicalServers.get(key);
+      return (ACFMemexConnection)physicalServers.get(key);
     }else{
-      LCFMemexConnection newServer = new LCFMemexConnection();
+      ACFMemexConnection newServer = new ACFMemexConnection();
       try{
         MemexConnection newMIE = miePool.getConnection(server, port);
         newServer.mie = newMIE;
@@ -4267,7 +4267,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
   * @return - the hash table representation of the record. Null if its not found
   */
   private Hashtable getmxRecordObj(LogicalServer ls, int histno, int recnum)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     Hashtable mxRecord = null;
     try{
@@ -4436,7 +4436,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
       }
       catch (InterruptedIOException eek)
       {
-        throw new LCFException(eek.getMessage(),eek,LCFException.INTERRUPTED);
+        throw new ACFException(eek.getMessage(),eek,ACFException.INTERRUPTED);
       }
       catch (IOException eek) {
         // Treat this as a service interruption
@@ -4460,15 +4460,15 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
     }
     catch (UnsupportedEncodingException e){
       Logging.connectors.error("Memex: "+e.getMessage(),e);
-      throw new LCFException(e.getMessage(),e);
+      throw new ACFException(e.getMessage(),e);
     }
     catch (InterruptedIOException e)
     {
-      throw new LCFException(e.getMessage(),e,LCFException.INTERRUPTED);
+      throw new ACFException(e.getMessage(),e,ACFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new LCFException(e.getMessage(),e);
+      throw new ACFException(e.getMessage(),e);
     }
   }
 

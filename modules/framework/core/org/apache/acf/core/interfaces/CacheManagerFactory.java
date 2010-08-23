@@ -35,7 +35,7 @@ public class CacheManagerFactory
   * @return the proper cache manager instance.
   */
   public static ICacheManager make(IThreadContext context)
-    throws LCFException
+    throws ACFException
   {
     Object o = context.get(cacheManager);
     if (o == null || !(o instanceof ICacheManager))

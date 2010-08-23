@@ -48,7 +48,7 @@ public class JobStartSpinner
                 
                 try
                 {
-                        LCF.initializeEnvironment();
+                        ACF.initializeEnvironment();
                         // Create the import thread
                         Thread importThread = new ImportThread(1000,importFilename);
                         // Create the job start thread
@@ -102,7 +102,7 @@ public class JobStartSpinner
                                 int i = 0;
                                 while (i < repeatCount)
                                 {
-                                        LCF.importConfiguration(tc,fileName);
+                                        ACF.importConfiguration(tc,fileName);
                                         if ((i % 100) == 0)
                                                 System.out.println("Configuration import #"+Integer.toString(i)+" succeeded.");
                                         i++;

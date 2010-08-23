@@ -72,7 +72,7 @@ public interface IOutputConnector extends IConnector
   *@param input is the request object.
   */
   public void executeCommand(Configuration output, String command, Configuration input)
-    throws LCFException;
+    throws ACFException;
     
   /** Detect if a mime type is indexable or not.  This method is used by participating repository connectors to pre-filter the number of
   * unusable documents that will be passed to this output connector.
@@ -80,7 +80,7 @@ public interface IOutputConnector extends IConnector
   *@return true if the mime type is indexable by this connector.
   */
   public boolean checkMimeTypeIndexable(String mimeType)
-    throws LCFException, ServiceInterruption;
+    throws ACFException, ServiceInterruption;
 
   /** Pre-determine whether a document (passed here as a File object) is indexable by this connector.  This method is used by participating
   * repository connectors to help reduce the number of unmanageable documents that are passed to this output connector in advance of an
@@ -89,7 +89,7 @@ public interface IOutputConnector extends IConnector
   *@return true if the file is indexable.
   */
   public boolean checkDocumentIndexable(File localFile)
-    throws LCFException, ServiceInterruption;
+    throws ACFException, ServiceInterruption;
 
   /** Get an output version string, given an output specification.  The output version string is used to uniquely describe the pertinent details of
   * the output specification and the configuration, to allow the Connector Framework to determine whether a document will need to be output again.
@@ -103,7 +103,7 @@ public interface IOutputConnector extends IConnector
   * the document will not need to be sent again to the output data store.
   */
   public String getOutputDescription(OutputSpecification spec)
-    throws LCFException;
+    throws ACFException;
 
   /** Add (or replace) a document in the output data store using the connector.
   * This method presumes that the connector object has been configured, and it is thus able to communicate with the output data store should that be
@@ -120,7 +120,7 @@ public interface IOutputConnector extends IConnector
   *@return the document status (accepted or permanently rejected).
   */
   public int addOrReplaceDocument(String documentURI, String outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
-    throws LCFException, ServiceInterruption;
+    throws ACFException, ServiceInterruption;
 
   /** Remove a document using the connector.
   * Note that the last outputDescription is included, since it may be necessary for the connector to use such information to know how to properly remove the document.
@@ -130,7 +130,7 @@ public interface IOutputConnector extends IConnector
   *@param activities is the handle to an object that the implementer of an output connector may use to perform operations, such as logging processing activity.
   */
   public void removeDocument(String documentURI, String outputDescription, IOutputRemoveActivity activities)
-    throws LCFException, ServiceInterruption;
+    throws ACFException, ServiceInterruption;
 
   // UI support methods.
   //
@@ -149,7 +149,7 @@ public interface IOutputConnector extends IConnector
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputSpecificationHeader(IHTTPOutput out, OutputSpecification os, ArrayList tabsArray)
-    throws LCFException, IOException;
+    throws ACFException, IOException;
   
   /** Output the specification body section.
   * This method is called in the body section of a job page which has selected an output connection of the current type.  Its purpose is to present the required form elements for editing.
@@ -160,7 +160,7 @@ public interface IOutputConnector extends IConnector
   *@param tabName is the current tab name.
   */
   public void outputSpecificationBody(IHTTPOutput out, OutputSpecification os, String tabName)
-    throws LCFException, IOException;
+    throws ACFException, IOException;
   
   /** Process a specification post.
   * This method is called at the start of job's edit or view page, whenever there is a possibility that form data for a connection has been
@@ -171,7 +171,7 @@ public interface IOutputConnector extends IConnector
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   public String processSpecificationPost(IPostParameters variableContext, OutputSpecification os)
-    throws LCFException;
+    throws ACFException;
   
   /** View specification.
   * This method is called in the body section of a job's view page.  Its purpose is to present the output specification information to the user.
@@ -180,7 +180,7 @@ public interface IOutputConnector extends IConnector
   *@param os is the current output specification for this job.
   */
   public void viewSpecification(IHTTPOutput out, OutputSpecification os)
-    throws LCFException, IOException;
+    throws ACFException, IOException;
   
 }
 

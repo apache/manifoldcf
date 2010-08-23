@@ -37,11 +37,11 @@ public interface IDocumentIdentifierStream
   *@return the next document identifier, or null if there are no more.
   */
   public String getNextIdentifier()
-    throws LCFException, ServiceInterruption;
+    throws ACFException, ServiceInterruption;
 
   /** Close the stream.
   */
   public void close()
-    throws LCFException;
+    throws ACFException;
 
 }

@@ -21,7 +21,7 @@ package org.apache.acf.agents;
 import java.io.*;
 import org.apache.acf.core.interfaces.*;
 import org.apache.acf.agents.interfaces.*;
-import org.apache.acf.agents.system.LCF;
+import org.apache.acf.agents.system.ACF;
 import java.util.*;
 
 /** This class is a command that is used to delete an output connection.
@@ -46,7 +46,7 @@ public class DeleteOutputConnection
                 String connectionName = args[0];
                 try
                 {
-                        LCF.initializeEnvironment();
+                        ACF.initializeEnvironment();
                         IThreadContext tc = ThreadContextFactory.make();
                         IOutputConnectionManager mgr = OutputConnectionManagerFactory.make(tc);
                         mgr.delete(connectionName);

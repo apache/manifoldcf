@@ -41,7 +41,7 @@ public class AuthorityConnectorManager extends org.apache.acf.core.database.Base
   *@param database is the database handle.
   */
   public AuthorityConnectorManager(IThreadContext threadContext, IDBInterface database)
-    throws LCFException
+    throws ACFException
   {
     super(database,"authconnectors");
     this.threadContext = threadContext;
@@ -51,7 +51,7 @@ public class AuthorityConnectorManager extends org.apache.acf.core.database.Base
   /** Install or upgrade.
   */
   public void install()
-    throws LCFException
+    throws ACFException
   {
     // Always use a loop, in case there's upgrade retries needed.
     while (true)
@@ -100,7 +100,7 @@ public class AuthorityConnectorManager extends org.apache.acf.core.database.Base
   /** Uninstall.  This also unregisters all connectors.
   */
   public void deinstall()
-    throws LCFException
+    throws ACFException
   {
     StringSet invKeys = new StringSet(getCacheKey());
 
@@ -119,7 +119,7 @@ public class AuthorityConnectorManager extends org.apache.acf.core.database.Base
       }
       performDrop(invKeys);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -141,7 +141,7 @@ public class AuthorityConnectorManager extends org.apache.acf.core.database.Base
   *@param className is the class name.
   */
   public void registerConnector(String description, String className)
-    throws LCFException
+    throws ACFException
   {
     StringSet invKeys = new StringSet(getCacheKey());
     beginTransaction();
@@ -168,7 +168,7 @@ public class AuthorityConnectorManager extends org.apache.acf.core.database.Base
       // Either way, we must do the install/upgrade itself.
       AuthorityConnectorFactory.install(threadContext,className);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -189,7 +189,7 @@ public class AuthorityConnectorManager extends org.apache.acf.core.database.Base
   *@param className is the class name of the connector to unregister.
   */
   public void unregisterConnector(String className)
-    throws LCFException
+    throws ACFException
   {
     StringSet invKeys = new StringSet(getCacheKey());
     beginTransaction();
@@ -200,7 +200,7 @@ public class AuthorityConnectorManager extends org.apache.acf.core.database.Base
 
       removeConnector(className);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -221,7 +221,7 @@ public class AuthorityConnectorManager extends org.apache.acf.core.database.Base
   *@param className is the connector class to remove.
   */
   public void removeConnector(String className)
-    throws LCFException
+    throws ACFException
   {
     StringSet invKeys = new StringSet(getCacheKey());
     ArrayList list = new ArrayList();
@@ -234,7 +234,7 @@ public class AuthorityConnectorManager extends org.apache.acf.core.database.Base
   * These will be ordered by description.
   */
   public IResultSet getConnectors()
-    throws LCFException
+    throws ACFException
   {
     StringSet invKeys = new StringSet(getCacheKey());
 
@@ -247,7 +247,7 @@ public class AuthorityConnectorManager extends org.apache.acf.core.database.Base
   *@return the description, or null if the class is not registered.
   */
   public String getDescription(String className)
-    throws LCFException
+    throws ACFException
   {
     StringSet invKeys = new StringSet(getCacheKey());
 
@@ -266,7 +266,7 @@ public class AuthorityConnectorManager extends org.apache.acf.core.database.Base
   *@return true if installed, false otherwise.
   */
   public boolean isInstalled(String className)
-    throws LCFException
+    throws ACFException
   {
     // Use the global table key; that's good enough because we don't expect stuff to change out from under very often.
     StringSet invKeys = new StringSet(getCacheKey());

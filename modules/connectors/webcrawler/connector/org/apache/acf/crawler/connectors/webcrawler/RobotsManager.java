@@ -24,7 +24,7 @@ import org.apache.acf.core.interfaces.*;
 import org.apache.acf.crawler.interfaces.*;
 import org.apache.acf.authorities.interfaces.*;
 import org.apache.acf.crawler.interfaces.CacheKeyFactory;
-import org.apache.acf.crawler.system.LCF;
+import org.apache.acf.crawler.system.ACF;
 import org.apache.acf.crawler.system.Logging;
 
 
@@ -53,7 +53,7 @@ public class RobotsManager extends org.apache.acf.core.database.BaseTable
   *@param database is the database handle.
   */
   public RobotsManager(IThreadContext tc, IDBInterface database)
-    throws LCFException
+    throws ACFException
   {
     super(database,"robotsdata");
     cacheManager = CacheManagerFactory.make(tc);
@@ -62,7 +62,7 @@ public class RobotsManager extends org.apache.acf.core.database.BaseTable
   /** Install the manager.
   */
   public void install()
-    throws LCFException
+    throws ACFException
   {
     // Standard practice: outer loop on install methods, no transactions
     while (true)
@@ -91,7 +91,7 @@ public class RobotsManager extends org.apache.acf.core.database.BaseTable
   /** Uninstall the manager.
   */
   public void deinstall()
-    throws LCFException
+    throws ACFException
   {
     performDrop(null);
   }
@@ -104,7 +104,7 @@ public class RobotsManager extends org.apache.acf.core.database.BaseTable
   */
   public Boolean checkFetchAllowed(String userAgent, String hostName, long currentTime, String pathString,
     IVersionActivity activities)
-    throws LCFException
+    throws ACFException
   {
     // Build description objects
     HostDescription[] objectDescriptions = new HostDescription[1];
@@ -129,7 +129,7 @@ public class RobotsManager extends org.apache.acf.core.database.BaseTable
   *@param data is the robots data stream.  May be null.
   */
   public void writeRobotsData(String hostName, long expirationTime, InputStream data)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     TempFileInput tfi = null;
     try
@@ -140,9 +140,9 @@ public class RobotsManager extends org.apache.acf.core.database.BaseTable
         {
           tfi = new TempFileInput(data);
         }
-        catch (LCFException e)
+        catch (ACFException e)
         {
-          if (e.getErrorCode() == LCFException.INTERRUPTED)
+          if (e.getErrorCode() == ACFException.INTERRUPTED)
             throw e;
           throw new IOException("Fetch failed: "+e.getMessage());
         }
@@ -183,7 +183,7 @@ public class RobotsManager extends org.apache.acf.core.database.BaseTable
           }
           cacheManager.invalidateKeys(ch);
         }
-        catch (LCFException e)
+        catch (ACFException e)
         {
           signalRollback();
           throw e;
@@ -225,7 +225,7 @@ public class RobotsManager extends org.apache.acf.core.database.BaseTable
   *@return null if the data doesn't exist at all.  Return robots data if it does.
   */
   protected RobotsData readRobotsData(String hostName, IVersionActivity activities)
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -236,7 +236,7 @@ public class RobotsManager extends org.apache.acf.core.database.BaseTable
       if (set.getRowCount() == 0)
         return null;
       if (set.getRowCount() > 1)
-        throw new LCFException("Unexpected number of robotsdata rows matching '"+hostName+"': "+Integer.toString(set.getRowCount()));
+        throw new ACFException("Unexpected number of robotsdata rows matching '"+hostName+"': "+Integer.toString(set.getRowCount()));
       IResultRow row = set.getRow(0);
       long expiration = ((Long)row.getValue(expirationField)).longValue();
       BinaryInput bi = (BinaryInput)row.getValue(robotsField);
@@ -254,11 +254,11 @@ public class RobotsManager extends org.apache.acf.core.database.BaseTable
     }
     catch (InterruptedIOException e)
     {
-      throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new LCFException("IO error reading robots data for "+hostName+": "+e.getMessage(),e);
+      throw new ACFException("IO error reading robots data for "+hostName+": "+e.getMessage(),e);
     }
   }
 
@@ -291,7 +291,7 @@ public class RobotsManager extends org.apache.acf.core.database.BaseTable
 
     /** Constructor. */
     public RobotsData(InputStream is, long expiration, String hostName, IVersionActivity activities)
-      throws IOException, LCFException
+      throws IOException, ACFException
     {
       this.expiration = expiration;
       if (is == null)
@@ -398,7 +398,7 @@ public class RobotsManager extends org.apache.acf.core.database.BaseTable
     * Is NOT expected to close the stream.
     */
     protected void parseRobotsTxt(BufferedReader r, String hostName, IVersionActivity activities)
-      throws IOException, LCFException
+      throws IOException, ACFException
     {
       boolean parseCompleted = false;
       boolean robotsWasHtml = false;
@@ -782,7 +782,7 @@ public class RobotsManager extends org.apache.acf.core.database.BaseTable
     * @return the newly created objects to cache, or null, if any object cannot be created.
     *  The order of the returned objects must correspond to the order of the object descriptinos.
     */
-    public Object[] create(ICacheDescription[] objectDescriptions) throws LCFException
+    public Object[] create(ICacheDescription[] objectDescriptions) throws ACFException
     {
       // I'm not expecting multiple values to be request, so it's OK to walk through the objects
       // and do a request at a time.
@@ -809,7 +809,7 @@ public class RobotsManager extends org.apache.acf.core.database.BaseTable
     * @param objectDescription is the unique identifier of the object.
     * @param cachedObject is the cached object.
     */
-    public void exists(ICacheDescription objectDescription, Object cachedObject) throws LCFException
+    public void exists(ICacheDescription objectDescription, Object cachedObject) throws ACFException
     {
       // Cast what came in as what it really is
       HostDescription objectDesc = (HostDescription)objectDescription;
@@ -821,7 +821,7 @@ public class RobotsManager extends org.apache.acf.core.database.BaseTable
     /** Perform the desired operation.  This method is called after either createGetObject()
     * or exists() is called for every requested object.
     */
-    public void execute() throws LCFException
+    public void execute() throws ACFException
     {
       // Does nothing; we only want to fetch objects in this cacher.
     }

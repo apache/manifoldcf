@@ -19,7 +19,7 @@
 package org.apache.acf.core.interfaces;
 
 import java.io.*;
-import org.apache.acf.core.system.LCF;
+import org.apache.acf.core.system.ACF;
 
 /** This class represents a temporary file character input
 * stream.  Call the "done" method to clean up the
@@ -42,7 +42,7 @@ public class TempFileCharacterInput extends CharacterInput
   *          and hash value for the data.
   */
   public TempFileCharacterInput(Reader is)
-    throws LCFException
+    throws ACFException
   {
     super();
     try
@@ -52,12 +52,12 @@ public class TempFileCharacterInput extends CharacterInput
       try
       {
         // Register the file for autodeletion, using our infrastructure.
-        LCF.addFile(outfile);
+        ACF.addFile(outfile);
         // deleteOnExit() causes memory leakage!
         // outfile.deleteOnExit();
 
         // Set up hash digest and character length counter before we start anything.
-        java.security.MessageDigest md = LCF.startHash();
+        java.security.MessageDigest md = ACF.startHash();
 
         FileOutputStream outStream = new FileOutputStream(outfile);
         // Create a Writer corresponding to the file output stream, and encode using utf-8
@@ -74,12 +74,12 @@ public class TempFileCharacterInput extends CharacterInput
             if (readsize == -1)
               break;
             outWriter.write(buffer,0,readsize);
-            LCF.addToHash(md,new String(buffer,0,readsize));
+            ACF.addToHash(md,new String(buffer,0,readsize));
             totalMoved += readsize;
           }
 
           charLength = totalMoved;
-          hashValue = LCF.getHashValue(md);
+          hashValue = ACF.getHashValue(md);
         }
         finally
         {
@@ -95,7 +95,7 @@ public class TempFileCharacterInput extends CharacterInput
       {
         // Delete the temp file we created on any error condition
         // outfile.delete();
-        LCF.deleteFile(outfile);
+        ACF.deleteFile(outfile);
         if (e instanceof Error)
           throw (Error)e;
         if (e instanceof RuntimeException)
@@ -107,11 +107,11 @@ public class TempFileCharacterInput extends CharacterInput
     }
     catch (InterruptedIOException e)
     {
-      throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
     }
     catch (Exception e)
     {
-      throw new LCFException("Cannot write temporary file: "+e.getMessage(),e,LCFException.GENERAL_ERROR);
+      throw new ACFException("Cannot write temporary file: "+e.getMessage(),e,ACFException.GENERAL_ERROR);
     }
 
   }
@@ -123,7 +123,7 @@ public class TempFileCharacterInput extends CharacterInput
   {
     super();
     file = tempFile;
-    LCF.addFile(file);
+    ACF.addFile(file);
     // deleteOnExit() causes memory leakage; better to leak files on hard shutdown than memory.
     // file.deleteOnExit();
   }
@@ -135,7 +135,7 @@ public class TempFileCharacterInput extends CharacterInput
 
   /** Open a Utf8 stream directly from the backing file */
   public InputStream getUtf8Stream()
-    throws LCFException
+    throws ACFException
   {
     if (file != null)
     {
@@ -145,14 +145,14 @@ public class TempFileCharacterInput extends CharacterInput
       }
       catch (FileNotFoundException e)
       {
-        throw new LCFException("No such file: "+e.getMessage(),e,LCFException.GENERAL_ERROR);
+        throw new ACFException("No such file: "+e.getMessage(),e,ACFException.GENERAL_ERROR);
       }
     }
     return null;
   }
 
   protected void openStream()
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -162,11 +162,11 @@ public class TempFileCharacterInput extends CharacterInput
     }
     catch (FileNotFoundException e)
     {
-      throw new LCFException("Can't create stream: "+e.getMessage(),e,LCFException.GENERAL_ERROR);
+      throw new ACFException("Can't create stream: "+e.getMessage(),e,ACFException.GENERAL_ERROR);
     }
     catch (UnsupportedEncodingException e)
     {
-      throw new LCFException("Can't create stream: "+e.getMessage(),e,LCFException.GENERAL_ERROR);
+      throw new ACFException("Can't create stream: "+e.getMessage(),e,ACFException.GENERAL_ERROR);
     }
   }
 
@@ -187,33 +187,33 @@ public class TempFileCharacterInput extends CharacterInput
   }
 
   public void discard()
-    throws LCFException
+    throws ACFException
   {
     super.discard();
     // Delete the underlying file
     if (file != null)
     {
-      LCF.deleteFile(file);
+      ACF.deleteFile(file);
       file = null;
     }
   }
 
   /** Calculate the datum's length in characters */
   protected void calculateLength()
-    throws LCFException
+    throws ACFException
   {
     scanFile();
   }
 
   /** Calculate the datum's hash value */
   protected void calculateHashValue()
-    throws LCFException
+    throws ACFException
   {
     scanFile();
   }
 
   private void scanFile()
-    throws LCFException
+    throws ACFException
   {
     // Scan the file in order to figure out the hash value and the character length
     try
@@ -224,7 +224,7 @@ public class TempFileCharacterInput extends CharacterInput
       try
       {
         // Set up hash digest and character length counter before we start anything.
-        java.security.MessageDigest md = LCF.startHash();
+        java.security.MessageDigest md = ACF.startHash();
         char[] buffer = new char[CHUNK_SIZE];
         long totalMoved = 0;
         while (true)
@@ -234,12 +234,12 @@ public class TempFileCharacterInput extends CharacterInput
           int readsize = reader.read(buffer,0,moveAmount);
           if (readsize == -1)
             break;
-          LCF.addToHash(md,new String(buffer,0,readsize));
+          ACF.addToHash(md,new String(buffer,0,readsize));
           totalMoved += readsize;
         }
 
         charLength = totalMoved;
-        hashValue = LCF.getHashValue(md);
+        hashValue = ACF.getHashValue(md);
       }
       finally
       {
@@ -248,11 +248,11 @@ public class TempFileCharacterInput extends CharacterInput
     }
     catch (InterruptedIOException e)
     {
-      throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new LCFException("Can't scan file: "+e.getMessage(),e,LCFException.GENERAL_ERROR);
+      throw new ACFException("Can't scan file: "+e.getMessage(),e,ACFException.GENERAL_ERROR);
     }
   }
 

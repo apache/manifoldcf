@@ -37,15 +37,15 @@ public class IncrementalIngesterFactory
   /** Get an appropriate incremental ingest manager handle.
   */
   public static IIncrementalIngester make(IThreadContext threadContext)
-    throws LCFException
+    throws ACFException
   {
     Object o = threadContext.get(ingestManager);
     if (o == null || !(o instanceof IIncrementalIngester))
     {
       IDBInterface database = DBInterfaceFactory.make(threadContext,
-        LCF.getMasterDatabaseName(),
-        LCF.getMasterDatabaseUsername(),
-        LCF.getMasterDatabasePassword());
+        ACF.getMasterDatabaseName(),
+        ACF.getMasterDatabaseUsername(),
+        ACF.getMasterDatabasePassword());
 
       o = new org.apache.acf.agents.incrementalingest.IncrementalIngester(threadContext,database);
       threadContext.save(ingestManager,o);

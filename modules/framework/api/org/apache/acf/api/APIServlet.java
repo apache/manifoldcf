@@ -21,7 +21,7 @@ package org.apache.acf.api;
 import org.apache.acf.core.interfaces.*;
 import org.apache.acf.agents.interfaces.*;
 import org.apache.acf.crawler.interfaces.*;
-import org.apache.acf.crawler.system.LCF;
+import org.apache.acf.crawler.system.ACF;
 import org.apache.acf.crawler.system.Logging;
 
 import java.io.*;
@@ -31,7 +31,7 @@ import java.net.*;
 import javax.servlet.*;
 import javax.servlet.http.*;
 
-/** This servlet class provides API services for LCF.
+/** This servlet class provides API services for ACF.
 */
 public class APIServlet extends HttpServlet
 {
@@ -46,10 +46,10 @@ public class APIServlet extends HttpServlet
     try
     {
       // Set up the environment
-      LCF.initializeEnvironment();
+      ACF.initializeEnvironment();
       // Nothing more needs to be done at this point.
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       Logging.misc.error("Error starting API service: "+e.getMessage(),e);
       throw new ServletException("Error starting API service: "+e.getMessage(),e);
@@ -64,10 +64,10 @@ public class APIServlet extends HttpServlet
     try
     {
       // Set up the environment
-      LCF.initializeEnvironment();
+      ACF.initializeEnvironment();
       // Nothing more needs to be done.
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       Logging.misc.error("Error shutting down API service: "+e.getMessage(),e);
     }
@@ -82,7 +82,7 @@ public class APIServlet extends HttpServlet
     try
     {
       // Set up the environment
-      LCF.initializeEnvironment();
+      ACF.initializeEnvironment();
 
       // Mint a thread context
       IThreadContext tc = ThreadContextFactory.make();
@@ -135,14 +135,14 @@ public class APIServlet extends HttpServlet
         else
           input = null;
           
-        Configuration output = LCF.executeCommand(tc,command,input);
+        Configuration output = ACF.executeCommand(tc,command,input);
           
         // Format the response
         try
         {
           outputText = output.toJSON();
         }
-        catch (LCFException e)
+        catch (ACFException e)
         {
           // Log it
           Logging.api.error("Error forming JSON response: "+e.getMessage(),e);
@@ -178,7 +178,7 @@ public class APIServlet extends HttpServlet
       //Logging.authorityService.error("Unsupported encoding: "+e.getMessage(),e);
       throw new ServletException("Fatal error occurred: "+e.getMessage(),e);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       // We should only see this error if there's an API problem, not if there's an actual problem with the method being called.
       response.sendError(response.SC_BAD_REQUEST,e.getMessage());

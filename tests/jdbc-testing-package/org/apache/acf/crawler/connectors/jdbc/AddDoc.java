@@ -86,7 +86,7 @@ public class AddDoc
                         e.printStackTrace(System.err);
                         System.exit(2);
                 }
-                catch (LCFException e)
+                catch (ACFException e)
                 {
                         e.printStackTrace(System.err);
                         System.exit(2);

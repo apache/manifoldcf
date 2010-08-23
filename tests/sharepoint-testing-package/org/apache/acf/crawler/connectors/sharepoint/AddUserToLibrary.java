@@ -50,7 +50,7 @@ public class AddUserToLibrary
                         }
                         System.err.println("Successfully added user");
                 }
-                catch (LCFException e)
+                catch (ACFException e)
                 {
                         e.printStackTrace(System.err);
                         System.exit(2);

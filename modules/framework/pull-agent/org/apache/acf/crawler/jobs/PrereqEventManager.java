@@ -50,7 +50,7 @@ public class PrereqEventManager extends org.apache.acf.core.database.BaseTable
   *@param database is the database handle.
   */
   public PrereqEventManager(IDBInterface database)
-    throws LCFException
+    throws ACFException
   {
     super(database,"prereqevents");
   }
@@ -58,7 +58,7 @@ public class PrereqEventManager extends org.apache.acf.core.database.BaseTable
   /** Install or upgrade this table.
   */
   public void install(String ownerTableName, String ownerColumn)
-    throws LCFException
+    throws ACFException
   {
     // Standard practice: Outer loop for upgrade support.
     while (true)
@@ -105,14 +105,14 @@ public class PrereqEventManager extends org.apache.acf.core.database.BaseTable
   /** Uninstall.
   */
   public void deinstall()
-    throws LCFException
+    throws ACFException
   {
     beginTransaction();
     try
     {
       performDrop(null);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -130,7 +130,7 @@ public class PrereqEventManager extends org.apache.acf.core.database.BaseTable
 
   /** Delete specified rows, based on jobqueue criteria. */
   public void deleteRows(String parentTableName, String joinField, String parentCriteria, ArrayList list)
-    throws LCFException
+    throws ACFException
   {
     StringBuffer sb = new StringBuffer();
     sb.append("WHERE EXISTS(SELECT 'x' FROM ").append(parentTableName).append(" WHERE ").append(joinField).append("=")
@@ -144,7 +144,7 @@ public class PrereqEventManager extends org.apache.acf.core.database.BaseTable
 
   /** Delete specified rows, as directly specified without a join. */
   public void deleteRows(String ownerQueryPart, ArrayList list)
-    throws LCFException
+    throws ACFException
   {
     performDelete("WHERE "+ownerField+" IN("+ownerQueryPart+")",list,null);
     reindexTracker.noteEvent();
@@ -152,7 +152,7 @@ public class PrereqEventManager extends org.apache.acf.core.database.BaseTable
 
   /** Delete rows pertaining to a single entry */
   public void deleteRows(Long recordID)
-    throws LCFException
+    throws ACFException
   {
     ArrayList list = new ArrayList();
     list.add(recordID);
@@ -162,7 +162,7 @@ public class PrereqEventManager extends org.apache.acf.core.database.BaseTable
 
   /** Add rows pertaining to a single entry */
   public void addRows(Long recordID, String[] eventNames)
-    throws LCFException
+    throws ACFException
   {
     if (eventNames != null)
     {
@@ -181,7 +181,7 @@ public class PrereqEventManager extends org.apache.acf.core.database.BaseTable
   /** Conditionally do analyze operation.
   */
   public void conditionallyMaintainTables()
-    throws LCFException
+    throws ACFException
   {
     if (tracker.checkAction())
     {

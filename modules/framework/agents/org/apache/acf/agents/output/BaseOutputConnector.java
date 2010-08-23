@@ -63,10 +63,10 @@ public abstract class BaseOutputConnector extends org.apache.acf.core.connector.
   *@param input is the request object.
   */
   public void executeCommand(Configuration output, String command, Configuration input)
-    throws LCFException
+    throws ACFException
   {
     // The base connector treats all requests as invalid commands, and throws an exception accordingly.
-    throw new LCFException("Unrecognized output connector command '"+command+"'");
+    throw new ACFException("Unrecognized output connector command '"+command+"'");
   }
 
   /** Detect if a mime type is indexable or not.  This method is used by participating repository connectors to pre-filter the number of
@@ -75,7 +75,7 @@ public abstract class BaseOutputConnector extends org.apache.acf.core.connector.
   *@return true if the mime type is indexable by this connector.
   */
   public boolean checkMimeTypeIndexable(String mimeType)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     return true;
   }
@@ -87,7 +87,7 @@ public abstract class BaseOutputConnector extends org.apache.acf.core.connector.
   *@return true if the file is indexable.
   */
   public boolean checkDocumentIndexable(File localFile)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     return true;
   }
@@ -109,7 +109,7 @@ public abstract class BaseOutputConnector extends org.apache.acf.core.connector.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputSpecificationHeader(IHTTPOutput out, OutputSpecification os, ArrayList tabsArray)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
   }
   
@@ -122,7 +122,7 @@ public abstract class BaseOutputConnector extends org.apache.acf.core.connector.
   *@param tabName is the current tab name.
   */
   public void outputSpecificationBody(IHTTPOutput out, OutputSpecification os, String tabName)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
   }
   
@@ -135,7 +135,7 @@ public abstract class BaseOutputConnector extends org.apache.acf.core.connector.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   public String processSpecificationPost(IPostParameters variableContext, OutputSpecification os)
-    throws LCFException
+    throws ACFException
   {
     return null;
   }
@@ -147,7 +147,7 @@ public abstract class BaseOutputConnector extends org.apache.acf.core.connector.
   *@param os is the current output specification for this job.
   */
   public void viewSpecification(IHTTPOutput out, OutputSpecification os)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
   }
 

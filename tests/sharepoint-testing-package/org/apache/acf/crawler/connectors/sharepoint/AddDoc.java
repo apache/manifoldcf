@@ -50,7 +50,7 @@ public class AddDoc
                         }
                         System.err.println("Successfully added");
                 }
-                catch (LCFException e)
+                catch (ACFException e)
                 {
                         e.printStackTrace(System.err);
                         System.exit(2);

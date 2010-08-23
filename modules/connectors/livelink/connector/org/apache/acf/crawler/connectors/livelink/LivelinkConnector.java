@@ -22,7 +22,7 @@ import org.apache.acf.core.interfaces.*;
 import org.apache.acf.agents.interfaces.*;
 import org.apache.acf.crawler.interfaces.*;
 import org.apache.acf.crawler.system.Logging;
-import org.apache.acf.crawler.system.LCF;
+import org.apache.acf.crawler.system.ACF;
 
 import java.io.*;
 import java.util.*;
@@ -207,7 +207,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
           LLENTWK_VOL = entinfo.toInteger("VolumeID");
         }
         else
-          throw new LCFException("Error accessing enterprise workspace: "+status);
+          throw new ACFException("Error accessing enterprise workspace: "+status);
 
         entinfo = new LLValue().setAssoc();
         status = LLDocs.AccessCategoryWS(entinfo);
@@ -217,7 +217,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
           LLCATWK_VOL = entinfo.toInteger("VolumeID");
         }
         else
-          throw new LCFException("Error accessing category workspace: "+status);
+          throw new ACFException("Error accessing category workspace: "+status);
       }
       catch (Throwable e)
       {
@@ -247,7 +247,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   }
 
   protected void getSession()
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     if (hasBeenSetup == false)
     {
@@ -303,7 +303,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
       }
       catch (NumberFormatException e)
       {
-        throw new LCFException("Bad ingest port: "+e.getMessage(),e);
+        throw new ACFException("Bad ingest port: "+e.getMessage(),e);
       }
 
       String viewPortString;
@@ -324,7 +324,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
       }
       catch (NumberFormatException e)
       {
-        throw new LCFException("Bad view port: "+e.getMessage(),e);
+        throw new ACFException("Bad view port: "+e.getMessage(),e);
       }
 
       if (viewCgiPath == null || viewCgiPath.length() == 0)
@@ -395,8 +395,8 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
           {
             if (thr instanceof RuntimeException)
               throw (RuntimeException)thr;
-            else if (thr instanceof LCFException)
-              throw (LCFException)thr;
+            else if (thr instanceof ACFException)
+              throw (ACFException)thr;
             else
               throw (Error)thr;
           }
@@ -410,7 +410,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
         catch (InterruptedException e)
         {
           t.interrupt();
-          throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+          throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
         }
         catch (RuntimeException e2)
         {
@@ -495,7 +495,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   /** Check status of connection.
   */
   public String check()
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -538,7 +538,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
         {
           // Drop the connection on the floor
           method = null;
-          throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+          throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
         }
         catch (java.net.SocketTimeoutException e)
         {
@@ -558,7 +558,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
         }
         catch (InterruptedIOException e)
         {
-          throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+          throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
         }
         catch (IOException e)
         {
@@ -579,9 +579,9 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
     {
       return "Transient error: "+e.getMessage();
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
-      if (e.getErrorCode() == LCFException.INTERRUPTED)
+      if (e.getErrorCode() == ACFException.INTERRUPTED)
         throw e;
       return "Error: "+e.getMessage();
     }
@@ -591,7 +591,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   * in active use.
   */
   public void poll()
-    throws LCFException
+    throws ACFException
   {
     if (connectionManager != null)
       connectionManager.closeIdleConnections(60000L);
@@ -600,7 +600,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   /** Close the connection.  Call this before discarding the repository connector.
   */
   public void disconnect()
-    throws LCFException
+    throws ACFException
   {
     llServer.disconnect();
     hasBeenSetup = false;
@@ -653,7 +653,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   *@return the relative document uri.
   */
   protected String convertToIngestURI(String documentIdentifier)
-    throws LCFException
+    throws ACFException
   {
     // The document identifier is the string form of the object ID for this connector.
     if (!documentIdentifier.startsWith("D"))
@@ -672,7 +672,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   *@return the document uri.
   */
   protected String convertToViewURI(String documentIdentifier)
-    throws LCFException
+    throws ACFException
   {
     // The document identifier is the string form of the object ID for this connector.
     if (!documentIdentifier.startsWith("D"))
@@ -689,7 +689,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   *@return the object id, or -1 if documentIdentifier does not describe a document.
   */
   protected static int convertToObjectID(String documentIdentifier)
-    throws LCFException
+    throws ACFException
   {
     if (!documentIdentifier.startsWith("D"))
       return -1;
@@ -703,7 +703,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
     }
     catch (NumberFormatException e)
     {
-      throw new LCFException("Bad document identifier: "+e.getMessage(),e);
+      throw new ACFException("Bad document identifier: "+e.getMessage(),e);
     }
   }
 
@@ -716,7 +716,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   *@param input is the request object.
   */
   public void executeCommand(Configuration output, String command, Configuration input)
-    throws LCFException
+    throws ACFException
   {
     if (command.equals("workspace/list"))
     {
@@ -734,18 +734,18 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
       }
       catch (ServiceInterruption e)
       {
-        LCF.createServiceInterruptionNode(output,e);
+        ACF.createServiceInterruptionNode(output,e);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
-        LCF.createErrorNode(output,e);
+        ACF.createErrorNode(output,e);
       }
     }
     else if (command.equals("folder/list"))
     {
-      String path = LCF.getRootArgument(input,"path");
+      String path = ACF.getRootArgument(input,"path");
       if (path == null)
-        throw new LCFException("Missing required argument 'path'");
+        throw new ACFException("Missing required argument 'path'");
       
       try
       {
@@ -761,18 +761,18 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
       }
       catch (ServiceInterruption e)
       {
-        LCF.createServiceInterruptionNode(output,e);
+        ACF.createServiceInterruptionNode(output,e);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
-        LCF.createErrorNode(output,e);
+        ACF.createErrorNode(output,e);
       }
     }
     else if (command.equals("category/list"))
     {
-      String path = LCF.getRootArgument(input,"path");
+      String path = ACF.getRootArgument(input,"path");
       if (path == null)
-        throw new LCFException("Missing required argument 'path'");
+        throw new ACFException("Missing required argument 'path'");
 
       try
       {
@@ -788,19 +788,19 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
       }
       catch (ServiceInterruption e)
       {
-        LCF.createServiceInterruptionNode(output,e);
+        ACF.createServiceInterruptionNode(output,e);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
-        LCF.createErrorNode(output,e);
+        ACF.createErrorNode(output,e);
       }
 
     }
     else if (command.equals("categoryattributes/list"))
     {
-      String path = LCF.getRootArgument(input,"path");
+      String path = ACF.getRootArgument(input,"path");
       if (path == null)
-        throw new LCFException("Missing required argument 'path'");
+        throw new ACFException("Missing required argument 'path'");
 
       try
       {
@@ -816,11 +816,11 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
       }
       catch (ServiceInterruption e)
       {
-        LCF.createServiceInterruptionNode(output,e);
+        ACF.createServiceInterruptionNode(output,e);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
-        LCF.createErrorNode(output,e);
+        ACF.createErrorNode(output,e);
       }
     }
     else
@@ -836,7 +836,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   */
   public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
     long startTime, long endTime)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     getSession();
 
@@ -846,7 +846,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
     {
       // If we get here, it HAS to be a bad network/transient problem.
       Logging.connectors.warn("Livelink: Could not look up root workspace object during seeding!  Retrying -");
-      throw new ServiceInterruption("Service interruption during seeding",new LCFException("Could not looking root workspace object during seeding"),System.currentTimeMillis()+60000L,
+      throw new ServiceInterruption("Service interruption during seeding",new ACFException("Could not looking root workspace object during seeding"),System.currentTimeMillis()+60000L,
         System.currentTimeMillis()+600000L,-1,true);
     }
 
@@ -903,7 +903,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   */
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
     DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     getSession();
 
@@ -1196,7 +1196,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
         int status = LLDocs.ListObjects(vol, objID, null, filterString, LAPI_DOCUMENTS.PERM_SEECONTENTS, childrenDocs);
         if (status != 0)
         {
-          throw new LCFException("Error retrieving contents of folder "+Integer.toString(vol)+":"+Integer.toString(objID)+" : Status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
+          throw new ACFException("Error retrieving contents of folder "+Integer.toString(vol)+":"+Integer.toString(objID)+" : Status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
         }
         rval = childrenDocs;
       }
@@ -1229,7 +1229,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   * should only find other references, and should not actually call the ingestion methods.
   */
   public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     getSession();
 
@@ -1284,9 +1284,9 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
             {
               if (thr instanceof RuntimeException)
                 throw (RuntimeException)thr;
-              else if (thr instanceof LCFException)
+              else if (thr instanceof ACFException)
               {
-                sanityRetryCount = assessRetry(sanityRetryCount,(LCFException)thr);
+                sanityRetryCount = assessRetry(sanityRetryCount,(ACFException)thr);
                 continue;
               }
               else
@@ -1354,7 +1354,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
           catch (InterruptedException e)
           {
             t.interrupt();
-            throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+            throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
           }
           catch (RuntimeException e)
           {
@@ -1427,7 +1427,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     tabsArray.add("Server");
     tabsArray.add("Document Access");
@@ -1534,7 +1534,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   *@param tabName is the current tab name.
   */
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     String ingestProtocol = parameters.getParameter(org.apache.acf.crawler.connectors.livelink.LiveLinkParameters.ingestProtocol);
     if (ingestProtocol == null)
@@ -1778,7 +1778,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
-    throws LCFException
+    throws ACFException
   {
     String serverName = variableContext.getParameter("servername");
     if (serverName != null)
@@ -1892,7 +1892,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
@@ -1940,7 +1940,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     tabsArray.add("Paths");
     tabsArray.add("Filters");
@@ -2070,7 +2070,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   *@param tabName is the current tab name.
   */
   public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     int i;
     int k;
@@ -2139,7 +2139,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
           pathSoFar = "";
           childList = getChildFolderNames("");
           if (childList == null)
-            throw new LCFException("Can't find any children for root folder");
+            throw new ACFException("Can't find any children for root folder");
         }
         out.print(
 "      <input type=\"hidden\" name=\"specpath\" value=\""+org.apache.acf.ui.util.Encoder.attributeEscape(pathSoFar)+"\"/>\n"+
@@ -2182,7 +2182,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
         e.printStackTrace();
         out.println(org.apache.acf.ui.util.Encoder.bodyEscape(e.getMessage()));
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         e.printStackTrace();
         out.println(org.apache.acf.ui.util.Encoder.bodyEscape(e.getMessage()));
@@ -2554,11 +2554,11 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
               categorySoFar = "";
               childList = getChildFolderNames("");
               if (childList == null)
-                throw new LCFException("Can't find any children for root folder");
+                throw new ACFException("Can't find any children for root folder");
             }
             categoryList = getChildCategoryNames(categorySoFar);
             if (categoryList == null)
-              throw new LCFException("Can't find any categories for root folder folder");
+              throw new ACFException("Can't find any categories for root folder folder");
           }
         }
         out.print(
@@ -2674,7 +2674,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
         e.printStackTrace();
         out.println(org.apache.acf.ui.util.Encoder.bodyEscape(e.getMessage()));
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         e.printStackTrace();
         out.println(org.apache.acf.ui.util.Encoder.bodyEscape(e.getMessage()));
@@ -2793,7 +2793,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
-    throws LCFException
+    throws ACFException
   {
     String xc = variableContext.getParameter("pathcount");
     if (xc != null)
@@ -3278,7 +3278,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   *@param ds is the current document specification for this job.
   */
   public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
@@ -3582,7 +3582,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   *@return a list of workspace names.
   */
   public String[] getWorkspaceNames()
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     return new String[]{CATEGORY_NAME,ENTWKSPACE_NAME};
   }
@@ -3592,7 +3592,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   *@return a list of folder and project names, in sorted order, or null if the path was invalid.
   */
   public String[] getChildFolderNames(String pathString)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     getSession();
     return getChildFolders(pathString);
@@ -3604,7 +3604,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   *@return a list of category names, in sorted order, or null if the path was invalid.
   */
   public String[] getChildCategoryNames(String pathString)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     getSession();
     return getChildCategories(pathString);
@@ -3615,7 +3615,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   *@return a list of attribute names, in sorted order, or null of the path was invalid.
   */
   public String[] getCategoryAttributes(String pathString)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     getSession();
 
@@ -3639,7 +3639,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   /** Create the login URI.  This must be a relative URI.
   */
   protected String createLivelinkLoginURI()
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -3657,7 +3657,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
     }
     catch (UnsupportedEncodingException e)
     {
-      throw new LCFException("Login URI setup error: "+e.getMessage(),e);
+      throw new ACFException("Login URI setup error: "+e.getMessage(),e);
     }
   }
 
@@ -3727,7 +3727,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   protected void ingestFromLiveLink(String documentIdentifier, String version,
     IProcessActivity activities,
     MetadataDescription desc, SystemMetadataDescription sDesc)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
 
     String contextMsg = "for '"+documentIdentifier+"'";
@@ -3860,7 +3860,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
         case 500:
         case 502:
           Logging.connectors.warn("Livelink: Service interruption during fetch "+contextMsg+" with Livelink HTTP Server, retrying...");
-          throw new ServiceInterruption("Service interruption during fetch",new LCFException(Integer.toString(statusCode)+" error while fetching"),System.currentTimeMillis()+60000L,
+          throw new ServiceInterruption("Service interruption during fetch",new ACFException(Integer.toString(statusCode)+" error while fetching"),System.currentTimeMillis()+60000L,
             System.currentTimeMillis()+600000L,-1,true);
 
         case HttpStatus.SC_UNAUTHORIZED:
@@ -3935,11 +3935,11 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
             }
             catch (InterruptedException e)
             {
-              throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+              throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
             }
             catch (InterruptedIOException e)
             {
-              throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+              throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
             }
             catch (IOException e)
             {
@@ -3961,12 +3961,12 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
         case HttpStatus.SC_USE_PROXY:
         case HttpStatus.SC_GONE:
           resultCode = "ERROR "+Integer.toString(statusCode);
-          throw new LCFException("Unrecoverable request failure; error = "+Integer.toString(statusCode));
+          throw new ACFException("Unrecoverable request failure; error = "+Integer.toString(statusCode));
         default:
           resultCode = "UNKNOWN";
           Logging.connectors.warn("Livelink: Attempt to retrieve document from '"+ingestHttpAddress+"' received a response of "+Integer.toString(statusCode)+"; retrying in one minute");
           currentTime = System.currentTimeMillis();
-          throw new ServiceInterruption("Fetch failed; retrying in 1 minute",new LCFException("Fetch failed with unknown code "+Integer.toString(statusCode)),
+          throw new ServiceInterruption("Fetch failed; retrying in 1 minute",new ACFException("Fetch failed with unknown code "+Integer.toString(statusCode)),
             currentTime+60000L,currentTime+600000L,-1,true);
         }
       }
@@ -3974,7 +3974,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
       {
         // Drop the connection on the floor
         method = null;
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (java.net.SocketTimeoutException e)
       {
@@ -4010,13 +4010,13 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
       }
       catch (InterruptedIOException e)
       {
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (IOException e)
       {
         resultCode = "EXCEPTION";
         resultDescription = e.getMessage();
-        throw new LCFException("Exception getting response "+contextMsg+": "+e.getMessage(), e);
+        throw new ACFException("Exception getting response "+contextMsg+": "+e.getMessage(), e);
       }
       finally
       {
@@ -4030,7 +4030,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
     catch (IllegalStateException e)
     {
       Logging.connectors.error("Livelink: State exception dealing with '"+ingestHttpAddress+"': "+e.getMessage(),e);
-      throw new LCFException("State exception dealing with '"+ingestHttpAddress+"': "+e.getMessage(),e);
+      throw new ACFException("State exception dealing with '"+ingestHttpAddress+"': "+e.getMessage(),e);
     }
   }
 
@@ -4046,7 +4046,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
 
   /** Initialize a livelink client connection */
   protected HttpClient getInitializedClient(String contextMsg)
-    throws ServiceInterruption, LCFException
+    throws ServiceInterruption, ACFException
   {
     HttpClient client = new HttpClient(connectionManager);
     client.getParams().setParameter(org.apache.commons.httpclient.params.HttpClientParams.PROTOCOL_FACTORY,myFactory);
@@ -4080,7 +4080,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
         {
           Logging.connectors.warn("Livelink: Service interruption during authentication "+contextMsg+" with Livelink HTTP Server, retrying...");
           currentTime = System.currentTimeMillis();
-          throw new ServiceInterruption("502 error during authentication",new LCFException("502 error while authenticating"),
+          throw new ServiceInterruption("502 error during authentication",new ACFException("502 error while authenticating"),
             currentTime+60000L,currentTime+600000L,-1,true);
         }
         if (statusCode != HttpStatus.SC_OK)
@@ -4088,9 +4088,9 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
           Logging.connectors.error("Livelink: Failed to authenticate "+contextMsg+" against Livelink HTTP Server; Status code: " + statusCode);
           // Ok, so we didn't get in - simply do not ingest
           if (statusCode == HttpStatus.SC_UNAUTHORIZED)
-            throw new LCFException("Session authorization failed with a 401 code; are credentials correct?");
+            throw new ACFException("Session authorization failed with a 401 code; are credentials correct?");
           else
-            throw new LCFException("Session authorization failed with code "+Integer.toString(statusCode));
+            throw new ACFException("Session authorization failed with code "+Integer.toString(statusCode));
         }
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("Livelink: Retrieving authentication response "+contextMsg+"");
@@ -4103,7 +4103,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
       {
         // Drop the connection on the floor
         authget = null;
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (java.net.SocketTimeoutException e)
       {
@@ -4131,12 +4131,12 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
       }
       catch (InterruptedIOException e)
       {
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (IOException e)
       {
         Logging.connectors.error("Livelink: IO exception when authenticating to the Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
-        throw new LCFException("Unable to communicate with the Livelink HTTP Server: "+e.getMessage(), e);
+        throw new ACFException("Unable to communicate with the Livelink HTTP Server: "+e.getMessage(), e);
 
       }
       finally
@@ -4148,7 +4148,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
     catch (IllegalStateException e)
     {
       Logging.connectors.error("Livelink: State exception dealing with '"+createLivelinkLoginURI()+"'",e);
-      throw new LCFException("State exception dealing with login URI: "+e.getMessage(),e);
+      throw new ACFException("State exception dealing with login URI: "+e.getMessage(),e);
     }
 
     return client;
@@ -4283,7 +4283,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   *@return a list of folder and project names, in sorted order, or null if the path was invalid.
   */
   protected String[] getChildFolders(String pathString)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     RootValue rv = new RootValue(pathString);
 
@@ -4308,9 +4308,9 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
         {
           if (thr instanceof RuntimeException)
             throw (RuntimeException)thr;
-          else if (thr instanceof LCFException)
+          else if (thr instanceof ACFException)
           {
-            sanityRetryCount = assessRetry(sanityRetryCount,(LCFException)thr);
+            sanityRetryCount = assessRetry(sanityRetryCount,(ACFException)thr);
             continue;
           }
           else
@@ -4331,7 +4331,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (RuntimeException e)
       {
@@ -4347,7 +4347,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   *@return a list of category names, in sorted order, or null if the path was invalid.
   */
   protected String[] getChildCategories(String pathString)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     // Start at root
     RootValue rv = new RootValue(pathString);
@@ -4373,9 +4373,9 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
         {
           if (thr instanceof RuntimeException)
             throw (RuntimeException)thr;
-          else if (thr instanceof LCFException)
+          else if (thr instanceof ACFException)
           {
-            sanityRetryCount = assessRetry(sanityRetryCount,(LCFException)thr);
+            sanityRetryCount = assessRetry(sanityRetryCount,(ACFException)thr);
             continue;
           }
           else
@@ -4396,7 +4396,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (RuntimeException e)
       {
@@ -4434,14 +4434,14 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
           return;
         if (status != 0)
         {
-          throw new LCFException("Error getting category version: "+Integer.toString(status));
+          throw new ACFException("Error getting category version: "+Integer.toString(status));
         }
 
         LLValue children = new LLValue();
         status = LLAttributes.AttrListNames(catVersion,null,children);
         if (status != 0)
         {
-          throw new LCFException("Error getting attribute names: "+Integer.toString(status));
+          throw new ACFException("Error getting attribute names: "+Integer.toString(status));
         }
         rval = children;
       }
@@ -4468,7 +4468,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   *@return a list of attribute names, in sorted order, or null of the path was invalid.
   */
   protected String[] getCategoryAttributes(int catObjectID)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     int sanityRetryCount = FAILURE_RETRY_COUNT;
     while (true)
@@ -4483,9 +4483,9 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
         {
           if (thr instanceof RuntimeException)
             throw (RuntimeException)thr;
-          else if (thr instanceof LCFException)
+          else if (thr instanceof ACFException)
           {
-            sanityRetryCount = assessRetry(sanityRetryCount,(LCFException)thr);
+            sanityRetryCount = assessRetry(sanityRetryCount,(ACFException)thr);
             continue;
           }
           else
@@ -4511,7 +4511,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (RuntimeException e)
       {
@@ -4561,7 +4561,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
 
         if (status != 0)
         {
-          throw new LCFException("Error retrieving category version: "+Integer.toString(status)+": "+llServer.getErrors());
+          throw new ACFException("Error retrieving category version: "+Integer.toString(status)+": "+llServer.getErrors());
         }
 
         rval = rvalue;
@@ -4587,7 +4587,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   /** Get a category version for document.
   */
   protected LLValue getCatVersion(int objID, int catID)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     int sanityRetryCount = FAILURE_RETRY_COUNT;
     while (true)
@@ -4602,9 +4602,9 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
         {
           if (thr instanceof RuntimeException)
             throw (RuntimeException)thr;
-          else if (thr instanceof LCFException)
+          else if (thr instanceof ACFException)
           {
-            sanityRetryCount = assessRetry(sanityRetryCount,(LCFException)thr);
+            sanityRetryCount = assessRetry(sanityRetryCount,(ACFException)thr);
             continue;
           }
           else
@@ -4615,7 +4615,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (NullPointerException npe)
       {
@@ -4667,7 +4667,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
 
         if (status != 0)
         {
-          throw new LCFException("Error retrieving attribute value: "+Integer.toString(status)+": "+llServer.getErrors());
+          throw new ACFException("Error retrieving attribute value: "+Integer.toString(status)+": "+llServer.getErrors());
         }
         rval = children;
       }
@@ -4691,7 +4691,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   /** Get an attribute value from a category version.
   */
   protected String[] getAttributeValue(LLValue categoryVersion, String attributeName)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     int sanityRetryCount = FAILURE_RETRY_COUNT;
     while (true)
@@ -4706,9 +4706,9 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
         {
           if (thr instanceof RuntimeException)
             throw (RuntimeException)thr;
-          else if (thr instanceof LCFException)
+          else if (thr instanceof ACFException)
           {
-            sanityRetryCount = assessRetry(sanityRetryCount,(LCFException)thr);
+            sanityRetryCount = assessRetry(sanityRetryCount,(ACFException)thr);
             continue;
           }
           else
@@ -4732,7 +4732,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (RuntimeException e)
       {
@@ -4769,7 +4769,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
 
         if (status != 0)
         {
-          throw new LCFException("Error retrieving document rights: "+Integer.toString(status)+": "+llServer.getErrors());
+          throw new ACFException("Error retrieving document rights: "+Integer.toString(status)+": "+llServer.getErrors());
         }
 
         rval = childrenObjects;
@@ -4798,7 +4798,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   *@return the array.
   */
   protected int[] getObjectRights(int vol, int objID)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     int sanityRetryCount = FAILURE_RETRY_COUNT;
     while (true)
@@ -4813,9 +4813,9 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
         {
           if (thr instanceof RuntimeException)
             throw (RuntimeException)thr;
-          else if (thr instanceof LCFException)
+          else if (thr instanceof ACFException)
           {
-            sanityRetryCount = assessRetry(sanityRetryCount,(LCFException)thr);
+            sanityRetryCount = assessRetry(sanityRetryCount,(ACFException)thr);
             continue;
           }
           else
@@ -4868,7 +4868,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (RuntimeException e)
       {
@@ -4920,7 +4920,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
 
         if (status != 0)
         {
-          throw new LCFException("Error retrieving document object "+Integer.toString(vol)+":"+Integer.toString(id)+": status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
+          throw new ACFException("Error retrieving document object "+Integer.toString(vol)+":"+Integer.toString(id)+": status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
         }
         rval = objinfo;
       }
@@ -4949,7 +4949,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   * @return LLValue the LAPI value object, or null if object has been deleted (or doesn't exist)
   */
   protected LLValue getObjectInfo(int vol, int id)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     int sanityRetryCount = FAILURE_RETRY_COUNT;
     while (true)
@@ -4966,9 +4966,9 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
             throw (RuntimeException)thr;
           else if (thr instanceof ServiceInterruption)
             throw (ServiceInterruption)thr;
-          else if (thr instanceof LCFException)
+          else if (thr instanceof ACFException)
           {
-            sanityRetryCount = assessRetry(sanityRetryCount,(LCFException)thr);
+            sanityRetryCount = assessRetry(sanityRetryCount,(ACFException)thr);
             continue;
           }
           else
@@ -4979,7 +4979,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (RuntimeException e)
       {
@@ -4991,7 +4991,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
 
   /** Build a set of actual acls given a set of rights */
   protected String[] lookupTokens(int[] rights, int vol, int objID)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     String[] convertedAcls = new String[rights.length];
 
@@ -5062,7 +5062,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   /** Get an object's standard path, given its ID.
   */
   protected String getObjectPath(int id)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     int objectId = id;
     String path = null;
@@ -5142,7 +5142,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
 
         if (status != 0)
         {
-          throw new LCFException("Error retrieving document categories for "+Integer.toString(vol)+":"+Integer.toString(id)+": status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
+          throw new ACFException("Error retrieving document categories for "+Integer.toString(vol)+":"+Integer.toString(id)+": status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
         }
         rval = catIDList;
       }
@@ -5169,7 +5169,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   * @return an array of integers containing category identifiers, or null if the object is not found.
   */
   protected int[] getObjectCategoryIDs(int vol, int id)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     int sanityRetryCount = FAILURE_RETRY_COUNT;
     while (true)
@@ -5184,9 +5184,9 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
         {
           if (thr instanceof RuntimeException)
             throw (RuntimeException)thr;
-          else if (thr instanceof LCFException)
+          else if (thr instanceof ACFException)
           {
-            sanityRetryCount = assessRetry(sanityRetryCount,(LCFException)thr);
+            sanityRetryCount = assessRetry(sanityRetryCount,(ACFException)thr);
             continue;
           }
           else
@@ -5241,7 +5241,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (RuntimeException e)
       {
@@ -5254,7 +5254,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   /** RootValue version of getPathId.
   */
   protected VolumeAndId getPathId(RootValue rv)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     return getPathId(rv.getRootValue(),rv.getRemainderPath());
   }
@@ -5265,7 +5265,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   * @param startPath is the folder name (a string with dots as separators)
   */
   protected VolumeAndId getPathId(LLValue objInfo, String startPath)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     // Grab the volume ID and starting object
     int obj = objInfo.toInteger("ID");
@@ -5309,9 +5309,9 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
           {
             if (thr instanceof RuntimeException)
               throw (RuntimeException)thr;
-            else if (thr instanceof LCFException)
+            else if (thr instanceof ACFException)
             {
-              sanityRetryCount = assessRetry(sanityRetryCount,(LCFException)thr);
+              sanityRetryCount = assessRetry(sanityRetryCount,(ACFException)thr);
               continue;
             }
             else
@@ -5345,7 +5345,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
         catch (InterruptedException e)
         {
           t.interrupt();
-          throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+          throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
         }
         catch (RuntimeException e)
         {
@@ -5362,7 +5362,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   /** Rootvalue version of getCategoryId.
   */
   protected int getCategoryId(RootValue rv)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     return getCategoryId(rv.getRootValue(),rv.getRemainderPath());
   }
@@ -5373,7 +5373,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   * @param startPath is the folder name, ending in a category name (a string with slashes as separators)
   */
   protected int getCategoryId(LLValue objInfo, String startPath)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     // Grab the volume ID and starting object
     int obj = objInfo.toInteger("ID");
@@ -5426,9 +5426,9 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
           {
             if (thr instanceof RuntimeException)
               throw (RuntimeException)thr;
-            else if (thr instanceof LCFException)
+            else if (thr instanceof ACFException)
             {
-              sanityRetryCount = assessRetry(sanityRetryCount,(LCFException)thr);
+              sanityRetryCount = assessRetry(sanityRetryCount,(ACFException)thr);
               continue;
             }
             else
@@ -5462,7 +5462,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
         catch (InterruptedException e)
         {
           t.interrupt();
-          throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+          throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
         }
         catch (RuntimeException e)
         {
@@ -5571,7 +5571,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   *@return true if it should be included.
   */
   protected static boolean checkInclude(String filename, DocumentSpecification documentSpecification)
-    throws LCFException
+    throws ACFException
   {
     // Scan includes to insure we match
     int i = 0;
@@ -5615,7 +5615,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   *@param documentSpecification is the specification.
   */
   protected boolean checkIngest(int objID, DocumentSpecification documentSpecification)
-    throws LCFException
+    throws ACFException
   {
     // Since the only exclusions at this point are not based on file contents, this is a no-op.
     return true;
@@ -5810,7 +5810,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
 
     /** Constructor */
     public SystemMetadataDescription(DocumentSpecification spec)
-      throws LCFException
+      throws ACFException
     {
       pathAttributeName = null;
       int i = 0;
@@ -5839,7 +5839,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
     /** Given an identifier, get the translated string that goes into the metadata.
     */
     public String getPathAttributeValue(String documentIdentifier)
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       String path = getNodePathString(documentIdentifier);
       if (path == null)
@@ -5850,7 +5850,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
     /** For a given node, get its path.
     */
     public String getNodePathString(String documentIdentifier)
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("Looking up path for '"+documentIdentifier+"'");
@@ -5886,7 +5886,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
         }
         catch (NumberFormatException e)
         {
-          throw new LCFException("Bad document identifier: "+e.getMessage(),e);
+          throw new ACFException("Bad document identifier: "+e.getMessage(),e);
         }
 
         // Load the object
@@ -5942,7 +5942,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
     *@return an iterator over MetadataItem objects.
     */
     public Iterator getItems(ArrayList metadataItems)
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       // This is the map that will be iterated over for a return value.
       // It gets built out of (hopefully cached) data from categoryMap.
@@ -6021,7 +6021,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
 
     /** Get a specified set of packed category paths with attribute names, given the category identifiers */
     public String[] getCategoryPathsAttributeNames(int[] catIDs)
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       HashMap set = new HashMap();
       int i = 0;
@@ -6068,14 +6068,14 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
 
     /** Find a category path given a category ID */
     protected String findPath(int catID)
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       return getObjectPath(catID);
     }
 
     /** Find a set of attributes given a category ID */
     protected String[] findAttributes(int catID)
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       return getCategoryAttributes(catID);
     }
@@ -6123,7 +6123,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
     *@return the root node.
     */
     public LLValue getRootValue()
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       if (rootValue == null)
       {
@@ -6132,12 +6132,12 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
         else if (workspaceName.equals(ENTWKSPACE_NAME))
           rootValue = getObjectInfo(LLENTWK_VOL,LLENTWK_ID);
         else
-          throw new LCFException("Bad workspace name: "+workspaceName);
+          throw new ACFException("Bad workspace name: "+workspaceName);
         if (rootValue == null)
         {
           Logging.connectors.warn("Livelink: Could not get workspace/volume ID!  Retrying...");
           // This cannot mean a real failure; it MUST mean that we have had an intermittent communication hiccup.  So, pass it off as a service interruption.
-          throw new ServiceInterruption("Service interruption getting root value",new LCFException("Could not get workspace/volume id"),System.currentTimeMillis()+60000L,
+          throw new ServiceInterruption("Service interruption getting root value",new ACFException("Could not get workspace/volume id"),System.currentTimeMillis()+60000L,
             System.currentTimeMillis()+600000L,-1,true);
         }
       }
@@ -6259,7 +6259,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
   *@param failIfTimeout is true if, for transient conditions, we want to signal failure if the timeout condition is acheived.
   */
   protected int handleLivelinkRuntimeException(RuntimeException e, int sanityRetryCount, boolean failIfTimeout)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     if (
       e instanceof com.opentext.api.LLHTTPAccessDeniedException ||
@@ -6273,7 +6273,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
     )
     {
       String details = llServer.getErrors();
-      throw new LCFException("Livelink API error: "+e.getMessage()+((details==null)?"":"; "+details),e,LCFException.REPOSITORY_CONNECTION_ERROR);
+      throw new ACFException("Livelink API error: "+e.getMessage()+((details==null)?"":"; "+details),e,ACFException.REPOSITORY_CONNECTION_ERROR);
     }
     else if (
       e instanceof com.opentext.api.LLBadServerCertificateException ||
@@ -6288,14 +6288,14 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
     {
 
       String details = llServer.getErrors();
-      throw new LCFException("Livelink API error: "+e.getMessage()+((details==null)?"":"; "+details),e);
+      throw new ACFException("Livelink API error: "+e.getMessage()+((details==null)?"":"; "+details),e);
     }
     else if (e instanceof com.opentext.api.LLIllegalOperationException)
     {
       // This usually means that LAPI has had a minor communication difficulty but hasn't reported it accurately.
       // We *could* throw a ServiceInterruption, but OpenText recommends to just retry almost immediately.
       String details = llServer.getErrors();
-      return assessRetry(sanityRetryCount,new LCFException("Livelink API illegal operation error: "+e.getMessage()+((details==null)?"":"; "+details),e));
+      return assessRetry(sanityRetryCount,new ACFException("Livelink API illegal operation error: "+e.getMessage()+((details==null)?"":"; "+details),e));
     }
     else if (e instanceof com.opentext.api.LLIOException)
     {
@@ -6309,7 +6309,7 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
       }
       catch (UnknownHostException e2)
       {
-        throw new LCFException("Server name '"+serverName+"' cannot be resolved",e2);
+        throw new ACFException("Server name '"+serverName+"' cannot be resolved",e2);
       }
 
       long currentTime = System.currentTimeMillis();
@@ -6321,8 +6321,8 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
 
   /** Do a retry, or throw an exception if the retry count has been exhausted
   */
-  protected static int assessRetry(int sanityRetryCount, LCFException e)
-    throws LCFException
+  protected static int assessRetry(int sanityRetryCount, ACFException e)
+    throws ACFException
   {
     if (sanityRetryCount == 0)
     {
@@ -6333,11 +6333,11 @@ public class LivelinkConnector extends org.apache.acf.crawler.connectors.BaseRep
 
     try
     {
-      LCF.sleep(1000L);
+      ACF.sleep(1000L);
     }
     catch (InterruptedException e2)
     {
-      throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
+      throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
     }
     // Exit the method
     return sanityRetryCount;

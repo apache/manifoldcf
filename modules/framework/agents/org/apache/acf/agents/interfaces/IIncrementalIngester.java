@@ -46,28 +46,28 @@ public interface IIncrementalIngester
   /** Install the incremental ingestion manager.
   */
   public void install()
-    throws LCFException;
+    throws ACFException;
 
   /** Uninstall the incremental ingestion manager.
   */
   public void deinstall()
-    throws LCFException;
+    throws ACFException;
 
   /** Come up with a maximum time (in minutes) for re-analyzing tables.
   *@return the time, in minutes.
   */
   public int getAnalyzeTime()
-    throws LCFException;
+    throws ACFException;
 
   /** Analyze database tables.
   */
   public void analyzeTables()
-    throws LCFException;
+    throws ACFException;
 
   /** Flush all knowledge of what was ingested before.
   */
   public void clearAll()
-    throws LCFException;
+    throws ACFException;
 
   /** Check if a mime type is indexable.
   *@param outputConnectionName is the name of the output connection associated with this action.
@@ -75,7 +75,7 @@ public interface IIncrementalIngester
   *@return true if the mimeType is indexable.
   */
   public boolean checkMimeTypeIndexable(String outputConnectionName, String mimeType)
-    throws LCFException, ServiceInterruption;
+    throws ACFException, ServiceInterruption;
 
   /** Check if a file is indexable.
   *@param outputConnectionName is the name of the output connection associated with this action.
@@ -83,7 +83,7 @@ public interface IIncrementalIngester
   *@return true if the local file is indexable.
   */
   public boolean checkDocumentIndexable(String outputConnectionName, File localFile)
-    throws LCFException, ServiceInterruption;
+    throws ACFException, ServiceInterruption;
 
   /** Record a document version, but don't ingest it.
   * The purpose of this method is to keep track of the frequency at which ingestion "attempts" take place.
@@ -99,7 +99,7 @@ public interface IIncrementalIngester
     String identifierClass, String identifierHash,
     String documentVersion, long recordTime,
     IOutputActivity activities)
-    throws LCFException, ServiceInterruption;
+    throws ACFException, ServiceInterruption;
 
   /** Ingest a document.
   * This ingests the document, and notes it.  If this is a repeat ingestion of the document, this
@@ -126,7 +126,7 @@ public interface IIncrementalIngester
     RepositoryDocument data,
     long ingestTime, String documentURI,
     IOutputActivity activities)
-    throws LCFException, ServiceInterruption;
+    throws ACFException, ServiceInterruption;
 
   /** Note the fact that we checked a document (and found that it did not need to be ingested, because the
   * versions agreed).
@@ -138,7 +138,7 @@ public interface IIncrementalIngester
   public void documentCheckMultiple(String outputConnectionName,
     String[] identifierClasses, String[] identifierHashes,
     long checkTime)
-    throws LCFException;
+    throws ACFException;
 
   /** Note the fact that we checked a document (and found that it did not need to be ingested, because the
   * versions agreed).
@@ -150,7 +150,7 @@ public interface IIncrementalIngester
   public void documentCheck(String outputConnectionName,
     String identifierClass, String identifierHash,
     long checkTime)
-    throws LCFException;
+    throws ACFException;
 
   /** Delete multiple documents from the search engine index.
   *@param outputConnectionNames are the names of the output connections associated with this action.
@@ -161,7 +161,7 @@ public interface IIncrementalIngester
   public void documentDeleteMultiple(String[] outputConnectionNames,
     String[] identifierClasses, String[] identifierHashes,
     IOutputRemoveActivity activities)
-    throws LCFException, ServiceInterruption;
+    throws ACFException, ServiceInterruption;
 
   /** Delete multiple documents from the search engine index.
   *@param outputConnectionName is the name of the output connection associated with this action.
@@ -172,7 +172,7 @@ public interface IIncrementalIngester
   public void documentDeleteMultiple(String outputConnectionName,
     String[] identifierClasses, String[] identifierHashes,
     IOutputRemoveActivity activities)
-    throws LCFException, ServiceInterruption;
+    throws ACFException, ServiceInterruption;
 
   /** Delete a document from the search engine index.
   *@param outputConnectionName is the name of the output connection associated with this action.
@@ -183,7 +183,7 @@ public interface IIncrementalIngester
   public void documentDelete(String outputConnectionName,
     String identifierClass, String identifierHash,
     IOutputRemoveActivity activities)
-    throws LCFException, ServiceInterruption;
+    throws ACFException, ServiceInterruption;
 
   /** Look up ingestion data for a SET of documents.
   *@param outputConnectionNames are the names of the output connections associated with this action.
@@ -194,7 +194,7 @@ public interface IIncrementalIngester
   */
   public DocumentIngestStatus[] getDocumentIngestDataMultiple(String[] outputConnectionNames,
     String[] identifierClasses, String[] identifierHashes)
-    throws LCFException;
+    throws ACFException;
 
   /** Look up ingestion data for a SET of documents.
   *@param outputConnectionName is the names of the output connection associated with this action.
@@ -205,7 +205,7 @@ public interface IIncrementalIngester
   */
   public DocumentIngestStatus[] getDocumentIngestDataMultiple(String outputConnectionName,
     String[] identifierClasses, String[] identifierHashes)
-    throws LCFException;
+    throws ACFException;
 
   /** Look up ingestion data for a documents.
   *@param outputConnectionName is the name of the output connection associated with this action.
@@ -215,7 +215,7 @@ public interface IIncrementalIngester
   */
   public DocumentIngestStatus getDocumentIngestData(String outputConnectionName,
     String identifierClass, String identifierHash)
-    throws LCFException;
+    throws ACFException;
 
   /** Calculate the average time interval between changes for a document.
   * This is based on the data gathered for the document.
@@ -226,7 +226,7 @@ public interface IIncrementalIngester
   */
   public long[] getDocumentUpdateIntervalMultiple(String outputConnectionName,
     String[] identifierClasses, String[] identifierHashes)
-    throws LCFException;
+    throws ACFException;
 
   /** Calculate the average time interval between changes for a document.
   * This is based on the data gathered for the document.
@@ -237,7 +237,7 @@ public interface IIncrementalIngester
   */
   public long getDocumentUpdateInterval(String outputConnectionName,
     String identifierClass, String identifierHash)
-    throws LCFException;
+    throws ACFException;
 
   /** Reset all documents belonging to a specific output connection, because we've got information that
   * that system has been reconfigured.  This will force all such documents to be reindexed the next time
@@ -245,6 +245,6 @@ public interface IIncrementalIngester
   *@param outputConnectionName is the name of the output connection associated with this action.
   */
   public void resetOutputConnection(String outputConnectionName)
-    throws LCFException;
+    throws ACFException;
     
 }

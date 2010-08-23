@@ -16,7 +16,7 @@
 */
 package org.apache.acf.crawler.connectors.sharedrive;
 
-import org.apache.acf.core.interfaces.LCFException;
+import org.apache.acf.core.interfaces.ACFException;
 
 import java.io.FileOutputStream;
 import java.io.FileInputStream;
@@ -54,7 +54,7 @@ public class SharedDriveHelpers
   *@param password is the password.
   */
   public SharedDriveHelpers(String serverName, String userName, String password)
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -65,14 +65,14 @@ public class SharedDriveHelpers
     }
     catch (MalformedURLException e)
     {
-      throw new LCFException("Unable to access SMB/CIFS share: "+serverName, e, LCFException.SETUP_ERROR);
+      throw new ACFException("Unable to access SMB/CIFS share: "+serverName, e, ACFException.SETUP_ERROR);
     }
   }
 
   /** Close the connection.
   */
   public void close()
-    throws LCFException
+    throws ACFException
   {
     // Just let stuff go
     pa = null;
@@ -85,7 +85,7 @@ public class SharedDriveHelpers
   *@return the target path if the document is found, or "" if it is not.
   */
   public String lookupDocument(String targetPath)
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -97,7 +97,7 @@ public class SharedDriveHelpers
     }
     catch (IOException e)
     {
-      throw new LCFException("IO exception: "+e.getMessage(),e);
+      throw new ACFException("IO exception: "+e.getMessage(),e);
     }
   }
 
@@ -108,7 +108,7 @@ public class SharedDriveHelpers
   *@return the target path.
   */
   public String addDocument(String targetPath, String sourceFile)
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -150,7 +150,7 @@ public class SharedDriveHelpers
     }
     catch (IOException e)
     {
-      throw new LCFException("IO exception: "+e.getMessage(),e);
+      throw new ACFException("IO exception: "+e.getMessage(),e);
     }
   }
 
@@ -159,7 +159,7 @@ public class SharedDriveHelpers
   *       separated by "/" characters.
   */
   public void deleteDocument(String targetPath)
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -169,7 +169,7 @@ public class SharedDriveHelpers
     }
     catch (IOException e)
     {
-      throw new LCFException("IO exception: "+e.getMessage(),e);
+      throw new ACFException("IO exception: "+e.getMessage(),e);
     }
   }
 
@@ -179,7 +179,7 @@ public class SharedDriveHelpers
   *@param userName is the user to add.
   */
   public void addUserToFolder(String targetPath, String userName)
-    throws LCFException
+    throws ACFException
   {
     // MHL
   }
@@ -190,7 +190,7 @@ public class SharedDriveHelpers
   *@param userName is the user to remove.
   */
   public void removeUserFromFolder(String targetPath, String userName)
-    throws LCFException
+    throws ACFException
   {
     // MHL
   }

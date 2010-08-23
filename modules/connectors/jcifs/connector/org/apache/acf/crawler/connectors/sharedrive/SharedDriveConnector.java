@@ -16,7 +16,7 @@
 */
 package org.apache.acf.crawler.connectors.sharedrive;
 
-import org.apache.acf.crawler.system.LCF;
+import org.apache.acf.crawler.system.ACF;
 import java.io.FileOutputStream;
 import java.io.FileInputStream;
 import java.io.File;
@@ -45,7 +45,7 @@ import org.apache.acf.core.interfaces.IThreadContext;
 import org.apache.acf.core.interfaces.IHTTPOutput;
 import org.apache.acf.core.interfaces.IPostParameters;
 import org.apache.acf.core.interfaces.ConfigParams;
-import org.apache.acf.core.interfaces.LCFException;
+import org.apache.acf.core.interfaces.ACFException;
 import org.apache.acf.core.interfaces.IKeystoreManager;
 import org.apache.acf.core.interfaces.KeystoreManagerFactory;
 import org.apache.acf.core.interfaces.Configuration;
@@ -57,7 +57,7 @@ import org.apache.acf.crawler.interfaces.IFingerprintActivity;
 import org.apache.acf.core.interfaces.SpecificationNode;
 import org.apache.acf.crawler.interfaces.IVersionActivity;
 import org.apache.acf.crawler.system.Logging;
-import org.apache.acf.crawler.system.LCF;
+import org.apache.acf.crawler.system.ACF;
 
 /** This is the "repository connector" for a smb/cifs shared drive file system.  It's a relative of the share crawler, and should have
 * comparable basic functionality.
@@ -123,7 +123,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
   public SharedDriveConnector()
   {
     // We need to know whether to operate in NTLMv2 mode, or in NTLM mode.
-    String value = LCF.getProperty(PROPERTY_JCIFS_USE_NTLM_V1);
+    String value = ACF.getProperty(PROPERTY_JCIFS_USE_NTLM_V1);
     if (value == null || value.toLowerCase().equals("false"))
     {
       System.setProperty("jcifs.smb.lmCompatibility","3");
@@ -138,13 +138,13 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
 
   /** Establish a "session".  In the case of the jcifs connector, this just builds the appropriate smbconnectionPath string, and does the necessary checks. */
   protected void getSession()
-    throws LCFException
+    throws ACFException
   {
     if (smbconnectionPath == null)
     {
       // Get the server
       if (server == null || server.length() == 0)
-        throw new LCFException("Missing parameter '"+SharedDriveParameters.server+"'");
+        throw new ACFException("Missing parameter '"+SharedDriveParameters.server+"'");
 
       // make the smb connection to the server
       String authenticationString;
@@ -164,7 +164,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
       catch (MalformedURLException e)
       {
         Logging.connectors.error("Unable to access SMB/CIFS share: "+"smb://" + ((domain==null)?"":domain)+";"+username+":<password>@"+ server + "/\n" + e);
-        throw new LCFException("Unable to access SMB/CIFS share: "+server, e, LCFException.REPOSITORY_CONNECTION_ERROR);
+        throw new ACFException("Unable to access SMB/CIFS share: "+server, e, ACFException.REPOSITORY_CONNECTION_ERROR);
       }
     }
   }
@@ -192,7 +192,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
   /** Close the connection.  Call this before discarding the repository connector.
   */
   public void disconnect()
-    throws LCFException
+    throws ACFException
   {
     server = null;
     domain = null;
@@ -266,7 +266,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
   * @return the document uri.
   */
   protected static String convertToURI(String documentIdentifier, MatchMap fileMap, MatchMap uriMap)
-    throws LCFException
+    throws ACFException
   {
     //
     // Note well: This MUST be a legal URI!!
@@ -313,7 +313,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
       catch (java.io.UnsupportedEncodingException e)
       {
         // Should not happen...
-        throw new LCFException(e.getMessage(),e);
+        throw new ACFException(e.getMessage(),e);
       }
     }
     else
@@ -365,7 +365,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
       catch (java.io.UnsupportedEncodingException e)
       {
         // Should not happen...
-        throw new LCFException(e.getMessage(),e);
+        throw new ACFException(e.getMessage(),e);
       }
     }
   }
@@ -379,13 +379,13 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
   *@param input is the request object.
   */
   public void executeCommand(Configuration output, String command, Configuration input)
-    throws LCFException
+    throws ACFException
   {
     if (command.equals("folder/list"))
     {
-      String parentFolder = LCF.getRootArgument(input,"parent_folder");
+      String parentFolder = ACF.getRootArgument(input,"parent_folder");
       if (parentFolder == null)
-        throw new LCFException("Missing required field 'parent_folder'");
+        throw new ACFException("Missing required field 'parent_folder'");
       
       try
       {
@@ -399,16 +399,16 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
           output.addChild(output.getChildCount(),node);
         }
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
-        LCF.createErrorNode(output,e);
+        ACF.createErrorNode(output,e);
       }
     }
     else if (command.equals("folder/validate"))
     {
-      String folder = LCF.getRootArgument(input,"folder");
+      String folder = ACF.getRootArgument(input,"folder");
       if (folder == null)
-        throw new LCFException("Missing required field 'folder'");
+        throw new ACFException("Missing required field 'folder'");
       
       try
       {
@@ -420,9 +420,9 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
           output.addChild(output.getChildCount(),node);
         }
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
-        LCF.createErrorNode(output,e);
+        ACF.createErrorNode(output,e);
       }
     }
     else
@@ -443,7 +443,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
   *@return the stream of local document identifiers that should be added to the queue.
   */
   public IDocumentIdentifierStream getDocumentIdentifiers(DocumentSpecification spec, long startTime, long endTime)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     getSession();
     return new IdentifierStream(spec);
@@ -469,7 +469,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
   */
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
     DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     getSession();
     // Read the forced acls.  A null return indicates that security is disabled!!!
@@ -616,7 +616,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
       catch (MalformedURLException mue)
       {
         Logging.connectors.error("JCIFS: MalformedURLException thrown: "+mue.getMessage(),mue);
-        throw new LCFException("MalformedURLException thrown: "+mue.getMessage(),mue);
+        throw new ACFException("MalformedURLException thrown: "+mue.getMessage(),mue);
       }
       catch (SmbException se)
       {
@@ -632,7 +632,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
       }
       catch (InterruptedIOException e)
       {
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (IOException e)
       {
@@ -668,7 +668,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
   *            methods.
   */
   public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities,
-    DocumentSpecification spec, boolean[] scanOnly) throws LCFException, ServiceInterruption
+    DocumentSpecification spec, boolean[] scanOnly) throws ACFException, ServiceInterruption
   {
     getSession();
 
@@ -861,7 +861,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
         Logging.connectors.error("MalformedURLException tossed",mue);
         activities.recordActivity(null,ACTIVITY_ACCESS,
           null,documentIdentifier,"Error","Malformed URL: "+mue.getMessage(),null);
-        throw new LCFException("MalformedURLException tossed: "+mue.getMessage(),mue);
+        throw new ACFException("MalformedURLException tossed: "+mue.getMessage(),mue);
       }
       catch (jcifs.smb.SmbAuthException e)
       {
@@ -882,7 +882,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
           // See if it's an interruption
           jcifs.util.transport.TransportException te = (jcifs.util.transport.TransportException)cause;
           if (te.getRootCause() != null && te.getRootCause() instanceof java.lang.InterruptedException)
-            throw new LCFException(te.getRootCause().getMessage(),te.getRootCause(),LCFException.INTERRUPTED);
+            throw new ACFException(te.getRootCause().getMessage(),te.getRootCause(),ACFException.INTERRUPTED);
 
           Logging.connectors.warn("JCIFS: Timeout processing document/directory "+documentIdentifier+": retrying...",se);
           activities.recordActivity(null,ACTIVITY_ACCESS,
@@ -943,7 +943,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
           Logging.connectors.error("JCIFS: SmbException tossed processing "+documentIdentifier,se);
           activities.recordActivity(null,ACTIVITY_ACCESS,
             null,documentIdentifier,"Error","Unknown: "+se.getMessage(),null);
-          throw new LCFException("SmbException tossed: "+se.getMessage(),se);
+          throw new ACFException("SmbException tossed: "+se.getMessage(),se);
         }
       }
       catch (java.net.SocketTimeoutException e)
@@ -957,7 +957,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
       }
       catch (InterruptedIOException e)
       {
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (IOException e)
       {
@@ -981,7 +981,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
   */
   protected void describeDocumentSecurity(StringBuffer description, SmbFile file, String[] forcedacls,
     String[] forcedShareAcls)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     String[] shareAllowAcls;
     String[] shareDenyAcls;
@@ -1154,7 +1154,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
 
 
   protected static void processSMBException(SmbException se, String documentIdentifier, String activity, String operation)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     // At least some of these are transport errors, and should be treated as service
     // interruptions.
@@ -1165,7 +1165,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
       // See if it's an interruption
       jcifs.util.transport.TransportException te = (jcifs.util.transport.TransportException)cause;
       if (te.getRootCause() != null && te.getRootCause() instanceof java.lang.InterruptedException)
-        throw new LCFException(te.getRootCause().getMessage(),te.getRootCause(),LCFException.INTERRUPTED);
+        throw new ACFException(te.getRootCause().getMessage(),te.getRootCause(),ACFException.INTERRUPTED);
       Logging.connectors.warn("JCIFS: Timeout "+activity+" for "+documentIdentifier+": retrying...",se);
       // Transport exceptions no longer abort when they give up, so we can't get notified that there is a problem.
 
@@ -1212,12 +1212,12 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
     else if (se.getMessage().indexOf("Incorrect function") != -1)
     {
       Logging.connectors.error("JCIFS: Server does not support a required operation ("+operation+"?) for "+documentIdentifier);
-      throw new LCFException("Server does not support a required operation ("+operation+", possibly?) accessing document "+documentIdentifier,se);
+      throw new ACFException("Server does not support a required operation ("+operation+", possibly?) accessing document "+documentIdentifier,se);
     }
     else
     {
       Logging.connectors.error("SmbException thrown "+activity+" for "+documentIdentifier,se);
-      throw new LCFException("SmbException thrown: "+se.getMessage(),se);
+      throw new ACFException("SmbException thrown: "+se.getMessage(),se);
     }
   }
 
@@ -1279,7 +1279,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
   }
 
   protected static int setPathMetadata(RepositoryDocument rd, String version, int index)
-    throws LCFException
+    throws ACFException
   {
     if (version.length() > index && version.charAt(index++) == '+')
     {
@@ -1303,7 +1303,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
   /** Check status of connection.
   */
   public String check()
-    throws LCFException
+    throws ACFException
   {
     getSession();
     String serverURI = smbconnectionPath;
@@ -1335,7 +1335,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
         }
         catch (InterruptedIOException e)
         {
-          throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+          throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
         }
         catch (IOException e)
         {
@@ -1361,7 +1361,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
   *@return true if it should be included.
   */
   protected boolean checkInclude(SmbFile file, String fileName, DocumentSpecification documentSpecification)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     if (Logging.connectors.isDebugEnabled())
       Logging.connectors.debug("JCIFS: In checkInclude for '"+fileName+"'");
@@ -1416,7 +1416,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
             }
             catch (NumberFormatException e)
             {
-              throw new LCFException("Bad number",e);
+              throw new ACFException("Bad number",e);
             }
           }
         }
@@ -1546,15 +1546,15 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
     }
     catch (java.net.SocketTimeoutException e)
     {
-      throw new LCFException("Couldn't map to canonical path: "+e.getMessage(),e);
+      throw new ACFException("Couldn't map to canonical path: "+e.getMessage(),e);
     }
     catch (InterruptedIOException e)
     {
-      throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new LCFException("Couldn't map to canonical path: "+e.getMessage(),e);
+      throw new ACFException("Couldn't map to canonical path: "+e.getMessage(),e);
     }
     finally
     {
@@ -1574,7 +1574,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
   */
   protected boolean wouldFileBeIncluded(String fileName, DocumentSpecification documentSpecification,
     boolean pretendIndexable)
-    throws LCFException
+    throws ACFException
   {
     if (Logging.connectors.isDebugEnabled())
       Logging.connectors.debug("JCIFS: In wouldFileBeIncluded for '"+fileName+"', pretendIndexable="+(pretendIndexable?"true":"false"));
@@ -1683,15 +1683,15 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
     }
     catch (java.net.SocketTimeoutException e)
     {
-      throw new LCFException("Couldn't map to canonical path: "+e.getMessage(),e);
+      throw new ACFException("Couldn't map to canonical path: "+e.getMessage(),e);
     }
     catch (InterruptedIOException e)
     {
-      throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new LCFException("Couldn't map to canonical path: "+e.getMessage(),e);
+      throw new ACFException("Couldn't map to canonical path: "+e.getMessage(),e);
     }
     finally
     {
@@ -1707,7 +1707,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
   *@return true if the file needs to be fingerprinted.
   */
   protected boolean checkNeedFileData(String fileName, DocumentSpecification documentSpecification)
-    throws LCFException
+    throws ACFException
   {
     return wouldFileBeIncluded(fileName,documentSpecification,true) != wouldFileBeIncluded(fileName,documentSpecification,false);
   }
@@ -1722,7 +1722,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
   *@return true if the file should be ingested.
   */
   protected boolean checkIngest(File localFile, String fileName, DocumentSpecification documentSpecification, IFingerprintActivity activities)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     if (Logging.connectors.isDebugEnabled())
       Logging.connectors.debug("JCIFS: In checkIngest for '"+fileName+"'");
@@ -1841,15 +1841,15 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
     }
     catch (java.net.SocketTimeoutException e)
     {
-      throw new LCFException("Couldn't map to canonical path: "+e.getMessage(),e);
+      throw new ACFException("Couldn't map to canonical path: "+e.getMessage(),e);
     }
     catch (InterruptedIOException e)
     {
-      throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new LCFException("Couldn't map to canonical path: "+e.getMessage(),e);
+      throw new ACFException("Couldn't map to canonical path: "+e.getMessage(),e);
     }
     finally
     {
@@ -2550,7 +2550,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
     protected int currentIndex = 0;
 
     public IdentifierStream(DocumentSpecification spec)
-      throws LCFException
+      throws ACFException
     {
       try
       {
@@ -2587,15 +2587,15 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
       }
       catch (java.net.SocketTimeoutException e)
       {
-        throw new LCFException("Couldn't map to canonical path: "+e.getMessage(),e);
+        throw new ACFException("Couldn't map to canonical path: "+e.getMessage(),e);
       }
       catch (InterruptedIOException e)
       {
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (IOException e)
       {
-        throw new LCFException("Could not get a canonical path: "+e.getMessage(),e);
+        throw new ACFException("Could not get a canonical path: "+e.getMessage(),e);
       }
     }
 
@@ -2603,7 +2603,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
     *@return the next document identifier, or null if there are no more.
     */
     public String getNextIdentifier()
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       if (currentIndex == ids.length)
         return null;
@@ -2613,7 +2613,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
     /** Close the stream.
     */
     public void close()
-      throws LCFException
+      throws ACFException
     {
       ids = null;
     }
@@ -2637,7 +2637,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     tabsArray.add("Server");
     out.print(
@@ -2687,7 +2687,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
   *@param tabName is the current tab name.
   */
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     String server   = parameters.getParameter(org.apache.acf.crawler.connectors.sharedrive.SharedDriveParameters.server);
     if (server==null) server = "";
@@ -2744,7 +2744,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
-    throws LCFException
+    throws ACFException
   {
     String server = variableContext.getParameter("server");
     if (server != null)
@@ -2772,7 +2772,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
@@ -2820,7 +2820,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     tabsArray.add("Paths");
     tabsArray.add("Security");
@@ -2964,7 +2964,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
   *@param tabName is the current tab name.
   */
   public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     int i;
     int k;
@@ -3174,7 +3174,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
           pathSoFar = "";
           childList = getChildFolderNames("");
           if (childList == null)
-            throw new LCFException("Can't find any children for root folder");
+            throw new ACFException("Can't find any children for root folder");
         }
         out.print(
 "          <input type=\"hidden\" name=\"specpath\" value=\""+org.apache.acf.ui.util.Encoder.attributeEscape(pathSoFar)+"\"/>\n"+
@@ -3212,7 +3212,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
           );
         }
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         e.printStackTrace();
         out.println(org.apache.acf.ui.util.Encoder.bodyEscape(e.getMessage()));
@@ -3693,7 +3693,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
-    throws LCFException
+    throws ACFException
   {
     String x = variableContext.getParameter("pathcount");
     if (x != null)
@@ -3884,7 +3884,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
             if (trialPath != null)
               path = trialPath;
           }
-          catch (LCFException e)
+          catch (ACFException e)
           {
             // Effectively, this just means we can't add a typein to the path right now.
           }
@@ -4188,7 +4188,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
   *@param ds is the current document specification for this job.
   */
   public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"
@@ -4564,7 +4564,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
   * @return an array of SmbFile
   */
   public SmbFile[] getShareNames(String serverURI)
-    throws LCFException
+    throws ACFException
   {
     getSession();
     SmbFile server = null;
@@ -4574,7 +4574,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
     }
     catch (MalformedURLException e1)
     {
-      throw new LCFException("MalformedURLException tossed",e1);
+      throw new ACFException("MalformedURLException tossed",e1);
     }
     SmbFile[] shares = null;
     try
@@ -4587,7 +4587,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
     }
     catch (SmbException e)
     {
-      throw new LCFException("SmbException tossed: "+e.getMessage(),e);
+      throw new ACFException("SmbException tossed: "+e.getMessage(),e);
     }
     return shares;
   }
@@ -4596,9 +4596,9 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
   * Given a folder path, determine if the folder is in fact legal and accessible (and is a folder).
   * @param folder is the relative folder from the network root
   * @return the canonical folder name if valid, or null if not.
-  * @throws LCFException
+  * @throws ACFException
   */
-  public String validateFolderName(String folder) throws LCFException
+  public String validateFolderName(String folder) throws ACFException
   {
     getSession();
     //create new connection by appending to the old connection
@@ -4615,7 +4615,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
     }
     catch (MalformedURLException e1)
     {
-      throw new LCFException("validateFolderName: Can't get parent file: " + uri,e1);
+      throw new ACFException("validateFolderName: Can't get parent file: " + uri,e1);
     }
 
     try
@@ -4638,24 +4638,24 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
       }
       catch (ServiceInterruption si)
       {
-        throw new LCFException("Service interruption: "+si.getMessage(),si);
+        throw new ACFException("Service interruption: "+si.getMessage(),si);
       }
     }
     catch (MalformedURLException e)
     {
-      throw new LCFException("MalformedURLException tossed: "+e.getMessage(),e);
+      throw new ACFException("MalformedURLException tossed: "+e.getMessage(),e);
     }
     catch (java.net.SocketTimeoutException e)
     {
-      throw new LCFException("IOException tossed: "+e.getMessage(),e);
+      throw new ACFException("IOException tossed: "+e.getMessage(),e);
     }
     catch (InterruptedIOException e)
     {
-      throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new LCFException("IOException tossed: "+e.getMessage(),e);
+      throw new ACFException("IOException tossed: "+e.getMessage(),e);
     }
 
   }
@@ -4665,9 +4665,9 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
   *
   * @param folder is the relative folder from the network root
   * @return array of child folder names
-  * @throws LCFException
+  * @throws ACFException
   */
-  public String[] getChildFolderNames(String folder) throws LCFException
+  public String[] getChildFolderNames(String folder) throws ACFException
   {
     getSession();
     //create new connection by appending to the old connection
@@ -4684,7 +4684,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
     }
     catch (MalformedURLException e1)
     {
-      throw new LCFException("getChildFolderNames: Can't get parent file: " + uri,e1);
+      throw new ACFException("getChildFolderNames: Can't get parent file: " + uri,e1);
     }
 
     // add DFS support
@@ -4703,24 +4703,24 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
       }
       catch (ServiceInterruption si)
       {
-        throw new LCFException("Service interruption: "+si.getMessage(),si);
+        throw new ACFException("Service interruption: "+si.getMessage(),si);
       }
     }
     catch (MalformedURLException e)
     {
-      throw new LCFException("MalformedURLException tossed: "+e.getMessage(),e);
+      throw new ACFException("MalformedURLException tossed: "+e.getMessage(),e);
     }
     catch (java.net.SocketTimeoutException e)
     {
-      throw new LCFException("IOException tossed: "+e.getMessage(),e);
+      throw new ACFException("IOException tossed: "+e.getMessage(),e);
     }
     catch (InterruptedIOException e)
     {
-      throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new LCFException("IOException tossed: "+e.getMessage(),e);
+      throw new ACFException("IOException tossed: "+e.getMessage(),e);
     }
 
     // populate a String array
@@ -4789,7 +4789,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
     /** Document specification */
     protected DocumentSpecification spec;
     /** Exceptions that we saw.  These are saved here so that they can be rethrown when done */
-    protected LCFException lcfException = null;
+    protected ACFException lcfException = null;
     protected ServiceInterruption serviceInterruption = null;
 
     /** Constructor */
@@ -4839,7 +4839,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
 
         return false;
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         if (lcfException == null)
           lcfException = e;
@@ -4855,7 +4855,7 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
 
     /** Check for exception, and throw if there is one */
     public void checkAndThrow()
-      throws ServiceInterruption, LCFException
+      throws ServiceInterruption, ACFException
     {
       if (lcfException != null)
         throw lcfException;

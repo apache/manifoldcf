@@ -47,7 +47,7 @@ public class WorkerThread extends Thread
   *@param id is the worker thread id.
   */
   public WorkerThread(String id, DocumentQueue documentQueue, WorkerResetManager resetManager, QueueTracker queueTracker)
-    throws LCFException
+    throws ACFException
   {
     super();
     this.id = id;
@@ -104,7 +104,7 @@ public class WorkerThread extends Thread
         try
         {
           if (Thread.currentThread().isInterrupted())
-            throw new LCFException("Interrupted",LCFException.INTERRUPTED);
+            throw new ACFException("Interrupted",ACFException.INTERRUPTED);
 
           // Before we begin, conditionally reset
           resetManager.waitForReset(threadContext);
@@ -123,7 +123,7 @@ public class WorkerThread extends Thread
             // System.out.println("Got a document set");
 
             if (Thread.currentThread().isInterrupted())
-              throw new LCFException("Interrupted",LCFException.INTERRUPTED);
+              throw new ACFException("Interrupted",ACFException.INTERRUPTED);
 
             // First of all: find out if the job for these documents has been aborted, paused, etc.
             // If so, we requeue the documents immediately.
@@ -324,7 +324,7 @@ public class WorkerThread extends Thread
                     {
 
                       if (Thread.currentThread().isInterrupted())
-                        throw new LCFException("Interrupted",LCFException.INTERRUPTED);
+                        throw new ACFException("Interrupted",ACFException.INTERRUPTED);
 
                       HashMap abortSet = new HashMap();
                       ProcessActivity activity;
@@ -378,7 +378,7 @@ public class WorkerThread extends Thread
                           {
                             // Treat this as a hard failure.
                             if (e.isAbortOnFail())
-                              throw new LCFException("Repeated service interruptions - failure getting document version"+((e.getCause()!=null)?": "+e.getCause().getMessage():""),e.getCause());
+                              throw new ACFException("Repeated service interruptions - failure getting document version"+((e.getCause()!=null)?": "+e.getCause().getMessage():""),e.getCause());
                             // We want this particular document to be not included in the
                             // reprocessing.  Therefore, we do the same thing as we would
                             // if we got back a null version.
@@ -577,7 +577,7 @@ public class WorkerThread extends Thread
                             try
                             {
                               if (Thread.currentThread().isInterrupted())
-                                throw new LCFException("Interrupted",LCFException.INTERRUPTED);
+                                throw new ACFException("Interrupted",ACFException.INTERRUPTED);
 
                               if (Logging.threads.isDebugEnabled())
                                 Logging.threads.debug("Worker thread about to process "+Integer.toString(processIDs.length)+" documents");
@@ -590,7 +590,7 @@ public class WorkerThread extends Thread
                               // "Finish" the documents (removing unneeded carrydown info, etc.)
                               DocumentDescription[] requeueCandidates = jobManager.finishDocuments(job.getID(),legalLinkTypes,processIDHashes,job.getHopcountMode());
 
-                              LCF.requeueDocumentsDueToCarrydown(jobManager,requeueCandidates,connector,connection,queueTracker,currentTime);
+                              ACF.requeueDocumentsDueToCarrydown(jobManager,requeueCandidates,connector,connection,queueTracker,currentTime);
 
                               if (Logging.threads.isDebugEnabled())
                                 Logging.threads.debug("Worker thread done processing "+Integer.toString(processIDs.length)+" documents");
@@ -627,7 +627,7 @@ public class WorkerThread extends Thread
                                 {
                                   // Treat this as a hard failure.
                                   if (e.isAbortOnFail())
-                                    throw new LCFException("Repeated service interruptions - failure processing document"+((e.getCause()!=null)?": "+e.getCause().getMessage():""),e.getCause());
+                                    throw new ACFException("Repeated service interruptions - failure processing document"+((e.getCause()!=null)?": "+e.getCause().getMessage():""),e.getCause());
                                   // We want this particular document to be not included in the
                                   // reprocessing.  Therefore, we do the same thing as we would
                                   // if we got back a null version.
@@ -824,7 +824,7 @@ public class WorkerThread extends Thread
                               }
                               break;
                             default:
-                              throw new LCFException("Unexpected value for job type: '"+Integer.toString(job.getType())+"'");
+                              throw new ACFException("Unexpected value for job type: '"+Integer.toString(job.getType())+"'");
                             }
 
                             // Finally, if we're still alive, mark everything as "processed".
@@ -861,10 +861,10 @@ public class WorkerThread extends Thread
                     }
                   }
                 }
-                catch (LCFException e)
+                catch (ACFException e)
                 {
 
-                  if (e.getErrorCode() == LCFException.REPOSITORY_CONNECTION_ERROR)
+                  if (e.getErrorCode() == ACFException.REPOSITORY_CONNECTION_ERROR)
                   {
                     // Couldn't establish a connection.
                     // This basically means none of the documents handed to this thread can be
@@ -897,12 +897,12 @@ public class WorkerThread extends Thread
               qds.endProcessing(queueTracker);
             }
           }
-          catch (LCFException e)
+          catch (ACFException e)
           {
-            if (e.getErrorCode() == LCFException.INTERRUPTED)
+            if (e.getErrorCode() == ACFException.INTERRUPTED)
               break;
 
-            if (e.getErrorCode() == LCFException.DATABASE_CONNECTION_ERROR)
+            if (e.getErrorCode() == ACFException.DATABASE_CONNECTION_ERROR)
               throw e;
 
             if (jobManager.errorAbort(qds.getJobDescription().getID(),e.getMessage()))
@@ -929,12 +929,12 @@ public class WorkerThread extends Thread
             }
           }
         }
-        catch (LCFException e)
+        catch (ACFException e)
         {
-          if (e.getErrorCode() == LCFException.INTERRUPTED)
+          if (e.getErrorCode() == ACFException.INTERRUPTED)
             break;
 
-          if (e.getErrorCode() == LCFException.DATABASE_CONNECTION_ERROR)
+          if (e.getErrorCode() == ACFException.DATABASE_CONNECTION_ERROR)
           {
             // Note the failure, which will cause a reset to occur
             resetManager.noteEvent();
@@ -945,7 +945,7 @@ public class WorkerThread extends Thread
             try
             {
               // Give the database a chance to catch up/wake up
-              LCF.sleep(10000L);
+              ACF.sleep(10000L);
             }
             catch (InterruptedException se)
             {
@@ -1015,7 +1015,7 @@ public class WorkerThread extends Thread
     IIncrementalIngester ingester, ArrayList ingesterDeleteList, ArrayList ingesterDeleteListUnhashed,
     Long jobID, String[] legalLinkTypes, OutputActivity ingestLogger,
     int hopcountMethod, QueueTracker queueTracker, long currentTime)
-    throws LCFException
+    throws ACFException
   {
     String connectionName = connection.getName();
 
@@ -1051,11 +1051,11 @@ public class WorkerThread extends Thread
             waittime = 300000L;
           try
           {
-            LCF.sleep(waittime);
+            ACF.sleep(waittime);
           }
           catch (InterruptedException e2)
           {
-            throw new LCFException("Interrupted: "+e2.getMessage(),e2,LCFException.INTERRUPTED);
+            throw new ACFException("Interrupted: "+e2.getMessage(),e2,ACFException.INTERRUPTED);
           }
         }
       }
@@ -1077,7 +1077,7 @@ public class WorkerThread extends Thread
       DocumentDescription[] requeueCandidates = jobManager.markDocumentDeletedMultiple(jobID,legalLinkTypes,deleteDescriptions,hopcountMethod);
 
       // Requeue those documents that had carrydown data modifications
-      LCF.requeueDocumentsDueToCarrydown(jobManager,requeueCandidates,connector,connection,queueTracker,currentTime);
+      ACF.requeueDocumentsDueToCarrydown(jobManager,requeueCandidates,connector,connection,queueTracker,currentTime);
 
       // Mark all these as done
       i = 0;
@@ -1097,7 +1097,7 @@ public class WorkerThread extends Thread
   *@param failCount is the number of retries allowed until hard failure.
   */
   protected static void requeueDocuments(IJobManager jobManager, ArrayList requeueList, long retryTime, long failTime, int failCount)
-    throws LCFException
+    throws ACFException
   {
     if (requeueList.size() > 0)
     {
@@ -1159,7 +1159,7 @@ public class WorkerThread extends Thread
     *@return true if the mime type is indexable.
     */
     public boolean checkMimeTypeIndexable(String mimeType)
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       return ingester.checkMimeTypeIndexable(job.getOutputConnectionName(),mimeType);
     }
@@ -1169,7 +1169,7 @@ public class WorkerThread extends Thread
     *@return true if the document is indexable.
     */
     public boolean checkDocumentIndexable(File localFile)
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       return ingester.checkDocumentIndexable(job.getOutputConnectionName(),localFile);
     }
@@ -1192,7 +1192,7 @@ public class WorkerThread extends Thread
     */
     public void recordActivity(Long startTime, String activityType, Long dataSize,
       String entityIdentifier, String resultCode, String resultDescription, String[] childIdentifiers)
-      throws LCFException
+      throws ACFException
     {
       connMgr.recordHistory(connectionName,startTime,activityType,dataSize,entityIdentifier,resultCode,
         resultDescription,childIdentifiers);
@@ -1204,9 +1204,9 @@ public class WorkerThread extends Thread
     *@return an array containing the unique data values passed from ALL parents.  Note that these are in no particular order, and there will not be any duplicates.
     */
     public String[] retrieveParentData(String localIdentifier, String dataName)
-      throws LCFException
+      throws ACFException
     {
-      return jobManager.retrieveParentData(job.getID(),LCF.hash(localIdentifier),dataName);
+      return jobManager.retrieveParentData(job.getID(),ACF.hash(localIdentifier),dataName);
     }
 
     /** Retrieve data passed from parents to a specified child document.
@@ -1215,9 +1215,9 @@ public class WorkerThread extends Thread
     *@return an array containing the unique data values passed from ALL parents.  Note that these are in no particular order, and there will not be any duplicates.
     */
     public CharacterInput[] retrieveParentDataAsFiles(String localIdentifier, String dataName)
-      throws LCFException
+      throws ACFException
     {
-      return jobManager.retrieveParentDataAsFiles(job.getID(),LCF.hash(localIdentifier),dataName);
+      return jobManager.retrieveParentDataAsFiles(job.getID(),ACF.hash(localIdentifier),dataName);
     }
 
     /** Check whether current job is still active.
@@ -1226,7 +1226,7 @@ public class WorkerThread extends Thread
     * caller, will signal that the current versioning activity remains incomplete and must be retried when the job is resumed.
     */
     public void checkJobStillActive()
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       if (jobManager.checkJobActive(job.getID()) == false)
         throw new ServiceInterruption("Job no longer active",System.currentTimeMillis());
@@ -1240,7 +1240,7 @@ public class WorkerThread extends Thread
     *@return false if the event is already in the "pending" state.
     */
     public boolean beginEventSequence(String eventName)
-      throws LCFException
+      throws ACFException
     {
       return jobManager.beginEventSequence(eventName);
     }
@@ -1253,7 +1253,7 @@ public class WorkerThread extends Thread
     *@param eventName is the event name.
     */
     public void completeEventSequence(String eventName)
-      throws LCFException
+      throws ACFException
     {
       jobManager.completeEventSequence(eventName);
     }
@@ -1265,7 +1265,7 @@ public class WorkerThread extends Thread
     *@param localIdentifier is the document identifier to requeue
     */
     public void retryDocumentProcessing(String localIdentifier)
-      throws LCFException
+      throws ACFException
     {
       // Accumulate aborts
       abortSet.put(localIdentifier,localIdentifier);
@@ -1277,7 +1277,7 @@ public class WorkerThread extends Thread
     */
     public String createGlobalString(String simpleString)
     {
-      return LCF.createGlobalString(simpleString);
+      return ACF.createGlobalString(simpleString);
     }
 
     /** Create a connection-specific string from a simple string.
@@ -1286,7 +1286,7 @@ public class WorkerThread extends Thread
     */
     public String createConnectionSpecificString(String simpleString)
     {
-      return LCF.createConnectionSpecificString(connectionName,simpleString);
+      return ACF.createConnectionSpecificString(connectionName,simpleString);
     }
 
     /** Create a job-based string from a simple string.
@@ -1295,7 +1295,7 @@ public class WorkerThread extends Thread
     */
     public String createJobSpecificString(String simpleString)
     {
-      return LCF.createJobSpecificString(jobID,simpleString);
+      return ACF.createJobSpecificString(jobID,simpleString);
     }
 
   }
@@ -1357,7 +1357,7 @@ public class WorkerThread extends Thread
 
     /** Clean up any dangling information, before abandoning this process activity object */
     public void discard()
-      throws LCFException
+      throws ACFException
     {
       Iterator iter = referenceList.keySet().iterator();
       while (iter.hasNext())
@@ -1384,12 +1384,12 @@ public class WorkerThread extends Thread
     */
     public void addDocumentReference(String localIdentifier, String parentIdentifier, String relationshipType,
       String[] dataNames, Object[][] dataValues, Long originationTime, String[] prereqEventNames)
-      throws LCFException
+      throws ACFException
     {
-      String localIdentifierHash = LCF.hash(localIdentifier);
+      String localIdentifierHash = ACF.hash(localIdentifier);
       String parentIdentifierHash = null;
       if (parentIdentifier != null && parentIdentifier.length() > 0)
-        parentIdentifierHash = LCF.hash(parentIdentifier);
+        parentIdentifierHash = ACF.hash(parentIdentifier);
 
       if (Logging.threads.isDebugEnabled())
         Logging.threads.debug("Adding document reference, from "+((parentIdentifier==null)?"no parent":"'"+parentIdentifier+"'")
@@ -1482,7 +1482,7 @@ public class WorkerThread extends Thread
     */
     public void addDocumentReference(String localIdentifier, String parentIdentifier, String relationshipType,
       String[] dataNames, Object[][] dataValues, Long originationTime)
-      throws LCFException
+      throws ACFException
     {
       addDocumentReference(localIdentifier,parentIdentifier,relationshipType,dataNames,dataValues,originationTime,null);
     }
@@ -1500,7 +1500,7 @@ public class WorkerThread extends Thread
     */
     public void addDocumentReference(String localIdentifier, String parentIdentifier, String relationshipType,
       String[] dataNames, Object[][] dataValues)
-      throws LCFException
+      throws ACFException
     {
       addDocumentReference(localIdentifier,parentIdentifier,relationshipType,dataNames,dataValues,null);
     }
@@ -1515,7 +1515,7 @@ public class WorkerThread extends Thread
     * "getRelationshipTypes()".  May be null.
     */
     public void addDocumentReference(String localIdentifier, String parentIdentifier, String relationshipType)
-      throws LCFException
+      throws ACFException
     {
       addDocumentReference(localIdentifier,parentIdentifier,relationshipType,null,null);
     }
@@ -1526,7 +1526,7 @@ public class WorkerThread extends Thread
     * fetched the document).
     */
     public void addDocumentReference(String localIdentifier)
-      throws LCFException
+      throws ACFException
     {
       addDocumentReference(localIdentifier,null,null,null,null);
     }
@@ -1537,9 +1537,9 @@ public class WorkerThread extends Thread
     *@return an array containing the unique data values passed from ALL parents.  Note that these are in no particular order, and there will not be any duplicates.
     */
     public String[] retrieveParentData(String localIdentifier, String dataName)
-      throws LCFException
+      throws ACFException
     {
-      return jobManager.retrieveParentData(job.getID(),LCF.hash(localIdentifier),dataName);
+      return jobManager.retrieveParentData(job.getID(),ACF.hash(localIdentifier),dataName);
     }
 
     /** Retrieve data passed from parents to a specified child document.
@@ -1548,9 +1548,9 @@ public class WorkerThread extends Thread
     *@return an array containing the unique data values passed from ALL parents.  Note that these are in no particular order, and there will not be any duplicates.
     */
     public CharacterInput[] retrieveParentDataAsFiles(String localIdentifier, String dataName)
-      throws LCFException
+      throws ACFException
     {
-      return jobManager.retrieveParentDataAsFiles(job.getID(),LCF.hash(localIdentifier),dataName);
+      return jobManager.retrieveParentDataAsFiles(job.getID(),ACF.hash(localIdentifier),dataName);
     }
 
     /** Record a document version, but don't ingest it.
@@ -1559,9 +1559,9 @@ public class WorkerThread extends Thread
     *@param version is the document version.
     */
     public void recordDocument(String documentIdentifier, String version)
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
-      String documentIdentifierHash = LCF.hash(documentIdentifier);
+      String documentIdentifierHash = ACF.hash(documentIdentifier);
       ingester.documentRecord(job.getOutputConnectionName(),job.getConnectionName(),documentIdentifierHash,version,currentTime,ingestLogger);
     }
 
@@ -1574,13 +1574,13 @@ public class WorkerThread extends Thread
     *@param data is the document data.  The data is closed after ingestion is complete.
     */
     public void ingestDocument(String documentIdentifier, String version, String documentURI, RepositoryDocument data)
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       // We should not get called here if versions agree, unless the repository
       // connector cannot distinguish between versions - in which case it must
       // always ingest (essentially)
 
-      String documentIdentifierHash = LCF.hash(documentIdentifier);
+      String documentIdentifierHash = ACF.hash(documentIdentifier);
 
       // First, we need to add into the metadata the stuff from the job description.
       ingester.documentIngest(job.getOutputConnectionName(),
@@ -1596,9 +1596,9 @@ public class WorkerThread extends Thread
     *@param documentIdentifier is the document's local identifier.
     */
     public void deleteDocument(String documentIdentifier)
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
-      String documentIdentifierHash = LCF.hash(documentIdentifier);
+      String documentIdentifierHash = ACF.hash(documentIdentifier);
       ingester.documentDelete(job.getOutputConnectionName(),
         job.getConnectionName(),documentIdentifierHash,
         ingestLogger);
@@ -1617,7 +1617,7 @@ public class WorkerThread extends Thread
     public void setDocumentScheduleBounds(String localIdentifier,
       Long lowerRecrawlBoundTime, Long upperRecrawlBoundTime,
       Long lowerExpireBoundTime, Long upperExpireBoundTime)
-      throws LCFException
+      throws ACFException
     {
       if (lowerRecrawlBoundTime != null)
         lowerRescheduleBounds.put(localIdentifier,lowerRecrawlBoundTime);
@@ -1644,7 +1644,7 @@ public class WorkerThread extends Thread
     */
     public void setDocumentOriginationTime(String localIdentifier,
       Long originationTime)
-      throws LCFException
+      throws ACFException
     {
       if (originationTime == null)
         originationTimes.remove(localIdentifier);
@@ -1765,7 +1765,7 @@ public class WorkerThread extends Thread
     */
     public void recordActivity(Long startTime, String activityType, Long dataSize,
       String entityIdentifier, String resultCode, String resultDescription, String[] childIdentifiers)
-      throws LCFException
+      throws ACFException
     {
       connMgr.recordHistory(connection.getName(),startTime,activityType,dataSize,entityIdentifier,resultCode,
         resultDescription,childIdentifiers);
@@ -1774,7 +1774,7 @@ public class WorkerThread extends Thread
     /** Flush the outstanding references into the database.
     */
     public void flush()
-      throws LCFException
+      throws ACFException
     {
       processDocumentReferences();
     }
@@ -1782,7 +1782,7 @@ public class WorkerThread extends Thread
     /** Process outstanding document references, in batch.
     */
     protected void processDocumentReferences()
-      throws LCFException
+      throws ACFException
     {
       if (referenceList.size() == 0)
         return;
@@ -1831,7 +1831,7 @@ public class WorkerThread extends Thread
           eventNames[j] = dr.getPrerequisiteEventNames();
 
           // Calculate desired document priority based on current queuetracker status.
-          String[] bins = LCF.calculateBins(connector,dr.getLocalIdentifier());
+          String[] bins = ACF.calculateBins(connector,dr.getLocalIdentifier());
 
 
           binNames[j] = bins;
@@ -1871,7 +1871,7 @@ public class WorkerThread extends Thread
     * caller, will signal that the current processing activity remains incomplete and must be retried when the job is resumed.
     */
     public void checkJobStillActive()
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       if (jobManager.checkJobActive(job.getID()) == false)
         throw new ServiceInterruption("Job no longer active",System.currentTimeMillis());
@@ -1885,7 +1885,7 @@ public class WorkerThread extends Thread
     *@return false if the event is already in the "pending" state.
     */
     public boolean beginEventSequence(String eventName)
-      throws LCFException
+      throws ACFException
     {
       return jobManager.beginEventSequence(eventName);
     }
@@ -1898,7 +1898,7 @@ public class WorkerThread extends Thread
     *@param eventName is the event name.
     */
     public void completeEventSequence(String eventName)
-      throws LCFException
+      throws ACFException
     {
       jobManager.completeEventSequence(eventName);
     }
@@ -1910,7 +1910,7 @@ public class WorkerThread extends Thread
     *@param localIdentifier is the document identifier to requeue
     */
     public void retryDocumentProcessing(String localIdentifier)
-      throws LCFException
+      throws ACFException
     {
       // Accumulate aborts
       abortSet.put(localIdentifier,localIdentifier);
@@ -1921,7 +1921,7 @@ public class WorkerThread extends Thread
     *@return true if the mime type is indexable.
     */
     public boolean checkMimeTypeIndexable(String mimeType)
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       return ingester.checkMimeTypeIndexable(job.getOutputConnectionName(),mimeType);
     }
@@ -1931,7 +1931,7 @@ public class WorkerThread extends Thread
     *@return true if the document is indexable.
     */
     public boolean checkDocumentIndexable(File localFile)
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       return ingester.checkDocumentIndexable(job.getOutputConnectionName(),localFile);
     }
@@ -1942,7 +1942,7 @@ public class WorkerThread extends Thread
     */
     public String createGlobalString(String simpleString)
     {
-      return LCF.createGlobalString(simpleString);
+      return ACF.createGlobalString(simpleString);
     }
 
     /** Create a connection-specific string from a simple string.
@@ -1951,7 +1951,7 @@ public class WorkerThread extends Thread
     */
     public String createConnectionSpecificString(String simpleString)
     {
-      return LCF.createConnectionSpecificString(connection.getName(),simpleString);
+      return ACF.createConnectionSpecificString(connection.getName(),simpleString);
     }
 
     /** Create a job-based string from a simple string.
@@ -1960,7 +1960,7 @@ public class WorkerThread extends Thread
     */
     public String createJobSpecificString(String simpleString)
     {
-      return LCF.createJobSpecificString(job.getID(),simpleString);
+      return ACF.createJobSpecificString(job.getID(),simpleString);
     }
 
   }
@@ -2044,7 +2044,7 @@ public class WorkerThread extends Thread
 
     /** Close all object data references.  This should be called whenever a DocumentReference object is abandoned. */
     public void discard()
-      throws LCFException
+      throws ACFException
     {
       Iterator iter = data.keySet().iterator();
       while (iter.hasNext())
@@ -2264,9 +2264,9 @@ public class WorkerThread extends Thread
     */
     public void recordActivity(Long startTime, String activityType, Long dataSize,
       String entityURI, String resultCode, String resultDescription)
-      throws LCFException
+      throws ACFException
     {
-      connMgr.recordHistory(connectionName,startTime,LCF.qualifyOutputActivityName(activityType,outputConnectionName),dataSize,entityURI,resultCode,
+      connMgr.recordHistory(connectionName,startTime,ACF.qualifyOutputActivityName(activityType,outputConnectionName),dataSize,entityURI,resultCode,
         resultDescription,null);
     }
 
@@ -2277,7 +2277,7 @@ public class WorkerThread extends Thread
     *@return the properly qualified access token.
     */
     public String qualifyAccessToken(String authorityNameString, String accessToken)
-      throws LCFException
+      throws ACFException
     {
       try
       {
@@ -2287,7 +2287,7 @@ public class WorkerThread extends Thread
       }
       catch (java.io.UnsupportedEncodingException e)
       {
-        throw new LCFException(e.getMessage(),e);
+        throw new ACFException(e.getMessage(),e);
       }
     }
 

@@ -42,7 +42,7 @@ public abstract class CharacterInput
   }
 
   public Reader getStream()
-    throws LCFException
+    throws ACFException
   {
     if (stream == null)
       openStream();
@@ -50,14 +50,14 @@ public abstract class CharacterInput
   }
 
   public void doneWithStream()
-    throws LCFException
+    throws ACFException
   {
     if (stream != null)
       closeStream();
   }
 
   public long getCharacterLength()
-    throws LCFException
+    throws ACFException
   {
     if (charLength == -1L)
       calculateLength();
@@ -65,7 +65,7 @@ public abstract class CharacterInput
   }
 
   public String getHashValue()
-    throws LCFException
+    throws ACFException
   {
     if (hashValue == null)
       calculateHashValue();
@@ -74,14 +74,14 @@ public abstract class CharacterInput
 
   /** Open a Utf8 stream directly */
   public abstract InputStream getUtf8Stream()
-    throws LCFException;
+    throws ACFException;
 
   /** Transfer to a new object; this causes the current object to become "already discarded" */
   public abstract CharacterInput transfer();
 
   /** Discard this object permanently */
   public void discard()
-    throws LCFException
+    throws ACFException
   {
     doneWithStream();
   }
@@ -90,11 +90,11 @@ public abstract class CharacterInput
 
   /** Open a reader, for use by a caller, until closeStream is called */
   protected abstract void openStream()
-    throws LCFException;
+    throws ACFException;
 
   /** Close any open reader */
   protected void closeStream()
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -103,20 +103,20 @@ public abstract class CharacterInput
     }
     catch (InterruptedIOException e)
     {
-      throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new LCFException("Error closing stream: "+e.getMessage(),e,LCFException.GENERAL_ERROR);
+      throw new ACFException("Error closing stream: "+e.getMessage(),e,ACFException.GENERAL_ERROR);
     }
   }
 
   /** Calculate the datum's length in characters */
   protected abstract void calculateLength()
-    throws LCFException;
+    throws ACFException;
 
   /** Calculate the datum's hash value */
   protected abstract void calculateHashValue()
-    throws LCFException;
+    throws ACFException;
 
 }

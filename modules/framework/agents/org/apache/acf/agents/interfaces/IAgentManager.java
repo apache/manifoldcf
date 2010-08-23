@@ -29,24 +29,24 @@ public interface IAgentManager
   /** Install.
   */
   public void install()
-    throws LCFException;
+    throws ACFException;
 
   /** Uninstall.  Also uninstalls all remaining agents.
   */
   public void deinstall()
-    throws LCFException;
+    throws ACFException;
 
   /** Register an agent.
   *@param className is the class.
   */
   public void registerAgent(String className)
-    throws LCFException;
+    throws ACFException;
 
   /** Unregister an agent.
   *@param className is the class to unregister.
   */
   public void unregisterAgent(String className)
-    throws LCFException;
+    throws ACFException;
 
   /** Remove an agent.
   * Use this when the agent cannot be invoked.  The agent becomes unavailable,
@@ -54,12 +54,12 @@ public interface IAgentManager
   *@param className is the class to remove.
   */
   public void removeAgent(String className)
-    throws LCFException;
+    throws ACFException;
 
   /** Get a list of all registered agent class names.
   *@return the classnames in an array.
   */
   public String[] getAllAgents()
-    throws LCFException;
+    throws ACFException;
 
 }

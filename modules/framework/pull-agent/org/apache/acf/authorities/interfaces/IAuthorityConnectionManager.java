@@ -30,52 +30,52 @@ public interface IAuthorityConnectionManager
   /** Install the manager.
   */
   public void install()
-    throws LCFException;
+    throws ACFException;
 
   /** Uninstall the manager.
   */
   public void deinstall()
-    throws LCFException;
+    throws ACFException;
 
   /** Export configuration */
   public void exportConfiguration(java.io.OutputStream os)
-    throws java.io.IOException, LCFException;
+    throws java.io.IOException, ACFException;
 
   /** Import configuration */
   public void importConfiguration(java.io.InputStream is)
-    throws java.io.IOException, LCFException;
+    throws java.io.IOException, ACFException;
 
   /** Obtain a list of the authority connections, ordered by name.
   *@return an array of connection objects.
   */
   public IAuthorityConnection[] getAllConnections()
-    throws LCFException;
+    throws ACFException;
 
   /** Load a authority connection by name.
   *@param name is the name of the authority connection.
   *@return the loaded connection object, or null if not found.
   */
   public IAuthorityConnection load(String name)
-    throws LCFException;
+    throws ACFException;
 
   /** Create a new authority connection object.
   *@return the new object.
   */
   public IAuthorityConnection create()
-    throws LCFException;
+    throws ACFException;
 
   /** Save an authority connection object.
   *@param object is the object to save.
   */
   public void save(IAuthorityConnection object)
-    throws LCFException;
+    throws ACFException;
 
   /** Delete an authority connection.
   *@param name is the name of the connection to delete.  If the
   * name does not exist, no error is returned.
   */
   public void delete(String name)
-    throws LCFException;
+    throws ACFException;
 
   // Schema related
 

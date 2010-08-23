@@ -22,7 +22,7 @@ import org.apache.acf.core.interfaces.*;
 import org.apache.acf.agents.interfaces.*;
 import org.apache.acf.authorities.interfaces.*;
 import org.apache.acf.authorities.system.Logging;
-import org.apache.acf.authorities.system.LCF;
+import org.apache.acf.authorities.system.ACF;
 
 import java.io.*;
 import java.util.*;
@@ -98,7 +98,7 @@ public class ActiveDirectoryAuthority extends org.apache.acf.authorities.authori
   /** Check connection for sanity.
   */
   public String check()
-    throws LCFException
+    throws ACFException
   {
     getSession();
     return super.check();
@@ -107,7 +107,7 @@ public class ActiveDirectoryAuthority extends org.apache.acf.authorities.authori
   /** Poll.  The connection should be closed if it has been idle for too long.
   */
   public void poll()
-    throws LCFException
+    throws ACFException
   {
     if (expiration != -1L && System.currentTimeMillis() > expiration)
       closeConnection();
@@ -135,7 +135,7 @@ public class ActiveDirectoryAuthority extends org.apache.acf.authorities.authori
   /** Close the connection.  Call this before discarding the repository connector.
   */
   public void disconnect()
-    throws LCFException
+    throws ACFException
   {
     closeConnection();
     domainControllerName = null;
@@ -150,7 +150,7 @@ public class ActiveDirectoryAuthority extends org.apache.acf.authorities.authori
   * (Should throws an exception only when a condition cannot be properly described within the authorization response object.)
   */
   public AuthorizationResponse getAuthorizationResponse(String userName)
-    throws LCFException
+    throws ACFException
   {
     getSession();
 
@@ -203,7 +203,7 @@ public class ActiveDirectoryAuthority extends org.apache.acf.authorities.authori
           }	 
           catch (NamingException e)
           {
-            throw new LCFException(e.getMessage(),e);
+            throw new ACFException(e.getMessage(),e);
           }
 				
         }
@@ -256,7 +256,7 @@ public class ActiveDirectoryAuthority extends org.apache.acf.authorities.authori
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     tabsArray.add("Domain Controller");
     out.print(
@@ -301,7 +301,7 @@ public class ActiveDirectoryAuthority extends org.apache.acf.authorities.authori
   *@param tabName is the current tab name.
   */
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     String domainControllerName = parameters.getParameter(org.apache.acf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_DOMAINCONTROLLER);
     if (domainControllerName == null)
@@ -355,7 +355,7 @@ public class ActiveDirectoryAuthority extends org.apache.acf.authorities.authori
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
-    throws LCFException
+    throws ACFException
   {
     String domainControllerName = variableContext.getParameter("domaincontrollername");
     if (domainControllerName != null)
@@ -377,7 +377,7 @@ public class ActiveDirectoryAuthority extends org.apache.acf.authorities.authori
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
@@ -420,7 +420,7 @@ public class ActiveDirectoryAuthority extends org.apache.acf.authorities.authori
   // Protected methods
   
   protected void getSession()
-    throws LCFException
+    throws ACFException
   {
     if (ctx == null)
     {
@@ -447,16 +447,16 @@ public class ActiveDirectoryAuthority extends org.apache.acf.authorities.authori
       catch (AuthenticationException e)
       {
         // This means we couldn't authenticate!
-        throw new LCFException("Authentication problem authenticating admin user '"+userName+"': "+e.getMessage(),e);
+        throw new ACFException("Authentication problem authenticating admin user '"+userName+"': "+e.getMessage(),e);
       }
       catch (CommunicationException e)
       {
         // This means we couldn't connect, most likely
-	throw new LCFException("Couldn't communicate with domain controller '"+domainControllerName+"': "+e.getMessage(),e);
+	throw new ACFException("Couldn't communicate with domain controller '"+domainControllerName+"': "+e.getMessage(),e);
       }
       catch (NamingException e)
       {
-	throw new LCFException(e.getMessage(),e);
+	throw new ACFException(e.getMessage(),e);
       }
     }
     else
@@ -469,16 +469,16 @@ public class ActiveDirectoryAuthority extends org.apache.acf.authorities.authori
       catch (AuthenticationException e)
       {
         // This means we couldn't authenticate!
-        throw new LCFException("Authentication problem authenticating admin user '"+userName+"': "+e.getMessage(),e);
+        throw new ACFException("Authentication problem authenticating admin user '"+userName+"': "+e.getMessage(),e);
       }
       catch (CommunicationException e)
       {
         // This means we couldn't connect, most likely
-	throw new LCFException("Couldn't communicate with domain controller '"+domainControllerName+"': "+e.getMessage(),e);
+	throw new ACFException("Couldn't communicate with domain controller '"+domainControllerName+"': "+e.getMessage(),e);
       }
       catch (NamingException e)
       {
-	throw new LCFException(e.getMessage(),e);
+	throw new ACFException(e.getMessage(),e);
       }
     }
     
@@ -487,12 +487,12 @@ public class ActiveDirectoryAuthority extends org.apache.acf.authorities.authori
   
   /** Parse a user name into an ldap search base. */
   protected static String parseUser(String userName)
-    throws LCFException
+    throws ACFException
   {
     //String searchBase = "CN=Administrator,CN=Users,DC=qa-ad-76,DC=metacarta,DC=com";
     int index = userName.indexOf("@");
     if (index == -1)
-      throw new LCFException("Username is in unexpected form (no @): '"+userName+"'");
+      throw new ACFException("Username is in unexpected form (no @): '"+userName+"'");
     String userPart = userName.substring(0,index);
     String domainPart = userName.substring(index+1);
     // Start the search base assembly

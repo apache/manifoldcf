@@ -53,7 +53,7 @@ public class LookupRecord
                         }
                         System.err.println("Successfully located");
                 }
-                catch (LCFException e)
+                catch (ACFException e)
                 {
                         e.printStackTrace(System.err);
                         System.exit(2);

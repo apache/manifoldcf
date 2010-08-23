@@ -51,7 +51,7 @@ public interface IThrottledConnection
   *        is used solely for logging purposes.
   */
   public void beginFetch(String fetchType)
-    throws LCFException;
+    throws ACFException;
 
   /** Execute the fetch and get the return code.  This method uses the
   * standard logging mechanism to keep track of the fetch attempt.  It also
@@ -69,35 +69,35 @@ public interface IThrottledConnection
   public int executeFetch(String protocol, int port, String urlPath, String userAgent, String from,
     String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword,
     String lastETag, String lastModified)
-    throws LCFException, ServiceInterruption;
+    throws ACFException, ServiceInterruption;
 
   /** Get the http response code.
   *@return the response code.  This is either an HTTP response code, or one of the codes above.
   */
   public int getResponseCode()
-    throws LCFException, ServiceInterruption;
+    throws ACFException, ServiceInterruption;
 
   /** Get the response input stream.  It is the responsibility of the caller
   * to close this stream when done.
   */
   public InputStream getResponseBodyStream()
-    throws LCFException, ServiceInterruption;
+    throws ACFException, ServiceInterruption;
 
   /** Get a specified response header, if it exists.
   *@param headerName is the name of the header.
   *@return the header value, or null if it doesn't exist.
   */
   public String getResponseHeader(String headerName)
-    throws LCFException, ServiceInterruption;
+    throws ACFException, ServiceInterruption;
 
   /** Done with the fetch.  Call this when the fetch has been completed.  A log entry will be generated
   * describing what was done.
   */
   public void doneFetch(IVersionActivity activities)
-    throws LCFException;
+    throws ACFException;
 
   /** Close the connection.  Call this to end this server connection.
   */
   public void close()
-    throws LCFException;
+    throws ACFException;
 }

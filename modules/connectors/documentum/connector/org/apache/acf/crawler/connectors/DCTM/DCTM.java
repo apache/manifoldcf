@@ -23,7 +23,7 @@ import org.apache.acf.core.interfaces.*;
 import org.apache.acf.agents.interfaces.*;
 import org.apache.acf.crawler.interfaces.*;
 import org.apache.acf.crawler.system.Logging;
-import org.apache.acf.crawler.system.LCF;
+import org.apache.acf.crawler.system.ACF;
 import java.util.*;
 import java.io.*;
 import org.apache.acf.crawler.common.DCTM.*;
@@ -101,30 +101,30 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
   /** Get a DFC session.  This will be done every time it is needed.
   */
   protected void getSession()
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     if (session == null)
     {
       // Perform basic parameter checking, and debug output.
       if (docbaseName == null || docbaseName.length() < 1)
-        throw new LCFException("Parameter "+CONFIG_PARAM_DOCBASE+" required but not set");
+        throw new ACFException("Parameter "+CONFIG_PARAM_DOCBASE+" required but not set");
 
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("DCTM: Docbase = '" + docbaseName + "'");
 
       if (userName == null || userName.length() < 1)
-        throw new LCFException("Parameter "+CONFIG_PARAM_USERNAME+" required but not set");
+        throw new ACFException("Parameter "+CONFIG_PARAM_USERNAME+" required but not set");
 
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("DCTM: Username = '" + userName + "'");
 
       if (password == null || password.length() < 1)
-        throw new LCFException("Parameter "+CONFIG_PARAM_PASSWORD+" required but not set");
+        throw new ACFException("Parameter "+CONFIG_PARAM_PASSWORD+" required but not set");
 
       Logging.connectors.debug("DCTM: Password exists");
 
       if (webtopBaseURL == null || webtopBaseURL.length() < 1)
-        throw new LCFException("Required parameter "+CONFIG_PARAM_WEBTOPBASEURL+" missing");
+        throw new ACFException("Required parameter "+CONFIG_PARAM_WEBTOPBASEURL+" missing");
 
       if (domain == null)
         // Empty domain is allowed
@@ -156,11 +156,11 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (java.net.MalformedURLException e)
       {
-        throw new LCFException(e.getMessage(),e);
+        throw new ACFException(e.getMessage(),e);
       }
       catch (NotBoundException e)
       {
@@ -173,7 +173,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
+          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
         // Treat this as a transient problem
         Logging.connectors.warn("DCTM: Transient remote exception creating session: "+e.getMessage(),e);
         currentTime = System.currentTimeMillis();
@@ -189,7 +189,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
           throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L,currentTime + 12*60*60000L,
             -1,true);
         }
-        throw new LCFException(e.getMessage(),e);
+        throw new ACFException(e.getMessage(),e);
       }
     }
 
@@ -249,7 +249,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
   }
 
   protected void getAttributesForType(ArrayList list, String typeName)
-    throws DocumentumException, LCFException, ServiceInterruption
+    throws DocumentumException, ACFException, ServiceInterruption
   {
     String strDQL = "select attr_name FROM dmi_dd_attr_info where type_name = '" + typeName + "'";
 
@@ -277,13 +277,13 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
+          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
         if (noSession)
         {
           long currentTime = System.currentTimeMillis();
@@ -327,7 +327,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
 
   /** Check connection, with appropriate retries */
   protected void checkConnection()
-    throws DocumentumException, LCFException, ServiceInterruption
+    throws DocumentumException, ACFException, ServiceInterruption
   {
     while (true)
     {
@@ -353,13 +353,13 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
+          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
         if (noSession)
         {
           long currentTime = System.currentTimeMillis();
@@ -410,7 +410,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
 
   /** Build date string with appropriate reset */
   protected String buildDateString(long timevalue)
-    throws DocumentumException, LCFException, ServiceInterruption
+    throws DocumentumException, ACFException, ServiceInterruption
   {
     while (true)
     {
@@ -436,13 +436,13 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
+          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
         if (noSession)
         {
           long currentTime = System.currentTimeMillis();
@@ -487,7 +487,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
   /** Release the session, if it's time.
   */
   protected void releaseCheck()
-    throws LCFException
+    throws ACFException
   {
     if (lastSessionFetch == -1L)
       return;
@@ -516,13 +516,13 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
+          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
         session = null;
         lastSessionFetch = -1L;
         // Treat this as a transient problem
@@ -579,7 +579,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
   *@return the connection's status as a displayable string.
   */
   public String check()
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -594,14 +594,14 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
         if (e.getType() == DocumentumException.TYPE_SERVICEINTERRUPTION)
           throw new ServiceInterruption(e.getMessage(),0L);
         else
-          throw new LCFException(e.getMessage(),e);
+          throw new ACFException(e.getMessage(),e);
       }
     }
     catch (ServiceInterruption e)
     {
       return "Connection temporarily failed: "+e.getMessage();
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       return "Connection failed: "+e.getMessage();
     }
@@ -629,7 +629,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
   * in active use.
   */
   public void poll()
-    throws LCFException
+    throws ACFException
   {
     releaseCheck();
   }
@@ -637,7 +637,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
   /** Disconnect from Documentum.
   */
   public void disconnect()
-    throws LCFException
+    throws ACFException
   {
     if (session != null)
     {
@@ -662,13 +662,13 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
+          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
         session = null;
         lastSessionFetch = -1L;
         // Treat this as a transient problem
@@ -698,7 +698,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
   /** Protected method for calculating the URI
   */
   protected String convertToURI(String strObjectId, String objectType)
-    throws LCFException
+    throws ACFException
   {
     String strWebtopBaseUrl = webtopBaseURL;
 
@@ -853,7 +853,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
   *@param input is the request object.
   */
   public void executeCommand(Configuration output, String command, Configuration input)
-    throws LCFException
+    throws ACFException
   {
     if (command.equals("contenttype/list"))
     {
@@ -871,11 +871,11 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
       }
       catch (ServiceInterruption e)
       {
-        LCF.createServiceInterruptionNode(output,e);
+        ACF.createServiceInterruptionNode(output,e);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
-        LCF.createErrorNode(output,e);
+        ACF.createErrorNode(output,e);
       }
     }
     else if (command.equals("objecttype/list"))
@@ -894,16 +894,16 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
       }
       catch (ServiceInterruption e)
       {
-        LCF.createServiceInterruptionNode(output,e);
+        ACF.createServiceInterruptionNode(output,e);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
-        LCF.createErrorNode(output,e);
+        ACF.createErrorNode(output,e);
       }
     }
     else if (command.equals("folder/list"))
     {
-      String parentFolder = LCF.getRootArgument(input,"parent_folder");
+      String parentFolder = ACF.getRootArgument(input,"parent_folder");
       try
       {
         String[] folders = getChildFolderNames(parentFolder);
@@ -918,18 +918,18 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
       }
       catch (ServiceInterruption e)
       {
-        LCF.createServiceInterruptionNode(output,e);
+        ACF.createServiceInterruptionNode(output,e);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
-        LCF.createErrorNode(output,e);
+        ACF.createErrorNode(output,e);
       }
     }
     else if (command.equals("indexableattributes/list"))
     {
-      String objectType = LCF.getRootArgument(input,"object_type");
+      String objectType = ACF.getRootArgument(input,"object_type");
       if (objectType == null)
-        throw new LCFException("Missing required field 'object_type'");
+        throw new ACFException("Missing required field 'object_type'");
       try
       {
         String[] indexableAttributes = getIngestableAttributes(objectType);
@@ -944,11 +944,11 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
       }
       catch (ServiceInterruption e)
       {
-        LCF.createServiceInterruptionNode(output,e);
+        ACF.createServiceInterruptionNode(output,e);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
-        LCF.createErrorNode(output,e);
+        ACF.createErrorNode(output,e);
       }
     }
     else
@@ -964,7 +964,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
   */
   public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
     long startTime, long endTime)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     // First, build the query
 
@@ -1131,7 +1131,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
               // It's ok to leave the thread still active; we'll be shutting down anyway.
               throw e;
             }
-            catch (LCFException e)
+            catch (ACFException e)
             {
               t.abort();
               // We need the join, because we really don't want this documentum session to be
@@ -1151,7 +1151,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
             {
               Throwable e2 = e.getCause();
               if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-                throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
+                throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
               if (noSession)
               {
                 long currentTime = System.currentTimeMillis();
@@ -1164,7 +1164,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
           }
           catch (InterruptedException e)
           {
-            throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+            throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
           }
         }
       }
@@ -1178,14 +1178,14 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
         Logging.connectors.warn("DCTM: Remote service interruption getting versions: "+e.getMessage(),e);
         throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L, currentTime + 12 * 60 * 60000L,-1,true);
       }
-      throw new LCFException(e.getMessage(),e);
+      throw new ACFException(e.getMessage(),e);
     }
 
   }
 
   /** Do a query and read back the name column */
   protected static String[] convertToDCTMTypes(ArrayList contentList)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     if (contentList != null && contentList.size() > 0)
     {
@@ -1329,7 +1329,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
   */
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activity,
     DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     Logging.connectors.debug("DCTM: Inside getDocumentVersions");
 
@@ -1380,7 +1380,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
               Logging.connectors.warn("DCTM: Remote service interruption listing attributes: "+e.getMessage(),e);
               throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L,currentTime + 12 * 60 * 60000L,-1,true);
             }
-            throw new LCFException(e.getMessage(),e);
+            throw new ACFException(e.getMessage(),e);
           }
 
         }
@@ -1480,13 +1480,13 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
           catch (InterruptedException e)
           {
             t.interrupt();
-            throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+            throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
           }
           catch (RemoteException e)
           {
             Throwable e2 = e.getCause();
             if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-              throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
+              throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
             if (noSession)
             {
               currentTime = System.currentTimeMillis();
@@ -1509,7 +1509,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
         Logging.connectors.warn("DCTM: Remote service interruption getting versions: "+e.getMessage(),e);
         throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L,currentTime + 12 * 60 * 60000L,-1,true);
       }
-      throw new LCFException(e.getMessage(),e);
+      throw new ACFException(e.getMessage(),e);
     }
   }
 
@@ -1710,7 +1710,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
   */
   public void processDocuments(String[] documentIdentifiers, String[] documentVersions,
     IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     Logging.connectors.debug("DCTM: Inside processDocuments");
 
@@ -1756,8 +1756,8 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
                     throw (RemoteException)thr;
                   else if (thr instanceof DocumentumException)
                     throw (DocumentumException)thr;
-                  else if (thr instanceof LCFException)
-                    throw (LCFException)thr;
+                  else if (thr instanceof ACFException)
+                    throw (ACFException)thr;
                   else
                     throw (Error)thr;
                 }
@@ -1793,13 +1793,13 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
               catch (InterruptedException e)
               {
                 t.interrupt();
-                throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+                throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
               }
               catch (RemoteException e)
               {
                 Throwable e2 = e.getCause();
                 if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-                  throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
+                  throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
                 if (noSession)
                 {
                   currentTime = System.currentTimeMillis();
@@ -1828,15 +1828,15 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
         Logging.connectors.warn("DCTM: Remote service interruption reading files: "+e.getMessage(),e);
         throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L,currentTime + 12 * 60 * 60000L,-1,true);
       }
-      throw new LCFException(e.getMessage(),e);
+      throw new ACFException(e.getMessage(),e);
     }
     catch (java.io.InterruptedIOException e)
     {
-      throw new LCFException("Interrupted IO: "+e.getMessage(),e,LCFException.INTERRUPTED);
+      throw new ACFException("Interrupted IO: "+e.getMessage(),e,ACFException.INTERRUPTED);
     }
     catch (java.io.IOException e)
     {
-      throw new LCFException("IO exception: "+e.getMessage(),e);
+      throw new ACFException("IO exception: "+e.getMessage(),e);
     }
   }
 
@@ -1848,7 +1848,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
   *@param versions is the corresponding set of version identifiers (individual identifiers may be null).
   */
   public void releaseDocumentVersions(String[] documentIdentifiers, String[] versions)
-    throws LCFException
+    throws ACFException
   {
     // Nothing to do
   }
@@ -1876,7 +1876,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     tabsArray.add("Docbase");
     tabsArray.add("Webtop");
@@ -1932,7 +1932,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
   *@param tabName is the current tab name.
   */
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     String docbaseName = parameters.getParameter(org.apache.acf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_DOCBASE);
     if (docbaseName == null)
@@ -2013,7 +2013,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
-    throws LCFException
+    throws ACFException
   {
     String docbaseName = variableContext.getParameter("docbasename");
     if (docbaseName != null)
@@ -2046,7 +2046,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
@@ -2094,7 +2094,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     tabsArray.add("Paths");
     tabsArray.add("Document Types");
@@ -2178,7 +2178,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
   *@param tabName is the current tab name.
   */
   public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     int i;
     int k;
@@ -2247,7 +2247,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
           pathSoFar = "/";
           childList = getChildFolderNames(pathSoFar);
           if (childList == null)
-            throw new LCFException("Can't find any children for root folder");
+            throw new ACFException("Can't find any children for root folder");
         }
         
         out.print(
@@ -2287,7 +2287,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
           );
         }
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         out.println(org.apache.acf.ui.util.Encoder.bodyEscape(e.getMessage()));
       }
@@ -2555,7 +2555,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
       	  }
 	}
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         out.print(
 "  <tr>\n"+
@@ -2673,7 +2673,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
       	  }
 	}
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         out.print(
 "  <tr>\n"+
@@ -2865,7 +2865,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
-    throws LCFException
+    throws ACFException
   {
     String x = variableContext.getParameter("pathcount");
     if (x != null)
@@ -3173,7 +3173,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
   *@param ds is the current document specification for this job.
   */
   public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
@@ -3510,7 +3510,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
   * This one returns the supported content types, which will be presented in the UI for selection.
   */
   public String[] getContentTypes()
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     try
     {
@@ -3547,13 +3547,13 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
         catch (InterruptedException e)
         {
           t.interrupt();
-          throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+          throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
         }
         catch (RemoteException e)
         {
           Throwable e2 = e.getCause();
           if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-            throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
+            throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
           if (noSession)
           {
             long currentTime = System.currentTimeMillis();
@@ -3574,14 +3574,14 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
         Logging.connectors.warn("DCTM: Remote service interruption reading content types: "+e.getMessage(),e);
         throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L, 12 * 60 * 60000L,-1,true);
       }
-      throw new LCFException(e.getMessage(),e);
+      throw new ACFException(e.getMessage(),e);
     }
   }
 
   /** Documentum-specific method, for UI support.
   */
   public String[] getObjectTypes()
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     try
     {
@@ -3621,13 +3621,13 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
         catch (InterruptedException e)
         {
           t.interrupt();
-          throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+          throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
         }
         catch (RemoteException e)
         {
           Throwable e2 = e.getCause();
           if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-            throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
+            throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
           if (noSession)
           {
             long currentTime = System.currentTimeMillis();
@@ -3648,7 +3648,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
         Logging.connectors.warn("DCTM: Remote service interruption reading object types: "+e.getMessage(),e);
         throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L, currentTime + 12 * 60 * 60000L,-1,true);
       }
-      throw new LCFException(e.getMessage(),e);
+      throw new ACFException(e.getMessage(),e);
     }
   }
 
@@ -3739,7 +3739,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
   * use in constructing the starting folder for a job's document specification.
   */
   public String[] getChildFolderNames(String strTheParentFolderPath)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     try
     {
@@ -3767,13 +3767,13 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
         catch (InterruptedException e)
         {
           t.interrupt();
-          throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+          throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
         }
         catch (RemoteException e)
         {
           Throwable e2 = e.getCause();
           if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-            throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
+            throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
           if (noSession)
           {
             long currentTime = System.currentTimeMillis();
@@ -3794,7 +3794,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
         Logging.connectors.warn("DCTM: Remote service interruption reading child folders: "+e.getMessage(),e);
         throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L,currentTime + 12 * 60 * 60000L,-1,true);
       }
-      throw new LCFException(e.getMessage(),e);
+      throw new ACFException(e.getMessage(),e);
     }
 
   }
@@ -3806,7 +3806,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
   *@return the array of data attributes, in alphabetic order.
   */
   public String[] getIngestableAttributes(String docType)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     try
     {
@@ -3843,13 +3843,13 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
         catch (InterruptedException e)
         {
           t.interrupt();
-          throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+          throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
         }
         catch (RemoteException e)
         {
           Throwable e2 = e.getCause();
           if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-            throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
+            throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
           if (noSession)
           {
             long currentTime = System.currentTimeMillis();
@@ -3870,7 +3870,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
         Logging.connectors.warn("DCTM: Remote service interruption reading child folders: "+e.getMessage(),e);
         throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L,currentTime + 12 * 60 * 60000L,-1,true);
       }
-      throw new LCFException(e.getMessage(),e);
+      throw new ACFException(e.getMessage(),e);
     }
   }
 
@@ -4040,7 +4040,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
 
     /** Constructor */
     public SystemMetadataDescription(DocumentSpecification spec)
-      throws LCFException
+      throws ACFException
     {
       pathAttributeName = null;
       int i = 0;
@@ -4069,7 +4069,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
     /** Given an identifier, get the array of translated strings that goes into the metadata.
     */
     public String[] getPathAttributeValue(IDocumentumObject object)
-      throws DocumentumException, RemoteException, LCFException
+      throws DocumentumException, RemoteException, ACFException
     {
       String[] paths = object.getFolderPaths(pathMap);
       String[] rval = new String[paths.length];

@@ -51,7 +51,7 @@ public class VersionDoc
                         }
                         System.err.println("Successfully revised");
                 }
-                catch (LCFException e)
+                catch (ACFException e)
                 {
                         e.printStackTrace(System.err);
                         System.exit(2);

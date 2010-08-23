@@ -40,7 +40,7 @@ public abstract class BaseAuthorityConnector extends org.apache.acf.core.connect
   * (Should throws an exception only when a condition cannot be properly described within the authorization response object.)
   */
   public AuthorizationResponse getAuthorizationResponse(String userName)
-    throws LCFException
+    throws ACFException
   {
     // Implementation for old-style behavior.  Override this method for new-style behavior.
     try
@@ -50,7 +50,7 @@ public abstract class BaseAuthorityConnector extends org.apache.acf.core.connect
         return new AuthorizationResponse(new String[0],AuthorizationResponse.RESPONSE_USERNOTFOUND);
       return new AuthorizationResponse(accessTokens,AuthorizationResponse.RESPONSE_OK);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       // There's an authorization failure of some kind.
       String[] defaultAccessTokens = getDefaultAccessTokens(userName);
@@ -82,7 +82,7 @@ public abstract class BaseAuthorityConnector extends org.apache.acf.core.connect
   * (Throw an exception if access is denied, usually because the authority is down).
   */
   public String[] getAccessTokens(String userName)
-    throws LCFException
+    throws ACFException
   {
     return null;
   }

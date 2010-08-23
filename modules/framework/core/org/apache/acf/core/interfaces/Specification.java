@@ -39,7 +39,7 @@ public class Specification extends Configuration
   *@param xml is the input XML.
   */
   public Specification(String xml)
-    throws LCFException
+    throws ACFException
   {
     super("specification");
     fromXML(xml);

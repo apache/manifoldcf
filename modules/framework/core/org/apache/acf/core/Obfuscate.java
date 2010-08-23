@@ -42,9 +42,9 @@ public class Obfuscate
     String string = args[0];
     try
     {
-      UTF8Stdout.println(LCF.obfuscate(string));
+      UTF8Stdout.println(ACF.obfuscate(string));
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       e.printStackTrace();
       System.exit(1);

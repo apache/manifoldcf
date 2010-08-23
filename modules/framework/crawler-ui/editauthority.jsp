@@ -455,7 +455,7 @@
 
 <%
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
 	e.printStackTrace();
 	variableContext.setParameter("text",e.getMessage());

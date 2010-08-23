@@ -19,7 +19,7 @@
 package org.apache.acf.core.database;
 
 import org.apache.acf.core.interfaces.*;
-import org.apache.acf.core.system.LCF;
+import org.apache.acf.core.system.ACF;
 import org.apache.acf.core.system.Logging;
 import java.util.*;
 import java.io.*;
@@ -44,11 +44,11 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   protected int serializableDepth = 0;
 
   protected static String getFullDatabasePath(String databaseName)
-    throws LCFException
+    throws ACFException
   {
-    File path = LCF.getFileProperty(databasePathProperty);
+    File path = ACF.getFileProperty(databasePathProperty);
     if (path == null)
-      throw new LCFException("Derby database requires '"+databasePathProperty+"' property, containing a relative path");
+      throw new ACFException("Derby database requires '"+databasePathProperty+"' property, containing a relative path");
     String pathString = path.toString().replace("\\\\","/");
     if (!pathString.endsWith("/"))
       pathString = pathString + "/";
@@ -56,7 +56,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   }
   
   public DBInterfaceDerby(IThreadContext tc, String databaseName, String userName, String password)
-    throws LCFException
+    throws ACFException
   {
     super(tc,_url+getFullDatabasePath(databaseName)+";user="+userName+";password="+password,_driver,getFullDatabasePath(databaseName),userName,password);
     cacheKey = CacheKeyFactory.makeDatabaseKey(this.databaseName);
@@ -68,7 +68,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   * database communication.
   */
   public void openDatabase()
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -78,7 +78,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     }
     catch (Exception e)
     {
-      throw new LCFException(e.getMessage(),e,LCFException.SETUP_ERROR);
+      throw new ACFException(e.getMessage(),e,ACFException.SETUP_ERROR);
     }
   }
   
@@ -86,7 +86,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   * all database communication.
   */
   public void closeDatabase()
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -95,7 +95,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     }
     catch (Exception e)
     {
-      throw new LCFException(e.getMessage(),e);
+      throw new ACFException(e.getMessage(),e);
     }
 
     // For the shutdown itself, eat the exception
@@ -121,7 +121,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   *@param tableName is the name of the table.
   */
   public void performLock(String tableName)
-    throws LCFException
+    throws ACFException
   {
     performModification("LOCK TABLE "+tableName+" IN EXCLUSIVE MODE",null,null);
   }
@@ -133,7 +133,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   *@param parameterMap is the map of column name/values to write.
   */
   public void performInsert(String tableName, Map parameterMap, StringSet invalidateKeys)
-    throws LCFException
+    throws ACFException
   {
     ArrayList paramArray = new ArrayList();
 
@@ -186,7 +186,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   *@param whereParameters are the parameters that come with the where clause, if any.
   */
   public void performUpdate(String tableName, Map parameterMap, String whereClause, ArrayList whereParameters, StringSet invalidateKeys)
-    throws LCFException
+    throws ACFException
   {
     ArrayList paramArray = new ArrayList();
 
@@ -251,7 +251,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   *@param whereParameters are the parameters that come with the where clause, if any.
   */
   public void performDelete(String tableName, String whereClause, ArrayList whereParameters, StringSet invalidateKeys)
-    throws LCFException
+    throws ACFException
   {
     StringBuffer bf = new StringBuffer();
     bf.append("DELETE FROM ");
@@ -277,7 +277,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
   public void performCreate(String tableName, Map columnMap, StringSet invalidateKeys)
-    throws LCFException
+    throws ACFException
   {
     int constraintNumber = 0;
     StringBuffer queryBuffer = new StringBuffer("CREATE TABLE ");
@@ -302,7 +302,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   }
 
   protected void appendDescription(StringBuffer queryBuffer, String columnName, ColumnDescription cd, boolean forceNull)
-    throws LCFException
+    throws ACFException
   {
     queryBuffer.append(columnName);
     queryBuffer.append(' ');
@@ -341,7 +341,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   */
   public void performAlter(String tableName, Map columnMap, Map columnModifyMap, ArrayList columnDeleteList,
     StringSet invalidateKeys)
-    throws LCFException
+    throws ACFException
   {
     beginTransaction(TRANSACTION_ENCLOSING);
     try
@@ -395,7 +395,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
         }
       }
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -431,7 +431,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   * in the index, in order.
   */
   public void addTableIndex(String tableName, boolean unique, ArrayList columnList)
-    throws LCFException
+    throws ACFException
   {
     String[] columns = new String[columnList.size()];
     int i = 0;
@@ -449,7 +449,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   *@param description is the index description.
   */
   public void performAddIndex(String indexName, String tableName, IndexDescription description)
-    throws LCFException
+    throws ACFException
   {
     String[] columnNames = description.getColumnNames();
     if (columnNames.length == 0)
@@ -484,7 +484,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   *@param indexName is the name of the index to remove.
   */
   public void performRemoveIndex(String indexName)
-    throws LCFException
+    throws ACFException
   {
     performModification("DROP INDEX "+indexName,null,null);
   }
@@ -493,7 +493,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   *@param tableName is the name of the table to analyze/calculate statistics for.
   */
   public void analyzeTable(String tableName)
-    throws LCFException
+    throws ACFException
   {
     // Does nothing on Derby
   }
@@ -502,7 +502,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   *@param tableName is the name of the table to rebuild indexes for.
   */
   public void reindexTable(String tableName)
-    throws LCFException
+    throws ACFException
   {
     // Does nothing on Derby
   }
@@ -512,7 +512,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
   public void performDrop(String tableName, StringSet invalidateKeys)
-    throws LCFException
+    throws ACFException
   {
     performModification("DROP TABLE "+tableName,null,invalidateKeys);
   }
@@ -523,7 +523,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
   public void createUserAndDatabase(String adminUserName, String adminPassword, StringSet invalidateKeys)
-    throws LCFException
+    throws ACFException
   {
     Database rootDatabase = new Database(context,_url+databaseName,_driver,databaseName,"","");
     IResultSet set = rootDatabase.executeQuery("VALUES SYSCS_UTIL.SYSCS_GET_DATABASE_PROPERTY('derby.user."+userName+"')",null,null,null,null,true,-1,null,null);
@@ -540,7 +540,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
   public void dropUserAndDatabase(String adminUserName, String adminPassword, StringSet invalidateKeys)
-    throws LCFException
+    throws ACFException
   {
     File f = new File(databaseName);
     if (f.exists())
@@ -578,11 +578,11 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   *@param theException is the exception to reinterpret
   *@return the reinterpreted exception to throw.
   */
-  protected LCFException reinterpretException(LCFException theException)
+  protected ACFException reinterpretException(ACFException theException)
   {
     if (Logging.db.isDebugEnabled())
       Logging.db.debug("Reinterpreting exception '"+theException.getMessage()+"'.  The exception type is "+Integer.toString(theException.getErrorCode()));
-    if (theException.getErrorCode() != LCFException.DATABASE_CONNECTION_ERROR)
+    if (theException.getErrorCode() != ACFException.DATABASE_CONNECTION_ERROR)
       return theException;
     Throwable e = theException.getCause();
     if (!(e instanceof java.sql.SQLException))
@@ -596,10 +596,10 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     // insert the same row.  (Everything only works, then, as long as there is a unique constraint corresponding to every bad insert that
     // one could make.)
     if (sqlState != null && sqlState.equals("23505"))
-      return new LCFException(message,e,LCFException.DATABASE_TRANSACTION_ABORT);
+      return new ACFException(message,e,ACFException.DATABASE_TRANSACTION_ABORT);
     // Deadlock also aborts.
     if (sqlState != null && sqlState.equals("40001"))
-      return new LCFException(message,e,LCFException.DATABASE_TRANSACTION_ABORT);
+      return new ACFException(message,e,ACFException.DATABASE_TRANSACTION_ABORT);
     if (Logging.db.isDebugEnabled())
       Logging.db.debug("Exception "+theException.getMessage()+" is NOT a transaction abort signal");
     return theException;
@@ -611,13 +611,13 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   *@param invalidateKeys are the cache keys to invalidate.
   */
   public void performModification(String query, ArrayList params, StringSet invalidateKeys)
-    throws LCFException
+    throws ACFException
   {
     try
     {
       executeQuery(query,params,null,invalidateKeys,null,false,0,null,null);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       throw reinterpretException(e);
     }
@@ -631,7 +631,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   * table doesn't exist.
   */
   public Map getTableSchema(String tableName, StringSet cacheKeys, String queryClass)
-    throws LCFException
+    throws ACFException
   {
     String query = "SELECT CAST(t0.columnname AS VARCHAR(128)) AS columnname,CAST(t0.columndatatype AS VARCHAR(128)) AS columndatatype FROM sys.syscolumns t0, sys.systables t1 WHERE t0.referenceid=t1.tableid AND CAST(t1.tablename AS VARCHAR(128))=? ORDER BY t0.columnnumber ASC";
     ArrayList list = new ArrayList();
@@ -663,7 +663,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   *@return a map of index names and IndexDescription objects, describing the indexes.
   */
   public Map getTableIndexes(String tableName, StringSet cacheKeys, String queryClass)
-    throws LCFException
+    throws ACFException
   {
     Map rval = new HashMap();
 
@@ -695,7 +695,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   *@return the set of tables.
   */
   public StringSet getAllTables(StringSet cacheKeys, String queryClass)
-    throws LCFException
+    throws ACFException
   {
     IResultSet set = performQuery("SELECT CAST(tablename AS VARCHAR(128)) FROM sys.systables WHERE table_type='T'",null,cacheKeys,queryClass);
     StringSetBuffer ssb = new StringSetBuffer();
@@ -720,13 +720,13 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   *@return a resultset.
   */
   public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass)
-    throws LCFException
+    throws ACFException
   {
     try
     {
       return executeQuery(query,params,cacheKeys,null,queryClass,true,-1,null,null);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       throw reinterpretException(e);
     }
@@ -744,13 +744,13 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   */
   public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass,
     int maxResults, ILimitChecker returnLimit)
-    throws LCFException
+    throws ACFException
   {
     try
     {
       return executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,null,returnLimit);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       throw reinterpretException(e);
     }
@@ -769,13 +769,13 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   */
   public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass,
     int maxResults, ResultSpecification resultSpec, ILimitChecker returnLimit)
-    throws LCFException
+    throws ACFException
   {
     try
     {
       return executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,resultSpec,returnLimit);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       throw reinterpretException(e);
     }
@@ -868,7 +868,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   * signalRollback() method, and rethrow the exception.  Then, after that a finally{} block which calls endTransaction().
   */
   public void beginTransaction()
-    throws LCFException
+    throws ACFException
   {
     beginTransaction(TRANSACTION_ENCLOSING);
   }
@@ -883,7 +883,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   *@param transactionType is the kind of transaction desired.
   */
   public void beginTransaction(int transactionType)
-    throws LCFException
+    throws ACFException
   {
     if (getCurrentTransactionType() == TRANSACTION_SERIALIZED)
     {
@@ -909,7 +909,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
         super.endTransaction();
         throw e;
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         super.signalRollback();
         super.endTransaction();
@@ -928,7 +928,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
         super.endTransaction();
         throw e;
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         super.signalRollback();
         super.endTransaction();
@@ -937,7 +937,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
       super.beginTransaction(TRANSACTION_SERIALIZED);
       break;
     default:
-      throw new LCFException("Bad transaction type");
+      throw new ACFException("Bad transaction type");
     }
   }
 
@@ -953,7 +953,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   * signalRollback() was called within the transaction).
   */
   public void endTransaction()
-    throws LCFException
+    throws ACFException
   {
     if (serializableDepth > 0)
     {
@@ -969,7 +969,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   
   /** Abstract method to start a transaction */
   protected void startATransaction()
-    throws LCFException
+    throws ACFException
   {
     if (!inTransaction)
     {
@@ -979,7 +979,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
       }
       catch (java.sql.SQLException e)
       {
-        throw new LCFException(e.getMessage(),e);
+        throw new ACFException(e.getMessage(),e);
       }
       inTransaction = true;
     }
@@ -988,7 +988,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
 
   /** Abstract method to commit a transaction */
   protected void commitCurrentTransaction()
-    throws LCFException
+    throws ACFException
   {
     if (inTransaction)
     {
@@ -1005,18 +1005,18 @@ public class DBInterfaceDerby extends Database implements IDBInterface
         }
         catch (java.sql.SQLException e)
         {
-          throw new LCFException(e.getMessage(),e);
+          throw new ACFException(e.getMessage(),e);
         }
         inTransaction = false;
       }
     }
     else
-      throw new LCFException("Transaction nesting error!");
+      throw new ACFException("Transaction nesting error!");
   }
   
   /** Abstract method to roll back a transaction */
   protected void rollbackCurrentTransaction()
-    throws LCFException
+    throws ACFException
   {
     if (inTransaction)
     {
@@ -1033,13 +1033,13 @@ public class DBInterfaceDerby extends Database implements IDBInterface
         }
         catch (java.sql.SQLException e)
         {
-          throw new LCFException(e.getMessage(),e);
+          throw new ACFException(e.getMessage(),e);
         }
         inTransaction = false;
       }
     }
     else
-      throw new LCFException("Transaction nesting error!");
+      throw new ACFException("Transaction nesting error!");
   }
 
   /** Abstract method for mapping a column name from resultset */

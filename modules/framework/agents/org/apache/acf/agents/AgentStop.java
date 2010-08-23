@@ -32,7 +32,7 @@ public class AgentStop extends BaseAgentsInitializationCommand
   {
   }
 
-  protected void doExecute(IThreadContext tc) throws LCFException
+  protected void doExecute(IThreadContext tc) throws ACFException
   {
     ILockManager lockManager = LockManagerFactory.make(tc);
     lockManager.setGlobalFlag(AgentRun.agentShutdownSignal);
@@ -54,7 +54,7 @@ public class AgentStop extends BaseAgentsInitializationCommand
       agentStop.execute();
       System.err.println("Shutdown signal sent");
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       e.printStackTrace(System.err);
       System.exit(1);

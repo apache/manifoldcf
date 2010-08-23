@@ -35,9 +35,9 @@ public class ImportConfiguration extends BaseCrawlerInitializationCommand
     this.importFilename = importFilename;
   }
 
-  protected void doExecute(IThreadContext tc) throws LCFException
+  protected void doExecute(IThreadContext tc) throws ACFException
   {
-    LCF.importConfiguration(tc,importFilename);
+    ACF.importConfiguration(tc,importFilename);
     Logging.root.info("Configuration imported");
   }
 

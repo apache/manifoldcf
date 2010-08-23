@@ -40,7 +40,7 @@ public interface IIngestLogger
   */
   public void recordIngestionAttempt(String documentIdentifier, Long startTime, Long dataSize,
     String entityIdentifier, String resultCode, String resultDescription)
-    throws LCFException;
+    throws ACFException;
 
   /** Record time-stamped information about a deletion attempt.
   *@param documentIdentifier is the internal document identifier being described.
@@ -55,6 +55,6 @@ public interface IIngestLogger
   */
   public void recordDeletionAttempt(String documentIdentifier, Long startTime,
     String entityIdentifier, String resultCode, String resultDescription)
-    throws LCFException;
+    throws ACFException;
 
 }

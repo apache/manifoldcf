@@ -72,7 +72,7 @@ public abstract class ResetManager
   * @return false if no reset took place, or true if one did.
   */
   public synchronized boolean waitForReset(IThreadContext tc)
-    throws LCFException, InterruptedException
+    throws ACFException, InterruptedException
   {
     if (resetRequired == false)
       return false;
@@ -112,7 +112,7 @@ public abstract class ResetManager
   /** Do the reset logic.
   */
   protected abstract void performResetLogic(IThreadContext tc)
-    throws LCFException;
+    throws ACFException;
 
 
 }

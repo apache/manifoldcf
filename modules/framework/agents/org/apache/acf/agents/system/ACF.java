@@ -1,4 +1,4 @@
-/* $Id: LCF.java 965362 2010-07-19 06:15:50Z kwright $ */
+/* $Id: ACF.java 965362 2010-07-19 06:15:50Z kwright $ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -23,9 +23,9 @@ import org.apache.acf.agents.interfaces.*;
 import java.io.*;
 import java.util.*;
 
-public class LCF extends org.apache.acf.core.system.LCF
+public class ACF extends org.apache.acf.core.system.ACF
 {
-  public static final String _rcsid = "@(#)$Id: LCF.java 965362 2010-07-19 06:15:50Z kwright $";
+  public static final String _rcsid = "@(#)$Id: ACF.java 965362 2010-07-19 06:15:50Z kwright $";
 
   // Agents initialized flag
   protected static boolean agentsInitialized = false;
@@ -38,7 +38,7 @@ public class LCF extends org.apache.acf.core.system.LCF
   /** Initialize environment.
   */
   public static void initializeEnvironment()
-    throws LCFException
+    throws ACFException
   {
     synchronized (initializeFlagLock)
     {
@@ -46,10 +46,10 @@ public class LCF extends org.apache.acf.core.system.LCF
         return;
 
       // Do core initialization
-      org.apache.acf.core.system.LCF.initializeEnvironment();
+      org.apache.acf.core.system.ACF.initializeEnvironment();
       
       // Create the shutdown hook for agents.  All activity will be keyed off of runningHash, so it is safe to do this under all conditions.
-      org.apache.acf.core.system.LCF.addShutdownHook(new AgentsShutdownHook());
+      org.apache.acf.core.system.ACF.addShutdownHook(new AgentsShutdownHook());
       
       // Initialize the local loggers
       Logging.initializeLoggers();
@@ -64,7 +64,7 @@ public class LCF extends org.apache.acf.core.system.LCF
   *@param threadcontext is the thread context.
   */
   public static void installTables(IThreadContext threadcontext)
-    throws LCFException
+    throws ACFException
   {
     IAgentManager mgr = AgentManagerFactory.make(threadcontext);
     IIncrementalIngester igstmgr = IncrementalIngesterFactory.make(threadcontext);
@@ -80,7 +80,7 @@ public class LCF extends org.apache.acf.core.system.LCF
   *@param threadcontext is the thread context.
   */
   public static void deinstallTables(IThreadContext threadcontext)
-    throws LCFException
+    throws ACFException
   {
     IAgentManager mgr = AgentManagerFactory.make(threadcontext);
     IIncrementalIngester igstmgr = IncrementalIngesterFactory.make(threadcontext);
@@ -96,12 +96,12 @@ public class LCF extends org.apache.acf.core.system.LCF
   *@param threadContext is the thread context.
   */
   public static void startAgents(IThreadContext threadContext)
-    throws LCFException
+    throws ACFException
   {
     // Get agent manager
     IAgentManager manager = AgentManagerFactory.make(threadContext);
     String[] classes = manager.getAllAgents();
-    LCFException problem = null;
+    ACFException problem = null;
     synchronized (runningHash)
     {
       // DO NOT permit this method to do anything if stopAgents() has ever been called for this JVM! 
@@ -126,7 +126,7 @@ public class LCF extends org.apache.acf.core.system.LCF
             // Successful!
             runningHash.put(className,agent);
           }
-          catch (LCFException e)
+          catch (ACFException e)
           {
             problem = e;
           }
@@ -141,7 +141,7 @@ public class LCF extends org.apache.acf.core.system.LCF
   /** Stop all started agents.
   */
   public static void stopAgents(IThreadContext threadContext)
-    throws LCFException
+    throws ACFException
   {
     synchronized (runningHash)
     {
@@ -166,7 +166,7 @@ public class LCF extends org.apache.acf.core.system.LCF
   *@param connectionName is the connection name.
   */
   public static void signalOutputConnectionRedo(IThreadContext threadContext, String connectionName)
-    throws LCFException
+    throws ACFException
   {
     // Blow away the incremental ingestion table first
     IIncrementalIngester ingester = IncrementalIngesterFactory.make(threadContext);
@@ -185,7 +185,7 @@ public class LCF extends org.apache.acf.core.system.LCF
     }
     
     public void doCleanup()
-      throws LCFException
+      throws ACFException
     {
       // Shutting down in this way must prevent startup from taking place.
       synchronized (runningHash)
@@ -230,10 +230,10 @@ public class LCF extends org.apache.acf.core.system.LCF
   }
   
   /** Handle an exception, by converting it to an error node. */
-  public static void createErrorNode(Configuration output, LCFException e)
-    throws LCFException
+  public static void createErrorNode(Configuration output, ACFException e)
+    throws ACFException
   {
-    if (e.getErrorCode() == LCFException.INTERRUPTED)
+    if (e.getErrorCode() == ACFException.INTERRUPTED)
       throw e;
     Logging.api.error(e.getMessage(),e);
     ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);

@@ -171,7 +171,7 @@ public class RepositoryDocument
   * to remove the entry from the document.
   */
   public void addField(String fieldName, Reader[] fieldData)
-    throws LCFException
+    throws ACFException
   {
     if (fieldData == null)
       fields.remove(fieldName);
@@ -184,7 +184,7 @@ public class RepositoryDocument
   *@param fieldData is the single-valued data (as a Reader).  Null means "no value".
   */
   public void addField(String fieldName, Reader fieldData)
-    throws LCFException
+    throws ACFException
   {
     fields.put(fieldName,new Reader[]{fieldData});
   }
@@ -195,7 +195,7 @@ public class RepositoryDocument
   * to remove the entry from the document.
   */
   public void addField(String fieldName, String[] fieldData)
-    throws LCFException
+    throws ACFException
   {
     if (fieldData == null)
       fields.remove(fieldName);
@@ -208,7 +208,7 @@ public class RepositoryDocument
   *@param fieldData is the single-valued data (as a String).  Null means "no value".
   */
   public void addField(String fieldName, String fieldData)
-    throws LCFException
+    throws ACFException
   {
     fields.put(fieldName,new String[]{fieldData});
   }

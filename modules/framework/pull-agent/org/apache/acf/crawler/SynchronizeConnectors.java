@@ -20,7 +20,7 @@ package org.apache.acf.crawler;
 
 import org.apache.acf.core.interfaces.*;
 import org.apache.acf.crawler.interfaces.*;
-import org.apache.acf.crawler.system.LCF;
+import org.apache.acf.crawler.system.ACF;
 import org.apache.acf.crawler.system.Logging;
 
 
@@ -35,12 +35,12 @@ public class SynchronizeConnectors extends BaseCrawlerInitializationCommand
   {
   }
 
-  protected void doExecute(IThreadContext tc) throws LCFException
+  protected void doExecute(IThreadContext tc) throws ACFException
   {
     IDBInterface database = DBInterfaceFactory.make(tc,
-      LCF.getMasterDatabaseName(),
-      LCF.getMasterDatabaseUsername(),
-      LCF.getMasterDatabasePassword());
+      ACF.getMasterDatabaseName(),
+      ACF.getMasterDatabaseUsername(),
+      ACF.getMasterDatabasePassword());
     IConnectorManager mgr = ConnectorManagerFactory.make(tc);
     IJobManager jobManager = JobManagerFactory.make(tc);
     IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(tc);
@@ -54,7 +54,7 @@ public class SynchronizeConnectors extends BaseCrawlerInitializationCommand
       {
         RepositoryConnectorFactory.getConnectorNoCheck(className);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         // Deregistration should be done in a transaction
         database.beginTransaction();
@@ -67,7 +67,7 @@ public class SynchronizeConnectors extends BaseCrawlerInitializationCommand
           // Now that all jobs have been placed into an appropriate state, actually do the deregistration itself.
           mgr.removeConnector(className);
         }
-        catch (LCFException e2)
+        catch (ACFException e2)
         {
           database.signalRollback();
           throw e2;
@@ -101,7 +101,7 @@ public class SynchronizeConnectors extends BaseCrawlerInitializationCommand
       synchronizeConnectors.execute();
       System.err.println("Successfully synchronized all connectors");
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       e.printStackTrace();
       System.exit(1);

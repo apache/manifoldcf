@@ -44,7 +44,7 @@ public class StartupThread extends Thread
   /** Constructor.
   */
   public StartupThread(QueueTracker queueTracker)
-    throws LCFException
+    throws ACFException
   {
     super();
     setName("Startup thread");
@@ -64,9 +64,9 @@ public class StartupThread extends Thread
       IRepositoryConnectionManager connectionMgr = RepositoryConnectionManagerFactory.make(threadContext);
 
       IDBInterface database = DBInterfaceFactory.make(threadContext,
-        LCF.getMasterDatabaseName(),
-        LCF.getMasterDatabaseUsername(),
-        LCF.getMasterDatabasePassword());
+        ACF.getMasterDatabaseName(),
+        ACF.getMasterDatabaseUsername(),
+        ACF.getMasterDatabasePassword());
 
       String[] identifiers = new String[MAX_COUNT];
 
@@ -95,7 +95,7 @@ public class StartupThread extends Thread
 
             if (startupJobs.length == 0)
             {
-              LCF.sleep(waitTime);
+              ACF.sleep(waitTime);
               continue;
             }
 
@@ -207,13 +207,13 @@ public class StartupThread extends Thread
                 jobManager.noteJobStarted(jobID,currentTime);
                 jsr.noteStarted();
               }
-              catch (LCFException e)
+              catch (ACFException e)
               {
-                if (e.getErrorCode() == LCFException.INTERRUPTED)
+                if (e.getErrorCode() == ACFException.INTERRUPTED)
                   throw new InterruptedException();
-                if (e.getErrorCode() == LCFException.DATABASE_CONNECTION_ERROR)
+                if (e.getErrorCode() == ACFException.DATABASE_CONNECTION_ERROR)
                   throw e;
-                if (e.getErrorCode() == LCFException.REPOSITORY_CONNECTION_ERROR)
+                if (e.getErrorCode() == ACFException.REPOSITORY_CONNECTION_ERROR)
                 {
                   Logging.threads.warn("Startup thread: connection error; continuing: "+e.getMessage(),e);
                   continue;
@@ -228,7 +228,7 @@ public class StartupThread extends Thread
           finally
           {
             // Clean up all jobs that did not start
-            LCFException exception = null;
+            ACFException exception = null;
             int i = 0;
             while (i < startupJobs.length)
             {
@@ -240,7 +240,7 @@ public class StartupThread extends Thread
                 {
                   jobManager.resetStartupJob(jsr.getJobID());
                 }
-                catch (LCFException e)
+                catch (ACFException e)
                 {
                   exception = e;
                 }
@@ -251,14 +251,14 @@ public class StartupThread extends Thread
           }
 
           // Sleep for the retry interval.
-          LCF.sleep(waitTime);
+          ACF.sleep(waitTime);
         }
-        catch (LCFException e)
+        catch (ACFException e)
         {
-          if (e.getErrorCode() == LCFException.INTERRUPTED)
+          if (e.getErrorCode() == ACFException.INTERRUPTED)
             break;
 
-          if (e.getErrorCode() == LCFException.DATABASE_CONNECTION_ERROR)
+          if (e.getErrorCode() == ACFException.DATABASE_CONNECTION_ERROR)
           {
             resetManager.noteEvent();
 
@@ -266,7 +266,7 @@ public class StartupThread extends Thread
             try
             {
               // Give the database a chance to catch up/wake up
-              LCF.sleep(10000L);
+              ACF.sleep(10000L);
             }
             catch (InterruptedException se)
             {
@@ -278,7 +278,7 @@ public class StartupThread extends Thread
           // Log it, but keep the thread alive
           Logging.threads.error("Exception tossed: "+e.getMessage(),e);
 
-          if (e.getErrorCode() == LCFException.SETUP_ERROR)
+          if (e.getErrorCode() == ACFException.SETUP_ERROR)
           {
             // Shut the whole system down!
             System.exit(1);
@@ -327,7 +327,7 @@ public class StartupThread extends Thread
 
     /** Reset */
     protected void performResetLogic(IThreadContext tc)
-      throws LCFException
+      throws ACFException
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
       jobManager.resetStartupWorkerStatus();

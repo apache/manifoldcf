@@ -21,7 +21,7 @@ package org.apache.acf.crawler.jobs;
 import org.apache.acf.core.interfaces.*;
 import org.apache.acf.crawler.interfaces.*;
 import org.apache.acf.crawler.system.Logging;
-import org.apache.acf.crawler.system.LCF;
+import org.apache.acf.crawler.system.ACF;
 import java.util.*;
 
 /** This class manages the table that keeps track of link deletion dependencies for cached
@@ -50,7 +50,7 @@ public class HopDeleteDeps extends org.apache.acf.core.database.BaseTable
   *@param database is the database handle.
   */
   public HopDeleteDeps(IDBInterface database)
-    throws LCFException
+    throws ACFException
   {
     super(database,"hopdeletedeps");
   }
@@ -58,7 +58,7 @@ public class HopDeleteDeps extends org.apache.acf.core.database.BaseTable
   /** Install or upgrade.
   */
   public void install(String jobsTable, String jobsColumn, String hopCountTable, String idColumn)
-    throws LCFException
+    throws ACFException
   {
     // Standard practice: outer retry loop
     while (true)
@@ -124,7 +124,7 @@ public class HopDeleteDeps extends org.apache.acf.core.database.BaseTable
   /** Uninstall.
   */
   public void deinstall()
-    throws LCFException
+    throws ACFException
   {
     performDrop(null);
   }
@@ -132,7 +132,7 @@ public class HopDeleteDeps extends org.apache.acf.core.database.BaseTable
   /** Analyze job tables that need analysis.
   */
   public void analyzeTables()
-    throws LCFException
+    throws ACFException
   {
     long startTime = System.currentTimeMillis();
     Logging.perf.debug("Beginning to analyze hopdeletedeps table");
@@ -142,7 +142,7 @@ public class HopDeleteDeps extends org.apache.acf.core.database.BaseTable
 
   /** Delete a job. */
   public void deleteJob(Long jobID)
-    throws LCFException
+    throws ACFException
   {
     ArrayList list = new ArrayList();
     list.add(jobID);
@@ -154,7 +154,7 @@ public class HopDeleteDeps extends org.apache.acf.core.database.BaseTable
   /** Remove rows that correspond to specific hopcount records.
   */
   public void removeMarkedRows(String parentTable, String parentIDHashField, String query, ArrayList queryList)
-    throws LCFException
+    throws ACFException
   {
     // This didn't perform very well.
     //performDelete("WHERE EXISTS(SELECT 'x' FROM "+parentTable+" t0 WHERE t0."+parentIDField+"="+ownerIDField+
@@ -170,7 +170,7 @@ public class HopDeleteDeps extends org.apache.acf.core.database.BaseTable
   * size.
   */
   public void deleteOwnerRows(Long[] ownerIDs)
-    throws LCFException
+    throws ACFException
   {
     StringBuffer sb = new StringBuffer("WHERE ");
     sb.append(ownerIDField).append(" IN(");
@@ -192,7 +192,7 @@ public class HopDeleteDeps extends org.apache.acf.core.database.BaseTable
   *@return the links
   */
   public DeleteDependency[] getDeleteDependencies(Long ownerID)
-    throws LCFException
+    throws ACFException
   {
     ArrayList list = new ArrayList();
     list.add(ownerID);
@@ -213,7 +213,7 @@ public class HopDeleteDeps extends org.apache.acf.core.database.BaseTable
 
   /** Delete a dependency */
   public void deleteDependency(Long ownerID, DeleteDependency dd)
-    throws LCFException
+    throws ACFException
   {
     ArrayList list = new ArrayList();
     StringBuffer sb = new StringBuffer("WHERE ");
@@ -242,7 +242,7 @@ public class HopDeleteDeps extends org.apache.acf.core.database.BaseTable
   /** Write a delete dependency.
   */
   public void writeDependency(Long ownerID, Long jobID, DeleteDependency dd)
-    throws LCFException
+    throws ACFException
   {
     HashMap map = new HashMap();
     map.put(jobIDField,jobID);
@@ -262,7 +262,7 @@ public class HopDeleteDeps extends org.apache.acf.core.database.BaseTable
   /** Conditionally do analyze operation.
   */
   public void conditionallyAnalyzeTables()
-    throws LCFException
+    throws ACFException
   {
     if (tracker.checkAnalyze())
     {

@@ -47,7 +47,7 @@ public class DeleteJob
 
                 try
                 {
-                        LCF.initializeEnvironment();
+                        ACF.initializeEnvironment();
                         IThreadContext tc = ThreadContextFactory.make();
                         IJobManager jobManager = JobManagerFactory.make(tc);
                         jobManager.deleteJob(new Long(jobID));

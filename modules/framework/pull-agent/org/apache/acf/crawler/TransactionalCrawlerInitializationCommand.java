@@ -2,28 +2,28 @@ package org.apache.acf.crawler;
 
 import org.apache.acf.core.InitializationCommand;
 import org.apache.acf.core.interfaces.*;
-import org.apache.acf.crawler.system.LCF;
+import org.apache.acf.crawler.system.ACF;
 
 /**
  * @author Jettro Coenradie
  */
 public abstract class TransactionalCrawlerInitializationCommand implements InitializationCommand
 {
-  public void execute() throws LCFException
+  public void execute() throws ACFException
   {
-    LCF.initializeEnvironment();
+    ACF.initializeEnvironment();
     IThreadContext tc = ThreadContextFactory.make();
     IDBInterface database = DBInterfaceFactory.make(tc,
-      org.apache.acf.agents.system.LCF.getMasterDatabaseName(),
-      org.apache.acf.agents.system.LCF.getMasterDatabaseUsername(),
-      org.apache.acf.agents.system.LCF.getMasterDatabasePassword());
+      org.apache.acf.agents.system.ACF.getMasterDatabaseName(),
+      org.apache.acf.agents.system.ACF.getMasterDatabaseUsername(),
+      org.apache.acf.agents.system.ACF.getMasterDatabasePassword());
 
     try
     {
       database.beginTransaction();
       doExecute(tc);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       database.signalRollback();
       throw e;
@@ -40,6 +40,6 @@ public abstract class TransactionalCrawlerInitializationCommand implements Initi
 
   }
 
-  protected abstract void doExecute(IThreadContext tc) throws LCFException;
+  protected abstract void doExecute(IThreadContext tc) throws ACFException;
 
 }

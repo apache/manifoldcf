@@ -22,7 +22,7 @@ import java.util.*;
 import org.apache.acf.core.interfaces.*;
 import org.apache.acf.agents.interfaces.*;
 import org.apache.acf.agents.interfaces.CacheKeyFactory;
-import org.apache.acf.agents.system.LCF;
+import org.apache.acf.agents.system.ACF;
 
 
 /** This class is the manager of the outputconnection description.  Inside, a database table is managed,
@@ -53,7 +53,7 @@ public class OutputConnectionManager extends org.apache.acf.core.database.BaseTa
   *@param threadContext is the thread context.
   */
   public OutputConnectionManager(IThreadContext threadContext, IDBInterface database)
-    throws LCFException
+    throws ACFException
   {
     super(database,"outputconnections");
 
@@ -64,7 +64,7 @@ public class OutputConnectionManager extends org.apache.acf.core.database.BaseTa
   /** Install the manager.
   */
   public void install()
-    throws LCFException
+    throws ACFException
   {
     // Always have an outer loop, in case retries required
     while (true)
@@ -95,51 +95,51 @@ public class OutputConnectionManager extends org.apache.acf.core.database.BaseTa
   /** Uninstall the manager.
   */
   public void deinstall()
-    throws LCFException
+    throws ACFException
   {
     performDrop(null);
   }
 
   /** Export configuration */
   public void exportConfiguration(java.io.OutputStream os)
-    throws java.io.IOException, LCFException
+    throws java.io.IOException, ACFException
   {
     // Write a version indicator
-    LCF.writeDword(os,1);
+    ACF.writeDword(os,1);
     // Get the authority list
     IOutputConnection[] list = getAllConnections();
     // Write the number of authorities
-    LCF.writeDword(os,list.length);
+    ACF.writeDword(os,list.length);
     // Loop through the list and write the individual repository connection info
     int i = 0;
     while (i < list.length)
     {
       IOutputConnection conn = list[i++];
-      LCF.writeString(os,conn.getName());
-      LCF.writeString(os,conn.getDescription());
-      LCF.writeString(os,conn.getClassName());
-      LCF.writeString(os,conn.getConfigParams().toXML());
-      LCF.writeDword(os,conn.getMaxConnections());
+      ACF.writeString(os,conn.getName());
+      ACF.writeString(os,conn.getDescription());
+      ACF.writeString(os,conn.getClassName());
+      ACF.writeString(os,conn.getConfigParams().toXML());
+      ACF.writeDword(os,conn.getMaxConnections());
     }
   }
 
   /** Import configuration */
   public void importConfiguration(java.io.InputStream is)
-    throws java.io.IOException, LCFException
+    throws java.io.IOException, ACFException
   {
-    int version = LCF.readDword(is);
+    int version = ACF.readDword(is);
     if (version != 1)
       throw new java.io.IOException("Unknown repository connection configuration version: "+Integer.toString(version));
-    int count = LCF.readDword(is);
+    int count = ACF.readDword(is);
     int i = 0;
     while (i < count)
     {
       IOutputConnection conn = create();
-      conn.setName(LCF.readString(is));
-      conn.setDescription(LCF.readString(is));
-      conn.setClassName(LCF.readString(is));
-      conn.getConfigParams().fromXML(LCF.readString(is));
-      conn.setMaxConnections(LCF.readDword(is));
+      conn.setName(ACF.readString(is));
+      conn.setDescription(ACF.readString(is));
+      conn.setClassName(ACF.readString(is));
+      conn.getConfigParams().fromXML(ACF.readString(is));
+      conn.setMaxConnections(ACF.readDword(is));
       // Attempt to save this connection
       save(conn);
       i++;
@@ -150,7 +150,7 @@ public class OutputConnectionManager extends org.apache.acf.core.database.BaseTa
   *@return an array of connection objects.
   */
   public IOutputConnection[] getAllConnections()
-    throws LCFException
+    throws ACFException
   {
     beginTransaction();
     try
@@ -171,7 +171,7 @@ public class OutputConnectionManager extends org.apache.acf.core.database.BaseTa
       }
       return loadMultiple(names);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -192,7 +192,7 @@ public class OutputConnectionManager extends org.apache.acf.core.database.BaseTa
   *@return the loaded connection object, or null if not found.
   */
   public IOutputConnection load(String name)
-    throws LCFException
+    throws ACFException
   {
     return loadMultiple(new String[]{name})[0];
   }
@@ -202,7 +202,7 @@ public class OutputConnectionManager extends org.apache.acf.core.database.BaseTa
   *@return the loaded connection objects.
   */
   public IOutputConnection[] loadMultiple(String[] names)
-    throws LCFException
+    throws ACFException
   {
     // Build description objects
     OutputConnectionDescription[] objectDescriptions = new OutputConnectionDescription[names.length];
@@ -225,7 +225,7 @@ public class OutputConnectionManager extends org.apache.acf.core.database.BaseTa
   *@return the new object.
   */
   public IOutputConnection create()
-    throws LCFException
+    throws ACFException
   {
     OutputConnection rval = new OutputConnection();
     return rval;
@@ -235,7 +235,7 @@ public class OutputConnectionManager extends org.apache.acf.core.database.BaseTa
   *@param object is the object to save.
   */
   public void save(IOutputConnection object)
-    throws LCFException
+    throws ACFException
   {
     StringSetBuffer ssb = new StringSetBuffer();
     ssb.add(getOutputConnectionsKey());
@@ -249,7 +249,7 @@ public class OutputConnectionManager extends org.apache.acf.core.database.BaseTa
       {
         performLock();
         // Notify of a change to the configuration
-        LCF.noteConfigurationChange();
+        ACF.noteConfigurationChange();
         // See whether the instance exists
         ArrayList params = new ArrayList();
         params.add(object.getName());
@@ -289,7 +289,7 @@ public class OutputConnectionManager extends org.apache.acf.core.database.BaseTa
 
         cacheManager.invalidateKeys(ch);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         signalRollback();
         throw e;
@@ -315,7 +315,7 @@ public class OutputConnectionManager extends org.apache.acf.core.database.BaseTa
   * name does not exist, no error is returned.
   */
   public void delete(String name)
-    throws LCFException
+    throws ACFException
   {
     StringSetBuffer ssb = new StringSetBuffer();
     ssb.add(getOutputConnectionsKey());
@@ -329,14 +329,14 @@ public class OutputConnectionManager extends org.apache.acf.core.database.BaseTa
       {
         // Check if anything refers to this connection name
         if (AgentManagerFactory.isOutputConnectionInUse(threadContext,name))
-          throw new LCFException("Can't delete output connection '"+name+"': existing entities refer to it");
-        LCF.noteConfigurationChange();
+          throw new ACFException("Can't delete output connection '"+name+"': existing entities refer to it");
+        ACF.noteConfigurationChange();
         ArrayList params = new ArrayList();
         params.add(name);
         performDelete("WHERE "+nameField+"=?",params,null);
         cacheManager.invalidateKeys(ch);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         signalRollback();
         throw e;
@@ -363,7 +363,7 @@ public class OutputConnectionManager extends org.apache.acf.core.database.BaseTa
   *@return the repository connections that use that connector.
   */
   public String[] findConnectionsForConnector(String className)
-    throws LCFException
+    throws ACFException
   {
     StringSetBuffer ssb = new StringSetBuffer();
     ssb.add(getOutputConnectionsKey());
@@ -389,7 +389,7 @@ public class OutputConnectionManager extends org.apache.acf.core.database.BaseTa
   *@return true if the underlying connector is registered.
   */
   public boolean checkConnectorExists(String name)
-    throws LCFException
+    throws ACFException
   {
     beginTransaction();
     try
@@ -402,13 +402,13 @@ public class OutputConnectionManager extends org.apache.acf.core.database.BaseTa
       IResultSet set = performQuery("SELECT "+classNameField+" FROM "+getTableName()+" WHERE "+nameField+"=?",params,
         localCacheKeys,null);
       if (set.getRowCount() == 0)
-        throw new LCFException("No such connection: '"+name+"'");
+        throw new ACFException("No such connection: '"+name+"'");
       IResultRow row = set.getRow(0);
       String className = (String)row.getValue(classNameField);
       IOutputConnectorManager cm = OutputConnectorManagerFactory.make(threadContext);
       return cm.isInstalled(className);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -460,7 +460,7 @@ public class OutputConnectionManager extends org.apache.acf.core.database.BaseTa
   *@return the corresponding output connection objects.
   */
   protected OutputConnection[] getOutputConnectionsMultiple(String[] connectionNames)
-    throws LCFException
+    throws ACFException
   {
     OutputConnection[] rval = new OutputConnection[connectionNames.length];
     HashMap returnIndex = new HashMap();
@@ -504,7 +504,7 @@ public class OutputConnectionManager extends org.apache.acf.core.database.BaseTa
       signalRollback();
       throw e;
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -522,7 +522,7 @@ public class OutputConnectionManager extends org.apache.acf.core.database.BaseTa
   *@param params is the set of parameters.
   */
   protected void getOutputConnectionsChunk(OutputConnection[] rval, Map returnIndex, String idList, ArrayList params)
-    throws LCFException
+    throws ACFException
   {
     IResultSet set;
     set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
@@ -644,7 +644,7 @@ public class OutputConnectionManager extends org.apache.acf.core.database.BaseTa
     * @return the newly created objects to cache, or null, if any object cannot be created.
     *  The order of the returned objects must correspond to the order of the object descriptinos.
     */
-    public Object[] create(ICacheDescription[] objectDescriptions) throws LCFException
+    public Object[] create(ICacheDescription[] objectDescriptions) throws ACFException
     {
       // Turn the object descriptions into the parameters for the ToolInstance requests
       String[] connectionNames = new String[objectDescriptions.length];
@@ -667,7 +667,7 @@ public class OutputConnectionManager extends org.apache.acf.core.database.BaseTa
     * @param objectDescription is the unique identifier of the object.
     * @param cachedObject is the cached object.
     */
-    public void exists(ICacheDescription objectDescription, Object cachedObject) throws LCFException
+    public void exists(ICacheDescription objectDescription, Object cachedObject) throws ACFException
     {
       // Cast what came in as what it really is
       OutputConnectionDescription objectDesc = (OutputConnectionDescription)objectDescription;
@@ -685,7 +685,7 @@ public class OutputConnectionManager extends org.apache.acf.core.database.BaseTa
     /** Perform the desired operation.  This method is called after either createGetObject()
     * or exists() is called for every requested object.
     */
-    public void execute() throws LCFException
+    public void execute() throws ACFException
     {
       // Does nothing; we only want to fetch objects in this cacher.
     }

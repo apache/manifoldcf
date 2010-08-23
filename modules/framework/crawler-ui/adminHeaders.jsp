@@ -35,7 +35,7 @@ response.setContentType("text/html;charset=utf-8");
 <%@ page import="java.util.*" %>
 
 <%
-	org.apache.acf.crawler.system.LCF.initializeEnvironment();
+	org.apache.acf.crawler.system.ACF.initializeEnvironment();
 %>
 
 <jsp:useBean id="thread" class="org.apache.acf.ui.beans.ThreadContext" scope="request"/>

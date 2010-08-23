@@ -49,7 +49,7 @@ public class WaitForJobDeleted
 
                 try
                 {
-                        LCF.initializeEnvironment();
+                        ACF.initializeEnvironment();
                         IThreadContext tc = ThreadContextFactory.make();
                         IJobManager jobManager = JobManagerFactory.make(tc);
                         while (true)
@@ -57,7 +57,7 @@ public class WaitForJobDeleted
                                 JobStatus status = jobManager.getStatus(new Long(jobID));
                                 if (status == null)
                                         break;
-                                LCF.sleep(10000);
+                                ACF.sleep(10000);
                         }
 
                 }

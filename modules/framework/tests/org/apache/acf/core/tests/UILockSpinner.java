@@ -18,7 +18,7 @@
 package org.apache.acf.core.tests;
 
 import org.apache.acf.core.interfaces.*;
-import org.apache.acf.core.system.LCF;
+import org.apache.acf.core.system.ACF;
 
 public class UILockSpinner
 {
@@ -28,7 +28,7 @@ public class UILockSpinner
   public static void main(String[] argv)
     throws Exception
   {
-    LCF.initializeEnvironment();
+    ACF.initializeEnvironment();
 
 
     // Create a thread context object.

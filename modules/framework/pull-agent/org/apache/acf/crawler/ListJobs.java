@@ -47,7 +47,7 @@ public class ListJobs
 
     try
     {
-      LCF.initializeEnvironment();
+      ACF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
       IJobManager jobManager = JobManagerFactory.make(tc);
       IJobDescription[] jobs = jobManager.getAllJobs();

@@ -50,7 +50,7 @@ public class SetMetadataValue
                         }
                         System.err.println("Successfully set metadata");
                 }
-                catch (LCFException e)
+                catch (ACFException e)
                 {
                         e.printStackTrace(System.err);
                         System.exit(2);

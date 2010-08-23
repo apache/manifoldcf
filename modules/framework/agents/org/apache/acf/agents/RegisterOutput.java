@@ -39,7 +39,7 @@ public class RegisterOutput extends TransactionalAgentsInitializationCommand
     this.description = description;
   }
 
-  protected void doExecute(IThreadContext tc) throws LCFException
+  protected void doExecute(IThreadContext tc) throws ACFException
   {
     IOutputConnectorManager mgr = OutputConnectorManagerFactory.make(tc);
     IOutputConnectionManager connManager = OutputConnectionManagerFactory.make(tc);
@@ -70,7 +70,7 @@ public class RegisterOutput extends TransactionalAgentsInitializationCommand
       registerOutput.execute();
       System.err.println("Successfully registered output connector '"+className+"'");
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       e.printStackTrace();
       System.exit(1);

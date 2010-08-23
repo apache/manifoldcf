@@ -22,7 +22,7 @@ import org.apache.acf.core.interfaces.*;
 import org.apache.acf.agents.interfaces.*;
 import org.apache.acf.crawler.interfaces.*;
 import org.apache.acf.crawler.system.Logging;
-import org.apache.acf.crawler.system.LCF;
+import org.apache.acf.crawler.system.ACF;
 import java.util.*;
 import java.io.*;
 import java.net.*;
@@ -94,7 +94,7 @@ public class ThrottledFetcher
     IKeystoreManager trustStore,
     ThrottleDescription throttleDescription, String[] binNames,
     int connectionLimit)
-    throws LCFException
+    throws ACFException
   {
     // First, create a protocol factory object, if we can
     ProtocolFactory myFactory = new ProtocolFactory();
@@ -312,8 +312,8 @@ public class ThrottledFetcher
 
             if (e instanceof Error)
               throw (Error)e;
-            if (e instanceof LCFException)
-              throw (LCFException)e;
+            if (e instanceof ACFException)
+              throw (ACFException)e;
 
             if (e instanceof WaitException)
             {
@@ -343,7 +343,7 @@ public class ThrottledFetcher
               continue;
             }
 
-            throw new LCFException("Unexpected exception encountered: "+e.getMessage(),e);
+            throw new ACFException("Unexpected exception encountered: "+e.getMessage(),e);
           }
 
           if (Logging.connectors.isDebugEnabled())
@@ -358,7 +358,7 @@ public class ThrottledFetcher
       }
       catch (InterruptedException e)
       {
-        throw new LCFException(e.getMessage(),LCFException.INTERRUPTED);
+        throw new ACFException(e.getMessage(),ACFException.INTERRUPTED);
       }
     }
   }
@@ -366,7 +366,7 @@ public class ThrottledFetcher
 
   /** Flush connections that have timed out from inactivity. */
   public static void flushIdleConnections()
-    throws LCFException
+    throws ACFException
   {
     synchronized (poolLock)
     {
@@ -783,7 +783,7 @@ public class ThrottledFetcher
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("WEB: Performing a read wait on bin '"+binName+"' of "+
           new Long(waitTime).toString()+" ms.");
-        LCF.sleep(waitTime);
+        ACF.sleep(waitTime);
       }
 
     }
@@ -849,14 +849,14 @@ public class ThrottledFetcher
     }
 
     public DataSession getSession(String url)
-      throws LCFException
+      throws ACFException
     {
       return new DataSession(this,url);
     }
 
     /** Atomically write resultlog record, returning data file name to use */
     public synchronized String writeResponseRecord(String url, int responseCode, ArrayList headerNames, ArrayList headerValues)
-      throws LCFException
+      throws ACFException
     {
       // Open log file
       try
@@ -891,7 +891,7 @@ public class ThrottledFetcher
       }
       catch (IOException e)
       {
-        throw new LCFException("Error recording file info: "+e.getMessage(),e);
+        throw new ACFException("Error recording file info: "+e.getMessage(),e);
       }
 
     }
@@ -927,7 +927,7 @@ public class ThrottledFetcher
     }
 
     public void endHeader()
-      throws LCFException
+      throws ACFException
     {
       documentName = dr.writeResponseRecord(url,responseCode,headerNames,headerValues);
     }
@@ -1186,7 +1186,7 @@ public class ThrottledFetcher
     *        is used solely for logging purposes.
     */
     public void beginFetch(String fetchType)
-      throws LCFException
+      throws ACFException
     {
       try
       {
@@ -1215,7 +1215,7 @@ public class ThrottledFetcher
       }
       catch (InterruptedException e)
       {
-        throw new LCFException("Interrupted",LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted",ACFException.INTERRUPTED);
       }
     }
 
@@ -1263,7 +1263,7 @@ public class ThrottledFetcher
     /** Execute the fetch and get the return code.  This method uses the
     * standard logging mechanism to keep track of the fetch attempt.  It also
     * signals the following conditions: ServiceInterruption (if a dynamic
-    * error occurs), or LCFException if a fatal error occurs, or nothing if
+    * error occurs), or ACFException if a fatal error occurs, or nothing if
     * a standard protocol error occurs.
     * Note that, for proxies etc, the idea is for this fetch request to handle whatever
     * redirections are needed to support proxies.
@@ -1279,7 +1279,7 @@ public class ThrottledFetcher
     public void executeFetch(String urlPath, String userAgent, String from, int connectionTimeoutMilliseconds,
       int socketTimeoutMilliseconds, boolean redirectOK, String host, FormData formData,
       LoginCookies loginCookies)
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       StringBuffer sb = new StringBuffer(protocol);
       sb.append("://").append(server);
@@ -1412,7 +1412,7 @@ public class ThrottledFetcher
           fetchMethod = postMethod;
           break;
         default:
-          throw new LCFException("Illegal method type: "+Integer.toString(pageFetchMethod));
+          throw new ACFException("Illegal method type: "+Integer.toString(pageFetchMethod));
         }
 
         // Set all appropriate headers and parameters
@@ -1496,7 +1496,7 @@ public class ThrottledFetcher
             // Temporary service interruption
             // May want to make the retry time a parameter someday
             long currentTime = System.currentTimeMillis();
-            throw new ServiceInterruption("Http response temporary error on '"+myUrl+"': "+Integer.toString(statusCode),new LCFException("Service unavailable (code "+Integer.toString(statusCode)+")"),
+            throw new ServiceInterruption("Http response temporary error on '"+myUrl+"': "+Integer.toString(statusCode),new ACFException("Service unavailable (code "+Integer.toString(statusCode)+")"),
               currentTime + TIME_2HRS, currentTime + TIME_1DAY, -1, false);
           case HttpStatus.SC_UNAUTHORIZED:
           case HttpStatus.SC_USE_PROXY:
@@ -1529,9 +1529,9 @@ public class ThrottledFetcher
         catch (InterruptedIOException e)
         {
           //Logging.connectors.warn("IO interruption seen",e);
-          throwable = new LCFException("Interrupted: "+e.getMessage(),e);
+          throwable = new ACFException("Interrupted: "+e.getMessage(),e);
           statusCode = FETCH_INTERRUPTED;
-          throw new LCFException("Interrupted",LCFException.INTERRUPTED);
+          throw new ACFException("Interrupted",ACFException.INTERRUPTED);
         }
         catch (org.apache.commons.httpclient.RedirectException e)
         {
@@ -1572,13 +1572,13 @@ public class ThrottledFetcher
         // Drop the current connection, and in fact the whole pool, on the floor.
         fetchMethod = null;
         connManager = null;
-        throwable = new LCFException("Interrupted: "+e.getMessage(),e);
+        throwable = new ACFException("Interrupted: "+e.getMessage(),e);
         statusCode = FETCH_INTERRUPTED;
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (IllegalArgumentException e)
       {
-        throwable = new LCFException("Illegal URI: '"+myUrl+"'",e);
+        throwable = new ACFException("Illegal URI: '"+myUrl+"'",e);
         statusCode = FETCH_BAD_URI;
         if (recordEverything)
           dataSession.setResponseCode(statusCode);
@@ -1586,7 +1586,7 @@ public class ThrottledFetcher
       }
       catch (IllegalStateException e)
       {
-        throwable = new LCFException("Illegal state while fetching URI: '"+myUrl+"'",e);
+        throwable = new ACFException("Illegal state while fetching URI: '"+myUrl+"'",e);
         statusCode = FETCH_SEQUENCE_ERROR;
         if (recordEverything)
           dataSession.setResponseCode(statusCode);
@@ -1596,7 +1596,7 @@ public class ThrottledFetcher
       {
         throw e;
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         throw e;
       }
@@ -1616,7 +1616,7 @@ public class ThrottledFetcher
     *@return the response code.  This is either an HTTP response code, or one of the codes above.
     */
     public int getResponseCode()
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       return statusCode;
     }
@@ -1625,7 +1625,7 @@ public class ThrottledFetcher
     *@return the cookies now in effect from the last fetch.
     */
     public LoginCookies getLastFetchCookies()
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       return lastFetchCookies;
     }
@@ -1635,7 +1635,7 @@ public class ThrottledFetcher
     *@return the header value, or null if it doesn't exist.
     */
     public String getResponseHeader(String headerName)
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       Header h = fetchMethod.getResponseHeader(headerName);
       if (h == null)
@@ -1649,10 +1649,10 @@ public class ThrottledFetcher
     * to close this stream when done.
     */
     public InputStream getResponseBodyStream()
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       if (fetchMethod == null)
-        throw new LCFException("Attempt to get a response when there is no method");
+        throw new ACFException("Attempt to get a response when there is no method");
       try
       {
         if (recordEverything)
@@ -1678,7 +1678,7 @@ public class ThrottledFetcher
       catch (InterruptedIOException e)
       {
         //Logging.connectors.warn("IO interruption seen: "+e.getMessage(),e);
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (IOException e)
       {
@@ -1698,7 +1698,7 @@ public class ThrottledFetcher
     {
       if (statusCode > 0)
       {
-        throwable = new LCFException("Interrupted: "+e.getMessage(),e);
+        throwable = new ACFException("Interrupted: "+e.getMessage(),e);
         statusCode = FETCH_INTERRUPTED;
       }
     }
@@ -1707,7 +1707,7 @@ public class ThrottledFetcher
     * describing what was done.
     */
     public void doneFetch(IVersionActivity activities)
-      throws LCFException
+      throws ACFException
     {
       if (fetchType != null)
       {
@@ -1762,7 +1762,7 @@ public class ThrottledFetcher
     /** Close the connection.  Call this to end this server connection.
     */
     public void close()
-      throws LCFException
+      throws ACFException
     {
       synchronized (poolLock)
       {

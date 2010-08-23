@@ -21,7 +21,7 @@ package org.apache.acf.filesystem_tests;
 import org.apache.acf.core.interfaces.*;
 import org.apache.acf.agents.interfaces.*;
 import org.apache.acf.crawler.interfaces.*;
-import org.apache.acf.crawler.system.LCF;
+import org.apache.acf.crawler.system.ACF;
 
 import java.io.*;
 import java.util.*;
@@ -176,9 +176,9 @@ public class APISanity extends TestBase
       // Crawl everything underneath the 'testdata' area
       File testDataFile = new File("testdata").getCanonicalFile();
       if (!testDataFile.exists())
-        throw new LCFException("Test data area not found!  Looking in "+testDataFile.toString());
+        throw new ACFException("Test data area not found!  Looking in "+testDataFile.toString());
       if (!testDataFile.isDirectory())
-        throw new LCFException("Test data area not a directory!  Looking in "+testDataFile.toString());
+        throw new ACFException("Test data area not a directory!  Looking in "+testDataFile.toString());
       ConfigurationNode sn = new ConfigurationNode("startpoint");
       sn.setAttribute("path",testDataFile.toString());
       ConfigurationNode n = new ConfigurationNode("include");
@@ -229,7 +229,7 @@ public class APISanity extends TestBase
       long count;
       count = getJobDocumentsProcessed(jobIDString);
       if (count != 5)
-        throw new LCFException("Wrong number of documents processed - expected 5, saw "+new Long(count).toString());
+        throw new ACFException("Wrong number of documents processed - expected 5, saw "+new Long(count).toString());
       
       // Add a file and recrawl
       createFile(new File("testdata/testdir/test4.txt"),"Added file");
@@ -241,7 +241,7 @@ public class APISanity extends TestBase
       // The test data area has 4 documents and one directory, and we have to count the root directory too.
       count = getJobDocumentsProcessed(jobIDString);
       if (count != 6)
-        throw new LCFException("Wrong number of documents processed after add - expected 6, saw "+new Long(count).toString());
+        throw new ACFException("Wrong number of documents processed after add - expected 6, saw "+new Long(count).toString());
 
       // Change a file, and recrawl
       changeFile(new File("testdata/test1.txt"),"Modified contents");
@@ -253,7 +253,7 @@ public class APISanity extends TestBase
       // The test data area has 4 documents and one directory, and we have to count the root directory too.
       count = getJobDocumentsProcessed(jobIDString);
       if (count != 6)
-        throw new LCFException("Wrong number of documents processed after change - expected 6, saw "+new Long(count).toString());
+        throw new ACFException("Wrong number of documents processed after change - expected 6, saw "+new Long(count).toString());
       // We also need to make sure the new document was indexed.  Have to think about how to do this though.
       // MHL
       
@@ -268,7 +268,7 @@ public class APISanity extends TestBase
       // The test data area has 3 documents and one directory, and we have to count the root directory too.
       count = getJobDocumentsProcessed(jobIDString);
       if (count != 5)
-        throw new LCFException("Wrong number of documents processed after delete - expected 5, saw "+new Long(count).toString());
+        throw new ACFException("Wrong number of documents processed after delete - expected 5, saw "+new Long(count).toString());
 
       // Now, delete the job.
       deleteJob(jobIDString);
@@ -397,7 +397,7 @@ public class APISanity extends TestBase
         break;
       if (status.equals("error"))
         throw new Exception("Job reports error.");
-      LCF.sleep(10000L);
+      ACF.sleep(10000L);
       continue;
     }
   }
@@ -410,7 +410,7 @@ public class APISanity extends TestBase
       String status = getJobStatus(jobIDString);
       if (status == null)
         break;
-      LCF.sleep(10000L);
+      ACF.sleep(10000L);
     }
   }
     

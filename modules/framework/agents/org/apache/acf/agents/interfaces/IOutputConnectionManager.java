@@ -29,33 +29,33 @@ public interface IOutputConnectionManager
   /** Install the manager.
   */
   public void install()
-    throws LCFException;
+    throws ACFException;
 
   /** Uninstall the manager.
   */
   public void deinstall()
-    throws LCFException;
+    throws ACFException;
 
   /** Export configuration */
   public void exportConfiguration(java.io.OutputStream os)
-    throws java.io.IOException, LCFException;
+    throws java.io.IOException, ACFException;
 
   /** Import configuration */
   public void importConfiguration(java.io.InputStream is)
-    throws java.io.IOException, LCFException;
+    throws java.io.IOException, ACFException;
 
   /** Obtain a list of the output connections, ordered by name.
   *@return an array of connection objects.
   */
   public IOutputConnection[] getAllConnections()
-    throws LCFException;
+    throws ACFException;
 
   /** Load an output connection by name.
   *@param name is the name of the output connection.
   *@return the loaded connection object, or null if not found.
   */
   public IOutputConnection load(String name)
-    throws LCFException;
+    throws ACFException;
 
   /** Load a set of output connections.
   *@param names are the names of the output connections.
@@ -63,40 +63,40 @@ public interface IOutputConnectionManager
   * values for those not found.
   */
   public IOutputConnection[] loadMultiple(String[] names)
-    throws LCFException;
+    throws ACFException;
 
   /** Create a new output connection object.
   *@return the new object.
   */
   public IOutputConnection create()
-    throws LCFException;
+    throws ACFException;
 
   /** Save an output connection object.
   *@param object is the object to save.
   */
   public void save(IOutputConnection object)
-    throws LCFException;
+    throws ACFException;
 
   /** Delete an output connection.
   *@param name is the name of the connection to delete.  If the
   * name does not exist, no error is returned.
   */
   public void delete(String name)
-    throws LCFException;
+    throws ACFException;
 
   /** Get a list of output connections that share the same connector.
   *@param className is the class name of the connector.
   *@return the repository connections that use that connector.
   */
   public String[] findConnectionsForConnector(String className)
-    throws LCFException;
+    throws ACFException;
 
   /** Check if underlying connector exists.
   *@param name is the name of the connection to check.
   *@return true if the underlying connector is registered.
   */
   public boolean checkConnectorExists(String name)
-    throws LCFException;
+    throws ACFException;
 
   // Schema related
 

@@ -43,7 +43,7 @@ public class ThrottleDescription
 
   /** Constructor.  Build the description from the ConfigParams. */
   public ThrottleDescription(ConfigParams configData)
-    throws LCFException
+    throws ACFException
   {
     // Scan, looking for bin description nodes
     int i = 0;
@@ -78,7 +78,7 @@ public class ThrottleDescription
               }
               catch (NumberFormatException e)
               {
-                throw new LCFException("Bad number",e);
+                throw new ACFException("Bad number",e);
               }
             }
           }
@@ -95,7 +95,7 @@ public class ThrottleDescription
               }
               catch (NumberFormatException e)
               {
-                throw new LCFException("Bad number",e);
+                throw new ACFException("Bad number",e);
               }
             }
           }
@@ -112,7 +112,7 @@ public class ThrottleDescription
               }
               catch (NumberFormatException e)
               {
-                throw new LCFException("Bad number: "+e.getMessage(),e);
+                throw new ACFException("Bad number: "+e.getMessage(),e);
               }
             }
           }
@@ -129,7 +129,7 @@ public class ThrottleDescription
           }
           catch (java.util.regex.PatternSyntaxException e)
           {
-            throw new LCFException("Bin regular expression '"+binDescription+"' is illegal: "+e.getMessage(),e);
+            throw new ACFException("Bin regular expression '"+binDescription+"' is illegal: "+e.getMessage(),e);
           }
           ThrottleItem ti = new ThrottleItem(p);
           ti.setMaxOpenConnections(maxConnectionCount);
@@ -139,7 +139,7 @@ public class ThrottleDescription
         }
         catch (PatternSyntaxException e)
         {
-          throw new LCFException("Bad pattern syntax in '"+binDescription+"'",e);
+          throw new ACFException("Bad pattern syntax in '"+binDescription+"'",e);
         }
       }
     }

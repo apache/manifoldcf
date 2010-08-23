@@ -22,7 +22,7 @@ import org.apache.acf.core.interfaces.*;
 import org.apache.acf.authorities.interfaces.*;
 import java.util.*;
 import org.apache.acf.authorities.interfaces.CacheKeyFactory;
-import org.apache.acf.authorities.system.LCF;
+import org.apache.acf.authorities.system.ACF;
 
 import org.apache.acf.crawler.interfaces.IRepositoryConnectionManager;
 import org.apache.acf.crawler.interfaces.RepositoryConnectionManagerFactory;
@@ -51,7 +51,7 @@ public class AuthorityConnectionManager extends org.apache.acf.core.database.Bas
   *@param threadContext is the thread context.
   */
   public AuthorityConnectionManager(IThreadContext threadContext, IDBInterface database)
-    throws LCFException
+    throws ACFException
   {
     super(database,"authconnections");
 
@@ -62,7 +62,7 @@ public class AuthorityConnectionManager extends org.apache.acf.core.database.Bas
   /** Install the manager.
   */
   public void install()
-    throws LCFException
+    throws ACFException
   {
     // Always do a loop, in case upgrade needs it.
     while (true)
@@ -93,51 +93,51 @@ public class AuthorityConnectionManager extends org.apache.acf.core.database.Bas
   /** Uninstall the manager.
   */
   public void deinstall()
-    throws LCFException
+    throws ACFException
   {
     performDrop(null);
   }
 
   /** Export configuration */
   public void exportConfiguration(java.io.OutputStream os)
-    throws java.io.IOException, LCFException
+    throws java.io.IOException, ACFException
   {
     // Write a version indicator
-    LCF.writeDword(os,1);
+    ACF.writeDword(os,1);
     // Get the authority list
     IAuthorityConnection[] list = getAllConnections();
     // Write the number of authorities
-    LCF.writeDword(os,list.length);
+    ACF.writeDword(os,list.length);
     // Loop through the list and write the individual authority info
     int i = 0;
     while (i < list.length)
     {
       IAuthorityConnection conn = list[i++];
-      LCF.writeString(os,conn.getName());
-      LCF.writeString(os,conn.getDescription());
-      LCF.writeString(os,conn.getClassName());
-      LCF.writeString(os,conn.getConfigParams().toXML());
-      LCF.writeDword(os,conn.getMaxConnections());
+      ACF.writeString(os,conn.getName());
+      ACF.writeString(os,conn.getDescription());
+      ACF.writeString(os,conn.getClassName());
+      ACF.writeString(os,conn.getConfigParams().toXML());
+      ACF.writeDword(os,conn.getMaxConnections());
     }
   }
 
   /** Import configuration */
   public void importConfiguration(java.io.InputStream is)
-    throws java.io.IOException, LCFException
+    throws java.io.IOException, ACFException
   {
-    int version = LCF.readDword(is);
+    int version = ACF.readDword(is);
     if (version != 1)
       throw new java.io.IOException("Unknown authority configuration version: "+Integer.toString(version));
-    int count = LCF.readDword(is);
+    int count = ACF.readDword(is);
     int i = 0;
     while (i < count)
     {
       IAuthorityConnection conn = create();
-      conn.setName(LCF.readString(is));
-      conn.setDescription(LCF.readString(is));
-      conn.setClassName(LCF.readString(is));
-      conn.getConfigParams().fromXML(LCF.readString(is));
-      conn.setMaxConnections(LCF.readDword(is));
+      conn.setName(ACF.readString(is));
+      conn.setDescription(ACF.readString(is));
+      conn.setClassName(ACF.readString(is));
+      conn.getConfigParams().fromXML(ACF.readString(is));
+      conn.setMaxConnections(ACF.readDword(is));
       // Attempt to save this connection
       save(conn);
       i++;
@@ -148,7 +148,7 @@ public class AuthorityConnectionManager extends org.apache.acf.core.database.Bas
   *@return an array of connection objects.
   */
   public IAuthorityConnection[] getAllConnections()
-    throws LCFException
+    throws ACFException
   {
     beginTransaction();
     try
@@ -169,7 +169,7 @@ public class AuthorityConnectionManager extends org.apache.acf.core.database.Bas
       }
       return loadMultiple(names);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -190,7 +190,7 @@ public class AuthorityConnectionManager extends org.apache.acf.core.database.Bas
   *@return the loaded connection object, or null if not found.
   */
   public IAuthorityConnection load(String name)
-    throws LCFException
+    throws ACFException
   {
     return loadMultiple(new String[]{name})[0];
   }
@@ -200,7 +200,7 @@ public class AuthorityConnectionManager extends org.apache.acf.core.database.Bas
   *@return the loaded connection objects.
   */
   public IAuthorityConnection[] loadMultiple(String[] names)
-    throws LCFException
+    throws ACFException
   {
     // Build description objects
     AuthorityConnectionDescription[] objectDescriptions = new AuthorityConnectionDescription[names.length];
@@ -223,7 +223,7 @@ public class AuthorityConnectionManager extends org.apache.acf.core.database.Bas
   *@return the new object.
   */
   public IAuthorityConnection create()
-    throws LCFException
+    throws ACFException
   {
     AuthorityConnection rval = new AuthorityConnection();
     return rval;
@@ -233,7 +233,7 @@ public class AuthorityConnectionManager extends org.apache.acf.core.database.Bas
   *@param object is the object to save.
   */
   public void save(IAuthorityConnection object)
-    throws LCFException
+    throws ACFException
   {
     StringSetBuffer ssb = new StringSetBuffer();
     ssb.add(getAuthorityConnectionsKey());
@@ -246,7 +246,7 @@ public class AuthorityConnectionManager extends org.apache.acf.core.database.Bas
       try
       {
         performLock();
-        LCF.noteConfigurationChange();
+        ACF.noteConfigurationChange();
         // See whether the instance exists
         ArrayList params = new ArrayList();
         params.add(object.getName());
@@ -275,7 +275,7 @@ public class AuthorityConnectionManager extends org.apache.acf.core.database.Bas
 
         cacheManager.invalidateKeys(ch);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         signalRollback();
         throw e;
@@ -301,7 +301,7 @@ public class AuthorityConnectionManager extends org.apache.acf.core.database.Bas
   * name does not exist, no error is returned.
   */
   public void delete(String name)
-    throws LCFException
+    throws ACFException
   {
     // Grab repository connection manager handle, to check on legality of deletion.
     IRepositoryConnectionManager repoManager = RepositoryConnectionManagerFactory.make(threadContext);
@@ -318,14 +318,14 @@ public class AuthorityConnectionManager extends org.apache.acf.core.database.Bas
       {
         // Check if anything refers to this connection name
         if (repoManager.isReferenced(name))
-          throw new LCFException("Can't delete authority connection '"+name+"': existing repository connections refer to it");
-        LCF.noteConfigurationChange();
+          throw new ACFException("Can't delete authority connection '"+name+"': existing repository connections refer to it");
+        ACF.noteConfigurationChange();
         ArrayList params = new ArrayList();
         params.add(name);
         performDelete("WHERE "+nameField+"=?",params,null);
         cacheManager.invalidateKeys(ch);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         signalRollback();
         throw e;
@@ -382,7 +382,7 @@ public class AuthorityConnectionManager extends org.apache.acf.core.database.Bas
   *@return the corresponding repository connection objects.
   */
   protected AuthorityConnection[] getAuthorityConnectionsMultiple(String[] connectionNames)
-    throws LCFException
+    throws ACFException
   {
     AuthorityConnection[] rval = new AuthorityConnection[connectionNames.length];
     HashMap returnIndex = new HashMap();
@@ -426,7 +426,7 @@ public class AuthorityConnectionManager extends org.apache.acf.core.database.Bas
       signalRollback();
       throw e;
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -444,7 +444,7 @@ public class AuthorityConnectionManager extends org.apache.acf.core.database.Bas
   *@param params is the set of parameters.
   */
   protected void getAuthorityConnectionsChunk(AuthorityConnection[] rval, Map returnIndex, String idList, ArrayList params)
-    throws LCFException
+    throws ACFException
   {
     IResultSet set;
     set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
@@ -565,7 +565,7 @@ public class AuthorityConnectionManager extends org.apache.acf.core.database.Bas
     * @return the newly created objects to cache, or null, if any object cannot be created.
     *  The order of the returned objects must correspond to the order of the object descriptinos.
     */
-    public Object[] create(ICacheDescription[] objectDescriptions) throws LCFException
+    public Object[] create(ICacheDescription[] objectDescriptions) throws ACFException
     {
       // Turn the object descriptions into the parameters for the ToolInstance requests
       String[] connectionNames = new String[objectDescriptions.length];
@@ -588,7 +588,7 @@ public class AuthorityConnectionManager extends org.apache.acf.core.database.Bas
     * @param objectDescription is the unique identifier of the object.
     * @param cachedObject is the cached object.
     */
-    public void exists(ICacheDescription objectDescription, Object cachedObject) throws LCFException
+    public void exists(ICacheDescription objectDescription, Object cachedObject) throws ACFException
     {
       // Cast what came in as what it really is
       AuthorityConnectionDescription objectDesc = (AuthorityConnectionDescription)objectDescription;
@@ -606,7 +606,7 @@ public class AuthorityConnectionManager extends org.apache.acf.core.database.Bas
     /** Perform the desired operation.  This method is called after either createGetObject()
     * or exists() is called for every requested object.
     */
-    public void execute() throws LCFException
+    public void execute() throws ACFException
     {
       // Does nothing; we only want to fetch objects in this cacher.
     }

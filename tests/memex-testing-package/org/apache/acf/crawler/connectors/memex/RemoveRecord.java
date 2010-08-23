@@ -51,7 +51,7 @@ public class RemoveRecord
                         }
                         System.err.println("Successfully removed");
                 }
-                catch (LCFException e)
+                catch (ACFException e)
                 {
                         e.printStackTrace(System.err);
                         System.exit(2);

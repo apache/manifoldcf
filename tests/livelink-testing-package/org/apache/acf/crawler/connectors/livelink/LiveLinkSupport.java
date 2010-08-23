@@ -57,7 +57,7 @@ public class LiveLinkSupport
         /** Constructor.
         */
         public LiveLinkSupport(String serverName, int serverPort, String serverUserName, String serverPassword)
-                throws LCFException
+                throws ACFException
         {
 
                 llServer = new LLSERVER(serverName,serverPort,serverUserName,serverPassword);
@@ -88,14 +88,14 @@ public class LiveLinkSupport
                 }
                 catch (Exception e)
                 {
-                        throw new LCFException("Connection failed: "+e.getMessage()+"; Details: "+llServer.getErrors(), e, LCFException.SETUP_ERROR);
+                        throw new ACFException("Connection failed: "+e.getMessage()+"; Details: "+llServer.getErrors(), e, ACFException.SETUP_ERROR);
                 }
         }
 
         /** Close the connection.  Call this before discarding the repository connector.
         */
         public void close()
-                throws LCFException
+                throws ACFException
         {
                 llServer.disconnect();
                 llServer = null;
@@ -106,7 +106,7 @@ public class LiveLinkSupport
         /** Look up a document.
         */
         public String lookupDocument(String LLpathString)
-                throws LCFException
+                throws ACFException
         {
                 VolumeAndId volID = findPath(LLpathString);
                 if (volID == null)
@@ -121,7 +121,7 @@ public class LiveLinkSupport
         /** Add a document.
         */
         public String addDocument(String LLpathString, String name, String filename)
-                throws LCFException
+                throws ACFException
         {
                 VolumeAndId volID = findPath(LLpathString + "/" + name);
                 if (volID == null)
@@ -129,7 +129,7 @@ public class LiveLinkSupport
                         // Add document
                         volID = findPath(LLpathString);
                         if (volID == null)
-                                throw new LCFException("No such path: '"+LLpathString+"'");
+                                throw new ACFException("No such path: '"+LLpathString+"'");
 
                         LLValue objInfo = new LLValue().setAssocNotSet();
                         LLValue versionInfo = new LLValue().setAssocNotSet();
@@ -138,7 +138,7 @@ public class LiveLinkSupport
 
                         if ( status != 0 )
                         {
-                                throw new LCFException("Error adding document: "+llServer.getErrors());
+                                throw new ACFException("Error adding document: "+llServer.getErrors());
                         }
 
                         return Integer.toString(objInfo.toInteger( "ID" ));
@@ -152,7 +152,7 @@ public class LiveLinkSupport
 
                         if ( status != 0 )
                         {
-                                throw new LCFException("Error updating document: "+llServer.getErrors());
+                                throw new ACFException("Error updating document: "+llServer.getErrors());
                         }
         
                         return Integer.toString(volID.getPathId());
@@ -162,7 +162,7 @@ public class LiveLinkSupport
         /** Delete a document.
         */
         public void deleteDocument(String LLpathString)
-                throws LCFException
+                throws ACFException
         {
                 VolumeAndId volID = findPath(LLpathString);
                 if (volID == null)
@@ -174,18 +174,18 @@ public class LiveLinkSupport
 
                 if ( status != 0 )
                 {
-                        throw new LCFException("Error deleting document: "+llServer.getErrors());
+                        throw new ACFException("Error deleting document: "+llServer.getErrors());
                 }
         }
 
         /** Modify a document.
         */
         public String modifyDocument(String LLpathString, String filename)
-                throws LCFException
+                throws ACFException
         {
                 VolumeAndId volID = findPath(LLpathString);
                 if (volID == null)
-                        throw new LCFException("No such path: '"+LLpathString+"'");
+                        throw new ACFException("No such path: '"+LLpathString+"'");
 
                 // Add document
                 LLValue versionInfo = new LLValue().setAssocNotSet();
@@ -194,7 +194,7 @@ public class LiveLinkSupport
 
                 if ( status != 0 )
                 {
-                        throw new LCFException("Error updating document: "+llServer.getErrors());
+                        throw new ACFException("Error updating document: "+llServer.getErrors());
                 }
 
                 return Integer.toString(volID.getPathId());
@@ -204,11 +204,11 @@ public class LiveLinkSupport
         /** Add metadata value for a document.
         */
         public void setMetadataValue(String LLpathString, String categoryPathString, String attributeName, String attributeValue)
-                throws LCFException
+                throws ACFException
         {
                 VolumeAndId volID = findPath(LLpathString);
                 if (volID == null)
-                        throw new LCFException("No such path: '"+LLpathString+"'");
+                        throw new ACFException("No such path: '"+LLpathString+"'");
                 
                 // Start at root
                 RootValue rv = new RootValue(categoryPathString);
@@ -216,7 +216,7 @@ public class LiveLinkSupport
                 // Get the object id of the category the path describes
                 int catObjectID = getCategoryId(rv);
                 if (catObjectID == -1)
-                        throw new LCFException("No such category: '"+categoryPathString+"'");
+                        throw new ACFException("No such category: '"+categoryPathString+"'");
 
                 try
                 {
@@ -237,11 +237,11 @@ public class LiveLinkSupport
                         int status = LLDocs.FetchCategoryVersion(catIDValue,rvalue);
                         // If either the object is wrong, or the object does not have the specified category, return null.
                         if (status == 103101 || status == 107205)
-                                throw new LCFException("Can't fetch category attributes for category "+Integer.toString(catObjectID));
+                                throw new ACFException("Can't fetch category attributes for category "+Integer.toString(catObjectID));
 
                         if (status != 0)
                         {
-                                throw new LCFException("Error retrieving category version: "+Integer.toString(status)+": "+llServer.getErrors());
+                                throw new ACFException("Error retrieving category version: "+Integer.toString(status)+": "+llServer.getErrors());
                         }
 
                         // Now, try to set the revised value
@@ -253,39 +253,39 @@ public class LiveLinkSupport
 
                         if (status != 0)
                         {
-                                throw new LCFException("Error setting attribute value: "+Integer.toString(status)+": "+llServer.getErrors());
+                                throw new ACFException("Error setting attribute value: "+Integer.toString(status)+": "+llServer.getErrors());
                         }
 
                         status = LLDocs.SetObjectAttributesEx(objIDValue,rvalue);
                         // If either the object is wrong, or the object does not have the specified category, return null.
                         if (status == 103101 || status == 107205)
-                                throw new LCFException("Can't set attributes for object "+Integer.toString(volID.getPathId())+
+                                throw new ACFException("Can't set attributes for object "+Integer.toString(volID.getPathId())+
                                         " category "+Integer.toString(catObjectID));
 
                         if (status != 0)
                         {
-                                throw new LCFException("Error setting category version: "+Integer.toString(status)+": "+llServer.getErrors());
+                                throw new ACFException("Error setting category version: "+Integer.toString(status)+": "+llServer.getErrors());
                         }
                 }
                 catch (com.opentext.api.LLIllegalOperationException e)
                 {
-                        throw new LCFException("Livelink: Unexpected illegal operation error: "+e.getMessage(),e);
+                        throw new ACFException("Livelink: Unexpected illegal operation error: "+e.getMessage(),e);
                 }
                 catch (com.opentext.api.LLIOException e)
                 {
                         // Server went down.  Throw a service interruption, and try again in 5 minutes.
-                        throw new LCFException("IO Exception: "+e.getMessage(),e);
+                        throw new ACFException("IO Exception: "+e.getMessage(),e);
                 }
         }
 
         /** Add see/seecontent rights for a user for a document.
         */
         public void addDocumentRights(String LLpathString, String userName, String domainName)
-                throws LCFException
+                throws ACFException
         {
                 VolumeAndId volID = findPath(LLpathString);
                 if (volID == null)
-                        throw new LCFException("No such path: '"+LLpathString+"'");
+                        throw new ACFException("No such path: '"+LLpathString+"'");
                 int userID;
 
                 LLValue userInfo = new LLValue().setAssocNotSet();
@@ -295,7 +295,7 @@ public class LiveLinkSupport
                 {
                         int status = LLUsers.GetUserInfoEx(userName,domainName,userInfo);
                         if (status != 0)
-                                throw new LCFException("Error getting user info: "+llServer.getErrors());
+                                throw new ACFException("Error getting user info: "+llServer.getErrors());
                         userID = userInfo.toInteger("ID");
                         // First, remove right of the world to see this document
                         status = LLDocs.SetObjectRight(volID.getVolumeID(),volID.getPathId(),
@@ -313,16 +313,16 @@ public class LiveLinkSupport
                                 status = LLDocs.SetObjectRight(volID.getVolumeID(),volID.getPathId(),
                                         LAPI_DOCUMENTS.RIGHT_UPDATE,userID,LAPI_DOCUMENTS.PERM_SEE | LAPI_DOCUMENTS.PERM_SEECONTENTS, 0);
                                 if (status != 0)
-                                        throw new LCFException("Error setting permissions: "+llServer.getErrors());
+                                        throw new ACFException("Error setting permissions: "+llServer.getErrors());
                         }
                 }
-                catch (LCFException e)
+                catch (ACFException e)
                 {
                         throw e;
                 }
                 catch (Exception e)
                 {
-                        throw new LCFException("Exception looking up user '"+userName+"'",e);
+                        throw new ACFException("Exception looking up user '"+userName+"'",e);
                 }
 
         }
@@ -332,7 +332,7 @@ public class LiveLinkSupport
         /** Get the volume and id, given a qualified path.
         */
         protected VolumeAndId findPath(String pathString)
-                throws LCFException
+                throws ACFException
         {
                 RootValue rv = new RootValue(pathString);
 
@@ -346,7 +346,7 @@ public class LiveLinkSupport
         /** Rootvalue version of getCategoryId.
         */
         protected int getCategoryId(RootValue rv)
-                throws LCFException
+                throws ACFException
         {
                 return getCategoryId(rv.getRootValue(),rv.getRemainderPath());
         }
@@ -357,7 +357,7 @@ public class LiveLinkSupport
         * @param startPath is the folder name, ending in a category name (a string with slashes as separators)
         */              
         protected int getCategoryId(LLValue objInfo, String startPath)
-                throws LCFException
+                throws ACFException
         {
                 // This is where the results go
                 LLValue children = (new LLValue());
@@ -404,7 +404,7 @@ public class LiveLinkSupport
                         {
                                 int status = LLDocs.ListObjects(vol, obj, null, filterString, LAPI_DOCUMENTS.PERM_SEECONTENTS, children);
                                 if (status != 0)
-                                        throw new LCFException("Error finding category children: "+Integer.toString(status)+": "+llServer.getErrors());
+                                        throw new ACFException("Error finding category children: "+Integer.toString(status)+": "+llServer.getErrors());
 
                                 // If there is one child, then we are okay.
                                 if (children.size() == 1)
@@ -422,17 +422,17 @@ public class LiveLinkSupport
                                 {
                                         // Couldn't find the path.  Instead of throwing up, return null to indicate
                                         // illegal node.
-                                        throw new LCFException("Error: no children!");
+                                        throw new ACFException("Error: no children!");
                                 }
                         }
                         catch (com.opentext.api.LLIllegalOperationException e)
                         {
-                                throw new LCFException("Livelink: Unexpected illegal operation error: "+e.getMessage(),e);
+                                throw new ACFException("Livelink: Unexpected illegal operation error: "+e.getMessage(),e);
                         }
                         catch (com.opentext.api.LLIOException e)
                         {
                                 // Server went down.  Throw a service interruption, and try again in 5 minutes.
-                                throw new LCFException("IO exception: "+e.getMessage(),e);
+                                throw new ACFException("IO exception: "+e.getMessage(),e);
                         }
                 }
                 return obj;
@@ -445,7 +445,7 @@ public class LiveLinkSupport
         * @param id the object ID 
         * @return LLValue the LAPI value object, or null if object has been deleted (or doesn't exist)
         */
-        protected LLValue getObjectInfo(int vol, int id) throws LCFException
+        protected LLValue getObjectInfo(int vol, int id) throws ACFException
         {
                 LLValue objinfo = new LLValue().setAssocNotSet();
                 int status = LLDocs.GetObjectInfo(vol,id,objinfo);
@@ -454,7 +454,7 @@ public class LiveLinkSupport
                         return null;
 
                 if (status != 0)
-                        throw new LCFException("Error retrieving document object: "+llServer.getErrors());
+                        throw new ACFException("Error retrieving document object: "+llServer.getErrors());
                 
                 return objinfo;
         }
@@ -462,7 +462,7 @@ public class LiveLinkSupport
         /** RootValue version of getPathId.
         */
         protected VolumeAndId getPathId(RootValue rv)
-                throws LCFException
+                throws ACFException
         {
                 return getPathId(rv.getRootValue(),rv.getRemainderPath());
         }
@@ -473,7 +473,7 @@ public class LiveLinkSupport
         * @param startPath is the folder name (a string with dots as separators)
         */              
         protected VolumeAndId getPathId(LLValue objInfo, String startPath)
-                throws LCFException
+                throws ACFException
         {
                 // This is where the results go
                 LLValue children = (new LLValue());
@@ -502,7 +502,7 @@ public class LiveLinkSupport
 
                         int status = LLDocs.ListObjects(vol, obj, null, filterString, LAPI_DOCUMENTS.PERM_SEECONTENTS, children);
                         if (status != 0)
-                                throw new LCFException("Error finding start node path: "+llServer.getErrors());
+                                throw new ACFException("Error finding start node path: "+llServer.getErrors());
 
                         // If there is one child, then we are okay.
                         if (children.size() == 1)
@@ -597,7 +597,7 @@ public class LiveLinkSupport
                 *@return the root node.
                 */
                 public LLValue getRootValue()
-                        throws LCFException
+                        throws ACFException
                 {
                         if (rootValue == null)
                         {
@@ -606,9 +606,9 @@ public class LiveLinkSupport
                                 else if (workspaceName.equals(ENTWKSPACE_NAME))
                                         rootValue = getObjectInfo(LLENTWK_VOL,LLENTWK_ID);
                                 else
-                                        throw new LCFException("Bad workspace name");
+                                        throw new ACFException("Bad workspace name");
                                 if (rootValue == null)
-                                        throw new LCFException("Could not get workspace/volume ID");
+                                        throw new ACFException("Could not get workspace/volume ID");
                         }
 
                         return rootValue;

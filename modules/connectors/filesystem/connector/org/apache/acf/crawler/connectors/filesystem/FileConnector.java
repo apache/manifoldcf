@@ -106,7 +106,7 @@ public class FileConnector extends org.apache.acf.crawler.connectors.BaseReposit
   *@return the document uri.
   */
   protected String convertToURI(String documentIdentifier)
-    throws LCFException
+    throws ACFException
   {
     //
     // Note well:  This MUST be a legal URI!!!
@@ -116,7 +116,7 @@ public class FileConnector extends org.apache.acf.crawler.connectors.BaseReposit
     }
     catch (java.io.IOException e)
     {
-      throw new LCFException("Bad url",e);
+      throw new ACFException("Bad url",e);
     }
   }
 
@@ -134,7 +134,7 @@ public class FileConnector extends org.apache.acf.crawler.connectors.BaseReposit
   *@return the stream of local document identifiers that should be added to the queue.
   */
   public IDocumentIdentifierStream getDocumentIdentifiers(DocumentSpecification spec, long startTime, long endTime)
-    throws LCFException
+    throws ACFException
   {
     return new IdentifierStream(spec);
   }
@@ -149,7 +149,7 @@ public class FileConnector extends org.apache.acf.crawler.connectors.BaseReposit
   * will always be processed.
   */
   public String[] getDocumentVersions(String[] documentIdentifiers, DocumentSpecification spec)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     String[] rval = new String[documentIdentifiers.length];
     int i = 0;
@@ -199,7 +199,7 @@ public class FileConnector extends org.apache.acf.crawler.connectors.BaseReposit
   * should only find other references, and should not actually call the ingestion methods.
   */
   public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     int i = 0;
     while (i < documentIdentifiers.length)
@@ -236,7 +236,7 @@ public class FileConnector extends org.apache.acf.crawler.connectors.BaseReposit
             {
               errorCode = "IO ERROR";
               errorDesc = e.getMessage();
-              throw new LCFException("IO Error: "+e.getMessage(),e);
+              throw new ACFException("IO Error: "+e.getMessage(),e);
             }
           }
           finally
@@ -284,7 +284,7 @@ public class FileConnector extends org.apache.acf.crawler.connectors.BaseReposit
                 {
                   errorCode = "IO ERROR";
                   errorDesc = e.getMessage();
-                  throw new LCFException("IO Error: "+e.getMessage(),e);
+                  throw new ACFException("IO Error: "+e.getMessage(),e);
                 }
               }
               finally
@@ -316,7 +316,7 @@ public class FileConnector extends org.apache.acf.crawler.connectors.BaseReposit
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     out.print(
 "<script type=\"text/javascript\">\n"+
@@ -341,7 +341,7 @@ public class FileConnector extends org.apache.acf.crawler.connectors.BaseReposit
   *@param tabName is the current tab name.
   */
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
   }
   
@@ -355,7 +355,7 @@ public class FileConnector extends org.apache.acf.crawler.connectors.BaseReposit
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
-    throws LCFException
+    throws ACFException
   {
     return null;
   }
@@ -368,7 +368,7 @@ public class FileConnector extends org.apache.acf.crawler.connectors.BaseReposit
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
   }
   
@@ -380,7 +380,7 @@ public class FileConnector extends org.apache.acf.crawler.connectors.BaseReposit
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     tabsArray.add("Paths");
 
@@ -412,7 +412,7 @@ public class FileConnector extends org.apache.acf.crawler.connectors.BaseReposit
   *@param tabName is the current tab name.
   */
   public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     int i;
     int k;
@@ -605,7 +605,7 @@ public class FileConnector extends org.apache.acf.crawler.connectors.BaseReposit
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
-    throws LCFException
+    throws ACFException
   {
     String x = variableContext.getParameter("pathcount");
     if (x != null)
@@ -707,7 +707,7 @@ public class FileConnector extends org.apache.acf.crawler.connectors.BaseReposit
   *@param ds is the current document specification for this job.
   */
   public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"
@@ -766,7 +766,7 @@ public class FileConnector extends org.apache.acf.crawler.connectors.BaseReposit
   *@return true if it should be included.
   */
   protected static boolean checkInclude(File file, String fileName, DocumentSpecification documentSpecification)
-    throws LCFException
+    throws ACFException
   {
     if (Logging.connectors.isDebugEnabled())
     {
@@ -861,7 +861,7 @@ public class FileConnector extends org.apache.acf.crawler.connectors.BaseReposit
     }
     catch (IOException e)
     {
-      throw new LCFException("IO Error",e);
+      throw new ACFException("IO Error",e);
     }
   }
 
@@ -871,7 +871,7 @@ public class FileConnector extends org.apache.acf.crawler.connectors.BaseReposit
   *@param documentSpecification is the specification.
   */
   protected static boolean checkIngest(File file, DocumentSpecification documentSpecification)
-    throws LCFException
+    throws ACFException
   {
     // Since the only exclusions at this point are not based on file contents, this is a no-op.
     // MHL
@@ -985,7 +985,7 @@ public class FileConnector extends org.apache.acf.crawler.connectors.BaseReposit
     protected int currentIndex = 0;
 
     public IdentifierStream(DocumentSpecification spec)
-      throws LCFException
+      throws ACFException
     {
       try
       {
@@ -1021,7 +1021,7 @@ public class FileConnector extends org.apache.acf.crawler.connectors.BaseReposit
       }
       catch (IOException e)
       {
-        throw new LCFException("Could not get a canonical path",e);
+        throw new ACFException("Could not get a canonical path",e);
       }
     }
 
@@ -1029,7 +1029,7 @@ public class FileConnector extends org.apache.acf.crawler.connectors.BaseReposit
     *@return the next document identifier, or null if there are no more.
     */
     public String getNextIdentifier()
-      throws LCFException, ServiceInterruption
+      throws ACFException, ServiceInterruption
     {
       if (currentIndex == ids.length)
         return null;
@@ -1039,7 +1039,7 @@ public class FileConnector extends org.apache.acf.crawler.connectors.BaseReposit
     /** Close the stream.
     */
     public void close()
-      throws LCFException
+      throws ACFException
     {
       ids = null;
     }

@@ -36,7 +36,7 @@ public class UnRegister extends BaseAgentsInitializationCommand
     this.className = className;
   }
 
-  protected void doExecute(IThreadContext tc) throws LCFException
+  protected void doExecute(IThreadContext tc) throws ACFException
   {
     IAgentManager mgr = AgentManagerFactory.make(tc);
     mgr.unregisterAgent(className);
@@ -59,7 +59,7 @@ public class UnRegister extends BaseAgentsInitializationCommand
       unRegister.execute();
       System.err.println("Successfully unregistered agent '"+className+"'");
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       e.printStackTrace();
       System.exit(1);

@@ -103,7 +103,7 @@ public class GTSConnector extends org.apache.acf.agents.output.BaseOutputConnect
   /** Close the connection.  Call this before discarding the connection.
   */
   public void disconnect()
-    throws LCFException
+    throws ACFException
   {
     poster = null;
     super.disconnect();
@@ -111,13 +111,13 @@ public class GTSConnector extends org.apache.acf.agents.output.BaseOutputConnect
 
   /** Set up a session */
   protected void getSession()
-    throws LCFException
+    throws ACFException
   {
     if (poster == null)
     {
       String ingestURI = params.getParameter(GTSConfig.PARAM_INGESTURI);
       if (ingestURI == null)
-        throw new LCFException("Missing parameter '"+GTSConfig.PARAM_INGESTURI+"'");
+        throw new ACFException("Missing parameter '"+GTSConfig.PARAM_INGESTURI+"'");
       String userID = params.getParameter(GTSConfig.PARAM_USERID);
       String password = params.getObfuscatedParameter(GTSConfig.PARAM_PASSWORD);
       String realm = params.getParameter(GTSConfig.PARAM_REALM);
@@ -129,7 +129,7 @@ public class GTSConnector extends org.apache.acf.agents.output.BaseOutputConnect
   *@return the connection's status as a displayable string.
   */
   public String check()
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -206,7 +206,7 @@ public class GTSConnector extends org.apache.acf.agents.output.BaseOutputConnect
   *@return true if the mime type is indexable by this connector.
   */
   public boolean checkMimeTypeIndexable(String mimeType)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     return (ingestableMimeTypeMap.get(mimeType) != null);
   }
@@ -218,7 +218,7 @@ public class GTSConnector extends org.apache.acf.agents.output.BaseOutputConnect
   *@return true if the file is indexable.
   */
   public boolean checkDocumentIndexable(File localFile)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     if (!super.checkDocumentIndexable(localFile))
       return false;
@@ -242,7 +242,7 @@ public class GTSConnector extends org.apache.acf.agents.output.BaseOutputConnect
   * the document will not need to be sent again to the output data store.
   */
   public String getOutputDescription(OutputSpecification spec)
-    throws LCFException
+    throws ACFException
   {
     // The information we want in this string is:
     // (1) the collection name(s), in sorted order.
@@ -303,7 +303,7 @@ public class GTSConnector extends org.apache.acf.agents.output.BaseOutputConnect
   *@return the document status (accepted or permanently rejected).
   */
   public int addOrReplaceDocument(String documentURI, String outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     // Establish a session
     getSession();
@@ -336,7 +336,7 @@ public class GTSConnector extends org.apache.acf.agents.output.BaseOutputConnect
   *@param activities is the handle to an object that the implementer of an output connector may use to perform operations, such as logging processing activity.
   */
   public void removeDocument(String documentURI, String outputDescription, IOutputRemoveActivity activities)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     // Establish a session
     getSession();
@@ -362,7 +362,7 @@ public class GTSConnector extends org.apache.acf.agents.output.BaseOutputConnect
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     tabsArray.add("Appliance");
     out.print(
@@ -408,7 +408,7 @@ public class GTSConnector extends org.apache.acf.agents.output.BaseOutputConnect
   *@param tabName is the current tab name.
   */
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     String ingestURI = parameters.getParameter(org.apache.acf.agents.output.gts.GTSConfig.PARAM_INGESTURI);
     if (ingestURI == null)
@@ -480,7 +480,7 @@ public class GTSConnector extends org.apache.acf.agents.output.BaseOutputConnect
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
-    throws LCFException
+    throws ACFException
   {
     String ingestURI = variableContext.getParameter("ingesturi");
     if (ingestURI != null)
@@ -509,7 +509,7 @@ public class GTSConnector extends org.apache.acf.agents.output.BaseOutputConnect
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     out.print(
 "\n"+
@@ -559,7 +559,7 @@ public class GTSConnector extends org.apache.acf.agents.output.BaseOutputConnect
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputSpecificationHeader(IHTTPOutput out, OutputSpecification os, ArrayList tabsArray)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     tabsArray.add("Collections");
     tabsArray.add("Template");
@@ -593,7 +593,7 @@ public class GTSConnector extends org.apache.acf.agents.output.BaseOutputConnect
   *@param tabName is the current tab name.
   */
   public void outputSpecificationBody(IHTTPOutput out, OutputSpecification os, String tabName)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     int i = 0;
     String collectionName = null;
@@ -671,7 +671,7 @@ public class GTSConnector extends org.apache.acf.agents.output.BaseOutputConnect
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   public String processSpecificationPost(IPostParameters variableContext, OutputSpecification os)
-    throws LCFException
+    throws ACFException
   {
     // Collection name
     String collectionName = variableContext.getParameter("gts_collectionname");
@@ -722,7 +722,7 @@ public class GTSConnector extends org.apache.acf.agents.output.BaseOutputConnect
   *@param os is the current output specification for this job.
   */
   public void viewSpecification(IHTTPOutput out, OutputSpecification os)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     int i = 0;
     String collectionName = null;
@@ -888,7 +888,7 @@ public class GTSConnector extends org.apache.acf.agents.output.BaseOutputConnect
   * The code here has been lifted algorithmically from products/ShareCrawler/Fingerprinter.pas.
   */
   protected static int fingerprint(File file)
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -962,7 +962,7 @@ public class GTSConnector extends org.apache.acf.agents.output.BaseOutputConnect
     }
     catch (InterruptedIOException e)
     {
-      throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
     }
     catch (IOException e)
     {
@@ -1003,7 +1003,7 @@ public class GTSConnector extends org.apache.acf.agents.output.BaseOutputConnect
   * does not seem to be an OLE compound document.
   */
   protected static String getAppName(File documentPath)
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -1030,7 +1030,7 @@ public class GTSConnector extends org.apache.acf.agents.output.BaseOutputConnect
     }
     catch (InterruptedIOException e)
     {
-      throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
     }
     catch (Throwable e)
     {

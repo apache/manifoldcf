@@ -22,7 +22,7 @@ import org.apache.acf.core.interfaces.*;
 import org.apache.acf.agents.interfaces.*;
 import org.apache.acf.crawler.interfaces.*;
 import org.apache.acf.crawler.system.Logging;
-import org.apache.acf.crawler.system.LCF;
+import org.apache.acf.crawler.system.ACF;
 
 
 /** Get a livelink connection's information in printed form.
@@ -50,15 +50,15 @@ public class GetConnectionInfo
 
     try
     {
-      LCF.initializeEnvironment();
+      ACF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
       IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
       IRepositoryConnection connection = connectionManager.load(connectionName);
       if (connection == null)
-        throw new LCFException("Connection "+connectionName+" does not exist");
+        throw new ACFException("Connection "+connectionName+" does not exist");
 
       if (connection.getClassName() == null || !connection.getClassName().equals("org.apache.acf.crawler.connectors.livelink.LivelinkConnector"))
-        throw new LCFException("Command can only be used on working Livelink connections.");
+        throw new ACFException("Command can only be used on working Livelink connections.");
 
       ConfigParams cfg = connection.getConfigParams();
 

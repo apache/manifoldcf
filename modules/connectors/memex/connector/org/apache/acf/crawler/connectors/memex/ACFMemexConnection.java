@@ -29,10 +29,10 @@ import com.memex.mie.*;
 *
 * @author mxadmin
 */
-class LCFMemexConnection{
+class ACFMemexConnection{
 
   /**Class to extend the regular MemexConnection to deal with
-  * the fact the LCF connect method doesn't report authentication
+  * the fact the ACF connect method doesn't report authentication
   * failure immediately.
   */
 
@@ -43,7 +43,7 @@ class LCFMemexConnection{
   protected long checkExpireTime = -1L;
 
 
-  LCFMemexConnection(){
+  ACFMemexConnection(){
 
   }
 

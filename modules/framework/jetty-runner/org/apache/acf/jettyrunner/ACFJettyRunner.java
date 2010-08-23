@@ -41,13 +41,13 @@ import org.mortbay.jetty.servlet.FilterHolder;
 import org.mortbay.log.Logger;
 
 /**
- * Run LCF with jetty.
+ * Run ACF with jetty.
  * 
  */
-public class LCFJettyRunner
+public class ACFJettyRunner
 {
 
-  public static final String _rcsid = "@(#)$Id: LCFJettyRunner.java 964035 2010-07-14 12:55:26Z kwright $";
+  public static final String _rcsid = "@(#)$Id: ACFJettyRunner.java 964035 2010-07-14 12:55:26Z kwright $";
 
   public static final String agentShutdownSignal = org.apache.acf.agents.AgentRun.agentShutdownSignal;
 
@@ -63,7 +63,7 @@ public class LCFJettyRunner
   
   protected Server server;
   
-  public LCFJettyRunner( int port, String crawlerWarPath, String authorityServiceWarPath, String apiWarPath )
+  public ACFJettyRunner( int port, String crawlerWarPath, String authorityServiceWarPath, String apiWarPath )
   {
     server = new Server( port );    
     server.setStopAtShutdown( true );
@@ -83,7 +83,7 @@ public class LCFJettyRunner
   }
 
   public void start()
-    throws LCFException
+    throws ACFException
   {
     if(!server.isRunning() )
     {
@@ -93,13 +93,13 @@ public class LCFJettyRunner
       }
       catch (Exception e)
       {
-        throw new LCFException("Couldn't start: "+e.getMessage(),e);
+        throw new ACFException("Couldn't start: "+e.getMessage(),e);
       }
     }
   }
 
   public void stop()
-    throws LCFException
+    throws ACFException
   {
     if( server.isRunning() )
     {
@@ -109,7 +109,7 @@ public class LCFJettyRunner
       }
       catch (Exception e)
       {
-        throw new LCFException("Couldn't stop: "+e.getMessage(),e);
+        throw new ACFException("Couldn't stop: "+e.getMessage(),e);
       }
       try
       {
@@ -117,7 +117,7 @@ public class LCFJettyRunner
       }
       catch (InterruptedException e)
       {
-        throw new LCFException(e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException(e.getMessage(),e,ACFException.INTERRUPTED);
       }
     }
   }
@@ -127,11 +127,11 @@ public class LCFJettyRunner
    * @return the port number.
    */
   public int getLocalPort()
-    throws LCFException
+    throws ACFException
   {
     Connector[] conns = server.getConnectors();
     if (0 == conns.length) {
-      throw new LCFException("Jetty Server has no Connectors");
+      throw new ACFException("Jetty Server has no Connectors");
     }
     return conns[0].getLocalPort();
   }
@@ -143,7 +143,7 @@ public class LCFJettyRunner
   {
     if (args.length != 4 && args.length != 1 && args.length != 0)
     {
-      System.err.println("Usage: LCFJettyRunner [<port> [<crawler-war-path> <authority-service-war-path> <api-war-path>]]");
+      System.err.println("Usage: ACFJettyRunner [<port> [<crawler-war-path> <authority-service-war-path> <api-war-path>]]");
       System.exit(1);
     }
 
@@ -172,10 +172,10 @@ public class LCFJettyRunner
     }
     
     // Ready to begin in earnest...
-    System.setProperty(LCF.lcfConfigFileProperty,"./properties.xml");
+    System.setProperty(ACF.lcfConfigFileProperty,"./properties.xml");
     try
     {
-      LCF.initializeEnvironment();
+      ACF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
 
       // Clear the agents shutdown signal.
@@ -184,19 +184,19 @@ public class LCFJettyRunner
 
       // Grab a database handle, so we can use transactions later.
       IDBInterface database = DBInterfaceFactory.make(tc,
-        LCF.getMasterDatabaseName(),
-        LCF.getMasterDatabaseUsername(),
-        LCF.getMasterDatabasePassword());
+        ACF.getMasterDatabaseName(),
+        ACF.getMasterDatabaseUsername(),
+        ACF.getMasterDatabasePassword());
 
       // Do the basic initialization of the database and its schema
-      LCF.createSystemDatabase(tc,"","");
-      LCF.installTables(tc);
+      ACF.createSystemDatabase(tc,"","");
+      ACF.installTables(tc);
       IAgentManager agentMgr = AgentManagerFactory.make(tc);
       agentMgr.registerAgent("org.apache.acf.crawler.system.CrawlerAgent");
 
       // Read connectors configuration file (to figure out what we need to register)
       Connectors c = null;
-      File connectorConfigFile = LCF.getFileProperty(connectorsConfigurationFile);
+      File connectorConfigFile = ACF.getFileProperty(connectorsConfigurationFile);
       if (connectorConfigFile != null)
       {
         try
@@ -214,11 +214,11 @@ public class LCFJettyRunner
         }
         catch (FileNotFoundException e)
         {
-          throw new LCFException("Couldn't find connector configuration file: "+e.getMessage(),e);
+          throw new ACFException("Couldn't find connector configuration file: "+e.getMessage(),e);
         }
         catch (IOException e)
         {
-          throw new LCFException("Error reading connector configuration file: "+e.getMessage(),e);
+          throw new ACFException("Error reading connector configuration file: "+e.getMessage(),e);
         }
       }
       
@@ -245,7 +245,7 @@ public class LCFJettyRunner
             // Now that all jobs have been placed into an appropriate state, actually do the deregistration itself.
             mgr.unregisterConnector(className);
           }
-          catch (LCFException e)
+          catch (ACFException e)
           {
             database.signalRollback();
             throw e;
@@ -298,7 +298,7 @@ public class LCFJettyRunner
             // Now that all jobs have been placed into an appropriate state, actually do the deregistration itself.
             mgr.unregisterConnector(className);
           }
-          catch (LCFException e)
+          catch (ACFException e)
           {
             database.signalRollback();
             throw e;
@@ -342,7 +342,7 @@ public class LCFJettyRunner
               // For all connection names, notify all agents of the registration
               AgentManagerFactory.noteOutputConnectorRegistration(tc,connectionNames);
             }
-            catch (LCFException e)
+            catch (ACFException e)
             {
               database.signalRollback();
               throw e;
@@ -385,7 +385,7 @@ public class LCFJettyRunner
               // For each connection name, modify the jobs to note that the connector is now installed
               jobManager.noteConnectorRegistration(connectionNames);
             }
-            catch (LCFException e)
+            catch (ACFException e)
             {
               database.signalRollback();
               throw e;
@@ -402,14 +402,14 @@ public class LCFJettyRunner
             System.err.println("Successfully registered repository connector '"+className+"'");
           }
           else
-            throw new LCFException("Unrecognized connectors node type '"+cn.getType()+"'");
+            throw new ACFException("Unrecognized connectors node type '"+cn.getType()+"'");
         }
       }
       
       System.err.println("Starting jetty...");
       
       // Create a jetty instance
-      LCFJettyRunner jetty = new LCFJettyRunner(jettyPort,crawlerWarPath,authorityserviceWarPath,apiWarPath);
+      ACFJettyRunner jetty = new ACFJettyRunner(jettyPort,crawlerWarPath,authorityserviceWarPath,apiWarPath);
       // This will register a shutdown hook as well.
       jetty.start();
 
@@ -423,11 +423,11 @@ public class LCFJettyRunner
           break;
           
         // Start whatever agents need to be started
-        LCF.startAgents(tc);
+        ACF.startAgents(tc);
 
         try
         {
-          LCF.sleep(5000);
+          ACF.sleep(5000);
         }
         catch (InterruptedException e)
         {
@@ -436,7 +436,7 @@ public class LCFJettyRunner
       }
       System.err.println("Shutting down crawler...");
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       if (Logging.root != null)
         Logging.root.error("Exception: "+e.getMessage(),e);

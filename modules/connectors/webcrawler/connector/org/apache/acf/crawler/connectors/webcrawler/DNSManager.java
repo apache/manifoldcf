@@ -24,7 +24,7 @@ import org.apache.acf.core.interfaces.*;
 import org.apache.acf.crawler.interfaces.*;
 import org.apache.acf.authorities.interfaces.*;
 import org.apache.acf.crawler.interfaces.CacheKeyFactory;
-import org.apache.acf.crawler.system.LCF;
+import org.apache.acf.crawler.system.ACF;
 import org.apache.acf.crawler.system.Logging;
 
 
@@ -55,7 +55,7 @@ public class DNSManager extends org.apache.acf.core.database.BaseTable
   *@param database is the database handle.
   */
   public DNSManager(IThreadContext tc, IDBInterface database)
-    throws LCFException
+    throws ACFException
   {
     super(database,"dnsdata");
     cacheManager = CacheManagerFactory.make(tc);
@@ -64,7 +64,7 @@ public class DNSManager extends org.apache.acf.core.database.BaseTable
   /** Install the manager.
   */
   public void install()
-    throws LCFException
+    throws ACFException
   {
     // Standard practice: outer loop, no transactions
     while (true)
@@ -99,7 +99,7 @@ public class DNSManager extends org.apache.acf.core.database.BaseTable
   /** Uninstall the manager.
   */
   public void deinstall()
-    throws LCFException
+    throws ACFException
   {
     performDrop(null);
   }
@@ -108,7 +108,7 @@ public class DNSManager extends org.apache.acf.core.database.BaseTable
   *@return null if there is no available cached version of this info.
   */
   public DNSInfo lookup(String hostName, long currentTime)
-    throws LCFException
+    throws ACFException
   {
     // Build description objects
     HostDescription[] objectDescriptions = new HostDescription[1];
@@ -133,7 +133,7 @@ public class DNSManager extends org.apache.acf.core.database.BaseTable
   *@param expirationTime is the time this data should expire.
   */
   public void writeDNSData(String hostName, String fqdn, String ipaddress, long expirationTime)
-    throws LCFException
+    throws ACFException
   {
     StringSetBuffer ssb = new StringSetBuffer();
     ssb.add(getDNSKey(hostName));
@@ -173,7 +173,7 @@ public class DNSManager extends org.apache.acf.core.database.BaseTable
         }
         cacheManager.invalidateKeys(ch);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         signalRollback();
         throw e;
@@ -209,7 +209,7 @@ public class DNSManager extends org.apache.acf.core.database.BaseTable
   *@return null if the data doesn't exist at all.  Return DNS data if it does.
   */
   protected DNSInfo readDNSInfo(String hostName)
-    throws LCFException
+    throws ACFException
   {
     ArrayList list = new ArrayList();
     list.add(hostName);
@@ -403,7 +403,7 @@ public class DNSManager extends org.apache.acf.core.database.BaseTable
     * @return the newly created objects to cache, or null, if any object cannot be created.
     *  The order of the returned objects must correspond to the order of the object descriptinos.
     */
-    public Object[] create(ICacheDescription[] objectDescriptions) throws LCFException
+    public Object[] create(ICacheDescription[] objectDescriptions) throws ACFException
     {
       // I'm not expecting multiple values to be request, so it's OK to walk through the objects
       // and do a request at a time.
@@ -430,7 +430,7 @@ public class DNSManager extends org.apache.acf.core.database.BaseTable
     * @param objectDescription is the unique identifier of the object.
     * @param cachedObject is the cached object.
     */
-    public void exists(ICacheDescription objectDescription, Object cachedObject) throws LCFException
+    public void exists(ICacheDescription objectDescription, Object cachedObject) throws ACFException
     {
       // Cast what came in as what it really is
       HostDescription objectDesc = (HostDescription)objectDescription;
@@ -442,7 +442,7 @@ public class DNSManager extends org.apache.acf.core.database.BaseTable
     /** Perform the desired operation.  This method is called after either createGetObject()
     * or exists() is called for every requested object.
     */
-    public void execute() throws LCFException
+    public void execute() throws ACFException
     {
       // Does nothing; we only want to fetch objects in this cacher.
     }

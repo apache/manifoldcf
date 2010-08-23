@@ -41,7 +41,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   protected ArrayList tablesToReindex = new ArrayList();
 
   public DBInterfacePostgreSQL(IThreadContext tc, String databaseName, String userName, String password)
-    throws LCFException
+    throws ACFException
   {
     super(tc,_url+databaseName,_driver,databaseName,userName,password);
     cacheKey = CacheKeyFactory.makeDatabaseKey(this.databaseName);
@@ -51,7 +51,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   * database communication.
   */
   public void openDatabase()
-    throws LCFException
+    throws ACFException
   {
     // Nothing to do
   }
@@ -60,7 +60,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   * all database communication.
   */
   public void closeDatabase()
-    throws LCFException
+    throws ACFException
   {
     // Nothing to do
   }
@@ -77,7 +77,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param tableName is the name of the table.
   */
   public void performLock(String tableName)
-    throws LCFException
+    throws ACFException
   {
     performModification("LOCK TABLE "+tableName+" IN EXCLUSIVE MODE",null,null);
   }
@@ -89,7 +89,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param parameterMap is the map of column name/values to write.
   */
   public void performInsert(String tableName, Map parameterMap, StringSet invalidateKeys)
-    throws LCFException
+    throws ACFException
   {
     ArrayList paramArray = new ArrayList();
 
@@ -142,7 +142,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param whereParameters are the parameters that come with the where clause, if any.
   */
   public void performUpdate(String tableName, Map parameterMap, String whereClause, ArrayList whereParameters, StringSet invalidateKeys)
-    throws LCFException
+    throws ACFException
   {
     ArrayList paramArray = new ArrayList();
 
@@ -207,7 +207,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param whereParameters are the parameters that come with the where clause, if any.
   */
   public void performDelete(String tableName, String whereClause, ArrayList whereParameters, StringSet invalidateKeys)
-    throws LCFException
+    throws ACFException
   {
     StringBuffer bf = new StringBuffer();
     bf.append("DELETE FROM ");
@@ -233,7 +233,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
   public void performCreate(String tableName, Map columnMap, StringSet invalidateKeys)
-    throws LCFException
+    throws ACFException
   {
     StringBuffer queryBuffer = new StringBuffer("CREATE TABLE ");
     queryBuffer.append(tableName);
@@ -293,7 +293,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   */
   public void performAlter(String tableName, Map columnMap, Map columnModifyMap, ArrayList columnDeleteList,
     StringSet invalidateKeys)
-    throws LCFException
+    throws ACFException
   {
     beginTransaction(TRANSACTION_ENCLOSING);
     try
@@ -347,7 +347,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
         }
       }
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -385,7 +385,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   * in the index, in order.
   */
   public void addTableIndex(String tableName, boolean unique, ArrayList columnList)
-    throws LCFException
+    throws ACFException
   {
     String[] columns = new String[columnList.size()];
     int i = 0;
@@ -403,7 +403,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param description is the index description.
   */
   public void performAddIndex(String indexName, String tableName, IndexDescription description)
-    throws LCFException
+    throws ACFException
   {
     String[] columnNames = description.getColumnNames();
     if (columnNames.length == 0)
@@ -438,7 +438,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param indexName is the name of the index to remove.
   */
   public void performRemoveIndex(String indexName)
-    throws LCFException
+    throws ACFException
   {
     performModification("DROP INDEX "+indexName,null,null);
   }
@@ -447,7 +447,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param tableName is the name of the table to analyze/calculate statistics for.
   */
   public void analyzeTable(String tableName)
-    throws LCFException
+    throws ACFException
   {
     if (getTransactionID() == null)
       performModification("ANALYZE "+tableName,null,null);
@@ -459,7 +459,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param tableName is the name of the table to rebuild indexes for.
   */
   public void reindexTable(String tableName)
-    throws LCFException
+    throws ACFException
   {
     if (getTransactionID() == null)
       performModification("REINDEX TABLE "+tableName,null,null);
@@ -472,7 +472,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
   public void performDrop(String tableName, StringSet invalidateKeys)
-    throws LCFException
+    throws ACFException
   {
     performModification("DROP TABLE "+tableName,null,invalidateKeys);
   }
@@ -483,7 +483,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
   public void createUserAndDatabase(String adminUserName, String adminPassword, StringSet invalidateKeys)
-    throws LCFException
+    throws ACFException
   {
     // Create a connection to the master database, using the credentials supplied
     Database masterDatabase = new Database(context,_url+"template1",_driver,"template1",adminUserName,adminPassword);
@@ -509,7 +509,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
 	  userName+" ENCODING="+quoteSQLString("utf8"),null,null,invalidateKeys,null,false,0,null,null);
       }
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       throw reinterpretException(e);
     }
@@ -521,7 +521,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
   public void dropUserAndDatabase(String adminUserName, String adminPassword, StringSet invalidateKeys)
-    throws LCFException
+    throws ACFException
   {
     // Create a connection to the master database, using the credentials supplied
     Database masterDatabase = new Database(context,_url+"template1",_driver,"template1",adminUserName,adminPassword);
@@ -532,7 +532,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
       // Drop user
       masterDatabase.executeQuery("DROP USER "+userName,null,null,invalidateKeys,null,false,0,null,null);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       throw reinterpretException(e);
     }
@@ -543,11 +543,11 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param theException is the exception to reinterpret
   *@return the reinterpreted exception to throw.
   */
-  protected LCFException reinterpretException(LCFException theException)
+  protected ACFException reinterpretException(ACFException theException)
   {
     if (Logging.db.isDebugEnabled())
       Logging.db.debug("Reinterpreting exception '"+theException.getMessage()+"'.  The exception type is "+Integer.toString(theException.getErrorCode()));
-    if (theException.getErrorCode() != LCFException.DATABASE_CONNECTION_ERROR)
+    if (theException.getErrorCode() != ACFException.DATABASE_CONNECTION_ERROR)
       return theException;
     Throwable e = theException.getCause();
     if (!(e instanceof java.sql.SQLException))
@@ -559,15 +559,15 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
     String sqlState = sqlException.getSQLState();
     // Could not serialize
     if (sqlState != null && sqlState.equals("40001"))
-      return new LCFException(message,e,LCFException.DATABASE_TRANSACTION_ABORT);
+      return new ACFException(message,e,ACFException.DATABASE_TRANSACTION_ABORT);
     // Deadlock detected
     if (sqlState != null && sqlState.equals("40P01"))
-      return new LCFException(message,e,LCFException.DATABASE_TRANSACTION_ABORT);
+      return new ACFException(message,e,ACFException.DATABASE_TRANSACTION_ABORT);
     // Note well: We also have to treat 'duplicate key' as a transaction abort, since this is what you get when two threads attempt to
     // insert the same row.  (Everything only works, then, as long as there is a unique constraint corresponding to every bad insert that
     // one could make.)
     if (sqlState != null && sqlState.equals("23505"))
-      return new LCFException(message,e,LCFException.DATABASE_TRANSACTION_ABORT);
+      return new ACFException(message,e,ACFException.DATABASE_TRANSACTION_ABORT);
     if (Logging.db.isDebugEnabled())
       Logging.db.debug("Exception "+theException.getMessage()+" is NOT a transaction abort signal");
     return theException;
@@ -579,13 +579,13 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param invalidateKeys are the cache keys to invalidate.
   */
   public void performModification(String query, ArrayList params, StringSet invalidateKeys)
-    throws LCFException
+    throws ACFException
   {
     try
     {
       executeQuery(query,params,null,invalidateKeys,null,false,0,null,null);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       throw reinterpretException(e);
     }
@@ -599,7 +599,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   * table doesn't exist.
   */
   public Map getTableSchema(String tableName, StringSet cacheKeys, String queryClass)
-    throws LCFException
+    throws ACFException
   {
     StringBuffer query = new StringBuffer();
     query.append("SELECT pg_attribute.attname AS \"Field\",");
@@ -641,7 +641,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@return a map of index names and IndexDescription objects, describing the indexes.
   */
   public Map getTableIndexes(String tableName, StringSet cacheKeys, String queryClass)
-    throws LCFException
+    throws ACFException
   {
     Map rval = new HashMap();
 
@@ -664,7 +664,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
       {
         beforeMatch = indexdef.indexOf("CREATE INDEX ",parsePosition);
         if (beforeMatch == -1)
-          throw new LCFException("Cannot parse index description: '"+indexdef+"'");
+          throw new ACFException("Cannot parse index description: '"+indexdef+"'");
         isUnique = false;
         parsePosition += "CREATE INDEX ".length();
       }
@@ -676,12 +676,12 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
 
       int afterMatch = indexdef.indexOf(" ON",parsePosition);
       if (afterMatch == -1)
-        throw new LCFException("Cannot parse index description: '"+indexdef+"'");
+        throw new ACFException("Cannot parse index description: '"+indexdef+"'");
       String indexName = indexdef.substring(parsePosition,afterMatch);
       parsePosition = afterMatch + " ON".length();
       int parenPosition = indexdef.indexOf("(",parsePosition);
       if (parenPosition == -1)
-        throw new LCFException("Cannot parse index description: '"+indexdef+"'");
+        throw new ACFException("Cannot parse index description: '"+indexdef+"'");
       parsePosition = parenPosition + 1;
       ArrayList columns = new ArrayList();
       while (true)
@@ -691,7 +691,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
         if (nextIndex == -1)
           nextIndex = nextParenIndex;
         if (nextIndex == -1)
-          throw new LCFException("Cannot parse index description: '"+indexdef+"'");
+          throw new ACFException("Cannot parse index description: '"+indexdef+"'");
         if (nextParenIndex != -1 && nextParenIndex < nextIndex)
           nextIndex = nextParenIndex;
 
@@ -722,7 +722,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@return the set of tables.
   */
   public StringSet getAllTables(StringSet cacheKeys, String queryClass)
-    throws LCFException
+    throws ACFException
   {
     IResultSet set = performQuery("SELECT relname FROM pg_class",null,cacheKeys,queryClass);
     StringSetBuffer ssb = new StringSetBuffer();
@@ -747,13 +747,13 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@return a resultset.
   */
   public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass)
-    throws LCFException
+    throws ACFException
   {
     try
     {
       return executeQuery(query,params,cacheKeys,null,queryClass,true,-1,null,null);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       throw reinterpretException(e);
     }
@@ -771,13 +771,13 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   */
   public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass,
     int maxResults, ILimitChecker returnLimit)
-    throws LCFException
+    throws ACFException
   {
     try
     {
       return executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,null,returnLimit);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       throw reinterpretException(e);
     }
@@ -796,13 +796,13 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   */
   public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass,
     int maxResults, ResultSpecification resultSpec, ILimitChecker returnLimit)
-    throws LCFException
+    throws ACFException
   {
     try
     {
       return executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,resultSpec,returnLimit);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       throw reinterpretException(e);
     }
@@ -894,7 +894,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   * signalRollback() method, and rethrow the exception.  Then, after that a finally{} block which calls endTransaction().
   */
   public void beginTransaction()
-    throws LCFException
+    throws ACFException
   {
     beginTransaction(TRANSACTION_ENCLOSING);
   }
@@ -909,7 +909,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param transactionType is the kind of transaction desired.
   */
   public void beginTransaction(int transactionType)
-    throws LCFException
+    throws ACFException
   {
     if (getCurrentTransactionType() == TRANSACTION_SERIALIZED)
     {
@@ -939,7 +939,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
         super.endTransaction();
         throw e;
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         super.signalRollback();
         super.endTransaction();
@@ -947,7 +947,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
       }
       break;
     default:
-      throw new LCFException("Bad transaction type: "+Integer.toString(transactionType));
+      throw new ACFException("Bad transaction type: "+Integer.toString(transactionType));
     }
   }
 
@@ -963,7 +963,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   * signalRollback() was called within the transaction).
   */
   public void endTransaction()
-    throws LCFException
+    throws ACFException
   {
     if (serializableDepth > 0)
     {
@@ -991,28 +991,28 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
 
   /** Abstract method to start a transaction */
   protected void startATransaction()
-    throws LCFException
+    throws ACFException
   {
     executeViaThread(connection,"START TRANSACTION",null,false,0,null,null);
   }
 
   /** Abstract method to commit a transaction */
   protected void commitCurrentTransaction()
-    throws LCFException
+    throws ACFException
   {
     executeViaThread(connection,"COMMIT",null,false,0,null,null);
   }
   
   /** Abstract method to roll back a transaction */
   protected void rollbackCurrentTransaction()
-    throws LCFException
+    throws ACFException
   {
     executeViaThread(connection,"ROLLBACK",null,false,0,null,null);
   }
   
   /** Abstract method for explaining a query */
   protected void explainQuery(String query, ArrayList params)
-    throws LCFException
+    throws ACFException
   {
     IResultSet x = executeUncachedQuery("EXPLAIN "+query,params,true,
       -1,null,null);

@@ -21,7 +21,7 @@ package org.apache.acf.agents;
 import java.io.*;
 import org.apache.acf.core.interfaces.*;
 import org.apache.acf.agents.interfaces.*;
-import org.apache.acf.agents.system.LCF;
+import org.apache.acf.agents.system.ACF;
 import java.util.*;
 
 /** This class is used to define an output connection.
@@ -51,7 +51,7 @@ public class DefineOutputConnection
 
                 try
                 {
-                        LCF.initializeEnvironment();
+                        ACF.initializeEnvironment();
                         IThreadContext tc = ThreadContextFactory.make();
                         IOutputConnectionManager mgr = OutputConnectionManagerFactory.make(tc);
                         IOutputConnection conn = mgr.create();
@@ -67,7 +67,7 @@ public class DefineOutputConnection
                                 // Parse
                                 int pos = arg.indexOf("=");
                                 if (pos == -1)
-                                        throw new LCFException("Argument missing =");
+                                        throw new ACFException("Argument missing =");
                                 String name = arg.substring(0,pos);
                                 String value = arg.substring(pos+1);
                                 if (name.endsWith("assword"))

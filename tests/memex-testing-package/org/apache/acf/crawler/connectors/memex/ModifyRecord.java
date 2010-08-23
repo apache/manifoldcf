@@ -52,7 +52,7 @@ public class ModifyRecord
                         }
                         System.err.println("Successfully modified");
                 }
-                catch (LCFException e)
+                catch (ACFException e)
                 {
                         e.printStackTrace(System.err);
                         System.exit(2);

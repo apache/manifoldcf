@@ -20,7 +20,7 @@ package org.apache.acf.authorityservice.servlet;
 
 import org.apache.acf.core.interfaces.*;
 import org.apache.acf.authorities.interfaces.*;
-import org.apache.acf.authorities.system.LCF;
+import org.apache.acf.authorities.system.ACF;
 import org.apache.acf.authorities.system.Logging;
 import org.apache.acf.authorities.system.RequestQueue;
 import org.apache.acf.authorities.system.AuthRequest;
@@ -63,11 +63,11 @@ public class UserACLServlet extends HttpServlet
     try
     {
       // Set up the environment
-      LCF.initializeEnvironment();
+      ACF.initializeEnvironment();
       IThreadContext itc = ThreadContextFactory.make();
-      LCF.startSystem(itc);
+      ACF.startSystem(itc);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       Logging.misc.error("Error starting authority service: "+e.getMessage(),e);
       throw new ServletException("Error starting authority service: "+e.getMessage(),e);
@@ -82,11 +82,11 @@ public class UserACLServlet extends HttpServlet
     try
     {
       // Set up the environment
-      LCF.initializeEnvironment();
+      ACF.initializeEnvironment();
       IThreadContext itc = ThreadContextFactory.make();
-      LCF.stopSystem(itc);
+      ACF.stopSystem(itc);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       Logging.misc.error("Error shutting down authority service: "+e.getMessage(),e);
     }
@@ -101,7 +101,7 @@ public class UserACLServlet extends HttpServlet
     try
     {
       // Set up the environment
-      LCF.initializeEnvironment();
+      ACF.initializeEnvironment();
 
       Logging.authorityService.debug("Received request");
 
@@ -137,11 +137,11 @@ public class UserACLServlet extends HttpServlet
         Logging.authorityService.debug("Received authority request for user '"+userID+"'");
       }
 
-      RequestQueue queue = LCF.getRequestQueue();
+      RequestQueue queue = ACF.getRequestQueue();
       if (queue == null)
       {
         // System wasn't started; return unauthorized
-        throw new LCFException("System improperly initialized");
+        throw new ACFException("System improperly initialized");
       }
 
       IThreadContext itc = ThreadContextFactory.make();
@@ -195,8 +195,8 @@ public class UserACLServlet extends HttpServlet
           if (exception != null)
           {
             // Exceptions are always bad now
-            // The LCFException here must disable access to the UI without causing a generic badness thing to happen, so use 403.
-            if (exception instanceof LCFException)
+            // The ACFException here must disable access to the UI without causing a generic badness thing to happen, so use 403.
+            if (exception instanceof ACFException)
               response.sendError(response.SC_FORBIDDEN,"From "+ar.getIdentifyingString()+": "+exception.getMessage());
             else
               response.sendError(response.SC_INTERNAL_SERVER_ERROR,"From "+ar.getIdentifyingString()+": "+exception.getMessage());
@@ -265,7 +265,7 @@ public class UserACLServlet extends HttpServlet
       Logging.authorityService.error("Unsupported encoding: "+e.getMessage(),e);
       throw new ServletException("Fatal error occurred: "+e.getMessage(),e);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       Logging.authorityService.error("User ACL servlet error: "+e.getMessage(),e);
       response.sendError(response.SC_INTERNAL_SERVER_ERROR,e.getMessage());

@@ -42,7 +42,7 @@ public abstract class BinaryInput
 
   /** Obtain the stream to pass to JDBC */
   public InputStream getStream()
-    throws LCFException
+    throws ACFException
   {
     if (stream == null)
       openStream();
@@ -51,7 +51,7 @@ public abstract class BinaryInput
 
   /** Obtain the length to pass to JDBC */
   public long getLength()
-    throws LCFException
+    throws ACFException
   {
     if (length == -1L)
       calculateLength();
@@ -60,7 +60,7 @@ public abstract class BinaryInput
 
   /** Close the stream we passed to JDBC */
   public void doneWithStream()
-    throws LCFException
+    throws ACFException
   {
     if (stream != null)
       closeStream();
@@ -71,7 +71,7 @@ public abstract class BinaryInput
 
   /** Discard the object */
   public void discard()
-    throws LCFException
+    throws ACFException
   {
     doneWithStream();
   }
@@ -79,14 +79,14 @@ public abstract class BinaryInput
   // Protected methods
 
   protected abstract void openStream()
-    throws LCFException;
+    throws ACFException;
 
   protected abstract void calculateLength()
-    throws LCFException;
+    throws ACFException;
 
   /** Close the stream */
   protected void closeStream()
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -95,11 +95,11 @@ public abstract class BinaryInput
     }
     catch (InterruptedIOException e)
     {
-      throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new LCFException("IO exception closing stream: "+e.getMessage(),e,LCFException.GENERAL_ERROR);
+      throw new ACFException("IO exception closing stream: "+e.getMessage(),e,ACFException.GENERAL_ERROR);
     }
   }
 

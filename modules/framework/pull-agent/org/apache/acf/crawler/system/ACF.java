@@ -1,4 +1,4 @@
-/* $Id: LCF.java 965362 2010-07-19 06:15:50Z kwright $ */
+/* $Id: ACF.java 965362 2010-07-19 06:15:50Z kwright $ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -25,9 +25,9 @@ import org.apache.acf.authorities.interfaces.*;
 import java.io.*;
 import java.util.*;
 
-public class LCF extends org.apache.acf.agents.system.LCF
+public class ACF extends org.apache.acf.agents.system.ACF
 {
-  public static final String _rcsid = "@(#)$Id: LCF.java 965362 2010-07-19 06:15:50Z kwright $";
+  public static final String _rcsid = "@(#)$Id: ACF.java 965362 2010-07-19 06:15:50Z kwright $";
 
   // Initialization flag.
   protected static boolean crawlerInitialized = false;
@@ -79,16 +79,16 @@ public class LCF extends org.apache.acf.agents.system.LCF
   /** Initialize environment.
   */
   public static void initializeEnvironment()
-    throws LCFException
+    throws ACFException
   {
     synchronized (initializeFlagLock)
     {
-      org.apache.acf.authorities.system.LCF.initializeEnvironment();
+      org.apache.acf.authorities.system.ACF.initializeEnvironment();
       
       if (crawlerInitialized)
         return;
       
-      org.apache.acf.agents.system.LCF.initializeEnvironment();
+      org.apache.acf.agents.system.ACF.initializeEnvironment();
       Logging.initializeLoggers();
       Logging.setLogLevels();
       crawlerInitialized = true;
@@ -100,12 +100,12 @@ public class LCF extends org.apache.acf.agents.system.LCF
   *@param threadcontext is the thread context.
   */
   public static void installSystemTables(IThreadContext threadcontext)
-    throws LCFException
+    throws ACFException
   {
     IConnectorManager repConnMgr = ConnectorManagerFactory.make(threadcontext);
     IRepositoryConnectionManager repCon = RepositoryConnectionManagerFactory.make(threadcontext);
     IJobManager jobManager = JobManagerFactory.make(threadcontext);
-    org.apache.acf.authorities.system.LCF.installSystemTables(threadcontext);
+    org.apache.acf.authorities.system.ACF.installSystemTables(threadcontext);
     repConnMgr.install();
     repCon.install();
     jobManager.install();
@@ -115,9 +115,9 @@ public class LCF extends org.apache.acf.agents.system.LCF
   *@param threadcontext is the thread context.
   */
   public static void deinstallSystemTables(IThreadContext threadcontext)
-    throws LCFException
+    throws ACFException
   {
-    LCFException se = null;
+    ACFException se = null;
 
     IConnectorManager repConnMgr = ConnectorManagerFactory.make(threadcontext);
     IRepositoryConnectionManager repCon = RepositoryConnectionManagerFactory.make(threadcontext);
@@ -125,7 +125,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
     jobManager.deinstall();
     repCon.deinstall();
     repConnMgr.deinstall();
-    org.apache.acf.authorities.system.LCF.deinstallSystemTables(threadcontext);
+    org.apache.acf.authorities.system.ACF.deinstallSystemTables(threadcontext);
     if (se != null)
       throw se;
   }
@@ -134,7 +134,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
   /** Start everything.
   */
   public static void startSystem(IThreadContext threadContext)
-    throws LCFException
+    throws ACFException
   {
     Logging.root.info("Starting up pull-agent...");
     synchronized (startupLock)
@@ -145,7 +145,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
         maxThreads = "100";
       numWorkerThreads = new Integer(maxThreads).intValue();
       if (numWorkerThreads < 1 || numWorkerThreads > 300)
-        throw new LCFException("Illegal value for the number of worker threads");
+        throw new ACFException("Illegal value for the number of worker threads");
       String maxDeleteThreads = getProperty(deleteThreadCountProperty);
       if (maxDeleteThreads == null)
         maxDeleteThreads = "10";
@@ -154,22 +154,22 @@ public class LCF extends org.apache.acf.agents.system.LCF
         maxExpireThreads = "10";
       numDeleteThreads = new Integer(maxDeleteThreads).intValue();
       if (numDeleteThreads < 1 || numDeleteThreads > 300)
-        throw new LCFException("Illegal value for the number of delete threads");
+        throw new ACFException("Illegal value for the number of delete threads");
       numExpireThreads = new Integer(maxExpireThreads).intValue();
       if (numExpireThreads < 1 || numExpireThreads > 300)
-        throw new LCFException("Illegal value for the number of expire threads");
+        throw new ACFException("Illegal value for the number of expire threads");
       String lowWaterFactorString = getProperty(lowWaterFactorProperty);
       if (lowWaterFactorString == null)
         lowWaterFactorString = "5";
       lowWaterFactor = new Float(lowWaterFactorString).floatValue();
       if (lowWaterFactor < 1.0 || lowWaterFactor > 1000.0)
-        throw new LCFException("Illegal value for the low water factor");
+        throw new ACFException("Illegal value for the low water factor");
       String stuffAmtFactorString = getProperty(stuffAmtFactorProperty);
       if (stuffAmtFactorString == null)
         stuffAmtFactorString = "2";
       stuffAmtFactor = new Float(stuffAmtFactorString).floatValue();
       if (stuffAmtFactor < 0.1 || stuffAmtFactor > 1000.0)
-        throw new LCFException("Illegal value for the stuffing amount factor");
+        throw new ACFException("Illegal value for the stuffing amount factor");
 
 
       // Create the threads and objects.  This MUST be completed before there is any chance of "shutdownSystem" getting called.
@@ -324,10 +324,10 @@ public class LCF extends org.apache.acf.agents.system.LCF
       catch (Throwable e)
       {
         // Severe error on initialization
-        if (e instanceof LCFException)
+        if (e instanceof ACFException)
         {
           // Deal with interrupted exception gracefully, because it means somebody is trying to shut us down before we got started.
-          if (((LCFException)e).getErrorCode() == LCFException.INTERRUPTED)
+          if (((ACFException)e).getErrorCode() == ACFException.INTERRUPTED)
             return;
         }
         System.err.println("agents process could not start - shutting down");
@@ -340,7 +340,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
   /** Stop the system.
   */
   public static void stopSystem(IThreadContext threadContext)
-    throws LCFException
+    throws ACFException
   {
     Logging.root.info("Shutting down pull-agent...");
     synchronized (startupLock)
@@ -435,7 +435,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
         // Now, wait for all threads to die.
         try
         {
-          LCF.sleep(1000L);
+          ACF.sleep(1000L);
         }
         catch (InterruptedException e)
         {
@@ -574,14 +574,14 @@ public class LCF extends org.apache.acf.agents.system.LCF
 
   /** Atomically export the crawler configuration */
   public static void exportConfiguration(IThreadContext threadContext, String exportFilename)
-    throws LCFException
+    throws ACFException
   {
     // The basic idea here is that we open a zip stream, into which we dump all the pertinent information in a transactionally-consistent manner.
     // First, we need a database handle...
     IDBInterface database = DBInterfaceFactory.make(threadContext,
-      LCF.getMasterDatabaseName(),
-      LCF.getMasterDatabaseUsername(),
-      LCF.getMasterDatabasePassword());
+      ACF.getMasterDatabaseName(),
+      ACF.getMasterDatabaseUsername(),
+      ACF.getMasterDatabasePassword());
     // Also create the following managers, which will handle the actual details of writing configuration data
     IOutputConnectionManager outputManager = OutputConnectionManagerFactory.make(threadContext);
     IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(threadContext);
@@ -631,7 +631,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
 
             // All done
           }
-          catch (LCFException e)
+          catch (ACFException e)
           {
             database.signalRollback();
             throw e;
@@ -661,19 +661,19 @@ public class LCF extends org.apache.acf.agents.system.LCF
       // On error, delete any file we created
       outputFile.delete();
       // Convert I/O error into lcf exception
-      throw new LCFException("Error creating configuration file: "+e.getMessage(),e);
+      throw new ACFException("Error creating configuration file: "+e.getMessage(),e);
     }
   }
 
   /** Atomically import a crawler configuration */
   public static void importConfiguration(IThreadContext threadContext, String importFilename)
-    throws LCFException
+    throws ACFException
   {
     // First, we need a database handle...
     IDBInterface database = DBInterfaceFactory.make(threadContext,
-      LCF.getMasterDatabaseName(),
-      LCF.getMasterDatabaseUsername(),
-      LCF.getMasterDatabasePassword());
+      ACF.getMasterDatabaseName(),
+      ACF.getMasterDatabaseUsername(),
+      ACF.getMasterDatabasePassword());
     // Also create the following managers, which will handle the actual details of reading configuration data
     IOutputConnectionManager outputManager = OutputConnectionManagerFactory.make(threadContext);
     IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(threadContext);
@@ -713,13 +713,13 @@ public class LCF extends org.apache.acf.agents.system.LCF
               else if (name.equals("jobs"))
                 jobManager.importConfiguration(zis);
               else
-                throw new LCFException("Configuration file has an entry named '"+name+"' that I do not recognize");
+                throw new ACFException("Configuration file has an entry named '"+name+"' that I do not recognize");
               zis.closeEntry();
 
             }
             // All done!!
           }
-          catch (LCFException e)
+          catch (ACFException e)
           {
             database.signalRollback();
             throw e;
@@ -747,7 +747,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
     catch (java.io.IOException e)
     {
       // Convert I/O error into lcf exception
-      throw new LCFException("Error reading configuration file: "+e.getMessage(),e);
+      throw new ACFException("Error reading configuration file: "+e.getMessage(),e);
     }
   }
 
@@ -777,7 +777,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
   */
   public static void requeueDocumentsDueToCarrydown(IJobManager jobManager, DocumentDescription[] requeueCandidates,
     IRepositoryConnector connector, IRepositoryConnection connection, QueueTracker queueTracker, long currentTime)
-    throws LCFException
+    throws ACFException
   {
     // A list of document descriptions from finishDocuments() above represents those documents that may need to be requeued, for the
     // reason that carrydown information for those documents has changed.  In order to requeue, we need to calculate document priorities, however.
@@ -854,7 +854,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
   }
 
   public static void writeDocumentPriorities(IThreadContext threadContext, IRepositoryConnectionManager mgr, IJobManager jobManager, DocumentDescription[] descs, HashMap connectionMap, HashMap jobDescriptionMap, QueueTracker queueTracker, long currentTime)
-    throws LCFException
+    throws ACFException
   {
     if (Logging.scheduling.isDebugEnabled())
       Logging.scheduling.debug("Reprioritizing "+Integer.toString(descs.length)+" documents");
@@ -902,9 +902,9 @@ public class LCF extends org.apache.acf.agents.system.LCF
           RepositoryConnectorFactory.release(connector);
         }
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
-        if (e.getErrorCode() == LCFException.REPOSITORY_CONNECTION_ERROR)
+        if (e.getErrorCode() == ACFException.REPOSITORY_CONNECTION_ERROR)
         {
           binNames = new String[]{""};
         }
@@ -931,7 +931,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
   *@return true if the connection is in use, false otherwise.
   */
   public static boolean isOutputConnectionInUse(IThreadContext threadContext, String connName)
-    throws LCFException
+    throws ACFException
   {
     // Check with job manager.
     IJobManager jobManager = JobManagerFactory.make(threadContext);
@@ -943,7 +943,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
   *@param connectionNames are the names of the connections being deregistered.
   */
   public static void noteOutputConnectorDeregistration(IThreadContext threadContext, String[] connectionNames)
-    throws LCFException
+    throws ACFException
   {
     // Notify job manager
     IJobManager jobManager = JobManagerFactory.make(threadContext);
@@ -955,7 +955,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
   *@param connectionNames are the names of the connections being registered.
   */
   public static void noteOutputConnectorRegistration(IThreadContext threadContext, String[] connectionNames)
-    throws LCFException
+    throws ACFException
   {
     // Notify job manager
     IJobManager jobManager = JobManagerFactory.make(threadContext);
@@ -967,7 +967,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
   *@param connectionName is the output connection name.
   */
   public static void noteOutputConnectionChange(IThreadContext threadContext, String connectionName)
-    throws LCFException
+    throws ACFException
   {
     // Notify job manager
     IJobManager jobManager = JobManagerFactory.make(threadContext);
@@ -1010,7 +1010,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
   *@return the response, which cannot be null.
   */
   public static Configuration executeCommand(IThreadContext tc, String command, Configuration inputArgument)
-    throws LCFException
+    throws ACFException
   {
     Configuration rval = new Configuration();
     if (command.equals("job/list"))
@@ -1027,7 +1027,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
           rval.addChild(rval.getChildCount(),jobNode);
         }
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         createErrorNode(rval,e);
       }
@@ -1036,11 +1036,11 @@ public class LCF extends org.apache.acf.agents.system.LCF
     {
       // Get the job id from the argument
       if (inputArgument == null)
-        throw new LCFException("Input argument required");
+        throw new ACFException("Input argument required");
       
       String jobID = getRootArgument(inputArgument,API_JOBIDNODE);
       if (jobID == null)
-        throw new LCFException("Input argument must have '"+API_JOBIDNODE+"' field");
+        throw new ACFException("Input argument must have '"+API_JOBIDNODE+"' field");
       
       try
       {
@@ -1054,7 +1054,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
           rval.addChild(rval.getChildCount(),jobNode);
         }
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         createErrorNode(rval,e);
       }
@@ -1063,11 +1063,11 @@ public class LCF extends org.apache.acf.agents.system.LCF
     {
       // Get the job from the argument
       if (inputArgument == null)
-        throw new LCFException("Input argument required");
+        throw new ACFException("Input argument required");
 
       ConfigurationNode jobNode = findConfigurationNode(inputArgument,API_JOBNODE);
       if (jobNode == null)
-        throw new LCFException("Input argument must have '"+API_JOBNODE+"' field");
+        throw new ACFException("Input argument must have '"+API_JOBNODE+"' field");
       
       // Turn the configuration node into a JobDescription
       org.apache.acf.crawler.jobs.JobDescription job = new org.apache.acf.crawler.jobs.JobDescription();
@@ -1093,7 +1093,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
         response.setValue(job.getID().toString());
         rval.addChild(rval.getChildCount(),response);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         createErrorNode(rval,e);
       }
@@ -1102,18 +1102,18 @@ public class LCF extends org.apache.acf.agents.system.LCF
     {
       // Get the job id from the argument
       if (inputArgument == null)
-        throw new LCFException("Input argument required");
+        throw new ACFException("Input argument required");
       
       String jobID = getRootArgument(inputArgument,API_JOBIDNODE);
       if (jobID == null)
-        throw new LCFException("Input argument must have '"+API_JOBIDNODE+"' field");
+        throw new ACFException("Input argument must have '"+API_JOBIDNODE+"' field");
 
       try
       {
         IJobManager jobManager = JobManagerFactory.make(tc);
         jobManager.deleteJob(new Long(jobID));
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         createErrorNode(rval,e);
       }
@@ -1132,7 +1132,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
           rval.addChild(rval.getChildCount(),jobStatusNode);
         }
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         createErrorNode(rval,e);
       }
@@ -1141,11 +1141,11 @@ public class LCF extends org.apache.acf.agents.system.LCF
     {
       // Get the job id from the argument
       if (inputArgument == null)
-        throw new LCFException("Input argument required");
+        throw new ACFException("Input argument required");
       
       String jobID = getRootArgument(inputArgument,API_JOBIDNODE);
       if (jobID == null)
-        throw new LCFException("Input argument must have '"+API_JOBIDNODE+"' field");
+        throw new ACFException("Input argument must have '"+API_JOBIDNODE+"' field");
 
       try
       {
@@ -1158,7 +1158,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
           rval.addChild(rval.getChildCount(),jobStatusNode);
         }
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         createErrorNode(rval,e);
       }
@@ -1167,18 +1167,18 @@ public class LCF extends org.apache.acf.agents.system.LCF
     {
       // Get the job id from the argument
       if (inputArgument == null)
-        throw new LCFException("Input argument required");
+        throw new ACFException("Input argument required");
       
       String jobID = getRootArgument(inputArgument,API_JOBIDNODE);
       if (jobID == null)
-        throw new LCFException("Input argument must have '"+API_JOBIDNODE+"' field");
+        throw new ACFException("Input argument must have '"+API_JOBIDNODE+"' field");
 
       try
       {
         IJobManager jobManager = JobManagerFactory.make(tc);
         jobManager.manualStart(new Long(jobID));
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         createErrorNode(rval,e);
       }
@@ -1187,18 +1187,18 @@ public class LCF extends org.apache.acf.agents.system.LCF
     {
       // Get the job id from the argument
       if (inputArgument == null)
-        throw new LCFException("Input argument required");
+        throw new ACFException("Input argument required");
       
       String jobID = getRootArgument(inputArgument,API_JOBIDNODE);
       if (jobID == null)
-        throw new LCFException("Input argument must have '"+API_JOBIDNODE+"' field");
+        throw new ACFException("Input argument must have '"+API_JOBIDNODE+"' field");
 
       try
       {
         IJobManager jobManager = JobManagerFactory.make(tc);
         jobManager.manualAbort(new Long(jobID));
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         createErrorNode(rval,e);
       }
@@ -1208,18 +1208,18 @@ public class LCF extends org.apache.acf.agents.system.LCF
     {
       // Get the job id from the argument
       if (inputArgument == null)
-        throw new LCFException("Input argument required");
+        throw new ACFException("Input argument required");
       
       String jobID = getRootArgument(inputArgument,API_JOBIDNODE);
       if (jobID == null)
-        throw new LCFException("Input argument must have '"+API_JOBIDNODE+"' field");
+        throw new ACFException("Input argument must have '"+API_JOBIDNODE+"' field");
 
       try
       {
         IJobManager jobManager = JobManagerFactory.make(tc);
         jobManager.manualAbortRestart(new Long(jobID));
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         createErrorNode(rval,e);
       }
@@ -1228,18 +1228,18 @@ public class LCF extends org.apache.acf.agents.system.LCF
     {
       // Get the job id from the argument
       if (inputArgument == null)
-        throw new LCFException("Input argument required");
+        throw new ACFException("Input argument required");
       
       String jobID = getRootArgument(inputArgument,API_JOBIDNODE);
       if (jobID == null)
-        throw new LCFException("Input argument must have '"+API_JOBIDNODE+"' field");
+        throw new ACFException("Input argument must have '"+API_JOBIDNODE+"' field");
 
       try
       {
         IJobManager jobManager = JobManagerFactory.make(tc);
         jobManager.pauseJob(new Long(jobID));
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         createErrorNode(rval,e);
       }
@@ -1248,18 +1248,18 @@ public class LCF extends org.apache.acf.agents.system.LCF
     {
       // Get the job id from the argument
       if (inputArgument == null)
-        throw new LCFException("Input argument required");
+        throw new ACFException("Input argument required");
       
       String jobID = getRootArgument(inputArgument,API_JOBIDNODE);
       if (jobID == null)
-        throw new LCFException("Input argument must have '"+API_JOBIDNODE+"' field");
+        throw new ACFException("Input argument must have '"+API_JOBIDNODE+"' field");
 
       try
       {
         IJobManager jobManager = JobManagerFactory.make(tc);
         jobManager.restartJob(new Long(jobID));
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         createErrorNode(rval,e);
       }
@@ -1292,7 +1292,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
           rval.addChild(rval.getChildCount(),child);
         }
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         createErrorNode(rval,e);
       }
@@ -1325,7 +1325,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
           rval.addChild(rval.getChildCount(),child);
         }
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         createErrorNode(rval,e);
       }
@@ -1358,7 +1358,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
           rval.addChild(rval.getChildCount(),child);
         }
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         createErrorNode(rval,e);
       }
@@ -1377,7 +1377,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
           rval.addChild(rval.getChildCount(),connectionNode);
         }
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         createErrorNode(rval,e);
       }
@@ -1386,11 +1386,11 @@ public class LCF extends org.apache.acf.agents.system.LCF
     {
       // Get the job id from the argument
       if (inputArgument == null)
-        throw new LCFException("Input argument required");
+        throw new ACFException("Input argument required");
       
       String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
       if (connectionName == null)
-        throw new LCFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+        throw new ACFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
 
       try
       {
@@ -1404,7 +1404,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
           rval.addChild(rval.getChildCount(),connectionNode);
         }
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         createErrorNode(rval,e);
       }
@@ -1413,11 +1413,11 @@ public class LCF extends org.apache.acf.agents.system.LCF
     {
       // Get the connection from the argument
       if (inputArgument == null)
-        throw new LCFException("Input argument required");
+        throw new ACFException("Input argument required");
 
       ConfigurationNode connectionNode = findConfigurationNode(inputArgument,API_OUTPUTCONNECTIONNODE);
       if (connectionNode == null)
-        throw new LCFException("Input argument must have '"+API_OUTPUTCONNECTIONNODE+"' field");
+        throw new ACFException("Input argument must have '"+API_OUTPUTCONNECTIONNODE+"' field");
       
       // Turn the configuration node into an OutputConnection
       org.apache.acf.agents.outputconnection.OutputConnection outputConnection = new org.apache.acf.agents.outputconnection.OutputConnection();
@@ -1434,7 +1434,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
         response.setValue(outputConnection.getName());
         rval.addChild(rval.getChildCount(),response);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         createErrorNode(rval,e);
       }
@@ -1443,18 +1443,18 @@ public class LCF extends org.apache.acf.agents.system.LCF
     {
       // Get the job id from the argument
       if (inputArgument == null)
-        throw new LCFException("Input argument required");
+        throw new ACFException("Input argument required");
       
       String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
       if (connectionName == null)
-        throw new LCFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+        throw new ACFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
 
       try
       {
         IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
         connectionManager.delete(connectionName);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         createErrorNode(rval,e);
       }
@@ -1463,18 +1463,18 @@ public class LCF extends org.apache.acf.agents.system.LCF
     {
       // Get the job id from the argument
       if (inputArgument == null)
-        throw new LCFException("Input argument required");
+        throw new ACFException("Input argument required");
       
       String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
       if (connectionName == null)
-        throw new LCFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+        throw new ACFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
 
       try
       {
         IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
         IOutputConnection connection = connectionManager.load(connectionName);
         if (connection == null)
-          throw new LCFException("Connection '"+connectionName+"' does not exist");
+          throw new ACFException("Connection '"+connectionName+"' does not exist");
         
         String results;
         // Grab a connection handle, and call the test method
@@ -1483,7 +1483,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
         {
           results = connector.check();
         }
-        catch (LCFException e)
+        catch (ACFException e)
         {
           results = e.getMessage();
         }
@@ -1496,7 +1496,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
         response.setValue(results);
         rval.addChild(rval.getChildCount(),response);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         createErrorNode(rval,e);
       }
@@ -1507,19 +1507,19 @@ public class LCF extends org.apache.acf.agents.system.LCF
       String subcommand = command.substring("outputconnection/execute/".length());
       // We also need the connection name, and the command argument.
       if (inputArgument == null)
-        throw new LCFException("Input argument required");
+        throw new ACFException("Input argument required");
       
       String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
       if (connectionName == null)
-        throw new LCFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+        throw new ACFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
 
-      LCFException usageException = null;
+      ACFException usageException = null;
       try
       {
         IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
         IOutputConnection connection = connectionManager.load(connectionName);
         if (connection == null)
-          throw new LCFException("Connection '"+connectionName+"' does not exist");
+          throw new ACFException("Connection '"+connectionName+"' does not exist");
 
         // Grab a connection handle, and call the test method
         IOutputConnector connector = OutputConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
@@ -1527,7 +1527,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
         {
           connector.executeCommand(rval,subcommand,inputArgument);
         }
-        catch (LCFException e)
+        catch (ACFException e)
         {
           usageException = e;
         }
@@ -1536,7 +1536,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
           OutputConnectorFactory.release(connector);
         }
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         createErrorNode(rval,e);
       }
@@ -1557,7 +1557,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
           rval.addChild(rval.getChildCount(),connectionNode);
         }
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         createErrorNode(rval,e);
       }
@@ -1566,11 +1566,11 @@ public class LCF extends org.apache.acf.agents.system.LCF
     {
       // Get the job id from the argument
       if (inputArgument == null)
-        throw new LCFException("Input argument required");
+        throw new ACFException("Input argument required");
       
       String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
       if (connectionName == null)
-        throw new LCFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+        throw new ACFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
 
       try
       {
@@ -1584,7 +1584,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
           rval.addChild(rval.getChildCount(),connectionNode);
         }
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         createErrorNode(rval,e);
       }
@@ -1593,11 +1593,11 @@ public class LCF extends org.apache.acf.agents.system.LCF
     {
       // Get the connection from the argument
       if (inputArgument == null)
-        throw new LCFException("Input argument required");
+        throw new ACFException("Input argument required");
 
       ConfigurationNode connectionNode = findConfigurationNode(inputArgument,API_REPOSITORYCONNECTIONNODE);
       if (connectionNode == null)
-        throw new LCFException("Input argument must have '"+API_REPOSITORYCONNECTIONNODE+"' field");
+        throw new ACFException("Input argument must have '"+API_REPOSITORYCONNECTIONNODE+"' field");
       
       // Turn the configuration node into an OutputConnection
       org.apache.acf.crawler.repository.RepositoryConnection repositoryConnection = new org.apache.acf.crawler.repository.RepositoryConnection();
@@ -1614,7 +1614,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
         response.setValue(repositoryConnection.getName());
         rval.addChild(rval.getChildCount(),response);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         createErrorNode(rval,e);
       }
@@ -1623,18 +1623,18 @@ public class LCF extends org.apache.acf.agents.system.LCF
     {
       // Get the job id from the argument
       if (inputArgument == null)
-        throw new LCFException("Input argument required");
+        throw new ACFException("Input argument required");
       
       String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
       if (connectionName == null)
-        throw new LCFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+        throw new ACFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
 
       try
       {
         IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
         connectionManager.delete(connectionName);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         createErrorNode(rval,e);
       }
@@ -1643,18 +1643,18 @@ public class LCF extends org.apache.acf.agents.system.LCF
     {
       // Get the job id from the argument
       if (inputArgument == null)
-        throw new LCFException("Input argument required");
+        throw new ACFException("Input argument required");
       
       String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
       if (connectionName == null)
-        throw new LCFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+        throw new ACFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
 
       try
       {
         IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
         IRepositoryConnection connection = connectionManager.load(connectionName);
         if (connection == null)
-          throw new LCFException("Connection '"+connectionName+"' does not exist");
+          throw new ACFException("Connection '"+connectionName+"' does not exist");
         
         String results;
         // Grab a connection handle, and call the test method
@@ -1663,7 +1663,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
         {
           results = connector.check();
         }
-        catch (LCFException e)
+        catch (ACFException e)
         {
           results = e.getMessage();
         }
@@ -1676,7 +1676,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
         response.setValue(results);
         rval.addChild(rval.getChildCount(),response);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         createErrorNode(rval,e);
       }
@@ -1687,19 +1687,19 @@ public class LCF extends org.apache.acf.agents.system.LCF
       String subcommand = command.substring("repositoryconnection/execute/".length());
       // We also need the connection name, and the command argument.
       if (inputArgument == null)
-        throw new LCFException("Input argument required");
+        throw new ACFException("Input argument required");
       
       String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
       if (connectionName == null)
-        throw new LCFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+        throw new ACFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
 
-      LCFException usageException = null;
+      ACFException usageException = null;
       try
       {
         IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
         IRepositoryConnection connection = connectionManager.load(connectionName);
         if (connection == null)
-          throw new LCFException("Connection '"+connectionName+"' does not exist");
+          throw new ACFException("Connection '"+connectionName+"' does not exist");
 
         // Grab a connection handle, and call the test method
         IRepositoryConnector connector = RepositoryConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
@@ -1707,7 +1707,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
         {
           connector.executeCommand(rval,subcommand,inputArgument);
         }
-        catch (LCFException e)
+        catch (ACFException e)
         {
           usageException = e;
         }
@@ -1716,7 +1716,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
           RepositoryConnectorFactory.release(connector);
         }
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         createErrorNode(rval,e);
       }
@@ -1737,7 +1737,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
           rval.addChild(rval.getChildCount(),connectionNode);
         }
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         createErrorNode(rval,e);
       }
@@ -1746,11 +1746,11 @@ public class LCF extends org.apache.acf.agents.system.LCF
     {
       // Get the job id from the argument
       if (inputArgument == null)
-        throw new LCFException("Input argument required");
+        throw new ACFException("Input argument required");
       
       String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
       if (connectionName == null)
-        throw new LCFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+        throw new ACFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
 
       try
       {
@@ -1764,7 +1764,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
           rval.addChild(rval.getChildCount(),connectionNode);
         }
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         createErrorNode(rval,e);
       }
@@ -1773,11 +1773,11 @@ public class LCF extends org.apache.acf.agents.system.LCF
     {
       // Get the connection from the argument
       if (inputArgument == null)
-        throw new LCFException("Input argument required");
+        throw new ACFException("Input argument required");
 
       ConfigurationNode connectionNode = findConfigurationNode(inputArgument,API_AUTHORITYCONNECTIONNODE);
       if (connectionNode == null)
-        throw new LCFException("Input argument must have '"+API_AUTHORITYCONNECTIONNODE+"' field");
+        throw new ACFException("Input argument must have '"+API_AUTHORITYCONNECTIONNODE+"' field");
       
       // Turn the configuration node into an OutputConnection
       org.apache.acf.authorities.authority.AuthorityConnection authorityConnection = new org.apache.acf.authorities.authority.AuthorityConnection();
@@ -1794,7 +1794,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
         response.setValue(authorityConnection.getName());
         rval.addChild(rval.getChildCount(),response);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         createErrorNode(rval,e);
       }
@@ -1803,18 +1803,18 @@ public class LCF extends org.apache.acf.agents.system.LCF
     {
       // Get the job id from the argument
       if (inputArgument == null)
-        throw new LCFException("Input argument required");
+        throw new ACFException("Input argument required");
       
       String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
       if (connectionName == null)
-        throw new LCFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+        throw new ACFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
 
       try
       {
         IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
         connectionManager.delete(connectionName);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         createErrorNode(rval,e);
       }
@@ -1823,18 +1823,18 @@ public class LCF extends org.apache.acf.agents.system.LCF
     {
       // Get the job id from the argument
       if (inputArgument == null)
-        throw new LCFException("Input argument required");
+        throw new ACFException("Input argument required");
       
       String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
       if (connectionName == null)
-        throw new LCFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+        throw new ACFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
 
       try
       {
         IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
         IAuthorityConnection connection = connectionManager.load(connectionName);
         if (connection == null)
-          throw new LCFException("Connection '"+connectionName+"' does not exist");
+          throw new ACFException("Connection '"+connectionName+"' does not exist");
         
         String results;
         // Grab a connection handle, and call the test method
@@ -1843,7 +1843,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
         {
           results = connector.check();
         }
-        catch (LCFException e)
+        catch (ACFException e)
         {
           results = e.getMessage();
         }
@@ -1856,7 +1856,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
         response.setValue(results);
         rval.addChild(rval.getChildCount(),response);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         createErrorNode(rval,e);
       }
@@ -1898,7 +1898,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
       rval.addChild(rval.getChildCount(),error);
     }
     else
-      throw new LCFException("Unrecognized API command: "+command);
+      throw new ACFException("Unrecognized API command: "+command);
     
     return rval;
   }
@@ -1939,7 +1939,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
   *@param jobNode is the configuration node corresponding to the whole job itself.
   */
   protected static void processJobDescription(org.apache.acf.crawler.jobs.JobDescription jobDescription, ConfigurationNode jobNode)
-    throws LCFException
+    throws ACFException
   {
     // Walk through the node's children
     int i = 0;
@@ -1950,7 +1950,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
       if (childType.equals(JOBNODE_ID))
       {
         if (child.getValue() == null)
-          throw new LCFException("Job id node requires a value");
+          throw new ACFException("Job id node requires a value");
         jobDescription.setID(new Long(child.getValue()));
       }
       else if (childType.equals(JOBNODE_DESCRIPTION))
@@ -2009,7 +2009,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
         }
         catch (NumberFormatException e)
         {
-          throw new LCFException(e.getMessage(),e);
+          throw new ACFException(e.getMessage(),e);
         }
       }
       else if (childType.equals(JOBNODE_RECRAWLINTERVAL))
@@ -2039,12 +2039,12 @@ public class LCF extends org.apache.acf.agents.system.LCF
           else if (cn.getType().equals(JOBNODE_COUNT))
             hopCount = cn.getValue();
           else
-            throw new LCFException("Found an unexpected node type: '"+cn.getType()+"'");
+            throw new ACFException("Found an unexpected node type: '"+cn.getType()+"'");
         }
         if (linkType == null)
-          throw new LCFException("Missing required field: '"+JOBNODE_LINKTYPE+"'");
+          throw new ACFException("Missing required field: '"+JOBNODE_LINKTYPE+"'");
         if (hopCount == null)
-          throw new LCFException("Missing required field: '"+JOBNODE_COUNT+"'");
+          throw new ACFException("Missing required field: '"+JOBNODE_COUNT+"'");
         jobDescription.addHopCountFilter(linkType,new Long(hopCount));
       }
       else if (childType.equals(JOBNODE_SCHEDULE))
@@ -2098,14 +2098,14 @@ public class LCF extends org.apache.acf.agents.system.LCF
             minutesOfHour = processEnumeratedValues(scheduleField);
           }
           else
-            throw new LCFException("Unrecognized field in schedule record: '"+fieldType+"'");
+            throw new ACFException("Unrecognized field in schedule record: '"+fieldType+"'");
         }
         ScheduleRecord sr = new ScheduleRecord(dayOfWeek,monthOfYear,dayOfMonth,year,hourOfDay,minutesOfHour,timezone,duration);
         // Add the schedule record to the job.
         jobDescription.addScheduleRecord(sr);
       }
       else
-        throw new LCFException("Unrecognized job field: '"+childType+"'");
+        throw new ACFException("Unrecognized job field: '"+childType+"'");
     }
   }
 
@@ -2293,7 +2293,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
   }
   
   protected static EnumeratedValues processEnumeratedValues(ConfigurationNode fieldNode)
-    throws LCFException
+    throws ACFException
   {
     ArrayList values = new ArrayList();
     int i = 0;
@@ -2308,11 +2308,11 @@ public class LCF extends org.apache.acf.agents.system.LCF
         }
         catch (NumberFormatException e)
         {
-          throw new LCFException("Error processing enumerated value node: "+e.getMessage(),e);
+          throw new ACFException("Error processing enumerated value node: "+e.getMessage(),e);
         }
       }
       else
-        throw new LCFException("Error processing enumerated value nodes: Unrecognized node type '"+cn.getType()+"'");
+        throw new ACFException("Error processing enumerated value nodes: Unrecognized node type '"+cn.getType()+"'");
     }
     return new EnumeratedValues(values);
   }
@@ -2325,7 +2325,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
   }
 
   protected static Long interpretInterval(String interval)
-    throws LCFException
+    throws ACFException
   {
     if (interval == null || interval.equals("infinite"))
       return null;
@@ -2349,7 +2349,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
   }
 
   protected static int mapToStartMode(String startMethod)
-    throws LCFException
+    throws ACFException
   {
     if (startMethod.equals("schedule window start"))
       return IJobDescription.START_WINDOWBEGIN;
@@ -2358,7 +2358,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
     else if (startMethod.equals("manual"))
       return IJobDescription.START_DISABLE;
     else
-      throw new LCFException("Unrecognized start method: '"+startMethod+"'");
+      throw new ACFException("Unrecognized start method: '"+startMethod+"'");
   }
   
   protected static String runModeMap(int type)
@@ -2375,14 +2375,14 @@ public class LCF extends org.apache.acf.agents.system.LCF
   }
 
   protected static int mapToRunMode(String mode)
-    throws LCFException
+    throws ACFException
   {
     if (mode.equals("continuous"))
       return IJobDescription.TYPE_CONTINUOUS;
     else if (mode.equals("scan once"))
       return IJobDescription.TYPE_SPECIFIED;
     else
-      throw new LCFException("Unrecognized run method: '"+mode+"'");
+      throw new ACFException("Unrecognized run method: '"+mode+"'");
   }
   
   protected static String hopcountModeMap(int mode)
@@ -2401,7 +2401,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
   }
 
   protected static int mapToHopcountMode(String mode)
-    throws LCFException
+    throws ACFException
   {
     if (mode.equals("accurate"))
       return IJobDescription.HOPCOUNT_ACCURATE;
@@ -2410,7 +2410,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
     else if (mode.equals("never delete"))
       return IJobDescription.HOPCOUNT_NEVERDELETE;
     else
-      throw new LCFException("Unrecognized hopcount method: '"+mode+"'");
+      throw new ACFException("Unrecognized hopcount method: '"+mode+"'");
   }
   
   // End of job API support code.
@@ -2539,7 +2539,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
   /** Convert input hierarchy into an OutputConnection object.
   */
   protected static void processOutputConnection(org.apache.acf.agents.outputconnection.OutputConnection connection, ConfigurationNode connectionNode)
-    throws LCFException
+    throws ACFException
   {
     // Walk through the node's children
     int i = 0;
@@ -2550,32 +2550,32 @@ public class LCF extends org.apache.acf.agents.system.LCF
       if (childType.equals(CONNECTIONNODE_NAME))
       {
         if (child.getValue() == null)
-          throw new LCFException("Connection name node requires a value");
+          throw new ACFException("Connection name node requires a value");
         connection.setName(child.getValue());
       }
       else if (childType.equals(CONNECTIONNODE_CLASSNAME))
       {
         if (child.getValue() == null)
-          throw new LCFException("Connection classname node requires a value");
+          throw new ACFException("Connection classname node requires a value");
         connection.setClassName(child.getValue());
       }
       else if (childType.equals(CONNECTIONNODE_MAXCONNECTIONS))
       {
         if (child.getValue() == null)
-          throw new LCFException("Connection maxconnections node requires a value");
+          throw new ACFException("Connection maxconnections node requires a value");
         try
         {
           connection.setMaxConnections(Integer.parseInt(child.getValue()));
         }
         catch (NumberFormatException e)
         {
-          throw new LCFException("Error parsing max connections: "+e.getMessage(),e);
+          throw new ACFException("Error parsing max connections: "+e.getMessage(),e);
         }
       }
       else if (childType.equals(CONNECTIONNODE_DESCRIPTION))
       {
         if (child.getValue() == null)
-          throw new LCFException("Connection description node requires a value");
+          throw new ACFException("Connection description node requires a value");
         connection.setDescription(child.getValue());
       }
       else if (childType.equals(CONNECTIONNODE_CONFIGURATION))
@@ -2591,12 +2591,12 @@ public class LCF extends org.apache.acf.agents.system.LCF
         }
       }
       else
-        throw new LCFException("Unrecognized output connection field: '"+childType+"'");
+        throw new ACFException("Unrecognized output connection field: '"+childType+"'");
     }
     if (connection.getName() == null)
-      throw new LCFException("Missing connection field: '"+CONNECTIONNODE_NAME+"'");
+      throw new ACFException("Missing connection field: '"+CONNECTIONNODE_NAME+"'");
     if (connection.getClassName() == null)
-      throw new LCFException("Missing connection field: '"+CONNECTIONNODE_CLASSNAME+"'");
+      throw new ACFException("Missing connection field: '"+CONNECTIONNODE_CLASSNAME+"'");
 
   }
   
@@ -2643,7 +2643,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
   /** Convert input hierarchy into an AuthorityConnection object.
   */
   protected static void processAuthorityConnection(org.apache.acf.authorities.authority.AuthorityConnection connection, ConfigurationNode connectionNode)
-    throws LCFException
+    throws ACFException
   {
     // Walk through the node's children
     int i = 0;
@@ -2654,32 +2654,32 @@ public class LCF extends org.apache.acf.agents.system.LCF
       if (childType.equals(CONNECTIONNODE_NAME))
       {
         if (child.getValue() == null)
-          throw new LCFException("Connection name node requires a value");
+          throw new ACFException("Connection name node requires a value");
         connection.setName(child.getValue());
       }
       else if (childType.equals(CONNECTIONNODE_CLASSNAME))
       {
         if (child.getValue() == null)
-          throw new LCFException("Connection classname node requires a value");
+          throw new ACFException("Connection classname node requires a value");
         connection.setClassName(child.getValue());
       }
       else if (childType.equals(CONNECTIONNODE_MAXCONNECTIONS))
       {
         if (child.getValue() == null)
-          throw new LCFException("Connection maxconnections node requires a value");
+          throw new ACFException("Connection maxconnections node requires a value");
         try
         {
           connection.setMaxConnections(Integer.parseInt(child.getValue()));
         }
         catch (NumberFormatException e)
         {
-          throw new LCFException("Error parsing max connections: "+e.getMessage(),e);
+          throw new ACFException("Error parsing max connections: "+e.getMessage(),e);
         }
       }
       else if (childType.equals(CONNECTIONNODE_DESCRIPTION))
       {
         if (child.getValue() == null)
-          throw new LCFException("Connection description node requires a value");
+          throw new ACFException("Connection description node requires a value");
         connection.setDescription(child.getValue());
       }
       else if (childType.equals(CONNECTIONNODE_CONFIGURATION))
@@ -2695,12 +2695,12 @@ public class LCF extends org.apache.acf.agents.system.LCF
         }
       }
       else
-        throw new LCFException("Unrecognized authority connection field: '"+childType+"'");
+        throw new ACFException("Unrecognized authority connection field: '"+childType+"'");
     }
     if (connection.getName() == null)
-      throw new LCFException("Missing connection field: '"+CONNECTIONNODE_NAME+"'");
+      throw new ACFException("Missing connection field: '"+CONNECTIONNODE_NAME+"'");
     if (connection.getClassName() == null)
-      throw new LCFException("Missing connection field: '"+CONNECTIONNODE_CLASSNAME+"'");
+      throw new ACFException("Missing connection field: '"+CONNECTIONNODE_CLASSNAME+"'");
 
   }
   
@@ -2747,7 +2747,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
   /** Convert input hierarchy into a RepositoryConnection object.
   */
   protected static void processRepositoryConnection(org.apache.acf.crawler.repository.RepositoryConnection connection, ConfigurationNode connectionNode)
-    throws LCFException
+    throws ACFException
   {
     // Walk through the node's children
     int i = 0;
@@ -2758,32 +2758,32 @@ public class LCF extends org.apache.acf.agents.system.LCF
       if (childType.equals(CONNECTIONNODE_NAME))
       {
         if (child.getValue() == null)
-          throw new LCFException("Connection name node requires a value");
+          throw new ACFException("Connection name node requires a value");
         connection.setName(child.getValue());
       }
       else if (childType.equals(CONNECTIONNODE_CLASSNAME))
       {
         if (child.getValue() == null)
-          throw new LCFException("Connection classname node requires a value");
+          throw new ACFException("Connection classname node requires a value");
         connection.setClassName(child.getValue());
       }
       else if (childType.equals(CONNECTIONNODE_MAXCONNECTIONS))
       {
         if (child.getValue() == null)
-          throw new LCFException("Connection maxconnections node requires a value");
+          throw new ACFException("Connection maxconnections node requires a value");
         try
         {
           connection.setMaxConnections(Integer.parseInt(child.getValue()));
         }
         catch (NumberFormatException e)
         {
-          throw new LCFException("Error parsing max connections: "+e.getMessage(),e);
+          throw new ACFException("Error parsing max connections: "+e.getMessage(),e);
         }
       }
       else if (childType.equals(CONNECTIONNODE_DESCRIPTION))
       {
         if (child.getValue() == null)
-          throw new LCFException("Connection description node requires a value");
+          throw new ACFException("Connection description node requires a value");
         connection.setDescription(child.getValue());
       }
       else if (childType.equals(CONNECTIONNODE_CONFIGURATION))
@@ -2801,7 +2801,7 @@ public class LCF extends org.apache.acf.agents.system.LCF
       else if (childType.equals(CONNECTIONNODE_ACLAUTHORITY))
       {
         if (child.getValue() == null)
-          throw new LCFException("Connection aclauthority node requires a value");
+          throw new ACFException("Connection aclauthority node requires a value");
         connection.setACLAuthority(child.getValue());
       }
       else if (childType.equals(CONNECTIONNODE_THROTTLE))
@@ -2828,21 +2828,21 @@ public class LCF extends org.apache.acf.agents.system.LCF
             rate = new Float(throttleField.getValue());
           }
           else
-            throw new LCFException("Unrecognized throttle field: '"+fieldType+"'");
+            throw new ACFException("Unrecognized throttle field: '"+fieldType+"'");
         }
         if (match == null)
-          throw new LCFException("Missing throttle field: '"+CONNECTIONNODE_MATCH+"'");
+          throw new ACFException("Missing throttle field: '"+CONNECTIONNODE_MATCH+"'");
         if (rate == null)
-          throw new LCFException("Missing throttle field: '"+CONNECTIONNODE_RATE+"'");
+          throw new ACFException("Missing throttle field: '"+CONNECTIONNODE_RATE+"'");
         connection.addThrottleValue(match,description,rate.floatValue());
       }
       else
-        throw new LCFException("Unrecognized repository connection field: '"+childType+"'");
+        throw new ACFException("Unrecognized repository connection field: '"+childType+"'");
     }
     if (connection.getName() == null)
-      throw new LCFException("Missing connection field: '"+CONNECTIONNODE_NAME+"'");
+      throw new ACFException("Missing connection field: '"+CONNECTIONNODE_NAME+"'");
     if (connection.getClassName() == null)
-      throw new LCFException("Missing connection field: '"+CONNECTIONNODE_CLASSNAME+"'");
+      throw new ACFException("Missing connection field: '"+CONNECTIONNODE_CLASSNAME+"'");
 
   }
   

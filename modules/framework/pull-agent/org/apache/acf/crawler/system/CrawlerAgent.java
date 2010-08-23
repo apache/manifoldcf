@@ -34,7 +34,7 @@ public class CrawlerAgent implements IAgent
   *@param threadContext is the thread context.
   */
   public CrawlerAgent(IThreadContext threadContext)
-    throws LCFException
+    throws ACFException
   {
     this.threadContext = threadContext;
   }
@@ -42,38 +42,38 @@ public class CrawlerAgent implements IAgent
   /** Install agent.  This usually installs the agent's database tables etc.
   */
   public void install()
-    throws LCFException
+    throws ACFException
   {
     // Install the system tables for the crawler.
-    LCF.initializeEnvironment();
-    LCF.installSystemTables(threadContext);
+    ACF.initializeEnvironment();
+    ACF.installSystemTables(threadContext);
   }
 
   /** Uninstall agent.  This must clean up everything the agent is responsible for.
   */
   public void deinstall()
-    throws LCFException
+    throws ACFException
   {
-    LCF.initializeEnvironment();
-    LCF.deinstallSystemTables(threadContext);
+    ACF.initializeEnvironment();
+    ACF.deinstallSystemTables(threadContext);
   }
 
   /** Start the agent.  This method should spin up the agent threads, and
   * then return.
   */
   public void startAgent()
-    throws LCFException
+    throws ACFException
   {
-    LCF.initializeEnvironment();
-    LCF.startSystem(threadContext);
+    ACF.initializeEnvironment();
+    ACF.startSystem(threadContext);
   }
 
   /** Stop the agent.  This should shut down the agent threads.
   */
   public void stopAgent()
-    throws LCFException
+    throws ACFException
   {
-    LCF.stopSystem(threadContext);
+    ACF.stopSystem(threadContext);
   }
 
   /** Request permission from agent to delete an output connection.
@@ -81,36 +81,36 @@ public class CrawlerAgent implements IAgent
   *@return true if the connection is in use, false otherwise.
   */
   public boolean isOutputConnectionInUse(String connName)
-    throws LCFException
+    throws ACFException
   {
-    return LCF.isOutputConnectionInUse(threadContext,connName);
+    return ACF.isOutputConnectionInUse(threadContext,connName);
   }
 
   /** Note the deregistration of a set of output connections.
   *@param connectionNames are the names of the connections being deregistered.
   */
   public void noteOutputConnectorDeregistration(String[] connectionNames)
-    throws LCFException
+    throws ACFException
   {
-    LCF.noteOutputConnectorDeregistration(threadContext,connectionNames);
+    ACF.noteOutputConnectorDeregistration(threadContext,connectionNames);
   }
 
   /** Note the registration of a set of output connections.
   *@param connectionNames are the names of the connections being registered.
   */
   public void noteOutputConnectorRegistration(String[] connectionNames)
-    throws LCFException
+    throws ACFException
   {
-    LCF.noteOutputConnectorRegistration(threadContext,connectionNames);
+    ACF.noteOutputConnectorRegistration(threadContext,connectionNames);
   }
 
   /** Note a change in configuration for an output connection.
   *@param connectionName is the name of the connections being changed.
   */
   public void noteOutputConnectionChange(String connectionName)
-    throws LCFException
+    throws ACFException
   {
-    LCF.noteOutputConnectionChange(threadContext,connectionName);
+    ACF.noteOutputConnectionChange(threadContext,connectionName);
   }
 
   /** Signal that an output connection needs to be "redone".  This means that all documents sent to that output connection must be sent again,
@@ -118,9 +118,9 @@ public class CrawlerAgent implements IAgent
   *@param connectionName is the name of the connection being signalled.
   */
   public void signalOutputConnectionRedo(String connectionName)
-    throws LCFException
+    throws ACFException
   {
-    LCF.signalOutputConnectionRedo(threadContext,connectionName);
+    ACF.signalOutputConnectionRedo(threadContext,connectionName);
   }
 
 }

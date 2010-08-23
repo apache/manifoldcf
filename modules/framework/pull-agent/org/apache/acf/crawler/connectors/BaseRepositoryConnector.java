@@ -25,7 +25,7 @@ import org.apache.acf.crawler.interfaces.*;
 import java.io.*;
 import java.util.*;
 
-/** This base class describes an instance of a connection between a repository and LCF's
+/** This base class describes an instance of a connection between a repository and ACF's
 * standard "pull" ingestion agent.
 *
 * Each instance of this interface is used in only one thread at a time.  Connection Pooling
@@ -113,10 +113,10 @@ public abstract class BaseRepositoryConnector extends org.apache.acf.core.connec
   *@param input is the request object.
   */
   public void executeCommand(Configuration output, String command, Configuration input)
-    throws LCFException
+    throws ACFException
   {
     // By definition, the base connector has no commands.
-    throw new LCFException("Unrecognized repository connector command '"+command+"'");
+    throw new ACFException("Unrecognized repository connector command '"+command+"'");
   }
 
   /** Queue "seed" documents.  Seed documents are the starting places for crawling activity.  Documents
@@ -147,7 +147,7 @@ public abstract class BaseRepositoryConnector extends org.apache.acf.core.connec
   */
   public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
     long startTime, long endTime, int jobMode)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     addSeedDocuments(activities,spec,startTime,endTime);
   }
@@ -179,7 +179,7 @@ public abstract class BaseRepositoryConnector extends org.apache.acf.core.connec
   */
   public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
     long startTime, long endTime)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     // Call the old-style methods that get document identifiers, and then queue
     // them using the new activities-based methods
@@ -228,7 +228,7 @@ public abstract class BaseRepositoryConnector extends org.apache.acf.core.connec
   */
   public IDocumentIdentifierStream getDocumentIdentifiers(ISeedingActivity activities, DocumentSpecification spec,
     long startTime, long endTime)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     return getDocumentIdentifiers(spec,startTime,endTime);
   }
@@ -241,7 +241,7 @@ public abstract class BaseRepositoryConnector extends org.apache.acf.core.connec
   */
   public IDocumentIdentifierStream getDocumentIdentifiers(DocumentSpecification spec,
     long startTime, long endTime)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     // Something provided here so we can override either one.
     return null;
@@ -264,7 +264,7 @@ public abstract class BaseRepositoryConnector extends org.apache.acf.core.connec
   */
   public IDocumentIdentifierStream getRemainingDocumentIdentifiers(ISeedingActivity activities, DocumentSpecification spec,
     long startTime, long endTime)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     // Usually we don't need to worry about this.
     return null;
@@ -289,7 +289,7 @@ public abstract class BaseRepositoryConnector extends org.apache.acf.core.connec
   */
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
     DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     return getDocumentVersions(documentIdentifiers,oldVersions,activities,spec,jobMode);
   }
@@ -312,7 +312,7 @@ public abstract class BaseRepositoryConnector extends org.apache.acf.core.connec
   */
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
     DocumentSpecification spec, int jobMode)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     return getDocumentVersions(documentIdentifiers,oldVersions,activities,spec);
   }
@@ -333,7 +333,7 @@ public abstract class BaseRepositoryConnector extends org.apache.acf.core.connec
   * will always be processed.
   */
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities, DocumentSpecification spec)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     return getDocumentVersions(documentIdentifiers,activities,spec);
   }
@@ -352,7 +352,7 @@ public abstract class BaseRepositoryConnector extends org.apache.acf.core.connec
   * will always be processed.
   */
   public String[] getDocumentVersions(String[] documentIdentifiers, IVersionActivity activities, DocumentSpecification spec)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     return getDocumentVersions(documentIdentifiers,spec);
   }
@@ -370,7 +370,7 @@ public abstract class BaseRepositoryConnector extends org.apache.acf.core.connec
   * will always be processed.
   */
   public String[] getDocumentVersions(String[] documentIdentifiers, DocumentSpecification spec)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     // Return unknown versions
     String[] rval = new String[documentIdentifiers.length];
@@ -390,7 +390,7 @@ public abstract class BaseRepositoryConnector extends org.apache.acf.core.connec
   *@param versions is the corresponding set of version identifiers (individual identifiers may be null).
   */
   public void releaseDocumentVersions(String[] documentIdentifiers, String[] versions)
-    throws LCFException
+    throws ACFException
   {
     // Base implementation does nothing
   }
@@ -420,7 +420,7 @@ public abstract class BaseRepositoryConnector extends org.apache.acf.core.connec
   */
   public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities,
     DocumentSpecification spec, boolean[] scanOnly, int jobMode)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     processDocuments(documentIdentifiers,versions,activities,spec,scanOnly);
   }
@@ -440,7 +440,7 @@ public abstract class BaseRepositoryConnector extends org.apache.acf.core.connec
   */
   public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities,
     DocumentSpecification spec, boolean[] scanOnly)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     // Does nothing; override to make something happen
   }
@@ -461,7 +461,7 @@ public abstract class BaseRepositoryConnector extends org.apache.acf.core.connec
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
   }
   
@@ -474,7 +474,7 @@ public abstract class BaseRepositoryConnector extends org.apache.acf.core.connec
   *@param tabName is the current tab name.
   */
   public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
   }
   
@@ -487,7 +487,7 @@ public abstract class BaseRepositoryConnector extends org.apache.acf.core.connec
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
-    throws LCFException
+    throws ACFException
   {
     return null;
   }
@@ -499,7 +499,7 @@ public abstract class BaseRepositoryConnector extends org.apache.acf.core.connec
   *@param ds is the current document specification for this job.
   */
   public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
   }
 

@@ -19,7 +19,7 @@
 package org.apache.acf.core.interfaces;
 
 import java.io.*;
-import org.apache.acf.core.system.LCF;
+import org.apache.acf.core.system.ACF;
 
 /** This class represents a temporary file data input
 * stream.  Call the "done" method to clean up the
@@ -42,7 +42,7 @@ public class TempFileInput extends BinaryInput
   *@param is is the input stream to use to construct the temporary file.
   */
   public TempFileInput(InputStream is)
-    throws LCFException
+    throws ACFException
   {
     this(is,-1L);
   }
@@ -52,7 +52,7 @@ public class TempFileInput extends BinaryInput
   *@param length is the maximum number of bytes to transfer, or -1 if no limit.
   */
   public TempFileInput(InputStream is, long length)
-    throws LCFException
+    throws ACFException
   {
     super();
     try
@@ -62,7 +62,7 @@ public class TempFileInput extends BinaryInput
       try
       {
         // Register the file for autodeletion, using our infrastructure.
-        LCF.addFile(outfile);
+        ACF.addFile(outfile);
         // deleteOnExit() causes memory leakage!
         // outfile.deleteOnExit();
         FileOutputStream outStream = new FileOutputStream(outfile);
@@ -103,7 +103,7 @@ public class TempFileInput extends BinaryInput
       {
         // Delete the temp file we created on any error condition
         // outfile.delete();
-        LCF.deleteFile(outfile);
+        ACF.deleteFile(outfile);
         if (e instanceof Error)
           throw (Error)e;
         if (e instanceof RuntimeException)
@@ -115,11 +115,11 @@ public class TempFileInput extends BinaryInput
     }
     catch (InterruptedIOException e)
     {
-      throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
     }
     catch (Exception e)
     {
-      throw new LCFException("Cannot write temporary file",e,LCFException.GENERAL_ERROR);
+      throw new ACFException("Cannot write temporary file",e,ACFException.GENERAL_ERROR);
     }
 
   }
@@ -131,7 +131,7 @@ public class TempFileInput extends BinaryInput
   {
     super();
     file = tempFile;
-    LCF.addFile(file);
+    ACF.addFile(file);
     // deleteOnExit() causes memory leakage; better to leak files on hard shutdown than memory.
     // file.deleteOnExit();
   }
@@ -155,18 +155,18 @@ public class TempFileInput extends BinaryInput
   }
 
   public void discard()
-    throws LCFException
+    throws ACFException
   {
     super.discard();
     if (file != null)
     {
-      LCF.deleteFile(file);
+      ACF.deleteFile(file);
       file = null;
     }
   }
 
   protected void openStream()
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -175,12 +175,12 @@ public class TempFileInput extends BinaryInput
     }
     catch (FileNotFoundException e)
     {
-      throw new LCFException("Can't create stream: "+e.getMessage(),e,LCFException.GENERAL_ERROR);
+      throw new ACFException("Can't create stream: "+e.getMessage(),e,ACFException.GENERAL_ERROR);
     }
   }
 
   protected void calculateLength()
-    throws LCFException
+    throws ACFException
   {
     this.length = file.length();
   }

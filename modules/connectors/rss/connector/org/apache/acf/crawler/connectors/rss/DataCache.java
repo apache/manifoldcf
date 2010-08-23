@@ -22,7 +22,7 @@ import org.apache.acf.core.interfaces.*;
 import org.apache.acf.agents.interfaces.*;
 import org.apache.acf.crawler.interfaces.*;
 import org.apache.acf.crawler.system.Logging;
-import org.apache.acf.crawler.system.LCF;
+import org.apache.acf.crawler.system.ACF;
 import java.util.*;
 import java.io.*;
 
@@ -50,7 +50,7 @@ public class DataCache
   *@return the checksum value.
   */
   public long addData(IVersionActivity activities, String documentIdentifier, InputStream dataStream)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     // Create a temporary file; that's what we will cache
     try
@@ -63,7 +63,7 @@ public class DataCache
         // after it's removed.  So disable this and live with the occasional
         // dangling file left as a result of shutdown or error. :-(
         // tempFile.deleteOnExit();
-        LCF.addFile(tempFile);
+        ACF.addFile(tempFile);
 
         // Transfer data to temporary file
         long checkSum = 0L;
@@ -94,7 +94,7 @@ public class DataCache
             }
             catch (InterruptedIOException e)
             {
-              throw new LCFException("Interrupted: "+e.getMessage(),LCFException.INTERRUPTED);
+              throw new ACFException("Interrupted: "+e.getMessage(),ACFException.INTERRUPTED);
             }
             catch (IOException e)
             {
@@ -133,35 +133,35 @@ public class DataCache
       }
       catch (IOException e)
       {
-        LCF.deleteFile(tempFile);
+        ACF.deleteFile(tempFile);
         throw e;
       }
       catch (ServiceInterruption e)
       {
-        LCF.deleteFile(tempFile);
+        ACF.deleteFile(tempFile);
         throw e;
       }
       catch (Error e)
       {
-        LCF.deleteFile(tempFile);
+        ACF.deleteFile(tempFile);
         throw e;
       }
     }
     catch (java.net.SocketTimeoutException e)
     {
-      throw new LCFException("Socket timeout exception creating temporary file: "+e.getMessage(),e);
+      throw new ACFException("Socket timeout exception creating temporary file: "+e.getMessage(),e);
     }
     catch (org.apache.commons.httpclient.ConnectTimeoutException e)
     {
-      throw new LCFException("Socket connect timeout exception creating temporary file: "+e.getMessage(),e);
+      throw new ACFException("Socket connect timeout exception creating temporary file: "+e.getMessage(),e);
     }
     catch (InterruptedIOException e)
     {
-      throw new LCFException("Interrupted: "+e.getMessage(),LCFException.INTERRUPTED);
+      throw new ACFException("Interrupted: "+e.getMessage(),ACFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new LCFException("IO exception creating temporary file: "+e.getMessage(),e);
+      throw new ACFException("IO exception creating temporary file: "+e.getMessage(),e);
     }
   }
 
@@ -170,7 +170,7 @@ public class DataCache
   *@return the length.
   */
   public synchronized long getDataLength(String documentIdentifier)
-    throws LCFException
+    throws ACFException
   {
     File f = (File)cacheData.get(documentIdentifier);
     if (f == null)
@@ -183,7 +183,7 @@ public class DataCache
   *@return a binary data stream.
   */
   public synchronized InputStream getData(String documentIdentifier)
-    throws LCFException
+    throws ACFException
   {
     File f = (File)cacheData.get(documentIdentifier);
     if (f == null)
@@ -194,7 +194,7 @@ public class DataCache
     }
     catch (IOException e)
     {
-      throw new LCFException("IO exception getting data length: "+e.getMessage(),e);
+      throw new ACFException("IO exception getting data length: "+e.getMessage(),e);
     }
   }
 
@@ -207,7 +207,7 @@ public class DataCache
     cacheData.remove(documentIdentifier);
     if (f != null)
     {
-      LCF.deleteFile(f);
+      ACF.deleteFile(f);
     }
   }
 

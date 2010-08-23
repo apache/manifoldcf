@@ -1,4 +1,4 @@
-/* $Id: LCF.java 953331 2010-06-10 14:22:50Z kwright $ */
+/* $Id: ACF.java 953331 2010-06-10 14:22:50Z kwright $ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -23,7 +23,7 @@ import org.apache.acf.authorities.interfaces.*;
 import java.io.*;
 import java.util.*;
 
-public class LCF extends org.apache.acf.core.system.LCF
+public class ACF extends org.apache.acf.core.system.ACF
 {
   // Initialization needed flag
   protected static boolean authoritiesInitialized = false;
@@ -43,14 +43,14 @@ public class LCF extends org.apache.acf.core.system.LCF
   /** Initialize environment.
   */
   public static void initializeEnvironment()
-    throws LCFException
+    throws ACFException
   {
     synchronized (initializeFlagLock)
     {
       if (authoritiesInitialized)
         return;
 
-      org.apache.acf.core.system.LCF.initializeEnvironment();
+      org.apache.acf.core.system.ACF.initializeEnvironment();
       Logging.initializeLoggers();
       Logging.setLogLevels();
       authoritiesInitialized = true;
@@ -62,12 +62,12 @@ public class LCF extends org.apache.acf.core.system.LCF
   *@param threadcontext is the thread context.
   */
   public static void installSystemTables(IThreadContext threadcontext)
-    throws LCFException
+    throws ACFException
   {
     IDBInterface mainDatabase = DBInterfaceFactory.make(threadcontext,
-      LCF.getMasterDatabaseName(),
-      LCF.getMasterDatabaseUsername(),
-      LCF.getMasterDatabasePassword());
+      ACF.getMasterDatabaseName(),
+      ACF.getMasterDatabaseUsername(),
+      ACF.getMasterDatabasePassword());
 
     IAuthorityConnectorManager connMgr = AuthorityConnectorManagerFactory.make(threadcontext);
     IAuthorityConnectionManager authConnMgr = AuthorityConnectionManagerFactory.make(threadcontext);
@@ -78,7 +78,7 @@ public class LCF extends org.apache.acf.core.system.LCF
       connMgr.install();
       authConnMgr.install();
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       mainDatabase.signalRollback();
       throw e;
@@ -99,14 +99,14 @@ public class LCF extends org.apache.acf.core.system.LCF
   *@param threadcontext is the thread context.
   */
   public static void deinstallSystemTables(IThreadContext threadcontext)
-    throws LCFException
+    throws ACFException
   {
     IDBInterface mainDatabase = DBInterfaceFactory.make(threadcontext,
-      LCF.getMasterDatabaseName(),
-      LCF.getMasterDatabaseUsername(),
-      LCF.getMasterDatabasePassword());
+      ACF.getMasterDatabaseName(),
+      ACF.getMasterDatabaseUsername(),
+      ACF.getMasterDatabasePassword());
 
-    LCFException se = null;
+    ACFException se = null;
 
     IAuthorityConnectorManager connMgr = AuthorityConnectorManagerFactory.make(threadcontext);
     IAuthorityConnectionManager authConnMgr = AuthorityConnectionManagerFactory.make(threadcontext);
@@ -117,7 +117,7 @@ public class LCF extends org.apache.acf.core.system.LCF
       authConnMgr.deinstall();
       connMgr.deinstall();
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       mainDatabase.signalRollback();
       throw e;
@@ -139,7 +139,7 @@ public class LCF extends org.apache.acf.core.system.LCF
   /** Start the authority system.
   */
   public static void startSystem(IThreadContext threadContext)
-    throws LCFException
+    throws ACFException
   {
     // Read any parameters
     String maxThreads = getProperty(authCheckThreadCountProperty);
@@ -147,7 +147,7 @@ public class LCF extends org.apache.acf.core.system.LCF
       maxThreads = "10";
     numAuthCheckThreads = new Integer(maxThreads).intValue();
     if (numAuthCheckThreads < 1 || numAuthCheckThreads > 100)
-      throw new LCFException("Illegal value for the number of auth check threads");
+      throw new ACFException("Illegal value for the number of auth check threads");
 
     // Start up threads
     idleCleanupThread = new IdleCleanupThread();
@@ -168,7 +168,7 @@ public class LCF extends org.apache.acf.core.system.LCF
   /** Shut down the authority system.
   */
   public static void stopSystem(IThreadContext threadContext)
-    throws LCFException
+    throws ACFException
   {
 
     while (idleCleanupThread != null || authCheckThreads != null)
@@ -215,7 +215,7 @@ public class LCF extends org.apache.acf.core.system.LCF
 
       try
       {
-        LCF.sleep(1000);
+        ACF.sleep(1000);
       }
       catch (InterruptedException e)
       {

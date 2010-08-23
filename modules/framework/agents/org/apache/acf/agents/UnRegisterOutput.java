@@ -36,7 +36,7 @@ public class UnRegisterOutput extends TransactionalAgentsInitializationCommand
     this.className = className;
   }
 
-  protected void doExecute(IThreadContext tc) throws LCFException
+  protected void doExecute(IThreadContext tc) throws ACFException
   {
     IOutputConnectorManager mgr = OutputConnectorManagerFactory.make(tc);
     IOutputConnectionManager connManager = OutputConnectionManagerFactory.make(tc);
@@ -65,7 +65,7 @@ public class UnRegisterOutput extends TransactionalAgentsInitializationCommand
       unRegisterOutput.execute();
       System.err.println("Successfully unregistered output connector '"+className+"'");
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       e.printStackTrace();
       System.exit(1);

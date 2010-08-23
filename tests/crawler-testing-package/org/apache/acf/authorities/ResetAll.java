@@ -44,7 +44,7 @@ public class ResetAll
 
                 try
                 {
-                        LCF.initializeEnvironment();
+                        ACF.initializeEnvironment();
                         IThreadContext tc = ThreadContextFactory.make();
                         // Now, get a list of the authority connections
                         IAuthorityConnectionManager mgr = AuthorityConnectionManagerFactory.make(tc);

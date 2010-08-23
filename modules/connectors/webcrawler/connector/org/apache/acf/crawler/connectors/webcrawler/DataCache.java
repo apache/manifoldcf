@@ -22,7 +22,7 @@ import org.apache.acf.core.interfaces.*;
 import org.apache.acf.agents.interfaces.*;
 import org.apache.acf.crawler.interfaces.*;
 import org.apache.acf.crawler.system.Logging;
-import org.apache.acf.crawler.system.LCF;
+import org.apache.acf.crawler.system.ACF;
 import java.util.*;
 import java.io.*;
 
@@ -55,7 +55,7 @@ public class DataCache
   *@return a "checksum" value, to use as a version string.
   */
   public String addData(IVersionActivity activities, String documentIdentifier, IThrottledConnection connection)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     // Grab the response code, and the content-type header
     int responseCode = connection.getResponseCode();
@@ -79,7 +79,7 @@ public class DataCache
           // after it's removed.  So disable this and live with the occasional
           // dangling file left as a result of shutdown or error. :-(
           // tempFile.deleteOnExit();
-          LCF.addFile(tempFile);
+          ACF.addFile(tempFile);
 
           // Transfer data to temporary file
           long checkSum = 0L;
@@ -111,7 +111,7 @@ public class DataCache
               catch (InterruptedIOException e)
               {
                 //Logging.connectors.warn("IO interruption seen",e);
-                throw new LCFException("Interrupted: "+e.getMessage(),LCFException.INTERRUPTED);
+                throw new ACFException("Interrupted: "+e.getMessage(),ACFException.INTERRUPTED);
               }
               catch (IOException e)
               {
@@ -150,22 +150,22 @@ public class DataCache
         }
         catch (IOException e)
         {
-          LCF.deleteFile(tempFile);
+          ACF.deleteFile(tempFile);
           throw e;
         }
-        catch (LCFException e)
+        catch (ACFException e)
         {
-          LCF.deleteFile(tempFile);
+          ACF.deleteFile(tempFile);
           throw e;
         }
         catch (ServiceInterruption e)
         {
-          LCF.deleteFile(tempFile);
+          ACF.deleteFile(tempFile);
           throw e;
         }
         catch (Error e)
         {
-          LCF.deleteFile(tempFile);
+          ACF.deleteFile(tempFile);
           throw e;
         }
       }
@@ -197,20 +197,20 @@ public class DataCache
     }
     catch (java.net.SocketTimeoutException e)
     {
-      throw new LCFException("Socket timeout exception creating temporary file: "+e.getMessage(),e);
+      throw new ACFException("Socket timeout exception creating temporary file: "+e.getMessage(),e);
     }
     catch (org.apache.commons.httpclient.ConnectTimeoutException e)
     {
-      throw new LCFException("Socket connect timeout exception creating temporary file: "+e.getMessage(),e);
+      throw new ACFException("Socket connect timeout exception creating temporary file: "+e.getMessage(),e);
     }
     catch (InterruptedIOException e)
     {
       //Logging.connectors.warn("IO interruption seen",e);
-      throw new LCFException("Interrupted: "+e.getMessage(),LCFException.INTERRUPTED);
+      throw new ACFException("Interrupted: "+e.getMessage(),ACFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new LCFException("IO exception creating temporary file: "+e.getMessage(),e);
+      throw new ACFException("IO exception creating temporary file: "+e.getMessage(),e);
     }
   }
 
@@ -267,7 +267,7 @@ public class DataCache
   *@return a binary data stream.
   */
   public synchronized InputStream getData(String documentIdentifier)
-    throws LCFException
+    throws ACFException
   {
     DocumentData dd = (DocumentData)cacheData.get(documentIdentifier);
     if (dd == null)
@@ -278,7 +278,7 @@ public class DataCache
     }
     catch (FileNotFoundException e)
     {
-      throw new LCFException("File not found exception opening data: "+e.getMessage(),e);
+      throw new ACFException("File not found exception opening data: "+e.getMessage(),e);
     }
   }
 
@@ -290,7 +290,7 @@ public class DataCache
     DocumentData dd = (DocumentData)cacheData.remove(documentIdentifier);
     if (dd != null)
     {
-      LCF.deleteFile(dd.getData());
+      ACF.deleteFile(dd.getData());
     }
   }
 

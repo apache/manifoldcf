@@ -22,7 +22,7 @@ import org.apache.acf.core.interfaces.*;
 import org.apache.acf.agents.interfaces.*;
 import org.apache.acf.crawler.interfaces.*;
 import org.apache.acf.authorities.interfaces.*;
-import org.apache.acf.core.system.LCF;
+import org.apache.acf.core.system.ACF;
 
 import java.io.*;
 import java.util.*;
@@ -93,13 +93,13 @@ public class TestConnectorBase extends org.apache.acf.crawler.tests.TestBase
     
     // Register the connector we're testing
     initialize();
-    LCF.initializeEnvironment();
+    ACF.initializeEnvironment();
     IThreadContext tc = ThreadContextFactory.make();
 
     IDBInterface database = DBInterfaceFactory.make(tc,
-      LCF.getMasterDatabaseName(),
-      LCF.getMasterDatabaseUsername(),
-      LCF.getMasterDatabasePassword());
+      ACF.getMasterDatabaseName(),
+      ACF.getMasterDatabaseUsername(),
+      ACF.getMasterDatabasePassword());
     
     IConnectorManager mgr = ConnectorManagerFactory.make(tc);
     IAuthorityConnectorManager authMgr = AuthorityConnectorManagerFactory.make(tc);
@@ -157,7 +157,7 @@ public class TestConnectorBase extends org.apache.acf.crawler.tests.TestBase
       }
       
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       database.signalRollback();
       throw e;
@@ -195,7 +195,7 @@ public class TestConnectorBase extends org.apache.acf.crawler.tests.TestBase
     if (isInitialized())
     {
       // Test the uninstall
-      LCF.initializeEnvironment();
+      ACF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
       
       Exception currentException = null;
@@ -238,9 +238,9 @@ public class TestConnectorBase extends org.apache.acf.crawler.tests.TestBase
       try
       {
         IDBInterface database = DBInterfaceFactory.make(tc,
-          LCF.getMasterDatabaseName(),
-          LCF.getMasterDatabaseUsername(),
-          LCF.getMasterDatabasePassword());
+          ACF.getMasterDatabaseName(),
+          ACF.getMasterDatabaseUsername(),
+          ACF.getMasterDatabasePassword());
         
         IConnectorManager mgr = ConnectorManagerFactory.make(tc);
         IAuthorityConnectorManager authMgr = AuthorityConnectorManagerFactory.make(tc);
@@ -293,7 +293,7 @@ public class TestConnectorBase extends org.apache.acf.crawler.tests.TestBase
           }
           
         }
-        catch (LCFException e)
+        catch (ACFException e)
         {
           database.signalRollback();
           throw e;

@@ -1,4 +1,4 @@
-/* $Id: LCF.java 960994 2010-07-06 19:45:53Z kwright $ */
+/* $Id: ACF.java 960994 2010-07-06 19:45:53Z kwright $ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -23,9 +23,9 @@ import java.io.*;
 import java.util.*;
 import java.security.MessageDigest;
 
-public class LCF
+public class ACF
 {
-  public static final String _rcsid = "@(#)$Id: LCF.java 960994 2010-07-06 19:45:53Z kwright $";
+  public static final String _rcsid = "@(#)$Id: ACF.java 960994 2010-07-06 19:45:53Z kwright $";
 
   // Configuration XML node names and attribute names
   public static final String NODE_PROPERTY = "property";
@@ -41,8 +41,8 @@ public class LCF
   
   // Class loader
   
-  /** The object that manages LCF plugin class loading.  This is initialized when the initialize method is called. */
-  protected static LCFResourceLoader resourceLoader = null;
+  /** The object that manages ACF plugin class loading.  This is initialized when the initialize method is called. */
+  protected static ACFResourceLoader resourceLoader = null;
 
   // Shutdown hooks
   /** Temporary file collector */
@@ -83,7 +83,7 @@ public class LCF
   protected static String masterDatabaseName = null;
   protected static String masterDatabaseUsername = null;
   protected static String masterDatabasePassword = null;
-  protected static LCFConfiguration localConfiguration = null;
+  protected static ACFConfiguration localConfiguration = null;
   protected static Map localProperties = null;
   protected static long propertyFilelastMod = -1L;
   protected static String propertyFilePath = null;
@@ -128,7 +128,7 @@ public class LCF
   /** Initialize environment.
   */
   public static void initializeEnvironment()
-    throws LCFException
+    throws ACFException
   {
     synchronized (initializeFlagLock)
     {
@@ -151,15 +151,15 @@ public class LCF
           propertyFilePath = new File(configPath,"properties.xml").toString();
         }
 
-        // Initialize working directory.  We cannot use the actual system cwd, because different LCF processes will have different ones.
+        // Initialize working directory.  We cannot use the actual system cwd, because different ACF processes will have different ones.
         // So, instead, we use the location of the property file itself, and call that the "working directory".
         workingDirectory = new File(propertyFilePath).getAbsoluteFile().getParentFile();
 
         // Initialize resource loader.
-        resourceLoader = new LCFResourceLoader(Thread.currentThread().getContextClassLoader());
+        resourceLoader = new ACFResourceLoader(Thread.currentThread().getContextClassLoader());
         
         // Read configuration!
-        localConfiguration = new LCFConfiguration();
+        localConfiguration = new ACFConfiguration();
         localProperties = new HashMap();
         checkProperties();
 
@@ -199,9 +199,9 @@ public class LCF
         DBInterfaceFactory.make(threadcontext,masterDatabaseName,masterDatabaseUsername,masterDatabasePassword).openDatabase();
         isInitialized = true;
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
-        throw new LCFException("Initialization failed: "+e.getMessage(),e,LCFException.SETUP_ERROR);
+        throw new ACFException("Initialization failed: "+e.getMessage(),e,ACFException.SETUP_ERROR);
       }
     }
 
@@ -210,7 +210,7 @@ public class LCF
   /** Reloads properties as needed.
   */
   public static final void checkProperties()
-    throws LCFException
+    throws ACFException
   {
     File f = new File(propertyFilePath);    // for re-read
     try
@@ -237,7 +237,7 @@ public class LCF
     }
     catch (Exception e)
     {
-      throw new LCFException("Could not read configuration file '"+f.toString()+"'",e);
+      throw new ACFException("Could not read configuration file '"+f.toString()+"'",e);
     }
     
     // For convenience, post-process all "property" nodes so that we have a semblance of the earlier name/value pairs available, by default.
@@ -253,14 +253,14 @@ public class LCF
         String name = cn.getAttributeValue(ATTRIBUTE_NAME);
         String value = cn.getAttributeValue(ATTRIBUTE_VALUE);
         if (name == null)
-          throw new LCFException("Node type '"+NODE_PROPERTY+"' requires a '"+ATTRIBUTE_NAME+"' attribute");
+          throw new ACFException("Node type '"+NODE_PROPERTY+"' requires a '"+ATTRIBUTE_NAME+"' attribute");
         localProperties.put(name,value);
       }
       else if (cn.getType().equals(NODE_LIBDIR))
       {
         String path = cn.getAttributeValue(ATTRIBUTE_PATH);
         if (path == null)
-          throw new LCFException("Node type '"+NODE_LIBDIR+"' requires a '"+ATTRIBUTE_PATH+" attribute");
+          throw new ACFException("Node type '"+NODE_LIBDIR+"' requires a '"+ATTRIBUTE_PATH+" attribute");
         // What exactly should I do with this classpath information?  The classloader can be dynamically updated, but if I do that will everything work?
         // I'm going to presume the answer is "yes" for now...
         libDirs.add(resolvePath(path));
@@ -270,8 +270,8 @@ public class LCF
     resourceLoader.setClassPath(libDirs);
   }
 
-  /** Resolve a file path, possibly relative to LCF's concept of its "working directory".
-  *@param path is the path, to be calculated relative to the LCF "working directory".
+  /** Resolve a file path, possibly relative to ACF's concept of its "working directory".
+  *@param path is the path, to be calculated relative to the ACF "working directory".
   *@return the resolved file.
   */
   public static File resolvePath(String path)
@@ -293,7 +293,7 @@ public class LCF
   }
 
   /** Read a File property, either from the system properties, or from the local configuration file.
-  * Relative file references are resolved according to the "working directory" for LCF.
+  * Relative file references are resolved according to the "working directory" for ACF.
   */
   public static File getFileProperty(String s)
   {
@@ -307,7 +307,7 @@ public class LCF
   * @param path
   */
   public static void ensureFolder(String path)
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -319,7 +319,7 @@ public class LCF
     }
     catch (Exception e)
     {
-      throw new LCFException("Can't make folder",e,LCFException.GENERAL_ERROR);
+      throw new ACFException("Can't make folder",e,ACFException.GENERAL_ERROR);
     }
   }
 
@@ -426,7 +426,7 @@ public class LCF
   *  @return the encrypted string.
   *   */
   public static String hash(String input)
-    throws LCFException
+    throws ACFException
   {
     return encrypt(input);
   }
@@ -434,7 +434,7 @@ public class LCF
   /** Start creating a hash
   */
   public static MessageDigest startHash()
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -442,14 +442,14 @@ public class LCF
     }
     catch (Exception e)
     {
-      throw new LCFException("Couldn't encrypt: "+e.getMessage(),e,LCFException.GENERAL_ERROR);
+      throw new ACFException("Couldn't encrypt: "+e.getMessage(),e,ACFException.GENERAL_ERROR);
     }
   }
 
   /** Add to hash
   */
   public static void addToHash(MessageDigest digest, String input)
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -458,14 +458,14 @@ public class LCF
     }
     catch (Exception e)
     {
-      throw new LCFException("Couldn't encrypt: "+e.getMessage(),e,LCFException.GENERAL_ERROR);
+      throw new ACFException("Couldn't encrypt: "+e.getMessage(),e,ACFException.GENERAL_ERROR);
     }
   }
 
   /** Calculate final hash value
   */
   public static String getHashValue(MessageDigest digest)
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -482,7 +482,7 @@ public class LCF
     }
     catch (Exception e)
     {
-      throw new LCFException("Couldn't encrypt: "+e.getMessage(),e,LCFException.GENERAL_ERROR);
+      throw new ACFException("Couldn't encrypt: "+e.getMessage(),e,ACFException.GENERAL_ERROR);
     }
   }
 
@@ -491,7 +491,7 @@ public class LCF
   *@return the encrypted string.
   */
   public static String encrypt(String input)
-    throws LCFException
+    throws ACFException
   {
     MessageDigest hash = startHash();
     addToHash(hash,input);
@@ -503,7 +503,7 @@ public class LCF
   *@return the output string.
   */
   public static String obfuscate(String input)
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -539,7 +539,7 @@ public class LCF
     }
     catch (java.io.UnsupportedEncodingException e)
     {
-      throw new LCFException("UTF-8 not supported",e,LCFException.GENERAL_ERROR);
+      throw new ACFException("UTF-8 not supported",e,ACFException.GENERAL_ERROR);
     }
   }
 
@@ -561,7 +561,7 @@ public class LCF
   *@return the decoded string.
   */
   public static String deobfuscate(String input)
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -571,7 +571,7 @@ public class LCF
         return input;
 
       if ((input.length() >> 1) * 2 != input.length())
-        throw new LCFException("Decoding error",LCFException.GENERAL_ERROR);
+        throw new ACFException("Decoding error",ACFException.GENERAL_ERROR);
 
       byte[] bytes = new byte[input.length() >> 1];
       int i = 0;
@@ -602,7 +602,7 @@ public class LCF
     }
     catch (java.io.UnsupportedEncodingException e)
     {
-      throw new LCFException("UTF-8 unsupported",e,LCFException.GENERAL_ERROR);
+      throw new ACFException("UTF-8 unsupported",e,ACFException.GENERAL_ERROR);
     }
   }
 
@@ -611,14 +611,14 @@ public class LCF
   *@return the value.
   */
   protected static int readNibble(char value)
-    throws LCFException
+    throws ACFException
   {
     if (value >= 'A' && value <= 'F')
       return (int)(value - 'A' + 10);
     else if (value >= '0' && value <= '9')
       return (int)(value - '0');
     else
-      throw new LCFException("Bad hexadecimal value",LCFException.GENERAL_ERROR);
+      throw new ACFException("Bad hexadecimal value",ACFException.GENERAL_ERROR);
   }
 
 
@@ -628,7 +628,7 @@ public class LCF
   *@param masterPassword is the master database password.
   */
   public static void createSystemDatabase(IThreadContext threadcontext, String masterUsername, String masterPassword)
-    throws LCFException
+    throws ACFException
   {
     String databaseName = getMasterDatabaseName();
     String databaseUsername = getMasterDatabaseUsername();
@@ -644,7 +644,7 @@ public class LCF
   *@param masterPassword is the master database password.
   */
   public static void dropSystemDatabase(IThreadContext threadcontext, String masterUsername, String masterPassword)
-    throws LCFException
+    throws ACFException
   {
     String databaseName = getMasterDatabaseName();
     String databaseUsername = getMasterDatabaseUsername();
@@ -683,7 +683,7 @@ public class LCF
   /** Note configuration change.
   */
   public static void noteConfigurationChange()
-    throws LCFException
+    throws ACFException
   {
     String configChangeSignalCommand = getProperty(configSignalCommandProperty);
     if (configChangeSignalCommand == null || configChangeSignalCommand.length() == 0)
@@ -807,7 +807,7 @@ public class LCF
                     break;
                   sb.append(value).append("; ");
                 }
-                throw new LCFException("Shelled process '"+configChangeSignalCommand+"' failed with error "+Integer.toString(rval)+": "+sb.toString());
+                throw new ACFException("Shelled process '"+configChangeSignalCommand+"' failed with error "+Integer.toString(rval)+": "+sb.toString());
               }
               finally
               {
@@ -832,15 +832,15 @@ public class LCF
     }
     catch (InterruptedException e)
     {
-      throw new LCFException("Process wait interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+      throw new ACFException("Process wait interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
     }
     catch (InterruptedIOException e)
     {
-      throw new LCFException("IO with subprocess interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+      throw new ACFException("IO with subprocess interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new LCFException("IO exception signalling change: "+e.getMessage(),e);
+      throw new ACFException("IO exception signalling change: "+e.getMessage(),e);
     }
   }
 
@@ -1081,7 +1081,7 @@ public class LCF
   * is designed for loading plugin classes, and their downstream dependents.
   */
   public static Class findClass(String cname)
-    throws ClassNotFoundException,LCFException
+    throws ClassNotFoundException,ACFException
   {
     return resourceLoader.findClass(cname);
   }
@@ -1102,7 +1102,7 @@ public class LCF
 	{
 	  hook.doCleanup();
 	}
-	catch (LCFException e)
+	catch (ACFException e)
 	{
 	  Logging.root.warn("Error during system shutdown: "+e.getMessage(),e);
 	}
@@ -1137,7 +1137,7 @@ public class LCF
 
     /** Delete all remaining files */
     public void doCleanup()
-      throws LCFException
+      throws ACFException
     {
       synchronized (this)
       {
@@ -1176,7 +1176,7 @@ public class LCF
     }
     
     public void doCleanup()
-      throws LCFException
+      throws ACFException
     {
       // Clean up the database handles
       Thread t = new DatabaseConnectionReleaseThread();
@@ -1193,7 +1193,7 @@ public class LCF
     }
     
     protected void closeDatabase()
-      throws LCFException
+      throws ACFException
     {
       synchronized (initializeFlagLock)
       {

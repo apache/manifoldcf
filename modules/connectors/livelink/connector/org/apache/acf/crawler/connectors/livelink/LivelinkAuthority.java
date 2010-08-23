@@ -22,7 +22,7 @@ import org.apache.acf.core.interfaces.*;
 import org.apache.acf.agents.interfaces.*;
 import org.apache.acf.authorities.interfaces.*;
 import org.apache.acf.authorities.system.Logging;
-import org.apache.acf.authorities.system.LCF;
+import org.apache.acf.authorities.system.ACF;
 
 import java.io.*;
 import java.util.*;
@@ -135,7 +135,7 @@ public class LivelinkAuthority extends org.apache.acf.authorities.authorities.Ba
   }
 
   protected void attemptToConnect()
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     if (LLUsers == null)
     {
@@ -174,7 +174,7 @@ public class LivelinkAuthority extends org.apache.acf.authorities.authorities.Ba
   /** Check connection for sanity.
   */
   public String check()
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -203,7 +203,7 @@ public class LivelinkAuthority extends org.apache.acf.authorities.authorities.Ba
     {
       return "Temporary service interruption: "+e.getMessage();
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       return "Connection failed: "+e.getMessage();
     }
@@ -212,7 +212,7 @@ public class LivelinkAuthority extends org.apache.acf.authorities.authorities.Ba
   /** Close the connection.  Call this before discarding the repository connector.
   */
   public void disconnect()
-    throws LCFException
+    throws ACFException
   {
     if (llServer != null)
     {
@@ -235,7 +235,7 @@ public class LivelinkAuthority extends org.apache.acf.authorities.authorities.Ba
   * (Should throws an exception only when a condition cannot be properly described within the authorization response object.)
   */
   public AuthorizationResponse getAuthorizationResponse(String userName)
-    throws LCFException
+    throws ACFException
   {
     // First, do what's necessary to map the user name that comes in to a reasonable
     // Livelink domain\\user combination.
@@ -405,7 +405,7 @@ public class LivelinkAuthority extends org.apache.acf.authorities.authorities.Ba
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     tabsArray.add("Server");
     tabsArray.add("User Mapping");
@@ -470,7 +470,7 @@ public class LivelinkAuthority extends org.apache.acf.authorities.authorities.Ba
   *@param tabName is the current tab name.
   */
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     String serverName = parameters.getParameter(org.apache.acf.crawler.connectors.livelink.LiveLinkParameters.serverName);
     if (serverName == null)
@@ -578,7 +578,7 @@ public class LivelinkAuthority extends org.apache.acf.authorities.authorities.Ba
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
-    throws LCFException
+    throws ACFException
   {
     String serverName = variableContext.getParameter("servername");
     if (serverName != null)
@@ -614,7 +614,7 @@ public class LivelinkAuthority extends org.apache.acf.authorities.authorities.Ba
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
@@ -660,7 +660,7 @@ public class LivelinkAuthority extends org.apache.acf.authorities.authorities.Ba
   *@param e is the RuntimeException caught
   */
   protected int handleLivelinkRuntimeException(RuntimeException e, int sanityRetryCount)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     if (
       e instanceof com.opentext.api.LLHTTPAccessDeniedException ||
@@ -674,7 +674,7 @@ public class LivelinkAuthority extends org.apache.acf.authorities.authorities.Ba
     )
     {
       String details = llServer.getErrors();
-      throw new LCFException("Livelink API error: "+e.getMessage()+((details==null)?"":"; "+details),e,LCFException.REPOSITORY_CONNECTION_ERROR);
+      throw new ACFException("Livelink API error: "+e.getMessage()+((details==null)?"":"; "+details),e,ACFException.REPOSITORY_CONNECTION_ERROR);
     }
     else if (
       e instanceof com.opentext.api.LLBadServerCertificateException ||
@@ -688,14 +688,14 @@ public class LivelinkAuthority extends org.apache.acf.authorities.authorities.Ba
     )
     {
       String details = llServer.getErrors();
-      throw new LCFException("Livelink API error: "+e.getMessage()+((details==null)?"":"; "+details),e);
+      throw new ACFException("Livelink API error: "+e.getMessage()+((details==null)?"":"; "+details),e);
     }
     else if (e instanceof com.opentext.api.LLIllegalOperationException)
     {
       // This usually means that LAPI has had a minor communication difficulty but hasn't reported it accurately.
       // We *could* throw a ServiceInterruption, but OpenText recommends to just retry almost immediately.
       String details = llServer.getErrors();
-      return assessRetry(sanityRetryCount,new LCFException("Livelink API illegal operation error: "+e.getMessage()+((details==null)?"":"; "+details),e));
+      return assessRetry(sanityRetryCount,new ACFException("Livelink API illegal operation error: "+e.getMessage()+((details==null)?"":"; "+details),e));
     }
     else if (e instanceof com.opentext.api.LLIOException)
     {
@@ -707,7 +707,7 @@ public class LivelinkAuthority extends org.apache.acf.authorities.authorities.Ba
       }
       catch (UnknownHostException e2)
       {
-        throw new LCFException("Server name '"+serverName+"' cannot be resolved",e2);
+        throw new ACFException("Server name '"+serverName+"' cannot be resolved",e2);
       }
 
       throw new ServiceInterruption("Transient error: "+e.getMessage(),e,System.currentTimeMillis()+5*60000L,System.currentTimeMillis()+12*60*60000L,-1,true);
@@ -718,8 +718,8 @@ public class LivelinkAuthority extends org.apache.acf.authorities.authorities.Ba
 
   /** Do a retry, or throw an exception if the retry count has been exhausted
   */
-  protected static int assessRetry(int sanityRetryCount, LCFException e)
-    throws LCFException
+  protected static int assessRetry(int sanityRetryCount, ACFException e)
+    throws ACFException
   {
     if (sanityRetryCount == 0)
     {
@@ -730,11 +730,11 @@ public class LivelinkAuthority extends org.apache.acf.authorities.authorities.Ba
 
     try
     {
-      LCF.sleep(1000L);
+      ACF.sleep(1000L);
     }
     catch (InterruptedException e2)
     {
-      throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
+      throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
     }
     // Exit the method
     return sanityRetryCount;

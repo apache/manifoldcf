@@ -41,7 +41,7 @@ public class ThrottleSpecManager extends org.apache.acf.core.database.BaseTable
   *@param database is the database instance.
   */
   public ThrottleSpecManager(IDBInterface database)
-    throws LCFException
+    throws ACFException
   {
     super(database,"throttlespec");
   }
@@ -51,7 +51,7 @@ public class ThrottleSpecManager extends org.apache.acf.core.database.BaseTable
   *@param owningTablePrimaryKey is the primary key of the owning table.
   */
   public void install(String ownerTable, String owningTablePrimaryKey)
-    throws LCFException
+    throws ACFException
   {
     // Always use a loop, in case upgrade needs it.
     while (true)
@@ -111,7 +111,7 @@ public class ThrottleSpecManager extends org.apache.acf.core.database.BaseTable
   /** Uninstall.
   */
   public void deinstall()
-    throws LCFException
+    throws ACFException
   {
     performDrop(null);
   }
@@ -121,7 +121,7 @@ public class ThrottleSpecManager extends org.apache.acf.core.database.BaseTable
   *@return a list, with columns: "description", "match", and "value".
   */
   public IResultSet readRows(String name)
-    throws LCFException
+    throws ACFException
   {
     ArrayList list = new ArrayList();
     list.add(name);
@@ -136,7 +136,7 @@ public class ThrottleSpecManager extends org.apache.acf.core.database.BaseTable
   *@param ownerNameParams is the corresponding set of connection name parameters.
   */
   public void getRows(IRepositoryConnection[] connections, Map indexMap, String ownerNameList, ArrayList ownerNameParams)
-    throws LCFException
+    throws ACFException
   {
     IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+ownerNameField+" IN ("+ownerNameList+")",ownerNameParams,
       null,null);
@@ -159,7 +159,7 @@ public class ThrottleSpecManager extends org.apache.acf.core.database.BaseTable
   *@param connection is the connection to write throttle specs for.
   */
   public void writeRows(String owner, IRepositoryConnection connection)
-    throws LCFException
+    throws ACFException
   {
     beginTransaction();
     try
@@ -181,7 +181,7 @@ public class ThrottleSpecManager extends org.apache.acf.core.database.BaseTable
         performInsert(map,null);
       }
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -201,7 +201,7 @@ public class ThrottleSpecManager extends org.apache.acf.core.database.BaseTable
   *@param owner is the owner whose rows to delete.
   */
   public void deleteRows(String owner)
-    throws LCFException
+    throws ACFException
   {
     ArrayList list = new ArrayList();
     list.add(owner);

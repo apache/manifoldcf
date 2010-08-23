@@ -20,7 +20,7 @@ package org.apache.acf.agents.tests;
 
 import org.apache.acf.core.interfaces.*;
 import org.apache.acf.agents.interfaces.*;
-import org.apache.acf.agents.system.LCF;
+import org.apache.acf.agents.system.ACF;
 
 import java.io.*;
 import java.util.*;
@@ -60,9 +60,9 @@ public class TestBase extends org.apache.acf.core.tests.TestBase
     
     // Install the agents tables
     initialize();
-    LCF.initializeEnvironment();
+    ACF.initializeEnvironment();
     IThreadContext tc = ThreadContextFactory.make();
-    LCF.installTables(tc);
+    ACF.installTables(tc);
   }
   
   @After
@@ -87,13 +87,13 @@ public class TestBase extends org.apache.acf.core.tests.TestBase
     if (isInitialized())
     {
       // Test the uninstall
-      LCF.initializeEnvironment();
+      ACF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
       
       Exception currentException = null;
       try
       {
-        LCF.deinstallTables(tc);
+        ACF.deinstallTables(tc);
       }
       catch (Exception e)
       {

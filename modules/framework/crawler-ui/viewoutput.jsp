@@ -82,7 +82,7 @@
 	IOutputConnection connection = connManager.load(connectionName);
 	if (connection == null)
 	{
-		throw new LCFException("No such connection: '"+connectionName+"'");
+		throw new ACFException("No such connection: '"+connectionName+"'");
 	}
 	else
 	{
@@ -119,7 +119,7 @@
 				}
 			}
 		}
-		catch (LCFException e)
+		catch (ACFException e)
 		{
 			connectionStatus = "Threw exception: '"+org.apache.acf.ui.util.Encoder.bodyEscape(e.getMessage())+"'";
 		}
@@ -169,7 +169,7 @@
 <%
 	}
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
 	e.printStackTrace();
 	variableContext.setParameter("text",e.getMessage());

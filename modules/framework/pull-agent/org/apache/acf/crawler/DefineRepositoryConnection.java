@@ -52,7 +52,7 @@ public class DefineRepositoryConnection
 
                 try
                 {
-                        LCF.initializeEnvironment();
+                        ACF.initializeEnvironment();
                         IThreadContext tc = ThreadContextFactory.make();
                         IRepositoryConnectionManager mgr = RepositoryConnectionManagerFactory.make(tc);
                         IRepositoryConnection conn = mgr.create();
@@ -70,7 +70,7 @@ public class DefineRepositoryConnection
                                 // Parse
                                 int pos = arg.indexOf("=");
                                 if (pos == -1)
-                                        throw new LCFException("Argument missing =");
+                                        throw new ACFException("Argument missing =");
                                 String name = arg.substring(0,pos);
                                 String value = arg.substring(pos+1);
                                 if (name.endsWith("assword"))

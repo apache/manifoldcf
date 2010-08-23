@@ -18,7 +18,7 @@
 */
 package org.apache.acf.core.interfaces;
 
-import org.apache.acf.core.system.LCF;
+import org.apache.acf.core.system.ACF;
 import org.apache.acf.core.system.Logging;
 import java.io.*;
 import java.util.*;
@@ -48,7 +48,7 @@ public class IDFactory
   }
 
   public static String make(IThreadContext tc)
-    throws LCFException
+    throws ACFException
   {
     ILockManager lockManager = LockManagerFactory.make(tc);
     // Enter critical section before we look at the pool
@@ -87,7 +87,7 @@ public class IDFactory
         }
         catch (UnsupportedEncodingException e)
         {
-          throw new LCFException(e.getMessage(),e);
+          throw new ACFException(e.getMessage(),e);
         }
         finally
         {

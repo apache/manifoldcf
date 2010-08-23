@@ -42,7 +42,7 @@ public class MultipartWrapper implements IPostParameters
   /** Constructor.
   */
   public MultipartWrapper(HttpServletRequest request)
-    throws LCFException
+    throws ACFException
   {
     // Check that we have a file upload request
     boolean isMultipart = FileUpload.isMultipartContent(request);
@@ -82,14 +82,14 @@ public class MultipartWrapper implements IPostParameters
         else
         {
           if (((FileItem)list.get(0)).isFormField() != item.isFormField())
-            throw new LCFException("Illegal form data; posted form has the same name for different data types ('"+name+"')!");
+            throw new ACFException("Illegal form data; posted form has the same name for different data types ('"+name+"')!");
         }
         list.add(item);
       }
     }
     catch (FileUploadException e)
     {
-      throw new LCFException("Problem uploading file: "+e.getMessage(),e);
+      throw new ACFException("Problem uploading file: "+e.getMessage(),e);
     }
   }
 
@@ -168,7 +168,7 @@ public class MultipartWrapper implements IPostParameters
   /** Get a file parameter, as a binary input.
   */
   public BinaryInput getBinaryStream(String name)
-    throws LCFException
+    throws ACFException
   {
     if (request != null)
       return null;
@@ -199,7 +199,7 @@ public class MultipartWrapper implements IPostParameters
     }
     catch (IOException e)
     {
-      throw new LCFException("Error creating file binary stream",e);
+      throw new ACFException("Error creating file binary stream",e);
     }
   }
 

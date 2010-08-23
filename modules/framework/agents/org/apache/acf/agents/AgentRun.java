@@ -34,7 +34,7 @@ public class AgentRun extends BaseAgentsInitializationCommand
   {
   }
 
-  protected void doExecute(IThreadContext tc) throws LCFException
+  protected void doExecute(IThreadContext tc) throws ACFException
   {
     ILockManager lockManager = LockManagerFactory.make(tc);
     // Clear the agents shutdown signal.
@@ -47,11 +47,11 @@ public class AgentRun extends BaseAgentsInitializationCommand
         break;
 
       // Start whatever agents need to be started
-      LCF.startAgents(tc);
+      ACF.startAgents(tc);
 
       try
       {
-        LCF.sleep(5000);
+        ACF.sleep(5000);
       }
       catch (InterruptedException e)
       {
@@ -77,7 +77,7 @@ public class AgentRun extends BaseAgentsInitializationCommand
       agentRun.execute();
       System.err.println("Shutting down...");
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       Logging.root.error("Exception: "+e.getMessage(),e);
       e.printStackTrace(System.err);

@@ -49,7 +49,7 @@ public class RestartJob
 
                 try
                 {
-                        LCF.initializeEnvironment();
+                        ACF.initializeEnvironment();
                         IThreadContext tc = ThreadContextFactory.make();
                         IJobManager jobManager = JobManagerFactory.make(tc);
                         jobManager.restartJob(new Long(jobID));

@@ -19,12 +19,12 @@
 package org.apache.acf.core;
 
 import org.apache.acf.core.interfaces.IThreadContext;
-import org.apache.acf.core.interfaces.LCFException;
-import org.apache.acf.core.system.LCF;
+import org.apache.acf.core.interfaces.ACFException;
+import org.apache.acf.core.system.ACF;
 import org.apache.acf.core.system.Logging;
 
 /**
- * Drop the database using the name as specified through the {@see LCF}. The username and password for the
+ * Drop the database using the name as specified through the {@see ACF}. The username and password for the
  * configured database need to be specified during construction.
  */
 public class DBDrop extends DBInitializationCommand
@@ -42,10 +42,10 @@ public class DBDrop extends DBInitializationCommand
     super(userName, password);
   }
 
-  protected void doExecute(IThreadContext tc) throws LCFException
+  protected void doExecute(IThreadContext tc) throws ACFException
   {
-    LCF.dropSystemDatabase(tc, getUserName(), getPassword());
-    Logging.root.info("LCF database dropped");
+    ACF.dropSystemDatabase(tc, getUserName(), getPassword());
+    Logging.root.info("ACF database dropped");
   }
 
   /**
@@ -74,9 +74,9 @@ public class DBDrop extends DBInitializationCommand
     try
     {
       dbDrop.execute();
-      System.err.println("LCF database dropped");
+      System.err.println("ACF database dropped");
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       e.printStackTrace();
       System.exit(1);

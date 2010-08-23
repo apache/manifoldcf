@@ -51,7 +51,7 @@ public class Database
   protected final static String _TRANSACTION_ = "_TRANSACTION_";
 
   public Database(IThreadContext context, String jdbcUrl, String jdbcDriverClass, String databaseName, String userName, String password)
-    throws LCFException
+    throws ACFException
   {
     this.context = context;
     this.jdbcUrl = jdbcUrl;
@@ -82,25 +82,25 @@ public class Database
 
   /** Abstract method to start a transaction */
   protected void startATransaction()
-    throws LCFException
+    throws ACFException
   {
   }
 
   /** Abstract method to commit a transaction */
   protected void commitCurrentTransaction()
-    throws LCFException
+    throws ACFException
   {
   }
   
   /** Abstract method to roll back a transaction */
   protected void rollbackCurrentTransaction()
-    throws LCFException
+    throws ACFException
   {
   }
   
   /** Abstract method for explaining a query */
   protected void explainQuery(String query, ArrayList params)
-    throws LCFException
+    throws ACFException
   {
   }
   
@@ -138,7 +138,7 @@ public class Database
   */
   public IResultSet executeQuery(String query, ArrayList params, StringSet cacheKeys, StringSet invalidateKeys,
     String queryClass, boolean needResult, int maxReturn, ResultSpecification spec, ILimitChecker returnLimits)
-    throws LCFException
+    throws ACFException
   {
     // System.out.println("Query: "+query);
     if (Logging.db.isDebugEnabled())
@@ -189,7 +189,7 @@ public class Database
   *@param transactionType describes the type of the transaction.
   */
   public void beginTransaction(int transactionType)
-    throws LCFException
+    throws ACFException
   {
     if (Logging.db.isDebugEnabled())
       Logging.db.debug("Beginning transaction of type "+Integer.toString(transactionType));
@@ -208,7 +208,7 @@ public class Database
   /** Synchronize internal transactions.
   */
   protected void synchronizeTransactions()
-    throws LCFException
+    throws ACFException
   {
     while (delayedTransactionDepth > 0)
     {
@@ -222,7 +222,7 @@ public class Database
   /** Perform actual transaction begin.
   */
   protected void internalTransactionBegin()
-    throws LCFException
+    throws ACFException
   {
     // Get a semipermanent connection
     if (connection == null)
@@ -233,9 +233,9 @@ public class Database
         // Start a transaction
         startATransaction();
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
+        if (e.getErrorCode() == ACFException.INTERRUPTED)
         {
           connection = null;
           throw e;
@@ -257,9 +257,9 @@ public class Database
       {
         startATransaction();
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
+        if (e.getErrorCode() == ACFException.INTERRUPTED)
         {
           // Don't do anything else other than drop the connection on the floor
           connection = null;
@@ -281,11 +281,11 @@ public class Database
   * signalRollback() was called within the transaction).
   */
   public void endTransaction()
-    throws LCFException
+    throws ACFException
   {
     Logging.db.debug("Ending transaction");
     if (th == null)
-      throw new LCFException("End transaction without begin!",LCFException.GENERAL_ERROR);
+      throw new ACFException("End transaction without begin!",ACFException.GENERAL_ERROR);
 
     TransactionHandle parentTransaction = th.getParent();
     // If the database throws up on the commit or the rollback, above us there
@@ -313,9 +313,9 @@ public class Database
             commitCurrentTransaction();
           }
         }
-        catch (LCFException e)
+        catch (ACFException e)
         {
-          if (e.getErrorCode() == LCFException.INTERRUPTED)
+          if (e.getErrorCode() == ACFException.INTERRUPTED)
           {
             // Drop the connection on the floor, so it cannot be reused.
             connection = null;
@@ -400,7 +400,7 @@ public class Database
   /** Do query execution via a subthread, so the primary thread can be interrupted */
   protected IResultSet executeViaThread(Connection connection, String query, ArrayList params, boolean bResults, int maxResults,
     ResultSpecification spec, ILimitChecker returnLimit)
-    throws LCFException
+    throws ACFException
   {
     if (connection == null)
       // This probably means that the thread was interrupted and the connection was abandoned.  Just return null.
@@ -414,11 +414,11 @@ public class Database
       Throwable thr = t.getException();
       if (thr != null)
       {
-        if (thr instanceof LCFException)
+        if (thr instanceof ACFException)
         {
           // Nest the exceptions so there is a hope we actually see the context, while preserving the kind of error it is
-          LCFException me = (LCFException)thr;
-          throw new LCFException("Database exception: "+me.getMessage(),me.getCause(),me.getErrorCode());
+          ACFException me = (ACFException)thr;
+          throw new ACFException("Database exception: "+me.getMessage(),me.getCause(),me.getErrorCode());
         }
         else
           throw (Error)thr;
@@ -429,7 +429,7 @@ public class Database
     {
       t.interrupt();
       // We need the caller to abandon any connections left around, so rethrow in a way that forces them to process the event properly.
-      throw new LCFException(e.getMessage(),e,LCFException.INTERRUPTED);
+      throw new ACFException(e.getMessage(),e,ACFException.INTERRUPTED);
     }
 
   }
@@ -439,7 +439,7 @@ public class Database
   */
   protected IResultSet executeUncachedQuery(String query, ArrayList params, boolean bResults, int maxResults,
     ResultSpecification spec, ILimitChecker returnLimit)
-    throws LCFException
+    throws ACFException
   {
 
     if (connection != null)
@@ -448,9 +448,9 @@ public class Database
       {
         return executeViaThread(connection,query,params,bResults,maxResults,spec,returnLimit);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
+        if (e.getErrorCode() == ACFException.INTERRUPTED)
           // drop the connection object on the floor, so it cannot possibly be reused
           connection = null;
         throw e;
@@ -464,9 +464,9 @@ public class Database
       {
         return executeViaThread(tempConnection,query,params,bResults,maxResults,spec,returnLimit);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
-        if (e.getErrorCode() == LCFException.INTERRUPTED)
+        if (e.getErrorCode() == ACFException.INTERRUPTED)
           // drop the connection object on the floor, so it cannot possibly be reused
           tempConnection = null;
         throw e;
@@ -490,7 +490,7 @@ public class Database
   */
   protected IResultSet execute(Connection connection, String query, ArrayList params, boolean bResults, int maxResults,
     ResultSpecification spec, ILimitChecker returnLimit)
-    throws LCFException
+    throws ACFException
   {
     IResultSet rval = null;
     try
@@ -579,7 +579,7 @@ public class Database
       {
         // There are a lot of different sorts of error that can be embedded here.  Unfortunately, it's database dependent how
         // to interpret the error.  So toss a generic error, and let the caller figure out if it needs to treat it differently.
-        throw new LCFException("Exception doing query: "+e.getMessage(),e,LCFException.DATABASE_CONNECTION_ERROR);
+        throw new ACFException("Exception doing query: "+e.getMessage(),e,ACFException.DATABASE_CONNECTION_ERROR);
       }
     }
     finally
@@ -593,7 +593,7 @@ public class Database
 
   // Read data from a resultset
   protected IResultSet getData(ResultSet rs, boolean bResults, int maxResults, ResultSpecification spec, ILimitChecker returnLimit)
-    throws LCFException
+    throws ACFException
   {
     RSet results = new RSet();  // might be empty but not an error
     try
@@ -628,7 +628,7 @@ public class Database
             {
               // This is an error situation; if a result with no columns is
               // necessary, bResults must be false!!!
-              throw new LCFException("Empty query, no columns returned",LCFException.GENERAL_ERROR);
+              throw new ACFException("Empty query, no columns returned",ACFException.GENERAL_ERROR);
             }
 
             while (rs.next() && (maxResults == -1 || maxResults > 0) && (returnLimit == null || returnLimit.checkContinue()))
@@ -682,7 +682,7 @@ public class Database
       }
       catch (java.sql.SQLException e)
       {
-        throw new LCFException("Resultset error: "+e.getMessage(),e,LCFException.DATABASE_CONNECTION_ERROR);
+        throw new ACFException("Resultset error: "+e.getMessage(),e,ACFException.DATABASE_CONNECTION_ERROR);
       }
     }
     catch (Throwable e)
@@ -704,8 +704,8 @@ public class Database
             ((CharacterInput)o).discard();
         }
       }
-      if (e instanceof LCFException)
-        throw (LCFException)e;
+      if (e instanceof ACFException)
+        throw (ACFException)e;
       if (e instanceof RuntimeException)
         throw (RuntimeException)e;
       if (e instanceof Error)
@@ -717,7 +717,7 @@ public class Database
 
   // pass params to preparedStatement
   protected static void loadPS(PreparedStatement ps, ArrayList data)
-    throws java.sql.SQLException, LCFException
+    throws java.sql.SQLException, ACFException
   {
     if (data!=null)
     {
@@ -776,7 +776,7 @@ public class Database
   /** Clean up parameters after query has been triggered.
   */
   protected static void cleanupParameters(ArrayList data)
-    throws LCFException
+    throws ACFException
   {
     if (data != null)
     {
@@ -798,7 +798,7 @@ public class Database
   }
 
   protected int findColumn(ResultSet rs, String name)
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -810,12 +810,12 @@ public class Database
     }
     catch (Exception e)
     {
-      throw new LCFException("Error finding " + name + " in resultset: "+e.getMessage(),e,LCFException.DATABASE_ERROR);
+      throw new ACFException("Error finding " + name + " in resultset: "+e.getMessage(),e,ACFException.DATABASE_ERROR);
     }
   }
 
   protected Blob getBLOB(ResultSet rs, int col)
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -823,16 +823,16 @@ public class Database
     }
     catch (java.sql.SQLException sqle)
     {
-      throw new LCFException("Error in getBlob",sqle,LCFException.DATABASE_CONNECTION_ERROR);
+      throw new ACFException("Error in getBlob",sqle,ACFException.DATABASE_CONNECTION_ERROR);
     }
     catch (Exception sqle)
     {
-      throw new LCFException("Error in getBlob",sqle,LCFException.DATABASE_ERROR);
+      throw new ACFException("Error in getBlob",sqle,ACFException.DATABASE_ERROR);
     }
   }
 
   protected boolean isBLOB(ResultSetMetaData rsmd, int col)
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -841,16 +841,16 @@ public class Database
     }
     catch (java.sql.SQLException sqle)
     {
-      throw new LCFException("Error in isBlob("+col+"): "+sqle.getMessage(),sqle,LCFException.DATABASE_CONNECTION_ERROR);
+      throw new ACFException("Error in isBlob("+col+"): "+sqle.getMessage(),sqle,ACFException.DATABASE_CONNECTION_ERROR);
     }
     catch (Exception sqle)
     {
-      throw new LCFException("Error in isBlob("+col+"): "+sqle.getMessage(),sqle,LCFException.DATABASE_ERROR);
+      throw new ACFException("Error in isBlob("+col+"): "+sqle.getMessage(),sqle,ACFException.DATABASE_ERROR);
     }
   }
 
   protected boolean isBinary(ResultSetMetaData rsmd, int col)
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -860,16 +860,16 @@ public class Database
     }
     catch (java.sql.SQLException sqle)
     {
-      throw new LCFException("Error in isBinary("+col+"): "+sqle.getMessage(),sqle,LCFException.DATABASE_CONNECTION_ERROR);
+      throw new ACFException("Error in isBinary("+col+"): "+sqle.getMessage(),sqle,ACFException.DATABASE_CONNECTION_ERROR);
     }
     catch (Exception sqle)
     {
-      throw new LCFException("Error in isBinary("+col+"): "+sqle.getMessage(),sqle,LCFException.DATABASE_ERROR);
+      throw new ACFException("Error in isBinary("+col+"): "+sqle.getMessage(),sqle,ACFException.DATABASE_ERROR);
     }
   }
 
   protected Object getObject(ResultSet rs, ResultSetMetaData rsmd, int col, int desiredForm)
-    throws LCFException
+    throws ACFException
   {
     Object result = null;
 
@@ -965,7 +965,7 @@ public class Database
             break;
 
           case java.sql.Types.BLOB:
-            throw new LCFException("BLOB is not a string, column = " + col,LCFException.GENERAL_ERROR);
+            throw new ACFException("BLOB is not a string, column = " + col,ACFException.GENERAL_ERROR);
 
           default :
             switch (desiredForm)
@@ -978,7 +978,7 @@ public class Database
               result = new TempFileCharacterInput(rs.getCharacterStream(col));
               break;
             default:
-              throw new LCFException("Illegal form requested for column "+Integer.toString(col)+": "+Integer.toString(desiredForm));
+              throw new ACFException("Illegal form requested for column "+Integer.toString(col)+": "+Integer.toString(desiredForm));
             }
             break;
           }
@@ -992,7 +992,7 @@ public class Database
       }
       catch (java.sql.SQLException e)
       {
-        throw new LCFException("Exception in getObject(): "+e.getMessage(),e,LCFException.DATABASE_CONNECTION_ERROR);
+        throw new ACFException("Exception in getObject(): "+e.getMessage(),e,ACFException.DATABASE_CONNECTION_ERROR);
       }
     }
     catch (Throwable e)
@@ -1001,8 +1001,8 @@ public class Database
         ((CharacterInput)result).discard();
       else if (result instanceof BinaryInput)
         ((BinaryInput)result).discard();
-      if (e instanceof LCFException)
-        throw (LCFException)e;
+      if (e instanceof ACFException)
+        throw (ACFException)e;
       if (e instanceof RuntimeException)
         throw (RuntimeException)e;
       if (e instanceof Error)
@@ -1049,7 +1049,7 @@ public class Database
     * @param objectDescriptions are the unique identifiers of the objects.
     * @return the newly created objects to cache, or null, if any object cannot be created.
     */
-    public Object[] create(ICacheDescription[] objectDescriptions) throws LCFException
+    public Object[] create(ICacheDescription[] objectDescriptions) throws ACFException
     {
       // Perform the requested query, within the appropriate transaction object.
       // Call the database object to do this
@@ -1090,7 +1090,7 @@ public class Database
           {
             database.explainQuery(description.getQuery(),description.getParameters());
           }
-          catch (LCFException e)
+          catch (ACFException e)
           {
             Logging.db.error("Explain failed with error "+e.getMessage(),e);
           }
@@ -1109,7 +1109,7 @@ public class Database
     * @param objectDescription is the unique identifier of the object.
     * @param cachedObject is the cached object.
     */
-    public void exists(ICacheDescription objectDescription, Object cachedObject) throws LCFException
+    public void exists(ICacheDescription objectDescription, Object cachedObject) throws ACFException
     {
       // System.out.println("Object created or found: "+objectDescription.getCriticalSectionName());
       // Save the resultset for return
@@ -1119,7 +1119,7 @@ public class Database
     /** Perform the desired operation.  This method is called after either createGetObject()
     * or exists() is called for every requested object.
     */
-    public void execute() throws LCFException
+    public void execute() throws ACFException
     {
       // Does nothing at all; the query would already have been done
     }

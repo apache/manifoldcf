@@ -1,6 +1,6 @@
 package org.apache.acf.core;
 
-import org.apache.acf.core.interfaces.LCFException;
+import org.apache.acf.core.interfaces.ACFException;
 
 /**
  * Interface for commands that initialize state of the connector framework. Among implementations available are:
@@ -15,7 +15,7 @@ public interface InitializationCommand
   /**
    * Execute the command.
    *
-   * @throws LCFException Thrown if the execution fails
+   * @throws ACFException Thrown if the execution fails
    */
-  void execute() throws LCFException;
+  void execute() throws ACFException;
 }

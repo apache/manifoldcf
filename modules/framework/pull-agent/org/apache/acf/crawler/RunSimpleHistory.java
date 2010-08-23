@@ -70,7 +70,7 @@ public class RunSimpleHistory
 
     try
     {
-      LCF.initializeEnvironment();
+      ACF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
       IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(tc);
 

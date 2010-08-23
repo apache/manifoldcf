@@ -38,16 +38,16 @@ public class ConnectorManagerFactory
   *@return the connector manager handle.
   */
   public static IConnectorManager make(IThreadContext tc)
-    throws LCFException
+    throws ACFException
   {
     Object o = tc.get(connMgr);
     if (o == null || !(o instanceof IConnectorManager))
     {
 
       IDBInterface database = DBInterfaceFactory.make(tc,
-        LCF.getMasterDatabaseName(),
-        LCF.getMasterDatabaseUsername(),
-        LCF.getMasterDatabasePassword());
+        ACF.getMasterDatabaseName(),
+        ACF.getMasterDatabaseUsername(),
+        ACF.getMasterDatabasePassword());
 
       o = new org.apache.acf.crawler.connmgr.ConnectorManager(tc,database);
       tc.save(connMgr,o);

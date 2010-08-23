@@ -22,7 +22,7 @@ import org.apache.acf.core.interfaces.*;
 import org.apache.acf.core.system.*;
 
 /**
- * LCF makes use of a synchronization directory to store data about the current state of the synchronization between
+ * ACF makes use of a synchronization directory to store data about the current state of the synchronization between
  * the repository connection and the output connection. This class is used to clear this directory.
  */
 public class LockClean implements InitializationCommand
@@ -36,10 +36,10 @@ public class LockClean implements InitializationCommand
   /**
    * {@inheritDoc}
    */
-  public void execute() throws LCFException
+  public void execute() throws ACFException
   {
-    LCF.initializeEnvironment();
-    String synchDir = LCF.getProperty(org.apache.acf.core.lockmanager.LockManager.synchDirectoryProperty);
+    ACF.initializeEnvironment();
+    String synchDir = ACF.getProperty(org.apache.acf.core.lockmanager.LockManager.synchDirectoryProperty);
     if (synchDir != null)
     {
       // Recursively clean up the contents of the synch directory. But don't remove the directory itself
@@ -107,7 +107,7 @@ public class LockClean implements InitializationCommand
       lockClean.execute();
       System.err.println("Synchronization storage cleaned up");
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       e.printStackTrace(System.err);
       System.exit(2);

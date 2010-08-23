@@ -38,16 +38,16 @@ public class OutputConnectorManagerFactory
   *@return the output connector manager handle.
   */
   public static IOutputConnectorManager make(IThreadContext tc)
-    throws LCFException
+    throws ACFException
   {
     Object o = tc.get(connMgr);
     if (o == null || !(o instanceof IOutputConnectorManager))
     {
 
       IDBInterface database = DBInterfaceFactory.make(tc,
-        LCF.getMasterDatabaseName(),
-        LCF.getMasterDatabaseUsername(),
-        LCF.getMasterDatabasePassword());
+        ACF.getMasterDatabaseName(),
+        ACF.getMasterDatabaseUsername(),
+        ACF.getMasterDatabasePassword());
 
       o = new org.apache.acf.agents.outputconnmgr.OutputConnectorManager(tc,database);
       tc.save(connMgr,o);

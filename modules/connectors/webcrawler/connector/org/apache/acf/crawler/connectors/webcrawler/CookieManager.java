@@ -24,7 +24,7 @@ import org.apache.acf.core.interfaces.*;
 import org.apache.acf.crawler.interfaces.*;
 import org.apache.acf.authorities.interfaces.*;
 import org.apache.acf.crawler.interfaces.CacheKeyFactory;
-import org.apache.acf.crawler.system.LCF;
+import org.apache.acf.crawler.system.ACF;
 import org.apache.acf.crawler.system.Logging;
 
 import org.apache.commons.httpclient.Cookie;
@@ -73,7 +73,7 @@ public class CookieManager extends org.apache.acf.core.database.BaseTable
   *@param database is the database handle.
   */
   public CookieManager(IThreadContext tc, IDBInterface database)
-    throws LCFException
+    throws ACFException
   {
     super(database,"cookiedata");
     cacheManager = CacheManagerFactory.make(tc);
@@ -82,7 +82,7 @@ public class CookieManager extends org.apache.acf.core.database.BaseTable
   /** Install the manager.
   */
   public void install()
-    throws LCFException
+    throws ACFException
   {
     beginTransaction();
     try
@@ -120,7 +120,7 @@ public class CookieManager extends org.apache.acf.core.database.BaseTable
         addTableIndex(false,list);
       }
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -139,7 +139,7 @@ public class CookieManager extends org.apache.acf.core.database.BaseTable
   /** Uninstall the manager.
   */
   public void deinstall()
-    throws LCFException
+    throws ACFException
   {
     performDrop(null);
   }
@@ -149,7 +149,7 @@ public class CookieManager extends org.apache.acf.core.database.BaseTable
   *@return the login cookies object.
   */
   public LoginCookies readCookies(String sessionKey)
-    throws LCFException
+    throws ACFException
   {
     // Build description objects
     CookiesDescription[] objectDescriptions = new CookiesDescription[1];
@@ -169,7 +169,7 @@ public class CookieManager extends org.apache.acf.core.database.BaseTable
   *@param cookies are the cookies to write into the database.
   */
   public void updateCookies(String sessionKey, LoginCookies cookies)
-    throws LCFException
+    throws ACFException
   {
     StringSetBuffer ssb = new StringSetBuffer();
     ssb.add(getCookiesCacheKey(sessionKey));
@@ -256,7 +256,7 @@ public class CookieManager extends org.apache.acf.core.database.BaseTable
 
         cacheManager.invalidateKeys(ch);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         signalRollback();
         throw e;
@@ -293,7 +293,7 @@ public class CookieManager extends org.apache.acf.core.database.BaseTable
   *@return the login cookies object.
   */
   protected LoginCookies readCookiesUncached(String sessionKey)
-    throws LCFException
+    throws ACFException
   {
     ArrayList list = new ArrayList();
     list.add(sessionKey);
@@ -348,14 +348,14 @@ public class CookieManager extends org.apache.acf.core.database.BaseTable
   /** Convert a boolean string to a boolean.
   */
   protected static boolean stringToBoolean(String value)
-    throws LCFException
+    throws ACFException
   {
     if (value.equals("T"))
       return true;
     else if (value.equals("F"))
       return false;
     else
-      throw new LCFException("Expected T or F but saw "+value);
+      throw new ACFException("Expected T or F but saw "+value);
   }
 
   /** Convert a boolean to a boolean string.
@@ -371,7 +371,7 @@ public class CookieManager extends org.apache.acf.core.database.BaseTable
   /** Convert a string to a port array.
   */
   protected static int[] stringToPorts(String value)
-    throws LCFException
+    throws ACFException
   {
     String[] ports = value.split(",");
     int[] rval = new int[ports.length];
@@ -384,7 +384,7 @@ public class CookieManager extends org.apache.acf.core.database.BaseTable
       }
       catch (NumberFormatException e)
       {
-        throw new LCFException(e.getMessage(),e);
+        throw new ACFException(e.getMessage(),e);
       }
       i++;
     }
@@ -563,7 +563,7 @@ public class CookieManager extends org.apache.acf.core.database.BaseTable
     * @return the newly created objects to cache, or null, if any object cannot be created.
     *  The order of the returned objects must correspond to the order of the object descriptinos.
     */
-    public Object[] create(ICacheDescription[] objectDescriptions) throws LCFException
+    public Object[] create(ICacheDescription[] objectDescriptions) throws ACFException
     {
       // I'm not expecting multiple values to be requested, so it's OK to walk through the objects
       // and do a request at a time.
@@ -587,7 +587,7 @@ public class CookieManager extends org.apache.acf.core.database.BaseTable
     * @param objectDescription is the unique identifier of the object.
     * @param cachedObject is the cached object.
     */
-    public void exists(ICacheDescription objectDescription, Object cachedObject) throws LCFException
+    public void exists(ICacheDescription objectDescription, Object cachedObject) throws ACFException
     {
       // Cast what came in as what it really is
       CookiesDescription objectDesc = (CookiesDescription)objectDescription;
@@ -599,7 +599,7 @@ public class CookieManager extends org.apache.acf.core.database.BaseTable
     /** Perform the desired operation.  This method is called after either createGetObject()
     * or exists() is called for every requested object.
     */
-    public void execute() throws LCFException
+    public void execute() throws ACFException
     {
       // Does nothing; we only want to fetch objects in this cacher.
     }

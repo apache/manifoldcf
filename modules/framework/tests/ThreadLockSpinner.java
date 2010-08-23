@@ -16,7 +16,7 @@
 */
 
 import org.apache.acf.core.interfaces.*;
-import org.apache.acf.core.system.LCF;
+import org.apache.acf.core.system.ACF;
 
 public class ThreadLockSpinner
 {
@@ -26,7 +26,7 @@ public class ThreadLockSpinner
   public static void main(String[] argv)
     throws Exception
   {
-    LCF.initializeEnvironment();
+    ACF.initializeEnvironment();
 
     // Start up multiple threads of each kind
     int t1instanceCount = 25;

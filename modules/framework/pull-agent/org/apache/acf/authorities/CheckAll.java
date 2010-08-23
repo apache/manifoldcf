@@ -44,7 +44,7 @@ public class CheckAll
 
     try
     {
-      LCF.initializeEnvironment();
+      ACF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
       // Now, get a list of the authority connections
       IAuthorityConnectionManager mgr = AuthorityConnectionManagerFactory.make(tc);
@@ -85,7 +85,7 @@ public class CheckAll
           else
             connectionStatus = "Connector not installed";
         }
-        catch (LCFException e)
+        catch (ACFException e)
         {
           connectionStatus = "Threw exception: '"+e.getMessage()+"'";
         }

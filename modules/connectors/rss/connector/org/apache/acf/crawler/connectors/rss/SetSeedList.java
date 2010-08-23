@@ -47,7 +47,7 @@ public class SetSeedList
 
     try
     {
-      LCF.initializeEnvironment();
+      ACF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
       IJobManager jobManager = JobManagerFactory.make(tc);
       IJobDescription desc = jobManager.load(new Long(jobString));

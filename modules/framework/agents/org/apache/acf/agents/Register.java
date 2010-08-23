@@ -36,7 +36,7 @@ public class Register extends BaseAgentsInitializationCommand
     this.className = className;
   }
 
-  protected void doExecute(IThreadContext tc) throws LCFException
+  protected void doExecute(IThreadContext tc) throws ACFException
   {
     IAgentManager mgr = AgentManagerFactory.make(tc);
     mgr.registerAgent(className);
@@ -58,7 +58,7 @@ public class Register extends BaseAgentsInitializationCommand
       register.execute();
       System.err.println("Successfully registered agent '"+className+"'");
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       e.printStackTrace();
       System.exit(1);

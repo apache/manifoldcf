@@ -100,9 +100,9 @@ public class AdminProfile implements HttpSessionBindingListener
       if (userID != null)
       {
         IDBInterface database = DBInterfaceFactory.make(threadContext,
-          LCF.getMasterDatabaseName(),
-          LCF.getMasterDatabaseUsername(),
-          LCF.getMasterDatabasePassword());
+          ACF.getMasterDatabaseName(),
+          ACF.getMasterDatabaseUsername(),
+          ACF.getMasterDatabasePassword());
         // MHL to actually log in (when we figure out what to use as an authority)
         if (userID.equals("admin") &&  userPassword.equals("admin"))
         {
@@ -112,7 +112,7 @@ public class AdminProfile implements HttpSessionBindingListener
         }
       }
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       Logging.misc.fatal("Exception logging in!",e);
     }

@@ -21,7 +21,7 @@ package org.apache.acf.core.interfaces;
 import org.apache.acf.core.interfaces.*;
 import java.util.*;
 import java.io.*;
-import org.apache.acf.core.system.LCF;
+import org.apache.acf.core.system.ACF;
 
 /** This class represents a set of configuration parameters, with structure, which is a generalized hierarchy of nodes that
 * can be interpreted by a repository or authority connector in an appropriate way.
@@ -67,7 +67,7 @@ public class ConfigParams extends Configuration
   *@param xml is the input XML.
   */
   public ConfigParams(String xml)
-    throws LCFException
+    throws ACFException
   {
     super("configuration");
     fromXML(xml);
@@ -77,7 +77,7 @@ public class ConfigParams extends Configuration
   *@param xmlstream is the input XML stream.  Does NOT close the stream.
   */
   public ConfigParams(InputStream xmlstream)
-    throws LCFException
+    throws ACFException
   {
     super("configuration");
     fromXML(xmlstream);
@@ -151,9 +151,9 @@ public class ConfigParams extends Configuration
       return rval;
     try
     {
-      return LCF.deobfuscate(rval);
+      return ACF.deobfuscate(rval);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       // Ignore this exception, and return an empty string.
       return "";
@@ -203,9 +203,9 @@ public class ConfigParams extends Configuration
     {
       try
       {
-        value = LCF.obfuscate(value);
+        value = ACF.obfuscate(value);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         // Ignore this exception, and set "" to be the value
         value = "";

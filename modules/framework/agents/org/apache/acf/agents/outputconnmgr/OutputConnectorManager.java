@@ -41,7 +41,7 @@ public class OutputConnectorManager extends org.apache.acf.core.database.BaseTab
   *@param database is the database handle.
   */
   public OutputConnectorManager(IThreadContext threadContext, IDBInterface database)
-    throws LCFException
+    throws ACFException
   {
     super(database,"outputconnectors");
     this.threadContext = threadContext;
@@ -51,7 +51,7 @@ public class OutputConnectorManager extends org.apache.acf.core.database.BaseTab
   /** Install or upgrade.
   */
   public void install()
-    throws LCFException
+    throws ACFException
   {
     // Always have an outer loop, in case upgrade needs it.
     while (true)
@@ -100,7 +100,7 @@ public class OutputConnectorManager extends org.apache.acf.core.database.BaseTab
   /** Uninstall.  This also unregisters all connectors.
   */
   public void deinstall()
-    throws LCFException
+    throws ACFException
   {
     StringSet invKeys = new StringSet(getCacheKey());
 
@@ -119,7 +119,7 @@ public class OutputConnectorManager extends org.apache.acf.core.database.BaseTab
       }
       performDrop(invKeys);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -141,7 +141,7 @@ public class OutputConnectorManager extends org.apache.acf.core.database.BaseTab
   *@param className is the class name.
   */
   public void registerConnector(String description, String className)
-    throws LCFException
+    throws ACFException
   {
     StringSet invKeys = new StringSet(getCacheKey());
     beginTransaction();
@@ -168,7 +168,7 @@ public class OutputConnectorManager extends org.apache.acf.core.database.BaseTab
       // Either way, we must do the install/upgrade itself.
       OutputConnectorFactory.install(threadContext,className);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -189,7 +189,7 @@ public class OutputConnectorManager extends org.apache.acf.core.database.BaseTab
   *@param className is the class name of the connector to unregister.
   */
   public void unregisterConnector(String className)
-    throws LCFException
+    throws ACFException
   {
     StringSet invKeys = new StringSet(getCacheKey());
     beginTransaction();
@@ -200,7 +200,7 @@ public class OutputConnectorManager extends org.apache.acf.core.database.BaseTab
 
       removeConnector(className);
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -222,7 +222,7 @@ public class OutputConnectorManager extends org.apache.acf.core.database.BaseTab
   *@param className is the connector class to remove.
   */
   public void removeConnector(String className)
-    throws LCFException
+    throws ACFException
   {
     StringSet invKeys = new StringSet(getCacheKey());
     ArrayList list = new ArrayList();
@@ -235,7 +235,7 @@ public class OutputConnectorManager extends org.apache.acf.core.database.BaseTab
   * These will be ordered by description.
   */
   public IResultSet getConnectors()
-    throws LCFException
+    throws ACFException
   {
     StringSet invKeys = new StringSet(getCacheKey());
 
@@ -248,7 +248,7 @@ public class OutputConnectorManager extends org.apache.acf.core.database.BaseTab
   *@return the description, or null if the class is not registered.
   */
   public String getDescription(String className)
-    throws LCFException
+    throws ACFException
   {
     StringSet invKeys = new StringSet(getCacheKey());
 
@@ -267,7 +267,7 @@ public class OutputConnectorManager extends org.apache.acf.core.database.BaseTab
   *@return true if installed, false otherwise.
   */
   public boolean isInstalled(String className)
-    throws LCFException
+    throws ACFException
   {
     // Use the global table key; that's good enough because we don't expect stuff to change out from under very often.
     StringSet invKeys = new StringSet(getCacheKey());

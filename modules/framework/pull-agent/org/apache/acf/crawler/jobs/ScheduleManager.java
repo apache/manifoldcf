@@ -48,7 +48,7 @@ public class ScheduleManager extends org.apache.acf.core.database.BaseTable
   *@param database is the database instance.
   */
   public ScheduleManager(IThreadContext threadContext, IDBInterface database)
-    throws LCFException
+    throws ACFException
   {
     super(database,"schedules");
   }
@@ -58,7 +58,7 @@ public class ScheduleManager extends org.apache.acf.core.database.BaseTable
   *@param owningTablePrimaryKey is the primary key of the owning table.
   */
   public void install(String ownerTable, String owningTablePrimaryKey)
-    throws LCFException
+    throws ACFException
   {
     // Standard practice: Outer loop to support upgrades
     while (true)
@@ -125,7 +125,7 @@ public class ScheduleManager extends org.apache.acf.core.database.BaseTable
   /** Uninstall.
   */
   public void deinstall()
-    throws LCFException
+    throws ACFException
   {
     performDrop(null);
   }
@@ -136,7 +136,7 @@ public class ScheduleManager extends org.apache.acf.core.database.BaseTable
   *@param ownerIDParams is the corresponding set of owner id parameters.
   */
   public void getRows(Map returnValues, String ownerIDList, ArrayList ownerIDParams)
-    throws LCFException
+    throws ACFException
   {
     IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+ownerIDField+" IN ("+ownerIDList+") ORDER BY "+ordinalField+" ASC",ownerIDParams,
       null,null);
@@ -164,7 +164,7 @@ public class ScheduleManager extends org.apache.acf.core.database.BaseTable
   *@param ownerIDParams is the corresponding set of owner id parameters.
   */
   public void getRowsAlternate(Map returnValues, String ownerIDList, ArrayList ownerIDParams)
-    throws LCFException
+    throws ACFException
   {
     IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+ownerIDField+" IN ("+ownerIDList+") ORDER BY "+ordinalField+" ASC",ownerIDParams,
       null,null);
@@ -197,7 +197,7 @@ public class ScheduleManager extends org.apache.acf.core.database.BaseTable
   *@param list is the job description that is the source of the schedule.
   */
   public void writeRows(Long ownerID, IJobDescription list)
-    throws LCFException
+    throws ACFException
   {
     beginTransaction();
     try
@@ -222,7 +222,7 @@ public class ScheduleManager extends org.apache.acf.core.database.BaseTable
         i++;
       }
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       signalRollback();
       throw e;
@@ -242,7 +242,7 @@ public class ScheduleManager extends org.apache.acf.core.database.BaseTable
   *@param ownerID is the owner whose rows to delete.
   */
   public void deleteRows(Long ownerID)
-    throws LCFException
+    throws ACFException
   {
     ArrayList list = new ArrayList();
     list.add(ownerID);
@@ -254,7 +254,7 @@ public class ScheduleManager extends org.apache.acf.core.database.BaseTable
   *@return the enumerated value.
   */
   public static EnumeratedValues stringToEnumeratedValue(String value)
-    throws LCFException
+    throws ACFException
   {
     if (value == null)
       return null;
@@ -280,7 +280,7 @@ public class ScheduleManager extends org.apache.acf.core.database.BaseTable
     }
     catch (NumberFormatException e)
     {
-      throw new LCFException("Bad number: '"+value+"'",e);
+      throw new ACFException("Bad number: '"+value+"'",e);
     }
 
   }

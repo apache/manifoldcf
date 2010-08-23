@@ -75,7 +75,7 @@ public class RunDocumentStatus
 
     try
     {
-      LCF.initializeEnvironment();
+      ACF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
       IJobManager jobManager = JobManagerFactory.make(tc);
 
@@ -172,7 +172,7 @@ public class RunDocumentStatus
       String state = states[i].trim();
       Integer value = (Integer)stateMap.get(state.toLowerCase());
       if (value == null)
-        throw new LCFException("State value of '"+state+"' is illegal");
+        throw new ACFException("State value of '"+state+"' is illegal");
       rval[i++] = value.intValue();
     }
     return rval;
@@ -204,7 +204,7 @@ public class RunDocumentStatus
       String status = statuses[i].trim();
       Integer value = (Integer)statusMap.get(status.toLowerCase());
       if (value == null)
-        throw new LCFException("Status value of '"+status+"' is illegal");
+        throw new ACFException("Status value of '"+status+"' is illegal");
       rval[i++] = value.intValue();
     }
     return rval;

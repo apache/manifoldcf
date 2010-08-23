@@ -35,7 +35,7 @@ public class RegisterAuthority extends BaseAuthoritiesInitializationCommand
     this.description = description;
   }
 
-  protected void doExecute(IAuthorityConnectorManager mgr) throws LCFException
+  protected void doExecute(IAuthorityConnectorManager mgr) throws ACFException
   {
     mgr.registerConnector(description,className);
     Logging.root.info("Successfully registered connector '"+className+"'");
@@ -58,7 +58,7 @@ public class RegisterAuthority extends BaseAuthoritiesInitializationCommand
       registerAuthority.execute();
       System.err.println("Successfully registered connector '"+className+"'");
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       e.printStackTrace();
       System.exit(1);

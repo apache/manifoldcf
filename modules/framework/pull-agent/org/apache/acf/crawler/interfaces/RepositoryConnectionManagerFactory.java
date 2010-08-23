@@ -19,7 +19,7 @@
 package org.apache.acf.crawler.interfaces;
 
 import org.apache.acf.core.interfaces.*;
-import org.apache.acf.crawler.system.LCF;
+import org.apache.acf.crawler.system.ACF;
 
 /** Repository connection manager factory.
 */
@@ -39,15 +39,15 @@ public class RepositoryConnectionManagerFactory
   *@return the handle.
   */
   public static IRepositoryConnectionManager make(IThreadContext tc)
-    throws LCFException
+    throws ACFException
   {
     Object o = tc.get(objectName);
     if (o == null || !(o instanceof IRepositoryConnectionManager))
     {
       IDBInterface database = DBInterfaceFactory.make(tc,
-        LCF.getMasterDatabaseName(),
-        LCF.getMasterDatabaseUsername(),
-        LCF.getMasterDatabasePassword());
+        ACF.getMasterDatabaseName(),
+        ACF.getMasterDatabaseUsername(),
+        ACF.getMasterDatabasePassword());
 
       o = new org.apache.acf.crawler.repository.RepositoryConnectionManager(tc,database);
       tc.save(objectName,o);

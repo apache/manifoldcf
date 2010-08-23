@@ -23,7 +23,7 @@ import org.apache.acf.core.interfaces.*;
 import org.apache.acf.agents.interfaces.*;
 import org.apache.acf.crawler.interfaces.*;
 import org.apache.acf.crawler.system.Logging;
-import org.apache.acf.crawler.system.LCF;
+import org.apache.acf.crawler.system.ACF;
 import java.util.*;
 import java.io.*;
 import org.apache.acf.crawler.common.filenet.*;
@@ -141,30 +141,30 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
   /** Get a DFC session.  This will be done every time it is needed.
   */
   protected void getSession()
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     if (session == null)
     {
       // Check for parameter validity
       if (userID == null || userID.length() < 1)
-        throw new LCFException("Parameter "+CONFIG_PARAM_USERID+" required but not set");
+        throw new ACFException("Parameter "+CONFIG_PARAM_USERID+" required but not set");
 
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("FileNet: UserID = '" + userID + "'");
 
       if (password == null || password.length() < 1)
-        throw new LCFException("Parameter "+CONFIG_PARAM_PASSWORD+" required but not set");
+        throw new ACFException("Parameter "+CONFIG_PARAM_PASSWORD+" required but not set");
 
       Logging.connectors.debug("FileNet: Password exists");
 
       if (objectStore == null || objectStore.length() < 1)
-        throw new LCFException("Parameter "+CONFIG_PARAM_OBJECTSTORE+" required but not set");
+        throw new ACFException("Parameter "+CONFIG_PARAM_OBJECTSTORE+" required but not set");
 
       if (serverProtocol == null || serverProtocol.length() < 1)
-        throw new LCFException("Parameter "+CONFIG_PARAM_SERVERPROTOCOL+" required but not set");
+        throw new ACFException("Parameter "+CONFIG_PARAM_SERVERPROTOCOL+" required but not set");
 
       if (serverHostname == null || serverHostname.length() < 1)
-        throw new LCFException("Parameter "+CONFIG_PARAM_SERVERHOSTNAME+" required but not set");
+        throw new ACFException("Parameter "+CONFIG_PARAM_SERVERHOSTNAME+" required but not set");
 
       if (serverPort != null && serverPort.length() < 1)
         serverPort = null;
@@ -173,10 +173,10 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
         Logging.connectors.debug("FileNet: Server URI is '"+serverWSIURI+"'");
 
       if (docUrlServerProtocol == null || docUrlServerProtocol.length() == 0)
-        throw new LCFException("Parameter "+CONFIG_PARAM_URLPROTOCOL+" required but not set");
+        throw new ACFException("Parameter "+CONFIG_PARAM_URLPROTOCOL+" required but not set");
 
       if (docUrlServerName == null || docUrlServerName.length() == 0)
-        throw new LCFException("Parameter "+CONFIG_PARAM_URLHOSTNAME+" required but not set");
+        throw new ACFException("Parameter "+CONFIG_PARAM_URLHOSTNAME+" required but not set");
 
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("FileNet: Document base URI is '"+docURIPrefix+"'");
@@ -205,11 +205,11 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (java.net.MalformedURLException e)
       {
-        throw new LCFException(e.getMessage(),e);
+        throw new ACFException(e.getMessage(),e);
       }
       catch (NotBoundException e)
       {
@@ -222,7 +222,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
+          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
         // Treat this as a transient problem
         Logging.connectors.warn("FileNet: Transient remote exception creating session: "+e.getMessage(),e);
         currentTime = System.currentTimeMillis();
@@ -237,7 +237,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
           currentTime = System.currentTimeMillis();
           throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L,currentTime + 12 * 60 * 60000L,-1,true);
         }
-        throw new LCFException(e.getMessage(),e);
+        throw new ACFException(e.getMessage(),e);
       }
     }
 
@@ -279,7 +279,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
   /** Release the session, if it's time.
   */
   protected void releaseCheck()
-    throws LCFException
+    throws ACFException
   {
     if (lastSessionFetch == -1L)
       return;
@@ -308,13 +308,13 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
+          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
         session = null;
         lastSessionFetch = -1L;
         // Treat this as a transient problem
@@ -432,7 +432,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
   *@return the connection's status as a displayable string.
   */
   public String check()
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -447,14 +447,14 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
         if (e.getType() == FilenetException.TYPE_SERVICEINTERRUPTION)
           throw new ServiceInterruption(e.getMessage(),0L);
         else
-          throw new LCFException(e.getMessage(),e);
+          throw new ACFException(e.getMessage(),e);
       }
     }
     catch (ServiceInterruption e)
     {
       return "Connection temporarily failed: "+e.getMessage();
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       return "Connection failed: "+e.getMessage();
     }
@@ -464,7 +464,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
   * in active use.
   */
   public void poll()
-    throws LCFException
+    throws ACFException
   {
     releaseCheck();
   }
@@ -472,7 +472,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
   /** Disconnect from Filenet.
   */
   public void disconnect()
-    throws LCFException
+    throws ACFException
   {
     if (session != null)
     {
@@ -497,13 +497,13 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
+          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
         session = null;
         lastSessionFetch = -1L;
         // Treat this as a transient problem
@@ -541,13 +541,13 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
   *@param input is the request object.
   */
   public void executeCommand(Configuration output, String command, Configuration input)
-    throws LCFException
+    throws ACFException
   {
     if (command.equals("documentclass/metadatafields"))
     {
-      String documentClass = LCF.getRootArgument(input,"document_class");
+      String documentClass = ACF.getRootArgument(input,"document_class");
       if (documentClass == null)
-        throw new LCFException("Missing required field 'document_class'");
+        throw new ACFException("Missing required field 'document_class'");
       try
       {
         MetadataFieldDefinition[] metaFields = getDocumentClassMetadataFieldsDetails(documentClass);
@@ -568,11 +568,11 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
       }
       catch (ServiceInterruption e)
       {
-        LCF.createServiceInterruptionNode(output,e);
+        ACF.createServiceInterruptionNode(output,e);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
-        LCF.createErrorNode(output,e);
+        ACF.createErrorNode(output,e);
       }
     }
     else if (command.equals("documentclass/list"))
@@ -597,11 +597,11 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
       }
       catch (ServiceInterruption e)
       {
-        LCF.createServiceInterruptionNode(output,e);
+        ACF.createServiceInterruptionNode(output,e);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
-        LCF.createErrorNode(output,e);
+        ACF.createErrorNode(output,e);
       }
     }
     else if (command.equals("mimetype/list"))
@@ -620,11 +620,11 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
       }
       catch (ServiceInterruption e)
       {
-        LCF.createServiceInterruptionNode(output,e);
+        ACF.createServiceInterruptionNode(output,e);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
-        LCF.createErrorNode(output,e);
+        ACF.createErrorNode(output,e);
       }
     }
     else
@@ -640,7 +640,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
   */
   public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
     long startTime, long endTime)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     Logging.connectors.debug("FileNet: Inside addSeedDocuments");
 
@@ -746,7 +746,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
           if (e.getType() == FilenetException.TYPE_SERVICEINTERRUPTION)
             throw new ServiceInterruption(e.getMessage(),e,currentTime+300000L,currentTime+12*60*60000L,-1,true);
           else
-            throw new LCFException(e.getMessage(),e);
+            throw new ACFException(e.getMessage(),e);
         }
       }
 
@@ -836,7 +836,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
   */
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activity,
     DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     Logging.connectors.debug("FileNet: Inside getDocumentVersions");
 
@@ -1052,7 +1052,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
             rval[i] = null;
           }
           else
-            throw new LCFException(e.getMessage(),e);
+            throw new ACFException(e.getMessage(),e);
         }
       }
       else
@@ -1102,7 +1102,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
   */
   public void processDocuments(String[] documentIdentifiers, String[] documentVersions,
     IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     Logging.connectors.debug("FileNet: Inside processDocuments");
 
@@ -1135,7 +1135,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
           }
           catch (NumberFormatException e)
           {
-            throw new LCFException("Bad number in identifier: "+documentIdentifier,e);
+            throw new ACFException("Bad number in identifier: "+documentIdentifier,e);
           }
 
           // Unpack the information in the document version
@@ -1199,7 +1199,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
                 {
                   activities.recordActivity(new Long(startTime),ACTIVITY_FETCH,
                     null,documentIdentifier,"Miscellaneous error",e.getMessage(),null);
-                  throw new LCFException(e.getMessage(),e);
+                  throw new ACFException(e.getMessage(),e);
                 }
               }
 
@@ -1262,7 +1262,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
                 }
                 catch (InterruptedIOException e)
                 {
-                  throw new LCFException(e.getMessage(),e,LCFException.INTERRUPTED);
+                  throw new ACFException(e.getMessage(),e,ACFException.INTERRUPTED);
                 }
                 catch (IOException e)
                 {
@@ -1278,12 +1278,12 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
           }
           catch (InterruptedIOException e)
           {
-            throw new LCFException(e.getMessage(),e,LCFException.INTERRUPTED);
+            throw new ACFException(e.getMessage(),e,ACFException.INTERRUPTED);
           }
           catch (IOException e)
           {
             Logging.connectors.error("FileNet: IO Exception ingesting document '"+documentIdentifier+"': "+e.getMessage(),e);
-            throw new LCFException("IO Exception ingesting document '"+documentIdentifier+"': "+e.getMessage(),e);
+            throw new ACFException("IO Exception ingesting document '"+documentIdentifier+"': "+e.getMessage(),e);
           }
         }
       }
@@ -1338,7 +1338,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
           }
           else
           {
-            throw new LCFException(e.getMessage(),e);
+            throw new ACFException(e.getMessage(),e);
           }
         }
       }
@@ -1355,7 +1355,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
   *@param versions is the corresponding set of version identifiers (individual identifiers may be null).
   */
   public void releaseDocumentVersions(String[] documentIdentifiers, String[] versions)
-    throws LCFException
+    throws ACFException
   {
     // Nothing to do
   }
@@ -1383,7 +1383,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     tabsArray.add("Server");
     tabsArray.add("Object Store");
@@ -1487,7 +1487,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
   *@param tabName is the current tab name.
   */
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     String userID = parameters.getParameter(org.apache.acf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_USERID);
     if (userID == null)
@@ -1667,7 +1667,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
-    throws LCFException
+    throws ACFException
   {
     String serverprotocol = variableContext.getParameter("serverprotocol");
     if (serverprotocol != null)
@@ -1727,7 +1727,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
@@ -1775,7 +1775,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     tabsArray.add("Document Classes");
     tabsArray.add("Mime Types");
@@ -1839,7 +1839,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
   *@param tabName is the current tab name.
   */
   public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     int i;
     Iterator iter;
@@ -1882,7 +1882,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
           documentClassFields.put(documentClass,metaFields);
         }
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         message = e.getMessage();
       }
@@ -2141,7 +2141,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
       {
         mimeTypesArray = getMimeTypes();
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         message = e.getMessage();
       }
@@ -2335,7 +2335,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
-    throws LCFException
+    throws ACFException
   {
     String[] x;
     String y;
@@ -2525,7 +2525,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
   *@param ds is the current document specification for this job.
   */
   public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     int i;
     Iterator iter;
@@ -2764,7 +2764,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
 
   /** Get the set of available document classes, with details */
   public DocumentClassDefinition[] getDocumentClassesDetails()
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     long currentTime;
     try
@@ -2778,13 +2778,13 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
       if (e.getType() == FilenetException.TYPE_SERVICEINTERRUPTION)
         throw new ServiceInterruption(e.getMessage(),e,currentTime+300000L,currentTime+12*60*60000L,-1,true);
       else
-        throw new LCFException(e.getMessage(),e);
+        throw new ACFException(e.getMessage(),e);
     }
   }
 
   /** Get the set of available metadata fields per document class */
   public MetadataFieldDefinition[] getDocumentClassMetadataFieldsDetails(String documentClassName)
-    throws ServiceInterruption, LCFException
+    throws ServiceInterruption, ACFException
   {
     long currentTime;
     try
@@ -2798,13 +2798,13 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
       if (e.getType() == FilenetException.TYPE_SERVICEINTERRUPTION)
         throw new ServiceInterruption(e.getMessage(),e,currentTime+300000L,currentTime+12*60*60000L,-1,true);
       else
-        throw new LCFException(e.getMessage(),e);
+        throw new ACFException(e.getMessage(),e);
     }
   }
 
   /** Get the set of available mime types */
   public String[] getMimeTypes()
-    throws LCFException, ServiceInterruption
+    throws ACFException, ServiceInterruption
   {
     // For now, return the list of mime types we know about
     return new String[]
@@ -2898,7 +2898,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
 
   /** Check connection, with appropriate retries */
   protected void checkConnection()
-    throws FilenetException, LCFException, ServiceInterruption
+    throws FilenetException, ACFException, ServiceInterruption
   {
     while (true)
     {
@@ -2925,13 +2925,13 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
+          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
         if (noSession)
         {
           currentTime = System.currentTimeMillis();
@@ -2980,7 +2980,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
 
   /** Get document class details, with appropriate retries */
   protected DocumentClassDefinition[] getDocumentClassesInfo()
-    throws FilenetException, LCFException, ServiceInterruption
+    throws FilenetException, ACFException, ServiceInterruption
   {
     while (true)
     {
@@ -3007,13 +3007,13 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
+          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
         if (noSession)
         {
           currentTime = System.currentTimeMillis();
@@ -3064,7 +3064,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
 
   /** Get document class metadata fields details, with appropriate retries */
   protected MetadataFieldDefinition[] getDocumentClassMetadataFieldsInfo(String documentClassName)
-    throws FilenetException, LCFException, ServiceInterruption
+    throws FilenetException, ACFException, ServiceInterruption
   {
     while (true)
     {
@@ -3091,13 +3091,13 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
+          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
         if (noSession)
         {
           currentTime = System.currentTimeMillis();
@@ -3149,7 +3149,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
 
   /** Get matching object id's for a given query */
   protected String[] doGetMatchingObjectIds(String sql)
-    throws FilenetException, LCFException, ServiceInterruption
+    throws FilenetException, ACFException, ServiceInterruption
   {
     while (true)
     {
@@ -3176,13 +3176,13 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
+          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
         if (noSession)
         {
           currentTime = System.currentTimeMillis();
@@ -3233,7 +3233,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
   }
 
   protected Integer doGetDocumentContentCount(String documentIdentifier)
-    throws FilenetException, LCFException, ServiceInterruption
+    throws FilenetException, ACFException, ServiceInterruption
   {
     while (true)
     {
@@ -3260,13 +3260,13 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
+          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
         if (noSession)
         {
           currentTime = System.currentTimeMillis();
@@ -3321,7 +3321,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
 
   /** Get document info */
   protected FileInfo doGetDocumentInformation(String docId, HashMap metadataFields)
-    throws FilenetException, LCFException, ServiceInterruption
+    throws FilenetException, ACFException, ServiceInterruption
   {
     while (true)
     {
@@ -3348,13 +3348,13 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
+          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
         if (noSession)
         {
           currentTime = System.currentTimeMillis();
@@ -3404,7 +3404,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
 
   /** Get document contents */
   protected void doGetDocumentContents(String docId, int elementNumber, String tempFileName)
-    throws FilenetException, LCFException, ServiceInterruption
+    throws FilenetException, ACFException, ServiceInterruption
   {
     while (true)
     {
@@ -3431,13 +3431,13 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new LCFException(e2.getMessage(),e2,LCFException.INTERRUPTED);
+          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
         if (noSession)
         {
           currentTime = System.currentTimeMillis();

@@ -53,7 +53,7 @@ public class XMLStringContext extends XMLContext
 
   /** This method is meant to be extended by classes that extend this class */
   protected void tagContents(char[] ch, int start, int length)
-    throws LCFException
+    throws ACFException
   {
     // Append the characters to the buffer
     value.append(ch,start,length);

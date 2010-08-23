@@ -33,12 +33,12 @@ public class SynchronizeOutputs extends BaseAgentsInitializationCommand
   {
   }
 
-  protected void doExecute(IThreadContext tc) throws LCFException
+  protected void doExecute(IThreadContext tc) throws ACFException
   {
     IDBInterface database = DBInterfaceFactory.make(tc,
-      LCF.getMasterDatabaseName(),
-      LCF.getMasterDatabaseUsername(),
-      LCF.getMasterDatabasePassword());
+      ACF.getMasterDatabaseName(),
+      ACF.getMasterDatabaseUsername(),
+      ACF.getMasterDatabasePassword());
     IOutputConnectorManager mgr = OutputConnectorManagerFactory.make(tc);
     IOutputConnectionManager connManager = OutputConnectionManagerFactory.make(tc);
     IResultSet classNames = mgr.getConnectors();
@@ -51,7 +51,7 @@ public class SynchronizeOutputs extends BaseAgentsInitializationCommand
       {
         OutputConnectorFactory.getConnectorNoCheck(className);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         // Deregistration should be done in a transaction
         database.beginTransaction();
@@ -64,7 +64,7 @@ public class SynchronizeOutputs extends BaseAgentsInitializationCommand
           // Now that all jobs have been placed into an appropriate state, actually do the deregistration itself.
           mgr.removeConnector(className);
         }
-        catch (LCFException e2)
+        catch (ACFException e2)
         {
           database.signalRollback();
           throw e2;
@@ -98,7 +98,7 @@ public class SynchronizeOutputs extends BaseAgentsInitializationCommand
       synchronizeOutputs.execute();
       System.err.println("Successfully synchronized all outputs");
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       e.printStackTrace();
       System.exit(1);

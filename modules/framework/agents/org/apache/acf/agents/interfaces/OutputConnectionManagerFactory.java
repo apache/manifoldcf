@@ -19,7 +19,7 @@
 package org.apache.acf.agents.interfaces;
 
 import org.apache.acf.core.interfaces.*;
-import org.apache.acf.agents.system.LCF;
+import org.apache.acf.agents.system.ACF;
 
 import java.util.*;
 
@@ -41,15 +41,15 @@ public class OutputConnectionManagerFactory
   *@return the handle.
   */
   public static IOutputConnectionManager make(IThreadContext tc)
-    throws LCFException
+    throws ACFException
   {
     Object o = tc.get(objectName);
     if (o == null || !(o instanceof IOutputConnectionManager))
     {
       IDBInterface database = DBInterfaceFactory.make(tc,
-        LCF.getMasterDatabaseName(),
-        LCF.getMasterDatabaseUsername(),
-        LCF.getMasterDatabasePassword());
+        ACF.getMasterDatabaseName(),
+        ACF.getMasterDatabaseUsername(),
+        ACF.getMasterDatabasePassword());
 
       o = new org.apache.acf.agents.outputconnection.OutputConnectionManager(tc,database);
       tc.save(objectName,o);
@@ -62,7 +62,7 @@ public class OutputConnectionManagerFactory
   *@return the sorted list of output connection activities.
   */
   public static String[] getAllOutputActivities(IThreadContext tc)
-    throws LCFException
+    throws ACFException
   {
     IOutputConnectionManager manager = make(tc);
     IOutputConnection[] connections = manager.getAllConnections();

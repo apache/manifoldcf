@@ -20,7 +20,7 @@ package org.apache.acf.core.database;
 
 import org.apache.acf.core.interfaces.*;
 import org.apache.acf.core.system.Logging;
-import org.apache.acf.core.system.LCF;
+import org.apache.acf.core.system.ACF;
 
 import java.util.*;
 import java.sql.*;
@@ -49,7 +49,7 @@ public class ConnectionFactory
   }
 
   public static Connection getConnection(String jdbcUrl, String jdbcDriver, String database, String userName, String password)
-    throws LCFException
+    throws ACFException
   {
 
     ConnectionPoolManager _pool = poolManager.ensurePoolExists(jdbcDriver);
@@ -67,11 +67,11 @@ public class ConnectionFactory
       }
       if (cp == null)
       {
-        String handleMax = LCF.getProperty(LCF.databaseHandleMaxcountProperty);
+        String handleMax = ACF.getProperty(ACF.databaseHandleMaxcountProperty);
         int maxDBConnections = defaultMaxDBConnections;
         if (handleMax != null && handleMax.length() > 0)
           maxDBConnections = Integer.parseInt(handleMax);
-        String timeoutValueString = LCF.getProperty(LCF.databaseHandleTimeoutProperty);
+        String timeoutValueString = ACF.getProperty(ACF.databaseHandleTimeoutProperty);
         int timeoutValue = defaultTimeoutValue;
         if (timeoutValueString != null && timeoutValueString.length() > 0)
           timeoutValue = Integer.parseInt(timeoutValueString);
@@ -101,12 +101,12 @@ public class ConnectionFactory
     }
     catch (Exception e)
     {
-      throw new LCFException("Error getting connection",e,LCFException.DATABASE_ERROR);
+      throw new ACFException("Error getting connection",e,ACFException.DATABASE_ERROR);
     }
   }
 
   public static void releaseConnection(Connection c)
-    throws LCFException
+    throws ACFException
   {
     try
     {
@@ -118,7 +118,7 @@ public class ConnectionFactory
     }
     catch (Exception e)
     {
-      throw new LCFException("Error releasing connection",e,LCFException.DATABASE_ERROR);
+      throw new ACFException("Error releasing connection",e,ACFException.DATABASE_ERROR);
     }
   }
 
@@ -154,11 +154,11 @@ public class ConnectionFactory
       try
       {
         // Ten seconds is a long time
-        LCF.sleep(10000L);
+        ACF.sleep(10000L);
       }
       catch (InterruptedException e)
       {
-        throw new LCFException("Interrupted",LCFException.INTERRUPTED);
+        throw new ACFException("Interrupted",ACFException.INTERRUPTED);
       }
     }
 
@@ -195,7 +195,7 @@ public class ConnectionFactory
     }
 
     public ConnectionPoolManager ensurePoolExists(String jdbcDriver)
-      throws LCFException
+      throws ACFException
     {
       synchronized (poolExistenceLock)
       {
@@ -207,11 +207,11 @@ public class ConnectionFactory
         }
         catch (Exception e)
         {
-          throw new LCFException("Unable to load database driver: "+e.getMessage(),e,LCFException.SETUP_ERROR);
+          throw new ACFException("Unable to load database driver: "+e.getMessage(),e,ACFException.SETUP_ERROR);
         }
         try
         {
-          String handleMax = LCF.getProperty(LCF.databaseHandleMaxcountProperty);
+          String handleMax = ACF.getProperty(ACF.databaseHandleMaxcountProperty);
           int maxDBConnections = defaultMaxDBConnections;
           if (handleMax != null && handleMax.length() > 0)
             maxDBConnections = Integer.parseInt(handleMax);
@@ -220,7 +220,7 @@ public class ConnectionFactory
         }
         catch (Exception e)
         {
-          throw new LCFException("Unable to initialize database handle pool: "+e.getMessage(),e,LCFException.SETUP_ERROR);
+          throw new ACFException("Unable to initialize database handle pool: "+e.getMessage(),e,ACFException.SETUP_ERROR);
         }
       }
     }
@@ -289,7 +289,7 @@ public class ConnectionFactory
         {
           try
           {
-            LCF.sleep(1000L);
+            ACF.sleep(1000L);
             k++;
             continue;
           }

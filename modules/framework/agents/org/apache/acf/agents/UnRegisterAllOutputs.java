@@ -33,12 +33,12 @@ public class UnRegisterAllOutputs extends BaseAgentsInitializationCommand
   {
   }
 
-  protected void doExecute(IThreadContext tc) throws LCFException
+  protected void doExecute(IThreadContext tc) throws ACFException
   {
     IDBInterface database = DBInterfaceFactory.make(tc,
-      LCF.getMasterDatabaseName(),
-      LCF.getMasterDatabaseUsername(),
-      LCF.getMasterDatabasePassword());
+      ACF.getMasterDatabaseName(),
+      ACF.getMasterDatabaseUsername(),
+      ACF.getMasterDatabasePassword());
     IOutputConnectorManager mgr = OutputConnectorManagerFactory.make(tc);
     IOutputConnectionManager connManager = OutputConnectionManagerFactory.make(tc);
     IResultSet classNames = mgr.getConnectors();
@@ -58,7 +58,7 @@ public class UnRegisterAllOutputs extends BaseAgentsInitializationCommand
         // Now that all jobs have been placed into an appropriate state, actually do the deregistration itself.
         mgr.unregisterConnector(className);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         database.signalRollback();
         throw e;
@@ -91,7 +91,7 @@ public class UnRegisterAllOutputs extends BaseAgentsInitializationCommand
       unRegisterAllOutputs.execute();
       System.err.println("Successfully unregistered all output connectors");
     }
-    catch (LCFException e)
+    catch (ACFException e)
     {
       e.printStackTrace();
       System.exit(1);

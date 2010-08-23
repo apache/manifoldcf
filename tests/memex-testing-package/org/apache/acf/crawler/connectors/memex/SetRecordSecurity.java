@@ -62,7 +62,7 @@ public class SetRecordSecurity
                         }
                         System.err.println("Successfully set security");
                 }
-                catch (LCFException e)
+                catch (ACFException e)
                 {
                         e.printStackTrace(System.err);
                         System.exit(2);

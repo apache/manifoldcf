@@ -43,7 +43,7 @@ public interface IPostParameters
   *@return the value, or null if it doesn't exist.
   */
   public BinaryInput getBinaryStream(String name)
-    throws LCFException;
+    throws ACFException;
   
   /** Get file parameter, as a byte array.
   *@param name is the parameter name.

@@ -21,7 +21,7 @@ package org.apache.acf.crawler.interfaces;
 import org.apache.acf.core.interfaces.*;
 import org.apache.acf.agents.interfaces.*;
 import org.apache.acf.crawler.system.Logging;
-import org.apache.acf.crawler.system.LCF;
+import org.apache.acf.crawler.system.ACF;
 
 import java.util.*;
 import java.io.*;
@@ -47,7 +47,7 @@ public class RepositoryConnectorFactory
   *@param className is the class name.
   */
   public static void install(IThreadContext threadContext, String className)
-    throws LCFException
+    throws ACFException
   {
     IRepositoryConnector connector = getConnectorNoCheck(className);
     connector.install(threadContext);
@@ -57,7 +57,7 @@ public class RepositoryConnectorFactory
   *@param className is the class name.
   */
   public static void deinstall(IThreadContext threadContext, String className)
-    throws LCFException
+    throws ACFException
   {
     IRepositoryConnector connector = getConnectorNoCheck(className);
     connector.deinstall(threadContext);
@@ -68,7 +68,7 @@ public class RepositoryConnectorFactory
   *@return the list of activities.
   */
   public static String[] getActivitiesList(IThreadContext threadContext, String className)
-    throws LCFException
+    throws ACFException
   {
     IRepositoryConnector connector = getConnector(threadContext, className);
     if (connector == null)
@@ -83,7 +83,7 @@ public class RepositoryConnectorFactory
   *@return the list of link types, in sorted order.
   */
   public static String[] getRelationshipTypes(IThreadContext threadContext, String className)
-    throws LCFException
+    throws ACFException
   {
     IRepositoryConnector connector = getConnector(threadContext, className);
     if (connector == null)
@@ -98,7 +98,7 @@ public class RepositoryConnectorFactory
   *@return the connector operating model, as specified in IRepositoryConnector.
   */
   public static int getConnectorModel(IThreadContext threadContext, String className)
-    throws LCFException
+    throws ACFException
   {
     IRepositoryConnector connector = getConnector(threadContext, className);
     if (connector == null)
@@ -109,7 +109,7 @@ public class RepositoryConnectorFactory
   /** Output the configuration header section.
   */
   public static void outputConfigurationHeader(IThreadContext threadContext, String className, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     IRepositoryConnector connector = getConnector(threadContext, className);
     if (connector == null)
@@ -120,7 +120,7 @@ public class RepositoryConnectorFactory
   /** Output the configuration body section.
   */
   public static void outputConfigurationBody(IThreadContext threadContext, String className, IHTTPOutput out, ConfigParams parameters, String tabName)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     IRepositoryConnector connector = getConnector(threadContext, className);
     if (connector == null)
@@ -131,7 +131,7 @@ public class RepositoryConnectorFactory
   /** Process configuration post data for a connector.
   */
   public static String processConfigurationPost(IThreadContext threadContext, String className, IPostParameters variableContext, ConfigParams configParams)
-    throws LCFException
+    throws ACFException
   {
     IRepositoryConnector connector = getConnector(threadContext, className);
     if (connector == null)
@@ -142,7 +142,7 @@ public class RepositoryConnectorFactory
   /** View connector configuration.
   */
   public static void viewConfiguration(IThreadContext threadContext, String className, IHTTPOutput out, ConfigParams configParams)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     IRepositoryConnector connector = getConnector(threadContext, className);
     // We want to be able to view connections even if they have unregistered connectors.
@@ -156,18 +156,18 @@ public class RepositoryConnectorFactory
   *@return the instance.
   */
   public static IRepositoryConnector getConnectorNoCheck(String className)
-    throws LCFException
+    throws ACFException
   {
     try
     {
-      Class theClass = LCF.findClass(className);
+      Class theClass = ACF.findClass(className);
       Class[] argumentClasses = new Class[0];
       // Look for a constructor
       Constructor c = theClass.getConstructor(argumentClasses);
       Object[] arguments = new Object[0];
       Object o = c.newInstance(arguments);
       if (!(o instanceof IRepositoryConnector))
-        throw new LCFException("Class '"+className+"' does not implement IRepositoryConnector.");
+        throw new ACFException("Class '"+className+"' does not implement IRepositoryConnector.");
       return (IRepositoryConnector)o;
     }
     catch (InvocationTargetException e)
@@ -176,41 +176,41 @@ public class RepositoryConnectorFactory
       if (z instanceof Error)
         throw (Error)z;
       else
-        throw (LCFException)z;
+        throw (ACFException)z;
     }
     catch (ClassNotFoundException e)
     {
-      throw new LCFException("No repository connector class '"+className+"' was found.",
+      throw new ACFException("No repository connector class '"+className+"' was found.",
         e);
     }
     catch (NoSuchMethodException e)
     {
-      throw new LCFException("No appropriate constructor for IRepositoryConnector implementation '"+
+      throw new ACFException("No appropriate constructor for IRepositoryConnector implementation '"+
         className+"'.  Need xxx(ConfigParams).",
         e);
     }
     catch (SecurityException e)
     {
-      throw new LCFException("Protected constructor for IRepositoryConnector implementation '"+className+"'",
+      throw new ACFException("Protected constructor for IRepositoryConnector implementation '"+className+"'",
         e);
     }
     catch (IllegalAccessException e)
     {
-      throw new LCFException("Unavailable constructor for IRepositoryConnector implementation '"+className+"'",
+      throw new ACFException("Unavailable constructor for IRepositoryConnector implementation '"+className+"'",
         e);
     }
     catch (IllegalArgumentException e)
     {
-      throw new LCFException("Shouldn't happen!!!",e);
+      throw new ACFException("Shouldn't happen!!!",e);
     }
     catch (InstantiationException e)
     {
-      throw new LCFException("InstantiationException for IRepositoryConnector implementation '"+className+"'",
+      throw new ACFException("InstantiationException for IRepositoryConnector implementation '"+className+"'",
         e);
     }
     catch (ExceptionInInitializerError e)
     {
-      throw new LCFException("ExceptionInInitializerError for IRepositoryConnector implementation '"+className+"'",
+      throw new ACFException("ExceptionInInitializerError for IRepositoryConnector implementation '"+className+"'",
         e);
     }
 
@@ -221,7 +221,7 @@ public class RepositoryConnectorFactory
   *@return the instance.
   */
   protected static IRepositoryConnector getConnector(IThreadContext threadContext, String className)
-    throws LCFException
+    throws ACFException
   {
     IConnectorManager connMgr = ConnectorManagerFactory.make(threadContext);
     if (connMgr.isInstalled(className) == false)
@@ -229,14 +229,14 @@ public class RepositoryConnectorFactory
 
     try
     {
-      Class theClass = LCF.findClass(className);
+      Class theClass = ACF.findClass(className);
       Class[] argumentClasses = new Class[0];
       // Look for a constructor
       Constructor c = theClass.getConstructor(argumentClasses);
       Object[] arguments = new Object[0];
       Object o = c.newInstance(arguments);
       if (!(o instanceof IRepositoryConnector))
-        throw new LCFException("Class '"+className+"' does not implement IRepositoryConnector.");
+        throw new ACFException("Class '"+className+"' does not implement IRepositoryConnector.");
       return (IRepositoryConnector)o;
     }
     catch (InvocationTargetException e)
@@ -245,7 +245,7 @@ public class RepositoryConnectorFactory
       if (z instanceof Error)
         throw (Error)z;
       else
-        throw (LCFException)z;
+        throw (ACFException)z;
     }
     catch (ClassNotFoundException e)
     {
@@ -254,37 +254,37 @@ public class RepositoryConnectorFactory
       if (connMgr.isInstalled(className) == false)
         return null;
 
-      throw new LCFException("No repository connector class '"+className+"' was found.",
+      throw new ACFException("No repository connector class '"+className+"' was found.",
         e);
     }
     catch (NoSuchMethodException e)
     {
-      throw new LCFException("No appropriate constructor for IRepositoryConnector implementation '"+
+      throw new ACFException("No appropriate constructor for IRepositoryConnector implementation '"+
         className+"'.  Need xxx(ConfigParams).",
         e);
     }
     catch (SecurityException e)
     {
-      throw new LCFException("Protected constructor for IRepositoryConnector implementation '"+className+"'",
+      throw new ACFException("Protected constructor for IRepositoryConnector implementation '"+className+"'",
         e);
     }
     catch (IllegalAccessException e)
     {
-      throw new LCFException("Unavailable constructor for IRepositoryConnector implementation '"+className+"'",
+      throw new ACFException("Unavailable constructor for IRepositoryConnector implementation '"+className+"'",
         e);
     }
     catch (IllegalArgumentException e)
     {
-      throw new LCFException("Shouldn't happen!!!",e);
+      throw new ACFException("Shouldn't happen!!!",e);
     }
     catch (InstantiationException e)
     {
-      throw new LCFException("InstantiationException for IRepositoryConnector implementation '"+className+"'",
+      throw new ACFException("InstantiationException for IRepositoryConnector implementation '"+className+"'",
         e);
     }
     catch (ExceptionInInitializerError e)
     {
-      throw new LCFException("ExceptionInInitializerError for IRepositoryConnector implementation '"+className+"'",
+      throw new ACFException("ExceptionInInitializerError for IRepositoryConnector implementation '"+className+"'",
         e);
     }
 
@@ -295,7 +295,7 @@ public class RepositoryConnectorFactory
   */
   public static IRepositoryConnector[] grabMultiple(IThreadContext threadContext,
     String[] orderingKeys, String[] classNames, ConfigParams[] configInfos, int[] maxPoolSizes)
-    throws LCFException
+    throws ACFException
   {
     IRepositoryConnector[] rval = new IRepositoryConnector[classNames.length];
     HashMap orderMap = new HashMap();
@@ -303,7 +303,7 @@ public class RepositoryConnectorFactory
     while (i < orderingKeys.length)
     {
       if (orderMap.get(orderingKeys[i]) != null)
-        throw new LCFException("Found duplicate order key");
+        throw new ACFException("Found duplicate order key");
       orderMap.put(orderingKeys[i],new Integer(i));
       i++;
     }
@@ -332,13 +332,13 @@ public class RepositoryConnectorFactory
           {
             release(rval[index]);
           }
-          catch (LCFException e2)
+          catch (ACFException e2)
           {
           }
         }
-        if (e instanceof LCFException)
+        if (e instanceof ACFException)
         {
-          throw (LCFException)e;
+          throw (ACFException)e;
         }
         throw (Error)e;
       }
@@ -356,7 +356,7 @@ public class RepositoryConnectorFactory
   */
   public static IRepositoryConnector grab(IThreadContext threadContext,
     String className, ConfigParams configInfo, int maxPoolSize)
-    throws LCFException
+    throws ACFException
   {
     // We want to get handles off the pool and use them.  But the
     // handles we fetch have to have the right config information.
@@ -392,10 +392,10 @@ public class RepositoryConnectorFactory
   /** Release multiple repository connectors.
   */
   public static void releaseMultiple(IRepositoryConnector[] connectors)
-    throws LCFException
+    throws ACFException
   {
     int i = 0;
-    LCFException currentException = null;
+    ACFException currentException = null;
     while (i < connectors.length)
     {
       IRepositoryConnector c = connectors[i++];
@@ -403,7 +403,7 @@ public class RepositoryConnectorFactory
       {
         release(c);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         if (currentException == null)
           currentException = e;
@@ -417,7 +417,7 @@ public class RepositoryConnectorFactory
   *@param connector is the connector to release.
   */
   public static void release(IRepositoryConnector connector)
-    throws LCFException
+    throws ACFException
   {
     // If the connector is null, skip the release, because we never really got the connector in the first place.
     if (connector == null)
@@ -444,7 +444,7 @@ public class RepositoryConnectorFactory
   * This method polls all inactive handles.
   */
   public static void pollAllConnectors(IThreadContext threadContext)
-    throws LCFException
+    throws ACFException
   {
     // System.out.println("Pool stats:");
 
@@ -470,7 +470,7 @@ public class RepositoryConnectorFactory
   *@param threadContext is the local thread context.
   */
   public static void closeAllConnectors(IThreadContext threadContext)
-    throws LCFException
+    throws ACFException
   {
     // Go through the whole pool and clean it out
     synchronized (poolHash)
@@ -578,7 +578,7 @@ public class RepositoryConnectorFactory
     *@return the connector, or null if no connector could be connected.
     */
     public synchronized IRepositoryConnector getConnector(IThreadContext threadContext)
-      throws LCFException
+      throws ACFException
     {
       while (numFree == 0)
       {
@@ -588,7 +588,7 @@ public class RepositoryConnectorFactory
         }
         catch (InterruptedException e)
         {
-          throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+          throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
         }
       }
 
@@ -604,14 +604,14 @@ public class RepositoryConnectorFactory
 
         try
         {
-          Class theClass = LCF.findClass(className);
+          Class theClass = ACF.findClass(className);
           Class[] argumentClasses = new Class[0];
           // Look for a constructor
           Constructor c = theClass.getConstructor(argumentClasses);
           Object[] arguments = new Object[0];
           Object o = c.newInstance(arguments);
           if (!(o instanceof IRepositoryConnector))
-            throw new LCFException("Class '"+className+"' does not implement IRepositoryConnector.");
+            throw new ACFException("Class '"+className+"' does not implement IRepositoryConnector.");
           rc = (IRepositoryConnector)o;
           rc.connect(configParams);
         }
@@ -621,7 +621,7 @@ public class RepositoryConnectorFactory
           if (z instanceof Error)
             throw (Error)z;
           else
-            throw (LCFException)z;
+            throw (ACFException)z;
         }
         catch (ClassNotFoundException e)
         {
@@ -631,37 +631,37 @@ public class RepositoryConnectorFactory
           if (connMgr.isInstalled(className) == false)
             return null;
 
-          throw new LCFException("No repository connector class '"+className+"' was found.",
+          throw new ACFException("No repository connector class '"+className+"' was found.",
             e);
         }
         catch (NoSuchMethodException e)
         {
-          throw new LCFException("No appropriate constructor for IRepositoryConnector implementation '"+
+          throw new ACFException("No appropriate constructor for IRepositoryConnector implementation '"+
             className+"'.  Need xxx(ConfigParams).",
             e);
         }
         catch (SecurityException e)
         {
-          throw new LCFException("Protected constructor for IRepositoryConnector implementation '"+className+"'",
+          throw new ACFException("Protected constructor for IRepositoryConnector implementation '"+className+"'",
             e);
         }
         catch (IllegalAccessException e)
         {
-          throw new LCFException("Unavailable constructor for IRepositoryConnector implementation '"+className+"'",
+          throw new ACFException("Unavailable constructor for IRepositoryConnector implementation '"+className+"'",
             e);
         }
         catch (IllegalArgumentException e)
         {
-          throw new LCFException("Shouldn't happen!!!",e);
+          throw new ACFException("Shouldn't happen!!!",e);
         }
         catch (InstantiationException e)
         {
-          throw new LCFException("InstantiationException for IRepositoryConnector implementation '"+className+"'",
+          throw new ACFException("InstantiationException for IRepositoryConnector implementation '"+className+"'",
             e);
         }
         catch (ExceptionInInitializerError e)
         {
-          throw new LCFException("ExceptionInInitializerError for IRepositoryConnector implementation '"+className+"'",
+          throw new ACFException("ExceptionInInitializerError for IRepositoryConnector implementation '"+className+"'",
             e);
         }
       }
@@ -678,7 +678,7 @@ public class RepositoryConnectorFactory
     *@param connector is the connector.
     */
     public synchronized void releaseConnector(IRepositoryConnector connector)
-      throws LCFException
+      throws ACFException
     {
       if (connector == null)
         return;
@@ -694,7 +694,7 @@ public class RepositoryConnectorFactory
     /** Notify all free connectors.
     */
     public synchronized void pollAll(IThreadContext threadContext)
-      throws LCFException
+      throws ACFException
     {
       int i = 0;
       while (i < stack.size())
@@ -710,7 +710,7 @@ public class RepositoryConnectorFactory
     /** Release all free connectors.
     */
     public synchronized void releaseAll(IThreadContext threadContext)
-      throws LCFException
+      throws ACFException
     {
       while (stack.size() > 0)
       {

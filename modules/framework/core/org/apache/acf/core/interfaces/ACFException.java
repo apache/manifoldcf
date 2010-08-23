@@ -1,4 +1,4 @@
-/* $Id: LCFException.java 921329 2010-03-10 12:44:20Z kwright $ */
+/* $Id: ACFException.java 921329 2010-03-10 12:44:20Z kwright $ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -18,9 +18,9 @@
 */
 package org.apache.acf.core.interfaces;
 
-public class LCFException extends Exception
+public class ACFException extends Exception
 {
-  public static final String _rcsid = "@(#)$Id: LCFException.java 921329 2010-03-10 12:44:20Z kwright $";
+  public static final String _rcsid = "@(#)$Id: ACFException.java 921329 2010-03-10 12:44:20Z kwright $";
 
   public final static int GENERAL_ERROR = 0;
   public final static int DATABASE_ERROR = 1;
@@ -33,37 +33,37 @@ public class LCFException extends Exception
 
   protected int errcode;
 
-  public LCFException(String errString)
+  public ACFException(String errString)
   {
     super(errString);
     this.errcode = GENERAL_ERROR;
   }
 
-  public LCFException(String errString, int errcode)
+  public ACFException(String errString, int errcode)
   {
     super(errString);
     this.errcode = errcode;
   }
 
-  public LCFException(String errString, Throwable cause, int errcode)
+  public ACFException(String errString, Throwable cause, int errcode)
   {
     super(errString,cause);
     this.errcode = errcode;
   }
 
-  public LCFException(String errString, Throwable cause)
+  public ACFException(String errString, Throwable cause)
   {
     super(errString,cause);
     this.errcode = GENERAL_ERROR;
   }
 
-  public LCFException(Throwable cause, int errcode)
+  public ACFException(Throwable cause, int errcode)
   {
     super(cause);
     this.errcode = errcode;
   }
 
-  public LCFException(Throwable cause)
+  public ACFException(Throwable cause)
   {
     super(cause);
     this.errcode = GENERAL_ERROR;

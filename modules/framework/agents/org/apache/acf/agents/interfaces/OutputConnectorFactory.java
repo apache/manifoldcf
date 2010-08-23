@@ -19,7 +19,7 @@
 package org.apache.acf.agents.interfaces;
 
 import org.apache.acf.core.interfaces.*;
-import org.apache.acf.agents.system.LCF;
+import org.apache.acf.agents.system.ACF;
 
 import java.util.*;
 import java.io.*;
@@ -45,7 +45,7 @@ public class OutputConnectorFactory
   *@param className is the class name.
   */
   public static void install(IThreadContext threadContext, String className)
-    throws LCFException
+    throws ACFException
   {
     IOutputConnector connector = getConnectorNoCheck(className);
     connector.install(threadContext);
@@ -55,7 +55,7 @@ public class OutputConnectorFactory
   *@param className is the class name.
   */
   public static void deinstall(IThreadContext threadContext, String className)
-    throws LCFException
+    throws ACFException
   {
     IOutputConnector connector = getConnectorNoCheck(className);
     connector.deinstall(threadContext);
@@ -66,7 +66,7 @@ public class OutputConnectorFactory
   *@return the list of activities.
   */
   public static String[] getActivitiesList(IThreadContext threadContext, String className)
-    throws LCFException
+    throws ACFException
   {
     IOutputConnector connector = getConnector(threadContext, className);
     if (connector == null)
@@ -79,7 +79,7 @@ public class OutputConnectorFactory
   /** Output the configuration header section.
   */
   public static void outputConfigurationHeader(IThreadContext threadContext, String className, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     IOutputConnector connector = getConnector(threadContext, className);
     if (connector == null)
@@ -90,7 +90,7 @@ public class OutputConnectorFactory
   /** Output the configuration body section.
   */
   public static void outputConfigurationBody(IThreadContext threadContext, String className, IHTTPOutput out, ConfigParams parameters, String tabName)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     IOutputConnector connector = getConnector(threadContext, className);
     if (connector == null)
@@ -101,7 +101,7 @@ public class OutputConnectorFactory
   /** Process configuration post data for a connector.
   */
   public static String processConfigurationPost(IThreadContext threadContext, String className, IPostParameters variableContext, ConfigParams configParams)
-    throws LCFException
+    throws ACFException
   {
     IOutputConnector connector = getConnector(threadContext, className);
     if (connector == null)
@@ -112,7 +112,7 @@ public class OutputConnectorFactory
   /** View connector configuration.
   */
   public static void viewConfiguration(IThreadContext threadContext, String className, IHTTPOutput out, ConfigParams configParams)
-    throws LCFException, IOException
+    throws ACFException, IOException
   {
     IOutputConnector connector = getConnector(threadContext, className);
     // We want to be able to view connections even if they have unregistered connectors.
@@ -126,18 +126,18 @@ public class OutputConnectorFactory
   *@return the instance.
   */
   public static IOutputConnector getConnectorNoCheck(String className)
-    throws LCFException
+    throws ACFException
   {
     try
     {
-      Class theClass = LCF.findClass(className);
+      Class theClass = ACF.findClass(className);
       Class[] argumentClasses = new Class[0];
       // Look for a constructor
       Constructor c = theClass.getConstructor(argumentClasses);
       Object[] arguments = new Object[0];
       Object o = c.newInstance(arguments);
       if (!(o instanceof IOutputConnector))
-        throw new LCFException("Class '"+className+"' does not implement IOutputConnector.");
+        throw new ACFException("Class '"+className+"' does not implement IOutputConnector.");
       return (IOutputConnector)o;
     }
     catch (InvocationTargetException e)
@@ -146,41 +146,41 @@ public class OutputConnectorFactory
       if (z instanceof Error)
         throw (Error)z;
       else
-        throw (LCFException)z;
+        throw (ACFException)z;
     }
     catch (ClassNotFoundException e)
     {
-      throw new LCFException("No output connector class '"+className+"' was found.",
+      throw new ACFException("No output connector class '"+className+"' was found.",
         e);
     }
     catch (NoSuchMethodException e)
     {
-      throw new LCFException("No appropriate constructor for IOutputConnector implementation '"+
+      throw new ACFException("No appropriate constructor for IOutputConnector implementation '"+
         className+"'.  Need xxx(ConfigParams).",
         e);
     }
     catch (SecurityException e)
     {
-      throw new LCFException("Protected constructor for IOutputConnector implementation '"+className+"'",
+      throw new ACFException("Protected constructor for IOutputConnector implementation '"+className+"'",
         e);
     }
     catch (IllegalAccessException e)
     {
-      throw new LCFException("Unavailable constructor for IOutputConnector implementation '"+className+"'",
+      throw new ACFException("Unavailable constructor for IOutputConnector implementation '"+className+"'",
         e);
     }
     catch (IllegalArgumentException e)
     {
-      throw new LCFException("Shouldn't happen!!!",e);
+      throw new ACFException("Shouldn't happen!!!",e);
     }
     catch (InstantiationException e)
     {
-      throw new LCFException("InstantiationException for IOutputConnector implementation '"+className+"'",
+      throw new ACFException("InstantiationException for IOutputConnector implementation '"+className+"'",
         e);
     }
     catch (ExceptionInInitializerError e)
     {
-      throw new LCFException("ExceptionInInitializerError for IOutputConnector implementation '"+className+"'",
+      throw new ACFException("ExceptionInInitializerError for IOutputConnector implementation '"+className+"'",
         e);
     }
 
@@ -191,7 +191,7 @@ public class OutputConnectorFactory
   *@return the instance.
   */
   protected static IOutputConnector getConnector(IThreadContext threadContext, String className)
-    throws LCFException
+    throws ACFException
   {
     IOutputConnectorManager connMgr = OutputConnectorManagerFactory.make(threadContext);
     if (connMgr.isInstalled(className) == false)
@@ -199,14 +199,14 @@ public class OutputConnectorFactory
 
     try
     {
-      Class theClass = LCF.findClass(className);
+      Class theClass = ACF.findClass(className);
       Class[] argumentClasses = new Class[0];
       // Look for a constructor
       Constructor c = theClass.getConstructor(argumentClasses);
       Object[] arguments = new Object[0];
       Object o = c.newInstance(arguments);
       if (!(o instanceof IOutputConnector))
-        throw new LCFException("Class '"+className+"' does not implement IOutputConnector.");
+        throw new ACFException("Class '"+className+"' does not implement IOutputConnector.");
       return (IOutputConnector)o;
     }
     catch (InvocationTargetException e)
@@ -215,7 +215,7 @@ public class OutputConnectorFactory
       if (z instanceof Error)
         throw (Error)z;
       else
-        throw (LCFException)z;
+        throw (ACFException)z;
     }
     catch (ClassNotFoundException e)
     {
@@ -224,37 +224,37 @@ public class OutputConnectorFactory
       if (connMgr.isInstalled(className) == false)
         return null;
 
-      throw new LCFException("No output connector class '"+className+"' was found.",
+      throw new ACFException("No output connector class '"+className+"' was found.",
         e);
     }
     catch (NoSuchMethodException e)
     {
-      throw new LCFException("No appropriate constructor for IOutputConnector implementation '"+
+      throw new ACFException("No appropriate constructor for IOutputConnector implementation '"+
         className+"'.  Need xxx(ConfigParams).",
         e);
     }
     catch (SecurityException e)
     {
-      throw new LCFException("Protected constructor for IOutputConnector implementation '"+className+"'",
+      throw new ACFException("Protected constructor for IOutputConnector implementation '"+className+"'",
         e);
     }
     catch (IllegalAccessException e)
     {
-      throw new LCFException("Unavailable constructor for IOutputConnector implementation '"+className+"'",
+      throw new ACFException("Unavailable constructor for IOutputConnector implementation '"+className+"'",
         e);
     }
     catch (IllegalArgumentException e)
     {
-      throw new LCFException("Shouldn't happen!!!",e);
+      throw new ACFException("Shouldn't happen!!!",e);
     }
     catch (InstantiationException e)
     {
-      throw new LCFException("InstantiationException for IOutputConnector implementation '"+className+"'",
+      throw new ACFException("InstantiationException for IOutputConnector implementation '"+className+"'",
         e);
     }
     catch (ExceptionInInitializerError e)
     {
-      throw new LCFException("ExceptionInInitializerError for IOutputConnector implementation '"+className+"'",
+      throw new ACFException("ExceptionInInitializerError for IOutputConnector implementation '"+className+"'",
         e);
     }
 
@@ -265,7 +265,7 @@ public class OutputConnectorFactory
   */
   public static IOutputConnector[] grabMultiple(IThreadContext threadContext,
     String[] orderingKeys, String[] classNames, ConfigParams[] configInfos, int[] maxPoolSizes)
-    throws LCFException
+    throws ACFException
   {
     IOutputConnector[] rval = new IOutputConnector[classNames.length];
     HashMap orderMap = new HashMap();
@@ -273,7 +273,7 @@ public class OutputConnectorFactory
     while (i < orderingKeys.length)
     {
       if (orderMap.get(orderingKeys[i]) != null)
-        throw new LCFException("Found duplicate order key");
+        throw new ACFException("Found duplicate order key");
       orderMap.put(orderingKeys[i],new Integer(i));
       i++;
     }
@@ -302,13 +302,13 @@ public class OutputConnectorFactory
           {
             release(rval[index]);
           }
-          catch (LCFException e2)
+          catch (ACFException e2)
           {
           }
         }
-        if (e instanceof LCFException)
+        if (e instanceof ACFException)
         {
-          throw (LCFException)e;
+          throw (ACFException)e;
         }
         throw (Error)e;
       }
@@ -326,7 +326,7 @@ public class OutputConnectorFactory
   */
   public static IOutputConnector grab(IThreadContext threadContext,
     String className, ConfigParams configInfo, int maxPoolSize)
-    throws LCFException
+    throws ACFException
   {
     // We want to get handles off the pool and use them.  But the
     // handles we fetch have to have the right config information.
@@ -356,10 +356,10 @@ public class OutputConnectorFactory
   /** Release multiple output connectors.
   */
   public static void releaseMultiple(IOutputConnector[] connectors)
-    throws LCFException
+    throws ACFException
   {
     int i = 0;
-    LCFException currentException = null;
+    ACFException currentException = null;
     while (i < connectors.length)
     {
       IOutputConnector c = connectors[i++];
@@ -367,7 +367,7 @@ public class OutputConnectorFactory
       {
         release(c);
       }
-      catch (LCFException e)
+      catch (ACFException e)
       {
         if (currentException == null)
           currentException = e;
@@ -381,7 +381,7 @@ public class OutputConnectorFactory
   *@param connector is the connector to release.
   */
   public static void release(IOutputConnector connector)
-    throws LCFException
+    throws ACFException
   {
     // If the connector is null, skip the release, because we never really got the connector in the first place.
     if (connector == null)
@@ -408,7 +408,7 @@ public class OutputConnectorFactory
   * This method polls all inactive handles.
   */
   public static void pollAllConnectors(IThreadContext threadContext)
-    throws LCFException
+    throws ACFException
   {
     // System.out.println("Pool stats:");
 
@@ -433,7 +433,7 @@ public class OutputConnectorFactory
   *@param threadContext is the local thread context.
   */
   public static void closeAllConnectors(IThreadContext threadContext)
-    throws LCFException
+    throws ACFException
   {
     // Go through the whole pool and clean it out
     synchronized (poolHash)
@@ -525,7 +525,7 @@ public class OutputConnectorFactory
     *@return the connector, or null if no connector could be connected.
     */
     public synchronized IOutputConnector getConnector(IThreadContext threadContext)
-      throws LCFException
+      throws ACFException
     {
       while (numFree == 0)
       {
@@ -535,7 +535,7 @@ public class OutputConnectorFactory
         }
         catch (InterruptedException e)
         {
-          throw new LCFException("Interrupted: "+e.getMessage(),e,LCFException.INTERRUPTED);
+          throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
         }
       }
 
@@ -551,14 +551,14 @@ public class OutputConnectorFactory
 
         try
         {
-          Class theClass = LCF.findClass(className);
+          Class theClass = ACF.findClass(className);
           Class[] argumentClasses = new Class[0];
           // Look for a constructor
           Constructor c = theClass.getConstructor(argumentClasses);
           Object[] arguments = new Object[0];
           Object o = c.newInstance(arguments);
           if (!(o instanceof IOutputConnector))
-            throw new LCFException("Class '"+className+"' does not implement IOutputConnector.");
+            throw new ACFException("Class '"+className+"' does not implement IOutputConnector.");
           rc = (IOutputConnector)o;
           rc.connect(configParams);
         }
@@ -568,7 +568,7 @@ public class OutputConnectorFactory
           if (z instanceof Error)
             throw (Error)z;
           else
-            throw (LCFException)z;
+            throw (ACFException)z;
         }
         catch (ClassNotFoundException e)
         {
@@ -578,37 +578,37 @@ public class OutputConnectorFactory
           if (connMgr.isInstalled(className) == false)
             return null;
 
-          throw new LCFException("No output connector class '"+className+"' was found.",
+          throw new ACFException("No output connector class '"+className+"' was found.",
             e);
         }
         catch (NoSuchMethodException e)
         {
-          throw new LCFException("No appropriate constructor for IOutputConnector implementation '"+
+          throw new ACFException("No appropriate constructor for IOutputConnector implementation '"+
             className+"'.  Need xxx(ConfigParams).",
             e);
         }
         catch (SecurityException e)
         {
-          throw new LCFException("Protected constructor for IOutputConnector implementation '"+className+"'",
+          throw new ACFException("Protected constructor for IOutputConnector implementation '"+className+"'",
             e);
         }
         catch (IllegalAccessException e)
         {
-          throw new LCFException("Unavailable constructor for IOutputConnector implementation '"+className+"'",
+          throw new ACFException("Unavailable constructor for IOutputConnector implementation '"+className+"'",
             e);
         }
         catch (IllegalArgumentException e)
         {
-          throw new LCFException("Shouldn't happen!!!",e);
+          throw new ACFException("Shouldn't happen!!!",e);
         }
         catch (InstantiationException e)
         {
-          throw new LCFException("InstantiationException for IOutputConnector implementation '"+className+"'",
+          throw new ACFException("InstantiationException for IOutputConnector implementation '"+className+"'",
             e);
         }
         catch (ExceptionInInitializerError e)
         {
-          throw new LCFException("ExceptionInInitializerError for IOutputConnector implementation '"+className+"'",
+          throw new ACFException("ExceptionInInitializerError for IOutputConnector implementation '"+className+"'",
             e);
         }
       }
@@ -625,7 +625,7 @@ public class OutputConnectorFactory
     *@param connector is the connector.
     */
     public synchronized void releaseConnector(IOutputConnector connector)
-      throws LCFException
+      throws ACFException
     {
       if (connector == null)
         return;
@@ -641,7 +641,7 @@ public class OutputConnectorFactory
     /** Notify all free connectors.
     */
     public synchronized void pollAll(IThreadContext threadContext)
-      throws LCFException
+      throws ACFException
     {
       int i = 0;
       while (i < stack.size())
@@ -657,7 +657,7 @@ public class OutputConnectorFactory
     /** Release all free connectors.
     */
     public synchronized void releaseAll(IThreadContext threadContext)
-      throws LCFException
+      throws ACFException
     {
       while (stack.size() > 0)
       {

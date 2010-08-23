@@ -19,7 +19,7 @@
 package org.apache.acf.core.tests;
 
 import org.apache.acf.core.interfaces.*;
-import org.apache.acf.core.system.LCF;
+import org.apache.acf.core.system.ACF;
 
 import java.io.*;
 import java.util.*;
@@ -98,11 +98,11 @@ public class TestBase
       "  <property name=\"org.apache.acf.logconfigfile\" value=\""+loggingFile.getAbsolutePath().replaceAll("\\\\","/")+"\"/>\n" +
       "</configuration>\n");
 
-    LCF.initializeEnvironment();
+    ACF.initializeEnvironment();
     IThreadContext tc = ThreadContextFactory.make();
     
     // Create the database
-    LCF.createSystemDatabase(tc,"","");
+    ACF.createSystemDatabase(tc,"","");
 
   }
   
@@ -127,11 +127,11 @@ public class TestBase
     initialize();
     if (isInitialized())
     {
-      LCF.initializeEnvironment();
+      ACF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
       
       // Remove the database
-      LCF.dropSystemDatabase(tc,"","");
+      ACF.dropSystemDatabase(tc,"","");
       
       // Get rid of the property and logging files.
       logOutputFile.delete();

@@ -18,7 +18,7 @@
 */
 package org.apache.acf.core.interfaces;
 
-import org.apache.acf.core.system.LCF;
+import org.apache.acf.core.system.ACF;
 
 public class LockManagerFactory
 {
@@ -35,12 +35,12 @@ public class LockManagerFactory
   * thread).
   */
   public static ILockManager make(IThreadContext context)
-    throws LCFException
+    throws ACFException
   {
     Object x = context.get(lockManager);
     if (x == null || !(x instanceof ILockManager))
     {
-      String implementationClass = LCF.getProperty(LCF.lockManagerImplementation);
+      String implementationClass = ACF.getProperty(ACF.lockManagerImplementation);
       if (implementationClass == null)
         implementationClass = "org.apache.acf.core.lockmanager.LockManager";
       try
@@ -48,28 +48,28 @@ public class LockManagerFactory
         Class c = Class.forName(implementationClass);
         x = c.newInstance();
         if (!(x instanceof ILockManager))
-          throw new LCFException("Lock manager class "+implementationClass+" does not implement ILockManager",LCFException.SETUP_ERROR);
+          throw new ACFException("Lock manager class "+implementationClass+" does not implement ILockManager",ACFException.SETUP_ERROR);
         context.save(lockManager,x);
       }
       catch (ClassNotFoundException e)
       {
-        throw new LCFException("Lock manager class "+implementationClass+" could not be found: "+e.getMessage(),e,LCFException.SETUP_ERROR);
+        throw new ACFException("Lock manager class "+implementationClass+" could not be found: "+e.getMessage(),e,ACFException.SETUP_ERROR);
       }
       catch (ExceptionInInitializerError e)
       {
-        throw new LCFException("Lock manager class "+implementationClass+" could not be instantiated: "+e.getMessage(),e,LCFException.SETUP_ERROR);
+        throw new ACFException("Lock manager class "+implementationClass+" could not be instantiated: "+e.getMessage(),e,ACFException.SETUP_ERROR);
       }
       catch (LinkageError e)
       {
-        throw new LCFException("Lock manager class "+implementationClass+" could not be linked: "+e.getMessage(),e,LCFException.SETUP_ERROR);
+        throw new ACFException("Lock manager class "+implementationClass+" could not be linked: "+e.getMessage(),e,ACFException.SETUP_ERROR);
       }
       catch (InstantiationException e)
       {
-        throw new LCFException("Lock manager class "+implementationClass+" could not be instantiated: "+e.getMessage(),e,LCFException.SETUP_ERROR);
+        throw new ACFException("Lock manager class "+implementationClass+" could not be instantiated: "+e.getMessage(),e,ACFException.SETUP_ERROR);
       }
       catch (IllegalAccessException e)
       {
-        throw new LCFException("Lock manager class "+implementationClass+" had no public default initializer: "+e.getMessage(),e,LCFException.SETUP_ERROR);
+        throw new ACFException("Lock manager class "+implementationClass+" had no public default initializer: "+e.getMessage(),e,ACFException.SETUP_ERROR);
       }
     }
     return (ILockManager)x;
