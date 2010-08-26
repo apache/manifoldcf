@@ -1426,7 +1426,7 @@ public class ThrottledFetcher
           params.setVirtualHost(host);
         }
         params.setSoTimeout(socketTimeoutMilliseconds);
-        params.setCookiePolicy(CookiePolicy.BROWSER_COMPATIBILITY);
+        params.setCookiePolicy(CookiePolicy.BROWSER_COMPATIBILITY_MEDIUM_SECURITY);
         params.setParameter(HttpMethodParams.SINGLE_COOKIE_HEADER,new Boolean(true));
         fetchMethod.setParams(params);
         fetchMethod.setFollowRedirects(redirectOK);
