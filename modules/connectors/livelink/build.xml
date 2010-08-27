@@ -24,13 +24,13 @@
                 <fileset dir="lib" includes="*.jar"/>
                 <fileset dir="lapi" includes="*.jar"/>
             </classpath>
-            <fileset dir="connector" includes="**/*.java"/>
+            <fileset dir="connector/src/main/java" includes="**/*.java"/>
         </javadoc>
     </target>
 
     <target name="compile-connector" depends="precompile-check" if="canBuild">
         <mkdir dir="build/connector/classes"/>
-        <javac srcdir="connector" destdir="build/connector/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="connector/src/main/java" destdir="build/connector/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <fileset dir="lib" includes="*.jar"/>
                 <fileset dir="lapi" includes="*.jar"/>

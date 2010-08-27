@@ -29,19 +29,19 @@
             <classpath>
                 <fileset dir="lib" includes="*.jar"/>
             </classpath>
-            <fileset dir="connector" includes="**/*.java"/>
-            <fileset dir="interface" includes="**/*.java"/>
+            <fileset dir="connector/src/main/java" includes="**/*.java"/>
+            <fileset dir="interface/src/main/java" includes="**/*.java"/>
         </javadoc>
     </target>
 
     <target name="compile-interface" depends="precompile-check" if="canBuild">
         <mkdir dir="build/interface/classes"/>
-        <javac srcdir="interface" destdir="build/interface/classes" classpath="" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source"/>
+        <javac srcdir="interface/src/main/java" destdir="build/interface/classes" classpath="" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source"/>
     </target>
 
     <target name="compile-implementation" depends="compile-interface,precompile-check" if="canBuild">
         <mkdir dir="build/implementation/classes"/>
-        <javac srcdir="implementation" destdir="build/implementation/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="implementation/src/main/java" destdir="build/implementation/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
             <classpath id="implementation.classpath">
                 <fileset dir="dfc"> 
                     <include name="*.jar"/> 
@@ -66,7 +66,7 @@
     <target name="compile-rmic" depends="compile-implementation,compile-interface,precompile-check" if="canBuild">
         <mkdir dir="build/rmijava"/>
         <copy todir="build/rmijava">
-            <fileset dir="implementation"/>
+            <fileset dir="implementation/src/main/java"/>
         </copy>
         <!-- The ant version I have doesn't seem to handle class specifications based on file names, so this is the best I could come up with -->
         <antcall target="rmic-build">
@@ -97,17 +97,17 @@
     
     <target name="compile-server" depends="compile-interface,compile-implementation,compile-rmic,precompile-check" if="canBuild">
         <mkdir dir="build/server/classes"/>
-        <javac srcdir="server" destdir="build/server/classes" classpath="build/interface/classes:build/implementation/classes:build/rmistub/classes:build/rmiskel/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source"/>
+        <javac srcdir="server/src/main/java" destdir="build/server/classes" classpath="build/interface/classes:build/implementation/classes:build/rmistub/classes:build/rmiskel/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source"/>
     </target>
 
     <target name="compile-registry" depends="compile-interface,precompile-check" if="canBuild">
         <mkdir dir="build/registry/classes"/>
-        <javac srcdir="registry" destdir="build/registry/classes" classpath="build/interface/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source"/>
+        <javac srcdir="registry/src/main/java" destdir="build/registry/classes" classpath="build/interface/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source"/>
     </target>
 
     <target name="compile-connector" depends="compile-interface,compile-rmic,precompile-check" if="canBuild">
         <mkdir dir="build/connector/classes"/>
-        <javac srcdir="connector" destdir="build/connector/classes" target="1.5" source="1.4">
+        <javac srcdir="connector/src/main/java" destdir="build/connector/classes" target="1.5" source="1.4">
             <classpath>
                 <fileset dir="lib" includes="*.jar"/>
                 <pathelement location="build/interface/classes"/>
