@@ -3,7 +3,11 @@ $Id$
 
 ======================= Trunk (not yet released) =======================
 
-CONNECTORS-91: Made the initialization commands more useable. 
+CONNECTORS-97: Web connector session authentication was failing for some sites
+due to cookies httpclient thought were illegal, but browsers would accept.
+(Karl Wright)
+
+CONNECTORS-91: Made the initialization commands more accessible via code. 
 (Jettro Coenradie, Karl Wright)
 
 CONNECTORS-90: Fixed a localization issue where database errors that should be
