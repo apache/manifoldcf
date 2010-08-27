@@ -696,7 +696,7 @@
 
     <target name="compile-filesystem-tests" depends="build-framework,calculate-filesystem-tests-condition,build-filesystem-connector,build-nulloutput-connector" if="filesystem-tests.include">
         <mkdir dir="build/filesystem-tests/classes"/>
-        <javac srcdir="filesystem-tests" destdir="build/filesystem-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="tests/filesystem" destdir="build/filesystem-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
                  <fileset dir="framework/lib"> 
                     <include name="*.jar"/> 
@@ -714,7 +714,7 @@
 
     <target name="compile-sharepoint-tests" depends="build-framework,calculate-sharepoint-tests-condition,build-sharepoint-connector,build-nulloutput-connector" if="sharepoint-tests.include">
         <mkdir dir="build/sharepoint-tests/classes"/>
-        <javac srcdir="sharepoint-tests" destdir="build/sharepoint-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="tests/sharepoint" destdir="build/sharepoint-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
                  <fileset dir="framework/lib"> 
                     <include name="*.jar"/> 
