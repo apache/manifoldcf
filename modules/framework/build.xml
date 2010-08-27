@@ -183,7 +183,7 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
-                <include name="commons-httpclient-lcf.jar"/>
+                <include name="commons-httpclient-acf.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-logging*.jar"/>
                 <include name="jdbcpool-0.99.jar"/>
@@ -217,7 +217,7 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
-                <include name="commons-httpclient-lcf.jar"/>
+                <include name="commons-httpclient-acf.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-logging*.jar"/>
                 <include name="jdbcpool-0.99.jar"/>
@@ -257,7 +257,7 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
-                <include name="commons-httpclient-lcf.jar"/>
+                <include name="commons-httpclient-acf.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-logging*.jar"/>
                 <include name="jdbcpool-0.99.jar"/>
@@ -315,7 +315,7 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
-                <include name="commons-httpclient-lcf.jar"/>
+                <include name="commons-httpclient-acf.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-logging*.jar"/>
                 <include name="jdbcpool-0.99.jar"/>
@@ -353,7 +353,7 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
-                <include name="commons-httpclient-lcf.jar"/>
+                <include name="commons-httpclient-acf.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-logging*.jar"/>
                 <include name="eclipse*.jar"/>
