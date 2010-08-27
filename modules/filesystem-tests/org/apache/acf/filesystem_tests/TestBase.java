@@ -142,7 +142,7 @@ public class TestBase extends org.apache.acf.crawler.tests.TestConnectorBase
     throws Exception
   {
     HttpClient client = new HttpClient();
-    HttpMethod method = new GetMethod("http://localhost:"+Integer.toString(testPort)+"/acf-api/json/"+command+((argument==null)?"":"?object="+
+    HttpMethod method = new GetMethod("http://localhost:"+Integer.toString(testPort)+"/acf-api-service/json/"+command+((argument==null)?"":"?object="+
       java.net.URLEncoder.encode(argument,"utf-8")));
     int response = client.executeMethod(method);
     byte[] responseData = method.getResponseBody();
@@ -191,7 +191,7 @@ public class TestBase extends org.apache.acf.crawler.tests.TestConnectorBase
     // This will cause jetty to ignore all of the framework and jdbc jars in the war, which is what we want.
     lcfAuthorityService.setParentLoaderPriority(true);
     server.addHandler(lcfAuthorityService);
-    WebAppContext lcfApi = new WebAppContext("../../framework/dist/web/war/acf-api.war","/acf-api");
+    WebAppContext lcfApi = new WebAppContext("../../framework/dist/web/war/acf-api-service.war","/acf-api-service");
     lcfApi.setParentLoaderPriority(true);
     server.addHandler(lcfApi);
     server.start();

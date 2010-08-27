@@ -77,7 +77,7 @@ public class ACFJettyRunner
     // This will cause jetty to ignore all of the framework and jdbc jars in the war, which is what we want.
     lcfAuthorityService.setParentLoaderPriority(true);
     server.addHandler(lcfAuthorityService);
-    WebAppContext lcfApi = new WebAppContext(apiWarPath,"/acf-api");
+    WebAppContext lcfApi = new WebAppContext(apiWarPath,"/acf-api-service");
     lcfApi.setParentLoaderPriority(true);
     server.addHandler(lcfApi);
   }
@@ -163,7 +163,7 @@ public class ACFJettyRunner
     
     String crawlerWarPath = "war/acf-crawler-ui.war";
     String authorityserviceWarPath = "war/acf-authority-service.war";
-    String apiWarPath = "war/acf-api.war";
+    String apiWarPath = "war/acf-api-service.war";
     if (args.length == 4)
     {
       crawlerWarPath = args[1];

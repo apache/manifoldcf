@@ -15,16 +15,16 @@
                     <include name="*.jar"/> 
                 </fileset>
             </classpath>
-            <fileset dir="core" includes="**/*.java"/>
-            <fileset dir="agents" includes="**/*.java"/>
-            <fileset dir="pull-agent" includes="**/*.java"/>
-            <fileset dir="ui-core" includes="**/*.java"/>
+            <fileset dir="core/src/main/java" includes="**/*.java"/>
+            <fileset dir="agents/src/main/java" includes="**/*.java"/>
+            <fileset dir="pull-agent/src/main/java" includes="**/*.java"/>
+            <fileset dir="ui-core/src/main/java" includes="**/*.java"/>
         </javadoc>
     </target>
     
     <target name="compile-core">
         <mkdir dir="build/core/classes"/>
-        <javac srcdir="core" destdir="build/core/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="core/src/main/java" destdir="build/core/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <fileset dir="lib"> 
                     <include name="*.jar"/> 
@@ -35,7 +35,7 @@
 
     <target name="compile-ui-core" depends="compile-core">
         <mkdir dir="build/ui-core/classes"/>
-        <javac srcdir="ui-core" destdir="build/ui-core/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="ui-core/src/main/java" destdir="build/ui-core/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <fileset dir="lib"> 
                     <include name="*.jar"/> 
@@ -47,7 +47,7 @@
 
     <target name="compile-agents" depends="compile-core">
         <mkdir dir="build/agents/classes"/>
-        <javac srcdir="agents" destdir="build/agents/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="agents/src/main/java" destdir="build/agents/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
             <classpath>
                  <fileset dir="lib"> 
                     <include name="*.jar"/> 
@@ -59,7 +59,7 @@
 
     <target name="compile-pull-agent" depends="compile-core,compile-agents">
         <mkdir dir="build/pull-agent/classes"/>
-        <javac srcdir="pull-agent" destdir="build/pull-agent/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="pull-agent/src/main/java" destdir="build/pull-agent/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
             <classpath>
                  <fileset dir="lib"> 
                     <include name="*.jar"/> 
@@ -72,7 +72,7 @@
 
     <target name="compile-jetty-runner" depends="compile-core,compile-agents">
         <mkdir dir="build/jetty-runner/classes"/>
-        <javac srcdir="jetty-runner" destdir="build/jetty-runner/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="jetty-runner/src/main/java" destdir="build/jetty-runner/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
             <classpath>
                  <fileset dir="lib"> 
                     <include name="*.jar"/> 
@@ -84,9 +84,9 @@
         </javac>
     </target>
 
-    <target name="compile-authority-service" depends="compile-core,compile-agents,compile-pull-agent">
-        <mkdir dir="build/authority-service/classes"/>
-        <javac srcdir="authority-service" destdir="build/authority-service/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
+    <target name="compile-authority-servlet" depends="compile-core,compile-agents,compile-pull-agent">
+        <mkdir dir="build/authority-servlet/classes"/>
+        <javac srcdir="authority-servlet/src/main/java" destdir="build/authority-servlet/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
             <classpath>
                  <fileset dir="lib"> 
                     <include name="*.jar"/> 
@@ -98,9 +98,9 @@
         </javac>
     </target>
 
-    <target name="compile-api" depends="compile-core,compile-ui-core,compile-agents,compile-pull-agent">
-        <mkdir dir="build/api/classes"/>
-        <javac srcdir="api" destdir="build/api/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
+    <target name="compile-api-servlet" depends="compile-core,compile-ui-core,compile-agents,compile-pull-agent">
+        <mkdir dir="build/api-servlet/classes"/>
+        <javac srcdir="api-servlet/src/main/java" destdir="build/api-servlet/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
             <classpath>
                  <fileset dir="lib"> 
                     <include name="*.jar"/> 
@@ -129,7 +129,7 @@
         </taskdef > 
         <!-- Compile jsp's to java -->
         <mkdir dir="build/crawler-ui/java"/>
-        <jasper2 validateXml="false" uriroot="crawler-ui" webXmlFragment="crawler-ui/WEB-INF/web-generated.xml" outputDir="build/crawler-ui/java" /> 
+        <jasper2 validateXml="false" uriroot="crawler-ui/src/main/webapp" webXmlFragment="crawler-ui/src/main/webapp/WEB-INF/web-generated.xml" outputDir="build/crawler-ui/java" /> 
         <!-- Compile java classes -->
         <mkdir dir="build/crawler-ui/classes"/>
         <javac srcdir="build/crawler-ui/java" destdir="build/crawler-ui/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
@@ -142,7 +142,7 @@
                 <pathelement location="build/ui-core/classes"/>
                 <pathelement location="build/agents/classes"/>
                 <pathelement location="build/pull-agent/classes"/>
-                <fileset dir="crawler-ui/WEB-INF/lib">
+                <fileset dir="crawler-ui/src/main/webapp/WEB-INF/lib">
                     <include name="*.jar"/> 
                 </fileset>
             </classpath>
@@ -175,7 +175,7 @@
         <jar destfile="build/jar/acf-jetty-runner.jar" basedir="build/jetty-runner/classes"/>
     </target>
 
-    <target name="webapp-authority-service" depends="jar-core,jar-agents,jar-pull-agent,compile-authority-service">
+    <target name="webapp-authority-service" depends="jar-core,jar-agents,jar-pull-agent,compile-authority-servlet">
         <mkdir dir="build/webapp/authority-service/WEB-INF/lib"/>
         <copy todir="build/webapp/authority-service/WEB-INF/lib">
             <fileset dir="lib">
@@ -206,12 +206,12 @@
                 <include name="acf-pull-agent.jar"/>
             </fileset>
         </copy>
-        <jar destfile="build/webapp/authority-service/WEB-INF/lib/acf-authority-servlet.jar" basedir="build/authority-service/classes"/>
+        <jar destfile="build/webapp/authority-service/WEB-INF/lib/acf-authority-servlet.jar" basedir="build/authority-servlet/classes"/>
     </target>
 
-    <target name="webapp-api" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,compile-api">
-        <mkdir dir="build/webapp/api/WEB-INF/lib"/>
-        <copy todir="build/webapp/api/WEB-INF/lib">
+    <target name="webapp-api-service" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,compile-api-servlet">
+        <mkdir dir="build/webapp/api-service/WEB-INF/lib"/>
+        <copy todir="build/webapp/api-service/WEB-INF/lib">
             <fileset dir="lib">
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -233,7 +233,7 @@
                 <include name="derby*.jar"/>
             </fileset>
         </copy>
-        <copy todir="build/webapp/api/WEB-INF/lib">
+        <copy todir="build/webapp/api-service/WEB-INF/lib">
             <fileset dir="build/jar">
                 <include name="acf-core.jar"/>
                 <include name="acf-ui-core.jar"/>
@@ -241,13 +241,13 @@
                 <include name="acf-pull-agent.jar"/>
             </fileset>
         </copy>
-        <jar destfile="build/webapp/api/WEB-INF/lib/acf-api-servlet.jar" basedir="build/api/classes"/>
+        <jar destfile="build/webapp/api-service/WEB-INF/lib/acf-api-servlet.jar" basedir="build/api-servlet/classes"/>
     </target>
 
     <target name="webapp-crawler-ui" depends="compile-crawler-ui,jar-core,jar-ui-core,jar-agents,jar-pull-agent">
         <mkdir dir="build/webapp/crawler-ui/WEB-INF/lib"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib">
-            <fileset dir="crawler-ui/WEB-INF/lib">
+            <fileset dir="crawler-ui/src/main/webapp/WEB-INF/lib">
                 <include name="*.jar"/>
             </fileset>
         </copy>
@@ -283,28 +283,28 @@
         </copy>
         <mkdir dir="build/webapp/crawler-ui/WEB-INF/jsp"/>
         <copy todir="build/webapp/crawler-ui/WEB-INF/jsp">
-            <fileset dir="crawler-ui/WEB-INF/jsp">
+            <fileset dir="crawler-ui/src/main/webapp/WEB-INF/jsp">
                 <include name="*.tld"/>
             </fileset>
         </copy>
         <copy todir="build/webapp/crawler-ui">
-            <fileset dir="crawler-ui" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
+            <fileset dir="crawler-ui/src/main/webapp" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
         </copy>
     </target>
     
     <target name="war-authority-service" depends="webapp-authority-service">
         <mkdir dir="dist/web/war"/>
-        <war destfile="dist/web/war/acf-authority-service.war" webxml="authority-service/WEB-INF/web.xml" basedir="build/webapp/authority-service"/>
+        <war destfile="dist/web/war/acf-authority-service.war" webxml="authority-service/src/main/webapp/WEB-INF/web.xml" basedir="build/webapp/authority-service"/>
     </target>
 
-    <target name="war-api" depends="webapp-api">
+    <target name="war-api-service" depends="webapp-api-service">
         <mkdir dir="dist/web/war"/>
-        <war destfile="dist/web/war/acf-api.war" webxml="api/WEB-INF/web.xml" basedir="build/webapp/api"/>
+        <war destfile="dist/web/war/acf-api-service.war" webxml="api-service/src/main/webapp/WEB-INF/web.xml" basedir="build/webapp/api-service"/>
     </target>
 
     <target name="war-crawler-ui" depends="webapp-crawler-ui">
         <mkdir dir="dist/web/war"/>
-        <war destfile="dist/web/war/acf-crawler-ui.war" webxml="crawler-ui/WEB-INF/web.xml" basedir="build/webapp/crawler-ui"/>
+        <war destfile="dist/web/war/acf-crawler-ui.war" webxml="crawler-ui/src/main/webapp/WEB-INF/web.xml" basedir="build/webapp/crawler-ui"/>
     </target>
 
     <target name="processes" depends="jar-core,jar-agents,jar-pull-agent">
@@ -345,7 +345,7 @@
         </copy>
     </target>
 
-    <target name="example" depends="war-crawler-ui,war-api,war-authority-service,jar-jetty-runner,jar-core,jar-agents,jar-pull-agent">
+    <target name="example" depends="war-crawler-ui,war-api-service,war-authority-service,jar-jetty-runner,jar-core,jar-agents,jar-pull-agent">
         <mkdir dir="dist/example/lib"/>
         <copy todir="dist/example/lib">
             <fileset dir="lib">
@@ -400,9 +400,9 @@
         </copy>
     </target>
     
-    <target name="compile-tests" depends="compile-core,compile-ui-core,compile-agents,compile-pull-agent,compile-authority-service,compile-api">
+    <target name="compile-tests" depends="compile-core,compile-ui-core,compile-agents,compile-pull-agent,compile-authority-servlet,compile-api-servlet">
         <mkdir dir="build/tests/classes"/>
-        <javac srcdir="tests" destdir="build/tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="tests/src/main/java" destdir="build/tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
                  <fileset dir="lib"> 
                     <include name="*.jar"/> 
@@ -411,8 +411,8 @@
                 <pathelement location="build/ui-core/classes"/>
                 <pathelement location="build/agents/classes"/>
                 <pathelement location="build/pull-agent/classes"/>
-                <pathelement location="build/authority-service/classes"/>
-                <pathelement location="build/api/classes"/>
+                <pathelement location="build/authority-servlet/classes"/>
+                <pathelement location="build/api-servlet/classes"/>
             </classpath>
         </javac>
     </target>
@@ -442,8 +442,8 @@
                 <pathelement location="build/ui-core/classes"/>
                 <pathelement location="build/agents/classes"/>
                 <pathelement location="build/pull-agent/classes"/>
-                <pathelement location="build/authority-service/classes"/>
-                <pathelement location="build/api/classes"/>
+                <pathelement location="build/authority-servlet/classes"/>
+                <pathelement location="build/api-servlet/classes"/>
                 <pathelement location="build/tests/classes"/>
             </classpath>
             <test name="org.apache.acf.agents.tests.Sanity" todir="test-output"/>
@@ -452,6 +452,6 @@
         </junit>
     </target>
     
-    <target name="all" depends="processes,war-authority-service,war-crawler-ui,war-api,example,doc,tests,run-tests"/>
+    <target name="all" depends="processes,war-authority-service,war-crawler-ui,war-api-service,example,doc,tests,run-tests"/>
     
 </project>
