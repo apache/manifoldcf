@@ -44,6 +44,9 @@ public class SolrConnector extends org.apache.acf.agents.output.BaseOutputConnec
   /** The deny attribute name */
   protected String denyAttributeName = "deny_token_";
   
+  /** Whether or not to commit */
+  protected boolean doCommits = false;
+  
   /** Constructor.
   */
   public SolrConnector()
@@ -128,6 +131,12 @@ public class SolrConnector extends org.apache.acf.agents.output.BaseOutputConnec
       String idAttributeName = params.getParameter(org.apache.acf.agents.output.solr.SolrConfig.PARAM_IDFIELD);
       if (idAttributeName == null || idAttributeName.length() == 0)
         idAttributeName = "id";
+      
+      String commits = params.getParameter(org.apache.acf.agents.output.solr.SolrConfig.PARAM_COMMITS);
+      if (commits == null || commits.length() == 0)
+        commits = "true";
+      
+      doCommits = commits.equals("true");
       
       String userID = params.getParameter(SolrConfig.PARAM_USERID);
       String password = params.getObfuscatedParameter(SolrConfig.PARAM_PASSWORD);
@@ -369,7 +378,8 @@ public class SolrConnector extends org.apache.acf.agents.output.BaseOutputConnec
     getSession();
     
     // Do a commit post
-    poster.commitPost();
+    if (doCommits)
+      poster.commitPost();
   }
 
   // UI support methods.
@@ -394,6 +404,7 @@ public class SolrConnector extends org.apache.acf.agents.output.BaseOutputConnec
     tabsArray.add("Server");
     tabsArray.add("Schema");
     tabsArray.add("Arguments");
+    tabsArray.add("Commits");
 
     out.print(
 "<script type=\"text/javascript\">\n"+
@@ -602,7 +613,11 @@ public class SolrConnector extends org.apache.acf.agents.output.BaseOutputConnec
     String password = parameters.getObfuscatedParameter(org.apache.acf.agents.output.solr.SolrConfig.PARAM_PASSWORD);
     if (password == null)
       password = "";
-		
+    
+    String commits = parameters.getParameter(org.apache.acf.agents.output.solr.SolrConfig.PARAM_COMMITS);
+    if (commits == null)
+      commits = "true";
+    
     // "Server" tab
     if (tabName.equals("Server"))
     {
@@ -740,6 +755,30 @@ public class SolrConnector extends org.apache.acf.agents.output.BaseOutputConnec
         values.add(value);
       }
     }
+    
+    // "Commits" tab
+    if (tabName.equals("Commits"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Commit at end of every job:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"commits_present\" type=\"hidden\" value=\"true\"/>\n"+
+"      <input name=\"commits\" type=\"checkbox\" value=\"true\""+(commits.equals("true")?" checked=\"yes\"":"")+"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"commits_present\" value=\"true\"/>\n"+
+"<input name=\"commits\" type=\"hidden\" value=\""+commits+"\"/>\n"
+      );
+    }
+    
     // "Arguments" tab
     if (tabName.equals("Arguments"))
     {
@@ -910,6 +949,15 @@ public class SolrConnector extends org.apache.acf.agents.output.BaseOutputConnec
     String password = variableContext.getParameter("password");
     if (password != null)
       parameters.setObfuscatedParameter(org.apache.acf.agents.output.solr.SolrConfig.PARAM_PASSWORD,password);
+    
+    String commitsPresent = variableContext.getParameter("commits_present");
+    if (commitsPresent != null)
+    {
+      String commits = variableContext.getParameter("commits");
+      if (commits == null)
+        commits = "false";
+      parameters.setParameter(org.apache.acf.agents.output.solr.SolrConfig.PARAM_COMMITS,commits);
+    }
     
     String x = variableContext.getParameter("argument_count");
     if (x != null && x.length() > 0)

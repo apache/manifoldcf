@@ -51,6 +51,8 @@ public class SolrConfig
   public static final String PARAM_USERID = "User ID";
   /** Optional user password */
   public static final String PARAM_PASSWORD = "Password";
+  /** Enable commits */
+  public static final String PARAM_COMMITS = "Commits";
   /** Node describing an argument */
   public static final String NODE_ARGUMENT = "argument";
   /** Attribute with the argument name */
