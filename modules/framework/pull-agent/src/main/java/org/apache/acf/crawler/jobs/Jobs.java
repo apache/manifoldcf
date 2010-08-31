@@ -33,24 +33,25 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
   // Status field values
   public static final int STATUS_INACTIVE = 0;                            // Not running
   public static final int STATUS_ACTIVE = 1;                              // Active, within a valid window
-  public static final int STATUS_PAUSED = 2;                              // Paused, but within a valid window
-  public static final int STATUS_SHUTTINGDOWN = 3;                // Done, except for process cleanup
-  public static final int STATUS_ACTIVEWAIT = 4;                  // Active, but paused due to window expiration
-  public static final int STATUS_PAUSEDWAIT = 5;                  // Paused, and outside of window expiration
-  public static final int STATUS_ABORTING = 6;                            // Aborting (not yet aborted because documents still being processed)
-  public static final int STATUS_STARTINGUP = 7;                  // Loading the queue (will go into ACTIVE if successful, or INACTIVE if not)
-  public static final int STATUS_ABORTINGSTARTINGUP = 8;  // Will abort once the queue loading is complete
+  public static final int STATUS_PAUSED = 2;                             // Paused, but within a valid window
+  public static final int STATUS_SHUTTINGDOWN = 3;                  // Done, except for process cleanup
+  public static final int STATUS_ACTIVEWAIT = 4;                        // Active, but paused due to window expiration
+  public static final int STATUS_PAUSEDWAIT = 5;                        // Paused, and outside of window expiration
+  public static final int STATUS_ABORTING = 6;                          // Aborting (not yet aborted because documents still being processed)
+  public static final int STATUS_STARTINGUP = 7;                        // Loading the queue (will go into ACTIVE if successful, or INACTIVE if not)
+  public static final int STATUS_ABORTINGSTARTINGUP = 8;        // Will abort once the queue loading is complete
   public static final int STATUS_READYFORSTARTUP = 9;             // Job is marked for startup; startup thread has not taken it yet.
   public static final int STATUS_READYFORDELETE = 10;             // Job is marked for delete; delete thread has not taken it yet.
   public static final int STATUS_ACTIVESEEDING = 11;              // Same as active, but seeding process is currently active also.
   public static final int STATUS_ABORTINGSEEDING = 12;            // Same as aborting, but seeding process is currently active also.
   public static final int STATUS_PAUSEDSEEDING = 13;              // Same as paused, but seeding process is currently active also.
-  public static final int STATUS_ACTIVEWAITSEEDING = 14;  // Same as active wait, but seeding process is currently active also.
-  public static final int STATUS_PAUSEDWAITSEEDING = 15;  // Same as paused wait, but seeding process is currently active also.
-  public static final int STATUS_ABORTINGFORRESTART = 16; // Same as aborting, except after abort is complete startup will happen.
+  public static final int STATUS_ACTIVEWAITSEEDING = 14;        // Same as active wait, but seeding process is currently active also.
+  public static final int STATUS_PAUSEDWAITSEEDING = 15;        // Same as paused wait, but seeding process is currently active also.
+  public static final int STATUS_ABORTINGFORRESTART = 16;       // Same as aborting, except after abort is complete startup will happen.
   public static final int STATUS_ABORTINGFORRESTARTSEEDING = 17;  // Seeding version of aborting for restart
   public static final int STATUS_ABORTINGSTARTINGUPFORRESTART = 18; // Starting up version of aborting for restart
-
+  public static final int STATUS_NOTIFYINGOFCOMPLETION = 19;    // Notifying connector of terminating job (either aborted, or finished)
+  
   // These statuses have to do with whether a job has an installed underlying connector or not.
   // There are two reasons to have a special state here: (1) if the behavior of the crawler differs, or (2) if the
   // UI would present something different.
@@ -135,6 +136,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
     statusMap.put("A",new Integer(STATUS_ACTIVE));
     statusMap.put("P",new Integer(STATUS_PAUSED));
     statusMap.put("S",new Integer(STATUS_SHUTTINGDOWN));
+    statusMap.put("s",new Integer(STATUS_NOTIFYINGOFCOMPLETION));
     statusMap.put("W",new Integer(STATUS_ACTIVEWAIT));
     statusMap.put("Z",new Integer(STATUS_PAUSEDWAIT));
     statusMap.put("X",new Integer(STATUS_ABORTING));
@@ -1635,7 +1637,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
     ArrayList list = new ArrayList();
     list.add(jobID);
     HashMap map = new HashMap();
-    map.put(statusField,statusToString(STATUS_INACTIVE));
+    map.put(statusField,statusToString(STATUS_NOTIFYINGOFCOMPLETION));
     map.put(errorField,null);
     map.put(endTimeField,new Long(finishTime));
     map.put(lastTimeField,new Long(finishTime));
@@ -1654,7 +1656,7 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
     ArrayList list = new ArrayList();
     list.add(jobID);
     HashMap map = new HashMap();
-    map.put(statusField,statusToString(STATUS_INACTIVE));
+    map.put(statusField,statusToString(STATUS_NOTIFYINGOFCOMPLETION));
     map.put(endTimeField,null);
     map.put(lastTimeField,new Long(abortTime));
     map.put(windowEndField,null);
@@ -1663,6 +1665,20 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
     performUpdate(map,"WHERE "+idField+"=?",list,new StringSet(getJobStatusKey()));
   }
 
+  /** Mark job as having properly notified the output connector of completion.
+  *@param jobID is the job id.
+  */
+  public void notificationComplete(Long jobID)
+    throws ACFException
+  {
+    ArrayList list = new ArrayList();
+    list.add(jobID);
+    HashMap map = new HashMap();
+    map.put(statusField,statusToString(STATUS_INACTIVE));
+    // Leave everything else around from the abort/finish.
+    performUpdate(map,"WHERE "+idField+"=?",list,new StringSet(getJobStatusKey()));
+  }
+  
   /** See if there's a reference to a connection name.
   *@param connectionName is the name of the connection.
   *@return true if there is a reference, false otherwise.
@@ -1807,6 +1823,8 @@ public class Jobs extends org.apache.acf.core.database.BaseTable
       return "P";
     case STATUS_SHUTTINGDOWN:
       return "S";
+    case STATUS_NOTIFYINGOFCOMPLETION:
+      return "s";
     case STATUS_ACTIVEWAIT:
       return "W";
     case STATUS_PAUSEDWAIT:

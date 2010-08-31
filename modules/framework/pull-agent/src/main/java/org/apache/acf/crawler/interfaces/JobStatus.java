@@ -38,6 +38,7 @@ public class JobStatus
   public final static int JOBSTATUS_RESTARTING = 9;
   public final static int JOBSTATUS_RUNNING_UNINSTALLED = 10;
   public final static int JOBSTATUS_JOBENDCLEANUP = 11;
+  public final static int JOBSTATUS_JOBENDNOTIFICATION = 12;
 
 
   // Member variables.

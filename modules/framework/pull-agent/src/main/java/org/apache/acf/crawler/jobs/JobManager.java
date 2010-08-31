@@ -4807,6 +4807,65 @@ public class JobManager implements IJobManager
     }
   }
 
+  /** Inactivate a job, from the notification state.
+  *@param jobID is the ID of the job to inactivate.
+  */
+  public void inactivateJob(Long jobID)
+    throws ACFException
+  {
+    // While there is no flow that can cause a job to be in the wrong state when this gets called, as a precaution
+    // it might be a good idea to put this in a transaction and have the state get checked first.
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        // Check job status
+        ArrayList list = new ArrayList();
+        list.add(jobID);
+        IResultSet set = database.performQuery("SELECT "+jobs.statusField+" FROM "+jobs.getTableName()+
+          " WHERE "+jobs.idField+"=? FOR UPDATE",list,null,null);
+        if (set.getRowCount() == 0)
+          throw new ACFException("No such job: "+jobID);
+        IResultRow row = set.getRow(0);
+        int status = jobs.stringToStatus((String)row.getValue(jobs.statusField));
+
+        switch (status)
+        {
+        case Jobs.STATUS_NOTIFYINGOFCOMPLETION:
+          jobs.notificationComplete(jobID);
+          break;
+        default:
+          throw new ACFException("Unexpected job status: "+Integer.toString(status));
+        }
+        return;
+      }
+      catch (ACFException e)
+      {
+        database.signalRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted clearing notification state for job: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+  }
+
   /** Reset a starting job back to "ready for startup" state.
   *@param jobID is the job id.
   */
@@ -5149,9 +5208,8 @@ public class JobManager implements IJobManager
   }
 
   /** Put all eligible jobs in the "shutting down" state.
-  *@param finishList is filled in with the set of IJobDescription objects that were completed.
   */
-  public void finishJobs(ArrayList finishList)
+  public void finishJobs()
     throws ACFException
   {
     while (true)
@@ -5216,10 +5274,7 @@ public class JobManager implements IJobManager
           if (confirmSet.getRowCount() > 0)
             continue;
 
-          IJobDescription jobDescription = jobs.load(jobID,true);
-
           // Mark status of job as "finishing"
-          finishList.add(jobDescription);
           jobs.writeStatus(jobID,jobs.STATUS_SHUTTINGDOWN);
           if (Logging.jobs.isDebugEnabled())
           {
@@ -5254,6 +5309,32 @@ public class JobManager implements IJobManager
     }
   }
 
+  /** Find the list of jobs that need to have their connectors notified of job completion.
+  *@return the ID's of jobs that need their output connectors notified in order to become inactive.
+  */
+  public Long[] getJobsReadyForInactivity()
+    throws ACFException
+  {
+    // Do the query
+    IResultSet set = database.performQuery("SELECT "+jobs.idField+" FROM "+
+      jobs.getTableName()+" WHERE "+jobs.statusField+"="+
+      database.quoteSQLString(jobs.statusToString(jobs.STATUS_NOTIFYINGOFCOMPLETION)),null,null,null);
+    // Return them all
+    Long[] rval = new Long[set.getRowCount()];
+    int i = 0;
+    while (i < rval.length)
+    {
+      IResultRow row = set.getRow(i);
+      Long jobID = (Long)row.getValue(jobs.idField);
+      rval[i++] = jobID;
+      if (Logging.jobs.isDebugEnabled())
+      {
+        Logging.jobs.debug("Found job "+jobID+" in need of notification");
+      }
+    }
+    return rval;
+  }
+  
   /** Complete the sequence that aborts jobs and makes them runnable again.
   *@param timestamp is the current time.
   *@param abortJobs is the set of IJobDescription objects that were aborted (and stopped).
@@ -5359,8 +5440,9 @@ public class JobManager implements IJobManager
   /** Reset eligible jobs back to "inactive" state.  This method is used to pick up all jobs in the shutting down state
   * whose purgatory or being-deleted records have been all cleaned up.
   *@param currentTime is the current time in milliseconds since epoch.
+  *@param resetJobs is filled in with the set of IJobDescription objects that were reset.
   */
-  public void resetJobs(long currentTime)
+  public void resetJobs(long currentTime, ArrayList resetJobs)
     throws ACFException
   {
     while (true)
@@ -5403,7 +5485,9 @@ public class JobManager implements IJobManager
           if (confirmSet.getRowCount() > 0)
             continue;
 
-
+          IJobDescription jobDesc = jobs.load(jobID,true);
+          resetJobs.add(jobDesc);
+          
           // Label the job "finished"
           jobs.finishJob(jobID,currentTime);
           if (Logging.jobs.isDebugEnabled())
@@ -5629,6 +5713,9 @@ public class JobManager implements IJobManager
         break;
       case Jobs.STATUS_SHUTTINGDOWN:
         rstatus = JobStatus.JOBSTATUS_JOBENDCLEANUP;
+        break;
+      case Jobs.STATUS_NOTIFYINGOFCOMPLETION:
+        rstatus = JobStatus.JOBSTATUS_JOBENDNOTIFICATION;
         break;
       case Jobs.STATUS_ABORTING:
       case Jobs.STATUS_ABORTINGSEEDING:

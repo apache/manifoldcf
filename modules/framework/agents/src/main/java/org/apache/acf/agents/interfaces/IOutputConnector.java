@@ -132,6 +132,13 @@ public interface IOutputConnector extends IConnector
   public void removeDocument(String documentURI, String outputDescription, IOutputRemoveActivity activities)
     throws ACFException, ServiceInterruption;
 
+  /** Notify the connector of a completed job.
+  * This is meant to allow the connector to flush any internal data structures it has been keeping around, or to tell the output repository that this
+  * is a good time to synchronize things.  It is called whenever a job is either completed or aborted.
+  */
+  public void noteJobComplete()
+    throws ACFException, ServiceInterruption;
+
   // UI support methods.
   //
   // These support methods come in two varieties.  The first bunch (inherited from IConnector) is involved in setting up connection configuration information.

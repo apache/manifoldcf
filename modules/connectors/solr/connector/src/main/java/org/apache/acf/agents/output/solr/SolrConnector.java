@@ -358,6 +358,20 @@ public class SolrConnector extends org.apache.acf.agents.output.BaseOutputConnec
     poster.deletePost(documentURI,activities);
   }
 
+  /** Notify the connector of a completed job.
+  * This is meant to allow the connector to flush any internal data structures it has been keeping around, or to tell the output repository that this
+  * is a good time to synchronize things.  It is called whenever a job is either completed or aborted.
+  */
+  public void noteJobComplete()
+    throws ACFException, ServiceInterruption
+  {
+    // Establish a session
+    getSession();
+    
+    // Do a commit post
+    poster.commitPost();
+  }
+
   // UI support methods.
   //
   // These support methods come in two varieties.  The first bunch is involved in setting up connection configuration information.  The second bunch

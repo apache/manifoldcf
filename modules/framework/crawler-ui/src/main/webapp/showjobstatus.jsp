@@ -149,6 +149,9 @@ if (maintenanceUnderway == false)
 		case JobStatus.JOBSTATUS_JOBENDCLEANUP:
 			statusName = "Terminating";
 			break;
+		case JobStatus.JOBSTATUS_JOBENDNOTIFICATION:
+			statusName = "End notification";
+			break;
 		case JobStatus.JOBSTATUS_ERROR:
 			statusName = "Error: "+js.getErrorText();
 			break;

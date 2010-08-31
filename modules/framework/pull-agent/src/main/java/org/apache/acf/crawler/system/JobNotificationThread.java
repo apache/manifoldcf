@@ -25,33 +25,31 @@ import org.apache.acf.crawler.system.Logging;
 import java.util.*;
 import java.lang.reflect.*;
 
-/** This class represents the finisher thread.  This thread's job is to detect when a job is completed, and mark it as such.
+/** This class represents the thread that notices jobs that have completed their "notify connector" phase, and resets them back to
+* inactive.
 */
-public class FinisherThread extends Thread
+public class JobNotificationThread extends Thread
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  // Local data
-
   /** Constructor.
   */
-  public FinisherThread()
+  public JobNotificationThread()
     throws ACFException
   {
     super();
-    setName("Finisher thread");
+    setName("Job notification thread");
     setDaemon(true);
   }
 
   public void run()
   {
-    Logging.threads.debug("Start up finisher thread");
     try
     {
       // Create a thread context object.
       IThreadContext threadContext = ThreadContextFactory.make();
       IJobManager jobManager = JobManagerFactory.make(threadContext);
-      IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(threadContext);
+      IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(threadContext);
 
       // Loop
       while (true)
@@ -59,10 +57,59 @@ public class FinisherThread extends Thread
         // Do another try/catch around everything in the loop
         try
         {
-          Logging.threads.debug("Cleaning up completed jobs...");
-          // See if there are any completed jobs
-          jobManager.finishJobs();
-          Logging.threads.debug("Done cleaning up completed jobs");
+          Long[] jobsNeedingNotification = jobManager.getJobsReadyForInactivity();
+          
+          int k = 0;
+          while (k < jobsNeedingNotification.length)
+          {
+            Long jobID = jobsNeedingNotification[k++];
+            IJobDescription job = jobManager.load(jobID,true);
+            if (job != null)
+            {
+              // Get the connection name
+              String connectionName = job.getOutputConnectionName();
+              IOutputConnection connection = connectionManager.load(connectionName);
+              if (connection != null)
+              {
+                // Grab an appropriate connection instance
+                IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+                if (connector != null)
+                {
+                  try
+                  {
+                    // Do the notification itself
+                    try
+                    {
+                      connector.noteJobComplete();
+                    }
+                    catch (ServiceInterruption e)
+                    {
+                      Logging.threads.warn("Service interruption notifying connection - retrying: "+e.getMessage(),e);
+                      continue;
+                    }
+                    catch (ACFException e)
+                    {
+                      if (e.getErrorCode() == ACFException.INTERRUPTED)
+                        throw e;
+                      if (e.getErrorCode() == ACFException.DATABASE_CONNECTION_ERROR)
+                        throw e;
+                      if (e.getErrorCode() == ACFException.SETUP_ERROR)
+                        throw e;
+                      // Nothing special; report the error and keep going.
+                      Logging.threads.error(e.getMessage(),e);
+                      continue;
+                    }
+                    // When done, put the job into the Inactive state.
+                    jobManager.inactivateJob(jobID);
+                  }
+                  finally
+                  {
+                    OutputConnectorFactory.release(connector);
+                  }
+                }
+              }
+            }
+          }
           ACF.sleep(10000L);
         }
         catch (ACFException e)
@@ -72,7 +119,7 @@ public class FinisherThread extends Thread
 
           if (e.getErrorCode() == ACFException.DATABASE_CONNECTION_ERROR)
           {
-            Logging.threads.error("Finisher thread aborting and restarting due to database connection reset: "+e.getMessage(),e);
+            Logging.threads.error("Job notification thread aborting and restarting due to database connection reset: "+e.getMessage(),e);
             try
             {
               // Give the database a chance to catch up/wake up
@@ -117,7 +164,7 @@ public class FinisherThread extends Thread
     {
       // Severe error on initialization
       System.err.println("agents process could not start - shutting down");
-      Logging.threads.fatal("FinisherThread initialization error tossed: "+e.getMessage(),e);
+      Logging.threads.fatal("JobNotificationThread initialization error tossed: "+e.getMessage(),e);
       System.exit(-300);
     }
   }

@@ -106,6 +106,8 @@ public class ListJobStatuses
       return "running no connector";
     case JobStatus.JOBSTATUS_JOBENDCLEANUP:
       return "terminating";
+    case JobStatus.JOBSTATUS_JOBENDNOTIFICATION:
+      return "notifying";
     default:
       return "unknown";
     }

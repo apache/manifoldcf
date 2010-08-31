@@ -25,8 +25,8 @@ import org.apache.acf.crawler.system.Logging;
 import java.util.*;
 import java.lang.reflect.*;
 
-/** This class represents the thread that notices jobs that have completed their shutdown phase, and resets them back to
-* inactive.
+/** This class represents the thread that notices jobs that have completed their shutdown phase, and puts them in the
+* "notify connector" state.
 */
 public class JobResetThread extends Thread
 {
@@ -73,8 +73,17 @@ public class JobResetThread extends Thread
               null,connectionManager.ACTIVITY_JOBABORT,null,
               desc.getID().toString()+"("+desc.getDescription()+")",null,null,null);
           }
-          jobManager.resetJobs(currentTime);
-
+          ArrayList jobCompletions = new ArrayList();
+          jobManager.resetJobs(currentTime,jobCompletions);
+          k = 0;
+          while (k < jobCompletions.size())
+          {
+            IJobDescription desc = (IJobDescription)jobCompletions.get(k++);
+            connectionManager.recordHistory(desc.getConnectionName(),
+              null,connectionManager.ACTIVITY_JOBEND,null,
+              desc.getID().toString()+"("+desc.getDescription()+")",null,null,null);
+          }
+          
           // If there were any job aborts, we must reprioritize all active documents, since we've done something
           // not predicted by the algorithm that assigned those priorities.  This is, of course, quite expensive,
           // but it cannot be helped (at least, I cannot find a way to avoid it).

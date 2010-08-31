@@ -176,6 +176,77 @@ public class HttpPoster
       interruptionRetryTime = new Long(x).longValue();
   }
 
+  /** Cause a commit to happen.
+  */
+  public void commitPost()
+    throws ACFException, ServiceInterruption
+  {
+    if (Logging.ingest.isDebugEnabled())
+      Logging.ingest.debug("commitPost()");
+
+    int ioErrorRetry = 5;
+    while (true)
+    {
+      // Open a socket to ingest, and to the response stream to get the post result
+      try
+      {
+        CommitThread t = new CommitThread();
+        try
+        {
+          t.start();
+          t.join();
+
+          Throwable thr = t.getException();
+          if (thr != null)
+          {
+            if (thr instanceof ServiceInterruption)
+              throw (ServiceInterruption)thr;
+            if (thr instanceof ACFException)
+              throw (ACFException)thr;
+            if (thr instanceof IOException)
+              throw (IOException)thr;
+            if (thr instanceof RuntimeException)
+              throw (RuntimeException)thr;
+            else
+              throw (Error)thr;
+          }
+          return;
+        }
+        catch (InterruptedException e)
+        {
+          t.interrupt();
+          throw new ACFException("Interrupted: "+e.getMessage(),ACFException.INTERRUPTED);
+        }
+      }
+      catch (IOException ioe)
+      {
+        if (ioErrorRetry == 0)
+        {
+          long currentTime = System.currentTimeMillis();
+          throw new ServiceInterruption("IO exception committing: "+ioe.getMessage(),
+            ioe,
+            currentTime + interruptionRetryTime,
+            currentTime + 2L * 60L * 60000L,
+            -1,
+            true);
+        }
+      }
+
+      // Go back around again!
+      // Sleep for a time, and retry
+      try
+      {
+        ACF.sleep(10000L);
+      }
+      catch (InterruptedException e)
+      {
+        throw new ACFException("Interrupted",ACFException.INTERRUPTED);
+      }
+      ioErrorRetry--;
+
+    }
+
+  }
   
   /**
   * Post the input stream to ingest
@@ -1524,6 +1595,130 @@ public class HttpPoster
       return activityDetails;
     }
   }
+  
+  /** Killable thread that does a commit.
+  * Java 1.5 stopped permitting thread interruptions to abort socket waits.  As a result, it is impossible to get threads to shutdown cleanly that are doing
+  * such waits.  So, the places where this happens are segregated in their own threads so that they can be just abandoned.
+  *
+  * This thread does a commit.
+  */
+  protected class CommitThread extends java.lang.Thread
+  {
+    protected Throwable exception = null;
+
+    public CommitThread()
+    {
+      super();
+      setDaemon(true);
+    }
+
+    public void run()
+    {
+      try
+      {
+        // Do the operation!
+        // Open a socket to update request handler, and to the response stream to get the post result
+        try
+        {
+          // Set up the socket, and the (optional) secure socket.
+          Socket socket = createSocket(responseRetries);
+          try
+          {
+            InputStream in = socket.getInputStream();
+            try
+            {
+              OutputStream out = socket.getOutputStream();
+              try
+              {
+                // Create the output stream to GTS
+                byte[] tmp = ("GET " + postUpdateAction + "?commit=true HTTP/1.0\r\n").getBytes("ASCII");
+                out.write(tmp, 0, tmp.length);
+
+                writeCredentials(out);
+
+                tmp = ("Content-Length: 0\r\n\r\n").getBytes("ASCII");
+                out.write(tmp, 0, tmp.length);
+
+                if (Logging.ingest.isDebugEnabled())
+                  Logging.ingest.debug("Commit request posted");
+
+                out.flush();
+
+                CodeDetails cd = getResponse(in);
+
+                int codeValue = cd.getCodeValue();
+                if (codeValue < 0)
+                  throw new ACFException("Http protocol error");
+
+                // 200 means everything went OK
+                if (codeValue == 200)
+                {
+                  cd.parseCommitResponse();
+                  return;
+                }
+
+                // We ignore everything in the range from 400-500 now
+                if (codeValue == 401)
+                  throw new ACFException("Bad credentials for commit request",ACFException.SETUP_ERROR);
+
+                // Anything else means the info request failed.
+                throw new ACFException("Error connecting to update request API: '"+cd.getDescription()+"'");
+              }
+              finally
+              {
+                out.close();
+              }
+            }
+            finally
+            {
+              in.close();
+            }
+          }
+          finally
+          {
+            try
+            {
+              socket.close();
+            }
+            catch (InterruptedIOException e)
+            {
+              throw e;
+            }
+            catch (IOException e)
+            {
+              Logging.ingest.debug("Error closing socket: "+e.getMessage(),e);
+              // Do NOT rethrow
+            }
+          }
+        }
+        catch (UnsupportedEncodingException ioe)
+        {
+          throw new ACFException("Fatal commit error: "+ioe.getMessage(),ioe);
+        }
+        catch (InterruptedIOException ioe)
+        {
+          // Exit the thread.
+          return;
+        }
+        catch (IOException ioe)
+        {
+          // Log the error
+          Logging.ingest.warn("Error communicating with update request handler: "+ioe.getMessage(),ioe);
+          throw ioe;
+        }
+      }
+      catch (Throwable e)
+      {
+        this.exception = e;
+      }
+    }
+
+    public Throwable getException()
+    {
+      return exception;
+    }
+  }
+
 
   /** Killable thread that does a status check.
   * Java 1.5 stopped permitting thread interruptions to abort socket waits.  As a result, it is impossible to get threads to shutdown cleanly that are doing
@@ -1775,6 +1970,12 @@ public class HttpPoster
       parseIngestionResponse();
     }
 
+    public void parseCommitResponse()
+      throws ACFException
+    {
+      parseIngestionResponse();
+    }
+    
     public void parseStatusResponse()
       throws ACFException
     {

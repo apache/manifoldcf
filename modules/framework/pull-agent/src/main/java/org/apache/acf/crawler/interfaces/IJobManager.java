@@ -621,7 +621,18 @@ public interface IJobManager
   public JobStartRecord[] getJobsReadyForStartup()
     throws ACFException;
 
+  /** Find the list of jobs that need to have their connectors notified of job completion.
+  *@return the ID's of jobs that need their output connectors notified in order to become inactive.
+  */
+  public Long[] getJobsReadyForInactivity()
+    throws ACFException;
 
+  /** Inactivate a job, from the notification state.
+  *@param jobID is the ID of the job to inactivate.
+  */
+  public void inactivateJob(Long jobID)
+    throws ACFException;
+    
   /** Reset a starting job back to "ready for startup" state.
   *@param jobID is the job id.
   */
@@ -740,16 +751,16 @@ public interface IJobManager
     throws ACFException;
 
   /** Put all eligible jobs in the "shutting down" state.
-  *@param finishList is filled in with the set of IJobDescription objects that were completed.
   */
-  public void finishJobs(ArrayList finishList)
+  public void finishJobs()
     throws ACFException;
 
   /** Reset eligible jobs back to "inactive" state.  This method is used to pick up all jobs in the shutting down state
   * whose purgatory records have been all cleaned up.
   *@param currentTime is the current time in milliseconds since epoch.
+  *@param resetJobs is filled in with the set of IJobDescription objects that were reset.
   */
-  public void resetJobs(long currentTime)
+  public void resetJobs(long currentTime, ArrayList resetJobs)
     throws ACFException;
 
 

@@ -38,6 +38,7 @@ public class ACF extends org.apache.acf.agents.system.ACF
   protected static JobStartThread jobStartThread = null;
   protected static StufferThread stufferThread = null;
   protected static FinisherThread finisherThread = null;
+  protected static JobNotificationThread notificationThread = null;
   protected static StartupThread startupThread = null;
   protected static JobDeleteThread jobDeleteThread = null;
   protected static WorkerThread[] workerThreads = null;
@@ -189,6 +190,7 @@ public class ACF extends org.apache.acf.agents.system.ACF
       jobStartThread = new JobStartThread();
       startupThread = new StartupThread(queueTracker);
       finisherThread = new FinisherThread();
+      notificationThread = new JobNotificationThread();
       jobDeleteThread = new JobDeleteThread();
       stufferThread = new StufferThread(documentQueue,numWorkerThreads,workerResetManager,queueTracker,blockingDocuments,lowWaterFactor,stuffAmtFactor);
       expireStufferThread = new ExpireStufferThread(expireQueue,numExpireThreads,workerResetManager);
@@ -289,6 +291,7 @@ public class ACF extends org.apache.acf.agents.system.ACF
         jobStartThread.start();
         startupThread.start();
         finisherThread.start();
+        notificationThread.start();
         jobDeleteThread.start();
         stufferThread.start();
         expireStufferThread.start();
@@ -346,7 +349,7 @@ public class ACF extends org.apache.acf.agents.system.ACF
     synchronized (startupLock)
     {
       while (initializationThread != null || jobDeleteThread != null || startupThread != null || jobStartThread != null || stufferThread != null ||
-        finisherThread != null || workerThreads != null || expireStufferThread != null | expireThreads != null ||
+        finisherThread != null || notificationThread != null || workerThreads != null || expireStufferThread != null | expireThreads != null ||
         deleteStufferThread != null || deleteThreads != null ||
         jobResetThread != null || seedingThread != null || idleCleanupThread != null || setPriorityThread != null)
       {
@@ -384,6 +387,10 @@ public class ACF extends org.apache.acf.agents.system.ACF
         if (finisherThread != null)
         {
           finisherThread.interrupt();
+        }
+        if (notificationThread != null)
+        {
+          notificationThread.interrupt();
         }
         if (workerThreads != null)
         {
@@ -481,6 +488,11 @@ public class ACF extends org.apache.acf.agents.system.ACF
         {
           if (!finisherThread.isAlive())
             finisherThread = null;
+        }
+        if (notificationThread != null)
+        {
+          if (!notificationThread.isAlive())
+            notificationThread = null;
         }
         if (workerThreads != null)
         {
@@ -2514,6 +2526,8 @@ public class ACF extends org.apache.acf.agents.system.ACF
       return "running no connector";
     case JobStatus.JOBSTATUS_JOBENDCLEANUP:
       return "terminating";
+    case JobStatus.JOBSTATUS_JOBENDNOTIFICATION:
+      return "notifying";
     default:
       return "unknown";
     }

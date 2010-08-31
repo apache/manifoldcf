@@ -69,6 +69,16 @@ public abstract class BaseOutputConnector extends org.apache.acf.core.connector.
     throw new ACFException("Unrecognized output connector command '"+command+"'");
   }
 
+  /** Notify the connector of a completed job.
+  * This is meant to allow the connector to flush any internal data structures it has been keeping around, or to tell the output repository that this
+  * is a good time to synchronize things.  It is called whenever a job is either completed or aborted.
+  */
+  public void noteJobComplete()
+    throws ACFException, ServiceInterruption
+  {
+    // The base implementation does nothing here.
+  }
+
   /** Detect if a mime type is indexable or not.  This method is used by participating repository connectors to pre-filter the number of
   * unusable documents that will be passed to this output connector.
   *@param mimeType is the mime type of the document.
