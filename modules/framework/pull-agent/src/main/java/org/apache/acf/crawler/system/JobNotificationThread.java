@@ -59,6 +59,8 @@ public class JobNotificationThread extends Thread
         {
           Long[] jobsNeedingNotification = jobManager.getJobsReadyForInactivity();
           
+          HashMap connectionNames = new HashMap();
+          
           int k = 0;
           while (k < jobsNeedingNotification.length)
           {
@@ -68,48 +70,77 @@ public class JobNotificationThread extends Thread
             {
               // Get the connection name
               String connectionName = job.getOutputConnectionName();
-              IOutputConnection connection = connectionManager.load(connectionName);
-              if (connection != null)
+              connectionNames.put(connectionName,connectionName);
+            }
+          }
+          
+          // Attempt to notify the specified connections
+          HashMap notifiedConnections = new HashMap();
+          
+          Iterator iter = connectionNames.keySet().iterator();
+          while (iter.hasNext())
+          {
+            String connectionName = (String)iter.next();
+            
+            IOutputConnection connection = connectionManager.load(connectionName);
+            if (connection != null)
+            {
+              // Grab an appropriate connection instance
+              IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+              if (connector != null)
               {
-                // Grab an appropriate connection instance
-                IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
-                if (connector != null)
+                try
                 {
+                  // Do the notification itself
                   try
                   {
-                    // Do the notification itself
-                    try
-                    {
-                      connector.noteJobComplete();
-                    }
-                    catch (ServiceInterruption e)
-                    {
-                      Logging.threads.warn("Service interruption notifying connection - retrying: "+e.getMessage(),e);
-                      continue;
-                    }
-                    catch (ACFException e)
-                    {
-                      if (e.getErrorCode() == ACFException.INTERRUPTED)
-                        throw e;
-                      if (e.getErrorCode() == ACFException.DATABASE_CONNECTION_ERROR)
-                        throw e;
-                      if (e.getErrorCode() == ACFException.SETUP_ERROR)
-                        throw e;
-                      // Nothing special; report the error and keep going.
-                      Logging.threads.error(e.getMessage(),e);
-                      continue;
-                    }
-                    // When done, put the job into the Inactive state.
-                    jobManager.inactivateJob(jobID);
+                    connector.noteJobComplete();
+                    notifiedConnections.put(connectionName,connectionName);
                   }
-                  finally
+                  catch (ServiceInterruption e)
                   {
-                    OutputConnectorFactory.release(connector);
+                    Logging.threads.warn("Service interruption notifying connection - retrying: "+e.getMessage(),e);
+                    continue;
                   }
+                  catch (ACFException e)
+                  {
+                    if (e.getErrorCode() == ACFException.INTERRUPTED)
+                      throw e;
+                    if (e.getErrorCode() == ACFException.DATABASE_CONNECTION_ERROR)
+                      throw e;
+                    if (e.getErrorCode() == ACFException.SETUP_ERROR)
+                      throw e;
+                    // Nothing special; report the error and keep going.
+                    Logging.threads.error(e.getMessage(),e);
+                    continue;
+                  }
+                }
+                finally
+                {
+                  OutputConnectorFactory.release(connector);
                 }
               }
             }
           }
+          
+          // Go through jobs again, and put the notified ones into the inactive state.
+          k = 0;
+          while (k < jobsNeedingNotification.length)
+          {
+            Long jobID = jobsNeedingNotification[k++];
+            IJobDescription job = jobManager.load(jobID,true);
+            if (job != null)
+            {
+              // Get the connection name
+              String connectionName = job.getOutputConnectionName();
+              if (notifiedConnections.get(connectionName) != null)
+              {
+                // When done, put the job into the Inactive state.  Otherwise, the notification will be retried until it succeeds.
+                jobManager.inactivateJob(jobID);
+              }
+            }
+          }
+
           ACF.sleep(10000L);
         }
         catch (ACFException e)
