@@ -3,6 +3,14 @@ $Id$
 
 ======================= Trunk (not yet released) =======================
 
+CONNECTORS-57: Add support in Solr connector for selecting whether end-of-job
+commits take place, on a per-connection basis.
+(Jack Krupansky, Karl Wright)
+
+CONNECTORS-41: Add support in the framework for end-of-job notification to the
+associated output connector, which can take an extended period of time.
+(Jack Krupansky, Karl Wright)
+
 CONNECTORS-97: Web connector session authentication was failing for some sites
 due to cookies httpclient thought were illegal, but browsers would accept.
 (Karl Wright)
