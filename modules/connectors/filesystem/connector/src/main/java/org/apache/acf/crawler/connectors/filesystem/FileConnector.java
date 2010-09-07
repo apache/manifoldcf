@@ -694,6 +694,17 @@ public class FileConnector extends org.apache.acf.crawler.connectors.BaseReposit
         String path = variableContext.getParameter("specpath");
         SpecificationNode node = new SpecificationNode("startpoint");
         node.setAttribute("path",path);
+        
+        // Now add in the defaults; these will be "include all directories" and "include all files".
+        SpecificationNode sn = new SpecificationNode("include");
+        sn.setAttribute("type","file");
+        sn.setAttribute("match","*");
+        node.addChild(node.getChildCount(),sn);
+        sn = new SpecificationNode("include");
+        sn.setAttribute("type","directory");
+        sn.setAttribute("match","*");
+        node.addChild(node.getChildCount(),sn);
+
         ds.addChild(k,node);
       }
     }
