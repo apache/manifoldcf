@@ -3,6 +3,16 @@ $Id$
 
 ======================= Trunk (not yet released) =======================
 
+CONNECTORS-104: Add convenience feature to web connector to limit hosts to those
+explicitly mentioned in seeds.
+(Jack Krupansky, Karl Wright)
+
+CONNECTORS-102: Web connector default throttling settings.
+(Karl Wright)
+
+CONNECTORS-103: RSS connector default throttling settings.
+(Karl Wright)
+
 CONNECTORS-105: File system connector UI enhancements, to use a table-based
 metaphor for paths and rules.
 (Karl Wright)
