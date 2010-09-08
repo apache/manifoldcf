@@ -1642,6 +1642,7 @@ public class WebcrawlerConnector extends org.apache.acf.crawler.connectors.BaseR
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
     throws ACFException, IOException
   {
+    
     String email = parameters.getParameter(org.apache.acf.crawler.connectors.webcrawler.WebcrawlerConfig.PARAMETER_EMAIL);
     if (email == null)
       email = "";
@@ -1782,6 +1783,41 @@ public class WebcrawlerConnector extends org.apache.acf.crawler.connectors.BaseR
         }
       }
 
+      // If it looks like this is a brand-new configuration, add in a default throttle.
+      // This only works because other nodes must get created on the first post, and cannot then be deleted.
+      if (parameters.getChildCount() == 0)
+      {
+        // It's prefix will be...
+        String prefix = "bandwidth_" + Integer.toString(binCounter);
+        out.print(
+"        <tr class=\""+(((binCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <a name=\""+prefix+"\">\n"+
+"              <input type=\"button\" value=\"Delete\" alt=\""+"Delete bin regular expression #"+Integer.toString(binCounter+1)+"\" onclick='javascript:deleteRegexp("+Integer.toString(binCounter)+");'/>\n"+
+"              <input type=\"hidden\" name=\""+"op_"+prefix+"\" value=\"Continue\"/>\n"+
+"              <input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\"\"/>\n"+
+"            </a>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr></nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr><input type=\"checkbox\" name=\"insensitive_"+prefix+"\" value=\"false\"/></nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr><input type=\"text\" size=\"5\" name=\"connections_"+prefix+"\" value=\"2\"/></nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr><input type=\"text\" size=\"5\" name=\"rate_"+prefix+"\" value=\"64\"/></nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr><input type=\"text\" size=\"5\" name=\"fetches_"+prefix+"\" value=\"12\"/></nobr>\n"+
+"          </td>\n"+
+"        </tr>\n"
+        );
+        binCounter++;
+      }
+
       if (binCounter == 0)
       {
         out.print(
@@ -1868,6 +1904,23 @@ public class WebcrawlerConnector extends org.apache.acf.crawler.connectors.BaseR
           binCounter++;
         }
       }
+
+      // If it looks like this is a brand-new configuration, add in a default throttle.
+      // This only works because other nodes must get created on the first post, and cannot then be deleted.
+      if (parameters.getChildCount() == 0)
+      {
+        // It's prefix will be...
+        String prefix = "bandwidth_" + Integer.toString(binCounter);
+        out.print(
+"<input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\"\"/>\n"+
+"<input type=\"hidden\" name=\""+"insensitive_"+prefix+"\" value=\"false\"/>\n"+
+"<input type=\"hidden\" name=\""+"connections_"+prefix+"\" value=\"2\"/>\n"+
+"<input type=\"hidden\" name=\""+"rate_"+prefix+"\" value=\"64\"/>\n"+
+"<input type=\"hidden\" name=\""+"fetches_"+prefix+"\" value=\"12\"/>\n"
+        );
+        binCounter++;
+      }
+
       out.print(
 "<input type=\"hidden\" name=\"bandwidth_count\" value=\""+binCounter+"\"/>\n"
       );
