@@ -3,6 +3,14 @@ $Id$
 
 ======================= Trunk (not yet released) =======================
 
+CONNECTORS-105: File system connector UI enhancements, to use a table-based
+metaphor for paths and rules.
+(Karl Wright)
+
+CONNECTORS-101: File system connector paths should automatically get default 
+rules added.
+(Karl Wright)
+
 CONNECTORS-57: Add support in Solr connector for selecting whether end-of-job
 commits take place, on a per-connection basis.
 (Jack Krupansky, Karl Wright)
