@@ -1601,13 +1601,13 @@ public class RSSConnector extends org.apache.acf.crawler.connectors.BaseReposito
       robotsUsage = "all";
     String bandwidth = parameters.getParameter(org.apache.acf.crawler.connectors.rss.RSSConnector.bandwidthParameter);
     if (bandwidth == null)
-      bandwidth = "";
+      bandwidth = "64";
     String connections = parameters.getParameter(org.apache.acf.crawler.connectors.rss.RSSConnector.maxOpenParameter);
     if (connections == null)
-      connections = "10";
+      connections = "2";
     String fetches = parameters.getParameter(org.apache.acf.crawler.connectors.rss.RSSConnector.maxFetchesParameter);
     if (fetches == null)
-      fetches = "";
+      fetches = "12";
     String throttleGroup = parameters.getParameter(org.apache.acf.crawler.connectors.rss.RSSConnector.throttleGroupParameter);
     if (throttleGroup == null)
       throttleGroup = "";
