@@ -435,17 +435,36 @@ public class FileConnector extends org.apache.acf.crawler.connectors.BaseReposit
           String pathOpName = "specop"+pathDescription;
           out.print(
 "  <tr>\n"+
-"    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\""+pathOpName+"\" value=\"\"/>\n"+
-"      <input type=\"hidden\" name=\""+"specpath"+pathDescription+"\" value=\""+org.apache.acf.ui.util.Encoder.attributeEscape(sn.getAttributeValue("path"))+"\"/>\n"+
-"      "+org.apache.acf.ui.util.Encoder.bodyEscape(sn.getAttributeValue("path"))+" \n"+
-"      <a name=\""+"path_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")' alt=\""+"Delete path #"+Integer.toString(k)+"\"/>\n"+
-"      </a>\n"+
-"    </td>\n"+
+"    <td class=\"description\"><nobr>Paths:</nobr></td>\n"+
 "    <td class=\"boxcell\">\n"+
-"      <input type=\"hidden\" name=\""+"specchildcount"+pathDescription+"\" value=\""+Integer.toString(sn.getChildCount())+"\"/>\n"+
-"      <table class=\"displaytable\">\n"
+"      <table class=\"formtable\">\n"+
+"        <tr class=\"formheaderrow\">\n"+
+"          <td class=\"formcolumnheader\"></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Root path</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Rules</nobr></td>\n"+
+"        </tr>\n"+
+"        <tr class=\""+(((k % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <input type=\"hidden\" name=\""+pathOpName+"\" value=\"\"/>\n"+
+"            <input type=\"hidden\" name=\""+"specpath"+pathDescription+"\" value=\""+org.apache.acf.ui.util.Encoder.attributeEscape(sn.getAttributeValue("path"))+"\"/>\n"+
+"            <a name=\""+"path_"+Integer.toString(k)+"\">\n"+
+"              <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")' alt=\""+"Delete path #"+Integer.toString(k)+"\"/>\n"+
+"            </a>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>\n"+
+"              "+org.apache.acf.ui.util.Encoder.bodyEscape(sn.getAttributeValue("path"))+" \n"+
+"            </nobr>\n"+
+"          </td>\n"+
+"          <td class=\"boxcell\">\n"+
+"            <input type=\"hidden\" name=\""+"specchildcount"+pathDescription+"\" value=\""+Integer.toString(sn.getChildCount())+"\"/>\n"+
+"            <table class=\"formtable\">\n"+
+"              <tr class=\"formheaderrow\">\n"+
+"                <td class=\"formcolumnheader\"></td>\n"+
+"                <td class=\"formcolumnheader\"><nobr>Include/exclude</nobr></td>\n"+
+"                <td class=\"formcolumnheader\"><nobr>File/directory</nobr></td>\n"+
+"                <td class=\"formcolumnheader\"><nobr>Match</nobr></td>\n"+
+"              </tr>\n"
           );
           int j = 0;
           while (j < sn.getChildCount())
@@ -458,77 +477,104 @@ public class FileConnector extends org.apache.acf.crawler.connectors.BaseReposit
             String nodeType = excludeNode.getAttributeValue("type");
             String nodeMatch = excludeNode.getAttributeValue("match");
             out.print(
-"        <tr>\n"+
-"          <td class=\"description\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"specop"+instanceDescription+"\" value=\"\"/>\n"+
-"              <input type=\"hidden\" name=\""+"specfl"+instanceDescription+"\" value=\""+nodeFlavor+"\"/>\n"+
-"              <input type=\"hidden\" name=\""+"specty"+instanceDescription+"\" value=\""+nodeType+"\"/>\n"+
-"              <input type=\"hidden\" name=\""+"specma"+instanceDescription+"\" value=\""+org.apache.acf.ui.util.Encoder.attributeEscape(nodeMatch)+"\"/>\n"+
-"              "+(nodeFlavor.equals("include")?"Include ":"")+"\n"+
-"              "+(nodeFlavor.equals("exclude")?"Exclude ":"")+"\n"+
-"              "+(nodeType.equals("file")?"file ":"")+"\n"+
-"              "+(nodeType.equals("directory")?"directory ":"")+"\n"+
-"              "+org.apache.acf.ui.util.Encoder.bodyEscape(nodeMatch)+":\n"+
-"              <a name=\""+"match_"+Integer.toString(k)+"_"+Integer.toString(j)+"\">\n"+
-"                <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\"specop"+instanceDescription+"\",\"Delete\",\"match_"+Integer.toString(k)+"_"+Integer.toString(j)+"\")' alt=\""+"Delete path #"+Integer.toString(k)+", match spec #"+Integer.toString(j)+"\"/>\n"+
-"              </a>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"value\">\n"+
-"            <nobr>\n"+
-"              Match: <input type=\"text\" size=\"10\" name=\""+"specmatch"+instanceDescription+"\" value=\"\"/>\n"+
-"              Type:\n"+
-"              <select name=\""+"spectype"+instanceDescription+"\">\n"+
-"                <option value=\"file\">File</option>\n"+
-"                <option value=\"directory\">Directory</option>\n"+
-"              </select>\n"+
-"              Operation:\n"+
-"              <select name=\""+"specflavor"+instanceDescription+"\">\n"+
-"                <option value=\"include\">Include</option>\n"+
-"                <option value=\"exclude\">Exclude</option>\n"+
-"              </select>\n"+
-"              <input type=\"button\" value=\"Insert Here\" onClick='Javascript:SpecOp(\"specop"+instanceDescription+"\",\"Insert Here\",\"match_"+Integer.toString(k)+"_"+Integer.toString(j+1)+"\")' alt=\""+"Insert new match for path #"+Integer.toString(k)+" before position #"+Integer.toString(j)+"\"/>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"
+"              <tr class=\"evenformrow\">\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <nobr>\n"+
+"                    <input type=\"button\" value=\"Insert Here\" onClick='Javascript:SpecOp(\"specop"+instanceDescription+"\",\"Insert Here\",\"match_"+Integer.toString(k)+"_"+Integer.toString(j+1)+"\")' alt=\""+"Insert new match for path #"+Integer.toString(k)+" before position #"+Integer.toString(j)+"\"/>\n"+
+"                  </nobr>\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <nobr>\n"+
+"                    <select name=\""+"specflavor"+instanceDescription+"\">\n"+
+"                      <option value=\"include\">include</option>\n"+
+"                      <option value=\"exclude\">exclude</option>\n"+
+"                    </select>\n"+
+"                  </nobr>\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <nobr>\n"+
+"                    <select name=\""+"spectype"+instanceDescription+"\">\n"+
+"                      <option value=\"file\">File</option>\n"+
+"                      <option value=\"directory\">Directory</option>\n"+
+"                    </select>\n"+
+"                  </nobr>\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <nobr>\n"+
+"                    <input type=\"text\" size=\"10\" name=\""+"specmatch"+instanceDescription+"\" value=\"\"/>\n"+
+"                  </nobr>\n"+
+"                </td>\n"+
+"              </tr>\n"+
+"              <tr class=\"oddformrow\">\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <nobr>\n"+
+"                    <input type=\"hidden\" name=\""+"specop"+instanceDescription+"\" value=\"\"/>\n"+
+"                    <input type=\"hidden\" name=\""+"specfl"+instanceDescription+"\" value=\""+nodeFlavor+"\"/>\n"+
+"                    <input type=\"hidden\" name=\""+"specty"+instanceDescription+"\" value=\""+nodeType+"\"/>\n"+
+"                    <input type=\"hidden\" name=\""+"specma"+instanceDescription+"\" value=\""+org.apache.acf.ui.util.Encoder.attributeEscape(nodeMatch)+"\"/>\n"+
+"                    <a name=\""+"match_"+Integer.toString(k)+"_"+Integer.toString(j)+"\">\n"+
+"                      <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\"specop"+instanceDescription+"\",\"Delete\",\"match_"+Integer.toString(k)+"_"+Integer.toString(j)+"\")' alt=\""+"Delete path #"+Integer.toString(k)+", match spec #"+Integer.toString(j)+"\"/>\n"+
+"                    </a>\n"+
+"                  </nobr>\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <nobr>\n"+
+"                    "+nodeFlavor+"\n"+
+"                  </nobr>\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <nobr>\n"+
+"                    "+nodeType+"\n"+
+"                  </nobr>\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <nobr>\n"+
+"                    "+org.apache.acf.ui.util.Encoder.bodyEscape(nodeMatch)+"\n"+
+"                  </nobr>\n"+
+"                </td>\n"+
+"              </tr>\n"
             );
             j++;
           }
           if (j == 0)
           {
             out.print(
-"        <tr><td class=\"message\" colspan=\"2\">No rules defined</td></tr>\n"
+"              <tr class=\"formrow\"><td class=\"message\" colspan=\"4\">No rules defined</td></tr>\n"
             );
           }
           out.print(
-"        <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
-"        <tr>\n"+
-"          <td class=\"value\">\n"+
-"            <a name=\""+"match_"+Integer.toString(k)+"_"+Integer.toString(j)+"\">\n"+
-"              <input type=\"button\" value=\"Add\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Add\",\"match_"+Integer.toString(k)+"_"+Integer.toString(j+1)+"\")' alt=\""+"Add new match for path #"+Integer.toString(k)+"\"/>\n"+
-"            </a>\n"+
+"              <tr class=\"formrow\"><td class=\"lightseparator\" colspan=\"4\"><hr/></td></tr>\n"+
+"              <tr class=\"formrow\">\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <a name=\""+"match_"+Integer.toString(k)+"_"+Integer.toString(j)+"\">\n"+
+"                    <input type=\"button\" value=\"Add\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Add\",\"match_"+Integer.toString(k)+"_"+Integer.toString(j+1)+"\")' alt=\""+"Add new match for path #"+Integer.toString(k)+"\"/>\n"+
+"                  </a>\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <nobr>\n"+
+"                    <select name=\""+"specflavor"+pathDescription+"\">\n"+
+"                      <option value=\"include\">include</option>\n"+
+"                      <option value=\"exclude\">exclude</option>\n"+
+"                    </select>\n"+
+"                  </nobr>\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <nobr>\n"+
+"                    <select name=\""+"spectype"+pathDescription+"\">\n"+
+"                      <option value=\"file\">file</option>\n"+
+"                      <option value=\"directory\">directory</option>\n"+
+"                    </select>\n"+
+"                  </nobr>\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <nobr>\n"+
+"                    <input type=\"text\" size=\"10\" name=\""+"specmatch"+pathDescription+"\" value=\"\"/>\n"+
+"                  </nobr>\n"+
+"                </td>\n"+
+"              </tr>\n"+
+"            </table>\n"+
 "          </td>\n"+
-"          <td class=\"value\">\n"+
-"            <nobr>\n"+
-"              Match:&nbsp;\n"+
-"              <input type=\"text\" size=\"10\" name=\""+"specmatch"+pathDescription+"\" value=\"\"/>\n"+
-"              Type:&nbsp;\n"+
-"              <select name=\""+"spectype"+pathDescription+"\">\n"+
-"                <option value=\"file\">File</option>\n"+
-"                <option value=\"directory\">Directory</option>\n"+
-"              </select>\n"+
-"              Operation:&nbsp;\n"+
-"              <select name=\""+"specflavor"+pathDescription+"\">\n"+
-"                <option value=\"include\">Include</option>\n"+
-"                <option value=\"exclude\">Exclude</option>\n"+
-"              </select>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"+
-"      </table>\n"+
-"    </td>\n"+
-"  </tr>\n"
+"        </tr>\n"
           );
           k++;
         }
@@ -536,21 +582,30 @@ public class FileConnector extends org.apache.acf.crawler.connectors.BaseReposit
       if (k == 0)
       {
         out.print(
-"  <tr><td class=\"message\" colspan=\"2\">No documents specified</td></tr>\n"
+"        <tr class=\"formrow\"><td class=\"message\" colspan=\"3\">No documents specified</td></tr>\n"
         );
       }
       out.print(
-"  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"value\">\n"+
-"      <a name=\""+"path_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecOp(\"specop\",\"Add\",\"path_"+Integer.toString(i+1)+"\")' alt=\"Add new path\"/>\n"+
-"        <input type=\"hidden\" name=\"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"        <input type=\"hidden\" name=\"specop\" value=\"\"/>\n"+
-"      </a>\n"+
-"    </td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"text\" size=\"80\" name=\"specpath\" value=\"\"/>\n"+
+"        <tr class=\"formrow\"><td class=\"lightseparator\" colspan=\"3\"><hr/></td></tr>\n"+
+"        <tr class=\"formrow\">\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>\n"+
+"              <a name=\""+"path_"+Integer.toString(k)+"\">\n"+
+"                <input type=\"button\" value=\"Add\" onClick='Javascript:SpecOp(\"specop\",\"Add\",\"path_"+Integer.toString(i+1)+"\")' alt=\"Add new path\"/>\n"+
+"                <input type=\"hidden\" name=\"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"                <input type=\"hidden\" name=\"specop\" value=\"\"/>\n"+
+"              </a>\n"+
+"            </nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>\n"+
+"              <input type=\"text\" size=\"80\" name=\"specpath\" value=\"\"/>\n"+
+"            </nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"          </td>\n"+
+"        </tr>\n"+
+"      </table>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "</table>\n"
