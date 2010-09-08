@@ -422,7 +422,7 @@ public class FileConnector extends org.apache.acf.crawler.connectors.BaseReposit
     {
       out.print(
 "<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+"  <tr><td class=\"separator\" colspan=\"3\"><hr/></td></tr>\n"
       );
       i = 0;
       k = 0;
