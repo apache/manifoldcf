@@ -573,7 +573,7 @@ public class WebcrawlerConnector extends org.apache.acf.crawler.connectors.BaseR
     {
       String documentIdentifier = documentIdentifiers[i];
       // Verify that the url is legal
-      if (filter.isDocumentLegal(documentIdentifier))
+      if (filter.isDocumentAndHostLegal(documentIdentifier))
       {
         // The first thing we need to know is whether this url is part of a session-protected area.  We'll use that information
         // later to detect redirection to login.
@@ -3390,7 +3390,8 @@ public class WebcrawlerConnector extends org.apache.acf.crawler.connectors.BaseR
     String seeds = "";
     String inclusions = ".*\n";
     String exclusions = "";
-
+    boolean includeMatching = false;
+    
     // Now, loop through description
     i = 0;
     while (i < ds.getChildCount())
@@ -3413,6 +3414,14 @@ public class WebcrawlerConnector extends org.apache.acf.crawler.connectors.BaseR
         exclusions = sn.getValue();
         if (exclusions == null)
           exclusions = "";
+      }
+      else if (sn.getType().equals(org.apache.acf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_LIMITTOSEEDS))
+      {
+        String value = sn.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
+        if (value == null || value.equals("false"))
+          includeMatching = false;
+        else
+          includeMatching = true;
       }
     }
 
@@ -3594,7 +3603,6 @@ public class WebcrawlerConnector extends org.apache.acf.crawler.connectors.BaseR
     }
 
     // Inclusions tab
-
     if (tabName.equals("Inclusions"))
     {
       out.print(
@@ -3605,13 +3613,21 @@ public class WebcrawlerConnector extends org.apache.acf.crawler.connectors.BaseR
 "      <textarea rows=\"25\" cols=\"80\" name=\"inclusions\">"+org.apache.acf.ui.util.Encoder.bodyEscape(inclusions)+"</textarea>\n"+
 "    </td>\n"+
 "  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Include only hosts matching seeds?</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"checkbox\" name=\"matchinghosts\" value=\"true\""+(includeMatching?" checked=\"yes\"":"")+"/>\n"+
+"      <input type=\"hidden\" name=\"matchinghosts_present\" value=\"true\"/>\n"+
+"    </td>\n"+
 "</table>\n"
       );
     }
     else
     {
       out.print(
-"<input type=\"hidden\" name=\"inclusions\" value=\""+org.apache.acf.ui.util.Encoder.attributeEscape(inclusions)+"\"/>\n"
+"<input type=\"hidden\" name=\"inclusions\" value=\""+org.apache.acf.ui.util.Encoder.attributeEscape(inclusions)+"\"/>\n"+
+"<input type=\"hidden\" name=\"matchinghosts\" value=\""+(includeMatching?"true":"false")+"\"/>\n"+
+"<input type=\"hidden\" name=\"matchinghosts_present\" value=\"true\"/>\n"
       );
     }
 
@@ -3873,6 +3889,27 @@ public class WebcrawlerConnector extends org.apache.acf.crawler.connectors.BaseR
       ds.addChild(ds.getChildCount(),cn);
     }
 
+    // Handle the seeds-only switch
+    String matchingHostsPresent = variableContext.getParameter("matchinghosts_present");
+    if (matchingHostsPresent != null)
+    {
+      // Delete existing switch record first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(org.apache.acf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_LIMITTOSEEDS))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      String matchingHosts = variableContext.getParameter("matchinghosts");
+      SpecificationNode cn = new SpecificationNode(org.apache.acf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_LIMITTOSEEDS);
+      cn.setAttribute(org.apache.acf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,(matchingHosts==null||matchingHosts.equals("false"))?"false":"true");
+      ds.addChild(ds.getChildCount(),cn);
+    }
+    
     // Get the exclusions
     String exclusions = variableContext.getParameter("exclusions");
     if (exclusions != null)
@@ -4091,7 +4128,8 @@ public class WebcrawlerConnector extends org.apache.acf.crawler.connectors.BaseR
     String seeds = "";
     String inclusions = ".*\n";
     String exclusions = "";
-
+    boolean includeMatching = false;
+    
     int i = 0;
     while (i < ds.getChildCount())
     {
@@ -4113,6 +4151,14 @@ public class WebcrawlerConnector extends org.apache.acf.crawler.connectors.BaseR
         exclusions = sn.getValue();
         if (exclusions == null)
           exclusions = "";
+      }
+      else if (sn.getType().equals(org.apache.acf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_LIMITTOSEEDS))
+      {
+        String value = sn.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
+        if (value == null || value.equals("false"))
+          includeMatching = false;
+        else
+          includeMatching = true;
       }
     }
     out.print(
@@ -4233,6 +4279,16 @@ public class WebcrawlerConnector extends org.apache.acf.crawler.connectors.BaseR
 "  <tr><td class=\"message\" colspan=\"2\"><nobr>No url canonicalization specified; will reorder all urls and remove all sessions</nobr></td></tr>\n"
       );
     }
+    out.print(
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Include only hosts mentioned in seeds?</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"    "+(includeMatching?"yes":"no")+"\n"+
+"    </td>\n"+
+"  </tr>\n"
+    );
+
     out.print(
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
@@ -4737,7 +4793,13 @@ public class WebcrawlerConnector extends org.apache.acf.crawler.connectors.BaseR
           Logging.connectors.debug("WEB: Can't use url '"+rawURL+"' because it has an unsupported protocol '"+protocol+"'");
         return null;
       }
-
+      if (!filter.isHostLegal(host))
+      {
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("WEB: Can't use url '"+rawURL+"' because its host is not found in the seeds ('"+host+"')");
+        return null;
+      }
+      
       // Canonicalization procedure.
       // The query part of the URL may contain bad parameters (session id's, for instance), or may be ordered in such a
       // way as to prevent an effectively identical URL from being matched.  The anchor part of the URL should also be stripped.
@@ -7121,6 +7183,9 @@ public class WebcrawlerConnector extends org.apache.acf.crawler.connectors.BaseR
     protected ArrayList includePatterns = new ArrayList();
     /** The arraylist of exclude patterns */
     protected ArrayList excludePatterns = new ArrayList();
+    /** The hash map of seed hosts, to limit urls by, if non-null */
+    protected HashMap seedHosts = null;
+    
     /** Canonicalization policies */
     protected CanonicalizationPolicies canonicalizationPolicies = new CanonicalizationPolicies();
 
@@ -7134,11 +7199,20 @@ public class WebcrawlerConnector extends org.apache.acf.crawler.connectors.BaseR
     {
       String includes = "";
       String excludes = "";
+      String seeds = "";
+      boolean limitToSeeds = false;
       int i = 0;
       while (i < spec.getChildCount())
       {
         SpecificationNode sn = spec.getChild(i++);
-        if (sn.getType().equals(WebcrawlerConfig.NODE_INCLUDES))
+        if (sn.getType().equals(WebcrawlerConfig.NODE_SEEDS))
+        {
+          // Save the seeds aside; we'll parse them only if we need to.
+          seeds = sn.getValue();
+          if (seeds == null)
+            seeds = "";
+        }
+        else if (sn.getType().equals(WebcrawlerConfig.NODE_INCLUDES))
         {
           includes = sn.getValue();
           if (includes == null)
@@ -7149,6 +7223,14 @@ public class WebcrawlerConnector extends org.apache.acf.crawler.connectors.BaseR
           excludes = sn.getValue();
           if (excludes == null)
             excludes = "";
+        }
+        else if (sn.getType().equals(WebcrawlerConfig.NODE_LIMITTOSEEDS))
+        {
+          String value = sn.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
+          if (value == null || value.equals("false"))
+            limitToSeeds = false;
+          else
+            limitToSeeds = true;
         }
         else if (sn.getType().equals("urlspec"))
         {
@@ -7230,8 +7312,76 @@ public class WebcrawlerConnector extends org.apache.acf.crawler.connectors.BaseR
       compileList(includePatterns,list);
       list = stringToArray(excludes);
       compileList(excludePatterns,list);
+      
+      if (limitToSeeds)
+      {
+        seedHosts = new HashMap();
+        // Parse all URLs, and put their hosts into the hash table.
+        // Break up the seeds string and iterate over the results.
+        list = stringToArray(seeds);
+        // We must only return valid urls here!!!
+        int index = 0;
+        while (index < list.size())
+        {
+          String urlCandidate = (String)list.get(index++);
+          try
+          {
+            java.net.URI url = new java.net.URI(urlCandidate);
+
+            String host = url.getHost();
+
+            if (host != null)
+              seedHosts.put(host,host);
+          }
+          catch (java.net.URISyntaxException e)
+          {
+            // Skip the entry
+          }
+          catch (java.lang.IllegalArgumentException e)
+          {
+            // Skip the entry
+          }
+
+        }
+      }
     }
 
+    /** Check if both a document and host are legal.
+    */
+    public boolean isDocumentAndHostLegal(String url)
+    {
+      if (!isDocumentLegal(url))
+        return false;
+      if (seedHosts == null)
+        return true;
+      try
+      {
+        java.net.URI uri = new java.net.URI(url);
+        String host = uri.getHost();
+        if (host == null)
+          return false;
+        return isHostLegal(host);
+      }
+      catch (java.net.URISyntaxException e)
+      {
+        return false;
+      }
+      catch (java.lang.IllegalArgumentException e)
+      {
+        return false;
+      }
+
+    }
+    
+    /** Check if a host is legal.
+    */
+    public boolean isHostLegal(String host)
+    {
+      if (seedHosts == null)
+        return true;
+      return seedHosts.get(host) != null;
+    }
+    
     /** Check if the document identifier is legal.
     */
     public boolean isDocumentLegal(String url)

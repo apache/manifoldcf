@@ -113,7 +113,9 @@ public class WebcrawlerConfig
   * if any one matches, causes the URL to be excluded.  These
   * regexps are newline separated, and # starts a comment.  */
   public static final String NODE_EXCLUDES = "excludes";
-
+  /** Limit to seeds.  When value attribute is true, only seed domains will be permitted. */
+  public static final String NODE_LIMITTOSEEDS = "limittoseeds";
+  
 }
 
 
