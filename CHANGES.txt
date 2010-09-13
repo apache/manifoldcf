@@ -3,6 +3,9 @@ $Id$
 
 ======================= Trunk (not yet released) =======================
 
+CONNECTORS-98: Convert the API into a RESTful implementation.
+(Jack Krupansky, Mark Miller, Karl Wright)
+
 CONNECTORS-104: Add convenience feature to web connector to limit hosts to those
 explicitly mentioned in seeds.
 (Jack Krupansky, Karl Wright)
