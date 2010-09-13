@@ -1014,18 +1014,47 @@ public class ACF extends org.apache.acf.agents.system.ACF
   protected static final String CONNECTORNODE_DESCRIPTION = "description";
   protected static final String CONNECTORNODE_CLASSNAME = "class_name";
   
-  /** Execute specified command.  Note that the command is a string, and that it is permitted to accept at most one argument, which
-  * will be a Configuration object, and return the same.
-  *@param tc is the thread context.
-  *@param command is the command.
-  *@param inputArgument is the (optional) argument.
-  *@return the response, which cannot be null.
+  /** Decode path element.
+  * Path elements in the API world cannot have "/" characters, or they become impossible to parse.  This method undoes
+  * escaping that prevents "/" from appearing.
   */
-  public static Configuration executeCommand(IThreadContext tc, String command, Configuration inputArgument)
+  public static String decodeAPIPathElement(String startingPathElement)
     throws ACFException
   {
-    Configuration rval = new Configuration();
-    if (command.equals("job/list"))
+    StringBuffer sb = new StringBuffer();
+    int i = 0;
+    while (i < startingPathElement.length())
+    {
+      char x = startingPathElement.charAt(i++);
+      if (x == '.')
+      {
+        if (i == startingPathElement.length())
+          throw new ACFException("Element decoding failed; illegal '.' character in '"+startingPathElement+"'");
+        
+        x = startingPathElement.charAt(i++);
+        if (x == '.')
+          sb.append(x);
+        else if (x == '+')
+          sb.append('/');
+        else
+          throw new ACFException("Element decoding failed; illegal post-'.' character in '"+startingPathElement+"'");
+      }
+      else
+        sb.append(x);
+    }
+    return sb.toString();
+  }
+  
+  /** Execute specified read command.
+  *@param tc is the thread context.
+  *@param output is the output object, to be filled in.
+  *@param path is the object path.
+  *@return true if the resource exists, false otherwise.
+  */
+  public static boolean executeReadCommand(IThreadContext tc, Configuration output, String path)
+    throws ACFException
+  {
+    if (path.equals("jobs"))
     {
       try
       {
@@ -1036,101 +1065,270 @@ public class ACF extends org.apache.acf.agents.system.ACF
         {
           ConfigurationNode jobNode = new ConfigurationNode(API_JOBNODE);
           formatJobDescription(jobNode,jobs[i++]);
-          rval.addChild(rval.getChildCount(),jobNode);
+          output.addChild(output.getChildCount(),jobNode);
         }
       }
       catch (ACFException e)
       {
-        createErrorNode(rval,e);
+        createErrorNode(output,e);
       }
     }
-    else if (command.equals("job/get"))
+    else if (path.startsWith("jobs/"))
     {
-      // Get the job id from the argument
-      if (inputArgument == null)
-        throw new ACFException("Input argument required");
-      
-      String jobID = getRootArgument(inputArgument,API_JOBIDNODE);
-      if (jobID == null)
-        throw new ACFException("Input argument must have '"+API_JOBIDNODE+"' field");
-      
+      Long jobID = new Long(path.substring("jobs/".length()));
       try
       {
         IJobManager jobManager = JobManagerFactory.make(tc);
-        IJobDescription job = jobManager.load(new Long(jobID));
+        IJobDescription job = jobManager.load(jobID);
         if (job != null)
         {
           // Fill the return object with job information
           ConfigurationNode jobNode = new ConfigurationNode(API_JOBNODE);
           formatJobDescription(jobNode,job);
-          rval.addChild(rval.getChildCount(),jobNode);
-        }
-      }
-      catch (ACFException e)
-      {
-        createErrorNode(rval,e);
-      }
-    }
-    else if (command.equals("job/save"))
-    {
-      // Get the job from the argument
-      if (inputArgument == null)
-        throw new ACFException("Input argument required");
-
-      ConfigurationNode jobNode = findConfigurationNode(inputArgument,API_JOBNODE);
-      if (jobNode == null)
-        throw new ACFException("Input argument must have '"+API_JOBNODE+"' field");
-      
-      // Turn the configuration node into a JobDescription
-      org.apache.acf.crawler.jobs.JobDescription job = new org.apache.acf.crawler.jobs.JobDescription();
-      processJobDescription(job,jobNode);
-      
-      try
-      {
-        // We need to determine whether we are creating a new job, or saving an existing one.
-        if (job.getID() == null)
-        {
-          job.setID(new Long(IDFactory.make(tc)));
-          job.setIsNew(true);
+          output.addChild(output.getChildCount(),jobNode);
         }
         else
-          job.setIsNew(false);
-
-        // Save the job.
-        IJobManager jobManager = JobManagerFactory.make(tc);
-        jobManager.save(job);
-        
-        // Respond with the ID.
-        ConfigurationNode response = new ConfigurationNode(API_JOBIDNODE);
-        response.setValue(job.getID().toString());
-        rval.addChild(rval.getChildCount(),response);
+          return false;
       }
       catch (ACFException e)
       {
-        createErrorNode(rval,e);
+        createErrorNode(output,e);
       }
     }
-    else if (command.equals("job/delete"))
+    else if (path.startsWith("status/"))
     {
-      // Get the job id from the argument
-      if (inputArgument == null)
-        throw new ACFException("Input argument required");
-      
-      String jobID = getRootArgument(inputArgument,API_JOBIDNODE);
-      if (jobID == null)
-        throw new ACFException("Input argument must have '"+API_JOBIDNODE+"' field");
-
-      try
+      int firstSeparator = "status/".length();
+      int secondSeparator = path.indexOf("/",firstSeparator);
+      if (secondSeparator == -1)
       {
-        IJobManager jobManager = JobManagerFactory.make(tc);
-        jobManager.deleteJob(new Long(jobID));
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Need connection name.");
+        output.addChild(output.getChildCount(),error);
+        return false;
       }
-      catch (ACFException e)
+      
+      String connectionType = path.substring(firstSeparator,secondSeparator);
+      String connectionName = decodeAPIPathElement(path.substring(secondSeparator+1));
+      
+      if (connectionType.equals("outputconnections"))
       {
-        createErrorNode(rval,e);
+        try
+        {
+          IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
+          IOutputConnection connection = connectionManager.load(connectionName);
+          if (connection == null)
+          {
+            ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+            error.setValue("Connection '"+connectionName+"' does not exist");
+            output.addChild(output.getChildCount(),error);
+            return false;
+          }
+          
+          String results;
+          // Grab a connection handle, and call the test method
+          IOutputConnector connector = OutputConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+          try
+          {
+            results = connector.check();
+          }
+          catch (ACFException e)
+          {
+            results = e.getMessage();
+          }
+          finally
+          {
+            OutputConnectorFactory.release(connector);
+          }
+          
+          ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
+          response.setValue(results);
+          output.addChild(output.getChildCount(),response);
+        }
+        catch (ACFException e)
+        {
+          createErrorNode(output,e);
+        }
+      }
+      else if (connectionType.equals("authorityconnections"))
+      {
+        try
+        {
+          IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
+          IAuthorityConnection connection = connectionManager.load(connectionName);
+          if (connection == null)
+          {
+            ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+            error.setValue("Connection '"+connectionName+"' does not exist");
+            output.addChild(output.getChildCount(),error);
+            return false;
+          }
+          
+          String results;
+          // Grab a connection handle, and call the test method
+          IAuthorityConnector connector = AuthorityConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+          try
+          {
+            results = connector.check();
+          }
+          catch (ACFException e)
+          {
+            results = e.getMessage();
+          }
+          finally
+          {
+            AuthorityConnectorFactory.release(connector);
+          }
+          
+          ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
+          response.setValue(results);
+          output.addChild(output.getChildCount(),response);
+        }
+        catch (ACFException e)
+        {
+          createErrorNode(output,e);
+        }
+      }
+      else if (connectionType.equals("repositoryconnections"))
+      {
+        try
+        {
+          IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
+          IRepositoryConnection connection = connectionManager.load(connectionName);
+          if (connection == null)
+          {
+            ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+            error.setValue("Connection '"+connectionName+"' does not exist");
+            output.addChild(output.getChildCount(),error);
+            return false;
+          }
+          
+          String results;
+          // Grab a connection handle, and call the test method
+          IRepositoryConnector connector = RepositoryConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+          try
+          {
+            results = connector.check();
+          }
+          catch (ACFException e)
+          {
+            results = e.getMessage();
+          }
+          finally
+          {
+            RepositoryConnectorFactory.release(connector);
+          }
+          
+          ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
+          response.setValue(results);
+          output.addChild(output.getChildCount(),response);
+        }
+        catch (ACFException e)
+        {
+          createErrorNode(output,e);
+        }
+      }
+      else
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Unknown connection type '"+connectionType+"'.");
+        output.addChild(output.getChildCount(),error);
+        return false;
       }
     }
-    else if (command.equals("jobstatus/list"))
+    else if (path.startsWith("info/"))
+    {
+      int firstSeparator = "info/".length();
+      int secondSeparator = path.indexOf("/",firstSeparator);
+      if (secondSeparator == -1)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Need connection type and connection name.");
+        output.addChild(output.getChildCount(),error);
+        return false;
+      }
+
+      int thirdSeparator = path.indexOf("/",secondSeparator+1);
+      if (thirdSeparator == -1)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Need connection name.");
+        output.addChild(output.getChildCount(),error);
+        return false;
+      }
+
+      String connectionType = path.substring(firstSeparator,secondSeparator);
+      String connectionName = decodeAPIPathElement(path.substring(secondSeparator+1,thirdSeparator));
+      String command = path.substring(thirdSeparator+1);
+      
+      if (connectionType.equals("outputconnections"))
+      {
+        try
+        {
+          IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
+          IOutputConnection connection = connectionManager.load(connectionName);
+          if (connection == null)
+          {
+            ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+            error.setValue("Connection '"+connectionName+"' does not exist");
+            output.addChild(output.getChildCount(),error);
+            return false;
+          }
+
+          // Grab a connection handle, and call the test method
+          IOutputConnector connector = OutputConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+          try
+          {
+            return connector.requestInfo(output,command);
+          }
+          finally
+          {
+            OutputConnectorFactory.release(connector);
+          }
+        }
+        catch (ACFException e)
+        {
+          createErrorNode(output,e);
+        }
+      }
+      else if (connectionType.equals("repositoryconnections"))
+      {
+        try
+        {
+          IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
+          IRepositoryConnection connection = connectionManager.load(connectionName);
+          if (connection == null)
+          {
+            ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+            error.setValue("Connection '"+connectionName+"' does not exist");
+            output.addChild(output.getChildCount(),error);
+            return false;
+          }
+
+          // Grab a connection handle, and call the test method
+          IRepositoryConnector connector = RepositoryConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+          try
+          {
+            return connector.requestInfo(output,command);
+          }
+          finally
+          {
+            RepositoryConnectorFactory.release(connector);
+          }
+        }
+        catch (ACFException e)
+        {
+          createErrorNode(output,e);
+        }
+      }
+      else
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Unknown connection type '"+connectionType+"'.");
+        output.addChild(output.getChildCount(),error);
+        return false;
+      }
+    }
+    else if (path.equals("jobstatuses"))
     {
       try
       {
@@ -1141,23 +1339,17 @@ public class ACF extends org.apache.acf.agents.system.ACF
         {
           ConfigurationNode jobStatusNode = new ConfigurationNode(API_JOBSTATUSNODE);
           formatJobStatus(jobStatusNode,jobStatuses[i++]);
-          rval.addChild(rval.getChildCount(),jobStatusNode);
+          output.addChild(output.getChildCount(),jobStatusNode);
         }
       }
       catch (ACFException e)
       {
-        createErrorNode(rval,e);
+        createErrorNode(output,e);
       }
     }
-    else if (command.equals("jobstatus/get"))
+    else if (path.startsWith("jobstatuses/"))
     {
-      // Get the job id from the argument
-      if (inputArgument == null)
-        throw new ACFException("Input argument required");
-      
-      String jobID = getRootArgument(inputArgument,API_JOBIDNODE);
-      if (jobID == null)
-        throw new ACFException("Input argument must have '"+API_JOBIDNODE+"' field");
+      String jobID = path.substring("jobstatuses/".length());
 
       try
       {
@@ -1167,116 +1359,138 @@ public class ACF extends org.apache.acf.agents.system.ACF
         {
           ConfigurationNode jobStatusNode = new ConfigurationNode(API_JOBSTATUSNODE);
           formatJobStatus(jobStatusNode,status);
-          rval.addChild(rval.getChildCount(),jobStatusNode);
+          output.addChild(output.getChildCount(),jobStatusNode);
         }
       }
       catch (ACFException e)
       {
-        createErrorNode(rval,e);
+        createErrorNode(output,e);
       }
     }
-    else if (command.equals("jobstatus/start"))
+    else if (path.equals("outputconnections"))
     {
-      // Get the job id from the argument
-      if (inputArgument == null)
-        throw new ACFException("Input argument required");
-      
-      String jobID = getRootArgument(inputArgument,API_JOBIDNODE);
-      if (jobID == null)
-        throw new ACFException("Input argument must have '"+API_JOBIDNODE+"' field");
-
       try
       {
-        IJobManager jobManager = JobManagerFactory.make(tc);
-        jobManager.manualStart(new Long(jobID));
+        IOutputConnectionManager connManager = OutputConnectionManagerFactory.make(tc);
+        IOutputConnection[] connections = connManager.getAllConnections();
+        int i = 0;
+        while (i < connections.length)
+        {
+          ConfigurationNode connectionNode = new ConfigurationNode(API_OUTPUTCONNECTIONNODE);
+          formatOutputConnection(connectionNode,connections[i++]);
+          output.addChild(output.getChildCount(),connectionNode);
+        }
       }
       catch (ACFException e)
       {
-        createErrorNode(rval,e);
+        createErrorNode(output,e);
       }
     }
-    else if (command.equals("jobstatus/abort"))
+    else if (path.startsWith("outputconnections/"))
     {
-      // Get the job id from the argument
-      if (inputArgument == null)
-        throw new ACFException("Input argument required");
-      
-      String jobID = getRootArgument(inputArgument,API_JOBIDNODE);
-      if (jobID == null)
-        throw new ACFException("Input argument must have '"+API_JOBIDNODE+"' field");
-
+      String connectionName = decodeAPIPathElement(path.substring("outputconnections/".length()));
       try
       {
-        IJobManager jobManager = JobManagerFactory.make(tc);
-        jobManager.manualAbort(new Long(jobID));
+        IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
+        IOutputConnection connection = connectionManager.load(connectionName);
+        if (connection != null)
+        {
+          // Fill the return object with job information
+          ConfigurationNode connectionNode = new ConfigurationNode(API_OUTPUTCONNECTIONNODE);
+          formatOutputConnection(connectionNode,connection);
+          output.addChild(output.getChildCount(),connectionNode);
+        }
+        else
+          return false;
       }
       catch (ACFException e)
       {
-        createErrorNode(rval,e);
+        createErrorNode(output,e);
       }
-
     }
-    else if (command.equals("jobstatus/restart"))
+    else if (path.equals("authorityconnections"))
     {
-      // Get the job id from the argument
-      if (inputArgument == null)
-        throw new ACFException("Input argument required");
-      
-      String jobID = getRootArgument(inputArgument,API_JOBIDNODE);
-      if (jobID == null)
-        throw new ACFException("Input argument must have '"+API_JOBIDNODE+"' field");
-
       try
       {
-        IJobManager jobManager = JobManagerFactory.make(tc);
-        jobManager.manualAbortRestart(new Long(jobID));
+        IAuthorityConnectionManager connManager = AuthorityConnectionManagerFactory.make(tc);
+        IAuthorityConnection[] connections = connManager.getAllConnections();
+        int i = 0;
+        while (i < connections.length)
+        {
+          ConfigurationNode connectionNode = new ConfigurationNode(API_AUTHORITYCONNECTIONNODE);
+          formatAuthorityConnection(connectionNode,connections[i++]);
+          output.addChild(output.getChildCount(),connectionNode);
+        }
       }
       catch (ACFException e)
       {
-        createErrorNode(rval,e);
+        createErrorNode(output,e);
       }
     }
-    else if (command.equals("jobstatus/pause"))
+    else if (path.startsWith("authorityconnections/"))
     {
-      // Get the job id from the argument
-      if (inputArgument == null)
-        throw new ACFException("Input argument required");
-      
-      String jobID = getRootArgument(inputArgument,API_JOBIDNODE);
-      if (jobID == null)
-        throw new ACFException("Input argument must have '"+API_JOBIDNODE+"' field");
-
+      String connectionName = decodeAPIPathElement(path.substring("authorityconnections/".length()));
       try
       {
-        IJobManager jobManager = JobManagerFactory.make(tc);
-        jobManager.pauseJob(new Long(jobID));
+        IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
+        IAuthorityConnection connection = connectionManager.load(connectionName);
+        if (connection != null)
+        {
+          // Fill the return object with job information
+          ConfigurationNode connectionNode = new ConfigurationNode(API_AUTHORITYCONNECTIONNODE);
+          formatAuthorityConnection(connectionNode,connection);
+          output.addChild(output.getChildCount(),connectionNode);
+        }
+        else
+          return false;
       }
       catch (ACFException e)
       {
-        createErrorNode(rval,e);
+        createErrorNode(output,e);
       }
     }
-    else if (command.equals("jobstatus/resume"))
+    else if (path.equals("repositoryconnections"))
     {
-      // Get the job id from the argument
-      if (inputArgument == null)
-        throw new ACFException("Input argument required");
-      
-      String jobID = getRootArgument(inputArgument,API_JOBIDNODE);
-      if (jobID == null)
-        throw new ACFException("Input argument must have '"+API_JOBIDNODE+"' field");
-
       try
       {
-        IJobManager jobManager = JobManagerFactory.make(tc);
-        jobManager.restartJob(new Long(jobID));
+        IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(tc);
+        IRepositoryConnection[] connections = connManager.getAllConnections();
+        int i = 0;
+        while (i < connections.length)
+        {
+          ConfigurationNode connectionNode = new ConfigurationNode(API_REPOSITORYCONNECTIONNODE);
+          formatRepositoryConnection(connectionNode,connections[i++]);
+          output.addChild(output.getChildCount(),connectionNode);
+        }
       }
       catch (ACFException e)
       {
-        createErrorNode(rval,e);
+        createErrorNode(output,e);
       }
     }
-    else if (command.equals("outputconnector/list"))
+    else if (path.startsWith("repositoryconnections/"))
+    {
+      String connectionName = decodeAPIPathElement(path.substring("repositoryconnections/".length()));
+      try
+      {
+        IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
+        IRepositoryConnection connection = connectionManager.load(connectionName);
+        if (connection != null)
+        {
+          // Fill the return object with job information
+          ConfigurationNode connectionNode = new ConfigurationNode(API_REPOSITORYCONNECTIONNODE);
+          formatRepositoryConnection(connectionNode,connection);
+          output.addChild(output.getChildCount(),connectionNode);
+        }
+        else
+          return false;
+      }
+      catch (ACFException e)
+      {
+        createErrorNode(output,e);
+      }
+    }
+    else if (path.equals("outputconnectors"))
     {
       // List registered output connectors
       try
@@ -1301,15 +1515,15 @@ public class ACF extends org.apache.acf.agents.system.ACF
           node.setValue(className);
           child.addChild(child.getChildCount(),node);
 
-          rval.addChild(rval.getChildCount(),child);
+          output.addChild(output.getChildCount(),child);
         }
       }
       catch (ACFException e)
       {
-        createErrorNode(rval,e);
+        createErrorNode(output,e);
       }
     }
-    else if (command.equals("authorityconnector/list"))
+    else if (path.equals("authorityconnectors"))
     {
       // List registered authority connectors
       try
@@ -1334,15 +1548,15 @@ public class ACF extends org.apache.acf.agents.system.ACF
           node.setValue(className);
           child.addChild(child.getChildCount(),node);
 
-          rval.addChild(rval.getChildCount(),child);
+          output.addChild(output.getChildCount(),child);
         }
       }
       catch (ACFException e)
       {
-        createErrorNode(rval,e);
+        createErrorNode(output,e);
       }
     }
-    else if (command.equals("repositoryconnector/list"))
+    else if (path.equals("repositoryconnectors"))
     {
       // List registered repository connectors
       try
@@ -1367,67 +1581,204 @@ public class ACF extends org.apache.acf.agents.system.ACF
           node.setValue(className);
           child.addChild(child.getChildCount(),node);
 
-          rval.addChild(rval.getChildCount(),child);
+          output.addChild(output.getChildCount(),child);
         }
       }
       catch (ACFException e)
       {
-        createErrorNode(rval,e);
+        createErrorNode(output,e);
       }
-    }
-    else if (command.equals("outputconnection/list"))
+    }   
+    else
     {
-      try
-      {
-        IOutputConnectionManager connManager = OutputConnectionManagerFactory.make(tc);
-        IOutputConnection[] connections = connManager.getAllConnections();
-        int i = 0;
-        while (i < connections.length)
-        {
-          ConfigurationNode connectionNode = new ConfigurationNode(API_OUTPUTCONNECTIONNODE);
-          formatOutputConnection(connectionNode,connections[i++]);
-          rval.addChild(rval.getChildCount(),connectionNode);
-        }
-      }
-      catch (ACFException e)
-      {
-        createErrorNode(rval,e);
-      }
+      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+      error.setValue("Unrecognized resource.");
+      output.addChild(output.getChildCount(),error);
+      return false;
     }
-    else if (command.equals("outputconnection/get"))
+    
+    return true;
+  }
+  
+  // Write result codes
+  public static final int WRITERESULT_NOTFOUND = 0;
+  public static final int WRITERESULT_FOUND = 1;
+  public static final int WRITERESULT_CREATED = 2;
+  
+  /** Execute specified post command.
+  *@param tc is the thread context.
+  *@param output is the output object, to be filled in.
+  *@param path is the object path.
+  *@param input is the input object.
+  *@return write result - either "not found", "found", or "created".
+  */
+  public static int executePostCommand(IThreadContext tc, Configuration output, String path, Configuration input)
+    throws ACFException
+  {
+    if (path.equals("jobs"))
     {
-      // Get the job id from the argument
-      if (inputArgument == null)
-        throw new ACFException("Input argument required");
+      ConfigurationNode jobNode = findConfigurationNode(input,API_JOBNODE);
+      if (jobNode == null)
+        throw new ACFException("Input must have '"+API_JOBNODE+"' field");
+
+      // Turn the configuration node into a JobDescription
+      org.apache.acf.crawler.jobs.JobDescription job = new org.apache.acf.crawler.jobs.JobDescription();
+      processJobDescription(job,jobNode);
       
-      String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
-      if (connectionName == null)
-        throw new ACFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
-
+      if (job.getID() != null)
+        throw new ACFException("Input job cannot supply an ID field for create");
+      
       try
       {
-        IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
-        IOutputConnection connection = connectionManager.load(connectionName);
-        if (connection != null)
-        {
-          // Fill the return object with job information
-          ConfigurationNode connectionNode = new ConfigurationNode(API_OUTPUTCONNECTIONNODE);
-          formatOutputConnection(connectionNode,connection);
-          rval.addChild(rval.getChildCount(),connectionNode);
-        }
+        Long jobID = new Long(IDFactory.make(tc));
+        job.setID(jobID);
+        job.setIsNew(true);
+        
+        // Save the job.
+        IJobManager jobManager = JobManagerFactory.make(tc);
+        jobManager.save(job);
+
+        ConfigurationNode idNode = new ConfigurationNode(API_JOBIDNODE);
+        idNode.setValue(jobID.toString());
+        output.addChild(output.getChildCount(),idNode);
+        
+        return WRITERESULT_CREATED;
       }
       catch (ACFException e)
       {
-        createErrorNode(rval,e);
+        createErrorNode(output,e);
       }
     }
-    else if (command.equals("outputconnection/save"))
+    else
     {
-      // Get the connection from the argument
-      if (inputArgument == null)
-        throw new ACFException("Input argument required");
+      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+      error.setValue("Unrecognized resource.");
+      output.addChild(output.getChildCount(),error);
+      return WRITERESULT_NOTFOUND;
+    }
+    return WRITERESULT_FOUND;
+  }
 
-      ConfigurationNode connectionNode = findConfigurationNode(inputArgument,API_OUTPUTCONNECTIONNODE);
+  /** Execute specified write command.
+  *@param tc is the thread context.
+  *@param output is the output object, to be filled in.
+  *@param path is the object path.
+  *@param input is the input object.
+  *@return write result - either "not found", "found", or "created".
+  */
+  public static int executeWriteCommand(IThreadContext tc, Configuration output, String path, Configuration input)
+    throws ACFException
+  {
+    if (path.startsWith("start/"))
+    {
+      Long jobID = new Long(path.substring("start/".length()));
+      try
+      {
+        IJobManager jobManager = JobManagerFactory.make(tc);
+        jobManager.manualStart(jobID);
+        return WRITERESULT_CREATED;
+      }
+      catch (ACFException e)
+      {
+        createErrorNode(output,e);
+      }
+    }
+    else if (path.startsWith("abort/"))
+    {
+      Long jobID = new Long(path.substring("abort/".length()));
+      try
+      {
+        IJobManager jobManager = JobManagerFactory.make(tc);
+        jobManager.manualAbort(jobID);
+        return WRITERESULT_CREATED;
+      }
+      catch (ACFException e)
+      {
+        createErrorNode(output,e);
+      }
+    }
+    else if (path.startsWith("restart/"))
+    {
+      Long jobID = new Long(path.substring("restart/".length()));
+      try
+      {
+        IJobManager jobManager = JobManagerFactory.make(tc);
+        jobManager.manualAbortRestart(jobID);
+        return WRITERESULT_CREATED;
+      }
+      catch (ACFException e)
+      {
+        createErrorNode(output,e);
+      }
+    }
+    else if (path.startsWith("pause/"))
+    {
+      Long jobID = new Long(path.substring("pause/".length()));
+      try
+      {
+        IJobManager jobManager = JobManagerFactory.make(tc);
+        jobManager.pauseJob(jobID);
+        return WRITERESULT_CREATED;
+      }
+      catch (ACFException e)
+      {
+        createErrorNode(output,e);
+      }
+    }
+    else if (path.startsWith("resume/"))
+    {
+      Long jobID = new Long(path.substring("resume/".length()));
+      try
+      {
+        IJobManager jobManager = JobManagerFactory.make(tc);
+        jobManager.restartJob(jobID);
+        return WRITERESULT_CREATED;
+      }
+      catch (ACFException e)
+      {
+        createErrorNode(output,e);
+      }
+    }
+    else if (path.startsWith("jobs/"))
+    {
+      Long jobID = new Long(path.substring("jobs/".length()));
+      
+      ConfigurationNode jobNode = findConfigurationNode(input,API_JOBNODE);
+      if (jobNode == null)
+        throw new ACFException("Input must have '"+API_JOBNODE+"' field");
+
+      // Turn the configuration node into a JobDescription
+      org.apache.acf.crawler.jobs.JobDescription job = new org.apache.acf.crawler.jobs.JobDescription();
+      processJobDescription(job,jobNode);
+      
+      try
+      {
+        if (job.getID() == null)
+        {
+          job.setID(jobID);
+        }
+        else
+        {
+          if (!job.getID().equals(jobID))
+            throw new ACFException("Job identifier must agree within object and within path");
+        }
+        
+        job.setIsNew(false);
+        
+        // Save the job.
+        IJobManager jobManager = JobManagerFactory.make(tc);
+        jobManager.save(job);
+      }
+      catch (ACFException e)
+      {
+        createErrorNode(output,e);
+      }
+    }
+    else if (path.startsWith("outputconnections/"))
+    {
+      String connectionName = decodeAPIPathElement(path.substring("outputconnections/".length()));
+      
+      ConfigurationNode connectionNode = findConfigurationNode(input,API_OUTPUTCONNECTIONNODE);
       if (connectionNode == null)
         throw new ACFException("Input argument must have '"+API_OUTPUTCONNECTIONNODE+"' field");
       
@@ -1435,359 +1786,31 @@ public class ACF extends org.apache.acf.agents.system.ACF
       org.apache.acf.agents.outputconnection.OutputConnection outputConnection = new org.apache.acf.agents.outputconnection.OutputConnection();
       processOutputConnection(outputConnection,connectionNode);
       
-      try
+      if (outputConnection.getName() == null)
+        outputConnection.setName(connectionName);
+      else
       {
-        // Save the connection.
-        IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
-        connectionManager.save(outputConnection);
-        
-        // Respond with the connection name.
-        ConfigurationNode response = new ConfigurationNode(API_CONNECTIONNAMENODE);
-        response.setValue(outputConnection.getName());
-        rval.addChild(rval.getChildCount(),response);
+        if (!outputConnection.getName().equals(connectionName))
+          throw new ACFException("Connection name in path and in object must agree");
       }
-      catch (ACFException e)
-      {
-        createErrorNode(rval,e);
-      }
-    }
-    else if (command.equals("outputconnection/delete"))
-    {
-      // Get the job id from the argument
-      if (inputArgument == null)
-        throw new ACFException("Input argument required");
-      
-      String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
-      if (connectionName == null)
-        throw new ACFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
-
-      try
-      {
-        IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
-        connectionManager.delete(connectionName);
-      }
-      catch (ACFException e)
-      {
-        createErrorNode(rval,e);
-      }
-    }
-    else if (command.equals("outputconnection/checkstatus"))
-    {
-      // Get the job id from the argument
-      if (inputArgument == null)
-        throw new ACFException("Input argument required");
-      
-      String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
-      if (connectionName == null)
-        throw new ACFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
-
-      try
-      {
-        IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
-        IOutputConnection connection = connectionManager.load(connectionName);
-        if (connection == null)
-          throw new ACFException("Connection '"+connectionName+"' does not exist");
-        
-        String results;
-        // Grab a connection handle, and call the test method
-        IOutputConnector connector = OutputConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
-        try
-        {
-          results = connector.check();
-        }
-        catch (ACFException e)
-        {
-          results = e.getMessage();
-        }
-        finally
-        {
-          OutputConnectorFactory.release(connector);
-        }
-        
-        ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
-        response.setValue(results);
-        rval.addChild(rval.getChildCount(),response);
-      }
-      catch (ACFException e)
-      {
-        createErrorNode(rval,e);
-      }
-    }
-    else if (command.startsWith("outputconnection/execute/"))
-    {
-      // Peel off the subcommand
-      String subcommand = command.substring("outputconnection/execute/".length());
-      // We also need the connection name, and the command argument.
-      if (inputArgument == null)
-        throw new ACFException("Input argument required");
-      
-      String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
-      if (connectionName == null)
-        throw new ACFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
-
-      ACFException usageException = null;
-      try
-      {
-        IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
-        IOutputConnection connection = connectionManager.load(connectionName);
-        if (connection == null)
-          throw new ACFException("Connection '"+connectionName+"' does not exist");
-
-        // Grab a connection handle, and call the test method
-        IOutputConnector connector = OutputConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
-        try
-        {
-          connector.executeCommand(rval,subcommand,inputArgument);
-        }
-        catch (ACFException e)
-        {
-          usageException = e;
-        }
-        finally
-        {
-          OutputConnectorFactory.release(connector);
-        }
-      }
-      catch (ACFException e)
-      {
-        createErrorNode(rval,e);
-      }
-      if (usageException != null)
-        throw usageException;
-    }
-    else if (command.equals("repositoryconnection/list"))
-    {
-      try
-      {
-        IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(tc);
-        IRepositoryConnection[] connections = connManager.getAllConnections();
-        int i = 0;
-        while (i < connections.length)
-        {
-          ConfigurationNode connectionNode = new ConfigurationNode(API_REPOSITORYCONNECTIONNODE);
-          formatRepositoryConnection(connectionNode,connections[i++]);
-          rval.addChild(rval.getChildCount(),connectionNode);
-        }
-      }
-      catch (ACFException e)
-      {
-        createErrorNode(rval,e);
-      }
-    }
-    else if (command.equals("repositoryconnection/get"))
-    {
-      // Get the job id from the argument
-      if (inputArgument == null)
-        throw new ACFException("Input argument required");
-      
-      String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
-      if (connectionName == null)
-        throw new ACFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
-
-      try
-      {
-        IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
-        IRepositoryConnection connection = connectionManager.load(connectionName);
-        if (connection != null)
-        {
-          // Fill the return object with job information
-          ConfigurationNode connectionNode = new ConfigurationNode(API_REPOSITORYCONNECTIONNODE);
-          formatRepositoryConnection(connectionNode,connection);
-          rval.addChild(rval.getChildCount(),connectionNode);
-        }
-      }
-      catch (ACFException e)
-      {
-        createErrorNode(rval,e);
-      }
-    }
-    else if (command.equals("repositoryconnection/save"))
-    {
-      // Get the connection from the argument
-      if (inputArgument == null)
-        throw new ACFException("Input argument required");
-
-      ConfigurationNode connectionNode = findConfigurationNode(inputArgument,API_REPOSITORYCONNECTIONNODE);
-      if (connectionNode == null)
-        throw new ACFException("Input argument must have '"+API_REPOSITORYCONNECTIONNODE+"' field");
-      
-      // Turn the configuration node into an OutputConnection
-      org.apache.acf.crawler.repository.RepositoryConnection repositoryConnection = new org.apache.acf.crawler.repository.RepositoryConnection();
-      processRepositoryConnection(repositoryConnection,connectionNode);
       
       try
       {
         // Save the connection.
-        IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
-        connectionManager.save(repositoryConnection);
-        
-        // Respond with the connection name.
-        ConfigurationNode response = new ConfigurationNode(API_CONNECTIONNAMENODE);
-        response.setValue(repositoryConnection.getName());
-        rval.addChild(rval.getChildCount(),response);
+        IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
+        if (connectionManager.save(outputConnection))
+          return WRITERESULT_CREATED;
       }
       catch (ACFException e)
       {
-        createErrorNode(rval,e);
+        createErrorNode(output,e);
       }
     }
-    else if (command.equals("repositoryconnection/delete"))
+    else if (path.startsWith("authorityconnections/"))
     {
-      // Get the job id from the argument
-      if (inputArgument == null)
-        throw new ACFException("Input argument required");
-      
-      String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
-      if (connectionName == null)
-        throw new ACFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+      String connectionName = decodeAPIPathElement(path.substring("authorityconnections/".length()));
 
-      try
-      {
-        IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
-        connectionManager.delete(connectionName);
-      }
-      catch (ACFException e)
-      {
-        createErrorNode(rval,e);
-      }
-    }
-    else if (command.equals("repositoryconnection/checkstatus"))
-    {
-      // Get the job id from the argument
-      if (inputArgument == null)
-        throw new ACFException("Input argument required");
-      
-      String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
-      if (connectionName == null)
-        throw new ACFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
-
-      try
-      {
-        IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
-        IRepositoryConnection connection = connectionManager.load(connectionName);
-        if (connection == null)
-          throw new ACFException("Connection '"+connectionName+"' does not exist");
-        
-        String results;
-        // Grab a connection handle, and call the test method
-        IRepositoryConnector connector = RepositoryConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
-        try
-        {
-          results = connector.check();
-        }
-        catch (ACFException e)
-        {
-          results = e.getMessage();
-        }
-        finally
-        {
-          RepositoryConnectorFactory.release(connector);
-        }
-        
-        ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
-        response.setValue(results);
-        rval.addChild(rval.getChildCount(),response);
-      }
-      catch (ACFException e)
-      {
-        createErrorNode(rval,e);
-      }
-    }
-    else if (command.startsWith("repositoryconnection/execute/"))
-    {
-      // Peel off the subcommand
-      String subcommand = command.substring("repositoryconnection/execute/".length());
-      // We also need the connection name, and the command argument.
-      if (inputArgument == null)
-        throw new ACFException("Input argument required");
-      
-      String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
-      if (connectionName == null)
-        throw new ACFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
-
-      ACFException usageException = null;
-      try
-      {
-        IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
-        IRepositoryConnection connection = connectionManager.load(connectionName);
-        if (connection == null)
-          throw new ACFException("Connection '"+connectionName+"' does not exist");
-
-        // Grab a connection handle, and call the test method
-        IRepositoryConnector connector = RepositoryConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
-        try
-        {
-          connector.executeCommand(rval,subcommand,inputArgument);
-        }
-        catch (ACFException e)
-        {
-          usageException = e;
-        }
-        finally
-        {
-          RepositoryConnectorFactory.release(connector);
-        }
-      }
-      catch (ACFException e)
-      {
-        createErrorNode(rval,e);
-      }
-      if (usageException != null)
-        throw usageException;
-    }
-    else if (command.equals("authorityconnection/list"))
-    {
-      try
-      {
-        IAuthorityConnectionManager connManager = AuthorityConnectionManagerFactory.make(tc);
-        IAuthorityConnection[] connections = connManager.getAllConnections();
-        int i = 0;
-        while (i < connections.length)
-        {
-          ConfigurationNode connectionNode = new ConfigurationNode(API_AUTHORITYCONNECTIONNODE);
-          formatAuthorityConnection(connectionNode,connections[i++]);
-          rval.addChild(rval.getChildCount(),connectionNode);
-        }
-      }
-      catch (ACFException e)
-      {
-        createErrorNode(rval,e);
-      }
-    }
-    else if (command.equals("authorityconnection/get"))
-    {
-      // Get the job id from the argument
-      if (inputArgument == null)
-        throw new ACFException("Input argument required");
-      
-      String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
-      if (connectionName == null)
-        throw new ACFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
-
-      try
-      {
-        IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
-        IAuthorityConnection connection = connectionManager.load(connectionName);
-        if (connection != null)
-        {
-          // Fill the return object with job information
-          ConfigurationNode connectionNode = new ConfigurationNode(API_AUTHORITYCONNECTIONNODE);
-          formatAuthorityConnection(connectionNode,connection);
-          rval.addChild(rval.getChildCount(),connectionNode);
-        }
-      }
-      catch (ACFException e)
-      {
-        createErrorNode(rval,e);
-      }
-    }
-    else if (command.equals("authorityconnection/save"))
-    {
-      // Get the connection from the argument
-      if (inputArgument == null)
-        throw new ACFException("Input argument required");
-
-      ConfigurationNode connectionNode = findConfigurationNode(inputArgument,API_AUTHORITYCONNECTIONNODE);
+      ConfigurationNode connectionNode = findConfigurationNode(input,API_AUTHORITYCONNECTIONNODE);
       if (connectionNode == null)
         throw new ACFException("Input argument must have '"+API_AUTHORITYCONNECTIONNODE+"' field");
       
@@ -1795,32 +1818,106 @@ public class ACF extends org.apache.acf.agents.system.ACF
       org.apache.acf.authorities.authority.AuthorityConnection authorityConnection = new org.apache.acf.authorities.authority.AuthorityConnection();
       processAuthorityConnection(authorityConnection,connectionNode);
       
+      if (authorityConnection.getName() == null)
+        authorityConnection.setName(connectionName);
+      else
+      {
+        if (!authorityConnection.getName().equals(connectionName))
+          throw new ACFException("Connection name in path and in object must agree");
+      }
+      
       try
       {
         // Save the connection.
         IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
-        connectionManager.save(authorityConnection);
-        
-        // Respond with the connection name.
-        ConfigurationNode response = new ConfigurationNode(API_CONNECTIONNAMENODE);
-        response.setValue(authorityConnection.getName());
-        rval.addChild(rval.getChildCount(),response);
+        if (connectionManager.save(authorityConnection))
+          return WRITERESULT_CREATED;
       }
       catch (ACFException e)
       {
-        createErrorNode(rval,e);
+        createErrorNode(output,e);
       }
     }
-    else if (command.equals("authorityconnection/delete"))
+    else if (path.startsWith("repositoryconnections/"))
     {
-      // Get the job id from the argument
-      if (inputArgument == null)
-        throw new ACFException("Input argument required");
-      
-      String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
-      if (connectionName == null)
-        throw new ACFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
+      String connectionName = decodeAPIPathElement(path.substring("repositoryconnections/".length()));
 
+      ConfigurationNode connectionNode = findConfigurationNode(input,API_REPOSITORYCONNECTIONNODE);
+      if (connectionNode == null)
+        throw new ACFException("Input argument must have '"+API_REPOSITORYCONNECTIONNODE+"' field");
+      
+      // Turn the configuration node into an OutputConnection
+      org.apache.acf.crawler.repository.RepositoryConnection repositoryConnection = new org.apache.acf.crawler.repository.RepositoryConnection();
+      processRepositoryConnection(repositoryConnection,connectionNode);
+      
+      if (repositoryConnection.getName() == null)
+        repositoryConnection.setName(connectionName);
+      else
+      {
+        if (!repositoryConnection.getName().equals(connectionName))
+          throw new ACFException("Connection name in path and in object must agree");
+      }
+
+      try
+      {
+        // Save the connection.
+        IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
+        if (connectionManager.save(repositoryConnection))
+          return WRITERESULT_CREATED;
+      }
+      catch (ACFException e)
+      {
+        createErrorNode(output,e);
+      }
+    }
+    else
+    {
+      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+      error.setValue("Unrecognized resource.");
+      output.addChild(output.getChildCount(),error);
+      return WRITERESULT_NOTFOUND;
+    }
+    return WRITERESULT_FOUND;
+  }
+  
+  /** Execute specified delete command.
+  *@param tc is the thread context.
+  *@param output is the output object, to be filled in.
+  *@param path is the object path.
+  *@return true if the object exists, false otherwise.
+  */
+  public static boolean executeDeleteCommand(IThreadContext tc, Configuration output, String path)
+    throws ACFException
+  {
+    if (path.startsWith("jobs/"))
+    {
+      Long jobID = new Long(path.substring("jobs/".length()));
+      try
+      {
+        IJobManager jobManager = JobManagerFactory.make(tc);
+        jobManager.deleteJob(jobID);
+      }
+      catch (ACFException e)
+      {
+        createErrorNode(output,e);
+      }
+    }
+    else if (path.startsWith("outputconnections/"))
+    {
+      String connectionName = decodeAPIPathElement(path.substring("outputconnections/".length()));
+      try
+      {
+        IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
+        connectionManager.delete(connectionName);
+      }
+      catch (ACFException e)
+      {
+        createErrorNode(output,e);
+      }
+    }
+    else if (path.startsWith("authorityconnections/"))
+    {
+      String connectionName = decodeAPIPathElement(path.substring("authorityconnections/".length()));
       try
       {
         IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
@@ -1828,91 +1925,30 @@ public class ACF extends org.apache.acf.agents.system.ACF
       }
       catch (ACFException e)
       {
-        createErrorNode(rval,e);
+        createErrorNode(output,e);
       }
     }
-    else if (command.equals("authorityconnection/checkstatus"))
+    else if (path.startsWith("repositoryconnections/"))
     {
-      // Get the job id from the argument
-      if (inputArgument == null)
-        throw new ACFException("Input argument required");
-      
-      String connectionName = getRootArgument(inputArgument,API_CONNECTIONNAMENODE);
-      if (connectionName == null)
-        throw new ACFException("Input argument must have '"+API_CONNECTIONNAMENODE+"' field");
-
+      String connectionName = decodeAPIPathElement(path.substring("repositoryconnections/".length()));
       try
       {
-        IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
-        IAuthorityConnection connection = connectionManager.load(connectionName);
-        if (connection == null)
-          throw new ACFException("Connection '"+connectionName+"' does not exist");
-        
-        String results;
-        // Grab a connection handle, and call the test method
-        IAuthorityConnector connector = AuthorityConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
-        try
-        {
-          results = connector.check();
-        }
-        catch (ACFException e)
-        {
-          results = e.getMessage();
-        }
-        finally
-        {
-          AuthorityConnectorFactory.release(connector);
-        }
-        
-        ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
-        response.setValue(results);
-        rval.addChild(rval.getChildCount(),response);
+        IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
+        connectionManager.delete(connectionName);
       }
       catch (ACFException e)
       {
-        createErrorNode(rval,e);
+        createErrorNode(output,e);
       }
     }
-    else if (command.equals("report/documentstatus"))
-    {
-      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-      error.setValue("Command '"+command+"' not yet implemented");
-      rval.addChild(rval.getChildCount(),error);
-    }
-    else if (command.equals("report/queuestatus"))
-    {
-      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-      error.setValue("Command '"+command+"' not yet implemented");
-      rval.addChild(rval.getChildCount(),error);
-    }
-    else if (command.equals("report/simplehistory"))
-    {
-      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-      error.setValue("Command '"+command+"' not yet implemented");
-      rval.addChild(rval.getChildCount(),error);
-    }
-    else if (command.equals("report/maximumbandwidth"))
-    {
-      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-      error.setValue("Command '"+command+"' not yet implemented");
-      rval.addChild(rval.getChildCount(),error);
-    }
-    else if (command.equals("report/maximumactivity"))
-    {
-      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-      error.setValue("Command '"+command+"' not yet implemented");
-      rval.addChild(rval.getChildCount(),error);
-    }
-    else if (command.equals("report/resultsummary"))
-    {
-      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-      error.setValue("Command '"+command+"' not yet implemented");
-      rval.addChild(rval.getChildCount(),error);
-    }
     else
-      throw new ACFException("Unrecognized API command: "+command);
-    
-    return rval;
+    {
+      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+      error.setValue("Unrecognized resource.");
+      output.addChild(output.getChildCount(),error);
+      return false;
+    }
+    return true;
   }
   
   // The following chunk of code is responsible for formatting a job description into a set of nodes, and for reading back a formatted job description.

@@ -233,8 +233,9 @@ public class OutputConnectionManager extends org.apache.acf.core.database.BaseTa
 
   /** Save an output connection object.
   *@param object is the object to save.
+  *@return true if the object is being created, false otherwise.
   */
-  public void save(IOutputConnection object)
+  public boolean save(IOutputConnection object)
     throws ACFException
   {
     StringSetBuffer ssb = new StringSetBuffer();
@@ -262,9 +263,11 @@ public class OutputConnectionManager extends org.apache.acf.core.database.BaseTa
         String configXML = object.getConfigParams().toXML();
         values.put(configField,configXML);
         boolean notificationNeeded = false;
-
+        boolean isCreated;
+        
         if (set.getRowCount() > 0)
         {
+          isCreated = false;
           IResultRow row = set.getRow(0);
           String oldXML = (String)row.getValue(configField);
           if (oldXML == null || !oldXML.equals(configXML))
@@ -277,6 +280,7 @@ public class OutputConnectionManager extends org.apache.acf.core.database.BaseTa
         }
         else
         {
+          isCreated = true;
           // Insert
           values.put(nameField,object.getName());
           // We only need the general key because this is new.
@@ -288,6 +292,7 @@ public class OutputConnectionManager extends org.apache.acf.core.database.BaseTa
           AgentManagerFactory.noteOutputConnectionChange(threadContext,object.getName());
 
         cacheManager.invalidateKeys(ch);
+        return isCreated;
       }
       catch (ACFException e)
       {

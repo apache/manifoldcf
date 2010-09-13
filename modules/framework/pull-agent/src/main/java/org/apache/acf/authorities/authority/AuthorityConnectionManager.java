@@ -231,8 +231,9 @@ public class AuthorityConnectionManager extends org.apache.acf.core.database.Bas
 
   /** Save a repository connection object.
   *@param object is the object to save.
+  *@return true if the object is created, false otherwise.
   */
-  public void save(IAuthorityConnection object)
+  public boolean save(IAuthorityConnection object)
     throws ACFException
   {
     StringSetBuffer ssb = new StringSetBuffer();
@@ -258,8 +259,11 @@ public class AuthorityConnectionManager extends org.apache.acf.core.database.Bas
         values.put(maxCountField,new Long((long)object.getMaxConnections()));
         values.put(configField,object.getConfigParams().toXML());
 
+        boolean isCreated;
+        
         if (set.getRowCount() > 0)
         {
+          isCreated = false;
           // Update
           params.clear();
           params.add(object.getName());
@@ -267,6 +271,7 @@ public class AuthorityConnectionManager extends org.apache.acf.core.database.Bas
         }
         else
         {
+          isCreated = true;
           // Insert
           values.put(nameField,object.getName());
           // We only need the general key because this is new.
@@ -274,6 +279,7 @@ public class AuthorityConnectionManager extends org.apache.acf.core.database.Bas
         }
 
         cacheManager.invalidateKeys(ch);
+        return isCreated;
       }
       catch (ACFException e)
       {

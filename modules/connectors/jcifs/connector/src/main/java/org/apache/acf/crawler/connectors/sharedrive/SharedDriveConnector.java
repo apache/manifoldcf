@@ -370,23 +370,19 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
     }
   }
 
-  /** Execute an arbitrary connector command.
-  * This method is called directly from the API in order to allow API users to perform any one of several connector-specific actions or
+  /** Request arbitrary connector information.
+  * This method is called directly from the API in order to allow API users to perform any one of several connector-specific
   * queries.
-  * Exceptions thrown by this method are considered to be usage errors, and cause a 400 response to be returned.
   *@param output is the response object, to be filled in by this method.
   *@param command is the command, which is taken directly from the API request.
-  *@param input is the request object.
+  *@return true if the resource is found, false if not.  In either case, output may be filled in.
   */
-  public void executeCommand(Configuration output, String command, Configuration input)
+  public boolean requestInfo(Configuration output, String command)
     throws ACFException
   {
-    if (command.equals("folder/list"))
+    if (command.startsWith("folders/"))
     {
-      String parentFolder = ACF.getRootArgument(input,"parent_folder");
-      if (parentFolder == null)
-        throw new ACFException("Missing required field 'parent_folder'");
-      
+      String parentFolder = command.substring("folders/".length());
       try
       {
         String[] folders = getChildFolderNames(parentFolder);
@@ -404,12 +400,9 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
         ACF.createErrorNode(output,e);
       }
     }
-    else if (command.equals("folder/validate"))
+    else if (command.startsWith("folder/"))
     {
-      String folder = ACF.getRootArgument(input,"folder");
-      if (folder == null)
-        throw new ACFException("Missing required field 'folder'");
-      
+      String folder = command.substring("folder/".length());
       try
       {
         String canonicalFolder = validateFolderName(folder);
@@ -426,7 +419,8 @@ public class SharedDriveConnector extends org.apache.acf.crawler.connectors.Base
       }
     }
     else
-      super.executeCommand(output,command,input);
+      return super.requestInfo(output,command);
+    return true;
   }
   
   

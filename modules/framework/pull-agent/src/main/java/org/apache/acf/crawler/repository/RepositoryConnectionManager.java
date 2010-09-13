@@ -291,8 +291,9 @@ public class RepositoryConnectionManager extends org.apache.acf.core.database.Ba
 
   /** Save a repository connection object.
   *@param object is the object to save.
+  *@return true if the object was created, false otherwise.
   */
-  public void save(IRepositoryConnection object)
+  public boolean save(IRepositoryConnection object)
     throws ACFException
   {
     StringSetBuffer ssb = new StringSetBuffer();
@@ -321,9 +322,11 @@ public class RepositoryConnectionManager extends org.apache.acf.core.database.Ba
         String configXML = object.getConfigParams().toXML();
         values.put(configField,configXML);
         boolean notificationNeeded = false;
+        boolean isCreated;
         
         if (set.getRowCount() > 0)
         {
+          isCreated = false;
           IResultRow row = set.getRow(0);
           String oldXML = (String)row.getValue(configField);
           if (oldXML == null || !oldXML.equals(configXML))
@@ -337,6 +340,7 @@ public class RepositoryConnectionManager extends org.apache.acf.core.database.Ba
         }
         else
         {
+          isCreated = true;
           // Insert
           values.put(nameField,object.getName());
           // We only need the general key because this is new.
@@ -354,6 +358,7 @@ public class RepositoryConnectionManager extends org.apache.acf.core.database.Ba
         }
 
         cacheManager.invalidateKeys(ch);
+        return isCreated;
       }
       catch (ACFException e)
       {

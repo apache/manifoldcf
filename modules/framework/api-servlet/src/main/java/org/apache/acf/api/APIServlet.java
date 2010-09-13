@@ -90,93 +90,15 @@ public class APIServlet extends HttpServlet
       // Get the path info string.  This will furnish the command.
       String pathInfo = request.getPathInfo();
       
-      // The first field of the pathInfo string is the protocol.  Someday this will be a dispatcher using reflection.  Right now, we only support json, so a quick check is fine.
       if (pathInfo == null)
       {
-        response.sendError(response.SC_BAD_REQUEST,"Unknown API protocol");
+        response.sendError(response.SC_BAD_REQUEST,"No path info found");
         return;
       }
-      
-      // Strip off leading "/"
-      if (pathInfo.startsWith("/"))
-        pathInfo = pathInfo.substring(1);
-      
-      int index = pathInfo.indexOf("/");
-      String protocol;
-      String command;
-      if (index == -1)
-      {
-        protocol = pathInfo;
-        command = "";
-      }
-      else
-      {
-        protocol = pathInfo.substring(0,index);
-        command = pathInfo.substring(index+1);
-      }
-        
-      // Handle multipart forms
-      IPostParameters parameters = new org.apache.acf.ui.multipart.MultipartWrapper(request);
-        
-      // Input
-      String argument = parameters.getParameter("object");
-      // Output
-      String outputText = null;
 
-      if (protocol.equals("json"))
-      {
-        // Parse the input argument, if it is present
-        Configuration input;
-        if (argument != null)
-        {
-          input = new Configuration();
-          input.fromJSON(argument);
-        }
-        else
-          input = null;
-          
-        Configuration output = ACF.executeCommand(tc,command,input);
-          
-        // Format the response
-        try
-        {
-          outputText = output.toJSON();
-        }
-        catch (ACFException e)
-        {
-          // Log it
-          Logging.api.error("Error forming JSON response: "+e.getMessage(),e);
-          // Internal server error
-          response.sendError(response.SC_INTERNAL_SERVER_ERROR);
-          return;
-        }
-      }
-      else
-      {
-        response.sendError(response.SC_BAD_REQUEST,"Unknown API protocol: "+protocol);
-        return;
-      }
-        
-      byte[] responseValue = outputText.getBytes("utf-8");
-
-      // Set response mime type
-      response.setContentType("text/plain; charset=utf-8");
-      response.setIntHeader("Content-Length", (int)responseValue.length);
-      ServletOutputStream out = response.getOutputStream();
-      try
-      {
-        out.write(responseValue,0,responseValue.length);
-        out.flush();
-      }
-      finally
-      {
-        out.close();
-      }
-    }
-    catch (java.io.UnsupportedEncodingException e)
-    {
-      //Logging.authorityService.error("Unsupported encoding: "+e.getMessage(),e);
-      throw new ServletException("Fatal error occurred: "+e.getMessage(),e);
+      // Perform the deletion
+      executeRead(tc,response,pathInfo);
+      
     }
     catch (ACFException e)
     {
@@ -185,4 +107,502 @@ public class APIServlet extends HttpServlet
     }
   }
 
+  /** The PUT method.
+  */
+  protected void doPut(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException
+  {
+    try
+    {
+      // Set up the environment
+      ACF.initializeEnvironment();
+
+      // Mint a thread context
+      IThreadContext tc = ThreadContextFactory.make();
+      
+      // Get the path info string.  This will furnish the command.
+      String pathInfo = request.getPathInfo();
+      
+      if (pathInfo == null)
+      {
+        response.sendError(response.SC_BAD_REQUEST,"No path info found");
+        return;
+      }
+
+      // Get the content being 'put'
+      InputStream content = request.getInputStream();
+      try
+      {
+	// Do the put.
+	executeWrite(tc,response,pathInfo,content);
+      }
+      finally
+      {
+	content.close();
+      }
+    }
+    catch (ACFException e)
+    {
+      // We should only see this error if there's an API problem, not if there's an actual problem with the method being called.
+      response.sendError(response.SC_BAD_REQUEST,e.getMessage());
+    }
+  }
+
+ 
+  /** The POST method.
+  */
+  protected void doPost(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException
+  {
+    try
+    {
+      // Set up the environment
+      ACF.initializeEnvironment();
+
+      // Mint a thread context
+      IThreadContext tc = ThreadContextFactory.make();
+      
+      // Get the path info string.  This will furnish the command.
+      String pathInfo = request.getPathInfo();
+      
+      if (pathInfo == null)
+      {
+        response.sendError(response.SC_BAD_REQUEST,"No path info found");
+        return;
+      }
+
+      // Get the content being posted
+      InputStream content = request.getInputStream();
+      try
+      {
+	// Do the put.
+	executePost(tc,response,pathInfo,content);
+      }
+      finally
+      {
+	content.close();
+      }
+      
+    }
+    catch (ACFException e)
+    {
+      // We should only see this error if there's an API problem, not if there's an actual problem with the method being called.
+      response.sendError(response.SC_BAD_REQUEST,e.getMessage());
+    }
+  }
+
+  /** The DELETE method.
+  */
+  protected void doDelete(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException
+  {
+    try
+    {
+      // Set up the environment
+      ACF.initializeEnvironment();
+
+      // Mint a thread context
+      IThreadContext tc = ThreadContextFactory.make();
+      
+      // Get the path info string.  This will furnish the command.
+      String pathInfo = request.getPathInfo();
+      
+      if (pathInfo == null)
+      {
+        response.sendError(response.SC_BAD_REQUEST,"No path info found");
+        return;
+      }
+
+      // Perform the deletion
+      executeDelete(tc,response,pathInfo);
+      
+    }
+    catch (ACFException e)
+    {
+      // We should only see this error if there's an API problem, not if there's an actual problem with the method being called.
+      response.sendError(response.SC_BAD_REQUEST,e.getMessage());
+    }
+  }
+
+  // Protected methods
+  
+  /** Perform a general "read" operation.
+  */
+  protected static void executeRead(IThreadContext tc, HttpServletResponse response, String pathInfo)
+    throws ACFException, IOException
+  {
+    // Strip off leading "/"
+    if (pathInfo.startsWith("/"))
+      pathInfo = pathInfo.substring(1);
+      
+    int index = pathInfo.indexOf("/");
+    String protocol;
+    String command;
+    if (index == -1)
+    {
+      protocol = pathInfo;
+      command = "";
+    }
+    else
+    {
+      protocol = pathInfo.substring(0,index);
+      command = pathInfo.substring(index+1);
+    }
+
+    // Execute the request.
+    // Since there are no input arguments, we can do this before we look at the protocol.
+    
+    // There the only response distinction we have here is between exception and no exception.
+    Configuration output = new Configuration();
+    boolean exists = ACF.executeReadCommand(tc,output,command);
+    
+    // Output
+    
+    String outputText = null;
+
+    if (protocol.equals("json"))
+    {
+      // Format the response
+      try
+      {
+	outputText = output.toJSON();
+      }
+      catch (ACFException e)
+      {
+	// Log it
+	Logging.api.error("Error forming JSON response: "+e.getMessage(),e);
+	// Internal server error
+	response.sendError(response.SC_INTERNAL_SERVER_ERROR);
+	return;
+      }
+    }
+    else
+    {
+      response.sendError(response.SC_BAD_REQUEST,"Unknown API protocol: "+protocol);
+      return;
+    }
+    
+    if (!exists)
+      response.setStatus(response.SC_NOT_FOUND);
+        
+    byte[] responseValue = outputText.getBytes("utf-8");
+
+    // Set response mime type
+    response.setContentType("text/plain; charset=utf-8");
+    response.setIntHeader("Content-Length", (int)responseValue.length);
+    ServletOutputStream out = response.getOutputStream();
+    try
+    {
+      out.write(responseValue,0,responseValue.length);
+      out.flush();
+    }
+    finally
+    {
+      out.close();
+    }
+
+  }
+  
+  /** Perform a general "write" operation.
+  */
+  protected static void executeWrite(IThreadContext tc, HttpServletResponse response, String pathInfo, InputStream data)
+    throws ACFException, IOException
+  {
+    // Strip off leading "/"
+    if (pathInfo.startsWith("/"))
+      pathInfo = pathInfo.substring(1);
+      
+    int index = pathInfo.indexOf("/");
+    String protocol;
+    String command;
+    if (index == -1)
+    {
+      protocol = pathInfo;
+      command = "";
+    }
+    else
+    {
+      protocol = pathInfo.substring(0,index);
+      command = pathInfo.substring(index+1);
+    }
+
+    // We presume the data is utf-8
+    StringBuffer sb = new StringBuffer();
+    char[] buffer = new char[65536];
+    Reader r = new InputStreamReader(data,"utf-8");
+    while (true)
+    {
+      int amt = r.read(buffer);
+      if (amt == -1)
+	break;
+      sb.append(buffer,0,amt);
+    }
+    String argument = sb.toString();
+    
+    // Parse the input
+    Configuration input;
+    
+    if (protocol.equals("json"))
+    {
+      if (argument.length() != 0)
+      {
+	input = new Configuration();
+	input.fromJSON(argument);
+      }
+      else
+	input = null;
+    }
+    else
+    {
+      response.sendError(response.SC_BAD_REQUEST,"Unknown API protocol: "+protocol);
+      return;
+    }
+    
+    // Execute the request.
+    
+    // We need the following distinctions:
+    // Exception vs. no exception
+    // OK vs CREATE (both with json response packets)
+    Configuration output = new Configuration();
+    int writeResult = ACF.executeWriteCommand(tc,output,command,input);
+    
+    // Output
+    
+    
+    String outputText = null;
+
+    if (protocol.equals("json"))
+    {
+      // Format the response
+      try
+      {
+	outputText = output.toJSON();
+      }
+      catch (ACFException e)
+      {
+	// Log it
+	Logging.api.error("Error forming JSON response: "+e.getMessage(),e);
+	// Internal server error
+	response.sendError(response.SC_INTERNAL_SERVER_ERROR);
+	return;
+      }
+    }
+    else
+    {
+      response.sendError(response.SC_BAD_REQUEST,"Unknown API protocol: "+protocol);
+      return;
+    }
+
+    // This should return either 200 or SC_CREATED
+    if (writeResult == ACF.WRITERESULT_CREATED)
+      response.setStatus(response.SC_CREATED);
+    else if (writeResult == ACF.WRITERESULT_NOTFOUND)
+      response.setStatus(response.SC_NOT_FOUND);
+    
+    byte[] responseValue = outputText.getBytes("utf-8");
+
+    // Set response mime type
+    response.setContentType("text/plain; charset=utf-8");
+    response.setIntHeader("Content-Length", (int)responseValue.length);
+    ServletOutputStream out = response.getOutputStream();
+    try
+    {
+      out.write(responseValue,0,responseValue.length);
+      out.flush();
+    }
+    finally
+    {
+      out.close();
+    }
+
+  }
+
+  /** Perform a general "post" operation.
+  */
+  protected static void executePost(IThreadContext tc, HttpServletResponse response, String pathInfo, InputStream data)
+    throws ACFException, IOException
+  {
+    // Strip off leading "/"
+    if (pathInfo.startsWith("/"))
+      pathInfo = pathInfo.substring(1);
+      
+    int index = pathInfo.indexOf("/");
+    String protocol;
+    String command;
+    if (index == -1)
+    {
+      protocol = pathInfo;
+      command = "";
+    }
+    else
+    {
+      protocol = pathInfo.substring(0,index);
+      command = pathInfo.substring(index+1);
+    }
+
+    // We presume the data is utf-8
+    StringBuffer sb = new StringBuffer();
+    char[] buffer = new char[65536];
+    Reader r = new InputStreamReader(data,"utf-8");
+    while (true)
+    {
+      int amt = r.read(buffer);
+      if (amt == -1)
+	break;
+      sb.append(buffer,0,amt);
+    }
+    String argument = sb.toString();
+    
+    // Parse the input
+    Configuration input;
+    
+    if (protocol.equals("json"))
+    {
+      if (argument.length() != 0)
+      {
+	input = new Configuration();
+	input.fromJSON(argument);
+      }
+      else
+	input = null;
+    }
+    else
+    {
+      response.sendError(response.SC_BAD_REQUEST,"Unknown API protocol: "+protocol);
+      return;
+    }
+    
+    // Execute the request.
+    
+    Configuration output = new Configuration();
+    int writeResult = ACF.executePostCommand(tc,output,command,input);
+    
+    // Output
+    
+    
+    String outputText = null;
+
+    if (protocol.equals("json"))
+    {
+      // Format the response
+      try
+      {
+	outputText = output.toJSON();
+      }
+      catch (ACFException e)
+      {
+	// Log it
+	Logging.api.error("Error forming JSON response: "+e.getMessage(),e);
+	// Internal server error
+	response.sendError(response.SC_INTERNAL_SERVER_ERROR);
+	return;
+      }
+    }
+    else
+    {
+      response.sendError(response.SC_BAD_REQUEST,"Unknown API protocol: "+protocol);
+      return;
+    }
+
+    // This should return either 200 or SC_CREATED
+    if (writeResult == ACF.WRITERESULT_CREATED)
+      response.setStatus(response.SC_CREATED);
+    else if (writeResult == ACF.WRITERESULT_NOTFOUND)
+      response.setStatus(response.SC_NOT_FOUND);
+    
+    byte[] responseValue = outputText.getBytes("utf-8");
+
+    // Set response mime type
+    response.setContentType("text/plain; charset=utf-8");
+    response.setIntHeader("Content-Length", (int)responseValue.length);
+    ServletOutputStream out = response.getOutputStream();
+    try
+    {
+      out.write(responseValue,0,responseValue.length);
+      out.flush();
+    }
+    finally
+    {
+      out.close();
+    }
+
+  }
+  
+  /** Perform a general "delete" operation.
+  */
+  protected static void executeDelete(IThreadContext tc, HttpServletResponse response, String pathInfo)
+    throws ACFException, IOException
+  {
+    // Strip off leading "/"
+    if (pathInfo.startsWith("/"))
+      pathInfo = pathInfo.substring(1);
+      
+    int index = pathInfo.indexOf("/");
+    String protocol;
+    String command;
+    if (index == -1)
+    {
+      protocol = pathInfo;
+      command = "";
+    }
+    else
+    {
+      protocol = pathInfo.substring(0,index);
+      command = pathInfo.substring(index+1);
+    }
+
+    // Execute the request.
+    // Since there are no input arguments, we can do this before we look at the protocol.
+    
+    // There the only response distinction we have here is between exception and no exception.
+    Configuration output = new Configuration();
+    boolean exists = ACF.executeDeleteCommand(tc,output,command);
+    
+    // Output
+    String outputText = null;
+
+    if (protocol.equals("json"))
+    {
+      // Format the response
+      try
+      {
+	outputText = output.toJSON();
+      }
+      catch (ACFException e)
+      {
+	// Log it
+	Logging.api.error("Error forming JSON response: "+e.getMessage(),e);
+	// Internal server error
+	response.sendError(response.SC_INTERNAL_SERVER_ERROR);
+	return;
+      }
+    }
+    else
+    {
+      response.sendError(response.SC_BAD_REQUEST,"Unknown API protocol: "+protocol);
+      return;
+    }
+    
+    if (!exists)
+      response.setStatus(response.SC_NOT_FOUND);
+    
+    byte[] responseValue = outputText.getBytes("utf-8");
+
+    // Set response mime type
+    response.setContentType("text/plain; charset=utf-8");
+    response.setIntHeader("Content-Length", (int)responseValue.length);
+    ServletOutputStream out = response.getOutputStream();
+    try
+    {
+      out.write(responseValue,0,responseValue.length);
+      out.flush();
+    }
+    finally
+    {
+      out.close();
+    }
+
+    // return code 200 assumed!
+  }
+  
 }

@@ -104,19 +104,17 @@ public abstract class BaseRepositoryConnector extends org.apache.acf.core.connec
     return new String[]{""};
   }
 
-  /** Execute an arbitrary connector command.
-  * This method is called directly from the API in order to allow API users to perform any one of several connector-specific actions or
+  /** Request arbitrary connector information.
+  * This method is called directly from the API in order to allow API users to perform any one of several connector-specific
   * queries.
-  * Exceptions thrown by this method are considered to be usage errors, and cause a 400 response to be returned.
   *@param output is the response object, to be filled in by this method.
   *@param command is the command, which is taken directly from the API request.
-  *@param input is the request object.
+  *@return true if the resource is found, false if not.  In either case, output may be filled in.
   */
-  public void executeCommand(Configuration output, String command, Configuration input)
+  public boolean requestInfo(Configuration output, String command)
     throws ACFException
   {
-    // By definition, the base connector has no commands.
-    throw new ACFException("Unrecognized repository connector command '"+command+"'");
+    return false;
   }
 
   /** Queue "seed" documents.  Seed documents are the starting places for crawling activity.  Documents

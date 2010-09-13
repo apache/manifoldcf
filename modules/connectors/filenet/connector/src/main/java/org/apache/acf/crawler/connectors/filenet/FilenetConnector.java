@@ -532,22 +532,19 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
     docURIPrefix = null;
   }
 
-  /** Execute an arbitrary connector command.
-  * This method is called directly from the API in order to allow API users to perform any one of several connector-specific actions or
+  /** Request arbitrary connector information.
+  * This method is called directly from the API in order to allow API users to perform any one of several connector-specific
   * queries.
-  * Exceptions thrown by this method are considered to be usage errors, and cause a 400 response to be returned.
   *@param output is the response object, to be filled in by this method.
   *@param command is the command, which is taken directly from the API request.
-  *@param input is the request object.
+  *@return true if the resource is found, false if not.  In either case, output may be filled in.
   */
-  public void executeCommand(Configuration output, String command, Configuration input)
+  public boolean requestInfo(Configuration output, String command)
     throws ACFException
   {
-    if (command.equals("documentclass/metadatafields"))
+    if (command.startsWith("metadatafields/"))
     {
-      String documentClass = ACF.getRootArgument(input,"document_class");
-      if (documentClass == null)
-        throw new ACFException("Missing required field 'document_class'");
+      String documentClass = command.substring("metadatafields/".length());
       try
       {
         MetadataFieldDefinition[] metaFields = getDocumentClassMetadataFieldsDetails(documentClass);
@@ -575,7 +572,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
         ACF.createErrorNode(output,e);
       }
     }
-    else if (command.equals("documentclass/list"))
+    else if (command.equals("documentclasses"))
     {
       try
       {
@@ -604,7 +601,7 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
         ACF.createErrorNode(output,e);
       }
     }
-    else if (command.equals("mimetype/list"))
+    else if (command.equals("mimetypes"))
     {
       try
       {
@@ -628,7 +625,8 @@ public class FilenetConnector extends org.apache.acf.crawler.connectors.BaseRepo
       }
     }
     else
-      super.executeCommand(output,command,input);
+      return super.requestInfo(output,command);
+    return true;
   }
   
   /** Queue "seed" documents.  Seed documents are the starting places for crawling activity.  Documents

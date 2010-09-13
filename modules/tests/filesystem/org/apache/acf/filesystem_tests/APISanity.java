@@ -103,7 +103,7 @@ public class APISanity extends TestBase
       requestObject = new Configuration();
       requestObject.addChild(0,connectionObject);
       
-      result = performAPIOperationViaNodes("repositoryconnection/save",requestObject);
+      result = performAPIPutOperationViaNodes("repositoryconnections/File%20Connection",201,requestObject);
       
       i = 0;
       while (i < result.getChildCount())
@@ -135,7 +135,7 @@ public class APISanity extends TestBase
       requestObject = new Configuration();
       requestObject.addChild(0,connectionObject);
       
-      result = performAPIOperationViaNodes("outputconnection/save",requestObject);
+      result = performAPIPutOperationViaNodes("outputconnections/Null%20Connection",201,requestObject);
       
       i = 0;
       while (i < result.getChildCount())
@@ -195,7 +195,7 @@ public class APISanity extends TestBase
       requestObject = new Configuration();
       requestObject.addChild(0,jobObject);
       
-      result = performAPIOperationViaNodes("job/save",requestObject);
+      result = performAPIPostOperationViaNodes("jobs",201,requestObject);
       
       String jobIDString = null;
       i = 0;
@@ -287,12 +287,9 @@ public class APISanity extends TestBase
   protected void startJob(String jobIDString)
     throws Exception
   {
-    ConfigurationNode requestNode = new ConfigurationNode("job_id");
-    requestNode.setValue(jobIDString);
     Configuration requestObject = new Configuration();
-    requestObject.addChild(0,requestNode);
     
-    Configuration result = performAPIOperationViaNodes("jobstatus/start",requestObject);
+    Configuration result = performAPIPutOperationViaNodes("start/"+jobIDString,201,requestObject);
     int i = 0;
     while (i < result.getChildCount())
     {
@@ -305,12 +302,7 @@ public class APISanity extends TestBase
   protected void deleteJob(String jobIDString)
     throws Exception
   {
-    ConfigurationNode requestNode = new ConfigurationNode("job_id");
-    requestNode.setValue(jobIDString);
-    Configuration requestObject = new Configuration();
-    requestObject.addChild(0,requestNode);
-      
-    Configuration result = performAPIOperationViaNodes("job/delete",requestObject);
+    Configuration result = performAPIDeleteOperationViaNodes("jobs/"+jobIDString,200);
     int i = 0;
     while (i < result.getChildCount())
     {
@@ -324,12 +316,7 @@ public class APISanity extends TestBase
   protected String getJobStatus(String jobIDString)
     throws Exception
   {
-    ConfigurationNode requestNode = new ConfigurationNode("job_id");
-    requestNode.setValue(jobIDString);
-    Configuration requestObject = new Configuration();
-    requestObject.addChild(0,requestNode);
-    
-    Configuration result = performAPIOperationViaNodes("jobstatus/get",requestObject);
+    Configuration result = performAPIGetOperationViaNodes("jobstatuses/"+jobIDString,200);
     String status = null;
     int i = 0;
     while (i < result.getChildCount())
@@ -354,12 +341,7 @@ public class APISanity extends TestBase
   protected long getJobDocumentsProcessed(String jobIDString)
     throws Exception
   {
-    ConfigurationNode requestNode = new ConfigurationNode("job_id");
-    requestNode.setValue(jobIDString);
-    Configuration requestObject = new Configuration();
-    requestObject.addChild(0,requestNode);
-    
-    Configuration result = performAPIOperationViaNodes("jobstatus/get",requestObject);
+    Configuration result = performAPIGetOperationViaNodes("jobstatuses/"+jobIDString,200);
     String documentsProcessed = null;
     int i = 0;
     while (i < result.getChildCount())

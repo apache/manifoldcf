@@ -73,8 +73,9 @@ public interface IRepositoryConnectionManager
 
   /** Save a repository connection object.
   *@param object is the object to save.
+  *@return true if the object is created, false otherwise.
   */
-  public void save(IRepositoryConnection object)
+  public boolean save(IRepositoryConnection object)
     throws ACFException;
 
   /** Delete a repository connection.

@@ -297,22 +297,19 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
     super.disconnect();
   }
 
-  /** Execute an arbitrary connector command.
-  * This method is called directly from the API in order to allow API users to perform any one of several connector-specific actions or
+  /** Request arbitrary connector information.
+  * This method is called directly from the API in order to allow API users to perform any one of several connector-specific
   * queries.
-  * Exceptions thrown by this method are considered to be usage errors, and cause a 400 response to be returned.
   *@param output is the response object, to be filled in by this method.
   *@param command is the command, which is taken directly from the API request.
-  *@param input is the request object.
+  *@return true if the resource is found, false if not.  In either case, output may be filled in.
   */
-  public void executeCommand(Configuration output, String command, Configuration input)
+  public boolean requestInfo(Configuration output, String command)
     throws ACFException
   {
-    if (command.equals("database/list"))
+    if (command.startsWith("databases/"))
     {
-      String virtualServer = ACF.getRootArgument(input,"virtual_server");
-      if (virtualServer == null)
-        throw new ACFException("Missing required argument 'virtual_server'");
+      String virtualServer = command.substring("databases/".length());
       
       try
       {
@@ -341,7 +338,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
         ACF.createErrorNode(output,e);
       }
     }
-    else if (command.equals("virtualserver/list"))
+    else if (command.equals("virtualservers"))
     {
       try
       {
@@ -364,7 +361,7 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
         ACF.createErrorNode(output,e);
       }
     }
-    else if (command.equals("entitytype/list"))
+    else if (command.equals("entitytypes"))
     {
       try
       {
@@ -393,11 +390,9 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
         ACF.createErrorNode(output,e);
       }
     }
-    else if (command.equals("field/list"))
+    else if (command.startsWith("fields/"))
     {
-      String entityPrefix = ACF.getRootArgument(input,"entity_type_name");
-      if (entityPrefix == null)
-        throw new ACFException("Missing required argument 'entity_type_name'");
+      String entityPrefix = command.substring("fields/".length());
       try
       {
         String[] fieldNames = listFieldNames(entityPrefix);
@@ -419,11 +414,9 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
         ACF.createErrorNode(output,e);
       }
     }
-    else if (command.equals("field/listmatchable"))
+    else if (command.equals("matchablefields/"))
     {
-      String entityPrefix = ACF.getRootArgument(input,"entity_type_name");
-      if (entityPrefix == null)
-        throw new ACFException("Missing required argument 'entity_type_name'");
+      String entityPrefix = command.substring("matchablefields/".length());
       try
       {
         String[] fieldNames = listMatchableFieldNames(entityPrefix);
@@ -446,7 +439,8 @@ public class MemexConnector extends org.apache.acf.crawler.connectors.BaseReposi
       }
     }
     else
-      super.executeCommand(output,command,input);
+      return super.requestInfo(output,command);
+    return true;
   }
   
   /** Queue "seed" documents.  Seed documents are the starting places for crawling activity.  Documents

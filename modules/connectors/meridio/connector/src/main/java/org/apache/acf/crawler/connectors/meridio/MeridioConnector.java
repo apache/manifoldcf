@@ -465,18 +465,17 @@ public class MeridioConnector extends org.apache.acf.crawler.connectors.BaseRepo
     return 10;
   }
 
-  /** Execute an arbitrary connector command.
-  * This method is called directly from the API in order to allow API users to perform any one of several connector-specific actions or
+  /** Request arbitrary connector information.
+  * This method is called directly from the API in order to allow API users to perform any one of several connector-specific
   * queries.
-  * Exceptions thrown by this method are considered to be usage errors, and cause a 400 response to be returned.
   *@param output is the response object, to be filled in by this method.
   *@param command is the command, which is taken directly from the API request.
-  *@param input is the request object.
+  *@return true if the resource is found, false if not.  In either case, output may be filled in.
   */
-  public void executeCommand(Configuration output, String command, Configuration input)
+  public boolean requestInfo(Configuration output, String command)
     throws ACFException
   {
-    if (command.equals("category/list"))
+    if (command.equals("categories"))
     {
       try
       {
@@ -499,7 +498,7 @@ public class MeridioConnector extends org.apache.acf.crawler.connectors.BaseRepo
         ACF.createErrorNode(output,e);
       }
     }
-    else if (command.equals("documentproperties/list"))
+    else if (command.equals("documentproperties"))
     {
       try
       {
@@ -522,11 +521,9 @@ public class MeridioConnector extends org.apache.acf.crawler.connectors.BaseRepo
         ACF.createErrorNode(output,e);
       }
     }
-    else if (command.equals("classorfolder/list"))
+    else if (command.startsWith("classorfolder/"))
     {
-      String classOrFolderIdString = ACF.getRootArgument(input,"class_or_folder_id");
-      if (classOrFolderIdString == null)
-        throw new ACFException("Missing required argument 'class_or_folder_id'");
+      String classOrFolderIdString = command.substring("classorfolder/".length());
       int classOrFolderId;
       try
       {
@@ -534,7 +531,8 @@ public class MeridioConnector extends org.apache.acf.crawler.connectors.BaseRepo
       }
       catch (NumberFormatException e)
       {
-        throw new ACFException("Argument 'class_or_folder_id' must be an integer: "+e.getMessage(),e);
+        ACF.createErrorNode(output,new ACFException(e.getMessage(),e));
+	return false;
       }
       try
       {
@@ -574,7 +572,8 @@ public class MeridioConnector extends org.apache.acf.crawler.connectors.BaseRepo
       }
     }
     else
-      super.executeCommand(output,command,input);
+      return super.requestInfo(output,command);
+    return true;
   }
 
   /** Given a document specification, get either a list of starting document identifiers (seeds),

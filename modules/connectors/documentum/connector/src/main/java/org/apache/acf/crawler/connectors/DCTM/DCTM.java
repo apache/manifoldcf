@@ -844,18 +844,17 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
 
   }
 
-  /** Execute an arbitrary connector command.
-  * This method is called directly from the API in order to allow API users to perform any one of several connector-specific actions or
+  /** Request arbitrary connector information.
+  * This method is called directly from the API in order to allow API users to perform any one of several connector-specific
   * queries.
-  * Exceptions thrown by this method are considered to be usage errors, and cause a 400 response to be returned.
   *@param output is the response object, to be filled in by this method.
   *@param command is the command, which is taken directly from the API request.
-  *@param input is the request object.
+  *@return true if the resource is found, false if not.  In either case, output may be filled in.
   */
-  public void executeCommand(Configuration output, String command, Configuration input)
+  public boolean requestInfo(Configuration output, String command)
     throws ACFException
   {
-    if (command.equals("contenttype/list"))
+    if (command.equals("contenttypes"))
     {
       try
       {
@@ -878,7 +877,7 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
         ACF.createErrorNode(output,e);
       }
     }
-    else if (command.equals("objecttype/list"))
+    else if (command.equals("objecttypes"))
     {
       try
       {
@@ -901,9 +900,10 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
         ACF.createErrorNode(output,e);
       }
     }
-    else if (command.equals("folder/list"))
+    else if (command.startsWith("folders/"))
     {
-      String parentFolder = ACF.getRootArgument(input,"parent_folder");
+      // I hope folder names in Documentum cannot have "/" characters in them.
+      String parentFolder = command.substring("folders/".length());
       try
       {
         String[] folders = getChildFolderNames(parentFolder);
@@ -925,11 +925,10 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
         ACF.createErrorNode(output,e);
       }
     }
-    else if (command.equals("indexableattributes/list"))
+    else if (command.startsWith("indexableattributes/"))
     {
-      String objectType = ACF.getRootArgument(input,"object_type");
-      if (objectType == null)
-        throw new ACFException("Missing required field 'object_type'");
+      // I hope object types can't have "/" characters
+      String objectType = command.substring("indexableattributes/".length());
       try
       {
         String[] indexableAttributes = getIngestableAttributes(objectType);
@@ -952,7 +951,8 @@ public class DCTM extends org.apache.acf.crawler.connectors.BaseRepositoryConnec
       }
     }
     else
-      super.executeCommand(output,command,input);
+      return super.requestInfo(output,command);
+    return true;
   }
   
   /** Queue "seed" documents.  Seed documents are the starting places for crawling activity.  Documents

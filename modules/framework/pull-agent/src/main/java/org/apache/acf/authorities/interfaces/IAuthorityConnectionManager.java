@@ -66,8 +66,9 @@ public interface IAuthorityConnectionManager
 
   /** Save an authority connection object.
   *@param object is the object to save.
+  *@return true if the object was created, false otherwise.
   */
-  public void save(IAuthorityConnection object)
+  public boolean save(IAuthorityConnection object)
     throws ACFException;
 
   /** Delete an authority connection.

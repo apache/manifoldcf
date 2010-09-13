@@ -73,8 +73,9 @@ public interface IOutputConnectionManager
 
   /** Save an output connection object.
   *@param object is the object to save.
+  *@return true if the object was created, false otherwise.
   */
-  public void save(IOutputConnection object)
+  public boolean save(IOutputConnection object)
     throws ACFException;
 
   /** Delete an output connection.

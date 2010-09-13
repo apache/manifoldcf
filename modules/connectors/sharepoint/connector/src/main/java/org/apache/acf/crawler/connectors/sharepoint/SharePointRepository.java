@@ -321,28 +321,37 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
       connectionManager.closeIdleConnections(60000L);
   }
 
-  /** Execute an arbitrary connector command.
-  * This method is called directly from the API in order to allow API users to perform any one of several connector-specific actions or
+  /** Request arbitrary connector information.
+  * This method is called directly from the API in order to allow API users to perform any one of several connector-specific
   * queries.
-  * Exceptions thrown by this method are considered to be usage errors, and cause a 400 response to be returned.
   *@param output is the response object, to be filled in by this method.
   *@param command is the command, which is taken directly from the API request.
-  *@param input is the request object.
+  *@return true if the resource is found, false if not.  In either case, output may be filled in.
   */
-  public void executeCommand(Configuration output, String command, Configuration input)
+  public boolean requestInfo(Configuration output, String command)
     throws ACFException
   {
-    if (command.equals("field/list"))
+    if (command.startsWith("fields/"))
     {
-      String sitePath = ACF.getRootArgument(input,"site_path");
-      if (sitePath == null)
-        throw new ACFException("Missing required argument 'site_path'");
-      String library = ACF.getRootArgument(input,"library");
-      if (library == null)
-        throw new ACFException("Missing required argument 'library'");
+      String library;
+      String sitePath;
+      
+      String remainder = command.substring("fields/".length());
       
       try
       {
+        int index = remainder.indexOf("/");
+        if (index == -1)
+        {
+          library = remainder;
+          sitePath = "";
+        }
+        else
+        {
+          library = remainder.substring(0,index);
+          sitePath = remainder.substring(index+1);
+        }
+        
         Map fieldSet = getFieldList(sitePath,library);
         Iterator iter = fieldSet.keySet().iterator();
         while (iter.hasNext())
@@ -369,14 +378,11 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
         ACF.createErrorNode(output,e);
       }
     }
-    else if (command.equals("site/list"))
+    else if (command.startsWith("sites/"))
     {
-      String sitePath = ACF.getRootArgument(input,"site_path");
-      if (sitePath == null)
-        throw new ACFException("Missing required argument 'site_path'");
-
       try
       {
+        String sitePath = command.substring("sites/".length());
         ArrayList sites = getSites(sitePath);
         int i = 0;
         while (i < sites.size())
@@ -396,14 +402,11 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
         ACF.createErrorNode(output,e);
       }
     }
-    else if (command.equals("library/list"))
+    else if (command.startsWith("libraries/"))
     {
-      String sitePath = ACF.getRootArgument(input,"site_path");
-      if (sitePath == null)
-        throw new ACFException("Missing required argument 'site_path'");
-
       try
       {
+        String sitePath = command.substring("libraries/".length());
         ArrayList libs = getDocLibsBySite(sitePath);
         int i = 0;
         while (i < libs.size())
@@ -424,7 +427,8 @@ public class SharePointRepository extends org.apache.acf.crawler.connectors.Base
       }
     }
     else
-      super.executeCommand(output,command,input);
+      return super.requestInfo(output,command);
+    return true;
   }
   
   /** Queue "seed" documents.  Seed documents are the starting places for crawling activity.  Documents

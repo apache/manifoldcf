@@ -54,19 +54,17 @@ public abstract class BaseOutputConnector extends org.apache.acf.core.connector.
     return new String[0];
   }
 
-  /** Execute an arbitrary connector command.
-  * This method is called directly from the API in order to allow API users to perform any one of several connector-specific actions or
+  /** Request arbitrary connector information.
+  * This method is called directly from the API in order to allow API users to perform any one of several connector-specific
   * queries.
-  * Exceptions thrown by this method are considered to be usage errors, and cause a 400 response to be returned.
   *@param output is the response object, to be filled in by this method.
   *@param command is the command, which is taken directly from the API request.
-  *@param input is the request object.
+  *@return true if the resource is found, false if not.  In either case, output may be filled in.
   */
-  public void executeCommand(Configuration output, String command, Configuration input)
+  public boolean requestInfo(Configuration output, String command)
     throws ACFException
   {
-    // The base connector treats all requests as invalid commands, and throws an exception accordingly.
-    throw new ACFException("Unrecognized output connector command '"+command+"'");
+    return false;
   }
 
   /** Notify the connector of a completed job.

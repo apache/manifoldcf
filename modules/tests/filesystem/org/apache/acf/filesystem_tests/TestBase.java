@@ -133,30 +133,123 @@ public class TestBase extends org.apache.acf.crawler.tests.TestConnectorBase
   
   // These methods allow communication with the ACF api webapp, via the locally-instantiated jetty
   
-  /** Perform an json API operation.
-  *@param command is the operation.
-  *@param argument is the json argument, or null if none.
+  /** Construct a command url.
+  */
+  protected String makeAPIURL(String command)
+  {
+    return "http://localhost:"+Integer.toString(testPort)+"/acf-api-service/json/"+command;
+  }
+  
+  /** Perform an json API GET operation.
+  *@param apiURL is the operation.
+  *@param expectedResponse is the expected response code.
   *@return the json response.
   */
-  protected String performAPIOperation(String command, String argument)
+  protected String performAPIGetOperation(String apiURL, int expectedResponse)
     throws Exception
   {
     HttpClient client = new HttpClient();
-    HttpMethod method = new GetMethod("http://localhost:"+Integer.toString(testPort)+"/acf-api-service/json/"+command+((argument==null)?"":"?object="+
-      java.net.URLEncoder.encode(argument,"utf-8")));
+    GetMethod method = new GetMethod(apiURL);
     int response = client.executeMethod(method);
     byte[] responseData = method.getResponseBody();
     String responseString = new String(responseData,"utf-8");
-    if (response != 200)
-      throw new Exception("API http error "+Integer.toString(response)+": "+responseString);
+    if (response != expectedResponse)
+      throw new Exception("API http error; expected "+Integer.toString(expectedResponse)+", saw "+Integer.toString(response)+": "+responseString);
     // We presume that the data is utf-8, since that's what the API uses throughout.
     return responseString;
   }
-  
-  /** Perform a json API operation, using Configuration structures to represent the json.  This is for testing convenience,
+
+  /** Perform an json API DELETE operation.
+  *@param apiURL is the operation.
+  *@param expectedResponse is the expected response code.
+  *@return the json response.
+  */
+  protected String performAPIDeleteOperation(String apiURL, int expectedResponse)
+    throws Exception
+  {
+    HttpClient client = new HttpClient();
+    DeleteMethod method = new DeleteMethod(apiURL);
+    int response = client.executeMethod(method);
+    byte[] responseData = method.getResponseBody();
+    String responseString = new String(responseData,"utf-8");
+    if (response != expectedResponse)
+      throw new Exception("API http error; expected "+Integer.toString(expectedResponse)+", saw "+Integer.toString(response)+": "+responseString);
+    // We presume that the data is utf-8, since that's what the API uses throughout.
+    return responseString;
+  }
+
+  /** Perform an json API PUT operation.
+  *@param apiURL is the operation.
+  *@param input is the input JSON.
+  *@param expectedResponse is the expected response code.
+  *@return the json response.
+  */
+  protected String performAPIPutOperation(String apiURL, int expectedResponse, String input)
+    throws Exception
+  {
+    HttpClient client = new HttpClient();
+    PutMethod method = new PutMethod(apiURL);
+    method.setRequestHeader("Content-type", "text/plain; charset=UTF-8");
+    method.setRequestBody(input);
+    int response = client.executeMethod(method);
+    byte[] responseData = method.getResponseBody();
+    String responseString = new String(responseData,"utf-8");
+    if (response != expectedResponse)
+      throw new Exception("API http error; expected "+Integer.toString(expectedResponse)+", saw "+Integer.toString(response)+": "+responseString);
+    // We presume that the data is utf-8, since that's what the API uses throughout.
+    return responseString;
+  }
+
+  /** Perform an json API POST operation.
+  *@param apiURL is the operation.
+  *@param input is the input JSON.
+  *@param expectedResponse is the expected response code.
+  *@return the json response.
+  */
+  protected String performAPIPostOperation(String apiURL, int expectedResponse, String input)
+    throws Exception
+  {
+    HttpClient client = new HttpClient();
+    PostMethod method = new PostMethod(apiURL);
+    method.setRequestHeader("Content-type", "text/plain; charset=UTF-8");
+    method.setRequestBody(input);
+    int response = client.executeMethod(method);
+    byte[] responseData = method.getResponseBody();
+    String responseString = new String(responseData,"utf-8");
+    if (response != expectedResponse)
+      throw new Exception("API http error; expected "+Integer.toString(expectedResponse)+", saw "+Integer.toString(response)+": "+responseString);
+    // We presume that the data is utf-8, since that's what the API uses throughout.
+    return responseString;
+  }
+
+  /** Perform a json GET API operation, using Configuration structures to represent the json.  This is for testing convenience,
   * mostly.
   */
-  protected Configuration performAPIOperationViaNodes(String command, Configuration argument)
+  protected Configuration performAPIGetOperationViaNodes(String command, int expectedResponse)
+    throws Exception
+  {
+    String result = performAPIGetOperation(makeAPIURL(command),expectedResponse);
+    Configuration cfg = new Configuration();
+    cfg.fromJSON(result);
+    return cfg;
+  }
+
+  /** Perform a json DELETE API operation, using Configuration structures to represent the json.  This is for testing convenience,
+  * mostly.
+  */
+  protected Configuration performAPIDeleteOperationViaNodes(String command, int expectedResponse)
+    throws Exception
+  {
+    String result = performAPIDeleteOperation(makeAPIURL(command),expectedResponse);
+    Configuration cfg = new Configuration();
+    cfg.fromJSON(result);
+    return cfg;
+  }
+
+  /** Perform a json PUT API operation, using Configuration structures to represent the json.  This is for testing convenience,
+  * mostly.
+  */
+  protected Configuration performAPIPutOperationViaNodes(String command, int expectedResponse, Configuration argument)
     throws Exception
   {
     String argumentJson;
@@ -165,12 +258,30 @@ public class TestBase extends org.apache.acf.crawler.tests.TestConnectorBase
     else
       argumentJson = null;
     
-    String result = performAPIOperation(command,argumentJson);
+    String result = performAPIPutOperation(makeAPIURL(command),expectedResponse,argumentJson);
     Configuration cfg = new Configuration();
     cfg.fromJSON(result);
     return cfg;
   }
-  
+
+  /** Perform a json POST API operation, using Configuration structures to represent the json.  This is for testing convenience,
+  * mostly.
+  */
+  protected Configuration performAPIPostOperationViaNodes(String command, int expectedResponse, Configuration argument)
+    throws Exception
+  {
+    String argumentJson;
+    if (argument != null)
+      argumentJson = argument.toJSON();
+    else
+      argumentJson = null;
+    
+    String result = performAPIPostOperation(makeAPIURL(command),expectedResponse,argumentJson);
+    Configuration cfg = new Configuration();
+    cfg.fromJSON(result);
+    return cfg;
+  }
+
   // Setup/teardown
   
   @Before
