@@ -176,9 +176,15 @@ if (maintenanceUnderway == false)
 	String reportConnection = variableContext.getParameter("reportconnection");
 	if (reportConnection == null)
 		reportConnection = "";
-	String[] reportActivities = variableContext.getParameterValues("reportactivities");
-	if (reportActivities == null)
-		reportActivities = new String[0];
+	String[] reportActivities;
+	if (variableContext.getParameter("reportactivities_posted") != null)
+	{
+		reportActivities = variableContext.getParameterValues("reportactivities");
+		if (reportActivities == null)
+			reportActivities = new String[0];
+	}
+	else
+		reportActivities = null;
 
 	// Get the current time, so we can fill in default values where possible.
 	long currentTime = System.currentTimeMillis();
@@ -420,6 +426,7 @@ if (maintenanceUnderway == false)
 	{
 %>
 				<td class="description" colspan="1">Activities:</td><td class="value" colspan="1">
+					<input type="hidden" name="reportactivities_posted" value="true"/>
 					<select multiple="true" name="reportactivities" size="3">
 <%
 	    i = 0;
