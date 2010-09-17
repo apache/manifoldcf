@@ -145,14 +145,26 @@ if (maintenanceUnderway == false)
 		activeTimeOffsetMinutes = "";
 	
 	// There is a selection criteria also based on the document state; these are integers defined in IJobManager.
-	String[] documentStateTypes = variableContext.getParameterValues("statusdocumentstates");
-	if (documentStateTypes == null)
-		documentStateTypes = new String[0];
+	String[] documentStateTypes;
+	if (variableContext.getParameter("statusdocumentstates_posted") != null)
+	{
+		documentStateTypes = variableContext.getParameterValues("statusdocumentstates");
+		if (documentStateTypes == null)
+			documentStateTypes = new String[0];
+	}
+	else
+		documentStateTypes = null;
 	
 	// There is a selection criteria based on the document status; these are also integers defined in IJobManager.
-	String[] documentStatusTypes = variableContext.getParameterValues("statusdocumentstatuses");
-	if (documentStatusTypes == null)
-		documentStatusTypes = new String[0];
+	String[] documentStatusTypes;
+	if (variableContext.getParameter("statusdocumentstatuses_posted") != null)
+	{
+		documentStatusTypes = variableContext.getParameterValues("statusdocumentstatuses");
+		if (documentStatusTypes == null)
+			documentStatusTypes = new String[0];
+	}
+	else
+		documentStatusTypes = null;
 
 	// Match string for the document identifier
 	String identifierMatch = variableContext.getParameter("statusidentifiermatch");
@@ -195,29 +207,55 @@ if (maintenanceUnderway == false)
 		nowTime = System.currentTimeMillis();
 
 	// Translate the states from a string to a number that will be understood by IJobManager.
-	int[] matchingStates = new int[documentStateTypes.length];
+	int[] matchingStates;
+	if (documentStateTypes == null)
+	{
+		matchingStates = new int[]{IJobManager.DOCSTATE_NEVERPROCESSED,IJobManager.DOCSTATE_PREVIOUSLYPROCESSED};
+	}
+	else
+	{
+		matchingStates = new int[documentStateTypes.length];
+		k = 0;
+		while (k < matchingStates.length)
+		{
+			matchingStates[k] = new Integer(documentStateTypes[k]).intValue();
+			k++;
+		}
+	}
 	HashMap matchingStatesHash = new HashMap();
 	k = 0;
 	while (k < matchingStates.length)
 	{
-		Integer state = new Integer(documentStateTypes[k]);
+		Integer state = new Integer(matchingStates[k++]);
 		matchingStatesHash.put(state,state);
-		matchingStates[k] = state.intValue();
-		k++;
 	}
 	
 	// Convert the status from a string to a number that will be understood by IJobManager
-	int[] matchingStatuses = new int[documentStatusTypes.length];
+	int[] matchingStatuses;
+	if (documentStatusTypes == null)
+	{
+		matchingStatuses = new int[]{IJobManager.DOCSTATUS_INACTIVE,IJobManager.DOCSTATUS_PROCESSING,IJobManager.DOCSTATUS_EXPIRING,
+			IJobManager.DOCSTATUS_DELETING,IJobManager.DOCSTATUS_READYFORPROCESSING,IJobManager.DOCSTATUS_READYFOREXPIRATION,
+			IJobManager.DOCSTATUS_WAITINGFORPROCESSING,IJobManager.DOCSTATUS_WAITINGFOREXPIRATION,IJobManager.DOCSTATUS_WAITINGFOREVER};
+	}
+	else
+	{
+		matchingStatuses = new int[documentStatusTypes.length];
+		k = 0;
+		while (k < matchingStatuses.length)
+		{
+			matchingStatuses[k] = new Integer(documentStatusTypes[k]).intValue();
+			k++;
+		}
+	}
 	HashMap matchingStatusesHash = new HashMap();
 	k = 0;
 	while (k < matchingStatuses.length)
 	{
-		Integer status = new Integer(documentStatusTypes[k]);
+		Integer status = new Integer(matchingStatuses[k++]);
 		matchingStatusesHash.put(status,status);
-		matchingStatuses[k] = status.intValue();
-		k++;
 	}
-	
+
 %>
 	<form class="standardform" name="report" action="execute.jsp" method="POST">
 		<input type="hidden" name="op" value="Continue"/>
@@ -289,6 +327,7 @@ if (maintenanceUnderway == false)
 			<tr>
 				<td class="description">Document state:</td>
 				<td class="value" colspan="3">
+					<input name="statusdocumentstates_posted" type="hidden" value="true"/>
 					<select name="statusdocumentstates" multiple="true" size="3">
 						<option <%=((matchingStatesHash.get(new Integer(IJobManager.DOCSTATE_NEVERPROCESSED))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATE_NEVERPROCESSED)%>'>Documents that have never been processed</option>
 						<option <%=((matchingStatesHash.get(new Integer(IJobManager.DOCSTATE_PREVIOUSLYPROCESSED))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATE_PREVIOUSLYPROCESSED)%>'>Documents processed at least once</option>
@@ -298,6 +337,7 @@ if (maintenanceUnderway == false)
 			<tr>
 				<td class="description">Document status:</td>
 				<td class="value" colspan="3">
+					<input name="statusdocumentstatuses_posted" type="hidden" value="true"/>
 					<select name="statusdocumentstatuses" multiple="true" size="3">
 						<option <%=((matchingStatusesHash.get(new Integer(IJobManager.DOCSTATUS_INACTIVE))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATUS_INACTIVE)%>'>Documents that are no longer active</option>
 						<option <%=((matchingStatusesHash.get(new Integer(IJobManager.DOCSTATUS_PROCESSING))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATUS_PROCESSING)%>'>Documents currently in progress</option>
