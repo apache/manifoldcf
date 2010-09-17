@@ -3,6 +3,13 @@ $Id$
 
 ======================= Trunk (not yet released) =======================
 
+CONNECTORS-107: Entering report forms now preselects all activities.
+(Karl Wright)
+
+CONNECTORS-106: noteJobCompleted() method in IOutputConnector now receives an
+activities object, so activities can be recorded.
+(Karl Wright)
+
 CONNECTORS-98: Convert the API into a RESTful implementation.
 (Jack Krupansky, Mark Miller, Karl Wright)
 
