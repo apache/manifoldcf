@@ -50,6 +50,7 @@ public class JobNotificationThread extends Thread
       IThreadContext threadContext = ThreadContextFactory.make();
       IJobManager jobManager = JobManagerFactory.make(threadContext);
       IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(threadContext);
+      IRepositoryConnectionManager repositoryConnectionManager = RepositoryConnectionManagerFactory.make(threadContext);
 
       // Loop
       while (true)
@@ -69,8 +70,10 @@ public class JobNotificationThread extends Thread
             if (job != null)
             {
               // Get the connection name
-              String connectionName = job.getOutputConnectionName();
-              connectionNames.put(connectionName,connectionName);
+              String repositoryConnectionName = job.getConnectionName();
+              String outputConnectionName = job.getOutputConnectionName();
+              OutputAndRepositoryConnection c = new OutputAndRepositoryConnection(outputConnectionName, repositoryConnectionName);
+              connectionNames.put(c,c);
             }
           }
           
@@ -80,9 +83,14 @@ public class JobNotificationThread extends Thread
           Iterator iter = connectionNames.keySet().iterator();
           while (iter.hasNext())
           {
-            String connectionName = (String)iter.next();
+            OutputAndRepositoryConnection connections = (OutputAndRepositoryConnection)iter.next();
             
-            IOutputConnection connection = connectionManager.load(connectionName);
+            String outputConnectionName = connections.getOutputConnectionName();
+            String repositoryConnectionName = connections.getRepositoryConnectionName();
+            
+            OutputNotifyActivity activity = new OutputNotifyActivity(repositoryConnectionName,repositoryConnectionManager,outputConnectionName);
+            
+            IOutputConnection connection = connectionManager.load(outputConnectionName);
             if (connection != null)
             {
               // Grab an appropriate connection instance
@@ -94,8 +102,8 @@ public class JobNotificationThread extends Thread
                   // Do the notification itself
                   try
                   {
-                    connector.noteJobComplete();
-                    notifiedConnections.put(connectionName,connectionName);
+                    connector.noteJobComplete(activity);
+                    notifiedConnections.put(connections,connections);
                   }
                   catch (ServiceInterruption e)
                   {
@@ -132,8 +140,11 @@ public class JobNotificationThread extends Thread
             if (job != null)
             {
               // Get the connection name
-              String connectionName = job.getOutputConnectionName();
-              if (notifiedConnections.get(connectionName) != null)
+              String outputConnectionName = job.getOutputConnectionName();
+              String repositoryConnectionName = job.getConnectionName();
+              OutputAndRepositoryConnection c = new OutputAndRepositoryConnection(outputConnectionName, repositoryConnectionName);
+              
+              if (notifiedConnections.get(c) != null)
               {
                 // When done, put the job into the Inactive state.  Otherwise, the notification will be retried until it succeeds.
                 jobManager.inactivateJob(jobID);
@@ -200,4 +211,83 @@ public class JobNotificationThread extends Thread
     }
   }
 
+  /** Output connection/repository connection pair object */
+  protected static class OutputAndRepositoryConnection
+  {
+    protected String outputConnectionName;
+    protected String repositoryConnectionName;
+    
+    public OutputAndRepositoryConnection(String outputConnectionName, String repositoryConnectionName)
+    {
+      this.outputConnectionName = outputConnectionName;
+      this.repositoryConnectionName = repositoryConnectionName;
+    }
+    
+    public String getOutputConnectionName()
+    {
+      return outputConnectionName;
+    }
+    
+    public String getRepositoryConnectionName()
+    {
+      return repositoryConnectionName;
+    }
+    
+    public boolean equals(Object o)
+    {
+      if (!(o instanceof OutputAndRepositoryConnection))
+        return false;
+      OutputAndRepositoryConnection x = (OutputAndRepositoryConnection)o;
+      return this.outputConnectionName.equals(x.outputConnectionName) && this.repositoryConnectionName.equals(x.repositoryConnectionName);
+    }
+    
+    public int hashCode()
+    {
+      return outputConnectionName.hashCode() + repositoryConnectionName.hashCode();
+    }
+  }
+  
+  /** The ingest logger class */
+  protected static class OutputNotifyActivity implements IOutputNotifyActivity
+  {
+
+    // Connection name
+    protected String connectionName;
+    // Connection manager
+    protected IRepositoryConnectionManager connMgr;
+    // Output connection name
+    protected String outputConnectionName;
+
+    /** Constructor */
+    public OutputNotifyActivity(String connectionName, IRepositoryConnectionManager connMgr, String outputConnectionName)
+    {
+      this.connectionName = connectionName;
+      this.connMgr = connMgr;
+      this.outputConnectionName = outputConnectionName;
+    }
+
+    /** Record time-stamped information about the activity of the output connector.
+    *@param startTime is either null or the time since the start of epoch in milliseconds (Jan 1, 1970).  Every
+    *       activity has an associated time; the startTime field records when the activity began.  A null value
+    *       indicates that the start time and the finishing time are the same.
+    *@param activityType is a string which is fully interpretable only in the context of the connector involved, which is
+    *       used to categorize what kind of activity is being recorded.  For example, a web connector might record a
+    *       "fetch document" activity.  Cannot be null.
+    *@param dataSize is the number of bytes of data involved in the activity, or null if not applicable.
+    *@param entityURI is a (possibly long) string which identifies the object involved in the history record.
+    *       The interpretation of this field will differ from connector to connector.  May be null.
+    *@param resultCode contains a terse description of the result of the activity.  The description is limited in
+    *       size to 255 characters, and can be interpreted only in the context of the current connector.  May be null.
+    *@param resultDescription is a (possibly long) human-readable string which adds detail, if required, to the result
+    *       described in the resultCode field.  This field is not meant to be queried on.  May be null.
+    */
+    public void recordActivity(Long startTime, String activityType, Long dataSize,
+      String entityURI, String resultCode, String resultDescription)
+      throws ACFException
+    {
+      connMgr.recordHistory(connectionName,startTime,ACF.qualifyOutputActivityName(activityType,outputConnectionName),dataSize,entityURI,resultCode,
+        resultDescription,null);
+    }
+
+  }
 }

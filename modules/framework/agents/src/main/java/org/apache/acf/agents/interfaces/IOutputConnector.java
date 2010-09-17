@@ -134,8 +134,9 @@ public interface IOutputConnector extends IConnector
   /** Notify the connector of a completed job.
   * This is meant to allow the connector to flush any internal data structures it has been keeping around, or to tell the output repository that this
   * is a good time to synchronize things.  It is called whenever a job is either completed or aborted.
+  *@param activities is the handle to an object that the implementer of an output connector may use to perform operations, such as logging processing activity.
   */
-  public void noteJobComplete()
+  public void noteJobComplete(IOutputNotifyActivity activities)
     throws ACFException, ServiceInterruption;
 
   // UI support methods.
