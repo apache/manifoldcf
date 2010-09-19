@@ -283,6 +283,18 @@ public interface IDBInterface
   */
   public String constructOffsetLimitClause(int offset, int limit);
   
+  /** Construct a 'distinct on (x)' filter.
+  * This filter wraps a query and returns a new query whose results are similar to POSTGRESQL's DISTINCT-ON feature.
+  * Specifically, for each combination of the specified distinct fields in the result, only the first such row is included in the final
+  * result.
+  *@param baseQuery is the base query, which can either be tables and where clause, or can be another SELECT in parens,
+  * e.g. "(SELECT ...) t3"
+  *@param distinctFields are the fields to consider to be distinct.
+  *@param otherFields are the rest of the fields to return, keyed by the AS name, value being the column value, e.g. "value AS key"
+  *@return a revised query that performs the necessary DISTINCT ON operation.
+  */
+  public String constructDistinctOnClause(String baseQuery, String[] distinctFields, Map otherFields);
+  
   /** Quote a sql string.
   * This method quotes a sql string in the proper manner for the database in question.
   *@param string is the input string.

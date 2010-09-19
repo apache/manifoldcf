@@ -329,19 +329,24 @@ public class RepositoryHistoryManager extends org.apache.acf.core.database.BaseT
     // items to the list.  One is based on the start time of the current record; the other is based on the
     // end time of the current record.  That's why there are two inner clauses with a UNION.
 
-    StringBuffer sb = new StringBuffer("SELECT * FROM (SELECT DISTINCT ON (idbucket) t3.bucket AS idbucket, t3.activitycount AS activitycount, t3.windowstart AS starttime, t3.windowend AS endtime FROM (SELECT * FROM (SELECT ");
+    StringBuffer sb = new StringBuffer();
+    sb.append("(SELECT * FROM (SELECT t6.bucket AS bucket,")
+      .append("t6.windowstart AS windowstart,t6.windowend AS windowend, SUM(t6.activitycount) AS activitycount")
+      .append(" FROM (SELECT ");
 
     // Turn the interval into a string, since we'll need it a lot.
     String intervalString = new Long(interval).toString();
 
     sb.append("t0.bucket AS bucket, t0.").append(startTimeField).append(" AS windowstart, t0.")
-      .append(startTimeField).append("+").append(intervalString).append(" AS windowend, SUM(CAST(((CASE WHEN t0.")
+      .append(startTimeField).append("+").append(intervalString).append(" AS windowend, ")
+      .append("CAST(((CASE WHEN t0.")
       .append(startTimeField).append("+").append(intervalString).append("<t1.").append(endTimeField)
       .append(" THEN t0.").append(startTimeField).append("+").append(intervalString).append(" ELSE t1.")
       .append(endTimeField).append(" END) - (CASE WHEN t0.").append(startTimeField).append(">t1.").append(startTimeField)
       .append(" THEN t0.").append(startTimeField).append(" ELSE t1.").append(startTimeField)
       .append(" END)) AS DOUBLE PRECISION) / CAST((t1.").append(endTimeField).append("-t1.").append(startTimeField)
-      .append(") AS DOUBLE PRECISION)) AS activitycount FROM (SELECT DISTINCT ");
+      .append(") AS DOUBLE PRECISION)")
+      .append(" AS activitycount FROM (SELECT DISTINCT ");
     addBucketExtract(sb,"",entityIdentifierField,idBucket);
     sb.append(" AS bucket,").append(startTimeField).append(" FROM ").append(getTableName());
     addCriteria(sb,"",connectionName,filterCriteria,false);
@@ -352,9 +357,12 @@ public class RepositoryHistoryManager extends org.apache.acf.core.database.BaseT
     sb.append(" AND t1.").append(startTimeField).append("<t0.").append(startTimeField).append("+").append(intervalString)
       .append(" AND t1.").append(endTimeField).append(">t0.").append(startTimeField);
     addCriteria(sb,"t1.",connectionName,filterCriteria,true);
-    sb.append(" GROUP BY bucket,windowstart,windowend UNION SELECT ");
+    sb.append(") t6 GROUP BY bucket,windowstart,windowend UNION SELECT t6a.bucket AS bucket,")
+      .append("t6a.windowstart AS windowstart, t6a.windowend AS windowend, SUM(t6a.activitycount) AS activitycount")
+      .append(" FROM (SELECT ");
     sb.append("t0a.bucket AS bucket, t0a.").append(endTimeField).append("-").append(intervalString).append(" AS windowstart, t0a.")
-      .append(endTimeField).append(" AS windowend, SUM(CAST(((CASE WHEN t0a.")
+      .append(endTimeField).append(" AS windowend, ")
+      .append("CAST(((CASE WHEN t0a.")
       .append(endTimeField).append("<t1a.").append(endTimeField)
       .append(" THEN t0a.").append(endTimeField).append(" ELSE t1a.")
       .append(endTimeField).append(" END) - (CASE WHEN t0a.").append(endTimeField).append("-").append(intervalString)
@@ -362,7 +370,8 @@ public class RepositoryHistoryManager extends org.apache.acf.core.database.BaseT
       .append(" THEN t0a.").append(endTimeField).append("-").append(intervalString).append(" ELSE t1a.")
       .append(startTimeField)
       .append(" END)) AS DOUBLE PRECISION) / CAST((t1a.").append(endTimeField).append("-t1a.").append(startTimeField)
-      .append(") AS DOUBLE PRECISION)) AS activitycount FROM (SELECT DISTINCT ");
+      .append(") AS DOUBLE PRECISION)")
+      .append(" AS activitycount FROM (SELECT DISTINCT ");
     addBucketExtract(sb,"",entityIdentifierField,idBucket);
     sb.append(" AS bucket,").append(endTimeField).append(" FROM ").append(getTableName());
     addCriteria(sb,"",connectionName,filterCriteria,false);
@@ -373,7 +382,16 @@ public class RepositoryHistoryManager extends org.apache.acf.core.database.BaseT
     sb.append(" AND t1a.").append(startTimeField).append("<t0a.").append(endTimeField)
       .append(" AND t1a.").append(endTimeField).append(">t0a.").append(endTimeField).append("-").append(intervalString);
     addCriteria(sb,"t1a.",connectionName,filterCriteria,true);
-    sb.append(" GROUP BY bucket,windowstart,windowend) t2 ORDER BY bucket ASC, activitycount DESC) t3) t4");
+    sb.append(") t6a GROUP BY bucket,windowstart,windowend) t2 ORDER BY bucket ASC, activitycount DESC) t3");
+
+    Map otherColumns = new HashMap();
+    otherColumns.put("idbucket","t3.bucket");
+    otherColumns.put("activitycount","t3.activitycount");
+    otherColumns.put("starttime","t3.windowstart");
+    otherColumns.put("endtime","t3.windowend");
+    String filteredQuery = constructDistinctOnClause(sb.toString(),new String[]{"idbucket"},otherColumns);
+    sb = new StringBuffer("SELECT * FROM (");
+    sb.append(filteredQuery).append(") t4");
     addOrdering(sb,new String[]{"activitycount","starttime","endtime","idbucket"},sort);
     addLimits(sb,startRow,maxRowCount);
     return performQuery(sb.toString(),null,null,null,maxRowCount);
@@ -416,20 +434,25 @@ public class RepositoryHistoryManager extends org.apache.acf.core.database.BaseT
     // items to the list.  One is based on the start time of the current record; the other is based on the
     // end time of the current record.  That's why there are two inner clauses with a UNION.
 
-    StringBuffer sb = new StringBuffer("SELECT * FROM (SELECT DISTINCT ON (idbucket) t3.bucket AS idbucket, t3.bytecount AS bytecount, t3.windowstart AS starttime, t3.windowend AS endtime FROM (SELECT * FROM (SELECT ");
+    StringBuffer sb = new StringBuffer();
+    sb.append("(SELECT * FROM (SELECT t6.bucket AS bucket,")
+      .append("t6.windowstart AS windowstart, t6.windowend AS windowend, SUM(t6.bytecount) AS bytecount")
+      .append(" FROM (SELECT ");
 
     // Turn the interval into a string, since we'll need it a lot.
     String intervalString = new Long(interval).toString();
 
     sb.append("t0.bucket AS bucket, t0.").append(startTimeField).append(" AS windowstart, t0.")
-      .append(startTimeField).append("+").append(intervalString).append(" AS windowend, SUM(t1.").append(dataSizeField)
+      .append(startTimeField).append("+").append(intervalString).append(" AS windowend, ")
+      .append("t1.").append(dataSizeField)
       .append(" * ((CASE WHEN t0.")
       .append(startTimeField).append("+").append(intervalString).append("<t1.").append(endTimeField)
       .append(" THEN t0.").append(startTimeField).append("+").append(intervalString).append(" ELSE t1.")
       .append(endTimeField).append(" END) - (CASE WHEN t0.").append(startTimeField).append(">t1.").append(startTimeField)
       .append(" THEN t0.").append(startTimeField).append(" ELSE t1.").append(startTimeField)
       .append(" END)) / (t1.").append(endTimeField).append("-t1.").append(startTimeField)
-      .append(")) AS bytecount FROM (SELECT DISTINCT ");
+      .append(")")
+      .append(" AS bytecount FROM (SELECT DISTINCT ");
     addBucketExtract(sb,"",entityIdentifierField,idBucket);
     sb.append(" AS bucket,").append(startTimeField).append(" FROM ").append(getTableName());
     addCriteria(sb,"",connectionName,filterCriteria,false);
@@ -440,9 +463,12 @@ public class RepositoryHistoryManager extends org.apache.acf.core.database.BaseT
     sb.append(" AND t1.").append(startTimeField).append("<t0.").append(startTimeField).append("+").append(intervalString)
       .append(" AND t1.").append(endTimeField).append(">t0.").append(startTimeField);
     addCriteria(sb,"t1.",connectionName,filterCriteria,true);
-    sb.append(" GROUP BY bucket,windowstart,windowend UNION SELECT ")
+    sb.append(") t6 GROUP BY bucket,windowstart,windowend UNION SELECT t6a.bucket AS bucket,")
+      .append("t6a.windowstart AS windowstart, t6a.windowend AS windowend, SUM(t6a.bytecount) AS bytecount")
+      .append(" FROM (SELECT ")
       .append("t0a.bucket AS bucket, t0a.").append(endTimeField).append("-").append(intervalString).append(" AS windowstart, t0a.")
-      .append(endTimeField).append(" AS windowend, SUM(t1a.").append(dataSizeField).append(" * ((CASE WHEN t0a.")
+      .append(endTimeField).append(" AS windowend, ")
+      .append("t1a.").append(dataSizeField).append(" * ((CASE WHEN t0a.")
       .append(endTimeField).append("<t1a.").append(endTimeField)
       .append(" THEN t0a.").append(endTimeField).append(" ELSE t1a.")
       .append(endTimeField).append(" END) - (CASE WHEN t0a.").append(endTimeField).append("-").append(intervalString)
@@ -450,7 +476,8 @@ public class RepositoryHistoryManager extends org.apache.acf.core.database.BaseT
       .append(" THEN t0a.").append(endTimeField).append("-").append(intervalString).append(" ELSE t1a.")
       .append(startTimeField)
       .append(" END)) / (t1a.").append(endTimeField).append("-t1a.").append(startTimeField)
-      .append(")) AS bytecount FROM (SELECT DISTINCT ");
+      .append(")")
+      .append(" AS bytecount FROM (SELECT DISTINCT ");
     addBucketExtract(sb,"",entityIdentifierField,idBucket);
     sb.append(" AS bucket,").append(endTimeField).append(" FROM ").append(getTableName());
     addCriteria(sb,"",connectionName,filterCriteria,false);
@@ -461,8 +488,16 @@ public class RepositoryHistoryManager extends org.apache.acf.core.database.BaseT
     sb.append(" AND t1a.").append(startTimeField).append("<t0a.").append(endTimeField)
       .append(" AND t1a.").append(endTimeField).append(">t0a.").append(endTimeField).append("-").append(intervalString);
     addCriteria(sb,"t1a.",connectionName,filterCriteria,true);
-    sb.append(" GROUP BY bucket,windowstart,windowend) t2 ORDER BY bucket ASC, bytecount DESC) t3) t4");
-
+    sb.append(") t6a GROUP BY bucket,windowstart,windowend) t2 ORDER BY bucket ASC, bytecount DESC) t3");
+    
+    Map otherColumns = new HashMap();
+    otherColumns.put("idbucket","t3.bucket");
+    otherColumns.put("bytecount","t3.bytecount");
+    otherColumns.put("starttime","t3.windowstart");
+    otherColumns.put("endtime","t3.windowend");
+    String filteredQuery = constructDistinctOnClause(sb.toString(),new String[]{"idbucket"},otherColumns);
+    sb = new StringBuffer("SELECT * FROM (");
+    sb.append(filteredQuery).append(") t4");
     addOrdering(sb,new String[]{"bytecount","starttime","endtime","idbucket"},sort);
     addLimits(sb,startRow,maxRowCount);
     return performQuery(sb.toString(),null,null,null,maxRowCount);
