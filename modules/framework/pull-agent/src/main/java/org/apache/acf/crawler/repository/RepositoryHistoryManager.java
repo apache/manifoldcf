@@ -287,7 +287,7 @@ public class RepositoryHistoryManager extends org.apache.acf.core.database.BaseT
     if (set.getRowCount() < 1)
       throw new ACFException("Expected at least one row");
     IResultRow row = set.getRow(0);
-    Long value = (Long)row.getValue("countcol");
+    Long value = new Long(row.getValue("countcol").toString());
     return value.longValue();
   }
 
@@ -477,19 +477,19 @@ public class RepositoryHistoryManager extends org.apache.acf.core.database.BaseT
   {
     // The query we'll use here will be:
     //
-    // SELECT substring(resultcode FROM '<result_regexp>') AS resultcodebucket,
+    // SELECT * FROM (SELECT substring(resultcode FROM '<result_regexp>') AS resultcodebucket,
     //        substring(entityidentifier FROM '<id_regexp>') AS idbucket,
-    //        COUNT('x') AS eventcount FROM repohistory WHERE <criteria>
-    //              GROUP BY resultcodebucket,idbucket
+    //        COUNT('x') AS eventcount FROM repohistory WHERE <criteria>) t1
+    //              GROUP BY t1.resultcodebucket,t1.idbucket
     //                      ORDER BY xxx LIMIT yyy OFFSET zzz
 
-    StringBuffer sb = new StringBuffer("SELECT ");
+    StringBuffer sb = new StringBuffer("SELECT t1.resultcodebucket,t1.idbucket,COUNT('x') AS eventcount FROM (SELECT ");
     addBucketExtract(sb,"",resultCodeField,resultCodeBucket);
     sb.append(" AS resultcodebucket, ");
     addBucketExtract(sb,"",entityIdentifierField,idBucket);
-    sb.append(" AS idbucket, COUNT('x') AS eventcount FROM ").append(getTableName());
+    sb.append(" AS idbucket FROM ").append(getTableName());
     addCriteria(sb,"",connectionName,filterCriteria,false);
-    sb.append(" GROUP BY resultcodebucket,idbucket");
+    sb.append(") t1 GROUP BY resultcodebucket,idbucket");
     addOrdering(sb,new String[]{"eventcount","resultcodebucket","idbucket"},sort);
     addLimits(sb,startRow,maxRowCount);
     return performQuery(sb.toString(),null,null,null,maxRowCount);
@@ -502,17 +502,7 @@ public class RepositoryHistoryManager extends org.apache.acf.core.database.BaseT
   protected void addBucketExtract(StringBuffer sb, String columnPrefix, String columnName, BucketDescription bucketDesc)
   {
     boolean isSensitive = bucketDesc.isSensitive();
-    sb.append("SUBSTRING(");
-    if (!isSensitive)
-      sb.append("LOWER(").append(columnPrefix).append(columnName).append(")");
-    else
-      sb.append(columnPrefix).append(columnName);
-    sb.append(" FROM ");
-    if (!isSensitive)
-      sb.append("LOWER(").append(quoteSQLString(bucketDesc.getRegexp())).append(")");
-    else
-      sb.append(quoteSQLString(bucketDesc.getRegexp()));
-    sb.append(")");
+    sb.append(constructSubstringClause(columnPrefix+columnName,quoteSQLString(bucketDesc.getRegexp()),!isSensitive));
   }
 
   /** Add criteria clauses to query.

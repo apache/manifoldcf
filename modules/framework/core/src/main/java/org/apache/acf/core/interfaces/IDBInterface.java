@@ -257,13 +257,23 @@ public interface IDBInterface
     throws ACFException;
 
   /** Construct a regular-expression match clause.
-  * This method builds both the text part of a regular-expression match.
+  * This method builds a regular-expression match expression.
   *@param column is the column specifier string.
   *@param regularExpression is the properly-quoted regular expression string, or "?" if a parameterized value is to be used.
-  *@param caseInsensitive is true of the regular expression match is to be case insensitive.
+  *@param caseInsensitive is true if the regular expression match is to be case insensitive.
   *@return the query chunk needed, not padded with spaces on either side.
   */
   public String constructRegexpClause(String column, String regularExpression, boolean caseInsensitive);
+  
+  /** Construct a regular-expression substring clause.
+  * This method builds an expression that extracts a specified string section from a field, based on
+  * a regular expression.
+  *@param column is the column specifier string.
+  *@param regularExpression is the properly-quoted regular expression string, or "?" if a parameterized value is to be used.
+  *@param caseInsensitive is true if the regular expression match is to be case insensitive.
+  *@return the expression chunk needed, not padded with spaces on either side.
+  */
+  public String constructSubstringClause(String column, String regularExpression, boolean caseInsensitive);
   
   /** Construct an offset/limit clause.
   * This method constructs an offset/limit clause in the proper manner for the database in question.

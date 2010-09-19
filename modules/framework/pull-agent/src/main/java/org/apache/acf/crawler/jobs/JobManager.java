@@ -5894,17 +5894,21 @@ public class JobManager implements IJobManager
 
     Long currentTime = new Long(System.currentTimeMillis());
 
-    StringBuffer sb = new StringBuffer("SELECT ");
+    StringBuffer sb = new StringBuffer();
+    sb.append("SELECT t1.idbucket,SUM(t1.inactive) AS inactive,SUM(t1.processing) AS processing,SUM(t1.expiring) AS expiring,SUM(t1.deleting) AS deleting,")
+      .append("SUM(t1.processready) AS processready,SUM(t1.expireready) AS expireready,SUM(t1.processwaiting) AS processwaiting,SUM(t1.expirewaiting) AS expirewaiting,")
+      .append("SUM(t1.waitingforever) AS waitingforever FROM (SELECT ");
     addBucketExtract(sb,"",jobQueue.docIDField,idBucketDescription);
     sb.append(" AS idbucket,")
-      .append("SUM(CASE")
+      .append("CASE")
       .append(" WHEN ")
       .append("(").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_COMPLETE)))
       .append(" OR ").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PURGATORY)))
       .append(")")
       .append(" THEN 1 ELSE 0")
-      .append(" END) AS inactive,")
-      .append("SUM(CASE")
+      .append(" END")
+      .append(" AS inactive,")
+      .append("CASE")
       .append(" WHEN ")
       .append("(").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVE)))
       .append(" OR ").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN)))
@@ -5913,8 +5917,9 @@ public class JobManager implements IJobManager
       .append(")")
       .append(" AND (").append(jobQueue.checkActionField).append(" IS NULL OR ").append(jobQueue.checkActionField).append("=").append(database.quoteSQLString(jobQueue.actionToString(jobQueue.ACTION_RESCAN))).append(")")
       .append(" THEN 1 ELSE 0")
-      .append(" END) as processing,")
-      .append("SUM(CASE")
+      .append(" END")
+      .append(" as processing,")
+      .append("CASE")
       .append(" WHEN ")
       .append("(").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVE)))
       .append(" OR ").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN)))
@@ -5923,13 +5928,15 @@ public class JobManager implements IJobManager
       .append(")")
       .append(" AND ").append(jobQueue.checkActionField).append("=").append(database.quoteSQLString(jobQueue.actionToString(jobQueue.ACTION_REMOVE)))
       .append(" THEN 1 ELSE 0")
-      .append(" END) as expiring,")
-      .append("SUM(CASE")
+      .append(" END")
+      .append(" as expiring,")
+      .append("CASE")
       .append(" WHEN ")
       .append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED)))
       .append(" THEN 1 ELSE 0")
-      .append(" END) as deleting,")
-      .append("SUM(CASE")
+      .append(" END")
+      .append(" as deleting,")
+      .append("CASE")
       .append(" WHEN ")
       .append("(").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDING)))
       .append(" OR ").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY)))
@@ -5937,8 +5944,9 @@ public class JobManager implements IJobManager
       .append(" AND ").append(jobQueue.checkTimeField).append("<=").append(currentTime.toString())
       .append(" AND (").append(jobQueue.checkActionField).append(" IS NULL OR ").append(jobQueue.checkActionField).append("=").append(database.quoteSQLString(jobQueue.actionToString(jobQueue.ACTION_RESCAN))).append(")")
       .append(" THEN 1 ELSE 0")
-      .append(" END) as processready,")
-      .append("SUM(CASE")
+      .append(" END")
+      .append(" as processready,")
+      .append("CASE")
       .append(" WHEN ")
       .append("(").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDING)))
       .append(" OR ").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY)))
@@ -5946,8 +5954,9 @@ public class JobManager implements IJobManager
       .append(" AND ").append(jobQueue.checkTimeField).append("<=").append(currentTime.toString())
       .append(" AND ").append(jobQueue.checkActionField).append("=").append(database.quoteSQLString(jobQueue.actionToString(jobQueue.ACTION_REMOVE)))
       .append(" THEN 1 ELSE 0")
-      .append(" END) as expireready,")
-      .append("SUM(CASE")
+      .append(" END")
+      .append(" as expireready,")
+      .append("CASE")
       .append(" WHEN ")
       .append("(").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDING)))
       .append(" OR ").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY)))
@@ -5955,8 +5964,9 @@ public class JobManager implements IJobManager
       .append(" AND ").append(jobQueue.checkTimeField).append(">").append(currentTime.toString())
       .append(" AND (").append(jobQueue.checkActionField).append(" IS NULL OR ").append(jobQueue.checkActionField).append("=").append(database.quoteSQLString(jobQueue.actionToString(jobQueue.ACTION_RESCAN))).append(")")
       .append(" THEN 1 ELSE 0")
-      .append(" END) as processwaiting,")
-      .append("SUM(CASE")
+      .append(" END")
+      .append(" as processwaiting,")
+      .append("CASE")
       .append(" WHEN ")
       .append("(").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDING)))
       .append(" OR ").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY)))
@@ -5964,18 +5974,20 @@ public class JobManager implements IJobManager
       .append(" AND ").append(jobQueue.checkTimeField).append(">").append(currentTime.toString())
       .append(" AND ").append(jobQueue.checkActionField).append("=").append(database.quoteSQLString(jobQueue.actionToString(jobQueue.ACTION_REMOVE)))
       .append(" THEN 1 ELSE 0")
-      .append(" END) as expirewaiting,")
-      .append("SUM(CASE")
+      .append(" END")
+      .append(" as expirewaiting,")
+      .append("CASE")
       .append(" WHEN ")
       .append("(").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDING)))
       .append(" OR ").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY)))
       .append(")")
       .append(" AND ").append(jobQueue.checkTimeField).append(" IS NULL")
       .append(" THEN 1 ELSE 0")
-      .append(" END) as waitingforever");
+      .append(" END")
+      .append(" as waitingforever");
     sb.append(" FROM ").append(jobQueue.getTableName());
     addCriteria(sb,"",connectionName,filterCriteria,false);
-    sb.append(" GROUP BY idbucket");
+    sb.append(") t1 GROUP BY idbucket");
     addOrdering(sb,new String[]{"idbucket","inactive","processing","expiring","deleting","processready","expireready","processwaiting","expirewaiting","waitingforever"},sortOrder);
     addLimits(sb,startRow,rowCount);
     return database.performQuery(sb.toString(),null,null,null,rowCount,null);
@@ -5990,17 +6002,7 @@ public class JobManager implements IJobManager
   protected void addBucketExtract(StringBuffer sb, String columnPrefix, String columnName, BucketDescription bucketDesc)
   {
     boolean isSensitive = bucketDesc.isSensitive();
-    sb.append("SUBSTRING(");
-    if (!isSensitive)
-      sb.append("LOWER(").append(columnPrefix).append(columnName).append(")");
-    else
-      sb.append(columnPrefix).append(columnName);
-    sb.append(" FROM ");
-    if (!isSensitive)
-      sb.append("LOWER(").append(database.quoteSQLString(bucketDesc.getRegexp())).append(")");
-    else
-      sb.append(database.quoteSQLString(bucketDesc.getRegexp()));
-    sb.append(")");
+    sb.append(database.constructSubstringClause(columnPrefix+columnName,database.quoteSQLString(bucketDesc.getRegexp()),!isSensitive));
   }
 
   /** Add criteria clauses to query.

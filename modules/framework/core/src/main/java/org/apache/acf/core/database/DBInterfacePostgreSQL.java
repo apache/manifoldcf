@@ -820,6 +820,31 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
     return column + "~" + (caseInsensitive?"*":"") + regularExpression;
   }
 
+  /** Construct a regular-expression substring clause.
+  * This method builds an expression that extracts a specified string section from a field, based on
+  * a regular expression.
+  *@param column is the column specifier string.
+  *@param regularExpression is the properly-quoted regular expression string, or "?" if a parameterized value is to be used.
+  *@param caseInsensitive is true if the regular expression match is to be case insensitive.
+  *@return the expression chunk needed, not padded with spaces on either side.
+  */
+  public String constructSubstringClause(String column, String regularExpression, boolean caseInsensitive)
+  {
+    StringBuffer sb = new StringBuffer();
+    sb.append("SUBSTRING(");
+    if (caseInsensitive)
+      sb.append("LOWER(").append(column).append(")");
+    else
+      sb.append(column);
+    sb.append(" FROM ");
+    if (caseInsensitive)
+      sb.append("LOWER(").append(regularExpression).append(")");
+    else
+      sb.append(regularExpression);
+    sb.append(")");
+    return sb.toString();
+  }
+
   /** Construct an offset/limit clause.
   * This method constructs an offset/limit clause in the proper manner for the database in question.
   *@param offset is the starting offset number.
