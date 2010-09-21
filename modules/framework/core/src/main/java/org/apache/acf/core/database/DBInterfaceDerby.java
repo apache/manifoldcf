@@ -850,15 +850,37 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   * This filter wraps a query and returns a new query whose results are similar to POSTGRESQL's DISTINCT-ON feature.
   * Specifically, for each combination of the specified distinct fields in the result, only the first such row is included in the final
   * result.
-  *@param baseQuery is the base query, which can either be tables and where clause, or can be another SELECT in parens,
-  * e.g. "(SELECT ...) t3"
-  *@param distinctFields are the fields to consider to be distinct.
-  *@param otherFields are the rest of the fields to return, keyed by the AS name, value being the column value, e.g. "value AS key"
-  *@return a revised query that performs the necessary DISTINCT ON operation.
+  *@param outputParameters is a blank arraylist into which to put parameters.  Null may be used if the baseParameters parameter is null.
+  *@param baseQuery is the base query, which is another SELECT statement, without parens,
+  * e.g. "SELECT ..."
+  *@param baseParameters are the parameters corresponding to the baseQuery.
+  *@param distinctFields are the fields to consider to be distinct.  These should all be keys in otherFields below.
+  *@param otherFields are the rest of the fields to return, keyed by the AS name, value being the base query column value, e.g. "value AS key"
+  *@return a revised query that performs the necessary DISTINCT ON operation.  The arraylist outputParameters will also be appropriately filled in.
   */
-  public String constructDistinctOnClause(String baseQuery, String[] distinctFields, Map otherFields)
+  public String constructDistinctOnClause(ArrayList outputParameters, String baseQuery, ArrayList baseParameters, String[] distinctFields, Map otherFields)
   {
-    // Derby does not support this functionality.  I can find no way around it either.
+    // Derby does not really support this functionality.
+    // We could hack a workaround, along the following lines:
+    //
+    // SELECT
+    //   t1.bucket, t1.bytecount, t1.windowstart, t1.windowend
+    // FROM
+    //   (xxx) t1
+    // WHERE
+    //   t1.bytecount=( SELECT t2.bytecount FROM (xxx) t2 WHERE
+    //     t2.bucket = t1.bucket LIMIT 1 ) AND
+    //   t1.windowstart=( SELECT t2.windowstart FROM (xxx) t2 WHERE
+    //     t2.bucket = t1.bucket LIMIT 1 ) AND
+    //   t1.windowend=( SELECT t2.windowend FROM (xxx) t2 WHERE
+    //     t2.bucket = t1.bucket LIMIT 1 )
+    //
+    // However, the cost of doing 3 identical and very costly queries is likely to be too high for this to be viable.
+
+    // Copy arguments
+    if (baseParameters != null)
+      outputParameters.addAll(baseParameters);
+
     StringBuffer sb = new StringBuffer("SELECT ");
     boolean needComma = false;
     Iterator iter = otherFields.keySet().iterator();
@@ -869,9 +891,9 @@ public class DBInterfaceDerby extends Database implements IDBInterface
       if (needComma)
         sb.append(",");
       needComma = true;
-      sb.append(columnValue).append(" AS ").append(fieldName);
+      sb.append("txxx1.").append(columnValue).append(" AS ").append(fieldName);
     }
-    sb.append(" FROM ").append(baseQuery);
+    sb.append(" FROM (").append(baseQuery).append(") txxx1");
     return sb.toString();
   }
 

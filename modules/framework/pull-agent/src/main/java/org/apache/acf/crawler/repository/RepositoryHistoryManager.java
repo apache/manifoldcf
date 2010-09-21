@@ -330,7 +330,7 @@ public class RepositoryHistoryManager extends org.apache.acf.core.database.BaseT
     // end time of the current record.  That's why there are two inner clauses with a UNION.
 
     StringBuffer sb = new StringBuffer();
-    sb.append("(SELECT * FROM (SELECT t6.bucket AS bucket,")
+    sb.append("SELECT * FROM (SELECT t6.bucket AS bucket,")
       .append("t6.windowstart AS windowstart,t6.windowend AS windowend, SUM(t6.activitycount) AS activitycount")
       .append(" FROM (SELECT ");
 
@@ -382,14 +382,14 @@ public class RepositoryHistoryManager extends org.apache.acf.core.database.BaseT
     sb.append(" AND t1a.").append(startTimeField).append("<t0a.").append(endTimeField)
       .append(" AND t1a.").append(endTimeField).append(">t0a.").append(endTimeField).append("-").append(intervalString);
     addCriteria(sb,"t1a.",connectionName,filterCriteria,true);
-    sb.append(") t6a GROUP BY bucket,windowstart,windowend) t2 ORDER BY bucket ASC, activitycount DESC) t3");
+    sb.append(") t6a GROUP BY bucket,windowstart,windowend) t2 ORDER BY bucket ASC, activitycount DESC");
 
     Map otherColumns = new HashMap();
-    otherColumns.put("idbucket","t3.bucket");
-    otherColumns.put("activitycount","t3.activitycount");
-    otherColumns.put("starttime","t3.windowstart");
-    otherColumns.put("endtime","t3.windowend");
-    String filteredQuery = constructDistinctOnClause(sb.toString(),new String[]{"idbucket"},otherColumns);
+    otherColumns.put("idbucket","bucket");
+    otherColumns.put("activitycount","activitycount");
+    otherColumns.put("starttime","windowstart");
+    otherColumns.put("endtime","windowend");
+    String filteredQuery = constructDistinctOnClause(null,sb.toString(),null,new String[]{"idbucket"},otherColumns);
     sb = new StringBuffer("SELECT * FROM (");
     sb.append(filteredQuery).append(") t4");
     addOrdering(sb,new String[]{"activitycount","starttime","endtime","idbucket"},sort);
@@ -435,7 +435,7 @@ public class RepositoryHistoryManager extends org.apache.acf.core.database.BaseT
     // end time of the current record.  That's why there are two inner clauses with a UNION.
 
     StringBuffer sb = new StringBuffer();
-    sb.append("(SELECT * FROM (SELECT t6.bucket AS bucket,")
+    sb.append("SELECT * FROM (SELECT t6.bucket AS bucket,")
       .append("t6.windowstart AS windowstart, t6.windowend AS windowend, SUM(t6.bytecount) AS bytecount")
       .append(" FROM (SELECT ");
 
@@ -488,14 +488,14 @@ public class RepositoryHistoryManager extends org.apache.acf.core.database.BaseT
     sb.append(" AND t1a.").append(startTimeField).append("<t0a.").append(endTimeField)
       .append(" AND t1a.").append(endTimeField).append(">t0a.").append(endTimeField).append("-").append(intervalString);
     addCriteria(sb,"t1a.",connectionName,filterCriteria,true);
-    sb.append(") t6a GROUP BY bucket,windowstart,windowend) t2 ORDER BY bucket ASC, bytecount DESC) t3");
+    sb.append(") t6a GROUP BY bucket,windowstart,windowend) t2 ORDER BY bucket ASC, bytecount DESC");
     
     Map otherColumns = new HashMap();
-    otherColumns.put("idbucket","t3.bucket");
-    otherColumns.put("bytecount","t3.bytecount");
-    otherColumns.put("starttime","t3.windowstart");
-    otherColumns.put("endtime","t3.windowend");
-    String filteredQuery = constructDistinctOnClause(sb.toString(),new String[]{"idbucket"},otherColumns);
+    otherColumns.put("idbucket","bucket");
+    otherColumns.put("bytecount","bytecount");
+    otherColumns.put("starttime","windowstart");
+    otherColumns.put("endtime","windowend");
+    String filteredQuery = constructDistinctOnClause(null,sb.toString(),null,new String[]{"idbucket"},otherColumns);
     sb = new StringBuffer("SELECT * FROM (");
     sb.append(filteredQuery).append(") t4");
     addOrdering(sb,new String[]{"bytecount","starttime","endtime","idbucket"},sort);
