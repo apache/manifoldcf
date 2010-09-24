@@ -44,6 +44,12 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   // So, once we enter the serializable realm, STOP any additional transactions from doing anything at all.
   protected int serializableDepth = 0;
 
+  // Override the Derby default lock timeout, and make it wait indefinitely instead.
+  static
+  {
+    System.setProperty("derby.locks.waitTimeout","-1");
+  }
+  
   protected static String getFullDatabasePath(String databaseName)
     throws ACFException
   {
