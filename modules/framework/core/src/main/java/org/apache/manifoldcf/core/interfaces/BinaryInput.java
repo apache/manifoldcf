@@ -42,7 +42,7 @@ public abstract class BinaryInput
 
   /** Obtain the stream to pass to JDBC */
   public InputStream getStream()
-    throws ACFException
+    throws ManifoldCFException
   {
     if (stream == null)
       openStream();
@@ -51,7 +51,7 @@ public abstract class BinaryInput
 
   /** Obtain the length to pass to JDBC */
   public long getLength()
-    throws ACFException
+    throws ManifoldCFException
   {
     if (length == -1L)
       calculateLength();
@@ -60,7 +60,7 @@ public abstract class BinaryInput
 
   /** Close the stream we passed to JDBC */
   public void doneWithStream()
-    throws ACFException
+    throws ManifoldCFException
   {
     if (stream != null)
       closeStream();
@@ -71,7 +71,7 @@ public abstract class BinaryInput
 
   /** Discard the object */
   public void discard()
-    throws ACFException
+    throws ManifoldCFException
   {
     doneWithStream();
   }
@@ -79,14 +79,14 @@ public abstract class BinaryInput
   // Protected methods
 
   protected abstract void openStream()
-    throws ACFException;
+    throws ManifoldCFException;
 
   protected abstract void calculateLength()
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Close the stream */
   protected void closeStream()
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -95,11 +95,11 @@ public abstract class BinaryInput
     }
     catch (InterruptedIOException e)
     {
-      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new ACFException("IO exception closing stream: "+e.getMessage(),e,ACFException.GENERAL_ERROR);
+      throw new ManifoldCFException("IO exception closing stream: "+e.getMessage(),e,ManifoldCFException.GENERAL_ERROR);
     }
   }
 

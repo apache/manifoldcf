@@ -36,7 +36,7 @@ public class TransactionHandle
   protected int transactionType;
 
   public TransactionHandle(IThreadContext tc, TransactionHandle previousTransaction, int transactionType)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Grab a unique ID
     transactionID = IDFactory.make(tc);

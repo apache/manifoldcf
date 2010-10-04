@@ -21,7 +21,7 @@ package org.apache.manifoldcf.crawler.jobs;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
-import org.apache.manifoldcf.crawler.system.ACF;
+import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import java.util.*;
 
 /** This is the job queue manager class.  It is responsible for managing the jobqueue database table.
@@ -139,7 +139,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   *@param database is the database handle.
   */
   public JobQueue(IThreadContext tc, IDBInterface database)
-    throws ACFException
+    throws ManifoldCFException
   {
     super(database,"jobqueue");
     this.threadContext = tc;
@@ -149,7 +149,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   /** Install or upgrade.
   */
   public void install(String jobsTable, String jobsColumn)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Standard practice to use outer loop to allow retry in case of upgrade.
     while (true)
@@ -254,7 +254,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
 
   /** Analyze job tables due to major event */
   public void unconditionallyAnalyzeTables()
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -272,7 +272,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   /** Analyze job tables that need analysis.
   */
   public void conditionallyAnalyzeTables()
-    throws ACFException
+    throws ManifoldCFException
   {
     if (tracker.checkAnalyze())
     {
@@ -298,7 +298,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   /** Uninstall.
   */
   public void deinstall()
-    throws ACFException
+    throws ManifoldCFException
   {
     beginTransaction();
     try
@@ -306,7 +306,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       prereqEventManager.deinstall();
       performDrop(null);
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       signalRollback();
       throw e;
@@ -327,7 +327,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   * reasonable, so the jobs can be restarted and work properly to completion.
   */
   public void restart()
-    throws ACFException
+    throws ManifoldCFException
   {
     // Map ACTIVE back to PENDING.
     HashMap map = new HashMap();
@@ -373,7 +373,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   *@param jobID is the job identifier.
   */
   public void clearFailTimes(Long jobID)
-    throws ACFException
+    throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
     list.add(jobID);
@@ -388,7 +388,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   * resets any active documents back to the right state (waiting for stuffing).
   */
   public void resetDocumentWorkerStatus()
-    throws ACFException
+    throws ManifoldCFException
   {
     // Map ACTIVE back to PENDING.
     HashMap map = new HashMap();
@@ -409,7 +409,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   /** Reset doc delete worker status.
   */
   public void resetDocDeleteWorkerStatus()
-    throws ACFException
+    throws ManifoldCFException
   {
     HashMap map = new HashMap();
     ArrayList list = new ArrayList();
@@ -429,7 +429,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   *@param jobID is the job identifier.
   */
   public void prepareFullScan(Long jobID)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Delete PENDING and ACTIVE entries
     ArrayList list = new ArrayList();
@@ -471,7 +471,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   *@param jobID is the job identifier.
   */
   public void prepareIncrementalScan(Long jobID)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Delete PENDING and ACTIVE entries
     ArrayList list = new ArrayList();
@@ -500,7 +500,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   *@param identifiers is the set of document identifiers.
   */
   public void deleteIngestedDocumentIdentifiers(DocumentDescription[] identifiers)
-    throws ACFException
+    throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
     StringBuffer sb = new StringBuffer();
@@ -519,7 +519,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
 
   /** Check if there are any outstanding active documents for a job */
   public boolean checkJobBusy(Long jobID)
-    throws ACFException
+    throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
     list.add(jobID);
@@ -536,7 +536,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   *@param jobID is the job identifier.
   */
   public void deleteAllJobRecords(Long jobID)
-    throws ACFException
+    throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
     list.add(jobID);
@@ -548,7 +548,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
 
   /** Write out a document priority */
   public void writeDocPriority(long currentTime, Long rowID, double priority)
-    throws ACFException
+    throws ManifoldCFException
   {
     HashMap map = new HashMap();
     map.put(prioritySetField,new Long(currentTime));
@@ -562,7 +562,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   /** Set the "completed" status for a record.
   */
   public void updateCompletedRecord(Long recID, int currentStatus)
-    throws ACFException
+    throws ManifoldCFException
   {
     int newStatus;
     String actionFieldValue;
@@ -582,7 +582,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       checkTimeValue = new Long(0L);
       break;
     default:
-      throw new ACFException("Unexpected jobqueue status - record id "+recID.toString()+", expecting active status");
+      throw new ManifoldCFException("Unexpected jobqueue status - record id "+recID.toString()+", expecting active status");
     }
 
     HashMap map = new HashMap();
@@ -605,7 +605,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   *@param currentStatus is the current status
   */
   public void updateActiveRecord(Long id, int currentStatus)
-    throws ACFException
+    throws ManifoldCFException
   {
     int newStatus;
     switch (currentStatus)
@@ -617,7 +617,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       newStatus = STATUS_ACTIVEPURGATORY;
       break;
     default:
-      throw new ACFException("Unexpected status value for jobqueue record "+id.toString()+"; got "+Integer.toString(currentStatus));
+      throw new ManifoldCFException("Unexpected status value for jobqueue record "+id.toString()+"; got "+Integer.toString(currentStatus));
     }
 
     ArrayList list = new ArrayList();
@@ -635,7 +635,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   */
   public void setStatus(Long id, int status,
     Long checkTime, int action, long failTime, int failCount)
-    throws ACFException
+    throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
     list.add(id);
@@ -660,7 +660,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   /** Set the status of a document to "being deleted".
   */
   public void setDeletingStatus(Long id)
-    throws ACFException
+    throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
     list.add(id);
@@ -672,7 +672,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
 
   /** Set the status of a document to be "no longer deleting" */
   public void setUndeletingStatus(Long id)
-    throws ACFException
+    throws ManifoldCFException
   {
     HashMap map = new HashMap();
     map.put(statusField,statusToString(STATUS_COMPLETE));
@@ -689,7 +689,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   *@param ids is the set of job queue id's
   */
   public void deleteRecordMultiple(Long[] ids)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Delete in chunks
     int maxInClause = getMaxInClause();
@@ -720,7 +720,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   /** Do a batch of deletes.
   */
   protected void doDeletes(ArrayList list, String queryPart)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Clean out prereqevents table first
     prereqEventManager.deleteRows(queryPart,list);
@@ -731,7 +731,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   *@param id is the job queue id.
   */
   public void deleteRecord(Long id)
-    throws ACFException
+    throws ManifoldCFException
   {
     deleteRecordMultiple(new Long[]{id});
   }
@@ -741,7 +741,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   */
   public boolean updateExistingRecordInitial(Long recordID, int currentStatus, Long checkTimeValue,
     long desiredExecuteTime, long currentTime, double desiredPriority, String[] prereqEvents)
-    throws ACFException
+    throws ManifoldCFException
   {
     // The general rule here is:
     // If doesn't exist, make a PENDING entry.
@@ -833,7 +833,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   */
   public void insertNewRecordInitial(Long jobID, String docHash, String docID, double desiredDocPriority,
     long desiredExecuteTime, long currentTime, String[] prereqEvents)
-    throws ACFException
+    throws ManifoldCFException
   {
     // No prerequisites should be possible at this point.
     HashMap map = new HashMap();
@@ -861,7 +861,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   * doneDocumentsInitial() method does not clean up seeds from previous runs wrongly.
   */
   public void addRemainingDocumentsInitial(Long jobID, String[] docIDHashes)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (docIDHashes.length == 0)
       return;
@@ -939,7 +939,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
 
   /** Process the specified set of documents. */
   protected void processRemainingDocuments(Map idMap, String query, ArrayList list, Map inSet)
-    throws ACFException
+    throws ManifoldCFException
   {
     IResultSet set = performQuery("SELECT "+idField+","+docHashField+" FROM "+getTableName()+
       " WHERE "+query+" FOR UPDATE",list,null,null);
@@ -958,7 +958,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
 
   /** Update the specified set of documents to be "NEWSEED" */
   protected void updateRemainingDocuments(String query, ArrayList list)
-    throws ACFException
+    throws ManifoldCFException
   {
     HashMap map = new HashMap();
     map.put(isSeedField,seedstatusToString(SEEDSTATUS_NEWSEED));
@@ -973,7 +973,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   *@param isPartial is true of the passed list of seeds is not complete.
   */
   public void doneDocumentsInitial(Long jobID, boolean isPartial)
-    throws ACFException
+    throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
     HashMap map = new HashMap();
@@ -997,7 +997,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   *@return the document identifier hashes that are currently considered to be seeds.
   */
   public String[] getAllSeeds(Long jobID)
-    throws ACFException
+    throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
     list.add(jobID);
@@ -1020,7 +1020,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   public boolean updateExistingRecord(Long recordID, int currentStatus, Long checkTimeValue,
     long desiredExecuteTime, long currentTime, boolean otherChangesSeen, double desiredPriority,
     String[] prereqEvents)
-    throws ACFException
+    throws ManifoldCFException
   {
     boolean rval = false;
     HashMap map = new HashMap();
@@ -1147,7 +1147,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   */
   public void insertNewRecord(Long jobID, String docIDHash, String docID, double desiredDocPriority, long desiredExecuteTime,
     long currentTime, String[] prereqEvents)
-    throws ACFException
+    throws ManifoldCFException
   {
     HashMap map = new HashMap();
     Long recordID = new Long(IDFactory.make(threadContext));
@@ -1171,7 +1171,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   /** Convert seedstatus value to a string.
   */
   public static String seedstatusToString(int status)
-    throws ACFException
+    throws ManifoldCFException
   {
     switch (status)
     {
@@ -1182,37 +1182,37 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     case SEEDSTATUS_NEWSEED:
       return "N";
     default:
-      throw new ACFException("Invalid seed status: "+Integer.toString(status));
+      throw new ManifoldCFException("Invalid seed status: "+Integer.toString(status));
     }
   }
 
   /** Convert seedstatus field value to a boolean.
   */
   public static int stringToSeedstatus(String x)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (x == null || x.length() == 0)
       return SEEDSTATUS_NOTSEED;
     Integer y = (Integer)seedstatusMap.get(x);
     if (y == null)
-      throw new ACFException("Unknown seed status code: "+x);
+      throw new ManifoldCFException("Unknown seed status code: "+x);
     return y.intValue();
   }
 
   /** Convert action field value to integer.
   */
   public static int stringToAction(String value)
-    throws ACFException
+    throws ManifoldCFException
   {
     Integer x = (Integer)actionMap.get(value);
     if (x == null)
-      throw new ACFException("Unknown action string: '"+value+"'");
+      throw new ManifoldCFException("Unknown action string: '"+value+"'");
     return x.intValue();
   }
 
   /** Convert integer to action string */
   public static String actionToString(int action)
-    throws ACFException
+    throws ManifoldCFException
   {
     switch (action)
     {
@@ -1221,7 +1221,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     case ACTION_REMOVE:
       return "D";
     default:
-      throw new ACFException("Bad action value: "+Integer.toString(action));
+      throw new ManifoldCFException("Bad action value: "+Integer.toString(action));
     }
   }
 
@@ -1230,11 +1230,11 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   *@return the integer.
   */
   public static int stringToStatus(String value)
-    throws ACFException
+    throws ManifoldCFException
   {
     Integer x = (Integer)statusMap.get(value);
     if (x == null)
-      throw new ACFException("Unknown status string: '"+value+"'");
+      throw new ManifoldCFException("Unknown status string: '"+value+"'");
     return x.intValue();
   }
 
@@ -1243,7 +1243,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   *@return the database string.
   */
   public static String statusToString(int status)
-    throws ACFException
+    throws ManifoldCFException
   {
     switch (status)
     {
@@ -1266,7 +1266,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     case STATUS_ACTIVENEEDRESCANPURGATORY:
       return "f";
     default:
-      throw new ACFException("Bad status value: "+Integer.toString(status));
+      throw new ManifoldCFException("Bad status value: "+Integer.toString(status));
     }
 
   }
@@ -1277,9 +1277,9 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   *@return the hash code.
   */
   public static String getHashCode(String documentIdentifier)
-    throws ACFException
+    throws ManifoldCFException
   {
-    return ACF.hash(documentIdentifier);
+    return ManifoldCF.hash(documentIdentifier);
   }
 
   /** Analyze tracker class.
@@ -1390,7 +1390,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     *@return true if it should be included, false otherwise.
     */
     public boolean checkInclude(IResultRow row)
-      throws ACFException
+      throws ManifoldCFException
     {
       Long jobID = (Long)row.getValue(jobIDField);
       String docIDHash = (String)row.getValue(docHashField);
@@ -1406,7 +1406,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     *@return true if we need to keep going, or false if we are done.
     */
     public boolean checkContinue()
-      throws ACFException
+      throws ManifoldCFException
     {
       return true;
     }

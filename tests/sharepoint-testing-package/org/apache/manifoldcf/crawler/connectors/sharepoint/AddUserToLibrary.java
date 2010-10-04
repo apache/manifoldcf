@@ -50,7 +50,7 @@ public class AddUserToLibrary
                         }
                         System.err.println("Successfully added user");
                 }
-                catch (ACFException e)
+                catch (ManifoldCFException e)
                 {
                         e.printStackTrace(System.err);
                         System.exit(2);

@@ -16,7 +16,7 @@
 */
 package org.apache.manifoldcf.crawler.connectors.sharedrive;
 
-import org.apache.manifoldcf.core.interfaces.ACFException;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 import java.io.FileOutputStream;
 import java.io.FileInputStream;
@@ -54,7 +54,7 @@ public class SharedDriveHelpers
   *@param password is the password.
   */
   public SharedDriveHelpers(String serverName, String userName, String password)
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -65,14 +65,14 @@ public class SharedDriveHelpers
     }
     catch (MalformedURLException e)
     {
-      throw new ACFException("Unable to access SMB/CIFS share: "+serverName, e, ACFException.SETUP_ERROR);
+      throw new ManifoldCFException("Unable to access SMB/CIFS share: "+serverName, e, ManifoldCFException.SETUP_ERROR);
     }
   }
 
   /** Close the connection.
   */
   public void close()
-    throws ACFException
+    throws ManifoldCFException
   {
     // Just let stuff go
     pa = null;
@@ -85,7 +85,7 @@ public class SharedDriveHelpers
   *@return the target path if the document is found, or "" if it is not.
   */
   public String lookupDocument(String targetPath)
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -97,7 +97,7 @@ public class SharedDriveHelpers
     }
     catch (IOException e)
     {
-      throw new ACFException("IO exception: "+e.getMessage(),e);
+      throw new ManifoldCFException("IO exception: "+e.getMessage(),e);
     }
   }
 
@@ -108,7 +108,7 @@ public class SharedDriveHelpers
   *@return the target path.
   */
   public String addDocument(String targetPath, String sourceFile)
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -150,7 +150,7 @@ public class SharedDriveHelpers
     }
     catch (IOException e)
     {
-      throw new ACFException("IO exception: "+e.getMessage(),e);
+      throw new ManifoldCFException("IO exception: "+e.getMessage(),e);
     }
   }
 
@@ -159,7 +159,7 @@ public class SharedDriveHelpers
   *       separated by "/" characters.
   */
   public void deleteDocument(String targetPath)
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -169,7 +169,7 @@ public class SharedDriveHelpers
     }
     catch (IOException e)
     {
-      throw new ACFException("IO exception: "+e.getMessage(),e);
+      throw new ManifoldCFException("IO exception: "+e.getMessage(),e);
     }
   }
 
@@ -179,7 +179,7 @@ public class SharedDriveHelpers
   *@param userName is the user to add.
   */
   public void addUserToFolder(String targetPath, String userName)
-    throws ACFException
+    throws ManifoldCFException
   {
     // MHL
   }
@@ -190,7 +190,7 @@ public class SharedDriveHelpers
   *@param userName is the user to remove.
   */
   public void removeUserFromFolder(String targetPath, String userName)
-    throws ACFException
+    throws ManifoldCFException
   {
     // MHL
   }

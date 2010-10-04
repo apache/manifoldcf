@@ -49,13 +49,13 @@ public class GetJobSchedule
 
     try
     {
-      ACF.initializeEnvironment();
+      ManifoldCF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
       IJobManager jobManager = JobManagerFactory.make(tc);
 
       IJobDescription job = jobManager.load(new Long(jobID));
       if (job == null)
-        throw new ACFException("No such job: "+jobID);
+        throw new ManifoldCFException("No such job: "+jobID);
 
       int i = 0;
       while (i < job.getScheduleRecordCount())

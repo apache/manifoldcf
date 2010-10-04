@@ -100,7 +100,7 @@ public class Robots
 
   /** Decide whether a specific robot can crawl a specific URL.
   * A ServiceInterruption exception is thrown if the fetch itself fails in a transient way.
-  * A permanent failure (such as an invalid URL) with throw a ACFException.
+  * A permanent failure (such as an invalid URL) with throw a ManifoldCFException.
   *@param userAgent is the user-agent string used by the robot.
   *@param from is the email address.
   *@param protocol is the name of the protocol (e.g. "http")
@@ -115,7 +115,7 @@ public class Robots
     long minimumMillisecondsPerFetchPerServer,
     String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword,
     IVersionActivity activities, int connectionLimit)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     String identifyingString = protocol + "://" + hostName;
     if (port != -1)
@@ -263,7 +263,7 @@ public class Robots
       long minimumMillisecondsPerFetchPerServer,
       String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword,
       IVersionActivity activities, int connectionLimit)
-      throws ServiceInterruption, ACFException
+      throws ServiceInterruption, ManifoldCFException
     {
       synchronized (this)
       {
@@ -278,7 +278,7 @@ public class Robots
             }
             catch (InterruptedException e)
             {
-              throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+              throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
             }
             // Back around...
           }
@@ -294,7 +294,7 @@ public class Robots
               }
               catch (InterruptedException e)
               {
-                throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+                throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
               }
               // Back around...
             }
@@ -440,7 +440,7 @@ public class Robots
       long minimumMillisecondsPerFetchPerServer,
       String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword,
       String hostName, IVersionActivity activities, int connectionLimit)
-      throws ServiceInterruption, ACFException
+      throws ServiceInterruption, ManifoldCFException
     {
       invalidTime = currentTime + 24L * 60L * 60L * 1000L;
 
@@ -506,7 +506,7 @@ public class Robots
       }
       catch (InterruptedIOException e)
       {
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (IOException e)
       {
@@ -523,7 +523,7 @@ public class Robots
     * Is NOT expected to close the stream.
     */
     protected void parseRobotsTxt(BufferedReader r, String hostName, IVersionActivity activities)
-      throws IOException, ACFException
+      throws IOException, ManifoldCFException
     {
       boolean parseCompleted = false;
       boolean robotsWasHtml = false;

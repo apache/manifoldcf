@@ -28,7 +28,7 @@
 %>
 
 <%
-	org.apache.manifoldcf.crawler.system.ACF.initializeEnvironment();
+	org.apache.manifoldcf.crawler.system.ManifoldCF.initializeEnvironment();
 %>
 
 <jsp:useBean id="thread" class="org.apache.manifoldcf.ui.beans.ThreadContext" scope="request"/>

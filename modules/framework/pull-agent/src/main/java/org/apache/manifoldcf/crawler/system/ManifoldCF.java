@@ -1,4 +1,4 @@
-/* $Id: ACF.java 996524 2010-09-13 13:38:01Z kwright $ */
+/* $Id: ManifoldCF.java 996524 2010-09-13 13:38:01Z kwright $ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -25,9 +25,9 @@ import org.apache.manifoldcf.authorities.interfaces.*;
 import java.io.*;
 import java.util.*;
 
-public class ACF extends org.apache.manifoldcf.agents.system.ACF
+public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 {
-  public static final String _rcsid = "@(#)$Id: ACF.java 996524 2010-09-13 13:38:01Z kwright $";
+  public static final String _rcsid = "@(#)$Id: ManifoldCF.java 996524 2010-09-13 13:38:01Z kwright $";
 
   // Initialization flag.
   protected static boolean crawlerInitialized = false;
@@ -80,16 +80,16 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
   /** Initialize environment.
   */
   public static void initializeEnvironment()
-    throws ACFException
+    throws ManifoldCFException
   {
     synchronized (initializeFlagLock)
     {
-      org.apache.manifoldcf.authorities.system.ACF.initializeEnvironment();
+      org.apache.manifoldcf.authorities.system.ManifoldCF.initializeEnvironment();
       
       if (crawlerInitialized)
         return;
       
-      org.apache.manifoldcf.agents.system.ACF.initializeEnvironment();
+      org.apache.manifoldcf.agents.system.ManifoldCF.initializeEnvironment();
       Logging.initializeLoggers();
       Logging.setLogLevels();
       crawlerInitialized = true;
@@ -101,12 +101,12 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
   *@param threadcontext is the thread context.
   */
   public static void installSystemTables(IThreadContext threadcontext)
-    throws ACFException
+    throws ManifoldCFException
   {
     IConnectorManager repConnMgr = ConnectorManagerFactory.make(threadcontext);
     IRepositoryConnectionManager repCon = RepositoryConnectionManagerFactory.make(threadcontext);
     IJobManager jobManager = JobManagerFactory.make(threadcontext);
-    org.apache.manifoldcf.authorities.system.ACF.installSystemTables(threadcontext);
+    org.apache.manifoldcf.authorities.system.ManifoldCF.installSystemTables(threadcontext);
     repConnMgr.install();
     repCon.install();
     jobManager.install();
@@ -116,9 +116,9 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
   *@param threadcontext is the thread context.
   */
   public static void deinstallSystemTables(IThreadContext threadcontext)
-    throws ACFException
+    throws ManifoldCFException
   {
-    ACFException se = null;
+    ManifoldCFException se = null;
 
     IConnectorManager repConnMgr = ConnectorManagerFactory.make(threadcontext);
     IRepositoryConnectionManager repCon = RepositoryConnectionManagerFactory.make(threadcontext);
@@ -126,7 +126,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
     jobManager.deinstall();
     repCon.deinstall();
     repConnMgr.deinstall();
-    org.apache.manifoldcf.authorities.system.ACF.deinstallSystemTables(threadcontext);
+    org.apache.manifoldcf.authorities.system.ManifoldCF.deinstallSystemTables(threadcontext);
     if (se != null)
       throw se;
   }
@@ -135,7 +135,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
   /** Start everything.
   */
   public static void startSystem(IThreadContext threadContext)
-    throws ACFException
+    throws ManifoldCFException
   {
     Logging.root.info("Starting up pull-agent...");
     synchronized (startupLock)
@@ -146,7 +146,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
         maxThreads = "100";
       numWorkerThreads = new Integer(maxThreads).intValue();
       if (numWorkerThreads < 1 || numWorkerThreads > 300)
-        throw new ACFException("Illegal value for the number of worker threads");
+        throw new ManifoldCFException("Illegal value for the number of worker threads");
       String maxDeleteThreads = getProperty(deleteThreadCountProperty);
       if (maxDeleteThreads == null)
         maxDeleteThreads = "10";
@@ -155,22 +155,22 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
         maxExpireThreads = "10";
       numDeleteThreads = new Integer(maxDeleteThreads).intValue();
       if (numDeleteThreads < 1 || numDeleteThreads > 300)
-        throw new ACFException("Illegal value for the number of delete threads");
+        throw new ManifoldCFException("Illegal value for the number of delete threads");
       numExpireThreads = new Integer(maxExpireThreads).intValue();
       if (numExpireThreads < 1 || numExpireThreads > 300)
-        throw new ACFException("Illegal value for the number of expire threads");
+        throw new ManifoldCFException("Illegal value for the number of expire threads");
       String lowWaterFactorString = getProperty(lowWaterFactorProperty);
       if (lowWaterFactorString == null)
         lowWaterFactorString = "5";
       lowWaterFactor = new Float(lowWaterFactorString).floatValue();
       if (lowWaterFactor < 1.0 || lowWaterFactor > 1000.0)
-        throw new ACFException("Illegal value for the low water factor");
+        throw new ManifoldCFException("Illegal value for the low water factor");
       String stuffAmtFactorString = getProperty(stuffAmtFactorProperty);
       if (stuffAmtFactorString == null)
         stuffAmtFactorString = "2";
       stuffAmtFactor = new Float(stuffAmtFactorString).floatValue();
       if (stuffAmtFactor < 0.1 || stuffAmtFactor > 1000.0)
-        throw new ACFException("Illegal value for the stuffing amount factor");
+        throw new ManifoldCFException("Illegal value for the stuffing amount factor");
 
 
       // Create the threads and objects.  This MUST be completed before there is any chance of "shutdownSystem" getting called.
@@ -327,10 +327,10 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
       catch (Throwable e)
       {
         // Severe error on initialization
-        if (e instanceof ACFException)
+        if (e instanceof ManifoldCFException)
         {
           // Deal with interrupted exception gracefully, because it means somebody is trying to shut us down before we got started.
-          if (((ACFException)e).getErrorCode() == ACFException.INTERRUPTED)
+          if (((ManifoldCFException)e).getErrorCode() == ManifoldCFException.INTERRUPTED)
             return;
         }
         System.err.println("agents process could not start - shutting down");
@@ -343,7 +343,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
   /** Stop the system.
   */
   public static void stopSystem(IThreadContext threadContext)
-    throws ACFException
+    throws ManifoldCFException
   {
     Logging.root.info("Shutting down pull-agent...");
     synchronized (startupLock)
@@ -442,7 +442,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
         // Now, wait for all threads to die.
         try
         {
-          ACF.sleep(1000L);
+          ManifoldCF.sleep(1000L);
         }
         catch (InterruptedException e)
         {
@@ -586,14 +586,14 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
 
   /** Atomically export the crawler configuration */
   public static void exportConfiguration(IThreadContext threadContext, String exportFilename)
-    throws ACFException
+    throws ManifoldCFException
   {
     // The basic idea here is that we open a zip stream, into which we dump all the pertinent information in a transactionally-consistent manner.
     // First, we need a database handle...
     IDBInterface database = DBInterfaceFactory.make(threadContext,
-      ACF.getMasterDatabaseName(),
-      ACF.getMasterDatabaseUsername(),
-      ACF.getMasterDatabasePassword());
+      ManifoldCF.getMasterDatabaseName(),
+      ManifoldCF.getMasterDatabaseUsername(),
+      ManifoldCF.getMasterDatabasePassword());
     // Also create the following managers, which will handle the actual details of writing configuration data
     IOutputConnectionManager outputManager = OutputConnectionManagerFactory.make(threadContext);
     IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(threadContext);
@@ -643,7 +643,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
 
             // All done
           }
-          catch (ACFException e)
+          catch (ManifoldCFException e)
           {
             database.signalRollback();
             throw e;
@@ -673,19 +673,19 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
       // On error, delete any file we created
       outputFile.delete();
       // Convert I/O error into lcf exception
-      throw new ACFException("Error creating configuration file: "+e.getMessage(),e);
+      throw new ManifoldCFException("Error creating configuration file: "+e.getMessage(),e);
     }
   }
 
   /** Atomically import a crawler configuration */
   public static void importConfiguration(IThreadContext threadContext, String importFilename)
-    throws ACFException
+    throws ManifoldCFException
   {
     // First, we need a database handle...
     IDBInterface database = DBInterfaceFactory.make(threadContext,
-      ACF.getMasterDatabaseName(),
-      ACF.getMasterDatabaseUsername(),
-      ACF.getMasterDatabasePassword());
+      ManifoldCF.getMasterDatabaseName(),
+      ManifoldCF.getMasterDatabaseUsername(),
+      ManifoldCF.getMasterDatabasePassword());
     // Also create the following managers, which will handle the actual details of reading configuration data
     IOutputConnectionManager outputManager = OutputConnectionManagerFactory.make(threadContext);
     IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(threadContext);
@@ -725,13 +725,13 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
               else if (name.equals("jobs"))
                 jobManager.importConfiguration(zis);
               else
-                throw new ACFException("Configuration file has an entry named '"+name+"' that I do not recognize");
+                throw new ManifoldCFException("Configuration file has an entry named '"+name+"' that I do not recognize");
               zis.closeEntry();
 
             }
             // All done!!
           }
-          catch (ACFException e)
+          catch (ManifoldCFException e)
           {
             database.signalRollback();
             throw e;
@@ -759,7 +759,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
     catch (java.io.IOException e)
     {
       // Convert I/O error into lcf exception
-      throw new ACFException("Error reading configuration file: "+e.getMessage(),e);
+      throw new ManifoldCFException("Error reading configuration file: "+e.getMessage(),e);
     }
   }
 
@@ -789,7 +789,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
   */
   public static void requeueDocumentsDueToCarrydown(IJobManager jobManager, DocumentDescription[] requeueCandidates,
     IRepositoryConnector connector, IRepositoryConnection connection, QueueTracker queueTracker, long currentTime)
-    throws ACFException
+    throws ManifoldCFException
   {
     // A list of document descriptions from finishDocuments() above represents those documents that may need to be requeued, for the
     // reason that carrydown information for those documents has changed.  In order to requeue, we need to calculate document priorities, however.
@@ -866,7 +866,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
   }
 
   public static void writeDocumentPriorities(IThreadContext threadContext, IRepositoryConnectionManager mgr, IJobManager jobManager, DocumentDescription[] descs, HashMap connectionMap, HashMap jobDescriptionMap, QueueTracker queueTracker, long currentTime)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (Logging.scheduling.isDebugEnabled())
       Logging.scheduling.debug("Reprioritizing "+Integer.toString(descs.length)+" documents");
@@ -914,9 +914,9 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
           RepositoryConnectorFactory.release(connector);
         }
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
-        if (e.getErrorCode() == ACFException.REPOSITORY_CONNECTION_ERROR)
+        if (e.getErrorCode() == ManifoldCFException.REPOSITORY_CONNECTION_ERROR)
         {
           binNames = new String[]{""};
         }
@@ -943,7 +943,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
   *@return true if the connection is in use, false otherwise.
   */
   public static boolean isOutputConnectionInUse(IThreadContext threadContext, String connName)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Check with job manager.
     IJobManager jobManager = JobManagerFactory.make(threadContext);
@@ -955,7 +955,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
   *@param connectionNames are the names of the connections being deregistered.
   */
   public static void noteOutputConnectorDeregistration(IThreadContext threadContext, String[] connectionNames)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Notify job manager
     IJobManager jobManager = JobManagerFactory.make(threadContext);
@@ -967,7 +967,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
   *@param connectionNames are the names of the connections being registered.
   */
   public static void noteOutputConnectorRegistration(IThreadContext threadContext, String[] connectionNames)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Notify job manager
     IJobManager jobManager = JobManagerFactory.make(threadContext);
@@ -979,7 +979,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
   *@param connectionName is the output connection name.
   */
   public static void noteOutputConnectionChange(IThreadContext threadContext, String connectionName)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Notify job manager
     IJobManager jobManager = JobManagerFactory.make(threadContext);
@@ -1019,7 +1019,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
   * escaping that prevents "/" from appearing.
   */
   public static String decodeAPIPathElement(String startingPathElement)
-    throws ACFException
+    throws ManifoldCFException
   {
     StringBuffer sb = new StringBuffer();
     int i = 0;
@@ -1029,7 +1029,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
       if (x == '.')
       {
         if (i == startingPathElement.length())
-          throw new ACFException("Element decoding failed; illegal '.' character in '"+startingPathElement+"'");
+          throw new ManifoldCFException("Element decoding failed; illegal '.' character in '"+startingPathElement+"'");
         
         x = startingPathElement.charAt(i++);
         if (x == '.')
@@ -1037,7 +1037,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
         else if (x == '+')
           sb.append('/');
         else
-          throw new ACFException("Element decoding failed; illegal post-'.' character in '"+startingPathElement+"'");
+          throw new ManifoldCFException("Element decoding failed; illegal post-'.' character in '"+startingPathElement+"'");
       }
       else
         sb.append(x);
@@ -1052,7 +1052,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
   *@return true if the resource exists, false otherwise.
   */
   public static boolean executeReadCommand(IThreadContext tc, Configuration output, String path)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (path.equals("jobs"))
     {
@@ -1068,7 +1068,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
           output.addChild(output.getChildCount(),jobNode);
         }
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         createErrorNode(output,e);
       }
@@ -1090,7 +1090,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
         else
           return false;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         createErrorNode(output,e);
       }
@@ -1131,7 +1131,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
           {
             results = connector.check();
           }
-          catch (ACFException e)
+          catch (ManifoldCFException e)
           {
             results = e.getMessage();
           }
@@ -1144,7 +1144,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
           response.setValue(results);
           output.addChild(output.getChildCount(),response);
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
           createErrorNode(output,e);
         }
@@ -1170,7 +1170,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
           {
             results = connector.check();
           }
-          catch (ACFException e)
+          catch (ManifoldCFException e)
           {
             results = e.getMessage();
           }
@@ -1183,7 +1183,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
           response.setValue(results);
           output.addChild(output.getChildCount(),response);
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
           createErrorNode(output,e);
         }
@@ -1209,7 +1209,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
           {
             results = connector.check();
           }
-          catch (ACFException e)
+          catch (ManifoldCFException e)
           {
             results = e.getMessage();
           }
@@ -1222,7 +1222,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
           response.setValue(results);
           output.addChild(output.getChildCount(),response);
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
           createErrorNode(output,e);
         }
@@ -1285,7 +1285,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
             OutputConnectorFactory.release(connector);
           }
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
           createErrorNode(output,e);
         }
@@ -1315,7 +1315,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
             RepositoryConnectorFactory.release(connector);
           }
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
           createErrorNode(output,e);
         }
@@ -1342,7 +1342,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
           output.addChild(output.getChildCount(),jobStatusNode);
         }
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         createErrorNode(output,e);
       }
@@ -1362,7 +1362,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
           output.addChild(output.getChildCount(),jobStatusNode);
         }
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         createErrorNode(output,e);
       }
@@ -1381,7 +1381,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
           output.addChild(output.getChildCount(),connectionNode);
         }
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         createErrorNode(output,e);
       }
@@ -1403,7 +1403,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
         else
           return false;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         createErrorNode(output,e);
       }
@@ -1422,7 +1422,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
           output.addChild(output.getChildCount(),connectionNode);
         }
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         createErrorNode(output,e);
       }
@@ -1444,7 +1444,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
         else
           return false;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         createErrorNode(output,e);
       }
@@ -1463,7 +1463,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
           output.addChild(output.getChildCount(),connectionNode);
         }
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         createErrorNode(output,e);
       }
@@ -1485,7 +1485,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
         else
           return false;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         createErrorNode(output,e);
       }
@@ -1518,7 +1518,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
           output.addChild(output.getChildCount(),child);
         }
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         createErrorNode(output,e);
       }
@@ -1551,7 +1551,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
           output.addChild(output.getChildCount(),child);
         }
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         createErrorNode(output,e);
       }
@@ -1584,7 +1584,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
           output.addChild(output.getChildCount(),child);
         }
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         createErrorNode(output,e);
       }
@@ -1613,20 +1613,20 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
   *@return write result - either "not found", "found", or "created".
   */
   public static int executePostCommand(IThreadContext tc, Configuration output, String path, Configuration input)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (path.equals("jobs"))
     {
       ConfigurationNode jobNode = findConfigurationNode(input,API_JOBNODE);
       if (jobNode == null)
-        throw new ACFException("Input must have '"+API_JOBNODE+"' field");
+        throw new ManifoldCFException("Input must have '"+API_JOBNODE+"' field");
 
       // Turn the configuration node into a JobDescription
       org.apache.manifoldcf.crawler.jobs.JobDescription job = new org.apache.manifoldcf.crawler.jobs.JobDescription();
       processJobDescription(job,jobNode);
       
       if (job.getID() != null)
-        throw new ACFException("Input job cannot supply an ID field for create");
+        throw new ManifoldCFException("Input job cannot supply an ID field for create");
       
       try
       {
@@ -1644,7 +1644,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
         
         return WRITERESULT_CREATED;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         createErrorNode(output,e);
       }
@@ -1667,7 +1667,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
   *@return write result - either "not found", "found", or "created".
   */
   public static int executeWriteCommand(IThreadContext tc, Configuration output, String path, Configuration input)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (path.startsWith("start/"))
     {
@@ -1678,7 +1678,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
         jobManager.manualStart(jobID);
         return WRITERESULT_CREATED;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         createErrorNode(output,e);
       }
@@ -1692,7 +1692,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
         jobManager.manualAbort(jobID);
         return WRITERESULT_CREATED;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         createErrorNode(output,e);
       }
@@ -1706,7 +1706,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
         jobManager.manualAbortRestart(jobID);
         return WRITERESULT_CREATED;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         createErrorNode(output,e);
       }
@@ -1720,7 +1720,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
         jobManager.pauseJob(jobID);
         return WRITERESULT_CREATED;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         createErrorNode(output,e);
       }
@@ -1734,7 +1734,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
         jobManager.restartJob(jobID);
         return WRITERESULT_CREATED;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         createErrorNode(output,e);
       }
@@ -1745,7 +1745,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
       
       ConfigurationNode jobNode = findConfigurationNode(input,API_JOBNODE);
       if (jobNode == null)
-        throw new ACFException("Input must have '"+API_JOBNODE+"' field");
+        throw new ManifoldCFException("Input must have '"+API_JOBNODE+"' field");
 
       // Turn the configuration node into a JobDescription
       org.apache.manifoldcf.crawler.jobs.JobDescription job = new org.apache.manifoldcf.crawler.jobs.JobDescription();
@@ -1760,7 +1760,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
         else
         {
           if (!job.getID().equals(jobID))
-            throw new ACFException("Job identifier must agree within object and within path");
+            throw new ManifoldCFException("Job identifier must agree within object and within path");
         }
         
         job.setIsNew(false);
@@ -1769,7 +1769,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
         IJobManager jobManager = JobManagerFactory.make(tc);
         jobManager.save(job);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         createErrorNode(output,e);
       }
@@ -1780,7 +1780,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
       
       ConfigurationNode connectionNode = findConfigurationNode(input,API_OUTPUTCONNECTIONNODE);
       if (connectionNode == null)
-        throw new ACFException("Input argument must have '"+API_OUTPUTCONNECTIONNODE+"' field");
+        throw new ManifoldCFException("Input argument must have '"+API_OUTPUTCONNECTIONNODE+"' field");
       
       // Turn the configuration node into an OutputConnection
       org.apache.manifoldcf.agents.outputconnection.OutputConnection outputConnection = new org.apache.manifoldcf.agents.outputconnection.OutputConnection();
@@ -1791,7 +1791,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
       else
       {
         if (!outputConnection.getName().equals(connectionName))
-          throw new ACFException("Connection name in path and in object must agree");
+          throw new ManifoldCFException("Connection name in path and in object must agree");
       }
       
       try
@@ -1801,7 +1801,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
         if (connectionManager.save(outputConnection))
           return WRITERESULT_CREATED;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         createErrorNode(output,e);
       }
@@ -1812,7 +1812,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
 
       ConfigurationNode connectionNode = findConfigurationNode(input,API_AUTHORITYCONNECTIONNODE);
       if (connectionNode == null)
-        throw new ACFException("Input argument must have '"+API_AUTHORITYCONNECTIONNODE+"' field");
+        throw new ManifoldCFException("Input argument must have '"+API_AUTHORITYCONNECTIONNODE+"' field");
       
       // Turn the configuration node into an OutputConnection
       org.apache.manifoldcf.authorities.authority.AuthorityConnection authorityConnection = new org.apache.manifoldcf.authorities.authority.AuthorityConnection();
@@ -1823,7 +1823,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
       else
       {
         if (!authorityConnection.getName().equals(connectionName))
-          throw new ACFException("Connection name in path and in object must agree");
+          throw new ManifoldCFException("Connection name in path and in object must agree");
       }
       
       try
@@ -1833,7 +1833,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
         if (connectionManager.save(authorityConnection))
           return WRITERESULT_CREATED;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         createErrorNode(output,e);
       }
@@ -1844,7 +1844,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
 
       ConfigurationNode connectionNode = findConfigurationNode(input,API_REPOSITORYCONNECTIONNODE);
       if (connectionNode == null)
-        throw new ACFException("Input argument must have '"+API_REPOSITORYCONNECTIONNODE+"' field");
+        throw new ManifoldCFException("Input argument must have '"+API_REPOSITORYCONNECTIONNODE+"' field");
       
       // Turn the configuration node into an OutputConnection
       org.apache.manifoldcf.crawler.repository.RepositoryConnection repositoryConnection = new org.apache.manifoldcf.crawler.repository.RepositoryConnection();
@@ -1855,7 +1855,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
       else
       {
         if (!repositoryConnection.getName().equals(connectionName))
-          throw new ACFException("Connection name in path and in object must agree");
+          throw new ManifoldCFException("Connection name in path and in object must agree");
       }
 
       try
@@ -1865,7 +1865,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
         if (connectionManager.save(repositoryConnection))
           return WRITERESULT_CREATED;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         createErrorNode(output,e);
       }
@@ -1887,7 +1887,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
   *@return true if the object exists, false otherwise.
   */
   public static boolean executeDeleteCommand(IThreadContext tc, Configuration output, String path)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (path.startsWith("jobs/"))
     {
@@ -1897,7 +1897,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
         IJobManager jobManager = JobManagerFactory.make(tc);
         jobManager.deleteJob(jobID);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         createErrorNode(output,e);
       }
@@ -1910,7 +1910,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
         IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
         connectionManager.delete(connectionName);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         createErrorNode(output,e);
       }
@@ -1923,7 +1923,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
         IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
         connectionManager.delete(connectionName);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         createErrorNode(output,e);
       }
@@ -1936,7 +1936,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
         IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
         connectionManager.delete(connectionName);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         createErrorNode(output,e);
       }
@@ -1987,7 +1987,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
   *@param jobNode is the configuration node corresponding to the whole job itself.
   */
   protected static void processJobDescription(org.apache.manifoldcf.crawler.jobs.JobDescription jobDescription, ConfigurationNode jobNode)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Walk through the node's children
     int i = 0;
@@ -1998,7 +1998,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
       if (childType.equals(JOBNODE_ID))
       {
         if (child.getValue() == null)
-          throw new ACFException("Job id node requires a value");
+          throw new ManifoldCFException("Job id node requires a value");
         jobDescription.setID(new Long(child.getValue()));
       }
       else if (childType.equals(JOBNODE_DESCRIPTION))
@@ -2057,7 +2057,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
         }
         catch (NumberFormatException e)
         {
-          throw new ACFException(e.getMessage(),e);
+          throw new ManifoldCFException(e.getMessage(),e);
         }
       }
       else if (childType.equals(JOBNODE_RECRAWLINTERVAL))
@@ -2087,12 +2087,12 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
           else if (cn.getType().equals(JOBNODE_COUNT))
             hopCount = cn.getValue();
           else
-            throw new ACFException("Found an unexpected node type: '"+cn.getType()+"'");
+            throw new ManifoldCFException("Found an unexpected node type: '"+cn.getType()+"'");
         }
         if (linkType == null)
-          throw new ACFException("Missing required field: '"+JOBNODE_LINKTYPE+"'");
+          throw new ManifoldCFException("Missing required field: '"+JOBNODE_LINKTYPE+"'");
         if (hopCount == null)
-          throw new ACFException("Missing required field: '"+JOBNODE_COUNT+"'");
+          throw new ManifoldCFException("Missing required field: '"+JOBNODE_COUNT+"'");
         jobDescription.addHopCountFilter(linkType,new Long(hopCount));
       }
       else if (childType.equals(JOBNODE_SCHEDULE))
@@ -2146,14 +2146,14 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
             minutesOfHour = processEnumeratedValues(scheduleField);
           }
           else
-            throw new ACFException("Unrecognized field in schedule record: '"+fieldType+"'");
+            throw new ManifoldCFException("Unrecognized field in schedule record: '"+fieldType+"'");
         }
         ScheduleRecord sr = new ScheduleRecord(dayOfWeek,monthOfYear,dayOfMonth,year,hourOfDay,minutesOfHour,timezone,duration);
         // Add the schedule record to the job.
         jobDescription.addScheduleRecord(sr);
       }
       else
-        throw new ACFException("Unrecognized job field: '"+childType+"'");
+        throw new ManifoldCFException("Unrecognized job field: '"+childType+"'");
     }
   }
 
@@ -2341,7 +2341,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
   }
   
   protected static EnumeratedValues processEnumeratedValues(ConfigurationNode fieldNode)
-    throws ACFException
+    throws ManifoldCFException
   {
     ArrayList values = new ArrayList();
     int i = 0;
@@ -2356,11 +2356,11 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
         }
         catch (NumberFormatException e)
         {
-          throw new ACFException("Error processing enumerated value node: "+e.getMessage(),e);
+          throw new ManifoldCFException("Error processing enumerated value node: "+e.getMessage(),e);
         }
       }
       else
-        throw new ACFException("Error processing enumerated value nodes: Unrecognized node type '"+cn.getType()+"'");
+        throw new ManifoldCFException("Error processing enumerated value nodes: Unrecognized node type '"+cn.getType()+"'");
     }
     return new EnumeratedValues(values);
   }
@@ -2373,7 +2373,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
   }
 
   protected static Long interpretInterval(String interval)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (interval == null || interval.equals("infinite"))
       return null;
@@ -2397,7 +2397,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
   }
 
   protected static int mapToStartMode(String startMethod)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (startMethod.equals("schedule window start"))
       return IJobDescription.START_WINDOWBEGIN;
@@ -2406,7 +2406,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
     else if (startMethod.equals("manual"))
       return IJobDescription.START_DISABLE;
     else
-      throw new ACFException("Unrecognized start method: '"+startMethod+"'");
+      throw new ManifoldCFException("Unrecognized start method: '"+startMethod+"'");
   }
   
   protected static String runModeMap(int type)
@@ -2423,14 +2423,14 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
   }
 
   protected static int mapToRunMode(String mode)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (mode.equals("continuous"))
       return IJobDescription.TYPE_CONTINUOUS;
     else if (mode.equals("scan once"))
       return IJobDescription.TYPE_SPECIFIED;
     else
-      throw new ACFException("Unrecognized run method: '"+mode+"'");
+      throw new ManifoldCFException("Unrecognized run method: '"+mode+"'");
   }
   
   protected static String hopcountModeMap(int mode)
@@ -2449,7 +2449,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
   }
 
   protected static int mapToHopcountMode(String mode)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (mode.equals("accurate"))
       return IJobDescription.HOPCOUNT_ACCURATE;
@@ -2458,7 +2458,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
     else if (mode.equals("never delete"))
       return IJobDescription.HOPCOUNT_NEVERDELETE;
     else
-      throw new ACFException("Unrecognized hopcount method: '"+mode+"'");
+      throw new ManifoldCFException("Unrecognized hopcount method: '"+mode+"'");
   }
   
   // End of job API support code.
@@ -2589,7 +2589,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
   /** Convert input hierarchy into an OutputConnection object.
   */
   protected static void processOutputConnection(org.apache.manifoldcf.agents.outputconnection.OutputConnection connection, ConfigurationNode connectionNode)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Walk through the node's children
     int i = 0;
@@ -2600,32 +2600,32 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
       if (childType.equals(CONNECTIONNODE_NAME))
       {
         if (child.getValue() == null)
-          throw new ACFException("Connection name node requires a value");
+          throw new ManifoldCFException("Connection name node requires a value");
         connection.setName(child.getValue());
       }
       else if (childType.equals(CONNECTIONNODE_CLASSNAME))
       {
         if (child.getValue() == null)
-          throw new ACFException("Connection classname node requires a value");
+          throw new ManifoldCFException("Connection classname node requires a value");
         connection.setClassName(child.getValue());
       }
       else if (childType.equals(CONNECTIONNODE_MAXCONNECTIONS))
       {
         if (child.getValue() == null)
-          throw new ACFException("Connection maxconnections node requires a value");
+          throw new ManifoldCFException("Connection maxconnections node requires a value");
         try
         {
           connection.setMaxConnections(Integer.parseInt(child.getValue()));
         }
         catch (NumberFormatException e)
         {
-          throw new ACFException("Error parsing max connections: "+e.getMessage(),e);
+          throw new ManifoldCFException("Error parsing max connections: "+e.getMessage(),e);
         }
       }
       else if (childType.equals(CONNECTIONNODE_DESCRIPTION))
       {
         if (child.getValue() == null)
-          throw new ACFException("Connection description node requires a value");
+          throw new ManifoldCFException("Connection description node requires a value");
         connection.setDescription(child.getValue());
       }
       else if (childType.equals(CONNECTIONNODE_CONFIGURATION))
@@ -2641,12 +2641,12 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
         }
       }
       else
-        throw new ACFException("Unrecognized output connection field: '"+childType+"'");
+        throw new ManifoldCFException("Unrecognized output connection field: '"+childType+"'");
     }
     if (connection.getName() == null)
-      throw new ACFException("Missing connection field: '"+CONNECTIONNODE_NAME+"'");
+      throw new ManifoldCFException("Missing connection field: '"+CONNECTIONNODE_NAME+"'");
     if (connection.getClassName() == null)
-      throw new ACFException("Missing connection field: '"+CONNECTIONNODE_CLASSNAME+"'");
+      throw new ManifoldCFException("Missing connection field: '"+CONNECTIONNODE_CLASSNAME+"'");
 
   }
   
@@ -2693,7 +2693,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
   /** Convert input hierarchy into an AuthorityConnection object.
   */
   protected static void processAuthorityConnection(org.apache.manifoldcf.authorities.authority.AuthorityConnection connection, ConfigurationNode connectionNode)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Walk through the node's children
     int i = 0;
@@ -2704,32 +2704,32 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
       if (childType.equals(CONNECTIONNODE_NAME))
       {
         if (child.getValue() == null)
-          throw new ACFException("Connection name node requires a value");
+          throw new ManifoldCFException("Connection name node requires a value");
         connection.setName(child.getValue());
       }
       else if (childType.equals(CONNECTIONNODE_CLASSNAME))
       {
         if (child.getValue() == null)
-          throw new ACFException("Connection classname node requires a value");
+          throw new ManifoldCFException("Connection classname node requires a value");
         connection.setClassName(child.getValue());
       }
       else if (childType.equals(CONNECTIONNODE_MAXCONNECTIONS))
       {
         if (child.getValue() == null)
-          throw new ACFException("Connection maxconnections node requires a value");
+          throw new ManifoldCFException("Connection maxconnections node requires a value");
         try
         {
           connection.setMaxConnections(Integer.parseInt(child.getValue()));
         }
         catch (NumberFormatException e)
         {
-          throw new ACFException("Error parsing max connections: "+e.getMessage(),e);
+          throw new ManifoldCFException("Error parsing max connections: "+e.getMessage(),e);
         }
       }
       else if (childType.equals(CONNECTIONNODE_DESCRIPTION))
       {
         if (child.getValue() == null)
-          throw new ACFException("Connection description node requires a value");
+          throw new ManifoldCFException("Connection description node requires a value");
         connection.setDescription(child.getValue());
       }
       else if (childType.equals(CONNECTIONNODE_CONFIGURATION))
@@ -2745,12 +2745,12 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
         }
       }
       else
-        throw new ACFException("Unrecognized authority connection field: '"+childType+"'");
+        throw new ManifoldCFException("Unrecognized authority connection field: '"+childType+"'");
     }
     if (connection.getName() == null)
-      throw new ACFException("Missing connection field: '"+CONNECTIONNODE_NAME+"'");
+      throw new ManifoldCFException("Missing connection field: '"+CONNECTIONNODE_NAME+"'");
     if (connection.getClassName() == null)
-      throw new ACFException("Missing connection field: '"+CONNECTIONNODE_CLASSNAME+"'");
+      throw new ManifoldCFException("Missing connection field: '"+CONNECTIONNODE_CLASSNAME+"'");
 
   }
   
@@ -2797,7 +2797,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
   /** Convert input hierarchy into a RepositoryConnection object.
   */
   protected static void processRepositoryConnection(org.apache.manifoldcf.crawler.repository.RepositoryConnection connection, ConfigurationNode connectionNode)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Walk through the node's children
     int i = 0;
@@ -2808,32 +2808,32 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
       if (childType.equals(CONNECTIONNODE_NAME))
       {
         if (child.getValue() == null)
-          throw new ACFException("Connection name node requires a value");
+          throw new ManifoldCFException("Connection name node requires a value");
         connection.setName(child.getValue());
       }
       else if (childType.equals(CONNECTIONNODE_CLASSNAME))
       {
         if (child.getValue() == null)
-          throw new ACFException("Connection classname node requires a value");
+          throw new ManifoldCFException("Connection classname node requires a value");
         connection.setClassName(child.getValue());
       }
       else if (childType.equals(CONNECTIONNODE_MAXCONNECTIONS))
       {
         if (child.getValue() == null)
-          throw new ACFException("Connection maxconnections node requires a value");
+          throw new ManifoldCFException("Connection maxconnections node requires a value");
         try
         {
           connection.setMaxConnections(Integer.parseInt(child.getValue()));
         }
         catch (NumberFormatException e)
         {
-          throw new ACFException("Error parsing max connections: "+e.getMessage(),e);
+          throw new ManifoldCFException("Error parsing max connections: "+e.getMessage(),e);
         }
       }
       else if (childType.equals(CONNECTIONNODE_DESCRIPTION))
       {
         if (child.getValue() == null)
-          throw new ACFException("Connection description node requires a value");
+          throw new ManifoldCFException("Connection description node requires a value");
         connection.setDescription(child.getValue());
       }
       else if (childType.equals(CONNECTIONNODE_CONFIGURATION))
@@ -2851,7 +2851,7 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
       else if (childType.equals(CONNECTIONNODE_ACLAUTHORITY))
       {
         if (child.getValue() == null)
-          throw new ACFException("Connection aclauthority node requires a value");
+          throw new ManifoldCFException("Connection aclauthority node requires a value");
         connection.setACLAuthority(child.getValue());
       }
       else if (childType.equals(CONNECTIONNODE_THROTTLE))
@@ -2878,21 +2878,21 @@ public class ACF extends org.apache.manifoldcf.agents.system.ACF
             rate = new Float(throttleField.getValue());
           }
           else
-            throw new ACFException("Unrecognized throttle field: '"+fieldType+"'");
+            throw new ManifoldCFException("Unrecognized throttle field: '"+fieldType+"'");
         }
         if (match == null)
-          throw new ACFException("Missing throttle field: '"+CONNECTIONNODE_MATCH+"'");
+          throw new ManifoldCFException("Missing throttle field: '"+CONNECTIONNODE_MATCH+"'");
         if (rate == null)
-          throw new ACFException("Missing throttle field: '"+CONNECTIONNODE_RATE+"'");
+          throw new ManifoldCFException("Missing throttle field: '"+CONNECTIONNODE_RATE+"'");
         connection.addThrottleValue(match,description,rate.floatValue());
       }
       else
-        throw new ACFException("Unrecognized repository connection field: '"+childType+"'");
+        throw new ManifoldCFException("Unrecognized repository connection field: '"+childType+"'");
     }
     if (connection.getName() == null)
-      throw new ACFException("Missing connection field: '"+CONNECTIONNODE_NAME+"'");
+      throw new ManifoldCFException("Missing connection field: '"+CONNECTIONNODE_NAME+"'");
     if (connection.getClassName() == null)
-      throw new ACFException("Missing connection field: '"+CONNECTIONNODE_CLASSNAME+"'");
+      throw new ManifoldCFException("Missing connection field: '"+CONNECTIONNODE_CLASSNAME+"'");
 
   }
   

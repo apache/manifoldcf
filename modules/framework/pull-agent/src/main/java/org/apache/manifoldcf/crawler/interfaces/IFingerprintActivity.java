@@ -35,13 +35,13 @@ public interface IFingerprintActivity
   *@return true if the mime type is indexable by this connector.
   */
   public boolean checkMimeTypeIndexable(String mimeType)
-    throws ACFException, ServiceInterruption;
+    throws ManifoldCFException, ServiceInterruption;
 
   /** Check whether a document is indexable by the currently specified output connector.
   *@param localFile is the local copy of the file to check.
   *@return true if the document is indexable.
   */
   public boolean checkDocumentIndexable(File localFile)
-    throws ACFException, ServiceInterruption;
+    throws ManifoldCFException, ServiceInterruption;
 
 }

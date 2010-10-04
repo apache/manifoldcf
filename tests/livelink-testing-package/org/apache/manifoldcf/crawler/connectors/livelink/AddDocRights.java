@@ -50,7 +50,7 @@ public class AddDocRights
                         }
                         System.err.println("Successfully added rights");
                 }
-                catch (ACFException e)
+                catch (ManifoldCFException e)
                 {
                         e.printStackTrace(System.err);
                         System.exit(2);

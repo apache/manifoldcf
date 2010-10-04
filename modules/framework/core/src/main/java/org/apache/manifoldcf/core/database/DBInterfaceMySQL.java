@@ -32,7 +32,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   protected String cacheKey;
 
   public DBInterfaceMySQL(IThreadContext tc, String databaseName, String userName, String password)
-    throws ACFException
+    throws ManifoldCFException
   {
     super(tc,_url+databaseName,_driver,databaseName,userName,password);
     cacheKey = CacheKeyFactory.makeDatabaseKey(this.databaseName);
@@ -42,7 +42,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   * database communication.
   */
   public void openDatabase()
-    throws ACFException
+    throws ManifoldCFException
   {
     // Nothing to do.
   }
@@ -51,7 +51,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   * all database communication.
   */
   public void closeDatabase()
-    throws ACFException
+    throws ManifoldCFException
   {
     // Nothing to do.
   }
@@ -68,7 +68,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param tableName is the name of the table.
   */
   public void performLock(String tableName)
-    throws ACFException
+    throws ManifoldCFException
   {
     performModification("LOCK TABLE "+tableName+" IN EXCLUSIVE MODE",null,null);
   }
@@ -80,7 +80,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param parameterMap is the map of column name/values to write.
   */
   public void performInsert(String tableName, Map parameterMap, StringSet invalidateKeys)
-    throws ACFException
+    throws ManifoldCFException
   {
     ArrayList paramArray = new ArrayList();
 
@@ -133,7 +133,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param whereParameters are the parameters that come with the where clause, if any.
   */
   public void performUpdate(String tableName, Map parameterMap, String whereClause, ArrayList whereParameters, StringSet invalidateKeys)
-    throws ACFException
+    throws ManifoldCFException
   {
     ArrayList paramArray = new ArrayList();
 
@@ -198,7 +198,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param whereParameters are the parameters that come with the where clause, if any.
   */
   public void performDelete(String tableName, String whereClause, ArrayList whereParameters, StringSet invalidateKeys)
-    throws ACFException
+    throws ManifoldCFException
   {
     StringBuffer bf = new StringBuffer();
     bf.append("DELETE FROM ");
@@ -224,7 +224,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
   public void performCreate(String tableName, Map columnMap, StringSet invalidateKeys)
-    throws ACFException
+    throws ManifoldCFException
   {
     StringBuffer queryBuffer = new StringBuffer("CREATE TABLE ");
     queryBuffer.append(tableName);
@@ -279,7 +279,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   */
   public void performAlter(String tableName, Map columnMap, Map columnModifyMap, ArrayList columnDeleteList,
     StringSet invalidateKeys)
-    throws ACFException
+    throws ManifoldCFException
   {
     // MHL
   }
@@ -291,7 +291,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   * in the index, in order.
   */
   public void addTableIndex(String tableName, boolean unique, ArrayList columnList)
-    throws ACFException
+    throws ManifoldCFException
   {
     String[] columns = new String[columnList.size()];
     int i = 0;
@@ -309,7 +309,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param description is the index description.
   */
   public void performAddIndex(String indexName, String tableName, IndexDescription description)
-    throws ACFException
+    throws ManifoldCFException
   {
     String[] columnNames = description.getColumnNames();
     if (columnNames.length == 0)
@@ -344,7 +344,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param indexName is the name of the index to remove.
   */
   public void performRemoveIndex(String indexName)
-    throws ACFException
+    throws ManifoldCFException
   {
     performModification("DROP INDEX "+indexName,null,null);
   }
@@ -353,7 +353,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param tableName is the name of the table to analyze/calculate statistics for.
   */
   public void analyzeTable(String tableName)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Does nothing
   }
@@ -362,7 +362,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param tableName is the name of the table to rebuild indexes for.
   */
   public void reindexTable(String tableName)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Does nothing
   }
@@ -372,7 +372,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
   public void performDrop(String tableName, StringSet invalidateKeys)
-    throws ACFException
+    throws ManifoldCFException
   {
     performModification("DROP TABLE "+tableName,null,invalidateKeys);
   }
@@ -383,7 +383,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
   public void createUserAndDatabase(String adminUserName, String adminPassword, StringSet invalidateKeys)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Connect to super database
     Database masterDatabase = new Database(context,_url+"mysql",_driver,"mysql",adminUserName,adminPassword);
@@ -404,7 +404,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
   public void dropUserAndDatabase(String adminUserName, String adminPassword, StringSet invalidateKeys)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Connect to super database
     Database masterDatabase = new Database(context,_url+"mysql",_driver,"mysql",adminUserName,adminPassword);
@@ -417,7 +417,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param invalidateKeys are the cache keys to invalidate.
   */
   public void performModification(String query, ArrayList params, StringSet invalidateKeys)
-    throws ACFException
+    throws ManifoldCFException
   {
     executeQuery(query,params,null,invalidateKeys,null,false,0,null,null);
   }
@@ -429,7 +429,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@return a map of column names and ColumnDescription objects, describing the schema.
   */
   public Map getTableSchema(String tableName, StringSet cacheKeys, String queryClass)
-    throws ACFException
+    throws ManifoldCFException
   {
     IResultSet set = performQuery("DESCRIBE "+tableName,null,cacheKeys,queryClass);
     // Digest the result
@@ -455,7 +455,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@return a map of index names and IndexDescription objects, describing the indexes.
   */
   public Map getTableIndexes(String tableName, StringSet cacheKeys, String queryClass)
-    throws ACFException
+    throws ManifoldCFException
   {
     // MHL
     return null;
@@ -467,7 +467,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@return the set of tables.
   */
   public StringSet getAllTables(StringSet cacheKeys, String queryClass)
-    throws ACFException
+    throws ManifoldCFException
   {
     IResultSet set = performQuery("SHOW TABLES",null,cacheKeys,queryClass);
     StringSetBuffer ssb = new StringSetBuffer();
@@ -496,7 +496,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@return a resultset.
   */
   public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass)
-    throws ACFException
+    throws ManifoldCFException
   {
     return executeQuery(query,params,cacheKeys,null,queryClass,true,-1,null,null);
   }
@@ -513,7 +513,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   */
   public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass,
     int maxResults, ILimitChecker returnLimit)
-    throws ACFException
+    throws ManifoldCFException
   {
     return executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,null,returnLimit);
   }
@@ -531,7 +531,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   */
   public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass,
     int maxResults, ResultSpecification resultSpec, ILimitChecker returnLimit)
-    throws ACFException
+    throws ManifoldCFException
   {
     return executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,resultSpec,returnLimit);
   }
@@ -673,7 +673,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   * signalRollback() method, and rethrow the exception.  Then, after that a finally{} block which calls endTransaction().
   */
   public void beginTransaction()
-    throws ACFException
+    throws ManifoldCFException
   {
     super.beginTransaction(TRANSACTION_READCOMMITTED);
   }
@@ -688,28 +688,28 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param transactionType is the kind of transaction desired.
   */
   public void beginTransaction(int transactionType)
-    throws ACFException
+    throws ManifoldCFException
   {
     super.beginTransaction(TRANSACTION_READCOMMITTED);
   }
 
   /** Abstract method to start a transaction */
   protected void startATransaction()
-    throws ACFException
+    throws ManifoldCFException
   {
     executeViaThread(connection,"START TRANSACTION",null,false,0,null,null);
   }
 
   /** Abstract method to commit a transaction */
   protected void commitCurrentTransaction()
-    throws ACFException
+    throws ManifoldCFException
   {
     executeViaThread(connection,"COMMIT",null,false,0,null,null);
   }
   
   /** Abstract method to roll back a transaction */
   protected void rollbackCurrentTransaction()
-    throws ACFException
+    throws ManifoldCFException
   {
     executeViaThread(connection,"ROLLBACK",null,false,0,null,null);
   }

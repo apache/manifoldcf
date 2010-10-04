@@ -19,7 +19,7 @@
 package org.apache.manifoldcf.crawler.interfaces;
 
 import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.crawler.system.ACF;
+import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
 /** Repository connection manager factory.
 */
@@ -39,15 +39,15 @@ public class RepositoryConnectionManagerFactory
   *@return the handle.
   */
   public static IRepositoryConnectionManager make(IThreadContext tc)
-    throws ACFException
+    throws ManifoldCFException
   {
     Object o = tc.get(objectName);
     if (o == null || !(o instanceof IRepositoryConnectionManager))
     {
       IDBInterface database = DBInterfaceFactory.make(tc,
-        ACF.getMasterDatabaseName(),
-        ACF.getMasterDatabaseUsername(),
-        ACF.getMasterDatabasePassword());
+        ManifoldCF.getMasterDatabaseName(),
+        ManifoldCF.getMasterDatabaseUsername(),
+        ManifoldCF.getMasterDatabasePassword());
 
       o = new org.apache.manifoldcf.crawler.repository.RepositoryConnectionManager(tc,database);
       tc.save(objectName,o);

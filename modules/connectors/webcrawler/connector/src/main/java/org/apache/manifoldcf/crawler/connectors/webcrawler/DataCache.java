@@ -22,7 +22,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
-import org.apache.manifoldcf.crawler.system.ACF;
+import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import java.util.*;
 import java.io.*;
 
@@ -55,7 +55,7 @@ public class DataCache
   *@return a "checksum" value, to use as a version string.
   */
   public String addData(IVersionActivity activities, String documentIdentifier, IThrottledConnection connection)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     // Grab the response code, and the content-type header
     int responseCode = connection.getResponseCode();
@@ -79,7 +79,7 @@ public class DataCache
           // after it's removed.  So disable this and live with the occasional
           // dangling file left as a result of shutdown or error. :-(
           // tempFile.deleteOnExit();
-          ACF.addFile(tempFile);
+          ManifoldCF.addFile(tempFile);
 
           // Transfer data to temporary file
           long checkSum = 0L;
@@ -111,7 +111,7 @@ public class DataCache
               catch (InterruptedIOException e)
               {
                 //Logging.connectors.warn("IO interruption seen",e);
-                throw new ACFException("Interrupted: "+e.getMessage(),ACFException.INTERRUPTED);
+                throw new ManifoldCFException("Interrupted: "+e.getMessage(),ManifoldCFException.INTERRUPTED);
               }
               catch (IOException e)
               {
@@ -150,22 +150,22 @@ public class DataCache
         }
         catch (IOException e)
         {
-          ACF.deleteFile(tempFile);
+          ManifoldCF.deleteFile(tempFile);
           throw e;
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
-          ACF.deleteFile(tempFile);
+          ManifoldCF.deleteFile(tempFile);
           throw e;
         }
         catch (ServiceInterruption e)
         {
-          ACF.deleteFile(tempFile);
+          ManifoldCF.deleteFile(tempFile);
           throw e;
         }
         catch (Error e)
         {
-          ACF.deleteFile(tempFile);
+          ManifoldCF.deleteFile(tempFile);
           throw e;
         }
       }
@@ -197,20 +197,20 @@ public class DataCache
     }
     catch (java.net.SocketTimeoutException e)
     {
-      throw new ACFException("Socket timeout exception creating temporary file: "+e.getMessage(),e);
+      throw new ManifoldCFException("Socket timeout exception creating temporary file: "+e.getMessage(),e);
     }
     catch (org.apache.commons.httpclient.ConnectTimeoutException e)
     {
-      throw new ACFException("Socket connect timeout exception creating temporary file: "+e.getMessage(),e);
+      throw new ManifoldCFException("Socket connect timeout exception creating temporary file: "+e.getMessage(),e);
     }
     catch (InterruptedIOException e)
     {
       //Logging.connectors.warn("IO interruption seen",e);
-      throw new ACFException("Interrupted: "+e.getMessage(),ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),ManifoldCFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new ACFException("IO exception creating temporary file: "+e.getMessage(),e);
+      throw new ManifoldCFException("IO exception creating temporary file: "+e.getMessage(),e);
     }
   }
 
@@ -267,7 +267,7 @@ public class DataCache
   *@return a binary data stream.
   */
   public synchronized InputStream getData(String documentIdentifier)
-    throws ACFException
+    throws ManifoldCFException
   {
     DocumentData dd = (DocumentData)cacheData.get(documentIdentifier);
     if (dd == null)
@@ -278,7 +278,7 @@ public class DataCache
     }
     catch (FileNotFoundException e)
     {
-      throw new ACFException("File not found exception opening data: "+e.getMessage(),e);
+      throw new ManifoldCFException("File not found exception opening data: "+e.getMessage(),e);
     }
   }
 
@@ -290,7 +290,7 @@ public class DataCache
     DocumentData dd = (DocumentData)cacheData.remove(documentIdentifier);
     if (dd != null)
     {
-      ACF.deleteFile(dd.getData());
+      ManifoldCF.deleteFile(dd.getData());
     }
   }
 

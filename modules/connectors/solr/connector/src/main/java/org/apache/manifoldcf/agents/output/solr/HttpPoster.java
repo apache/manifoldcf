@@ -111,7 +111,7 @@ public class HttpPoster
     {
       secureSocketFactory = getSecureSocketFactory();
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       // If we can't create, print and fail
       e.printStackTrace();
@@ -128,7 +128,7 @@ public class HttpPoster
     String updatePath, String removePath, String statusPath,
     String realm, String userID, String password,
     String allowAttributeName, String denyAttributeName, String idAttributeName)
-    throws ACFException
+    throws ManifoldCFException
   {
     this.allowAttributeName = allowAttributeName;
     this.denyAttributeName = denyAttributeName;
@@ -146,7 +146,7 @@ public class HttpPoster
       }
       catch (java.io.UnsupportedEncodingException e)
       {
-        throw new ACFException("Couldn't convert to utf-8 bytes: "+e.getMessage(),e);
+        throw new ManifoldCFException("Couldn't convert to utf-8 bytes: "+e.getMessage(),e);
       }
       this.realm = realm;
     }
@@ -162,16 +162,16 @@ public class HttpPoster
     postRemoveAction = webappName + removePath;
     postStatusAction = webappName + statusPath;
 
-    String x = ACF.getProperty(ingestBufferSizeProperty);
+    String x = ManifoldCF.getProperty(ingestBufferSizeProperty);
     if (x != null && x.length() > 0)
       buffersize = new Integer(x).intValue();
-    x = ACF.getProperty(ingestResponseRetryCount);
+    x = ManifoldCF.getProperty(ingestResponseRetryCount);
     if (x != null && x.length() > 0)
       responseRetries = new Integer(x).intValue();
-    x = ACF.getProperty(ingestResponseRetryInterval);
+    x = ManifoldCF.getProperty(ingestResponseRetryInterval);
     if (x != null && x.length() > 0)
       responseRetryWait = new Long(x).longValue();
-    x = ACF.getProperty(ingestRescheduleInterval);
+    x = ManifoldCF.getProperty(ingestRescheduleInterval);
     if (x != null && x.length() > 0)
       interruptionRetryTime = new Long(x).longValue();
   }
@@ -179,7 +179,7 @@ public class HttpPoster
   /** Cause a commit to happen.
   */
   public void commitPost()
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     if (Logging.ingest.isDebugEnabled())
       Logging.ingest.debug("commitPost()");
@@ -201,8 +201,8 @@ public class HttpPoster
           {
             if (thr instanceof ServiceInterruption)
               throw (ServiceInterruption)thr;
-            if (thr instanceof ACFException)
-              throw (ACFException)thr;
+            if (thr instanceof ManifoldCFException)
+              throw (ManifoldCFException)thr;
             if (thr instanceof IOException)
               throw (IOException)thr;
             if (thr instanceof RuntimeException)
@@ -215,7 +215,7 @@ public class HttpPoster
         catch (InterruptedException e)
         {
           t.interrupt();
-          throw new ACFException("Interrupted: "+e.getMessage(),ACFException.INTERRUPTED);
+          throw new ManifoldCFException("Interrupted: "+e.getMessage(),ManifoldCFException.INTERRUPTED);
         }
       }
       catch (IOException ioe)
@@ -236,11 +236,11 @@ public class HttpPoster
       // Sleep for a time, and retry
       try
       {
-        ACF.sleep(10000L);
+        ManifoldCF.sleep(10000L);
       }
       catch (InterruptedException e)
       {
-        throw new ACFException("Interrupted",ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
       }
       ioErrorRetry--;
 
@@ -256,12 +256,12 @@ public class HttpPoster
   * @param authorityNameString is the name of the governing authority for this document's acls, or null if none.
   * @param activities is the activities object, so we can report what's happening.
   * @return true if the ingestion was successful, or false if the ingestion is illegal.
-  * @throws ACFException, ServiceInterruption
+  * @throws ManifoldCFException, ServiceInterruption
   */
   public boolean indexPost(String documentURI,
     RepositoryDocument document, Map arguments, Map sourceTargets,
     String authorityNameString, IOutputAddActivity activities)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     if (Logging.ingest.isDebugEnabled())
       Logging.ingest.debug("indexPost(): '" + documentURI + "'");
@@ -298,8 +298,8 @@ public class HttpPoster
           {
             if (thr instanceof ServiceInterruption)
               throw (ServiceInterruption)thr;
-            if (thr instanceof ACFException)
-              throw (ACFException)thr;
+            if (thr instanceof ManifoldCFException)
+              throw (ManifoldCFException)thr;
             if (thr instanceof IOException)
               throw (IOException)thr;
             if (thr instanceof RuntimeException)
@@ -312,7 +312,7 @@ public class HttpPoster
         catch (InterruptedException e)
         {
           t.interrupt();
-          throw new ACFException("Interrupted: "+e.getMessage(),ACFException.INTERRUPTED);
+          throw new ManifoldCFException("Interrupted: "+e.getMessage(),ManifoldCFException.INTERRUPTED);
         }
       }
       catch (java.net.SocketTimeoutException ioe)
@@ -347,11 +347,11 @@ public class HttpPoster
       // Sleep for a time, and retry
       try
       {
-        ACF.sleep(10000L);
+        ManifoldCF.sleep(10000L);
       }
       catch (InterruptedException e)
       {
-        throw new ACFException("Interrupted: "+e.getMessage(),ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),ManifoldCFException.INTERRUPTED);
       }
       ioErrorRetry--;
 
@@ -364,7 +364,7 @@ public class HttpPoster
   /** Post a check request.
   */
   public void checkPost()
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     if (Logging.ingest.isDebugEnabled())
       Logging.ingest.debug("checkPost()");
@@ -386,8 +386,8 @@ public class HttpPoster
           {
             if (thr instanceof ServiceInterruption)
               throw (ServiceInterruption)thr;
-            if (thr instanceof ACFException)
-              throw (ACFException)thr;
+            if (thr instanceof ManifoldCFException)
+              throw (ManifoldCFException)thr;
             if (thr instanceof IOException)
               throw (IOException)thr;
             if (thr instanceof RuntimeException)
@@ -400,7 +400,7 @@ public class HttpPoster
         catch (InterruptedException e)
         {
           t.interrupt();
-          throw new ACFException("Interrupted: "+e.getMessage(),ACFException.INTERRUPTED);
+          throw new ManifoldCFException("Interrupted: "+e.getMessage(),ManifoldCFException.INTERRUPTED);
         }
       }
       catch (IOException ioe)
@@ -421,11 +421,11 @@ public class HttpPoster
       // Sleep for a time, and retry
       try
       {
-        ACF.sleep(10000L);
+        ManifoldCF.sleep(10000L);
       }
       catch (InterruptedException e)
       {
-        throw new ACFException("Interrupted",ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
       }
       ioErrorRetry--;
 
@@ -437,7 +437,7 @@ public class HttpPoster
   *@param documentURI is the document's URI.
   */
   public void deletePost(String documentURI, IOutputRemoveActivity activities)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     if (Logging.ingest.isDebugEnabled())
       Logging.ingest.debug("deletePost(): '" + documentURI + "'");
@@ -462,8 +462,8 @@ public class HttpPoster
           {
             if (thr instanceof ServiceInterruption)
               throw (ServiceInterruption)thr;
-            if (thr instanceof ACFException)
-              throw (ACFException)thr;
+            if (thr instanceof ManifoldCFException)
+              throw (ManifoldCFException)thr;
             if (thr instanceof IOException)
               throw (IOException)thr;
             if (thr instanceof RuntimeException)
@@ -476,7 +476,7 @@ public class HttpPoster
         catch (InterruptedException e)
         {
           t.interrupt();
-          throw new ACFException("Interrupted: "+e.getMessage(),ACFException.INTERRUPTED);
+          throw new ManifoldCFException("Interrupted: "+e.getMessage(),ManifoldCFException.INTERRUPTED);
         }
       }
       catch (IOException ioe)
@@ -498,11 +498,11 @@ public class HttpPoster
       // Sleep for a time, and retry
       try
       {
-        ACF.sleep(10000L);
+        ManifoldCF.sleep(10000L);
       }
       catch (InterruptedException e)
       {
-        throw new ACFException("Interrupted",ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
       }
 
       ioErrorRetry--;
@@ -518,7 +518,7 @@ public class HttpPoster
   * @return the modified ACL.
   */
   protected static String[] convertACL(String[] acl, String authorityNameString, IOutputAddActivity activities)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (acl != null)
     {
@@ -560,9 +560,9 @@ public class HttpPoster
   * Get the response code of the post
   * @param in the stream the response is going to come from
   * @return the response details.
-  * @throws ACFException
+  * @throws ManifoldCFException
   */
-  protected CodeDetails getResponse(InputStream in) throws ACFException, ServiceInterruption
+  protected CodeDetails getResponse(InputStream in) throws ManifoldCFException, ServiceInterruption
   {
     Logging.ingest.debug("Waiting for response stream");
 
@@ -607,7 +607,7 @@ public class HttpPoster
       {
         doc = new XMLDoc(in);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         // Syntax errors should be eaten; we'll just return a null doc in that case.
         e.printStackTrace();
@@ -629,7 +629,7 @@ public class HttpPoster
     }
     catch (InterruptedIOException e)
     {
-      throw new ACFException("Interrupted",ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
     }
     catch (java.net.ConnectException e)
     {
@@ -682,7 +682,7 @@ public class HttpPoster
   /** Build a secure socket factory based on no keystore and a lax trust manager.
   * This allows use of SSL for privacy but not identification. */
   protected static javax.net.ssl.SSLSocketFactory getSecureSocketFactory()
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -695,18 +695,18 @@ public class HttpPoster
     }
     catch (java.security.NoSuchAlgorithmException e)
     {
-      throw new ACFException("No such algorithm: "+e.getMessage(),e);
+      throw new ManifoldCFException("No such algorithm: "+e.getMessage(),e);
     }
     catch (java.security.KeyManagementException e)
     {
-      throw new ACFException("Key management exception: "+e.getMessage(),e);
+      throw new ManifoldCFException("Key management exception: "+e.getMessage(),e);
     }
   }
 
   /** Create a socket in a manner consistent with all of our specified parameters.
   */
   protected Socket createSocket(long responseRetryCount)
-    throws IOException, ACFException
+    throws IOException, ManifoldCFException
   {
     Socket socket;
     if (protocol.equals("https"))
@@ -722,7 +722,7 @@ public class HttpPoster
       }
       catch (IOException e)
       {
-        throw new ACFException("Couldn't set up SSL connection to ingestion API: "+e.getMessage(),e);
+        throw new ManifoldCFException("Couldn't set up SSL connection to ingestion API: "+e.getMessage(),e);
       }
     }
     else
@@ -1264,7 +1264,7 @@ public class HttpPoster
 
                 // A negative number means http error of some kind.
                 if (codeValue < 0)
-                  throw new ACFException("Http protocol error");
+                  throw new ManifoldCFException("Http protocol error");
 
                 // 200 means we got a status document back
                 if (codeValue == 200)
@@ -1282,11 +1282,11 @@ public class HttpPoster
                 //    If the situation is (2), then we CAN'T retry if we already read any of the stream; therefore
                 //    we are forced to throw a "service interrupted" exception, and let the caller reschedule
                 //    the ingestion.
-                // 3) Something is wrong with the setup, e.g. bad credentials.  In this case we chuck a ACFException,
+                // 3) Something is wrong with the setup, e.g. bad credentials.  In this case we chuck a ManifoldCFException,
                 //    since this will abort the current activity entirely.
 
                 if (codeValue == 401)
-                  throw new ACFException("Bad credentials for ingestion",ACFException.SETUP_ERROR);
+                  throw new ManifoldCFException("Bad credentials for ingestion",ManifoldCFException.SETUP_ERROR);
 
                 if (codeValue >= 400 && codeValue < 500)
                 {
@@ -1297,7 +1297,7 @@ public class HttpPoster
                 // If this continues, we should indeed abort the job.  Retries should not go on indefinitely either; 2 hours is plenty
                 long currentTime = System.currentTimeMillis();
                 throw new ServiceInterruption("Error "+Integer.toString(codeValue)+" from ingestion request; ingestion will be retried again later",
-                  new ACFException("Ingestion HTTP error code "+Integer.toString(codeValue)),
+                  new ManifoldCFException("Ingestion HTTP error code "+Integer.toString(codeValue)),
                   currentTime + interruptionRetryTime,
                   currentTime + 2L * 60L * 60000L,
                   -1,
@@ -1332,7 +1332,7 @@ public class HttpPoster
         }
         catch (UnsupportedEncodingException ioe)
         {
-          throw new ACFException("Fatal ingestion error: "+ioe.getMessage(),ioe);
+          throw new ManifoldCFException("Fatal ingestion error: "+ioe.getMessage(),ioe);
         }
         catch (java.net.SocketTimeoutException ioe)
         {
@@ -1502,7 +1502,7 @@ public class HttpPoster
                 int codeValue = cd.getCodeValue();
 
                 if (codeValue < 0)
-                  throw new ACFException("Http protocol error");
+                  throw new ManifoldCFException("Http protocol error");
 
                 // 200 means we got an xml document back
                 if (codeValue == 200)
@@ -1514,13 +1514,13 @@ public class HttpPoster
 
                 // We ignore everything in the range from 400-500 now
                 if (codeValue == 401)
-                  throw new ACFException("Bad credentials for ingestion",ACFException.SETUP_ERROR);
+                  throw new ManifoldCFException("Bad credentials for ingestion",ManifoldCFException.SETUP_ERROR);
 
                 if (codeValue >= 400 && codeValue < 500)
                   return;
 
                 // Anything else means the document didn't delete.  Throw the error.
-                throw new ACFException("Error deleting document: '"+cd.getDescription()+"'");
+                throw new ManifoldCFException("Error deleting document: '"+cd.getDescription()+"'");
               }
               finally
               {
@@ -1551,7 +1551,7 @@ public class HttpPoster
         }
         catch (UnsupportedEncodingException ioe)
         {
-          throw new ACFException("Fatal ingestion error: "+ioe.getMessage(),ioe);
+          throw new ManifoldCFException("Fatal ingestion error: "+ioe.getMessage(),ioe);
         }
         catch (InterruptedIOException ioe)
         {
@@ -1648,7 +1648,7 @@ public class HttpPoster
 
                 int codeValue = cd.getCodeValue();
                 if (codeValue < 0)
-                  throw new ACFException("Http protocol error");
+                  throw new ManifoldCFException("Http protocol error");
 
                 // 200 means everything went OK
                 if (codeValue == 200)
@@ -1659,10 +1659,10 @@ public class HttpPoster
 
                 // We ignore everything in the range from 400-500 now
                 if (codeValue == 401)
-                  throw new ACFException("Bad credentials for commit request",ACFException.SETUP_ERROR);
+                  throw new ManifoldCFException("Bad credentials for commit request",ManifoldCFException.SETUP_ERROR);
 
                 // Anything else means the info request failed.
-                throw new ACFException("Error connecting to update request API: '"+cd.getDescription()+"'");
+                throw new ManifoldCFException("Error connecting to update request API: '"+cd.getDescription()+"'");
               }
               finally
               {
@@ -1693,7 +1693,7 @@ public class HttpPoster
         }
         catch (UnsupportedEncodingException ioe)
         {
-          throw new ACFException("Fatal commit error: "+ioe.getMessage(),ioe);
+          throw new ManifoldCFException("Fatal commit error: "+ioe.getMessage(),ioe);
         }
         catch (InterruptedIOException ioe)
         {
@@ -1772,7 +1772,7 @@ public class HttpPoster
 
                 int codeValue = cd.getCodeValue();
                 if (codeValue < 0)
-                  throw new ACFException("Http protocol error");
+                  throw new ManifoldCFException("Http protocol error");
 
                 // 200 means everything went OK
                 if (codeValue == 200)
@@ -1783,10 +1783,10 @@ public class HttpPoster
 
                 // We ignore everything in the range from 400-500 now
                 if (codeValue == 401)
-                  throw new ACFException("Bad credentials for ingestion",ACFException.SETUP_ERROR);
+                  throw new ManifoldCFException("Bad credentials for ingestion",ManifoldCFException.SETUP_ERROR);
 
                 // Anything else means the info request failed.
-                throw new ACFException("Error connecting to ingestion API: '"+cd.getDescription()+"'");
+                throw new ManifoldCFException("Error connecting to ingestion API: '"+cd.getDescription()+"'");
               }
               finally
               {
@@ -1817,7 +1817,7 @@ public class HttpPoster
         }
         catch (UnsupportedEncodingException ioe)
         {
-          throw new ACFException("Fatal ingestion error: "+ioe.getMessage(),ioe);
+          throw new ManifoldCFException("Fatal ingestion error: "+ioe.getMessage(),ioe);
         }
         catch (InterruptedIOException ioe)
         {
@@ -1903,13 +1903,13 @@ public class HttpPoster
     }
 
     public String getDescription()
-      throws ACFException
+      throws ManifoldCFException
     {
       return res + "\r\n" + ((returnDoc!=null)?returnDoc.getXML():"");
     }
 
     public void parseIngestionResponse()
-      throws ACFException
+      throws ManifoldCFException
     {
       // Look at response XML
       String statusValue = "unknown";
@@ -1958,26 +1958,26 @@ public class HttpPoster
         if (statusValue.equals("0"))
           return;
 
-        throw new ACFException("Ingestion returned error: "+statusValue);
+        throw new ManifoldCFException("Ingestion returned error: "+statusValue);
       }
       else
-        throw new ACFException("XML parsing error on response");
+        throw new ManifoldCFException("XML parsing error on response");
     }
 
     public void parseRemovalResponse()
-      throws ACFException
+      throws ManifoldCFException
     {
       parseIngestionResponse();
     }
 
     public void parseCommitResponse()
-      throws ACFException
+      throws ManifoldCFException
     {
       parseIngestionResponse();
     }
     
     public void parseStatusResponse()
-      throws ACFException
+      throws ManifoldCFException
     {
       // Look at response XML
       String statusValue = "unknown";
@@ -2013,10 +2013,10 @@ public class HttpPoster
         if (statusValue.equals("OK"))
           return;
 
-        throw new ACFException("Status error: "+statusValue);
+        throw new ManifoldCFException("Status error: "+statusValue);
       }
       else
-        throw new ACFException("XML parsing error on response");
+        throw new ManifoldCFException("XML parsing error on response");
     }
   }
 

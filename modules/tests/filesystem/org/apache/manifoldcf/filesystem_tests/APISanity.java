@@ -21,7 +21,7 @@ package org.apache.manifoldcf.filesystem_tests;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
-import org.apache.manifoldcf.crawler.system.ACF;
+import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
 import java.io.*;
 import java.util.*;
@@ -176,9 +176,9 @@ public class APISanity extends TestBase
       // Crawl everything underneath the 'testdata' area
       File testDataFile = new File("testdata").getCanonicalFile();
       if (!testDataFile.exists())
-        throw new ACFException("Test data area not found!  Looking in "+testDataFile.toString());
+        throw new ManifoldCFException("Test data area not found!  Looking in "+testDataFile.toString());
       if (!testDataFile.isDirectory())
-        throw new ACFException("Test data area not a directory!  Looking in "+testDataFile.toString());
+        throw new ManifoldCFException("Test data area not a directory!  Looking in "+testDataFile.toString());
       ConfigurationNode sn = new ConfigurationNode("startpoint");
       sn.setAttribute("path",testDataFile.toString());
       ConfigurationNode n = new ConfigurationNode("include");
@@ -229,7 +229,7 @@ public class APISanity extends TestBase
       long count;
       count = getJobDocumentsProcessed(jobIDString);
       if (count != 5)
-        throw new ACFException("Wrong number of documents processed - expected 5, saw "+new Long(count).toString());
+        throw new ManifoldCFException("Wrong number of documents processed - expected 5, saw "+new Long(count).toString());
       
       // Add a file and recrawl
       createFile(new File("testdata/testdir/test4.txt"),"Added file");
@@ -241,7 +241,7 @@ public class APISanity extends TestBase
       // The test data area has 4 documents and one directory, and we have to count the root directory too.
       count = getJobDocumentsProcessed(jobIDString);
       if (count != 6)
-        throw new ACFException("Wrong number of documents processed after add - expected 6, saw "+new Long(count).toString());
+        throw new ManifoldCFException("Wrong number of documents processed after add - expected 6, saw "+new Long(count).toString());
 
       // Change a file, and recrawl
       changeFile(new File("testdata/test1.txt"),"Modified contents");
@@ -253,7 +253,7 @@ public class APISanity extends TestBase
       // The test data area has 4 documents and one directory, and we have to count the root directory too.
       count = getJobDocumentsProcessed(jobIDString);
       if (count != 6)
-        throw new ACFException("Wrong number of documents processed after change - expected 6, saw "+new Long(count).toString());
+        throw new ManifoldCFException("Wrong number of documents processed after change - expected 6, saw "+new Long(count).toString());
       // We also need to make sure the new document was indexed.  Have to think about how to do this though.
       // MHL
       
@@ -268,7 +268,7 @@ public class APISanity extends TestBase
       // The test data area has 3 documents and one directory, and we have to count the root directory too.
       count = getJobDocumentsProcessed(jobIDString);
       if (count != 5)
-        throw new ACFException("Wrong number of documents processed after delete - expected 5, saw "+new Long(count).toString());
+        throw new ManifoldCFException("Wrong number of documents processed after delete - expected 5, saw "+new Long(count).toString());
 
       // Now, delete the job.
       deleteJob(jobIDString);
@@ -379,7 +379,7 @@ public class APISanity extends TestBase
         break;
       if (status.equals("error"))
         throw new Exception("Job reports error.");
-      ACF.sleep(10000L);
+      ManifoldCF.sleep(10000L);
       continue;
     }
   }
@@ -392,7 +392,7 @@ public class APISanity extends TestBase
       String status = getJobStatus(jobIDString);
       if (status == null)
         break;
-      ACF.sleep(10000L);
+      ManifoldCF.sleep(10000L);
     }
   }
     

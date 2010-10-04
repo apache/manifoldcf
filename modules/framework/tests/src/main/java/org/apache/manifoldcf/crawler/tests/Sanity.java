@@ -20,7 +20,7 @@ package org.apache.manifoldcf.crawler.tests;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
-import org.apache.manifoldcf.agents.system.ACF;
+import org.apache.manifoldcf.agents.system.ManifoldCF;
 
 import java.io.*;
 import java.util.*;

@@ -47,7 +47,7 @@ public class XMLStream
   /** Constructor.  This does NOT actually execute the parse yet, because we need the object before that makes any sense.
   */
   public XMLStream(boolean laxChecking)
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -68,49 +68,49 @@ public class XMLStream
     catch (SAXException e)
     {
       Exception e2 = e.getException();
-      if (e2 != null && e2 instanceof ACFException)
-        throw (ACFException)e2;
-      throw new ACFException("Error setting up parser: "+e.getMessage(),e);
+      if (e2 != null && e2 instanceof ManifoldCFException)
+        throw (ManifoldCFException)e2;
+      throw new ManifoldCFException("Error setting up parser: "+e.getMessage(),e);
     }
   }
 
   /** Default constructor */
   public XMLStream()
-    throws ACFException
+    throws ManifoldCFException
   {
     this(true);
   }
 
   public void parse(InputStream xmlInputStream)
-    throws ACFException, ServiceInterruption, IOException
+    throws ManifoldCFException, ServiceInterruption, IOException
   {
     try
     {
       InputSource is = new InputSource(xmlInputStream);
       xr.parse(is);
       if (parseException != null)
-        throw new ACFException("XML parse error: "+parseException.getMessage(),parseException);
+        throw new ManifoldCFException("XML parse error: "+parseException.getMessage(),parseException);
     }
     catch (SAXException e)
     {
       Exception e2 = e.getException();
-      if (e2 != null && e2 instanceof ACFException)
-        throw (ACFException)e2;
+      if (e2 != null && e2 instanceof ManifoldCFException)
+        throw (ManifoldCFException)e2;
       if (e2 != null && e2 instanceof ServiceInterruption)
         throw (ServiceInterruption)e2;
-      throw new ACFException("Error setting up parser: "+e.getMessage(),e);
+      throw new ManifoldCFException("Error setting up parser: "+e.getMessage(),e);
     }
     catch (RuntimeException e)
     {
       // Xerces is unfortunately not constructed in such a way that it doesn't occasionally completely barf on a malformed file.
       // So, we catch runtime exceptions and treat them as parse errors.
-      throw new ACFException("XML parse error: "+e.getMessage(),e);
+      throw new ManifoldCFException("XML parse error: "+e.getMessage(),e);
     }
   }
 
   /** Call this method to clean up completely after a parse attempt, whether successful or failure. */
   public void cleanup()
-    throws ACFException
+    throws ManifoldCFException
   {
     // This sets currentContext == null as a side effect, unless an error occurs during cleanup!!
     currentContext.cleanup();

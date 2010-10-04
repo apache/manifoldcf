@@ -31,7 +31,7 @@ import javax.sql.*;
 import java.io.*;
 import java.util.*;
 
-/** This interface describes an instance of a connection between a repository and ACF's
+/** This interface describes an instance of a connection between a repository and ManifoldCF's
 * standard "pull" ingestion agent.
 *
 * Each instance of this interface is used in only one thread at a time.  Connection Pooling
@@ -90,14 +90,14 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
   /** Set up a session */
   protected void getSession()
-    throws ACFException
+    throws ManifoldCFException
   {
     if (connection == null)
     {
       if (jdbcProvider == null || jdbcProvider.length() == 0)
-        throw new ACFException("Missing parameter '"+JDBCConstants.providerParameter+"'");
+        throw new ManifoldCFException("Missing parameter '"+JDBCConstants.providerParameter+"'");
       if (host == null || host.length() == 0)
-        throw new ACFException("Missing parameter '"+JDBCConstants.hostParameter+"'");
+        throw new ManifoldCFException("Missing parameter '"+JDBCConstants.hostParameter+"'");
 
       connection = new JDBCConnection(jdbcProvider,host,databaseName,userName,password);
     }
@@ -149,7 +149,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   /** Check status of connection.
   */
   public String check()
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -169,7 +169,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   /** Close the connection.  Call this before discarding the repository connector.
   */
   public void disconnect()
-    throws ACFException
+    throws ManifoldCFException
   {
     connection = null;
     host = null;
@@ -223,7 +223,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   */
   public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
     long startTime, long endTime, int jobMode)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     getSession();
 
@@ -255,7 +255,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
         createQueryString(queryText,paramList), "ERROR", e.getMessage(), null);
       throw e;
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       // If failure, record the failure.
       activities.recordActivity(new Long(startQueryTime), ACTIVITY_EXTERNAL_QUERY, null,
@@ -276,7 +276,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
           break;
         Object o = row.getValue(JDBCConstants.idReturnColumnName);
         if (o == null)
-          throw new ACFException("Bad seed query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\".");
+          throw new ManifoldCFException("Bad seed query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\".");
         String idValue = o.toString();
         activities.addSeedDocument(idValue);
       }
@@ -306,7 +306,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   */
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
     DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     getSession();
     TableSpec ts = new TableSpec(spec);
@@ -363,7 +363,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       result = connection.executeUncachedQuery(queryText,paramList,-1);
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       // If failure, record the failure.
       activities.recordActivity(new Long(startTime), ACTIVITY_EXTERNAL_QUERY, null,
@@ -383,7 +383,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
           break;
         Object o = row.getValue(JDBCConstants.idReturnColumnName);
         if (o == null)
-          throw new ACFException("Bad version query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\".");
+          throw new ManifoldCFException("Bad version query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\".");
         String idValue = o.toString();
         o = row.getValue(JDBCConstants.versionReturnColumnName);
         String versionValue;
@@ -432,7 +432,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   * should only find other references, and should not actually call the ingestion methods.
   */
   public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     getSession();
     TableSpec ts = new TableSpec(spec);
@@ -475,7 +475,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       result = connection.executeUncachedQuery(queryText,paramList,-1);
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       // If failure, record the failure.
       activities.recordActivity(new Long(startTime), ACTIVITY_EXTERNAL_QUERY, null,
@@ -495,7 +495,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
           break;
         Object o = row.getValue(JDBCConstants.idReturnColumnName);
         if (o == null)
-          throw new ACFException("Bad document query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\".");
+          throw new ManifoldCFException("Bad document query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\".");
         String id = readAsString(o);
         String version = (String)map.get(id);
         if (version != null)
@@ -555,15 +555,15 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
                   }
                   catch (java.net.SocketTimeoutException e)
                   {
-                    throw new ACFException("Socket timeout reading database data: "+e.getMessage(),e);
+                    throw new ManifoldCFException("Socket timeout reading database data: "+e.getMessage(),e);
                   }
                   catch (InterruptedIOException e)
                   {
-                    throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+                    throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
                   }
                   catch (IOException e)
                   {
-                    throw new ACFException("Error reading database data: "+e.getMessage(),e);
+                    throw new ManifoldCFException("Error reading database data: "+e.getMessage(),e);
                   }
                   finally
                   {
@@ -595,11 +595,11 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
                   }
                   catch (InterruptedIOException e)
                   {
-                    throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+                    throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
                   }
                   catch (IOException e)
                   {
-                    throw new ACFException("Error reading database data: "+e.getMessage(),e);
+                    throw new ManifoldCFException("Error reading database data: "+e.getMessage(),e);
                   }
                 }
               }
@@ -654,7 +654,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     tabsArray.add("Database Type");
     tabsArray.add("Server");
@@ -704,7 +704,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param tabName is the current tab name.
   */
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     String jdbcProvider = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.providerParameter);
     if (jdbcProvider == null)
@@ -805,7 +805,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
-    throws ACFException
+    throws ManifoldCFException
   {
     String type = variableContext.getParameter("databasetype");
     if (type != null)
@@ -838,7 +838,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
@@ -886,7 +886,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     tabsArray.add("Queries");
     tabsArray.add("Security");
@@ -995,7 +995,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param tabName is the current tab name.
   */
   public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     String idQuery = "SELECT idfield AS $(IDCOLUMN) FROM documenttable WHERE modifydatefield > $(STARTTIME) AND modifydatefield <= $(ENDTIME)";
     String versionQuery = "SELECT idfield AS $(IDCOLUMN), versionfield AS $(VERSIONCOLUMN) FROM documenttable WHERE idfield IN $(IDLIST)";
@@ -1152,7 +1152,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
-    throws ACFException
+    throws ManifoldCFException
   {
     String idQuery = variableContext.getParameter("idquery");
     String versionQuery = variableContext.getParameter("versionquery");
@@ -1256,7 +1256,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param ds is the current document specification for this job.
   */
   public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     String idQuery = "";
     String versionQuery = "";
@@ -1360,7 +1360,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param row is the resultset row to use to get the metadata.  All non-special columns from this row will be considered to be metadata.
   */
   protected void applyMetadata(RepositoryDocument rd, IResultRow row)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Cycle through the row's columns
     Iterator iter = row.getColumns();
@@ -1373,7 +1373,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
         // We can only accept non-binary metadata at this time.
         Object metadata = row.getValue(columnName);
         if (metadata instanceof BinaryInput)
-          throw new ACFException("Metadata column '"+columnName+"' must be convertible to a string, and cannot be binary");
+          throw new ManifoldCFException("Metadata column '"+columnName+"' must be convertible to a string, and cannot be binary");
         rd.addField(columnName,metadata.toString());
       }
     }
@@ -1385,7 +1385,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param spec is the document specification.
   */
   protected void applyAccessTokens(RepositoryDocument rd, String version, DocumentSpecification spec)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Set up any acls
     String[] accessAcls = null;
@@ -1500,7 +1500,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   * Each variable substitutes the string, and it also substitutes zero or more query parameters.
   */
   protected static void substituteQuery(String inputString, VariableMap inputMap, StringBuffer outputQuery, ArrayList outputParams)
-    throws ACFException
+    throws ManifoldCFException
   {
     // We are looking for strings that look like this: $(something)
     // Right at the moment we don't care even about quotes, so we just want to look for $(.
@@ -1522,7 +1522,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       String variableName = inputString.substring(nextIndex+2,endIndex);
       VariableMapItem item = inputMap.getVariable(variableName);
       if (item == null)
-        throw new ACFException("No such substitution variable: $("+variableName+")");
+        throw new ManifoldCFException("No such substitution variable: $("+variableName+")");
       outputQuery.append(inputString.substring(startIndex,nextIndex));
       outputQuery.append(item.getValue());
       ArrayList inputParams = item.getParameters();
@@ -1717,7 +1717,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
   /** Make sure we read this field as a string */
   protected static String readAsString(Object o)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (o instanceof BinaryInput)
     {
@@ -1746,7 +1746,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
       catch (IOException e)
       {
-        throw new ACFException(e.getMessage(),e);
+        throw new ManifoldCFException(e.getMessage(),e);
       }
       finally
       {

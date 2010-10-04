@@ -45,7 +45,7 @@ public class ExpireThread extends Thread
   *@param id is the expire thread id.
   */
   public ExpireThread(String id, DocumentDeleteQueue documentQueue, QueueTracker queueTracker, WorkerResetManager resetManager)
-    throws ACFException
+    throws ManifoldCFException
   {
     super();
     this.id = id;
@@ -77,7 +77,7 @@ public class ExpireThread extends Thread
         try
         {
           if (Thread.currentThread().isInterrupted())
-            throw new ACFException("Interrupted",ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
 
           // Before we begin, conditionally reset
           resetManager.waitForReset(threadContext);
@@ -92,7 +92,7 @@ public class ExpireThread extends Thread
             continue;
 
           if (Thread.currentThread().isInterrupted())
-            throw new ACFException("Interrupted",ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
 
           try
           {
@@ -223,7 +223,7 @@ public class ExpireThread extends Thread
                         long waittime = amt-now;
                         if (waittime <= 0L)
                           waittime = 300000L;
-                        ACF.sleep(waittime);
+                        ManifoldCF.sleep(waittime);
                       }
                     }
 
@@ -242,7 +242,7 @@ public class ExpireThread extends Thread
                       String[] legalLinkTypes = (String[])arrayRelationshipTypes.get(index);
                       DocumentDescription[] requeueCandidates = jobManager.markDocumentDeleted(jobID,legalLinkTypes,ddd,hopcountMethod);
                       // Use the common method for doing the requeuing
-                      ACF.requeueDocumentsDueToCarrydown(jobManager,requeueCandidates,
+                      ManifoldCF.requeueDocumentsDueToCarrydown(jobManager,requeueCandidates,
                         connector,connection,queueTracker,currentTime);
                       // Finally, completed expiration of the document.
                       dqd.setProcessed();
@@ -256,9 +256,9 @@ public class ExpireThread extends Thread
                   RepositoryConnectorFactory.release(connector);
                 }
               }
-              catch (ACFException e)
+              catch (ManifoldCFException e)
               {
-                if (e.getErrorCode() == ACFException.REPOSITORY_CONNECTION_ERROR)
+                if (e.getErrorCode() == ManifoldCFException.REPOSITORY_CONNECTION_ERROR)
                 {
                   // This error can only come from grabbing the connections.  So, if this occurs it means that
                   // all the documents we've been handed have to be stuffed back onto the queue for processing at a later time.
@@ -271,12 +271,12 @@ public class ExpireThread extends Thread
               }
             }
           }
-          catch (ACFException e)
+          catch (ManifoldCFException e)
           {
-            if (e.getErrorCode() == ACFException.INTERRUPTED)
+            if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
               break;
 
-            if (e.getErrorCode() == ACFException.DATABASE_CONNECTION_ERROR)
+            if (e.getErrorCode() == ManifoldCFException.DATABASE_CONNECTION_ERROR)
               throw e;
 
             Logging.threads.error("Exception tossed: "+e.getMessage(),e);
@@ -299,12 +299,12 @@ public class ExpireThread extends Thread
             }
           }
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
-          if (e.getErrorCode() == ACFException.INTERRUPTED)
+          if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
             break;
 
-          if (e.getErrorCode() == ACFException.DATABASE_CONNECTION_ERROR)
+          if (e.getErrorCode() == ManifoldCFException.DATABASE_CONNECTION_ERROR)
           {
             // Note the failure, which will cause a reset to occur
             resetManager.noteEvent();
@@ -315,7 +315,7 @@ public class ExpireThread extends Thread
             try
             {
               // Give the database a chance to catch up/wake up
-              ACF.sleep(10000L);
+              ManifoldCF.sleep(10000L);
             }
             catch (InterruptedException se)
             {
@@ -393,9 +393,9 @@ public class ExpireThread extends Thread
     */
     public void recordActivity(Long startTime, String activityType, Long dataSize,
       String entityURI, String resultCode, String resultDescription)
-      throws ACFException
+      throws ManifoldCFException
     {
-      connMgr.recordHistory(connectionName,startTime,ACF.qualifyOutputActivityName(activityType,outputConnectionName),dataSize,entityURI,resultCode,
+      connMgr.recordHistory(connectionName,startTime,ManifoldCF.qualifyOutputActivityName(activityType,outputConnectionName),dataSize,entityURI,resultCode,
         resultDescription,null);
     }
   }

@@ -24,7 +24,7 @@ import org.apache.manifoldcf.agents.interfaces.*;
 import java.io.*;
 import java.util.*;
 
-/** This interface describes an instance of a connection between a repository and ACF's
+/** This interface describes an instance of a connection between a repository and ManifoldCF's
 * standard "pull" ingestion agent.
 *
 * Each instance of this interface is used in only one thread at a time.  Connection Pooling
@@ -48,14 +48,14 @@ import java.util.*;
 * It therefore establishes a space of document identifiers.  Each connector will only ever be
 * asked to deal with identifiers that have in some way originated from the connector.
 *
-* Documents are fetched by ACF in three stages.  First, the addSeedDocuments() method is called in the connector
-* implementation.  This method is meant to add a set of document identifiers to the queue.  When ACF is ready
+* Documents are fetched by ManifoldCF in three stages.  First, the addSeedDocuments() method is called in the connector
+* implementation.  This method is meant to add a set of document identifiers to the queue.  When ManifoldCF is ready
 * to process a document, the document identifier is used to obtain a current document version string, using the
 * getDocumentVersions() method (the second stage).  This version string is used to decide whether or not the
 * third stage need be called for the document or not.  The third stage is responsible for sending document content
 * to the output, and for extracting any references to additional documents, and consists of the processDocuments() method.
 *
-* All of these methods interact with ACF by means of an "activity" interface.  For example, an IVersionActivity object
+* All of these methods interact with ManifoldCF by means of an "activity" interface.  For example, an IVersionActivity object
 * is passed to the getDocumentVersions() method, and that object contains methods that are necessary for getDocumentVersions()
 * to do its job.  A similar architecture is used throughout the connector framework.
 */
@@ -129,7 +129,7 @@ public interface IRepositoryConnector extends IConnector
   *@return true if the resource is found, false if not.  In either case, output may be filled in.
   */
   public boolean requestInfo(Configuration output, String command)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Queue "seed" documents.  Seed documents are the starting places for crawling activity.  Documents
   * are seeded when this method calls appropriate methods in the passed in ISeedingActivity object.
@@ -159,7 +159,7 @@ public interface IRepositoryConnector extends IConnector
   */
   public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
     long startTime, long endTime, int jobMode)
-    throws ACFException, ServiceInterruption;
+    throws ManifoldCFException, ServiceInterruption;
 
   /** Get document versions given an array of document identifiers.
   * This method is called for EVERY document that is considered. It is
@@ -180,7 +180,7 @@ public interface IRepositoryConnector extends IConnector
   */
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
     DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-    throws ACFException, ServiceInterruption;
+    throws ManifoldCFException, ServiceInterruption;
 
   /** Process a set of documents.
   * This is the method that should cause each document to be fetched, processed, and the results either added
@@ -198,7 +198,7 @@ public interface IRepositoryConnector extends IConnector
   */
   public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities,
     DocumentSpecification spec, boolean[] scanOnly, int jobMode)
-    throws ACFException, ServiceInterruption;
+    throws ManifoldCFException, ServiceInterruption;
 
   /** Free a set of documents.  This method is called for all documents whose versions have been fetched using
   * the getDocumentVersions() method, including those that returned null versions.  It may be used to free resources
@@ -208,7 +208,7 @@ public interface IRepositoryConnector extends IConnector
   *@param versions is the corresponding set of version identifiers (individual identifiers may be null).
   */
   public void releaseDocumentVersions(String[] documentIdentifiers, String[] versions)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Get the maximum number of documents to amalgamate together into one batch, for this connector.
   * The connector does not need to be connected for this method to be called.
@@ -233,7 +233,7 @@ public interface IRepositoryConnector extends IConnector
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
-    throws ACFException, IOException;
+    throws ManifoldCFException, IOException;
   
   /** Output the specification body section.
   * This method is called in the body section of a job page which has selected a repository connection of the current type.  Its purpose is to present the required form elements for editing.
@@ -244,7 +244,7 @@ public interface IRepositoryConnector extends IConnector
   *@param tabName is the current tab name.
   */
   public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
-    throws ACFException, IOException;
+    throws ManifoldCFException, IOException;
   
   /** Process a specification post.
   * This method is called at the start of job's edit or view page, whenever there is a possibility that form data for a connection has been
@@ -255,7 +255,7 @@ public interface IRepositoryConnector extends IConnector
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
-    throws ACFException;
+    throws ManifoldCFException;
   
   /** View specification.
   * This method is called in the body section of a job's view page.  Its purpose is to present the document specification information to the user.
@@ -264,7 +264,7 @@ public interface IRepositoryConnector extends IConnector
   *@param ds is the current document specification for this job.
   */
   public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
-    throws ACFException, IOException;
+    throws ManifoldCFException, IOException;
 
 }
 

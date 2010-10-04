@@ -21,7 +21,7 @@ package org.apache.manifoldcf.crawler.connectors.filesystem.tests;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
-import org.apache.manifoldcf.crawler.system.ACF;
+import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
 import java.io.*;
 import java.util.*;

@@ -38,15 +38,15 @@ public class AgentManagerFactory
   *@return the manager.
   */
   public static IAgentManager make(IThreadContext threadContext)
-    throws ACFException
+    throws ManifoldCFException
   {
     Object o = threadContext.get(agentManager);
     if (o == null || !(o instanceof IAgentManager))
     {
       IDBInterface database = DBInterfaceFactory.make(threadContext,
-        ACF.getMasterDatabaseName(),
-        ACF.getMasterDatabaseUsername(),
-        ACF.getMasterDatabasePassword());
+        ManifoldCF.getMasterDatabaseName(),
+        ManifoldCF.getMasterDatabaseUsername(),
+        ManifoldCF.getMasterDatabasePassword());
 
       o = new org.apache.manifoldcf.agents.agentmanager.AgentManager(threadContext,database);
       threadContext.save(agentManager,o);
@@ -60,7 +60,7 @@ public class AgentManagerFactory
   *@return true if the connection is in use, false otherwise.
   */
   public static boolean isOutputConnectionInUse(IThreadContext threadContext, String connName)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Instantiate the list of IAgent objects
     IAgent[] theAgents = instantiateAllAgents(threadContext);
@@ -79,7 +79,7 @@ public class AgentManagerFactory
   *@param connectionNames is the set of connection names.
   */
   public static void noteOutputConnectorDeregistration(IThreadContext threadContext, String[] connectionNames)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Instantiate the list of IAgent objects
     IAgent[] theAgents = instantiateAllAgents(threadContext);
@@ -97,7 +97,7 @@ public class AgentManagerFactory
   *@param connectionNames is the set of connection names.
   */
   public static void noteOutputConnectorRegistration(IThreadContext threadContext, String[] connectionNames)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Instantiate the list of IAgent objects
     IAgent[] theAgents = instantiateAllAgents(threadContext);
@@ -114,7 +114,7 @@ public class AgentManagerFactory
   *@param connectionName is the connection name.
   */
   public static void noteOutputConnectionChange(IThreadContext threadContext, String connectionName)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Instantiate the list of IAgent objects
     IAgent[] theAgents = instantiateAllAgents(threadContext);
@@ -130,7 +130,7 @@ public class AgentManagerFactory
   *@return the array of such objects.
   */
   public static IAgent[] instantiateAllAgents(IThreadContext threadContext)
-    throws ACFException
+    throws ManifoldCFException
   {
     IAgentManager manager = make(threadContext);
     String[] allAgents = manager.getAllAgents();

@@ -45,7 +45,7 @@ public class ResetAll
 
                 try
                 {
-                        ACF.initializeEnvironment();
+                        ManifoldCF.initializeEnvironment();
                         IThreadContext tc = ThreadContextFactory.make();
                         IJobManager jobManager = JobManagerFactory.make(tc);
                         IRepositoryConnectionManager connMgr = RepositoryConnectionManagerFactory.make(tc);
@@ -62,7 +62,7 @@ public class ResetAll
                                 {
                                         jobManager.manualAbort(desc.getID());
                                 }
-                                catch (ACFException e)
+                                catch (ManifoldCFException e)
                                 {
                                         // This generally means that the job was not running
                                 }
@@ -85,7 +85,7 @@ public class ResetAll
                                                 case JobStatus.JOBSTATUS_ERROR:
                                                         break;
                                                 default:
-                                                        ACF.sleep(10000);
+                                                        ManifoldCF.sleep(10000);
                                                         continue;
                                                 }
                                         }
@@ -102,7 +102,7 @@ public class ResetAll
                                 {
                                         jobManager.deleteJob(desc.getID());
                                 }
-                                catch (ACFException e)
+                                catch (ManifoldCFException e)
                                 {
                                         // This usually means that the job is already being deleted
                                 }
@@ -118,7 +118,7 @@ public class ResetAll
                                         JobStatus status = jobManager.getStatus(desc.getID());
                                         if (status != null)
                                         {
-                                                ACF.sleep(10000);
+                                                ManifoldCF.sleep(10000);
                                                 continue;
                                         }
                                         break;

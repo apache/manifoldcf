@@ -1,9 +1,9 @@
 package org.apache.manifoldcf.agents;
 
-import org.apache.manifoldcf.agents.system.ACF;
+import org.apache.manifoldcf.agents.system.ManifoldCF;
 import org.apache.manifoldcf.core.InitializationCommand;
 import org.apache.manifoldcf.core.interfaces.IThreadContext;
-import org.apache.manifoldcf.core.interfaces.ACFException;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.interfaces.ThreadContextFactory;
 
 /**
@@ -11,12 +11,12 @@ import org.apache.manifoldcf.core.interfaces.ThreadContextFactory;
  */
 public abstract class BaseAgentsInitializationCommand implements InitializationCommand
 {
-  public void execute() throws ACFException
+  public void execute() throws ManifoldCFException
   {
-    ACF.initializeEnvironment();
+    ManifoldCF.initializeEnvironment();
     IThreadContext tc = ThreadContextFactory.make();
     doExecute(tc);
   }
 
-  protected abstract void doExecute(IThreadContext tc) throws ACFException;
+  protected abstract void doExecute(IThreadContext tc) throws ManifoldCFException;
 }

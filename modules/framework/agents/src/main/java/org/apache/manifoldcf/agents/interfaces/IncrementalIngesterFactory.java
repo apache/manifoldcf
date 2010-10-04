@@ -37,15 +37,15 @@ public class IncrementalIngesterFactory
   /** Get an appropriate incremental ingest manager handle.
   */
   public static IIncrementalIngester make(IThreadContext threadContext)
-    throws ACFException
+    throws ManifoldCFException
   {
     Object o = threadContext.get(ingestManager);
     if (o == null || !(o instanceof IIncrementalIngester))
     {
       IDBInterface database = DBInterfaceFactory.make(threadContext,
-        ACF.getMasterDatabaseName(),
-        ACF.getMasterDatabaseUsername(),
-        ACF.getMasterDatabasePassword());
+        ManifoldCF.getMasterDatabaseName(),
+        ManifoldCF.getMasterDatabaseUsername(),
+        ManifoldCF.getMasterDatabasePassword());
 
       o = new org.apache.manifoldcf.agents.incrementalingest.IncrementalIngester(threadContext,database);
       threadContext.save(ingestManager,o);

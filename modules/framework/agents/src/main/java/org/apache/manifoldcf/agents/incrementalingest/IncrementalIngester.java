@@ -21,7 +21,7 @@ package org.apache.manifoldcf.agents.incrementalingest;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.agents.system.Logging;
-import org.apache.manifoldcf.agents.system.ACF;
+import org.apache.manifoldcf.agents.system.ManifoldCF;
 import java.util.*;
 import java.io.*;
 
@@ -64,7 +64,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   /** Constructor.
   */
   public IncrementalIngester(IThreadContext threadContext, IDBInterface database)
-    throws ACFException
+    throws ManifoldCFException
   {
     super(database,"ingeststatus");
     this.threadContext = threadContext;
@@ -75,7 +75,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   /** Install the incremental ingestion manager.
   */
   public void install()
-    throws ACFException
+    throws ManifoldCFException
   {
     String outputConnectionTableName = connectionManager.getTableName();
     String outputConnectionNameField = connectionManager.getConnectionNameColumn();
@@ -146,16 +146,16 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@return the time, in minutes.
   */
   public int getAnalyzeTime()
-    throws ACFException
+    throws ManifoldCFException
   {
     // For this table, we base the wait time on the number of rows in it.
     IResultSet set = performQuery("SELECT COUNT("+idField+") FROM "+getTableName(),null,null,null);
     if (set.getRowCount() < 1)
-      throw new ACFException("Expected result with one row");
+      throw new ManifoldCFException("Expected result with one row");
     IResultRow row = set.getRow(0);
     Iterator columnNames = row.getColumns();
     if (!columnNames.hasNext())
-      throw new ACFException("Expected result with one column");
+      throw new ManifoldCFException("Expected result with one column");
     String columnName = (String)columnNames.next();
     long value = new Long(row.getValue(columnName).toString()).longValue();
     if (value < 10000L)
@@ -170,7 +170,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   /** Analyze database tables.
   */
   public void analyzeTables()
-    throws ACFException
+    throws ManifoldCFException
   {
     analyzeTable();
   }
@@ -178,7 +178,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   /** Uninstall the incremental ingestion manager.
   */
   public void deinstall()
-    throws ACFException
+    throws ManifoldCFException
   {
     performDrop(null);
   }
@@ -186,7 +186,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   /** Flush all knowledge of what was ingested before.
   */
   public void clearAll()
-    throws ACFException
+    throws ManifoldCFException
   {
     performDelete("",null,null);
   }
@@ -197,7 +197,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@return true if the mimeType is indexable.
   */
   public boolean checkMimeTypeIndexable(String outputConnectionName, String mimeType)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     IOutputConnection connection = connectionManager.load(outputConnectionName);
     IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
@@ -220,7 +220,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@return true if the local file is indexable.
   */
   public boolean checkDocumentIndexable(String outputConnectionName, File localFile)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     IOutputConnection connection = connectionManager.load(outputConnectionName);
     IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
@@ -251,7 +251,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     String identifierClass, String identifierHash,
     String documentVersion,
     long recordTime, IOutputActivity activities)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     IOutputConnection connection = connectionManager.load(outputConnectionName);
 
@@ -290,7 +290,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     RepositoryDocument data,
     long ingestTime, String documentURI,
     IOutputActivity activities)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     IOutputConnection connection = connectionManager.load(outputConnectionName);
 
@@ -312,14 +312,14 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     RepositoryDocument data,
     long ingestTime, String documentURI,
     IOutputActivity activities)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     // No transactions; not safe because post may take too much time
 
     // First, calculate a document uri hash value
     String documentURIHash = null;
     if (documentURI != null)
-      documentURIHash = ACF.hash(documentURI);
+      documentURIHash = ManifoldCF.hash(documentURI);
 
     // See what uri was used before for this doc, if any
     ArrayList list = new ArrayList();
@@ -432,7 +432,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   public void documentCheckMultiple(String outputConnectionName,
     String[] identifierClasses, String[] identifierHashes,
     long checkTime)
-    throws ACFException
+    throws ManifoldCFException
   {
     beginTransaction();
     try
@@ -500,7 +500,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       if (j > 0)
         updateRowIds(list,sb.toString(),checkTime);
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       signalRollback();
       throw e;
@@ -526,7 +526,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   public void documentCheck(String outputConnectionName,
     String identifierClass, String identifierHash,
     long checkTime)
-    throws ACFException
+    throws ManifoldCFException
   {
     documentCheckMultiple(outputConnectionName,new String[]{identifierClass},new String[]{identifierHash},checkTime);
   }
@@ -534,7 +534,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   /** Update a chunk of row ids.
   */
   protected void updateRowIds(ArrayList list, String queryPart, long checkTime)
-    throws ACFException
+    throws ManifoldCFException
   {
     HashMap map = new HashMap();
     map.put(lastIngestField,new Long(checkTime));
@@ -550,7 +550,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   public void documentDeleteMultiple(String[] outputConnectionNames,
     String[] identifierClasses, String[] identifierHashes,
     IOutputRemoveActivity activities)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     // Segregate request by connection names
     HashMap keyMap = new HashMap();
@@ -597,7 +597,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   public void documentDeleteMultiple(String outputConnectionName,
     String[] identifierClasses, String[] identifierHashes,
     IOutputRemoveActivity activities)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     IOutputConnection connection = connectionManager.load(outputConnectionName);
 
@@ -677,7 +677,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         while (j < validURIArray.length)
         {
           String docDBString = validURIArray[j++];
-          String docDBHashString = ACF.hash(docDBString);
+          String docDBHashString = ManifoldCF.hash(docDBString);
           docURIValues.put(docDBString,docDBString);
           docURIHashValues.put(docDBHashString,docDBHashString);
         }
@@ -797,7 +797,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
           deleteRowIds(list,sb.toString());
 
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         signalRollback();
         throw e;
@@ -823,7 +823,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   */
   protected void findRowIdsForURIs(String outputConnectionName, HashMap rowIDSet, HashMap uris, ArrayList hashParamValues,
     String paramList)
-    throws ACFException
+    throws ManifoldCFException
   {
     hashParamValues.add(outputConnectionName);
     IResultSet set = performQuery("SELECT "+idField+","+docURIField+" FROM "+
@@ -849,7 +849,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   */
   protected void findRowIdsForDocIds(String outputConnectionName, HashMap rowIDSet, ArrayList paramValues,
     String paramList)
-    throws ACFException
+    throws ManifoldCFException
   {
     paramValues.add(outputConnectionName);
     IResultSet set = performQuery("SELECT "+idField+" FROM "+
@@ -866,7 +866,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   /** Delete a chunk of row ids.
   */
   protected void deleteRowIds(ArrayList list, String queryPart)
-    throws ACFException
+    throws ManifoldCFException
   {
     performDelete("WHERE "+idField+" IN ("+queryPart+")",list,null);
   }
@@ -880,7 +880,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   public void documentDelete(String outputConnectionName,
     String identifierClass, String identifierHash,
     IOutputRemoveActivity activities)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     documentDeleteMultiple(outputConnectionName,new String[]{identifierClass},new String[]{identifierHash},activities);
   }
@@ -891,7 +891,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   * that don't exist in the index.
   */
   protected DeleteInfo[] getDocumentURIMultiple(String outputConnectionName, String[] identifierClasses, String[] identifierHashes)
-    throws ACFException
+    throws ManifoldCFException
   {
     DeleteInfo[] rval = new DeleteInfo[identifierHashes.length];
     HashMap map = new HashMap();
@@ -930,7 +930,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         getDocumentURIChunk(rval,map,outputConnectionName,sb.toString(),list);
       return rval;
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       signalRollback();
       throw e;
@@ -955,7 +955,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   */
   public DocumentIngestStatus[] getDocumentIngestDataMultiple(String[] outputConnectionNames,
     String[] identifierClasses, String[] identifierHashes)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Segregate request by connection names
     HashMap keyMap = new HashMap();
@@ -1011,7 +1011,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   */
   public DocumentIngestStatus[] getDocumentIngestDataMultiple(String outputConnectionName,
     String[] identifierClasses, String[] identifierHashes)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Build the return array
     DocumentIngestStatus[] rval = new DocumentIngestStatus[identifierHashes.length];
@@ -1053,7 +1053,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         getDocumentIngestDataChunk(rval,indexMap,outputConnectionName,sb.toString(),list);
       return rval;
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       signalRollback();
       throw e;
@@ -1077,7 +1077,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   */
   public DocumentIngestStatus getDocumentIngestData(String outputConnectionName,
     String identifierClass, String identifierHash)
-    throws ACFException
+    throws ManifoldCFException
   {
     return getDocumentIngestDataMultiple(outputConnectionName,new String[]{identifierClass},new String[]{identifierHash})[0];
   }
@@ -1091,7 +1091,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   */
   public long getDocumentUpdateInterval(String outputConnectionName,
     String identifierClass, String identifierHash)
-    throws ACFException
+    throws ManifoldCFException
   {
     return getDocumentUpdateIntervalMultiple(outputConnectionName,new String[]{identifierClass},new String[]{identifierHash})[0];
   }
@@ -1105,7 +1105,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   */
   public long[] getDocumentUpdateIntervalMultiple(String outputConnectionName,
     String[] identifierClasses, String[] identifierHashes)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Do these all at once!!
     // First, create a return array
@@ -1164,7 +1164,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param returnMap is a mapping from document id to rval index.
   */
   protected void getIntervals(long[] rval, String outputConnectionName, ArrayList list, String queryPart, HashMap returnMap)
-    throws ACFException
+    throws ManifoldCFException
   {
     list.add(outputConnectionName);
     IResultSet set = performQuery("SELECT "+docKeyField+","+changeCountField+","+firstIngestField+","+lastIngestField+
@@ -1193,7 +1193,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param outputConnectionName is the name of the output connection associated with this action.
   */
   public void resetOutputConnection(String outputConnectionName)
-    throws ACFException
+    throws ManifoldCFException
   {
     // We're not going to blow away the records, but we are going to set their versions to mean, "reindex required"
     HashMap map = new HashMap();
@@ -1218,7 +1218,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     String docKey, String documentVersion,
     String outputVersion, String authorityNameString,
     long ingestTime, String documentURI, String documentURIHash)
-    throws ACFException
+    throws ManifoldCFException
   {
     while (true)
     {
@@ -1268,11 +1268,11 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         conditionallyAnalyzeInsert();
         return;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         signalRollback();
         // If this is simply a constraint violation, we just want to fall through and try the update!
-        if (e.getErrorCode() != ACFException.DATABASE_TRANSACTION_ABORT)
+        if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
           throw e;
         // Otherwise, exit transaction and fall through to 'update' attempt
       }
@@ -1329,7 +1329,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
 
         // Update failed to find a matching record, so cycle back to retry the insert
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         signalRollback();
         throw e;
@@ -1353,7 +1353,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param list is the parameter list for the query.
   */
   protected void getDocumentURIChunk(DeleteInfo[] rval, Map map, String outputConnectionName, String clause, ArrayList list)
-    throws ACFException
+    throws ManifoldCFException
   {
     list.add(outputConnectionName);
     IResultSet set = performQuery("SELECT "+docKeyField+","+docURIField+","+lastOutputVersionField+" FROM "+getTableName()+" WHERE "+
@@ -1383,7 +1383,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param list is the parameter list for the query.
   */
   protected void getDocumentIngestDataChunk(DocumentIngestStatus[] rval, Map map, String outputConnectionName, String clause, ArrayList list)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Get the primary records associated with this hash value
     list.add(outputConnectionName);
@@ -1413,7 +1413,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   /** Add or replace document, using the specified output connection, via the standard pool.
   */
   protected int addOrReplaceDocument(IOutputConnection connection, String documentURI, String outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
     if (connector == null)
@@ -1432,7 +1432,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   /** Remove document, using the specified output connection, via the standard pool.
   */
   protected void removeDocument(IOutputConnection connection, String documentURI, String outputDescription, IOutputRemoveActivity activities)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
     if (connector == null)
@@ -1457,7 +1457,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   /** Conditionally do analyze operation.
   */
   protected void conditionallyAnalyzeInsert()
-    throws ACFException
+    throws ManifoldCFException
   {
     synchronized (tracker)
     {

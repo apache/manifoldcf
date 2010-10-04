@@ -46,7 +46,7 @@ public class DeleteRepositoryConnection
                 String connectionName = args[0];
                 try
                 {
-                        ACF.initializeEnvironment();
+                        ManifoldCF.initializeEnvironment();
                         IThreadContext tc = ThreadContextFactory.make();
                         IRepositoryConnectionManager mgr = RepositoryConnectionManagerFactory.make(tc);
                         mgr.delete(connectionName);

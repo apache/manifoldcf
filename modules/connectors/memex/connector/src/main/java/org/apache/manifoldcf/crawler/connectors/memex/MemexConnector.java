@@ -23,7 +23,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
-import org.apache.manifoldcf.crawler.system.ACF;
+import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import java.util.*;
 import java.io.*;
 import org.w3c.dom.*;
@@ -99,9 +99,9 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   protected String webServerPort = null;
 
   //mieConnection is the connection to the main Configuration Server.
-  //There will be further ACFMemexConnection objects for each
+  //There will be further ManifoldCFMemexConnection objects for each
   //physical server accessed through the physicalServers collection.
-  private ACFMemexConnection mieConnection = null;
+  private ManifoldCFMemexConnection mieConnection = null;
   private MemexConnectionPool miePool = new MemexConnectionPool();
 
   //Collection describing the logical servers making up this system
@@ -109,7 +109,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   private Hashtable<String, LogicalServer> logicalServersByPrefix = null;
 
   //Collection describing the physical servers making up this system
-  private Hashtable<String, ACFMemexConnection> physicalServers = null;
+  private Hashtable<String, ManifoldCFMemexConnection> physicalServers = null;
 
   //Two collections describing the entities in the set-up - one keyed by the entities' name, the other
   //by their label - generally speaking, we should use labels for anything being presented to the users
@@ -199,7 +199,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
       }
       return new String[]{""};
     }
-    catch(ACFException e){
+    catch(ManifoldCFException e){
       Logging.connectors.warn("Memex connection error: "+e.getMessage(),e);
       return new String[]{""};
     }
@@ -249,7 +249,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   *@return the connection's status as a displayable string.
   */
   public String check()
-    throws ACFException
+    throws ManifoldCFException
   {
     try{
       this.setupConnection();
@@ -264,7 +264,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   * in active use.
   */
   public void poll()
-    throws ACFException
+    throws ManifoldCFException
   {
     // Is the connection still valid?
     if (this.physicalServers != null && !this.physicalServers.isEmpty())
@@ -283,7 +283,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   /** Disconnect from Memex.
   */
   public void disconnect()
-    throws ACFException
+    throws ManifoldCFException
   {
     this.cleanUpConnections();
     userName = null;
@@ -305,7 +305,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   *@return true if the resource is found, false if not.  In either case, output may be filled in.
   */
   public boolean requestInfo(Configuration output, String command)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (command.startsWith("databases/"))
     {
@@ -331,11 +331,11 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
       }
       catch (ServiceInterruption e)
       {
-        ACF.createServiceInterruptionNode(output,e);
+        ManifoldCF.createServiceInterruptionNode(output,e);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
-        ACF.createErrorNode(output,e);
+        ManifoldCF.createErrorNode(output,e);
       }
     }
     else if (command.equals("virtualservers"))
@@ -354,11 +354,11 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
       }
       catch (ServiceInterruption e)
       {
-        ACF.createServiceInterruptionNode(output,e);
+        ManifoldCF.createServiceInterruptionNode(output,e);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
-        ACF.createErrorNode(output,e);
+        ManifoldCF.createErrorNode(output,e);
       }
     }
     else if (command.equals("entitytypes"))
@@ -383,11 +383,11 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
       }
       catch (ServiceInterruption e)
       {
-        ACF.createServiceInterruptionNode(output,e);
+        ManifoldCF.createServiceInterruptionNode(output,e);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
-        ACF.createErrorNode(output,e);
+        ManifoldCF.createErrorNode(output,e);
       }
     }
     else if (command.startsWith("fields/"))
@@ -407,11 +407,11 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
       }
       catch (ServiceInterruption e)
       {
-        ACF.createServiceInterruptionNode(output,e);
+        ManifoldCF.createServiceInterruptionNode(output,e);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
-        ACF.createErrorNode(output,e);
+        ManifoldCF.createErrorNode(output,e);
       }
     }
     else if (command.equals("matchablefields/"))
@@ -431,11 +431,11 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
       }
       catch (ServiceInterruption e)
       {
-        ACF.createServiceInterruptionNode(output,e);
+        ManifoldCF.createServiceInterruptionNode(output,e);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
-        ACF.createErrorNode(output,e);
+        ManifoldCF.createErrorNode(output,e);
       }
     }
     else
@@ -484,7 +484,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   */
   public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
     long startTime, long endTime)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     //start by making sure we have a connection
     this.setupConnection();
@@ -670,11 +670,11 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
         {
           try
           {
-            ACF.sleep(100L);
+            ManifoldCF.sleep(100L);
           }
           catch (InterruptedException e)
           {
-            throw new ACFException(e.getMessage(),e,ACFException.INTERRUPTED);
+            throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
           }
         }
       }
@@ -691,7 +691,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   }
 
   protected static boolean checkCriteria(Map<String,DecodedField> fields, List<CrawlMatchDescription> specificMatchCriteria)
-    throws ACFException
+    throws ManifoldCFException
   {
     // An empty array means EVERYTHING.
     if (specificMatchCriteria.size() == 0)
@@ -739,7 +739,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
             return true;
         }
         else
-          throw new ACFException("Bad operator value: "+operator);
+          throw new ManifoldCFException("Bad operator value: "+operator);
       }
     }
     return false;
@@ -747,7 +747,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
 
   protected void doDecode(ArrayList fieldListX, List<Map<String,DecodedField>> fieldsPerRecord, List<CrawlMatchDescription> specificMatchCriteria,
     LogicalServer ls, ISeedingActivity activities)
-    throws MemexException, ACFException
+    throws MemexException, ManifoldCFException
   {
     // First, do the decode
     ls.getMIE().mie.mxie_decode_fields(fieldListX);
@@ -844,7 +844,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   */
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activity,
     DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     String[] newVersions = new String[documentIdentifiers.length];
     // Build a hash of the indices for each document identifier
@@ -1272,7 +1272,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   */
   public void processDocuments(String[] documentIdentifiers, String[] documentVersions,
     IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
 
     // First, create the CrawlDescription object
@@ -1304,7 +1304,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
           Hashtable currentRec = lookupCachedRecord(recordURN);
           if (currentRec == null)
             // This should never happen!!
-            throw new ACFException("Process request for a record whose version was never requested!!");
+            throw new ManifoldCFException("Process request for a record whose version was never requested!!");
 
           // Now, unpack the version string to obtain what fields we should ingest etc.
           ArrayList<String> primaryList = new ArrayList<String>();
@@ -1462,7 +1462,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
         }
       }
     }catch(java.io.UnsupportedEncodingException e){
-      throw new ACFException("Unsupported encoding: "+e.getMessage(),e);
+      throw new ManifoldCFException("Unsupported encoding: "+e.getMessage(),e);
     }
 
   }
@@ -1515,7 +1515,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   *@param versions is the corresponding set of version identifiers (individual identifiers may be null).
   */
   public void releaseDocumentVersions(String[] documentIdentifiers, String[] versions)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Clean up our part of the cache.
     for (int i = 0; i < documentIdentifiers.length; i++)
@@ -1548,7 +1548,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     tabsArray.add("Memex Server");
     tabsArray.add("Web Server");
@@ -1774,7 +1774,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   *@param tabName is the current tab name.
   */
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     String memexServerName = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.memex.MemexConnector.CONFIG_PARAM_MEMEXSERVERNAME);
     if (memexServerName == null)
@@ -1919,7 +1919,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
-    throws ACFException
+    throws ManifoldCFException
   {
     String memexServerName = variableContext.getParameter("memexservername");
     if (memexServerName != null)
@@ -1967,7 +1967,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
@@ -2015,7 +2015,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     tabsArray.add("Record Criteria");
     tabsArray.add("Entities");
@@ -2301,7 +2301,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   *@param tabName is the current tab name.
   */
   public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     int i;
     int k;
@@ -2467,7 +2467,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
           ii++;
         }
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         out.print(
 "  <tr>\n"+
@@ -2728,7 +2728,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
 "              </select>\n"
           );
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
           out.print(
 "              "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage())+"\n"
@@ -2783,7 +2783,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
 "              </select>\n"
             );
           }
-          catch (ACFException e)
+          catch (ManifoldCFException e)
           {
             out.print(
 "              "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage())+"\n"
@@ -2852,7 +2852,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
 "              <input type=\"text\" name=\"rulefieldvalueselect\" size=\"32\" value=\"\"/>\n"
             );
           }
-          catch (ACFException e)
+          catch (ManifoldCFException e)
           {
             out.print(
 "              "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage())+"\n"
@@ -3043,7 +3043,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
-    throws ACFException
+    throws ManifoldCFException
   {
     String x = variableContext.getParameter("entitytypecount");
     if (x != null && x.length() > 0)
@@ -3294,7 +3294,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   *@param ds is the current document specification for this job.
   */
   public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
@@ -3534,7 +3534,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
 
   /** Return a list of databases (instances of an entity type) on a given virtual server*/
   public NameDescription[] listDatabasesForVirtualServer(String virtualServerName)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     //Start by making sure we're connected
     this.setupConnection();
@@ -3543,11 +3543,11 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     if(!(logicalServers.containsKey(virtualServerName))){
       //If we can't find the virtual server, its unlikely we can
       //recover
-      throw new ACFException("Memex error: Virtual server "+virtualServerName+" not found");
+      throw new ManifoldCFException("Memex error: Virtual server "+virtualServerName+" not found");
     }
     LogicalServer ls = logicalServers.get(virtualServerName);
     if (ls == null)
-      throw new ACFException("Memex error: Virtual server "+virtualServerName+" not found");
+      throw new ManifoldCFException("Memex error: Virtual server "+virtualServerName+" not found");
 
     ArrayList<String> dblist = new ArrayList<String>();
     for(int i = 0; i < ls.getDatabaseCount(); i++){
@@ -3576,7 +3576,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
 
   /** Return a list of virtual servers for the connection, in sorted alphabetic order */
   public String[] listVirtualServers()
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     //Start by making sure we're connected
     this.setupConnection();
@@ -3609,7 +3609,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
 
   /** Return a list of the entity types there are for the connection, in sorted alphabetic order */
   public NameDescription[] listEntityTypes()
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     //Start by making sure we're connected
     this.setupConnection();
@@ -3646,7 +3646,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
 
   /** Return a list of the field names for the entity prefix in the implied connection, in sorted alphabetic order */
   public String[] listFieldNames(String entityPrefix)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     //Start by making sure we're connected
     this.setupConnection();
@@ -3656,12 +3656,12 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
       if (entity != null)
         return entity.getFields();
     }
-    throw new ACFException("Entity type '"+entityPrefix+"' does not exist");
+    throw new ManifoldCFException("Entity type '"+entityPrefix+"' does not exist");
   }
 
   /** Return a list of the field names that mie can directly fetch from a record (for document specification) */
   public String[] listMatchableFieldNames(String entityPrefix)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     String[] candidates = listFieldNames(entityPrefix);
     if (candidates == null)
@@ -3807,7 +3807,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   //
   ///////////////////////////////////////////////////////////////////////
   private void setupConnection()
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
 
     boolean connected = false;
@@ -3816,7 +3816,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
       connected = true;
       for(Enumeration serverkeys = physicalServers.keys(); serverkeys.hasMoreElements();){
         String serverkey = (String)serverkeys.nextElement();
-        ACFMemexConnection pserver = physicalServers.get(serverkey);
+        ManifoldCFMemexConnection pserver = physicalServers.get(serverkey);
         if(!(pserver.isConnected())){
           connected = false;
         }
@@ -3836,10 +3836,10 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
         miePool.setCharset(characterEncoding);
 
         //Initialise data structures
-        mieConnection = new ACFMemexConnection();
+        mieConnection = new ManifoldCFMemexConnection();
         logicalServers = new Hashtable<String, LogicalServer>();
         logicalServersByPrefix = new Hashtable<String, LogicalServer>();
-        physicalServers = new Hashtable<String, ACFMemexConnection>();
+        physicalServers = new Hashtable<String, ManifoldCFMemexConnection>();
         entitiesByName = new Hashtable<String, MemexEntity>();
         entitiesByLabel = new Hashtable<String, MemexEntity>();
         entitiesByPrefix = new Hashtable<String, MemexEntity>();
@@ -3867,7 +3867,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
 
       }
       catch(PoolAuthenticationException e){
-        throw new ACFException("Authentication failure connecting to Memex Server " + miePool.getHostname() + ":" + Integer.toString(miePool.getPort())+": "+e.getMessage(),e);
+        throw new ManifoldCFException("Authentication failure connecting to Memex Server " + miePool.getHostname() + ":" + Integer.toString(miePool.getPort())+": "+e.getMessage(),e);
       }
       catch(PoolException e){
         Logging.connectors.warn("Memex: Pool error connecting to Memex Server " + miePool.getHostname() + ":" + Integer.toString(miePool.getPort()) + " - " + e.getMessage() + " - retrying",e);
@@ -3907,7 +3907,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
       while (i < serverKeyArray.length)
       {
         String serverkey = serverKeyArray[i++];
-        ACFMemexConnection currentMIE = physicalServers.get(serverkey);
+        ManifoldCFMemexConnection currentMIE = physicalServers.get(serverkey);
         try{
           // Remove history directories belonging to this session
           physicalServers.remove(serverkey);
@@ -3937,7 +3937,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   /**Creates an alphabetically ordered list of entity objects.
   */
   private void getEntities()
-    throws MemexException, ACFException, ServiceInterruption
+    throws MemexException, ManifoldCFException, ServiceInterruption
   {
     String mxEntityPath = null;
     String[] entityReturn = new String[1];
@@ -4007,11 +4007,11 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
                   // Parse it!
                   entityForm = db.parse(formStream);
                 }catch(ParserConfigurationException e){
-                  throw new ACFException("Can't find a valid parser: "+e.getMessage(),e);
+                  throw new ManifoldCFException("Can't find a valid parser: "+e.getMessage(),e);
                 }catch(SAXException e){
-                  throw new ACFException("XML had parse errors: "+e.getMessage(),e);
+                  throw new ManifoldCFException("XML had parse errors: "+e.getMessage(),e);
                 }catch(InterruptedIOException e){
-                  throw new ACFException(e.getMessage(),e,ACFException.INTERRUPTED);
+                  throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
                 }catch(IOException e){
                   // I/O problem; treat as  a service interruption
                   long currentTime = System.currentTimeMillis();
@@ -4026,11 +4026,11 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
                   }
                   catch (InterruptedIOException e)
                   {
-                    throw new ACFException(e.getMessage(),e,ACFException.INTERRUPTED);
+                    throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
                   }
                   catch (IOException e)
                   {
-                    throw new ACFException("Error reading memex form data: "+e.getMessage(),e);
+                    throw new ManifoldCFException("Error reading memex form data: "+e.getMessage(),e);
                   }
                 }
               }catch(MemexException e){
@@ -4110,7 +4110,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
             serverFields.add(serversource);
             //mieConnection.mie.mxie_goto_record(hist, x);
             mieConnection.mie.mxie_decode_fields(serverFields);
-            ACFMemexConnection mie;
+            ManifoldCFMemexConnection mie;
             if(serversource.getText().equals("configuration-server")){
               mie = mieConnection;
             }else{
@@ -4131,14 +4131,14 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     }
   }
 
-  private ACFMemexConnection getPhysicalServer(String server, int port){
+  private ManifoldCFMemexConnection getPhysicalServer(String server, int port){
 
     String key = server + ":" + Integer.toString(port);
 
     if(physicalServers.containsKey(key)){
-      return (ACFMemexConnection)physicalServers.get(key);
+      return (ManifoldCFMemexConnection)physicalServers.get(key);
     }else{
-      ACFMemexConnection newServer = new ACFMemexConnection();
+      ManifoldCFMemexConnection newServer = new ManifoldCFMemexConnection();
       try{
         MemexConnection newMIE = miePool.getConnection(server, port);
         newServer.mie = newMIE;
@@ -4261,7 +4261,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   * @return - the hash table representation of the record. Null if its not found
   */
   private Hashtable getmxRecordObj(LogicalServer ls, int histno, int recnum)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     Hashtable mxRecord = null;
     try{
@@ -4430,7 +4430,7 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
       }
       catch (InterruptedIOException eek)
       {
-        throw new ACFException(eek.getMessage(),eek,ACFException.INTERRUPTED);
+        throw new ManifoldCFException(eek.getMessage(),eek,ManifoldCFException.INTERRUPTED);
       }
       catch (IOException eek) {
         // Treat this as a service interruption
@@ -4454,15 +4454,15 @@ public class MemexConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     }
     catch (UnsupportedEncodingException e){
       Logging.connectors.error("Memex: "+e.getMessage(),e);
-      throw new ACFException(e.getMessage(),e);
+      throw new ManifoldCFException(e.getMessage(),e);
     }
     catch (InterruptedIOException e)
     {
-      throw new ACFException(e.getMessage(),e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new ACFException(e.getMessage(),e);
+      throw new ManifoldCFException(e.getMessage(),e);
     }
   }
 

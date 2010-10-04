@@ -22,7 +22,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
-import org.apache.manifoldcf.crawler.system.ACF;
+import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
 public class GetConnectionInfo
 {
@@ -48,15 +48,15 @@ public class GetConnectionInfo
 
     try
     {
-      ACF.initializeEnvironment();
+      ManifoldCF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
       IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
       IRepositoryConnection connection = connectionManager.load(connectionName);
       if (connection == null)
-        throw new ACFException("Connection "+connectionName+" does not exist");
+        throw new ManifoldCFException("Connection "+connectionName+" does not exist");
 
       if (connection.getClassName() == null || !connection.getClassName().equals("org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector"))
-        throw new ACFException("Command can only be used on working share connector connections.");
+        throw new ManifoldCFException("Command can only be used on working share connector connections.");
 
       ConfigParams cfg = connection.getConfigParams();
 

@@ -18,7 +18,7 @@
 */
 package org.apache.manifoldcf.core.interfaces;
 
-import org.apache.manifoldcf.core.system.ACF;
+import org.apache.manifoldcf.core.system.ManifoldCF;
 import java.lang.reflect.*;
 
 /** This is the factory class for an IDBInterface.
@@ -34,13 +34,13 @@ public class DBInterfaceFactory
   }
 
   public static IDBInterface make(IThreadContext context, String databaseName, String userName, String password)
-    throws ACFException
+    throws ManifoldCFException
   {
     String dbName = dbinterfaceInstancePrefix + databaseName;
     Object x = context.get(dbName);
     if (x == null || !(x instanceof IDBInterface))
     {
-      String implementationClass = ACF.getProperty(ACF.databaseImplementation);
+      String implementationClass = ManifoldCF.getProperty(ManifoldCF.databaseImplementation);
       if (implementationClass == null)
         implementationClass = "org.apache.manifoldcf.core.database.DBInterfacePostgreSQL";
       try
@@ -49,36 +49,36 @@ public class DBInterfaceFactory
         Constructor constructor = c.getConstructor(new Class[]{IThreadContext.class,String.class,String.class,String.class});
         x = constructor.newInstance(new Object[]{context,databaseName,userName,password});
         if (!(x instanceof IDBInterface))
-          throw new ACFException("Database implementation class "+implementationClass+" does not implement IDBInterface",ACFException.SETUP_ERROR);
+          throw new ManifoldCFException("Database implementation class "+implementationClass+" does not implement IDBInterface",ManifoldCFException.SETUP_ERROR);
         context.save(dbName,x);
       }
       catch (ClassNotFoundException e)
       {
-        throw new ACFException("Database implementation class "+implementationClass+" could not be found: "+e.getMessage(),e,ACFException.SETUP_ERROR);
+        throw new ManifoldCFException("Database implementation class "+implementationClass+" could not be found: "+e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
       }
       catch (ExceptionInInitializerError e)
       {
-        throw new ACFException("Database implementation class "+implementationClass+" could not be instantiated: "+e.getMessage(),e,ACFException.SETUP_ERROR);
+        throw new ManifoldCFException("Database implementation class "+implementationClass+" could not be instantiated: "+e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
       }
       catch (LinkageError e)
       {
-        throw new ACFException("Database implementation class "+implementationClass+" could not be linked: "+e.getMessage(),e,ACFException.SETUP_ERROR);
+        throw new ManifoldCFException("Database implementation class "+implementationClass+" could not be linked: "+e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
       }
       catch (InstantiationException e)
       {
-        throw new ACFException("Database implementation class "+implementationClass+" could not be instantiated: "+e.getMessage(),e,ACFException.SETUP_ERROR);
+        throw new ManifoldCFException("Database implementation class "+implementationClass+" could not be instantiated: "+e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
       }
       catch (InvocationTargetException e)
       {
-        throw new ACFException("Database implementation class "+implementationClass+" could not be instantiated: "+e.getMessage(),e,ACFException.SETUP_ERROR);
+        throw new ManifoldCFException("Database implementation class "+implementationClass+" could not be instantiated: "+e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
       }
       catch (NoSuchMethodException e)
       {
-        throw new ACFException("Database implementation class "+implementationClass+" had no constructor taking (IThreadContext, String, String, String): "+e.getMessage(),e,ACFException.SETUP_ERROR);
+        throw new ManifoldCFException("Database implementation class "+implementationClass+" had no constructor taking (IThreadContext, String, String, String): "+e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
       }
       catch (IllegalAccessException e)
       {
-        throw new ACFException("Database implementation class "+implementationClass+" had no public constructor taking (IThreadContext, String, String, String): "+e.getMessage(),e,ACFException.SETUP_ERROR);
+        throw new ManifoldCFException("Database implementation class "+implementationClass+" had no public constructor taking (IThreadContext, String, String, String): "+e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
       }
     }
     return (IDBInterface)x;

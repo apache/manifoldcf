@@ -34,7 +34,7 @@ public class CrawlerAgent implements IAgent
   *@param threadContext is the thread context.
   */
   public CrawlerAgent(IThreadContext threadContext)
-    throws ACFException
+    throws ManifoldCFException
   {
     this.threadContext = threadContext;
   }
@@ -42,38 +42,38 @@ public class CrawlerAgent implements IAgent
   /** Install agent.  This usually installs the agent's database tables etc.
   */
   public void install()
-    throws ACFException
+    throws ManifoldCFException
   {
     // Install the system tables for the crawler.
-    ACF.initializeEnvironment();
-    ACF.installSystemTables(threadContext);
+    ManifoldCF.initializeEnvironment();
+    ManifoldCF.installSystemTables(threadContext);
   }
 
   /** Uninstall agent.  This must clean up everything the agent is responsible for.
   */
   public void deinstall()
-    throws ACFException
+    throws ManifoldCFException
   {
-    ACF.initializeEnvironment();
-    ACF.deinstallSystemTables(threadContext);
+    ManifoldCF.initializeEnvironment();
+    ManifoldCF.deinstallSystemTables(threadContext);
   }
 
   /** Start the agent.  This method should spin up the agent threads, and
   * then return.
   */
   public void startAgent()
-    throws ACFException
+    throws ManifoldCFException
   {
-    ACF.initializeEnvironment();
-    ACF.startSystem(threadContext);
+    ManifoldCF.initializeEnvironment();
+    ManifoldCF.startSystem(threadContext);
   }
 
   /** Stop the agent.  This should shut down the agent threads.
   */
   public void stopAgent()
-    throws ACFException
+    throws ManifoldCFException
   {
-    ACF.stopSystem(threadContext);
+    ManifoldCF.stopSystem(threadContext);
   }
 
   /** Request permission from agent to delete an output connection.
@@ -81,36 +81,36 @@ public class CrawlerAgent implements IAgent
   *@return true if the connection is in use, false otherwise.
   */
   public boolean isOutputConnectionInUse(String connName)
-    throws ACFException
+    throws ManifoldCFException
   {
-    return ACF.isOutputConnectionInUse(threadContext,connName);
+    return ManifoldCF.isOutputConnectionInUse(threadContext,connName);
   }
 
   /** Note the deregistration of a set of output connections.
   *@param connectionNames are the names of the connections being deregistered.
   */
   public void noteOutputConnectorDeregistration(String[] connectionNames)
-    throws ACFException
+    throws ManifoldCFException
   {
-    ACF.noteOutputConnectorDeregistration(threadContext,connectionNames);
+    ManifoldCF.noteOutputConnectorDeregistration(threadContext,connectionNames);
   }
 
   /** Note the registration of a set of output connections.
   *@param connectionNames are the names of the connections being registered.
   */
   public void noteOutputConnectorRegistration(String[] connectionNames)
-    throws ACFException
+    throws ManifoldCFException
   {
-    ACF.noteOutputConnectorRegistration(threadContext,connectionNames);
+    ManifoldCF.noteOutputConnectorRegistration(threadContext,connectionNames);
   }
 
   /** Note a change in configuration for an output connection.
   *@param connectionName is the name of the connections being changed.
   */
   public void noteOutputConnectionChange(String connectionName)
-    throws ACFException
+    throws ManifoldCFException
   {
-    ACF.noteOutputConnectionChange(threadContext,connectionName);
+    ManifoldCF.noteOutputConnectionChange(threadContext,connectionName);
   }
 
   /** Signal that an output connection needs to be "redone".  This means that all documents sent to that output connection must be sent again,
@@ -118,9 +118,9 @@ public class CrawlerAgent implements IAgent
   *@param connectionName is the name of the connection being signalled.
   */
   public void signalOutputConnectionRedo(String connectionName)
-    throws ACFException
+    throws ManifoldCFException
   {
-    ACF.signalOutputConnectionRedo(threadContext,connectionName);
+    ManifoldCF.signalOutputConnectionRedo(threadContext,connectionName);
   }
 
 }

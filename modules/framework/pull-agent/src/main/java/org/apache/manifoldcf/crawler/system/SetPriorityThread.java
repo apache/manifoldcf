@@ -49,7 +49,7 @@ public class SetPriorityThread extends Thread
   *@param qt is the queue tracker object.
   */
   public SetPriorityThread(QueueTracker qt, int workerThreadCount, BlockingDocuments blockingDocuments)
-    throws ACFException
+    throws ManifoldCFException
   {
     super();
     this.queueTracker = qt;
@@ -87,7 +87,7 @@ public class SetPriorityThread extends Thread
         try
         {
           if (Thread.currentThread().isInterrupted())
-            throw new ACFException("Interrupted",ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
 
           Logging.threads.debug("Set priority thread woke up");
 
@@ -113,7 +113,7 @@ public class SetPriorityThread extends Thread
           while (true)
           {
             if (Thread.currentThread().isInterrupted())
-              throw new ACFException("Interrupted",ACFException.INTERRUPTED);
+              throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
 
             if (processedCount >= cycleCount)
             {
@@ -126,7 +126,7 @@ public class SetPriorityThread extends Thread
             DocumentDescription desc = blockingDocuments.getBlockingDocument();
             if (desc != null)
             {
-              ACF.writeDocumentPriorities(threadContext,mgr,jobManager,new DocumentDescription[]{desc},connectionMap,jobDescriptionMap,queueTracker,currentTime);
+              ManifoldCF.writeDocumentPriorities(threadContext,mgr,jobManager,new DocumentDescription[]{desc},connectionMap,jobDescriptionMap,queueTracker,currentTime);
               processedCount++;
               continue;
             }
@@ -145,24 +145,24 @@ public class SetPriorityThread extends Thread
             }
             */
             Logging.threads.debug("Done reprioritizing because no more documents to reprioritize");
-            ACF.sleep(30000L);
+            ManifoldCF.sleep(30000L);
             break;
 
           }
 
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
-          if (e.getErrorCode() == ACFException.INTERRUPTED)
+          if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
             break;
 
-          if (e.getErrorCode() == ACFException.DATABASE_CONNECTION_ERROR)
+          if (e.getErrorCode() == ManifoldCFException.DATABASE_CONNECTION_ERROR)
           {
             Logging.threads.error("Set priority thread aborting and restarting due to database connection reset: "+e.getMessage(),e);
             try
             {
               // Give the database a chance to catch up/wake up
-              ACF.sleep(10000L);
+              ManifoldCF.sleep(10000L);
             }
             catch (InterruptedException se)
             {
@@ -174,7 +174,7 @@ public class SetPriorityThread extends Thread
           // Log it, but keep the thread alive
           Logging.threads.error("Exception tossed: "+e.getMessage(),e);
 
-          if (e.getErrorCode() == ACFException.SETUP_ERROR)
+          if (e.getErrorCode() == ManifoldCFException.SETUP_ERROR)
           {
             System.exit(1);
           }

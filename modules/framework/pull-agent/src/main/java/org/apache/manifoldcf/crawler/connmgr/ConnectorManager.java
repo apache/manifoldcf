@@ -41,7 +41,7 @@ public class ConnectorManager extends org.apache.manifoldcf.core.database.BaseTa
   *@param database is the database handle.
   */
   public ConnectorManager(IThreadContext threadContext, IDBInterface database)
-    throws ACFException
+    throws ManifoldCFException
   {
     super(database,"connectors");
     this.threadContext = threadContext;
@@ -51,7 +51,7 @@ public class ConnectorManager extends org.apache.manifoldcf.core.database.BaseTa
   /** Install or upgrade.
   */
   public void install()
-    throws ACFException
+    throws ManifoldCFException
   {
     // Always do an outer loop, to support upgrade complexities
     while (true)
@@ -96,7 +96,7 @@ public class ConnectorManager extends org.apache.manifoldcf.core.database.BaseTa
   /** Uninstall.  This also unregisters all connectors.
   */
   public void deinstall()
-    throws ACFException
+    throws ManifoldCFException
   {
     StringSet invKeys = new StringSet(getCacheKey());
 
@@ -115,7 +115,7 @@ public class ConnectorManager extends org.apache.manifoldcf.core.database.BaseTa
       }
       performDrop(invKeys);
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       signalRollback();
       throw e;
@@ -137,7 +137,7 @@ public class ConnectorManager extends org.apache.manifoldcf.core.database.BaseTa
   *@param className is the class name.
   */
   public void registerConnector(String description, String className)
-    throws ACFException
+    throws ManifoldCFException
   {
     StringSet invKeys = new StringSet(getCacheKey());
     beginTransaction();
@@ -164,7 +164,7 @@ public class ConnectorManager extends org.apache.manifoldcf.core.database.BaseTa
       // Either way, we must do the install/upgrade itself.
       RepositoryConnectorFactory.install(threadContext,className);
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       signalRollback();
       throw e;
@@ -185,7 +185,7 @@ public class ConnectorManager extends org.apache.manifoldcf.core.database.BaseTa
   *@param className is the class of the connector to unregister.
   */
   public void unregisterConnector(String className)
-    throws ACFException
+    throws ManifoldCFException
   {
     StringSet invKeys = new StringSet(getCacheKey());
     beginTransaction();
@@ -196,7 +196,7 @@ public class ConnectorManager extends org.apache.manifoldcf.core.database.BaseTa
 
       removeConnector(className);
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       signalRollback();
       throw e;
@@ -218,7 +218,7 @@ public class ConnectorManager extends org.apache.manifoldcf.core.database.BaseTa
   *@param className is the connector class to remove.
   */
   public void removeConnector(String className)
-    throws ACFException
+    throws ManifoldCFException
   {
     StringSet invKeys = new StringSet(getCacheKey());
     ArrayList list = new ArrayList();
@@ -231,7 +231,7 @@ public class ConnectorManager extends org.apache.manifoldcf.core.database.BaseTa
   * These will be ordered by description.
   */
   public IResultSet getConnectors()
-    throws ACFException
+    throws ManifoldCFException
   {
     StringSet invKeys = new StringSet(getCacheKey());
 
@@ -244,7 +244,7 @@ public class ConnectorManager extends org.apache.manifoldcf.core.database.BaseTa
   *@return the description, or null if the class is not registered.
   */
   public String getDescription(String className)
-    throws ACFException
+    throws ManifoldCFException
   {
     StringSet invKeys = new StringSet(getCacheKey());
 
@@ -263,7 +263,7 @@ public class ConnectorManager extends org.apache.manifoldcf.core.database.BaseTa
   *@return true if installed, false otherwise.
   */
   public boolean isInstalled(String className)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Use the global table key; that's good enough because we don't expect stuff to change out from under very often.
     StringSet invKeys = new StringSet(getCacheKey());

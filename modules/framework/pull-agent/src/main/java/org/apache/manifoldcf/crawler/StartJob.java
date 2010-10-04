@@ -49,7 +49,7 @@ public class StartJob
 
                 try
                 {
-                        ACF.initializeEnvironment();
+                        ManifoldCF.initializeEnvironment();
                         IThreadContext tc = ThreadContextFactory.make();
                         IJobManager jobManager = JobManagerFactory.make(tc);
                         jobManager.manualStart(new Long(jobID));

@@ -21,7 +21,7 @@ package org.apache.manifoldcf.core.cachemanager;
 import org.apache.manifoldcf.core.interfaces.*;
 import java.util.*;
 import org.apache.manifoldcf.core.system.Logging;
-import org.apache.manifoldcf.core.system.ACF;
+import org.apache.manifoldcf.core.system.ManifoldCF;
 import java.io.*;
 
 /** This class implements the cache manager interface, and provides generic cache management
@@ -43,7 +43,7 @@ public class CacheManager implements ICacheManager
   protected HashMap transactionHash = new HashMap();
 
   public CacheManager(IThreadContext context)
-    throws ACFException
+    throws ManifoldCFException
   {
     lockManager = LockManagerFactory.make(context);
   }
@@ -76,7 +76,7 @@ public class CacheManager implements ICacheManager
   */
   public void findObjectsAndExecute(ICacheDescription[] locateObjectDescriptions, StringSet invalidateKeys,
     ICacheExecutor execObject, String transactionID)
-    throws ACFException
+    throws ManifoldCFException
   {
     // There is some clever engineering involved here.  The lock manager is used to control synchronization
     // around usage and invalidation of objects.  However, there is ANOTHER lock condition that needs to be
@@ -198,7 +198,7 @@ public class CacheManager implements ICacheManager
   */
   public ICacheHandle enterCache(ICacheDescription[] locateObjectDescriptions, StringSet invalidateKeys,
     String transactionID)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (Logging.cache.isDebugEnabled())
     {
@@ -283,7 +283,7 @@ public class CacheManager implements ICacheManager
       CacheTransactionHandle handle = (CacheTransactionHandle)transactionHash.get(transactionID);
       if (handle == null)
       {
-        ACFException ex = new ACFException("Illegal transaction ID: '"+transactionID+"'",ACFException.GENERAL_ERROR);
+        ManifoldCFException ex = new ManifoldCFException("Illegal transaction ID: '"+transactionID+"'",ManifoldCFException.GENERAL_ERROR);
         Logging.cache.error(Thread.currentThread().toString()+": enterCache: "+transactionID+": "+this.toString()+": Transaction hash = "+transactionHash.toString(),ex);
         throw ex;
       }
@@ -313,7 +313,7 @@ public class CacheManager implements ICacheManager
   *@param handle is the cache handle.
   */
   public ICacheCreateHandle enterCreateSection(ICacheHandle handle)
-    throws ACFException
+    throws ManifoldCFException
   {
 
     if (Logging.cache.isDebugEnabled())
@@ -328,8 +328,8 @@ public class CacheManager implements ICacheManager
     // stop multiple creation.
     ICacheDescription[] locateObjectDescriptions = handle.getObjectDescriptions();
     if (locateObjectDescriptions == null)
-      throw new ACFException("Can't enter create section without objects to create",
-      ACFException.GENERAL_ERROR);
+      throw new ManifoldCFException("Can't enter create section without objects to create",
+      ManifoldCFException.GENERAL_ERROR);
     int i = 0;
     ArrayList writeCriticalSectionArray = new ArrayList();
     while (i < locateObjectDescriptions.length)
@@ -372,11 +372,11 @@ public class CacheManager implements ICacheManager
   *@return the object, or null if not found.
   */
   public Object lookupObject(ICacheCreateHandle handle, ICacheDescription objectDescription)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (handle == null)
-      throw new ACFException("Can't do lookup outside of create section",
-      ACFException.GENERAL_ERROR);
+      throw new ManifoldCFException("Can't do lookup outside of create section",
+      ManifoldCFException.GENERAL_ERROR);
 
     if (Logging.cache.isDebugEnabled())
     {
@@ -398,7 +398,7 @@ public class CacheManager implements ICacheManager
       CacheTransactionHandle transactionHandle = (CacheTransactionHandle)transactionHash.get(transactionID);
       if (transactionHandle == null)
       {
-        ACFException ex = new ACFException("Illegal transaction id",ACFException.GENERAL_ERROR);
+        ManifoldCFException ex = new ManifoldCFException("Illegal transaction id",ManifoldCFException.GENERAL_ERROR);
         Logging.cache.error(Thread.currentThread().toString()+": lookupObject: "+transactionID+": "+this.toString()+": Transaction hash = "+transactionHash.toString(),ex);
         throw ex;
       }
@@ -467,7 +467,7 @@ public class CacheManager implements ICacheManager
   *@return true if expired, false otherwise.
   */
   protected boolean hasExpired(String key, long createTime)
-    throws ACFException
+    throws ManifoldCFException
   {
     long createdDate = readSharedData(key);
     if (Logging.cache.isDebugEnabled())
@@ -509,11 +509,11 @@ public class CacheManager implements ICacheManager
   */
   public void saveObject(ICacheCreateHandle handle, ICacheDescription objectDescription,
     Object object)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (handle == null)
-      throw new ACFException("Can't do save outside of create section",
-      ACFException.GENERAL_ERROR);
+      throw new ManifoldCFException("Can't do save outside of create section",
+      ManifoldCFException.GENERAL_ERROR);
 
     if (Logging.cache.isDebugEnabled())
     {
@@ -561,7 +561,7 @@ public class CacheManager implements ICacheManager
         CacheTransactionHandle transactionHandle = (CacheTransactionHandle)transactionHash.get(transactionID);
         if (transactionHandle == null)
         {
-          ACFException ex = new ACFException("Bad transaction handle",ACFException.GENERAL_ERROR);
+          ManifoldCFException ex = new ManifoldCFException("Bad transaction handle",ManifoldCFException.GENERAL_ERROR);
           Logging.cache.error(Thread.currentThread().toString()+": saveObject: "+transactionID+": "+this.toString()+": Transaction hash = "+transactionHash.toString(),ex);
           throw ex;
         }
@@ -574,7 +574,7 @@ public class CacheManager implements ICacheManager
   *@param handle is the handle created by the corresponding enterCreateSection() method.
   */
   public void leaveCreateSection(ICacheCreateHandle handle)
-    throws ACFException
+    throws ManifoldCFException
   {
 
     if (Logging.cache.isDebugEnabled())
@@ -589,7 +589,7 @@ public class CacheManager implements ICacheManager
   *@param handle is the cache handle.  Does nothing if a null set of keys was passed in.
   */
   public void invalidateKeys(ICacheHandle handle)
-    throws ACFException
+    throws ManifoldCFException
   {
 
     if (Logging.cache.isDebugEnabled())
@@ -610,7 +610,7 @@ public class CacheManager implements ICacheManager
       CacheTransactionHandle transactionHandle = (CacheTransactionHandle)transactionHash.get(transactionID);
       if (transactionHandle == null)
       {
-        ACFException ex = new ACFException("Bad transaction ID!",ACFException.GENERAL_ERROR);
+        ManifoldCFException ex = new ManifoldCFException("Bad transaction ID!",ManifoldCFException.GENERAL_ERROR);
         Logging.cache.error(Thread.currentThread().toString()+": invalidateKeys: "+transactionID+": "+this.toString()+": Transaction hash = "+transactionHash.toString(),ex);
         throw ex;
       }
@@ -623,7 +623,7 @@ public class CacheManager implements ICacheManager
   *@param keys is the set of keys to invalidate.
   */
   protected void performInvalidation(StringSet keys)
-    throws ACFException
+    throws ManifoldCFException
   {
 
     // Finally, perform the invalidation.
@@ -649,7 +649,7 @@ public class CacheManager implements ICacheManager
   *@param handle is the handle of the cache we are leaving.
   */
   public void leaveCache(ICacheHandle handle)
-    throws ACFException
+    throws ManifoldCFException
   {
 
     if (Logging.cache.isDebugEnabled())
@@ -668,7 +668,7 @@ public class CacheManager implements ICacheManager
   *@param enclosingTransactionID is the id of the transaction that is in effect, or null.
   */
   public void startTransaction(String startingTransactionID, String enclosingTransactionID)
-    throws ACFException
+    throws ManifoldCFException
   {
 
     if (Logging.cache.isDebugEnabled())
@@ -684,8 +684,8 @@ public class CacheManager implements ICacheManager
       parent = (CacheTransactionHandle)transactionHash.get(enclosingTransactionID);
       if (parent == null)
       {
-        ACFException ex = new ACFException("Illegal parent transaction ID: "+enclosingTransactionID,
-          ACFException.GENERAL_ERROR);
+        ManifoldCFException ex = new ManifoldCFException("Illegal parent transaction ID: "+enclosingTransactionID,
+          ManifoldCFException.GENERAL_ERROR);
         Logging.cache.error(Thread.currentThread().toString()+": startTransaction: "+this.toString()+": Transaction hash = "+transactionHash.toString(),ex);
         throw ex;
       }
@@ -706,7 +706,7 @@ public class CacheManager implements ICacheManager
   * held open will be released.
   */
   public void commitTransaction(String transactionID)
-    throws ACFException
+    throws ManifoldCFException
   {
 
     if (Logging.cache.isDebugEnabled())
@@ -716,7 +716,7 @@ public class CacheManager implements ICacheManager
 
     CacheTransactionHandle handle = (CacheTransactionHandle)transactionHash.get(transactionID);
     if (handle == null)
-      throw new ACFException("Cache manager: commit transaction without start!",ACFException.GENERAL_ERROR);
+      throw new ManifoldCFException("Cache manager: commit transaction without start!",ManifoldCFException.GENERAL_ERROR);
 
     // First, move all the locally cached entries into the global cache.
     // This is safe to do because we know that the transaction belongs to a single thread.
@@ -782,7 +782,7 @@ public class CacheManager implements ICacheManager
   * held for the transaction.
   */
   public void rollbackTransaction(String transactionID)
-    throws ACFException
+    throws ManifoldCFException
   {
 
     if (Logging.cache.isDebugEnabled())
@@ -792,7 +792,7 @@ public class CacheManager implements ICacheManager
 
     CacheTransactionHandle handle = (CacheTransactionHandle)transactionHash.get(transactionID);
     if (handle == null)
-      throw new ACFException("Cache manager: rollback transaction without start!",ACFException.GENERAL_ERROR);
+      throw new ManifoldCFException("Cache manager: rollback transaction without start!",ManifoldCFException.GENERAL_ERROR);
 
     // End all of the locks
     // We always end the write locks before the read locks.
@@ -819,7 +819,7 @@ public class CacheManager implements ICacheManager
   *@param currentTimestamp is the current time in milliseconds since epoch.
   */
   public void expireObjects(long currentTimestamp)
-    throws ACFException
+    throws ManifoldCFException
   {
     // This is a local JVM operation; we will not need to do any locks.  We just
     // need to blow expired objects from the cache.
@@ -834,7 +834,7 @@ public class CacheManager implements ICacheManager
   *@return the invalidation time, or 0 if none.
   */
   protected long readSharedData(String key)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Read cache resource
     byte[] cacheResourceData = lockManager.readData("cache-"+key);
@@ -847,7 +847,7 @@ public class CacheManager implements ICacheManager
     }
     catch (UnsupportedEncodingException e)
     {
-      throw new ACFException(e.getMessage(),e);
+      throw new ManifoldCFException(e.getMessage(),e);
     }
   }
 
@@ -856,7 +856,7 @@ public class CacheManager implements ICacheManager
   *@param value is the invalidation timestamp.
   */
   protected void writeSharedData(String key, long value)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (value == 0L)
       lockManager.writeData(key,null);
@@ -868,7 +868,7 @@ public class CacheManager implements ICacheManager
       }
       catch (UnsupportedEncodingException e)
       {
-        throw new ACFException(e.getMessage(),e);
+        throw new ManifoldCFException(e.getMessage(),e);
       }
     }
   }
@@ -1170,7 +1170,7 @@ public class CacheManager implements ICacheManager
     *@return the array of write locks we still need to throw.
     */
     public StringSet getRemainingWriteLocks(StringSet cacheKeys, StringSet keys)
-      throws ACFException
+      throws ManifoldCFException
     {
       // If any of these keys are read locks but not yet write locks, we throw an exception!
       // (There is currently no ability to promote a read lock to a write lock.)

@@ -43,13 +43,13 @@ public interface IDBInterface
   * database communication.
   */
   public void openDatabase()
-    throws ACFException;
+    throws ManifoldCFException;
   
   /** Uninitialize.  This method is called during JVM shutdown, in order to close
   * all database communication.
   */
   public void closeDatabase()
-    throws ACFException;
+    throws ManifoldCFException;
   
   /** Get the database name.
   *@return the database name.
@@ -70,7 +70,7 @@ public interface IDBInterface
   *@param tableName is the name of the table.
   */
   public void performLock(String tableName)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Perform an insert operation.
   *@param tableName is the name of the table.
@@ -79,7 +79,7 @@ public interface IDBInterface
   *@param parameterMap is the map of column name/values to write.
   */
   public void performInsert(String tableName, Map parameterMap, StringSet invalidateKeys)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Perform an update operation.
   *@param tableName is the name of the table.
@@ -89,7 +89,7 @@ public interface IDBInterface
   *@param whereParameters are the parameters that come with the where clause, if any.
   */
   public void performUpdate(String tableName, Map parameterMap, String whereClause, ArrayList whereParameters, StringSet invalidateKeys)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Perform a delete operation.
   *@param tableName is the name of the table to delete from.
@@ -98,7 +98,7 @@ public interface IDBInterface
   *@param whereParameters are the parameters that come with the where clause, if any.
   */
   public void performDelete(String tableName, String whereClause, ArrayList whereParameters, StringSet invalidateKeys)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Perform a table creation operation.
   *@param tableName is the name of the table to create.
@@ -108,7 +108,7 @@ public interface IDBInterface
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
   public void performCreate(String tableName, Map columnMap, StringSet invalidateKeys)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Perform a table alter operation.
   *@param tableName is the name of the table to alter.
@@ -122,7 +122,7 @@ public interface IDBInterface
   */
   public void performAlter(String tableName, Map columnMap, Map columnModifyMap, ArrayList columnDeleteList,
     StringSet invalidateKeys)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Add an index to a table.
   *@param tableName is the name of the table to add the index for.
@@ -131,7 +131,7 @@ public interface IDBInterface
   * in the index, in order.
   */
   public void addTableIndex(String tableName, boolean unique, ArrayList columnList)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Add an index to a table.
   *@param tableName is the name of the table to add the index for.
@@ -139,32 +139,32 @@ public interface IDBInterface
   *@param description is the index description.
   */
   public void performAddIndex(String indexName, String tableName, IndexDescription description)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Remove an index.
   *@param indexName is the name of the index to remove.
   */
   public void performRemoveIndex(String indexName)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Analyze a table.
   *@param tableName is the name of the table to analyze/calculate statistics for.
   */
   public void analyzeTable(String tableName)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Reindex a table.
   *@param tableName is the name of the table to rebuild indexes for.
   */
   public void reindexTable(String tableName)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Perform a table drop operation.
   *@param tableName is the name of the table to drop.
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
   public void performDrop(String tableName, StringSet invalidateKeys)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Create user and database.
   *@param adminUserName is the admin user name.
@@ -172,7 +172,7 @@ public interface IDBInterface
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
   public void createUserAndDatabase(String adminUserName, String adminPassword, StringSet invalidateKeys)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Drop user and database.
   *@param adminUserName is the admin user name.
@@ -180,7 +180,7 @@ public interface IDBInterface
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
   public void dropUserAndDatabase(String adminUserName, String adminPassword, StringSet invalidateKeys)
-    throws ACFException;
+    throws ManifoldCFException;
     
   /** Get a table's schema.
   *@param tableName is the name of the table.
@@ -189,7 +189,7 @@ public interface IDBInterface
   *@return a map of column names and ColumnDescription objects, describing the schema.
   */
   public Map getTableSchema(String tableName, StringSet cacheKeys, String queryClass)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Get a table's indexes.
   *@param tableName is the name of the table.
@@ -198,7 +198,7 @@ public interface IDBInterface
   *@return a map of index names and IndexDescription objects, describing the indexes.
   */
   public Map getTableIndexes(String tableName, StringSet cacheKeys, String queryClass)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Get a database's tables.
   *@param cacheKeys are the cache keys for the query, or null.
@@ -206,7 +206,7 @@ public interface IDBInterface
   *@return the set of tables.
   */
   public StringSet getAllTables(StringSet cacheKeys, String queryClass)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Perform a general database modification query.
   *@param query is the query string.
@@ -214,7 +214,7 @@ public interface IDBInterface
   *@param invalidateKeys are the cache keys to invalidate.
   */
   public void performModification(String query, ArrayList params, StringSet invalidateKeys)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Perform a general "data fetch" query.
   *@param query is the query string.
@@ -225,7 +225,7 @@ public interface IDBInterface
   *@return a resultset.
   */
   public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Perform a general "data fetch" query.
   *@param query is the query string.
@@ -239,7 +239,7 @@ public interface IDBInterface
   */
   public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass,
     int maxResults, ILimitChecker returnLimit)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Perform a general "data fetch" query.
   *@param query is the query string.
@@ -254,7 +254,7 @@ public interface IDBInterface
   */
   public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass,
     int maxResults, ResultSpecification resultSpec, ILimitChecker returnLimit)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Construct a regular-expression match clause.
   * This method builds a regular-expression match expression.
@@ -331,7 +331,7 @@ public interface IDBInterface
   * if not otherwise determined).
   */
   public void beginTransaction()
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Begin a database transaction.  This method call MUST be paired with an endTransaction() call,
   * or database handles will be lost.  If the transaction should be rolled back, then signalRollback() should
@@ -343,7 +343,7 @@ public interface IDBInterface
   *@param transactionType is the kind of transaction desired.
   */
   public void beginTransaction(int transactionType)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Signal that a rollback should occur on the next endTransaction().
   */
@@ -353,7 +353,7 @@ public interface IDBInterface
   * signalRollback() was called within the transaction).
   */
   public void endTransaction()
-    throws ACFException;
+    throws ManifoldCFException;
 
 }
 

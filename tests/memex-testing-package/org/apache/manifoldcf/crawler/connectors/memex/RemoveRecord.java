@@ -51,7 +51,7 @@ public class RemoveRecord
                         }
                         System.err.println("Successfully removed");
                 }
-                catch (ACFException e)
+                catch (ManifoldCFException e)
                 {
                         e.printStackTrace(System.err);
                         System.exit(2);

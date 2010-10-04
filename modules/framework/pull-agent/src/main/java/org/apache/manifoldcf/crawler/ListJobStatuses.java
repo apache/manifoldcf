@@ -47,7 +47,7 @@ public class ListJobStatuses
 
     try
     {
-      ACF.initializeEnvironment();
+      ManifoldCF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
       IJobManager jobManager = JobManagerFactory.make(tc);
       JobStatus[] jobStatuses = jobManager.getAllStatus();

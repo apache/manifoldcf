@@ -36,7 +36,7 @@ public class FinisherThread extends Thread
   /** Constructor.
   */
   public FinisherThread()
-    throws ACFException
+    throws ManifoldCFException
   {
     super();
     setName("Finisher thread");
@@ -63,20 +63,20 @@ public class FinisherThread extends Thread
           // See if there are any completed jobs
           jobManager.finishJobs();
           Logging.threads.debug("Done cleaning up completed jobs");
-          ACF.sleep(10000L);
+          ManifoldCF.sleep(10000L);
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
-          if (e.getErrorCode() == ACFException.INTERRUPTED)
+          if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
             break;
 
-          if (e.getErrorCode() == ACFException.DATABASE_CONNECTION_ERROR)
+          if (e.getErrorCode() == ManifoldCFException.DATABASE_CONNECTION_ERROR)
           {
             Logging.threads.error("Finisher thread aborting and restarting due to database connection reset: "+e.getMessage(),e);
             try
             {
               // Give the database a chance to catch up/wake up
-              ACF.sleep(10000L);
+              ManifoldCF.sleep(10000L);
             }
             catch (InterruptedException se)
             {
@@ -88,7 +88,7 @@ public class FinisherThread extends Thread
           // Log it, but keep the thread alive
           Logging.threads.error("Exception tossed: "+e.getMessage(),e);
 
-          if (e.getErrorCode() == ACFException.SETUP_ERROR)
+          if (e.getErrorCode() == ManifoldCFException.SETUP_ERROR)
           {
             // Shut the whole system down!
             System.exit(1);

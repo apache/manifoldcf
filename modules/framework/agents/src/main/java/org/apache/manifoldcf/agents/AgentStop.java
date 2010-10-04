@@ -32,7 +32,7 @@ public class AgentStop extends BaseAgentsInitializationCommand
   {
   }
 
-  protected void doExecute(IThreadContext tc) throws ACFException
+  protected void doExecute(IThreadContext tc) throws ManifoldCFException
   {
     ILockManager lockManager = LockManagerFactory.make(tc);
     lockManager.setGlobalFlag(AgentRun.agentShutdownSignal);
@@ -54,7 +54,7 @@ public class AgentStop extends BaseAgentsInitializationCommand
       agentStop.execute();
       System.err.println("Shutdown signal sent");
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       e.printStackTrace(System.err);
       System.exit(1);

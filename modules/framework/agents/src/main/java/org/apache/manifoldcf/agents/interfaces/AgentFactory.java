@@ -39,7 +39,7 @@ public class AgentFactory
   *@return the agent.
   */
   public static IAgent make(IThreadContext tc, String className)
-    throws ACFException
+    throws ManifoldCFException
   {
     String agentName = agentIdentifier+className;
     Object o = tc.get(agentName);
@@ -56,7 +56,7 @@ public class AgentFactory
         arguments[0] = tc;
         o = c.newInstance(arguments);
         if (!(o instanceof IAgent))
-          throw new ACFException("Class '"+className+"' does not implement IAgent.");
+          throw new ManifoldCFException("Class '"+className+"' does not implement IAgent.");
         tc.save(agentName,o);
       }
       catch (InvocationTargetException e)
@@ -65,42 +65,42 @@ public class AgentFactory
         if (z instanceof Error)
           throw (Error)z;
         else
-          throw (ACFException)z;
+          throw (ManifoldCFException)z;
       }
       catch (ClassNotFoundException e)
       {
-        throw new ACFException("No class implementing IAgent called '"+
+        throw new ManifoldCFException("No class implementing IAgent called '"+
           className+"'.",
           e);
       }
       catch (NoSuchMethodException e)
       {
-        throw new ACFException("No appropriate constructor for IAgent implementation '"+
+        throw new ManifoldCFException("No appropriate constructor for IAgent implementation '"+
           className+"'.  Need xxx(ConfigParams).",
           e);
       }
       catch (SecurityException e)
       {
-        throw new ACFException("Protected constructor for IAgent implementation '"+className+"'",
+        throw new ManifoldCFException("Protected constructor for IAgent implementation '"+className+"'",
           e);
       }
       catch (IllegalAccessException e)
       {
-        throw new ACFException("Unavailable constructor for IAgent implementation '"+className+"'",
+        throw new ManifoldCFException("Unavailable constructor for IAgent implementation '"+className+"'",
           e);
       }
       catch (IllegalArgumentException e)
       {
-        throw new ACFException("Shouldn't happen!!!",e);
+        throw new ManifoldCFException("Shouldn't happen!!!",e);
       }
       catch (InstantiationException e)
       {
-        throw new ACFException("InstantiationException for IAgent implementation '"+className+"'",
+        throw new ManifoldCFException("InstantiationException for IAgent implementation '"+className+"'",
           e);
       }
       catch (ExceptionInInitializerError e)
       {
-        throw new ACFException("ExceptionInInitializerError for IAgent implementation '"+className+"'",
+        throw new ManifoldCFException("ExceptionInInitializerError for IAgent implementation '"+className+"'",
           e);
       }
     }

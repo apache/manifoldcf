@@ -36,7 +36,7 @@ public class UnRegisterOutput extends TransactionalAgentsInitializationCommand
     this.className = className;
   }
 
-  protected void doExecute(IThreadContext tc) throws ACFException
+  protected void doExecute(IThreadContext tc) throws ManifoldCFException
   {
     IOutputConnectorManager mgr = OutputConnectorManagerFactory.make(tc);
     IOutputConnectionManager connManager = OutputConnectionManagerFactory.make(tc);
@@ -65,7 +65,7 @@ public class UnRegisterOutput extends TransactionalAgentsInitializationCommand
       unRegisterOutput.execute();
       System.err.println("Successfully unregistered output connector '"+className+"'");
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       e.printStackTrace();
       System.exit(1);

@@ -29,10 +29,10 @@ import com.memex.mie.*;
 *
 * @author mxadmin
 */
-class ACFMemexConnection{
+class ManifoldCFMemexConnection{
 
   /**Class to extend the regular MemexConnection to deal with
-  * the fact the ACF connect method doesn't report authentication
+  * the fact the ManifoldCF connect method doesn't report authentication
   * failure immediately.
   */
 
@@ -43,7 +43,7 @@ class ACFMemexConnection{
   protected long checkExpireTime = -1L;
 
 
-  ACFMemexConnection(){
+  ManifoldCFMemexConnection(){
 
   }
 

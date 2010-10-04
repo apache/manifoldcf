@@ -48,7 +48,7 @@ public class ChangeAuthSpec
 
                 try
                 {
-                        ACF.initializeEnvironment();
+                        ManifoldCF.initializeEnvironment();
                         IThreadContext tc = ThreadContextFactory.make();
                         IAuthorityConnectionManager connManager = AuthorityConnectionManagerFactory.make(tc);
                         IAuthorityConnection conn = connManager.load(connectionName);

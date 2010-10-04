@@ -73,14 +73,14 @@ public class NullConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   /** Close the connection.  Call this before discarding the connection.
   */
   public void disconnect()
-    throws ACFException
+    throws ManifoldCFException
   {
     super.disconnect();
   }
 
   /** Set up a session */
   protected void getSession()
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
   }
 
@@ -88,7 +88,7 @@ public class NullConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@return the connection's status as a displayable string.
   */
   public String check()
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -113,7 +113,7 @@ public class NullConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   * the document will not need to be sent again to the output data store.
   */
   public String getOutputDescription(OutputSpecification spec)
-    throws ACFException
+    throws ManifoldCFException
   {
     return "";
   }
@@ -133,7 +133,7 @@ public class NullConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@return the document status (accepted or permanently rejected).
   */
   public int addOrReplaceDocument(String documentURI, String outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     // Establish a session
     getSession();
@@ -149,7 +149,7 @@ public class NullConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@param activities is the handle to an object that the implementer of an output connector may use to perform operations, such as logging processing activity.
   */
   public void removeDocument(String documentURI, String outputDescription, IOutputRemoveActivity activities)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     // Establish a session
     getSession();

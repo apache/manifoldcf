@@ -49,14 +49,14 @@ public class WaitJobPaused
 
                 try
                 {
-                        ACF.initializeEnvironment();
+                        ManifoldCF.initializeEnvironment();
                         IThreadContext tc = ThreadContextFactory.make();
                         IJobManager jobManager = JobManagerFactory.make(tc);
                         while (true)
                         {
                                 if (jobManager.checkJobBusy(new Long(jobID)))
                                 {
-                                        ACF.sleep(5000);
+                                        ManifoldCF.sleep(5000);
                                         continue;
                                 }
                                 break;

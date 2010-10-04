@@ -39,7 +39,7 @@ public class EventManager extends org.apache.manifoldcf.core.database.BaseTable
   *@param database is the database handle.
   */
   public EventManager(IDBInterface database)
-    throws ACFException
+    throws ManifoldCFException
   {
     super(database,"events");
   }
@@ -47,7 +47,7 @@ public class EventManager extends org.apache.manifoldcf.core.database.BaseTable
   /** Install or upgrade this table.
   */
   public void install()
-    throws ACFException
+    throws ManifoldCFException
   {
     // Standard practice: outer loop for installs
     while (true)
@@ -73,14 +73,14 @@ public class EventManager extends org.apache.manifoldcf.core.database.BaseTable
   /** Uninstall.
   */
   public void deinstall()
-    throws ACFException
+    throws ManifoldCFException
   {
     beginTransaction();
     try
     {
       performDrop(null);
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       signalRollback();
       throw e;
@@ -99,7 +99,7 @@ public class EventManager extends org.apache.manifoldcf.core.database.BaseTable
   /** Prepare for restart.
   */
   public void restart()
-    throws ACFException
+    throws ManifoldCFException
   {
     // Delete all rows in this table.
     performDelete("",null,null);
@@ -107,7 +107,7 @@ public class EventManager extends org.apache.manifoldcf.core.database.BaseTable
 
   /** Atomically create an event - and return false if the event already exists */
   public void createEvent(String eventName)
-    throws ACFException
+    throws ManifoldCFException
   {
     HashMap map = new HashMap();
     map.put(eventNameField,eventName);
@@ -116,7 +116,7 @@ public class EventManager extends org.apache.manifoldcf.core.database.BaseTable
 
   /** Destroy an event */
   public void destroyEvent(String eventName)
-    throws ACFException
+    throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
     list.add(eventName);

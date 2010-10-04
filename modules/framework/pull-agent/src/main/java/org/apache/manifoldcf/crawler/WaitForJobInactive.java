@@ -49,7 +49,7 @@ public class WaitForJobInactive
 
                 try
                 {
-                        ACF.initializeEnvironment();
+                        ManifoldCF.initializeEnvironment();
                         IThreadContext tc = ThreadContextFactory.make();
                         IJobManager jobManager = JobManagerFactory.make(tc);
 
@@ -57,7 +57,7 @@ public class WaitForJobInactive
                         {
                                 JobStatus status = jobManager.getStatus(new Long(jobID));
                                 if (status == null)
-                                        throw new ACFException("No such job: '"+jobID+"'");
+                                        throw new ManifoldCFException("No such job: '"+jobID+"'");
                                 int statusValue = status.getStatus();
                                 switch (statusValue)
                                 {
@@ -71,7 +71,7 @@ public class WaitForJobInactive
                                         System.out.println("Error: "+status.getErrorText());
                                         break;
                                 default:
-                                        ACF.sleep(10000);
+                                        ManifoldCF.sleep(10000);
                                         continue;
                                 }
                                 break;

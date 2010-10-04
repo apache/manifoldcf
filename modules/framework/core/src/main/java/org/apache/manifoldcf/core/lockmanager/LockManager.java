@@ -20,7 +20,7 @@ package org.apache.manifoldcf.core.lockmanager;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.core.system.Logging;
-import org.apache.manifoldcf.core.system.ACF;
+import org.apache.manifoldcf.core.system.ManifoldCF;
 import java.util.*;
 import java.io.*;
 
@@ -51,13 +51,13 @@ public class LockManager implements ILockManager
   protected File synchDirectory = null;
 
   public LockManager()
-    throws ACFException
+    throws ManifoldCFException
   {
-    synchDirectory = ACF.getFileProperty(synchDirectoryProperty);
+    synchDirectory = ManifoldCF.getFileProperty(synchDirectoryProperty);
     if (synchDirectory != null)
     {
       if (!synchDirectory.isDirectory())
-        throw new ACFException("Property "+synchDirectoryProperty+" must point to an existing, writeable directory!",ACFException.SETUP_ERROR);
+        throw new ManifoldCFException("Property "+synchDirectoryProperty+" must point to an existing, writeable directory!",ManifoldCFException.SETUP_ERROR);
     }
   }
 
@@ -70,7 +70,7 @@ public class LockManager implements ILockManager
     return "flag-"+flagName;
   }
   
-  /** Global flag information.  This is used only when all of ACF is run within one process. */
+  /** Global flag information.  This is used only when all of ManifoldCF is run within one process. */
   protected static HashMap globalFlags = new HashMap();
   
   /** Raise a flag.  Use this method to assert a condition, or send a global signal.  The flag will be reset when the
@@ -78,7 +78,7 @@ public class LockManager implements ILockManager
   *@param flagName is the name of the flag to set.
   */
   public void setGlobalFlag(String flagName)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (synchDirectory == null)
     {
@@ -93,18 +93,18 @@ public class LockManager implements ILockManager
       String resourceName = getFlagResourceName(flagName);
       String path = makeFilePath(resourceName);
       (new File(path)).mkdirs();
-      File f = new File(path,ACF.safeFileName(resourceName));
+      File f = new File(path,ManifoldCF.safeFileName(resourceName));
       try
       {
         f.createNewFile();
       }
       catch (InterruptedIOException e)
       {
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (IOException e)
       {
-        throw new ACFException(e.getMessage(),e);
+        throw new ManifoldCFException(e.getMessage(),e);
       }
     }
   }
@@ -113,7 +113,7 @@ public class LockManager implements ILockManager
   *@param flagName is the name of the flag to clear.
   */
   public void clearGlobalFlag(String flagName)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (synchDirectory == null)
     {
@@ -126,7 +126,7 @@ public class LockManager implements ILockManager
     else
     {
       String resourceName = getFlagResourceName(flagName);
-      File f = new File(makeFilePath(resourceName),ACF.safeFileName(resourceName));
+      File f = new File(makeFilePath(resourceName),ManifoldCF.safeFileName(resourceName));
       f.delete();
     }
   }
@@ -136,7 +136,7 @@ public class LockManager implements ILockManager
   *@return true if the flag is set, false otherwise.
   */
   public boolean checkGlobalFlag(String flagName)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (synchDirectory == null)
     {
@@ -149,12 +149,12 @@ public class LockManager implements ILockManager
     else
     {
       String resourceName = getFlagResourceName(flagName);
-      File f = new File(makeFilePath(resourceName),ACF.safeFileName(resourceName));
+      File f = new File(makeFilePath(resourceName),ManifoldCF.safeFileName(resourceName));
       return f.exists();
     }
   }
 
-  /** Global resource data.  Used only when ACF is run entirely out of one process. */
+  /** Global resource data.  Used only when ManifoldCF is run entirely out of one process. */
   protected static HashMap globalData = new HashMap();
   
   /** Read data from a shared data resource.  Use this method to read any existing data, or get a null back if there is no such resource.
@@ -163,7 +163,7 @@ public class LockManager implements ILockManager
   *@return a byte array containing the data, or null.
   */
   public byte[] readData(String resourceName)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (synchDirectory == null)
     {
@@ -175,7 +175,7 @@ public class LockManager implements ILockManager
     }
     else
     {
-      File f = new File(makeFilePath(resourceName),ACF.safeFileName(resourceName));
+      File f = new File(makeFilePath(resourceName),ManifoldCF.safeFileName(resourceName));
       try
       {
         InputStream is = new FileInputStream(f);
@@ -202,11 +202,11 @@ public class LockManager implements ILockManager
       }
       catch (InterruptedIOException e)
       {
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (IOException e)
       {
-        throw new ACFException("IO exception: "+e.getMessage(),e);
+        throw new ManifoldCFException("IO exception: "+e.getMessage(),e);
       }
     }
   }
@@ -217,7 +217,7 @@ public class LockManager implements ILockManager
   *@param data is the byte array containing the data.  Pass null if you want to delete the resource completely.
   */
   public void writeData(String resourceName, byte[] data)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (synchDirectory == null)
     {
@@ -237,7 +237,7 @@ public class LockManager implements ILockManager
         String path = makeFilePath(resourceName);
         // Make sure the directory exists
         (new File(path)).mkdirs();
-        File f = new File(path,ACF.safeFileName(resourceName));
+        File f = new File(path,ManifoldCF.safeFileName(resourceName));
         if (data == null)
         {
           f.delete();
@@ -255,11 +255,11 @@ public class LockManager implements ILockManager
       }
       catch (InterruptedIOException e)
       {
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (IOException e)
       {
-        throw new ACFException("IO exception: "+e.getMessage(),e);
+        throw new ManifoldCFException("IO exception: "+e.getMessage(),e);
       }
     }
   }
@@ -267,7 +267,7 @@ public class LockManager implements ILockManager
   /** Wait for a time before retrying a lock.
   */
   public void timedWait(int time)
-    throws ACFException
+    throws ManifoldCFException
   {
 
     if (Logging.lock.isDebugEnabled())
@@ -277,11 +277,11 @@ public class LockManager implements ILockManager
 
     try
     {
-      ACF.sleep(time);
+      ManifoldCF.sleep(time);
     }
     catch (InterruptedException e)
     {
-      throw new ACFException("Interrupted",e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted",e,ManifoldCFException.INTERRUPTED);
     }
   }
 
@@ -292,7 +292,7 @@ public class LockManager implements ILockManager
   * interfere with one another (use of another, standard, write lock per item can guarantee this).
   */
   public void enterNonExWriteLock(String lockKey)
-    throws ACFException
+    throws ManifoldCFException
   {
 
     if (Logging.lock.isDebugEnabled())
@@ -315,7 +315,7 @@ public class LockManager implements ILockManager
     // Check for illegalities
     if (ll.hasReadLock())
     {
-      throw new ACFException("Illegal lock sequence: NonExWrite lock can't be within read lock",ACFException.GENERAL_ERROR);
+      throw new ManifoldCFException("Illegal lock sequence: NonExWrite lock can't be within read lock",ManifoldCFException.GENERAL_ERROR);
     }
 
     // We don't own a local non-ex write lock.  Get one.  The global lock will need
@@ -330,7 +330,7 @@ public class LockManager implements ILockManager
       }
       catch (InterruptedException e)
       {
-        throw new ACFException("Interrupted",e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted",e,ManifoldCFException.INTERRUPTED);
       }
       catch (ExpiredObjectException e)
       {
@@ -342,7 +342,7 @@ public class LockManager implements ILockManager
   }
 
   public void enterNonExWriteLockNoWait(String lockKey)
-    throws ACFException, LockException
+    throws ManifoldCFException, LockException
   {
 
     if (Logging.lock.isDebugEnabled())
@@ -365,7 +365,7 @@ public class LockManager implements ILockManager
     // Check for illegalities
     if (ll.hasReadLock())
     {
-      throw new ACFException("Illegal lock sequence: NonExWrite lock can't be within read lock",ACFException.GENERAL_ERROR);
+      throw new ManifoldCFException("Illegal lock sequence: NonExWrite lock can't be within read lock",ManifoldCFException.GENERAL_ERROR);
     }
 
     // We don't own a local non-ex write lock.  Get one.  The global lock will need
@@ -394,7 +394,7 @@ public class LockManager implements ILockManager
       }
       catch (InterruptedException e)
       {
-        throw new ACFException("Interrupted",e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted",e,ManifoldCFException.INTERRUPTED);
       }
       catch (ExpiredObjectException e)
       {
@@ -408,7 +408,7 @@ public class LockManager implements ILockManager
   /** Leave a non-exclusive write lock.
   */
   public void leaveNonExWriteLock(String lockKey)
-    throws ACFException
+    throws ManifoldCFException
   {
 
     if (Logging.lock.isDebugEnabled())
@@ -438,17 +438,17 @@ public class LockManager implements ILockManager
           try
           {
             lo.leaveNonExWriteLock();
-            throw new ACFException("Interrupted",e,ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted",e,ManifoldCFException.INTERRUPTED);
           }
           catch (InterruptedException e2)
           {
             ll.incrementNonExWriteLocks();
-            throw new ACFException("Interrupted",e2,ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted",e2,ManifoldCFException.INTERRUPTED);
           }
           catch (ExpiredObjectException e2)
           {
             ll.incrementNonExWriteLocks();
-            throw new ACFException("Interrupted",e,ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted",e,ManifoldCFException.INTERRUPTED);
           }
         }
         catch (ExpiredObjectException e)
@@ -465,7 +465,7 @@ public class LockManager implements ILockManager
   * NOTE: Can't enter until all readers have left.
   */
   public void enterWriteLock(String lockKey)
-    throws ACFException
+    throws ManifoldCFException
   {
 
     if (Logging.lock.isDebugEnabled())
@@ -487,7 +487,7 @@ public class LockManager implements ILockManager
     // Check for illegalities
     if (ll.hasReadLock() || ll.hasNonExWriteLock())
     {
-      throw new ACFException("Illegal lock sequence: Write lock can't be within read lock or non-ex write lock",ACFException.GENERAL_ERROR);
+      throw new ManifoldCFException("Illegal lock sequence: Write lock can't be within read lock or non-ex write lock",ManifoldCFException.GENERAL_ERROR);
     }
 
     // We don't own a local write lock.  Get one.  The global lock will need
@@ -503,7 +503,7 @@ public class LockManager implements ILockManager
       }
       catch (InterruptedException e)
       {
-        throw new ACFException("Interrupted",e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted",e,ManifoldCFException.INTERRUPTED);
       }
       catch (ExpiredObjectException e)
       {
@@ -515,7 +515,7 @@ public class LockManager implements ILockManager
   }
 
   public void enterWriteLockNoWait(String lockKey)
-    throws ACFException, LockException
+    throws ManifoldCFException, LockException
   {
 
     if (Logging.lock.isDebugEnabled())
@@ -537,7 +537,7 @@ public class LockManager implements ILockManager
     // Check for illegalities
     if (ll.hasReadLock() || ll.hasNonExWriteLock())
     {
-      throw new ACFException("Illegal lock sequence: Write lock can't be within read lock or non-ex write lock",ACFException.GENERAL_ERROR);
+      throw new ManifoldCFException("Illegal lock sequence: Write lock can't be within read lock or non-ex write lock",ManifoldCFException.GENERAL_ERROR);
     }
 
     // We don't own a local write lock.  Get one.  The global lock will need
@@ -566,7 +566,7 @@ public class LockManager implements ILockManager
       }
       catch (InterruptedException e)
       {
-        throw new ACFException("Interrupted",e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted",e,ManifoldCFException.INTERRUPTED);
       }
       catch (ExpiredObjectException e)
       {
@@ -579,7 +579,7 @@ public class LockManager implements ILockManager
   }
 
   public void leaveWriteLock(String lockKey)
-    throws ACFException
+    throws ManifoldCFException
   {
 
     if (Logging.lock.isDebugEnabled())
@@ -606,17 +606,17 @@ public class LockManager implements ILockManager
           try
           {
             lo.leaveWriteLock();
-            throw new ACFException("Interrupted",e,ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted",e,ManifoldCFException.INTERRUPTED);
           }
           catch (InterruptedException e2)
           {
             ll.incrementWriteLocks();
-            throw new ACFException("Interrupted",e2,ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted",e2,ManifoldCFException.INTERRUPTED);
           }
           catch (ExpiredObjectException e2)
           {
             ll.incrementWriteLocks();
-            throw new ACFException("Interrupted",e,ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted",e,ManifoldCFException.INTERRUPTED);
           }
         }
         catch (ExpiredObjectException e)
@@ -632,7 +632,7 @@ public class LockManager implements ILockManager
   /** Enter a read-only locked area (i.e., block ONLY if there's a writer)
   */
   public void enterReadLock(String lockKey)
-    throws ACFException
+    throws ManifoldCFException
   {
 
     if (Logging.lock.isDebugEnabled())
@@ -663,7 +663,7 @@ public class LockManager implements ILockManager
       }
       catch (InterruptedException e)
       {
-        throw new ACFException("Interrupted",e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted",e,ManifoldCFException.INTERRUPTED);
       }
       catch (ExpiredObjectException e)
       {
@@ -675,7 +675,7 @@ public class LockManager implements ILockManager
   }
 
   public void enterReadLockNoWait(String lockKey)
-    throws ACFException, LockException
+    throws ManifoldCFException, LockException
   {
 
     if (Logging.lock.isDebugEnabled())
@@ -718,7 +718,7 @@ public class LockManager implements ILockManager
       }
       catch (InterruptedException e)
       {
-        throw new ACFException("Interrupted",e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted",e,ManifoldCFException.INTERRUPTED);
       }
       catch (ExpiredObjectException e)
       {
@@ -731,7 +731,7 @@ public class LockManager implements ILockManager
   }
 
   public void leaveReadLock(String lockKey)
-    throws ACFException
+    throws ManifoldCFException
   {
 
     if (Logging.lock.isDebugEnabled())
@@ -758,17 +758,17 @@ public class LockManager implements ILockManager
           try
           {
             lo.leaveReadLock();
-            throw new ACFException("Interrupted",e,ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted",e,ManifoldCFException.INTERRUPTED);
           }
           catch (InterruptedException e2)
           {
             ll.incrementReadLocks();
-            throw new ACFException("Interrupted",e2,ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted",e2,ManifoldCFException.INTERRUPTED);
           }
           catch (ExpiredObjectException e2)
           {
             ll.incrementReadLocks();
-            throw new ACFException("Interrupted",e,ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted",e,ManifoldCFException.INTERRUPTED);
           }
         }
         catch (ExpiredObjectException e)
@@ -781,7 +781,7 @@ public class LockManager implements ILockManager
   }
 
   public void clearLocks()
-    throws ACFException
+    throws ManifoldCFException
   {
 
     if (Logging.lock.isDebugEnabled())
@@ -807,7 +807,7 @@ public class LockManager implements ILockManager
   /** Enter multiple locks
   */
   public void enterLocks(String[] readLocks, String[] nonExWriteLocks, String[] writeLocks)
-    throws ACFException
+    throws ManifoldCFException
   {
 
     if (Logging.lock.isDebugEnabled())
@@ -860,7 +860,7 @@ public class LockManager implements ILockManager
           // Check for illegalities
           if ((ll.hasReadLock() || ll.hasNonExWriteLock()) && !ll.hasWriteLock())
           {
-            throw new ACFException("Illegal lock sequence: Write lock can't be within read lock or non-ex write lock",ACFException.GENERAL_ERROR);
+            throw new ManifoldCFException("Illegal lock sequence: Write lock can't be within read lock or non-ex write lock",ManifoldCFException.GENERAL_ERROR);
           }
 
           // See if we already own the write lock for the object
@@ -888,7 +888,7 @@ public class LockManager implements ILockManager
           // Check for illegalities
           if (ll.hasReadLock() && !(ll.hasNonExWriteLock() || ll.hasWriteLock()))
           {
-            throw new ACFException("Illegal lock sequence: NonExWrite lock can't be within read lock",ACFException.GENERAL_ERROR);
+            throw new ManifoldCFException("Illegal lock sequence: NonExWrite lock can't be within read lock",ManifoldCFException.GENERAL_ERROR);
           }
 
           // See if we already own the write lock for the object
@@ -942,7 +942,7 @@ public class LockManager implements ILockManager
     catch (Throwable ex)
     {
       // No matter what, undo the locks we've taken
-      ACFException ae = null;
+      ManifoldCFException ae = null;
       int errno = 0;
 
       while (--locksProcessed >= 0)
@@ -965,7 +965,7 @@ public class LockManager implements ILockManager
             break;
           }
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
           ae = e;
         }
@@ -975,14 +975,14 @@ public class LockManager implements ILockManager
       {
         throw ae;
       }
-      if (ex instanceof ACFException)
+      if (ex instanceof ManifoldCFException)
       {
-        throw (ACFException)ex;
+        throw (ManifoldCFException)ex;
       }
       if (ex instanceof InterruptedException)
       {
         // It's InterruptedException
-        throw new ACFException("Interrupted",ex,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted",ex,ManifoldCFException.INTERRUPTED);
       }
       if (!(ex instanceof Error))
       {
@@ -993,7 +993,7 @@ public class LockManager implements ILockManager
   }
 
   public void enterLocksNoWait(String[] readLocks, String[] nonExWriteLocks, String[] writeLocks)
-    throws ACFException, LockException
+    throws ManifoldCFException, LockException
   {
 
     if (Logging.lock.isDebugEnabled())
@@ -1046,7 +1046,7 @@ public class LockManager implements ILockManager
           // Check for illegalities
           if ((ll.hasReadLock() || ll.hasNonExWriteLock()) && !ll.hasWriteLock())
           {
-            throw new ACFException("Illegal lock sequence: Write lock can't be within read lock or non-ex write lock",ACFException.GENERAL_ERROR);
+            throw new ManifoldCFException("Illegal lock sequence: Write lock can't be within read lock or non-ex write lock",ManifoldCFException.GENERAL_ERROR);
           }
 
           // See if we already own the write lock for the object
@@ -1077,7 +1077,7 @@ public class LockManager implements ILockManager
           // Check for illegalities
           if (ll.hasReadLock() && !(ll.hasNonExWriteLock() || ll.hasWriteLock()))
           {
-            throw new ACFException("Illegal lock sequence: NonExWrite lock can't be within read lock",ACFException.GENERAL_ERROR);
+            throw new ManifoldCFException("Illegal lock sequence: NonExWrite lock can't be within read lock",ManifoldCFException.GENERAL_ERROR);
           }
 
           // See if we already own the write lock for the object
@@ -1137,7 +1137,7 @@ public class LockManager implements ILockManager
     catch (Throwable ex)
     {
       // No matter what, undo the locks we've taken
-      ACFException ae = null;
+      ManifoldCFException ae = null;
       int errno = 0;
 
       while (--locksProcessed >= 0)
@@ -1160,7 +1160,7 @@ public class LockManager implements ILockManager
             break;
           }
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
           ae = e;
         }
@@ -1170,9 +1170,9 @@ public class LockManager implements ILockManager
       {
         throw ae;
       }
-      if (ex instanceof ACFException)
+      if (ex instanceof ManifoldCFException)
       {
-        throw (ACFException)ex;
+        throw (ManifoldCFException)ex;
       }
       if (ex instanceof LockException || ex instanceof LocalLockException)
       {
@@ -1182,7 +1182,7 @@ public class LockManager implements ILockManager
       }
       if (ex instanceof InterruptedException)
       {
-        throw new ACFException("Interrupted",ex,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted",ex,ManifoldCFException.INTERRUPTED);
       }
       if (!(ex instanceof Error))
       {
@@ -1197,11 +1197,11 @@ public class LockManager implements ILockManager
   /** Leave multiple locks
   */
   public void leaveLocks(String[] readLocks, String[] writeNonExLocks, String[] writeLocks)
-    throws ACFException
+    throws ManifoldCFException
   {
     LockDescription[] lds = getSortedUniqueLocks(readLocks,writeNonExLocks,writeLocks);
     // Free them all... one at a time is fine
-    ACFException ae = null;
+    ManifoldCFException ae = null;
     int i = lds.length;
     while (--i >= 0)
     {
@@ -1223,7 +1223,7 @@ public class LockManager implements ILockManager
           break;
         }
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         ae = e;
       }
@@ -1241,7 +1241,7 @@ public class LockManager implements ILockManager
   * section at a time.
   */
   public void enterReadCriticalSection(String sectionKey)
-    throws ACFException
+    throws ManifoldCFException
   {
     LocalLock ll = getLocalSection(sectionKey);
 
@@ -1264,7 +1264,7 @@ public class LockManager implements ILockManager
       }
       catch (InterruptedException e)
       {
-        throw new ACFException("Interrupted",e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted",e,ManifoldCFException.INTERRUPTED);
       }
       catch (ExpiredObjectException e)
       {
@@ -1280,7 +1280,7 @@ public class LockManager implements ILockManager
   * section at a time.
   */
   public void leaveReadCriticalSection(String sectionKey)
-    throws ACFException
+    throws ManifoldCFException
   {
     LocalLock ll = getLocalSection(sectionKey);
 
@@ -1301,17 +1301,17 @@ public class LockManager implements ILockManager
           try
           {
             lo.leaveReadLock();
-            throw new ACFException("Interrupted",e,ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted",e,ManifoldCFException.INTERRUPTED);
           }
           catch (InterruptedException e2)
           {
             ll.incrementReadLocks();
-            throw new ACFException("Interrupted",e2,ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted",e2,ManifoldCFException.INTERRUPTED);
           }
           catch (ExpiredObjectException e2)
           {
             ll.incrementReadLocks();
-            throw new ACFException("Interrupted",e,ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted",e,ManifoldCFException.INTERRUPTED);
           }
         }
         catch (ExpiredObjectException e)
@@ -1330,7 +1330,7 @@ public class LockManager implements ILockManager
   * section at a time.
   */
   public void enterNonExWriteCriticalSection(String sectionKey)
-    throws ACFException
+    throws ManifoldCFException
   {
     LocalLock ll = getLocalSection(sectionKey);
 
@@ -1346,7 +1346,7 @@ public class LockManager implements ILockManager
     // Check for illegalities
     if (ll.hasReadLock())
     {
-      throw new ACFException("Illegal lock sequence: NonExWrite critical section can't be within read critical section",ACFException.GENERAL_ERROR);
+      throw new ManifoldCFException("Illegal lock sequence: NonExWrite critical section can't be within read critical section",ManifoldCFException.GENERAL_ERROR);
     }
 
     // We don't own a local non-ex write lock.  Get one.  The global lock will need
@@ -1361,7 +1361,7 @@ public class LockManager implements ILockManager
       }
       catch (InterruptedException e)
       {
-        throw new ACFException("Interrupted",e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted",e,ManifoldCFException.INTERRUPTED);
       }
       catch (ExpiredObjectException e)
       {
@@ -1377,7 +1377,7 @@ public class LockManager implements ILockManager
   * section at a time.
   */
   public void leaveNonExWriteCriticalSection(String sectionKey)
-    throws ACFException
+    throws ManifoldCFException
   {
     LocalLock ll = getLocalSection(sectionKey);
 
@@ -1401,17 +1401,17 @@ public class LockManager implements ILockManager
           try
           {
             lo.leaveNonExWriteLock();
-            throw new ACFException("Interrupted",e,ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted",e,ManifoldCFException.INTERRUPTED);
           }
           catch (InterruptedException e2)
           {
             ll.incrementNonExWriteLocks();
-            throw new ACFException("Interrupted",e2,ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted",e2,ManifoldCFException.INTERRUPTED);
           }
           catch (ExpiredObjectException e2)
           {
             ll.incrementNonExWriteLocks();
-            throw new ACFException("Interrupted",e,ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted",e,ManifoldCFException.INTERRUPTED);
           }
         }
         catch (ExpiredObjectException e)
@@ -1430,7 +1430,7 @@ public class LockManager implements ILockManager
   * section at a time.
   */
   public void enterWriteCriticalSection(String sectionKey)
-    throws ACFException
+    throws ManifoldCFException
   {
     LocalLock ll = getLocalSection(sectionKey);
 
@@ -1445,7 +1445,7 @@ public class LockManager implements ILockManager
     // Check for illegalities
     if (ll.hasReadLock() || ll.hasNonExWriteLock())
     {
-      throw new ACFException("Illegal lock sequence: Write lock can't be within read lock or non-ex write lock",ACFException.GENERAL_ERROR);
+      throw new ManifoldCFException("Illegal lock sequence: Write lock can't be within read lock or non-ex write lock",ManifoldCFException.GENERAL_ERROR);
     }
 
     // We don't own a local write lock.  Get one.  The global lock will need
@@ -1461,7 +1461,7 @@ public class LockManager implements ILockManager
       }
       catch (InterruptedException e)
       {
-        throw new ACFException("Interrupted",e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted",e,ManifoldCFException.INTERRUPTED);
       }
       catch (ExpiredObjectException e)
       {
@@ -1478,7 +1478,7 @@ public class LockManager implements ILockManager
   * section at a time.
   */
   public void leaveWriteCriticalSection(String sectionKey)
-    throws ACFException
+    throws ManifoldCFException
   {
     LocalLock ll = getLocalSection(sectionKey);
 
@@ -1499,17 +1499,17 @@ public class LockManager implements ILockManager
           try
           {
             lo.leaveWriteLock();
-            throw new ACFException("Interrupted",e,ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted",e,ManifoldCFException.INTERRUPTED);
           }
           catch (InterruptedException e2)
           {
             ll.incrementWriteLocks();
-            throw new ACFException("Interrupted",e2,ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted",e2,ManifoldCFException.INTERRUPTED);
           }
           catch (ExpiredObjectException e2)
           {
             ll.incrementWriteLocks();
-            throw new ACFException("Interrupted",e,ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted",e,ManifoldCFException.INTERRUPTED);
           }
         }
         catch (ExpiredObjectException e)
@@ -1528,7 +1528,7 @@ public class LockManager implements ILockManager
   *@param writeSectionKeys is an array of write section descriptors, or null if there are none desired.
   */
   public void enterCriticalSections(String[] readSectionKeys, String[] nonExSectionKeys, String[] writeSectionKeys)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Sort the locks.  This improves the chances of making it through the locking process without
     // contention!
@@ -1549,7 +1549,7 @@ public class LockManager implements ILockManager
           // Check for illegalities
           if ((ll.hasReadLock() || ll.hasNonExWriteLock()) && !ll.hasWriteLock())
           {
-            throw new ACFException("Illegal lock sequence: Write critical section can't be within read critical section or non-ex write critical section",ACFException.GENERAL_ERROR);
+            throw new ManifoldCFException("Illegal lock sequence: Write critical section can't be within read critical section or non-ex write critical section",ManifoldCFException.GENERAL_ERROR);
           }
 
           // See if we already own the write lock for the object
@@ -1577,7 +1577,7 @@ public class LockManager implements ILockManager
           // Check for illegalities
           if (ll.hasReadLock() && !(ll.hasNonExWriteLock() || ll.hasWriteLock()))
           {
-            throw new ACFException("Illegal lock sequence: NonExWrite critical section can't be within read critical section",ACFException.GENERAL_ERROR);
+            throw new ManifoldCFException("Illegal lock sequence: NonExWrite critical section can't be within read critical section",ManifoldCFException.GENERAL_ERROR);
           }
 
           // See if we already own the write lock for the object
@@ -1630,7 +1630,7 @@ public class LockManager implements ILockManager
     catch (Throwable ex)
     {
       // No matter what, undo the locks we've taken
-      ACFException ae = null;
+      ManifoldCFException ae = null;
       int errno = 0;
 
       while (--locksProcessed >= 0)
@@ -1653,7 +1653,7 @@ public class LockManager implements ILockManager
             break;
           }
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
           ae = e;
         }
@@ -1663,14 +1663,14 @@ public class LockManager implements ILockManager
       {
         throw ae;
       }
-      if (ex instanceof ACFException)
+      if (ex instanceof ManifoldCFException)
       {
-        throw (ACFException)ex;
+        throw (ManifoldCFException)ex;
       }
       if (ex instanceof InterruptedException)
       {
         // It's InterruptedException
-        throw new ACFException("Interrupted",ex,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted",ex,ManifoldCFException.INTERRUPTED);
       }
       if (!(ex instanceof Error))
       {
@@ -1686,11 +1686,11 @@ public class LockManager implements ILockManager
   *@param writeSectionKeys is an array of write section descriptors, or null if there are none desired.
   */
   public void leaveCriticalSections(String[] readSectionKeys, String[] nonExSectionKeys, String[] writeSectionKeys)
-    throws ACFException
+    throws ManifoldCFException
   {
     LockDescription[] lds = getSortedUniqueLocks(readSectionKeys,nonExSectionKeys,writeSectionKeys);
     // Free them all... one at a time is fine
-    ACFException ae = null;
+    ManifoldCFException ae = null;
     int i = lds.length;
     while (--i >= 0)
     {
@@ -1712,7 +1712,7 @@ public class LockManager implements ILockManager
           break;
         }
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         ae = e;
       }

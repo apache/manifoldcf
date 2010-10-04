@@ -72,7 +72,7 @@ public class Logging
     // Initialize the logger
     PropertyConfigurator.configure(logConfigFile.toString());
 
-    //System.err.println("ACF logger setup complete");
+    //System.err.println("ManifoldCF logger setup complete");
   }
 
   /** Set up loggers used by core package.
@@ -107,7 +107,7 @@ public class Logging
       String loggername = (String)e.getKey();
 
       // logger level
-      String level = ACF.getProperty(loggername);
+      String level = ManifoldCF.getProperty(loggername);
 
       Level loglevel = null;
       if (level != null && level.length() > 0)

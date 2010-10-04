@@ -46,7 +46,7 @@ public class ExpireStufferThread extends Thread
   * number of documents to be done at once!
   */
   public ExpireStufferThread(DocumentDeleteQueue documentQueue, int n, WorkerResetManager resetManager)
-    throws ACFException
+    throws ManifoldCFException
   {
     super();
     this.documentQueue = documentQueue;
@@ -82,9 +82,9 @@ public class ExpireStufferThread extends Thread
       HashMap jobDescriptionMap = new HashMap();
 
       IDBInterface database = DBInterfaceFactory.make(threadContext,
-        ACF.getMasterDatabaseName(),
-        ACF.getMasterDatabaseUsername(),
-        ACF.getMasterDatabasePassword());
+        ManifoldCF.getMasterDatabaseName(),
+        ManifoldCF.getMasterDatabaseUsername(),
+        ManifoldCF.getMasterDatabasePassword());
 
       int deleteChunkSize = database.getMaxInClause();
 
@@ -95,7 +95,7 @@ public class ExpireStufferThread extends Thread
         try
         {
           if (Thread.currentThread().isInterrupted())
-            throw new ACFException("Interrupted",ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
 
           // Check if we're okay
           resetManager.waitForReset(threadContext);
@@ -118,7 +118,7 @@ public class ExpireStufferThread extends Thread
           DocumentDescription[] descs = jobManager.getExpiredDocuments(deleteChunkSize,currentTime);
 
           if (Thread.currentThread().isInterrupted())
-            throw new ACFException("Interrupted",ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
 
           if (Logging.threads.isDebugEnabled())
           {
@@ -129,7 +129,7 @@ public class ExpireStufferThread extends Thread
           // The theory is that we need to allow stuff to accumulate.
           if (descs.length == 0)
           {
-            ACF.sleep(60000L);      // 1 minute
+            ManifoldCF.sleep(60000L);      // 1 minute
             continue;
           }
 
@@ -145,14 +145,14 @@ public class ExpireStufferThread extends Thread
           documentQueue.addDocuments(set);
 
           // If we don't wait here, the other threads don't seem to have a chance to queue anything else up.
-          ACF.sleep(1000L);
+          ManifoldCF.sleep(1000L);
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
-          if (e.getErrorCode() == ACFException.INTERRUPTED)
+          if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
             break;
 
-          if (e.getErrorCode() == ACFException.DATABASE_CONNECTION_ERROR)
+          if (e.getErrorCode() == ManifoldCFException.DATABASE_CONNECTION_ERROR)
           {
             resetManager.noteEvent();
             documentQueue.reset();
@@ -161,7 +161,7 @@ public class ExpireStufferThread extends Thread
             try
             {
               // Give the database a chance to catch up/wake up
-              ACF.sleep(10000L);
+              ManifoldCF.sleep(10000L);
             }
             catch (InterruptedException se)
             {
@@ -173,7 +173,7 @@ public class ExpireStufferThread extends Thread
           // Log it, but keep the thread alive
           Logging.threads.error("Exception tossed: "+e.getMessage(),e);
 
-          if (e.getErrorCode() == ACFException.SETUP_ERROR)
+          if (e.getErrorCode() == ManifoldCFException.SETUP_ERROR)
           {
             System.exit(1);
           }

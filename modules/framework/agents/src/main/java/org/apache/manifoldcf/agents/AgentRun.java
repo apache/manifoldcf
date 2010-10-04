@@ -34,7 +34,7 @@ public class AgentRun extends BaseAgentsInitializationCommand
   {
   }
 
-  protected void doExecute(IThreadContext tc) throws ACFException
+  protected void doExecute(IThreadContext tc) throws ManifoldCFException
   {
     ILockManager lockManager = LockManagerFactory.make(tc);
     // Clear the agents shutdown signal.
@@ -47,11 +47,11 @@ public class AgentRun extends BaseAgentsInitializationCommand
         break;
 
       // Start whatever agents need to be started
-      ACF.startAgents(tc);
+      ManifoldCF.startAgents(tc);
 
       try
       {
-        ACF.sleep(5000);
+        ManifoldCF.sleep(5000);
       }
       catch (InterruptedException e)
       {
@@ -77,7 +77,7 @@ public class AgentRun extends BaseAgentsInitializationCommand
       agentRun.execute();
       System.err.println("Shutting down...");
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       Logging.root.error("Exception: "+e.getMessage(),e);
       e.printStackTrace(System.err);

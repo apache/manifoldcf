@@ -42,7 +42,7 @@ public abstract class CharacterInput
   }
 
   public Reader getStream()
-    throws ACFException
+    throws ManifoldCFException
   {
     if (stream == null)
       openStream();
@@ -50,14 +50,14 @@ public abstract class CharacterInput
   }
 
   public void doneWithStream()
-    throws ACFException
+    throws ManifoldCFException
   {
     if (stream != null)
       closeStream();
   }
 
   public long getCharacterLength()
-    throws ACFException
+    throws ManifoldCFException
   {
     if (charLength == -1L)
       calculateLength();
@@ -65,7 +65,7 @@ public abstract class CharacterInput
   }
 
   public String getHashValue()
-    throws ACFException
+    throws ManifoldCFException
   {
     if (hashValue == null)
       calculateHashValue();
@@ -74,14 +74,14 @@ public abstract class CharacterInput
 
   /** Open a Utf8 stream directly */
   public abstract InputStream getUtf8Stream()
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Transfer to a new object; this causes the current object to become "already discarded" */
   public abstract CharacterInput transfer();
 
   /** Discard this object permanently */
   public void discard()
-    throws ACFException
+    throws ManifoldCFException
   {
     doneWithStream();
   }
@@ -90,11 +90,11 @@ public abstract class CharacterInput
 
   /** Open a reader, for use by a caller, until closeStream is called */
   protected abstract void openStream()
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Close any open reader */
   protected void closeStream()
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -103,20 +103,20 @@ public abstract class CharacterInput
     }
     catch (InterruptedIOException e)
     {
-      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new ACFException("Error closing stream: "+e.getMessage(),e,ACFException.GENERAL_ERROR);
+      throw new ManifoldCFException("Error closing stream: "+e.getMessage(),e,ManifoldCFException.GENERAL_ERROR);
     }
   }
 
   /** Calculate the datum's length in characters */
   protected abstract void calculateLength()
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Calculate the datum's hash value */
   protected abstract void calculateHashValue()
-    throws ACFException;
+    throws ManifoldCFException;
 
 }

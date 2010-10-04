@@ -72,7 +72,7 @@ public class RunMaxBandwidthHistory
 
     try
     {
-      ACF.initializeEnvironment();
+      ManifoldCF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
       IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(tc);
 

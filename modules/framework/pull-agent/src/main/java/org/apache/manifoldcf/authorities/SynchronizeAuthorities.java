@@ -32,7 +32,7 @@ public class SynchronizeAuthorities extends BaseAuthoritiesInitializationCommand
   }
 
 
-  protected void doExecute(IAuthorityConnectorManager mgr) throws ACFException
+  protected void doExecute(IAuthorityConnectorManager mgr) throws ManifoldCFException
   {
     IResultSet classNames = mgr.getConnectors();
     int i = 0;
@@ -44,7 +44,7 @@ public class SynchronizeAuthorities extends BaseAuthoritiesInitializationCommand
       {
         AuthorityConnectorFactory.getConnectorNoCheck(classname);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         mgr.removeConnector(classname);
       }
@@ -68,7 +68,7 @@ public class SynchronizeAuthorities extends BaseAuthoritiesInitializationCommand
       synchronizeAuthorities.execute();
       System.err.println("Successfully synchronized all authorities");
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       e.printStackTrace();
       System.exit(1);

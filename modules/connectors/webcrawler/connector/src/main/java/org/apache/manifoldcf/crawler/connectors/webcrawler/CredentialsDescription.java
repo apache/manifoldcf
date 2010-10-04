@@ -19,7 +19,7 @@
 package org.apache.manifoldcf.crawler.connectors.webcrawler;
 
 import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.crawler.system.ACF;
+import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import java.util.*;
 import java.util.regex.*;
 
@@ -54,7 +54,7 @@ public class CredentialsDescription
 
   /** Constructor.  Build the description from the ConfigParams. */
   public CredentialsDescription(ConfigParams configData)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Scan, looking for bin description nodes
     int i = 0;
@@ -74,7 +74,7 @@ public class CredentialsDescription
           }
           catch (java.util.regex.PatternSyntaxException e)
           {
-            throw new ACFException("Access credential regular expression '"+urlDescription+"' is illegal: "+e.getMessage(),e);
+            throw new ManifoldCFException("Access credential regular expression '"+urlDescription+"' is illegal: "+e.getMessage(),e);
           }
           CredentialsItem ti = new CredentialsItem(p);
 
@@ -84,7 +84,7 @@ public class CredentialsDescription
           String userName = node.getAttributeValue(WebcrawlerConfig.ATTR_USERNAME);
           String password = node.getAttributeValue(WebcrawlerConfig.ATTR_PASSWORD);
           if (password != null)
-            password = ACF.deobfuscate(password);
+            password = ManifoldCF.deobfuscate(password);
 
           if (type.equals(WebcrawlerConfig.ATTRVALUE_BASIC))
             ti.setCredential(new BasicCredential(userName,password));
@@ -115,7 +115,7 @@ public class CredentialsDescription
                 }
                 catch (java.util.regex.PatternSyntaxException e)
                 {
-                  throw new ACFException("Authentication page regular expression '"+authPageRegexp+"' is illegal: "+e.getMessage(),e);
+                  throw new ManifoldCFException("Authentication page regular expression '"+authPageRegexp+"' is illegal: "+e.getMessage(),e);
                 }
                 Pattern matchPattern;
                 try
@@ -124,7 +124,7 @@ public class CredentialsDescription
                 }
                 catch (java.util.regex.PatternSyntaxException e)
                 {
-                  throw new ACFException("Match regular expression '"+matchRegexp+"' is illegal: "+e.getMessage(),e);
+                  throw new ManifoldCFException("Match regular expression '"+matchRegexp+"' is illegal: "+e.getMessage(),e);
                 }
                 if (pageType.equals(WebcrawlerConfig.ATTRVALUE_FORM))
                 {
@@ -139,7 +139,7 @@ public class CredentialsDescription
                   sc.addAuthPage(authPageRegexp,authPattern,null,null,null,null,matchRegexp,matchPattern);
                 }
                 else
-                  throw new ACFException("Invalid page type: "+pageType);
+                  throw new ManifoldCFException("Invalid page type: "+pageType);
 
                 // Finally, walk through any specified parameters
                 int k = 0;
@@ -156,12 +156,12 @@ public class CredentialsDescription
                     }
                     catch (java.util.regex.PatternSyntaxException e)
                     {
-                      throw new ACFException("Parameter name regular expression '"+paramName+"' is illegal: "+e.getMessage(),e);
+                      throw new ManifoldCFException("Parameter name regular expression '"+paramName+"' is illegal: "+e.getMessage(),e);
                     }
                     String passwordValue = paramNode.getAttributeValue(WebcrawlerConfig.ATTR_PASSWORD);
                     String paramValue = paramNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
                     if (passwordValue != null)
-                      paramValue = ACF.deobfuscate(passwordValue);
+                      paramValue = ManifoldCF.deobfuscate(passwordValue);
                     sc.addPageParameter(authPageRegexp,paramName,paramNamePattern,paramValue);
                   }
                 }
@@ -170,12 +170,12 @@ public class CredentialsDescription
             ti.setCredential(sc);
           }
           else
-            throw new ACFException("Illegal credential type: "+type);
+            throw new ManifoldCFException("Illegal credential type: "+type);
           patternHash.put(urlDescription,ti);
         }
         catch (PatternSyntaxException e)
         {
-          throw new ACFException("Bad pattern syntax in '"+urlDescription+"'",e);
+          throw new ManifoldCFException("Bad pattern syntax in '"+urlDescription+"'",e);
         }
       }
     }
@@ -542,7 +542,7 @@ public class CredentialsDescription
       String preferredLinkRegexp, Pattern preferredLinkPattern,
       String formNameRegexp, Pattern formNamePattern,
       String preferredRedirectionRegexp, Pattern preferredRedirectionPattern)
-      throws ACFException
+      throws ManifoldCFException
     {
       sessionPages.put(urlregexp,new SessionCredentialItem(urlregexp,urlPattern,
         preferredLinkRegexp,preferredLinkPattern,
@@ -569,7 +569,7 @@ public class CredentialsDescription
     * If null is returned, then this page has no specific login information.
     */
     public Iterator findLoginParameters(String documentIdentifier)
-      throws ACFException
+      throws ManifoldCFException
     {
       return new LoginParameterIterator(sessionPages,documentIdentifier);
     }
@@ -629,7 +629,7 @@ public class CredentialsDescription
 
     /** Turn this instance into a Credentials object, given the specified target host name */
     public Credentials makeCredentialsObject(String targetHostName)
-      throws ACFException
+      throws ManifoldCFException
     {
       return credentialsObject;
     }
@@ -668,7 +668,7 @@ public class CredentialsDescription
 
     /** Turn this instance into a Credentials object, given the specified target host name */
     public Credentials makeCredentialsObject(String targetHostName)
-      throws ACFException
+      throws ManifoldCFException
     {
       return new NTCredentials(userName,password,targetHostName,domain);
     }

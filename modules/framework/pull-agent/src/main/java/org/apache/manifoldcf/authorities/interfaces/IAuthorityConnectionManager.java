@@ -30,53 +30,53 @@ public interface IAuthorityConnectionManager
   /** Install the manager.
   */
   public void install()
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Uninstall the manager.
   */
   public void deinstall()
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Export configuration */
   public void exportConfiguration(java.io.OutputStream os)
-    throws java.io.IOException, ACFException;
+    throws java.io.IOException, ManifoldCFException;
 
   /** Import configuration */
   public void importConfiguration(java.io.InputStream is)
-    throws java.io.IOException, ACFException;
+    throws java.io.IOException, ManifoldCFException;
 
   /** Obtain a list of the authority connections, ordered by name.
   *@return an array of connection objects.
   */
   public IAuthorityConnection[] getAllConnections()
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Load a authority connection by name.
   *@param name is the name of the authority connection.
   *@return the loaded connection object, or null if not found.
   */
   public IAuthorityConnection load(String name)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Create a new authority connection object.
   *@return the new object.
   */
   public IAuthorityConnection create()
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Save an authority connection object.
   *@param object is the object to save.
   *@return true if the object was created, false otherwise.
   */
   public boolean save(IAuthorityConnection object)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Delete an authority connection.
   *@param name is the name of the connection to delete.  If the
   * name does not exist, no error is returned.
   */
   public void delete(String name)
-    throws ACFException;
+    throws ManifoldCFException;
 
   // Schema related
 

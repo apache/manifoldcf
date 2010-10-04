@@ -82,7 +82,7 @@
 	IOutputConnection connection = connManager.load(connectionName);
 	if (connection == null)
 	{
-		throw new ACFException("No such connection: '"+connectionName+"'");
+		throw new ManifoldCFException("No such connection: '"+connectionName+"'");
 	}
 	else
 	{
@@ -119,7 +119,7 @@
 				}
 			}
 		}
-		catch (ACFException e)
+		catch (ManifoldCFException e)
 		{
 			connectionStatus = "Threw exception: '"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage())+"'";
 		}
@@ -169,7 +169,7 @@
 <%
 	}
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
 	e.printStackTrace();
 	variableContext.setParameter("text",e.getMessage());

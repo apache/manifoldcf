@@ -48,7 +48,7 @@ public class ScheduleManager extends org.apache.manifoldcf.core.database.BaseTab
   *@param database is the database instance.
   */
   public ScheduleManager(IThreadContext threadContext, IDBInterface database)
-    throws ACFException
+    throws ManifoldCFException
   {
     super(database,"schedules");
   }
@@ -58,7 +58,7 @@ public class ScheduleManager extends org.apache.manifoldcf.core.database.BaseTab
   *@param owningTablePrimaryKey is the primary key of the owning table.
   */
   public void install(String ownerTable, String owningTablePrimaryKey)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Standard practice: Outer loop to support upgrades
     while (true)
@@ -125,7 +125,7 @@ public class ScheduleManager extends org.apache.manifoldcf.core.database.BaseTab
   /** Uninstall.
   */
   public void deinstall()
-    throws ACFException
+    throws ManifoldCFException
   {
     performDrop(null);
   }
@@ -136,7 +136,7 @@ public class ScheduleManager extends org.apache.manifoldcf.core.database.BaseTab
   *@param ownerIDParams is the corresponding set of owner id parameters.
   */
   public void getRows(Map returnValues, String ownerIDList, ArrayList ownerIDParams)
-    throws ACFException
+    throws ManifoldCFException
   {
     IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+ownerIDField+" IN ("+ownerIDList+") ORDER BY "+ordinalField+" ASC",ownerIDParams,
       null,null);
@@ -164,7 +164,7 @@ public class ScheduleManager extends org.apache.manifoldcf.core.database.BaseTab
   *@param ownerIDParams is the corresponding set of owner id parameters.
   */
   public void getRowsAlternate(Map returnValues, String ownerIDList, ArrayList ownerIDParams)
-    throws ACFException
+    throws ManifoldCFException
   {
     IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+ownerIDField+" IN ("+ownerIDList+") ORDER BY "+ordinalField+" ASC",ownerIDParams,
       null,null);
@@ -197,7 +197,7 @@ public class ScheduleManager extends org.apache.manifoldcf.core.database.BaseTab
   *@param list is the job description that is the source of the schedule.
   */
   public void writeRows(Long ownerID, IJobDescription list)
-    throws ACFException
+    throws ManifoldCFException
   {
     beginTransaction();
     try
@@ -222,7 +222,7 @@ public class ScheduleManager extends org.apache.manifoldcf.core.database.BaseTab
         i++;
       }
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       signalRollback();
       throw e;
@@ -242,7 +242,7 @@ public class ScheduleManager extends org.apache.manifoldcf.core.database.BaseTab
   *@param ownerID is the owner whose rows to delete.
   */
   public void deleteRows(Long ownerID)
-    throws ACFException
+    throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
     list.add(ownerID);
@@ -254,7 +254,7 @@ public class ScheduleManager extends org.apache.manifoldcf.core.database.BaseTab
   *@return the enumerated value.
   */
   public static EnumeratedValues stringToEnumeratedValue(String value)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (value == null)
       return null;
@@ -280,7 +280,7 @@ public class ScheduleManager extends org.apache.manifoldcf.core.database.BaseTab
     }
     catch (NumberFormatException e)
     {
-      throw new ACFException("Bad number: '"+value+"'",e);
+      throw new ManifoldCFException("Bad number: '"+value+"'",e);
     }
 
   }

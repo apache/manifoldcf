@@ -21,7 +21,7 @@ package org.apache.manifoldcf.core.interfaces;
 import org.apache.manifoldcf.core.interfaces.*;
 import java.util.*;
 import java.io.*;
-import org.apache.manifoldcf.core.system.ACF;
+import org.apache.manifoldcf.core.system.ManifoldCF;
 
 /** This class represents a set of configuration parameters, with structure, which is a generalized hierarchy of nodes that
 * can be interpreted by a repository or authority connector in an appropriate way.
@@ -67,7 +67,7 @@ public class ConfigParams extends Configuration
   *@param xml is the input XML.
   */
   public ConfigParams(String xml)
-    throws ACFException
+    throws ManifoldCFException
   {
     super("configuration");
     fromXML(xml);
@@ -77,7 +77,7 @@ public class ConfigParams extends Configuration
   *@param xmlstream is the input XML stream.  Does NOT close the stream.
   */
   public ConfigParams(InputStream xmlstream)
-    throws ACFException
+    throws ManifoldCFException
   {
     super("configuration");
     fromXML(xmlstream);
@@ -151,9 +151,9 @@ public class ConfigParams extends Configuration
       return rval;
     try
     {
-      return ACF.deobfuscate(rval);
+      return ManifoldCF.deobfuscate(rval);
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       // Ignore this exception, and return an empty string.
       return "";
@@ -203,9 +203,9 @@ public class ConfigParams extends Configuration
     {
       try
       {
-        value = ACF.obfuscate(value);
+        value = ManifoldCF.obfuscate(value);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         // Ignore this exception, and set "" to be the value
         value = "";

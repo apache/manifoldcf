@@ -51,7 +51,7 @@ public class DefineAuthorityConnection
 
                 try
                 {
-                        ACF.initializeEnvironment();
+                        ManifoldCF.initializeEnvironment();
                         IThreadContext tc = ThreadContextFactory.make();
                         IAuthorityConnectionManager mgr = AuthorityConnectionManagerFactory.make(tc);
                         IAuthorityConnection conn = mgr.create();
@@ -67,7 +67,7 @@ public class DefineAuthorityConnection
                                 // Parse
                                 int pos = arg.indexOf("=");
                                 if (pos == -1)
-                                        throw new ACFException("Argument missing =");
+                                        throw new ManifoldCFException("Argument missing =");
                                 String name = arg.substring(0,pos);
                                 String value = arg.substring(pos+1);
                                 if (name.endsWith("assword"))

@@ -35,7 +35,7 @@ public class JobNotificationThread extends Thread
   /** Constructor.
   */
   public JobNotificationThread()
-    throws ACFException
+    throws ManifoldCFException
   {
     super();
     setName("Job notification thread");
@@ -110,13 +110,13 @@ public class JobNotificationThread extends Thread
                     Logging.threads.warn("Service interruption notifying connection - retrying: "+e.getMessage(),e);
                     continue;
                   }
-                  catch (ACFException e)
+                  catch (ManifoldCFException e)
                   {
-                    if (e.getErrorCode() == ACFException.INTERRUPTED)
+                    if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
                       throw e;
-                    if (e.getErrorCode() == ACFException.DATABASE_CONNECTION_ERROR)
+                    if (e.getErrorCode() == ManifoldCFException.DATABASE_CONNECTION_ERROR)
                       throw e;
-                    if (e.getErrorCode() == ACFException.SETUP_ERROR)
+                    if (e.getErrorCode() == ManifoldCFException.SETUP_ERROR)
                       throw e;
                     // Nothing special; report the error and keep going.
                     Logging.threads.error(e.getMessage(),e);
@@ -152,20 +152,20 @@ public class JobNotificationThread extends Thread
             }
           }
 
-          ACF.sleep(10000L);
+          ManifoldCF.sleep(10000L);
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
-          if (e.getErrorCode() == ACFException.INTERRUPTED)
+          if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
             break;
 
-          if (e.getErrorCode() == ACFException.DATABASE_CONNECTION_ERROR)
+          if (e.getErrorCode() == ManifoldCFException.DATABASE_CONNECTION_ERROR)
           {
             Logging.threads.error("Job notification thread aborting and restarting due to database connection reset: "+e.getMessage(),e);
             try
             {
               // Give the database a chance to catch up/wake up
-              ACF.sleep(10000L);
+              ManifoldCF.sleep(10000L);
             }
             catch (InterruptedException se)
             {
@@ -177,7 +177,7 @@ public class JobNotificationThread extends Thread
           // Log it, but keep the thread alive
           Logging.threads.error("Exception tossed: "+e.getMessage(),e);
 
-          if (e.getErrorCode() == ACFException.SETUP_ERROR)
+          if (e.getErrorCode() == ManifoldCFException.SETUP_ERROR)
           {
             // Shut the whole system down!
             System.exit(1);
@@ -283,9 +283,9 @@ public class JobNotificationThread extends Thread
     */
     public void recordActivity(Long startTime, String activityType, Long dataSize,
       String entityURI, String resultCode, String resultDescription)
-      throws ACFException
+      throws ManifoldCFException
     {
-      connMgr.recordHistory(connectionName,startTime,ACF.qualifyOutputActivityName(activityType,outputConnectionName),dataSize,entityURI,resultCode,
+      connMgr.recordHistory(connectionName,startTime,ManifoldCF.qualifyOutputActivityName(activityType,outputConnectionName),dataSize,entityURI,resultCode,
         resultDescription,null);
     }
 

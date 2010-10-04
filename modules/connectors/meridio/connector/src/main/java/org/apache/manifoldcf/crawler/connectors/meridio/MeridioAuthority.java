@@ -25,7 +25,7 @@ import org.apache.manifoldcf.crawler.connectors.meridio.meridiowrapper.MeridioWr
 import org.apache.manifoldcf.crawler.connectors.meridio.RMDataSet.RMDataSet;
 import org.tempuri.GroupResult;
 import org.apache.manifoldcf.authorities.system.Logging;
-import org.apache.manifoldcf.authorities.system.ACF;
+import org.apache.manifoldcf.authorities.system.ManifoldCF;
 import org.apache.manifoldcf.authorities.interfaces.AuthorizationResponse;
 
 import org.apache.commons.httpclient.protocol.Protocol;
@@ -122,7 +122,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
 
   /** Set up connection before attempting to use it */
   protected void attemptToConnect()
-    throws ACFException
+    throws ManifoldCFException
   {
     if (meridio_ == null)
     {
@@ -135,7 +135,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
 
       String DMWSProtocol = params.getParameter("DMWSServerProtocol");
       if (DMWSProtocol == null)
-        throw new ACFException("Missing required configuration parameter: DMWSServerProtocol");
+        throw new ManifoldCFException("Missing required configuration parameter: DMWSServerProtocol");
       String DMWSPort = params.getParameter("DMWSServerPort");
       if (DMWSPort == null || DMWSPort.length() == 0)
         DMWSPort = "";
@@ -149,7 +149,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
 
       String RMWSProtocol = params.getParameter("RMWSServerProtocol");
       if (RMWSProtocol == null)
-        throw new ACFException("Missing required configuration parameter: RMWSServerProtocol");
+        throw new ManifoldCFException("Missing required configuration parameter: RMWSServerProtocol");
       String RMWSPort = params.getParameter("RMWSServerPort");
       if (RMWSPort == null || RMWSPort.length() == 0)
         RMWSPort = "";
@@ -163,14 +163,14 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
 
       String MetaCartaWSProtocol = params.getParameter("MetaCartaWSServerProtocol");
       if (MetaCartaWSProtocol == null)
-        throw new ACFException("Missing required configuration parameter: MetaCartaWSServerProtocol");
+        throw new ManifoldCFException("Missing required configuration parameter: MetaCartaWSServerProtocol");
       String MetaCartaWSPort = params.getParameter("MetaCartaWSServerPort");
       if (MetaCartaWSPort == null || MetaCartaWSPort.length() == 0)
         MetaCartaWSPort = "";
       else
         MetaCartaWSPort = ":" + MetaCartaWSPort;
 
-      String ACFWSUrlString = MetaCartaWSProtocol + "://" +
+      String ManifoldCFWSUrlString = MetaCartaWSProtocol + "://" +
         params.getParameter("MetaCartaWSServerName") +
         MetaCartaWSPort +
         params.getParameter("MetaCartaWSLocation");
@@ -192,7 +192,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
       {
         DmwsURL = new URL(DMWSUrlString);
         RmwsURL = new URL(RMWSUrlString);
-        MetaCartawsURL = new URL(ACFWSUrlString);
+        MetaCartawsURL = new URL(ManifoldCFWSUrlString);
 
         if (Logging.authorityConnectors.isDebugEnabled())
         {
@@ -204,7 +204,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
       }
       catch (MalformedURLException malformedURLException)
       {
-        throw new ACFException("Meridio: Could not construct the URL for either " +
+        throw new ManifoldCFException("Meridio: Could not construct the URL for either " +
           "the Meridio DM, Meridio RM, or MetaCarta Meridio Web Service: "+malformedURLException, malformedURLException);
       }
 
@@ -214,9 +214,9 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
         * Now try and login to Meridio; the wrapper's constructor can be
         * used as it calls the Meridio login method
         *================================================================*/
-        File meridioWSDDLocation = ACF.getFileProperty(wsddPathProperty);
+        File meridioWSDDLocation = ManifoldCF.getFileProperty(wsddPathProperty);
         if (meridioWSDDLocation == null)
-          throw new ACFException("Meridio wsdd location path (property "+wsddPathProperty+") must be specified!");
+          throw new ManifoldCFException("Meridio wsdd location path (property "+wsddPathProperty+") must be specified!");
 
         meridio_ = new MeridioWrapper(Logging.authorityConnectors, DmwsURL, RmwsURL, MetaCartawsURL,
           DMWSProxyHost, DMWSProxyPort, RMWSProxyHost, RMWSProxyPort, MetaCartaWSProxyHost, MetaCartaWSProxyPort,
@@ -227,7 +227,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
       }
       catch (UnknownHostException unknownHostException)
       {
-        throw new ACFException("Meridio: A Unknown Host Exception occurred while " +
+        throw new ManifoldCFException("Meridio: A Unknown Host Exception occurred while " +
           "connecting - is a network software and hardware configuration: "+unknownHostException.getMessage(), unknownHostException);
       }
       catch (org.apache.axis.AxisFault e)
@@ -240,23 +240,23 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
           {
             elem.normalize();
             String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-            throw new ACFException("Unexpected http error code "+httpErrorCode+" accessing Meridio: "+e.getMessage(),e);
+            throw new ManifoldCFException("Unexpected http error code "+httpErrorCode+" accessing Meridio: "+e.getMessage(),e);
           }
-          throw new ACFException("Unknown http error occurred while connecting: "+e.getMessage(),e);
+          throw new ManifoldCFException("Unknown http error occurred while connecting: "+e.getMessage(),e);
         }
         if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server.userException")))
         {
           String exceptionName = e.getFaultString();
           if (exceptionName.equals("java.lang.InterruptedException"))
-            throw new ACFException("Interrupted",ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
         }
         if (Logging.authorityConnectors.isDebugEnabled())
           Logging.authorityConnectors.debug("Meridio: Got an unknown remote exception connecting - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString()+" - retrying",e);
-        throw new ACFException("Remote procedure exception: "+e.getMessage(),e);
+        throw new ManifoldCFException("Remote procedure exception: "+e.getMessage(),e);
       }
       catch (RemoteException remoteException)
       {
-        throw new ACFException("Meridio: An unknown remote exception occurred while " +
+        throw new ManifoldCFException("Meridio: An unknown remote exception occurred while " +
           "connecting: "+remoteException.getMessage(), remoteException);
       }
 
@@ -270,7 +270,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
   /** Check connection for sanity.
   */
   public String check()
-    throws ACFException
+    throws ManifoldCFException
   {
     Logging.authorityConnectors.debug("Meridio: Entering 'check' method");
     attemptToConnect();
@@ -331,7 +331,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
       {
         String exceptionName = e.getFaultString();
         if (exceptionName.equals("java.lang.InterruptedException"))
-          throw new ACFException("Interrupted",ACFException.INTERRUPTED);
+          throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
       }
       if (Logging.authorityConnectors.isDebugEnabled())
         Logging.authorityConnectors.debug("Meridio: Got an unknown remote exception checking - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString()+" - retrying",e);
@@ -365,7 +365,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
   /** Close the connection.  Call this before discarding the repository connector.
   */
   public void disconnect()
-    throws ACFException
+    throws ManifoldCFException
   {
     Logging.authorityConnectors.debug("Meridio: Entering 'disconnect' method");
     try
@@ -395,7 +395,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
       {
         String exceptionName = e.getFaultString();
         if (exceptionName.equals("java.lang.InterruptedException"))
-          throw new ACFException("Interrupted",ACFException.INTERRUPTED);
+          throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
       }
       if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server")))
       {
@@ -442,7 +442,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
   * (Should throws an exception only when a condition cannot be properly described within the authorization response object.)
   */
   public AuthorizationResponse getAuthorizationResponse(String userName)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (Logging.authorityConnectors.isDebugEnabled())
       Logging.authorityConnectors.debug("Meridio: Authentication user name = '" + userName + "'");
@@ -561,15 +561,15 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
           {
             elem.normalize();
             String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-            throw new ACFException("Unexpected http error code "+httpErrorCode+" accessing Meridio: "+e.getMessage(),e);
+            throw new ManifoldCFException("Unexpected http error code "+httpErrorCode+" accessing Meridio: "+e.getMessage(),e);
           }
-          throw new ACFException("Unknown http error occurred while getting doc versions: "+e.getMessage(),e);
+          throw new ManifoldCFException("Unknown http error occurred while getting doc versions: "+e.getMessage(),e);
         }
         if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server.userException")))
         {
           String exceptionName = e.getFaultString();
           if (exceptionName.equals("java.lang.InterruptedException"))
-            throw new ACFException("Interrupted",ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
         }
         if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server")))
         {
@@ -583,18 +583,18 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
 
         if (Logging.authorityConnectors.isDebugEnabled())
           Logging.authorityConnectors.debug("Meridio: Got an unknown remote exception getting user tokens - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString()+" - retrying",e);
-        throw new ACFException("Axis fault: "+e.getMessage(),  e);
+        throw new ManifoldCFException("Axis fault: "+e.getMessage(),  e);
       }
       catch (RemoteException remoteException)
       {
-        throw new ACFException("Meridio: A remote exception occurred while getting user tokens: " +
+        throw new ManifoldCFException("Meridio: A remote exception occurred while getting user tokens: " +
           remoteException.getMessage(), remoteException);
       }
       catch (MeridioDataSetException meridioDataSetException)
       {
         Logging.authorityConnectors.error("Meridio: A provlem occurred manipulating the Web Service XML: " +
           meridioDataSetException.getMessage(), meridioDataSetException);
-        throw new ACFException("Meridio: A problem occurred manipulating the Web " +
+        throw new ManifoldCFException("Meridio: A problem occurred manipulating the Web " +
           "Service XML: "+meridioDataSetException.getMessage(), meridioDataSetException);
       }
     }
@@ -623,7 +623,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     tabsArray.add("Document Server");
     tabsArray.add("Records Server");
@@ -773,7 +773,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
   *@param tabName is the current tab name.
   */
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     String dmwsServerProtocol = parameters.getParameter("DMWSServerProtocol");
     if (dmwsServerProtocol == null)
@@ -1065,7 +1065,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
-    throws ACFException
+    throws ManifoldCFException
   {
     String dmwsServerProtocol = variableContext.getParameter("dmwsServerProtocol");
     if (dmwsServerProtocol != null)
@@ -1194,7 +1194,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
           }
           catch (IOException e)
           {
-            throw new ACFException(e.getMessage(),e);
+            throw new ManifoldCFException(e.getMessage(),e);
           }
         }
 
@@ -1217,7 +1217,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+

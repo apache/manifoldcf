@@ -40,7 +40,7 @@ public class HopFilterManager extends org.apache.manifoldcf.core.database.BaseTa
   *@param database is the database instance.
   */
   public HopFilterManager(IThreadContext threadContext, IDBInterface database)
-    throws ACFException
+    throws ManifoldCFException
   {
     super(database,"jobhopfilters");
   }
@@ -50,7 +50,7 @@ public class HopFilterManager extends org.apache.manifoldcf.core.database.BaseTa
   *@param owningTablePrimaryKey is the primary key of the owning table.
   */
   public void install(String ownerTable, String owningTablePrimaryKey)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Standard practice: outer loop
     while (true)
@@ -99,7 +99,7 @@ public class HopFilterManager extends org.apache.manifoldcf.core.database.BaseTa
   /** Uninstall.
   */
   public void deinstall()
-    throws ACFException
+    throws ManifoldCFException
   {
     performDrop(null);
   }
@@ -109,7 +109,7 @@ public class HopFilterManager extends org.apache.manifoldcf.core.database.BaseTa
   *@return a map of link type to max hop count (as a Long).
   */
   public Map readRows(Long id)
-    throws ACFException
+    throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
     list.add(id);
@@ -136,7 +136,7 @@ public class HopFilterManager extends org.apache.manifoldcf.core.database.BaseTa
   *@param ownerIDParams is the corresponding set of owner id parameters.
   */
   public void getRows(Map returnValues, String ownerIDList, ArrayList ownerIDParams)
-    throws ACFException
+    throws ManifoldCFException
   {
     IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+ownerIDField+" IN ("+ownerIDList+")",ownerIDParams,
       null,null);
@@ -157,7 +157,7 @@ public class HopFilterManager extends org.apache.manifoldcf.core.database.BaseTa
   *@param list is the job description to write hopcount filters for.
   */
   public void writeRows(Long ownerID, IJobDescription list)
-    throws ACFException
+    throws ManifoldCFException
   {
     beginTransaction();
     try
@@ -177,7 +177,7 @@ public class HopFilterManager extends org.apache.manifoldcf.core.database.BaseTa
         performInsert(map,null);
       }
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       signalRollback();
       throw e;
@@ -197,7 +197,7 @@ public class HopFilterManager extends org.apache.manifoldcf.core.database.BaseTa
   *@param ownerID is the owner whose rows to delete.
   */
   public void deleteRows(Long ownerID)
-    throws ACFException
+    throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
     list.add(ownerID);

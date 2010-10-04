@@ -1,6 +1,6 @@
 package org.apache.manifoldcf.core;
 
-import org.apache.manifoldcf.core.interfaces.ACFException;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 /**
  * Interface for commands that initialize state of the connector framework. Among implementations available are:
@@ -15,7 +15,7 @@ public interface InitializationCommand
   /**
    * Execute the command.
    *
-   * @throws ACFException Thrown if the execution fails
+   * @throws ManifoldCFException Thrown if the execution fails
    */
-  void execute() throws ACFException;
+  void execute() throws ManifoldCFException;
 }

@@ -32,5 +32,5 @@ public interface PageCredentials extends AuthenticationCredentials
 
   /** Turn this instance into a Credentials object, given the specified target host name */
   public Credentials makeCredentialsObject(String targetHostName)
-    throws ACFException;
+    throws ManifoldCFException;
 }

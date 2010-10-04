@@ -21,7 +21,7 @@ package org.apache.manifoldcf.core.interfaces;
 import org.apache.manifoldcf.core.interfaces.*;
 import java.util.*;
 import java.io.*;
-import org.apache.manifoldcf.core.system.ACF;
+import org.apache.manifoldcf.core.system.ManifoldCF;
 import org.apache.manifoldcf.core.common.XMLDoc;
 import org.json.*;
 
@@ -141,7 +141,7 @@ public class Configuration
   *@return the xml corresponding to these Configuration.
   */
   public String toXML()
-    throws ACFException
+    throws ManifoldCFException
   {
     XMLDoc doc = new XMLDoc();
     // name of root node in definition
@@ -161,7 +161,7 @@ public class Configuration
   *@return the json corresponding to this Configuration.
   */
   public String toJSON()
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -254,7 +254,7 @@ public class Configuration
     }
     catch (JSONException e)
     {
-      throw new ACFException(e.getMessage(),e);
+      throw new ManifoldCFException(e.getMessage(),e);
     }
   }
   
@@ -264,7 +264,7 @@ public class Configuration
   *@param node is the node.
   */
   protected static void writeNode(XMLDoc doc, Object parent, ConfigurationNode node)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Get the type
     String type = node.getType();
@@ -297,7 +297,7 @@ public class Configuration
   *@param writeKey is true if the key needs to be written, false otherwise.
   */
   protected static void writeNode(JSONWriter writer, ConfigurationNode node, boolean writeKey, boolean writeSpecialKey)
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -429,7 +429,7 @@ public class Configuration
     }
     catch (JSONException e)
     {
-      throw new ACFException(e.getMessage(),e);
+      throw new ManifoldCFException(e.getMessage(),e);
     }
   }
   
@@ -437,7 +437,7 @@ public class Configuration
   *@param xml is the input XML.
   */
   public void fromXML(String xml)
-    throws ACFException
+    throws ManifoldCFException
   {
     XMLDoc doc = new XMLDoc(xml);
     initializeFromDoc(doc);
@@ -447,7 +447,7 @@ public class Configuration
   *@param json is the input JSON.
   */
   public void fromJSON(String json)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (readOnly)
       throw new IllegalStateException("Attempt to change read-only object");
@@ -479,13 +479,13 @@ public class Configuration
     }
     catch (JSONException e)
     {
-      throw new ACFException("Json syntax error - "+e.getMessage(),e);
+      throw new ManifoldCFException("Json syntax error - "+e.getMessage(),e);
     }
   }
   
   /** Process a JSON object */
   protected void processObject(String key, Object x)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (x instanceof JSONObject)
     {
@@ -501,14 +501,14 @@ public class Configuration
     {
       // Children, as a list of separately enumerated child nodes.
       if (!(x instanceof JSONArray))
-        throw new ACFException("Expected array contents for '"+JSON_CHILDREN+"' node");
+        throw new ManifoldCFException("Expected array contents for '"+JSON_CHILDREN+"' node");
       JSONArray array = (JSONArray)x;
       int i = 0;
       while (i < array.length())
       {
         Object z = array.opt(i++);
         if (!(z instanceof JSONObject))
-          throw new ACFException("Expected object as array member");
+          throw new ManifoldCFException("Expected object as array member");
         ConfigurationNode nestedCn = readNode((String)null,(JSONObject)z);
         addChild(getChildCount(),nestedCn);
       }
@@ -525,7 +525,7 @@ public class Configuration
   
   /** Read a node from a json object */
   protected ConfigurationNode readNode(String key, JSONObject object)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Override key if type field is found.
     if (object.has(JSON_TYPE))
@@ -536,11 +536,11 @@ public class Configuration
       }
       catch (JSONException e)
       {
-        throw new ACFException("Exception decoding JSON: "+e.getMessage());
+        throw new ManifoldCFException("Exception decoding JSON: "+e.getMessage());
       }
     }
     if (key == null)
-      throw new ACFException("No type found for node");
+      throw new ManifoldCFException("No type found for node");
     Iterator iter;
     ConfigurationNode rval = createNewNode(key);
     iter = object.keys();
@@ -570,7 +570,7 @@ public class Configuration
   
   /** Process a JSON object */
   protected void processObject(ConfigurationNode cn, String key, Object x)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (x instanceof JSONObject)
     {
@@ -601,14 +601,14 @@ public class Configuration
       {
         // Children, as a list of separately enumerated child nodes.
         if (!(x instanceof JSONArray))
-          throw new ACFException("Expected array contents for '"+JSON_CHILDREN+"' node");
+          throw new ManifoldCFException("Expected array contents for '"+JSON_CHILDREN+"' node");
         JSONArray array = (JSONArray)x;
         int i = 0;
         while (i < array.length())
         {
           Object z = array.opt(i++);
           if (!(z instanceof JSONObject))
-            throw new ACFException("Expected object as array member");
+            throw new ManifoldCFException("Expected object as array member");
           ConfigurationNode nestedCn = readNode((String)null,(JSONObject)z);
           cn.addChild(cn.getChildCount(),nestedCn);
         }
@@ -628,14 +628,14 @@ public class Configuration
   *@param xmlstream is the input XML stream.  Does NOT close the stream.
   */
   public void fromXML(InputStream xmlstream)
-    throws ACFException
+    throws ManifoldCFException
   {
     XMLDoc doc = new XMLDoc(xmlstream);
     initializeFromDoc(doc);
   }
 
   protected void initializeFromDoc(XMLDoc doc)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (readOnly)
       throw new IllegalStateException("Attempt to change read-only object");
@@ -645,11 +645,11 @@ public class Configuration
 
     if (list.size() != 1)
     {
-      throw new ACFException("Bad xml - missing outer '"+rootNodeLabel+"' node - there are "+Integer.toString(list.size())+" nodes");
+      throw new ManifoldCFException("Bad xml - missing outer '"+rootNodeLabel+"' node - there are "+Integer.toString(list.size())+" nodes");
     }
     Object parent = list.get(0);
     if (!doc.getNodeName(parent).equals(rootNodeLabel))
-      throw new ACFException("Bad xml - outer node is not '"+rootNodeLabel+"'");
+      throw new ManifoldCFException("Bad xml - outer node is not '"+rootNodeLabel+"'");
 
     list.clear();
     doc.processPath(list, "*", parent);
@@ -670,7 +670,7 @@ public class Configuration
   *@return the specification node.
   */
   protected ConfigurationNode readNode(XMLDoc doc, Object object)
-    throws ACFException
+    throws ManifoldCFException
   {
     String type = doc.getNodeName(object);
     ConfigurationNode rval = createNewNode(type);

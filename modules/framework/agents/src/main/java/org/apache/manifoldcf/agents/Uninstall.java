@@ -32,9 +32,9 @@ public class Uninstall extends BaseAgentsInitializationCommand
   {
   }
 
-  protected void doExecute(IThreadContext tc) throws ACFException
+  protected void doExecute(IThreadContext tc) throws ManifoldCFException
   {
-    ACF.deinstallTables(tc);
+    ManifoldCF.deinstallTables(tc);
     Logging.root.info("Agent tables uninstalled");
   }
 
@@ -52,7 +52,7 @@ public class Uninstall extends BaseAgentsInitializationCommand
       uninstall.execute();
       System.err.println("Agent tables uninstalled");
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       e.printStackTrace();
       System.exit(1);

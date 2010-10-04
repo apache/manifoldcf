@@ -22,7 +22,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.core.system.*;
 
 /**
- * ACF makes use of a synchronization directory to store data about the current state of the synchronization between
+ * ManifoldCF makes use of a synchronization directory to store data about the current state of the synchronization between
  * the repository connection and the output connection. This class is used to clear this directory.
  */
 public class LockClean implements InitializationCommand
@@ -36,10 +36,10 @@ public class LockClean implements InitializationCommand
   /**
    * {@inheritDoc}
    */
-  public void execute() throws ACFException
+  public void execute() throws ManifoldCFException
   {
-    ACF.initializeEnvironment();
-    String synchDir = ACF.getProperty(org.apache.manifoldcf.core.lockmanager.LockManager.synchDirectoryProperty);
+    ManifoldCF.initializeEnvironment();
+    String synchDir = ManifoldCF.getProperty(org.apache.manifoldcf.core.lockmanager.LockManager.synchDirectoryProperty);
     if (synchDir != null)
     {
       // Recursively clean up the contents of the synch directory. But don't remove the directory itself
@@ -107,7 +107,7 @@ public class LockClean implements InitializationCommand
       lockClean.execute();
       System.err.println("Synchronization storage cleaned up");
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       e.printStackTrace(System.err);
       System.exit(2);

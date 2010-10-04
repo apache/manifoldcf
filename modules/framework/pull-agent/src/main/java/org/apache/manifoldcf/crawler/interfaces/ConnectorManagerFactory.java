@@ -38,16 +38,16 @@ public class ConnectorManagerFactory
   *@return the connector manager handle.
   */
   public static IConnectorManager make(IThreadContext tc)
-    throws ACFException
+    throws ManifoldCFException
   {
     Object o = tc.get(connMgr);
     if (o == null || !(o instanceof IConnectorManager))
     {
 
       IDBInterface database = DBInterfaceFactory.make(tc,
-        ACF.getMasterDatabaseName(),
-        ACF.getMasterDatabaseUsername(),
-        ACF.getMasterDatabasePassword());
+        ManifoldCF.getMasterDatabaseName(),
+        ManifoldCF.getMasterDatabaseUsername(),
+        ManifoldCF.getMasterDatabasePassword());
 
       o = new org.apache.manifoldcf.crawler.connmgr.ConnectorManager(tc,database);
       tc.save(connMgr,o);

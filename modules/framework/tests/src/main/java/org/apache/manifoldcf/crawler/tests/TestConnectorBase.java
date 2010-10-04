@@ -22,7 +22,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.authorities.interfaces.*;
-import org.apache.manifoldcf.core.system.ACF;
+import org.apache.manifoldcf.core.system.ManifoldCF;
 
 import java.io.*;
 import java.util.*;
@@ -93,13 +93,13 @@ public class TestConnectorBase extends org.apache.manifoldcf.crawler.tests.TestB
     
     // Register the connector we're testing
     initialize();
-    ACF.initializeEnvironment();
+    ManifoldCF.initializeEnvironment();
     IThreadContext tc = ThreadContextFactory.make();
 
     IDBInterface database = DBInterfaceFactory.make(tc,
-      ACF.getMasterDatabaseName(),
-      ACF.getMasterDatabaseUsername(),
-      ACF.getMasterDatabasePassword());
+      ManifoldCF.getMasterDatabaseName(),
+      ManifoldCF.getMasterDatabaseUsername(),
+      ManifoldCF.getMasterDatabasePassword());
     
     IConnectorManager mgr = ConnectorManagerFactory.make(tc);
     IAuthorityConnectorManager authMgr = AuthorityConnectorManagerFactory.make(tc);
@@ -157,7 +157,7 @@ public class TestConnectorBase extends org.apache.manifoldcf.crawler.tests.TestB
       }
       
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       database.signalRollback();
       throw e;
@@ -195,7 +195,7 @@ public class TestConnectorBase extends org.apache.manifoldcf.crawler.tests.TestB
     if (isInitialized())
     {
       // Test the uninstall
-      ACF.initializeEnvironment();
+      ManifoldCF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
       
       Exception currentException = null;
@@ -238,9 +238,9 @@ public class TestConnectorBase extends org.apache.manifoldcf.crawler.tests.TestB
       try
       {
         IDBInterface database = DBInterfaceFactory.make(tc,
-          ACF.getMasterDatabaseName(),
-          ACF.getMasterDatabaseUsername(),
-          ACF.getMasterDatabasePassword());
+          ManifoldCF.getMasterDatabaseName(),
+          ManifoldCF.getMasterDatabaseUsername(),
+          ManifoldCF.getMasterDatabasePassword());
         
         IConnectorManager mgr = ConnectorManagerFactory.make(tc);
         IAuthorityConnectorManager authMgr = AuthorityConnectorManagerFactory.make(tc);
@@ -293,7 +293,7 @@ public class TestConnectorBase extends org.apache.manifoldcf.crawler.tests.TestB
           }
           
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
           database.signalRollback();
           throw e;

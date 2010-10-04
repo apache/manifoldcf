@@ -45,9 +45,9 @@ public class MemexSupport
         public static final String _rcsid = "@(#)$Id: MemexSupport.java 988245 2010-08-23 18:39:35Z kwright $";
 
         //mieConnection is the connection to the main Configuration Server.
-        //There will be further ACFMemexConnection objects for each
+        //There will be further ManifoldCFMemexConnection objects for each
         //physical server accessed through the physicalServers collection.
-        private ACFMemexConnection mieConnection = null;
+        private ManifoldCFMemexConnection mieConnection = null;
         private MemexConnectionPool miePool = new MemexConnectionPool();
 
         //Collection describing the logical servers making up this system
@@ -55,7 +55,7 @@ public class MemexSupport
         private Hashtable<String, LogicalServer> logicalServersByPrefix = null;
 
         //Collection describing the physical servers making up this system
-        private Hashtable<String, ACFMemexConnection> physicalServers = null;
+        private Hashtable<String, ManifoldCFMemexConnection> physicalServers = null;
 
         //Two collections describing the entities in the set-up - one keyed by the entities' name, the other
         //by their label - generally speaking, we should use labels for anything being presented to the users
@@ -77,7 +77,7 @@ public class MemexSupport
         /** Constructor.  Self-explanatory.
         */
         public MemexSupport(String memexUserID, String memexPassword, String memexServerName, String memexServerPort)
-                throws ACFException
+                throws ManifoldCFException
         {
                 miePool.setUsername(memexUserID);
                 miePool.setPassword(memexPassword);
@@ -92,24 +92,24 @@ public class MemexSupport
         *@return a string identifier that can be used to identify the record uniquely
         */
         public String addRecord(Hashtable keyValuePairs, String server, String database)
-                throws ACFException
+                throws ManifoldCFException
         {
                 try{
                         this.setupConnection();
                 }catch(Exception e){
-                        throw new ACFException(e.getMessage(),e);
+                        throw new ManifoldCFException(e.getMessage(),e);
                 }
 
                 //Check the logical server exists
                 LogicalServer ls = logicalServers.get(server);
                 if(ls == null){
-                        throw new ACFException("Memex Error adding a record - logical server " + server + " cannot be found");
+                        throw new ManifoldCFException("Memex Error adding a record - logical server " + server + " cannot be found");
                 }
 
                 //Check the entity exists
                 MemexEntity ent = entitiesByPrefix.get(database);
                 if(ent == null){
-                        throw new ACFException("Memex Error adding a record - entity " + database + " cannot be found");
+                        throw new ManifoldCFException("Memex Error adding a record - entity " + database + " cannot be found");
                 }
 
                 //Check there is a database of the selected entity type on the selected server
@@ -123,7 +123,7 @@ public class MemexSupport
                         }
                 }
                 if(found == false){
-                        throw new ACFException("Memex Error adding a record - entity " + database + " not found on server " + server);
+                        throw new ManifoldCFException("Memex Error adding a record - entity " + database + " not found on server " + server);
                 }
 
                 //Build up the minimum fields for a Memex record
@@ -136,10 +136,10 @@ public class MemexSupport
                                 sysurn = prefix + "0" + sysurn.substring(4);
                         }
                 }catch(MemexException e){
-                        throw new ACFException("Memex Error adding record - " + e.getMessage(),e);
+                        throw new ManifoldCFException("Memex Error adding record - " + e.getMessage(),e);
                 }
                 if(sysurn.equals("")){
-                        throw new ACFException("Memex Error adding record - failed to get a urn");
+                        throw new ManifoldCFException("Memex Error adding record - failed to get a urn");
                 }
 
                 long epochtime = System.currentTimeMillis();
@@ -236,7 +236,7 @@ public class MemexSupport
                         auditRecord += "xxcreatetime\n" + systimecreated +"\n";
                         auditRecord += "xxcreatedby\n" + miePool.getUsername() +"\n";
                         auditRecord += "xxsessionid\n";
-                        auditRecord += "xxfullname\nACF Support Program\n";
+                        auditRecord += "xxfullname\nManifoldCF Support Program\n";
                         auditRecord += "xxusername\n" + miePool.getUsername() +"\n";
                         auditRecord += "xxclienthost\n" + InetAddress.getLocalHost().getHostName() +"\n";
 
@@ -253,7 +253,7 @@ public class MemexSupport
                         cs.getMIE().mie.mxie_svrfile_remove(appendFile);
 
                 }catch(Exception e){
-                        throw new ACFException("Memex Error adding record : " + e.getMessage(),e);
+                        throw new ManifoldCFException("Memex Error adding record : " + e.getMessage(),e);
                 }
 
                 return sysurn;
@@ -265,24 +265,24 @@ public class MemexSupport
         *@param keyValuePairs is the set of fieldname/value pairs to change
         */
         public void modifyRecord(String id, Hashtable keyValuePairs)
-                throws ACFException
+                throws ManifoldCFException
         {
                 try{
                         this.setupConnection();
                 }catch(Exception e){
-                        throw new ACFException(e.getMessage(),e);
+                        throw new ManifoldCFException(e.getMessage(),e);
                 }
 
                 //Check the logical server exists
                 LogicalServer ls = logicalServersByPrefix.get(id.substring(0, 2));
                 if(ls == null){
-                    throw new ACFException("Memex Error modifying a record - logical server cannot be found");
+                    throw new ManifoldCFException("Memex Error modifying a record - logical server cannot be found");
                 }
 
                 //Check the entity exists
                 MemexEntity ent = entitiesByPrefix.get(id.substring(2, 4));
                 if(ent == null){
-                    throw new ACFException("Memex Error modifying a record - entity cannot be found");
+                    throw new ManifoldCFException("Memex Error modifying a record - entity cannot be found");
                 }
 
                 //Check there is a database of the selected entity type on the selected server
@@ -296,7 +296,7 @@ public class MemexSupport
                     }
                 }
                 if(found == false){
-                    throw new ACFException("Memex Error modifying a record - entity not found on server ");
+                    throw new ManifoldCFException("Memex Error modifying a record - entity not found on server ");
                 }
 
                 //OK - do the search
@@ -345,7 +345,7 @@ public class MemexSupport
                                 String sysurn = (String)mxRecord.get("sysurn");
                                 if((sysurn == null)||(!(sysurn.equals(id)))){
                                         //something's gone way wrong
-                                        throw new ACFException("Memex Error : returned record does not match provided ID when updating record");
+                                        throw new ManifoldCFException("Memex Error : returned record does not match provided ID when updating record");
                                 }else{
                                         mxRecord.remove("sysurn");
                                         sysurn += "\n";
@@ -484,7 +484,7 @@ public class MemexSupport
                                 auditRecord += "xxreviewdate\n\n";
                                 auditRecord += "xxcreatedby\n" + miePool.getUsername() +"\n";
                                 auditRecord += "xxsessionid\n";
-                                auditRecord += "xxfullname\nACF Support Program\n";
+                                auditRecord += "xxfullname\nManifoldCF Support Program\n";
                                 auditRecord += "xxusername\n" + miePool.getUsername() +"\n";
                                 auditRecord += "xxclienthost\n" + InetAddress.getLocalHost().getHostName() +"\n";
 
@@ -502,7 +502,7 @@ public class MemexSupport
 
                     }
                 }catch(Exception e){
-                    throw new ACFException("Memex Error searching for record to modify : " + e.getMessage(),e);
+                    throw new ManifoldCFException("Memex Error searching for record to modify : " + e.getMessage(),e);
                 }
 
 
@@ -514,7 +514,7 @@ public class MemexSupport
         *@param id is a string identifier which uniquely identifies the record to remove
         */
         public void removeRecord(String id)
-                throws ACFException
+                throws ManifoldCFException
         {
                 try{
                         this.setupConnection();
@@ -522,13 +522,13 @@ public class MemexSupport
                        //Check the logical server exists
                         LogicalServer ls = logicalServersByPrefix.get(id.substring(0, 2));
                         if(ls == null){
-                                    throw new ACFException("Memex Error deleting a record - logical server cannot be found");
+                                    throw new ManifoldCFException("Memex Error deleting a record - logical server cannot be found");
                         }
 
                         //Check the entity exists
                         MemexEntity ent = entitiesByPrefix.get(id.substring(2, 4));
                         if(ent == null){
-                                    throw new ACFException("Memex Error deleting a record - entity cannot be found");
+                                    throw new ManifoldCFException("Memex Error deleting a record - entity cannot be found");
                         }
 
                         //Check there is a database of the selected entity type on the selected server
@@ -542,7 +542,7 @@ public class MemexSupport
                                     }
                         }
                         if(found == false){
-                                    throw new ACFException("Memex Error deleting a record - entity not found on server ");
+                                    throw new ManifoldCFException("Memex Error deleting a record - entity not found on server ");
                         }
 
 
@@ -563,7 +563,7 @@ public class MemexSupport
                         auditRecord += "xxcreatetime\n" + timedeleted +"\n";
                         auditRecord += "xxcreatedby\n" + miePool.getUsername() +"\n";
                         auditRecord += "xxsessionid\n";
-                        auditRecord += "xxfullname\nACF Support Program\n";
+                        auditRecord += "xxfullname\nManifoldCF Support Program\n";
                         auditRecord += "xxusername\n" + miePool.getUsername() +"\n";
                         auditRecord += "xxclienthost\n" + InetAddress.getLocalHost().getHostName() +"\n";
 
@@ -581,7 +581,7 @@ public class MemexSupport
 
 
                 }catch(Exception e){
-                    throw new ACFException(e.getMessage(),e);
+                    throw new ManifoldCFException(e.getMessage(),e);
                 }
         }
         
@@ -595,7 +595,7 @@ public class MemexSupport
         *@return the id of the first record that matches, or null if none found
         */
         public String lookupRecord(String virtualServer, String entityName, String fieldName, String fieldValue)
-                throws ACFException
+                throws ManifoldCFException
         {
 
                 try{
@@ -604,13 +604,13 @@ public class MemexSupport
                    //Check the logical server exists
                     LogicalServer ls = logicalServers.get(virtualServer);
                     if(ls == null){
-                                throw new ACFException("Memex Error looking up a record - logical server cannot be found");
+                                throw new ManifoldCFException("Memex Error looking up a record - logical server cannot be found");
                     }
 
                     //Check the entity exists
                     MemexEntity ent = entitiesByPrefix.get(entityName);
                     if(ent == null){
-                                throw new ACFException("Memex Error looking up a record - entity cannot be found");
+                                throw new ManifoldCFException("Memex Error looking up a record - entity cannot be found");
                     }
 
                     //Check the entity contains the field we're looking for
@@ -622,7 +622,7 @@ public class MemexSupport
                                 }
                     }
                     if(!found){
-                                throw new ACFException("Memex Error looking up a record - entity does not contain field");
+                                throw new ManifoldCFException("Memex Error looking up a record - entity does not contain field");
                     }
 
                     //Check there is a database of the selected entity type on the selected server
@@ -636,7 +636,7 @@ public class MemexSupport
                                 }
                     }
                     if(found == false){
-                                throw new ACFException("Memex Error looking up a record - entity not found on server ");
+                                throw new ManifoldCFException("Memex Error looking up a record - entity not found on server ");
                     }
 
                     //strip off the subrecord name
@@ -653,7 +653,7 @@ public class MemexSupport
                                 return sysurn.getText();
                     }
                 }catch(Exception e){
-                    throw new ACFException(e.getMessage(),e);
+                    throw new ManifoldCFException(e.getMessage(),e);
                 }
                 return null;
         }
@@ -666,7 +666,7 @@ public class MemexSupport
         *@param userGroupSet is the set of security group identifiers that have read access (?)
         */
         public void setRecordSecurity(String id, String[] userGroupSet)
-                throws ACFException
+                throws ManifoldCFException
         {
                 
                 try{
@@ -677,7 +677,7 @@ public class MemexSupport
                         for(int i = 0; i < userGroupSet.length; i++){
                                 String lock = getSecurityLock(userGroupSet[i]);
                                 if (lock == null)
-                                        throw new ACFException("Invalid user/group name: '"+userGroupSet[i]+"'");
+                                        throw new ManifoldCFException("Invalid user/group name: '"+userGroupSet[i]+"'");
                                 if(i > 0){
                                         clocks += ", " + lock;
                                 }else{
@@ -691,11 +691,11 @@ public class MemexSupport
                                 this.modifyRecord(id, newValues);
                         }
                 }
-                catch (ACFException e)
+                catch (ManifoldCFException e)
                 {
                         throw e;
                 }catch(Exception e){
-                        throw new ACFException(e.getMessage(),e);
+                        throw new ManifoldCFException(e.getMessage(),e);
                 }
 
         }
@@ -710,7 +710,7 @@ public class MemexSupport
         *@param protectedmessage is the nessage isplayed to users who do not have access to the record.
         */
         public void setRecordSecurity(String id, String[] userGroupSet, String protectedmessage)
-                throws ACFException
+                throws ManifoldCFException
         {
                 try{
                         this.setupConnection();
@@ -720,7 +720,7 @@ public class MemexSupport
                         for(int i = 0; i < userGroupSet.length; i++){
                                 String lock = getSecurityLock(userGroupSet[i]);
                                 if (lock == null)
-                                        throw new ACFException("Invalid user/group name: '"+userGroupSet[i]+"'");
+                                        throw new ManifoldCFException("Invalid user/group name: '"+userGroupSet[i]+"'");
                                 if(i > 0){
                                         plocks += ", " + lock;
                                 }else{
@@ -738,12 +738,12 @@ public class MemexSupport
                                 this.modifyRecord(id, newValues);
                         }
                 }
-                catch (ACFException e)
+                catch (ManifoldCFException e)
                 {
                         throw e;
                 }
                 catch(Exception e){
-                        throw new ACFException(e.getMessage(),e);
+                        throw new ManifoldCFException(e.getMessage(),e);
                 }
 
         }
@@ -751,7 +751,7 @@ public class MemexSupport
         /** Close the connection.  Call this before discarding the repository connector.
         */
         public void close()
-                throws ACFException
+                throws ManifoldCFException
         {
                 this.cleanUpConnections();
         }
@@ -762,7 +762,7 @@ public class MemexSupport
         /*********************************************************************************/
 
         private void setupConnection()
-                throws ACFException, ServiceInterruption
+                throws ManifoldCFException, ServiceInterruption
         {
                 boolean connected = false;
                 if((this.physicalServers != null) && !(this.physicalServers.isEmpty())){
@@ -770,7 +770,7 @@ public class MemexSupport
                     connected = true;
                     for(Enumeration serverkeys = physicalServers.keys(); serverkeys.hasMoreElements();){
                                 String serverkey = (String)serverkeys.nextElement();
-                                ACFMemexConnection pserver = physicalServers.get(serverkey);
+                                ManifoldCFMemexConnection pserver = physicalServers.get(serverkey);
                                 if(!(pserver.isConnected())){
                                         connected = false;
                                 }
@@ -784,10 +784,10 @@ public class MemexSupport
                 if(!connected){
                     try{
                                 //Initialise data structures
-                                mieConnection = new ACFMemexConnection();
+                                mieConnection = new ManifoldCFMemexConnection();
                                 logicalServers = new Hashtable<String, LogicalServer>();
                                 logicalServersByPrefix = new Hashtable<String, LogicalServer>();
-                                physicalServers = new Hashtable<String, ACFMemexConnection>();
+                                physicalServers = new Hashtable<String, ManifoldCFMemexConnection>();
                                 entitiesByName = new Hashtable<String, MemexEntity>();
                                 entitiesByLabel = new Hashtable<String, MemexEntity>();
                                 entitiesByPrefix = new Hashtable<String, MemexEntity>();
@@ -807,7 +807,7 @@ public class MemexSupport
                                 mieConnection.ConnectionMessage = "Connection to Memex Server " + miePool.getHostname() + ":" + Integer.toString(miePool.getPort()) + " created";
 
                                 //Initialise the Query History
-                                //mieConnection.mie.mxie_history_open("ACFSupport", 1000);
+                                //mieConnection.mie.mxie_history_open("ManifoldCFSupport", 1000);
 
 
                                 //Create a collection of data structures describing the entities in this set-up
@@ -819,7 +819,7 @@ public class MemexSupport
 
                     }
                     catch(PoolAuthenticationException e){
-                                throw new ACFException("Authentication failure connecting to Memex Server " + miePool.getHostname() + ":" + Integer.toString(miePool.getPort()),e);
+                                throw new ManifoldCFException("Authentication failure connecting to Memex Server " + miePool.getHostname() + ":" + Integer.toString(miePool.getPort()),e);
                     }
                     catch(PoolException e){
                         //Logging.connectors.warn("Memex: Pool error connecting to Memex Server " + miePool.getHostname() + ":" + Integer.toString(miePool.getPort()) + " - " + e.getMessage() + " - retrying: " + e.getMessage(),e);
@@ -853,7 +853,7 @@ public class MemexSupport
                     while (i < serverKeyArray.length)
                     {
                         String serverkey = serverKeyArray[i++];
-                        ACFMemexConnection currentMIE = physicalServers.get(serverkey);
+                        ManifoldCFMemexConnection currentMIE = physicalServers.get(serverkey);
                         try{
                             // Remove history directories belonging to this session
                             physicalServers.remove(serverkey);
@@ -884,7 +884,7 @@ public class MemexSupport
         /**Creates an alphabetically ordered list of entity objects.
         */
         private void getEntities()
-                throws MemexException, ACFException
+                throws MemexException, ManifoldCFException
         {
                 String mxEntityPath = null;
                 String[] entityReturn = new String[1];
@@ -955,12 +955,12 @@ public class MemexSupport
                                             // Parse it!
                                             entityForm = db.parse(formStream);
                                         }catch(ParserConfigurationException e){
-                                            throw new ACFException("Can't find a valid parser: "+e.getMessage(),e);
+                                            throw new ManifoldCFException("Can't find a valid parser: "+e.getMessage(),e);
                                         }catch(SAXException e){
-                                            throw new ACFException("XML had parse errors: "+e.getMessage(),e);
+                                            throw new ManifoldCFException("XML had parse errors: "+e.getMessage(),e);
                                         }catch(IOException e){
                                             // I/O problem
-                                            throw new ACFException(e.getMessage(),e);
+                                            throw new ManifoldCFException(e.getMessage(),e);
                                         }
                                         finally
                                         {
@@ -970,7 +970,7 @@ public class MemexSupport
                                             }
                                             catch (IOException e)
                                             {
-                                                throw new ACFException("Error reading memex form data: "+e.getMessage(),e);
+                                                throw new ManifoldCFException("Error reading memex form data: "+e.getMessage(),e);
                                             }
                                         }
                                     }catch(MemexException e){
@@ -1104,7 +1104,7 @@ public class MemexSupport
                                                 serverFields.add(serversource);
                                                 //mieConnection.mie.mxie_goto_record(hist, x);
                                                 mieConnection.mie.mxie_decode_fields(serverFields);
-                                                ACFMemexConnection mie;
+                                                ManifoldCFMemexConnection mie;
                                                 if(serversource.getText().equals("configuration-server")){
                                                     mie = mieConnection;
                                                 }else{
@@ -1120,21 +1120,21 @@ public class MemexSupport
                                                 logicalServers.put(ls.getServerName(), ls);
                                                 logicalServersByPrefix.put(ls.getPrefix(), ls);
                                                 //Initialise the Query History
-                                                //ls.getMIE().mie.mxie_history_open("ACFSupport", 1000);
+                                                //ls.getMIE().mie.mxie_history_open("ManifoldCFSupport", 1000);
                                         }
                                 }
                     }
                 }
         }
 
-        private ACFMemexConnection getPhysicalServer(String server, int port){
+        private ManifoldCFMemexConnection getPhysicalServer(String server, int port){
 
                 String key = server + ":" + Integer.toString(port);
 
                 if(physicalServers.containsKey(key)){
-                    return (ACFMemexConnection)physicalServers.get(key);
+                    return (ManifoldCFMemexConnection)physicalServers.get(key);
                 }else{
-                    ACFMemexConnection newServer = new ACFMemexConnection();
+                    ManifoldCFMemexConnection newServer = new ManifoldCFMemexConnection();
                     try{
                                 MemexConnection newMIE = miePool.getConnection(server, port);
                                 newServer.mie = newMIE;
@@ -1243,7 +1243,7 @@ public class MemexSupport
         * @return - the hash table representation of the record. Null if its not found
         */
         private Hashtable getmxRecordObj(LogicalServer ls, int histno, int recnum)
-                throws ACFException, ServiceInterruption
+                throws ManifoldCFException, ServiceInterruption
         {
                 Hashtable mxRecord = null;
                 try{

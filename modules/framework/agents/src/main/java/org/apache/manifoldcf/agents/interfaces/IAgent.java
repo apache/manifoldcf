@@ -24,7 +24,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 * start-up time; they run independently until the JVM is shut down.
 * All agent classes are expected to support the following constructor:
 *
-* xxx(IThreadContext tc) throws ACFException
+* xxx(IThreadContext tc) throws ManifoldCFException
 *
 */
 public interface IAgent
@@ -34,47 +34,47 @@ public interface IAgent
   /** Install agent.  This usually installs the agent's database tables etc.
   */
   public void install()
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Uninstall agent.  This must clean up everything the agent is responsible for.
   */
   public void deinstall()
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Start the agent.  This method should spin up the agent threads, and
   * then return.
   */
   public void startAgent()
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Stop the agent.  This should shut down the agent threads.
   */
   public void stopAgent()
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Request permission from agent to delete an output connection.
   *@param connName is the name of the output connection.
   *@return true if the connection is in use, false otherwise.
   */
   public boolean isOutputConnectionInUse(String connName)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Note the deregistration of a set of output connections.
   *@param connectionNames are the names of the connections being deregistered.
   */
   public void noteOutputConnectorDeregistration(String[] connectionNames)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Note the registration of a set of output connections.
   *@param connectionNames are the names of the connections being registered.
   */
   public void noteOutputConnectorRegistration(String[] connectionNames)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Note a change in configuration for an output connection.
   *@param connectionName is the name of the connection being changed.
   */
   public void noteOutputConnectionChange(String connectionName)
-    throws ACFException;
+    throws ManifoldCFException;
   
 }

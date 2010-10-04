@@ -22,7 +22,7 @@ import java.io.*;
 
 /** This interface describes a class that manages keys and certificates in a secure manner.
 * It's built on top of the JDK 1.4+ JSSE integration, and provides all the necessary logic
-* to work well within the ACF java environment.
+* to work well within the ManifoldCF java environment.
 */
 public interface IKeystoreManager
 {
@@ -32,48 +32,48 @@ public interface IKeystoreManager
   *@return the list, as a string array.
   */
   public String[] getContents()
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** For an alias, get some descriptive information from the object in the keystore.
   *@param alias is the alias name.
   *@return a description of what's in the alias.
   */
   public String getDescription(String alias)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Import a certificate or key into the list.  The data must be added as binary.
   *@param alias is the name of the certificate.
   *@param certData is the binary data for the certificate.
   */
   public void importCertificate(String alias, InputStream certData)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Remove a certificate.
   *@param alias is the name of the certificate to remove.
   */
   public void remove(String alias)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Convert to a base64 string.
   *@return the base64-encoded string.
   */
   public String getString()
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Read a certificate from the keystore.
   */
   public java.security.cert.Certificate getCertificate(String alias)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Add a certificate to the keystore.
   */
   public void addCertificate(String alias, java.security.cert.Certificate certificate)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Build a secure socket factory based on this keystore.
   */
   public javax.net.ssl.SSLSocketFactory getSecureSocketFactory()
-    throws ACFException;
+    throws ManifoldCFException;
 
 
 

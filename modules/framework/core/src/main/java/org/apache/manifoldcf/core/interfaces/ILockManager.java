@@ -31,20 +31,20 @@ public interface ILockManager
   *@param flagName is the name of the flag to set.
   */
   public void setGlobalFlag(String flagName)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Clear a flag.  Use this method to clear a condition, or retract a global signal.
   *@param flagName is the name of the flag to clear.
   */
   public void clearGlobalFlag(String flagName)
-    throws ACFException;
+    throws ManifoldCFException;
   
   /** Check the condition of a specified flag.
   *@param flagName is the name of the flag to check.
   *@return true if the flag is set, false otherwise.
   */
   public boolean checkGlobalFlag(String flagName)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Read data from a shared data resource.  Use this method to read any existing data, or get a null back if there is no such resource.
   * Note well that this is not necessarily an atomic operation, and it must thus be protected by a lock.
@@ -52,7 +52,7 @@ public interface ILockManager
   *@return a byte array containing the data, or null.
   */
   public byte[] readData(String resourceName)
-    throws ACFException;
+    throws ManifoldCFException;
   
   /** Write data to a shared data resource.  Use this method to write a body of data into a shared resource.
   * Note well that this is not necessarily an atomic operation, and it must thus be protected by a lock.
@@ -60,7 +60,7 @@ public interface ILockManager
   *@param data is the byte array containing the data.  Pass null if you want to delete the resource completely.
   */
   public void writeData(String resourceName, byte[] data)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Wait for a time before retrying a lock.  Use this method to wait
   * after a LockException has been thrown.  )If this is not done, the application
@@ -70,7 +70,7 @@ public interface ILockManager
   * thread.
   */
   public void timedWait(int time)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Enter a write locked code area (i.e., block out both readers and other writers).
   * Write locks permit only ONE thread to be in the named section, across JVM's
@@ -79,7 +79,7 @@ public interface ILockManager
   *@param lockKey is the name of the lock.
   */
   public void enterWriteLock(String lockKey)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Enter a write locked code area (i.e., block out both readers and other writers),
   * but do not wait if the lock cannot be obtained.
@@ -89,14 +89,14 @@ public interface ILockManager
   *@param lockKey is the name of the lock.
   */
   public void enterWriteLockNoWait(String lockKey)
-    throws ACFException, LockException;
+    throws ManifoldCFException, LockException;
 
   /** Leave a write locked code area.  Use this method to exit a write-locked section. The lockKey
   * parameter must correspond to the key used for the enter method.
   * @param lockKey is the name of the lock.
   */
   public void leaveWriteLock(String lockKey)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Enter a non-exclusive write-locked area (blocking out all readers, but letting in other "writers").
   * This kind of lock is designed to be used in conjunction with read locks.  It is used typically in
@@ -107,7 +107,7 @@ public interface ILockManager
   *@param lockKey is the name of the lock.
   */
   public void enterNonExWriteLock(String lockKey)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Enter a non-exclusive write-locked area (blocking out all readers, but letting in other "writers").
   * This kind of lock is designed to be used in conjunction with read locks.  It is used typically in
@@ -118,7 +118,7 @@ public interface ILockManager
   *@param lockKey is the name of the lock.
   */
   public void enterNonExWriteLockNoWait(String lockKey)
-    throws ACFException, LockException;
+    throws ManifoldCFException, LockException;
 
   /** Leave a non-exclusive write locked code area.  Use this method to exit a non-ex-write-locked section.
   * The lockKey
@@ -126,7 +126,7 @@ public interface ILockManager
   *@param lockKey is the name of the lock.
   */
   public void leaveNonExWriteLock(String lockKey)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Enter a read-only locked area (i.e., block ONLY if there's a writer).  This kind of lock
   * permits multiple threads inside the same code area, but only if there is no "writer" in the
@@ -135,7 +135,7 @@ public interface ILockManager
   *@param lockKey is the name of the lock.
   */
   public void enterReadLock(String lockKey)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Enter a read-only locked area (i.e., block ONLY if there's a writer).  This kind of lock
   * permits multiple threads inside the same code area, but only if there is no "writer" in the
@@ -144,14 +144,14 @@ public interface ILockManager
   *@param lockKey is the name of the lock.
   */
   public void enterReadLockNoWait(String lockKey)
-    throws ACFException, LockException;
+    throws ManifoldCFException, LockException;
 
   /** Leave a read-locked code area.  Use this method to exit a read-locked section.  The lockKey
   * parameter must correspond to the key used for the enter method.
   *@param lockKey is the name of the lock.
   */
   public void leaveReadLock(String lockKey)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Enter multiple locks simultaneously.  Use this method if a series or set of locks needs to be
   * thrown for an operation to take place.  This operation will avoid deadlock if all the locks are
@@ -162,7 +162,7 @@ public interface ILockManager
   *@param writeLocks is an array of write lock names, or null if there are none desired.
   */
   public void enterLocks(String[] readLocks, String[] nonExWriteLocks, String[] writeLocks)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Enter multiple locks simultaneously.  Use this method if a series or set of locks needs to be
   * thrown for an operation to take place.  This operation will avoid deadlock if all the locks are
@@ -173,7 +173,7 @@ public interface ILockManager
   *@param writeLocks is an array of write lock names, or null if there are none desired.
   */
   public void enterLocksNoWait(String[] readLocks, String[] nonExWriteLocks, String[] writeLocks)
-    throws ACFException, LockException;
+    throws ManifoldCFException, LockException;
 
   /** Leave multiple locks. Use this method to leave a section started with enterLocks() or
   * enterLocksNoWait().  The parameters must correspond to those passed to the enter method.
@@ -182,13 +182,13 @@ public interface ILockManager
   *@param writeLocks is an array of write lock names, or null if there are none desired.
   */
   public void leaveLocks(String[] readLocks, String[] nonExWriteLocks, String[] writeLocks)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Clear all outstanding locks in the system.
   * This is a very dangerous method to use (obviously)...
   */
   public void clearLocks()
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Enter a named, read critical section (NOT a lock).  Critical sections never cross JVM boundaries.
   * Critical section names do not collide with lock names; they have a distinct namespace.
@@ -196,7 +196,7 @@ public interface ILockManager
   * section at a time.
   */
   public void enterReadCriticalSection(String sectionKey)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Leave a named, read critical section (NOT a lock).  Critical sections never cross JVM boundaries.
   * Critical section names do not collide with lock names; they have a distinct namespace.
@@ -204,7 +204,7 @@ public interface ILockManager
   * section at a time.
   */
   public void leaveReadCriticalSection(String sectionKey)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Enter a named, non-exclusive write critical section (NOT a lock).  Critical sections never cross JVM boundaries.
   * Critical section names do not collide with lock names; they have a distinct namespace.
@@ -212,7 +212,7 @@ public interface ILockManager
   * section at a time.
   */
   public void enterNonExWriteCriticalSection(String sectionKey)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Leave a named, non-exclusive write critical section (NOT a lock).  Critical sections never cross JVM boundaries.
   * Critical section names do not collide with lock names; they have a distinct namespace.
@@ -220,7 +220,7 @@ public interface ILockManager
   * section at a time.
   */
   public void leaveNonExWriteCriticalSection(String sectionKey)
-    throws ACFException;
+    throws ManifoldCFException;
 
 
   /** Enter a named, exclusive write critical section (NOT a lock).  Critical sections never cross JVM boundaries.
@@ -229,7 +229,7 @@ public interface ILockManager
   * section at a time.
   */
   public void enterWriteCriticalSection(String sectionKey)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Leave a named, exclusive write critical section (NOT a lock).  Critical sections never cross JVM boundaries.
   * Critical section names do not collide with lock names; they have a distinct namespace.
@@ -237,7 +237,7 @@ public interface ILockManager
   * section at a time.
   */
   public void leaveWriteCriticalSection(String sectionKey)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Enter multiple critical sections simultaneously.
   *@param readSectionKeys is an array of read section descriptors, or null if there are no read sections desired.
@@ -245,7 +245,7 @@ public interface ILockManager
   *@param writeSectionKeys is an array of write section descriptors, or null if there are none desired.
   */
   public void enterCriticalSections(String[] readSectionKeys, String[] nonExSectionKeys, String[] writeSectionKeys)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Leave multiple critical sections simultaneously.
   *@param readSectionKeys is an array of read section descriptors, or null if there are no read sections desired.
@@ -253,6 +253,6 @@ public interface ILockManager
   *@param writeSectionKeys is an array of write section descriptors, or null if there are none desired.
   */
   public void leaveCriticalSections(String[] readSectionKeys, String[] nonExSectionKeys, String[] writeSectionKeys)
-    throws ACFException;
+    throws ManifoldCFException;
 
 }

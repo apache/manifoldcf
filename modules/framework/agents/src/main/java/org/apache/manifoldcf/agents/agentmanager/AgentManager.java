@@ -39,7 +39,7 @@ public class AgentManager extends org.apache.manifoldcf.core.database.BaseTable 
   *@param database is the database instance.
   */
   public AgentManager(IThreadContext threadContext, IDBInterface database)
-    throws ACFException
+    throws ManifoldCFException
   {
     super(database,"agents");
     this.threadContext = threadContext;
@@ -48,7 +48,7 @@ public class AgentManager extends org.apache.manifoldcf.core.database.BaseTable 
   /** Install or upgrade.
   */
   public void install()
-    throws ACFException
+    throws ManifoldCFException
   {
     // We always use an outer loop, in case the upgrade will need it.
     while (true)
@@ -75,7 +75,7 @@ public class AgentManager extends org.apache.manifoldcf.core.database.BaseTable 
   /** Uninstall.  Also uninstalls all remaining agents.
   */
   public void deinstall()
-    throws ACFException
+    throws ManifoldCFException
   {
     // Since we are uninstalling agents, better do this inside a transaction
     beginTransaction();
@@ -93,7 +93,7 @@ public class AgentManager extends org.apache.manifoldcf.core.database.BaseTable 
       }
       performDrop(null);
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       signalRollback();
       throw e;
@@ -114,7 +114,7 @@ public class AgentManager extends org.apache.manifoldcf.core.database.BaseTable 
   *@param className is the class.
   */
   public void registerAgent(String className)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Do in a transaction, so the installation is atomic
     beginTransaction();
@@ -135,7 +135,7 @@ public class AgentManager extends org.apache.manifoldcf.core.database.BaseTable 
       IAgent agent = AgentFactory.make(threadContext,className);
       agent.install();
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       signalRollback();
       throw e;
@@ -156,7 +156,7 @@ public class AgentManager extends org.apache.manifoldcf.core.database.BaseTable 
   *@param className is the class to unregister.
   */
   public void unregisterAgent(String className)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Do in a transaction, so the installation is atomic
     beginTransaction();
@@ -169,7 +169,7 @@ public class AgentManager extends org.apache.manifoldcf.core.database.BaseTable 
       // Remove from table
       removeAgent(className);
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       signalRollback();
       throw e;
@@ -191,7 +191,7 @@ public class AgentManager extends org.apache.manifoldcf.core.database.BaseTable 
   *@param className is the class to remove.
   */
   public void removeAgent(String className)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Remove from table
     ArrayList list = new ArrayList();
@@ -203,7 +203,7 @@ public class AgentManager extends org.apache.manifoldcf.core.database.BaseTable 
   *@return the classnames in an array.
   */
   public String[] getAllAgents()
-    throws ACFException
+    throws ManifoldCFException
   {
     IResultSet set = performQuery("SELECT * FROM "+getTableName(),null,null,null);
     String[] rval = new String[set.getRowCount()];

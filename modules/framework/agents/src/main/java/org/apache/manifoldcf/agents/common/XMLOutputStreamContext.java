@@ -42,7 +42,7 @@ public class XMLOutputStreamContext extends XMLWriterContext
 
   /** Full constructor.  Used for individual tags. */
   public XMLOutputStreamContext(XMLStream theStream, String namespaceURI, String localname, String qname, Attributes theseAttributes, OutputStream os)
-    throws ACFException, UnsupportedEncodingException
+    throws ManifoldCFException, UnsupportedEncodingException
   {
     // Construct an appropriate writer
     super(theStream,namespaceURI,localname,qname,theseAttributes,new OutputStreamWriter(os,"utf-8"));
@@ -52,7 +52,7 @@ public class XMLOutputStreamContext extends XMLWriterContext
 
   /** Flush the data to the underlying output stream */
   public void flush()
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -65,21 +65,21 @@ public class XMLOutputStreamContext extends XMLWriterContext
     }
     catch (java.net.SocketTimeoutException e)
     {
-      throw new ACFException("Socket timeout exception: "+e.getMessage(),e);
+      throw new ManifoldCFException("Socket timeout exception: "+e.getMessage(),e);
     }
     catch (InterruptedIOException e)
     {
-      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new ACFException("IO exception: "+e.getMessage(),e);
+      throw new ManifoldCFException("IO exception: "+e.getMessage(),e);
     }
   }
 
   /** Close the underlying stream. */
   public void close()
-    throws ACFException
+    throws ManifoldCFException
   {
     // Now, close.
     try
@@ -92,15 +92,15 @@ public class XMLOutputStreamContext extends XMLWriterContext
     }
     catch (java.net.SocketTimeoutException e)
     {
-      throw new ACFException("Socket timeout exception: "+e.getMessage(),e);
+      throw new ManifoldCFException("Socket timeout exception: "+e.getMessage(),e);
     }
     catch (InterruptedIOException e)
     {
-      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new ACFException("IO exception: "+e.getMessage(),e);
+      throw new ManifoldCFException("IO exception: "+e.getMessage(),e);
     }
   }
 

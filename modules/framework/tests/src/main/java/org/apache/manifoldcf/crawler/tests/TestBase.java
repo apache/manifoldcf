@@ -21,7 +21,7 @@ package org.apache.manifoldcf.crawler.tests;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
-import org.apache.manifoldcf.crawler.system.ACF;
+import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
 import java.io.*;
 import java.util.*;
@@ -61,7 +61,7 @@ public class TestBase extends org.apache.manifoldcf.agents.tests.TestBase
     
     // Install the agents tables
     initialize();
-    ACF.initializeEnvironment();
+    ManifoldCF.initializeEnvironment();
     IThreadContext tc = ThreadContextFactory.make();
     IAgentManager mgr = AgentManagerFactory.make(tc);
     mgr.registerAgent("org.apache.manifoldcf.crawler.system.CrawlerAgent");
@@ -89,7 +89,7 @@ public class TestBase extends org.apache.manifoldcf.agents.tests.TestBase
     if (isInitialized())
     {
       // Test the uninstall
-      ACF.initializeEnvironment();
+      ManifoldCF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
       
       Exception currentException = null;

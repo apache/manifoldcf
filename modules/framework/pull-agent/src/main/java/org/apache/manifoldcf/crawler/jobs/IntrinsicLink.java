@@ -23,7 +23,7 @@ import java.util.*;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
-import org.apache.manifoldcf.crawler.system.ACF;
+import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
 /** This class manages the table that keeps track of intrinsic relationships between documents.
 */
@@ -70,7 +70,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
   *@param database is the database handle.
   */
   public IntrinsicLink(IDBInterface database)
-    throws ACFException
+    throws ManifoldCFException
   {
     super(database,"intrinsiclink");
   }
@@ -78,7 +78,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
   /** Install or upgrade.
   */
   public void install(String jobsTable, String jobsColumn)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Creating a unique index as part of upgrading could well fail, so we must have the ability to fix things up and retry if that happens.
     while (true)
@@ -141,7 +141,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
   /** Uninstall.
   */
   public void deinstall()
-    throws ACFException
+    throws ManifoldCFException
   {
     performDrop(null);
   }
@@ -149,7 +149,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
   /** Analyze job tables that need analysis.
   */
   public void analyzeTables()
-    throws ACFException
+    throws ManifoldCFException
   {
     long startTime = System.currentTimeMillis();
     Logging.perf.debug("Beginning to analyze intrinsiclink table");
@@ -160,7 +160,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
   /** Delete an owner (and clean up the corresponding hopcount rows).
   */
   public void deleteOwner(Long jobID)
-    throws ACFException
+    throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
     list.add(jobID);
@@ -174,7 +174,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
   * is processed, the links will be updated properly.
   */
   public void reset()
-    throws ACFException
+    throws ManifoldCFException
   {
     HashMap map = new HashMap();
     ArrayList list = new ArrayList();
@@ -188,7 +188,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
   *@return the target document ID's that are considered "new".
   */
   public String[] recordReferences(Long jobID, String sourceDocumentIDHash, String[] targetDocumentIDHashes, String linkType)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Need to go into a transaction because we need to distinguish between update and insert.
     beginTransaction();
@@ -280,7 +280,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
       }
       return newReferences;
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       signalRollback();
       throw e;
@@ -299,7 +299,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
 
   /** Do the exists check, in batch. */
   protected void performExistsCheck(Map presentMap, String query, ArrayList list)
-    throws ACFException
+    throws ManifoldCFException
   {
     IResultSet result = performQuery("SELECT "+parentIDHashField+" FROM "+getTableName()+" WHERE "+query+" FOR UPDATE",list,null,null);
     int i = 0;
@@ -317,7 +317,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
   public void removeLinks(Long jobID, String commonNewExpression, String[] sourceDocumentIDHashes,
     String sourceTableName,
     String sourceTableIDColumn, String sourceTableJobColumn, String sourceTableCriteria)
-    throws ACFException
+    throws ManifoldCFException
   {
     beginTransaction();
     try
@@ -364,7 +364,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
         reindexTracker.noteInsert();
       }
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       signalRollback();
       throw e;
@@ -382,7 +382,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
   }
 
   protected void performRemoveLinks(String query, ArrayList list, String commonNewExpression)
-    throws ACFException
+    throws ManifoldCFException
   {
     StringBuffer sb = new StringBuffer("WHERE (");
     sb.append(query).append(")");
@@ -394,7 +394,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
   /** Return all target links of the specified source documents to their base state.
   */
   public void restoreLinks(Long jobID, String[] sourceDocumentIDHashes)
-    throws ACFException
+    throws ManifoldCFException
   {
     beginTransaction();
     try
@@ -426,7 +426,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
       if (k > 0)
         performRestoreLinks(sb.toString(),list);
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       signalRollback();
       throw e;
@@ -444,7 +444,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
   }
 
   protected void performRestoreLinks(String query, ArrayList list)
-    throws ACFException
+    throws ManifoldCFException
   {
     StringBuffer sb = new StringBuffer("WHERE (");
     sb.append(query).append(") AND (").append(newField).append("=? OR ").append(newField).append("=?)");
@@ -459,7 +459,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
   *@return rows that contain the children.  Column names are 'linktype','childidentifier'.
   */
   public IResultSet getDocumentChildren(Long jobID, String parentIDHash)
-    throws ACFException
+    throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
     list.add(jobID);
@@ -472,7 +472,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
   *@return a set of document identifier hashes that constitute parents of the specified identifier.
   */
   public String[] getDocumentUniqueParents(Long jobID, String childIDHash)
-    throws ACFException
+    throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
     list.add(jobID);
@@ -515,7 +515,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
   /** Conditionally do analyze operation.
   */
   public void conditionallyAnalyzeTables()
-    throws ACFException
+    throws ManifoldCFException
   {
     if (tracker.checkAnalyze())
     {
@@ -663,7 +663,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
     *@return true if it should be included, false otherwise.
     */
     public boolean checkInclude(IResultRow row)
-      throws ACFException
+      throws ManifoldCFException
     {
       Long jobID = (Long)row.getValue(jobIDField);
       String linkType = (String)row.getValue(linkTypeField);
@@ -688,7 +688,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
     *@return true if we need to keep going, or false if we are done.
     */
     public boolean checkContinue()
-      throws ACFException
+      throws ManifoldCFException
     {
       return true;
     }

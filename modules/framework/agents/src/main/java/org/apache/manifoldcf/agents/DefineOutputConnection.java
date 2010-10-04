@@ -21,7 +21,7 @@ package org.apache.manifoldcf.agents;
 import java.io.*;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
-import org.apache.manifoldcf.agents.system.ACF;
+import org.apache.manifoldcf.agents.system.ManifoldCF;
 import java.util.*;
 
 /** This class is used to define an output connection.
@@ -51,7 +51,7 @@ public class DefineOutputConnection
 
                 try
                 {
-                        ACF.initializeEnvironment();
+                        ManifoldCF.initializeEnvironment();
                         IThreadContext tc = ThreadContextFactory.make();
                         IOutputConnectionManager mgr = OutputConnectionManagerFactory.make(tc);
                         IOutputConnection conn = mgr.create();
@@ -67,7 +67,7 @@ public class DefineOutputConnection
                                 // Parse
                                 int pos = arg.indexOf("=");
                                 if (pos == -1)
-                                        throw new ACFException("Argument missing =");
+                                        throw new ManifoldCFException("Argument missing =");
                                 String name = arg.substring(0,pos);
                                 String value = arg.substring(pos+1);
                                 if (name.endsWith("assword"))

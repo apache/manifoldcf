@@ -44,6 +44,6 @@ public interface IOutputHistoryActivity
   */
   public void recordActivity(Long startTime, String activityType, Long dataSize,
     String entityURI, String resultCode, String resultDescription)
-    throws ACFException;
+    throws ManifoldCFException;
 
 }

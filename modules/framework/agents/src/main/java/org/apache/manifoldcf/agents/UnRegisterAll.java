@@ -33,7 +33,7 @@ public class UnRegisterAll extends BaseAgentsInitializationCommand
   {
   }
 
-  protected void doExecute(IThreadContext tc) throws ACFException
+  protected void doExecute(IThreadContext tc) throws ManifoldCFException
   {
     IAgentManager mgr = AgentManagerFactory.make(tc);
     String[] classnames = mgr.getAllAgents();
@@ -60,7 +60,7 @@ public class UnRegisterAll extends BaseAgentsInitializationCommand
       unRegisterAll.execute();
       System.err.println("Successfully unregistered all agents");
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       e.printStackTrace();
       System.exit(1);

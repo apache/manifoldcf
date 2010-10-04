@@ -29,7 +29,7 @@
 %>
 
 <table class="bannertable">
-    <tr><td class="headerimage"><img src="ACF-logo.png"/></td>
+    <tr><td class="headerimage"><img src="ManifoldCF-logo.png"/></td>
           <td>
 	    <table class="headertable">
 		<tr><td class="headerdate"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(dateString)%></td></tr>

@@ -23,7 +23,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
-import org.apache.manifoldcf.crawler.system.ACF;
+import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import java.util.*;
 import java.io.*;
 import org.apache.manifoldcf.crawler.common.DCTM.*;
@@ -101,30 +101,30 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   /** Get a DFC session.  This will be done every time it is needed.
   */
   protected void getSession()
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     if (session == null)
     {
       // Perform basic parameter checking, and debug output.
       if (docbaseName == null || docbaseName.length() < 1)
-        throw new ACFException("Parameter "+CONFIG_PARAM_DOCBASE+" required but not set");
+        throw new ManifoldCFException("Parameter "+CONFIG_PARAM_DOCBASE+" required but not set");
 
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("DCTM: Docbase = '" + docbaseName + "'");
 
       if (userName == null || userName.length() < 1)
-        throw new ACFException("Parameter "+CONFIG_PARAM_USERNAME+" required but not set");
+        throw new ManifoldCFException("Parameter "+CONFIG_PARAM_USERNAME+" required but not set");
 
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("DCTM: Username = '" + userName + "'");
 
       if (password == null || password.length() < 1)
-        throw new ACFException("Parameter "+CONFIG_PARAM_PASSWORD+" required but not set");
+        throw new ManifoldCFException("Parameter "+CONFIG_PARAM_PASSWORD+" required but not set");
 
       Logging.connectors.debug("DCTM: Password exists");
 
       if (webtopBaseURL == null || webtopBaseURL.length() < 1)
-        throw new ACFException("Required parameter "+CONFIG_PARAM_WEBTOPBASEURL+" missing");
+        throw new ManifoldCFException("Required parameter "+CONFIG_PARAM_WEBTOPBASEURL+" missing");
 
       if (domain == null)
         // Empty domain is allowed
@@ -156,11 +156,11 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (java.net.MalformedURLException e)
       {
-        throw new ACFException(e.getMessage(),e);
+        throw new ManifoldCFException(e.getMessage(),e);
       }
       catch (NotBoundException e)
       {
@@ -173,7 +173,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
+          throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
         // Treat this as a transient problem
         Logging.connectors.warn("DCTM: Transient remote exception creating session: "+e.getMessage(),e);
         currentTime = System.currentTimeMillis();
@@ -189,7 +189,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
           throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L,currentTime + 12*60*60000L,
             -1,true);
         }
-        throw new ACFException(e.getMessage(),e);
+        throw new ManifoldCFException(e.getMessage(),e);
       }
     }
 
@@ -249,7 +249,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   }
 
   protected void getAttributesForType(ArrayList list, String typeName)
-    throws DocumentumException, ACFException, ServiceInterruption
+    throws DocumentumException, ManifoldCFException, ServiceInterruption
   {
     String strDQL = "select attr_name FROM dmi_dd_attr_info where type_name = '" + typeName + "'";
 
@@ -277,13 +277,13 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
+          throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
         if (noSession)
         {
           long currentTime = System.currentTimeMillis();
@@ -327,7 +327,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 
   /** Check connection, with appropriate retries */
   protected void checkConnection()
-    throws DocumentumException, ACFException, ServiceInterruption
+    throws DocumentumException, ManifoldCFException, ServiceInterruption
   {
     while (true)
     {
@@ -353,13 +353,13 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
+          throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
         if (noSession)
         {
           long currentTime = System.currentTimeMillis();
@@ -410,7 +410,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 
   /** Build date string with appropriate reset */
   protected String buildDateString(long timevalue)
-    throws DocumentumException, ACFException, ServiceInterruption
+    throws DocumentumException, ManifoldCFException, ServiceInterruption
   {
     while (true)
     {
@@ -436,13 +436,13 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
+          throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
         if (noSession)
         {
           long currentTime = System.currentTimeMillis();
@@ -487,7 +487,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   /** Release the session, if it's time.
   */
   protected void releaseCheck()
-    throws ACFException
+    throws ManifoldCFException
   {
     if (lastSessionFetch == -1L)
       return;
@@ -516,13 +516,13 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
+          throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
         session = null;
         lastSessionFetch = -1L;
         // Treat this as a transient problem
@@ -579,7 +579,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   *@return the connection's status as a displayable string.
   */
   public String check()
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -594,14 +594,14 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         if (e.getType() == DocumentumException.TYPE_SERVICEINTERRUPTION)
           throw new ServiceInterruption(e.getMessage(),0L);
         else
-          throw new ACFException(e.getMessage(),e);
+          throw new ManifoldCFException(e.getMessage(),e);
       }
     }
     catch (ServiceInterruption e)
     {
       return "Connection temporarily failed: "+e.getMessage();
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       return "Connection failed: "+e.getMessage();
     }
@@ -629,7 +629,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   * in active use.
   */
   public void poll()
-    throws ACFException
+    throws ManifoldCFException
   {
     releaseCheck();
   }
@@ -637,7 +637,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   /** Disconnect from Documentum.
   */
   public void disconnect()
-    throws ACFException
+    throws ManifoldCFException
   {
     if (session != null)
     {
@@ -662,13 +662,13 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
+          throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
         session = null;
         lastSessionFetch = -1L;
         // Treat this as a transient problem
@@ -698,7 +698,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   /** Protected method for calculating the URI
   */
   protected String convertToURI(String strObjectId, String objectType)
-    throws ACFException
+    throws ManifoldCFException
   {
     String strWebtopBaseUrl = webtopBaseURL;
 
@@ -852,7 +852,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   *@return true if the resource is found, false if not.  In either case, output may be filled in.
   */
   public boolean requestInfo(Configuration output, String command)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (command.equals("contenttypes"))
     {
@@ -870,11 +870,11 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       }
       catch (ServiceInterruption e)
       {
-        ACF.createServiceInterruptionNode(output,e);
+        ManifoldCF.createServiceInterruptionNode(output,e);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
-        ACF.createErrorNode(output,e);
+        ManifoldCF.createErrorNode(output,e);
       }
     }
     else if (command.equals("objecttypes"))
@@ -893,11 +893,11 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       }
       catch (ServiceInterruption e)
       {
-        ACF.createServiceInterruptionNode(output,e);
+        ManifoldCF.createServiceInterruptionNode(output,e);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
-        ACF.createErrorNode(output,e);
+        ManifoldCF.createErrorNode(output,e);
       }
     }
     else if (command.startsWith("folders/"))
@@ -918,11 +918,11 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       }
       catch (ServiceInterruption e)
       {
-        ACF.createServiceInterruptionNode(output,e);
+        ManifoldCF.createServiceInterruptionNode(output,e);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
-        ACF.createErrorNode(output,e);
+        ManifoldCF.createErrorNode(output,e);
       }
     }
     else if (command.startsWith("indexableattributes/"))
@@ -943,11 +943,11 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       }
       catch (ServiceInterruption e)
       {
-        ACF.createServiceInterruptionNode(output,e);
+        ManifoldCF.createServiceInterruptionNode(output,e);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
-        ACF.createErrorNode(output,e);
+        ManifoldCF.createErrorNode(output,e);
       }
     }
     else
@@ -964,7 +964,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   */
   public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
     long startTime, long endTime)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     // First, build the query
 
@@ -1131,7 +1131,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
               // It's ok to leave the thread still active; we'll be shutting down anyway.
               throw e;
             }
-            catch (ACFException e)
+            catch (ManifoldCFException e)
             {
               t.abort();
               // We need the join, because we really don't want this documentum session to be
@@ -1151,7 +1151,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
             {
               Throwable e2 = e.getCause();
               if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-                throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
+                throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
               if (noSession)
               {
                 long currentTime = System.currentTimeMillis();
@@ -1164,7 +1164,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
           }
           catch (InterruptedException e)
           {
-            throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
           }
         }
       }
@@ -1178,14 +1178,14 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         Logging.connectors.warn("DCTM: Remote service interruption getting versions: "+e.getMessage(),e);
         throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L, currentTime + 12 * 60 * 60000L,-1,true);
       }
-      throw new ACFException(e.getMessage(),e);
+      throw new ManifoldCFException(e.getMessage(),e);
     }
 
   }
 
   /** Do a query and read back the name column */
   protected static String[] convertToDCTMTypes(ArrayList contentList)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     if (contentList != null && contentList.size() > 0)
     {
@@ -1329,7 +1329,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   */
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activity,
     DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     Logging.connectors.debug("DCTM: Inside getDocumentVersions");
 
@@ -1380,7 +1380,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
               Logging.connectors.warn("DCTM: Remote service interruption listing attributes: "+e.getMessage(),e);
               throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L,currentTime + 12 * 60 * 60000L,-1,true);
             }
-            throw new ACFException(e.getMessage(),e);
+            throw new ManifoldCFException(e.getMessage(),e);
           }
 
         }
@@ -1480,13 +1480,13 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
           catch (InterruptedException e)
           {
             t.interrupt();
-            throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
           }
           catch (RemoteException e)
           {
             Throwable e2 = e.getCause();
             if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-              throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
+              throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
             if (noSession)
             {
               currentTime = System.currentTimeMillis();
@@ -1509,7 +1509,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         Logging.connectors.warn("DCTM: Remote service interruption getting versions: "+e.getMessage(),e);
         throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L,currentTime + 12 * 60 * 60000L,-1,true);
       }
-      throw new ACFException(e.getMessage(),e);
+      throw new ManifoldCFException(e.getMessage(),e);
     }
   }
 
@@ -1710,7 +1710,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   */
   public void processDocuments(String[] documentIdentifiers, String[] documentVersions,
     IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     Logging.connectors.debug("DCTM: Inside processDocuments");
 
@@ -1756,8 +1756,8 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
                     throw (RemoteException)thr;
                   else if (thr instanceof DocumentumException)
                     throw (DocumentumException)thr;
-                  else if (thr instanceof ACFException)
-                    throw (ACFException)thr;
+                  else if (thr instanceof ManifoldCFException)
+                    throw (ManifoldCFException)thr;
                   else
                     throw (Error)thr;
                 }
@@ -1793,13 +1793,13 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
               catch (InterruptedException e)
               {
                 t.interrupt();
-                throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+                throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
               }
               catch (RemoteException e)
               {
                 Throwable e2 = e.getCause();
                 if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-                  throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
+                  throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
                 if (noSession)
                 {
                   currentTime = System.currentTimeMillis();
@@ -1828,15 +1828,15 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         Logging.connectors.warn("DCTM: Remote service interruption reading files: "+e.getMessage(),e);
         throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L,currentTime + 12 * 60 * 60000L,-1,true);
       }
-      throw new ACFException(e.getMessage(),e);
+      throw new ManifoldCFException(e.getMessage(),e);
     }
     catch (java.io.InterruptedIOException e)
     {
-      throw new ACFException("Interrupted IO: "+e.getMessage(),e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted IO: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
     catch (java.io.IOException e)
     {
-      throw new ACFException("IO exception: "+e.getMessage(),e);
+      throw new ManifoldCFException("IO exception: "+e.getMessage(),e);
     }
   }
 
@@ -1848,7 +1848,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   *@param versions is the corresponding set of version identifiers (individual identifiers may be null).
   */
   public void releaseDocumentVersions(String[] documentIdentifiers, String[] versions)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Nothing to do
   }
@@ -1876,7 +1876,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     tabsArray.add("Docbase");
     tabsArray.add("Webtop");
@@ -1932,7 +1932,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   *@param tabName is the current tab name.
   */
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     String docbaseName = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_DOCBASE);
     if (docbaseName == null)
@@ -2013,7 +2013,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
-    throws ACFException
+    throws ManifoldCFException
   {
     String docbaseName = variableContext.getParameter("docbasename");
     if (docbaseName != null)
@@ -2046,7 +2046,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
@@ -2094,7 +2094,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     tabsArray.add("Paths");
     tabsArray.add("Document Types");
@@ -2178,7 +2178,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   *@param tabName is the current tab name.
   */
   public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     int i;
     int k;
@@ -2247,7 +2247,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
           pathSoFar = "/";
           childList = getChildFolderNames(pathSoFar);
           if (childList == null)
-            throw new ACFException("Can't find any children for root folder");
+            throw new ManifoldCFException("Can't find any children for root folder");
         }
         
         out.print(
@@ -2287,7 +2287,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
           );
         }
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         out.println(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage()));
       }
@@ -2555,7 +2555,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       	  }
 	}
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         out.print(
 "  <tr>\n"+
@@ -2673,7 +2673,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       	  }
 	}
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         out.print(
 "  <tr>\n"+
@@ -2865,7 +2865,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
-    throws ACFException
+    throws ManifoldCFException
   {
     String x = variableContext.getParameter("pathcount");
     if (x != null)
@@ -3173,7 +3173,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   *@param ds is the current document specification for this job.
   */
   public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
@@ -3510,7 +3510,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   * This one returns the supported content types, which will be presented in the UI for selection.
   */
   public String[] getContentTypes()
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     try
     {
@@ -3547,13 +3547,13 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         catch (InterruptedException e)
         {
           t.interrupt();
-          throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
         }
         catch (RemoteException e)
         {
           Throwable e2 = e.getCause();
           if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-            throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
+            throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
           if (noSession)
           {
             long currentTime = System.currentTimeMillis();
@@ -3574,14 +3574,14 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         Logging.connectors.warn("DCTM: Remote service interruption reading content types: "+e.getMessage(),e);
         throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L, 12 * 60 * 60000L,-1,true);
       }
-      throw new ACFException(e.getMessage(),e);
+      throw new ManifoldCFException(e.getMessage(),e);
     }
   }
 
   /** Documentum-specific method, for UI support.
   */
   public String[] getObjectTypes()
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     try
     {
@@ -3621,13 +3621,13 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         catch (InterruptedException e)
         {
           t.interrupt();
-          throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
         }
         catch (RemoteException e)
         {
           Throwable e2 = e.getCause();
           if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-            throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
+            throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
           if (noSession)
           {
             long currentTime = System.currentTimeMillis();
@@ -3648,7 +3648,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         Logging.connectors.warn("DCTM: Remote service interruption reading object types: "+e.getMessage(),e);
         throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L, currentTime + 12 * 60 * 60000L,-1,true);
       }
-      throw new ACFException(e.getMessage(),e);
+      throw new ManifoldCFException(e.getMessage(),e);
     }
   }
 
@@ -3739,7 +3739,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   * use in constructing the starting folder for a job's document specification.
   */
   public String[] getChildFolderNames(String strTheParentFolderPath)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     try
     {
@@ -3767,13 +3767,13 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         catch (InterruptedException e)
         {
           t.interrupt();
-          throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
         }
         catch (RemoteException e)
         {
           Throwable e2 = e.getCause();
           if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-            throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
+            throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
           if (noSession)
           {
             long currentTime = System.currentTimeMillis();
@@ -3794,7 +3794,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         Logging.connectors.warn("DCTM: Remote service interruption reading child folders: "+e.getMessage(),e);
         throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L,currentTime + 12 * 60 * 60000L,-1,true);
       }
-      throw new ACFException(e.getMessage(),e);
+      throw new ManifoldCFException(e.getMessage(),e);
     }
 
   }
@@ -3806,7 +3806,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   *@return the array of data attributes, in alphabetic order.
   */
   public String[] getIngestableAttributes(String docType)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     try
     {
@@ -3843,13 +3843,13 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         catch (InterruptedException e)
         {
           t.interrupt();
-          throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
         }
         catch (RemoteException e)
         {
           Throwable e2 = e.getCause();
           if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-            throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
+            throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
           if (noSession)
           {
             long currentTime = System.currentTimeMillis();
@@ -3870,7 +3870,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         Logging.connectors.warn("DCTM: Remote service interruption reading child folders: "+e.getMessage(),e);
         throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L,currentTime + 12 * 60 * 60000L,-1,true);
       }
-      throw new ACFException(e.getMessage(),e);
+      throw new ManifoldCFException(e.getMessage(),e);
     }
   }
 
@@ -4040,7 +4040,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 
     /** Constructor */
     public SystemMetadataDescription(DocumentSpecification spec)
-      throws ACFException
+      throws ManifoldCFException
     {
       pathAttributeName = null;
       int i = 0;
@@ -4069,7 +4069,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     /** Given an identifier, get the array of translated strings that goes into the metadata.
     */
     public String[] getPathAttributeValue(IDocumentumObject object)
-      throws DocumentumException, RemoteException, ACFException
+      throws DocumentumException, RemoteException, ManifoldCFException
     {
       String[] paths = object.getFolderPaths(pathMap);
       String[] rval = new String[paths.length];

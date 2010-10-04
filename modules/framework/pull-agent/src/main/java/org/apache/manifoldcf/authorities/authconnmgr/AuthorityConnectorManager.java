@@ -41,7 +41,7 @@ public class AuthorityConnectorManager extends org.apache.manifoldcf.core.databa
   *@param database is the database handle.
   */
   public AuthorityConnectorManager(IThreadContext threadContext, IDBInterface database)
-    throws ACFException
+    throws ManifoldCFException
   {
     super(database,"authconnectors");
     this.threadContext = threadContext;
@@ -51,7 +51,7 @@ public class AuthorityConnectorManager extends org.apache.manifoldcf.core.databa
   /** Install or upgrade.
   */
   public void install()
-    throws ACFException
+    throws ManifoldCFException
   {
     // Always use a loop, in case there's upgrade retries needed.
     while (true)
@@ -100,7 +100,7 @@ public class AuthorityConnectorManager extends org.apache.manifoldcf.core.databa
   /** Uninstall.  This also unregisters all connectors.
   */
   public void deinstall()
-    throws ACFException
+    throws ManifoldCFException
   {
     StringSet invKeys = new StringSet(getCacheKey());
 
@@ -119,7 +119,7 @@ public class AuthorityConnectorManager extends org.apache.manifoldcf.core.databa
       }
       performDrop(invKeys);
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       signalRollback();
       throw e;
@@ -141,7 +141,7 @@ public class AuthorityConnectorManager extends org.apache.manifoldcf.core.databa
   *@param className is the class name.
   */
   public void registerConnector(String description, String className)
-    throws ACFException
+    throws ManifoldCFException
   {
     StringSet invKeys = new StringSet(getCacheKey());
     beginTransaction();
@@ -168,7 +168,7 @@ public class AuthorityConnectorManager extends org.apache.manifoldcf.core.databa
       // Either way, we must do the install/upgrade itself.
       AuthorityConnectorFactory.install(threadContext,className);
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       signalRollback();
       throw e;
@@ -189,7 +189,7 @@ public class AuthorityConnectorManager extends org.apache.manifoldcf.core.databa
   *@param className is the class name of the connector to unregister.
   */
   public void unregisterConnector(String className)
-    throws ACFException
+    throws ManifoldCFException
   {
     StringSet invKeys = new StringSet(getCacheKey());
     beginTransaction();
@@ -200,7 +200,7 @@ public class AuthorityConnectorManager extends org.apache.manifoldcf.core.databa
 
       removeConnector(className);
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       signalRollback();
       throw e;
@@ -221,7 +221,7 @@ public class AuthorityConnectorManager extends org.apache.manifoldcf.core.databa
   *@param className is the connector class to remove.
   */
   public void removeConnector(String className)
-    throws ACFException
+    throws ManifoldCFException
   {
     StringSet invKeys = new StringSet(getCacheKey());
     ArrayList list = new ArrayList();
@@ -234,7 +234,7 @@ public class AuthorityConnectorManager extends org.apache.manifoldcf.core.databa
   * These will be ordered by description.
   */
   public IResultSet getConnectors()
-    throws ACFException
+    throws ManifoldCFException
   {
     StringSet invKeys = new StringSet(getCacheKey());
 
@@ -247,7 +247,7 @@ public class AuthorityConnectorManager extends org.apache.manifoldcf.core.databa
   *@return the description, or null if the class is not registered.
   */
   public String getDescription(String className)
-    throws ACFException
+    throws ManifoldCFException
   {
     StringSet invKeys = new StringSet(getCacheKey());
 
@@ -266,7 +266,7 @@ public class AuthorityConnectorManager extends org.apache.manifoldcf.core.databa
   *@return true if installed, false otherwise.
   */
   public boolean isInstalled(String className)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Use the global table key; that's good enough because we don't expect stuff to change out from under very often.
     StringSet invKeys = new StringSet(getCacheKey());

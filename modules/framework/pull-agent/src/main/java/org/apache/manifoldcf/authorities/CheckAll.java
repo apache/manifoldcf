@@ -44,7 +44,7 @@ public class CheckAll
 
     try
     {
-      ACF.initializeEnvironment();
+      ManifoldCF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
       // Now, get a list of the authority connections
       IAuthorityConnectionManager mgr = AuthorityConnectionManagerFactory.make(tc);
@@ -85,7 +85,7 @@ public class CheckAll
           else
             connectionStatus = "Connector not installed";
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
           connectionStatus = "Threw exception: '"+e.getMessage()+"'";
         }

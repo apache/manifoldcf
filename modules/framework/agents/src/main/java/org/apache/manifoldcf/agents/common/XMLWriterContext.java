@@ -41,7 +41,7 @@ public class XMLWriterContext extends XMLContext
 
   /** Full constructor.  Used for individual tags. */
   public XMLWriterContext(XMLStream theStream, String namespaceURI, String localname, String qname, Attributes theseAttributes, Writer writer)
-    throws ACFException
+    throws ManifoldCFException
   {
     super(theStream,namespaceURI,localname,qname,theseAttributes);
     theWriter = writer;
@@ -49,7 +49,7 @@ public class XMLWriterContext extends XMLContext
 
   /** Flush the data to the underlying output stream */
   public void flush()
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -58,21 +58,21 @@ public class XMLWriterContext extends XMLContext
     }
     catch (java.net.SocketTimeoutException e)
     {
-      throw new ACFException("Socket timeout exception: "+e.getMessage(),e);
+      throw new ManifoldCFException("Socket timeout exception: "+e.getMessage(),e);
     }
     catch (InterruptedIOException e)
     {
-      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new ACFException("IO exception: "+e.getMessage(),e);
+      throw new ManifoldCFException("IO exception: "+e.getMessage(),e);
     }
   }
 
   /** This method is meant to be extended by classes that extend this class */
   protected void tagContents(char[] ch, int start, int length)
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -80,15 +80,15 @@ public class XMLWriterContext extends XMLContext
     }
     catch (java.net.SocketTimeoutException e)
     {
-      throw new ACFException("Socket timeout exception: "+e.getMessage(),e);
+      throw new ManifoldCFException("Socket timeout exception: "+e.getMessage(),e);
     }
     catch (InterruptedIOException e)
     {
-      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new ACFException("IO exception: "+e.getMessage(),e);
+      throw new ManifoldCFException("IO exception: "+e.getMessage(),e);
     }
   }
 
@@ -96,7 +96,7 @@ public class XMLWriterContext extends XMLContext
   * The XMLWriterContext accepts all subtags in their text form.
   */
   protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     // First, write out the tag text.  We strip off the namespace.
     try
@@ -117,15 +117,15 @@ public class XMLWriterContext extends XMLContext
     }
     catch (java.net.SocketTimeoutException e)
     {
-      throw new ACFException("Socket timeout exception: "+e.getMessage(),e);
+      throw new ManifoldCFException("Socket timeout exception: "+e.getMessage(),e);
     }
     catch (InterruptedIOException e)
     {
-      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new ACFException("IO exception: "+e.getMessage(),e);
+      throw new ManifoldCFException("IO exception: "+e.getMessage(),e);
     }
     // Now, start a new context which is also a writer context.
     super.beginTag(namespaceURI,localName,qName,atts);
@@ -136,7 +136,7 @@ public class XMLWriterContext extends XMLContext
   * The XMLWriterContext accepts all subtags in their text form.
   */
   protected void endTag()
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     // First, write out the tag text.  We strip off the namespace.
     try
@@ -148,15 +148,15 @@ public class XMLWriterContext extends XMLContext
     }
     catch (java.net.SocketTimeoutException e)
     {
-      throw new ACFException("Socket timeout exception: "+e.getMessage(),e);
+      throw new ManifoldCFException("Socket timeout exception: "+e.getMessage(),e);
     }
     catch (InterruptedIOException e)
     {
-      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new ACFException("IO exception: "+e.getMessage(),e);
+      throw new ManifoldCFException("IO exception: "+e.getMessage(),e);
     }
     super.endTag();
   }

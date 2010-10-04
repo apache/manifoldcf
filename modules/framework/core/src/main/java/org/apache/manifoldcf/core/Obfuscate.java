@@ -42,9 +42,9 @@ public class Obfuscate
     String string = args[0];
     try
     {
-      UTF8Stdout.println(ACF.obfuscate(string));
+      UTF8Stdout.println(ManifoldCF.obfuscate(string));
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       e.printStackTrace();
       System.exit(1);

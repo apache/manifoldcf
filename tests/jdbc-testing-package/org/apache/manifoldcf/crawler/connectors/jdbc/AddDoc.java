@@ -86,7 +86,7 @@ public class AddDoc
                         e.printStackTrace(System.err);
                         System.exit(2);
                 }
-                catch (ACFException e)
+                catch (ManifoldCFException e)
                 {
                         e.printStackTrace(System.err);
                         System.exit(2);

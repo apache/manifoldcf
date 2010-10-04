@@ -38,7 +38,7 @@ public interface IAuthorityConnector extends IConnector
   * (Should throws an exception only when a condition cannot be properly described within the authorization response object.)
   */
   public AuthorizationResponse getAuthorizationResponse(String userName)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Obtain the default access tokens for a given user name.
   *@param userName is the user name or identifier.

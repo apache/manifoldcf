@@ -23,7 +23,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
-import org.apache.manifoldcf.crawler.system.ACF;
+import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import java.util.*;
 import java.io.*;
 import org.apache.manifoldcf.crawler.common.filenet.*;
@@ -141,30 +141,30 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   /** Get a DFC session.  This will be done every time it is needed.
   */
   protected void getSession()
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     if (session == null)
     {
       // Check for parameter validity
       if (userID == null || userID.length() < 1)
-        throw new ACFException("Parameter "+CONFIG_PARAM_USERID+" required but not set");
+        throw new ManifoldCFException("Parameter "+CONFIG_PARAM_USERID+" required but not set");
 
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("FileNet: UserID = '" + userID + "'");
 
       if (password == null || password.length() < 1)
-        throw new ACFException("Parameter "+CONFIG_PARAM_PASSWORD+" required but not set");
+        throw new ManifoldCFException("Parameter "+CONFIG_PARAM_PASSWORD+" required but not set");
 
       Logging.connectors.debug("FileNet: Password exists");
 
       if (objectStore == null || objectStore.length() < 1)
-        throw new ACFException("Parameter "+CONFIG_PARAM_OBJECTSTORE+" required but not set");
+        throw new ManifoldCFException("Parameter "+CONFIG_PARAM_OBJECTSTORE+" required but not set");
 
       if (serverProtocol == null || serverProtocol.length() < 1)
-        throw new ACFException("Parameter "+CONFIG_PARAM_SERVERPROTOCOL+" required but not set");
+        throw new ManifoldCFException("Parameter "+CONFIG_PARAM_SERVERPROTOCOL+" required but not set");
 
       if (serverHostname == null || serverHostname.length() < 1)
-        throw new ACFException("Parameter "+CONFIG_PARAM_SERVERHOSTNAME+" required but not set");
+        throw new ManifoldCFException("Parameter "+CONFIG_PARAM_SERVERHOSTNAME+" required but not set");
 
       if (serverPort != null && serverPort.length() < 1)
         serverPort = null;
@@ -173,10 +173,10 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
         Logging.connectors.debug("FileNet: Server URI is '"+serverWSIURI+"'");
 
       if (docUrlServerProtocol == null || docUrlServerProtocol.length() == 0)
-        throw new ACFException("Parameter "+CONFIG_PARAM_URLPROTOCOL+" required but not set");
+        throw new ManifoldCFException("Parameter "+CONFIG_PARAM_URLPROTOCOL+" required but not set");
 
       if (docUrlServerName == null || docUrlServerName.length() == 0)
-        throw new ACFException("Parameter "+CONFIG_PARAM_URLHOSTNAME+" required but not set");
+        throw new ManifoldCFException("Parameter "+CONFIG_PARAM_URLHOSTNAME+" required but not set");
 
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("FileNet: Document base URI is '"+docURIPrefix+"'");
@@ -205,11 +205,11 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (java.net.MalformedURLException e)
       {
-        throw new ACFException(e.getMessage(),e);
+        throw new ManifoldCFException(e.getMessage(),e);
       }
       catch (NotBoundException e)
       {
@@ -222,7 +222,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
+          throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
         // Treat this as a transient problem
         Logging.connectors.warn("FileNet: Transient remote exception creating session: "+e.getMessage(),e);
         currentTime = System.currentTimeMillis();
@@ -237,7 +237,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
           currentTime = System.currentTimeMillis();
           throw new ServiceInterruption(e.getMessage(),e,currentTime + 300000L,currentTime + 12 * 60 * 60000L,-1,true);
         }
-        throw new ACFException(e.getMessage(),e);
+        throw new ManifoldCFException(e.getMessage(),e);
       }
     }
 
@@ -279,7 +279,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   /** Release the session, if it's time.
   */
   protected void releaseCheck()
-    throws ACFException
+    throws ManifoldCFException
   {
     if (lastSessionFetch == -1L)
       return;
@@ -308,13 +308,13 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
+          throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
         session = null;
         lastSessionFetch = -1L;
         // Treat this as a transient problem
@@ -432,7 +432,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@return the connection's status as a displayable string.
   */
   public String check()
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -447,14 +447,14 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
         if (e.getType() == FilenetException.TYPE_SERVICEINTERRUPTION)
           throw new ServiceInterruption(e.getMessage(),0L);
         else
-          throw new ACFException(e.getMessage(),e);
+          throw new ManifoldCFException(e.getMessage(),e);
       }
     }
     catch (ServiceInterruption e)
     {
       return "Connection temporarily failed: "+e.getMessage();
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       return "Connection failed: "+e.getMessage();
     }
@@ -464,7 +464,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   * in active use.
   */
   public void poll()
-    throws ACFException
+    throws ManifoldCFException
   {
     releaseCheck();
   }
@@ -472,7 +472,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   /** Disconnect from Filenet.
   */
   public void disconnect()
-    throws ACFException
+    throws ManifoldCFException
   {
     if (session != null)
     {
@@ -497,13 +497,13 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
+          throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
         session = null;
         lastSessionFetch = -1L;
         // Treat this as a transient problem
@@ -540,7 +540,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@return true if the resource is found, false if not.  In either case, output may be filled in.
   */
   public boolean requestInfo(Configuration output, String command)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (command.startsWith("metadatafields/"))
     {
@@ -565,11 +565,11 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
       catch (ServiceInterruption e)
       {
-        ACF.createServiceInterruptionNode(output,e);
+        ManifoldCF.createServiceInterruptionNode(output,e);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
-        ACF.createErrorNode(output,e);
+        ManifoldCF.createErrorNode(output,e);
       }
     }
     else if (command.equals("documentclasses"))
@@ -594,11 +594,11 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
       catch (ServiceInterruption e)
       {
-        ACF.createServiceInterruptionNode(output,e);
+        ManifoldCF.createServiceInterruptionNode(output,e);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
-        ACF.createErrorNode(output,e);
+        ManifoldCF.createErrorNode(output,e);
       }
     }
     else if (command.equals("mimetypes"))
@@ -617,11 +617,11 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
       catch (ServiceInterruption e)
       {
-        ACF.createServiceInterruptionNode(output,e);
+        ManifoldCF.createServiceInterruptionNode(output,e);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
-        ACF.createErrorNode(output,e);
+        ManifoldCF.createErrorNode(output,e);
       }
     }
     else
@@ -638,7 +638,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   */
   public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
     long startTime, long endTime)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     Logging.connectors.debug("FileNet: Inside addSeedDocuments");
 
@@ -744,7 +744,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
           if (e.getType() == FilenetException.TYPE_SERVICEINTERRUPTION)
             throw new ServiceInterruption(e.getMessage(),e,currentTime+300000L,currentTime+12*60*60000L,-1,true);
           else
-            throw new ACFException(e.getMessage(),e);
+            throw new ManifoldCFException(e.getMessage(),e);
         }
       }
 
@@ -834,7 +834,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   */
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activity,
     DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     Logging.connectors.debug("FileNet: Inside getDocumentVersions");
 
@@ -1050,7 +1050,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
             rval[i] = null;
           }
           else
-            throw new ACFException(e.getMessage(),e);
+            throw new ManifoldCFException(e.getMessage(),e);
         }
       }
       else
@@ -1100,7 +1100,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   */
   public void processDocuments(String[] documentIdentifiers, String[] documentVersions,
     IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     Logging.connectors.debug("FileNet: Inside processDocuments");
 
@@ -1133,7 +1133,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
           }
           catch (NumberFormatException e)
           {
-            throw new ACFException("Bad number in identifier: "+documentIdentifier,e);
+            throw new ManifoldCFException("Bad number in identifier: "+documentIdentifier,e);
           }
 
           // Unpack the information in the document version
@@ -1197,7 +1197,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
                 {
                   activities.recordActivity(new Long(startTime),ACTIVITY_FETCH,
                     null,documentIdentifier,"Miscellaneous error",e.getMessage(),null);
-                  throw new ACFException(e.getMessage(),e);
+                  throw new ManifoldCFException(e.getMessage(),e);
                 }
               }
 
@@ -1260,7 +1260,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
                 }
                 catch (InterruptedIOException e)
                 {
-                  throw new ACFException(e.getMessage(),e,ACFException.INTERRUPTED);
+                  throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
                 }
                 catch (IOException e)
                 {
@@ -1276,12 +1276,12 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
           }
           catch (InterruptedIOException e)
           {
-            throw new ACFException(e.getMessage(),e,ACFException.INTERRUPTED);
+            throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
           }
           catch (IOException e)
           {
             Logging.connectors.error("FileNet: IO Exception ingesting document '"+documentIdentifier+"': "+e.getMessage(),e);
-            throw new ACFException("IO Exception ingesting document '"+documentIdentifier+"': "+e.getMessage(),e);
+            throw new ManifoldCFException("IO Exception ingesting document '"+documentIdentifier+"': "+e.getMessage(),e);
           }
         }
       }
@@ -1336,7 +1336,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
           }
           else
           {
-            throw new ACFException(e.getMessage(),e);
+            throw new ManifoldCFException(e.getMessage(),e);
           }
         }
       }
@@ -1353,7 +1353,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param versions is the corresponding set of version identifiers (individual identifiers may be null).
   */
   public void releaseDocumentVersions(String[] documentIdentifiers, String[] versions)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Nothing to do
   }
@@ -1381,7 +1381,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     tabsArray.add("Server");
     tabsArray.add("Object Store");
@@ -1485,7 +1485,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param tabName is the current tab name.
   */
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     String userID = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_USERID);
     if (userID == null)
@@ -1665,7 +1665,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
-    throws ACFException
+    throws ManifoldCFException
   {
     String serverprotocol = variableContext.getParameter("serverprotocol");
     if (serverprotocol != null)
@@ -1725,7 +1725,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
@@ -1773,7 +1773,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     tabsArray.add("Document Classes");
     tabsArray.add("Mime Types");
@@ -1837,7 +1837,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param tabName is the current tab name.
   */
   public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     int i;
     Iterator iter;
@@ -1880,7 +1880,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
           documentClassFields.put(documentClass,metaFields);
         }
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         message = e.getMessage();
       }
@@ -2139,7 +2139,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       {
         mimeTypesArray = getMimeTypes();
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         message = e.getMessage();
       }
@@ -2333,7 +2333,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
-    throws ACFException
+    throws ManifoldCFException
   {
     String[] x;
     String y;
@@ -2523,7 +2523,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param ds is the current document specification for this job.
   */
   public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     int i;
     Iterator iter;
@@ -2762,7 +2762,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 
   /** Get the set of available document classes, with details */
   public DocumentClassDefinition[] getDocumentClassesDetails()
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
     try
@@ -2776,13 +2776,13 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       if (e.getType() == FilenetException.TYPE_SERVICEINTERRUPTION)
         throw new ServiceInterruption(e.getMessage(),e,currentTime+300000L,currentTime+12*60*60000L,-1,true);
       else
-        throw new ACFException(e.getMessage(),e);
+        throw new ManifoldCFException(e.getMessage(),e);
     }
   }
 
   /** Get the set of available metadata fields per document class */
   public MetadataFieldDefinition[] getDocumentClassMetadataFieldsDetails(String documentClassName)
-    throws ServiceInterruption, ACFException
+    throws ServiceInterruption, ManifoldCFException
   {
     long currentTime;
     try
@@ -2796,13 +2796,13 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       if (e.getType() == FilenetException.TYPE_SERVICEINTERRUPTION)
         throw new ServiceInterruption(e.getMessage(),e,currentTime+300000L,currentTime+12*60*60000L,-1,true);
       else
-        throw new ACFException(e.getMessage(),e);
+        throw new ManifoldCFException(e.getMessage(),e);
     }
   }
 
   /** Get the set of available mime types */
   public String[] getMimeTypes()
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     // For now, return the list of mime types we know about
     return new String[]
@@ -2896,7 +2896,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 
   /** Check connection, with appropriate retries */
   protected void checkConnection()
-    throws FilenetException, ACFException, ServiceInterruption
+    throws FilenetException, ManifoldCFException, ServiceInterruption
   {
     while (true)
     {
@@ -2923,13 +2923,13 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
+          throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
         if (noSession)
         {
           currentTime = System.currentTimeMillis();
@@ -2978,7 +2978,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 
   /** Get document class details, with appropriate retries */
   protected DocumentClassDefinition[] getDocumentClassesInfo()
-    throws FilenetException, ACFException, ServiceInterruption
+    throws FilenetException, ManifoldCFException, ServiceInterruption
   {
     while (true)
     {
@@ -3005,13 +3005,13 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
+          throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
         if (noSession)
         {
           currentTime = System.currentTimeMillis();
@@ -3062,7 +3062,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 
   /** Get document class metadata fields details, with appropriate retries */
   protected MetadataFieldDefinition[] getDocumentClassMetadataFieldsInfo(String documentClassName)
-    throws FilenetException, ACFException, ServiceInterruption
+    throws FilenetException, ManifoldCFException, ServiceInterruption
   {
     while (true)
     {
@@ -3089,13 +3089,13 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
+          throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
         if (noSession)
         {
           currentTime = System.currentTimeMillis();
@@ -3147,7 +3147,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 
   /** Get matching object id's for a given query */
   protected String[] doGetMatchingObjectIds(String sql)
-    throws FilenetException, ACFException, ServiceInterruption
+    throws FilenetException, ManifoldCFException, ServiceInterruption
   {
     while (true)
     {
@@ -3174,13 +3174,13 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
+          throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
         if (noSession)
         {
           currentTime = System.currentTimeMillis();
@@ -3231,7 +3231,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   }
 
   protected Integer doGetDocumentContentCount(String documentIdentifier)
-    throws FilenetException, ACFException, ServiceInterruption
+    throws FilenetException, ManifoldCFException, ServiceInterruption
   {
     while (true)
     {
@@ -3258,13 +3258,13 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
+          throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
         if (noSession)
         {
           currentTime = System.currentTimeMillis();
@@ -3319,7 +3319,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 
   /** Get document info */
   protected FileInfo doGetDocumentInformation(String docId, HashMap metadataFields)
-    throws FilenetException, ACFException, ServiceInterruption
+    throws FilenetException, ManifoldCFException, ServiceInterruption
   {
     while (true)
     {
@@ -3346,13 +3346,13 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
+          throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
         if (noSession)
         {
           currentTime = System.currentTimeMillis();
@@ -3402,7 +3402,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 
   /** Get document contents */
   protected void doGetDocumentContents(String docId, int elementNumber, String tempFileName)
-    throws FilenetException, ACFException, ServiceInterruption
+    throws FilenetException, ManifoldCFException, ServiceInterruption
   {
     while (true)
     {
@@ -3429,13 +3429,13 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
+          throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
         if (noSession)
         {
           currentTime = System.currentTimeMillis();

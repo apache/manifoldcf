@@ -35,9 +35,9 @@ public class ImportConfiguration extends BaseCrawlerInitializationCommand
     this.importFilename = importFilename;
   }
 
-  protected void doExecute(IThreadContext tc) throws ACFException
+  protected void doExecute(IThreadContext tc) throws ManifoldCFException
   {
-    ACF.importConfiguration(tc,importFilename);
+    ManifoldCF.importConfiguration(tc,importFilename);
     Logging.root.info("Configuration imported");
   }
 

@@ -20,7 +20,7 @@ package org.apache.manifoldcf.agents.tests;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
-import org.apache.manifoldcf.agents.system.ACF;
+import org.apache.manifoldcf.agents.system.ManifoldCF;
 
 import java.io.*;
 import java.util.*;
@@ -60,9 +60,9 @@ public class TestBase extends org.apache.manifoldcf.core.tests.TestBase
     
     // Install the agents tables
     initialize();
-    ACF.initializeEnvironment();
+    ManifoldCF.initializeEnvironment();
     IThreadContext tc = ThreadContextFactory.make();
-    ACF.installTables(tc);
+    ManifoldCF.installTables(tc);
   }
   
   @After
@@ -87,13 +87,13 @@ public class TestBase extends org.apache.manifoldcf.core.tests.TestBase
     if (isInitialized())
     {
       // Test the uninstall
-      ACF.initializeEnvironment();
+      ManifoldCF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
       
       Exception currentException = null;
       try
       {
-        ACF.deinstallTables(tc);
+        ManifoldCF.deinstallTables(tc);
       }
       catch (Exception e)
       {

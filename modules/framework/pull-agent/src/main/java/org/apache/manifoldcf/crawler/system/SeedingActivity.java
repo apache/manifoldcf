@@ -86,7 +86,7 @@ public class SeedingActivity implements ISeedingActivity
   *@param prereqEventNames is the list of prerequisite events required for this document, or null if none.
   */
   public void addSeedDocument(String documentIdentifier, String[] prereqEventNames)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (documentCount == MAX_COUNT)
     {
@@ -94,7 +94,7 @@ public class SeedingActivity implements ISeedingActivity
       writeSeedDocuments(documentHashList,documentList,documentPrereqList);
       documentCount = 0;
     }
-    documentHashList[documentCount] = ACF.hash(documentIdentifier);
+    documentHashList[documentCount] = ManifoldCF.hash(documentIdentifier);
     documentList[documentCount] = documentIdentifier;
     if (prereqEventNames != null)
       documentPrereqList[documentCount] = prereqEventNames;
@@ -117,7 +117,7 @@ public class SeedingActivity implements ISeedingActivity
   *@param documentIdentifier is the identifier of the document to add to the "pending" queue.
   */
   public void addSeedDocument(String documentIdentifier)
-    throws ACFException
+    throws ManifoldCFException
   {
     addSeedDocument(documentIdentifier,null);
   }
@@ -134,7 +134,7 @@ public class SeedingActivity implements ISeedingActivity
   * "pending" queue.
   */
   public void addUnqueuedSeedDocument(String documentIdentifier)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (remainingDocumentCount == MAX_COUNT)
     {
@@ -142,12 +142,12 @@ public class SeedingActivity implements ISeedingActivity
       jobManager.addRemainingDocumentsInitial(jobID,legalLinkTypes,remainingDocumentHashList,hopcountMethod);
       remainingDocumentCount = 0;
     }
-    remainingDocumentHashList[remainingDocumentCount++] = ACF.hash(documentIdentifier);
+    remainingDocumentHashList[remainingDocumentCount++] = ManifoldCF.hash(documentIdentifier);
   }
 
   /** Finish a seeding pass */
   public void doneSeeding(boolean isPartial)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (documentCount > 0)
     {
@@ -200,7 +200,7 @@ public class SeedingActivity implements ISeedingActivity
   */
   public void recordActivity(Long startTime, String activityType, Long dataSize,
     String entityIdentifier, String resultCode, String resultDescription, String[] childIdentifiers)
-    throws ACFException
+    throws ManifoldCFException
   {
     connManager.recordHistory(connectionName,startTime,activityType,dataSize,entityIdentifier,resultCode,
       resultDescription,childIdentifiers);
@@ -208,7 +208,7 @@ public class SeedingActivity implements ISeedingActivity
 
   /** Write specified documents after calculating their priorities */
   protected void writeSeedDocuments(String[] docIDHashes, String[] docIDs, String[][] prereqEventNames)
-    throws ACFException
+    throws ManifoldCFException
   {
     // First, prioritize the documents using the queue tracker
     long prioritizationTime = System.currentTimeMillis();
@@ -252,7 +252,7 @@ public class SeedingActivity implements ISeedingActivity
   * caller, will signal that the current seeding activity remains incomplete and must be retried when the job is resumed.
   */
   public void checkJobStillActive()
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     if (jobManager.checkJobActive(jobID) == false)
       throw new ServiceInterruption("Job no longer active",System.currentTimeMillis());
@@ -264,7 +264,7 @@ public class SeedingActivity implements ISeedingActivity
   */
   public String createGlobalString(String simpleString)
   {
-    return ACF.createGlobalString(simpleString);
+    return ManifoldCF.createGlobalString(simpleString);
   }
 
   /** Create a connection-specific string from a simple string.
@@ -273,7 +273,7 @@ public class SeedingActivity implements ISeedingActivity
   */
   public String createConnectionSpecificString(String simpleString)
   {
-    return ACF.createConnectionSpecificString(connection.getName(),simpleString);
+    return ManifoldCF.createConnectionSpecificString(connection.getName(),simpleString);
   }
 
   /** Create a job-based string from a simple string.
@@ -282,7 +282,7 @@ public class SeedingActivity implements ISeedingActivity
   */
   public String createJobSpecificString(String simpleString)
   {
-    return ACF.createJobSpecificString(jobID,simpleString);
+    return ManifoldCF.createJobSpecificString(jobID,simpleString);
   }
 
 }

@@ -1,4 +1,4 @@
-/* $Id: ACF.java 988245 2010-08-23 18:39:35Z kwright $ */
+/* $Id: ManifoldCF.java 988245 2010-08-23 18:39:35Z kwright $ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -23,7 +23,7 @@ import org.apache.manifoldcf.authorities.interfaces.*;
 import java.io.*;
 import java.util.*;
 
-public class ACF extends org.apache.manifoldcf.core.system.ACF
+public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
 {
   // Initialization needed flag
   protected static boolean authoritiesInitialized = false;
@@ -43,14 +43,14 @@ public class ACF extends org.apache.manifoldcf.core.system.ACF
   /** Initialize environment.
   */
   public static void initializeEnvironment()
-    throws ACFException
+    throws ManifoldCFException
   {
     synchronized (initializeFlagLock)
     {
       if (authoritiesInitialized)
         return;
 
-      org.apache.manifoldcf.core.system.ACF.initializeEnvironment();
+      org.apache.manifoldcf.core.system.ManifoldCF.initializeEnvironment();
       Logging.initializeLoggers();
       Logging.setLogLevels();
       authoritiesInitialized = true;
@@ -62,12 +62,12 @@ public class ACF extends org.apache.manifoldcf.core.system.ACF
   *@param threadcontext is the thread context.
   */
   public static void installSystemTables(IThreadContext threadcontext)
-    throws ACFException
+    throws ManifoldCFException
   {
     IDBInterface mainDatabase = DBInterfaceFactory.make(threadcontext,
-      ACF.getMasterDatabaseName(),
-      ACF.getMasterDatabaseUsername(),
-      ACF.getMasterDatabasePassword());
+      ManifoldCF.getMasterDatabaseName(),
+      ManifoldCF.getMasterDatabaseUsername(),
+      ManifoldCF.getMasterDatabasePassword());
 
     IAuthorityConnectorManager connMgr = AuthorityConnectorManagerFactory.make(threadcontext);
     IAuthorityConnectionManager authConnMgr = AuthorityConnectionManagerFactory.make(threadcontext);
@@ -78,7 +78,7 @@ public class ACF extends org.apache.manifoldcf.core.system.ACF
       connMgr.install();
       authConnMgr.install();
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       mainDatabase.signalRollback();
       throw e;
@@ -99,14 +99,14 @@ public class ACF extends org.apache.manifoldcf.core.system.ACF
   *@param threadcontext is the thread context.
   */
   public static void deinstallSystemTables(IThreadContext threadcontext)
-    throws ACFException
+    throws ManifoldCFException
   {
     IDBInterface mainDatabase = DBInterfaceFactory.make(threadcontext,
-      ACF.getMasterDatabaseName(),
-      ACF.getMasterDatabaseUsername(),
-      ACF.getMasterDatabasePassword());
+      ManifoldCF.getMasterDatabaseName(),
+      ManifoldCF.getMasterDatabaseUsername(),
+      ManifoldCF.getMasterDatabasePassword());
 
-    ACFException se = null;
+    ManifoldCFException se = null;
 
     IAuthorityConnectorManager connMgr = AuthorityConnectorManagerFactory.make(threadcontext);
     IAuthorityConnectionManager authConnMgr = AuthorityConnectionManagerFactory.make(threadcontext);
@@ -117,7 +117,7 @@ public class ACF extends org.apache.manifoldcf.core.system.ACF
       authConnMgr.deinstall();
       connMgr.deinstall();
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       mainDatabase.signalRollback();
       throw e;
@@ -139,7 +139,7 @@ public class ACF extends org.apache.manifoldcf.core.system.ACF
   /** Start the authority system.
   */
   public static void startSystem(IThreadContext threadContext)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Read any parameters
     String maxThreads = getProperty(authCheckThreadCountProperty);
@@ -147,7 +147,7 @@ public class ACF extends org.apache.manifoldcf.core.system.ACF
       maxThreads = "10";
     numAuthCheckThreads = new Integer(maxThreads).intValue();
     if (numAuthCheckThreads < 1 || numAuthCheckThreads > 100)
-      throw new ACFException("Illegal value for the number of auth check threads");
+      throw new ManifoldCFException("Illegal value for the number of auth check threads");
 
     // Start up threads
     idleCleanupThread = new IdleCleanupThread();
@@ -168,7 +168,7 @@ public class ACF extends org.apache.manifoldcf.core.system.ACF
   /** Shut down the authority system.
   */
   public static void stopSystem(IThreadContext threadContext)
-    throws ACFException
+    throws ManifoldCFException
   {
 
     while (idleCleanupThread != null || authCheckThreads != null)
@@ -215,7 +215,7 @@ public class ACF extends org.apache.manifoldcf.core.system.ACF
 
       try
       {
-        ACF.sleep(1000);
+        ManifoldCF.sleep(1000);
       }
       catch (InterruptedException e)
       {

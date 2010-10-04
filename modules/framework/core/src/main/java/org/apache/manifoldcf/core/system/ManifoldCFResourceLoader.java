@@ -27,9 +27,9 @@ import java.io.*;
 /** An instance of this class is capable of minting URLClassLoader objects on
 * demand, for the purpose of loading plugins.
 */
-public class ACFResourceLoader
+public class ManifoldCFResourceLoader
 {
-  public static final String _rcsid = "@(#)$Id: ACFResourceLoader.java 988245 2010-08-23 18:39:35Z kwright $";
+  public static final String _rcsid = "@(#)$Id: ManifoldCFResourceLoader.java 988245 2010-08-23 18:39:35Z kwright $";
 
   /** The parent class loader */
   protected ClassLoader parent;
@@ -41,8 +41,8 @@ public class ACFResourceLoader
   /** Construct a resource manager.
   *@param parent is the parent class loader.
   */
-  public ACFResourceLoader(ClassLoader parent)
-    throws ACFException
+  public ManifoldCFResourceLoader(ClassLoader parent)
+    throws ManifoldCFException
   {
     this.parent = parent;
   }
@@ -51,7 +51,7 @@ public class ACFResourceLoader
   *@param libdirList is an arraylist of File objects, each representing a directory.
   */
   public synchronized void setClassPath(ArrayList libdirList)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (currentClasspath.size() > 0)
     {
@@ -80,7 +80,7 @@ public class ACFResourceLoader
   *@param file is the jar or class root.
   */
   public synchronized void addToClassPath(final File file)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (file.canRead())
     {
@@ -93,7 +93,7 @@ public class ACFResourceLoader
         } } );
     }
     else
-      throw new ACFException("Path '"+file.toString()+"' does not exist or is not readable");
+      throw new ManifoldCFException("Path '"+file.toString()+"' does not exist or is not readable");
   }
   
   /** Add to the class-search path.
@@ -101,7 +101,7 @@ public class ACFResourceLoader
   *@param filter is the file filter to use on that directory.
   */
   public synchronized void addToClassPath(File dir, FileFilter filter)
-    throws ACFException
+    throws ManifoldCFException
   {
     addDirsToClassPath(new File[]{dir}, new FileFilter[]{filter});
   }
@@ -110,7 +110,7 @@ public class ACFResourceLoader
   *@param cname is the fully-qualified class name.
   */
   public synchronized Class findClass(String cname)
-    throws ClassNotFoundException,ACFException
+    throws ClassNotFoundException,ManifoldCFException
   {
     if (classLoader == null)
     {
@@ -131,7 +131,7 @@ public class ACFResourceLoader
           catch (MalformedURLException e)
           {
             // Should never happen, but...
-            throw new ACFException(e.getMessage(),e);
+            throw new ManifoldCFException(e.getMessage(),e);
           }
         }
         classLoader = URLClassLoader.newInstance(elements, parent);
@@ -147,7 +147,7 @@ public class ACFResourceLoader
   *@param filterList is the corresponding list of filters.
   */
   protected void addDirsToClassPath(File[] baseList, FileFilter[] filterList)
-    throws ACFException
+    throws ManifoldCFException
   {
     int i = 0;
     while (i < baseList.length)
@@ -176,7 +176,7 @@ public class ACFResourceLoader
         }
       }
       else
-        throw new ACFException("Supposed directory '"+base.toString()+"' is either not a directory, or is unreadable.");
+        throw new ManifoldCFException("Supposed directory '"+base.toString()+"' is either not a directory, or is unreadable.");
       i++;
     }
   }

@@ -63,7 +63,7 @@ public class LookupDoc
                         }
                         System.err.println("Successfully looked up");
                 }
-                catch (ACFException e)
+                catch (ManifoldCFException e)
                 {
                         e.printStackTrace(System.err);
                         System.exit(2);

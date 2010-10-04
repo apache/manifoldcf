@@ -19,7 +19,7 @@
 package org.apache.manifoldcf.core.interfaces;
 
 import java.io.*;
-import org.apache.manifoldcf.core.system.ACF;
+import org.apache.manifoldcf.core.system.ManifoldCF;
 
 /** This class represents a temporary file character input
 * stream.  Call the "done" method to clean up the
@@ -42,7 +42,7 @@ public class TempFileCharacterInput extends CharacterInput
   *          and hash value for the data.
   */
   public TempFileCharacterInput(Reader is)
-    throws ACFException
+    throws ManifoldCFException
   {
     super();
     try
@@ -52,12 +52,12 @@ public class TempFileCharacterInput extends CharacterInput
       try
       {
         // Register the file for autodeletion, using our infrastructure.
-        ACF.addFile(outfile);
+        ManifoldCF.addFile(outfile);
         // deleteOnExit() causes memory leakage!
         // outfile.deleteOnExit();
 
         // Set up hash digest and character length counter before we start anything.
-        java.security.MessageDigest md = ACF.startHash();
+        java.security.MessageDigest md = ManifoldCF.startHash();
 
         FileOutputStream outStream = new FileOutputStream(outfile);
         // Create a Writer corresponding to the file output stream, and encode using utf-8
@@ -74,12 +74,12 @@ public class TempFileCharacterInput extends CharacterInput
             if (readsize == -1)
               break;
             outWriter.write(buffer,0,readsize);
-            ACF.addToHash(md,new String(buffer,0,readsize));
+            ManifoldCF.addToHash(md,new String(buffer,0,readsize));
             totalMoved += readsize;
           }
 
           charLength = totalMoved;
-          hashValue = ACF.getHashValue(md);
+          hashValue = ManifoldCF.getHashValue(md);
         }
         finally
         {
@@ -95,7 +95,7 @@ public class TempFileCharacterInput extends CharacterInput
       {
         // Delete the temp file we created on any error condition
         // outfile.delete();
-        ACF.deleteFile(outfile);
+        ManifoldCF.deleteFile(outfile);
         if (e instanceof Error)
           throw (Error)e;
         if (e instanceof RuntimeException)
@@ -107,11 +107,11 @@ public class TempFileCharacterInput extends CharacterInput
     }
     catch (InterruptedIOException e)
     {
-      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
     catch (Exception e)
     {
-      throw new ACFException("Cannot write temporary file: "+e.getMessage(),e,ACFException.GENERAL_ERROR);
+      throw new ManifoldCFException("Cannot write temporary file: "+e.getMessage(),e,ManifoldCFException.GENERAL_ERROR);
     }
 
   }
@@ -123,7 +123,7 @@ public class TempFileCharacterInput extends CharacterInput
   {
     super();
     file = tempFile;
-    ACF.addFile(file);
+    ManifoldCF.addFile(file);
     // deleteOnExit() causes memory leakage; better to leak files on hard shutdown than memory.
     // file.deleteOnExit();
   }
@@ -135,7 +135,7 @@ public class TempFileCharacterInput extends CharacterInput
 
   /** Open a Utf8 stream directly from the backing file */
   public InputStream getUtf8Stream()
-    throws ACFException
+    throws ManifoldCFException
   {
     if (file != null)
     {
@@ -145,14 +145,14 @@ public class TempFileCharacterInput extends CharacterInput
       }
       catch (FileNotFoundException e)
       {
-        throw new ACFException("No such file: "+e.getMessage(),e,ACFException.GENERAL_ERROR);
+        throw new ManifoldCFException("No such file: "+e.getMessage(),e,ManifoldCFException.GENERAL_ERROR);
       }
     }
     return null;
   }
 
   protected void openStream()
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -162,11 +162,11 @@ public class TempFileCharacterInput extends CharacterInput
     }
     catch (FileNotFoundException e)
     {
-      throw new ACFException("Can't create stream: "+e.getMessage(),e,ACFException.GENERAL_ERROR);
+      throw new ManifoldCFException("Can't create stream: "+e.getMessage(),e,ManifoldCFException.GENERAL_ERROR);
     }
     catch (UnsupportedEncodingException e)
     {
-      throw new ACFException("Can't create stream: "+e.getMessage(),e,ACFException.GENERAL_ERROR);
+      throw new ManifoldCFException("Can't create stream: "+e.getMessage(),e,ManifoldCFException.GENERAL_ERROR);
     }
   }
 
@@ -187,33 +187,33 @@ public class TempFileCharacterInput extends CharacterInput
   }
 
   public void discard()
-    throws ACFException
+    throws ManifoldCFException
   {
     super.discard();
     // Delete the underlying file
     if (file != null)
     {
-      ACF.deleteFile(file);
+      ManifoldCF.deleteFile(file);
       file = null;
     }
   }
 
   /** Calculate the datum's length in characters */
   protected void calculateLength()
-    throws ACFException
+    throws ManifoldCFException
   {
     scanFile();
   }
 
   /** Calculate the datum's hash value */
   protected void calculateHashValue()
-    throws ACFException
+    throws ManifoldCFException
   {
     scanFile();
   }
 
   private void scanFile()
-    throws ACFException
+    throws ManifoldCFException
   {
     // Scan the file in order to figure out the hash value and the character length
     try
@@ -224,7 +224,7 @@ public class TempFileCharacterInput extends CharacterInput
       try
       {
         // Set up hash digest and character length counter before we start anything.
-        java.security.MessageDigest md = ACF.startHash();
+        java.security.MessageDigest md = ManifoldCF.startHash();
         char[] buffer = new char[CHUNK_SIZE];
         long totalMoved = 0;
         while (true)
@@ -234,12 +234,12 @@ public class TempFileCharacterInput extends CharacterInput
           int readsize = reader.read(buffer,0,moveAmount);
           if (readsize == -1)
             break;
-          ACF.addToHash(md,new String(buffer,0,readsize));
+          ManifoldCF.addToHash(md,new String(buffer,0,readsize));
           totalMoved += readsize;
         }
 
         charLength = totalMoved;
-        hashValue = ACF.getHashValue(md);
+        hashValue = ManifoldCF.getHashValue(md);
       }
       finally
       {
@@ -248,11 +248,11 @@ public class TempFileCharacterInput extends CharacterInput
     }
     catch (InterruptedIOException e)
     {
-      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new ACFException("Can't scan file: "+e.getMessage(),e,ACFException.GENERAL_ERROR);
+      throw new ManifoldCFException("Can't scan file: "+e.getMessage(),e,ManifoldCFException.GENERAL_ERROR);
     }
   }
 

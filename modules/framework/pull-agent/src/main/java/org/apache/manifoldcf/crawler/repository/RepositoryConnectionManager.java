@@ -23,7 +23,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.authorities.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.CacheKeyFactory;
-import org.apache.manifoldcf.crawler.system.ACF;
+import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
 
 /** This class is the manager of the repository connection description.  Inside, multiple database tables are managed,
@@ -60,7 +60,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   *@param threadContext is the thread context.
   */
   public RepositoryConnectionManager(IThreadContext threadContext, IDBInterface database)
-    throws ACFException
+    throws ManifoldCFException
   {
     super(database,"repoconnections");
 
@@ -73,7 +73,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   /** Install the manager.
   */
   public void install()
-    throws ACFException
+    throws ManifoldCFException
   {
     // First, get the authority manager table name and name column
     IAuthorityConnectionManager authMgr = AuthorityConnectionManagerFactory.make(threadContext);
@@ -113,7 +113,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   /** Uninstall the manager.
   */
   public void deinstall()
-    throws ACFException
+    throws ManifoldCFException
   {
     beginTransaction();
     try
@@ -122,7 +122,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
       historyManager.deinstall();
       performDrop(null);
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       signalRollback();
       throw e;
@@ -140,62 +140,62 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
 
   /** Export configuration */
   public void exportConfiguration(java.io.OutputStream os)
-    throws java.io.IOException, ACFException
+    throws java.io.IOException, ManifoldCFException
   {
     // Write a version indicator
-    ACF.writeDword(os,1);
+    ManifoldCF.writeDword(os,1);
     // Get the authority list
     IRepositoryConnection[] list = getAllConnections();
     // Write the number of authorities
-    ACF.writeDword(os,list.length);
+    ManifoldCF.writeDword(os,list.length);
     // Loop through the list and write the individual repository connection info
     int i = 0;
     while (i < list.length)
     {
       IRepositoryConnection conn = list[i++];
-      ACF.writeString(os,conn.getName());
-      ACF.writeString(os,conn.getDescription());
-      ACF.writeString(os,conn.getClassName());
-      ACF.writeString(os,conn.getConfigParams().toXML());
-      ACF.writeString(os,conn.getACLAuthority());
-      ACF.writeDword(os,conn.getMaxConnections());
+      ManifoldCF.writeString(os,conn.getName());
+      ManifoldCF.writeString(os,conn.getDescription());
+      ManifoldCF.writeString(os,conn.getClassName());
+      ManifoldCF.writeString(os,conn.getConfigParams().toXML());
+      ManifoldCF.writeString(os,conn.getACLAuthority());
+      ManifoldCF.writeDword(os,conn.getMaxConnections());
       String[] throttles = conn.getThrottles();
-      ACF.writeDword(os,throttles.length);
+      ManifoldCF.writeDword(os,throttles.length);
       int j = 0;
       while (j < throttles.length)
       {
         String throttleName = throttles[j++];
-        ACF.writeString(os,throttleName);
-        ACF.writeString(os,conn.getThrottleDescription(throttleName));
-        ACF.writefloat(os,conn.getThrottleValue(throttleName));
+        ManifoldCF.writeString(os,throttleName);
+        ManifoldCF.writeString(os,conn.getThrottleDescription(throttleName));
+        ManifoldCF.writefloat(os,conn.getThrottleValue(throttleName));
       }
     }
   }
 
   /** Import configuration */
   public void importConfiguration(java.io.InputStream is)
-    throws java.io.IOException, ACFException
+    throws java.io.IOException, ManifoldCFException
   {
-    int version = ACF.readDword(is);
+    int version = ManifoldCF.readDword(is);
     if (version != 1)
       throw new java.io.IOException("Unknown repository connection configuration version: "+Integer.toString(version));
-    int count = ACF.readDword(is);
+    int count = ManifoldCF.readDword(is);
     int i = 0;
     while (i < count)
     {
       IRepositoryConnection conn = create();
-      conn.setName(ACF.readString(is));
-      conn.setDescription(ACF.readString(is));
-      conn.setClassName(ACF.readString(is));
-      conn.getConfigParams().fromXML(ACF.readString(is));
-      conn.setACLAuthority(ACF.readString(is));
-      conn.setMaxConnections(ACF.readDword(is));
-      int throttleCount = ACF.readDword(is);
+      conn.setName(ManifoldCF.readString(is));
+      conn.setDescription(ManifoldCF.readString(is));
+      conn.setClassName(ManifoldCF.readString(is));
+      conn.getConfigParams().fromXML(ManifoldCF.readString(is));
+      conn.setACLAuthority(ManifoldCF.readString(is));
+      conn.setMaxConnections(ManifoldCF.readDword(is));
+      int throttleCount = ManifoldCF.readDword(is);
       int j = 0;
       while (j < throttleCount)
       {
-        String throttleName = ACF.readString(is);
-        conn.addThrottleValue(throttleName,ACF.readString(is),ACF.readfloat(is));
+        String throttleName = ManifoldCF.readString(is);
+        conn.addThrottleValue(throttleName,ManifoldCF.readString(is),ManifoldCF.readfloat(is));
         j++;
       }
       // Attempt to save this connection
@@ -208,7 +208,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   *@return an array of connection objects.
   */
   public IRepositoryConnection[] getAllConnections()
-    throws ACFException
+    throws ManifoldCFException
   {
     beginTransaction();
     try
@@ -229,7 +229,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
       }
       return loadMultiple(names);
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       signalRollback();
       throw e;
@@ -250,7 +250,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   *@return the loaded connection object, or null if not found.
   */
   public IRepositoryConnection load(String name)
-    throws ACFException
+    throws ManifoldCFException
   {
     return loadMultiple(new String[]{name})[0];
   }
@@ -260,7 +260,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   *@return the loaded connection objects.
   */
   public IRepositoryConnection[] loadMultiple(String[] names)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Build description objects
     RepositoryConnectionDescription[] objectDescriptions = new RepositoryConnectionDescription[names.length];
@@ -283,7 +283,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   *@return the new object.
   */
   public IRepositoryConnection create()
-    throws ACFException
+    throws ManifoldCFException
   {
     RepositoryConnection rval = new RepositoryConnection();
     return rval;
@@ -294,7 +294,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   *@return true if the object was created, false otherwise.
   */
   public boolean save(IRepositoryConnection object)
-    throws ACFException
+    throws ManifoldCFException
   {
     StringSetBuffer ssb = new StringSetBuffer();
     ssb.add(getRepositoryConnectionsKey());
@@ -308,7 +308,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
       {
         performLock();
         // Notify of a change to the configuration
-        ACF.noteConfigurationChange();
+        ManifoldCF.noteConfigurationChange();
         // See whether the instance exists
         ArrayList params = new ArrayList();
         params.add(object.getName());
@@ -360,7 +360,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
         cacheManager.invalidateKeys(ch);
         return isCreated;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         signalRollback();
         throw e;
@@ -386,7 +386,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   * name does not exist, no error is returned.
   */
   public void delete(String name)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Grab a job manager handle.  We will need to check if any jobs refer to this connection.
     IJobManager jobManager = JobManagerFactory.make(threadContext);
@@ -403,8 +403,8 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
       {
         // Check if any jobs refer to this connection name
         if (jobManager.checkIfReference(name))
-          throw new ACFException("Can't delete repository connection '"+name+"': existing jobs refer to it");
-        ACF.noteConfigurationChange();
+          throw new ManifoldCFException("Can't delete repository connection '"+name+"': existing jobs refer to it");
+        ManifoldCF.noteConfigurationChange();
         throttleSpecManager.deleteRows(name);
         historyManager.deleteOwner(name,null);
         ArrayList params = new ArrayList();
@@ -412,7 +412,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
         performDelete("WHERE "+nameField+"=?",params,null);
         cacheManager.invalidateKeys(ch);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         signalRollback();
         throw e;
@@ -439,7 +439,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   *@return true if referenced, false otherwise.
   */
   public boolean isReferenced(String authorityName)
-    throws ACFException
+    throws ManifoldCFException
   {
     StringSetBuffer ssb = new StringSetBuffer();
     ssb.add(getRepositoryConnectionsKey());
@@ -456,7 +456,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   *@return the repository connections that use that connector.
   */
   public String[] findConnectionsForConnector(String className)
-    throws ACFException
+    throws ManifoldCFException
   {
     StringSetBuffer ssb = new StringSetBuffer();
     ssb.add(getRepositoryConnectionsKey());
@@ -482,7 +482,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   *@return true if the underlying connector is registered.
   */
   public boolean checkConnectorExists(String name)
-    throws ACFException
+    throws ManifoldCFException
   {
     beginTransaction();
     try
@@ -495,13 +495,13 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
       IResultSet set = performQuery("SELECT "+classNameField+" FROM "+getTableName()+" WHERE "+nameField+"=?",params,
         localCacheKeys,null);
       if (set.getRowCount() == 0)
-        throw new ACFException("No such connection: '"+name+"'");
+        throw new ManifoldCFException("No such connection: '"+name+"'");
       IResultRow row = set.getRow(0);
       String className = (String)row.getValue(classNameField);
       IConnectorManager cm = ConnectorManagerFactory.make(threadContext);
       return cm.isInstalled(className);
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       signalRollback();
       throw e;
@@ -553,7 +553,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   */
   public void recordHistory(String connectionName, Long startTime, String activityType, Long dataSize,
     String entityIdentifier, String resultCode, String resultDescription, String[] childIdentifiers)
-    throws ACFException
+    throws ManifoldCFException
   {
     long endTimeValue = System.currentTimeMillis();
     long startTimeValue;
@@ -585,7 +585,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   *@return the number of rows included by the criteria.
   */
   public long countHistoryRows(String connectionName, FilterCriteria criteria)
-    throws ACFException
+    throws ManifoldCFException
   {
     return historyManager.countHistoryRows(connectionName,criteria);
   }
@@ -601,7 +601,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   *@param maxRowCount is the maximum number of rows to include.
   */
   public IResultSet genHistorySimple(String connectionName, FilterCriteria criteria, SortOrder sort, int startRow, int maxRowCount)
-    throws ACFException
+    throws ManifoldCFException
   {
     return historyManager.simpleReport(connectionName,criteria,sort,startRow,maxRowCount);
   }
@@ -624,7 +624,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   */
   public IResultSet genHistoryActivityCount(String connectionName, FilterCriteria criteria, SortOrder sort, BucketDescription idBucket,
     long interval, int startRow, int maxRowCount)
-    throws ACFException
+    throws ManifoldCFException
   {
     return historyManager.maxActivityCountReport(connectionName,criteria,sort,idBucket,interval,startRow,maxRowCount);
   }
@@ -647,7 +647,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   */
   public IResultSet genHistoryByteCount(String connectionName, FilterCriteria criteria, SortOrder sort, BucketDescription idBucket,
     long interval, int startRow, int maxRowCount)
-    throws ACFException
+    throws ManifoldCFException
   {
     return historyManager.maxByteCountReport(connectionName,criteria,sort,idBucket,interval,startRow,maxRowCount);
   }
@@ -669,7 +669,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   */
   public IResultSet genHistoryResultCodes(String connectionName, FilterCriteria criteria, SortOrder sort,
     BucketDescription resultCodeBucket, BucketDescription idBucket, int startRow, int maxRowCount)
-    throws ACFException
+    throws ManifoldCFException
   {
     return historyManager.resultCodesReport(connectionName,criteria,sort,resultCodeBucket,idBucket,startRow,maxRowCount);
   }
@@ -701,7 +701,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   *@return the corresponding repository connection objects.
   */
   protected RepositoryConnection[] getRepositoryConnectionsMultiple(String[] connectionNames)
-    throws ACFException
+    throws ManifoldCFException
   {
     RepositoryConnection[] rval = new RepositoryConnection[connectionNames.length];
     HashMap returnIndex = new HashMap();
@@ -745,7 +745,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
       signalRollback();
       throw e;
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       signalRollback();
       throw e;
@@ -763,7 +763,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   *@param params is the set of parameters.
   */
   protected void getRepositoryConnectionsChunk(RepositoryConnection[] rval, Map returnIndex, String idList, ArrayList params)
-    throws ACFException
+    throws ManifoldCFException
   {
     IResultSet set;
     set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
@@ -888,7 +888,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
     * @return the newly created objects to cache, or null, if any object cannot be created.
     *  The order of the returned objects must correspond to the order of the object descriptinos.
     */
-    public Object[] create(ICacheDescription[] objectDescriptions) throws ACFException
+    public Object[] create(ICacheDescription[] objectDescriptions) throws ManifoldCFException
     {
       // Turn the object descriptions into the parameters for the ToolInstance requests
       String[] connectionNames = new String[objectDescriptions.length];
@@ -911,7 +911,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
     * @param objectDescription is the unique identifier of the object.
     * @param cachedObject is the cached object.
     */
-    public void exists(ICacheDescription objectDescription, Object cachedObject) throws ACFException
+    public void exists(ICacheDescription objectDescription, Object cachedObject) throws ManifoldCFException
     {
       // Cast what came in as what it really is
       RepositoryConnectionDescription objectDesc = (RepositoryConnectionDescription)objectDescription;
@@ -929,7 +929,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
     /** Perform the desired operation.  This method is called after either createGetObject()
     * or exists() is called for every requested object.
     */
-    public void execute() throws ACFException
+    public void execute() throws ManifoldCFException
     {
       // Does nothing; we only want to fetch objects in this cacher.
     }

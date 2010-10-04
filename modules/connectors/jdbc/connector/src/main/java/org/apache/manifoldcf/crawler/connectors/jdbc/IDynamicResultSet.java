@@ -34,10 +34,10 @@ public interface IDynamicResultSet
   *@return the immutable row description, or null if there is no such row.
   */
   public IResultRow getNextRow()
-    throws ACFException, ServiceInterruption;
+    throws ManifoldCFException, ServiceInterruption;
 
   /** Close this resultset.
   */
   public void close()
-    throws ACFException, ServiceInterruption;
+    throws ManifoldCFException, ServiceInterruption;
 }

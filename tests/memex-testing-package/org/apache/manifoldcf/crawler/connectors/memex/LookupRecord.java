@@ -53,7 +53,7 @@ public class LookupRecord
                         }
                         System.err.println("Successfully located");
                 }
-                catch (ACFException e)
+                catch (ManifoldCFException e)
                 {
                         e.printStackTrace(System.err);
                         System.exit(2);

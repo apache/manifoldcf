@@ -74,7 +74,7 @@ public interface IEventActivity extends INamingActivity
   *@return false if the event is already in the "pending" state.
   */
   public boolean beginEventSequence(String eventName)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Complete an event sequence.
   * This method should be called to signal that an event is no longer in the "pending" state.  This can mean that the prerequisite processing is
@@ -84,7 +84,7 @@ public interface IEventActivity extends INamingActivity
   *@param eventName is the event name.
   */
   public void completeEventSequence(String eventName)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Abort processing a document (for sequencing reasons).
   * This method should be called in order to cause the specified document to be requeued for later processing.  While this is similar in some respects
@@ -93,7 +93,7 @@ public interface IEventActivity extends INamingActivity
   *@param localIdentifier is the document identifier to requeue
   */
   public void retryDocumentProcessing(String localIdentifier)
-    throws ACFException;
+    throws ManifoldCFException;
 
 
 }

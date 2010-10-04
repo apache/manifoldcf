@@ -48,7 +48,7 @@ public class DocumentDeleteStufferThread extends Thread
   *@param n is the maximum number of threads that will be doing delete processing.
   */
   public DocumentDeleteStufferThread(DocumentDeleteQueue documentDeleteQueue, int n, DocDeleteResetManager resetManager)
-    throws ACFException
+    throws ManifoldCFException
   {
     super();
     this.documentDeleteQueue = documentDeleteQueue;
@@ -72,9 +72,9 @@ public class DocumentDeleteStufferThread extends Thread
       ArrayList docList = new ArrayList();
 
       IDBInterface database = DBInterfaceFactory.make(threadContext,
-        ACF.getMasterDatabaseName(),
-        ACF.getMasterDatabaseUsername(),
-        ACF.getMasterDatabasePassword());
+        ManifoldCF.getMasterDatabaseName(),
+        ManifoldCF.getMasterDatabaseUsername(),
+        ManifoldCF.getMasterDatabasePassword());
 
       int deleteChunkSize = database.getMaxInClause();
 
@@ -90,7 +90,7 @@ public class DocumentDeleteStufferThread extends Thread
           // can run out of work if we don't act).
           if (documentDeleteQueue.checkIfEmpty(n) == false)
           {
-            ACF.sleep(100L);
+            ManifoldCF.sleep(100L);
             continue;
           }
 
@@ -107,7 +107,7 @@ public class DocumentDeleteStufferThread extends Thread
           if (descs.length == 0)
           {
             Logging.threads.debug("Document delete stuffer thread found nothing to do");
-            ACF.sleep(1000L);       // 1 second
+            ManifoldCF.sleep(1000L);       // 1 second
             continue;
           }
 
@@ -128,12 +128,12 @@ public class DocumentDeleteStufferThread extends Thread
           // If we don't wait here, the other threads don't have a chance to queue anything else up.
           yield();
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
-          if (e.getErrorCode() == ACFException.INTERRUPTED)
+          if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
             break;
 
-          if (e.getErrorCode() == ACFException.DATABASE_CONNECTION_ERROR)
+          if (e.getErrorCode() == ManifoldCFException.DATABASE_CONNECTION_ERROR)
           {
             resetManager.noteEvent();
             documentDeleteQueue.reset();
@@ -142,7 +142,7 @@ public class DocumentDeleteStufferThread extends Thread
             try
             {
               // Give the database a chance to catch up/wake up
-              ACF.sleep(10000L);
+              ManifoldCF.sleep(10000L);
             }
             catch (InterruptedException se)
             {
@@ -154,7 +154,7 @@ public class DocumentDeleteStufferThread extends Thread
           // Log it, but keep the thread alive
           Logging.threads.error("Exception tossed: "+e.getMessage(),e);
 
-          if (e.getErrorCode() == ACFException.SETUP_ERROR)
+          if (e.getErrorCode() == ManifoldCFException.SETUP_ERROR)
           {
             // Shut the whole system down!
             System.exit(1);

@@ -62,7 +62,7 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   *@return true if the resource is found, false if not.  In either case, output may be filled in.
   */
   public boolean requestInfo(Configuration output, String command)
-    throws ACFException
+    throws ManifoldCFException
   {
     return false;
   }
@@ -73,7 +73,7 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   *@param activities is the handle to an object that the implementer of an output connector may use to perform operations, such as logging processing activity.
   */
   public void noteJobComplete(IOutputNotifyActivity activities)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     // The base implementation does nothing here.
   }
@@ -84,7 +84,7 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   *@return true if the mime type is indexable by this connector.
   */
   public boolean checkMimeTypeIndexable(String mimeType)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     return true;
   }
@@ -96,7 +96,7 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   *@return true if the file is indexable.
   */
   public boolean checkDocumentIndexable(File localFile)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     return true;
   }
@@ -118,7 +118,7 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputSpecificationHeader(IHTTPOutput out, OutputSpecification os, ArrayList tabsArray)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
   }
   
@@ -131,7 +131,7 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   *@param tabName is the current tab name.
   */
   public void outputSpecificationBody(IHTTPOutput out, OutputSpecification os, String tabName)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
   }
   
@@ -144,7 +144,7 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   public String processSpecificationPost(IPostParameters variableContext, OutputSpecification os)
-    throws ACFException
+    throws ManifoldCFException
   {
     return null;
   }
@@ -156,7 +156,7 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   *@param os is the current output specification for this job.
   */
   public void viewSpecification(IHTTPOutput out, OutputSpecification os)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
   }
 

@@ -22,7 +22,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
-import org.apache.manifoldcf.crawler.system.ACF;
+import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
 import org.xml.sax.Attributes;
 
@@ -219,13 +219,13 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   *@param threadContext is the current thread context.
   */
   public void install(IThreadContext threadContext)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Install
     IDBInterface mainDatabase = DBInterfaceFactory.make(threadContext,
-      ACF.getMasterDatabaseName(),
-      ACF.getMasterDatabaseUsername(),
-      ACF.getMasterDatabasePassword());
+      ManifoldCF.getMasterDatabaseName(),
+      ManifoldCF.getMasterDatabaseUsername(),
+      ManifoldCF.getMasterDatabasePassword());
 
     RobotsManager rm = new RobotsManager(threadContext,mainDatabase);
     DNSManager dns = new DNSManager(threadContext,mainDatabase);
@@ -237,7 +237,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       dns.install();
       cm.install();
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       mainDatabase.signalRollback();
       throw e;
@@ -260,13 +260,13 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   *@param threadContext is the current thread context.
   */
   public void deinstall(IThreadContext threadContext)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Uninstall
     IDBInterface mainDatabase = DBInterfaceFactory.make(threadContext,
-      ACF.getMasterDatabaseName(),
-      ACF.getMasterDatabaseUsername(),
-      ACF.getMasterDatabasePassword());
+      ManifoldCF.getMasterDatabaseName(),
+      ManifoldCF.getMasterDatabaseUsername(),
+      ManifoldCF.getMasterDatabasePassword());
 
     RobotsManager rm = new RobotsManager(threadContext,mainDatabase);
     DNSManager dns = new DNSManager(threadContext,mainDatabase);
@@ -278,7 +278,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       rm.deinstall();
       dns.deinstall();
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       mainDatabase.signalRollback();
       throw e;
@@ -324,15 +324,15 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
   /** Start a session */
   protected void getSession()
-    throws ACFException
+    throws ManifoldCFException
   {
     // Handle the stuff that requires a thread context
     if (robotsManager == null || dnsManager == null || cookieManager == null)
     {
       IDBInterface databaseHandle = DBInterfaceFactory.make(currentContext,
-        ACF.getMasterDatabaseName(),
-        ACF.getMasterDatabaseUsername(),
-        ACF.getMasterDatabasePassword());
+        ManifoldCF.getMasterDatabaseName(),
+        ManifoldCF.getMasterDatabaseUsername(),
+        ManifoldCF.getMasterDatabasePassword());
 
       robotsManager = new RobotsManager(currentContext,databaseHandle);
       dnsManager = new DNSManager(currentContext,databaseHandle);
@@ -346,8 +346,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
       String emailAddress = params.getParameter(WebcrawlerConfig.PARAMETER_EMAIL);
       if (emailAddress == null)
-        throw new ACFException("Missing email address");
-      userAgent = "ApacheACFWebCrawler; "+emailAddress+")";
+        throw new ManifoldCFException("Missing email address");
+      userAgent = "ApacheManifoldCFWebCrawler; "+emailAddress+")";
       from = emailAddress;
 
       x = params.getParameter(WebcrawlerConfig.PARAMETER_ROBOTSUSAGE);
@@ -374,7 +374,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   * in active use.
   */
   public void poll()
-    throws ACFException
+    throws ManifoldCFException
   {
     ThrottledFetcher.flushIdleConnections();
   }
@@ -382,7 +382,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   /** Check status of connection.
   */
   public String check()
-    throws ACFException
+    throws ManifoldCFException
   {
     getSession();
     return super.check();
@@ -391,7 +391,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   /** Close the connection.  Call this before discarding the repository connector.
   */
   public void disconnect()
-    throws ACFException
+    throws ManifoldCFException
   {
     throttleDescription = null;
     credentialsDescription = null;
@@ -453,7 +453,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   */
   public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
     long startTime, long endTime)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     getSession();
 
@@ -521,7 +521,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   */
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
     DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     getSession();
 
@@ -723,7 +723,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                         activityResultCode = null;
                       }
                     }
-                    catch (ACFException e)
+                    catch (ManifoldCFException e)
                     {
                       connection.noteInterrupted(e);
                       throw e;
@@ -1072,7 +1072,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             rval[i] = null;
             break;
           default:
-            throw new ACFException("Unexpected value for result signal: "+Integer.toString(resultSignal));
+            throw new ManifoldCFException("Unexpected value for result signal: "+Integer.toString(resultSignal));
           }
         }
         finally
@@ -1109,7 +1109,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   * should only find other references, and should not actually call the ingestion methods.
   */
   public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     getSession();
 
@@ -1225,20 +1225,20 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
               }
               catch (java.net.SocketException e)
               {
-                throw new ACFException("Socket timeout error closing stream: "+e.getMessage(),e);
+                throw new ManifoldCFException("Socket timeout error closing stream: "+e.getMessage(),e);
               }
               catch (org.apache.commons.httpclient.ConnectTimeoutException e)
               {
-                throw new ACFException("Socket connect timeout error closing stream: "+e.getMessage(),e);
+                throw new ManifoldCFException("Socket connect timeout error closing stream: "+e.getMessage(),e);
               }
               catch (InterruptedIOException e)
               {
                 //Logging.connectors.warn("IO interruption seen",e);
-                throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+                throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
               }
               catch (IOException e)
               {
-                throw new ACFException("IO error closing stream: "+e.getMessage(),e);
+                throw new ManifoldCFException("IO error closing stream: "+e.getMessage(),e);
               }
             }
           }
@@ -1268,7 +1268,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   *@param versions is the corresponding set of version identifiers (individual identifiers may be null).
   */
   public void releaseDocumentVersions(String[] documentIdentifiers, String[] versions)
-    throws ACFException
+    throws ManifoldCFException
   {
     int i = 0;
     while (i < documentIdentifiers.length)
@@ -1309,7 +1309,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     tabsArray.add("Email");
     tabsArray.add("Robots");
@@ -1640,7 +1640,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   *@param tabName is the current tab name.
   */
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     
     String email = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.PARAMETER_EMAIL);
@@ -1961,7 +1961,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             if (domain == null)
               domain = "";
             String userName = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_USERNAME);
-            String password = org.apache.manifoldcf.crawler.system.ACF.deobfuscate(cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD));
+            String password = org.apache.manifoldcf.crawler.system.ManifoldCF.deobfuscate(cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD));
                                         
             // It's prefix will be...
             String prefix = "acredential_" + Integer.toString(accessCounter);
@@ -2155,7 +2155,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "                        <nobr><input type=\"text\" size=\"15\" name=\""+authParamPrefix+"_value"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(value)+"\"/></nobr>\n"+
 "                      </td>\n"+
 "                      <td class=\"formcolumncell\">\n"+
-"                        <nobr><input type=\"password\" size=\"15\" name=\""+authParamPrefix+"_password"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(org.apache.manifoldcf.crawler.system.ACF.deobfuscate(password))+"\"/></nobr>\n"+
+"                        <nobr><input type=\"password\" size=\"15\" name=\""+authParamPrefix+"_password"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(org.apache.manifoldcf.crawler.system.ManifoldCF.deobfuscate(password))+"\"/></nobr>\n"+
 "                      </td>\n"+
 "                    </tr>\n"
                       );
@@ -2282,7 +2282,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             if (domain == null)
               domain = "";
             String userName = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_USERNAME);
-            String password = org.apache.manifoldcf.crawler.system.ACF.deobfuscate(cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD));
+            String password = org.apache.manifoldcf.crawler.system.ManifoldCF.deobfuscate(cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD));
 
             // It's prefix will be...
             String prefix = "acredential_" + Integer.toString(accessCounter);
@@ -2360,7 +2360,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                       out.print(
 "<input type=\"hidden\" name=\""+authParamPrefix+"_param"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(param)+"\"/>\n"+
 "<input type=\"hidden\" name=\""+authParamPrefix+"_value"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(value)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+authParamPrefix+"_password"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(org.apache.manifoldcf.crawler.system.ACF.deobfuscate(password))+"\"/>\n"
+"<input type=\"hidden\" name=\""+authParamPrefix+"_password"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(org.apache.manifoldcf.crawler.system.ManifoldCF.deobfuscate(password))+"\"/>\n"
                       );
                       paramCounter++;
                     }
@@ -2559,7 +2559,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
-    throws ACFException
+    throws ManifoldCFException
   {
     String email = variableContext.getParameter("email");
     if (email != null)
@@ -2691,7 +2691,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           node.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_DOMAIN,domain);
           node.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_USERNAME,userName);
           node.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD,
-            org.apache.manifoldcf.crawler.system.ACF.obfuscate(password));
+            org.apache.manifoldcf.crawler.system.ManifoldCF.obfuscate(password));
           parameters.addChild(parameters.getChildCount(),node);
         }
         i++;
@@ -2710,7 +2710,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         node.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_DOMAIN,domain);
         node.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_USERNAME,userName);
         node.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD,
-          org.apache.manifoldcf.crawler.system.ACF.obfuscate(password));
+          org.apache.manifoldcf.crawler.system.ManifoldCF.obfuscate(password));
         parameters.addChild(parameters.getChildCount(),node);
       }
     }
@@ -2779,7 +2779,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                     if (value != null && value.length() > 0)
                       paramNode.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,value);
                     if (password != null && password.length() > 0)
-                      paramNode.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD,org.apache.manifoldcf.crawler.system.ACF.obfuscate(password));
+                      paramNode.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD,org.apache.manifoldcf.crawler.system.ManifoldCF.obfuscate(password));
                     authPageNode.addChild(authPageNode.getChildCount(),paramNode);
                   }
                   z++;
@@ -2797,7 +2797,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                   if (value != null && value.length() > 0)
                     paramNode.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,value);
                   if (password != null && password.length() > 0)
-                    paramNode.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD,org.apache.manifoldcf.crawler.system.ACF.obfuscate(password));
+                    paramNode.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD,org.apache.manifoldcf.crawler.system.ManifoldCF.obfuscate(password));
                   authPageNode.addChild(authPageNode.getChildCount(),paramNode);
                 }
               }
@@ -2934,7 +2934,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     String email = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.PARAMETER_EMAIL);
     String robots = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.PARAMETER_ROBOTSUSAGE);
@@ -3268,7 +3268,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     tabsArray.add("Seeds");
     tabsArray.add("Canonicalization");
@@ -3381,7 +3381,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   *@param tabName is the current tab name.
   */
   public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     int i;
     int k;
@@ -3847,7 +3847,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Get the seeds
     String seeds = variableContext.getParameter("seeds");
@@ -4120,7 +4120,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   *@param ds is the current document specification for this job.
   */
   public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     int j;
     boolean seenAny;
@@ -4199,7 +4199,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
     catch (java.io.IOException e)
     {
-      throw new ACFException("IO error: "+e.getMessage(),e);
+      throw new ManifoldCFException("IO error: "+e.getMessage(),e);
     }
     out.print(
 "    </td>\n"+
@@ -4327,7 +4327,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
     catch (java.io.IOException e)
     {
-      throw new ACFException("IO error: "+e.getMessage(),e);
+      throw new ManifoldCFException("IO error: "+e.getMessage(),e);
     }
     out.print(
 "    </td>\n"+
@@ -4369,7 +4369,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
     catch (java.io.IOException e)
     {
-      throw new ACFException("IO error: "+e.getMessage(),e);
+      throw new ManifoldCFException("IO error: "+e.getMessage(),e);
     }
     out.print(
 "    </td>\n"+
@@ -4481,7 +4481,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   *@return appropriate status.
   */
   protected int lookupIPAddress(String documentIdentifier, IVersionActivity activities, String hostName, long currentTime, StringBuffer ipAddressBuffer)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     String eventName = makeDNSEventName(activities,hostName);
     DNSManager.DNSInfo info = dnsManager.lookup(hostName,currentTime);
@@ -4559,7 +4559,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   */
   protected int checkFetchAllowed(String documentIdentifier, String protocol, String hostIPAddress, int port, PageCredentials credential,
     IKeystoreManager trustStore, String hostName, String[] binNames, long currentTime, String pathString, IVersionActivity versionActivities, int connectionLimit)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     // hostNameAndPort is the key for looking up the robots file in the database
     String hostNameAndPort = makeRobotsKey(protocol,hostName,port);
@@ -4655,7 +4655,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             catch (InterruptedIOException e2)
             {
               //Logging.connectors.warn("IO interruption seen",e2);
-              throw new ACFException("Interrupted: "+e2.getMessage(),e2,ACFException.INTERRUPTED);
+              throw new ManifoldCFException("Interrupted: "+e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
             }
             catch (IOException e2)
             {
@@ -4683,7 +4683,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             catch (InterruptedIOException e2)
             {
               //Logging.connectors.warn("IO interruption seen",e2);
-              throw new ACFException("Interrupted: "+e2.getMessage(),e2,ACFException.INTERRUPTED);
+              throw new ManifoldCFException("Interrupted: "+e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
             }
             catch (IOException e2)
             {
@@ -4693,7 +4693,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           catch (InterruptedIOException e)
           {
             //Logging.connectors.warn("IO interruption seen",e);
-            throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
           }
           catch (IOException e)
           {
@@ -4716,7 +4716,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             catch (InterruptedIOException e2)
             {
               //Logging.connectors.warn("IO interruption seen",e2);
-              throw new ACFException("Interrupted: "+e2.getMessage(),e2,ACFException.INTERRUPTED);
+              throw new ManifoldCFException("Interrupted: "+e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
             }
             catch (IOException e2)
             {
@@ -4763,7 +4763,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   *@return the canonical URL (the document identifier), or null if the url was illegal.
   */
   protected String makeDocumentIdentifier(String parentIdentifier, String rawURL, DocumentURLFilter filter)
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -4849,7 +4849,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   /** Code to canonicalize a URL.  If URL cannot be canonicalized (and is illegal) return null.
   */
   protected String doCanonicalization(DocumentURLFilter filter, java.net.URI url)
-    throws ACFException, java.net.URISyntaxException
+    throws ManifoldCFException, java.net.URISyntaxException
   {
     // First, we have to figure out what the canonicalization policy is.
     // To do that, we need to do a regexp match against the COMPLETE raw url.
@@ -5064,7 +5064,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   /** Code to check if data is interesting, based on response code and content type.
   */
   protected boolean isContentInteresting(IFingerprintActivity activities, String documentIdentifier, int response, String contentType)
-    throws ServiceInterruption, ACFException
+    throws ServiceInterruption, ManifoldCFException
   {
     // Additional filtering only done if it's a 200 response
     if (response != 200)
@@ -5094,7 +5094,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   /** Code to check if an already-fetched document should be ingested.
   */
   protected boolean isDataIngestable(IFingerprintActivity activities, String documentIdentifier)
-    throws ServiceInterruption, ACFException
+    throws ServiceInterruption, ManifoldCFException
   {
     if (cache.getResponseCode(documentIdentifier) != 200)
       return false;
@@ -5125,7 +5125,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
   /** Find a redirection URI, if it exists */
   protected String findRedirectionURI(String currentURI)
-    throws ACFException
+    throws ManifoldCFException
   {
     FindRedirectionHandler handler = new FindRedirectionHandler(currentURI);
     handleRedirects(currentURI,handler);
@@ -5134,7 +5134,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
   /** Find matching HTML form data, if present.  Return null if not. */
   protected FormData findHTMLForm(String currentURI, LoginParameters lp)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (lp == null || lp.getFormNamePattern() == null)
       return null;
@@ -5152,7 +5152,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
   /** Find a preferred redirection URI, if it exists */
   protected String findPreferredRedirectionURI(String currentURI, LoginParameters lp)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (lp == null || lp.getPreferredRedirectionPattern() == null)
       return null;
@@ -5164,7 +5164,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
   /** Find HTML link URI, if present, making sure specified preference is matched. */
   protected String findHTMLLinkURI(String currentURI, LoginParameters lp)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (lp == null || lp.getPreferredLinkPattern() == null)
       return null;
@@ -5197,7 +5197,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
     /** Override noteDiscoveredLink */
     public void noteDiscoveredLink(String rawURL)
-      throws ACFException
+      throws ManifoldCFException
     {
       if (targetURI == null)
       {
@@ -5252,7 +5252,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
     /** Note the start of a form */
     public void noteFormStart(Map formAttributes)
-      throws ACFException
+      throws ManifoldCFException
     {
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("WEB: Saw form with name "+((formAttributes.get("name")==null)?"null":"'"+formAttributes.get("name")+"'"));
@@ -5298,7 +5298,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
     /** Note an input tag */
     public void noteFormInput(Map inputAttributes)
-      throws ACFException
+      throws ManifoldCFException
     {
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("WEB: Saw form element of type '"+inputAttributes.get("type")+"' name '"+inputAttributes.get("name")+"'");
@@ -5308,7 +5308,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
     /** Note the end of a form */
     public void noteFormEnd()
-      throws ACFException
+      throws ManifoldCFException
     {
       if (currentFormData != null)
       {
@@ -5319,25 +5319,25 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
     /** Note discovered href */
     public void noteAHREF(String rawURL)
-      throws ACFException
+      throws ManifoldCFException
     {
     }
 
     /** Note discovered href */
     public void noteLINKHREF(String rawURL)
-      throws ACFException
+      throws ManifoldCFException
     {
     }
 
     /** Note discovered IMG SRC */
     public void noteIMGSRC(String rawURL)
-      throws ACFException
+      throws ManifoldCFException
     {
     }
 
     /** Note discovered FRAME SRC */
     public void noteFRAMESRC(String rawURL)
-      throws ACFException
+      throws ManifoldCFException
     {
     }
 
@@ -5634,25 +5634,25 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
     /** Note the start of a form */
     public void noteFormStart(Map formAttributes)
-      throws ACFException
+      throws ManifoldCFException
     {
     }
 
     /** Note an input tag */
     public void noteFormInput(Map inputAttributes)
-      throws ACFException
+      throws ManifoldCFException
     {
     }
 
     /** Note the end of a form */
     public void noteFormEnd()
-      throws ACFException
+      throws ManifoldCFException
     {
     }
 
     /** Override noteDiscoveredLink */
     public void noteDiscoveredLink(String rawURL)
-      throws ACFException
+      throws ManifoldCFException
     {
       if (targetURI == null)
       {
@@ -5682,27 +5682,27 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
     /** Note discovered href */
     public void noteAHREF(String rawURL)
-      throws ACFException
+      throws ManifoldCFException
     {
       noteDiscoveredLink(rawURL);
     }
 
     /** Note discovered href */
     public void noteLINKHREF(String rawURL)
-      throws ACFException
+      throws ManifoldCFException
     {
       noteDiscoveredLink(rawURL);
     }
 
     /** Note discovered IMG SRC */
     public void noteIMGSRC(String rawURL)
-      throws ACFException
+      throws ManifoldCFException
     {
     }
 
     /** Note discovered FRAME SRC */
     public void noteFRAMESRC(String rawURL)
-      throws ACFException
+      throws ManifoldCFException
     {
       noteDiscoveredLink(rawURL);
     }
@@ -5724,7 +5724,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     *@param rawURL is the raw discovered url.  This may be relative, malformed, or otherwise unsuitable for use until final form is acheived.
     */
     public void noteDiscoveredLink(String rawURL)
-      throws ACFException
+      throws ManifoldCFException
     {
       // Build a complete url, but don't filter or anything
       try
@@ -5795,7 +5795,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
   /** Code to extract links from an already-fetched document. */
   protected void extractLinks(String documentIdentifier, IProcessActivity activities, DocumentURLFilter filter)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     handleRedirects(documentIdentifier,new ProcessActivityRedirectionHandler(documentIdentifier,activities,filter));
     // For html, we don't want any actions, because we don't do form submission.
@@ -5828,7 +5828,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     *@param rawURL is the raw discovered url.  This may be relative, malformed, or otherwise unsuitable for use until final form is acheived.
     */
     public void noteDiscoveredLink(String rawURL)
-      throws ACFException
+      throws ManifoldCFException
     {
       String newIdentifier = makeDocumentIdentifier(documentIdentifier,rawURL,filter);
       if (newIdentifier != null)
@@ -5867,46 +5867,46 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
     /** Note the start of a form */
     public void noteFormStart(Map formAttributes)
-      throws ACFException
+      throws ManifoldCFException
     {
     }
 
     /** Note an input tag */
     public void noteFormInput(Map inputAttributes)
-      throws ACFException
+      throws ManifoldCFException
     {
     }
 
     /** Note the end of a form */
     public void noteFormEnd()
-      throws ACFException
+      throws ManifoldCFException
     {
     }
 
     /** Note discovered href */
     public void noteAHREF(String rawURL)
-      throws ACFException
+      throws ManifoldCFException
     {
       noteDiscoveredLink(rawURL);
     }
 
     /** Note discovered href */
     public void noteLINKHREF(String rawURL)
-      throws ACFException
+      throws ManifoldCFException
     {
       noteDiscoveredLink(rawURL);
     }
 
     /** Note discovered IMG SRC */
     public void noteIMGSRC(String rawURL)
-      throws ACFException
+      throws ManifoldCFException
     {
       noteDiscoveredLink(rawURL);
     }
 
     /** Note discovered FRAME SRC */
     public void noteFRAMESRC(String rawURL)
-      throws ACFException
+      throws ManifoldCFException
     {
       noteDiscoveredLink(rawURL);
     }
@@ -5926,7 +5926,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     *@param rawTtlValue is the raw discovered ttl value.  Null indicates we should set the default.
     */
     public void noteDiscoveredTtlValue(String rawTtlValue)
-      throws ACFException
+      throws ManifoldCFException
     {
       long currentTime = System.currentTimeMillis();
       Long rescanTime = null;
@@ -5957,7 +5957,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
   /** Handle extracting the redirect link from a redirect response. */
   protected void handleRedirects(String documentURI, IRedirectionHandler handler)
-    throws ACFException
+    throws ManifoldCFException
   {
     int responseCode = cache.getResponseCode(documentURI);
     if (responseCode == 302 || responseCode == 301)
@@ -5979,7 +5979,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
   /** Handle document references from XML.  Right now we only understand RSS. */
   protected void handleXML(String documentURI, IXMLHandler handler)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     try
     {
@@ -6056,7 +6056,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           x.cleanup();
         }
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         // Ignore XML parsing errors.  These should probably have their own error code, but that requires a core change.
         if (e.getMessage().indexOf("pars") >= 0)
@@ -6074,21 +6074,21 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
     catch (java.net.SocketTimeoutException e)
     {
-      throw new ACFException("Socket timeout exception: "+e.getMessage(),e);
+      throw new ManifoldCFException("Socket timeout exception: "+e.getMessage(),e);
     }
     catch (org.apache.commons.httpclient.ConnectTimeoutException e)
     {
-      throw new ACFException("Socket connect timeout exception: "+e.getMessage(),e);
+      throw new ManifoldCFException("Socket connect timeout exception: "+e.getMessage(),e);
     }
     catch (InterruptedIOException e)
     {
       //Logging.connectors.warn("IO interruption seen",e);
 
-      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new ACFException("IO error: "+e.getMessage(),e);
+      throw new ManifoldCFException("IO error: "+e.getMessage(),e);
     }
   }
 
@@ -6121,7 +6121,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
     /** Handle the tag beginning to set the correct second-level parsing context */
     protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
       if (qName.equals("rss"))
       {
@@ -6150,7 +6150,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
     /** Handle the tag ending */
     protected void endTag()
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
       XMLContext context = theStream.getContext();
       String tagName = context.getQname();
@@ -6183,7 +6183,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
 
     protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
       // Handle each channel
       if (qName.equals("channel"))
@@ -6197,7 +6197,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
 
     protected void endTag()
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
       // If it's our channel tag, process global channel information
       XMLContext context = theStream.getContext();
@@ -6229,7 +6229,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
 
     protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
       // The tags we care about are "ttl" and "item", nothing else.
       if (qName.equals("ttl"))
@@ -6247,7 +6247,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
 
     protected void endTag()
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
       XMLContext theContext = theStream.getContext();
       String theTag = theContext.getQname();
@@ -6277,7 +6277,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
     /** Process this data */
     protected void process()
-      throws ACFException
+      throws ManifoldCFException
     {
       // Deal with the ttlvalue, if it was found
       // Use the ttl value as a signal for when we ought to look at this feed again.  If not present, use the default.
@@ -6296,7 +6296,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
 
     protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
       // The tags we care about are "ttl" and "item", nothing else.
       if (qName.equals("link"))
@@ -6318,7 +6318,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
     /** Convert the individual sub-fields of the item context into their final forms */
     protected void endTag()
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
       XMLContext theContext = theStream.getContext();
       String theTag = theContext.getQname();
@@ -6338,7 +6338,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
     /** Process the data accumulated for this item */
     public void process(IXMLHandler handler)
-      throws ACFException
+      throws ManifoldCFException
     {
       if (linkField == null || linkField.length() == 0)
         linkField = guidField;
@@ -6375,7 +6375,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
 
     protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
       // The tags we care about are "ttl" and "item", nothing else.
       if (qName.equals("ttl"))
@@ -6393,7 +6393,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
 
     protected void endTag()
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
       XMLContext theContext = theStream.getContext();
       String theTag = theContext.getQname();
@@ -6420,7 +6420,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
     /** Process this data */
     protected void process()
-      throws ACFException
+      throws ManifoldCFException
     {
       // Deal with the ttlvalue, if it was found
       handler.noteDiscoveredTtlValue(ttlValue);
@@ -6437,7 +6437,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
 
     protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
       // The tags we care about are "ttl" and "item", nothing else.
       if (qName.equals("link"))
@@ -6454,7 +6454,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
     /** Convert the individual sub-fields of the item context into their final forms */
     protected void endTag()
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
       XMLContext theContext = theStream.getContext();
       String theTag = theContext.getQname();
@@ -6470,7 +6470,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
     /** Process the data accumulated for this item */
     public void process(IXMLHandler handler)
-      throws ACFException
+      throws ManifoldCFException
     {
       if (linkField != null && linkField.length() > 0)
       {
@@ -6504,7 +6504,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
 
     protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
       // The tags we care about are "ttl" and "item", nothing else.
       if (qName.equals("ttl"))
@@ -6522,7 +6522,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
 
     protected void endTag()
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
       XMLContext theContext = theStream.getContext();
       String theTag = theContext.getQname();
@@ -6549,7 +6549,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
     /** Process this data */
     protected void process()
-      throws ACFException
+      throws ManifoldCFException
     {
       // Deal with the ttlvalue, if it was found
       // Use the ttl value as a signal for when we ought to look at this feed again.  If not present, use the default.
@@ -6567,7 +6567,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
 
     protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
       // The tags we care about are "ttl" and "item", nothing else.
       if (qName.equals("link"))
@@ -6585,7 +6585,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
     /** Process the data accumulated for this item */
     public void process(IXMLHandler handler)
-      throws ACFException
+      throws ManifoldCFException
     {
       if (linkField != null && linkField.length() > 0)
       {
@@ -6603,7 +6603,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
   /** Handle document references from HTML */
   protected void handleHTML(String documentURI, IHTMLHandler handler)
-    throws ACFException
+    throws ManifoldCFException
   {
     int responseCode = cache.getResponseCode(documentURI);
     if (responseCode != 200)
@@ -6693,27 +6693,27 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
     catch (SocketTimeoutException e)
     {
-      throw new ACFException("Socket timeout exception: "+e.getMessage(),e);
+      throw new ManifoldCFException("Socket timeout exception: "+e.getMessage(),e);
     }
     catch (org.apache.commons.httpclient.ConnectTimeoutException e)
     {
-      throw new ACFException("Socket connect timeout exception: "+e.getMessage(),e);
+      throw new ManifoldCFException("Socket connect timeout exception: "+e.getMessage(),e);
     }
     catch (InterruptedIOException e)
     {
       //Logging.connectors.warn("IO interruption seen",e);
 
-      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new ACFException("IO error: "+e.getMessage(),e);
+      throw new ManifoldCFException("IO error: "+e.getMessage(),e);
     }
   }
 
   /** Is the document text, as far as we can tell? */
   protected boolean isDocumentText(String documentURI)
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -6748,19 +6748,19 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
     catch (SocketTimeoutException e)
     {
-      throw new ACFException("Socket timeout exception accessing cached document: "+e.getMessage(),e);
+      throw new ManifoldCFException("Socket timeout exception accessing cached document: "+e.getMessage(),e);
     }
     catch (org.apache.commons.httpclient.ConnectTimeoutException e)
     {
-      throw new ACFException("Socket timeout exception accessing cached document: "+e.getMessage(),e);
+      throw new ManifoldCFException("Socket timeout exception accessing cached document: "+e.getMessage(),e);
     }
     catch (InterruptedIOException e)
     {
-      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new ACFException("IO exception accessing cached document: "+e.getMessage(),e);
+      throw new ManifoldCFException("IO exception accessing cached document: "+e.getMessage(),e);
     }
   }
 
@@ -6845,7 +6845,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   * list.
   */
   protected static void compileList(ArrayList output, ArrayList input)
-    throws ACFException
+    throws ManifoldCFException
   {
     int i = 0;
     while (i < input.size())
@@ -6857,7 +6857,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       }
       catch (PatternSyntaxException e)
       {
-        throw new ACFException("Mapping regular expression '"+inputString+"' is illegal: "+e.getMessage(),e);
+        throw new ManifoldCFException("Mapping regular expression '"+inputString+"' is illegal: "+e.getMessage(),e);
       }
     }
   }
@@ -6876,7 +6876,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
   /** Get the trust store for a given document identifier (URL) */
   protected IKeystoreManager getTrustStore(String documentIdentifier)
-    throws ACFException
+    throws ManifoldCFException
   {
     return trustsDescription.getTrustStore(documentIdentifier);
   }
@@ -6911,7 +6911,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
   /** Read a document specification to yield a map of name/value pairs for metadata */
   protected static ArrayList findMetadata(DocumentSpecification spec)
-    throws ACFException
+    throws ManifoldCFException
   {
     ArrayList rval = new ArrayList();
     int i = 0;
@@ -7195,7 +7195,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     * will thus cause the include or exclude regexp to be skipped.
     */
     public DocumentURLFilter(DocumentSpecification spec)
-      throws ACFException
+      throws ManifoldCFException
     {
       String includes = "";
       String excludes = "";
@@ -7303,7 +7303,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           }
           catch (java.util.regex.PatternSyntaxException e)
           {
-            throw new ACFException("Canonicalization regular expression '"+urlRegexp+"' is illegal: "+e.getMessage(),e);
+            throw new ManifoldCFException("Canonicalization regular expression '"+urlRegexp+"' is illegal: "+e.getMessage(),e);
           }
         }
       }
@@ -7437,7 +7437,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     *@param rawURL is the raw discovered url.  This may be relative, malformed, or otherwise unsuitable for use until final form is acheived.
     */
     public void noteDiscoveredLink(String rawURL)
-      throws ACFException;
+      throws ManifoldCFException;
   }
 
   /** This interface describes the functionality needed by an redirection processor in order to handle a redirection.
@@ -7454,7 +7454,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     *@param rawTtlValue is the raw discovered ttl value.
     */
     public void noteDiscoveredTtlValue(String rawTtlValue)
-      throws ACFException;
+      throws ManifoldCFException;
 
   }
 
@@ -7464,31 +7464,31 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   {
     /** Note the start of a form */
     public void noteFormStart(Map formAttributes)
-      throws ACFException;
+      throws ManifoldCFException;
 
     /** Note an input tag */
     public void noteFormInput(Map inputAttributes)
-      throws ACFException;
+      throws ManifoldCFException;
 
     /** Note the end of a form */
     public void noteFormEnd()
-      throws ACFException;
+      throws ManifoldCFException;
 
     /** Note discovered href */
     public void noteAHREF(String rawURL)
-      throws ACFException;
+      throws ManifoldCFException;
 
     /** Note discovered href */
     public void noteLINKHREF(String rawURL)
-      throws ACFException;
+      throws ManifoldCFException;
 
     /** Note discovered IMG SRC */
     public void noteIMGSRC(String rawURL)
-      throws ACFException;
+      throws ManifoldCFException;
 
     /** Note discovered FRAME SRC */
     public void noteFRAMESRC(String rawURL)
-      throws ACFException;
+      throws ManifoldCFException;
   }
 
   // HTML parsing classes and constants
@@ -7588,7 +7588,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
     /** Deal with a character.  No exceptions are allowed, since those would represent syntax errors, and we don't want those to cause difficulty. */
     public void dealWithCharacter(char thisChar)
-      throws ACFException
+      throws ManifoldCFException
     {
       // At this level we want basic lexical analysis - that is, we deal with identifying tags and comments, that's it.
       char thisCharLower = Character.toLowerCase(thisChar);
@@ -7876,24 +7876,24 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           currentValueBuffer.append(thisChar);
         break;
       default:
-        throw new ACFException("Invalid state: "+Integer.toString(currentState));
+        throw new ManifoldCFException("Invalid state: "+Integer.toString(currentState));
       }
     }
 
     protected void noteTag(String tagName, Map attributes)
-      throws ACFException
+      throws ManifoldCFException
     {
       Logging.connectors.debug(" Saw tag '"+tagName+"'");
     }
 
     protected void noteEndTag(String tagName)
-      throws ACFException
+      throws ManifoldCFException
     {
       Logging.connectors.debug(" Saw end tag '"+tagName+"'");
     }
 
     public void finishUp()
-      throws ACFException
+      throws ManifoldCFException
     {
       // Does nothing
     }
@@ -7918,7 +7918,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     // Override methods having to do with notification of tag discovery
 
     protected void noteTag(String tagName, Map attributes)
-      throws ACFException
+      throws ManifoldCFException
     {
       super.noteTag(tagName,attributes);
       switch (scriptParseState)
@@ -7933,12 +7933,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         // Skip all tags until we see the end script one.
         break;
       default:
-        throw new ACFException("Unknown script parse state: "+Integer.toString(scriptParseState));
+        throw new ManifoldCFException("Unknown script parse state: "+Integer.toString(scriptParseState));
       }
     }
 
     protected void noteEndTag(String tagName)
-      throws ACFException
+      throws ManifoldCFException
     {
       super.noteEndTag(tagName);
       switch (scriptParseState)
@@ -7957,12 +7957,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
 
     protected void noteNonscriptTag(String tagName, Map attributes)
-      throws ACFException
+      throws ManifoldCFException
     {
     }
 
     protected void noteNonscriptEndTag(String tagName)
-      throws ACFException
+      throws ManifoldCFException
     {
     }
 
@@ -7981,7 +7981,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
 
     protected void noteNonscriptTag(String tagName, Map attributes)
-      throws ACFException
+      throws ManifoldCFException
     {
       super.noteNonscriptTag(tagName,attributes);
       String lowerTagName = tagName.toLowerCase();
@@ -8035,7 +8035,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     // Override methods having to do with notification of tag discovery
 
     protected void noteNonscriptTag(String tagName, Map attributes)
-      throws ACFException
+      throws ManifoldCFException
     {
       super.noteNonscriptTag(tagName,attributes);
       switch (formParseState)
@@ -8102,12 +8102,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       case FORMPARSESTATE_IN_TEXTAREA:
         break;
       default:
-        throw new ACFException("Unknown form parse state: "+Integer.toString(formParseState));
+        throw new ManifoldCFException("Unknown form parse state: "+Integer.toString(formParseState));
       }
     }
 
     protected void noteNonscriptEndTag(String tagName)
-      throws ACFException
+      throws ManifoldCFException
     {
       super.noteNonscriptEndTag(tagName);
       switch (formParseState)
@@ -8130,7 +8130,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         formParseState = FORMPARSESTATE_IN_FORM;
         break;
       default:
-        throw new ACFException("Unknown form parse state: "+Integer.toString(formParseState));
+        throw new ManifoldCFException("Unknown form parse state: "+Integer.toString(formParseState));
       }
     }
 

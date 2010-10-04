@@ -38,7 +38,7 @@ public class OutputSpecification extends Specification
   *@param xml is the input XML.
   */
   public OutputSpecification(String xml)
-    throws ACFException
+    throws ManifoldCFException
   {
     super(xml);
   }

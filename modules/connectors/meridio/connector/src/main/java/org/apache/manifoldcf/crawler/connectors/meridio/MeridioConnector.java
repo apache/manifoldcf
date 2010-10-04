@@ -29,7 +29,7 @@ import org.apache.manifoldcf.crawler.connectors.meridio.meridiowrapper.MeridioDa
 import org.apache.manifoldcf.crawler.connectors.meridio.meridiowrapper.MeridioWrapper;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
-import org.apache.manifoldcf.crawler.system.ACF;
+import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
 import org.apache.commons.httpclient.protocol.Protocol;
 import org.apache.commons.httpclient.protocol.ProtocolFactory;
@@ -117,7 +117,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
 
   /** Set up the session with Meridio */
   protected void getSession()
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     if (meridio_ == null)
     {
@@ -183,8 +183,8 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
       catch (MalformedURLException malformedURLException)
       {
-        throw new ACFException("Meridio: Could not construct the URL for either " +
-          "the DM or RM Meridio Web Service", malformedURLException, ACFException.REPOSITORY_CONNECTION_ERROR);
+        throw new ManifoldCFException("Meridio: Could not construct the URL for either " +
+          "the DM or RM Meridio Web Service", malformedURLException, ManifoldCFException.REPOSITORY_CONNECTION_ERROR);
       }
 
       // Do the second part (where we actually try to connect to the system)
@@ -194,9 +194,9 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
         * Now try and login to Meridio; the wrapper's constructor can be
         * used as it calls the Meridio login method
         *================================================================*/
-        File meridioWSDDLocation = ACF.getFileProperty(wsddPathProperty);
+        File meridioWSDDLocation = ManifoldCF.getFileProperty(wsddPathProperty);
         if (meridioWSDDLocation == null)
-          throw new ACFException("Meridio wsdd location path (property "+wsddPathProperty+") must be specified!");
+          throw new ManifoldCFException("Meridio wsdd location path (property "+wsddPathProperty+") must be specified!");
 
         meridio_ = new MeridioWrapper(Logging.connectors, DmwsURL, RmwsURL, null,
           params.getParameter("DMWSProxyHost"),
@@ -213,7 +213,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
       catch (UnknownHostException unknownHostException)
       {
-        throw new ACFException("Meridio: A Unknown Host Exception occurred while " +
+        throw new ManifoldCFException("Meridio: A Unknown Host Exception occurred while " +
           "connecting - is a network software and hardware configuration: "+unknownHostException.getMessage(), unknownHostException);
       }
       catch (org.apache.axis.AxisFault e)
@@ -226,15 +226,15 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
           {
             elem.normalize();
             String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-            throw new ACFException("Unexpected http error code "+httpErrorCode+" accessing Meridio: "+e.getMessage(),e);
+            throw new ManifoldCFException("Unexpected http error code "+httpErrorCode+" accessing Meridio: "+e.getMessage(),e);
           }
-          throw new ACFException("Unknown http error occurred while connecting: "+e.getMessage(),e);
+          throw new ManifoldCFException("Unknown http error occurred while connecting: "+e.getMessage(),e);
         }
         if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server.userException")))
         {
           String exceptionName = e.getFaultString();
           if (exceptionName.equals("java.lang.InterruptedException"))
-            throw new ACFException("Interrupted",ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
         }
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("Meridio: Got an unknown remote exception connecting - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString()+" - retrying",e);
@@ -243,7 +243,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
       catch (RemoteException remoteException)
       {
-        throw new ACFException("Meridio: An unknown remote exception occurred while " +
+        throw new ManifoldCFException("Meridio: An unknown remote exception occurred while " +
           "connecting: "+remoteException.getMessage(), remoteException);
       }
 
@@ -270,7 +270,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@return the connection's status as a displayable string.
   */
   public String check()
-    throws ACFException
+    throws ManifoldCFException
   {
     Logging.connectors.debug("Meridio: Entering 'check' method");
 
@@ -284,7 +284,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
     {
       return "Meridio temporarily unavailable: "+e.getMessage();
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       return e.getMessage();
     }
@@ -340,7 +340,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
       {
         String exceptionName = e.getFaultString();
         if (exceptionName.equals("java.lang.InterruptedException"))
-          throw new ACFException("Interrupted",ACFException.INTERRUPTED);
+          throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
       }
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("Meridio: Got an unknown remote exception checking - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString()+" - retrying",e);
@@ -391,7 +391,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   /** Close the connection.  Call this before discarding the repository connector.
   */
   public void disconnect()
-    throws ACFException
+    throws ManifoldCFException
   {
     Logging.connectors.debug("Meridio: Entering 'disconnect' method");
 
@@ -422,7 +422,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
       {
         String exceptionName = e.getFaultString();
         if (exceptionName.equals("java.lang.InterruptedException"))
-          throw new ACFException("Interrupted",ACFException.INTERRUPTED);
+          throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
       }
       if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server")))
       {
@@ -473,7 +473,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@return true if the resource is found, false if not.  In either case, output may be filled in.
   */
   public boolean requestInfo(Configuration output, String command)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (command.equals("categories"))
     {
@@ -491,11 +491,11 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
       catch (ServiceInterruption e)
       {
-        ACF.createServiceInterruptionNode(output,e);
+        ManifoldCF.createServiceInterruptionNode(output,e);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
-        ACF.createErrorNode(output,e);
+        ManifoldCF.createErrorNode(output,e);
       }
     }
     else if (command.equals("documentproperties"))
@@ -514,11 +514,11 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
       catch (ServiceInterruption e)
       {
-        ACF.createServiceInterruptionNode(output,e);
+        ManifoldCF.createServiceInterruptionNode(output,e);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
-        ACF.createErrorNode(output,e);
+        ManifoldCF.createErrorNode(output,e);
       }
     }
     else if (command.startsWith("classorfolder/"))
@@ -531,7 +531,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
       catch (NumberFormatException e)
       {
-        ACF.createErrorNode(output,new ACFException(e.getMessage(),e));
+        ManifoldCF.createErrorNode(output,new ManifoldCFException(e.getMessage(),e));
 	return false;
       }
       try
@@ -564,11 +564,11 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
       catch (ServiceInterruption e)
       {
-        ACF.createServiceInterruptionNode(output,e);
+        ManifoldCF.createServiceInterruptionNode(output,e);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
-        ACF.createErrorNode(output,e);
+        ManifoldCF.createErrorNode(output,e);
       }
     }
     else
@@ -589,7 +589,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@return the stream of local document identifiers that should be added to the queue.
   */
   public IDocumentIdentifierStream getDocumentIdentifiers(DocumentSpecification spec, long startTime, long endTime)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     Logging.connectors.debug("Meridio: Entering 'getDocumentIdentifiers' method");
 
@@ -631,7 +631,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   */
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
     DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     Logging.connectors.debug("Meridio: Entering 'getDocumentVersions' method");
 
@@ -848,15 +848,15 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
           {
             elem.normalize();
             String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-            throw new ACFException("Unexpected http error code "+httpErrorCode+" accessing Meridio: "+e.getMessage(),e);
+            throw new ManifoldCFException("Unexpected http error code "+httpErrorCode+" accessing Meridio: "+e.getMessage(),e);
           }
-          throw new ACFException("Unknown http error occurred while getting doc versions: "+e.getMessage(),e);
+          throw new ManifoldCFException("Unknown http error occurred while getting doc versions: "+e.getMessage(),e);
         }
         if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server.userException")))
         {
           String exceptionName = e.getFaultString();
           if (exceptionName.equals("java.lang.InterruptedException"))
-            throw new ACFException("Interrupted",ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
         }
         if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server")))
         {
@@ -875,12 +875,12 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
       catch (RemoteException remoteException)
       {
-        throw new ACFException("Meridio: A remote exception occurred while getting doc versions: " +
+        throw new ManifoldCFException("Meridio: A remote exception occurred while getting doc versions: " +
           remoteException.getMessage(), remoteException);
       }
       catch (MeridioDataSetException meridioDataSetException)
       {
-        throw new ACFException("Meridio: A problem occurred manipulating the Web " +
+        throw new ManifoldCFException("Meridio: A problem occurred manipulating the Web " +
           "Service XML: "+meridioDataSetException.getMessage(), meridioDataSetException);
       }
     }
@@ -900,7 +900,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   * should only find other references, and should not actually call the ingestion methods.
   */
   public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     Logging.connectors.debug("Meridio: Entering 'processDocuments' method");
 
@@ -1395,15 +1395,15 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
           }
           catch (java.net.SocketTimeoutException ioex)
           {
-            throw new ACFException("Socket timeout exception: "+ioex.getMessage(), ioex);
+            throw new ManifoldCFException("Socket timeout exception: "+ioex.getMessage(), ioex);
           }
           catch (org.apache.commons.httpclient.ConnectTimeoutException ioex)
           {
-            throw new ACFException("Connect timeout exception: "+ioex.getMessage(), ioex);
+            throw new ManifoldCFException("Connect timeout exception: "+ioex.getMessage(), ioex);
           }
           catch (InterruptedIOException e)
           {
-            throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
           }
           catch (org.apache.axis.AxisFault e)
           {
@@ -1415,12 +1415,12 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
           }
           catch (SOAPException soapEx)
           {
-            throw new ACFException("SOAP Exception encountered while retrieving document content: "+soapEx.getMessage(),
+            throw new ManifoldCFException("SOAP Exception encountered while retrieving document content: "+soapEx.getMessage(),
               soapEx);
           }
           catch (IOException ioex)
           {
-            throw new ACFException("Input stream failure: "+ioex.getMessage(), ioex);
+            throw new ManifoldCFException("Input stream failure: "+ioex.getMessage(), ioex);
           }
           i++;
         }
@@ -1438,15 +1438,15 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
           {
             elem.normalize();
             String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-            throw new ACFException("Unexpected http error code "+httpErrorCode+" accessing Meridio: "+e.getMessage(),e);
+            throw new ManifoldCFException("Unexpected http error code "+httpErrorCode+" accessing Meridio: "+e.getMessage(),e);
           }
-          throw new ACFException("Unknown http error occurred while processing docs: "+e.getMessage(),e);
+          throw new ManifoldCFException("Unknown http error occurred while processing docs: "+e.getMessage(),e);
         }
         if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server.userException")))
         {
           String exceptionName = e.getFaultString();
           if (exceptionName.equals("java.lang.InterruptedException"))
-            throw new ACFException("Interrupted",ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
         }
         if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server")))
         {
@@ -1465,12 +1465,12 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
       catch (RemoteException remoteException)
       {
-        throw new ACFException("Meridio: A remote exception occurred while " +
+        throw new ManifoldCFException("Meridio: A remote exception occurred while " +
           "processing a Meridio document: "+remoteException.getMessage(), remoteException);
       }
       catch (MeridioDataSetException meridioDataSetException)
       {
-        throw new ACFException("Meridio: A DataSet exception occurred while  " +
+        throw new ManifoldCFException("Meridio: A DataSet exception occurred while  " +
           "processing a Meridio document", meridioDataSetException);
       }
     }
@@ -1493,7 +1493,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     tabsArray.add("Document Server");
     tabsArray.add("Records Server");
@@ -1636,7 +1636,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param tabName is the current tab name.
   */
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     String dmwsServerProtocol = parameters.getParameter("DMWSServerProtocol");
     if (dmwsServerProtocol == null)
@@ -1943,7 +1943,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
-    throws ACFException
+    throws ManifoldCFException
   {
     String dmwsServerProtocol = variableContext.getParameter("dmwsServerProtocol");
     if (dmwsServerProtocol != null)
@@ -2090,7 +2090,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
@@ -2190,7 +2190,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     tabsArray.add("Search Paths");
     tabsArray.add("Content Types");
@@ -2285,7 +2285,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param tabName is the current tab name.
   */
   public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     int i;
     int k;
@@ -2419,7 +2419,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
 "    <td class=\"message\" colspan=\"2\">Service interruption: "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage())+"</td>\n"
         );
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         e.printStackTrace();
         out.print(
@@ -2573,7 +2573,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
 "    <td class=\"message\" colspan=\"2\">Service interruption: "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage())+"</td>\n"
         );
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         e.printStackTrace();
         out.print(
@@ -2855,7 +2855,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
 "    <td class=\"message\" colspan=\"4\">Service interruption: "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage())+"</td>\n"
         );
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         e.printStackTrace();
         out.print(
@@ -2955,7 +2955,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
-    throws ACFException
+    throws ManifoldCFException
   {
     int i;
 
@@ -3306,7 +3306,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param ds is the current document specification for this job.
   */
   public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
@@ -4462,7 +4462,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
       long startTime,
       long endTime
     )
-      throws ACFException,ServiceInterruption
+      throws ManifoldCFException,ServiceInterruption
     {
       Logging.connectors.debug("Meridio: Entering 'IdentifierStream' constructor");
       while (true)
@@ -4492,15 +4492,15 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
             {
               elem.normalize();
               String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-              throw new ACFException("Unexpected http error code "+httpErrorCode+" accessing Meridio: "+e.getMessage(),e);
+              throw new ManifoldCFException("Unexpected http error code "+httpErrorCode+" accessing Meridio: "+e.getMessage(),e);
             }
-            throw new ACFException("Unknown http error occurred while performing search: "+e.getMessage(),e);
+            throw new ManifoldCFException("Unknown http error occurred while performing search: "+e.getMessage(),e);
           }
           if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server.userException")))
           {
             String exceptionName = e.getFaultString();
             if (exceptionName.equals("java.lang.InterruptedException"))
-              throw new ACFException("Interrupted",ACFException.INTERRUPTED);
+              throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
           }
           if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server")))
           {
@@ -4518,12 +4518,12 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
         }
         catch (RemoteException remoteException)
         {
-          throw new ACFException("Meridio: A Remote Exception occurred while " +
+          throw new ManifoldCFException("Meridio: A Remote Exception occurred while " +
             "performing a search: "+remoteException.getMessage(), remoteException);
         }
         catch (MeridioDataSetException meridioDataSetException)
         {
-          throw new ACFException("Meridio: A problem occurred manipulating the Web " +
+          throw new ManifoldCFException("Meridio: A problem occurred manipulating the Web " +
             "Service XML: "+meridioDataSetException.getMessage(), meridioDataSetException);
         }
       }
@@ -4535,7 +4535,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
     *@return the next document identifier, or null if there are no more.
     */
     public String getNextIdentifier()
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
       Logging.connectors.debug("Meridio: Entering 'getNextIdentifier' method");
 
@@ -4571,15 +4571,15 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
                 {
                   elem.normalize();
                   String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-                  throw new ACFException("Unexpected http error code "+httpErrorCode+" performing search: "+e.getMessage());
+                  throw new ManifoldCFException("Unexpected http error code "+httpErrorCode+" performing search: "+e.getMessage());
                 }
-                throw new ACFException("Unknown http error occurred while performing search: "+e.getMessage(),e);
+                throw new ManifoldCFException("Unknown http error occurred while performing search: "+e.getMessage(),e);
               }
               if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server.userException")))
               {
                 String exceptionName = e.getFaultString();
                 if (exceptionName.equals("java.lang.InterruptedException"))
-                  throw new ACFException("Interrupted",ACFException.INTERRUPTED);
+                  throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
               }
               if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server")))
               {
@@ -4591,7 +4591,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
                 }
               }
 
-              throw new ACFException("Meridio: Got an unknown remote exception performing search - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString(),e);
+              throw new ManifoldCFException("Meridio: Got an unknown remote exception performing search - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString(),e);
             }
             catch (RemoteException remoteException)
             {
@@ -4602,7 +4602,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
             }
             catch (MeridioDataSetException meridioDataSetException)
             {
-              throw new ACFException("Meridio: A problem occurred manipulating the Web " +
+              throw new ManifoldCFException("Meridio: A problem occurred manipulating the Web " +
                 "Service XML: "+meridioDataSetException.getMessage(), meridioDataSetException);
             }
           }
@@ -4629,7 +4629,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
     /** Close the stream.
     */
     public void close()
-      throws ACFException
+      throws ManifoldCFException
     {
       Logging.connectors.debug("Meridio: Entering 'IdentifierStream.close' method");
 
@@ -4655,7 +4655,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@return Sorted array of strings containing the category names
   */
   public String [] getMeridioCategories ()
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     Logging.connectors.debug("Entering 'getMeridioCategories' method");
 
@@ -4705,15 +4705,15 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
           {
             elem.normalize();
             String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-            throw new ACFException("Unexpected http error code "+httpErrorCode+" getting categories: "+e.getMessage());
+            throw new ManifoldCFException("Unexpected http error code "+httpErrorCode+" getting categories: "+e.getMessage());
           }
-          throw new ACFException("Unknown http error occurred while getting categories: "+e.getMessage(),e);
+          throw new ManifoldCFException("Unknown http error occurred while getting categories: "+e.getMessage(),e);
         }
         if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server.userException")))
         {
           String exceptionName = e.getFaultString();
           if (exceptionName.equals("java.lang.InterruptedException"))
-            throw new ACFException("Interrupted",ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
         }
         if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server")))
         {
@@ -4725,16 +4725,16 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
           }
         }
 
-        throw new ACFException("Meridio: Got an unknown remote exception getting categories - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString(),e);
+        throw new ManifoldCFException("Meridio: Got an unknown remote exception getting categories - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString(),e);
       }
       catch (RemoteException remoteException)
       {
-        throw new ACFException("Meridio: A Remote Exception occurred while " +
+        throw new ManifoldCFException("Meridio: A Remote Exception occurred while " +
           "retrieving the Meridio categories: "+remoteException.getMessage(), remoteException);
       }
       catch (MeridioDataSetException meridioDataSetException)
       {
-        throw new ACFException("Meridio: DataSet Exception occurred retrieving the Meridio categories: "+meridioDataSetException.getMessage(),
+        throw new ManifoldCFException("Meridio: DataSet Exception occurred retrieving the Meridio categories: "+meridioDataSetException.getMessage(),
           meridioDataSetException);
       }
     }
@@ -4743,7 +4743,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
 
 
   public String [] getMeridioDocumentProperties ()
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     Logging.connectors.debug("Entering 'getMeridioDocumentProperties' method");
 
@@ -4814,15 +4814,15 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
           {
             elem.normalize();
             String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-            throw new ACFException("Unexpected http error code "+httpErrorCode+" getting document properties: "+e.getMessage());
+            throw new ManifoldCFException("Unexpected http error code "+httpErrorCode+" getting document properties: "+e.getMessage());
           }
-          throw new ACFException("Unknown http error occurred while getting document properties: "+e.getMessage(),e);
+          throw new ManifoldCFException("Unknown http error occurred while getting document properties: "+e.getMessage(),e);
         }
         if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server.userException")))
         {
           String exceptionName = e.getFaultString();
           if (exceptionName.equals("java.lang.InterruptedException"))
-            throw new ACFException("Interrupted",ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
         }
         if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server")))
         {
@@ -4834,16 +4834,16 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
           }
         }
 
-        throw new ACFException("Meridio: Got an unknown remote exception getting document properties - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString(),e);
+        throw new ManifoldCFException("Meridio: Got an unknown remote exception getting document properties - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString(),e);
       }
       catch (RemoteException remoteException)
       {
-        throw new ACFException("Meridio: A Remote Exception occurred while " +
+        throw new ManifoldCFException("Meridio: A Remote Exception occurred while " +
           "retrieving the Meridio document properties: "+remoteException.getMessage(), remoteException);
       }
       catch (MeridioDataSetException meridioDataSetException)
       {
-        throw new ACFException("Meridio: DataSet Exception occurred retrieving the Meridio document properties: "+meridioDataSetException.getMessage(),
+        throw new ManifoldCFException("Meridio: DataSet Exception occurred retrieving the Meridio document properties: "+meridioDataSetException.getMessage(),
           meridioDataSetException);
       }
     }
@@ -4855,7 +4855,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   (
     int classOrFolderId
   )
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     Logging.connectors.debug("Entering 'getClassOrFolderContents' method");
 
@@ -4922,15 +4922,15 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
           {
             elem.normalize();
             String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-            throw new ACFException("Unexpected http error code "+httpErrorCode+" getting class or folder contents: "+e.getMessage());
+            throw new ManifoldCFException("Unexpected http error code "+httpErrorCode+" getting class or folder contents: "+e.getMessage());
           }
-          throw new ACFException("Unknown http error occurred while getting class or folder contents: "+e.getMessage(),e);
+          throw new ManifoldCFException("Unknown http error occurred while getting class or folder contents: "+e.getMessage(),e);
         }
         if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server.userException")))
         {
           String exceptionName = e.getFaultString();
           if (exceptionName.equals("java.lang.InterruptedException"))
-            throw new ACFException("Interrupted",ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
         }
         if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server")))
         {
@@ -4942,16 +4942,16 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
           }
         }
 
-        throw new ACFException("Meridio: Got an unknown remote exception getting class or folder contents - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString(),e);
+        throw new ManifoldCFException("Meridio: Got an unknown remote exception getting class or folder contents - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString(),e);
       }
       catch (RemoteException remoteException)
       {
-        throw new ACFException("Meridio: A Remote Exception occurred while " +
+        throw new ManifoldCFException("Meridio: A Remote Exception occurred while " +
           "retrieving class or folder contents: "+remoteException.getMessage(), remoteException);
       }
       catch (MeridioDataSetException meridioDataSetException)
       {
-        throw new ACFException("Meridio: A problem occurred manipulating the Web " +
+        throw new ManifoldCFException("Meridio: A problem occurred manipulating the Web " +
           "Service XML: "+meridioDataSetException.getMessage(), meridioDataSetException);
       }
     }

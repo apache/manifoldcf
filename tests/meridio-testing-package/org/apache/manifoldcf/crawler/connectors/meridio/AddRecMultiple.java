@@ -44,7 +44,7 @@ public class AddRecMultiple
                 if (args.length < 9 || args.length > 10)
                 {
                         System.err.println("Usage: AddRecMultiple <docurl> <recurl> <username> <password> <folder> <filebasepath> <titlebasename> <levels> <docsperlevel> [<category>]");
-                        System.err.println(" E.g.: AddRecMultiple ... ... ... ... /LargeDocs /root/largefiles lf 3 10 ACFSearchable");
+                        System.err.println(" E.g.: AddRecMultiple ... ... ... ... /LargeDocs /root/largefiles lf 3 10 ManifoldCFSearchable");
                         System.exit(1);
                 }
 

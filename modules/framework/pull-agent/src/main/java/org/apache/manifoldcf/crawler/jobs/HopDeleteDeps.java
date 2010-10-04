@@ -21,7 +21,7 @@ package org.apache.manifoldcf.crawler.jobs;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
-import org.apache.manifoldcf.crawler.system.ACF;
+import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import java.util.*;
 
 /** This class manages the table that keeps track of link deletion dependencies for cached
@@ -50,7 +50,7 @@ public class HopDeleteDeps extends org.apache.manifoldcf.core.database.BaseTable
   *@param database is the database handle.
   */
   public HopDeleteDeps(IDBInterface database)
-    throws ACFException
+    throws ManifoldCFException
   {
     super(database,"hopdeletedeps");
   }
@@ -58,7 +58,7 @@ public class HopDeleteDeps extends org.apache.manifoldcf.core.database.BaseTable
   /** Install or upgrade.
   */
   public void install(String jobsTable, String jobsColumn, String hopCountTable, String idColumn)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Standard practice: outer retry loop
     while (true)
@@ -124,7 +124,7 @@ public class HopDeleteDeps extends org.apache.manifoldcf.core.database.BaseTable
   /** Uninstall.
   */
   public void deinstall()
-    throws ACFException
+    throws ManifoldCFException
   {
     performDrop(null);
   }
@@ -132,7 +132,7 @@ public class HopDeleteDeps extends org.apache.manifoldcf.core.database.BaseTable
   /** Analyze job tables that need analysis.
   */
   public void analyzeTables()
-    throws ACFException
+    throws ManifoldCFException
   {
     long startTime = System.currentTimeMillis();
     Logging.perf.debug("Beginning to analyze hopdeletedeps table");
@@ -142,7 +142,7 @@ public class HopDeleteDeps extends org.apache.manifoldcf.core.database.BaseTable
 
   /** Delete a job. */
   public void deleteJob(Long jobID)
-    throws ACFException
+    throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
     list.add(jobID);
@@ -154,7 +154,7 @@ public class HopDeleteDeps extends org.apache.manifoldcf.core.database.BaseTable
   /** Remove rows that correspond to specific hopcount records.
   */
   public void removeMarkedRows(String parentTable, String parentIDHashField, String query, ArrayList queryList)
-    throws ACFException
+    throws ManifoldCFException
   {
     // This didn't perform very well.
     //performDelete("WHERE EXISTS(SELECT 'x' FROM "+parentTable+" t0 WHERE t0."+parentIDField+"="+ownerIDField+
@@ -170,7 +170,7 @@ public class HopDeleteDeps extends org.apache.manifoldcf.core.database.BaseTable
   * size.
   */
   public void deleteOwnerRows(Long[] ownerIDs)
-    throws ACFException
+    throws ManifoldCFException
   {
     StringBuffer sb = new StringBuffer("WHERE ");
     sb.append(ownerIDField).append(" IN(");
@@ -192,7 +192,7 @@ public class HopDeleteDeps extends org.apache.manifoldcf.core.database.BaseTable
   *@return the links
   */
   public DeleteDependency[] getDeleteDependencies(Long ownerID)
-    throws ACFException
+    throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
     list.add(ownerID);
@@ -213,7 +213,7 @@ public class HopDeleteDeps extends org.apache.manifoldcf.core.database.BaseTable
 
   /** Delete a dependency */
   public void deleteDependency(Long ownerID, DeleteDependency dd)
-    throws ACFException
+    throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
     StringBuffer sb = new StringBuffer("WHERE ");
@@ -242,7 +242,7 @@ public class HopDeleteDeps extends org.apache.manifoldcf.core.database.BaseTable
   /** Write a delete dependency.
   */
   public void writeDependency(Long ownerID, Long jobID, DeleteDependency dd)
-    throws ACFException
+    throws ManifoldCFException
   {
     HashMap map = new HashMap();
     map.put(jobIDField,jobID);
@@ -262,7 +262,7 @@ public class HopDeleteDeps extends org.apache.manifoldcf.core.database.BaseTable
   /** Conditionally do analyze operation.
   */
   public void conditionallyAnalyzeTables()
-    throws ACFException
+    throws ManifoldCFException
   {
     if (tracker.checkAnalyze())
     {

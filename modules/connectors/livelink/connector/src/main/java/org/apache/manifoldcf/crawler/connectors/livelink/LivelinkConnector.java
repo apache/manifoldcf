@@ -22,7 +22,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
-import org.apache.manifoldcf.crawler.system.ACF;
+import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
 import java.io.*;
 import java.util.*;
@@ -207,7 +207,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           LLENTWK_VOL = entinfo.toInteger("VolumeID");
         }
         else
-          throw new ACFException("Error accessing enterprise workspace: "+status);
+          throw new ManifoldCFException("Error accessing enterprise workspace: "+status);
 
         entinfo = new LLValue().setAssoc();
         status = LLDocs.AccessCategoryWS(entinfo);
@@ -217,7 +217,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           LLCATWK_VOL = entinfo.toInteger("VolumeID");
         }
         else
-          throw new ACFException("Error accessing category workspace: "+status);
+          throw new ManifoldCFException("Error accessing category workspace: "+status);
       }
       catch (Throwable e)
       {
@@ -247,7 +247,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   }
 
   protected void getSession()
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     if (hasBeenSetup == false)
     {
@@ -303,7 +303,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
       catch (NumberFormatException e)
       {
-        throw new ACFException("Bad ingest port: "+e.getMessage(),e);
+        throw new ManifoldCFException("Bad ingest port: "+e.getMessage(),e);
       }
 
       String viewPortString;
@@ -324,7 +324,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
       catch (NumberFormatException e)
       {
-        throw new ACFException("Bad view port: "+e.getMessage(),e);
+        throw new ManifoldCFException("Bad view port: "+e.getMessage(),e);
       }
 
       if (viewCgiPath == null || viewCgiPath.length() == 0)
@@ -395,8 +395,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           {
             if (thr instanceof RuntimeException)
               throw (RuntimeException)thr;
-            else if (thr instanceof ACFException)
-              throw (ACFException)thr;
+            else if (thr instanceof ManifoldCFException)
+              throw (ManifoldCFException)thr;
             else
               throw (Error)thr;
           }
@@ -410,7 +410,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         catch (InterruptedException e)
         {
           t.interrupt();
-          throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
         }
         catch (RuntimeException e2)
         {
@@ -495,7 +495,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   /** Check status of connection.
   */
   public String check()
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -538,7 +538,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         {
           // Drop the connection on the floor
           method = null;
-          throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
         }
         catch (java.net.SocketTimeoutException e)
         {
@@ -558,7 +558,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         }
         catch (InterruptedIOException e)
         {
-          throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
         }
         catch (IOException e)
         {
@@ -579,9 +579,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     {
       return "Transient error: "+e.getMessage();
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
-      if (e.getErrorCode() == ACFException.INTERRUPTED)
+      if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
         throw e;
       return "Error: "+e.getMessage();
     }
@@ -591,7 +591,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   * in active use.
   */
   public void poll()
-    throws ACFException
+    throws ManifoldCFException
   {
     if (connectionManager != null)
       connectionManager.closeIdleConnections(60000L);
@@ -600,7 +600,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   /** Close the connection.  Call this before discarding the repository connector.
   */
   public void disconnect()
-    throws ACFException
+    throws ManifoldCFException
   {
     llServer.disconnect();
     hasBeenSetup = false;
@@ -653,7 +653,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@return the relative document uri.
   */
   protected String convertToIngestURI(String documentIdentifier)
-    throws ACFException
+    throws ManifoldCFException
   {
     // The document identifier is the string form of the object ID for this connector.
     if (!documentIdentifier.startsWith("D"))
@@ -672,7 +672,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@return the document uri.
   */
   protected String convertToViewURI(String documentIdentifier)
-    throws ACFException
+    throws ManifoldCFException
   {
     // The document identifier is the string form of the object ID for this connector.
     if (!documentIdentifier.startsWith("D"))
@@ -689,7 +689,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@return the object id, or -1 if documentIdentifier does not describe a document.
   */
   protected static int convertToObjectID(String documentIdentifier)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (!documentIdentifier.startsWith("D"))
       return -1;
@@ -703,7 +703,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     }
     catch (NumberFormatException e)
     {
-      throw new ACFException("Bad document identifier: "+e.getMessage(),e);
+      throw new ManifoldCFException("Bad document identifier: "+e.getMessage(),e);
     }
   }
 
@@ -715,7 +715,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@return true if the resource is found, false if not.  In either case, output may be filled in.
   */
   public boolean requestInfo(Configuration output, String command)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (command.equals("workspaces"))
     {
@@ -733,11 +733,11 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
       catch (ServiceInterruption e)
       {
-        ACF.createServiceInterruptionNode(output,e);
+        ManifoldCF.createServiceInterruptionNode(output,e);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
-        ACF.createErrorNode(output,e);
+        ManifoldCF.createErrorNode(output,e);
       }
     }
     else if (command.startsWith("folders/"))
@@ -758,11 +758,11 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
       catch (ServiceInterruption e)
       {
-        ACF.createServiceInterruptionNode(output,e);
+        ManifoldCF.createServiceInterruptionNode(output,e);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
-        ACF.createErrorNode(output,e);
+        ManifoldCF.createErrorNode(output,e);
       }
     }
     else if (command.startsWith("categories/"))
@@ -783,11 +783,11 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
       catch (ServiceInterruption e)
       {
-        ACF.createServiceInterruptionNode(output,e);
+        ManifoldCF.createServiceInterruptionNode(output,e);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
-        ACF.createErrorNode(output,e);
+        ManifoldCF.createErrorNode(output,e);
       }
 
     }
@@ -809,11 +809,11 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
       catch (ServiceInterruption e)
       {
-        ACF.createServiceInterruptionNode(output,e);
+        ManifoldCF.createServiceInterruptionNode(output,e);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
-        ACF.createErrorNode(output,e);
+        ManifoldCF.createErrorNode(output,e);
       }
     }
     else
@@ -830,7 +830,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   */
   public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
     long startTime, long endTime)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     getSession();
 
@@ -840,7 +840,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     {
       // If we get here, it HAS to be a bad network/transient problem.
       Logging.connectors.warn("Livelink: Could not look up root workspace object during seeding!  Retrying -");
-      throw new ServiceInterruption("Service interruption during seeding",new ACFException("Could not looking root workspace object during seeding"),System.currentTimeMillis()+60000L,
+      throw new ServiceInterruption("Service interruption during seeding",new ManifoldCFException("Could not looking root workspace object during seeding"),System.currentTimeMillis()+60000L,
         System.currentTimeMillis()+600000L,-1,true);
     }
 
@@ -897,7 +897,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   */
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
     DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     getSession();
 
@@ -1190,7 +1190,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         int status = LLDocs.ListObjects(vol, objID, null, filterString, LAPI_DOCUMENTS.PERM_SEECONTENTS, childrenDocs);
         if (status != 0)
         {
-          throw new ACFException("Error retrieving contents of folder "+Integer.toString(vol)+":"+Integer.toString(objID)+" : Status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
+          throw new ManifoldCFException("Error retrieving contents of folder "+Integer.toString(vol)+":"+Integer.toString(objID)+" : Status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
         }
         rval = childrenDocs;
       }
@@ -1223,7 +1223,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   * should only find other references, and should not actually call the ingestion methods.
   */
   public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     getSession();
 
@@ -1278,9 +1278,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
             {
               if (thr instanceof RuntimeException)
                 throw (RuntimeException)thr;
-              else if (thr instanceof ACFException)
+              else if (thr instanceof ManifoldCFException)
               {
-                sanityRetryCount = assessRetry(sanityRetryCount,(ACFException)thr);
+                sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
                 continue;
               }
               else
@@ -1348,7 +1348,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           catch (InterruptedException e)
           {
             t.interrupt();
-            throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
           }
           catch (RuntimeException e)
           {
@@ -1421,7 +1421,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     tabsArray.add("Server");
     tabsArray.add("Document Access");
@@ -1528,7 +1528,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param tabName is the current tab name.
   */
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     String ingestProtocol = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.livelink.LiveLinkParameters.ingestProtocol);
     if (ingestProtocol == null)
@@ -1772,7 +1772,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
-    throws ACFException
+    throws ManifoldCFException
   {
     String serverName = variableContext.getParameter("servername");
     if (serverName != null)
@@ -1886,7 +1886,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
@@ -1934,7 +1934,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     tabsArray.add("Paths");
     tabsArray.add("Filters");
@@ -2064,7 +2064,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param tabName is the current tab name.
   */
   public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     int i;
     int k;
@@ -2133,7 +2133,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           pathSoFar = "";
           childList = getChildFolderNames("");
           if (childList == null)
-            throw new ACFException("Can't find any children for root folder");
+            throw new ManifoldCFException("Can't find any children for root folder");
         }
         out.print(
 "      <input type=\"hidden\" name=\"specpath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathSoFar)+"\"/>\n"+
@@ -2176,7 +2176,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         e.printStackTrace();
         out.println(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage()));
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         e.printStackTrace();
         out.println(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage()));
@@ -2548,11 +2548,11 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
               categorySoFar = "";
               childList = getChildFolderNames("");
               if (childList == null)
-                throw new ACFException("Can't find any children for root folder");
+                throw new ManifoldCFException("Can't find any children for root folder");
             }
             categoryList = getChildCategoryNames(categorySoFar);
             if (categoryList == null)
-              throw new ACFException("Can't find any categories for root folder folder");
+              throw new ManifoldCFException("Can't find any categories for root folder folder");
           }
         }
         out.print(
@@ -2668,7 +2668,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         e.printStackTrace();
         out.println(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage()));
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         e.printStackTrace();
         out.println(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage()));
@@ -2787,7 +2787,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
-    throws ACFException
+    throws ManifoldCFException
   {
     String xc = variableContext.getParameter("pathcount");
     if (xc != null)
@@ -3272,7 +3272,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param ds is the current document specification for this job.
   */
   public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
@@ -3576,7 +3576,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@return a list of workspace names.
   */
   public String[] getWorkspaceNames()
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     return new String[]{CATEGORY_NAME,ENTWKSPACE_NAME};
   }
@@ -3586,7 +3586,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@return a list of folder and project names, in sorted order, or null if the path was invalid.
   */
   public String[] getChildFolderNames(String pathString)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     getSession();
     return getChildFolders(pathString);
@@ -3598,7 +3598,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@return a list of category names, in sorted order, or null if the path was invalid.
   */
   public String[] getChildCategoryNames(String pathString)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     getSession();
     return getChildCategories(pathString);
@@ -3609,7 +3609,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@return a list of attribute names, in sorted order, or null of the path was invalid.
   */
   public String[] getCategoryAttributes(String pathString)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     getSession();
 
@@ -3633,7 +3633,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   /** Create the login URI.  This must be a relative URI.
   */
   protected String createLivelinkLoginURI()
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -3651,7 +3651,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     }
     catch (UnsupportedEncodingException e)
     {
-      throw new ACFException("Login URI setup error: "+e.getMessage(),e);
+      throw new ManifoldCFException("Login URI setup error: "+e.getMessage(),e);
     }
   }
 
@@ -3721,7 +3721,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   protected void ingestFromLiveLink(String documentIdentifier, String version,
     IProcessActivity activities,
     MetadataDescription desc, SystemMetadataDescription sDesc)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
 
     String contextMsg = "for '"+documentIdentifier+"'";
@@ -3854,7 +3854,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         case 500:
         case 502:
           Logging.connectors.warn("Livelink: Service interruption during fetch "+contextMsg+" with Livelink HTTP Server, retrying...");
-          throw new ServiceInterruption("Service interruption during fetch",new ACFException(Integer.toString(statusCode)+" error while fetching"),System.currentTimeMillis()+60000L,
+          throw new ServiceInterruption("Service interruption during fetch",new ManifoldCFException(Integer.toString(statusCode)+" error while fetching"),System.currentTimeMillis()+60000L,
             System.currentTimeMillis()+600000L,-1,true);
 
         case HttpStatus.SC_UNAUTHORIZED:
@@ -3929,11 +3929,11 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
             }
             catch (InterruptedException e)
             {
-              throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+              throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
             }
             catch (InterruptedIOException e)
             {
-              throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+              throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
             }
             catch (IOException e)
             {
@@ -3955,12 +3955,12 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         case HttpStatus.SC_USE_PROXY:
         case HttpStatus.SC_GONE:
           resultCode = "ERROR "+Integer.toString(statusCode);
-          throw new ACFException("Unrecoverable request failure; error = "+Integer.toString(statusCode));
+          throw new ManifoldCFException("Unrecoverable request failure; error = "+Integer.toString(statusCode));
         default:
           resultCode = "UNKNOWN";
           Logging.connectors.warn("Livelink: Attempt to retrieve document from '"+ingestHttpAddress+"' received a response of "+Integer.toString(statusCode)+"; retrying in one minute");
           currentTime = System.currentTimeMillis();
-          throw new ServiceInterruption("Fetch failed; retrying in 1 minute",new ACFException("Fetch failed with unknown code "+Integer.toString(statusCode)),
+          throw new ServiceInterruption("Fetch failed; retrying in 1 minute",new ManifoldCFException("Fetch failed with unknown code "+Integer.toString(statusCode)),
             currentTime+60000L,currentTime+600000L,-1,true);
         }
       }
@@ -3968,7 +3968,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       {
         // Drop the connection on the floor
         method = null;
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (java.net.SocketTimeoutException e)
       {
@@ -4004,13 +4004,13 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
       catch (InterruptedIOException e)
       {
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (IOException e)
       {
         resultCode = "EXCEPTION";
         resultDescription = e.getMessage();
-        throw new ACFException("Exception getting response "+contextMsg+": "+e.getMessage(), e);
+        throw new ManifoldCFException("Exception getting response "+contextMsg+": "+e.getMessage(), e);
       }
       finally
       {
@@ -4024,7 +4024,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     catch (IllegalStateException e)
     {
       Logging.connectors.error("Livelink: State exception dealing with '"+ingestHttpAddress+"': "+e.getMessage(),e);
-      throw new ACFException("State exception dealing with '"+ingestHttpAddress+"': "+e.getMessage(),e);
+      throw new ManifoldCFException("State exception dealing with '"+ingestHttpAddress+"': "+e.getMessage(),e);
     }
   }
 
@@ -4040,7 +4040,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
   /** Initialize a livelink client connection */
   protected HttpClient getInitializedClient(String contextMsg)
-    throws ServiceInterruption, ACFException
+    throws ServiceInterruption, ManifoldCFException
   {
     HttpClient client = new HttpClient(connectionManager);
     client.getParams().setParameter(org.apache.commons.httpclient.params.HttpClientParams.PROTOCOL_FACTORY,myFactory);
@@ -4074,7 +4074,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         {
           Logging.connectors.warn("Livelink: Service interruption during authentication "+contextMsg+" with Livelink HTTP Server, retrying...");
           currentTime = System.currentTimeMillis();
-          throw new ServiceInterruption("502 error during authentication",new ACFException("502 error while authenticating"),
+          throw new ServiceInterruption("502 error during authentication",new ManifoldCFException("502 error while authenticating"),
             currentTime+60000L,currentTime+600000L,-1,true);
         }
         if (statusCode != HttpStatus.SC_OK)
@@ -4082,9 +4082,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           Logging.connectors.error("Livelink: Failed to authenticate "+contextMsg+" against Livelink HTTP Server; Status code: " + statusCode);
           // Ok, so we didn't get in - simply do not ingest
           if (statusCode == HttpStatus.SC_UNAUTHORIZED)
-            throw new ACFException("Session authorization failed with a 401 code; are credentials correct?");
+            throw new ManifoldCFException("Session authorization failed with a 401 code; are credentials correct?");
           else
-            throw new ACFException("Session authorization failed with code "+Integer.toString(statusCode));
+            throw new ManifoldCFException("Session authorization failed with code "+Integer.toString(statusCode));
         }
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("Livelink: Retrieving authentication response "+contextMsg+"");
@@ -4097,7 +4097,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       {
         // Drop the connection on the floor
         authget = null;
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (java.net.SocketTimeoutException e)
       {
@@ -4125,12 +4125,12 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
       catch (InterruptedIOException e)
       {
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (IOException e)
       {
         Logging.connectors.error("Livelink: IO exception when authenticating to the Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
-        throw new ACFException("Unable to communicate with the Livelink HTTP Server: "+e.getMessage(), e);
+        throw new ManifoldCFException("Unable to communicate with the Livelink HTTP Server: "+e.getMessage(), e);
 
       }
       finally
@@ -4142,7 +4142,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     catch (IllegalStateException e)
     {
       Logging.connectors.error("Livelink: State exception dealing with '"+createLivelinkLoginURI()+"'",e);
-      throw new ACFException("State exception dealing with login URI: "+e.getMessage(),e);
+      throw new ManifoldCFException("State exception dealing with login URI: "+e.getMessage(),e);
     }
 
     return client;
@@ -4277,7 +4277,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@return a list of folder and project names, in sorted order, or null if the path was invalid.
   */
   protected String[] getChildFolders(String pathString)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     RootValue rv = new RootValue(pathString);
 
@@ -4302,9 +4302,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         {
           if (thr instanceof RuntimeException)
             throw (RuntimeException)thr;
-          else if (thr instanceof ACFException)
+          else if (thr instanceof ManifoldCFException)
           {
-            sanityRetryCount = assessRetry(sanityRetryCount,(ACFException)thr);
+            sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
             continue;
           }
           else
@@ -4325,7 +4325,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (RuntimeException e)
       {
@@ -4341,7 +4341,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@return a list of category names, in sorted order, or null if the path was invalid.
   */
   protected String[] getChildCategories(String pathString)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     // Start at root
     RootValue rv = new RootValue(pathString);
@@ -4367,9 +4367,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         {
           if (thr instanceof RuntimeException)
             throw (RuntimeException)thr;
-          else if (thr instanceof ACFException)
+          else if (thr instanceof ManifoldCFException)
           {
-            sanityRetryCount = assessRetry(sanityRetryCount,(ACFException)thr);
+            sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
             continue;
           }
           else
@@ -4390,7 +4390,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (RuntimeException e)
       {
@@ -4428,14 +4428,14 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           return;
         if (status != 0)
         {
-          throw new ACFException("Error getting category version: "+Integer.toString(status));
+          throw new ManifoldCFException("Error getting category version: "+Integer.toString(status));
         }
 
         LLValue children = new LLValue();
         status = LLAttributes.AttrListNames(catVersion,null,children);
         if (status != 0)
         {
-          throw new ACFException("Error getting attribute names: "+Integer.toString(status));
+          throw new ManifoldCFException("Error getting attribute names: "+Integer.toString(status));
         }
         rval = children;
       }
@@ -4462,7 +4462,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@return a list of attribute names, in sorted order, or null of the path was invalid.
   */
   protected String[] getCategoryAttributes(int catObjectID)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     int sanityRetryCount = FAILURE_RETRY_COUNT;
     while (true)
@@ -4477,9 +4477,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         {
           if (thr instanceof RuntimeException)
             throw (RuntimeException)thr;
-          else if (thr instanceof ACFException)
+          else if (thr instanceof ManifoldCFException)
           {
-            sanityRetryCount = assessRetry(sanityRetryCount,(ACFException)thr);
+            sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
             continue;
           }
           else
@@ -4505,7 +4505,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (RuntimeException e)
       {
@@ -4555,7 +4555,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
         if (status != 0)
         {
-          throw new ACFException("Error retrieving category version: "+Integer.toString(status)+": "+llServer.getErrors());
+          throw new ManifoldCFException("Error retrieving category version: "+Integer.toString(status)+": "+llServer.getErrors());
         }
 
         rval = rvalue;
@@ -4581,7 +4581,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   /** Get a category version for document.
   */
   protected LLValue getCatVersion(int objID, int catID)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     int sanityRetryCount = FAILURE_RETRY_COUNT;
     while (true)
@@ -4596,9 +4596,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         {
           if (thr instanceof RuntimeException)
             throw (RuntimeException)thr;
-          else if (thr instanceof ACFException)
+          else if (thr instanceof ManifoldCFException)
           {
-            sanityRetryCount = assessRetry(sanityRetryCount,(ACFException)thr);
+            sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
             continue;
           }
           else
@@ -4609,7 +4609,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (NullPointerException npe)
       {
@@ -4661,7 +4661,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
         if (status != 0)
         {
-          throw new ACFException("Error retrieving attribute value: "+Integer.toString(status)+": "+llServer.getErrors());
+          throw new ManifoldCFException("Error retrieving attribute value: "+Integer.toString(status)+": "+llServer.getErrors());
         }
         rval = children;
       }
@@ -4685,7 +4685,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   /** Get an attribute value from a category version.
   */
   protected String[] getAttributeValue(LLValue categoryVersion, String attributeName)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     int sanityRetryCount = FAILURE_RETRY_COUNT;
     while (true)
@@ -4700,9 +4700,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         {
           if (thr instanceof RuntimeException)
             throw (RuntimeException)thr;
-          else if (thr instanceof ACFException)
+          else if (thr instanceof ManifoldCFException)
           {
-            sanityRetryCount = assessRetry(sanityRetryCount,(ACFException)thr);
+            sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
             continue;
           }
           else
@@ -4726,7 +4726,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (RuntimeException e)
       {
@@ -4763,7 +4763,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
         if (status != 0)
         {
-          throw new ACFException("Error retrieving document rights: "+Integer.toString(status)+": "+llServer.getErrors());
+          throw new ManifoldCFException("Error retrieving document rights: "+Integer.toString(status)+": "+llServer.getErrors());
         }
 
         rval = childrenObjects;
@@ -4792,7 +4792,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@return the array.
   */
   protected int[] getObjectRights(int vol, int objID)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     int sanityRetryCount = FAILURE_RETRY_COUNT;
     while (true)
@@ -4807,9 +4807,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         {
           if (thr instanceof RuntimeException)
             throw (RuntimeException)thr;
-          else if (thr instanceof ACFException)
+          else if (thr instanceof ManifoldCFException)
           {
-            sanityRetryCount = assessRetry(sanityRetryCount,(ACFException)thr);
+            sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
             continue;
           }
           else
@@ -4862,7 +4862,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (RuntimeException e)
       {
@@ -4914,7 +4914,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
         if (status != 0)
         {
-          throw new ACFException("Error retrieving document object "+Integer.toString(vol)+":"+Integer.toString(id)+": status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
+          throw new ManifoldCFException("Error retrieving document object "+Integer.toString(vol)+":"+Integer.toString(id)+": status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
         }
         rval = objinfo;
       }
@@ -4943,7 +4943,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   * @return LLValue the LAPI value object, or null if object has been deleted (or doesn't exist)
   */
   protected LLValue getObjectInfo(int vol, int id)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     int sanityRetryCount = FAILURE_RETRY_COUNT;
     while (true)
@@ -4960,9 +4960,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
             throw (RuntimeException)thr;
           else if (thr instanceof ServiceInterruption)
             throw (ServiceInterruption)thr;
-          else if (thr instanceof ACFException)
+          else if (thr instanceof ManifoldCFException)
           {
-            sanityRetryCount = assessRetry(sanityRetryCount,(ACFException)thr);
+            sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
             continue;
           }
           else
@@ -4973,7 +4973,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (RuntimeException e)
       {
@@ -4985,7 +4985,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
   /** Build a set of actual acls given a set of rights */
   protected String[] lookupTokens(int[] rights, int vol, int objID)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     String[] convertedAcls = new String[rights.length];
 
@@ -5056,7 +5056,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   /** Get an object's standard path, given its ID.
   */
   protected String getObjectPath(int id)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     int objectId = id;
     String path = null;
@@ -5136,7 +5136,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
         if (status != 0)
         {
-          throw new ACFException("Error retrieving document categories for "+Integer.toString(vol)+":"+Integer.toString(id)+": status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
+          throw new ManifoldCFException("Error retrieving document categories for "+Integer.toString(vol)+":"+Integer.toString(id)+": status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
         }
         rval = catIDList;
       }
@@ -5163,7 +5163,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   * @return an array of integers containing category identifiers, or null if the object is not found.
   */
   protected int[] getObjectCategoryIDs(int vol, int id)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     int sanityRetryCount = FAILURE_RETRY_COUNT;
     while (true)
@@ -5178,9 +5178,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         {
           if (thr instanceof RuntimeException)
             throw (RuntimeException)thr;
-          else if (thr instanceof ACFException)
+          else if (thr instanceof ManifoldCFException)
           {
-            sanityRetryCount = assessRetry(sanityRetryCount,(ACFException)thr);
+            sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
             continue;
           }
           else
@@ -5235,7 +5235,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (RuntimeException e)
       {
@@ -5248,7 +5248,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   /** RootValue version of getPathId.
   */
   protected VolumeAndId getPathId(RootValue rv)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     return getPathId(rv.getRootValue(),rv.getRemainderPath());
   }
@@ -5259,7 +5259,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   * @param startPath is the folder name (a string with dots as separators)
   */
   protected VolumeAndId getPathId(LLValue objInfo, String startPath)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     // Grab the volume ID and starting object
     int obj = objInfo.toInteger("ID");
@@ -5303,9 +5303,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           {
             if (thr instanceof RuntimeException)
               throw (RuntimeException)thr;
-            else if (thr instanceof ACFException)
+            else if (thr instanceof ManifoldCFException)
             {
-              sanityRetryCount = assessRetry(sanityRetryCount,(ACFException)thr);
+              sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
               continue;
             }
             else
@@ -5339,7 +5339,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         catch (InterruptedException e)
         {
           t.interrupt();
-          throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
         }
         catch (RuntimeException e)
         {
@@ -5356,7 +5356,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   /** Rootvalue version of getCategoryId.
   */
   protected int getCategoryId(RootValue rv)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     return getCategoryId(rv.getRootValue(),rv.getRemainderPath());
   }
@@ -5367,7 +5367,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   * @param startPath is the folder name, ending in a category name (a string with slashes as separators)
   */
   protected int getCategoryId(LLValue objInfo, String startPath)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     // Grab the volume ID and starting object
     int obj = objInfo.toInteger("ID");
@@ -5420,9 +5420,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           {
             if (thr instanceof RuntimeException)
               throw (RuntimeException)thr;
-            else if (thr instanceof ACFException)
+            else if (thr instanceof ManifoldCFException)
             {
-              sanityRetryCount = assessRetry(sanityRetryCount,(ACFException)thr);
+              sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
               continue;
             }
             else
@@ -5456,7 +5456,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         catch (InterruptedException e)
         {
           t.interrupt();
-          throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
         }
         catch (RuntimeException e)
         {
@@ -5565,7 +5565,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@return true if it should be included.
   */
   protected static boolean checkInclude(String filename, DocumentSpecification documentSpecification)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Scan includes to insure we match
     int i = 0;
@@ -5609,7 +5609,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param documentSpecification is the specification.
   */
   protected boolean checkIngest(int objID, DocumentSpecification documentSpecification)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Since the only exclusions at this point are not based on file contents, this is a no-op.
     return true;
@@ -5804,7 +5804,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
     /** Constructor */
     public SystemMetadataDescription(DocumentSpecification spec)
-      throws ACFException
+      throws ManifoldCFException
     {
       pathAttributeName = null;
       int i = 0;
@@ -5833,7 +5833,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     /** Given an identifier, get the translated string that goes into the metadata.
     */
     public String getPathAttributeValue(String documentIdentifier)
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
       String path = getNodePathString(documentIdentifier);
       if (path == null)
@@ -5844,7 +5844,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     /** For a given node, get its path.
     */
     public String getNodePathString(String documentIdentifier)
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("Looking up path for '"+documentIdentifier+"'");
@@ -5880,7 +5880,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         }
         catch (NumberFormatException e)
         {
-          throw new ACFException("Bad document identifier: "+e.getMessage(),e);
+          throw new ManifoldCFException("Bad document identifier: "+e.getMessage(),e);
         }
 
         // Load the object
@@ -5936,7 +5936,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     *@return an iterator over MetadataItem objects.
     */
     public Iterator getItems(ArrayList metadataItems)
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
       // This is the map that will be iterated over for a return value.
       // It gets built out of (hopefully cached) data from categoryMap.
@@ -6015,7 +6015,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
     /** Get a specified set of packed category paths with attribute names, given the category identifiers */
     public String[] getCategoryPathsAttributeNames(int[] catIDs)
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
       HashMap set = new HashMap();
       int i = 0;
@@ -6062,14 +6062,14 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
     /** Find a category path given a category ID */
     protected String findPath(int catID)
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
       return getObjectPath(catID);
     }
 
     /** Find a set of attributes given a category ID */
     protected String[] findAttributes(int catID)
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
       return getCategoryAttributes(catID);
     }
@@ -6117,7 +6117,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     *@return the root node.
     */
     public LLValue getRootValue()
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
       if (rootValue == null)
       {
@@ -6126,12 +6126,12 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         else if (workspaceName.equals(ENTWKSPACE_NAME))
           rootValue = getObjectInfo(LLENTWK_VOL,LLENTWK_ID);
         else
-          throw new ACFException("Bad workspace name: "+workspaceName);
+          throw new ManifoldCFException("Bad workspace name: "+workspaceName);
         if (rootValue == null)
         {
           Logging.connectors.warn("Livelink: Could not get workspace/volume ID!  Retrying...");
           // This cannot mean a real failure; it MUST mean that we have had an intermittent communication hiccup.  So, pass it off as a service interruption.
-          throw new ServiceInterruption("Service interruption getting root value",new ACFException("Could not get workspace/volume id"),System.currentTimeMillis()+60000L,
+          throw new ServiceInterruption("Service interruption getting root value",new ManifoldCFException("Could not get workspace/volume id"),System.currentTimeMillis()+60000L,
             System.currentTimeMillis()+600000L,-1,true);
         }
       }
@@ -6253,7 +6253,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param failIfTimeout is true if, for transient conditions, we want to signal failure if the timeout condition is acheived.
   */
   protected int handleLivelinkRuntimeException(RuntimeException e, int sanityRetryCount, boolean failIfTimeout)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     if (
       e instanceof com.opentext.api.LLHTTPAccessDeniedException ||
@@ -6267,7 +6267,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     )
     {
       String details = llServer.getErrors();
-      throw new ACFException("Livelink API error: "+e.getMessage()+((details==null)?"":"; "+details),e,ACFException.REPOSITORY_CONNECTION_ERROR);
+      throw new ManifoldCFException("Livelink API error: "+e.getMessage()+((details==null)?"":"; "+details),e,ManifoldCFException.REPOSITORY_CONNECTION_ERROR);
     }
     else if (
       e instanceof com.opentext.api.LLBadServerCertificateException ||
@@ -6282,14 +6282,14 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     {
 
       String details = llServer.getErrors();
-      throw new ACFException("Livelink API error: "+e.getMessage()+((details==null)?"":"; "+details),e);
+      throw new ManifoldCFException("Livelink API error: "+e.getMessage()+((details==null)?"":"; "+details),e);
     }
     else if (e instanceof com.opentext.api.LLIllegalOperationException)
     {
       // This usually means that LAPI has had a minor communication difficulty but hasn't reported it accurately.
       // We *could* throw a ServiceInterruption, but OpenText recommends to just retry almost immediately.
       String details = llServer.getErrors();
-      return assessRetry(sanityRetryCount,new ACFException("Livelink API illegal operation error: "+e.getMessage()+((details==null)?"":"; "+details),e));
+      return assessRetry(sanityRetryCount,new ManifoldCFException("Livelink API illegal operation error: "+e.getMessage()+((details==null)?"":"; "+details),e));
     }
     else if (e instanceof com.opentext.api.LLIOException)
     {
@@ -6303,7 +6303,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
       catch (UnknownHostException e2)
       {
-        throw new ACFException("Server name '"+serverName+"' cannot be resolved",e2);
+        throw new ManifoldCFException("Server name '"+serverName+"' cannot be resolved",e2);
       }
 
       long currentTime = System.currentTimeMillis();
@@ -6315,8 +6315,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
   /** Do a retry, or throw an exception if the retry count has been exhausted
   */
-  protected static int assessRetry(int sanityRetryCount, ACFException e)
-    throws ACFException
+  protected static int assessRetry(int sanityRetryCount, ManifoldCFException e)
+    throws ManifoldCFException
   {
     if (sanityRetryCount == 0)
     {
@@ -6327,11 +6327,11 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
     try
     {
-      ACF.sleep(1000L);
+      ManifoldCF.sleep(1000L);
     }
     catch (InterruptedException e2)
     {
-      throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
+      throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
     }
     // Exit the method
     return sanityRetryCount;

@@ -22,7 +22,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
-import org.apache.manifoldcf.crawler.system.ACF;
+import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import java.util.*;
 import java.io.*;
 
@@ -84,7 +84,7 @@ public class ThrottledFetcher
 
   /** Note that we're about to need a handle (and make sure we have enough) */
   protected static void registerGlobalHandle(int maxHandles)
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -99,7 +99,7 @@ public class ThrottledFetcher
     }
     catch (InterruptedException e)
     {
-      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
   }
 
@@ -138,7 +138,7 @@ public class ThrottledFetcher
   */
   public synchronized IThrottledConnection createConnection(String serverName, double minimumMillisecondsPerBytePerServer,
     int maxOpenConnectionsPerServer, long minimumMillisecondsPerFetchPerServer, int connectionLimit, int connectionTimeoutMilliseconds)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     Server server;
     server = (Server)serverMap.get(serverName);
@@ -154,7 +154,7 @@ public class ThrottledFetcher
   /** Poll.  This method is designed to allow idle connections to be closed and freed.
   */
   public synchronized void poll()
-    throws ACFException
+    throws ManifoldCFException
   {
     // Nothing needed now; connections are released when we're done with them.
   }
@@ -311,7 +311,7 @@ public class ThrottledFetcher
     }
 
     public DataSession getSession(String url)
-      throws ACFException
+      throws ManifoldCFException
     {
       initializeParameters();
       return new DataSession(this,url);
@@ -319,7 +319,7 @@ public class ThrottledFetcher
 
     /** Atomically write resultlog record, returning data file name to use */
     public synchronized String writeResponseRecord(String url, int responseCode, ArrayList headerNames, ArrayList headerValues)
-      throws ACFException
+      throws ManifoldCFException
     {
       // Open log file
       try
@@ -356,7 +356,7 @@ public class ThrottledFetcher
       }
       catch (IOException e)
       {
-        throw new ACFException("Error recording file info: "+e.getMessage(),e);
+        throw new ManifoldCFException("Error recording file info: "+e.getMessage(),e);
       }
 
     }
@@ -392,7 +392,7 @@ public class ThrottledFetcher
     }
 
     public void endHeader()
-      throws ACFException
+      throws ManifoldCFException
     {
       documentName = dr.writeResponseRecord(url,responseCode,headerNames,headerValues);
     }
@@ -453,7 +453,7 @@ public class ThrottledFetcher
     */
     public ThrottledConnection(Server server, double minimumMillisecondsPerBytePerServer, int maxOpenConnectionsPerServer,
       long minimumMillisecondsPerFetchPerServer, int connectionTimeoutMilliseconds, int connectionLimit)
-      throws ACFException
+      throws ManifoldCFException
     {
       this.minimumMillisecondsPerBytePerServer = minimumMillisecondsPerBytePerServer;
       this.maxOpenConnectionsPerServer = maxOpenConnectionsPerServer;
@@ -474,7 +474,7 @@ public class ThrottledFetcher
     *        is used solely for logging purposes.
     */
     public void beginFetch(String fetchType)
-      throws ACFException
+      throws ManifoldCFException
     {
       this.fetchType = fetchType;
       fetchCounter = 0L;
@@ -484,7 +484,7 @@ public class ThrottledFetcher
       }
       catch (InterruptedException e)
       {
-        throw new ACFException("Interrupted",ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
       }
     }
 
@@ -558,7 +558,7 @@ public class ThrottledFetcher
     public int executeFetch(String protocol, int port, String urlPath, String userAgent, String from,
       String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword,
       String lastETag, String lastModified)
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
 
       StringBuffer sb = new StringBuffer(protocol);
@@ -686,7 +686,7 @@ public class ThrottledFetcher
         }
         catch (InterruptedIOException e)
         {
-          throw new ACFException("Interrupted",ACFException.INTERRUPTED);
+          throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
         }
         catch (org.apache.commons.httpclient.CircularRedirectException e)
         {
@@ -737,11 +737,11 @@ public class ThrottledFetcher
       {
         // Drop the current connection on the floor, so it cannot be reused.
         fetchMethod = null;
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (URIException e)
       {
-        throwable = new ACFException("Illegal URI: '"+myUrl+"'",e);
+        throwable = new ManifoldCFException("Illegal URI: '"+myUrl+"'",e);
         statusCode = FETCH_BAD_URI;
         if (recordEverything)
           dataSession.setResponseCode(statusCode);
@@ -749,7 +749,7 @@ public class ThrottledFetcher
       }
       catch (IllegalArgumentException e)
       {
-        throwable = new ACFException("Illegal URI: '"+myUrl+"'",e);
+        throwable = new ManifoldCFException("Illegal URI: '"+myUrl+"'",e);
         statusCode = FETCH_BAD_URI;
         if (recordEverything)
           dataSession.setResponseCode(statusCode);
@@ -757,7 +757,7 @@ public class ThrottledFetcher
       }
       catch (IllegalStateException e)
       {
-        throwable = new ACFException("Illegal state while fetching URI: '"+myUrl+"'",e);
+        throwable = new ManifoldCFException("Illegal state while fetching URI: '"+myUrl+"'",e);
         statusCode = FETCH_SEQUENCE_ERROR;
         if (recordEverything)
           dataSession.setResponseCode(statusCode);
@@ -767,7 +767,7 @@ public class ThrottledFetcher
       {
         throw e;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         throw e;
       }
@@ -786,7 +786,7 @@ public class ThrottledFetcher
     *@return the response code.  This is either an HTTP response code, or one of the codes above.
     */
     public int getResponseCode()
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
       return statusCode;
     }
@@ -795,26 +795,26 @@ public class ThrottledFetcher
     * to close this stream when done.
     */
     public InputStream getResponseBodyStream()
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
       if (fetchMethod == null)
-        throw new ACFException("Attempt to get a response when there is no method");
+        throw new ManifoldCFException("Attempt to get a response when there is no method");
       try
       {
         if (recordEverything)
           dataSession.endHeader();
         InputStream bodyStream = fetchMethod.getResponseBodyAsStream();
         if (bodyStream == null)
-          throw new ACFException("Failed to set up body response stream");
+          throw new ManifoldCFException("Failed to set up body response stream");
         return new ThrottledInputstream(this,server,bodyStream,minimumMillisecondsPerBytePerServer,dataSession);
       }
       catch (IOException e)
       {
-        throw new ACFException("IO exception setting up response stream",e);
+        throw new ManifoldCFException("IO exception setting up response stream",e);
       }
       catch (IllegalStateException e)
       {
-        throw new ACFException("State error getting response body",e);
+        throw new ManifoldCFException("State error getting response body",e);
       }
     }
 
@@ -823,7 +823,7 @@ public class ThrottledFetcher
     *@return the header value, or null if it doesn't exist.
     */
     public String getResponseHeader(String headerName)
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
       Header h = fetchMethod.getResponseHeader(headerName);
       if (h == null)
@@ -837,7 +837,7 @@ public class ThrottledFetcher
     * describing what was done.
     */
     public void doneFetch(IVersionActivity activities)
-      throws ACFException
+      throws ManifoldCFException
     {
       if (fetchType != null)
       {
@@ -878,7 +878,7 @@ public class ThrottledFetcher
     /** Close the connection.  Call this to end this server connection.
     */
     public void close()
-      throws ACFException
+      throws ManifoldCFException
     {
       // Clean up the connection pool.  This should do the necessary bookkeeping to release the one connection that's sitting there.
       connectionManager.shutdown();
@@ -1137,7 +1137,7 @@ public class ThrottledFetcher
 
     /** Register an outstanding connection (and wait until it can be obtained before proceeding) */
     public synchronized void registerConnection(int maxOutstandingConnections)
-      throws ACFException
+      throws ManifoldCFException
     {
       try
       {
@@ -1149,7 +1149,7 @@ public class ThrottledFetcher
       }
       catch (InterruptedException e)
       {
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
     }
 
@@ -1190,7 +1190,7 @@ public class ThrottledFetcher
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("RSS: Performing a fetch wait for server '"+serverName+"' for "+
           new Long(waitAmount).toString()+" ms.");
-        ACF.sleep(waitAmount);
+        ManifoldCF.sleep(waitAmount);
       }
 
       // System.out.println("For server "+this.toString()+", at "+new Long(System.currentTimeMillis()).toString()+", the next fetch time is now "+new Long(nextFetchTime).toString());
@@ -1284,7 +1284,7 @@ public class ThrottledFetcher
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("RSS: Performing a read wait on server '"+serverName+"' of "+
           new Long(waitTime).toString()+" ms.");
-        ACF.sleep(waitTime);
+        ManifoldCF.sleep(waitTime);
       }
 
       //if (Logging.connectors.isTraceEnabled())

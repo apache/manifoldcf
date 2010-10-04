@@ -24,7 +24,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.authorities.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.CacheKeyFactory;
-import org.apache.manifoldcf.crawler.system.ACF;
+import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import org.apache.manifoldcf.crawler.system.Logging;
 
 
@@ -53,7 +53,7 @@ public class RobotsManager extends org.apache.manifoldcf.core.database.BaseTable
   *@param database is the database handle.
   */
   public RobotsManager(IThreadContext tc, IDBInterface database)
-    throws ACFException
+    throws ManifoldCFException
   {
     super(database,"robotsdata");
     cacheManager = CacheManagerFactory.make(tc);
@@ -62,7 +62,7 @@ public class RobotsManager extends org.apache.manifoldcf.core.database.BaseTable
   /** Install the manager.
   */
   public void install()
-    throws ACFException
+    throws ManifoldCFException
   {
     // Standard practice: outer loop on install methods, no transactions
     while (true)
@@ -91,7 +91,7 @@ public class RobotsManager extends org.apache.manifoldcf.core.database.BaseTable
   /** Uninstall the manager.
   */
   public void deinstall()
-    throws ACFException
+    throws ManifoldCFException
   {
     performDrop(null);
   }
@@ -104,7 +104,7 @@ public class RobotsManager extends org.apache.manifoldcf.core.database.BaseTable
   */
   public Boolean checkFetchAllowed(String userAgent, String hostName, long currentTime, String pathString,
     IVersionActivity activities)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Build description objects
     HostDescription[] objectDescriptions = new HostDescription[1];
@@ -129,7 +129,7 @@ public class RobotsManager extends org.apache.manifoldcf.core.database.BaseTable
   *@param data is the robots data stream.  May be null.
   */
   public void writeRobotsData(String hostName, long expirationTime, InputStream data)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     TempFileInput tfi = null;
     try
@@ -140,9 +140,9 @@ public class RobotsManager extends org.apache.manifoldcf.core.database.BaseTable
         {
           tfi = new TempFileInput(data);
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
-          if (e.getErrorCode() == ACFException.INTERRUPTED)
+          if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
             throw e;
           throw new IOException("Fetch failed: "+e.getMessage());
         }
@@ -183,7 +183,7 @@ public class RobotsManager extends org.apache.manifoldcf.core.database.BaseTable
           }
           cacheManager.invalidateKeys(ch);
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
           signalRollback();
           throw e;
@@ -225,7 +225,7 @@ public class RobotsManager extends org.apache.manifoldcf.core.database.BaseTable
   *@return null if the data doesn't exist at all.  Return robots data if it does.
   */
   protected RobotsData readRobotsData(String hostName, IVersionActivity activities)
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -236,7 +236,7 @@ public class RobotsManager extends org.apache.manifoldcf.core.database.BaseTable
       if (set.getRowCount() == 0)
         return null;
       if (set.getRowCount() > 1)
-        throw new ACFException("Unexpected number of robotsdata rows matching '"+hostName+"': "+Integer.toString(set.getRowCount()));
+        throw new ManifoldCFException("Unexpected number of robotsdata rows matching '"+hostName+"': "+Integer.toString(set.getRowCount()));
       IResultRow row = set.getRow(0);
       long expiration = ((Long)row.getValue(expirationField)).longValue();
       BinaryInput bi = (BinaryInput)row.getValue(robotsField);
@@ -254,11 +254,11 @@ public class RobotsManager extends org.apache.manifoldcf.core.database.BaseTable
     }
     catch (InterruptedIOException e)
     {
-      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new ACFException("IO error reading robots data for "+hostName+": "+e.getMessage(),e);
+      throw new ManifoldCFException("IO error reading robots data for "+hostName+": "+e.getMessage(),e);
     }
   }
 
@@ -291,7 +291,7 @@ public class RobotsManager extends org.apache.manifoldcf.core.database.BaseTable
 
     /** Constructor. */
     public RobotsData(InputStream is, long expiration, String hostName, IVersionActivity activities)
-      throws IOException, ACFException
+      throws IOException, ManifoldCFException
     {
       this.expiration = expiration;
       if (is == null)
@@ -398,7 +398,7 @@ public class RobotsManager extends org.apache.manifoldcf.core.database.BaseTable
     * Is NOT expected to close the stream.
     */
     protected void parseRobotsTxt(BufferedReader r, String hostName, IVersionActivity activities)
-      throws IOException, ACFException
+      throws IOException, ManifoldCFException
     {
       boolean parseCompleted = false;
       boolean robotsWasHtml = false;
@@ -782,7 +782,7 @@ public class RobotsManager extends org.apache.manifoldcf.core.database.BaseTable
     * @return the newly created objects to cache, or null, if any object cannot be created.
     *  The order of the returned objects must correspond to the order of the object descriptinos.
     */
-    public Object[] create(ICacheDescription[] objectDescriptions) throws ACFException
+    public Object[] create(ICacheDescription[] objectDescriptions) throws ManifoldCFException
     {
       // I'm not expecting multiple values to be request, so it's OK to walk through the objects
       // and do a request at a time.
@@ -809,7 +809,7 @@ public class RobotsManager extends org.apache.manifoldcf.core.database.BaseTable
     * @param objectDescription is the unique identifier of the object.
     * @param cachedObject is the cached object.
     */
-    public void exists(ICacheDescription objectDescription, Object cachedObject) throws ACFException
+    public void exists(ICacheDescription objectDescription, Object cachedObject) throws ManifoldCFException
     {
       // Cast what came in as what it really is
       HostDescription objectDesc = (HostDescription)objectDescription;
@@ -821,7 +821,7 @@ public class RobotsManager extends org.apache.manifoldcf.core.database.BaseTable
     /** Perform the desired operation.  This method is called after either createGetObject()
     * or exists() is called for every requested object.
     */
-    public void execute() throws ACFException
+    public void execute() throws ManifoldCFException
     {
       // Does nothing; we only want to fetch objects in this cacher.
     }

@@ -49,7 +49,7 @@ public interface ICacheExecutor
   * @return the newly created objects to cache, or null, if any object cannot be created.
   *  The order of the returned objects must correspond to the order of the object descriptinos.
   */
-  public Object[] create(ICacheDescription[] objectDescriptions) throws ACFException;
+  public Object[] create(ICacheDescription[] objectDescriptions) throws ManifoldCFException;
 
 
   /** Notify the implementing class of the existence of a cached version of the
@@ -59,12 +59,12 @@ public interface ICacheExecutor
   * @param objectDescription is the unique identifier of the object.
   * @param cachedObject is the cached object.
   */
-  public void exists(ICacheDescription objectDescription, Object cachedObject) throws ACFException;
+  public void exists(ICacheDescription objectDescription, Object cachedObject) throws ManifoldCFException;
 
 
   /** Perform the desired operation.  This method is called after either createGetObject()
   * or exists() is called for every requested object.
   */
-  public void execute() throws ACFException;
+  public void execute() throws ManifoldCFException;
 }
 

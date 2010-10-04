@@ -47,7 +47,7 @@ public class SeedingThread extends Thread
   /** Constructor.
   */
   public SeedingThread(QueueTracker queueTracker)
-    throws ACFException
+    throws ManifoldCFException
   {
     super();
     setName("Seeding thread");
@@ -67,9 +67,9 @@ public class SeedingThread extends Thread
       IRepositoryConnectionManager connectionMgr = RepositoryConnectionManagerFactory.make(threadContext);
 
       IDBInterface database = DBInterfaceFactory.make(threadContext,
-        ACF.getMasterDatabaseName(),
-        ACF.getMasterDatabaseUsername(),
-        ACF.getMasterDatabasePassword());
+        ManifoldCF.getMasterDatabaseName(),
+        ManifoldCF.getMasterDatabaseUsername(),
+        ManifoldCF.getMasterDatabasePassword());
 
       String[] identifiers = new String[MAX_COUNT];
       // Loop
@@ -102,7 +102,7 @@ public class SeedingThread extends Thread
             if (seedJobs.length == 0)
             {
               Logging.threads.debug("Seeding thread found nothing to do");
-              ACF.sleep(waitTime);
+              ManifoldCF.sleep(waitTime);
               continue;
             }
 
@@ -183,13 +183,13 @@ public class SeedingThread extends Thread
                 jsr.noteStarted();
 
               }
-              catch (ACFException e)
+              catch (ManifoldCFException e)
               {
-                if (e.getErrorCode() == ACFException.INTERRUPTED)
+                if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
                   throw new InterruptedException();
-                if (e.getErrorCode() == ACFException.DATABASE_CONNECTION_ERROR)
+                if (e.getErrorCode() == ManifoldCFException.DATABASE_CONNECTION_ERROR)
                   throw e;
-                if (e.getErrorCode() == ACFException.REPOSITORY_CONNECTION_ERROR)
+                if (e.getErrorCode() == ManifoldCFException.REPOSITORY_CONNECTION_ERROR)
                 {
                   Logging.threads.warn("Seeding thread: Ignoring connection error: "+e.getMessage(),e);
                   continue;
@@ -204,7 +204,7 @@ public class SeedingThread extends Thread
           finally
           {
             // Clean up all jobs that did not seed
-            ACFException exception = null;
+            ManifoldCFException exception = null;
             int i = 0;
             while (i < seedJobs.length)
             {
@@ -219,7 +219,7 @@ public class SeedingThread extends Thread
                 {
                   jobManager.resetSeedJob(jsr.getJobID());
                 }
-                catch (ACFException e)
+                catch (ManifoldCFException e)
                 {
                   exception = e;
                 }
@@ -230,14 +230,14 @@ public class SeedingThread extends Thread
           }
 
           // Sleep for the retry interval.
-          ACF.sleep(waitTime);
+          ManifoldCF.sleep(waitTime);
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
-          if (e.getErrorCode() == ACFException.INTERRUPTED)
+          if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
             break;
 
-          if (e.getErrorCode() == ACFException.DATABASE_CONNECTION_ERROR)
+          if (e.getErrorCode() == ManifoldCFException.DATABASE_CONNECTION_ERROR)
           {
             resetManager.noteEvent();
 
@@ -245,7 +245,7 @@ public class SeedingThread extends Thread
             try
             {
               // Give the database a chance to catch up/wake up
-              ACF.sleep(10000L);
+              ManifoldCF.sleep(10000L);
             }
             catch (InterruptedException se)
             {
@@ -257,7 +257,7 @@ public class SeedingThread extends Thread
           // Log it, but keep the thread alive
           Logging.threads.error("Exception tossed: "+e.getMessage(),e);
 
-          if (e.getErrorCode() == ACFException.SETUP_ERROR)
+          if (e.getErrorCode() == ManifoldCFException.SETUP_ERROR)
           {
             // Shut the whole system down!
             System.exit(1);
@@ -307,7 +307,7 @@ public class SeedingThread extends Thread
 
     /** Reset */
     protected void performResetLogic(IThreadContext tc)
-      throws ACFException
+      throws ManifoldCFException
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
       jobManager.resetSeedingWorkerStatus();

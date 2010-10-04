@@ -50,7 +50,7 @@ public class AddUserToSite
                         }
                         System.err.println("Successfully added user to site");
                 }
-                catch (ACFException e)
+                catch (ManifoldCFException e)
                 {
                         e.printStackTrace(System.err);
                         System.exit(2);

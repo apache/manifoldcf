@@ -1,4 +1,4 @@
-/* $Id: ACF.java 988245 2010-08-23 18:39:35Z kwright $ */
+/* $Id: ManifoldCF.java 988245 2010-08-23 18:39:35Z kwright $ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -23,9 +23,9 @@ import java.io.*;
 import java.util.*;
 import java.security.MessageDigest;
 
-public class ACF
+public class ManifoldCF
 {
-  public static final String _rcsid = "@(#)$Id: ACF.java 988245 2010-08-23 18:39:35Z kwright $";
+  public static final String _rcsid = "@(#)$Id: ManifoldCF.java 988245 2010-08-23 18:39:35Z kwright $";
 
   // Configuration XML node names and attribute names
   public static final String NODE_PROPERTY = "property";
@@ -41,8 +41,8 @@ public class ACF
   
   // Class loader
   
-  /** The object that manages ACF plugin class loading.  This is initialized when the initialize method is called. */
-  protected static ACFResourceLoader resourceLoader = null;
+  /** The object that manages ManifoldCF plugin class loading.  This is initialized when the initialize method is called. */
+  protected static ManifoldCFResourceLoader resourceLoader = null;
 
   // Shutdown hooks
   /** Temporary file collector */
@@ -83,7 +83,7 @@ public class ACF
   protected static String masterDatabaseName = null;
   protected static String masterDatabaseUsername = null;
   protected static String masterDatabasePassword = null;
-  protected static ACFConfiguration localConfiguration = null;
+  protected static ManifoldCFConfiguration localConfiguration = null;
   protected static Map localProperties = null;
   protected static long propertyFilelastMod = -1L;
   protected static String propertyFilePath = null;
@@ -128,7 +128,7 @@ public class ACF
   /** Initialize environment.
   */
   public static void initializeEnvironment()
-    throws ACFException
+    throws ManifoldCFException
   {
     synchronized (initializeFlagLock)
     {
@@ -151,15 +151,15 @@ public class ACF
           propertyFilePath = new File(configPath,"properties.xml").toString();
         }
 
-        // Initialize working directory.  We cannot use the actual system cwd, because different ACF processes will have different ones.
+        // Initialize working directory.  We cannot use the actual system cwd, because different ManifoldCF processes will have different ones.
         // So, instead, we use the location of the property file itself, and call that the "working directory".
         workingDirectory = new File(propertyFilePath).getAbsoluteFile().getParentFile();
 
         // Initialize resource loader.
-        resourceLoader = new ACFResourceLoader(Thread.currentThread().getContextClassLoader());
+        resourceLoader = new ManifoldCFResourceLoader(Thread.currentThread().getContextClassLoader());
         
         // Read configuration!
-        localConfiguration = new ACFConfiguration();
+        localConfiguration = new ManifoldCFConfiguration();
         localProperties = new HashMap();
         checkProperties();
 
@@ -199,9 +199,9 @@ public class ACF
         DBInterfaceFactory.make(threadcontext,masterDatabaseName,masterDatabaseUsername,masterDatabasePassword).openDatabase();
         isInitialized = true;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
-        throw new ACFException("Initialization failed: "+e.getMessage(),e,ACFException.SETUP_ERROR);
+        throw new ManifoldCFException("Initialization failed: "+e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
       }
     }
 
@@ -210,7 +210,7 @@ public class ACF
   /** Reloads properties as needed.
   */
   public static final void checkProperties()
-    throws ACFException
+    throws ManifoldCFException
   {
     File f = new File(propertyFilePath);    // for re-read
     try
@@ -237,7 +237,7 @@ public class ACF
     }
     catch (Exception e)
     {
-      throw new ACFException("Could not read configuration file '"+f.toString()+"'",e);
+      throw new ManifoldCFException("Could not read configuration file '"+f.toString()+"'",e);
     }
     
     // For convenience, post-process all "property" nodes so that we have a semblance of the earlier name/value pairs available, by default.
@@ -253,14 +253,14 @@ public class ACF
         String name = cn.getAttributeValue(ATTRIBUTE_NAME);
         String value = cn.getAttributeValue(ATTRIBUTE_VALUE);
         if (name == null)
-          throw new ACFException("Node type '"+NODE_PROPERTY+"' requires a '"+ATTRIBUTE_NAME+"' attribute");
+          throw new ManifoldCFException("Node type '"+NODE_PROPERTY+"' requires a '"+ATTRIBUTE_NAME+"' attribute");
         localProperties.put(name,value);
       }
       else if (cn.getType().equals(NODE_LIBDIR))
       {
         String path = cn.getAttributeValue(ATTRIBUTE_PATH);
         if (path == null)
-          throw new ACFException("Node type '"+NODE_LIBDIR+"' requires a '"+ATTRIBUTE_PATH+" attribute");
+          throw new ManifoldCFException("Node type '"+NODE_LIBDIR+"' requires a '"+ATTRIBUTE_PATH+" attribute");
         // What exactly should I do with this classpath information?  The classloader can be dynamically updated, but if I do that will everything work?
         // I'm going to presume the answer is "yes" for now...
         libDirs.add(resolvePath(path));
@@ -270,8 +270,8 @@ public class ACF
     resourceLoader.setClassPath(libDirs);
   }
 
-  /** Resolve a file path, possibly relative to ACF's concept of its "working directory".
-  *@param path is the path, to be calculated relative to the ACF "working directory".
+  /** Resolve a file path, possibly relative to ManifoldCF's concept of its "working directory".
+  *@param path is the path, to be calculated relative to the ManifoldCF "working directory".
   *@return the resolved file.
   */
   public static File resolvePath(String path)
@@ -293,7 +293,7 @@ public class ACF
   }
 
   /** Read a File property, either from the system properties, or from the local configuration file.
-  * Relative file references are resolved according to the "working directory" for ACF.
+  * Relative file references are resolved according to the "working directory" for ManifoldCF.
   */
   public static File getFileProperty(String s)
   {
@@ -307,7 +307,7 @@ public class ACF
   * @param path
   */
   public static void ensureFolder(String path)
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -319,7 +319,7 @@ public class ACF
     }
     catch (Exception e)
     {
-      throw new ACFException("Can't make folder",e,ACFException.GENERAL_ERROR);
+      throw new ManifoldCFException("Can't make folder",e,ManifoldCFException.GENERAL_ERROR);
     }
   }
 
@@ -426,7 +426,7 @@ public class ACF
   *  @return the encrypted string.
   *   */
   public static String hash(String input)
-    throws ACFException
+    throws ManifoldCFException
   {
     return encrypt(input);
   }
@@ -434,7 +434,7 @@ public class ACF
   /** Start creating a hash
   */
   public static MessageDigest startHash()
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -442,14 +442,14 @@ public class ACF
     }
     catch (Exception e)
     {
-      throw new ACFException("Couldn't encrypt: "+e.getMessage(),e,ACFException.GENERAL_ERROR);
+      throw new ManifoldCFException("Couldn't encrypt: "+e.getMessage(),e,ManifoldCFException.GENERAL_ERROR);
     }
   }
 
   /** Add to hash
   */
   public static void addToHash(MessageDigest digest, String input)
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -458,14 +458,14 @@ public class ACF
     }
     catch (Exception e)
     {
-      throw new ACFException("Couldn't encrypt: "+e.getMessage(),e,ACFException.GENERAL_ERROR);
+      throw new ManifoldCFException("Couldn't encrypt: "+e.getMessage(),e,ManifoldCFException.GENERAL_ERROR);
     }
   }
 
   /** Calculate final hash value
   */
   public static String getHashValue(MessageDigest digest)
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -482,7 +482,7 @@ public class ACF
     }
     catch (Exception e)
     {
-      throw new ACFException("Couldn't encrypt: "+e.getMessage(),e,ACFException.GENERAL_ERROR);
+      throw new ManifoldCFException("Couldn't encrypt: "+e.getMessage(),e,ManifoldCFException.GENERAL_ERROR);
     }
   }
 
@@ -491,7 +491,7 @@ public class ACF
   *@return the encrypted string.
   */
   public static String encrypt(String input)
-    throws ACFException
+    throws ManifoldCFException
   {
     MessageDigest hash = startHash();
     addToHash(hash,input);
@@ -503,7 +503,7 @@ public class ACF
   *@return the output string.
   */
   public static String obfuscate(String input)
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -539,7 +539,7 @@ public class ACF
     }
     catch (java.io.UnsupportedEncodingException e)
     {
-      throw new ACFException("UTF-8 not supported",e,ACFException.GENERAL_ERROR);
+      throw new ManifoldCFException("UTF-8 not supported",e,ManifoldCFException.GENERAL_ERROR);
     }
   }
 
@@ -561,7 +561,7 @@ public class ACF
   *@return the decoded string.
   */
   public static String deobfuscate(String input)
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -571,7 +571,7 @@ public class ACF
         return input;
 
       if ((input.length() >> 1) * 2 != input.length())
-        throw new ACFException("Decoding error",ACFException.GENERAL_ERROR);
+        throw new ManifoldCFException("Decoding error",ManifoldCFException.GENERAL_ERROR);
 
       byte[] bytes = new byte[input.length() >> 1];
       int i = 0;
@@ -602,7 +602,7 @@ public class ACF
     }
     catch (java.io.UnsupportedEncodingException e)
     {
-      throw new ACFException("UTF-8 unsupported",e,ACFException.GENERAL_ERROR);
+      throw new ManifoldCFException("UTF-8 unsupported",e,ManifoldCFException.GENERAL_ERROR);
     }
   }
 
@@ -611,14 +611,14 @@ public class ACF
   *@return the value.
   */
   protected static int readNibble(char value)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (value >= 'A' && value <= 'F')
       return (int)(value - 'A' + 10);
     else if (value >= '0' && value <= '9')
       return (int)(value - '0');
     else
-      throw new ACFException("Bad hexadecimal value",ACFException.GENERAL_ERROR);
+      throw new ManifoldCFException("Bad hexadecimal value",ManifoldCFException.GENERAL_ERROR);
   }
 
 
@@ -628,7 +628,7 @@ public class ACF
   *@param masterPassword is the master database password.
   */
   public static void createSystemDatabase(IThreadContext threadcontext, String masterUsername, String masterPassword)
-    throws ACFException
+    throws ManifoldCFException
   {
     String databaseName = getMasterDatabaseName();
     String databaseUsername = getMasterDatabaseUsername();
@@ -644,7 +644,7 @@ public class ACF
   *@param masterPassword is the master database password.
   */
   public static void dropSystemDatabase(IThreadContext threadcontext, String masterUsername, String masterPassword)
-    throws ACFException
+    throws ManifoldCFException
   {
     String databaseName = getMasterDatabaseName();
     String databaseUsername = getMasterDatabaseUsername();
@@ -683,7 +683,7 @@ public class ACF
   /** Note configuration change.
   */
   public static void noteConfigurationChange()
-    throws ACFException
+    throws ManifoldCFException
   {
     String configChangeSignalCommand = getProperty(configSignalCommandProperty);
     if (configChangeSignalCommand == null || configChangeSignalCommand.length() == 0)
@@ -807,7 +807,7 @@ public class ACF
                     break;
                   sb.append(value).append("; ");
                 }
-                throw new ACFException("Shelled process '"+configChangeSignalCommand+"' failed with error "+Integer.toString(rval)+": "+sb.toString());
+                throw new ManifoldCFException("Shelled process '"+configChangeSignalCommand+"' failed with error "+Integer.toString(rval)+": "+sb.toString());
               }
               finally
               {
@@ -832,15 +832,15 @@ public class ACF
     }
     catch (InterruptedException e)
     {
-      throw new ACFException("Process wait interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Process wait interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
     catch (InterruptedIOException e)
     {
-      throw new ACFException("IO with subprocess interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("IO with subprocess interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new ACFException("IO exception signalling change: "+e.getMessage(),e);
+      throw new ManifoldCFException("IO exception signalling change: "+e.getMessage(),e);
     }
   }
 
@@ -1081,7 +1081,7 @@ public class ACF
   * is designed for loading plugin classes, and their downstream dependents.
   */
   public static Class findClass(String cname)
-    throws ClassNotFoundException,ACFException
+    throws ClassNotFoundException,ManifoldCFException
   {
     return resourceLoader.findClass(cname);
   }
@@ -1102,7 +1102,7 @@ public class ACF
 	{
 	  hook.doCleanup();
 	}
-	catch (ACFException e)
+	catch (ManifoldCFException e)
 	{
 	  Logging.root.warn("Error during system shutdown: "+e.getMessage(),e);
 	}
@@ -1137,7 +1137,7 @@ public class ACF
 
     /** Delete all remaining files */
     public void doCleanup()
-      throws ACFException
+      throws ManifoldCFException
     {
       synchronized (this)
       {
@@ -1176,7 +1176,7 @@ public class ACF
     }
     
     public void doCleanup()
-      throws ACFException
+      throws ManifoldCFException
     {
       // Clean up the database handles
       Thread t = new DatabaseConnectionReleaseThread();
@@ -1193,7 +1193,7 @@ public class ACF
     }
     
     protected void closeDatabase()
-      throws ACFException
+      throws ManifoldCFException
     {
       synchronized (initializeFlagLock)
       {

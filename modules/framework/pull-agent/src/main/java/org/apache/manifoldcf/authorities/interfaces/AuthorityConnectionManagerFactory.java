@@ -20,7 +20,7 @@ package org.apache.manifoldcf.authorities.interfaces;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import java.util.*;
-import org.apache.manifoldcf.authorities.system.ACF;
+import org.apache.manifoldcf.authorities.system.ManifoldCF;
 
 /** This is the factory class for authority connection manager objects.
 */
@@ -38,15 +38,15 @@ public class AuthorityConnectionManagerFactory
   *@return the handle.
   */
   public static IAuthorityConnectionManager make(IThreadContext tc)
-    throws ACFException
+    throws ManifoldCFException
   {
     Object o = tc.get(objectName);
     if (o == null || !(o instanceof IAuthorityConnectionManager))
     {
       IDBInterface database = DBInterfaceFactory.make(tc,
-        ACF.getMasterDatabaseName(),
-        ACF.getMasterDatabaseUsername(),
-        ACF.getMasterDatabasePassword());
+        ManifoldCF.getMasterDatabaseName(),
+        ManifoldCF.getMasterDatabaseUsername(),
+        ManifoldCF.getMasterDatabasePassword());
 
       o = new org.apache.manifoldcf.authorities.authority.AuthorityConnectionManager(tc,database);
       tc.save(objectName,o);

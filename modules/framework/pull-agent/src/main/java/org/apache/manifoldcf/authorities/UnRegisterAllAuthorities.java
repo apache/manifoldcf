@@ -31,7 +31,7 @@ public class UnRegisterAllAuthorities extends BaseAuthoritiesInitializationComma
   {
   }
 
-  protected void doExecute(IAuthorityConnectorManager mgr) throws ACFException
+  protected void doExecute(IAuthorityConnectorManager mgr) throws ManifoldCFException
   {
     IResultSet classNames = mgr.getConnectors();
     int i = 0;
@@ -59,7 +59,7 @@ public class UnRegisterAllAuthorities extends BaseAuthoritiesInitializationComma
       unRegisterAllAuthorities.execute();
       System.err.println("Successfully unregistered all connectors");
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       e.printStackTrace();
       System.exit(1);

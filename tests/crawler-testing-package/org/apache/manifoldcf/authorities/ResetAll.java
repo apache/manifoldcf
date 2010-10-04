@@ -44,7 +44,7 @@ public class ResetAll
 
                 try
                 {
-                        ACF.initializeEnvironment();
+                        ManifoldCF.initializeEnvironment();
                         IThreadContext tc = ThreadContextFactory.make();
                         // Now, get a list of the authority connections
                         IAuthorityConnectionManager mgr = AuthorityConnectionManagerFactory.make(tc);

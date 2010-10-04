@@ -38,7 +38,7 @@ public class JobResetThread extends Thread
   /** Constructor.
   */
   public JobResetThread(QueueTracker queueTracker)
-    throws ACFException
+    throws ManifoldCFException
   {
     super();
     setName("Job reset thread");
@@ -119,7 +119,7 @@ public class JobResetThread extends Thread
                   break;
 
                 // Calculate new priorities for all these documents
-                ACF.writeDocumentPriorities(threadContext,connectionManager,jobManager,docs,connectionMap,jobDescriptionMap,queueTracker,currentTime);
+                ManifoldCF.writeDocumentPriorities(threadContext,connectionManager,jobManager,docs,connectionMap,jobDescriptionMap,queueTracker,currentTime);
 
                 Logging.threads.debug("Reprioritized "+Integer.toString(docs.length)+" not-yet-processed documents in "+new Long(System.currentTimeMillis()-startTime)+" ms");
               }
@@ -133,20 +133,20 @@ public class JobResetThread extends Thread
 
           }
 
-          ACF.sleep(10000L);
+          ManifoldCF.sleep(10000L);
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
-          if (e.getErrorCode() == ACFException.INTERRUPTED)
+          if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
             break;
 
-          if (e.getErrorCode() == ACFException.DATABASE_CONNECTION_ERROR)
+          if (e.getErrorCode() == ManifoldCFException.DATABASE_CONNECTION_ERROR)
           {
             Logging.threads.error("Job reset thread aborting and restarting due to database connection reset: "+e.getMessage(),e);
             try
             {
               // Give the database a chance to catch up/wake up
-              ACF.sleep(10000L);
+              ManifoldCF.sleep(10000L);
             }
             catch (InterruptedException se)
             {
@@ -158,7 +158,7 @@ public class JobResetThread extends Thread
           // Log it, but keep the thread alive
           Logging.threads.error("Exception tossed: "+e.getMessage(),e);
 
-          if (e.getErrorCode() == ACFException.SETUP_ERROR)
+          if (e.getErrorCode() == ManifoldCFException.SETUP_ERROR)
           {
             // Shut the whole system down!
             System.exit(1);

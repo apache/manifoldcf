@@ -33,12 +33,12 @@ public class UnRegisterAll extends BaseCrawlerInitializationCommand
   {
   }
 
-  protected void doExecute(IThreadContext tc) throws ACFException
+  protected void doExecute(IThreadContext tc) throws ManifoldCFException
   {
     IDBInterface database = DBInterfaceFactory.make(tc,
-      ACF.getMasterDatabaseName(),
-      ACF.getMasterDatabaseUsername(),
-      ACF.getMasterDatabasePassword());
+      ManifoldCF.getMasterDatabaseName(),
+      ManifoldCF.getMasterDatabaseUsername(),
+      ManifoldCF.getMasterDatabasePassword());
     IConnectorManager mgr = ConnectorManagerFactory.make(tc);
     IJobManager jobManager = JobManagerFactory.make(tc);
     IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(tc);
@@ -59,7 +59,7 @@ public class UnRegisterAll extends BaseCrawlerInitializationCommand
         // Now that all jobs have been placed into an appropriate state, actually do the deregistration itself.
         mgr.unregisterConnector(className);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         database.signalRollback();
         throw e;
@@ -92,7 +92,7 @@ public class UnRegisterAll extends BaseCrawlerInitializationCommand
       unRegisterAll.execute();
       System.err.println("Successfully unregistered all connectors");
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       e.printStackTrace();
       System.exit(1);

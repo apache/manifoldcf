@@ -22,7 +22,7 @@ import java.util.*;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.CacheKeyFactory;
-import org.apache.manifoldcf.agents.system.ACF;
+import org.apache.manifoldcf.agents.system.ManifoldCF;
 
 
 /** This class is the manager of the outputconnection description.  Inside, a database table is managed,
@@ -53,7 +53,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
   *@param threadContext is the thread context.
   */
   public OutputConnectionManager(IThreadContext threadContext, IDBInterface database)
-    throws ACFException
+    throws ManifoldCFException
   {
     super(database,"outputconnections");
 
@@ -64,7 +64,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
   /** Install the manager.
   */
   public void install()
-    throws ACFException
+    throws ManifoldCFException
   {
     // Always have an outer loop, in case retries required
     while (true)
@@ -95,51 +95,51 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
   /** Uninstall the manager.
   */
   public void deinstall()
-    throws ACFException
+    throws ManifoldCFException
   {
     performDrop(null);
   }
 
   /** Export configuration */
   public void exportConfiguration(java.io.OutputStream os)
-    throws java.io.IOException, ACFException
+    throws java.io.IOException, ManifoldCFException
   {
     // Write a version indicator
-    ACF.writeDword(os,1);
+    ManifoldCF.writeDword(os,1);
     // Get the authority list
     IOutputConnection[] list = getAllConnections();
     // Write the number of authorities
-    ACF.writeDword(os,list.length);
+    ManifoldCF.writeDword(os,list.length);
     // Loop through the list and write the individual repository connection info
     int i = 0;
     while (i < list.length)
     {
       IOutputConnection conn = list[i++];
-      ACF.writeString(os,conn.getName());
-      ACF.writeString(os,conn.getDescription());
-      ACF.writeString(os,conn.getClassName());
-      ACF.writeString(os,conn.getConfigParams().toXML());
-      ACF.writeDword(os,conn.getMaxConnections());
+      ManifoldCF.writeString(os,conn.getName());
+      ManifoldCF.writeString(os,conn.getDescription());
+      ManifoldCF.writeString(os,conn.getClassName());
+      ManifoldCF.writeString(os,conn.getConfigParams().toXML());
+      ManifoldCF.writeDword(os,conn.getMaxConnections());
     }
   }
 
   /** Import configuration */
   public void importConfiguration(java.io.InputStream is)
-    throws java.io.IOException, ACFException
+    throws java.io.IOException, ManifoldCFException
   {
-    int version = ACF.readDword(is);
+    int version = ManifoldCF.readDword(is);
     if (version != 1)
       throw new java.io.IOException("Unknown repository connection configuration version: "+Integer.toString(version));
-    int count = ACF.readDword(is);
+    int count = ManifoldCF.readDword(is);
     int i = 0;
     while (i < count)
     {
       IOutputConnection conn = create();
-      conn.setName(ACF.readString(is));
-      conn.setDescription(ACF.readString(is));
-      conn.setClassName(ACF.readString(is));
-      conn.getConfigParams().fromXML(ACF.readString(is));
-      conn.setMaxConnections(ACF.readDword(is));
+      conn.setName(ManifoldCF.readString(is));
+      conn.setDescription(ManifoldCF.readString(is));
+      conn.setClassName(ManifoldCF.readString(is));
+      conn.getConfigParams().fromXML(ManifoldCF.readString(is));
+      conn.setMaxConnections(ManifoldCF.readDword(is));
       // Attempt to save this connection
       save(conn);
       i++;
@@ -150,7 +150,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
   *@return an array of connection objects.
   */
   public IOutputConnection[] getAllConnections()
-    throws ACFException
+    throws ManifoldCFException
   {
     beginTransaction();
     try
@@ -171,7 +171,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
       }
       return loadMultiple(names);
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       signalRollback();
       throw e;
@@ -192,7 +192,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
   *@return the loaded connection object, or null if not found.
   */
   public IOutputConnection load(String name)
-    throws ACFException
+    throws ManifoldCFException
   {
     return loadMultiple(new String[]{name})[0];
   }
@@ -202,7 +202,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
   *@return the loaded connection objects.
   */
   public IOutputConnection[] loadMultiple(String[] names)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Build description objects
     OutputConnectionDescription[] objectDescriptions = new OutputConnectionDescription[names.length];
@@ -225,7 +225,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
   *@return the new object.
   */
   public IOutputConnection create()
-    throws ACFException
+    throws ManifoldCFException
   {
     OutputConnection rval = new OutputConnection();
     return rval;
@@ -236,7 +236,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
   *@return true if the object is being created, false otherwise.
   */
   public boolean save(IOutputConnection object)
-    throws ACFException
+    throws ManifoldCFException
   {
     StringSetBuffer ssb = new StringSetBuffer();
     ssb.add(getOutputConnectionsKey());
@@ -250,7 +250,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
       {
         performLock();
         // Notify of a change to the configuration
-        ACF.noteConfigurationChange();
+        ManifoldCF.noteConfigurationChange();
         // See whether the instance exists
         ArrayList params = new ArrayList();
         params.add(object.getName());
@@ -294,7 +294,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
         cacheManager.invalidateKeys(ch);
         return isCreated;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         signalRollback();
         throw e;
@@ -320,7 +320,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
   * name does not exist, no error is returned.
   */
   public void delete(String name)
-    throws ACFException
+    throws ManifoldCFException
   {
     StringSetBuffer ssb = new StringSetBuffer();
     ssb.add(getOutputConnectionsKey());
@@ -334,14 +334,14 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
       {
         // Check if anything refers to this connection name
         if (AgentManagerFactory.isOutputConnectionInUse(threadContext,name))
-          throw new ACFException("Can't delete output connection '"+name+"': existing entities refer to it");
-        ACF.noteConfigurationChange();
+          throw new ManifoldCFException("Can't delete output connection '"+name+"': existing entities refer to it");
+        ManifoldCF.noteConfigurationChange();
         ArrayList params = new ArrayList();
         params.add(name);
         performDelete("WHERE "+nameField+"=?",params,null);
         cacheManager.invalidateKeys(ch);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         signalRollback();
         throw e;
@@ -368,7 +368,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
   *@return the repository connections that use that connector.
   */
   public String[] findConnectionsForConnector(String className)
-    throws ACFException
+    throws ManifoldCFException
   {
     StringSetBuffer ssb = new StringSetBuffer();
     ssb.add(getOutputConnectionsKey());
@@ -394,7 +394,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
   *@return true if the underlying connector is registered.
   */
   public boolean checkConnectorExists(String name)
-    throws ACFException
+    throws ManifoldCFException
   {
     beginTransaction();
     try
@@ -407,13 +407,13 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
       IResultSet set = performQuery("SELECT "+classNameField+" FROM "+getTableName()+" WHERE "+nameField+"=?",params,
         localCacheKeys,null);
       if (set.getRowCount() == 0)
-        throw new ACFException("No such connection: '"+name+"'");
+        throw new ManifoldCFException("No such connection: '"+name+"'");
       IResultRow row = set.getRow(0);
       String className = (String)row.getValue(classNameField);
       IOutputConnectorManager cm = OutputConnectorManagerFactory.make(threadContext);
       return cm.isInstalled(className);
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       signalRollback();
       throw e;
@@ -465,7 +465,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
   *@return the corresponding output connection objects.
   */
   protected OutputConnection[] getOutputConnectionsMultiple(String[] connectionNames)
-    throws ACFException
+    throws ManifoldCFException
   {
     OutputConnection[] rval = new OutputConnection[connectionNames.length];
     HashMap returnIndex = new HashMap();
@@ -509,7 +509,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
       signalRollback();
       throw e;
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       signalRollback();
       throw e;
@@ -527,7 +527,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
   *@param params is the set of parameters.
   */
   protected void getOutputConnectionsChunk(OutputConnection[] rval, Map returnIndex, String idList, ArrayList params)
-    throws ACFException
+    throws ManifoldCFException
   {
     IResultSet set;
     set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
@@ -649,7 +649,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
     * @return the newly created objects to cache, or null, if any object cannot be created.
     *  The order of the returned objects must correspond to the order of the object descriptinos.
     */
-    public Object[] create(ICacheDescription[] objectDescriptions) throws ACFException
+    public Object[] create(ICacheDescription[] objectDescriptions) throws ManifoldCFException
     {
       // Turn the object descriptions into the parameters for the ToolInstance requests
       String[] connectionNames = new String[objectDescriptions.length];
@@ -672,7 +672,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
     * @param objectDescription is the unique identifier of the object.
     * @param cachedObject is the cached object.
     */
-    public void exists(ICacheDescription objectDescription, Object cachedObject) throws ACFException
+    public void exists(ICacheDescription objectDescription, Object cachedObject) throws ManifoldCFException
     {
       // Cast what came in as what it really is
       OutputConnectionDescription objectDesc = (OutputConnectionDescription)objectDescription;
@@ -690,7 +690,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
     /** Perform the desired operation.  This method is called after either createGetObject()
     * or exists() is called for every requested object.
     */
-    public void execute() throws ACFException
+    public void execute() throws ManifoldCFException
     {
       // Does nothing; we only want to fetch objects in this cacher.
     }

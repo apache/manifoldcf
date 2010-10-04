@@ -38,16 +38,16 @@ public class OutputConnectorManagerFactory
   *@return the output connector manager handle.
   */
   public static IOutputConnectorManager make(IThreadContext tc)
-    throws ACFException
+    throws ManifoldCFException
   {
     Object o = tc.get(connMgr);
     if (o == null || !(o instanceof IOutputConnectorManager))
     {
 
       IDBInterface database = DBInterfaceFactory.make(tc,
-        ACF.getMasterDatabaseName(),
-        ACF.getMasterDatabaseUsername(),
-        ACF.getMasterDatabasePassword());
+        ManifoldCF.getMasterDatabaseName(),
+        ManifoldCF.getMasterDatabaseUsername(),
+        ManifoldCF.getMasterDatabasePassword());
 
       o = new org.apache.manifoldcf.agents.outputconnmgr.OutputConnectorManager(tc,database);
       tc.save(connMgr,o);

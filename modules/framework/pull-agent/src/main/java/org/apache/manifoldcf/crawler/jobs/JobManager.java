@@ -24,7 +24,7 @@ import org.apache.manifoldcf.crawler.interfaces.*;
 import java.util.*;
 import java.util.regex.*;
 import org.apache.manifoldcf.crawler.system.Logging;
-import org.apache.manifoldcf.crawler.system.ACF;
+import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
 /** This is the main job manager.  It provides methods that support both job definition, and the threads that execute the jobs.
 */
@@ -54,7 +54,7 @@ public class JobManager implements IJobManager
   *@param database is the database.
   */
   public JobManager(IThreadContext threadContext, IDBInterface database)
-    throws ACFException
+    throws ManifoldCFException
   {
     this.database = database;
     this.threadContext = threadContext;
@@ -72,7 +72,7 @@ public class JobManager implements IJobManager
   /** Install.
   */
   public void install()
-    throws ACFException
+    throws ManifoldCFException
   {
     jobs.install(outputMgr.getTableName(),outputMgr.getConnectionNameColumn(),connectionMgr.getTableName(),connectionMgr.getConnectionNameColumn());
     jobQueue.install(jobs.getTableName(),jobs.idField);
@@ -84,7 +84,7 @@ public class JobManager implements IJobManager
   /** Uninstall.
   */
   public void deinstall()
-    throws ACFException
+    throws ManifoldCFException
   {
     eventManager.deinstall();
     carryDown.deinstall();
@@ -95,35 +95,35 @@ public class JobManager implements IJobManager
 
   /** Export configuration */
   public void exportConfiguration(java.io.OutputStream os)
-    throws java.io.IOException, ACFException
+    throws java.io.IOException, ManifoldCFException
   {
     // Write a version indicator
-    ACF.writeDword(os,2);
+    ManifoldCF.writeDword(os,2);
     // Get the job list
     IJobDescription[] list = getAllJobs();
     // Write the number of authorities
-    ACF.writeDword(os,list.length);
+    ManifoldCF.writeDword(os,list.length);
     // Loop through the list and write the individual repository connection info
     int i = 0;
     while (i < list.length)
     {
       IJobDescription job = list[i++];
-      ACF.writeString(os,job.getConnectionName());
-      ACF.writeString(os,job.getOutputConnectionName());
-      ACF.writeString(os,job.getDescription());
-      ACF.writeDword(os,job.getType());
-      ACF.writeDword(os,job.getStartMethod());
-      ACF.writeLong(os,job.getInterval());
-      ACF.writeLong(os,job.getExpiration());
-      ACF.writeLong(os,job.getReseedInterval());
-      ACF.writeDword(os,job.getPriority());
-      ACF.writeDword(os,job.getHopcountMode());
-      ACF.writeString(os,job.getSpecification().toXML());
-      ACF.writeString(os,job.getOutputSpecification().toXML());
+      ManifoldCF.writeString(os,job.getConnectionName());
+      ManifoldCF.writeString(os,job.getOutputConnectionName());
+      ManifoldCF.writeString(os,job.getDescription());
+      ManifoldCF.writeDword(os,job.getType());
+      ManifoldCF.writeDword(os,job.getStartMethod());
+      ManifoldCF.writeLong(os,job.getInterval());
+      ManifoldCF.writeLong(os,job.getExpiration());
+      ManifoldCF.writeLong(os,job.getReseedInterval());
+      ManifoldCF.writeDword(os,job.getPriority());
+      ManifoldCF.writeDword(os,job.getHopcountMode());
+      ManifoldCF.writeString(os,job.getSpecification().toXML());
+      ManifoldCF.writeString(os,job.getOutputSpecification().toXML());
 
       // Write schedule
       int recCount = job.getScheduleRecordCount();
-      ACF.writeDword(os,recCount);
+      ManifoldCF.writeDword(os,recCount);
       int j = 0;
       while (j < recCount)
       {
@@ -134,20 +134,20 @@ public class JobManager implements IJobManager
         writeEnumeratedValues(os,sr.getYear());
         writeEnumeratedValues(os,sr.getHourOfDay());
         writeEnumeratedValues(os,sr.getMinutesOfHour());
-        ACF.writeString(os,sr.getTimezone());
-        ACF.writeLong(os,sr.getDuration());
+        ManifoldCF.writeString(os,sr.getTimezone());
+        ManifoldCF.writeLong(os,sr.getDuration());
       }
 
       // Write hop count filters
       Map filters = job.getHopCountFilters();
-      ACF.writeDword(os,filters.size());
+      ManifoldCF.writeDword(os,filters.size());
       Iterator iter = filters.keySet().iterator();
       while (iter.hasNext())
       {
         String linkType = (String)iter.next();
         Long hopcount = (Long)filters.get(linkType);
-        ACF.writeString(os,linkType);
-        ACF.writeLong(os,hopcount);
+        ManifoldCF.writeString(os,linkType);
+        ManifoldCF.writeLong(os,hopcount);
       }
     }
   }
@@ -157,46 +157,46 @@ public class JobManager implements IJobManager
   {
     if (ev == null)
     {
-      ACF.writeSdword(os,-1);
+      ManifoldCF.writeSdword(os,-1);
       return;
     }
     int size = ev.size();
-    ACF.writeSdword(os,size);
+    ManifoldCF.writeSdword(os,size);
     Iterator iter = ev.getValues();
     while (iter.hasNext())
     {
-      ACF.writeDword(os,((Integer)iter.next()).intValue());
+      ManifoldCF.writeDword(os,((Integer)iter.next()).intValue());
     }
   }
 
   /** Import configuration */
   public void importConfiguration(java.io.InputStream is)
-    throws java.io.IOException, ACFException
+    throws java.io.IOException, ManifoldCFException
   {
-    int version = ACF.readDword(is);
+    int version = ManifoldCF.readDword(is);
     if (version != 2)
       throw new java.io.IOException("Unknown job configuration version: "+Integer.toString(version));
-    int count = ACF.readDword(is);
+    int count = ManifoldCF.readDword(is);
     int i = 0;
     while (i < count)
     {
       IJobDescription job = createJob();
 
-      job.setConnectionName(ACF.readString(is));
-      job.setOutputConnectionName(ACF.readString(is));
-      job.setDescription(ACF.readString(is));
-      job.setType(ACF.readDword(is));
-      job.setStartMethod(ACF.readDword(is));
-      job.setInterval(ACF.readLong(is));
-      job.setExpiration(ACF.readLong(is));
-      job.setReseedInterval(ACF.readLong(is));
-      job.setPriority(ACF.readDword(is));
-      job.setHopcountMode(ACF.readDword(is));
-      job.getSpecification().fromXML(ACF.readString(is));
-      job.getOutputSpecification().fromXML(ACF.readString(is));
+      job.setConnectionName(ManifoldCF.readString(is));
+      job.setOutputConnectionName(ManifoldCF.readString(is));
+      job.setDescription(ManifoldCF.readString(is));
+      job.setType(ManifoldCF.readDword(is));
+      job.setStartMethod(ManifoldCF.readDword(is));
+      job.setInterval(ManifoldCF.readLong(is));
+      job.setExpiration(ManifoldCF.readLong(is));
+      job.setReseedInterval(ManifoldCF.readLong(is));
+      job.setPriority(ManifoldCF.readDword(is));
+      job.setHopcountMode(ManifoldCF.readDword(is));
+      job.getSpecification().fromXML(ManifoldCF.readString(is));
+      job.getOutputSpecification().fromXML(ManifoldCF.readString(is));
 
       // Read schedule
-      int recCount = ACF.readDword(is);
+      int recCount = ManifoldCF.readDword(is);
       int j = 0;
       while (j < recCount)
       {
@@ -206,8 +206,8 @@ public class JobManager implements IJobManager
         EnumeratedValues year = readEnumeratedValues(is);
         EnumeratedValues hourOfDay = readEnumeratedValues(is);
         EnumeratedValues minutesOfHour = readEnumeratedValues(is);
-        String timezone = ACF.readString(is);
-        Long duration = ACF.readLong(is);
+        String timezone = ManifoldCF.readString(is);
+        Long duration = ManifoldCF.readLong(is);
 
         ScheduleRecord sr = new ScheduleRecord(dayOfWeek, monthOfYear, dayOfMonth, year,
           hourOfDay, minutesOfHour, timezone, duration);
@@ -216,12 +216,12 @@ public class JobManager implements IJobManager
       }
 
       // Read hop count filters
-      int hopFilterCount = ACF.readDword(is);
+      int hopFilterCount = ManifoldCF.readDword(is);
       j = 0;
       while (j < hopFilterCount)
       {
-        String linkType = ACF.readString(is);
-        Long hopcount = ACF.readLong(is);
+        String linkType = ManifoldCF.readString(is);
+        Long hopcount = ManifoldCF.readLong(is);
         job.addHopCountFilter(linkType,hopcount);
         j++;
       }
@@ -235,14 +235,14 @@ public class JobManager implements IJobManager
   protected EnumeratedValues readEnumeratedValues(java.io.InputStream is)
     throws java.io.IOException
   {
-    int size = ACF.readSdword(is);
+    int size = ManifoldCF.readSdword(is);
     if (size == -1)
       return null;
     int[] values = new int[size];
     int i = 0;
     while (i < size)
     {
-      values[i++] = ACF.readDword(is);
+      values[i++] = ManifoldCF.readDword(is);
     }
     return new EnumeratedValues(values);
   }
@@ -253,7 +253,7 @@ public class JobManager implements IJobManager
   *@param connectionNames is the set of connection names.
   */
   public void noteConnectorDeregistration(String[] connectionNames)
-    throws ACFException
+    throws ManifoldCFException
   {
     // For each connection, find the corresponding list of jobs.  From these jobs, we want the job id and the status.
     StringBuffer sb = new StringBuffer();
@@ -284,7 +284,7 @@ public class JobManager implements IJobManager
   /** Note deregistration for a batch of connection names.
   */
   protected void noteConnectionDeregistration(String query, ArrayList list)
-    throws ACFException
+    throws ManifoldCFException
   {
     //System.out.println("Query is "+query);
     // Query for the matching jobs, and then for each job potentially adjust the state
@@ -307,7 +307,7 @@ public class JobManager implements IJobManager
   *@param connectionNames is the set of connection names.
   */
   public void noteConnectorRegistration(String[] connectionNames)
-    throws ACFException
+    throws ManifoldCFException
   {
     // For each connection, find the corresponding list of jobs.  From these jobs, we want the job id and the status.
     StringBuffer sb = new StringBuffer();
@@ -338,7 +338,7 @@ public class JobManager implements IJobManager
   /** Note registration for a batch of connection names.
   */
   protected void noteConnectionRegistration(String query, ArrayList list)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Query for the matching jobs, and then for each job potentially adjust the state
     IResultSet set = database.performQuery("SELECT "+jobs.idField+","+jobs.statusField+" FROM "+
@@ -359,7 +359,7 @@ public class JobManager implements IJobManager
   * is signalled.
   */
   public void noteConnectionChange(String connectionName)
-    throws ACFException
+    throws ManifoldCFException
   {
     jobs.noteConnectionChange(connectionName);
   }
@@ -370,7 +370,7 @@ public class JobManager implements IJobManager
   *@param connectionNames is the set of connection names.
   */
   public void noteOutputConnectorDeregistration(String[] connectionNames)
-    throws ACFException
+    throws ManifoldCFException
   {
     // For each connection, find the corresponding list of jobs.  From these jobs, we want the job id and the status.
     StringBuffer sb = new StringBuffer();
@@ -401,7 +401,7 @@ public class JobManager implements IJobManager
   /** Note deregistration for a batch of output connection names.
   */
   protected void noteOutputConnectionDeregistration(String query, ArrayList list)
-    throws ACFException
+    throws ManifoldCFException
   {
     //System.out.println("Query is "+query);
     // Query for the matching jobs, and then for each job potentially adjust the state
@@ -424,7 +424,7 @@ public class JobManager implements IJobManager
   *@param connectionNames is the set of connection names.
   */
   public void noteOutputConnectorRegistration(String[] connectionNames)
-    throws ACFException
+    throws ManifoldCFException
   {
     // For each connection, find the corresponding list of jobs.  From these jobs, we want the job id and the status.
     StringBuffer sb = new StringBuffer();
@@ -455,7 +455,7 @@ public class JobManager implements IJobManager
   /** Note registration for a batch of output connection names.
   */
   protected void noteOutputConnectionRegistration(String query, ArrayList list)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Query for the matching jobs, and then for each job potentially adjust the state
     IResultSet set = database.performQuery("SELECT "+jobs.idField+","+jobs.statusField+" FROM "+
@@ -476,7 +476,7 @@ public class JobManager implements IJobManager
   * is signalled.
   */
   public void noteOutputConnectionChange(String connectionName)
-    throws ACFException
+    throws ManifoldCFException
   {
     jobs.noteOutputConnectionChange(connectionName);
   }
@@ -485,7 +485,7 @@ public class JobManager implements IJobManager
   *@return the list, sorted by description.
   */
   public IJobDescription[] getAllJobs()
-    throws ACFException
+    throws ManifoldCFException
   {
     return jobs.getAll();
   }
@@ -494,7 +494,7 @@ public class JobManager implements IJobManager
   *@return the new job.
   */
   public IJobDescription createJob()
-    throws ACFException
+    throws ManifoldCFException
   {
     return jobs.create();
   }
@@ -512,7 +512,7 @@ public class JobManager implements IJobManager
   * well as remove all documents indexed by the job from the index.
   */
   public void deleteJob(Long id)
-    throws ACFException
+    throws ManifoldCFException
   {
     database.beginTransaction();
     try
@@ -523,7 +523,7 @@ public class JobManager implements IJobManager
       IResultSet set = database.performQuery("SELECT "+jobs.statusField+","+jobs.outputNameField+" FROM "+
         jobs.getTableName()+" WHERE "+jobs.idField+"=? FOR UPDATE",list,null,null);
       if (set.getRowCount() == 0)
-        throw new ACFException("Attempting to delete a job that doesn't exist: "+id);
+        throw new ManifoldCFException("Attempting to delete a job that doesn't exist: "+id);
       IResultRow row = set.getRow(0);
       String outputName = (String)row.getValue(jobs.outputNameField);
       int status = jobs.stringToStatus(row.getValue(jobs.statusField).toString());
@@ -531,9 +531,9 @@ public class JobManager implements IJobManager
         status == jobs.STATUS_ACTIVE_UNINSTALLED || status == jobs.STATUS_ACTIVESEEDING_UNINSTALLED ||
         status == jobs.STATUS_ACTIVE_NOOUTPUT || status == jobs.STATUS_ACTIVESEEDING_NOOUTPUT ||
         status == jobs.STATUS_ACTIVE_NEITHER || status == jobs.STATUS_ACTIVESEEDING_NEITHER)
-      throw new ACFException("Job "+id+" is active; you must shut it down before deleting it");
+      throw new ManifoldCFException("Job "+id+" is active; you must shut it down before deleting it");
       if (status != jobs.STATUS_INACTIVE)
-        throw new ACFException("Job "+id+" is busy; you must wait and/or shut it down before deleting it");
+        throw new ManifoldCFException("Job "+id+" is busy; you must wait and/or shut it down before deleting it");
       if (outputMgr.checkConnectorExists(outputName))
         jobs.writeStatus(id,jobs.STATUS_READYFORDELETE);
       else
@@ -541,7 +541,7 @@ public class JobManager implements IJobManager
       if (Logging.jobs.isDebugEnabled())
         Logging.jobs.debug("Job "+id+" marked for deletion");
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       database.signalRollback();
       throw e;
@@ -563,7 +563,7 @@ public class JobManager implements IJobManager
   *@return null if the job doesn't exist.
   */
   public IJobDescription load(Long id)
-    throws ACFException
+    throws ManifoldCFException
   {
     return jobs.load(id,false);
   }
@@ -574,7 +574,7 @@ public class JobManager implements IJobManager
   *@return null if the job doesn't exist.
   */
   public IJobDescription load(Long id, boolean readOnly)
-    throws ACFException
+    throws ManifoldCFException
   {
     return jobs.load(id,readOnly);
   }
@@ -583,9 +583,9 @@ public class JobManager implements IJobManager
   *@param jobDescription is the job description.
   */
   public void save(IJobDescription jobDescription)
-    throws ACFException
+    throws ManifoldCFException
   {
-    ACF.noteConfigurationChange();
+    ManifoldCF.noteConfigurationChange();
     jobs.save(jobDescription);
   }
 
@@ -594,7 +594,7 @@ public class JobManager implements IJobManager
   *@return true if there is a reference, false otherwise.
   */
   public boolean checkIfReference(String connectionName)
-    throws ACFException
+    throws ManifoldCFException
   {
     return jobs.checkIfReference(connectionName);
   }
@@ -604,7 +604,7 @@ public class JobManager implements IJobManager
   *@return true if there is a reference, false otherwise.
   */
   public boolean checkIfOutputReference(String connectionName)
-    throws ACFException
+    throws ManifoldCFException
   {
     return jobs.checkIfOutputReference(connectionName);
   }
@@ -614,7 +614,7 @@ public class JobManager implements IJobManager
   *@return the set of job id's associated with that connection.
   */
   public IJobDescription[] findJobsForConnection(String connectionName)
-    throws ACFException
+    throws ManifoldCFException
   {
     return jobs.findJobsForConnection(connectionName);
   }
@@ -632,7 +632,7 @@ public class JobManager implements IJobManager
   * (which is now dead), then we have to set that status back to previous value.
   */
   public void prepareForStart()
-    throws ACFException
+    throws ManifoldCFException
   {
     Logging.jobs.debug("Resetting due to restart");
     while (true)
@@ -654,7 +654,7 @@ public class JobManager implements IJobManager
         Logging.jobs.debug("Reset complete");
         break;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         database.signalRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -683,7 +683,7 @@ public class JobManager implements IJobManager
   /** Reset as part of restoring document worker threads.
   */
   public void resetDocumentWorkerStatus()
-    throws ACFException
+    throws ManifoldCFException
   {
     Logging.jobs.debug("Resetting document active status");
     while (true)
@@ -695,7 +695,7 @@ public class JobManager implements IJobManager
         jobQueue.resetDocumentWorkerStatus();
         break;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         database.signalRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -725,7 +725,7 @@ public class JobManager implements IJobManager
   /** Reset as part of restoring seeding threads.
   */
   public void resetSeedingWorkerStatus()
-    throws ACFException
+    throws ManifoldCFException
   {
     Logging.jobs.debug("Resetting seeding status");
     jobs.resetSeedingWorkerStatus();
@@ -736,7 +736,7 @@ public class JobManager implements IJobManager
   /** Reset as part of restoring doc delete threads.
   */
   public void resetDocDeleteWorkerStatus()
-    throws ACFException
+    throws ManifoldCFException
   {
     Logging.jobs.debug("Resetting doc deleting status");
     jobQueue.resetDocDeleteWorkerStatus();
@@ -747,7 +747,7 @@ public class JobManager implements IJobManager
   /** Reset as part of restoring startup threads.
   */
   public void resetStartupWorkerStatus()
-    throws ACFException
+    throws ManifoldCFException
   {
     Logging.jobs.debug("Resetting job starting up status");
     jobs.resetStartupWorkerStatus();
@@ -763,7 +763,7 @@ public class JobManager implements IJobManager
   *@param identifiers is the set of document identifiers.
   */
   public void deleteIngestedDocumentIdentifiers(DocumentDescription[] identifiers)
-    throws ACFException
+    throws ManifoldCFException
   {
     jobQueue.deleteIngestedDocumentIdentifiers(identifiers);
     // Hopcount rows get removed when the job itself is removed.
@@ -779,7 +779,7 @@ public class JobManager implements IJobManager
   *@return the document descriptions for these documents.
   */
   public DocumentDescription[] getNextDeletableDocuments(int maxCount)
-    throws ACFException
+    throws ManifoldCFException
   {
     // The query will be built here, because it joins the jobs table against the jobqueue
     // table.
@@ -958,7 +958,7 @@ public class JobManager implements IJobManager
         database.signalRollback();
         throw e;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         database.signalRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -986,7 +986,7 @@ public class JobManager implements IJobManager
   *@return the set of documents which should be removed from the index.
   */
   protected String[] getUnindexableDocumentIdentifiers(DocumentDescription[] documentIdentifiers, String connectionName)
-    throws ACFException
+    throws ManifoldCFException
   {
     // This is where we will count the individual document id's
     HashMap countMap = new HashMap();
@@ -1094,7 +1094,7 @@ public class JobManager implements IJobManager
   *@return the document descriptions.
   */
   public DocumentDescription[] getNextAlreadyProcessedReprioritizationDocuments(long currentTime, int n)
-    throws ACFException
+    throws ManifoldCFException
   {
     StringBuffer sb = new StringBuffer();
     ArrayList list = new ArrayList();
@@ -1137,7 +1137,7 @@ public class JobManager implements IJobManager
   *@return the document descriptions.
   */
   public DocumentDescription[] getNextNotYetProcessedReprioritizationDocuments(long currentTime, int n)
-    throws ACFException
+    throws ManifoldCFException
   {
     StringBuffer sb = new StringBuffer();
     ArrayList list = new ArrayList();
@@ -1201,7 +1201,7 @@ public class JobManager implements IJobManager
   *@param priorities are the desired priorities.
   */
   public void writeDocumentPriorities(long currentTime, DocumentDescription[] documentDescriptions, double[] priorities)
-    throws ACFException
+    throws ManifoldCFException
   {
 
     // Retry loop - in case we get a deadlock despite our best efforts
@@ -1236,7 +1236,7 @@ public class JobManager implements IJobManager
           String docIDHash = docIDHashes[i];
           Integer x = (Integer)indexMap.remove(docIDHash);
           if (x == null)
-            throw new ACFException("Assertion failure: duplicate document identifier jobid/hash detected!");
+            throw new ManifoldCFException("Assertion failure: duplicate document identifier jobid/hash detected!");
           int index = x.intValue();
           DocumentDescription dd = documentDescriptions[index];
           double priority = priorities[index];
@@ -1247,7 +1247,7 @@ public class JobManager implements IJobManager
         }
         break;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         database.signalRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -1283,7 +1283,7 @@ public class JobManager implements IJobManager
   *@return the array of document descriptions to expire.
   */
   public DocumentDescription[] getExpiredDocuments(int n, long currentTime)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Screening query
     // Moved outside of transaction, so there's less chance of keeping jobstatus cache key tied up
@@ -1415,7 +1415,7 @@ public class JobManager implements IJobManager
           i++;
         }
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         database.signalRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -1471,7 +1471,7 @@ public class JobManager implements IJobManager
   public DocumentDescription[] getNextDocuments(int n, long currentTime, long interval,
     BlockingDocuments blockingDocuments, PerformanceStatistics statistics,
     DepthStatistics scanRecord)
-    throws ACFException
+    throws ManifoldCFException
   {
     // NOTE WELL: Jobs that are throttled must control the number of documents that are fetched in
     // a given interval.  Therefore, the returned result has the following constraints on it:
@@ -1739,7 +1739,7 @@ public class JobManager implements IJobManager
   }
 
   protected void addDocumentCriteria(StringBuffer sb, ArrayList list, Long currentTimeValue, Long currentPriorityValue)
-    throws ACFException
+    throws ManifoldCFException
   {
     list.add(currentTimeValue);
     list.add(jobQueue.actionToString(JobQueue.ACTION_RESCAN));
@@ -1776,7 +1776,7 @@ public class JobManager implements IJobManager
   /** Fetch and process documents matching the passed-in criteria */
   protected void fetchAndProcessDocuments(ArrayList answers, Long currentTimeValue, Long currentPriorityValue,
     ThrottleLimit vList, IRepositoryConnection[] connections)
-    throws ACFException
+    throws ManifoldCFException
   {
 
     // Note well: This query does not do "FOR UPDATE".  The reason is that only one thread can possibly change the document's state to active.
@@ -1916,7 +1916,7 @@ public class JobManager implements IJobManager
           }
           break;
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
           database.signalRollback();
           if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -1954,14 +1954,14 @@ public class JobManager implements IJobManager
   *@return true if the job is in one of the "active" states.
   */
   public boolean checkJobActive(Long jobID)
-    throws ACFException
+    throws ManifoldCFException
   {
     return jobs.checkJobActive(jobID);
   }
 
   /** Verify if a job is still processing documents, or no longer has any outstanding active documents */
   public boolean checkJobBusy(Long jobID)
-    throws ACFException
+    throws ManifoldCFException
   {
     return jobQueue.checkJobBusy(jobID);
   }
@@ -1971,7 +1971,7 @@ public class JobManager implements IJobManager
   *@param documentDescriptions are the description objects for the documents that were processed.
   */
   public void markDocumentCompletedMultiple(DocumentDescription[] documentDescriptions)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Before we can change a document status, we need to know the *current* status.  Therefore, a SELECT xxx FOR UPDATE/UPDATE
     // transaction is needed in order to complete these documents correctly.
@@ -2030,7 +2030,7 @@ public class JobManager implements IJobManager
         }
         break;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         database.signalRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -2063,7 +2063,7 @@ public class JobManager implements IJobManager
   *@param documentDescription is the description object for the document that was processed.
   */
   public void markDocumentCompleted(DocumentDescription documentDescription)
-    throws ACFException
+    throws ManifoldCFException
   {
     markDocumentCompletedMultiple(new DocumentDescription[]{documentDescription});
   }
@@ -2076,7 +2076,7 @@ public class JobManager implements IJobManager
   */
   public DocumentDescription[] markDocumentDeletedMultiple(Long jobID, String[] legalLinkTypes, DocumentDescription[] documentDescriptions,
     int hopcountMethod)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (documentDescriptions.length == 0)
       return new DocumentDescription[0];
@@ -2146,7 +2146,7 @@ public class JobManager implements IJobManager
           " docs and clean up hopcount for job "+jobID.toString());
         break;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         database.signalRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -2177,7 +2177,7 @@ public class JobManager implements IJobManager
   /** Helper method: Find the document descriptions that will be affected due to carrydown row deletions.
   */
   protected DocumentDescription[] calculateAffectedDeleteCarrydownChildren(Long jobID, String[] docIDHashes)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Break the request into pieces, as needed, and throw everything into a hash for uniqueness.
     // We are going to need to break up this query into a number of subqueries, each covering a subset of parent id hashes.
@@ -2224,7 +2224,7 @@ public class JobManager implements IJobManager
   /** Helper method: look up rows affected by a deleteRecords operation.
   */
   protected void processDeleteHashSet(Long jobID, HashMap resultHash, String queryPart, ArrayList list)
-    throws ACFException
+    throws ManifoldCFException
   {
     // The query here mirrors the carrydown.restoreRecords() delete query!  However, it also fetches enough information to build a DocumentDescription
     // object for return, and so a join is necessary against the jobqueue table.
@@ -2255,7 +2255,7 @@ public class JobManager implements IJobManager
   */
   public DocumentDescription[] markDocumentDeleted(Long jobID, String[] legalLinkTypes, DocumentDescription documentDescription,
     int hopcountMethod)
-    throws ACFException
+    throws ManifoldCFException
   {
     return markDocumentDeletedMultiple(jobID,legalLinkTypes,new DocumentDescription[]{documentDescription},hopcountMethod);
   }
@@ -2271,7 +2271,7 @@ public class JobManager implements IJobManager
   */
   public void requeueDocumentMultiple(DocumentDescription[] documentDescriptions, Long[] executeTimes,
     int[] actions)
-    throws ACFException
+    throws ManifoldCFException
   {
     String[] docIDHashes = new String[documentDescriptions.length];
     Long[] ids = new Long[documentDescriptions.length];
@@ -2298,7 +2298,7 @@ public class JobManager implements IJobManager
       String docIDHash = docIDHashes[i];
       Integer x = (Integer)indexMap.remove(docIDHash);
       if (x == null)
-        throw new ACFException("Assertion failure: duplicate document identifier jobid/hash detected!");
+        throw new ManifoldCFException("Assertion failure: duplicate document identifier jobid/hash detected!");
       int index = x.intValue();
       ids[i] = documentDescriptions[index].getID();
       executeTimesNew[i] = executeTimes[index];
@@ -2327,7 +2327,7 @@ public class JobManager implements IJobManager
         database.signalRollback();
         throw e;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         database.signalRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -2356,7 +2356,7 @@ public class JobManager implements IJobManager
   *@param action is what should be done when the time arrives.  Choices include ACTION_RESCAN or ACTION_REMOVE.
   */
   public void requeueDocument(DocumentDescription documentDescription, Long executeTime, int action)
-    throws ACFException
+    throws ManifoldCFException
   {
     requeueDocumentMultiple(new DocumentDescription[]{documentDescription},new Long[]{executeTime},new int[]{action});
   }
@@ -2374,7 +2374,7 @@ public class JobManager implements IJobManager
   */
   public void resetDocumentMultiple(DocumentDescription[] documentDescriptions, long executeTime,
     int action, long failTime, int failCount)
-    throws ACFException
+    throws ManifoldCFException
   {
     Long executeTimeLong = new Long(executeTime);
     Long[] ids = new Long[documentDescriptions.length];
@@ -2404,7 +2404,7 @@ public class JobManager implements IJobManager
       String docIDHash = docIDHashes[i];
       Integer x = (Integer)indexMap.remove(docIDHash);
       if (x == null)
-        throw new ACFException("Assertion failure: duplicate document identifier jobid/hash detected!");
+        throw new ManifoldCFException("Assertion failure: duplicate document identifier jobid/hash detected!");
       int index = x.intValue();
       ids[i] = documentDescriptions[index].getID();
       executeTimes[i] = executeTimeLong;
@@ -2449,7 +2449,7 @@ public class JobManager implements IJobManager
         database.signalRollback();
         throw e;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         database.signalRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -2478,7 +2478,7 @@ public class JobManager implements IJobManager
   *@param documentDescriptions is the set of description objects for the document that was processed.
   */
   public void resetDeletingDocumentMultiple(DocumentDescription[] documentDescriptions)
-    throws ACFException
+    throws ManifoldCFException
   {
     Long[] ids = new Long[documentDescriptions.length];
     String[] docIDHashes = new String[documentDescriptions.length];
@@ -2503,7 +2503,7 @@ public class JobManager implements IJobManager
       String docIDHash = docIDHashes[i];
       Integer x = (Integer)indexMap.remove(docIDHash);
       if (x == null)
-        throw new ACFException("Assertion failure: duplicate document identifier jobid/hash detected!");
+        throw new ManifoldCFException("Assertion failure: duplicate document identifier jobid/hash detected!");
       int index = x.intValue();
       ids[i] = documentDescriptions[index].getID();
       i++;
@@ -2526,7 +2526,7 @@ public class JobManager implements IJobManager
 
         break;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         database.signalRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -2555,7 +2555,7 @@ public class JobManager implements IJobManager
   * This gets done when a deleting thread sees a service interruption, etc., from the ingestion system.
   */
   public void resetDeletingDocument(DocumentDescription documentDescription)
-    throws ACFException
+    throws ManifoldCFException
   {
     resetDeletingDocumentMultiple(new DocumentDescription[]{documentDescription});
   }
@@ -2573,7 +2573,7 @@ public class JobManager implements IJobManager
   */
   public void resetDocument(DocumentDescription documentDescription, long executeTime, int action, long failTime,
     int failCount)
-    throws ACFException
+    throws ManifoldCFException
   {
     resetDocumentMultiple(new DocumentDescription[]{documentDescription},executeTime,action,failTime,failCount);
   }
@@ -2648,7 +2648,7 @@ public class JobManager implements IJobManager
     String[] docIDHashes, String[] docIDs, boolean overrideSchedule,
     int hopcountMethod, long currentTime, double[] documentPriorities,
     String[][] prereqEventNames)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (docIDHashes.length == 0)
       return new boolean[0];
@@ -2765,7 +2765,7 @@ public class JobManager implements IJobManager
 
         return rval;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         database.signalRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -2802,7 +2802,7 @@ public class JobManager implements IJobManager
   */
   public void addRemainingDocumentsInitial(Long jobID, String[] legalLinkTypes, String[] docIDHashes,
     int hopcountMethod)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (docIDHashes.length == 0)
       return;
@@ -2837,7 +2837,7 @@ public class JobManager implements IJobManager
           " remaining docs and hopcounts for job "+jobID.toString());
 
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         database.signalRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -2874,7 +2874,7 @@ public class JobManager implements IJobManager
   */
   public void doneDocumentsInitial(Long jobID, String[] legalLinkTypes, boolean isPartial,
     int hopcountMethod)
-    throws ACFException
+    throws ManifoldCFException
   {
     long startTime = 0L;
     if (Logging.perf.isDebugEnabled())
@@ -2909,7 +2909,7 @@ public class JobManager implements IJobManager
           " ms to finish initial docs and hopcounts for job "+jobID.toString());
         break;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         database.signalRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -2947,13 +2947,13 @@ public class JobManager implements IJobManager
   */
   public boolean[] findHopCounts(Long jobID, String[] legalLinkTypes, String[] docIDHashes, String linkType, int limit,
     int hopcountMethod)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (docIDHashes.length == 0)
       return new boolean[0];
 
     if (legalLinkTypes.length == 0)
-      throw new ACFException("Nonsensical request; asking for hopcounts where none are kept");
+      throw new ManifoldCFException("Nonsensical request; asking for hopcounts where none are kept");
 
     // The idea is to delay queue processing as much as possible, because that avoids having to wait
     // on locks and having to repeat our evaluations.
@@ -3069,7 +3069,7 @@ public class JobManager implements IJobManager
           // Definitive answers found; continue through.
           distances = hopCount.findHopCounts(jobID,askDocIDHashes,linkType);
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
           database.signalRollback();
           if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -3124,7 +3124,7 @@ public class JobManager implements IJobManager
   *@return the document identifiers that are currently considered to be seeds.
   */
   public String[] getAllSeeds(Long jobID)
-    throws ACFException
+    throws ManifoldCFException
   {
     return jobQueue.getAllSeeds(jobID);
   }
@@ -3154,7 +3154,7 @@ public class JobManager implements IJobManager
     int hopcountMethod, String[][] dataNames, Object[][][] dataValues,
     long currentTime, double[] documentPriorities,
     String[][] prereqEventNames)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (docIDs.length == 0)
       return new boolean[0];
@@ -3202,7 +3202,7 @@ public class JobManager implements IJobManager
           else
           {
             // It better be a String.
-            valueHash = ACF.hash((String)values[y]);
+            valueHash = ManifoldCF.hash((String)values[y]);
           }
           valueMap.put(valueHash,values[y]);
           y++;
@@ -3368,7 +3368,7 @@ public class JobManager implements IJobManager
 
         return rval;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         database.signalRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -3417,7 +3417,7 @@ public class JobManager implements IJobManager
     String parentIdentifierHash, String relationshipType,
     int hopcountMethod, String[] dataNames, Object[][] dataValues,
     long currentTime, double priority, String[] prereqEventNames)
-    throws ACFException
+    throws ManifoldCFException
   {
     return addDocuments(jobID,legalLinkTypes,
       new String[]{docIDHash},new String[]{docID},
@@ -3435,7 +3435,7 @@ public class JobManager implements IJobManager
   *  to be requeued as a result of the change.
   */
   public DocumentDescription[] finishDocuments(Long jobID, String[] legalLinkTypes, String[] parentIdentifierHashes, int hopcountMethod)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (parentIdentifierHashes.length == 0)
       return new DocumentDescription[0];
@@ -3457,7 +3457,7 @@ public class JobManager implements IJobManager
           carryDown.restoreRecords(jobID,parentIdentifierHashes);
           break;
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
           database.signalRollback();
           if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -3515,7 +3515,7 @@ public class JobManager implements IJobManager
             Integer.toString(parentIdentifierHashes.length)+" doc hopcounts for job "+jobID.toString());
           break;
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
           database.signalRollback();
           if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -3547,7 +3547,7 @@ public class JobManager implements IJobManager
   /** Helper method: Calculate the unique set of affected carrydown children resulting from a "restoreRecords" operation.
   */
   protected DocumentDescription[] calculateAffectedRestoreCarrydownChildren(Long jobID, String[] parentIDHashes)
-    throws ACFException
+    throws ManifoldCFException
   {
     // We are going to need to break up this query into a number of subqueries, each covering a subset of parent id hashes.
     // The goal is to throw all the children into a hash, to make them unique at the end.
@@ -3593,7 +3593,7 @@ public class JobManager implements IJobManager
   /** Helper method: look up rows affected by a restoreRecords operation.
   */
   protected void processParentHashSet(Long jobID, HashMap resultHash, String queryPart, ArrayList list)
-    throws ACFException
+    throws ManifoldCFException
   {
     // The query here mirrors the carrydown.restoreRecords() delete query!  However, it also fetches enough information to build a DocumentDescription
     // object for return, and so a join is necessary against the jobqueue table.
@@ -3623,14 +3623,14 @@ public class JobManager implements IJobManager
   *@return true if the event could be created, or false if it's already there.
   */
   public boolean beginEventSequence(String eventName)
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
       eventManager.createEvent(eventName);
       return true;
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
         return false;
@@ -3642,7 +3642,7 @@ public class JobManager implements IJobManager
   *@param eventName is the name of the event.
   */
   public void completeEventSequence(String eventName)
-    throws ACFException
+    throws ManifoldCFException
   {
     eventManager.destroyEvent(eventName);
   }
@@ -3656,7 +3656,7 @@ public class JobManager implements IJobManager
   *@return a flag for each document priority, true if it was used, false otherwise.
   */
   public boolean[] carrydownChangeDocumentMultiple(DocumentDescription[] documentDescriptions, long currentTime, double[] docPriorities)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (documentDescriptions.length == 0)
       return new boolean[0];
@@ -3739,7 +3739,7 @@ public class JobManager implements IJobManager
         }
         break;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         database.signalRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -3774,7 +3774,7 @@ public class JobManager implements IJobManager
   *@return a flag for the document priority, true if it was used, false otherwise.
   */
   public boolean carrydownChangeDocument(DocumentDescription documentDescription, long currentTime, double docPriority)
-    throws ACFException
+    throws ManifoldCFException
   {
     return carrydownChangeDocumentMultiple(new DocumentDescription[]{documentDescription},currentTime,new double[]{docPriority})[0];
   }
@@ -3788,18 +3788,18 @@ public class JobManager implements IJobManager
   }
 
   protected void sleepFor(long amt)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (amt == 0L)
       return;
 
     try
     {
-      ACF.sleep(amt);
+      ManifoldCF.sleep(amt);
     }
     catch (InterruptedException e)
     {
-      throw new ACFException("Interrupted",e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted",e,ManifoldCFException.INTERRUPTED);
     }
   }
 
@@ -3810,7 +3810,7 @@ public class JobManager implements IJobManager
   *@return the unique data values.
   */
   public String[] retrieveParentData(Long jobID, String docIDHash, String dataName)
-    throws ACFException
+    throws ManifoldCFException
   {
     return carryDown.getDataValues(jobID,docIDHash,dataName);
   }
@@ -3822,7 +3822,7 @@ public class JobManager implements IJobManager
   *@return the unique data values.
   */
   public CharacterInput[] retrieveParentDataAsFiles(Long jobID, String docIDHash, String dataName)
-    throws ACFException
+    throws ManifoldCFException
   {
     return carryDown.getDataValuesAsFiles(jobID,docIDHash,dataName);
   }
@@ -3843,7 +3843,7 @@ public class JobManager implements IJobManager
   *@param unwaitList is filled in with the set of job ID objects that were resumed.
   */
   public void startJobs(long currentTime, ArrayList unwaitList)
-    throws ACFException
+    throws ManifoldCFException
   {
     // This method should compare the lasttime field against the current time, for all
     // "not active" jobs, and see if a job should be started.
@@ -4076,7 +4076,7 @@ public class JobManager implements IJobManager
 
       }
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       database.signalRollback();
       throw e;
@@ -4097,7 +4097,7 @@ public class JobManager implements IJobManager
   *@param waitList is filled in with the set of job ID's that were put into a wait state.
   */
   public void waitJobs(long currentTime, ArrayList waitList)
-    throws ACFException
+    throws ManifoldCFException
   {
     // This method assesses jobs that are ACTIVE or PAUSED to see if they should be
     // converted to ACTIVEWAIT or PAUSEDWAIT.  This would happen if the current time exceeded
@@ -4178,7 +4178,7 @@ public class JobManager implements IJobManager
 
       }
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       database.signalRollback();
       throw e;
@@ -4199,7 +4199,7 @@ public class JobManager implements IJobManager
   *@param jobID is the job identifier.
   */
   public void resetJobSchedule(Long jobID)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Note:  This is problematic; the expected behavior is for the job to start if "we are within the window",
     // but not to start if the transition to active status was long enough ago.
@@ -4413,7 +4413,7 @@ public class JobManager implements IJobManager
   *@param jobID is the ID of the job to start.
   */
   public void manualStart(Long jobID)
-    throws ACFException
+    throws ManifoldCFException
   {
     database.beginTransaction();
     try
@@ -4426,12 +4426,12 @@ public class JobManager implements IJobManager
         " FROM "+jobs.getTableName()+" WHERE "+
         jobs.idField+"=? FOR UPDATE",list,null,null);
       if (set.getRowCount() < 1)
-        throw new ACFException("No such job: "+jobID);
+        throw new ManifoldCFException("No such job: "+jobID);
 
       IResultRow row = set.getRow(0);
       int status = jobs.stringToStatus(row.getValue(jobs.statusField).toString());
       if (status != Jobs.STATUS_INACTIVE)
-        throw new ACFException("Job "+jobID+" is already running");
+        throw new ManifoldCFException("Job "+jobID+" is already running");
 
       IJobDescription jobDescription = jobs.load(jobID,true);
       if (Logging.jobs.isDebugEnabled())
@@ -4447,7 +4447,7 @@ public class JobManager implements IJobManager
       }
 
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       database.signalRollback();
       throw e;
@@ -4468,7 +4468,7 @@ public class JobManager implements IJobManager
   *@param startTime is the job start time.
   */
   public void noteJobStarted(Long jobID, long startTime)
-    throws ACFException
+    throws ManifoldCFException
   {
     jobs.noteJobStarted(jobID,startTime);
     if (Logging.jobs.isDebugEnabled())
@@ -4480,7 +4480,7 @@ public class JobManager implements IJobManager
   *@param seedTime is the job seed time.
   */
   public void noteJobSeeded(Long jobID, long seedTime)
-    throws ACFException
+    throws ManifoldCFException
   {
     jobs.noteJobSeeded(jobID,seedTime);
     if (Logging.jobs.isDebugEnabled())
@@ -4492,7 +4492,7 @@ public class JobManager implements IJobManager
   *@param hopcountMethod describes how to handle deletions for hopcount purposes.
   */
   public void prepareFullScan(Long jobID, String[] legalLinkTypes, int hopcountMethod)
-    throws ACFException
+    throws ManifoldCFException
   {
     while (true)
     {
@@ -4511,7 +4511,7 @@ public class JobManager implements IJobManager
         jobQueue.prepareFullScan(jobID);
         break;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         database.signalRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -4541,7 +4541,7 @@ public class JobManager implements IJobManager
   *@param hopcountMethod describes how to handle deletions for hopcount purposes.
   */
   public void prepareIncrementalScan(Long jobID, String[] legalLinkTypes, int hopcountMethod)
-    throws ACFException
+    throws ManifoldCFException
   {
     jobQueue.prepareIncrementalScan(jobID);
   }
@@ -4551,7 +4551,7 @@ public class JobManager implements IJobManager
   *@param jobID is the job to abort.
   */
   public void manualAbort(Long jobID)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Just whack status back to "INACTIVE".  The active documents will continue to be processed until done,
     // but that's fine.  There will be no finishing stage, obviously.
@@ -4571,7 +4571,7 @@ public class JobManager implements IJobManager
   *@param jobID is the job to abort.
   */
   public void manualAbortRestart(Long jobID)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (Logging.jobs.isDebugEnabled())
     {
@@ -4590,7 +4590,7 @@ public class JobManager implements IJobManager
   *@return true if this is the first logged abort request for this job.
   */
   public boolean errorAbort(Long jobID, String errorText)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Just whack status back to "INACTIVE".  The active documents will continue to be processed until done,
     // but that's fine.  There will be no finishing stage, obviously.
@@ -4610,7 +4610,7 @@ public class JobManager implements IJobManager
   *@param jobID is the job identifier to pause.
   */
   public void pauseJob(Long jobID)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (Logging.jobs.isDebugEnabled())
     {
@@ -4628,7 +4628,7 @@ public class JobManager implements IJobManager
   *@param jobID is the job identifier to restart.
   */
   public void restartJob(Long jobID)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (Logging.jobs.isDebugEnabled())
     {
@@ -4641,7 +4641,7 @@ public class JobManager implements IJobManager
       jobs.restartJob(jobID);
       jobQueue.clearFailTimes(jobID);
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       database.signalRollback();
       throw e;
@@ -4668,7 +4668,7 @@ public class JobManager implements IJobManager
   * based on what the connector says should be added to the queue.
   */
   public JobStartRecord[] getJobsReadyForSeeding(long currentTime)
-    throws ACFException
+    throws ManifoldCFException
   {
     while (true)
     {
@@ -4717,7 +4717,7 @@ public class JobManager implements IJobManager
         }
         return rval;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         database.signalRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -4746,7 +4746,7 @@ public class JobManager implements IJobManager
   *@return jobs that were in the "readyforstartup" state.  These will be marked as being in the "starting up" state.
   */
   public JobStartRecord[] getJobsReadyForStartup()
-    throws ACFException
+    throws ManifoldCFException
   {
     while (true)
     {
@@ -4782,7 +4782,7 @@ public class JobManager implements IJobManager
         }
         return rval;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         database.signalRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -4811,7 +4811,7 @@ public class JobManager implements IJobManager
   *@param jobID is the ID of the job to inactivate.
   */
   public void inactivateJob(Long jobID)
-    throws ACFException
+    throws ManifoldCFException
   {
     // While there is no flow that can cause a job to be in the wrong state when this gets called, as a precaution
     // it might be a good idea to put this in a transaction and have the state get checked first.
@@ -4827,7 +4827,7 @@ public class JobManager implements IJobManager
         IResultSet set = database.performQuery("SELECT "+jobs.statusField+" FROM "+jobs.getTableName()+
           " WHERE "+jobs.idField+"=? FOR UPDATE",list,null,null);
         if (set.getRowCount() == 0)
-          throw new ACFException("No such job: "+jobID);
+          throw new ManifoldCFException("No such job: "+jobID);
         IResultRow row = set.getRow(0);
         int status = jobs.stringToStatus((String)row.getValue(jobs.statusField));
 
@@ -4837,11 +4837,11 @@ public class JobManager implements IJobManager
           jobs.notificationComplete(jobID);
           break;
         default:
-          throw new ACFException("Unexpected job status: "+Integer.toString(status));
+          throw new ManifoldCFException("Unexpected job status: "+Integer.toString(status));
         }
         return;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         database.signalRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -4870,7 +4870,7 @@ public class JobManager implements IJobManager
   *@param jobID is the job id.
   */
   public void resetStartupJob(Long jobID)
-    throws ACFException
+    throws ManifoldCFException
   {
     while (true)
     {
@@ -4884,7 +4884,7 @@ public class JobManager implements IJobManager
         IResultSet set = database.performQuery("SELECT "+jobs.statusField+" FROM "+jobs.getTableName()+
           " WHERE "+jobs.idField+"=? FOR UPDATE",list,null,null);
         if (set.getRowCount() == 0)
-          throw new ACFException("No such job: "+jobID);
+          throw new ManifoldCFException("No such job: "+jobID);
         IResultRow row = set.getRow(0);
         int status = jobs.stringToStatus((String)row.getValue(jobs.statusField));
 
@@ -4914,11 +4914,11 @@ public class JobManager implements IJobManager
           // ok
           break;
         default:
-          throw new ACFException("Unexpected job status: "+Integer.toString(status));
+          throw new ManifoldCFException("Unexpected job status: "+Integer.toString(status));
         }
         return;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         database.signalRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -4947,7 +4947,7 @@ public class JobManager implements IJobManager
   *@param jobID is the job id.
   */
   public void resetSeedJob(Long jobID)
-    throws ACFException
+    throws ManifoldCFException
   {
     while (true)
     {
@@ -4961,7 +4961,7 @@ public class JobManager implements IJobManager
         IResultSet set = database.performQuery("SELECT "+jobs.statusField+" FROM "+jobs.getTableName()+
           " WHERE "+jobs.idField+"=? FOR UPDATE",list,null,null);
         if (set.getRowCount() == 0)
-          throw new ACFException("No such job: "+jobID);
+          throw new ManifoldCFException("No such job: "+jobID);
         IResultRow row = set.getRow(0);
         int status = jobs.stringToStatus((String)row.getValue(jobs.statusField));
         switch (status)
@@ -5043,11 +5043,11 @@ public class JobManager implements IJobManager
           // ok
           break;
         default:
-          throw new ACFException("Unexpected job status: "+Integer.toString(status));
+          throw new ManifoldCFException("Unexpected job status: "+Integer.toString(status));
         }
         return;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         database.signalRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -5077,7 +5077,7 @@ public class JobManager implements IJobManager
   * This method is meant to be called periodically to perform delete processing on jobs.
   */
   public void deleteJobsReadyForDelete()
-    throws ACFException
+    throws ManifoldCFException
   {
     while (true)
     {
@@ -5134,7 +5134,7 @@ public class JobManager implements IJobManager
           if (confirmSet.getRowCount() > 0)
             continue;
 
-          ACF.noteConfigurationChange();
+          ManifoldCF.noteConfigurationChange();
           // Remove documents from job queue
           jobQueue.deleteAllJobRecords(jobID);
           // Remove carrydowns for the job
@@ -5149,7 +5149,7 @@ public class JobManager implements IJobManager
         }
         return;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         database.signalRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -5178,7 +5178,7 @@ public class JobManager implements IJobManager
   * decides if it is time to issue an ANALYZE request.
   */
   protected void conditionallyAnalyzeTables()
-    throws ACFException
+    throws ManifoldCFException
   {
     while (true)
     {
@@ -5189,7 +5189,7 @@ public class JobManager implements IJobManager
         jobQueue.conditionallyAnalyzeTables();
         break;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
         {
@@ -5210,7 +5210,7 @@ public class JobManager implements IJobManager
   /** Put all eligible jobs in the "shutting down" state.
   */
   public void finishJobs()
-    throws ACFException
+    throws ManifoldCFException
   {
     while (true)
     {
@@ -5284,7 +5284,7 @@ public class JobManager implements IJobManager
         }
         return;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         database.signalRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -5313,7 +5313,7 @@ public class JobManager implements IJobManager
   *@return the ID's of jobs that need their output connectors notified in order to become inactive.
   */
   public Long[] getJobsReadyForInactivity()
-    throws ACFException
+    throws ManifoldCFException
   {
     // Do the query
     IResultSet set = database.performQuery("SELECT "+jobs.idField+" FROM "+
@@ -5340,7 +5340,7 @@ public class JobManager implements IJobManager
   *@param abortJobs is the set of IJobDescription objects that were aborted (and stopped).
   */
   public void finishJobAborts(long timestamp, ArrayList abortJobs)
-    throws ACFException
+    throws ManifoldCFException
   {
     while (true)
     {
@@ -5407,12 +5407,12 @@ public class JobManager implements IJobManager
             }
             break;
           default:
-            throw new ACFException("Unexpected value for job status: "+Integer.toString(status));
+            throw new ManifoldCFException("Unexpected value for job status: "+Integer.toString(status));
           }
         }
         return;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         database.signalRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -5443,7 +5443,7 @@ public class JobManager implements IJobManager
   *@param resetJobs is filled in with the set of IJobDescription objects that were reset.
   */
   public void resetJobs(long currentTime, ArrayList resetJobs)
-    throws ACFException
+    throws ManifoldCFException
   {
     while (true)
     {
@@ -5497,7 +5497,7 @@ public class JobManager implements IJobManager
         }
         return;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         database.signalRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
@@ -5529,7 +5529,7 @@ public class JobManager implements IJobManager
   *@return the status object for the specified job.
   */
   public JobStatus getStatus(Long jobID)
-    throws ACFException
+    throws ManifoldCFException
   {
     String whereClause = Jobs.idField+"="+jobID.toString();
     JobStatus[] records = makeJobStatus(whereClause);
@@ -5543,7 +5543,7 @@ public class JobManager implements IJobManager
   *@return an ordered array of job status objects.
   */
   public JobStatus[] getAllStatus()
-    throws ACFException
+    throws ManifoldCFException
   {
     String whereClause = null;
     return makeJobStatus(whereClause);
@@ -5554,7 +5554,7 @@ public class JobManager implements IJobManager
   *@return an array of the job status objects.
   */
   public JobStatus[] getRunningJobs()
-    throws ACFException
+    throws ManifoldCFException
   {
     String whereClause =
       Jobs.statusField+" IN ("+
@@ -5580,7 +5580,7 @@ public class JobManager implements IJobManager
   *@return an array of the job status objects.
   */
   public JobStatus[] getFinishedJobs()
-    throws ACFException
+    throws ManifoldCFException
   {
     String whereClause =
       Jobs.statusField+"="+database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_INACTIVE))+" AND "+
@@ -5596,7 +5596,7 @@ public class JobManager implements IJobManager
   *@return the status array.
   */
   protected JobStatus[] makeJobStatus(String whereClause)
-    throws ACFException
+    throws ManifoldCFException
   {
     IResultSet set = database.performQuery("SELECT t0."+
       Jobs.idField+",t0."+
@@ -5776,7 +5776,7 @@ public class JobManager implements IJobManager
   */
   public IResultSet genDocumentStatus(String connectionName, StatusFilterCriteria filterCriteria, SortOrder sortOrder,
     int startRow, int rowCount)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Build the query.
     Long currentTime = new Long(System.currentTimeMillis());
@@ -5885,7 +5885,7 @@ public class JobManager implements IJobManager
   */
   public IResultSet genQueueStatus(String connectionName, StatusFilterCriteria filterCriteria, SortOrder sortOrder,
     BucketDescription idBucketDescription, int startRow, int rowCount)
-    throws ACFException
+    throws ManifoldCFException
   {
     // SELECT substring(docid FROM '<id_regexp>') AS idbucket,
     //        substring(entityidentifier FROM '<id_regexp>') AS idbucket,
@@ -6008,7 +6008,7 @@ public class JobManager implements IJobManager
   /** Add criteria clauses to query.
   */
   protected boolean addCriteria(StringBuffer sb, String fieldPrefix, String connectionName, StatusFilterCriteria criteria, boolean whereEmitted)
-    throws ACFException
+    throws ManifoldCFException
   {
     Long[] matchingJobs = criteria.getJobs();
 
@@ -6349,7 +6349,7 @@ public class JobManager implements IJobManager
     *@param connectionName is the connection name.
     */
     public void addConnectionName(String connectionName, IRepositoryConnector connectorInstance)
-      throws ACFException
+      throws ManifoldCFException
     {
       activeConnections.put(connectionName,connectorInstance);
       int setSize = connectorInstance.getMaxDocumentRequest();
@@ -6468,7 +6468,7 @@ public class JobManager implements IJobManager
     *@return true if it should be included, false otherwise.
     */
     public boolean checkInclude(IResultRow row)
-      throws ACFException
+      throws ManifoldCFException
     {
       // Note: This method does two things: First, it insures that the number of documents per job per bin does
       // not exceed the calculated throttle number.  Second, it keeps track of how many document queue items
@@ -6520,7 +6520,7 @@ public class JobManager implements IJobManager
 
       // Figure out what the right bins are, given the data we have.
       // This will involve a call to the connector.
-      String[] binNames = ACF.calculateBins(connectorInstance,docID);
+      String[] binNames = ManifoldCF.calculateBins(connectorInstance,docID);
       // Keep the running count, so we can abort without going through the whole set.
       documentsProcessed++;
       //scanRecord.addBins(binNames);
@@ -6574,7 +6574,7 @@ public class JobManager implements IJobManager
     *@return true if we need to keep going, or false if we are done.
     */
     public boolean checkContinue()
-      throws ACFException
+      throws ManifoldCFException
     {
       if (documentsProcessed >= EXTRA_FACTOR * n * maxSetSize)
         return false;

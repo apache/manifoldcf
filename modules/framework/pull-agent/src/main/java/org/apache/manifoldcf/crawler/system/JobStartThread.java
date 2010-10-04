@@ -33,7 +33,7 @@ public class JobStartThread extends Thread
   /** Constructor.
   */
   public JobStartThread()
-    throws ACFException
+    throws ManifoldCFException
   {
     super();
     setName("Job start thread");
@@ -89,20 +89,20 @@ public class JobStartThread extends Thread
               desc.getID().toString()+"("+desc.getDescription()+")",null,null,null);
           }
           // Loop around again, after resting a while
-          ACF.sleep(10000L);
+          ManifoldCF.sleep(10000L);
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
-          if (e.getErrorCode() == ACFException.INTERRUPTED)
+          if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
             break;
 
-          if (e.getErrorCode() == ACFException.DATABASE_CONNECTION_ERROR)
+          if (e.getErrorCode() == ManifoldCFException.DATABASE_CONNECTION_ERROR)
           {
             Logging.threads.error("Job start thread aborting and restarting due to database connection reset: "+e.getMessage(),e);
             try
             {
               // Give the database a chance to catch up/wake up
-              ACF.sleep(10000L);
+              ManifoldCF.sleep(10000L);
             }
             catch (InterruptedException se)
             {
@@ -114,7 +114,7 @@ public class JobStartThread extends Thread
           // Log it, but keep the thread alive
           Logging.threads.error("Exception tossed: "+e.getMessage(),e);
 
-          if (e.getErrorCode() == ACFException.SETUP_ERROR)
+          if (e.getErrorCode() == ManifoldCFException.SETUP_ERROR)
           {
             // Shut the whole system down!
             System.exit(1);

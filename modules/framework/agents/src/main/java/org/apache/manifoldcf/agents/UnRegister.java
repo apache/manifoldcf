@@ -36,7 +36,7 @@ public class UnRegister extends BaseAgentsInitializationCommand
     this.className = className;
   }
 
-  protected void doExecute(IThreadContext tc) throws ACFException
+  protected void doExecute(IThreadContext tc) throws ManifoldCFException
   {
     IAgentManager mgr = AgentManagerFactory.make(tc);
     mgr.unregisterAgent(className);
@@ -59,7 +59,7 @@ public class UnRegister extends BaseAgentsInitializationCommand
       unRegister.execute();
       System.err.println("Successfully unregistered agent '"+className+"'");
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       e.printStackTrace();
       System.exit(1);

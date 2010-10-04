@@ -36,7 +36,7 @@ public class UnRegister extends TransactionalCrawlerInitializationCommand
     this.className = className;
   }
 
-  protected void doExecute(IThreadContext tc) throws ACFException
+  protected void doExecute(IThreadContext tc) throws ManifoldCFException
   {
     IConnectorManager mgr = ConnectorManagerFactory.make(tc);
     IJobManager jobManager = JobManagerFactory.make(tc);
@@ -65,7 +65,7 @@ public class UnRegister extends TransactionalCrawlerInitializationCommand
       unRegister.execute();
       System.err.println("Successfully unregistered connector '"+className+"'");
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       e.printStackTrace();
       System.exit(1);

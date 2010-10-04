@@ -50,7 +50,7 @@ public class RemoveUserFromLibrary
                         }
                         System.err.println("Successfully removed user");
                 }
-                catch (ACFException e)
+                catch (ManifoldCFException e)
                 {
                         e.printStackTrace(System.err);
                         System.exit(2);

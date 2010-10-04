@@ -1,9 +1,9 @@
 package org.apache.manifoldcf.core;
 
 import org.apache.manifoldcf.core.interfaces.IThreadContext;
-import org.apache.manifoldcf.core.interfaces.ACFException;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.interfaces.ThreadContextFactory;
-import org.apache.manifoldcf.core.system.ACF;
+import org.apache.manifoldcf.core.system.ManifoldCF;
 
 /**
  * Parent class for all database initialization related commands. This class provides methods to
@@ -28,14 +28,14 @@ public abstract class DBInitializationCommand implements InitializationCommand
     this.password = password;
   }
 
-  public void execute() throws ACFException
+  public void execute() throws ManifoldCFException
   {
-    ACF.initializeEnvironment();
+    ManifoldCF.initializeEnvironment();
     IThreadContext tc = ThreadContextFactory.make();
     doExecute(tc);
   }
 
-  protected abstract void doExecute(IThreadContext tc) throws ACFException;
+  protected abstract void doExecute(IThreadContext tc) throws ManifoldCFException;
 
   protected String getPassword()
   {

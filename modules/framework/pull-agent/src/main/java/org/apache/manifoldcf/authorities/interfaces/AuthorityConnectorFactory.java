@@ -19,7 +19,7 @@
 package org.apache.manifoldcf.authorities.interfaces;
 
 import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.core.system.ACF;
+import org.apache.manifoldcf.core.system.ManifoldCF;
 import java.util.*;
 import java.io.*;
 import java.lang.reflect.*;
@@ -40,7 +40,7 @@ public class AuthorityConnectorFactory
   *@param className is the class name.
   */
   public static void install(IThreadContext threadContext, String className)
-    throws ACFException
+    throws ManifoldCFException
   {
     IAuthorityConnector connector = getConnectorNoCheck(className);
     connector.install(threadContext);
@@ -50,7 +50,7 @@ public class AuthorityConnectorFactory
   *@param className is the class name.
   */
   public static void deinstall(IThreadContext threadContext, String className)
-    throws ACFException
+    throws ManifoldCFException
   {
     IAuthorityConnector connector = getConnectorNoCheck(className);
     connector.deinstall(threadContext);
@@ -59,7 +59,7 @@ public class AuthorityConnectorFactory
   /** Get the default response from a connector.  Called if the connection attempt fails.
   */
   public static AuthorizationResponse getDefaultAuthorizationResponse(IThreadContext threadContext, String className, String userName)
-    throws ACFException
+    throws ManifoldCFException
   {
     IAuthorityConnector connector = getConnector(threadContext,className);
     if (connector == null)
@@ -70,7 +70,7 @@ public class AuthorityConnectorFactory
   /** Output the configuration header section.
   */
   public static void outputConfigurationHeader(IThreadContext threadContext, String className, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     IAuthorityConnector connector = getConnector(threadContext, className);
     if (connector == null)
@@ -81,7 +81,7 @@ public class AuthorityConnectorFactory
   /** Output the configuration body section.
   */
   public static void outputConfigurationBody(IThreadContext threadContext, String className, IHTTPOutput out, ConfigParams parameters, String tabName)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     IAuthorityConnector connector = getConnector(threadContext, className);
     if (connector == null)
@@ -92,7 +92,7 @@ public class AuthorityConnectorFactory
   /** Process configuration post data for a connector.
   */
   public static String processConfigurationPost(IThreadContext threadContext, String className, IPostParameters variableContext, ConfigParams configParams)
-    throws ACFException
+    throws ManifoldCFException
   {
     IAuthorityConnector connector = getConnector(threadContext, className);
     if (connector == null)
@@ -103,7 +103,7 @@ public class AuthorityConnectorFactory
   /** View connector configuration.
   */
   public static void viewConfiguration(IThreadContext threadContext, String className, IHTTPOutput out, ConfigParams configParams)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     IAuthorityConnector connector = getConnector(threadContext, className);
     // We want to be able to view connections even if they have unregistered connectors.
@@ -117,18 +117,18 @@ public class AuthorityConnectorFactory
   *@return the instance.
   */
   public static IAuthorityConnector getConnectorNoCheck(String className)
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
-      Class theClass = ACF.findClass(className);
+      Class theClass = ManifoldCF.findClass(className);
       Class[] argumentClasses = new Class[0];
       // Look for a constructor
       Constructor c = theClass.getConstructor(argumentClasses);
       Object[] arguments = new Object[0];
       Object o = c.newInstance(arguments);
       if (!(o instanceof IAuthorityConnector))
-        throw new ACFException("Class '"+className+"' does not implement IAuthorityConnector.");
+        throw new ManifoldCFException("Class '"+className+"' does not implement IAuthorityConnector.");
       return (IAuthorityConnector)o;
     }
     catch (InvocationTargetException e)
@@ -137,41 +137,41 @@ public class AuthorityConnectorFactory
       if (z instanceof Error)
         throw (Error)z;
       else
-        throw (ACFException)z;
+        throw (ManifoldCFException)z;
     }
     catch (ClassNotFoundException e)
     {
-      throw new ACFException("No authority connector class '"+className+"' was found.",
+      throw new ManifoldCFException("No authority connector class '"+className+"' was found.",
         e);
     }
     catch (NoSuchMethodException e)
     {
-      throw new ACFException("No appropriate constructor for IAuthorityConnector implementation '"+
+      throw new ManifoldCFException("No appropriate constructor for IAuthorityConnector implementation '"+
         className+"'.  Need xxx().",
         e);
     }
     catch (SecurityException e)
     {
-      throw new ACFException("Protected constructor for IAuthorityConnector implementation '"+className+"'",
+      throw new ManifoldCFException("Protected constructor for IAuthorityConnector implementation '"+className+"'",
         e);
     }
     catch (IllegalAccessException e)
     {
-      throw new ACFException("Unavailable constructor for IAuthorityConnector implementation '"+className+"'",
+      throw new ManifoldCFException("Unavailable constructor for IAuthorityConnector implementation '"+className+"'",
         e);
     }
     catch (IllegalArgumentException e)
     {
-      throw new ACFException("Shouldn't happen!!!",e);
+      throw new ManifoldCFException("Shouldn't happen!!!",e);
     }
     catch (InstantiationException e)
     {
-      throw new ACFException("InstantiationException for IAuthorityConnector implementation '"+className+"'",
+      throw new ManifoldCFException("InstantiationException for IAuthorityConnector implementation '"+className+"'",
         e);
     }
     catch (ExceptionInInitializerError e)
     {
-      throw new ACFException("ExceptionInInitializerError for IAuthorityConnector implementation '"+className+"'",
+      throw new ManifoldCFException("ExceptionInInitializerError for IAuthorityConnector implementation '"+className+"'",
         e);
     }
 
@@ -182,7 +182,7 @@ public class AuthorityConnectorFactory
   *@return the instance.
   */
   protected static IAuthorityConnector getConnector(IThreadContext threadContext, String className)
-    throws ACFException
+    throws ManifoldCFException
   {
     IAuthorityConnectorManager connMgr = AuthorityConnectorManagerFactory.make(threadContext);
     if (connMgr.isInstalled(className) == false)
@@ -190,14 +190,14 @@ public class AuthorityConnectorFactory
 
     try
     {
-      Class theClass = ACF.findClass(className);
+      Class theClass = ManifoldCF.findClass(className);
       Class[] argumentClasses = new Class[0];
       // Look for a constructor
       Constructor c = theClass.getConstructor(argumentClasses);
       Object[] arguments = new Object[0];
       Object o = c.newInstance(arguments);
       if (!(o instanceof IAuthorityConnector))
-        throw new ACFException("Class '"+className+"' does not implement IAuthorityConnector.");
+        throw new ManifoldCFException("Class '"+className+"' does not implement IAuthorityConnector.");
       return (IAuthorityConnector)o;
     }
     catch (InvocationTargetException e)
@@ -206,7 +206,7 @@ public class AuthorityConnectorFactory
       if (z instanceof Error)
         throw (Error)z;
       else
-        throw (ACFException)z;
+        throw (ManifoldCFException)z;
     }
     catch (ClassNotFoundException e)
     {
@@ -214,37 +214,37 @@ public class AuthorityConnectorFactory
       if (connMgr.isInstalled(className) == false)
         return null;
 
-      throw new ACFException("No authority connector class '"+className+"' was found.",
+      throw new ManifoldCFException("No authority connector class '"+className+"' was found.",
         e);
     }
     catch (NoSuchMethodException e)
     {
-      throw new ACFException("No appropriate constructor for IAuthorityConnector implementation '"+
+      throw new ManifoldCFException("No appropriate constructor for IAuthorityConnector implementation '"+
         className+"'.  Need xxx().",
         e);
     }
     catch (SecurityException e)
     {
-      throw new ACFException("Protected constructor for IAuthorityConnector implementation '"+className+"'",
+      throw new ManifoldCFException("Protected constructor for IAuthorityConnector implementation '"+className+"'",
         e);
     }
     catch (IllegalAccessException e)
     {
-      throw new ACFException("Unavailable constructor for IAuthorityConnector implementation '"+className+"'",
+      throw new ManifoldCFException("Unavailable constructor for IAuthorityConnector implementation '"+className+"'",
         e);
     }
     catch (IllegalArgumentException e)
     {
-      throw new ACFException("Shouldn't happen!!!",e);
+      throw new ManifoldCFException("Shouldn't happen!!!",e);
     }
     catch (InstantiationException e)
     {
-      throw new ACFException("InstantiationException for IAuthorityConnector implementation '"+className+"'",
+      throw new ManifoldCFException("InstantiationException for IAuthorityConnector implementation '"+className+"'",
         e);
     }
     catch (ExceptionInInitializerError e)
     {
-      throw new ACFException("ExceptionInInitializerError for IAuthorityConnector implementation '"+className+"'",
+      throw new ManifoldCFException("ExceptionInInitializerError for IAuthorityConnector implementation '"+className+"'",
         e);
     }
 
@@ -259,7 +259,7 @@ public class AuthorityConnectorFactory
   */
   public static IAuthorityConnector grab(IThreadContext threadContext,
     String className, ConfigParams configInfo, int maxPoolSize)
-    throws ACFException
+    throws ManifoldCFException
   {
     // System.out.println("In AuthorityConnectorManager.grab()");
 
@@ -290,7 +290,7 @@ public class AuthorityConnectorFactory
   *@param connector is the connector to release.
   */
   public static void release(IAuthorityConnector connector)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (connector == null)
       return;
@@ -312,7 +312,7 @@ public class AuthorityConnectorFactory
   * This method polls all inactive handles.
   */
   public static void pollAllConnectors(IThreadContext threadContext)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Go through the whole pool and notify everyone
     synchronized (poolHash)
@@ -333,7 +333,7 @@ public class AuthorityConnectorFactory
   *@param threadContext is the local thread context.
   */
   public static void closeAllConnectors(IThreadContext threadContext)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Go through the whole pool and clean it out
     synchronized (poolHash)
@@ -425,7 +425,7 @@ public class AuthorityConnectorFactory
     *@return the connector.
     */
     public synchronized IAuthorityConnector getConnector(IThreadContext threadContext)
-      throws ACFException
+      throws ManifoldCFException
     {
       while (numFree == 0)
       {
@@ -435,7 +435,7 @@ public class AuthorityConnectorFactory
         }
         catch (InterruptedException e)
         {
-          throw new ACFException("Interrupted",e,ACFException.INTERRUPTED);
+          throw new ManifoldCFException("Interrupted",e,ManifoldCFException.INTERRUPTED);
         }
       }
 
@@ -451,14 +451,14 @@ public class AuthorityConnectorFactory
 
         try
         {
-          Class theClass = ACF.findClass(className);
+          Class theClass = ManifoldCF.findClass(className);
           Class[] argumentClasses = new Class[0];
           // Look for a constructor
           Constructor c = theClass.getConstructor(argumentClasses);
           Object[] arguments = new Object[0];
           Object o = c.newInstance(arguments);
           if (!(o instanceof IAuthorityConnector))
-            throw new ACFException("Class '"+className+"' does not implement IAuthorityConnector.");
+            throw new ManifoldCFException("Class '"+className+"' does not implement IAuthorityConnector.");
           // System.out.println("Authority connector instantiated");
           rc = (IAuthorityConnector)o;
           rc.connect(configParams);
@@ -470,7 +470,7 @@ public class AuthorityConnectorFactory
           if (z instanceof Error)
             throw (Error)z;
           else
-            throw (ACFException)z;
+            throw (ManifoldCFException)z;
         }
         catch (ClassNotFoundException e)
         {
@@ -478,37 +478,37 @@ public class AuthorityConnectorFactory
           if (connMgr.isInstalled(className) == false)
             return null;
 
-          throw new ACFException("No authority connector class '"+className+"' was found.",
+          throw new ManifoldCFException("No authority connector class '"+className+"' was found.",
             e);
         }
         catch (NoSuchMethodException e)
         {
-          throw new ACFException("No appropriate constructor for IAuthorityConnector implementation '"+
+          throw new ManifoldCFException("No appropriate constructor for IAuthorityConnector implementation '"+
             className+"'.  Need xxx(ConfigParams).",
             e);
         }
         catch (SecurityException e)
         {
-          throw new ACFException("Protected constructor for IAuthorityConnector implementation '"+className+"'",
+          throw new ManifoldCFException("Protected constructor for IAuthorityConnector implementation '"+className+"'",
             e);
         }
         catch (IllegalAccessException e)
         {
-          throw new ACFException("Unavailable constructor for IAuthorityConnector implementation '"+className+"'",
+          throw new ManifoldCFException("Unavailable constructor for IAuthorityConnector implementation '"+className+"'",
             e);
         }
         catch (IllegalArgumentException e)
         {
-          throw new ACFException("Shouldn't happen!!!",e);
+          throw new ManifoldCFException("Shouldn't happen!!!",e);
         }
         catch (InstantiationException e)
         {
-          throw new ACFException("InstantiationException for IAuthorityConnector implementation '"+className+"'",
+          throw new ManifoldCFException("InstantiationException for IAuthorityConnector implementation '"+className+"'",
             e);
         }
         catch (ExceptionInInitializerError e)
         {
-          throw new ACFException("ExceptionInInitializerError for IAuthorityConnector implementation '"+className+"'",
+          throw new ManifoldCFException("ExceptionInInitializerError for IAuthorityConnector implementation '"+className+"'",
             e);
         }
       }
@@ -528,7 +528,7 @@ public class AuthorityConnectorFactory
     *@param connector is the connector.
     */
     public synchronized void releaseConnector(IAuthorityConnector connector)
-      throws ACFException
+      throws ManifoldCFException
     {
       if (connector == null)
         return;
@@ -544,7 +544,7 @@ public class AuthorityConnectorFactory
     /** Notify all free connectors.
     */
     public synchronized void pollAll(IThreadContext threadContext)
-      throws ACFException
+      throws ManifoldCFException
     {
       int i = 0;
       while (i < stack.size())
@@ -560,7 +560,7 @@ public class AuthorityConnectorFactory
     /** Release all free connectors.
     */
     public synchronized void releaseAll(IThreadContext threadContext)
-      throws ACFException
+      throws ManifoldCFException
     {
       while (stack.size() > 0)
       {

@@ -40,7 +40,7 @@ public abstract class BaseConnector implements IConnector
   *@param threadContext is the current thread context.
   */
   public void install(IThreadContext threadContext)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Base install does nothing
   }
@@ -51,7 +51,7 @@ public abstract class BaseConnector implements IConnector
   *@param threadContext is the current thread context.
   */
   public void deinstall(IThreadContext threadContext)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Base uninstall does nothing
   }
@@ -71,7 +71,7 @@ public abstract class BaseConnector implements IConnector
   *@return the connection's status as a displayable string.
   */
   public String check()
-    throws ACFException
+    throws ManifoldCFException
   {
     // Base version returns "OK" status.
     return "Connection working";
@@ -81,7 +81,7 @@ public abstract class BaseConnector implements IConnector
   * in active use.
   */
   public void poll()
-    throws ACFException
+    throws ManifoldCFException
   {
     // Base version does nothing
   }
@@ -89,7 +89,7 @@ public abstract class BaseConnector implements IConnector
   /** Close the connection.  Call this before discarding the repository connector.
   */
   public void disconnect()
-    throws ACFException
+    throws ManifoldCFException
   {
     params = null;
   }
@@ -127,7 +127,7 @@ public abstract class BaseConnector implements IConnector
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
   }
   
@@ -141,7 +141,7 @@ public abstract class BaseConnector implements IConnector
   *@param tabName is the current tab name.
   */
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
   }
   
@@ -155,7 +155,7 @@ public abstract class BaseConnector implements IConnector
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
-    throws ACFException
+    throws ManifoldCFException
   {
     return null;
   }
@@ -168,7 +168,7 @@ public abstract class BaseConnector implements IConnector
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
   }
 

@@ -21,7 +21,7 @@ package org.apache.manifoldcf.filesystem_tests;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
-import org.apache.manifoldcf.crawler.system.ACF;
+import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
 import java.io.*;
 import java.util.*;
@@ -131,7 +131,7 @@ public class TestBase extends org.apache.manifoldcf.crawler.tests.TestConnectorB
   
   // API support
   
-  // These methods allow communication with the ACF api webapp, via the locally-instantiated jetty
+  // These methods allow communication with the ManifoldCF api webapp, via the locally-instantiated jetty
   
   /** Construct a command url.
   */
@@ -343,7 +343,7 @@ public class TestBase extends org.apache.manifoldcf.crawler.tests.TestConnectorB
           {
             jobManager.manualAbort(desc.getID());
           }
-          catch (ACFException e)
+          catch (ManifoldCFException e)
           {
             // This generally means that the job was not running
           }
@@ -366,7 +366,7 @@ public class TestBase extends org.apache.manifoldcf.crawler.tests.TestConnectorB
               case JobStatus.JOBSTATUS_ERROR:
                 break;
               default:
-                ACF.sleep(10000);
+                ManifoldCF.sleep(10000);
                 continue;
               }
             }
@@ -383,7 +383,7 @@ public class TestBase extends org.apache.manifoldcf.crawler.tests.TestConnectorB
           {
             jobManager.deleteJob(desc.getID());
           }
-          catch (ACFException e)
+          catch (ManifoldCFException e)
           {
             // This usually means that the job is already being deleted
           }
@@ -399,7 +399,7 @@ public class TestBase extends org.apache.manifoldcf.crawler.tests.TestConnectorB
             JobStatus status = jobManager.getStatus(desc.getID());
             if (status != null)
             {
-              ACF.sleep(10000);
+              ManifoldCF.sleep(10000);
               continue;
             }
             break;
@@ -472,11 +472,11 @@ public class TestBase extends org.apache.manifoldcf.crawler.tests.TestConnectorB
             break;
             
           // Start whatever agents need to be started
-          ACF.startAgents(tc);
+          ManifoldCF.startAgents(tc);
 
           try
           {
-            ACF.sleep(5000);
+            ManifoldCF.sleep(5000);
           }
           catch (InterruptedException e)
           {
@@ -484,7 +484,7 @@ public class TestBase extends org.apache.manifoldcf.crawler.tests.TestConnectorB
           }
         }
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         daemonException = e;
       }
@@ -492,9 +492,9 @@ public class TestBase extends org.apache.manifoldcf.crawler.tests.TestConnectorB
       {
         try
         {
-          ACF.stopAgents(tc);
+          ManifoldCF.stopAgents(tc);
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
           daemonException = e;
         }

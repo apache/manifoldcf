@@ -49,7 +49,7 @@ public class WaitForJobDeleted
 
                 try
                 {
-                        ACF.initializeEnvironment();
+                        ManifoldCF.initializeEnvironment();
                         IThreadContext tc = ThreadContextFactory.make();
                         IJobManager jobManager = JobManagerFactory.make(tc);
                         while (true)
@@ -57,7 +57,7 @@ public class WaitForJobDeleted
                                 JobStatus status = jobManager.getStatus(new Long(jobID));
                                 if (status == null)
                                         break;
-                                ACF.sleep(10000);
+                                ManifoldCF.sleep(10000);
                         }
 
                 }

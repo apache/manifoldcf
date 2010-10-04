@@ -22,7 +22,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
-import org.apache.manifoldcf.crawler.system.ACF;
+import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import org.apache.manifoldcf.core.common.*;
 
 import java.io.*;
@@ -108,7 +108,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
   /** Set up a session */
   protected void getSession()
-    throws ACFException
+    throws ManifoldCFException
   {
     if (proxy == null)
     {
@@ -135,7 +135,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       }
       catch (NumberFormatException e)
       {
-        throw new ACFException(e.getMessage(),e);
+        throw new ManifoldCFException(e.getMessage(),e);
       }
       serverLocation = params.getParameter("serverLocation");
       if (serverLocation == null)
@@ -156,7 +156,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         ntlmDomain = userName.substring(0,index);
       }
       else
-        throw new ACFException("Invalid user name - need <domain>\\<name>");
+        throw new ManifoldCFException("Invalid user name - need <domain>\\<name>");
 
       serverUrl = serverProtocol + "://" + serverName;
       if (serverProtocol.equals("https"))
@@ -187,9 +187,9 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
       fileBaseUrl = serverUrl + encodedServerLocation;
 
-      File sharepointWSDDLocation = ACF.getFileProperty(wsddPathProperty);
+      File sharepointWSDDLocation = ManifoldCF.getFileProperty(wsddPathProperty);
       if (sharepointWSDDLocation == null)
-        throw new ACFException("SharePoint wsdd location path (property "+wsddPathProperty+") must be specified!");
+        throw new ManifoldCFException("SharePoint wsdd location path (property "+wsddPathProperty+") must be specified!");
 
       proxy = new SPSProxyHelper( serverUrl, encodedServerLocation, serverLocation, userName, password, myFactory, sharepointWSDDLocation.toString(),
         connectionManager );
@@ -230,7 +230,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   /** Close the connection.  Call this before discarding the repository connector.
   */
   public void disconnect()
-    throws ACFException
+    throws ManifoldCFException
   {
     serverUrl = null;
     fileBaseUrl = null;
@@ -283,7 +283,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@return the connection's status as a displayable string.
   */
   public String check()
-    throws ACFException
+    throws ManifoldCFException
   {
     getSession();
     try
@@ -303,7 +303,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     {
       return "SharePoint temporarily unavailable: "+e.getMessage();
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       return e.getMessage();
     }
@@ -315,7 +315,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   * in active use.
   */
   public void poll()
-    throws ACFException
+    throws ManifoldCFException
   {
     if (connectionManager != null)
       connectionManager.closeIdleConnections(60000L);
@@ -329,7 +329,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@return true if the resource is found, false if not.  In either case, output may be filled in.
   */
   public boolean requestInfo(Configuration output, String command)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (command.startsWith("fields/"))
     {
@@ -371,11 +371,11 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       }
       catch (ServiceInterruption e)
       {
-        ACF.createServiceInterruptionNode(output,e);
+        ManifoldCF.createServiceInterruptionNode(output,e);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
-        ACF.createErrorNode(output,e);
+        ManifoldCF.createErrorNode(output,e);
       }
     }
     else if (command.startsWith("sites/"))
@@ -395,11 +395,11 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       }
       catch (ServiceInterruption e)
       {
-        ACF.createServiceInterruptionNode(output,e);
+        ManifoldCF.createServiceInterruptionNode(output,e);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
-        ACF.createErrorNode(output,e);
+        ManifoldCF.createErrorNode(output,e);
       }
     }
     else if (command.startsWith("libraries/"))
@@ -419,11 +419,11 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       }
       catch (ServiceInterruption e)
       {
-        ACF.createServiceInterruptionNode(output,e);
+        ManifoldCF.createServiceInterruptionNode(output,e);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
-        ACF.createErrorNode(output,e);
+        ManifoldCF.createErrorNode(output,e);
       }
     }
     else
@@ -459,7 +459,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   */
   public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
     long startTime, long endTime, int jobMode)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     // Check the session
     getSession();
@@ -487,7 +487,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   */
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
     DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     getSession();
 
@@ -793,7 +793,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         }
       }
       else
-        throw new ACFException("Invalid document identifier discovered: '"+documentIdentifier+"'");
+        throw new ManifoldCFException("Invalid document identifier discovered: '"+documentIdentifier+"'");
       i++;
     }
     return rval;
@@ -811,7 +811,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   * should only find other references, and should not actually call the ingestion methods.
   */
   public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     getSession();
 
@@ -930,7 +930,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 {
                   // Unexpected processing error; the path to the folder or document did not start with the location
                   // offset, so throw up.
-                  throw new ACFException("Internal error: Relative path '"+relPath+"' was expected to start with '"+
+                  throw new ManifoldCFException("Internal error: Relative path '"+relPath+"' was expected to start with '"+
                     serverLocation+"'");
                 }
 
@@ -1072,7 +1072,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                       {
                         activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
                           null,documentIdentifier,"Error","Http status "+Integer.toString(returnCode),null);
-                        throw new ACFException("Error fetching document '"+fileUrl+"': "+Integer.toString(returnCode));
+                        throw new ManifoldCFException("Error fetching document '"+fileUrl+"': "+Integer.toString(returnCode));
                       }
 
                       // int contentSize = (int)method.getResponseContentLength();
@@ -1104,7 +1104,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                         }
                         catch (InterruptedIOException e)
                         {
-                          throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+                          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
                         }
                         catch (IOException e)
                         {
@@ -1124,7 +1124,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                   }
                   catch (InterruptedException e)
                   {
-                    throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+                    throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
                   }
                   catch (java.net.SocketTimeoutException e)
                   {
@@ -1146,14 +1146,14 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                   }
                   catch (InterruptedIOException e)
                   {
-                    throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+                    throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
                   }
                   catch (IllegalArgumentException e)
                   {
                     Logging.connectors.error("SharePoint: Illegal argument", e);
                     activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
                       new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
-                    throw new ACFException("SharePoint: Illegal argument: "+e.getMessage(),e);
+                    throw new ManifoldCFException("SharePoint: Illegal argument: "+e.getMessage(),e);
                   }
                   catch (HttpException e)
                   {
@@ -1293,7 +1293,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                   }
                   catch (InterruptedIOException e)
                   {
-                    throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+                    throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
                   }
                   catch (IOException e)
                   {
@@ -1309,25 +1309,25 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             }
             catch (java.net.SocketTimeoutException e)
             {
-              throw new ACFException("Socket timeout error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
+              throw new ManifoldCFException("Socket timeout error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
             }
             catch (org.apache.commons.httpclient.ConnectTimeoutException e)
             {
-              throw new ACFException("Connect timeout error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
+              throw new ManifoldCFException("Connect timeout error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
             }
             catch (InterruptedIOException e)
             {
-              throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+              throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
             }
             catch (IOException e)
             {
-              throw new ACFException("IO error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
+              throw new ManifoldCFException("IO error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
             }
           }
         }
       }
       else
-        throw new ACFException("Found illegal document identifier in processDocuments: '"+documentIdentifier+"'");
+        throw new ManifoldCFException("Found illegal document identifier in processDocuments: '"+documentIdentifier+"'");
 
       i++;
     }
@@ -1350,7 +1350,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     tabsArray.add("Server");
     out.print(
@@ -1476,7 +1476,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param tabName is the current tab name.
   */
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     String serverVersion = parameters.getParameter("serverVersion");
     if (serverVersion == null)
@@ -1633,7 +1633,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
-    throws ACFException
+    throws ManifoldCFException
   {
     String serverVersion = variableContext.getParameter("serverVersion");
     if (serverVersion != null)
@@ -1733,7 +1733,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
@@ -1781,7 +1781,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     tabsArray.add("Paths");
     tabsArray.add("Security");
@@ -1957,7 +1957,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param tabName is the current tab name.
   */
   public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     int i;
     int k;
@@ -2228,7 +2228,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             pathLibrary = null;
           }
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
           e.printStackTrace();
           message = e.getMessage();
@@ -2855,7 +2855,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         {
           metaFieldList = getFieldList(site,lib);
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
           e.printStackTrace();
           message = e.getMessage();
@@ -2901,7 +2901,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             metaPathState = "unknown";
           }
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
           e.printStackTrace();
           message = e.getMessage();
@@ -3232,7 +3232,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Remove old-style rules, but only if the information would not be lost
     if (variableContext.getParameter("specpathcount") != null && variableContext.getParameter("metapathcount") != null)
@@ -3748,7 +3748,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param ds is the current document specification for this job.
   */
   public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     // Display path rules
     out.print(
@@ -4199,7 +4199,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   * @return list of the fields
   */
   public Map getFieldList( String parentSite, String docLibrary )
-    throws ServiceInterruption, ACFException
+    throws ServiceInterruption, ManifoldCFException
   {
     getSession();
     return proxy.getFieldList( encodePath(parentSite), proxy.getDocLibID( encodePath(parentSite), parentSite, docLibrary) );
@@ -4211,7 +4211,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   * @return list of the sites
   */
   public ArrayList getSites( String parentSite )
-    throws ServiceInterruption, ACFException
+    throws ServiceInterruption, ManifoldCFException
   {
     getSession();
     return proxy.getSites( encodePath(parentSite) );
@@ -4223,7 +4223,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   * @return list of the libraries
   */
   public ArrayList getDocLibsBySite( String parentSite )
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     getSession();
     return proxy.getDocumentLibraries( encodePath(parentSite), parentSite );
@@ -5062,7 +5062,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
     /** Constructor */
     public SystemMetadataDescription(DocumentSpecification spec)
-      throws ACFException
+      throws ManifoldCFException
     {
       pathAttributeName = null;
       int i = 0;
@@ -5091,7 +5091,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     /** Given an identifier, get the translated string that goes into the metadata.
     */
     public String getPathAttributeValue(String documentIdentifier)
-      throws ACFException
+      throws ManifoldCFException
     {
       String path = getPathString(documentIdentifier);
       return matchMap.translate(path);
@@ -5102,7 +5102,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     * is easy to calculate.
     */
     public String getPathString(String documentIdentifier)
-      throws ACFException
+      throws ManifoldCFException
     {
       // There will be a "//" somewhere in the string.  Remove it!
       int dslashIndex = documentIdentifier.indexOf("//");
@@ -5122,7 +5122,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     /** Constructor.  Pass the keystore.
     */
     public MySSLSocketFactory(IKeystoreManager keystore)
-      throws ACFException
+      throws ManifoldCFException
     {
       this.keystore = keystore;
       thisSocketFactory = keystore.getSecureSocketFactory();
@@ -5203,7 +5203,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       {
         return keystore.getString().equals(other.keystore.getString());
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         return false;
       }
@@ -5215,7 +5215,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       {
         return keystore.getString().hashCode();
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         return 0;
       }

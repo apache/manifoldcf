@@ -44,7 +44,7 @@ public class SortOrder
   /** Constructor from string representation.
   */
   public SortOrder(String rep)
-    throws ACFException
+    throws ManifoldCFException
   {
     ParseBuffer pb = new ParseBuffer(rep);
     StringBuffer numBuffer = new StringBuffer();
@@ -52,7 +52,7 @@ public class SortOrder
     {
       int x = pb.peekCharAt();
       if (x == -1)
-        throw new ACFException("Unexpected end");
+        throw new ManifoldCFException("Unexpected end");
       char y = (char)x;
       pb.next();
       if (y == ':')
@@ -72,7 +72,7 @@ public class SortOrder
     }
     catch (NumberFormatException e)
     {
-      throw new ACFException("Bad number",e);
+      throw new ManifoldCFException("Bad number",e);
     }
   }
 
@@ -190,25 +190,25 @@ public class SortOrder
     }
 
     public SortSpec(ParseBuffer pb)
-      throws ACFException
+      throws ManifoldCFException
     {
       int x = pb.peekCharAt();
       if (x == -1)
-        throw new ACFException("Unexpected end");
+        throw new ManifoldCFException("Unexpected end");
       char y = (char)x;
       if (y == '+')
         this.direction = SORT_ASCENDING;
       else if (y == '-')
         this.direction = SORT_DESCENDING;
       else
-        throw new ACFException("Bad direction");
+        throw new ManifoldCFException("Bad direction");
       pb.next();
       StringBuffer sb = new StringBuffer();
       while (true)
       {
         x = pb.peekCharAt();
         if (x == -1)
-          throw new ACFException("Unexpected end");
+          throw new ManifoldCFException("Unexpected end");
         y = (char)x;
         pb.next();
         if (y == '.')

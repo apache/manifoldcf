@@ -16,7 +16,7 @@
 */
 package org.apache.manifoldcf.crawler.connectors.sharedrive;
 
-import org.apache.manifoldcf.crawler.system.ACF;
+import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import java.io.FileOutputStream;
 import java.io.FileInputStream;
 import java.io.File;
@@ -45,7 +45,7 @@ import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
 import org.apache.manifoldcf.core.interfaces.IPostParameters;
 import org.apache.manifoldcf.core.interfaces.ConfigParams;
-import org.apache.manifoldcf.core.interfaces.ACFException;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.interfaces.IKeystoreManager;
 import org.apache.manifoldcf.core.interfaces.KeystoreManagerFactory;
 import org.apache.manifoldcf.core.interfaces.Configuration;
@@ -57,7 +57,7 @@ import org.apache.manifoldcf.crawler.interfaces.IFingerprintActivity;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
 import org.apache.manifoldcf.crawler.interfaces.IVersionActivity;
 import org.apache.manifoldcf.crawler.system.Logging;
-import org.apache.manifoldcf.crawler.system.ACF;
+import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
 /** This is the "repository connector" for a smb/cifs shared drive file system.  It's a relative of the share crawler, and should have
 * comparable basic functionality.
@@ -123,7 +123,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   public SharedDriveConnector()
   {
     // We need to know whether to operate in NTLMv2 mode, or in NTLM mode.
-    String value = ACF.getProperty(PROPERTY_JCIFS_USE_NTLM_V1);
+    String value = ManifoldCF.getProperty(PROPERTY_JCIFS_USE_NTLM_V1);
     if (value == null || value.toLowerCase().equals("false"))
     {
       System.setProperty("jcifs.smb.lmCompatibility","3");
@@ -138,13 +138,13 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 
   /** Establish a "session".  In the case of the jcifs connector, this just builds the appropriate smbconnectionPath string, and does the necessary checks. */
   protected void getSession()
-    throws ACFException
+    throws ManifoldCFException
   {
     if (smbconnectionPath == null)
     {
       // Get the server
       if (server == null || server.length() == 0)
-        throw new ACFException("Missing parameter '"+SharedDriveParameters.server+"'");
+        throw new ManifoldCFException("Missing parameter '"+SharedDriveParameters.server+"'");
 
       // make the smb connection to the server
       String authenticationString;
@@ -164,7 +164,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       catch (MalformedURLException e)
       {
         Logging.connectors.error("Unable to access SMB/CIFS share: "+"smb://" + ((domain==null)?"":domain)+";"+username+":<password>@"+ server + "/\n" + e);
-        throw new ACFException("Unable to access SMB/CIFS share: "+server, e, ACFException.REPOSITORY_CONNECTION_ERROR);
+        throw new ManifoldCFException("Unable to access SMB/CIFS share: "+server, e, ManifoldCFException.REPOSITORY_CONNECTION_ERROR);
       }
     }
   }
@@ -192,7 +192,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   /** Close the connection.  Call this before discarding the repository connector.
   */
   public void disconnect()
-    throws ACFException
+    throws ManifoldCFException
   {
     server = null;
     domain = null;
@@ -266,7 +266,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   * @return the document uri.
   */
   protected static String convertToURI(String documentIdentifier, MatchMap fileMap, MatchMap uriMap)
-    throws ACFException
+    throws ManifoldCFException
   {
     //
     // Note well: This MUST be a legal URI!!
@@ -313,7 +313,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       catch (java.io.UnsupportedEncodingException e)
       {
         // Should not happen...
-        throw new ACFException(e.getMessage(),e);
+        throw new ManifoldCFException(e.getMessage(),e);
       }
     }
     else
@@ -365,7 +365,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       catch (java.io.UnsupportedEncodingException e)
       {
         // Should not happen...
-        throw new ACFException(e.getMessage(),e);
+        throw new ManifoldCFException(e.getMessage(),e);
       }
     }
   }
@@ -378,7 +378,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@return true if the resource is found, false if not.  In either case, output may be filled in.
   */
   public boolean requestInfo(Configuration output, String command)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (command.startsWith("folders/"))
     {
@@ -395,9 +395,9 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
           output.addChild(output.getChildCount(),node);
         }
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
-        ACF.createErrorNode(output,e);
+        ManifoldCF.createErrorNode(output,e);
       }
     }
     else if (command.startsWith("folder/"))
@@ -413,9 +413,9 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
           output.addChild(output.getChildCount(),node);
         }
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
-        ACF.createErrorNode(output,e);
+        ManifoldCF.createErrorNode(output,e);
       }
     }
     else
@@ -437,7 +437,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@return the stream of local document identifiers that should be added to the queue.
   */
   public IDocumentIdentifierStream getDocumentIdentifiers(DocumentSpecification spec, long startTime, long endTime)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     getSession();
     return new IdentifierStream(spec);
@@ -463,7 +463,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   */
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
     DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     getSession();
     // Read the forced acls.  A null return indicates that security is disabled!!!
@@ -610,7 +610,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       catch (MalformedURLException mue)
       {
         Logging.connectors.error("JCIFS: MalformedURLException thrown: "+mue.getMessage(),mue);
-        throw new ACFException("MalformedURLException thrown: "+mue.getMessage(),mue);
+        throw new ManifoldCFException("MalformedURLException thrown: "+mue.getMessage(),mue);
       }
       catch (SmbException se)
       {
@@ -626,7 +626,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       }
       catch (InterruptedIOException e)
       {
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (IOException e)
       {
@@ -662,7 +662,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *            methods.
   */
   public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities,
-    DocumentSpecification spec, boolean[] scanOnly) throws ACFException, ServiceInterruption
+    DocumentSpecification spec, boolean[] scanOnly) throws ManifoldCFException, ServiceInterruption
   {
     getSession();
 
@@ -855,7 +855,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
         Logging.connectors.error("MalformedURLException tossed",mue);
         activities.recordActivity(null,ACTIVITY_ACCESS,
           null,documentIdentifier,"Error","Malformed URL: "+mue.getMessage(),null);
-        throw new ACFException("MalformedURLException tossed: "+mue.getMessage(),mue);
+        throw new ManifoldCFException("MalformedURLException tossed: "+mue.getMessage(),mue);
       }
       catch (jcifs.smb.SmbAuthException e)
       {
@@ -876,7 +876,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
           // See if it's an interruption
           jcifs.util.transport.TransportException te = (jcifs.util.transport.TransportException)cause;
           if (te.getRootCause() != null && te.getRootCause() instanceof java.lang.InterruptedException)
-            throw new ACFException(te.getRootCause().getMessage(),te.getRootCause(),ACFException.INTERRUPTED);
+            throw new ManifoldCFException(te.getRootCause().getMessage(),te.getRootCause(),ManifoldCFException.INTERRUPTED);
 
           Logging.connectors.warn("JCIFS: Timeout processing document/directory "+documentIdentifier+": retrying...",se);
           activities.recordActivity(null,ACTIVITY_ACCESS,
@@ -937,7 +937,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
           Logging.connectors.error("JCIFS: SmbException tossed processing "+documentIdentifier,se);
           activities.recordActivity(null,ACTIVITY_ACCESS,
             null,documentIdentifier,"Error","Unknown: "+se.getMessage(),null);
-          throw new ACFException("SmbException tossed: "+se.getMessage(),se);
+          throw new ManifoldCFException("SmbException tossed: "+se.getMessage(),se);
         }
       }
       catch (java.net.SocketTimeoutException e)
@@ -951,7 +951,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       }
       catch (InterruptedIOException e)
       {
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (IOException e)
       {
@@ -975,7 +975,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   */
   protected void describeDocumentSecurity(StringBuffer description, SmbFile file, String[] forcedacls,
     String[] forcedShareAcls)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     String[] shareAllowAcls;
     String[] shareDenyAcls;
@@ -1148,7 +1148,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 
 
   protected static void processSMBException(SmbException se, String documentIdentifier, String activity, String operation)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     // At least some of these are transport errors, and should be treated as service
     // interruptions.
@@ -1159,7 +1159,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       // See if it's an interruption
       jcifs.util.transport.TransportException te = (jcifs.util.transport.TransportException)cause;
       if (te.getRootCause() != null && te.getRootCause() instanceof java.lang.InterruptedException)
-        throw new ACFException(te.getRootCause().getMessage(),te.getRootCause(),ACFException.INTERRUPTED);
+        throw new ManifoldCFException(te.getRootCause().getMessage(),te.getRootCause(),ManifoldCFException.INTERRUPTED);
       Logging.connectors.warn("JCIFS: Timeout "+activity+" for "+documentIdentifier+": retrying...",se);
       // Transport exceptions no longer abort when they give up, so we can't get notified that there is a problem.
 
@@ -1206,12 +1206,12 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     else if (se.getMessage().indexOf("Incorrect function") != -1)
     {
       Logging.connectors.error("JCIFS: Server does not support a required operation ("+operation+"?) for "+documentIdentifier);
-      throw new ACFException("Server does not support a required operation ("+operation+", possibly?) accessing document "+documentIdentifier,se);
+      throw new ManifoldCFException("Server does not support a required operation ("+operation+", possibly?) accessing document "+documentIdentifier,se);
     }
     else
     {
       Logging.connectors.error("SmbException thrown "+activity+" for "+documentIdentifier,se);
-      throw new ACFException("SmbException thrown: "+se.getMessage(),se);
+      throw new ManifoldCFException("SmbException thrown: "+se.getMessage(),se);
     }
   }
 
@@ -1273,7 +1273,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   }
 
   protected static int setPathMetadata(RepositoryDocument rd, String version, int index)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (version.length() > index && version.charAt(index++) == '+')
     {
@@ -1297,7 +1297,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   /** Check status of connection.
   */
   public String check()
-    throws ACFException
+    throws ManifoldCFException
   {
     getSession();
     String serverURI = smbconnectionPath;
@@ -1329,7 +1329,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
         }
         catch (InterruptedIOException e)
         {
-          throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
         }
         catch (IOException e)
         {
@@ -1355,7 +1355,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@return true if it should be included.
   */
   protected boolean checkInclude(SmbFile file, String fileName, DocumentSpecification documentSpecification)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     if (Logging.connectors.isDebugEnabled())
       Logging.connectors.debug("JCIFS: In checkInclude for '"+fileName+"'");
@@ -1410,7 +1410,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
             }
             catch (NumberFormatException e)
             {
-              throw new ACFException("Bad number",e);
+              throw new ManifoldCFException("Bad number",e);
             }
           }
         }
@@ -1540,15 +1540,15 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     }
     catch (java.net.SocketTimeoutException e)
     {
-      throw new ACFException("Couldn't map to canonical path: "+e.getMessage(),e);
+      throw new ManifoldCFException("Couldn't map to canonical path: "+e.getMessage(),e);
     }
     catch (InterruptedIOException e)
     {
-      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new ACFException("Couldn't map to canonical path: "+e.getMessage(),e);
+      throw new ManifoldCFException("Couldn't map to canonical path: "+e.getMessage(),e);
     }
     finally
     {
@@ -1568,7 +1568,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   */
   protected boolean wouldFileBeIncluded(String fileName, DocumentSpecification documentSpecification,
     boolean pretendIndexable)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (Logging.connectors.isDebugEnabled())
       Logging.connectors.debug("JCIFS: In wouldFileBeIncluded for '"+fileName+"', pretendIndexable="+(pretendIndexable?"true":"false"));
@@ -1677,15 +1677,15 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     }
     catch (java.net.SocketTimeoutException e)
     {
-      throw new ACFException("Couldn't map to canonical path: "+e.getMessage(),e);
+      throw new ManifoldCFException("Couldn't map to canonical path: "+e.getMessage(),e);
     }
     catch (InterruptedIOException e)
     {
-      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new ACFException("Couldn't map to canonical path: "+e.getMessage(),e);
+      throw new ManifoldCFException("Couldn't map to canonical path: "+e.getMessage(),e);
     }
     finally
     {
@@ -1701,7 +1701,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@return true if the file needs to be fingerprinted.
   */
   protected boolean checkNeedFileData(String fileName, DocumentSpecification documentSpecification)
-    throws ACFException
+    throws ManifoldCFException
   {
     return wouldFileBeIncluded(fileName,documentSpecification,true) != wouldFileBeIncluded(fileName,documentSpecification,false);
   }
@@ -1716,7 +1716,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@return true if the file should be ingested.
   */
   protected boolean checkIngest(File localFile, String fileName, DocumentSpecification documentSpecification, IFingerprintActivity activities)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     if (Logging.connectors.isDebugEnabled())
       Logging.connectors.debug("JCIFS: In checkIngest for '"+fileName+"'");
@@ -1835,15 +1835,15 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     }
     catch (java.net.SocketTimeoutException e)
     {
-      throw new ACFException("Couldn't map to canonical path: "+e.getMessage(),e);
+      throw new ManifoldCFException("Couldn't map to canonical path: "+e.getMessage(),e);
     }
     catch (InterruptedIOException e)
     {
-      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new ACFException("Couldn't map to canonical path: "+e.getMessage(),e);
+      throw new ManifoldCFException("Couldn't map to canonical path: "+e.getMessage(),e);
     }
     finally
     {
@@ -2544,7 +2544,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     protected int currentIndex = 0;
 
     public IdentifierStream(DocumentSpecification spec)
-      throws ACFException
+      throws ManifoldCFException
     {
       try
       {
@@ -2581,15 +2581,15 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       }
       catch (java.net.SocketTimeoutException e)
       {
-        throw new ACFException("Couldn't map to canonical path: "+e.getMessage(),e);
+        throw new ManifoldCFException("Couldn't map to canonical path: "+e.getMessage(),e);
       }
       catch (InterruptedIOException e)
       {
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (IOException e)
       {
-        throw new ACFException("Could not get a canonical path: "+e.getMessage(),e);
+        throw new ManifoldCFException("Could not get a canonical path: "+e.getMessage(),e);
       }
     }
 
@@ -2597,7 +2597,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     *@return the next document identifier, or null if there are no more.
     */
     public String getNextIdentifier()
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
       if (currentIndex == ids.length)
         return null;
@@ -2607,7 +2607,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     /** Close the stream.
     */
     public void close()
-      throws ACFException
+      throws ManifoldCFException
     {
       ids = null;
     }
@@ -2631,7 +2631,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     tabsArray.add("Server");
     out.print(
@@ -2681,7 +2681,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param tabName is the current tab name.
   */
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     String server   = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveParameters.server);
     if (server==null) server = "";
@@ -2738,7 +2738,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
-    throws ACFException
+    throws ManifoldCFException
   {
     String server = variableContext.getParameter("server");
     if (server != null)
@@ -2766,7 +2766,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
@@ -2814,7 +2814,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     tabsArray.add("Paths");
     tabsArray.add("Security");
@@ -2958,7 +2958,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param tabName is the current tab name.
   */
   public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     int i;
     int k;
@@ -3168,7 +3168,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
           pathSoFar = "";
           childList = getChildFolderNames("");
           if (childList == null)
-            throw new ACFException("Can't find any children for root folder");
+            throw new ManifoldCFException("Can't find any children for root folder");
         }
         out.print(
 "          <input type=\"hidden\" name=\"specpath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathSoFar)+"\"/>\n"+
@@ -3206,7 +3206,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
           );
         }
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         e.printStackTrace();
         out.println(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage()));
@@ -3687,7 +3687,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
-    throws ACFException
+    throws ManifoldCFException
   {
     String x = variableContext.getParameter("pathcount");
     if (x != null)
@@ -3878,7 +3878,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
             if (trialPath != null)
               path = trialPath;
           }
-          catch (ACFException e)
+          catch (ManifoldCFException e)
           {
             // Effectively, this just means we can't add a typein to the path right now.
           }
@@ -4182,7 +4182,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param ds is the current document specification for this job.
   */
   public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"
@@ -4558,7 +4558,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   * @return an array of SmbFile
   */
   public SmbFile[] getShareNames(String serverURI)
-    throws ACFException
+    throws ManifoldCFException
   {
     getSession();
     SmbFile server = null;
@@ -4568,7 +4568,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     }
     catch (MalformedURLException e1)
     {
-      throw new ACFException("MalformedURLException tossed",e1);
+      throw new ManifoldCFException("MalformedURLException tossed",e1);
     }
     SmbFile[] shares = null;
     try
@@ -4581,7 +4581,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     }
     catch (SmbException e)
     {
-      throw new ACFException("SmbException tossed: "+e.getMessage(),e);
+      throw new ManifoldCFException("SmbException tossed: "+e.getMessage(),e);
     }
     return shares;
   }
@@ -4590,9 +4590,9 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   * Given a folder path, determine if the folder is in fact legal and accessible (and is a folder).
   * @param folder is the relative folder from the network root
   * @return the canonical folder name if valid, or null if not.
-  * @throws ACFException
+  * @throws ManifoldCFException
   */
-  public String validateFolderName(String folder) throws ACFException
+  public String validateFolderName(String folder) throws ManifoldCFException
   {
     getSession();
     //create new connection by appending to the old connection
@@ -4609,7 +4609,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     }
     catch (MalformedURLException e1)
     {
-      throw new ACFException("validateFolderName: Can't get parent file: " + uri,e1);
+      throw new ManifoldCFException("validateFolderName: Can't get parent file: " + uri,e1);
     }
 
     try
@@ -4632,24 +4632,24 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       }
       catch (ServiceInterruption si)
       {
-        throw new ACFException("Service interruption: "+si.getMessage(),si);
+        throw new ManifoldCFException("Service interruption: "+si.getMessage(),si);
       }
     }
     catch (MalformedURLException e)
     {
-      throw new ACFException("MalformedURLException tossed: "+e.getMessage(),e);
+      throw new ManifoldCFException("MalformedURLException tossed: "+e.getMessage(),e);
     }
     catch (java.net.SocketTimeoutException e)
     {
-      throw new ACFException("IOException tossed: "+e.getMessage(),e);
+      throw new ManifoldCFException("IOException tossed: "+e.getMessage(),e);
     }
     catch (InterruptedIOException e)
     {
-      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new ACFException("IOException tossed: "+e.getMessage(),e);
+      throw new ManifoldCFException("IOException tossed: "+e.getMessage(),e);
     }
 
   }
@@ -4659,9 +4659,9 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *
   * @param folder is the relative folder from the network root
   * @return array of child folder names
-  * @throws ACFException
+  * @throws ManifoldCFException
   */
-  public String[] getChildFolderNames(String folder) throws ACFException
+  public String[] getChildFolderNames(String folder) throws ManifoldCFException
   {
     getSession();
     //create new connection by appending to the old connection
@@ -4678,7 +4678,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     }
     catch (MalformedURLException e1)
     {
-      throw new ACFException("getChildFolderNames: Can't get parent file: " + uri,e1);
+      throw new ManifoldCFException("getChildFolderNames: Can't get parent file: " + uri,e1);
     }
 
     // add DFS support
@@ -4697,24 +4697,24 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       }
       catch (ServiceInterruption si)
       {
-        throw new ACFException("Service interruption: "+si.getMessage(),si);
+        throw new ManifoldCFException("Service interruption: "+si.getMessage(),si);
       }
     }
     catch (MalformedURLException e)
     {
-      throw new ACFException("MalformedURLException tossed: "+e.getMessage(),e);
+      throw new ManifoldCFException("MalformedURLException tossed: "+e.getMessage(),e);
     }
     catch (java.net.SocketTimeoutException e)
     {
-      throw new ACFException("IOException tossed: "+e.getMessage(),e);
+      throw new ManifoldCFException("IOException tossed: "+e.getMessage(),e);
     }
     catch (InterruptedIOException e)
     {
-      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new ACFException("IOException tossed: "+e.getMessage(),e);
+      throw new ManifoldCFException("IOException tossed: "+e.getMessage(),e);
     }
 
     // populate a String array
@@ -4783,7 +4783,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     /** Document specification */
     protected DocumentSpecification spec;
     /** Exceptions that we saw.  These are saved here so that they can be rethrown when done */
-    protected ACFException lcfException = null;
+    protected ManifoldCFException lcfException = null;
     protected ServiceInterruption serviceInterruption = null;
 
     /** Constructor */
@@ -4833,7 +4833,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 
         return false;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         if (lcfException == null)
           lcfException = e;
@@ -4849,7 +4849,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 
     /** Check for exception, and throw if there is one */
     public void checkAndThrow()
-      throws ServiceInterruption, ACFException
+      throws ServiceInterruption, ManifoldCFException
     {
       if (lcfException != null)
         throw lcfException;

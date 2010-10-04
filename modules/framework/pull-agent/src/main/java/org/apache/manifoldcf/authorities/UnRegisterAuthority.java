@@ -34,7 +34,7 @@ public class UnRegisterAuthority extends BaseAuthoritiesInitializationCommand
     this.className = className;
   }
 
-  protected void doExecute(IAuthorityConnectorManager mgr) throws ACFException
+  protected void doExecute(IAuthorityConnectorManager mgr) throws ManifoldCFException
   {
     mgr.unregisterConnector(className);
     Logging.root.info("Successfully unregistered connector '"+className+"'");
@@ -56,7 +56,7 @@ public class UnRegisterAuthority extends BaseAuthoritiesInitializationCommand
       unRegisterAuthority.execute();
       System.err.println("Successfully unregistered connector '"+className+"'");
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       e.printStackTrace();
       System.exit(1);

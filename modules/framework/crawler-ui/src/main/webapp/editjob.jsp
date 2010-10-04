@@ -1176,7 +1176,7 @@
 
 <%
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
 	e.printStackTrace();
 	variableContext.setParameter("text",e.getMessage());

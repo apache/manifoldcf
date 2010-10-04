@@ -34,7 +34,7 @@ public interface IConnector
   *@param threadContext is the current thread context.
   */
   public void install(IThreadContext threadContext)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Uninstall the connector.
   * This method is called to remove persistent storage for the connector, such as database tables etc.
@@ -42,7 +42,7 @@ public interface IConnector
   *@param threadContext is the current thread context.
   */
   public void deinstall(IThreadContext threadContext)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Connect.  The configuration parameters are included.
   *@param configParams are the configuration parameters for this connection.
@@ -56,18 +56,18 @@ public interface IConnector
   *@return the connection's status as a displayable string.
   */
   public String check()
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** This method is periodically called for all connectors that are connected but not
   * in active use.
   */
   public void poll()
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Close the connection.  Call this before discarding the repository connector.
   */
   public void disconnect()
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Get configuration information.
   *@return the configuration information for this class.
@@ -99,7 +99,7 @@ public interface IConnector
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
-    throws ACFException, IOException;
+    throws ManifoldCFException, IOException;
   
   /** Output the configuration body section.
   * This method is called in the body section of the authority connector's configuration page.  Its purpose is to present the required form elements for editing.
@@ -111,7 +111,7 @@ public interface IConnector
   *@param tabName is the current tab name.
   */
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
-    throws ACFException, IOException;
+    throws ManifoldCFException, IOException;
   
   /** Process a configuration post.
   * This method is called at the start of the authority connector's configuration page, whenever there is a possibility that form data for a connection has been
@@ -123,7 +123,7 @@ public interface IConnector
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
-    throws ACFException;
+    throws ManifoldCFException;
   
   /** View configuration.
   * This method is called in the body section of the authority connector's view configuration page.  Its purpose is to present the connection information to the user.
@@ -133,6 +133,6 @@ public interface IConnector
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
-    throws ACFException, IOException;
+    throws ManifoldCFException, IOException;
 
 }

@@ -22,7 +22,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.authorities.interfaces.*;
 import org.apache.manifoldcf.authorities.system.Logging;
-import org.apache.manifoldcf.authorities.system.ACF;
+import org.apache.manifoldcf.authorities.system.ManifoldCF;
 
 import java.io.*;
 import java.util.*;
@@ -98,7 +98,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   /** Check connection for sanity.
   */
   public String check()
-    throws ACFException
+    throws ManifoldCFException
   {
     getSession();
     return super.check();
@@ -107,7 +107,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   /** Poll.  The connection should be closed if it has been idle for too long.
   */
   public void poll()
-    throws ACFException
+    throws ManifoldCFException
   {
     if (expiration != -1L && System.currentTimeMillis() > expiration)
       closeConnection();
@@ -135,7 +135,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   /** Close the connection.  Call this before discarding the repository connector.
   */
   public void disconnect()
-    throws ACFException
+    throws ManifoldCFException
   {
     closeConnection();
     domainControllerName = null;
@@ -150,7 +150,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   * (Should throws an exception only when a condition cannot be properly described within the authorization response object.)
   */
   public AuthorizationResponse getAuthorizationResponse(String userName)
-    throws ACFException
+    throws ManifoldCFException
   {
     getSession();
 
@@ -203,7 +203,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
           }	 
           catch (NamingException e)
           {
-            throw new ACFException(e.getMessage(),e);
+            throw new ManifoldCFException(e.getMessage(),e);
           }
 				
         }
@@ -256,7 +256,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     tabsArray.add("Domain Controller");
     out.print(
@@ -301,7 +301,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   *@param tabName is the current tab name.
   */
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     String domainControllerName = parameters.getParameter(org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_DOMAINCONTROLLER);
     if (domainControllerName == null)
@@ -355,7 +355,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
-    throws ACFException
+    throws ManifoldCFException
   {
     String domainControllerName = variableContext.getParameter("domaincontrollername");
     if (domainControllerName != null)
@@ -377,7 +377,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
@@ -420,7 +420,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   // Protected methods
   
   protected void getSession()
-    throws ACFException
+    throws ManifoldCFException
   {
     if (ctx == null)
     {
@@ -447,16 +447,16 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
       catch (AuthenticationException e)
       {
         // This means we couldn't authenticate!
-        throw new ACFException("Authentication problem authenticating admin user '"+userName+"': "+e.getMessage(),e);
+        throw new ManifoldCFException("Authentication problem authenticating admin user '"+userName+"': "+e.getMessage(),e);
       }
       catch (CommunicationException e)
       {
         // This means we couldn't connect, most likely
-	throw new ACFException("Couldn't communicate with domain controller '"+domainControllerName+"': "+e.getMessage(),e);
+	throw new ManifoldCFException("Couldn't communicate with domain controller '"+domainControllerName+"': "+e.getMessage(),e);
       }
       catch (NamingException e)
       {
-	throw new ACFException(e.getMessage(),e);
+	throw new ManifoldCFException(e.getMessage(),e);
       }
     }
     else
@@ -469,16 +469,16 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
       catch (AuthenticationException e)
       {
         // This means we couldn't authenticate!
-        throw new ACFException("Authentication problem authenticating admin user '"+userName+"': "+e.getMessage(),e);
+        throw new ManifoldCFException("Authentication problem authenticating admin user '"+userName+"': "+e.getMessage(),e);
       }
       catch (CommunicationException e)
       {
         // This means we couldn't connect, most likely
-	throw new ACFException("Couldn't communicate with domain controller '"+domainControllerName+"': "+e.getMessage(),e);
+	throw new ManifoldCFException("Couldn't communicate with domain controller '"+domainControllerName+"': "+e.getMessage(),e);
       }
       catch (NamingException e)
       {
-	throw new ACFException(e.getMessage(),e);
+	throw new ManifoldCFException(e.getMessage(),e);
       }
     }
     
@@ -487,12 +487,12 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   
   /** Parse a user name into an ldap search base. */
   protected static String parseUser(String userName)
-    throws ACFException
+    throws ManifoldCFException
   {
     //String searchBase = "CN=Administrator,CN=Users,DC=qa-ad-76,DC=metacarta,DC=com";
     int index = userName.indexOf("@");
     if (index == -1)
-      throw new ACFException("Username is in unexpected form (no @): '"+userName+"'");
+      throw new ManifoldCFException("Username is in unexpected form (no @): '"+userName+"'");
     String userPart = userName.substring(0,index);
     String domainPart = userName.substring(index+1);
     // Start the search base assembly

@@ -18,7 +18,7 @@
 */
 package org.apache.manifoldcf.core.interfaces;
 
-import org.apache.manifoldcf.core.system.ACF;
+import org.apache.manifoldcf.core.system.ManifoldCF;
 
 public class LockManagerFactory
 {
@@ -35,12 +35,12 @@ public class LockManagerFactory
   * thread).
   */
   public static ILockManager make(IThreadContext context)
-    throws ACFException
+    throws ManifoldCFException
   {
     Object x = context.get(lockManager);
     if (x == null || !(x instanceof ILockManager))
     {
-      String implementationClass = ACF.getProperty(ACF.lockManagerImplementation);
+      String implementationClass = ManifoldCF.getProperty(ManifoldCF.lockManagerImplementation);
       if (implementationClass == null)
         implementationClass = "org.apache.manifoldcf.core.lockmanager.LockManager";
       try
@@ -48,28 +48,28 @@ public class LockManagerFactory
         Class c = Class.forName(implementationClass);
         x = c.newInstance();
         if (!(x instanceof ILockManager))
-          throw new ACFException("Lock manager class "+implementationClass+" does not implement ILockManager",ACFException.SETUP_ERROR);
+          throw new ManifoldCFException("Lock manager class "+implementationClass+" does not implement ILockManager",ManifoldCFException.SETUP_ERROR);
         context.save(lockManager,x);
       }
       catch (ClassNotFoundException e)
       {
-        throw new ACFException("Lock manager class "+implementationClass+" could not be found: "+e.getMessage(),e,ACFException.SETUP_ERROR);
+        throw new ManifoldCFException("Lock manager class "+implementationClass+" could not be found: "+e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
       }
       catch (ExceptionInInitializerError e)
       {
-        throw new ACFException("Lock manager class "+implementationClass+" could not be instantiated: "+e.getMessage(),e,ACFException.SETUP_ERROR);
+        throw new ManifoldCFException("Lock manager class "+implementationClass+" could not be instantiated: "+e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
       }
       catch (LinkageError e)
       {
-        throw new ACFException("Lock manager class "+implementationClass+" could not be linked: "+e.getMessage(),e,ACFException.SETUP_ERROR);
+        throw new ManifoldCFException("Lock manager class "+implementationClass+" could not be linked: "+e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
       }
       catch (InstantiationException e)
       {
-        throw new ACFException("Lock manager class "+implementationClass+" could not be instantiated: "+e.getMessage(),e,ACFException.SETUP_ERROR);
+        throw new ManifoldCFException("Lock manager class "+implementationClass+" could not be instantiated: "+e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
       }
       catch (IllegalAccessException e)
       {
-        throw new ACFException("Lock manager class "+implementationClass+" had no public default initializer: "+e.getMessage(),e,ACFException.SETUP_ERROR);
+        throw new ManifoldCFException("Lock manager class "+implementationClass+" had no public default initializer: "+e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
       }
     }
     return (ILockManager)x;

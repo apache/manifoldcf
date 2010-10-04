@@ -19,12 +19,12 @@
 package org.apache.manifoldcf.core;
 
 import org.apache.manifoldcf.core.interfaces.IThreadContext;
-import org.apache.manifoldcf.core.interfaces.ACFException;
-import org.apache.manifoldcf.core.system.ACF;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.system.ManifoldCF;
 import org.apache.manifoldcf.core.system.Logging;
 
 /**
- * Drop the database using the name as specified through the {@see ACF}. The username and password for the
+ * Drop the database using the name as specified through the {@see ManifoldCF}. The username and password for the
  * configured database need to be specified during construction.
  */
 public class DBDrop extends DBInitializationCommand
@@ -42,10 +42,10 @@ public class DBDrop extends DBInitializationCommand
     super(userName, password);
   }
 
-  protected void doExecute(IThreadContext tc) throws ACFException
+  protected void doExecute(IThreadContext tc) throws ManifoldCFException
   {
-    ACF.dropSystemDatabase(tc, getUserName(), getPassword());
-    Logging.root.info("ACF database dropped");
+    ManifoldCF.dropSystemDatabase(tc, getUserName(), getPassword());
+    Logging.root.info("ManifoldCF database dropped");
   }
 
   /**
@@ -74,9 +74,9 @@ public class DBDrop extends DBInitializationCommand
     try
     {
       dbDrop.execute();
-      System.err.println("ACF database dropped");
+      System.err.println("ManifoldCF database dropped");
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       e.printStackTrace();
       System.exit(1);

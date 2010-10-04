@@ -67,7 +67,7 @@ public class FPSEPublish
 
         public FPSEPublish(String serverProtocol, String serverName, int serverPort, String serverLocation,
                 String userName, String password, String domainName)
-                throws ACFException
+                throws ManifoldCFException
         {
                 this.serverProtocol = serverProtocol;
                 this.serverName = serverName;
@@ -78,14 +78,14 @@ public class FPSEPublish
                 this.userName = userName;
                 this.passWord = password;
                 this.domainName = domainName;
-		String fileName = ACF.getProperty("org.apache.manifoldcf.sharepoint.wsddpath");
+		String fileName = ManifoldCF.getProperty("org.apache.manifoldcf.sharepoint.wsddpath");
 		if (fileName == null)
-		    throw new ACFException("Missing org.apache.manifoldcf.sharepoint.wsddpath property!",ACFException.SETUP_ERROR);
+		    throw new ManifoldCFException("Missing org.apache.manifoldcf.sharepoint.wsddpath property!",ManifoldCFException.SETUP_ERROR);
                 this.configuration = new FileProvider(fileName);
         }
 
         public void close()
-                throws ACFException
+                throws ManifoldCFException
         {
         }
 
@@ -106,7 +106,7 @@ public class FPSEPublish
         }
 
         protected void UrlToWebUrl(String uri)
-                throws ACFException
+                throws ManifoldCFException
         {
                 String actualURL = getBaseUrl() + "/" + uri;
                 try
@@ -120,20 +120,20 @@ public class FPSEPublish
 
                         webUrl = GetReturnValue(response, "webUrl").replaceAll(" ","%20");
                         if (webUrl == null)
-                                throw new ACFException("Null web url for document described by '"+uri+"'");
+                                throw new ManifoldCFException("Null web url for document described by '"+uri+"'");
                         fileUrl = GetReturnValue(response, "fileUrl");
                         if (fileUrl == null)
-                                throw new ACFException("Null file url for document described by '"+uri+"'");
+                                throw new ManifoldCFException("Null file url for document described by '"+uri+"'");
                         // System.out.println("File url = "+fileUrl);
                 }
                 catch (MalformedURLException e)
                 {
-                        throw new ACFException("Malformed URL: '"+actualURL+"'",e);
+                        throw new ManifoldCFException("Malformed URL: '"+actualURL+"'",e);
                 }
         }
 
         public void removeDocument(String url)
-                throws ACFException
+                throws ManifoldCFException
         {
             try
             {
@@ -155,16 +155,16 @@ public class FPSEPublish
             }
             catch (UnsupportedEncodingException e)
             {
-                throw new ACFException("Unsupported encoding",e);
+                throw new ManifoldCFException("Unsupported encoding",e);
             }
             catch (IOException e)
             {
-                throw new ACFException("IO exception",e);
+                throw new ManifoldCFException("IO exception",e);
             }
         }
 
         public void writeDocument(String url, String fileName, String metaInfo)
-                throws ACFException
+                throws ManifoldCFException
         {
             try
             {
@@ -218,20 +218,20 @@ public class FPSEPublish
             }
             catch (FileNotFoundException e)
             {
-                throw new ACFException("File not found",e);
+                throw new ManifoldCFException("File not found",e);
             }
             catch (UnsupportedEncodingException e)
             {
-                throw new ACFException("Unsupported encoding",e);
+                throw new ManifoldCFException("Unsupported encoding",e);
             }
             catch (IOException e)
             {
-                throw new ACFException("IO exception",e);
+                throw new ManifoldCFException("IO exception",e);
             }
         }
 
         public void checkinDocument(String uri)
-                throws ACFException
+                throws ManifoldCFException
         {
                 UrlToWebUrl(uri);
 
@@ -244,13 +244,13 @@ public class FPSEPublish
                 }
                 catch (UnsupportedEncodingException e)
                 {
-                        throw new ACFException("Unsupported encoding",e);
+                        throw new ManifoldCFException("Unsupported encoding",e);
                 }
 
         }
 
         public void addUser( String siteUrl, String lib, String user)
-                throws ACFException
+                throws ManifoldCFException
         {
                 try
                 {
@@ -261,16 +261,16 @@ public class FPSEPublish
                 }
                 catch (org.apache.axis.AxisFault e)
                 {
-                        throw new ACFException("Error adding user '"+user+"' to '"+siteUrl+"' library '"+lib+"'; axis fault: "+e.dumpToString(),e);
+                        throw new ManifoldCFException("Error adding user '"+user+"' to '"+siteUrl+"' library '"+lib+"'; axis fault: "+e.dumpToString(),e);
                 }
                 catch (Exception e)
                 {
-                        throw new ACFException("Error adding user '"+user+"' to '"+siteUrl+"' library '"+lib+"'",e);
+                        throw new ManifoldCFException("Error adding user '"+user+"' to '"+siteUrl+"' library '"+lib+"'",e);
                 }
         }
     
         public void delUser( String siteUrl, String lib, String user)
-                throws ACFException
+                throws ManifoldCFException
         {
                 try
                 {
@@ -281,16 +281,16 @@ public class FPSEPublish
                 }
                 catch (org.apache.axis.AxisFault e)
                 {
-                        throw new ACFException("Error removing user '"+user+"' to '"+siteUrl+"' library '"+lib+"'; axis fault: "+e.dumpToString(),e);
+                        throw new ManifoldCFException("Error removing user '"+user+"' to '"+siteUrl+"' library '"+lib+"'; axis fault: "+e.dumpToString(),e);
                 }
                 catch (Exception e)
                 {
-                        throw new ACFException("Error removing user '"+user+"' from '"+siteUrl+"' library '"+lib+"'",e);
+                        throw new ManifoldCFException("Error removing user '"+user+"' from '"+siteUrl+"' library '"+lib+"'",e);
                 }
         }
 
         public void addSiteUser( String siteUrl, String alias, String displayName, String email, String group)
-                throws ACFException
+                throws ManifoldCFException
         {
                 try
                 {
@@ -309,18 +309,18 @@ public class FPSEPublish
                                 }
                                 catch (org.apache.axis.AxisFault e)
                                 {
-                                        throw new ACFException("Error adding site user '"+alias+"' to site '"+siteUrl+"' in group '" + group + "'; axis fault: "+e.dumpToString(),e);
+                                        throw new ManifoldCFException("Error adding site user '"+alias+"' to site '"+siteUrl+"' in group '" + group + "'; axis fault: "+e.dumpToString(),e);
                                 }
                         }
                 }
                 catch (Exception e)
                 {
-                        throw new ACFException("Error adding site user '"+alias+"' to '"+siteUrl,e);
+                        throw new ManifoldCFException("Error adding site user '"+alias+"' to '"+siteUrl,e);
                 }
         }
     
         public void delSiteUser( String siteUrl, String alias )
-                throws ACFException
+                throws ManifoldCFException
         {
                 try
                 {
@@ -331,17 +331,17 @@ public class FPSEPublish
                 }
                 catch (org.apache.axis.AxisFault e)
                 {
-                        throw new ACFException("Error removing site user '"+alias+"' from '"+siteUrl+"'; axis fault: "+e.dumpToString(),e);
+                        throw new ManifoldCFException("Error removing site user '"+alias+"' from '"+siteUrl+"'; axis fault: "+e.dumpToString(),e);
                 }
                 catch (Exception e)
                 {
-                        throw new ACFException("Error removing site user '"+alias+"' from '"+siteUrl+"'",e);
+                        throw new ManifoldCFException("Error removing site user '"+alias+"' from '"+siteUrl+"'",e);
                 }
 
         }
 
         public void setDocsMetaInfo(String uri, String metaInfo)
-                throws ACFException
+                throws ManifoldCFException
         {
             try
             {
@@ -354,12 +354,12 @@ public class FPSEPublish
             }
             catch (UnsupportedEncodingException e)
             {
-                throw new ACFException("Unsupported encoding",e);
+                throw new ManifoldCFException("Unsupported encoding",e);
             }
         }
 
         private String SendRequest(String uri, String postBody)
-                throws ACFException
+                throws ManifoldCFException
         {
 
                 try
@@ -383,7 +383,7 @@ public class FPSEPublish
                 }
                 catch (Exception e)
                 {
-                        throw new ACFException("Error sending request to '"+uri+"'",e);
+                        throw new ManifoldCFException("Error sending request to '"+uri+"'",e);
                 }
 
         }

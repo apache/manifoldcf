@@ -40,7 +40,7 @@ public class Connectors extends Configuration
   *@param xmlStream is the input XML stream.
   */
   public Connectors(InputStream xmlStream)
-    throws ACFException
+    throws ManifoldCFException
   {
     super("connectors");
     fromXML(xmlStream);

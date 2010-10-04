@@ -19,7 +19,7 @@
 package org.apache.manifoldcf.core.interfaces;
 
 import java.io.*;
-import org.apache.manifoldcf.core.system.ACF;
+import org.apache.manifoldcf.core.system.ManifoldCF;
 
 /** This class represents a temporary file data input
 * stream.  Call the "done" method to clean up the
@@ -42,7 +42,7 @@ public class TempFileInput extends BinaryInput
   *@param is is the input stream to use to construct the temporary file.
   */
   public TempFileInput(InputStream is)
-    throws ACFException
+    throws ManifoldCFException
   {
     this(is,-1L);
   }
@@ -52,7 +52,7 @@ public class TempFileInput extends BinaryInput
   *@param length is the maximum number of bytes to transfer, or -1 if no limit.
   */
   public TempFileInput(InputStream is, long length)
-    throws ACFException
+    throws ManifoldCFException
   {
     super();
     try
@@ -62,7 +62,7 @@ public class TempFileInput extends BinaryInput
       try
       {
         // Register the file for autodeletion, using our infrastructure.
-        ACF.addFile(outfile);
+        ManifoldCF.addFile(outfile);
         // deleteOnExit() causes memory leakage!
         // outfile.deleteOnExit();
         FileOutputStream outStream = new FileOutputStream(outfile);
@@ -103,7 +103,7 @@ public class TempFileInput extends BinaryInput
       {
         // Delete the temp file we created on any error condition
         // outfile.delete();
-        ACF.deleteFile(outfile);
+        ManifoldCF.deleteFile(outfile);
         if (e instanceof Error)
           throw (Error)e;
         if (e instanceof RuntimeException)
@@ -115,11 +115,11 @@ public class TempFileInput extends BinaryInput
     }
     catch (InterruptedIOException e)
     {
-      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
     catch (Exception e)
     {
-      throw new ACFException("Cannot write temporary file",e,ACFException.GENERAL_ERROR);
+      throw new ManifoldCFException("Cannot write temporary file",e,ManifoldCFException.GENERAL_ERROR);
     }
 
   }
@@ -131,7 +131,7 @@ public class TempFileInput extends BinaryInput
   {
     super();
     file = tempFile;
-    ACF.addFile(file);
+    ManifoldCF.addFile(file);
     // deleteOnExit() causes memory leakage; better to leak files on hard shutdown than memory.
     // file.deleteOnExit();
   }
@@ -155,18 +155,18 @@ public class TempFileInput extends BinaryInput
   }
 
   public void discard()
-    throws ACFException
+    throws ManifoldCFException
   {
     super.discard();
     if (file != null)
     {
-      ACF.deleteFile(file);
+      ManifoldCF.deleteFile(file);
       file = null;
     }
   }
 
   protected void openStream()
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -175,12 +175,12 @@ public class TempFileInput extends BinaryInput
     }
     catch (FileNotFoundException e)
     {
-      throw new ACFException("Can't create stream: "+e.getMessage(),e,ACFException.GENERAL_ERROR);
+      throw new ManifoldCFException("Can't create stream: "+e.getMessage(),e,ManifoldCFException.GENERAL_ERROR);
     }
   }
 
   protected void calculateLength()
-    throws ACFException
+    throws ManifoldCFException
   {
     this.length = file.length();
   }

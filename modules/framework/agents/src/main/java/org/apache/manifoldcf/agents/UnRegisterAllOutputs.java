@@ -33,12 +33,12 @@ public class UnRegisterAllOutputs extends BaseAgentsInitializationCommand
   {
   }
 
-  protected void doExecute(IThreadContext tc) throws ACFException
+  protected void doExecute(IThreadContext tc) throws ManifoldCFException
   {
     IDBInterface database = DBInterfaceFactory.make(tc,
-      ACF.getMasterDatabaseName(),
-      ACF.getMasterDatabaseUsername(),
-      ACF.getMasterDatabasePassword());
+      ManifoldCF.getMasterDatabaseName(),
+      ManifoldCF.getMasterDatabaseUsername(),
+      ManifoldCF.getMasterDatabasePassword());
     IOutputConnectorManager mgr = OutputConnectorManagerFactory.make(tc);
     IOutputConnectionManager connManager = OutputConnectionManagerFactory.make(tc);
     IResultSet classNames = mgr.getConnectors();
@@ -58,7 +58,7 @@ public class UnRegisterAllOutputs extends BaseAgentsInitializationCommand
         // Now that all jobs have been placed into an appropriate state, actually do the deregistration itself.
         mgr.unregisterConnector(className);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         database.signalRollback();
         throw e;
@@ -91,7 +91,7 @@ public class UnRegisterAllOutputs extends BaseAgentsInitializationCommand
       unRegisterAllOutputs.execute();
       System.err.println("Successfully unregistered all output connectors");
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       e.printStackTrace();
       System.exit(1);

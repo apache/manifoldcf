@@ -49,7 +49,7 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
   *@param database is the database instance.
   */
   public RepositoryHistoryManager(IThreadContext tc, IDBInterface database)
-    throws ACFException
+    throws ManifoldCFException
   {
     super(database,"repohistory");
     this.threadContext = tc;
@@ -60,7 +60,7 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
   *@param parentField is the parent field.
   */
   public void install(String parentTable, String parentField)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Always have an outer loop, in case of upgrade
     while (true)
@@ -137,7 +137,7 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
   /** Uninstall the table.
   */
   public void deinstall()
-    throws ACFException
+    throws ManifoldCFException
   {
     performDrop(null);
   }
@@ -147,7 +147,7 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
   *@param invKeys are the invalidation keys.
   */
   public void deleteOwner(String owner, StringSet invKeys)
-    throws ACFException
+    throws ManifoldCFException
   {
     ArrayList params = new ArrayList();
     params.add(owner);
@@ -158,7 +158,7 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
   */
   public Long addRow(String connectionName, long startTime, long endTime, long dataSize, String activityType,
     String entityIdentifier, String resultCode, String resultDescription)
-    throws ACFException
+    throws ManifoldCFException
   {
     Long id = new Long(IDFactory.make(threadContext));
     HashMap map = new HashMap();
@@ -254,7 +254,7 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
   * The resultset returned should have the following columns: "activity","starttime","elapsedtime","resultcode","resultdesc","bytes","identifier".
   */
   public IResultSet simpleReport(String connectionName, FilterCriteria criteria, SortOrder sort, int startRow, int maxRowCount)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Build the query.
     StringBuffer sb = new StringBuffer("SELECT ");
@@ -278,14 +278,14 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
   *@return the number of rows included by the criteria.
   */
   public long countHistoryRows(String connectionName, FilterCriteria criteria)
-    throws ACFException
+    throws ManifoldCFException
   {
     StringBuffer sb = new StringBuffer("SELECT COUNT(*) AS countcol FROM ");
     sb.append(getTableName());
     addCriteria(sb,"",connectionName,criteria,false);
     IResultSet set = performQuery(sb.toString(),null,null,null);
     if (set.getRowCount() < 1)
-      throw new ACFException("Expected at least one row");
+      throw new ManifoldCFException("Expected at least one row");
     IResultRow row = set.getRow(0);
     Long value = new Long(row.getValue("countcol").toString());
     return value.longValue();
@@ -298,7 +298,7 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
   */
   public IResultSet maxActivityCountReport(String connectionName, FilterCriteria filterCriteria, SortOrder sort, BucketDescription idBucket,
     long interval, int startRow, int maxRowCount)
-    throws ACFException
+    throws ManifoldCFException
   {
     // The query we will generate here looks like this:
     // SELECT *
@@ -403,7 +403,7 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
   */
   public IResultSet maxByteCountReport(String connectionName, FilterCriteria filterCriteria, SortOrder sort, BucketDescription idBucket,
     long interval, int startRow, int maxRowCount)
-    throws ACFException
+    throws ManifoldCFException
   {
     // The query we will generate here looks like this:
     // SELECT *
@@ -508,7 +508,7 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
   */
   public IResultSet resultCodesReport(String connectionName, FilterCriteria filterCriteria, SortOrder sort,
     BucketDescription resultCodeBucket, BucketDescription idBucket, int startRow, int maxRowCount)
-    throws ACFException
+    throws ManifoldCFException
   {
     // The query we'll use here will be:
     //
@@ -674,7 +674,7 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
   /** Conditionally do analyze operation.
   */
   protected void conditionallyAnalyzeInsert()
-    throws ACFException
+    throws ManifoldCFException
   {
     synchronized (tracker)
     {

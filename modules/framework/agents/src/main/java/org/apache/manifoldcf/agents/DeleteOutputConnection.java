@@ -21,7 +21,7 @@ package org.apache.manifoldcf.agents;
 import java.io.*;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
-import org.apache.manifoldcf.agents.system.ACF;
+import org.apache.manifoldcf.agents.system.ManifoldCF;
 import java.util.*;
 
 /** This class is a command that is used to delete an output connection.
@@ -46,7 +46,7 @@ public class DeleteOutputConnection
                 String connectionName = args[0];
                 try
                 {
-                        ACF.initializeEnvironment();
+                        ManifoldCF.initializeEnvironment();
                         IThreadContext tc = ThreadContextFactory.make();
                         IOutputConnectionManager mgr = OutputConnectionManagerFactory.make(tc);
                         mgr.delete(connectionName);

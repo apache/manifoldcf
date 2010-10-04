@@ -20,7 +20,7 @@ package org.apache.manifoldcf.core.database;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.core.system.Logging;
-import org.apache.manifoldcf.core.system.ACF;
+import org.apache.manifoldcf.core.system.ManifoldCF;
 
 import java.util.*;
 import java.sql.*;
@@ -49,7 +49,7 @@ public class ConnectionFactory
   }
 
   public static Connection getConnection(String jdbcUrl, String jdbcDriver, String database, String userName, String password)
-    throws ACFException
+    throws ManifoldCFException
   {
 
     ConnectionPoolManager _pool = poolManager.ensurePoolExists(jdbcDriver);
@@ -67,11 +67,11 @@ public class ConnectionFactory
       }
       if (cp == null)
       {
-        String handleMax = ACF.getProperty(ACF.databaseHandleMaxcountProperty);
+        String handleMax = ManifoldCF.getProperty(ManifoldCF.databaseHandleMaxcountProperty);
         int maxDBConnections = defaultMaxDBConnections;
         if (handleMax != null && handleMax.length() > 0)
           maxDBConnections = Integer.parseInt(handleMax);
-        String timeoutValueString = ACF.getProperty(ACF.databaseHandleTimeoutProperty);
+        String timeoutValueString = ManifoldCF.getProperty(ManifoldCF.databaseHandleTimeoutProperty);
         int timeoutValue = defaultTimeoutValue;
         if (timeoutValueString != null && timeoutValueString.length() > 0)
           timeoutValue = Integer.parseInt(timeoutValueString);
@@ -101,12 +101,12 @@ public class ConnectionFactory
     }
     catch (Exception e)
     {
-      throw new ACFException("Error getting connection",e,ACFException.DATABASE_ERROR);
+      throw new ManifoldCFException("Error getting connection",e,ManifoldCFException.DATABASE_ERROR);
     }
   }
 
   public static void releaseConnection(Connection c)
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -118,7 +118,7 @@ public class ConnectionFactory
     }
     catch (Exception e)
     {
-      throw new ACFException("Error releasing connection",e,ACFException.DATABASE_ERROR);
+      throw new ManifoldCFException("Error releasing connection",e,ManifoldCFException.DATABASE_ERROR);
     }
   }
 
@@ -154,11 +154,11 @@ public class ConnectionFactory
       try
       {
         // Ten seconds is a long time
-        ACF.sleep(10000L);
+        ManifoldCF.sleep(10000L);
       }
       catch (InterruptedException e)
       {
-        throw new ACFException("Interrupted",ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
       }
     }
 
@@ -195,7 +195,7 @@ public class ConnectionFactory
     }
 
     public ConnectionPoolManager ensurePoolExists(String jdbcDriver)
-      throws ACFException
+      throws ManifoldCFException
     {
       synchronized (poolExistenceLock)
       {
@@ -207,11 +207,11 @@ public class ConnectionFactory
         }
         catch (Exception e)
         {
-          throw new ACFException("Unable to load database driver: "+e.getMessage(),e,ACFException.SETUP_ERROR);
+          throw new ManifoldCFException("Unable to load database driver: "+e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
         }
         try
         {
-          String handleMax = ACF.getProperty(ACF.databaseHandleMaxcountProperty);
+          String handleMax = ManifoldCF.getProperty(ManifoldCF.databaseHandleMaxcountProperty);
           int maxDBConnections = defaultMaxDBConnections;
           if (handleMax != null && handleMax.length() > 0)
             maxDBConnections = Integer.parseInt(handleMax);
@@ -220,7 +220,7 @@ public class ConnectionFactory
         }
         catch (Exception e)
         {
-          throw new ACFException("Unable to initialize database handle pool: "+e.getMessage(),e,ACFException.SETUP_ERROR);
+          throw new ManifoldCFException("Unable to initialize database handle pool: "+e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
         }
       }
     }
@@ -289,7 +289,7 @@ public class ConnectionFactory
         {
           try
           {
-            ACF.sleep(1000L);
+            ManifoldCF.sleep(1000L);
             k++;
             continue;
           }

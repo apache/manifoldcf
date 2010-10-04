@@ -61,11 +61,11 @@ public interface ILimitChecker
   *@return true if it should be included, false otherwise.
   */
   public boolean checkInclude(IResultRow row)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** See if we should examine another row.
   *@return true if we need to keep going, or false if we are done.
   */
   public boolean checkContinue()
-    throws ACFException;
+    throws ManifoldCFException;
 }

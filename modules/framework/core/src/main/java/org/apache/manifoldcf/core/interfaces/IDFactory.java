@@ -18,7 +18,7 @@
 */
 package org.apache.manifoldcf.core.interfaces;
 
-import org.apache.manifoldcf.core.system.ACF;
+import org.apache.manifoldcf.core.system.ManifoldCF;
 import org.apache.manifoldcf.core.system.Logging;
 import java.io.*;
 import java.util.*;
@@ -48,7 +48,7 @@ public class IDFactory
   }
 
   public static String make(IThreadContext tc)
-    throws ACFException
+    throws ManifoldCFException
   {
     ILockManager lockManager = LockManagerFactory.make(tc);
     // Enter critical section before we look at the pool
@@ -87,7 +87,7 @@ public class IDFactory
         }
         catch (UnsupportedEncodingException e)
         {
-          throw new ACFException(e.getMessage(),e);
+          throw new ManifoldCFException(e.getMessage(),e);
         }
         finally
         {

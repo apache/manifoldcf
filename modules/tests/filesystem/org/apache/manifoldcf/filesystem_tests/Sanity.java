@@ -21,7 +21,7 @@ package org.apache.manifoldcf.filesystem_tests;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
-import org.apache.manifoldcf.crawler.system.ACF;
+import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
 import java.io.*;
 import java.util.*;
@@ -109,9 +109,9 @@ public class Sanity extends TestBase
       // Crawl everything underneath the 'testdata' area
       File testDataFile = new File("testdata").getCanonicalFile();
       if (!testDataFile.exists())
-        throw new ACFException("Test data area not found!  Looking in "+testDataFile.toString());
+        throw new ManifoldCFException("Test data area not found!  Looking in "+testDataFile.toString());
       if (!testDataFile.isDirectory())
-        throw new ACFException("Test data area not a directory!  Looking in "+testDataFile.toString());
+        throw new ManifoldCFException("Test data area not a directory!  Looking in "+testDataFile.toString());
       SpecificationNode sn = new SpecificationNode("startpoint");
       sn.setAttribute("path",testDataFile.toString());
       SpecificationNode n = new SpecificationNode("include");
@@ -145,7 +145,7 @@ public class Sanity extends TestBase
       JobStatus status = jobManager.getStatus(job.getID());
       // The test data area has 3 documents and one directory, and we have to count the root directory too.
       if (status.getDocumentsProcessed() != 5)
-        throw new ACFException("Wrong number of documents processed - expected 5, saw "+new Long(status.getDocumentsProcessed()).toString());
+        throw new ManifoldCFException("Wrong number of documents processed - expected 5, saw "+new Long(status.getDocumentsProcessed()).toString());
       
       // Add a file and recrawl
       createFile(new File("testdata/testdir/test4.txt"),"Added file");
@@ -157,7 +157,7 @@ public class Sanity extends TestBase
       status = jobManager.getStatus(job.getID());
       // The test data area has 4 documents and one directory, and we have to count the root directory too.
       if (status.getDocumentsProcessed() != 6)
-        throw new ACFException("Wrong number of documents processed after add - expected 6, saw "+new Long(status.getDocumentsProcessed()).toString());
+        throw new ManifoldCFException("Wrong number of documents processed after add - expected 6, saw "+new Long(status.getDocumentsProcessed()).toString());
 
       // Change a file, and recrawl
       changeFile(new File("testdata/test1.txt"),"Modified contents");
@@ -169,7 +169,7 @@ public class Sanity extends TestBase
       status = jobManager.getStatus(job.getID());
       // The test data area has 4 documents and one directory, and we have to count the root directory too.
       if (status.getDocumentsProcessed() != 6)
-        throw new ACFException("Wrong number of documents processed after change - expected 6, saw "+new Long(status.getDocumentsProcessed()).toString());
+        throw new ManifoldCFException("Wrong number of documents processed after change - expected 6, saw "+new Long(status.getDocumentsProcessed()).toString());
       // We also need to make sure the new document was indexed.  Have to think about how to do this though.
       // MHL
       
@@ -184,7 +184,7 @@ public class Sanity extends TestBase
       status = jobManager.getStatus(job.getID());
       // The test data area has 3 documents and one directory, and we have to count the root directory too.
       if (status.getDocumentsProcessed() != 5)
-        throw new ACFException("Wrong number of documents processed after delete - expected 5, saw "+new Long(status.getDocumentsProcessed()).toString());
+        throw new ManifoldCFException("Wrong number of documents processed after delete - expected 5, saw "+new Long(status.getDocumentsProcessed()).toString());
 
       // Now, delete the job.
       jobManager.deleteJob(job.getID());
@@ -200,24 +200,24 @@ public class Sanity extends TestBase
   }
   
   protected void waitJobInactive(IJobManager jobManager, Long jobID)
-    throws ACFException, InterruptedException
+    throws ManifoldCFException, InterruptedException
   {
     while (true)
     {
       JobStatus status = jobManager.getStatus(jobID);
       if (status == null)
-        throw new ACFException("No such job: '"+jobID+"'");
+        throw new ManifoldCFException("No such job: '"+jobID+"'");
       int statusValue = status.getStatus();
       switch (statusValue)
       {
         case JobStatus.JOBSTATUS_NOTYETRUN:
-          throw new ACFException("Job was never started.");
+          throw new ManifoldCFException("Job was never started.");
         case JobStatus.JOBSTATUS_COMPLETED:
           break;
         case JobStatus.JOBSTATUS_ERROR:
-          throw new ACFException("Job reports error status: "+status.getErrorText());
+          throw new ManifoldCFException("Job reports error status: "+status.getErrorText());
         default:
-          ACF.sleep(10000L);
+          ManifoldCF.sleep(10000L);
           continue;
       }
       break;
@@ -225,14 +225,14 @@ public class Sanity extends TestBase
   }
   
   protected void waitJobDeleted(IJobManager jobManager, Long jobID)
-    throws ACFException, InterruptedException
+    throws ManifoldCFException, InterruptedException
   {
     while (true)
     {
       JobStatus status = jobManager.getStatus(jobID);
       if (status == null)
         break;
-      ACF.sleep(10000L);
+      ManifoldCF.sleep(10000L);
     }
   }
     

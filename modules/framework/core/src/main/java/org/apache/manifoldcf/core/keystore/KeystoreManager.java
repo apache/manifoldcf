@@ -29,7 +29,7 @@ import java.io.*;
 
 /** This interface describes a class that manages keys and certificates in a secure manner.
 * It's built on top of the JDK 1.4+ JSSE integration, and provides all the necessary logic
-* to work well within the ACF java environment.
+* to work well within the ManifoldCF java environment.
 */
 public class KeystoreManager implements IKeystoreManager
 {
@@ -43,7 +43,7 @@ public class KeystoreManager implements IKeystoreManager
   /** Create the keystore object.
   */
   public KeystoreManager(String passcode)
-    throws ACFException
+    throws ManifoldCFException
   {
     this.passcode = passcode;
     try
@@ -53,30 +53,30 @@ public class KeystoreManager implements IKeystoreManager
     }
     catch (KeyStoreException e)
     {
-      throw new ACFException("Keystore exception: "+e.getMessage(),e);
+      throw new ManifoldCFException("Keystore exception: "+e.getMessage(),e);
     }
     catch (InterruptedIOException e)
     {
-      throw new ACFException("Interrupted IO: "+e.getMessage(),e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted IO: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new ACFException("IO error creating keystore: "+e.getMessage(),e);
+      throw new ManifoldCFException("IO error creating keystore: "+e.getMessage(),e);
     }
     catch (NoSuchAlgorithmException e)
     {
-      throw new ACFException("Unknown algorithm exception creating keystore: "+e.getMessage(),e);
+      throw new ManifoldCFException("Unknown algorithm exception creating keystore: "+e.getMessage(),e);
     }
     catch (CertificateException e)
     {
-      throw new ACFException("Unknown certificate exception creating keystore: "+e.getMessage(),e);
+      throw new ManifoldCFException("Unknown certificate exception creating keystore: "+e.getMessage(),e);
     }
   }
 
   /** Create the keystore object from an existing base 64 string.
   */
   public KeystoreManager(String passcode, String base64String)
-    throws ACFException
+    throws ManifoldCFException
   {
     this.passcode = passcode;
     try
@@ -95,23 +95,23 @@ public class KeystoreManager implements IKeystoreManager
     }
     catch (KeyStoreException e)
     {
-      throw new ACFException("Keystore exception: "+e.getMessage(),e);
+      throw new ManifoldCFException("Keystore exception: "+e.getMessage(),e);
     }
     catch (InterruptedIOException e)
     {
-      throw new ACFException("Interrupted IO: "+e.getMessage(),e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted IO: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new ACFException("IO error creating keystore: "+e.getMessage(),e);
+      throw new ManifoldCFException("IO error creating keystore: "+e.getMessage(),e);
     }
     catch (NoSuchAlgorithmException e)
     {
-      throw new ACFException("Unknown algorithm exception creating keystore: "+e.getMessage(),e);
+      throw new ManifoldCFException("Unknown algorithm exception creating keystore: "+e.getMessage(),e);
     }
     catch (CertificateException e)
     {
-      throw new ACFException("Unknown certificate exception creating keystore: "+e.getMessage(),e);
+      throw new ManifoldCFException("Unknown certificate exception creating keystore: "+e.getMessage(),e);
     }
   }
 
@@ -119,7 +119,7 @@ public class KeystoreManager implements IKeystoreManager
   *@return the list, as a string array.
   */
   public String[] getContents()
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -135,7 +135,7 @@ public class KeystoreManager implements IKeystoreManager
     }
     catch (KeyStoreException e)
     {
-      throw new ACFException("Keystore not initialized: "+e.getMessage(),e);
+      throw new ManifoldCFException("Keystore not initialized: "+e.getMessage(),e);
     }
 
   }
@@ -146,7 +146,7 @@ public class KeystoreManager implements IKeystoreManager
   *@return a description of what's in the alias.
   */
   public String getDescription(String alias)
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -157,7 +157,7 @@ public class KeystoreManager implements IKeystoreManager
     }
     catch (KeyStoreException e)
     {
-      throw new ACFException("Keystore not initialized: "+e.getMessage(),e);
+      throw new ManifoldCFException("Keystore not initialized: "+e.getMessage(),e);
     }
   }
 
@@ -166,7 +166,7 @@ public class KeystoreManager implements IKeystoreManager
   *@param certData is the binary data for the certificate.
   */
   public void importCertificate(String alias, InputStream certData)
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -183,18 +183,18 @@ public class KeystoreManager implements IKeystoreManager
     }
     catch (KeyStoreException e)
     {
-      throw new ACFException("Keystore exception: "+e.getMessage(),e);
+      throw new ManifoldCFException("Keystore exception: "+e.getMessage(),e);
     }
     catch (CertificateException e)
     {
-      throw new ACFException("Certificate error: "+e.getMessage(),e);
+      throw new ManifoldCFException("Certificate error: "+e.getMessage(),e);
     }
   }
 
   /** Read a certificate from the keystore.
   */
   public java.security.cert.Certificate getCertificate(String alias)
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -202,14 +202,14 @@ public class KeystoreManager implements IKeystoreManager
     }
     catch (KeyStoreException e)
     {
-      throw new ACFException("Keystore exception: "+e.getMessage(),e);
+      throw new ManifoldCFException("Keystore exception: "+e.getMessage(),e);
     }
   }
 
   /** Add a certificate to the keystore.
   */
   public void addCertificate(String alias, java.security.cert.Certificate certificate)
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -224,7 +224,7 @@ public class KeystoreManager implements IKeystoreManager
     }
     catch (KeyStoreException e)
     {
-      throw new ACFException("Keystore exception: "+e.getMessage(),e);
+      throw new ManifoldCFException("Keystore exception: "+e.getMessage(),e);
     }
   }
 
@@ -232,7 +232,7 @@ public class KeystoreManager implements IKeystoreManager
   *@param alias is the name of the certificate to remove.
   */
   public void remove(String alias)
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -240,7 +240,7 @@ public class KeystoreManager implements IKeystoreManager
     }
     catch (KeyStoreException e)
     {
-      throw new ACFException("Error deleting keystore entry",e);
+      throw new ManifoldCFException("Error deleting keystore entry",e);
     }
   }
 
@@ -248,7 +248,7 @@ public class KeystoreManager implements IKeystoreManager
   *@return the base64-encoded string.
   */
   public String getString()
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -260,23 +260,23 @@ public class KeystoreManager implements IKeystoreManager
       }
       catch (KeyStoreException e)
       {
-        throw new ACFException("Error accessing keystore: "+e.getMessage(),e);
+        throw new ManifoldCFException("Error accessing keystore: "+e.getMessage(),e);
       }
       catch (InterruptedIOException e)
       {
-        throw new ACFException("Interrupted IO: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted IO: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (IOException e)
       {
-        throw new ACFException("IO error saving keystore: "+e.getMessage(),e);
+        throw new ManifoldCFException("IO error saving keystore: "+e.getMessage(),e);
       }
       catch (NoSuchAlgorithmException e)
       {
-        throw new ACFException("Unknown algorithm exception saving keystore: "+e.getMessage(),e);
+        throw new ManifoldCFException("Unknown algorithm exception saving keystore: "+e.getMessage(),e);
       }
       catch (CertificateException e)
       {
-        throw new ACFException("Certificate exception saving keystore: "+e.getMessage(),e);
+        throw new ManifoldCFException("Certificate exception saving keystore: "+e.getMessage(),e);
       }
       finally
       {
@@ -285,18 +285,18 @@ public class KeystoreManager implements IKeystoreManager
     }
     catch (InterruptedIOException e)
     {
-      throw new ACFException("Interrupted IO: "+e.getMessage(),e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted IO: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
     catch (IOException e)
     {
-      throw new ACFException("IO exception storing keystore: "+e.getMessage(),e);
+      throw new ManifoldCFException("IO exception storing keystore: "+e.getMessage(),e);
     }
   }
 
   /** Build a secure socket factory based on this keystore.
   */
   public javax.net.ssl.SSLSocketFactory getSecureSocketFactory()
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -358,15 +358,15 @@ public class KeystoreManager implements IKeystoreManager
     }
     catch (java.security.NoSuchAlgorithmException e)
     {
-      throw new ACFException("No such algorithm: "+e.getMessage(),e);
+      throw new ManifoldCFException("No such algorithm: "+e.getMessage(),e);
     }
     catch (java.security.KeyStoreException e)
     {
-      throw new ACFException("Keystore exception: "+e.getMessage(),e);
+      throw new ManifoldCFException("Keystore exception: "+e.getMessage(),e);
     }
     catch (java.security.KeyManagementException e)
     {
-      throw new ACFException("Key management exception: "+e.getMessage(),e);
+      throw new ManifoldCFException("Key management exception: "+e.getMessage(),e);
     }
   }
 

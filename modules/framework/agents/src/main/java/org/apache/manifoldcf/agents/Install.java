@@ -29,9 +29,9 @@ public class Install extends BaseAgentsInitializationCommand
   {
   }
 
-  protected void doExecute(IThreadContext tc) throws ACFException
+  protected void doExecute(IThreadContext tc) throws ManifoldCFException
   {
-    ACF.installTables(tc);
+    ManifoldCF.installTables(tc);
     Logging.root.info("Agent tables installed");
   }
 
@@ -49,7 +49,7 @@ public class Install extends BaseAgentsInitializationCommand
       install.execute();
       System.err.println("Agent tables installed");
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       e.printStackTrace();
       System.exit(1);

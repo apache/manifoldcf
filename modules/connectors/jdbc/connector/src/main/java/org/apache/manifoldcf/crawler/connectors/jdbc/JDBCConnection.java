@@ -55,7 +55,7 @@ public class JDBCConnection
   }
 
   protected static IResultRow readNextResultRowViaThread(ResultSet rs, ResultSetMetaData rsmd, String[] resultCols)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     NextResultRowThread t = new NextResultRowThread(rs,rsmd,resultCols);
     try
@@ -66,9 +66,9 @@ public class JDBCConnection
       if (thr != null)
       {
         if (thr instanceof java.sql.SQLException)
-          throw new ACFException("Error fetching next JDBC result row: "+thr.getMessage(),thr);
-        else if (thr instanceof ACFException)
-          throw (ACFException)thr;
+          throw new ManifoldCFException("Error fetching next JDBC result row: "+thr.getMessage(),thr);
+        else if (thr instanceof ManifoldCFException)
+          throw (ManifoldCFException)thr;
         else if (thr instanceof ServiceInterruption)
           throw (ServiceInterruption)thr;
         else if (thr instanceof RuntimeException)
@@ -81,7 +81,7 @@ public class JDBCConnection
     catch (InterruptedException e)
     {
       t.interrupt();
-      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
   }
 
@@ -127,7 +127,7 @@ public class JDBCConnection
   }
 
   protected static IResultRow readNextResultRow(ResultSet rs, ResultSetMetaData rsmd, String[] resultCols)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     try
     {
@@ -139,12 +139,12 @@ public class JDBCConnection
     }
     catch (java.sql.SQLException e)
     {
-      throw new ACFException("Result set error: "+e.getMessage(),e);
+      throw new ManifoldCFException("Result set error: "+e.getMessage(),e);
     }
   }
 
   protected static void closeResultset(ResultSet rs)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     try
     {
@@ -152,12 +152,12 @@ public class JDBCConnection
     }
     catch (java.sql.SQLException e)
     {
-      throw new ACFException("Exception closing resultset: "+e.getMessage(),e);
+      throw new ManifoldCFException("Exception closing resultset: "+e.getMessage(),e);
     }
   }
 
   protected static void closeStmt(Statement stmt)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     try
     {
@@ -165,12 +165,12 @@ public class JDBCConnection
     }
     catch (java.sql.SQLException e)
     {
-      throw new ACFException("Exception closing statement: "+e.getMessage(),e);
+      throw new ManifoldCFException("Exception closing statement: "+e.getMessage(),e);
     }
   }
 
   protected static void closePS(PreparedStatement ps)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     try
     {
@@ -178,7 +178,7 @@ public class JDBCConnection
     }
     catch (java.sql.SQLException e)
     {
-      throw new ACFException("Exception closing statement: "+e.getMessage(),e);
+      throw new ManifoldCFException("Exception closing statement: "+e.getMessage(),e);
     }
   }
 
@@ -186,7 +186,7 @@ public class JDBCConnection
   /** Test connection.
   */
   public void testConnection()
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     TestConnectionThread t = new TestConnectionThread();
     try
@@ -197,9 +197,9 @@ public class JDBCConnection
       if (thr != null)
       {
         if (thr instanceof java.sql.SQLException)
-          throw new ACFException("Error doing JDBC connection test: "+thr.getMessage(),thr);
-        else if (thr instanceof ACFException)
-          throw (ACFException)thr;
+          throw new ManifoldCFException("Error doing JDBC connection test: "+thr.getMessage(),thr);
+        else if (thr instanceof ManifoldCFException)
+          throw (ManifoldCFException)thr;
         else if (thr instanceof ServiceInterruption)
           throw (ServiceInterruption)thr;
         else if (thr instanceof RuntimeException)
@@ -211,7 +211,7 @@ public class JDBCConnection
     catch (InterruptedException e)
     {
       t.interrupt();
-      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
   }
 
@@ -247,7 +247,7 @@ public class JDBCConnection
   /** Execute query.
   */
   public IDynamicResultSet executeUncachedQuery(String query, ArrayList params, int maxResults)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     if (params == null)
       return new JDBCResultSet(query,maxResults);
@@ -258,7 +258,7 @@ public class JDBCConnection
   /** Execute operation.
   */
   public void executeOperation(String query, ArrayList params)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     ExecuteOperationThread t = new ExecuteOperationThread(query,params);
     try
@@ -269,9 +269,9 @@ public class JDBCConnection
       if (thr != null)
       {
         if (thr instanceof java.sql.SQLException)
-          throw new ACFException("Exception doing connector query '"+query+"': "+thr.getMessage(),thr);
-        else if (thr instanceof ACFException)
-          throw (ACFException)thr;
+          throw new ManifoldCFException("Exception doing connector query '"+query+"': "+thr.getMessage(),thr);
+        else if (thr instanceof ManifoldCFException)
+          throw (ManifoldCFException)thr;
         else if (thr instanceof ServiceInterruption)
           throw (ServiceInterruption)thr;
         else if (thr instanceof RuntimeException)
@@ -283,7 +283,7 @@ public class JDBCConnection
     catch (InterruptedException e)
     {
       t.interrupt();
-      throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
   }
 
@@ -334,7 +334,7 @@ public class JDBCConnection
   * @param params ArrayList if params !=null, use preparedStatement
   */
   protected static IResultSet execute(Connection connection, String query, ArrayList params, boolean bResults, int maxResults)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
 
     ResultSet rs;
@@ -404,19 +404,19 @@ public class JDBCConnection
       }
 
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       throw e;
     }
     catch (java.sql.SQLException e)
     {
-      throw new ACFException("Exception doing connector query '"+query+"': "+e.getMessage(),e);
+      throw new ManifoldCFException("Exception doing connector query '"+query+"': "+e.getMessage(),e);
     }
   }
 
   /** Read the current row from the resultset */
   protected static IResultRow readResultRow(ResultSet rs, ResultSetMetaData rsmd, String[] resultCols)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     try
     {
@@ -468,12 +468,12 @@ public class JDBCConnection
     }
     catch (java.sql.SQLException e)
     {
-      throw new ACFException("Resultset error: "+e.getMessage(),e);
+      throw new ManifoldCFException("Resultset error: "+e.getMessage(),e);
     }
   }
 
   protected static String[] readColumnNames(ResultSetMetaData rsmd)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     try
     {
@@ -493,13 +493,13 @@ public class JDBCConnection
     }
     catch (java.sql.SQLException e)
     {
-      throw new ACFException("Sql exception reading column names: "+e.getMessage(),e);
+      throw new ManifoldCFException("Sql exception reading column names: "+e.getMessage(),e);
     }
   }
 
   // Read data from a resultset
   protected static IResultSet getData(ResultSet rs, int maxResults)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     try
     {
@@ -516,7 +516,7 @@ public class JDBCConnection
         {
           // This is an error situation; if a result with no columns is
           // necessary, bResults must be false!!!
-          throw new ACFException("Empty query, no columns returned",ACFException.GENERAL_ERROR);
+          throw new ManifoldCFException("Empty query, no columns returned",ManifoldCFException.GENERAL_ERROR);
         }
 
         while (rs.next() && (maxResults == -1 || maxResults > 0))
@@ -531,13 +531,13 @@ public class JDBCConnection
     }
     catch (java.sql.SQLException e)
     {
-      throw new ACFException("Resultset error: "+e.getMessage(),e);
+      throw new ManifoldCFException("Resultset error: "+e.getMessage(),e);
     }
   }
 
   // pass params to preparedStatement
   protected static void loadPS(PreparedStatement ps, ArrayList data)
-    throws java.sql.SQLException, ACFException
+    throws java.sql.SQLException, ManifoldCFException
   {
     if (data!=null)
     {
@@ -595,7 +595,7 @@ public class JDBCConnection
   /** Clean up parameters after query has been triggered.
   */
   protected static void cleanupParameters(ArrayList data)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (data != null)
     {
@@ -614,7 +614,7 @@ public class JDBCConnection
   }
 
   protected static int findColumn(ResultSet rs, String name)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     try
     {
@@ -627,7 +627,7 @@ public class JDBCConnection
   }
 
   protected static Blob getBLOB(ResultSet rs, int col)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     try
     {
@@ -635,12 +635,12 @@ public class JDBCConnection
     }
     catch (java.sql.SQLException sqle)
     {
-      throw new ACFException("Error in getBlob("+col+"): "+sqle.getMessage(),sqle,ACFException.DATABASE_ERROR);
+      throw new ManifoldCFException("Error in getBlob("+col+"): "+sqle.getMessage(),sqle,ManifoldCFException.DATABASE_ERROR);
     }
   }
 
   protected static Clob getCLOB(ResultSet rs, int col)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     try
     {
@@ -648,12 +648,12 @@ public class JDBCConnection
     }
     catch (java.sql.SQLException sqle)
     {
-      throw new ACFException("Error in getClob("+col+"): "+sqle.getMessage(),sqle,ACFException.DATABASE_ERROR);
+      throw new ManifoldCFException("Error in getClob("+col+"): "+sqle.getMessage(),sqle,ManifoldCFException.DATABASE_ERROR);
     }
   }
 
   protected static boolean isBLOB(ResultSetMetaData rsmd, int col)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     try
     {
@@ -662,12 +662,12 @@ public class JDBCConnection
     }
     catch (java.sql.SQLException sqle)
     {
-      throw new ACFException("Error in isBlob("+col+"): "+sqle.getMessage(),sqle,ACFException.DATABASE_ERROR);
+      throw new ManifoldCFException("Error in isBlob("+col+"): "+sqle.getMessage(),sqle,ManifoldCFException.DATABASE_ERROR);
     }
   }
 
   protected static boolean isBinaryData(ResultSetMetaData rsmd, int col)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     try
     {
@@ -677,12 +677,12 @@ public class JDBCConnection
     }
     catch (java.sql.SQLException sqle)
     {
-      throw new ACFException("Error in isBinaryData("+col+"): "+sqle.getMessage(),sqle,ACFException.DATABASE_ERROR);
+      throw new ManifoldCFException("Error in isBinaryData("+col+"): "+sqle.getMessage(),sqle,ManifoldCFException.DATABASE_ERROR);
     }
   }
 
   protected static boolean isCLOB(ResultSetMetaData rsmd, int col)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     try
     {
@@ -691,12 +691,12 @@ public class JDBCConnection
     }
     catch (java.sql.SQLException sqle)
     {
-      throw new ACFException("Error in isClob("+col+"): "+sqle.getMessage(),sqle,ACFException.DATABASE_ERROR);
+      throw new ManifoldCFException("Error in isClob("+col+"): "+sqle.getMessage(),sqle,ManifoldCFException.DATABASE_ERROR);
     }
   }
 
   protected static Object getObject(ResultSet rs, ResultSetMetaData rsmd, int col)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     Object result = null;
 
@@ -770,7 +770,7 @@ public class JDBCConnection
       case java.sql.Types.VARBINARY:
       case java.sql.Types.BINARY:
       case java.sql.Types.LONGVARBINARY:
-        throw new ACFException("Binary type is not a string, column = " + col,ACFException.GENERAL_ERROR);
+        throw new ManifoldCFException("Binary type is not a string, column = " + col,ManifoldCFException.GENERAL_ERROR);
         //break
 
       default :
@@ -784,7 +784,7 @@ public class JDBCConnection
     }
     catch (java.sql.SQLException e)
     {
-      throw new ACFException("Exception in getString(): "+e.getMessage(),e,ACFException.DATABASE_ERROR);
+      throw new ManifoldCFException("Exception in getString(): "+e.getMessage(),e,ManifoldCFException.DATABASE_ERROR);
     }
     return result;
   }
@@ -800,7 +800,7 @@ public class JDBCConnection
 
     /** Constructor */
     public JDBCResultSet(String query, int maxResults)
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
       this.maxResults = maxResults;
       StatementQueryThread t = new StatementQueryThread(query);
@@ -812,9 +812,9 @@ public class JDBCConnection
         if (thr != null)
         {
           if (thr instanceof java.sql.SQLException)
-            throw new ACFException("Exception doing connector query '"+query+"': "+thr.getMessage(),thr);
-          else if (thr instanceof ACFException)
-            throw (ACFException)thr;
+            throw new ManifoldCFException("Exception doing connector query '"+query+"': "+thr.getMessage(),thr);
+          else if (thr instanceof ManifoldCFException)
+            throw (ManifoldCFException)thr;
           else if (thr instanceof ServiceInterruption)
             throw (ServiceInterruption)thr;
           else if (thr instanceof RuntimeException)
@@ -831,7 +831,7 @@ public class JDBCConnection
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
     }
 
@@ -839,7 +839,7 @@ public class JDBCConnection
     *@return the immutable row description, or null if there is no such row.
     */
     public IResultRow getNextRow()
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
       if (maxResults == -1 || maxResults > 0)
       {
@@ -854,9 +854,9 @@ public class JDBCConnection
     /** Close this resultset.
     */
     public void close()
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
-      ACFException rval = null;
+      ManifoldCFException rval = null;
       if (rs != null)
       {
         try
@@ -864,9 +864,9 @@ public class JDBCConnection
           closeResultset(rs);
           rs = null;
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
-          if (rval == null || e.getErrorCode() == ACFException.INTERRUPTED)
+          if (rval == null || e.getErrorCode() == ManifoldCFException.INTERRUPTED)
             rval = e;
         }
       }
@@ -877,9 +877,9 @@ public class JDBCConnection
           closeStmt(stmt);
           stmt = null;
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
-          if (rval == null || e.getErrorCode() == ACFException.INTERRUPTED)
+          if (rval == null || e.getErrorCode() == ManifoldCFException.INTERRUPTED)
             rval = e;
         }
       }
@@ -890,9 +890,9 @@ public class JDBCConnection
           JDBCConnectionFactory.releaseConnection(connection);
           connection = null;
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
-          if (rval == null || e.getErrorCode() == ACFException.INTERRUPTED)
+          if (rval == null || e.getErrorCode() == ManifoldCFException.INTERRUPTED)
             rval = e;
         }
       }
@@ -944,9 +944,9 @@ public class JDBCConnection
           catch (ServiceInterruption e2)
           {
           }
-          catch (ACFException e2)
+          catch (ManifoldCFException e2)
           {
-            if (e2.getErrorCode() == ACFException.INTERRUPTED)
+            if (e2.getErrorCode() == ManifoldCFException.INTERRUPTED)
               this.exception = e2;
             // Ignore
           }
@@ -964,9 +964,9 @@ public class JDBCConnection
           catch (ServiceInterruption e2)
           {
           }
-          catch (ACFException e2)
+          catch (ManifoldCFException e2)
           {
-            if (e2.getErrorCode() == ACFException.INTERRUPTED)
+            if (e2.getErrorCode() == ManifoldCFException.INTERRUPTED)
               this.exception = e2;
             // Ignore
           }
@@ -984,9 +984,9 @@ public class JDBCConnection
           catch (ServiceInterruption e2)
           {
           }
-          catch (ACFException e2)
+          catch (ManifoldCFException e2)
           {
-            if (e2.getErrorCode() == ACFException.INTERRUPTED)
+            if (e2.getErrorCode() == ManifoldCFException.INTERRUPTED)
               this.exception = e2;
             // Otherwise, ignore
           }
@@ -1041,7 +1041,7 @@ public class JDBCConnection
 
     /** Constructor */
     public JDBCPSResultSet(String query, ArrayList params, int maxResults)
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
       this.maxResults = maxResults;
       this.params = params;
@@ -1056,9 +1056,9 @@ public class JDBCConnection
           // Cleanup of parameters happens even if exception doing query
           cleanupParameters(params);
           if (thr instanceof java.sql.SQLException)
-            throw new ACFException("Exception doing connector query '"+query+"': "+thr.getMessage(),thr);
-          else if (thr instanceof ACFException)
-            throw (ACFException)thr;
+            throw new ManifoldCFException("Exception doing connector query '"+query+"': "+thr.getMessage(),thr);
+          else if (thr instanceof ManifoldCFException)
+            throw (ManifoldCFException)thr;
           else if (thr instanceof ServiceInterruption)
             throw (ServiceInterruption)thr;
           else if (thr instanceof RuntimeException)
@@ -1076,7 +1076,7 @@ public class JDBCConnection
       {
         cleanupParameters(params);
         t.interrupt();
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
     }
 
@@ -1084,7 +1084,7 @@ public class JDBCConnection
     *@return the immutable row description, or null if there is no such row.
     */
     public IResultRow getNextRow()
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
       if (maxResults == -1 || maxResults > 0)
       {
@@ -1099,9 +1099,9 @@ public class JDBCConnection
     /** Close this resultset.
     */
     public void close()
-      throws ACFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
     {
-      ACFException rval = null;
+      ManifoldCFException rval = null;
       if (rs != null)
       {
         try
@@ -1111,9 +1111,9 @@ public class JDBCConnection
         catch (ServiceInterruption e)
         {
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
-          if (rval == null || e.getErrorCode() == ACFException.INTERRUPTED)
+          if (rval == null || e.getErrorCode() == ManifoldCFException.INTERRUPTED)
             rval = e;
         }
         finally
@@ -1130,9 +1130,9 @@ public class JDBCConnection
         catch (ServiceInterruption e)
         {
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
-          if (rval == null || e.getErrorCode() == ACFException.INTERRUPTED)
+          if (rval == null || e.getErrorCode() == ManifoldCFException.INTERRUPTED)
             rval = e;
         }
         finally
@@ -1149,9 +1149,9 @@ public class JDBCConnection
         catch (ServiceInterruption e)
         {
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
-          if (rval == null || e.getErrorCode() == ACFException.INTERRUPTED)
+          if (rval == null || e.getErrorCode() == ManifoldCFException.INTERRUPTED)
             rval = e;
         }
         finally
@@ -1166,9 +1166,9 @@ public class JDBCConnection
           cleanupParameters(params);
           params = null;
         }
-        catch (ACFException e)
+        catch (ManifoldCFException e)
         {
-          if (rval == null || e.getErrorCode() == ACFException.INTERRUPTED)
+          if (rval == null || e.getErrorCode() == ManifoldCFException.INTERRUPTED)
             rval = e;
         }
       }
@@ -1222,9 +1222,9 @@ public class JDBCConnection
           catch (ServiceInterruption e2)
           {
           }
-          catch (ACFException e2)
+          catch (ManifoldCFException e2)
           {
-            if (e2.getErrorCode() == ACFException.INTERRUPTED)
+            if (e2.getErrorCode() == ManifoldCFException.INTERRUPTED)
               this.exception = e2;
           }
           finally
@@ -1241,9 +1241,9 @@ public class JDBCConnection
           catch (ServiceInterruption e2)
           {
           }
-          catch (ACFException e2)
+          catch (ManifoldCFException e2)
           {
-            if (e2.getErrorCode() == ACFException.INTERRUPTED)
+            if (e2.getErrorCode() == ManifoldCFException.INTERRUPTED)
               this.exception = e2;
           }
           finally
@@ -1260,9 +1260,9 @@ public class JDBCConnection
           catch (ServiceInterruption e2)
           {
           }
-          catch (ACFException e2)
+          catch (ManifoldCFException e2)
           {
-            if (e2.getErrorCode() == ACFException.INTERRUPTED)
+            if (e2.getErrorCode() == ManifoldCFException.INTERRUPTED)
               this.exception = e2;
           }
           finally

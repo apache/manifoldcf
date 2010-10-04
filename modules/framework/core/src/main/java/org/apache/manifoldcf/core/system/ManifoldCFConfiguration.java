@@ -1,4 +1,4 @@
-/* $Id: ACFConfiguration.java 988245 2010-08-23 18:39:35Z kwright $ */
+/* $Id: ManifoldCFConfiguration.java 988245 2010-08-23 18:39:35Z kwright $ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -22,16 +22,16 @@ import org.apache.manifoldcf.core.interfaces.*;
 import java.util.*;
 import java.io.*;
 
-/** This class represents the configuration data read from the main ACF configuration
+/** This class represents the configuration data read from the main ManifoldCF configuration
 * XML file.
 */
-public class ACFConfiguration extends Configuration
+public class ManifoldCFConfiguration extends Configuration
 {
-  public static final String _rcsid = "@(#)$Id: ACFConfiguration.java 988245 2010-08-23 18:39:35Z kwright $";
+  public static final String _rcsid = "@(#)$Id: ManifoldCFConfiguration.java 988245 2010-08-23 18:39:35Z kwright $";
 
   /** Constructor.
   */
-  public ACFConfiguration()
+  public ManifoldCFConfiguration()
   {
     super("configuration");
   }
@@ -39,8 +39,8 @@ public class ACFConfiguration extends Configuration
   /** Construct from XML.
   *@param xmlStream is the input XML stream.
   */
-  public ACFConfiguration(InputStream xmlStream)
-    throws ACFException
+  public ManifoldCFConfiguration(InputStream xmlStream)
+    throws ManifoldCFException
   {
     super("configuration");
     fromXML(xmlStream);
@@ -50,7 +50,7 @@ public class ACFConfiguration extends Configuration
   */
   protected Configuration createNew()
   {
-    return new ACFConfiguration();
+    return new ManifoldCFConfiguration();
   }
   
 }

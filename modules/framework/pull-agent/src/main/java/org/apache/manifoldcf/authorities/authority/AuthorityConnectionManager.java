@@ -22,7 +22,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.authorities.interfaces.*;
 import java.util.*;
 import org.apache.manifoldcf.authorities.interfaces.CacheKeyFactory;
-import org.apache.manifoldcf.authorities.system.ACF;
+import org.apache.manifoldcf.authorities.system.ManifoldCF;
 
 import org.apache.manifoldcf.crawler.interfaces.IRepositoryConnectionManager;
 import org.apache.manifoldcf.crawler.interfaces.RepositoryConnectionManagerFactory;
@@ -51,7 +51,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   *@param threadContext is the thread context.
   */
   public AuthorityConnectionManager(IThreadContext threadContext, IDBInterface database)
-    throws ACFException
+    throws ManifoldCFException
   {
     super(database,"authconnections");
 
@@ -62,7 +62,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   /** Install the manager.
   */
   public void install()
-    throws ACFException
+    throws ManifoldCFException
   {
     // Always do a loop, in case upgrade needs it.
     while (true)
@@ -93,51 +93,51 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   /** Uninstall the manager.
   */
   public void deinstall()
-    throws ACFException
+    throws ManifoldCFException
   {
     performDrop(null);
   }
 
   /** Export configuration */
   public void exportConfiguration(java.io.OutputStream os)
-    throws java.io.IOException, ACFException
+    throws java.io.IOException, ManifoldCFException
   {
     // Write a version indicator
-    ACF.writeDword(os,1);
+    ManifoldCF.writeDword(os,1);
     // Get the authority list
     IAuthorityConnection[] list = getAllConnections();
     // Write the number of authorities
-    ACF.writeDword(os,list.length);
+    ManifoldCF.writeDword(os,list.length);
     // Loop through the list and write the individual authority info
     int i = 0;
     while (i < list.length)
     {
       IAuthorityConnection conn = list[i++];
-      ACF.writeString(os,conn.getName());
-      ACF.writeString(os,conn.getDescription());
-      ACF.writeString(os,conn.getClassName());
-      ACF.writeString(os,conn.getConfigParams().toXML());
-      ACF.writeDword(os,conn.getMaxConnections());
+      ManifoldCF.writeString(os,conn.getName());
+      ManifoldCF.writeString(os,conn.getDescription());
+      ManifoldCF.writeString(os,conn.getClassName());
+      ManifoldCF.writeString(os,conn.getConfigParams().toXML());
+      ManifoldCF.writeDword(os,conn.getMaxConnections());
     }
   }
 
   /** Import configuration */
   public void importConfiguration(java.io.InputStream is)
-    throws java.io.IOException, ACFException
+    throws java.io.IOException, ManifoldCFException
   {
-    int version = ACF.readDword(is);
+    int version = ManifoldCF.readDword(is);
     if (version != 1)
       throw new java.io.IOException("Unknown authority configuration version: "+Integer.toString(version));
-    int count = ACF.readDword(is);
+    int count = ManifoldCF.readDword(is);
     int i = 0;
     while (i < count)
     {
       IAuthorityConnection conn = create();
-      conn.setName(ACF.readString(is));
-      conn.setDescription(ACF.readString(is));
-      conn.setClassName(ACF.readString(is));
-      conn.getConfigParams().fromXML(ACF.readString(is));
-      conn.setMaxConnections(ACF.readDword(is));
+      conn.setName(ManifoldCF.readString(is));
+      conn.setDescription(ManifoldCF.readString(is));
+      conn.setClassName(ManifoldCF.readString(is));
+      conn.getConfigParams().fromXML(ManifoldCF.readString(is));
+      conn.setMaxConnections(ManifoldCF.readDword(is));
       // Attempt to save this connection
       save(conn);
       i++;
@@ -148,7 +148,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   *@return an array of connection objects.
   */
   public IAuthorityConnection[] getAllConnections()
-    throws ACFException
+    throws ManifoldCFException
   {
     beginTransaction();
     try
@@ -169,7 +169,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
       }
       return loadMultiple(names);
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       signalRollback();
       throw e;
@@ -190,7 +190,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   *@return the loaded connection object, or null if not found.
   */
   public IAuthorityConnection load(String name)
-    throws ACFException
+    throws ManifoldCFException
   {
     return loadMultiple(new String[]{name})[0];
   }
@@ -200,7 +200,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   *@return the loaded connection objects.
   */
   public IAuthorityConnection[] loadMultiple(String[] names)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Build description objects
     AuthorityConnectionDescription[] objectDescriptions = new AuthorityConnectionDescription[names.length];
@@ -223,7 +223,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   *@return the new object.
   */
   public IAuthorityConnection create()
-    throws ACFException
+    throws ManifoldCFException
   {
     AuthorityConnection rval = new AuthorityConnection();
     return rval;
@@ -234,7 +234,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   *@return true if the object is created, false otherwise.
   */
   public boolean save(IAuthorityConnection object)
-    throws ACFException
+    throws ManifoldCFException
   {
     StringSetBuffer ssb = new StringSetBuffer();
     ssb.add(getAuthorityConnectionsKey());
@@ -247,7 +247,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
       try
       {
         performLock();
-        ACF.noteConfigurationChange();
+        ManifoldCF.noteConfigurationChange();
         // See whether the instance exists
         ArrayList params = new ArrayList();
         params.add(object.getName());
@@ -281,7 +281,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
         cacheManager.invalidateKeys(ch);
         return isCreated;
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         signalRollback();
         throw e;
@@ -307,7 +307,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   * name does not exist, no error is returned.
   */
   public void delete(String name)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Grab repository connection manager handle, to check on legality of deletion.
     IRepositoryConnectionManager repoManager = RepositoryConnectionManagerFactory.make(threadContext);
@@ -324,14 +324,14 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
       {
         // Check if anything refers to this connection name
         if (repoManager.isReferenced(name))
-          throw new ACFException("Can't delete authority connection '"+name+"': existing repository connections refer to it");
-        ACF.noteConfigurationChange();
+          throw new ManifoldCFException("Can't delete authority connection '"+name+"': existing repository connections refer to it");
+        ManifoldCF.noteConfigurationChange();
         ArrayList params = new ArrayList();
         params.add(name);
         performDelete("WHERE "+nameField+"=?",params,null);
         cacheManager.invalidateKeys(ch);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         signalRollback();
         throw e;
@@ -388,7 +388,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   *@return the corresponding repository connection objects.
   */
   protected AuthorityConnection[] getAuthorityConnectionsMultiple(String[] connectionNames)
-    throws ACFException
+    throws ManifoldCFException
   {
     AuthorityConnection[] rval = new AuthorityConnection[connectionNames.length];
     HashMap returnIndex = new HashMap();
@@ -432,7 +432,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
       signalRollback();
       throw e;
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       signalRollback();
       throw e;
@@ -450,7 +450,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   *@param params is the set of parameters.
   */
   protected void getAuthorityConnectionsChunk(AuthorityConnection[] rval, Map returnIndex, String idList, ArrayList params)
-    throws ACFException
+    throws ManifoldCFException
   {
     IResultSet set;
     set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
@@ -571,7 +571,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
     * @return the newly created objects to cache, or null, if any object cannot be created.
     *  The order of the returned objects must correspond to the order of the object descriptinos.
     */
-    public Object[] create(ICacheDescription[] objectDescriptions) throws ACFException
+    public Object[] create(ICacheDescription[] objectDescriptions) throws ManifoldCFException
     {
       // Turn the object descriptions into the parameters for the ToolInstance requests
       String[] connectionNames = new String[objectDescriptions.length];
@@ -594,7 +594,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
     * @param objectDescription is the unique identifier of the object.
     * @param cachedObject is the cached object.
     */
-    public void exists(ICacheDescription objectDescription, Object cachedObject) throws ACFException
+    public void exists(ICacheDescription objectDescription, Object cachedObject) throws ManifoldCFException
     {
       // Cast what came in as what it really is
       AuthorityConnectionDescription objectDesc = (AuthorityConnectionDescription)objectDescription;
@@ -612,7 +612,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
     /** Perform the desired operation.  This method is called after either createGetObject()
     * or exists() is called for every requested object.
     */
-    public void execute() throws ACFException
+    public void execute() throws ManifoldCFException
     {
       // Does nothing; we only want to fetch objects in this cacher.
     }

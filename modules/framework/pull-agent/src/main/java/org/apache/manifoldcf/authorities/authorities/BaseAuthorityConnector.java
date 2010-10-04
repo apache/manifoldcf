@@ -40,7 +40,7 @@ public abstract class BaseAuthorityConnector extends org.apache.manifoldcf.core.
   * (Should throws an exception only when a condition cannot be properly described within the authorization response object.)
   */
   public AuthorizationResponse getAuthorizationResponse(String userName)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Implementation for old-style behavior.  Override this method for new-style behavior.
     try
@@ -50,7 +50,7 @@ public abstract class BaseAuthorityConnector extends org.apache.manifoldcf.core.
         return new AuthorizationResponse(new String[0],AuthorizationResponse.RESPONSE_USERNOTFOUND);
       return new AuthorizationResponse(accessTokens,AuthorizationResponse.RESPONSE_OK);
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       // There's an authorization failure of some kind.
       String[] defaultAccessTokens = getDefaultAccessTokens(userName);
@@ -82,7 +82,7 @@ public abstract class BaseAuthorityConnector extends org.apache.manifoldcf.core.
   * (Throw an exception if access is denied, usually because the authority is down).
   */
   public String[] getAccessTokens(String userName)
-    throws ACFException
+    throws ManifoldCFException
   {
     return null;
   }

@@ -1,4 +1,4 @@
-/* $Id: ACF.java 988245 2010-08-23 18:39:35Z kwright $ */
+/* $Id: ManifoldCF.java 988245 2010-08-23 18:39:35Z kwright $ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -23,9 +23,9 @@ import org.apache.manifoldcf.agents.interfaces.*;
 import java.io.*;
 import java.util.*;
 
-public class ACF extends org.apache.manifoldcf.core.system.ACF
+public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
 {
-  public static final String _rcsid = "@(#)$Id: ACF.java 988245 2010-08-23 18:39:35Z kwright $";
+  public static final String _rcsid = "@(#)$Id: ManifoldCF.java 988245 2010-08-23 18:39:35Z kwright $";
 
   // Agents initialized flag
   protected static boolean agentsInitialized = false;
@@ -38,7 +38,7 @@ public class ACF extends org.apache.manifoldcf.core.system.ACF
   /** Initialize environment.
   */
   public static void initializeEnvironment()
-    throws ACFException
+    throws ManifoldCFException
   {
     synchronized (initializeFlagLock)
     {
@@ -46,10 +46,10 @@ public class ACF extends org.apache.manifoldcf.core.system.ACF
         return;
 
       // Do core initialization
-      org.apache.manifoldcf.core.system.ACF.initializeEnvironment();
+      org.apache.manifoldcf.core.system.ManifoldCF.initializeEnvironment();
       
       // Create the shutdown hook for agents.  All activity will be keyed off of runningHash, so it is safe to do this under all conditions.
-      org.apache.manifoldcf.core.system.ACF.addShutdownHook(new AgentsShutdownHook());
+      org.apache.manifoldcf.core.system.ManifoldCF.addShutdownHook(new AgentsShutdownHook());
       
       // Initialize the local loggers
       Logging.initializeLoggers();
@@ -64,7 +64,7 @@ public class ACF extends org.apache.manifoldcf.core.system.ACF
   *@param threadcontext is the thread context.
   */
   public static void installTables(IThreadContext threadcontext)
-    throws ACFException
+    throws ManifoldCFException
   {
     IAgentManager mgr = AgentManagerFactory.make(threadcontext);
     IIncrementalIngester igstmgr = IncrementalIngesterFactory.make(threadcontext);
@@ -80,7 +80,7 @@ public class ACF extends org.apache.manifoldcf.core.system.ACF
   *@param threadcontext is the thread context.
   */
   public static void deinstallTables(IThreadContext threadcontext)
-    throws ACFException
+    throws ManifoldCFException
   {
     IAgentManager mgr = AgentManagerFactory.make(threadcontext);
     IIncrementalIngester igstmgr = IncrementalIngesterFactory.make(threadcontext);
@@ -96,12 +96,12 @@ public class ACF extends org.apache.manifoldcf.core.system.ACF
   *@param threadContext is the thread context.
   */
   public static void startAgents(IThreadContext threadContext)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Get agent manager
     IAgentManager manager = AgentManagerFactory.make(threadContext);
     String[] classes = manager.getAllAgents();
-    ACFException problem = null;
+    ManifoldCFException problem = null;
     synchronized (runningHash)
     {
       // DO NOT permit this method to do anything if stopAgents() has ever been called for this JVM! 
@@ -126,7 +126,7 @@ public class ACF extends org.apache.manifoldcf.core.system.ACF
             // Successful!
             runningHash.put(className,agent);
           }
-          catch (ACFException e)
+          catch (ManifoldCFException e)
           {
             problem = e;
           }
@@ -141,7 +141,7 @@ public class ACF extends org.apache.manifoldcf.core.system.ACF
   /** Stop all started agents.
   */
   public static void stopAgents(IThreadContext threadContext)
-    throws ACFException
+    throws ManifoldCFException
   {
     synchronized (runningHash)
     {
@@ -166,7 +166,7 @@ public class ACF extends org.apache.manifoldcf.core.system.ACF
   *@param connectionName is the connection name.
   */
   public static void signalOutputConnectionRedo(IThreadContext threadContext, String connectionName)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Blow away the incremental ingestion table first
     IIncrementalIngester ingester = IncrementalIngesterFactory.make(threadContext);
@@ -185,7 +185,7 @@ public class ACF extends org.apache.manifoldcf.core.system.ACF
     }
     
     public void doCleanup()
-      throws ACFException
+      throws ManifoldCFException
     {
       // Shutting down in this way must prevent startup from taking place.
       synchronized (runningHash)
@@ -230,10 +230,10 @@ public class ACF extends org.apache.manifoldcf.core.system.ACF
   }
   
   /** Handle an exception, by converting it to an error node. */
-  public static void createErrorNode(Configuration output, ACFException e)
-    throws ACFException
+  public static void createErrorNode(Configuration output, ManifoldCFException e)
+    throws ManifoldCFException
   {
-    if (e.getErrorCode() == ACFException.INTERRUPTED)
+    if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
       throw e;
     Logging.api.error(e.getMessage(),e);
     ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);

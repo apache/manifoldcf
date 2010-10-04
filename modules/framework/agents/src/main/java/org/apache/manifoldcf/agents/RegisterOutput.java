@@ -39,7 +39,7 @@ public class RegisterOutput extends TransactionalAgentsInitializationCommand
     this.description = description;
   }
 
-  protected void doExecute(IThreadContext tc) throws ACFException
+  protected void doExecute(IThreadContext tc) throws ManifoldCFException
   {
     IOutputConnectorManager mgr = OutputConnectorManagerFactory.make(tc);
     IOutputConnectionManager connManager = OutputConnectionManagerFactory.make(tc);
@@ -70,7 +70,7 @@ public class RegisterOutput extends TransactionalAgentsInitializationCommand
       registerOutput.execute();
       System.err.println("Successfully registered output connector '"+className+"'");
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       e.printStackTrace();
       System.exit(1);

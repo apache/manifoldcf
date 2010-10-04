@@ -20,7 +20,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ACF.checkMaintenanceUnderway();
+boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ManifoldCF.checkMaintenanceUnderway();
 
 %>
 
@@ -216,7 +216,7 @@ if (maintenanceUnderway == false)
 
 <%
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
 	out.println("Error: "+e.getMessage());
 	e.printStackTrace();

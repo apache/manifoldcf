@@ -21,7 +21,7 @@ package org.apache.manifoldcf.api;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
-import org.apache.manifoldcf.crawler.system.ACF;
+import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import org.apache.manifoldcf.crawler.system.Logging;
 
 import java.io.*;
@@ -31,7 +31,7 @@ import java.net.*;
 import javax.servlet.*;
 import javax.servlet.http.*;
 
-/** This servlet class provides API services for ACF.
+/** This servlet class provides API services for ManifoldCF.
 */
 public class APIServlet extends HttpServlet
 {
@@ -46,10 +46,10 @@ public class APIServlet extends HttpServlet
     try
     {
       // Set up the environment
-      ACF.initializeEnvironment();
+      ManifoldCF.initializeEnvironment();
       // Nothing more needs to be done at this point.
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       Logging.misc.error("Error starting API service: "+e.getMessage(),e);
       throw new ServletException("Error starting API service: "+e.getMessage(),e);
@@ -64,10 +64,10 @@ public class APIServlet extends HttpServlet
     try
     {
       // Set up the environment
-      ACF.initializeEnvironment();
+      ManifoldCF.initializeEnvironment();
       // Nothing more needs to be done.
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       Logging.misc.error("Error shutting down API service: "+e.getMessage(),e);
     }
@@ -82,7 +82,7 @@ public class APIServlet extends HttpServlet
     try
     {
       // Set up the environment
-      ACF.initializeEnvironment();
+      ManifoldCF.initializeEnvironment();
 
       // Mint a thread context
       IThreadContext tc = ThreadContextFactory.make();
@@ -100,7 +100,7 @@ public class APIServlet extends HttpServlet
       executeRead(tc,response,pathInfo);
       
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       // We should only see this error if there's an API problem, not if there's an actual problem with the method being called.
       response.sendError(response.SC_BAD_REQUEST,e.getMessage());
@@ -115,7 +115,7 @@ public class APIServlet extends HttpServlet
     try
     {
       // Set up the environment
-      ACF.initializeEnvironment();
+      ManifoldCF.initializeEnvironment();
 
       // Mint a thread context
       IThreadContext tc = ThreadContextFactory.make();
@@ -141,7 +141,7 @@ public class APIServlet extends HttpServlet
 	content.close();
       }
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       // We should only see this error if there's an API problem, not if there's an actual problem with the method being called.
       response.sendError(response.SC_BAD_REQUEST,e.getMessage());
@@ -157,7 +157,7 @@ public class APIServlet extends HttpServlet
     try
     {
       // Set up the environment
-      ACF.initializeEnvironment();
+      ManifoldCF.initializeEnvironment();
 
       // Mint a thread context
       IThreadContext tc = ThreadContextFactory.make();
@@ -184,7 +184,7 @@ public class APIServlet extends HttpServlet
       }
       
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       // We should only see this error if there's an API problem, not if there's an actual problem with the method being called.
       response.sendError(response.SC_BAD_REQUEST,e.getMessage());
@@ -199,7 +199,7 @@ public class APIServlet extends HttpServlet
     try
     {
       // Set up the environment
-      ACF.initializeEnvironment();
+      ManifoldCF.initializeEnvironment();
 
       // Mint a thread context
       IThreadContext tc = ThreadContextFactory.make();
@@ -217,7 +217,7 @@ public class APIServlet extends HttpServlet
       executeDelete(tc,response,pathInfo);
       
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       // We should only see this error if there's an API problem, not if there's an actual problem with the method being called.
       response.sendError(response.SC_BAD_REQUEST,e.getMessage());
@@ -229,7 +229,7 @@ public class APIServlet extends HttpServlet
   /** Perform a general "read" operation.
   */
   protected static void executeRead(IThreadContext tc, HttpServletResponse response, String pathInfo)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     // Strip off leading "/"
     if (pathInfo.startsWith("/"))
@@ -254,7 +254,7 @@ public class APIServlet extends HttpServlet
     
     // There the only response distinction we have here is between exception and no exception.
     Configuration output = new Configuration();
-    boolean exists = ACF.executeReadCommand(tc,output,command);
+    boolean exists = ManifoldCF.executeReadCommand(tc,output,command);
     
     // Output
     
@@ -267,7 +267,7 @@ public class APIServlet extends HttpServlet
       {
 	outputText = output.toJSON();
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
 	// Log it
 	Logging.api.error("Error forming JSON response: "+e.getMessage(),e);
@@ -306,7 +306,7 @@ public class APIServlet extends HttpServlet
   /** Perform a general "write" operation.
   */
   protected static void executeWrite(IThreadContext tc, HttpServletResponse response, String pathInfo, InputStream data)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     // Strip off leading "/"
     if (pathInfo.startsWith("/"))
@@ -364,7 +364,7 @@ public class APIServlet extends HttpServlet
     // Exception vs. no exception
     // OK vs CREATE (both with json response packets)
     Configuration output = new Configuration();
-    int writeResult = ACF.executeWriteCommand(tc,output,command,input);
+    int writeResult = ManifoldCF.executeWriteCommand(tc,output,command,input);
     
     // Output
     
@@ -378,7 +378,7 @@ public class APIServlet extends HttpServlet
       {
 	outputText = output.toJSON();
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
 	// Log it
 	Logging.api.error("Error forming JSON response: "+e.getMessage(),e);
@@ -394,9 +394,9 @@ public class APIServlet extends HttpServlet
     }
 
     // This should return either 200 or SC_CREATED
-    if (writeResult == ACF.WRITERESULT_CREATED)
+    if (writeResult == ManifoldCF.WRITERESULT_CREATED)
       response.setStatus(response.SC_CREATED);
-    else if (writeResult == ACF.WRITERESULT_NOTFOUND)
+    else if (writeResult == ManifoldCF.WRITERESULT_NOTFOUND)
       response.setStatus(response.SC_NOT_FOUND);
     
     byte[] responseValue = outputText.getBytes("utf-8");
@@ -420,7 +420,7 @@ public class APIServlet extends HttpServlet
   /** Perform a general "post" operation.
   */
   protected static void executePost(IThreadContext tc, HttpServletResponse response, String pathInfo, InputStream data)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     // Strip off leading "/"
     if (pathInfo.startsWith("/"))
@@ -475,7 +475,7 @@ public class APIServlet extends HttpServlet
     // Execute the request.
     
     Configuration output = new Configuration();
-    int writeResult = ACF.executePostCommand(tc,output,command,input);
+    int writeResult = ManifoldCF.executePostCommand(tc,output,command,input);
     
     // Output
     
@@ -489,7 +489,7 @@ public class APIServlet extends HttpServlet
       {
 	outputText = output.toJSON();
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
 	// Log it
 	Logging.api.error("Error forming JSON response: "+e.getMessage(),e);
@@ -505,9 +505,9 @@ public class APIServlet extends HttpServlet
     }
 
     // This should return either 200 or SC_CREATED
-    if (writeResult == ACF.WRITERESULT_CREATED)
+    if (writeResult == ManifoldCF.WRITERESULT_CREATED)
       response.setStatus(response.SC_CREATED);
-    else if (writeResult == ACF.WRITERESULT_NOTFOUND)
+    else if (writeResult == ManifoldCF.WRITERESULT_NOTFOUND)
       response.setStatus(response.SC_NOT_FOUND);
     
     byte[] responseValue = outputText.getBytes("utf-8");
@@ -531,7 +531,7 @@ public class APIServlet extends HttpServlet
   /** Perform a general "delete" operation.
   */
   protected static void executeDelete(IThreadContext tc, HttpServletResponse response, String pathInfo)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     // Strip off leading "/"
     if (pathInfo.startsWith("/"))
@@ -556,7 +556,7 @@ public class APIServlet extends HttpServlet
     
     // There the only response distinction we have here is between exception and no exception.
     Configuration output = new Configuration();
-    boolean exists = ACF.executeDeleteCommand(tc,output,command);
+    boolean exists = ManifoldCF.executeDeleteCommand(tc,output,command);
     
     // Output
     String outputText = null;
@@ -568,7 +568,7 @@ public class APIServlet extends HttpServlet
       {
 	outputText = output.toJSON();
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
 	// Log it
 	Logging.api.error("Error forming JSON response: "+e.getMessage(),e);

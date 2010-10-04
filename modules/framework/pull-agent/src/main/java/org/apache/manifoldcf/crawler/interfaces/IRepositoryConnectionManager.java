@@ -29,33 +29,33 @@ public interface IRepositoryConnectionManager
   /** Install the manager.
   */
   public void install()
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Uninstall the manager.
   */
   public void deinstall()
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Export configuration */
   public void exportConfiguration(java.io.OutputStream os)
-    throws java.io.IOException, ACFException;
+    throws java.io.IOException, ManifoldCFException;
 
   /** Import configuration */
   public void importConfiguration(java.io.InputStream is)
-    throws java.io.IOException, ACFException;
+    throws java.io.IOException, ManifoldCFException;
 
   /** Obtain a list of the repository connections, ordered by name.
   *@return an array of connection objects.
   */
   public IRepositoryConnection[] getAllConnections()
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Load a repository connection by name.
   *@param name is the name of the repository connection.
   *@return the loaded connection object, or null if not found.
   */
   public IRepositoryConnection load(String name)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Load a set of repository connections.
   *@param names are the names of the repository connections.
@@ -63,48 +63,48 @@ public interface IRepositoryConnectionManager
   * values for those not found.
   */
   public IRepositoryConnection[] loadMultiple(String[] names)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Create a new repository connection object.
   *@return the new object.
   */
   public IRepositoryConnection create()
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Save a repository connection object.
   *@param object is the object to save.
   *@return true if the object is created, false otherwise.
   */
   public boolean save(IRepositoryConnection object)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Delete a repository connection.
   *@param name is the name of the connection to delete.  If the
   * name does not exist, no error is returned.
   */
   public void delete(String name)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Return true if the specified authority name is referenced.
   *@param authorityName is the authority name.
   *@return true if referenced, false otherwise.
   */
   public boolean isReferenced(String authorityName)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Get a list of repository connections that share the same connector.
   *@param className is the class name of the connector.
   *@return the repository connections that use that connector.
   */
   public String[] findConnectionsForConnector(String className)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Check if underlying connector exists.
   *@param name is the name of the connection to check.
   *@return true if the underlying connector is registered.
   */
   public boolean checkConnectorExists(String name)
-    throws ACFException;
+    throws ManifoldCFException;
 
   // Schema related
 
@@ -163,7 +163,7 @@ public interface IRepositoryConnectionManager
   */
   public void recordHistory(String connectionName, Long startTime, String activityType, Long dataSize,
     String entityIdentifier, String resultCode, String resultDescription, String[] childIdentifiers)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Generate a report, listing the start time, elapsed time, result code and description, number of bytes, and entity identifier.
   * The records selected for this report are based on the filtering criteria object passed into this method.
@@ -176,7 +176,7 @@ public interface IRepositoryConnectionManager
   *@param maxRowCount is the maximum number of rows to include.
   */
   public IResultSet genHistorySimple(String connectionName, FilterCriteria criteria, SortOrder sort, int startRow, int maxRowCount)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Count the number of rows specified by a given set of criteria.  This can be used to make decisions
   * as to whether a query based on those rows will complete in an acceptable amount of time.
@@ -185,7 +185,7 @@ public interface IRepositoryConnectionManager
   *@return the number of rows included by the criteria.
   */
   public long countHistoryRows(String connectionName, FilterCriteria criteria)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Generate a report, listing the start time, activity count, and identifier bucket, given
   * a time slice (interval) size.
@@ -205,7 +205,7 @@ public interface IRepositoryConnectionManager
   */
   public IResultSet genHistoryActivityCount(String connectionName, FilterCriteria criteria, SortOrder sort, BucketDescription idBucket,
     long interval, int startRow, int maxRowCount)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Generate a report, listing the start time, bytes processed, and identifier bucket, given
   * a time slice (interval) size.
@@ -225,7 +225,7 @@ public interface IRepositoryConnectionManager
   */
   public IResultSet genHistoryByteCount(String connectionName, FilterCriteria criteria, SortOrder sort, BucketDescription idBucket,
     long interval, int startRow, int maxRowCount)
-    throws ACFException;
+    throws ManifoldCFException;
 
 
   /** Generate a report, listing the result bucket and identifier bucket.
@@ -244,7 +244,7 @@ public interface IRepositoryConnectionManager
   */
   public IResultSet genHistoryResultCodes(String connectionName, FilterCriteria criteria, SortOrder sort,
     BucketDescription resultCodeBucket, BucketDescription idBucket, int startRow, int maxRowCount)
-    throws ACFException;
+    throws ManifoldCFException;
 
 
 }

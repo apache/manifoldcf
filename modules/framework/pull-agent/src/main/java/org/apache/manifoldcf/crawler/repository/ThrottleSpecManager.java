@@ -41,7 +41,7 @@ public class ThrottleSpecManager extends org.apache.manifoldcf.core.database.Bas
   *@param database is the database instance.
   */
   public ThrottleSpecManager(IDBInterface database)
-    throws ACFException
+    throws ManifoldCFException
   {
     super(database,"throttlespec");
   }
@@ -51,7 +51,7 @@ public class ThrottleSpecManager extends org.apache.manifoldcf.core.database.Bas
   *@param owningTablePrimaryKey is the primary key of the owning table.
   */
   public void install(String ownerTable, String owningTablePrimaryKey)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Always use a loop, in case upgrade needs it.
     while (true)
@@ -111,7 +111,7 @@ public class ThrottleSpecManager extends org.apache.manifoldcf.core.database.Bas
   /** Uninstall.
   */
   public void deinstall()
-    throws ACFException
+    throws ManifoldCFException
   {
     performDrop(null);
   }
@@ -121,7 +121,7 @@ public class ThrottleSpecManager extends org.apache.manifoldcf.core.database.Bas
   *@return a list, with columns: "description", "match", and "value".
   */
   public IResultSet readRows(String name)
-    throws ACFException
+    throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
     list.add(name);
@@ -136,7 +136,7 @@ public class ThrottleSpecManager extends org.apache.manifoldcf.core.database.Bas
   *@param ownerNameParams is the corresponding set of connection name parameters.
   */
   public void getRows(IRepositoryConnection[] connections, Map indexMap, String ownerNameList, ArrayList ownerNameParams)
-    throws ACFException
+    throws ManifoldCFException
   {
     IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+ownerNameField+" IN ("+ownerNameList+")",ownerNameParams,
       null,null);
@@ -159,7 +159,7 @@ public class ThrottleSpecManager extends org.apache.manifoldcf.core.database.Bas
   *@param connection is the connection to write throttle specs for.
   */
   public void writeRows(String owner, IRepositoryConnection connection)
-    throws ACFException
+    throws ManifoldCFException
   {
     beginTransaction();
     try
@@ -181,7 +181,7 @@ public class ThrottleSpecManager extends org.apache.manifoldcf.core.database.Bas
         performInsert(map,null);
       }
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       signalRollback();
       throw e;
@@ -201,7 +201,7 @@ public class ThrottleSpecManager extends org.apache.manifoldcf.core.database.Bas
   *@param owner is the owner whose rows to delete.
   */
   public void deleteRows(String owner)
-    throws ACFException
+    throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
     list.add(owner);

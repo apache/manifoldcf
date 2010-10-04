@@ -44,7 +44,7 @@ public interface IProcessActivity extends IHistoryActivity, IEventActivity, IAbo
   */
   public void addDocumentReference(String localIdentifier, String parentIdentifier, String relationshipType,
     String[] dataNames, Object[][] dataValues, Long originationTime, String[] prereqEventNames)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Add a document description to the current job's queue.
   *@param localIdentifier is the local document identifier to add (for the connector that
@@ -61,7 +61,7 @@ public interface IProcessActivity extends IHistoryActivity, IEventActivity, IAbo
   */
   public void addDocumentReference(String localIdentifier, String parentIdentifier, String relationshipType,
     String[] dataNames, Object[][] dataValues, Long originationTime)
-    throws ACFException;
+    throws ManifoldCFException;
 
 
   /** Add a document description to the current job's queue.
@@ -78,7 +78,7 @@ public interface IProcessActivity extends IHistoryActivity, IEventActivity, IAbo
   */
   public void addDocumentReference(String localIdentifier, String parentIdentifier, String relationshipType,
     String[] dataNames, Object[][] dataValues)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Add a document description to the current job's queue.
   *@param localIdentifier is the local document identifier to add (for the connector that
@@ -90,7 +90,7 @@ public interface IProcessActivity extends IHistoryActivity, IEventActivity, IAbo
   * "getRelationshipTypes()".  May be null.
   */
   public void addDocumentReference(String localIdentifier, String parentIdentifier, String relationshipType)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Add a document description to the current job's queue.  This method is equivalent to
   * addDocumentReference(localIdentifier,null,null).
@@ -98,7 +98,7 @@ public interface IProcessActivity extends IHistoryActivity, IEventActivity, IAbo
   * fetched the document).
   */
   public void addDocumentReference(String localIdentifier)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Retrieve data passed from parents to a specified child document.
   *@param localIdentifier is the document identifier of the document we want the recorded data for.
@@ -106,7 +106,7 @@ public interface IProcessActivity extends IHistoryActivity, IEventActivity, IAbo
   *@return an array containing the unique data values passed from ALL parents.  Note that these are in no particular order, and there will not be any duplicates.
   */
   public String[] retrieveParentData(String localIdentifier, String dataName)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Retrieve data passed from parents to a specified child document.
   *@param localIdentifier is the document identifier of the document we want the recorded data for.
@@ -114,14 +114,14 @@ public interface IProcessActivity extends IHistoryActivity, IEventActivity, IAbo
   *@return an array containing the unique data values passed from ALL parents.  Note that these are in no particular order, and there will not be any duplicates.
   */
   public CharacterInput[] retrieveParentDataAsFiles(String localIdentifier, String dataName)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Record a document version, but don't ingest it.
   *@param localIdentifier is the document identifier.
   *@param version is the document version.
   */
   public void recordDocument(String localIdentifier, String version)
-    throws ACFException, ServiceInterruption;
+    throws ManifoldCFException, ServiceInterruption;
 
   /** Ingest the current document.
   *@param localIdentifier is the document's local identifier.
@@ -132,13 +132,13 @@ public interface IProcessActivity extends IHistoryActivity, IEventActivity, IAbo
   *@param data is the document data.  The data is closed after ingestion is complete.
   */
   public void ingestDocument(String localIdentifier, String version, String documentURI, RepositoryDocument data)
-    throws ACFException, ServiceInterruption;
+    throws ManifoldCFException, ServiceInterruption;
 
   /** Delete the current document from the search engine index.
   *@param localIdentifier is the document's local identifier.
   */
   public void deleteDocument(String localIdentifier)
-    throws ACFException, ServiceInterruption;
+    throws ManifoldCFException, ServiceInterruption;
 
   /** Override the schedule for the next time a document is crawled.
   * Calling this method allows you to set an upper recrawl bound, lower recrawl bound, upper expire bound, lower expire bound,
@@ -153,7 +153,7 @@ public interface IProcessActivity extends IHistoryActivity, IEventActivity, IAbo
   public void setDocumentScheduleBounds(String localIdentifier,
     Long lowerRecrawlBoundTime, Long upperRecrawlBoundTime,
     Long lowerExpireBoundTime, Long upperExpireBoundTime)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Override a document's origination time.
   * Use this method to signal the framework that a document's origination time is something other than the first time it was crawled.
@@ -162,6 +162,6 @@ public interface IProcessActivity extends IHistoryActivity, IEventActivity, IAbo
   */
   public void setDocumentOriginationTime(String localIdentifier,
     Long originationTime)
-    throws ACFException;
+    throws ManifoldCFException;
 
 }

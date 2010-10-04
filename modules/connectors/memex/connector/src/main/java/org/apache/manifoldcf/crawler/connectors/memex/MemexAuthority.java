@@ -22,7 +22,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.authorities.interfaces.*;
 import org.apache.manifoldcf.authorities.system.Logging;
-import org.apache.manifoldcf.authorities.system.ACF;
+import org.apache.manifoldcf.authorities.system.ManifoldCF;
 import com.memex.mie.*;
 import com.memex.mie.pool.*;
 import java.util.*;
@@ -69,9 +69,9 @@ public class MemexAuthority extends org.apache.manifoldcf.authorities.authoritie
   protected String characterEncoding = null;
 
   //mieConnection is the connection to the main Configuration Server.
-  //There will be further ACFMemexConnection objects for each
+  //There will be further ManifoldCFMemexConnection objects for each
   //physical server accessed through the physicalServers collection.
-  private ACFMemexConnection mieConnection = null;
+  private ManifoldCFMemexConnection mieConnection = null;
   private MemexConnectionPool miePool = new MemexConnectionPool();
 
   //Collection describing the logical servers making up this system
@@ -79,7 +79,7 @@ public class MemexAuthority extends org.apache.manifoldcf.authorities.authoritie
   private Hashtable<String, LogicalServer> logicalServersByPrefix = null;
 
   //Collection describing the physical servers making up this system
-  private Hashtable<String, ACFMemexConnection> physicalServers = null;
+  private Hashtable<String, ManifoldCFMemexConnection> physicalServers = null;
 
   //Two collections describing the entities in the set-up - one keyed by the entities' name, the other
   //by their label - generally speaking, we should use labels for anything being presented to the users
@@ -140,7 +140,7 @@ public class MemexAuthority extends org.apache.manifoldcf.authorities.authoritie
   /** Check connection for sanity.
   */
   public String check()
-    throws ACFException
+    throws ManifoldCFException
   {
     try{
       this.setupConnection();
@@ -155,7 +155,7 @@ public class MemexAuthority extends org.apache.manifoldcf.authorities.authoritie
   * in active use.
   */
   public void poll()
-    throws ACFException
+    throws ManifoldCFException
   {
     // Is the connection still valid?
     if (this.physicalServers != null && !this.physicalServers.isEmpty())
@@ -173,7 +173,7 @@ public class MemexAuthority extends org.apache.manifoldcf.authorities.authoritie
   /** Close the connection.  Call this before discarding the repository connector.
   */
   public void disconnect()
-    throws ACFException
+    throws ManifoldCFException
   {
     matchMap = null;
     this.cleanUpConnections();
@@ -191,7 +191,7 @@ public class MemexAuthority extends org.apache.manifoldcf.authorities.authoritie
   * (Should throws an exception only when a condition cannot be properly described within the authorization response object.)
   */
   public AuthorizationResponse getAuthorizationResponse(String userName)
-    throws ACFException
+    throws ManifoldCFException
   {
 
     Hashtable<String,Hashtable<String, String>> userDBList = new Hashtable<String,Hashtable<String, String>>();
@@ -210,9 +210,9 @@ public class MemexAuthority extends org.apache.manifoldcf.authorities.authoritie
       this.setupConnection();
     }
     catch(ServiceInterruption mex){
-      //something transient's gone wrong connecting.  Throw a ACFException (which will be caught, and the appropriate default behavior instigated).
+      //something transient's gone wrong connecting.  Throw a ManifoldCFException (which will be caught, and the appropriate default behavior instigated).
       Logging.authorityConnectors.warn("Memex: Transient authority error: "+mex.getMessage(),mex.getCause());
-      throw new ACFException(mex.getMessage(),mex.getCause());
+      throw new ManifoldCFException(mex.getMessage(),mex.getCause());
     }
 
     //Next - search for the user's record in the mxUserGroup database
@@ -250,7 +250,7 @@ public class MemexAuthority extends org.apache.manifoldcf.authorities.authoritie
             //This shouldn't happen - should only be one entry per user
             if (Logging.authorityConnectors.isDebugEnabled())
               Logging.authorityConnectors.warn("Memex: Multiple entries found for '"+userName+"'!");
-            throw new ACFException("Memex Error retrieving user information : multiple entries found for user " + userName);
+            throw new ManifoldCFException("Memex Error retrieving user information : multiple entries found for user " + userName);
           }else{
             //OK - we found the user - we need four fields from thier record - groups, servers, attributes and keys
             if (Logging.authorityConnectors.isDebugEnabled())
@@ -364,18 +364,18 @@ public class MemexAuthority extends org.apache.manifoldcf.authorities.authoritie
         }else{
           //This is bad - we're connected, but we can't find the UserGroup database
           Logging.authorityConnectors.error("Memex: Can't locate UserGroup database.");
-          throw new ACFException("Memex Error: Can't locate the mxUserGroup Database");
+          throw new ManifoldCFException("Memex Error: Can't locate the mxUserGroup Database");
         }
       }else{
         //This is bad as well - we're connected but didn't find any registry entries
         Logging.authorityConnectors.error("Memex: Configuration Server's registry appears to be null.");
-        throw new ACFException("Memex Error: Configuration Server's registry is null");
+        throw new ManifoldCFException("Memex Error: Configuration Server's registry is null");
       }
     }catch(MemexException me){
       //something threw an error - most likely a connection issue.
-      // ACFExceptions will be handled by getting the default authorization response instead.
+      // ManifoldCFExceptions will be handled by getting the default authorization response instead.
       Logging.authorityConnectors.warn("Memex: Unknown error calculating user access tokens: "+me.getMessage(),me);
-      throw new ACFException("Memex transient error: "+me.getMessage(),me);
+      throw new ManifoldCFException("Memex transient error: "+me.getMessage(),me);
     }
   }
 
@@ -403,7 +403,7 @@ public class MemexAuthority extends org.apache.manifoldcf.authorities.authoritie
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     tabsArray.add("Memex Server");
     tabsArray.add("User Mapping");
@@ -623,7 +623,7 @@ public class MemexAuthority extends org.apache.manifoldcf.authorities.authoritie
   *@param tabName is the current tab name.
   */
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     String memexServerName = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.memex.MemexAuthority.CONFIG_PARAM_MEMEXSERVERNAME);
     if (memexServerName == null)
@@ -736,7 +736,7 @@ public class MemexAuthority extends org.apache.manifoldcf.authorities.authoritie
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
-    throws ACFException
+    throws ManifoldCFException
   {
     String memexServerName = variableContext.getParameter("memexservername");
     if (memexServerName != null)
@@ -777,7 +777,7 @@ public class MemexAuthority extends org.apache.manifoldcf.authorities.authoritie
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
@@ -824,7 +824,7 @@ public class MemexAuthority extends org.apache.manifoldcf.authorities.authoritie
   //
   ///////////////////////////////////////////////////////////////////////
   public void setupConnection()
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     boolean connected = false;
     if((this.physicalServers != null) && !(this.physicalServers.isEmpty())){
@@ -832,7 +832,7 @@ public class MemexAuthority extends org.apache.manifoldcf.authorities.authoritie
       connected = true;
       for(Enumeration serverkeys = physicalServers.keys(); serverkeys.hasMoreElements();){
         String serverkey = (String)serverkeys.nextElement();
-        ACFMemexConnection pserver = physicalServers.get(serverkey);
+        ManifoldCFMemexConnection pserver = physicalServers.get(serverkey);
         if(!(pserver.isConnected())){
           connected = false;
         }
@@ -852,10 +852,10 @@ public class MemexAuthority extends org.apache.manifoldcf.authorities.authoritie
         miePool.setCharset(characterEncoding);
 
         //Initialise data structures
-        mieConnection = new ACFMemexConnection();
+        mieConnection = new ManifoldCFMemexConnection();
         logicalServers = new Hashtable<String, LogicalServer>();
         logicalServersByPrefix = new Hashtable<String, LogicalServer>();
-        physicalServers = new Hashtable<String, ACFMemexConnection>();
+        physicalServers = new Hashtable<String, ManifoldCFMemexConnection>();
         entitiesByName = new Hashtable<String, MemexEntity>();
         entitiesByLabel = new Hashtable<String, MemexEntity>();
         entitiesByPrefix = new Hashtable<String, MemexEntity>();
@@ -888,7 +888,7 @@ public class MemexAuthority extends org.apache.manifoldcf.authorities.authoritie
         roleGroups = this.initialiseRoleGroups();
       }
       catch(PoolAuthenticationException e){
-        throw new ACFException("Authentication failure connecting to Memex Server " + miePool.getHostname() + ":" + Integer.toString(miePool.getPort())+": "+e.getMessage(),e);
+        throw new ManifoldCFException("Authentication failure connecting to Memex Server " + miePool.getHostname() + ":" + Integer.toString(miePool.getPort())+": "+e.getMessage(),e);
       }
       catch(PoolException e){
         Logging.authorityConnectors.warn("Memex: Pool error connecting to Memex Server " + miePool.getHostname() + ":" + Integer.toString(miePool.getPort()) + " - " + e.getMessage() + " - retrying",e);
@@ -929,7 +929,7 @@ public class MemexAuthority extends org.apache.manifoldcf.authorities.authoritie
       while (i < serverKeyArray.length)
       {
         String serverkey = serverKeyArray[i++];
-        ACFMemexConnection currentMIE = physicalServers.get(serverkey);
+        ManifoldCFMemexConnection currentMIE = physicalServers.get(serverkey);
         try{
           // Remove history directories belonging to this session
           physicalServers.remove(serverkey);
@@ -957,7 +957,7 @@ public class MemexAuthority extends org.apache.manifoldcf.authorities.authoritie
 
       for(Enumeration serverkeys = physicalServers.keys(); serverkeys.hasMoreElements();){
         String serverkey = (String)serverkeys.nextElement();
-        ACFMemexConnection currentMIE = physicalServers.get(serverkey);
+        ManifoldCFMemexConnection currentMIE = physicalServers.get(serverkey);
         try{
           // Remove history directories belonging to this session
           String histdir = currentMIE.mie.mxie_history_current();
@@ -1097,7 +1097,7 @@ public class MemexAuthority extends org.apache.manifoldcf.authorities.authoritie
             serverFields.add(serversource);
             //mieConnection.mie.mxie_goto_record(hist, x);
             mieConnection.mie.mxie_decode_fields(serverFields);
-            ACFMemexConnection mie;
+            ManifoldCFMemexConnection mie;
             if(serversource.getText().equals("configuration-server")){
               mie = mieConnection;
             }else{
@@ -1314,14 +1314,14 @@ public class MemexAuthority extends org.apache.manifoldcf.authorities.authoritie
 
 
 
-  private ACFMemexConnection getPhysicalServer(String server, int port){
+  private ManifoldCFMemexConnection getPhysicalServer(String server, int port){
 
     String key = server + ":" + Integer.toString(port);
 
     if(physicalServers.containsKey(key)){
-      return (ACFMemexConnection)physicalServers.get(key);
+      return (ManifoldCFMemexConnection)physicalServers.get(key);
     }else{
-      ACFMemexConnection newServer = new ACFMemexConnection();
+      ManifoldCFMemexConnection newServer = new ManifoldCFMemexConnection();
       try{
         MemexConnection newMIE = miePool.getConnection(server, port);
         newServer.mie = newMIE;

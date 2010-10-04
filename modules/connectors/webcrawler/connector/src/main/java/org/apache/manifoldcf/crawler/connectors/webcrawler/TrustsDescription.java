@@ -19,7 +19,7 @@
 package org.apache.manifoldcf.crawler.connectors.webcrawler;
 
 import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.crawler.system.ACF;
+import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import java.util.*;
 import java.util.regex.*;
 
@@ -47,7 +47,7 @@ public class TrustsDescription
 
   /** Constructor.  Build the description from the ConfigParams. */
   public TrustsDescription(ConfigParams configData)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Scan, looking for bin description nodes
     int i = 0;
@@ -68,7 +68,7 @@ public class TrustsDescription
           }
           catch (java.util.regex.PatternSyntaxException e)
           {
-            throw new ACFException("Trust regular expression '"+urlDescription+"' is illegal: "+e.getMessage(),e);
+            throw new ManifoldCFException("Trust regular expression '"+urlDescription+"' is illegal: "+e.getMessage(),e);
           }
           if (trustEverything != null && trustEverything.equals("true"))
           {
@@ -84,7 +84,7 @@ public class TrustsDescription
         }
         catch (PatternSyntaxException e)
         {
-          throw new ACFException("Bad pattern syntax in '"+urlDescription+"': "+e.getMessage(),e);
+          throw new ManifoldCFException("Bad pattern syntax in '"+urlDescription+"': "+e.getMessage(),e);
         }
       }
     }
@@ -93,7 +93,7 @@ public class TrustsDescription
   /** Given a URL, build the right trust certificate store, or return null if all certs should be accepted.
   */
   public IKeystoreManager getTrustStore(String url)
-    throws ACFException
+    throws ManifoldCFException
   {
     IKeystoreManager rval = KeystoreManagerFactory.make("");
 
@@ -133,7 +133,7 @@ public class TrustsDescription
 
     /** Constructor. */
     public TrustsItem(Pattern p, String trustStoreString)
-      throws ACFException
+      throws ManifoldCFException
     {
       pattern = p;
       if (trustStoreString != null)

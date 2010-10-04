@@ -34,6 +34,6 @@ public interface IAbortActivity
   * caller, will signal that the current seeding activity remains incomplete and must be retried when the job is resumed.
   */
   public void checkJobStillActive()
-    throws ACFException, ServiceInterruption;
+    throws ManifoldCFException, ServiceInterruption;
 
 }

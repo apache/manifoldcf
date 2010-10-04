@@ -35,7 +35,7 @@ response.setContentType("text/html;charset=utf-8");
 <%@ page import="java.util.*" %>
 
 <%
-	org.apache.manifoldcf.crawler.system.ACF.initializeEnvironment();
+	org.apache.manifoldcf.crawler.system.ManifoldCF.initializeEnvironment();
 %>
 
 <jsp:useBean id="thread" class="org.apache.manifoldcf.ui.beans.ThreadContext" scope="request"/>

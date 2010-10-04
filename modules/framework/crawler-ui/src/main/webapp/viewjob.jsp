@@ -74,7 +74,7 @@
 	IJobDescription job = manager.load(new Long(jobID));
 	if (job == null)
 	{
-		throw new ACFException("No such job: "+jobID);
+		throw new ManifoldCFException("No such job: "+jobID);
 	}
 	else
 	{
@@ -599,7 +599,7 @@
 <%
 	}
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
 	e.printStackTrace();
 	variableContext.setParameter("text",e.getMessage());

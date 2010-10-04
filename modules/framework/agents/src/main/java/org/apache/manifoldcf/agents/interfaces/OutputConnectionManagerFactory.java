@@ -19,7 +19,7 @@
 package org.apache.manifoldcf.agents.interfaces;
 
 import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.agents.system.ACF;
+import org.apache.manifoldcf.agents.system.ManifoldCF;
 
 import java.util.*;
 
@@ -41,15 +41,15 @@ public class OutputConnectionManagerFactory
   *@return the handle.
   */
   public static IOutputConnectionManager make(IThreadContext tc)
-    throws ACFException
+    throws ManifoldCFException
   {
     Object o = tc.get(objectName);
     if (o == null || !(o instanceof IOutputConnectionManager))
     {
       IDBInterface database = DBInterfaceFactory.make(tc,
-        ACF.getMasterDatabaseName(),
-        ACF.getMasterDatabaseUsername(),
-        ACF.getMasterDatabasePassword());
+        ManifoldCF.getMasterDatabaseName(),
+        ManifoldCF.getMasterDatabaseUsername(),
+        ManifoldCF.getMasterDatabasePassword());
 
       o = new org.apache.manifoldcf.agents.outputconnection.OutputConnectionManager(tc,database);
       tc.save(objectName,o);
@@ -62,7 +62,7 @@ public class OutputConnectionManagerFactory
   *@return the sorted list of output connection activities.
   */
   public static String[] getAllOutputActivities(IThreadContext tc)
-    throws ACFException
+    throws ManifoldCFException
   {
     IOutputConnectionManager manager = make(tc);
     IOutputConnection[] connections = manager.getAllConnections();

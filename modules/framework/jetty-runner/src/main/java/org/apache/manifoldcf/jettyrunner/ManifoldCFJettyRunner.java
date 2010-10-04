@@ -41,13 +41,13 @@ import org.mortbay.jetty.servlet.FilterHolder;
 import org.mortbay.log.Logger;
 
 /**
- * Run ACF with jetty.
+ * Run ManifoldCF with jetty.
  * 
  */
-public class ACFJettyRunner
+public class ManifoldCFJettyRunner
 {
 
-  public static final String _rcsid = "@(#)$Id: ACFJettyRunner.java 989983 2010-08-27 00:10:12Z kwright $";
+  public static final String _rcsid = "@(#)$Id: ManifoldCFJettyRunner.java 989983 2010-08-27 00:10:12Z kwright $";
 
   public static final String agentShutdownSignal = org.apache.manifoldcf.agents.AgentRun.agentShutdownSignal;
 
@@ -63,7 +63,7 @@ public class ACFJettyRunner
   
   protected Server server;
   
-  public ACFJettyRunner( int port, String crawlerWarPath, String authorityServiceWarPath, String apiWarPath )
+  public ManifoldCFJettyRunner( int port, String crawlerWarPath, String authorityServiceWarPath, String apiWarPath )
   {
     server = new Server( port );    
     server.setStopAtShutdown( true );
@@ -83,7 +83,7 @@ public class ACFJettyRunner
   }
 
   public void start()
-    throws ACFException
+    throws ManifoldCFException
   {
     if(!server.isRunning() )
     {
@@ -93,13 +93,13 @@ public class ACFJettyRunner
       }
       catch (Exception e)
       {
-        throw new ACFException("Couldn't start: "+e.getMessage(),e);
+        throw new ManifoldCFException("Couldn't start: "+e.getMessage(),e);
       }
     }
   }
 
   public void stop()
-    throws ACFException
+    throws ManifoldCFException
   {
     if( server.isRunning() )
     {
@@ -109,7 +109,7 @@ public class ACFJettyRunner
       }
       catch (Exception e)
       {
-        throw new ACFException("Couldn't stop: "+e.getMessage(),e);
+        throw new ManifoldCFException("Couldn't stop: "+e.getMessage(),e);
       }
       try
       {
@@ -117,7 +117,7 @@ public class ACFJettyRunner
       }
       catch (InterruptedException e)
       {
-        throw new ACFException(e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
     }
   }
@@ -127,11 +127,11 @@ public class ACFJettyRunner
    * @return the port number.
    */
   public int getLocalPort()
-    throws ACFException
+    throws ManifoldCFException
   {
     Connector[] conns = server.getConnectors();
     if (0 == conns.length) {
-      throw new ACFException("Jetty Server has no Connectors");
+      throw new ManifoldCFException("Jetty Server has no Connectors");
     }
     return conns[0].getLocalPort();
   }
@@ -143,7 +143,7 @@ public class ACFJettyRunner
   {
     if (args.length != 4 && args.length != 1 && args.length != 0)
     {
-      System.err.println("Usage: ACFJettyRunner [<port> [<crawler-war-path> <authority-service-war-path> <api-war-path>]]");
+      System.err.println("Usage: ManifoldCFJettyRunner [<port> [<crawler-war-path> <authority-service-war-path> <api-war-path>]]");
       System.exit(1);
     }
 
@@ -172,10 +172,10 @@ public class ACFJettyRunner
     }
     
     // Ready to begin in earnest...
-    System.setProperty(ACF.lcfConfigFileProperty,"./properties.xml");
+    System.setProperty(ManifoldCF.lcfConfigFileProperty,"./properties.xml");
     try
     {
-      ACF.initializeEnvironment();
+      ManifoldCF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
 
       // Clear the agents shutdown signal.
@@ -184,19 +184,19 @@ public class ACFJettyRunner
 
       // Grab a database handle, so we can use transactions later.
       IDBInterface database = DBInterfaceFactory.make(tc,
-        ACF.getMasterDatabaseName(),
-        ACF.getMasterDatabaseUsername(),
-        ACF.getMasterDatabasePassword());
+        ManifoldCF.getMasterDatabaseName(),
+        ManifoldCF.getMasterDatabaseUsername(),
+        ManifoldCF.getMasterDatabasePassword());
 
       // Do the basic initialization of the database and its schema
-      ACF.createSystemDatabase(tc,"","");
-      ACF.installTables(tc);
+      ManifoldCF.createSystemDatabase(tc,"","");
+      ManifoldCF.installTables(tc);
       IAgentManager agentMgr = AgentManagerFactory.make(tc);
       agentMgr.registerAgent("org.apache.manifoldcf.crawler.system.CrawlerAgent");
 
       // Read connectors configuration file (to figure out what we need to register)
       Connectors c = null;
-      File connectorConfigFile = ACF.getFileProperty(connectorsConfigurationFile);
+      File connectorConfigFile = ManifoldCF.getFileProperty(connectorsConfigurationFile);
       if (connectorConfigFile != null)
       {
         try
@@ -214,11 +214,11 @@ public class ACFJettyRunner
         }
         catch (FileNotFoundException e)
         {
-          throw new ACFException("Couldn't find connector configuration file: "+e.getMessage(),e);
+          throw new ManifoldCFException("Couldn't find connector configuration file: "+e.getMessage(),e);
         }
         catch (IOException e)
         {
-          throw new ACFException("Error reading connector configuration file: "+e.getMessage(),e);
+          throw new ManifoldCFException("Error reading connector configuration file: "+e.getMessage(),e);
         }
       }
       
@@ -245,7 +245,7 @@ public class ACFJettyRunner
             // Now that all jobs have been placed into an appropriate state, actually do the deregistration itself.
             mgr.unregisterConnector(className);
           }
-          catch (ACFException e)
+          catch (ManifoldCFException e)
           {
             database.signalRollback();
             throw e;
@@ -298,7 +298,7 @@ public class ACFJettyRunner
             // Now that all jobs have been placed into an appropriate state, actually do the deregistration itself.
             mgr.unregisterConnector(className);
           }
-          catch (ACFException e)
+          catch (ManifoldCFException e)
           {
             database.signalRollback();
             throw e;
@@ -342,7 +342,7 @@ public class ACFJettyRunner
               // For all connection names, notify all agents of the registration
               AgentManagerFactory.noteOutputConnectorRegistration(tc,connectionNames);
             }
-            catch (ACFException e)
+            catch (ManifoldCFException e)
             {
               database.signalRollback();
               throw e;
@@ -385,7 +385,7 @@ public class ACFJettyRunner
               // For each connection name, modify the jobs to note that the connector is now installed
               jobManager.noteConnectorRegistration(connectionNames);
             }
-            catch (ACFException e)
+            catch (ManifoldCFException e)
             {
               database.signalRollback();
               throw e;
@@ -402,14 +402,14 @@ public class ACFJettyRunner
             System.err.println("Successfully registered repository connector '"+className+"'");
           }
           else
-            throw new ACFException("Unrecognized connectors node type '"+cn.getType()+"'");
+            throw new ManifoldCFException("Unrecognized connectors node type '"+cn.getType()+"'");
         }
       }
       
       System.err.println("Starting jetty...");
       
       // Create a jetty instance
-      ACFJettyRunner jetty = new ACFJettyRunner(jettyPort,crawlerWarPath,authorityserviceWarPath,apiWarPath);
+      ManifoldCFJettyRunner jetty = new ManifoldCFJettyRunner(jettyPort,crawlerWarPath,authorityserviceWarPath,apiWarPath);
       // This will register a shutdown hook as well.
       jetty.start();
 
@@ -423,11 +423,11 @@ public class ACFJettyRunner
           break;
           
         // Start whatever agents need to be started
-        ACF.startAgents(tc);
+        ManifoldCF.startAgents(tc);
 
         try
         {
-          ACF.sleep(5000);
+          ManifoldCF.sleep(5000);
         }
         catch (InterruptedException e)
         {
@@ -436,7 +436,7 @@ public class ACFJettyRunner
       }
       System.err.println("Shutting down crawler...");
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       if (Logging.root != null)
         Logging.root.error("Exception: "+e.getMessage(),e);

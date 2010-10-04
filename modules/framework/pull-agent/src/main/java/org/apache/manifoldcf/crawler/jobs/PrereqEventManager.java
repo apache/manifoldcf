@@ -50,7 +50,7 @@ public class PrereqEventManager extends org.apache.manifoldcf.core.database.Base
   *@param database is the database handle.
   */
   public PrereqEventManager(IDBInterface database)
-    throws ACFException
+    throws ManifoldCFException
   {
     super(database,"prereqevents");
   }
@@ -58,7 +58,7 @@ public class PrereqEventManager extends org.apache.manifoldcf.core.database.Base
   /** Install or upgrade this table.
   */
   public void install(String ownerTableName, String ownerColumn)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Standard practice: Outer loop for upgrade support.
     while (true)
@@ -105,14 +105,14 @@ public class PrereqEventManager extends org.apache.manifoldcf.core.database.Base
   /** Uninstall.
   */
   public void deinstall()
-    throws ACFException
+    throws ManifoldCFException
   {
     beginTransaction();
     try
     {
       performDrop(null);
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       signalRollback();
       throw e;
@@ -130,7 +130,7 @@ public class PrereqEventManager extends org.apache.manifoldcf.core.database.Base
 
   /** Delete specified rows, based on jobqueue criteria. */
   public void deleteRows(String parentTableName, String joinField, String parentCriteria, ArrayList list)
-    throws ACFException
+    throws ManifoldCFException
   {
     StringBuffer sb = new StringBuffer();
     sb.append("WHERE EXISTS(SELECT 'x' FROM ").append(parentTableName).append(" WHERE ").append(joinField).append("=")
@@ -144,7 +144,7 @@ public class PrereqEventManager extends org.apache.manifoldcf.core.database.Base
 
   /** Delete specified rows, as directly specified without a join. */
   public void deleteRows(String ownerQueryPart, ArrayList list)
-    throws ACFException
+    throws ManifoldCFException
   {
     performDelete("WHERE "+ownerField+" IN("+ownerQueryPart+")",list,null);
     reindexTracker.noteEvent();
@@ -152,7 +152,7 @@ public class PrereqEventManager extends org.apache.manifoldcf.core.database.Base
 
   /** Delete rows pertaining to a single entry */
   public void deleteRows(Long recordID)
-    throws ACFException
+    throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
     list.add(recordID);
@@ -162,7 +162,7 @@ public class PrereqEventManager extends org.apache.manifoldcf.core.database.Base
 
   /** Add rows pertaining to a single entry */
   public void addRows(Long recordID, String[] eventNames)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (eventNames != null)
     {
@@ -181,7 +181,7 @@ public class PrereqEventManager extends org.apache.manifoldcf.core.database.Base
   /** Conditionally do analyze operation.
   */
   public void conditionallyMaintainTables()
-    throws ACFException
+    throws ManifoldCFException
   {
     if (tracker.checkAction())
     {

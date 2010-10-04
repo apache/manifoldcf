@@ -24,7 +24,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.authorities.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.CacheKeyFactory;
-import org.apache.manifoldcf.crawler.system.ACF;
+import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import org.apache.manifoldcf.crawler.system.Logging;
 
 import org.apache.commons.httpclient.Cookie;
@@ -73,7 +73,7 @@ public class CookieManager extends org.apache.manifoldcf.core.database.BaseTable
   *@param database is the database handle.
   */
   public CookieManager(IThreadContext tc, IDBInterface database)
-    throws ACFException
+    throws ManifoldCFException
   {
     super(database,"cookiedata");
     cacheManager = CacheManagerFactory.make(tc);
@@ -82,7 +82,7 @@ public class CookieManager extends org.apache.manifoldcf.core.database.BaseTable
   /** Install the manager.
   */
   public void install()
-    throws ACFException
+    throws ManifoldCFException
   {
     beginTransaction();
     try
@@ -120,7 +120,7 @@ public class CookieManager extends org.apache.manifoldcf.core.database.BaseTable
         addTableIndex(false,list);
       }
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       signalRollback();
       throw e;
@@ -139,7 +139,7 @@ public class CookieManager extends org.apache.manifoldcf.core.database.BaseTable
   /** Uninstall the manager.
   */
   public void deinstall()
-    throws ACFException
+    throws ManifoldCFException
   {
     performDrop(null);
   }
@@ -149,7 +149,7 @@ public class CookieManager extends org.apache.manifoldcf.core.database.BaseTable
   *@return the login cookies object.
   */
   public LoginCookies readCookies(String sessionKey)
-    throws ACFException
+    throws ManifoldCFException
   {
     // Build description objects
     CookiesDescription[] objectDescriptions = new CookiesDescription[1];
@@ -169,7 +169,7 @@ public class CookieManager extends org.apache.manifoldcf.core.database.BaseTable
   *@param cookies are the cookies to write into the database.
   */
   public void updateCookies(String sessionKey, LoginCookies cookies)
-    throws ACFException
+    throws ManifoldCFException
   {
     StringSetBuffer ssb = new StringSetBuffer();
     ssb.add(getCookiesCacheKey(sessionKey));
@@ -256,7 +256,7 @@ public class CookieManager extends org.apache.manifoldcf.core.database.BaseTable
 
         cacheManager.invalidateKeys(ch);
       }
-      catch (ACFException e)
+      catch (ManifoldCFException e)
       {
         signalRollback();
         throw e;
@@ -293,7 +293,7 @@ public class CookieManager extends org.apache.manifoldcf.core.database.BaseTable
   *@return the login cookies object.
   */
   protected LoginCookies readCookiesUncached(String sessionKey)
-    throws ACFException
+    throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
     list.add(sessionKey);
@@ -348,14 +348,14 @@ public class CookieManager extends org.apache.manifoldcf.core.database.BaseTable
   /** Convert a boolean string to a boolean.
   */
   protected static boolean stringToBoolean(String value)
-    throws ACFException
+    throws ManifoldCFException
   {
     if (value.equals("T"))
       return true;
     else if (value.equals("F"))
       return false;
     else
-      throw new ACFException("Expected T or F but saw "+value);
+      throw new ManifoldCFException("Expected T or F but saw "+value);
   }
 
   /** Convert a boolean to a boolean string.
@@ -371,7 +371,7 @@ public class CookieManager extends org.apache.manifoldcf.core.database.BaseTable
   /** Convert a string to a port array.
   */
   protected static int[] stringToPorts(String value)
-    throws ACFException
+    throws ManifoldCFException
   {
     String[] ports = value.split(",");
     int[] rval = new int[ports.length];
@@ -384,7 +384,7 @@ public class CookieManager extends org.apache.manifoldcf.core.database.BaseTable
       }
       catch (NumberFormatException e)
       {
-        throw new ACFException(e.getMessage(),e);
+        throw new ManifoldCFException(e.getMessage(),e);
       }
       i++;
     }
@@ -563,7 +563,7 @@ public class CookieManager extends org.apache.manifoldcf.core.database.BaseTable
     * @return the newly created objects to cache, or null, if any object cannot be created.
     *  The order of the returned objects must correspond to the order of the object descriptinos.
     */
-    public Object[] create(ICacheDescription[] objectDescriptions) throws ACFException
+    public Object[] create(ICacheDescription[] objectDescriptions) throws ManifoldCFException
     {
       // I'm not expecting multiple values to be requested, so it's OK to walk through the objects
       // and do a request at a time.
@@ -587,7 +587,7 @@ public class CookieManager extends org.apache.manifoldcf.core.database.BaseTable
     * @param objectDescription is the unique identifier of the object.
     * @param cachedObject is the cached object.
     */
-    public void exists(ICacheDescription objectDescription, Object cachedObject) throws ACFException
+    public void exists(ICacheDescription objectDescription, Object cachedObject) throws ManifoldCFException
     {
       // Cast what came in as what it really is
       CookiesDescription objectDesc = (CookiesDescription)objectDescription;
@@ -599,7 +599,7 @@ public class CookieManager extends org.apache.manifoldcf.core.database.BaseTable
     /** Perform the desired operation.  This method is called after either createGetObject()
     * or exists() is called for every requested object.
     */
-    public void execute() throws ACFException
+    public void execute() throws ManifoldCFException
     {
       // Does nothing; we only want to fetch objects in this cacher.
     }

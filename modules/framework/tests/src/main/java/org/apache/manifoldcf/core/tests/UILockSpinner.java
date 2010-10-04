@@ -18,7 +18,7 @@
 package org.apache.manifoldcf.core.tests;
 
 import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.core.system.ACF;
+import org.apache.manifoldcf.core.system.ManifoldCF;
 
 public class UILockSpinner
 {
@@ -28,7 +28,7 @@ public class UILockSpinner
   public static void main(String[] argv)
     throws Exception
   {
-    ACF.initializeEnvironment();
+    ManifoldCF.initializeEnvironment();
 
 
     // Create a thread context object.

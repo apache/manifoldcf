@@ -19,7 +19,7 @@
 package org.apache.manifoldcf.core.tests;
 
 import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.core.system.ACF;
+import org.apache.manifoldcf.core.system.ManifoldCF;
 
 import java.io.*;
 import java.util.*;
@@ -98,11 +98,11 @@ public class TestBase
       "  <property name=\"org.apache.manifoldcf.logconfigfile\" value=\""+loggingFile.getAbsolutePath().replaceAll("\\\\","/")+"\"/>\n" +
       "</configuration>\n");
 
-    ACF.initializeEnvironment();
+    ManifoldCF.initializeEnvironment();
     IThreadContext tc = ThreadContextFactory.make();
     
     // Create the database
-    ACF.createSystemDatabase(tc,"","");
+    ManifoldCF.createSystemDatabase(tc,"","");
 
   }
   
@@ -127,11 +127,11 @@ public class TestBase
     initialize();
     if (isInitialized())
     {
-      ACF.initializeEnvironment();
+      ManifoldCF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
       
       // Remove the database
-      ACF.dropSystemDatabase(tc,"","");
+      ManifoldCF.dropSystemDatabase(tc,"","");
       
       // Get rid of the property and logging files.
       logOutputFile.delete();

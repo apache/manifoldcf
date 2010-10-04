@@ -16,7 +16,7 @@
 */
 
 import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.core.system.ACF;
+import org.apache.manifoldcf.core.system.ManifoldCF;
 
 public class ThreadLockSpinner
 {
@@ -26,7 +26,7 @@ public class ThreadLockSpinner
   public static void main(String[] argv)
     throws Exception
   {
-    ACF.initializeEnvironment();
+    ManifoldCF.initializeEnvironment();
 
     // Start up multiple threads of each kind
     int t1instanceCount = 25;

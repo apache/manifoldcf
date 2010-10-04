@@ -19,12 +19,12 @@
 package org.apache.manifoldcf.core;
 
 import org.apache.manifoldcf.core.interfaces.IThreadContext;
-import org.apache.manifoldcf.core.interfaces.ACFException;
-import org.apache.manifoldcf.core.system.ACF;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.system.ManifoldCF;
 import org.apache.manifoldcf.core.system.Logging;
 
 /**
- * Create the database using the name as specified through the {@see ACF}. The username and password for the
+ * Create the database using the name as specified through the {@see ManifoldCF}. The username and password for the
  * configured database need to be specified during construction.
  */
 public class DBCreate extends DBInitializationCommand
@@ -46,10 +46,10 @@ public class DBCreate extends DBInitializationCommand
   /**
    * {@inheritDoc}
    */
-  public void doExecute(IThreadContext tc) throws ACFException
+  public void doExecute(IThreadContext tc) throws ManifoldCFException
   {
-    ACF.createSystemDatabase(tc, getUserName(), getPassword());
-    Logging.root.info("ACF database created");
+    ManifoldCF.createSystemDatabase(tc, getUserName(), getPassword());
+    Logging.root.info("ManifoldCF database created");
   }
 
   /**
@@ -78,9 +78,9 @@ public class DBCreate extends DBInitializationCommand
     try
     {
       dbCreate.execute();
-      System.err.println("ACF database created");
+      System.err.println("ManifoldCF database created");
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       e.printStackTrace();
       System.exit(1);

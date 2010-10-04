@@ -43,12 +43,12 @@ public interface IThrottledConnection
   *        is used solely for logging purposes.
   */
   public void beginFetch(String fetchType)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Execute the fetch and get the return code.  This method uses the
   * standard logging mechanism to keep track of the fetch attempt.  It also
   * signals the following conditions: ServiceInterruption (if a dynamic
-  * error occurs), or ACFException if a fatal error occurs, or nothing if
+  * error occurs), or ManifoldCFException if a fatal error occurs, or nothing if
   * a standard protocol error occurs.
   * Note that, for proxies etc, the idea is for this fetch request to handle whatever
   * redirections are needed to support proxies.
@@ -64,32 +64,32 @@ public interface IThrottledConnection
   public void executeFetch(String urlPath, String userAgent, String from, int connectionTimeoutMilliseconds,
     int socketTimeoutMilliseconds, boolean redirectOK, String host, FormData formData,
     LoginCookies loginCookies)
-    throws ACFException, ServiceInterruption;
+    throws ManifoldCFException, ServiceInterruption;
 
   /** Get the http response code.
   *@return the response code.  This is either an HTTP response code, or one of the codes above.
   */
   public int getResponseCode()
-    throws ACFException, ServiceInterruption;
+    throws ManifoldCFException, ServiceInterruption;
 
   /** Get the last fetch cookies.
   *@return the cookies now in effect from the last fetch.
   */
   public LoginCookies getLastFetchCookies()
-    throws ACFException, ServiceInterruption;
+    throws ManifoldCFException, ServiceInterruption;
 
   /** Get a specified response header, if it exists.
   *@param headerName is the name of the header.
   *@return the header value, or null if it doesn't exist.
   */
   public String getResponseHeader(String headerName)
-    throws ACFException, ServiceInterruption;
+    throws ManifoldCFException, ServiceInterruption;
 
   /** Get the response input stream.  It is the responsibility of the caller
   * to close this stream when done.
   */
   public InputStream getResponseBodyStream()
-    throws ACFException, ServiceInterruption;
+    throws ManifoldCFException, ServiceInterruption;
 
   /** Note that the connection fetch was interrupted by something.
   */
@@ -99,10 +99,10 @@ public interface IThrottledConnection
   * describing what was done.
   */
   public void doneFetch(IVersionActivity activities)
-    throws ACFException;
+    throws ManifoldCFException;
 
   /** Close the connection.  Call this to end this server connection.
   */
   public void close()
-    throws ACFException;
+    throws ManifoldCFException;
 }

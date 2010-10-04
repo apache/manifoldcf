@@ -103,25 +103,25 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   /** Get a DFC session.  This will be done every time it is needed.
   */
   protected void getSession()
-    throws ACFException
+    throws ManifoldCFException
   {
     if (session == null)
     {
       // This is the stuff that used to be in connect()
       if (docbaseName == null || docbaseName.length() < 1)
-        throw new ACFException("Parameter "+CONFIG_PARAM_DOCBASE+" required but not set");
+        throw new ManifoldCFException("Parameter "+CONFIG_PARAM_DOCBASE+" required but not set");
 
       if (Logging.authorityConnectors.isDebugEnabled())
         Logging.authorityConnectors.debug("DCTM: Docbase = '" + docbaseName + "'");
 
       if (userName == null || userName.length() < 1)
-        throw new ACFException("Parameter "+CONFIG_PARAM_USERNAME+" required but not set");
+        throw new ManifoldCFException("Parameter "+CONFIG_PARAM_USERNAME+" required but not set");
 
       if (Logging.authorityConnectors.isDebugEnabled())
         Logging.authorityConnectors.debug("DCTM: Username = '" + userName + "'");
 
       if (password == null || password.length() < 1)
-        throw new ACFException("Parameter "+CONFIG_PARAM_PASSWORD+" required but not set");
+        throw new ManifoldCFException("Parameter "+CONFIG_PARAM_PASSWORD+" required but not set");
 
       Logging.authorityConnectors.debug("DCTM: Password exists");
 
@@ -168,35 +168,35 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (java.net.MalformedURLException e)
       {
-        throw new ACFException(e.getMessage(),e);
+        throw new ManifoldCFException(e.getMessage(),e);
       }
       catch (NotBoundException e)
       {
         // Transient problem: Server not available at the moment.
-        throw new ACFException("Server not up at the moment: "+e.getMessage(),e);
+        throw new ManifoldCFException("Server not up at the moment: "+e.getMessage(),e);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
+          throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
         session = null;
         lastSessionFetch = -1L;
         // Treat this as a transient problem
-        throw new ACFException("Transient remote exception creating session: "+e.getMessage(),e);
+        throw new ManifoldCFException("Transient remote exception creating session: "+e.getMessage(),e);
       }
       catch (DocumentumException e)
       {
         // Base our treatment on the kind of error it is.
         if (e.getType() == DocumentumException.TYPE_SERVICEINTERRUPTION)
         {
-          throw new ACFException("Remote service interruption creating session: "+e.getMessage(),e);
+          throw new ManifoldCFException("Remote service interruption creating session: "+e.getMessage(),e);
         }
-        throw new ACFException(e.getMessage(),e);
+        throw new ManifoldCFException(e.getMessage(),e);
       }
     }
 
@@ -207,7 +207,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
 
   /** Perform a DQL query, with appropriate reset on a remote exception */
   protected IDocumentumResult performDQLQuery(String query)
-    throws DocumentumException, ACFException
+    throws DocumentumException, ManifoldCFException
   {
     while (true)
     {
@@ -220,7 +220,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
       catch (RemoteException e)
       {
         if (noSession)
-          throw new ACFException("Transient error connecting to documentum service",e);
+          throw new ManifoldCFException("Transient error connecting to documentum service",e);
         session = null;
         lastSessionFetch = -1L;
         continue;
@@ -259,7 +259,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
 
   /** Check connection, with appropriate retries */
   protected void checkConnection()
-    throws DocumentumException, ACFException
+    throws DocumentumException, ManifoldCFException
   {
     while (true)
     {
@@ -285,15 +285,15 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
+          throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
         if (noSession)
-          throw new ACFException("Transient error connecting to documentum service",e);
+          throw new ManifoldCFException("Transient error connecting to documentum service",e);
         session = null;
         lastSessionFetch = -1L;
         continue;
@@ -303,7 +303,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
 
   /** Perform getObjectByQualification, with appropriate reset */
   protected IDocumentumObject getObjectByQualification(String qualification)
-    throws DocumentumException, ACFException
+    throws DocumentumException, ManifoldCFException
   {
     while (true)
     {
@@ -316,7 +316,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
       catch (RemoteException e)
       {
         if (noSession)
-          throw new ACFException("Transient error connecting to documentum service",e);
+          throw new ManifoldCFException("Transient error connecting to documentum service",e);
         session = null;
         lastSessionFetch = -1L;
         continue;
@@ -327,7 +327,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
 
   /** Get server version, with appropriate retries */
   protected String getServerVersion()
-    throws DocumentumException, ACFException
+    throws DocumentumException, ManifoldCFException
   {
     while (true)
     {
@@ -340,7 +340,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
       catch (RemoteException e)
       {
         if (noSession)
-          throw new ACFException("Transient error connecting to documentum service",e);
+          throw new ManifoldCFException("Transient error connecting to documentum service",e);
         session = null;
         lastSessionFetch = -1L;
         continue;
@@ -383,7 +383,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   /** Release the session, if it's time.
   */
   protected void releaseCheck()
-    throws ACFException
+    throws ManifoldCFException
   {
     if (lastSessionFetch == -1L)
       return;
@@ -412,13 +412,13 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
+          throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
         session = null;
         lastSessionFetch = -1L;
         // Treat this as a transient problem
@@ -577,7 +577,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   * (Should throws an exception only when a condition cannot be properly described within the authorization response object.)
   */
   public AuthorizationResponse getAuthorizationResponse(String strUserNamePassedIn)
-    throws ACFException
+    throws ManifoldCFException
   {
 
     if (Logging.authorityConnectors.isDebugEnabled())
@@ -627,13 +627,13 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
         catch (InterruptedException e)
         {
           t.interrupt();
-          throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
         }
         catch (RemoteException e)
         {
           Throwable e2 = e.getCause();
           if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-            throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
+            throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
           if (noSession)
           {
             Logging.authorityConnectors.warn("DCTM: Transient error checking authorization: "+e.getMessage(),e);
@@ -704,13 +704,13 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
         catch (InterruptedException e)
         {
           t.interrupt();
-          throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
         }
         catch (RemoteException e)
         {
           Throwable e2 = e.getCause();
           if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-            throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
+            throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
           if (noSession)
           {
             Logging.authorityConnectors.warn("DCTM: Transient error checking authorization: "+e.getMessage(),e);
@@ -731,7 +731,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
         // Transient: Treat as if user does not exist, not like credentials invalid.
         return unreachableResponse;
       }
-      throw new ACFException(e.getMessage(),e);
+      throw new ManifoldCFException(e.getMessage(),e);
     }
   }
 
@@ -778,7 +778,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   *@return the connection's status as a displayable string.
   */
   public String check()
-    throws ACFException
+    throws ManifoldCFException
   {
     try
     {
@@ -796,7 +796,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
           return "Connection failed: "+e.getMessage();
       }
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       return "Connection failed: "+e.getMessage();
     }
@@ -839,7 +839,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   /** Disconnect from Documentum.
   */
   public void disconnect()
-    throws ACFException
+    throws ManifoldCFException
   {
     if (session != null)
     {
@@ -864,13 +864,13 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
       catch (InterruptedException e)
       {
         t.interrupt();
-        throw new ACFException("Interrupted: "+e.getMessage(),e,ACFException.INTERRUPTED);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (RemoteException e)
       {
         Throwable e2 = e.getCause();
         if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
-          throw new ACFException(e2.getMessage(),e2,ACFException.INTERRUPTED);
+          throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
         session = null;
         lastSessionFetch = -1L;
         // Treat this as a transient problem
@@ -904,7 +904,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   * in active use.
   */
   public void poll()
-    throws ACFException
+    throws ManifoldCFException
   {
     releaseCheck();
   }
@@ -923,7 +923,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     tabsArray.add("Docbase");
     tabsArray.add("User Mapping");
@@ -972,7 +972,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   *@param tabName is the current tab name.
   */
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     String docbaseName = parameters.getParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_DOCBASE);
     if (docbaseName == null)
@@ -1109,7 +1109,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
-    throws ACFException
+    throws ManifoldCFException
   {
     String docbaseName = variableContext.getParameter("docbasename");
     if (docbaseName != null)
@@ -1146,7 +1146,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
-    throws ACFException, IOException
+    throws ManifoldCFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+

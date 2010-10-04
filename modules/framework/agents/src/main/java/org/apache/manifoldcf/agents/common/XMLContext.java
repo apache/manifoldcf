@@ -125,7 +125,7 @@ public class XMLContext
     {
       throw new SAXException(e);
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       throw new SAXException(e);
     }
@@ -152,7 +152,7 @@ public class XMLContext
     {
       throw new SAXException(e);
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       throw new SAXException(e);
     }
@@ -171,7 +171,7 @@ public class XMLContext
     {
       throw new SAXException(e);
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       throw new SAXException(e);
     }
@@ -181,7 +181,7 @@ public class XMLContext
   * This method is called without fail at the end of any parse, whether it errored out or not, so that proper cleanup always happens for any tags left on the stack.
   */
   public final void cleanup()
-    throws ACFException
+    throws ManifoldCFException
   {
     tagCleanup();
     theStream.setContext(previousContext);
@@ -190,7 +190,7 @@ public class XMLContext
   /** This method is meant to be extended by classes that extend this class.  The form of this method is meant to enable creation of a
   * context object derived from XMLContext that understands how to actually handle tags and content within the current context. */
   protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
     // The default action is to establish a new default context.
     return null;
@@ -198,19 +198,19 @@ public class XMLContext
 
   /** This method is meant to be extended by classes that extend this class */
   protected void endTag()
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
   }
 
   /** This method is meant to be extended by classes that extend this class */
   protected void tagContents(char[] ch, int start, int length)
-    throws ACFException, ServiceInterruption
+    throws ManifoldCFException, ServiceInterruption
   {
   }
 
   /** Override this method to be called during cleanup */
   protected void tagCleanup()
-    throws ACFException
+    throws ManifoldCFException
   {
   }
 }

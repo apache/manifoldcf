@@ -39,15 +39,15 @@ public class JobManagerFactory
   *@return the handle.
   */
   public static IJobManager make(IThreadContext threadContext)
-    throws ACFException
+    throws ManifoldCFException
   {
     Object o = threadContext.get(jobManagerName);
     if (o == null || !(o instanceof IJobManager))
     {
       IDBInterface database = DBInterfaceFactory.make(threadContext,
-        ACF.getMasterDatabaseName(),
-        ACF.getMasterDatabaseUsername(),
-        ACF.getMasterDatabasePassword());
+        ManifoldCF.getMasterDatabaseName(),
+        ManifoldCF.getMasterDatabaseUsername(),
+        ManifoldCF.getMasterDatabasePassword());
 
       o = new org.apache.manifoldcf.crawler.jobs.JobManager(threadContext,database);
       threadContext.save(jobManagerName,o);

@@ -36,7 +36,7 @@ public class Register extends BaseAgentsInitializationCommand
     this.className = className;
   }
 
-  protected void doExecute(IThreadContext tc) throws ACFException
+  protected void doExecute(IThreadContext tc) throws ManifoldCFException
   {
     IAgentManager mgr = AgentManagerFactory.make(tc);
     mgr.registerAgent(className);
@@ -58,7 +58,7 @@ public class Register extends BaseAgentsInitializationCommand
       register.execute();
       System.err.println("Successfully registered agent '"+className+"'");
     }
-    catch (ACFException e)
+    catch (ManifoldCFException e)
     {
       e.printStackTrace();
       System.exit(1);
