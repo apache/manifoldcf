@@ -27,12 +27,12 @@
 
     <target name="jar-connector" depends="compile-connector">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/acf-jdbc-connector.jar" basedir="build/connector/classes"/>
+        <jar destfile="build/jar/mcf-jdbc-connector.jar" basedir="build/connector/classes"/>
     </target>
 
     <target name="lib" depends="jar-connector">
         <mkdir dir="dist/lib"/>
-        <copy todir="dist/lib" file="build/jar/acf-jdbc-connector.jar"/>
+        <copy todir="dist/lib" file="build/jar/mcf-jdbc-connector.jar"/>
         <copy todir="dist/lib">
             <fileset dir="jdbc-drivers" includes="*.jar"/>
         </copy>

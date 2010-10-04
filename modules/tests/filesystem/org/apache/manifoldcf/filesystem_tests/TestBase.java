@@ -137,7 +137,7 @@ public class TestBase extends org.apache.manifoldcf.crawler.tests.TestConnectorB
   */
   protected String makeAPIURL(String command)
   {
-    return "http://localhost:"+Integer.toString(testPort)+"/acf-api-service/json/"+command;
+    return "http://localhost:"+Integer.toString(testPort)+"/mcf-api-service/json/"+command;
   }
   
   /** Perform an json API GET operation.
@@ -294,15 +294,15 @@ public class TestBase extends org.apache.manifoldcf.crawler.tests.TestConnectorB
     server.setStopAtShutdown( true );
     
     // Initialize the servlets
-    WebAppContext lcfCrawlerUI = new WebAppContext("../../framework/dist/web/war/acf-crawler-ui.war","/acf-crawler-ui");
+    WebAppContext lcfCrawlerUI = new WebAppContext("../../framework/dist/web/war/mcf-crawler-ui.war","/mcf-crawler-ui");
     // This will cause jetty to ignore all of the framework and jdbc jars in the war, which is what we want.
     lcfCrawlerUI.setParentLoaderPriority(true);
     server.addHandler(lcfCrawlerUI);
-    WebAppContext lcfAuthorityService = new WebAppContext("../../framework/dist/web/war/acf-authority-service.war","/acf-authority-service");
+    WebAppContext lcfAuthorityService = new WebAppContext("../../framework/dist/web/war/mcf-authority-service.war","/mcf-authority-service");
     // This will cause jetty to ignore all of the framework and jdbc jars in the war, which is what we want.
     lcfAuthorityService.setParentLoaderPriority(true);
     server.addHandler(lcfAuthorityService);
-    WebAppContext lcfApi = new WebAppContext("../../framework/dist/web/war/acf-api-service.war","/acf-api-service");
+    WebAppContext lcfApi = new WebAppContext("../../framework/dist/web/war/mcf-api-service.war","/mcf-api-service");
     lcfApi.setParentLoaderPriority(true);
     server.addHandler(lcfApi);
     server.start();

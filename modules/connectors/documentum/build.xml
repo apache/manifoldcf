@@ -118,46 +118,46 @@
 
     <target name="jar-interface" depends="compile-interface,precompile-check" if="canBuild">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/acf-documentum-interface.jar" basedir="build/interface/classes"/>
+        <jar destfile="build/jar/mcf-documentum-interface.jar" basedir="build/interface/classes"/>
     </target>
 
     <target name="jar-implementation" depends="compile-implementation,precompile-check" if="canBuild">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/acf-documentum-implementation.jar" basedir="build/implementation/classes"/>
+        <jar destfile="build/jar/mcf-documentum-implementation.jar" basedir="build/implementation/classes"/>
     </target>
 
     <target name="jar-rmiskel" depends="compile-rmic,precompile-check" if="canBuild">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/acf-documentum-rmiskel.jar" basedir="build/rmiskel/classes"/>
+        <jar destfile="build/jar/mcf-documentum-rmiskel.jar" basedir="build/rmiskel/classes"/>
     </target>
 
     <target name="jar-rmistub" depends="compile-rmic,precompile-check" if="canBuild">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/acf-documentum-rmistub.jar" basedir="build/rmistub/classes"/>
+        <jar destfile="build/jar/mcf-documentum-rmistub.jar" basedir="build/rmistub/classes"/>
     </target>
 
     <target name="jar-server" depends="compile-server,precompile-check" if="canBuild">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/acf-documentum-server.jar" basedir="build/server/classes"/>
+        <jar destfile="build/jar/mcf-documentum-server.jar" basedir="build/server/classes"/>
     </target>
 
     <target name="jar-registry" depends="compile-registry,precompile-check" if="canBuild">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/acf-documentum-registry.jar" basedir="build/registry/classes"/>
+        <jar destfile="build/jar/mcf-documentum-registry.jar" basedir="build/registry/classes"/>
     </target>
     
     <target name="jar-connector" depends="compile-connector,precompile-check" if="canBuild">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/acf-documentum-connector.jar" basedir="build/connector/classes"/>
+        <jar destfile="build/jar/mcf-documentum-connector.jar" basedir="build/connector/classes"/>
     </target>
 
     <target name="lib" depends="jar-interface,jar-rmistub,jar-connector,precompile-check" if="canBuild">
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
             <fileset dir="build/jar">
-                <include name="acf-documentum-connector.jar"/>
-                <include name="acf-documentum-rmistub.jar"/>
-                <include name="acf-documentum-interface.jar"/>
+                <include name="mcf-documentum-connector.jar"/>
+                <include name="mcf-documentum-rmistub.jar"/>
+                <include name="mcf-documentum-interface.jar"/>
             </fileset>
         </copy>
     </target>
@@ -169,16 +169,16 @@
         </copy>
         <copy todir="dist/server-process/jar">
             <fileset dir="build/jar">
-                <include name="acf-documentum-interface.jar"/>
-                <include name="acf-documentum-rmiskel.jar"/>
-                <include name="acf-documentum-implementation.jar"/>
+                <include name="mcf-documentum-interface.jar"/>
+                <include name="mcf-documentum-rmiskel.jar"/>
+                <include name="mcf-documentum-implementation.jar"/>
             </fileset>
         </copy>
     </target>
 
     <target name="registry-process" depends="jar-registry,precompile-check" if="canBuild">
         <mkdir dir="dist/registry-process/jar"/>
-        <copy todir="dist/registry-process/jar" file="build/jar/acf-documentum-registry.jar"/>
+        <copy todir="dist/registry-process/jar" file="build/jar/mcf-documentum-registry.jar"/>
     </target>
 
     <target name="all" depends="lib,server-process,registry-process,doc"/>

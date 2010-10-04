@@ -28,12 +28,12 @@
 
     <target name="jar-connector" depends="compile-connector">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/acf-filesystem-connector.jar" basedir="build/connector/classes"/>
+        <jar destfile="build/jar/mcf-filesystem-connector.jar" basedir="build/connector/classes"/>
     </target>
 
     <target name="lib" depends="jar-connector">
         <mkdir dir="dist/lib"/>
-        <copy todir="dist/lib" file="build/jar/acf-filesystem-connector.jar"/>
+        <copy todir="dist/lib" file="build/jar/mcf-filesystem-connector.jar"/>
     </target>
 
     <target name="compile-tests" depends="compile-connector">

@@ -142,17 +142,17 @@
 
     <target name="jar-connector" depends="compile-connector,precompile-check" if="canBuild">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/acf-meridio-connector.jar" basedir="build/connector/classes"/>
+        <jar destfile="build/jar/mcf-meridio-connector.jar" basedir="build/connector/classes"/>
     </target>
     
     <target name="jar-wsdls" depends="compile-wsdls,precompile-check" if="canBuild">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/acf-meridio-wsdlstub.jar" basedir="build/wsdlclasses"/>
+        <jar destfile="build/jar/mcf-meridio-wsdlstub.jar" basedir="build/wsdlclasses"/>
     </target>
     
     <target name="jar-xsds" depends="compile-xsds,precompile-check" if="canBuild">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/acf-meridio-xsdstub.jar" basedir="build/xsdclasses"/>
+        <jar destfile="build/jar/mcf-meridio-xsdstub.jar" basedir="build/xsdclasses"/>
     </target>
 
     <target name="wsdd" depends="precompile-check" if="canBuild">
@@ -164,9 +164,9 @@
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
             <fileset dir="build/jar">
-                <include name="acf-meridio-connector.jar"/>
-                <include name="acf-meridio-wsdlstub.jar"/>
-                <include name="acf-meridio-xsdstub.jar"/>
+                <include name="mcf-meridio-connector.jar"/>
+                <include name="mcf-meridio-wsdlstub.jar"/>
+                <include name="mcf-meridio-xsdstub.jar"/>
             </fileset>
             <fileset dir="lib">
                 <include name="axis*.jar"/>

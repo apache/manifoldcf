@@ -152,27 +152,27 @@
 
     <target name="jar-core" depends="compile-core">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/acf-core.jar" basedir="build/core/classes"/>
+        <jar destfile="build/jar/mcf-core.jar" basedir="build/core/classes"/>
     </target>
 
     <target name="jar-ui-core" depends="compile-ui-core">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/acf-ui-core.jar" basedir="build/ui-core/classes"/>
+        <jar destfile="build/jar/mcf-ui-core.jar" basedir="build/ui-core/classes"/>
     </target>
 
     <target name="jar-agents" depends="compile-agents">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/acf-agents.jar" basedir="build/agents/classes"/>
+        <jar destfile="build/jar/mcf-agents.jar" basedir="build/agents/classes"/>
     </target>
 
     <target name="jar-pull-agent" depends="compile-pull-agent">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/acf-pull-agent.jar" basedir="build/pull-agent/classes"/>
+        <jar destfile="build/jar/mcf-pull-agent.jar" basedir="build/pull-agent/classes"/>
     </target>
 
     <target name="jar-jetty-runner" depends="compile-jetty-runner">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/acf-jetty-runner.jar" basedir="build/jetty-runner/classes"/>
+        <jar destfile="build/jar/mcf-jetty-runner.jar" basedir="build/jetty-runner/classes"/>
     </target>
 
     <target name="webapp-authority-service" depends="jar-core,jar-agents,jar-pull-agent,compile-authority-servlet">
@@ -201,12 +201,12 @@
         </copy>
         <copy todir="build/webapp/authority-service/WEB-INF/lib">
             <fileset dir="build/jar">
-                <include name="acf-core.jar"/>
-                <include name="acf-agents.jar"/>
-                <include name="acf-pull-agent.jar"/>
+                <include name="mcf-core.jar"/>
+                <include name="mcf-agents.jar"/>
+                <include name="mcf-pull-agent.jar"/>
             </fileset>
         </copy>
-        <jar destfile="build/webapp/authority-service/WEB-INF/lib/acf-authority-servlet.jar" basedir="build/authority-servlet/classes"/>
+        <jar destfile="build/webapp/authority-service/WEB-INF/lib/mcf-authority-servlet.jar" basedir="build/authority-servlet/classes"/>
     </target>
 
     <target name="webapp-api-service" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,compile-api-servlet">
@@ -235,13 +235,13 @@
         </copy>
         <copy todir="build/webapp/api-service/WEB-INF/lib">
             <fileset dir="build/jar">
-                <include name="acf-core.jar"/>
-                <include name="acf-ui-core.jar"/>
-                <include name="acf-agents.jar"/>
-                <include name="acf-pull-agent.jar"/>
+                <include name="mcf-core.jar"/>
+                <include name="mcf-ui-core.jar"/>
+                <include name="mcf-agents.jar"/>
+                <include name="mcf-pull-agent.jar"/>
             </fileset>
         </copy>
-        <jar destfile="build/webapp/api-service/WEB-INF/lib/acf-api-servlet.jar" basedir="build/api-servlet/classes"/>
+        <jar destfile="build/webapp/api-service/WEB-INF/lib/mcf-api-servlet.jar" basedir="build/api-servlet/classes"/>
     </target>
 
     <target name="webapp-crawler-ui" depends="compile-crawler-ui,jar-core,jar-ui-core,jar-agents,jar-pull-agent">
@@ -275,10 +275,10 @@
         </copy>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib">
             <fileset dir="build/jar">
-                <include name="acf-core.jar"/>
-                <include name="acf-agents.jar"/>
-                <include name="acf-pull-agent.jar"/>
-                <include name="acf-ui-core.jar"/>
+                <include name="mcf-core.jar"/>
+                <include name="mcf-agents.jar"/>
+                <include name="mcf-pull-agent.jar"/>
+                <include name="mcf-ui-core.jar"/>
             </fileset>
         </copy>
         <mkdir dir="build/webapp/crawler-ui/WEB-INF/jsp"/>
@@ -294,17 +294,17 @@
     
     <target name="war-authority-service" depends="webapp-authority-service">
         <mkdir dir="dist/web/war"/>
-        <war destfile="dist/web/war/acf-authority-service.war" webxml="authority-service/src/main/webapp/WEB-INF/web.xml" basedir="build/webapp/authority-service"/>
+        <war destfile="dist/web/war/mcf-authority-service.war" webxml="authority-service/src/main/webapp/WEB-INF/web.xml" basedir="build/webapp/authority-service"/>
     </target>
 
     <target name="war-api-service" depends="webapp-api-service">
         <mkdir dir="dist/web/war"/>
-        <war destfile="dist/web/war/acf-api-service.war" webxml="api-service/src/main/webapp/WEB-INF/web.xml" basedir="build/webapp/api-service"/>
+        <war destfile="dist/web/war/mcf-api-service.war" webxml="api-service/src/main/webapp/WEB-INF/web.xml" basedir="build/webapp/api-service"/>
     </target>
 
     <target name="war-crawler-ui" depends="webapp-crawler-ui">
         <mkdir dir="dist/web/war"/>
-        <war destfile="dist/web/war/acf-crawler-ui.war" webxml="crawler-ui/src/main/webapp/WEB-INF/web.xml" basedir="build/webapp/crawler-ui"/>
+        <war destfile="dist/web/war/mcf-crawler-ui.war" webxml="crawler-ui/src/main/webapp/WEB-INF/web.xml" basedir="build/webapp/crawler-ui"/>
     </target>
 
     <target name="processes" depends="jar-core,jar-agents,jar-pull-agent">
@@ -334,9 +334,9 @@
         </copy>
         <copy todir="dist/processes/jar">
             <fileset dir="build/jar">
-                <include name="acf-core.jar"/>
-                <include name="acf-agents.jar"/>
-                <include name="acf-pull-agent.jar"/>
+                <include name="mcf-core.jar"/>
+                <include name="mcf-agents.jar"/>
+                <include name="mcf-pull-agent.jar"/>
             </fileset>
         </copy>
         <mkdir dir="dist/processes/script"/>
@@ -378,11 +378,11 @@
         </copy>
         <copy todir="dist/example/lib">
             <fileset dir="build/jar">
-                <include name="acf-core.jar"/>
-                <include name="acf-ui-core.jar"/>
-                <include name="acf-agents.jar"/>
-                <include name="acf-pull-agent.jar"/>
-                <include name="acf-jetty-runner.jar"/>
+                <include name="mcf-core.jar"/>
+                <include name="mcf-ui-core.jar"/>
+                <include name="mcf-agents.jar"/>
+                <include name="mcf-pull-agent.jar"/>
+                <include name="mcf-jetty-runner.jar"/>
             </fileset>
         </copy>
         <mkdir dir="dist/example/war"/>
@@ -419,14 +419,14 @@
 
     <target name="jar-tests" depends="compile-tests">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/acf-tests.jar" basedir="build/tests/classes"/>
+        <jar destfile="build/jar/mcf-tests.jar" basedir="build/tests/classes"/>
     </target>
 
     <target name="tests" depends="jar-tests">
         <mkdir dir="dist/tests/jar"/>
         <copy todir="dist/tests/jar">
             <fileset dir="build/jar">
-                <include name="acf-tests.jar"/>
+                <include name="mcf-tests.jar"/>
             </fileset>
         </copy>
     </target>
