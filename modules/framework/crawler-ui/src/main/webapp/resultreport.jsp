@@ -31,7 +31,7 @@ boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ManifoldCF.ch
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
 	<title>
-		Apache Connectors Framework: Activity Result Report
+		Apache ManifoldCF: Activity Result Report
 	</title>
 
 	<script type="text/javascript">

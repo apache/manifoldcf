@@ -183,7 +183,7 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
-                <include name="commons-httpclient-acf.jar"/>
+                <include name="commons-httpclient-mcf.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-logging*.jar"/>
                 <include name="jdbcpool-0.99.jar"/>
@@ -191,7 +191,7 @@
                 <include name="log4j*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
-                <include name="xercesImpl-lcf.jar"/>
+                <include name="xercesImpl-mcf.jar"/>
                 <include name="xml-apis*.jar"/>
             </fileset>
             <fileset dir="lib">
@@ -217,7 +217,7 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
-                <include name="commons-httpclient-acf.jar"/>
+                <include name="commons-httpclient-mcf.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-logging*.jar"/>
                 <include name="jdbcpool-0.99.jar"/>
@@ -225,7 +225,7 @@
                 <include name="log4j*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
-                <include name="xercesImpl-lcf.jar"/>
+                <include name="xercesImpl-mcf.jar"/>
                 <include name="xml-apis*.jar"/>
             </fileset>
             <fileset dir="lib">
@@ -257,7 +257,7 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
-                <include name="commons-httpclient-acf.jar"/>
+                <include name="commons-httpclient-mcf.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-logging*.jar"/>
                 <include name="jdbcpool-0.99.jar"/>
@@ -265,7 +265,7 @@
                 <include name="log4j*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
-                <include name="xercesImpl-lcf.jar"/>
+                <include name="xercesImpl-mcf.jar"/>
                 <include name="xml-apis*.jar"/>
             </fileset>
             <fileset dir="lib">
@@ -315,7 +315,7 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
-                <include name="commons-httpclient-acf.jar"/>
+                <include name="commons-httpclient-mcf.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-logging*.jar"/>
                 <include name="jdbcpool-0.99.jar"/>
@@ -324,7 +324,7 @@
                 <include name="serializer*.jar"/>
                 <include name="servlet-api*.jar"/>
                 <include name="xalan*.jar"/>
-                <include name="xercesImpl-lcf.jar"/>
+                <include name="xercesImpl-mcf.jar"/>
                 <include name="xml-apis*.jar"/>
             </fileset>
             <fileset dir="lib">
@@ -353,7 +353,7 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
-                <include name="commons-httpclient-acf.jar"/>
+                <include name="commons-httpclient-mcf.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-logging*.jar"/>
                 <include name="eclipse*.jar"/>
@@ -368,7 +368,7 @@
                 <include name="servlet-api*.jar"/>
                 <include name="tomcat-juli*.jar"/>
                 <include name="xalan*.jar"/>
-                <include name="xercesImpl-lcf.jar"/>
+                <include name="xercesImpl-mcf.jar"/>
                 <include name="xml-apis*.jar"/>
             </fileset>
             <fileset dir="lib">

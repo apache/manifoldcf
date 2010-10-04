@@ -30,7 +30,7 @@
 	<link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
 
 	<title>
-		Apache Connectors Framework: List Authorities
+		Apache ManifoldCF: List Authorities
 	</title>
 
 	<script type="text/javascript">
