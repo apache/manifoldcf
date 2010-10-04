@@ -420,7 +420,7 @@
 					String connectionName = variableContext.getParameter("connname");
 					if (connectionName == null)
 						throw new ACFException("Missing connection parameter");
-					org.apache.acf.agents.system.ACF.signalOutputConnectionRedo(threadContext,connectionName);
+					org.apache.manifoldcf.agents.system.ACF.signalOutputConnectionRedo(threadContext,connectionName);
 %>
 					<jsp:forward page="listoutputs.jsp"/>
 <%

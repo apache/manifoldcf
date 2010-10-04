@@ -28,18 +28,18 @@ response.setContentType("text/html;charset=utf-8");
 %>
 
 <%@ page language="java" %>
-<%@ page import="org.apache.acf.core.interfaces.*" %>
-<%@ page import="org.apache.acf.agents.interfaces.*" %>
-<%@ page import="org.apache.acf.crawler.interfaces.*" %>
-<%@ page import="org.apache.acf.authorities.interfaces.*" %>
+<%@ page import="org.apache.manifoldcf.core.interfaces.*" %>
+<%@ page import="org.apache.manifoldcf.agents.interfaces.*" %>
+<%@ page import="org.apache.manifoldcf.crawler.interfaces.*" %>
+<%@ page import="org.apache.manifoldcf.authorities.interfaces.*" %>
 <%@ page import="java.util.*" %>
 
 <%
-	org.apache.acf.crawler.system.ACF.initializeEnvironment();
+	org.apache.manifoldcf.crawler.system.ACF.initializeEnvironment();
 %>
 
-<jsp:useBean id="thread" class="org.apache.acf.ui.beans.ThreadContext" scope="request"/>
-<jsp:useBean id="adminprofile" class="org.apache.acf.ui.beans.AdminProfile" scope="session"/>
+<jsp:useBean id="thread" class="org.apache.manifoldcf.ui.beans.ThreadContext" scope="request"/>
+<jsp:useBean id="adminprofile" class="org.apache.manifoldcf.ui.beans.AdminProfile" scope="session"/>
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jstl/core" %>
 <%@ taglib prefix="x" uri="http://java.sun.com/jstl/xml" %>
@@ -49,10 +49,10 @@ response.setContentType("text/html;charset=utf-8");
 
 <%
 	IThreadContext threadContext = thread.getThreadContext();
-	org.apache.acf.ui.multipart.MultipartWrapper variableContext = (org.apache.acf.ui.multipart.MultipartWrapper)threadContext.get("__WRAPPER__");
+	org.apache.manifoldcf.ui.multipart.MultipartWrapper variableContext = (org.apache.manifoldcf.ui.multipart.MultipartWrapper)threadContext.get("__WRAPPER__");
 	if (variableContext == null)
 	{
-		variableContext = new org.apache.acf.ui.multipart.MultipartWrapper(request);
+		variableContext = new org.apache.manifoldcf.ui.multipart.MultipartWrapper(request);
 		threadContext.save("__WRAPPER__",variableContext);
 	}
 %>

@@ -20,7 +20,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-boolean maintenanceUnderway = org.apache.acf.crawler.system.ACF.checkMaintenanceUnderway();
+boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ACF.checkMaintenanceUnderway();
 
 %>
 
@@ -371,7 +371,7 @@ if (maintenanceUnderway == false)
 		if (thisDescription == null || thisDescription.length() == 0)
 			thisDescription = thisConnectionName;
 %>
-						<option <%=(thisConnectionName.equals(reportConnection))?"selected=\"selected\"":""%> value='<%=org.apache.acf.ui.util.Encoder.attributeEscape(thisConnectionName)%>'><%=org.apache.acf.ui.util.Encoder.bodyEscape(thisDescription)%></option>
+						<option <%=(thisConnectionName.equals(reportConnection))?"selected=\"selected\"":""%> value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(thisConnectionName)%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(thisDescription)%></option>
 <%
 	}
 %>
@@ -390,7 +390,7 @@ if (maintenanceUnderway == false)
 	    {
 		String activity = activityList[i++];
 %>
-						<option <%=((selectedActivities.get(activity)==null)?"":"selected=\"selected\"")%> value='<%=org.apache.acf.ui.util.Encoder.attributeEscape(activity)%>'><%=org.apache.acf.ui.util.Encoder.bodyEscape(activity)%></option>
+						<option <%=((selectedActivities.get(activity)==null)?"":"selected=\"selected\"")%> value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(activity)%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(activity)%></option>
 <%
 	    }
 %>
@@ -605,9 +605,9 @@ if (maintenanceUnderway == false)
 			</tr>
 			<tr>
 				<td class="description"><nobr>Entity match:</nobr></td>
-				<td class="value"><input type="text" name="reportentitymatch" value='<%=org.apache.acf.ui.util.Encoder.attributeEscape(entityMatch)%>'/></td>
+				<td class="value"><input type="text" name="reportentitymatch" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(entityMatch)%>'/></td>
 				<td class="description"><nobr>Result code match:</nobr></td>
-				<td class="value"><input type="text" name="reportresultcodematch" value='<%=org.apache.acf.ui.util.Encoder.attributeEscape(resultCodeMatch)%>'/></td>
+				<td class="value"><input type="text" name="reportresultcodematch" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(resultCodeMatch)%>'/></td>
 			</tr>
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
@@ -684,7 +684,7 @@ if (maintenanceUnderway == false)
 %>
 		<input type="hidden" name="clickcolumn" value=""/>
 		<input type="hidden" name="startrow" value='<%=Integer.toString(startRow)%>'/>
-		<input type="hidden" name="sortorder" value='<%=org.apache.acf.ui.util.Encoder.attributeEscape(sortOrder.toString())%>'/>
+		<input type="hidden" name="sortorder" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(sortOrder.toString())%>'/>
 
 		<table class="displaytable">
 		    <tr class="headerrow">
@@ -703,7 +703,7 @@ if (maintenanceUnderway == false)
 		while (zz < iterCount)
 		{
 		    IResultRow row = set.getRow(zz);
-		    String startTimeString = org.apache.acf.ui.util.Formatter.formatTime(((Long)row.getValue("starttime")).longValue());
+		    String startTimeString = org.apache.manifoldcf.ui.util.Formatter.formatTime(((Long)row.getValue("starttime")).longValue());
 		    String resultCode = "";
 		    Object resultCodeObject = row.getValue("resultcode");
 		    if (resultCodeObject != null)
@@ -712,26 +712,26 @@ if (maintenanceUnderway == false)
 		    Object resultDescriptionObject = row.getValue("resultdesc");
 		    if (resultDescriptionObject != null)
 			resultDescription = resultDescriptionObject.toString();
-		    String[] identifierBreakdown = org.apache.acf.ui.util.Formatter.formatString(row.getValue("identifier").toString(),64,true,true);
+		    String[] identifierBreakdown = org.apache.manifoldcf.ui.util.Formatter.formatString(row.getValue("identifier").toString(),64,true,true);
 %>
 		    <tr <%="class=\""+((zz%2==0)?"evendatarow":"odddatarow")+"\""%>>
-		        <td class="reportcolumncell"><nobr><%=org.apache.acf.ui.util.Encoder.bodyEscape(startTimeString)%></nobr></td>
-		        <td class="reportcolumncell"><nobr><%=org.apache.acf.ui.util.Encoder.bodyEscape(row.getValue("activity").toString())%></nobr></td>
+		        <td class="reportcolumncell"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(startTimeString)%></nobr></td>
+		        <td class="reportcolumncell"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("activity").toString())%></nobr></td>
 		        <td class="reportcolumncell">
 <%
 		    int q = 0;
 		    while (q < identifierBreakdown.length)
 		    {
 %>
-				<nobr><%=org.apache.acf.ui.util.Encoder.bodyEscape(identifierBreakdown[q++])%></nobr><br/>
+				<nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(identifierBreakdown[q++])%></nobr><br/>
 <%
 		    }
 %>
 			</td>
-		        <td class="reportcolumncell"><%=org.apache.acf.ui.util.Encoder.bodyEscape(resultCode)%></td>
-		        <td class="reportcolumncell"><%=org.apache.acf.ui.util.Encoder.bodyEscape(row.getValue("bytes").toString())%></td>
-		        <td class="reportcolumncell"><%=org.apache.acf.ui.util.Encoder.bodyEscape(row.getValue("elapsedtime").toString())%></td>
-		        <td class="reportcolumncell"><%=org.apache.acf.ui.util.Encoder.bodyEscape(resultDescription)%></td>
+		        <td class="reportcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(resultCode)%></td>
+		        <td class="reportcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("bytes").toString())%></td>
+		        <td class="reportcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("elapsedtime").toString())%></td>
+		        <td class="reportcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(resultDescription)%></td>
 		    </tr>
 <%
 			zz++;

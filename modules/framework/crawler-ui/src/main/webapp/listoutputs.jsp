@@ -100,11 +100,11 @@
 %>
 		<tr <%="class=\""+((i%2==0)?"evendatarow":"odddatarow")+"\""%>>
 			<td class="columncell">
-				<a href='<%="viewoutput.jsp?connname="+java.net.URLEncoder.encode(name,"UTF-8")%>' alt='<%="View "+org.apache.acf.ui.util.Encoder.attributeEscape(name)%>'>View</a>&nbsp;<a href='<%="editoutput.jsp?connname="+java.net.URLEncoder.encode(name,"UTF-8")%>' alt='<%="Edit "+org.apache.acf.ui.util.Encoder.attributeEscape(name)%>'>Edit</a>&nbsp;<a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.acf.ui.util.Encoder.attributeJavascriptEscape(name)+"\")"%>' alt='<%="Delete "+org.apache.acf.ui.util.Encoder.attributeEscape(name)%>'>Delete</a>
+				<a href='<%="viewoutput.jsp?connname="+java.net.URLEncoder.encode(name,"UTF-8")%>' alt='<%="View "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'>View</a>&nbsp;<a href='<%="editoutput.jsp?connname="+java.net.URLEncoder.encode(name,"UTF-8")%>' alt='<%="Edit "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'>Edit</a>&nbsp;<a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(name)+"\")"%>' alt='<%="Delete "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'>Delete</a>
 			</td>
-			<td class="columncell"><%=org.apache.acf.ui.util.Encoder.bodyEscape(name)%></td>
-			<td class="columncell"><%=org.apache.acf.ui.util.Encoder.bodyEscape(description)%></td>
-			<td class="columncell"><%=org.apache.acf.ui.util.Encoder.bodyEscape(connectorName)%></td>
+			<td class="columncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(name)%></td>
+			<td class="columncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%></td>
+			<td class="columncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectorName)%></td>
 			<td class="columncell"><%=Integer.toString(maxCount)%></td>
 		</tr>
 <%

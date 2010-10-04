@@ -27,7 +27,7 @@
 
   <servlet>
 	<servlet-name>APIServlet</servlet-name>
-    	<servlet-class>org.apache.acf.api.APIServlet</servlet-class>
+    	<servlet-class>org.apache.manifoldcf.api.APIServlet</servlet-class>
   </servlet>
 
   <servlet-mapping>

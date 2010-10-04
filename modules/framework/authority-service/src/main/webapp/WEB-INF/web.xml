@@ -27,7 +27,7 @@
 
   <servlet>
 	<servlet-name>UserACLServlet</servlet-name>
-    	<servlet-class>org.apache.acf.authorityservice.servlet.UserACLServlet</servlet-class>
+    	<servlet-class>org.apache.manifoldcf.authorityservice.servlet.UserACLServlet</servlet-class>
   </servlet>
 
   <servlet-mapping>

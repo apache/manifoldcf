@@ -24,7 +24,7 @@
 <%@ taglib prefix="sql" uri="http://java.sun.com/jstl/sql" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt" %>
 
-<jsp:useBean id="adminprofile" class="org.apache.acf.ui.beans.AdminProfile" scope="session"/>
+<jsp:useBean id="adminprofile" class="org.apache.manifoldcf.ui.beans.AdminProfile" scope="session"/>
 
 <c:catch var="error">
 	<c:if test="${param.valid=='true'}">

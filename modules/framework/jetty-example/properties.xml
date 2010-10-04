@@ -18,12 +18,12 @@
 
 <configuration>
   <!-- Select Derby as the database implementation, and specify where the database will be stored -->
-  <property name="org.apache.acf.databaseimplementationclass" value="org.apache.acf.core.database.DBInterfaceDerby"/>
-  <property name="org.apache.acf.derbydatabasepath" value="."/>
+  <property name="org.apache.manifoldcf.databaseimplementationclass" value="org.apache.manifoldcf.core.database.DBInterfaceDerby"/>
+  <property name="org.apache.manifoldcf.derbydatabasepath" value="."/>
   <!-- Point to a specific logging file -->
-  <property name="org.apache.acf.logconfigfile" value="./logging.ini"/>
+  <property name="org.apache.manifoldcf.logconfigfile" value="./logging.ini"/>
   <!-- Specify the connectors to be loaded -->
-  <property name="org.apache.acf.connectorsconfigurationfile" value="./connectors.xml"/>
+  <property name="org.apache.manifoldcf.connectorsconfigurationfile" value="./connectors.xml"/>
   <!-- Tell LCF where to find the connector jars -->
   <libdir path="./connector-lib"/>
   <!-- WSDD references -->

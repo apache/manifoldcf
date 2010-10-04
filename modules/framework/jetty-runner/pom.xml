@@ -54,7 +54,7 @@
                         <manifest>
                             <classpathPrefix>lib/</classpathPrefix>
                             <addClasspath>true</addClasspath>
-                            <mainClass>org.apache.acf.jettyrunner.ACFJettyRunner</mainClass>
+                            <mainClass>org.apache.manifoldcf.jettyrunner.ACFJettyRunner</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

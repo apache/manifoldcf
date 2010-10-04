@@ -20,7 +20,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-boolean maintenanceUnderway = org.apache.acf.crawler.system.ACF.checkMaintenanceUnderway();
+boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ACF.checkMaintenanceUnderway();
 
 %>
 

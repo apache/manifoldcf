@@ -78,7 +78,7 @@
             <arg value="-dest"/>
             <arg value="build/xsdjava"/>
             <arg value="-package"/>
-            <arg value="org.apache.acf.crawler.connectors.meridio.${packagename}"/>
+            <arg value="org.apache.manifoldcf.crawler.connectors.meridio.${packagename}"/>
         </java>
     </target>
 
