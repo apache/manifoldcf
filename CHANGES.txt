@@ -1,7 +1,10 @@
-Apache Connectors Framework Change Log
+ManifoldCF Change Log
 $Id$
 
 ======================= Trunk (not yet released) =======================
+
+Name change to ManifoldCF
+(Community)
 
 CONNECTORS-107: Entering report forms now preselects all activities.
 (Karl Wright)
