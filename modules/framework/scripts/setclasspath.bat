@@ -1,1 +1,1 @@
-set CLASSPATH=%CLASSPATH%;%LCF_HOME%\processes\jar\%1
+set CLASSPATH=%CLASSPATH%;%MCF_HOME%\processes\jar\%1
