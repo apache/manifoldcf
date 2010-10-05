@@ -1068,7 +1068,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
       }
       catch (java.sql.SQLException e)
       {
-        throw new ManifoldCFException(e.getMessage(),e);
+        throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.DATABASE_CONNECTION_ERROR);
       }
       inTransaction = true;
     }
@@ -1081,8 +1081,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   {
     if (inTransaction)
     {
-      depthCount--;
-      if (depthCount == 0)
+      if (depthCount == 1)
       {
         try
         {
@@ -1094,10 +1093,11 @@ public class DBInterfaceDerby extends Database implements IDBInterface
         }
         catch (java.sql.SQLException e)
         {
-          throw new ManifoldCFException(e.getMessage(),e);
+          throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.DATABASE_CONNECTION_ERROR);
         }
         inTransaction = false;
       }
+      depthCount--;
     }
     else
       throw new ManifoldCFException("Transaction nesting error!");
@@ -1109,8 +1109,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   {
     if (inTransaction)
     {
-      depthCount--;
-      if (depthCount == 0)
+      if (depthCount == 1)
       {
         try
         {
@@ -1122,10 +1121,11 @@ public class DBInterfaceDerby extends Database implements IDBInterface
         }
         catch (java.sql.SQLException e)
         {
-          throw new ManifoldCFException(e.getMessage(),e);
+          throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.DATABASE_CONNECTION_ERROR);
         }
         inTransaction = false;
       }
+      depthCount--;
     }
     else
       throw new ManifoldCFException("Transaction nesting error!");
