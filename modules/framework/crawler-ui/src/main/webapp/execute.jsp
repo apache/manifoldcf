@@ -60,9 +60,14 @@
 				{
 					// Set up a connection object that is a merge of an existing connection object plus what was posted.
 					IRepositoryConnection connection = null;
+					boolean isNew = true;
+					String x = variableContext.getParameter("isnewconnection");
+					if (x != null)
+						isNew = x.equals("true");
+
 					String connectionName = variableContext.getParameter("connname");
 					// If the connectionname is not null, load the connection description and prepopulate everything with what comes from it.
-					if (connectionName != null && connectionName.length() > 0)
+					if (connectionName != null && connectionName.length() > 0 && !isNew)
 					{
 						connection = connManager.load(connectionName);
 					}
@@ -75,7 +80,8 @@
 					}
 					
 					// Fill in connection object from posted data
-					String x = variableContext.getParameter("description");
+					connection.setIsNew(isNew);
+					x = variableContext.getParameter("description");
 					if (x != null)
 						connection.setDescription(x);
 					x = variableContext.getParameter("classname");
@@ -214,9 +220,14 @@
 				{
 					// Set up a connection object that is a merge of an existing connection object plus what was posted.
 					IAuthorityConnection connection = null;
+					boolean isNew = true;
+					String x = variableContext.getParameter("isnewconnection");
+					if (x != null)
+						isNew = x.equals("true");
+
 					String connectionName = variableContext.getParameter("connname");
 					// If the connectionname is not null, load the connection description and prepopulate everything with what comes from it.
-					if (connectionName != null && connectionName.length() > 0)
+					if (connectionName != null && connectionName.length() > 0 && !isNew)
 					{
 						connection = authConnManager.load(connectionName);
 					}
@@ -229,7 +240,8 @@
 					}
 
 					// Gather all the data from the form.
-					String x = variableContext.getParameter("description");
+					connection.setIsNew(isNew);
+					x = variableContext.getParameter("description");
 					if (x != null)
 						connection.setDescription(x);
 					x = variableContext.getParameter("classname");
@@ -323,9 +335,14 @@
 				{
 					// Set up a connection object that is a merge of an existing connection object plus what was posted.
 					IOutputConnection connection = null;
+					boolean isNew = true;
+					String x = variableContext.getParameter("isnewconnection");
+					if (x != null)
+						isNew = x.equals("true");
+
 					String connectionName = variableContext.getParameter("connname");
 					// If the connectionname is not null, load the connection description and prepopulate everything with what comes from it.
-					if (connectionName != null && connectionName.length() > 0)
+					if (connectionName != null && connectionName.length() > 0 && !isNew)
 					{
 						connection = outputManager.load(connectionName);
 					}
@@ -338,7 +355,8 @@
 					}
 
 					// Gather all the data from the form.
-					String x = variableContext.getParameter("description");
+					connection.setIsNew(isNew);
+					x = variableContext.getParameter("description");
 					if (x != null)
 						connection.setDescription(x);
 					x = variableContext.getParameter("classname");

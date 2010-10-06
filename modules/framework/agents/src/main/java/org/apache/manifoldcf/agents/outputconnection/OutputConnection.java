@@ -30,6 +30,7 @@ public class OutputConnection implements IOutputConnection
   public static final String _rcsid = "@(#)$Id: OutputConnection.java 988245 2010-08-23 18:39:35Z kwright $";
 
   // data
+  protected boolean isNew = true;
   protected String name = null;
   protected String description = null;
   protected String className = null;
@@ -48,6 +49,7 @@ public class OutputConnection implements IOutputConnection
   public OutputConnection duplicate()
   {
     OutputConnection rval = new OutputConnection();
+    rval.isNew = isNew;
     rval.name = name;
     rval.description = description;
     rval.className = className;
@@ -56,6 +58,22 @@ public class OutputConnection implements IOutputConnection
     return rval;
   }
 
+  /** Set 'isnew' condition.
+  *@param isnew true if this is a new instance.
+  */
+  public void setIsNew(boolean isnew)
+  {
+    this.isNew = isnew;
+  }
+  
+  /** Get 'isnew' condition.
+  *@return true if this is a new connection, false otherwise.
+  */
+  public boolean getIsNew()
+  {
+    return isNew;
+  }
+  
   /** Set name.
   *@param name is the name.
   */

@@ -2573,6 +2573,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   
   // Connection API
   
+  protected static final String CONNECTIONNODE_ISNEW = "isnew";
   protected static final String CONNECTIONNODE_NAME = "name";
   protected static final String CONNECTIONNODE_CLASSNAME = "class_name";
   protected static final String CONNECTIONNODE_MAXCONNECTIONS = "max_connections";
@@ -2597,7 +2598,13 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       ConfigurationNode child = connectionNode.findChild(i++);
       String childType = child.getType();
-      if (childType.equals(CONNECTIONNODE_NAME))
+      if (childType.equals(CONNECTIONNODE_ISNEW))
+      {
+        if (child.getValue() == null)
+          throw new ManifoldCFException("Connection isnew node requires a value");
+        connection.setIsNew(child.getValue().equals("true"));
+      }
+      else if (childType.equals(CONNECTIONNODE_NAME))
       {
         if (child.getValue() == null)
           throw new ManifoldCFException("Connection name node requires a value");
@@ -2656,7 +2663,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   {
     ConfigurationNode child;
     int j;
-    
+
+    child = new ConfigurationNode(CONNECTIONNODE_ISNEW);
+    child.setValue(connection.getIsNew()?"true":"false");
+    connectionNode.addChild(connectionNode.getChildCount(),child);
+
     child = new ConfigurationNode(CONNECTIONNODE_NAME);
     child.setValue(connection.getName());
     connectionNode.addChild(connectionNode.getChildCount(),child);
@@ -2701,7 +2712,13 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       ConfigurationNode child = connectionNode.findChild(i++);
       String childType = child.getType();
-      if (childType.equals(CONNECTIONNODE_NAME))
+      if (childType.equals(CONNECTIONNODE_ISNEW))
+      {
+        if (child.getValue() == null)
+          throw new ManifoldCFException("Connection isnew node requires a value");
+        connection.setIsNew(child.getValue().equals("true"));
+      }
+      else if (childType.equals(CONNECTIONNODE_NAME))
       {
         if (child.getValue() == null)
           throw new ManifoldCFException("Connection name node requires a value");
@@ -2761,6 +2778,10 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     ConfigurationNode child;
     int j;
     
+    child = new ConfigurationNode(CONNECTIONNODE_ISNEW);
+    child.setValue(connection.getIsNew()?"true":"false");
+    connectionNode.addChild(connectionNode.getChildCount(),child);
+
     child = new ConfigurationNode(CONNECTIONNODE_NAME);
     child.setValue(connection.getName());
     connectionNode.addChild(connectionNode.getChildCount(),child);
@@ -2805,7 +2826,13 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       ConfigurationNode child = connectionNode.findChild(i++);
       String childType = child.getType();
-      if (childType.equals(CONNECTIONNODE_NAME))
+      if (childType.equals(CONNECTIONNODE_ISNEW))
+      {
+        if (child.getValue() == null)
+          throw new ManifoldCFException("Connection isnew node requires a value");
+        connection.setIsNew(child.getValue().equals("true"));
+      }
+      else if (childType.equals(CONNECTIONNODE_NAME))
       {
         if (child.getValue() == null)
           throw new ManifoldCFException("Connection name node requires a value");
@@ -2902,7 +2929,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   {
     ConfigurationNode child;
     int j;
-    
+
+    child = new ConfigurationNode(CONNECTIONNODE_ISNEW);
+    child.setValue(connection.getIsNew()?"true":"false");
+    connectionNode.addChild(connectionNode.getChildCount(),child);
+
     child = new ConfigurationNode(CONNECTIONNODE_NAME);
     child.setValue(connection.getName());
     connectionNode.addChild(connectionNode.getChildCount(),child);

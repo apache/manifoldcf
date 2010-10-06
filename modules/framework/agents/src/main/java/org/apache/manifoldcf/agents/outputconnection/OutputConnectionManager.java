@@ -44,6 +44,8 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
   protected final static String maxCountField = "maxcount";
   protected final static String configField = "configxml";
 
+  protected static Random random = new Random();
+
   // Cache manager
   ICacheManager cacheManager;
   // Thread context
@@ -242,76 +244,104 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
     ssb.add(getOutputConnectionsKey());
     ssb.add(getOutputConnectionKey(object.getName()));
     StringSet cacheKeys = new StringSet(ssb);
-    ICacheHandle ch = cacheManager.enterCache(null,cacheKeys,getTransactionID());
-    try
+    while (true)
     {
-      beginTransaction();
+      // Catch deadlock condition
       try
       {
-        performLock();
-        // Notify of a change to the configuration
-        ManifoldCF.noteConfigurationChange();
-        // See whether the instance exists
-        ArrayList params = new ArrayList();
-        params.add(object.getName());
-        IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
-          nameField+"=? FOR UPDATE",params,null,null);
-        HashMap values = new HashMap();
-        values.put(descriptionField,object.getDescription());
-        values.put(classNameField,object.getClassName());
-        values.put(maxCountField,new Long((long)object.getMaxConnections()));
-        String configXML = object.getConfigParams().toXML();
-        values.put(configField,configXML);
-        boolean notificationNeeded = false;
-        boolean isCreated;
-        
-        if (set.getRowCount() > 0)
+        ICacheHandle ch = cacheManager.enterCache(null,cacheKeys,getTransactionID());
+        try
         {
-          isCreated = false;
-          IResultRow row = set.getRow(0);
-          String oldXML = (String)row.getValue(configField);
-          if (oldXML == null || !oldXML.equals(configXML))
-            notificationNeeded = true;
+          beginTransaction();
+          try
+          {
+            performLock();
+            // Notify of a change to the configuration
+            ManifoldCF.noteConfigurationChange();
+            boolean isNew = object.getIsNew();
+            // See whether the instance exists
+            ArrayList params = new ArrayList();
+            params.add(object.getName());
+            IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
+              nameField+"=? FOR UPDATE",params,null,null);
+            HashMap values = new HashMap();
+            values.put(descriptionField,object.getDescription());
+            values.put(classNameField,object.getClassName());
+            values.put(maxCountField,new Long((long)object.getMaxConnections()));
+            String configXML = object.getConfigParams().toXML();
+            values.put(configField,configXML);
+            boolean notificationNeeded = false;
+            boolean isCreated;
+            
+            if (set.getRowCount() > 0)
+            {
+              // If the object is supposedly new, it is bad that we found one that already exists.
+              if (isNew)
+                throw new ManifoldCFException("Output connection '"+object.getName()+"' already exists");
+              isCreated = false;
+              IResultRow row = set.getRow(0);
+              String oldXML = (String)row.getValue(configField);
+              if (oldXML == null || !oldXML.equals(configXML))
+                notificationNeeded = true;
 
-          // Update
-          params.clear();
-          params.add(object.getName());
-          performUpdate(values," WHERE "+nameField+"=?",params,null);
+              // Update
+              params.clear();
+              params.add(object.getName());
+              performUpdate(values," WHERE "+nameField+"=?",params,null);
+            }
+            else
+            {
+              // If the object is not supposed to be new, it is bad that we did not find one.
+              if (!isNew)
+                throw new ManifoldCFException("Output connection '"+object.getName()+"' no longer exists");
+              isCreated = true;
+              // Insert
+              values.put(nameField,object.getName());
+              // We only need the general key because this is new.
+              performInsert(values,null);
+            }
+            
+            // If notification required, do it.
+            if (notificationNeeded)
+              AgentManagerFactory.noteOutputConnectionChange(threadContext,object.getName());
+
+            cacheManager.invalidateKeys(ch);
+            return isCreated;
+          }
+          catch (ManifoldCFException e)
+          {
+            signalRollback();
+            throw e;
+          }
+          catch (Error e)
+          {
+            signalRollback();
+            throw e;
+          }
+          finally
+          {
+            endTransaction();
+          }
         }
-        else
+        finally
         {
-          isCreated = true;
-          // Insert
-          values.put(nameField,object.getName());
-          // We only need the general key because this is new.
-          performInsert(values,null);
+          cacheManager.leaveCache(ch);
         }
-        
-        // If notification required, do it.
-        if (notificationNeeded)
-          AgentManagerFactory.noteOutputConnectionChange(threadContext,object.getName());
-
-        cacheManager.invalidateKeys(ch);
-        return isCreated;
       }
       catch (ManifoldCFException e)
       {
-        signalRollback();
-        throw e;
+        // Is this a deadlock exception?  If so, we want to try again.
+        if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
+          throw e;
+        try
+        {
+          ManifoldCF.sleep((long)(random.nextDouble() * 60000.0 + 500.0));
+        }
+        catch (InterruptedException e2)
+        {
+          throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
+        }
       }
-      catch (Error e)
-      {
-        signalRollback();
-        throw e;
-      }
-      finally
-      {
-        endTransaction();
-      }
-    }
-    finally
-    {
-      cacheManager.leaveCache(ch);
     }
   }
 
@@ -539,6 +569,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
       String name = row.getValue(nameField).toString();
       int index = ((Integer)returnIndex.get(name)).intValue();
       OutputConnection rc = new OutputConnection();
+      rc.setIsNew(false);
       rc.setName(name);
       rc.setDescription((String)row.getValue(descriptionField));
       rc.setClassName((String)row.getValue(classNameField));

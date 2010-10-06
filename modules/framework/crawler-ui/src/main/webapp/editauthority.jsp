@@ -53,6 +53,7 @@
 	}
 
 	// Setup default fields
+	boolean isNew = true;
 	String description = "";
 	String className = "";
 	int maxConnections = 10;
@@ -61,6 +62,7 @@
 	if (connection != null)
 	{
 		// Set up values
+		isNew = connection.getIsNew();
 		connectionName = connection.getName();
 		description = connection.getDescription();
 		className = connection.getClassName();
@@ -241,6 +243,7 @@
 	  <input type="hidden" name="op" value="Continue"/>
 	  <input type="hidden" name="type" value="authority"/>
 	  <input type="hidden" name="tabname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tabName)%>'/>
+	  <input type="hidden" name="isnewconnection" value='<%=(isNew?"true":"false")%>'/>
 	    <table class="tabtable">
 	      <tr class="tabrow">
 <%

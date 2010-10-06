@@ -30,6 +30,7 @@ public class RepositoryConnection implements IRepositoryConnection
   public static final String _rcsid = "@(#)$Id: RepositoryConnection.java 988245 2010-08-23 18:39:35Z kwright $";
 
   // data
+  protected boolean isNew = true;
   protected String name = null;
   protected String description = null;
   protected String className = null;
@@ -52,6 +53,7 @@ public class RepositoryConnection implements IRepositoryConnection
   public RepositoryConnection duplicate()
   {
     RepositoryConnection rval = new RepositoryConnection();
+    rval.isNew = isNew;
     rval.name = name;
     rval.description = description;
     rval.className = className;
@@ -66,6 +68,22 @@ public class RepositoryConnection implements IRepositoryConnection
       rval.throttles.put(key,ti);
     }
     return rval;
+  }
+
+  /** Set 'isnew' condition.
+  *@param isnew true if this is a new instance.
+  */
+  public void setIsNew(boolean isnew)
+  {
+    this.isNew = isnew;
+  }
+  
+  /** Get 'isnew' condition.
+  *@return true if this is a new connection, false otherwise.
+  */
+  public boolean getIsNew()
+  {
+    return isNew;
   }
 
   /** Set name.

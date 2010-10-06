@@ -42,6 +42,8 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   protected final static String maxCountField = "maxcount";
   protected final static String configField = "configxml";
 
+  protected static Random random = new Random();
+
   // Cache manager
   ICacheManager cacheManager;
   // Thread context
@@ -240,65 +242,92 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
     ssb.add(getAuthorityConnectionsKey());
     ssb.add(getAuthorityConnectionKey(object.getName()));
     StringSet cacheKeys = new StringSet(ssb);
-    ICacheHandle ch = cacheManager.enterCache(null,cacheKeys,getTransactionID());
-    try
+    while (true)
     {
-      beginTransaction();
       try
       {
-        performLock();
-        ManifoldCF.noteConfigurationChange();
-        // See whether the instance exists
-        ArrayList params = new ArrayList();
-        params.add(object.getName());
-        IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
-          nameField+"=? FOR UPDATE",params,null,null);
-        HashMap values = new HashMap();
-        values.put(descriptionField,object.getDescription());
-        values.put(classNameField,object.getClassName());
-        values.put(maxCountField,new Long((long)object.getMaxConnections()));
-        values.put(configField,object.getConfigParams().toXML());
-
-        boolean isCreated;
-        
-        if (set.getRowCount() > 0)
+        ICacheHandle ch = cacheManager.enterCache(null,cacheKeys,getTransactionID());
+        try
         {
-          isCreated = false;
-          // Update
-          params.clear();
-          params.add(object.getName());
-          performUpdate(values," WHERE "+nameField+"=?",params,null);
-        }
-        else
-        {
-          isCreated = true;
-          // Insert
-          values.put(nameField,object.getName());
-          // We only need the general key because this is new.
-          performInsert(values,null);
-        }
+          beginTransaction();
+          try
+          {
+            performLock();
+            ManifoldCF.noteConfigurationChange();
+            boolean isNew = object.getIsNew();
+            // See whether the instance exists
+            ArrayList params = new ArrayList();
+            params.add(object.getName());
+            IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
+              nameField+"=? FOR UPDATE",params,null,null);
+            HashMap values = new HashMap();
+            values.put(descriptionField,object.getDescription());
+            values.put(classNameField,object.getClassName());
+            values.put(maxCountField,new Long((long)object.getMaxConnections()));
+            values.put(configField,object.getConfigParams().toXML());
 
-        cacheManager.invalidateKeys(ch);
-        return isCreated;
+            boolean isCreated;
+            
+            if (set.getRowCount() > 0)
+            {
+              // If the object is supposedly new, it is bad that we found one that already exists.
+              if (isNew)
+                throw new ManifoldCFException("Authority connection '"+object.getName()+"' already exists");
+              isCreated = false;
+              // Update
+              params.clear();
+              params.add(object.getName());
+              performUpdate(values," WHERE "+nameField+"=?",params,null);
+            }
+            else
+            {
+              // If the object is not supposed to be new, it is bad that we did not find one.
+              if (!isNew)
+                throw new ManifoldCFException("Authority connection '"+object.getName()+"' no longer exists");
+              isCreated = true;
+              // Insert
+              values.put(nameField,object.getName());
+              // We only need the general key because this is new.
+              performInsert(values,null);
+            }
+
+            cacheManager.invalidateKeys(ch);
+            return isCreated;
+          }
+          catch (ManifoldCFException e)
+          {
+            signalRollback();
+            throw e;
+          }
+          catch (Error e)
+          {
+            signalRollback();
+            throw e;
+          }
+          finally
+          {
+            endTransaction();
+          }
+        }
+        finally
+        {
+          cacheManager.leaveCache(ch);
+        }
       }
       catch (ManifoldCFException e)
       {
-        signalRollback();
-        throw e;
+        // Is this a deadlock exception?  If so, we want to try again.
+        if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
+          throw e;
+        try
+        {
+          ManifoldCF.sleep((long)(random.nextDouble() * 60000.0 + 500.0));
+        }
+        catch (InterruptedException e2)
+        {
+          throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
+        }
       }
-      catch (Error e)
-      {
-        signalRollback();
-        throw e;
-      }
-      finally
-      {
-        endTransaction();
-      }
-    }
-    finally
-    {
-      cacheManager.leaveCache(ch);
     }
   }
 
@@ -443,7 +472,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
     }
   }
 
-  /** Read a chunk of repository connections.
+  /** Read a chunk of authority connections.
   *@param rval is the place to put the read policies.
   *@param returnIndex is a map from the object id (resource id) and the rval index.
   *@param idList is the list of id's.
@@ -462,6 +491,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
       String name = row.getValue(nameField).toString();
       int index = ((Integer)returnIndex.get(name)).intValue();
       AuthorityConnection rc = new AuthorityConnection();
+      rc.setIsNew(false);
       rc.setName(name);
       rc.setDescription((String)row.getValue(descriptionField));
       rc.setClassName((String)row.getValue(classNameField));

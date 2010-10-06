@@ -25,6 +25,16 @@ import java.util.*;
 */
 public interface IAuthorityConnection
 {
+  /** Set 'isnew' condition.
+  *@param isnew true if this is a new instance.
+  */
+  public void setIsNew(boolean isnew);
+  
+  /** Get 'isnew' condition.
+  *@return true if this is a new connection, false otherwise.
+  */
+  public boolean getIsNew();
+
   /** Set name.
   *@param name is the name.
   */

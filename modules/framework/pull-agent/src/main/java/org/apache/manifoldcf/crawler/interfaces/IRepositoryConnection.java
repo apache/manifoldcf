@@ -28,6 +28,16 @@ public interface IRepositoryConnection
 {
   public static final String _rcsid = "@(#)$Id: IRepositoryConnection.java 988245 2010-08-23 18:39:35Z kwright $";
 
+  /** Set 'isnew' condition.
+  *@param isnew true if this is a new instance.
+  */
+  public void setIsNew(boolean isnew);
+  
+  /** Get 'isnew' condition.
+  *@return true if this is a new connection, false otherwise.
+  */
+  public boolean getIsNew();
+
   /** Set name.
   *@param name is the name.
   */
