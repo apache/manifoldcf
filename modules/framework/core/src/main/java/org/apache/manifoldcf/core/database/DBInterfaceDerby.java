@@ -611,7 +611,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     // Note well: We also have to treat 'duplicate key' as a transaction abort, since this is what you get when two threads attempt to
     // insert the same row.  (Everything only works, then, as long as there is a unique constraint corresponding to every bad insert that
     // one could make.)
-    if (sqlState != null && sqlState.equals("23505"))
+    if (sqlState != null && sqlState.equals("23505") && inTransaction)
       return new ManifoldCFException(message,e,ManifoldCFException.DATABASE_TRANSACTION_ABORT);
     // Deadlock also aborts.
     if (sqlState != null && sqlState.equals("40001"))
@@ -629,13 +629,42 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   public void performModification(String query, ArrayList params, StringSet invalidateKeys)
     throws ManifoldCFException
   {
-    try
+    while (true)
     {
-      executeQuery(query,params,null,invalidateKeys,null,false,0,null,null);
-    }
-    catch (ManifoldCFException e)
-    {
-      throw reinterpretException(e);
+      try
+      {
+        try
+        {
+          executeQuery(query,params,null,invalidateKeys,null,false,0,null,null);
+          return;
+        }
+        catch (ManifoldCFException e)
+        {
+          throw reinterpretException(e);
+        }
+      }
+      catch (ManifoldCFException e)
+      {
+        // If this is a transaction abort, and we are NOT in a transaction, then repeat the request after
+        // a delay.  This is because Derby is perfectly capable of deadlocking itself even without any involved transactions, but
+        // ManifoldCF doesn't expect deadlocks to arise in any way other than through a transaction.  See CONNECTORS-111.
+        if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
+          throw e;
+        // Check if we are in a transaction
+        if (inTransaction)
+          throw e;
+        // Unique key constraints generate transaction abort signals only when they are in a transaction, so we are safe in
+        // assuming the exception is the result of internal deadlock alone.
+        // Wait a short time.
+        try
+        {
+          ManifoldCF.sleep(1000L);
+        }
+        catch (InterruptedException e2)
+        {
+          throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+        }
+      }
     }
   }
 
