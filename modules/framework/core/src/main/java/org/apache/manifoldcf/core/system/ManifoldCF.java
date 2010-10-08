@@ -183,7 +183,7 @@ public class ManifoldCF
           masterDatabaseName = "dbname";
         masterDatabaseUsername = getProperty(masterDatabaseUsernameProperty);
         if (masterDatabaseUsername == null)
-          masterDatabaseUsername = "lcf";
+          masterDatabaseUsername = "manifoldcf";
         masterDatabasePassword = getProperty(masterDatabasePasswordProperty);
         if (masterDatabasePassword == null)
           masterDatabasePassword = "local_pg_passwd";

@@ -53,6 +53,8 @@ public class ManifoldCFJettyRunner
 
   // Configuration parameters
   public static final String connectorsConfigurationFile = "org.apache.manifoldcf.connectorsconfigurationfile";
+  public static final String databaseSuperuserName = "org.apache.manifoldcf.dbsuperusername";
+  public static final String databaseSuperuserPassword = "org.apache.manifoldcf.dbsuperuserpassword";
   
   // Connectors configuration file
   public static final String NODE_OUTPUTCONNECTOR = "outputconnector";
@@ -188,8 +190,16 @@ public class ManifoldCFJettyRunner
         ManifoldCF.getMasterDatabaseUsername(),
         ManifoldCF.getMasterDatabasePassword());
 
+      // Get the specified superuser name and password, in case this isn't Derby we're using
+      String superuserName = ManifoldCF.getProperty(databaseSuperuserName);
+      if (superuserName == null)
+        superuserName = "";
+      String superuserPassword = ManifoldCF.getProperty(databaseSuperuserPassword);
+      if (superuserPassword == null)
+        superuserPassword = "";
+      
       // Do the basic initialization of the database and its schema
-      ManifoldCF.createSystemDatabase(tc,"","");
+      ManifoldCF.createSystemDatabase(tc,superuserName,superuserPassword);
       ManifoldCF.installTables(tc);
       IAgentManager agentMgr = AgentManagerFactory.make(tc);
       agentMgr.registerAgent("org.apache.manifoldcf.crawler.system.CrawlerAgent");
