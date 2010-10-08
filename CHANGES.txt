@@ -3,6 +3,10 @@ $Id$
 
 ======================= Trunk (not yet released) =======================
 
+CONNECTORS-113: Add properties that allow quick-start example to work properly with
+PostgreSQL.
+(Farzad, Karl Wright)
+
 Name change to ManifoldCF
 (Community)
 
