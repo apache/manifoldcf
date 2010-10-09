@@ -197,6 +197,7 @@
             <fileset dir="lib">
                 <include name="postgresql*.jar"/>
                 <include name="derby*.jar"/>
+                <include name="hsqldb*.jar"/>
             </fileset>
         </copy>
         <copy todir="build/webapp/authority-service/WEB-INF/lib">
@@ -231,6 +232,7 @@
             <fileset dir="lib">
                 <include name="postgresql*.jar"/>
                 <include name="derby*.jar"/>
+                <include name="hsqldb*.jar"/>
             </fileset>
         </copy>
         <copy todir="build/webapp/api-service/WEB-INF/lib">
@@ -271,6 +273,7 @@
             <fileset dir="lib">
                 <include name="postgresql*.jar"/>
                 <include name="derby*.jar"/>
+                <include name="hsqldb*.jar"/>
             </fileset>
         </copy>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib">
@@ -330,6 +333,7 @@
             <fileset dir="lib">
                 <include name="postgresql*.jar"/>
                 <include name="derby*.jar"/>
+                <include name="hsqldb*.jar"/>
             </fileset>
         </copy>
         <copy todir="dist/processes/jar">
@@ -374,6 +378,7 @@
             <fileset dir="lib">
                 <include name="postgresql*.jar"/>
                 <include name="derby*.jar"/>
+                <include name="hsqldb*.jar"/>
             </fileset>
         </copy>
         <copy todir="dist/example/lib">
