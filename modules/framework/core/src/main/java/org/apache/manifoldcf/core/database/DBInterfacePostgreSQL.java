@@ -501,7 +501,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
       
       // Create database
       params = new ArrayList();
-      params.add(userName);
+      params.add(databaseName);
       set = masterDatabase.executeQuery("SELECT * FROM pg_database WHERE datname=?",params,null,null,null,true,-1,null,null);
       if (set.getRowCount() == 0)
       {
