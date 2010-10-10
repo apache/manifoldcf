@@ -1007,6 +1007,10 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     beginTransaction(TRANSACTION_ENCLOSING);
   }
 
+  protected int depthCount = 0;
+  protected boolean inTransaction = false;
+  protected int desiredTransactionType = Connection.TRANSACTION_READ_COMMITTED;
+
   /** Begin a database transaction.  This method call MUST be paired with an endTransaction() call,
   * or database handles will be lost.  If the transaction should be rolled back, then signalRollback() should
   * be called before the transaction is ended.
@@ -1033,26 +1037,12 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     switch (transactionType)
     {
     case TRANSACTION_READCOMMITTED:
+      desiredTransactionType = Connection.TRANSACTION_READ_COMMITTED;
       super.beginTransaction(TRANSACTION_READCOMMITTED);
       break;
     case TRANSACTION_SERIALIZED:
+      desiredTransactionType = Connection.TRANSACTION_SERIALIZABLE;
       super.beginTransaction(TRANSACTION_SERIALIZED);
-      try
-      {
-        performModification("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE",null,null);
-      }
-      catch (Error e)
-      {
-        super.signalRollback();
-        super.endTransaction();
-        throw e;
-      }
-      catch (ManifoldCFException e)
-      {
-        super.signalRollback();
-        super.endTransaction();
-        throw e;
-      }
       break;
     default:
       throw new ManifoldCFException("Bad transaction type: "+Integer.toString(transactionType));
@@ -1082,25 +1072,81 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     super.endTransaction();
   }
 
+
   /** Abstract method to start a transaction */
   protected void startATransaction()
     throws ManifoldCFException
   {
-    executeViaThread(connection,"START TRANSACTION",null,false,0,null,null);
+    if (!inTransaction)
+    {
+      try
+      {
+        connection.setAutoCommit(false);
+        connection.setTransactionIsolation(desiredTransactionType);
+      }
+      catch (java.sql.SQLException e)
+      {
+        throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.DATABASE_CONNECTION_ERROR);
+      }
+      inTransaction = true;
+    }
+    depthCount++;
   }
 
   /** Abstract method to commit a transaction */
   protected void commitCurrentTransaction()
     throws ManifoldCFException
   {
-    executeViaThread(connection,"COMMIT",null,false,0,null,null);
+    if (inTransaction)
+    {
+      if (depthCount == 1)
+      {
+        try
+        {
+          if (connection != null)
+          {
+            connection.commit();
+            connection.setAutoCommit(true);
+          }
+        }
+        catch (java.sql.SQLException e)
+        {
+          throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.DATABASE_CONNECTION_ERROR);
+        }
+        inTransaction = false;
+      }
+      depthCount--;
+    }
+    else
+      throw new ManifoldCFException("Transaction nesting error!");
   }
   
   /** Abstract method to roll back a transaction */
   protected void rollbackCurrentTransaction()
     throws ManifoldCFException
   {
-    executeViaThread(connection,"ROLLBACK",null,false,0,null,null);
+    if (inTransaction)
+    {
+      if (depthCount == 1)
+      {
+        try
+        {
+          if (connection != null)
+          {
+            connection.rollback();
+            connection.setAutoCommit(true);
+          }
+        }
+        catch (java.sql.SQLException e)
+        {
+          throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.DATABASE_CONNECTION_ERROR);
+        }
+        inTransaction = false;
+      }
+      depthCount--;
+    }
+    else
+      throw new ManifoldCFException("Transaction nesting error!");
   }
   
   /** Abstract method for mapping a column name from resultset */

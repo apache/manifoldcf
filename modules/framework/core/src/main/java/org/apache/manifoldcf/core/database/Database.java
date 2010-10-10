@@ -604,6 +604,7 @@ public class Database
         {
           int colcount = 0;
           String[] resultCols = null;
+          String[] resultLabels = null;
 
           // Optionally we're going to suck the data
           // out of the db and return it in a
@@ -616,9 +617,11 @@ public class Database
             //LogBean.db.debug(colcount + " columns returned.");
 
             resultCols = new String[colcount];
+            resultLabels = new String[colcount];
             for (int i = 0; i < colcount; i++)
             {
-              resultCols[i] = mapColumnName(rsmd.getColumnName(i+1));
+              resultCols[i] = rsmd.getColumnName(i+1);
+              resultLabels[i] = mapColumnName(rsmd.getColumnLabel(i+1));
             }
           }
 
@@ -633,7 +636,7 @@ public class Database
 
             while (rs.next() && (maxResults == -1 || maxResults > 0) && (returnLimit == null || returnLimit.checkContinue()))
             {
-              Object value = null;
+              Object value;
               RRow m = new RRow();
 
               // We have 'colcount' cols to look thru
@@ -642,11 +645,13 @@ public class Database
                 String key = resultCols[i];
                 // System.out.println("Key = "+key);
                 int colnum = findColumn(rs,key);
+                value = null;
                 if (colnum > -1)
                 {
                   value = getObject(rs,rsmd,colnum,(spec == null)?ResultSpecification.FORM_DEFAULT:spec.getForm(key));
                 }
-                m.put(key, value);
+                //System.out.println(" Key = '"+resultLabels[i]+"', value = "+((value==null)?"NULL":value.toString()));
+                m.put(resultLabels[i], value);
               }
 
               // See if we should include this row
@@ -909,6 +914,7 @@ public class Database
           switch (rsmd.getColumnType(col))
           {
           case java.sql.Types.CHAR :
+          case java.sql.Types.VARCHAR :
             if ((resultString = rs.getString(col)) != null)
             {
               if (rsmd.getColumnDisplaySize(col) < resultString.length())
@@ -925,6 +931,7 @@ public class Database
               result = clob.getSubString(1, (int) clob.length());
             }
             break;
+            
           case java.sql.Types.BIGINT :
             long l = rs.getLong(col);
             if (!rs.wasNull())
@@ -935,6 +942,12 @@ public class Database
             int i = rs.getInt(col);
             if (!rs.wasNull())
               result = new Integer(i);
+            break;
+
+          case java.sql.Types.SMALLINT:
+            short s = rs.getShort(col);
+            if (!rs.wasNull())
+              result = new Short(s);
             break;
 
           case java.sql.Types.REAL :
@@ -962,6 +975,12 @@ public class Database
             {
               result = new TimeMarker(timestamp.getTime());
             }
+            break;
+
+          case java.sql.Types.BOOLEAN :
+            boolean b = rs.getBoolean(col);
+            if (!rs.wasNull())
+              result = new Boolean(b);
             break;
 
           case java.sql.Types.BLOB:
