@@ -121,7 +121,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   public void performLock(String tableName)
     throws ManifoldCFException
   {
-    performModification("LOCK TABLE "+tableName+" IN EXCLUSIVE MODE",null,null);
+    performModification("LOCK TABLE "+tableName+" WRITE",null,null);
   }
 
   /** Perform an insert operation.
@@ -524,9 +524,10 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   public void createUserAndDatabase(String adminUserName, String adminPassword, StringSet invalidateKeys)
     throws ManifoldCFException
   {
-    String fullDatabasePath = getFullDatabasePath(databaseName);
+    /*
+    // Database name is already fully expanded, so we don't need to do it again.
     // Create a connection to the master database, using the credentials supplied
-    Database masterDatabase = new Database(context,_url+fullDatabasePath,_driver,fullDatabasePath,adminUserName,adminPassword);
+    Database masterDatabase = new Database(context,_url+databaseName,_driver,databaseName,adminUserName,adminPassword);
     try
     {
       // Create user
@@ -544,6 +545,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     {
       throw reinterpretException(e);
     }
+    */
   }
 
   /** Drop user and database.
@@ -661,9 +663,11 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     query.append("SELECT column_name ")
       .append("FROM INFORMATION_SCHEMA.SYSTEM_PRIMARYKEYS WHERE table_schem='PUBLIC' AND table_name=?");
     IResultSet primarySet = performQuery(query.toString(),list,cacheKeys,queryClass);
-    String primaryKey = "";
+    String primaryKey = null;
     if (primarySet.getRowCount() != 0)
-      primaryKey = primarySet.getRow(0).getValue("column_name").toString();
+      primaryKey = ((String)primarySet.getRow(0).getValue("column_name")).toLowerCase();
+    if (primaryKey == null)
+      primaryKey = "";
     
     // Digest the result
     HashMap rval = new HashMap();
@@ -671,7 +675,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     while (i < set.getRowCount())
     {
       IResultRow row = set.getRow(i++);
-      String fieldName = (String)row.getValue("column_name");
+      String fieldName = ((String)row.getValue("column_name")).toLowerCase();
       String type = (String)row.getValue("data_type");
       Long width = (Long)row.getValue("character_maximum_length");
       String isNullable = (String)row.getValue("is_nullable");
@@ -705,7 +709,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
       "WHERE table_schem='PUBLIC' AND TABLE_NAME=? ORDER BY index_name,ordinal_position ASC";
     ArrayList list = new ArrayList();
     list.add(tableName.toUpperCase());
-    IResultSet result = performQuery(query,null,cacheKeys,queryClass);
+    IResultSet result = performQuery(query,list,cacheKeys,queryClass);
     String lastIndexName = null;
     ArrayList indexColumns = null;
     boolean isUnique = false;
@@ -713,8 +717,8 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     while (i < result.getRowCount())
     {
       IResultRow row = result.getRow(i++);
-      String indexName = (String)row.getValue("index_name");
-      String columnName = (String)row.getValue("column_name");
+      String indexName = ((String)row.getValue("index_name")).toLowerCase();
+      String columnName = ((String)row.getValue("column_name")).toLowerCase();
       String nonUnique = row.getValue("non_unique").toString();
       
       if (lastIndexName != null && !lastIndexName.equals(indexName))
@@ -743,7 +747,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
 
   protected void addIndex(Map rval, String indexName, boolean isUnique, ArrayList indexColumns)
   {
-    if (indexName.indexOf("SYS_IDX_SYS_PK") != -1)
+    if (indexName.indexOf("sys_idx") != -1)
       return;
     String[] columnNames = new String[indexColumns.size()];
     int i = 0;
@@ -1099,5 +1103,11 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     executeViaThread(connection,"ROLLBACK",null,false,0,null,null);
   }
   
+  /** Abstract method for mapping a column name from resultset */
+  protected String mapColumnName(String rawColumnName)
+  {
+    return rawColumnName.toLowerCase();
+  }
+
 }
 
