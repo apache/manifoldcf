@@ -355,5 +355,14 @@ public interface IDBInterface
   public void endTransaction()
     throws ManifoldCFException;
 
+  /** Note a number of inserts, modifications, or deletions to a specific table.  This is so we can decide when to do appropriate maintenance.
+  *@param tableName is the name of the table being modified.
+  *@param insertCount is the number of inserts.
+  *@param modifyCount is the number of updates.
+  *@param deleteCount is the number of deletions.
+  */
+  public void noteModifications(String tableName, int insertCount, int modifyCount, int deleteCount)
+    throws ManifoldCFException;
+
 }
 

@@ -19,6 +19,7 @@
 package org.apache.manifoldcf.core.database;
 
 import org.apache.manifoldcf.core.interfaces.*;
+import org.apache.manifoldcf.core.system.ManifoldCF;
 import org.apache.manifoldcf.core.system.Logging;
 import java.util.*;
 
@@ -29,6 +30,9 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   private static final String _url = "jdbc:postgresql://localhost/";
   private static final String _driver = "org.postgresql.Driver";
 
+  /** A lock manager handle. */
+  protected ILockManager lockManager;
+  
   protected String cacheKey;
   // Postgresql serializable transactions are broken in that transactions that occur within them do not in fact work properly.
   // So, once we enter the serializable realm, STOP any additional transactions from doing anything at all.
@@ -45,6 +49,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   {
     super(tc,_url+databaseName,_driver,databaseName,userName,password);
     cacheKey = CacheKeyFactory.makeDatabaseKey(this.databaseName);
+    lockManager = LockManagerFactory.make(tc);
   }
 
   /** Initialize.  This method is called once per JVM instance, in order to set up
@@ -1094,5 +1099,200 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
     Logging.db.warn("");
   }
 
+  // This is where we keep temporary table statistics, which accumulate until they reach a threshold, and then are added into shared memory.
+  
+  /** Accumulated reindex statistics.  This map is keyed by the table name, and contains TableStatistics values. */
+  protected static Map currentReindexStatistics = new HashMap();
+  /** Table reindex thresholds, as read from configuration information.  Keyed by table name, contains Integer values. */
+  protected static Map reindexThresholds = new HashMap();
+  
+  /** Accumulated analyze statistics.  This map is keyed by the table name, and contains TableStatistics values. */
+  protected static Map currentAnalyzeStatistics = new HashMap();
+  /** Table analyze thresholds, as read from configuration information.  Keyed by table name, contains Integer values. */
+  protected static Map analyzeThresholds = new HashMap();
+  
+  /** The number of inserts, deletes, etc. before we update the shared area.
+  */
+  protected static final int commitThreshold = 100;
+  
+  /** Read a datum, presuming zero if the datum does not exist.
+  */
+  protected int readDatum(String datumName)
+    throws ManifoldCFException
+  {
+    byte[] bytes = lockManager.readData(datumName);
+    if (bytes == null)
+      return 0;
+    return (((int)bytes[0]) & 0xff) + ((((int)bytes[1]) & 0xff) << 8) + ((((int)bytes[2]) & 0xff) << 16) + ((((int)bytes[3]) & 0xff) << 24);
+  }
+
+  /** Write a datum, presuming zero if the datum does not exist.
+  */
+  protected void writeDatum(String datumName, int value)
+    throws ManifoldCFException
+  {
+    byte[] bytes = new byte[4];
+    bytes[0] = (byte)(value & 0xff);
+    bytes[1] = (byte)((value >> 8) & 0xff);
+    bytes[2] = (byte)((value >> 16) & 0xff);
+    bytes[3] = (byte)((value >> 24) & 0xff);
+    
+    lockManager.writeData(datumName,bytes);
+  }
+
+  /** Note a number of inserts, modifications, or deletions to a specific table.  This is so we can decide when to do appropriate maintenance.
+  *@param tableName is the name of the table being modified.
+  *@param insertCount is the number of inserts.
+  *@param modifyCount is the number of updates.
+  *@param deleteCount is the number of deletions.
+  */
+  public void noteModifications(String tableName, int insertCount, int modifyCount, int deleteCount)
+    throws ManifoldCFException
+  {
+    String tableStatisticsLock;
+    int eventCount;
+    
+    // Reindexing.
+    // Here we count tuple deletion.  So we want to know the deletecount + modifycount.
+    eventCount = modifyCount + deleteCount;
+    tableStatisticsLock = "statslock-reindex-"+tableName;
+    lockManager.enterWriteCriticalSection(tableStatisticsLock);
+    try
+    {
+      Integer threshold = (Integer)reindexThresholds.get(tableName);
+      int reindexThreshold;
+      if (threshold == null)
+      {
+        // Look for this parameter; if we don't find it, use a default value.
+        reindexThreshold = ManifoldCF.getIntProperty("org.apache.manifold.db.postgres.reindex."+tableName,100000);
+        reindexThresholds.put(tableName,new Integer(reindexThreshold));
+      }
+      else
+        reindexThreshold = threshold.intValue();
+      
+      TableStatistics ts = (TableStatistics)currentReindexStatistics.get(tableName);
+      if (ts == null)
+      {
+        ts = new TableStatistics();
+        currentReindexStatistics.put(tableName,ts);
+      }
+      ts.add(eventCount);
+      // Check if we have passed threshold yet for this table, for committing the data to the shared area
+      if (ts.getEventCount() >= commitThreshold)
+      {
+        // Lock this table's statistics files
+        lockManager.enterWriteLock(tableStatisticsLock);
+        try
+        {
+          String eventDatum = "stats-reindex-"+tableName;
+          int oldEventCount = readDatum(eventDatum);
+          oldEventCount += ts.getEventCount();
+          if (oldEventCount >= reindexThreshold)
+          {
+            // Time to reindex this table!
+            reindexTable(tableName);
+            // Now, clear out the data
+            writeDatum(eventDatum,0);
+          }
+          else
+            writeDatum(eventDatum,oldEventCount);
+          ts.reset();
+        }
+        finally
+        {
+          lockManager.leaveWriteLock(tableStatisticsLock);
+        }
+      }
+    }
+    finally
+    {
+      lockManager.leaveWriteCriticalSection(tableStatisticsLock);
+    }
+    
+      // Analysis.
+    // Here we count tuple addition.
+    eventCount = modifyCount + insertCount;
+    tableStatisticsLock = "statslock-analyze-"+tableName;
+    lockManager.enterWriteCriticalSection(tableStatisticsLock);
+    try
+    {
+      Integer threshold = (Integer)analyzeThresholds.get(tableName);
+      int analyzeThreshold;
+      if (threshold == null)
+      {
+        // Look for this parameter; if we don't find it, use a default value.
+        analyzeThreshold = ManifoldCF.getIntProperty("org.apache.manifold.db.postgres.analyze."+tableName,5000);
+        analyzeThresholds.put(tableName,new Integer(analyzeThreshold));
+      }
+      else
+        analyzeThreshold = threshold.intValue();
+      
+      TableStatistics ts = (TableStatistics)currentAnalyzeStatistics.get(tableName);
+      if (ts == null)
+      {
+        ts = new TableStatistics();
+        currentAnalyzeStatistics.put(tableName,ts);
+      }
+      ts.add(eventCount);
+      // Check if we have passed threshold yet for this table, for committing the data to the shared area
+      if (ts.getEventCount() >= commitThreshold)
+      {
+        // Lock this table's statistics files
+        lockManager.enterWriteLock(tableStatisticsLock);
+        try
+        {
+          String eventDatum = "stats-analyze-"+tableName;
+          int oldEventCount = readDatum(eventDatum);
+          oldEventCount += ts.getEventCount();
+          if (oldEventCount >= analyzeThreshold)
+          {
+            // Time to reindex this table!
+            analyzeTable(tableName);
+            // Now, clear out the data
+            writeDatum(eventDatum,0);
+          }
+          else
+            writeDatum(eventDatum,oldEventCount);
+          ts.reset();
+        }
+        finally
+        {
+          lockManager.leaveWriteLock(tableStatisticsLock);
+        }
+      }
+    }
+    finally
+    {
+      lockManager.leaveWriteCriticalSection(tableStatisticsLock);
+    }
+
+  }
+  
+  /** Table accumulation records.
+  */
+  protected static class TableStatistics
+  {
+    protected int eventCount = 0;
+    
+    public TableStatistics()
+    {
+    }
+    
+    public void reset()
+    {
+      eventCount = 0;
+    }
+    
+    public void add(int eventCount)
+    {
+      this.eventCount += eventCount;
+    }
+    
+    public int getEventCount()
+    {
+      return eventCount;
+    }
+  }
+  
 }
 

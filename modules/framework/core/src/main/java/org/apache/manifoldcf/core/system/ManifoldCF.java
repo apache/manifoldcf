@@ -303,6 +303,24 @@ public class ManifoldCF
     return resolvePath(value);
   }
   
+  /** Read an integer propert, either from the system properties, or from the local configuration file.
+  */
+  public static int getIntProperty(String s, int defaultValue)
+    throws ManifoldCFException
+  {
+    String value = getProperty(s);
+    if (value == null)
+      return defaultValue;
+    try
+    {
+      return Integer.parseInt(value);
+    }
+    catch (NumberFormatException e)
+    {
+      throw new ManifoldCFException("Illegal property value for integer property '"+s+"': '"+value+"': "+e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
+    }
+  }
+  
   /** Attempt to make sure a path is a folder
   * @param path
   */
