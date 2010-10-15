@@ -21,9 +21,9 @@
 -->
 
 <web-app>
-  <display-name>Apache Connectors Framework Authorities API</display-name>
+  <display-name>ManifoldCF Authorities API</display-name>
 
-  <description>Apache Connectors Framework Authorities API</description>
+  <description>ManifoldCF Authorities API</description>
 
   <servlet>
 	<servlet-name>UserACLServlet</servlet-name>
