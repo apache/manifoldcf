@@ -48,9 +48,6 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
   /** This value means that the link existed before, and has been found during this scan. */
   protected static final int ISNEW_EXISTING = 2;
 
-  /** Counter for kicking off analyze */
-  protected static AnalyzeTracker tracker = new AnalyzeTracker();
-
   // Map from string character to link status
   protected static Map isNewMap;
   static
@@ -341,7 +338,7 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
 
         map.put(newField,statusToString(ISNEW_NEW));
         performInsert(map,null);
-        tracker.noteInsert();
+        noteModifications(1,0,0);
         insertHappened.put(childDocumentIDHash,new Boolean(true));
       }
       else
@@ -368,6 +365,7 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
 
         map.put(newField,statusToString(ISNEW_EXISTING));
         performUpdate(map,sb.toString(),updateList,null);
+        noteModifications(0,1,0);
       }
     }
 
@@ -472,6 +470,7 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
     HashMap map = new HashMap();
     map.put(newField,statusToString(ISNEW_BASE));
     performUpdate(map,sb.toString(),list,null);
+    noteModifications(0,list.size(),0);
   }
 
   /** Delete all records that mention a particular set of document identifiers.
@@ -546,6 +545,7 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
   {
     performDelete("WHERE "+query,list,null);
     performDelete("WHERE "+query2,list2,null);
+    noteModifications(0,0,list.size()+list2.size());
   }
 
   /** Get unique values given a document identifier, data name, an job identifier */
@@ -621,28 +621,6 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
     }
   }
 
-  /** Conditionally do analyze operation.
-  */
-  public void conditionallyAnalyzeTables()
-    throws ManifoldCFException
-  {
-    if (tracker.checkAnalyze())
-    {
-      try
-      {
-        // Do the analyze
-        analyzeTable();
-      }
-      finally
-      {
-        // Get the size of the table
-        // For this table, we base the wait time on the number of rows in it.
-        // Simply reanalyze every n inserts
-        tracker.doAnalyze(30000L);
-      }
-    }
-  }
-
   /** Limit checker which removes duplicate rows, based on datavaluehash */
   protected static class ResultDuplicateEliminator implements ILimitChecker
   {
@@ -700,50 +678,6 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
     {
       return true;
     }
-  }
-
-  /** Analyze tracker class.
-  */
-  protected static class AnalyzeTracker
-  {
-    // Number of records to insert before we need to analyze again.
-    // After start, we wait 1000 before analyzing the first time.
-    protected long recordCount = 1000L;
-    protected boolean busy = false;
-
-    /** Constructor.
-    */
-    public AnalyzeTracker()
-    {
-
-    }
-
-    /** Note an analyze.
-    */
-    public synchronized void doAnalyze(long repeatCount)
-    {
-      recordCount = repeatCount;
-      busy = false;
-    }
-
-    /** Note an insert */
-    public synchronized void noteInsert()
-    {
-      if (recordCount > 0L)
-        recordCount--;
-    }
-
-    /** Prepare to insert/delete a record, and see if analyze is required.
-    */
-    public synchronized boolean checkAnalyze()
-    {
-      if (busy)
-        return false;
-      busy = (recordCount == 0L);
-      return busy;
-    }
-
-
   }
 
   protected static class ValueRecord

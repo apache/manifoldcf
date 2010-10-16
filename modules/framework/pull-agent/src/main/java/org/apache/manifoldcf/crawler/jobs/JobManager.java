@@ -677,7 +677,6 @@ public class JobManager implements IJobManager
         sleepFor(sleepAmt);
       }
     }
-    conditionallyAnalyzeTables();
   }
 
   /** Reset as part of restoring document worker threads.
@@ -719,7 +718,6 @@ public class JobManager implements IJobManager
       }
     }
     Logging.jobs.debug("Reset complete");
-    conditionallyAnalyzeTables();
   }
 
   /** Reset as part of restoring seeding threads.
@@ -730,7 +728,6 @@ public class JobManager implements IJobManager
     Logging.jobs.debug("Resetting seeding status");
     jobs.resetSeedingWorkerStatus();
     Logging.jobs.debug("Reset complete");
-    conditionallyAnalyzeTables();
   }
 
   /** Reset as part of restoring doc delete threads.
@@ -741,7 +738,6 @@ public class JobManager implements IJobManager
     Logging.jobs.debug("Resetting doc deleting status");
     jobQueue.resetDocDeleteWorkerStatus();
     Logging.jobs.debug("Reset complete");
-    conditionallyAnalyzeTables();
   }
 
   /** Reset as part of restoring startup threads.
@@ -752,7 +748,6 @@ public class JobManager implements IJobManager
     Logging.jobs.debug("Resetting job starting up status");
     jobs.resetStartupWorkerStatus();
     Logging.jobs.debug("Reset complete");
-    conditionallyAnalyzeTables();
   }
 
   // These methods support job delete threads
@@ -1270,7 +1265,6 @@ public class JobManager implements IJobManager
         sleepFor(sleepAmt);
       }
     }
-    conditionallyAnalyzeTables();
   }
 
   /** Get up to the next n documents to be expired.
@@ -1687,7 +1681,6 @@ public class JobManager implements IJobManager
       rval[i] = (DocumentDescription)answers.get(i);
       i++;
     }
-    conditionallyAnalyzeTables();
 
     // After we're done pulling stuff from the queue, find the eligible row with the best priority on the queue, and save the bins for assessment.
     // This done to decide what the "floor" bincount should be - the idea being that it is wrong to assign priorities for new documents which are
@@ -2054,8 +2047,6 @@ public class JobManager implements IJobManager
         sleepFor(sleepAmt);
       }
     }
-
-    conditionallyAnalyzeTables();
   }
 
   /** Note completion of document processing by a job thread of a document.
@@ -2170,7 +2161,6 @@ public class JobManager implements IJobManager
         sleepFor(sleepAmt);
       }
     }
-    conditionallyAnalyzeTables();
     return rval;
   }
 
@@ -2932,7 +2922,6 @@ public class JobManager implements IJobManager
         sleepFor(sleepAmt);
       }
     }
-    conditionallyAnalyzeTables();
   }
 
   /** Get the specified hop counts, with the limit as described.
@@ -3540,7 +3529,6 @@ public class JobManager implements IJobManager
         }
       }
     }
-    conditionallyAnalyzeTables();
     return rval;
   }
 
@@ -3762,7 +3750,6 @@ public class JobManager implements IJobManager
         sleepFor(sleepAmt);
       }
     }
-    conditionallyAnalyzeTables();
     return rval;
   }
 
@@ -4660,7 +4647,6 @@ public class JobManager implements IJobManager
     {
       Logging.jobs.debug("Job "+jobID+" successfully restarted");
     }
-    conditionallyAnalyzeTables();
   }
 
   /** Get the list of jobs that are ready for seeding.
@@ -5169,39 +5155,6 @@ public class JobManager implements IJobManager
       finally
       {
         database.endTransaction();
-        sleepFor(sleepAmt);
-      }
-    }
-  }
-
-  /** Conditionally analyze tables.  Each table keeps track of the activity that has occurred on it and
-  * decides if it is time to issue an ANALYZE request.
-  */
-  protected void conditionallyAnalyzeTables()
-    throws ManifoldCFException
-  {
-    while (true)
-    {
-      long sleepAmt = 0L;
-      try
-      {
-        hopCount.conditionallyAnalyzeTables();
-        jobQueue.conditionallyAnalyzeTables();
-        break;
-      }
-      catch (ManifoldCFException e)
-      {
-        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
-        {
-          if (Logging.perf.isDebugEnabled())
-            Logging.perf.debug("Aborted reindexing job tables: "+e.getMessage());
-          sleepAmt = getRandomAmount();
-          continue;
-        }
-        throw e;
-      }
-      finally
-      {
         sleepFor(sleepAmt);
       }
     }

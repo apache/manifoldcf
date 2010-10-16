@@ -58,14 +58,6 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
     linkstatusMap.put("E",new Integer(LINKSTATUS_EXISTING));
   }
 
-  /** Counter for kicking off analyze */
-  protected static AnalyzeTracker tracker = new AnalyzeTracker();
-  /** Counter for kicking off reindex */
-  protected static AnalyzeTracker reindexTracker = new AnalyzeTracker();
-
-  // Count of events to call reindex for
-  protected static final long REINDEX_COUNT = 250000L;
-
   /** Constructor.
   *@param database is the database handle.
   */
@@ -165,7 +157,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
     ArrayList list = new ArrayList();
     list.add(jobID);
     performDelete("WHERE "+jobIDField+"=?",list,null);
-    reindexTracker.noteInsert();
+    noteModifications(0,0,1);
   }
 
   /** Reset, at startup time.  Since links can only be added in a transactionally safe way by processing
@@ -262,7 +254,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
           map.put(linkTypeField,linkType);
           map.put(newField,statusToString(LINKSTATUS_NEW));
           performInsert(map,null);
-          tracker.noteInsert();
+          noteModifications(1,0,0);
         }
         else
         {
@@ -275,7 +267,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
           map.put(newField,statusToString(LINKSTATUS_EXISTING));
           performUpdate(map,"WHERE "+jobIDField+"=? AND "+linkTypeField+"=? AND "+
             parentIDHashField+"=? AND "+childIDHashField+"=?",updateList,null);
-          reindexTracker.noteInsert();
+          noteModifications(0,1,0);
         }
       }
       return newReferences;
@@ -350,7 +342,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
 
         if (k > 0)
           performRemoveLinks(sb.toString(),list,commonNewExpression);
-        reindexTracker.noteInsert(sourceDocumentIDHashes.length);
+        noteModifications(0,0,sourceDocumentIDHashes.length);
       }
       else
       {
@@ -361,7 +353,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
           .append(sourceTableIDColumn).append("=").append(getTableName()).append(".").append(childIDHashField)
           .append(" AND ").append(sourceTableCriteria).append(")");
         performDelete(sb.toString(),list,null);
-        reindexTracker.noteInsert();
+        noteModifications(0,0,1);
       }
     }
     catch (ManifoldCFException e)
@@ -440,7 +432,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
     {
       endTransaction();
     }
-    reindexTracker.noteInsert(sourceDocumentIDHashes.length);
+    noteModifications(0,sourceDocumentIDHashes.length,0);
   }
 
   protected void performRestoreLinks(String query, ArrayList list)
@@ -510,97 +502,6 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
     default:
       return null;
     }
-  }
-
-  /** Conditionally do analyze operation.
-  */
-  public void conditionallyAnalyzeTables()
-    throws ManifoldCFException
-  {
-    if (tracker.checkAnalyze())
-    {
-      try
-      {
-        // Do the analyze
-        analyzeTable();
-      }
-      finally
-      {
-        // Get the size of the table
-        // For this table, we base the wait time on the number of rows in it.
-        // Simply reanalyze every n inserts
-        tracker.doAnalyze(30000L);
-      }
-    }
-    if (reindexTracker.checkAnalyze())
-    {
-      try
-      {
-        // Do the reindex
-        reindexTable();
-      }
-      finally
-      {
-        // Get the size of the table
-        // For this table, we base the wait time on the number of rows in it.
-        // Simply reanalyze every n inserts
-        reindexTracker.doAnalyze(REINDEX_COUNT);
-      }
-    }
-
-  }
-
-
-  /** Analyze tracker class.
-  */
-  protected static class AnalyzeTracker
-  {
-    // Number of records to insert before we need to analyze again.
-    // After start, we wait 1000 before analyzing the first time.
-    protected long recordCount = 1000L;
-    protected boolean busy = false;
-
-    /** Constructor.
-    */
-    public AnalyzeTracker()
-    {
-
-    }
-
-    /** Note an analyze.
-    */
-    public synchronized void doAnalyze(long repeatCount)
-    {
-      recordCount = repeatCount;
-      busy = false;
-    }
-
-    public synchronized void noteInsert(int count)
-    {
-      if (recordCount >= (long)count)
-        recordCount -= (long)count;
-      else
-        recordCount = 0L;
-    }
-
-    /** Note an insert */
-    public synchronized void noteInsert()
-    {
-      if (recordCount > 0L)
-        recordCount--;
-    }
-
-    /** Prepare to insert/delete a record, and see if analyze is required.
-    */
-    public synchronized boolean checkAnalyze()
-    {
-      if (busy)
-        return false;
-      busy = (recordCount == 0L);
-      return busy;
-    }
-
-
   }
 
   // This class filters an ordered resultset to return only the duplicates

@@ -364,5 +364,16 @@ public interface IDBInterface
   public void noteModifications(String tableName, int insertCount, int modifyCount, int deleteCount)
     throws ManifoldCFException;
 
+  /** Get a random time, in milliseconds, for backoff from deadlock.
+  *@return the random time.
+  */
+  public long getSleepAmt();
+  
+  /** Sleep for a specified time, as part of backoff from deadlock.
+  *@param time is the amount to sleep.
+  */
+  public void sleepFor(long time)
+    throws ManifoldCFException;
+    
 }
 

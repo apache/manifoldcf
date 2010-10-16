@@ -20,6 +20,7 @@ package org.apache.manifoldcf.core.database;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.core.system.Logging;
+import org.apache.manifoldcf.core.system.ManifoldCF;
 
 import java.util.*;
 import java.sql.*;
@@ -352,6 +353,34 @@ public class Database
   public void noteModifications(String tableName, int insertCount, int modifyCount, int deleteCount)
     throws ManifoldCFException
   {
+  }
+
+  protected static Random random = new Random();
+
+  /** Sleep a random amount of time after a transaction abort.
+  */
+  public long getSleepAmt()
+  {
+    // Amount should be between .5 and 1 minute, approx, to give things time to unwind
+    return (long)(random.nextDouble() * 60000.0 + 500.0);
+  }
+
+  /** Sleep, as part of recovery from deadlock.
+  */
+  public void sleepFor(long amt)
+    throws ManifoldCFException
+  {
+    if (amt == 0L)
+      return;
+
+    try
+    {
+      ManifoldCF.sleep(amt);
+    }
+    catch (InterruptedException e)
+    {
+      throw new ManifoldCFException("Interrupted",e,ManifoldCFException.INTERRUPTED);
+    }
   }
 
   /** Thread used to execute queries.  An instance of this thread is spun up every time a query is executed.  This is necessary because JDBC does not

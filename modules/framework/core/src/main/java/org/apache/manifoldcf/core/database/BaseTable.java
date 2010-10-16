@@ -274,6 +274,17 @@ public class BaseTable
     dbInterface.endTransaction();
   }
 
+  /** Note a number of inserts, modifications, or deletions to a specific table.  This is so we can decide when to do appropriate maintenance.
+  *@param tableName is the name of the table being modified.
+  *@param insertCount is the number of inserts.
+  *@param modifyCount is the number of updates.
+  *@param deleteCount is the number of deletions.
+  */
+  public void noteModifications(int insertCount, int modifyCount, int deleteCount)
+    throws ManifoldCFException
+  {
+    dbInterface.noteModifications(tableName,insertCount,modifyCount,deleteCount);
+  }
 
   /** Construct a key that is database specific, and applies to queries
   * made against a specific table name.

@@ -53,17 +53,6 @@ public interface IIncrementalIngester
   public void deinstall()
     throws ManifoldCFException;
 
-  /** Come up with a maximum time (in minutes) for re-analyzing tables.
-  *@return the time, in minutes.
-  */
-  public int getAnalyzeTime()
-    throws ManifoldCFException;
-
-  /** Analyze database tables.
-  */
-  public void analyzeTables()
-    throws ManifoldCFException;
-
   /** Flush all knowledge of what was ingested before.
   */
   public void clearAll()

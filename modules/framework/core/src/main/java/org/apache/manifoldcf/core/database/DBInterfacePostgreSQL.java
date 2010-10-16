@@ -448,10 +448,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
     performModification("DROP INDEX "+indexName,null,null);
   }
 
-  /** Analyze a table.
-  *@param tableName is the name of the table to analyze/calculate statistics for.
-  */
-  public void analyzeTable(String tableName)
+  protected void analyzeTableInternal(String tableName)
     throws ManifoldCFException
   {
     if (getTransactionID() == null)
@@ -460,14 +457,34 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
       tablesToAnalyze.add(tableName);
   }
 
-  /** Reindex a table.
-  *@param tableName is the name of the table to rebuild indexes for.
-  */
-  public void reindexTable(String tableName)
+  protected void reindexTableInternal(String tableName)
     throws ManifoldCFException
   {
     if (getTransactionID() == null)
-      performModification("REINDEX TABLE "+tableName,null,null);
+    {
+      long sleepAmt = 0L;
+      while (true)
+      {
+        try
+        {
+          performModification("REINDEX TABLE "+tableName,null,null);
+          break;
+        }
+        catch (ManifoldCFException e)
+        {
+          if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+          {
+            sleepAmt = getSleepAmt();
+            continue;
+          }
+          throw e;
+        }
+        finally
+        {
+          sleepFor(sleepAmt);
+        }
+      }
+    }
     else
       tablesToReindex.add(tableName);
   }
@@ -1049,13 +1066,13 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
       int i = 0;
       while (i < tablesToAnalyze.size())
       {
-        analyzeTable((String)tablesToAnalyze.get(i++));
+        analyzeTableInternal((String)tablesToAnalyze.get(i++));
       }
       tablesToAnalyze.clear();
       i = 0;
       while (i < tablesToReindex.size())
       {
-        reindexTable((String)tablesToReindex.get(i++));
+        reindexTableInternal((String)tablesToReindex.get(i++));
       }
       tablesToReindex.clear();
     }
@@ -1140,6 +1157,85 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
     lockManager.writeData(datumName,bytes);
   }
 
+  // Lock and shared datum name prefixes (to be combined with table names)
+  protected static final String statslockReindexPrefix = "statslock-reindex-";
+  protected static final String statsReindexPrefix = "stats-reindex-";
+  protected static final String statslockAnalyzePrefix = "statslock-analyze-";
+  protected static final String statsAnalyzePrefix = "stats-analyze-";
+  
+  /** Analyze a table.
+  *@param tableName is the name of the table to analyze/calculate statistics for.
+  */
+  public void analyzeTable(String tableName)
+    throws ManifoldCFException
+  {
+    String tableStatisticsLock = statslockAnalyzePrefix+tableName;
+    lockManager.enterWriteCriticalSection(tableStatisticsLock);
+    try
+    {
+      TableStatistics ts = (TableStatistics)currentAnalyzeStatistics.get(tableName);
+      // Lock this table's statistics files
+      lockManager.enterWriteLock(tableStatisticsLock);
+      try
+      {
+        String eventDatum = statsAnalyzePrefix+tableName;
+        // Time to reindex this table!
+        analyzeTableInternal(tableName);
+        // Now, clear out the data
+        writeDatum(eventDatum,0);
+        if (ts != null)
+          ts.reset();
+      }
+      finally
+      {
+        lockManager.leaveWriteLock(tableStatisticsLock);
+      }
+    }
+    finally
+    {
+      lockManager.leaveWriteCriticalSection(tableStatisticsLock);
+    }
+
+    analyzeTableInternal(tableName);
+  }
+
+  /** Reindex a table.
+  *@param tableName is the name of the table to rebuild indexes for.
+  */
+  public void reindexTable(String tableName)
+    throws ManifoldCFException
+  {
+    String tableStatisticsLock;
+    
+    // Reindexing.
+    tableStatisticsLock = statslockReindexPrefix+tableName;
+    lockManager.enterWriteCriticalSection(tableStatisticsLock);
+    try
+    {
+      TableStatistics ts = (TableStatistics)currentReindexStatistics.get(tableName);
+      // Lock this table's statistics files
+      lockManager.enterWriteLock(tableStatisticsLock);
+      try
+      {
+        String eventDatum = statsReindexPrefix+tableName;
+        // Time to reindex this table!
+        reindexTableInternal(tableName);
+        // Now, clear out the data
+        writeDatum(eventDatum,0);
+        if (ts != null)
+          ts.reset();
+      }
+      finally
+      {
+        lockManager.leaveWriteLock(tableStatisticsLock);
+      }
+    }
+    finally
+    {
+      lockManager.leaveWriteCriticalSection(tableStatisticsLock);
+    }
+  }
+
   /** Note a number of inserts, modifications, or deletions to a specific table.  This is so we can decide when to do appropriate maintenance.
   *@param tableName is the name of the table being modified.
   *@param insertCount is the number of inserts.
@@ -1155,7 +1251,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
     // Reindexing.
     // Here we count tuple deletion.  So we want to know the deletecount + modifycount.
     eventCount = modifyCount + deleteCount;
-    tableStatisticsLock = "statslock-reindex-"+tableName;
+    tableStatisticsLock = statslockReindexPrefix+tableName;
     lockManager.enterWriteCriticalSection(tableStatisticsLock);
     try
     {
@@ -1164,7 +1260,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
       if (threshold == null)
       {
         // Look for this parameter; if we don't find it, use a default value.
-        reindexThreshold = ManifoldCF.getIntProperty("org.apache.manifold.db.postgres.reindex."+tableName,100000);
+        reindexThreshold = ManifoldCF.getIntProperty("org.apache.manifold.db.postgres.reindex."+tableName,250000);
         reindexThresholds.put(tableName,new Integer(reindexThreshold));
       }
       else
@@ -1184,13 +1280,13 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
         lockManager.enterWriteLock(tableStatisticsLock);
         try
         {
-          String eventDatum = "stats-reindex-"+tableName;
+          String eventDatum = statsReindexPrefix+tableName;
           int oldEventCount = readDatum(eventDatum);
           oldEventCount += ts.getEventCount();
           if (oldEventCount >= reindexThreshold)
           {
             // Time to reindex this table!
-            reindexTable(tableName);
+            reindexTableInternal(tableName);
             // Now, clear out the data
             writeDatum(eventDatum,0);
           }
@@ -1212,7 +1308,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
       // Analysis.
     // Here we count tuple addition.
     eventCount = modifyCount + insertCount;
-    tableStatisticsLock = "statslock-analyze-"+tableName;
+    tableStatisticsLock = statslockAnalyzePrefix+tableName;
     lockManager.enterWriteCriticalSection(tableStatisticsLock);
     try
     {
@@ -1241,13 +1337,13 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
         lockManager.enterWriteLock(tableStatisticsLock);
         try
         {
-          String eventDatum = "stats-analyze-"+tableName;
+          String eventDatum = statsAnalyzePrefix+tableName;
           int oldEventCount = readDatum(eventDatum);
           oldEventCount += ts.getEventCount();
           if (oldEventCount >= analyzeThreshold)
           {
             // Time to reindex this table!
-            analyzeTable(tableName);
+            analyzeTableInternal(tableName);
             // Now, clear out the data
             writeDatum(eventDatum,0);
           }
@@ -1268,6 +1364,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
 
   }
   
+
   /** Table accumulation records.
   */
   protected static class TableStatistics

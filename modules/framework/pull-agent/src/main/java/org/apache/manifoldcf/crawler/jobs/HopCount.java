@@ -125,14 +125,6 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     markMap.put("D",new Integer(MARK_DELETING));
   }
 
-  /** Counter for kicking off analyze */
-  protected static AnalyzeTracker tracker = new AnalyzeTracker();
-  /** Counter for kicking off reindex */
-  protected static AnalyzeTracker reindexTracker = new AnalyzeTracker();
-
-  // The number of updates before doing a reindex
-  protected static long REINDEX_COUNT = 250000L;
-
   /** Intrinsic link table manager. */
   protected IntrinsicLink intrinsicLinkManager;
   /** Hop "delete" dependencies manager */
@@ -299,7 +291,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       ArrayList list = new ArrayList();
       list.add(jobID);
       performDelete("WHERE "+jobIDField+"=?",list,null);
-      reindexTracker.noteInsert();
+      noteModifications(0,0,1);
     }
     catch (ManifoldCFException e)
     {
@@ -893,7 +885,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
             if (Logging.hopcount.isDebugEnabled())
               Logging.hopcount.debug("Inserting new record for '"+documentIDHash+"' linktype '"+affectedLinkType+"' distance "+Integer.toString(newAnswerValue)+" for job "+jobID);
             performInsert(map,null);
-            tracker.noteInsert();
+            noteModifications(1,0,0);
             if (hopcountMethod != IJobDescription.HOPCOUNT_NEVERDELETE)
             {
               deleteDepsManager.writeDependency(hopCountID,jobID,dd);
@@ -997,7 +989,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     {
       endTransaction();
     }
-    reindexTracker.noteInsert(documentIDHashes.length);
+    noteModifications(0,documentIDHashes.length,0);
   }
 
   /** Do the work of marking add-dep-dependent links in the hopcount table. */
@@ -1137,7 +1129,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
         }
         if (k > 0)
           markForDelete(sb.toString(),list,commonNewExpression);
-        reindexTracker.noteInsert(sourceDocumentHashes.length);
+        noteModifications(0,sourceDocumentHashes.length,0);
       }
       else
       {
@@ -1174,7 +1166,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
         map.put(distanceField,new Long(-1L));
         map.put(markForDeathField,markToString(MARK_DELETING));
         performUpdate(map,sb.toString(),list,null);
-        reindexTracker.noteInsert();
+        noteModifications(0,1,0);
       }
 
       if (Logging.hopcount.isDebugEnabled())
@@ -1550,7 +1542,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
           ArrayList list = new ArrayList();
           list.add(existingID);
           performDelete("WHERE "+idField+"=?",list,null);
-          reindexTracker.noteInsert();
+          noteModifications(0,0,1);
           // Since infinity is not a reduction of any kind, we're done here.
           return;
         }
@@ -1638,7 +1630,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
           ArrayList list = new ArrayList();
           list.add(existingID);
           performUpdate(map,"WHERE "+idField+"=?",list,null);
-          reindexTracker.noteInsert();
+          noteModifications(0,1,0);
 
           if (hopcountMethod != IJobDescription.HOPCOUNT_NEVERDELETE)
           {
@@ -1719,8 +1711,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
         list.add(existingID);
         map.put(markForDeathField,markToString(MARK_NORMAL));
         performUpdate(map,"WHERE "+idField+"=?",list,null);
-        tracker.noteInsert();
-        reindexTracker.noteInsert();
+        noteModifications(0,1,0);
       }
 
       // Done
@@ -1757,7 +1748,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       map.put(parentIDHashField,parentIDHash);
       map.put(distanceField,new Long(answer.getAnswer()));
       performInsert(map,null);
-      tracker.noteInsert();
+      noteModifications(1,0,0);
 
       if (hopcountMethod != IJobDescription.HOPCOUNT_NEVERDELETE)
       {
@@ -1785,98 +1776,6 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       endTransaction();
     }
   }
-
-  /** Conditionally do analyze operation.
-  */
-  public void conditionallyAnalyzeTables()
-    throws ManifoldCFException
-  {
-    if (tracker.checkAnalyze())
-    {
-      try
-      {
-        // Do the analyze
-        analyzeTable();
-        // For this table, we base the wait time on the number of rows in it.
-        // Simply reanalyze every n inserts
-      }
-      finally
-      {
-        tracker.doAnalyze(30000L);
-      }
-    }
-    if (reindexTracker.checkAnalyze())
-    {
-      try
-      {
-        // Do the reindex
-        reindexTable();
-        // For this table, we base the wait time on the number of rows in it.
-        // Simply reanalyze every n inserts
-      }
-      finally
-      {
-        reindexTracker.doAnalyze(REINDEX_COUNT);
-      }
-    }
-    intrinsicLinkManager.conditionallyAnalyzeTables();
-    deleteDepsManager.conditionallyAnalyzeTables();
-  }
-
-
-  /** Analyze tracker class.
-  */
-  protected static class AnalyzeTracker
-  {
-    // Number of records to insert before we need to analyze again.
-    // After start, we wait 1000 before analyzing the first time.
-    protected long recordCount = 1000L;
-    protected boolean busy = false;
-
-    /** Constructor.
-    */
-    public AnalyzeTracker()
-    {
-
-    }
-
-    /** Note an analyze.
-    */
-    public synchronized void doAnalyze(long repeatCount)
-    {
-      recordCount = repeatCount;
-      busy = false;
-    }
-
-    public synchronized void noteInsert(int count)
-    {
-      if (recordCount >= (long)count)
-        recordCount -= (long)count;
-      else
-        recordCount = 0L;
-    }
-
-    /** Note an insert */
-    public synchronized void noteInsert()
-    {
-      if (recordCount > 0L)
-        recordCount--;
-    }
-
-    /** Prepare to insert/delete a record, and see if analyze is required.
-    */
-    public synchronized boolean checkAnalyze()
-    {
-      if (busy)
-        return false;
-      busy = (recordCount == 0L);
-      return busy;
-    }
-
-
-  }
-
-
 
   /** A class describing a document identifier and a link type, to be used in looking up the appropriate node in
   * the hash.

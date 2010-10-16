@@ -35,17 +35,6 @@ public class PrereqEventManager extends org.apache.manifoldcf.core.database.Base
   public final static String ownerField = "owner";
   public final static String eventNameField = "eventname";
 
-  // Count of events to call analyze for
-  protected static final long ANALYZE_COUNT = 50000L;
-  // Count of events to call reindex for
-  protected static final long REINDEX_COUNT = 250000L;
-
-  /** Counter for kicking off analyze */
-  protected static Tracker tracker = new Tracker(ANALYZE_COUNT/2);
-  /** Counter for kicking off reindex */
-  protected static Tracker reindexTracker = new Tracker(REINDEX_COUNT/2);
-
-
   /** Constructor.
   *@param database is the database handle.
   */
@@ -139,7 +128,7 @@ public class PrereqEventManager extends org.apache.manifoldcf.core.database.Base
       sb.append(" AND ").append(parentCriteria);
     sb.append(")");
     performDelete(sb.toString(),list,null);
-    reindexTracker.noteEvent();
+    noteModifications(0,0,1);
   }
 
   /** Delete specified rows, as directly specified without a join. */
@@ -147,7 +136,7 @@ public class PrereqEventManager extends org.apache.manifoldcf.core.database.Base
     throws ManifoldCFException
   {
     performDelete("WHERE "+ownerField+" IN("+ownerQueryPart+")",list,null);
-    reindexTracker.noteEvent();
+    noteModifications(0,0,1);
   }
 
   /** Delete rows pertaining to a single entry */
@@ -157,7 +146,7 @@ public class PrereqEventManager extends org.apache.manifoldcf.core.database.Base
     ArrayList list = new ArrayList();
     list.add(recordID);
     performDelete(" WHERE "+ownerField+"=?",list,null);
-    reindexTracker.noteEvent();
+    noteModifications(0,0,1);
   }
 
   /** Add rows pertaining to a single entry */
@@ -174,91 +163,9 @@ public class PrereqEventManager extends org.apache.manifoldcf.core.database.Base
         map.put(eventNameField,eventNames[i++]);
         performInsert(map,null);
       }
-      tracker.noteEvent(i);
+      noteModifications(i,0,0);
     }
   }
 
-  /** Conditionally do analyze operation.
-  */
-  public void conditionallyMaintainTables()
-    throws ManifoldCFException
-  {
-    if (tracker.checkAction())
-    {
-      try
-      {
-        // Do the analyze
-        analyzeTable();
-      }
-      finally
-      {
-        tracker.noteAction(ANALYZE_COUNT);
-      }
-    }
-    if (reindexTracker.checkAction())
-    {
-      try
-      {
-        // Do the reindex
-        reindexTable();
-      }
-      finally
-      {
-        reindexTracker.noteAction(REINDEX_COUNT);
-      }
-    }
-  }
-
-
-  /** Analyze tracker class.
-  */
-  protected static class Tracker
-  {
-    // Number of records to track before kicking off the action.
-    protected long recordCount;
-    protected boolean busy = false;
-
-    /** Constructor.
-    */
-    public Tracker(long initialValue)
-    {
-      recordCount = initialValue;
-    }
-
-    /** Note an analyze.
-    */
-    public synchronized void noteAction(long repeatCount)
-    {
-      recordCount = repeatCount;
-      busy = false;
-    }
-
-    public synchronized void noteEvent(int count)
-    {
-      if (recordCount >= (long)count)
-        recordCount -= (long)count;
-      else
-        recordCount = 0L;
-    }
-
-    /** Note an insert */
-    public synchronized void noteEvent()
-    {
-      if (recordCount > 0L)
-        recordCount--;
-    }
-
-    /** See if action is required.
-    */
-    public synchronized boolean checkAction()
-    {
-      if (busy)
-        return false;
-      busy = (recordCount == 0L);
-      return busy;
-    }
-
-
-  }
 
 }

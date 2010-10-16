@@ -119,16 +119,6 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     actionMap.put("D",new Integer(ACTION_REMOVE));
   }
 
-  /** Counter for kicking off analyze */
-  protected static AnalyzeTracker tracker = new AnalyzeTracker();
-  /** Counter for kicking off reindex */
-  protected static AnalyzeTracker reindexTracker = new AnalyzeTracker();
-
-  /** The number of operations before we do a reindex.
-  * Note well: 50,000 worked ok, but reindex was a bit frequent.  100,000 was infrequent enough
-  * with 7.4 to cause occasional stuffing queries to take more than a minute.  Trying 250,000 now (on 8.2) */
-  protected final static long REINDEX_COUNT = 250000L;
-
   /** Prerequisite event manager */
   protected PrereqEventManager prereqEventManager;
 
@@ -256,43 +246,10 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   public void unconditionallyAnalyzeTables()
     throws ManifoldCFException
   {
-    try
-    {
-      long startTime = System.currentTimeMillis();
-      Logging.perf.debug("Beginning to analyze jobqueue table");
-      analyzeTable();
-      Logging.perf.debug("Done analyzing jobqueue table in "+new Long(System.currentTimeMillis()-startTime)+" ms");
-    }
-    finally
-    {
-      tracker.doAnalyze(15000L);
-    }
-  }
-
-  /** Analyze job tables that need analysis.
-  */
-  public void conditionallyAnalyzeTables()
-    throws ManifoldCFException
-  {
-    if (tracker.checkAnalyze())
-    {
-      unconditionallyAnalyzeTables();
-    }
-    if (reindexTracker.checkAnalyze())
-    {
-      try
-      {
-        long startTime = System.currentTimeMillis();
-        Logging.perf.debug("Beginning to reindex jobqueue table");
-        reindexTable();
-        Logging.perf.debug("Done reindexing jobqueue table in "+new Long(System.currentTimeMillis()-startTime)+" ms");
-      }
-      finally
-      {
-        // Simply reindex every n inserts
-        reindexTracker.doAnalyze(REINDEX_COUNT);
-      }
-    }
+    long startTime = System.currentTimeMillis();
+    Logging.perf.debug("Beginning to analyze jobqueue table");
+    analyzeTable();
+    Logging.perf.debug("Done analyzing jobqueue table in "+new Long(System.currentTimeMillis()-startTime)+" ms");
   }
 
   /** Uninstall.
@@ -363,7 +320,6 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     performUpdate(map,"WHERE "+failTimeField+" IS NOT NULL",null,null);
     // Reindex the jobqueue table, since we've probably made lots of bad tuples doing the above operations.
     reindexTable();
-    reindexTracker.doAnalyze(REINDEX_COUNT);
     unconditionallyAnalyzeTables();
   }
 
@@ -457,7 +413,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       quoteSQLString(statusToString(STATUS_COMPLETE))+")",list,null);
 
     // Not accurate, but best we can do without overhead
-    reindexTracker.noteInsert(2);
+    noteModifications(0,2,0);
     // Do an analyze, otherwise our plans are going to be crap right off the bat
     unconditionallyAnalyzeTables();
   }
@@ -489,7 +445,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     map.put(failCountField,null);
     performUpdate(map,"WHERE "+jobIDField+"=? AND "+statusField+"="+
       quoteSQLString(statusToString(STATUS_COMPLETE)),list,null);
-    reindexTracker.noteInsert();
+    noteModifications(0,1,0);
     // Do an analyze, otherwise our plans are going to be crap right off the bat
     unconditionallyAnalyzeTables();
   }
@@ -514,7 +470,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       i++;
     }
     doDeletes(list,sb.toString());
-    reindexTracker.noteInsert(identifiers.length);
+    noteModifications(0,0,identifiers.length);
   }
 
   /** Check if there are any outstanding active documents for a job */
@@ -543,7 +499,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     // Clean out prereqevents table first
     prereqEventManager.deleteRows(getTableName()+" t0","t0."+idField,"t0."+jobIDField+"=?",list);
     performDelete("WHERE "+jobIDField+"=?",list,null);
-    reindexTracker.noteInsert();
+    noteModifications(0,0,1);
   }
 
   /** Write out a document priority */
@@ -556,7 +512,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     ArrayList list = new ArrayList();
     list.add(rowID);
     performUpdate(map,"WHERE "+idField+"=?",list,null);
-    reindexTracker.noteInsert();
+    noteModifications(0,1,0);
   }
 
   /** Set the "completed" status for a record.
@@ -625,7 +581,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     HashMap map = new HashMap();
     map.put(statusField,statusToString(newStatus));
     performUpdate(map,"WHERE "+idField+"=?",list,null);
-    reindexTracker.noteInsert();
+    noteModifications(0,1,0);
   }
 
   /** Set the status on a record, including check time and priority.
@@ -654,7 +610,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     // This does not need to set docPriorityField, because we want to preserve whatever
     // priority was in place from before.
     performUpdate(map,"WHERE "+idField+"=?",list,null);
-    reindexTracker.noteInsert();
+    noteModifications(0,1,0);
   }
 
   /** Set the status of a document to "being deleted".
@@ -667,7 +623,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     HashMap map = new HashMap();
     map.put(statusField,statusToString(STATUS_BEINGDELETED));
     performUpdate(map,"WHERE "+idField+"=?",list,null);
-    reindexTracker.noteInsert();
+    noteModifications(0,1,0);
   }
 
   /** Set the status of a document to be "no longer deleting" */
@@ -714,7 +670,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     }
     if (j > 0)
       doDeletes(list,sb.toString());
-    reindexTracker.noteInsert(ids.length);
+    noteModifications(0,0,ids.length);
   }
 
   /** Do a batch of deletes.
@@ -821,7 +777,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     performUpdate(map,"WHERE "+idField+"=?",list,null);
     // Insert prereqevent entries, if any
     prereqEventManager.addRows(recordID,prereqEvents);
-    reindexTracker.noteInsert();
+    noteModifications(0,1,0);
     return rval;
   }
 
@@ -854,7 +810,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     map.put(prioritySetField,new Long(currentTime));
     performInsert(map,null);
     prereqEventManager.addRows(recordID,prereqEvents);
-    tracker.noteInsert();
+    noteModifications(1,0,0);
   }
 
   /** Note the remaining documents that do NOT need to be queued.  These are noted so that the
@@ -934,7 +890,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     }
     if (k > 0)
       updateRemainingDocuments(sb.toString(),list);
-    reindexTracker.noteInsert(docIDHashes.length);
+    noteModifications(0,docIDHashes.length,0);
   }
 
   /** Process the specified set of documents. */
@@ -1138,7 +1094,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     prereqEventManager.deleteRows(recordID);
     performUpdate(map,"WHERE "+idField+"=?",list,null);
     prereqEventManager.addRows(recordID,prereqEvents);
-    reindexTracker.noteInsert();
+    noteModifications(0,1,0);
     return rval;
   }
 
@@ -1163,7 +1119,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     map.put(prioritySetField,new Long(currentTime));
     performInsert(map,null);
     prereqEventManager.addRows(recordID,prereqEvents);
-    tracker.noteInsert();
+    noteModifications(1,0,0);
   }
 
   // Methods to convert status strings to integers and back
@@ -1280,58 +1236,6 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     return ManifoldCF.hash(documentIdentifier);
-  }
-
-  /** Analyze tracker class.
-  */
-  protected static class AnalyzeTracker
-  {
-    // Number of records to insert before we need to analyze again.
-    // After start, we wait 1000 before analyzing the first time.
-    protected long recordCount = 1000L;
-    protected boolean busy = false;
-
-    /** Constructor.
-    */
-    public AnalyzeTracker()
-    {
-
-    }
-
-    /** Note an analyze.
-    */
-    public synchronized void doAnalyze(long repeatCount)
-    {
-      recordCount = repeatCount;
-      busy = false;
-    }
-
-    public synchronized void noteInsert(int count)
-    {
-      if (recordCount >= (long)count)
-        recordCount -= (long)count;
-      else
-        recordCount = 0L;
-    }
-
-    /** Note an insert */
-    public synchronized void noteInsert()
-    {
-      if (recordCount > 0L)
-        recordCount--;
-    }
-
-    /** Prepare to insert/delete a record, and see if analyze is required.
-    */
-    public synchronized boolean checkAnalyze()
-    {
-      if (busy)
-        return false;
-      busy = (recordCount == 0L);
-      return busy;
-    }
-
-
   }
 
   // This class filters an ordered resultset to return only the duplicates

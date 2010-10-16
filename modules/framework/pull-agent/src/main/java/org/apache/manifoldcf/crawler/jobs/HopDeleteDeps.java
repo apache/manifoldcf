@@ -38,14 +38,6 @@ public class HopDeleteDeps extends org.apache.manifoldcf.core.database.BaseTable
   public static final String parentIDHashField = "parentidhash";
   public static final String childIDHashField = "childidhash";
 
-  /** Counter for kicking off analyze */
-  protected static AnalyzeTracker tracker = new AnalyzeTracker();
-  /** Counter for kicking off reindex */
-  protected static AnalyzeTracker reindexTracker = new AnalyzeTracker();
-
-  // Number of events before reindex occurs
-  protected static final long REINDEX_COUNT = 250000L;
-
   /** Constructor.
   *@param database is the database handle.
   */
@@ -148,7 +140,7 @@ public class HopDeleteDeps extends org.apache.manifoldcf.core.database.BaseTable
     list.add(jobID);
     performDelete("WHERE "+jobIDField+"=?",list,null);
     // Log one event - it may not be enough, but it's the best we can do without overhead
-    reindexTracker.noteInsert();
+    noteModifications(0,0,1);
   }
 
   /** Remove rows that correspond to specific hopcount records.
@@ -162,7 +154,7 @@ public class HopDeleteDeps extends org.apache.manifoldcf.core.database.BaseTable
     performDelete("WHERE "+ownerIDField+" IN(SELECT "+parentIDHashField+" FROM "+parentTable+" WHERE "+query+")",
       queryList,null);
     // Log one event - it may not be enough, but it's the best we can do without overhead
-    reindexTracker.noteInsert();
+    noteModifications(0,0,1);
   }
 
   /** Delete rows related to specified owners.  The list of
@@ -185,7 +177,7 @@ public class HopDeleteDeps extends org.apache.manifoldcf.core.database.BaseTable
     }
     sb.append(")");
     performDelete(sb.toString(),list,null);
-    reindexTracker.noteInsert(ownerIDs.length);
+    noteModifications(0,0,ownerIDs.length);
   }
 
   /** Get the delete dependencies for an owner.
@@ -236,7 +228,7 @@ public class HopDeleteDeps extends org.apache.manifoldcf.core.database.BaseTable
     else
       sb.append(childIDHashField).append(" IS NULL");
     performDelete(sb.toString(),list,null);
-    reindexTracker.noteInsert();
+    noteModifications(0,0,1);
   }
 
   /** Write a delete dependency.
@@ -255,101 +247,7 @@ public class HopDeleteDeps extends org.apache.manifoldcf.core.database.BaseTable
       map.put(childIDHashField,dd.getChildIDHash());
     }
     performInsert(map,null);
-    tracker.noteInsert();
+    noteModifications(1,0,0);
   }
-
-
-  /** Conditionally do analyze operation.
-  */
-  public void conditionallyAnalyzeTables()
-    throws ManifoldCFException
-  {
-    if (tracker.checkAnalyze())
-    {
-      try
-      {
-        // Do the analyze
-        analyzeTable();
-        // Get the size of the table
-      }
-      finally
-      {
-        // For this table, we base the wait time on the number of rows in it.
-        // Simply reanalyze every n inserts
-        tracker.doAnalyze(60000L);
-      }
-    }
-    if (reindexTracker.checkAnalyze())
-    {
-      try
-      {
-        // Do the reindex
-        reindexTable();
-        // Get the size of the table
-      }
-      finally
-      {
-        // For this table, we base the wait time on the number of rows in it.
-        // Simply reanalyze every n inserts
-        reindexTracker.doAnalyze(REINDEX_COUNT);
-      }
-    }
-
-  }
-
-
-  /** Analyze tracker class.
-  */
-  protected static class AnalyzeTracker
-  {
-    // Number of records to insert before we need to analyze again.
-    // After start, we wait 1000 before analyzing the first time.
-    protected long recordCount = 1000L;
-    protected boolean busy = false;
-
-    /** Constructor.
-    */
-    public AnalyzeTracker()
-    {
-
-    }
-
-    /** Note an analyze.
-    */
-    public synchronized void doAnalyze(long repeatCount)
-    {
-      recordCount = repeatCount;
-      busy = false;
-    }
-
-    public synchronized void noteInsert(int count)
-    {
-      if (recordCount >= (long)count)
-        recordCount -= (long)count;
-      else
-        recordCount = 0L;
-    }
-
-    /** Note an insert */
-    public synchronized void noteInsert()
-    {
-      if (recordCount > 0L)
-        recordCount--;
-    }
-
-    /** Prepare to insert/delete a record, and see if analyze is required.
-    */
-    public synchronized boolean checkAnalyze()
-    {
-      if (busy)
-        return false;
-      busy = (recordCount == 0L);
-      return busy;
-    }
-
-
-  }
-
-
 
 }

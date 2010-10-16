@@ -58,8 +58,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   // Output connection manager
   protected IOutputConnectionManager connectionManager;
 
-  // Analyze tracker
-  protected static AnalyzeTracker tracker = new AnalyzeTracker();
 
   /** Constructor.
   */
@@ -140,39 +138,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       break;
     }
 
-  }
-
-  /** Come up with a maximum time (in minutes) for re-analyzing tables.
-  *@return the time, in minutes.
-  */
-  public int getAnalyzeTime()
-    throws ManifoldCFException
-  {
-    // For this table, we base the wait time on the number of rows in it.
-    IResultSet set = performQuery("SELECT COUNT("+idField+") FROM "+getTableName(),null,null,null);
-    if (set.getRowCount() < 1)
-      throw new ManifoldCFException("Expected result with one row");
-    IResultRow row = set.getRow(0);
-    Iterator columnNames = row.getColumns();
-    if (!columnNames.hasNext())
-      throw new ManifoldCFException("Expected result with one column");
-    String columnName = (String)columnNames.next();
-    long value = new Long(row.getValue(columnName).toString()).longValue();
-    if (value < 10000L)
-      return 5;
-    else if (value < 100000L)
-      return 2*60;
-    else
-      return 24*60;
-
-  }
-
-  /** Analyze database tables.
-  */
-  public void analyzeTables()
-    throws ManifoldCFException
-  {
-    analyzeTable();
   }
 
   /** Uninstall the incremental ingestion manager.
@@ -1265,7 +1230,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       try
       {
         performInsert(map,null);
-        conditionallyAnalyzeInsert();
+        noteModifications(1,0,0);
         return;
       }
       catch (ManifoldCFException e)
@@ -1452,57 +1417,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   protected static String makeKey(String documentClass, String documentHash)
   {
     return documentClass + ":" + documentHash;
-  }
-
-  /** Conditionally do analyze operation.
-  */
-  protected void conditionallyAnalyzeInsert()
-    throws ManifoldCFException
-  {
-    synchronized (tracker)
-    {
-      if (tracker.checkAnalyzeInsert())
-      {
-        // Do the analyze
-        analyzeTable();
-        // Get the size of the table
-        // Simply reanalyze every 8000 inserts
-        tracker.doAnalyze(8000);
-      }
-    }
-  }
-
-  /** Analyze tracker class.
-  */
-  protected static class AnalyzeTracker
-  {
-    // Number of records to insert before we need to analyze again
-    protected long recordCount = 0;
-
-    /** Constructor.
-    */
-    public AnalyzeTracker()
-    {
-
-    }
-
-    /** Note an analyze.
-    */
-    public void doAnalyze(long repeatCount)
-    {
-      recordCount = repeatCount;
-    }
-
-    /** Prepare to insert/delete a record, and see if analyze is required.
-    */
-    public boolean checkAnalyzeInsert()
-    {
-      if (recordCount > 0L)
-        recordCount--;
-      return recordCount == 0L;
-    }
-
-
   }
 
   /** This class contains the information necessary to delete a document */
