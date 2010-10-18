@@ -3,6 +3,9 @@ $Id$
 
 ======================= Trunk (not yet released) =======================
 
+CONNECTORS-116: Removed Memex connector due to intellectual property concerns.
+(Robert Muir)
+
 CONNECTORS-113: Add properties that allow quick-start example to work properly with
 PostgreSQL.
 (Farzad, Karl Wright)
