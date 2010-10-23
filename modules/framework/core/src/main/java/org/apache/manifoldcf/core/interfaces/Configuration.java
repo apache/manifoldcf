@@ -27,7 +27,7 @@ import org.json.*;
 
 /** This class represents XML configuration information, in its most basic incarnation.
 */
-public class Configuration
+public class Configuration implements IHierarchyParent
 {
   public static final String _rcsid = "@(#)$Id: Configuration.java 988245 2010-08-23 18:39:35Z kwright $";
 

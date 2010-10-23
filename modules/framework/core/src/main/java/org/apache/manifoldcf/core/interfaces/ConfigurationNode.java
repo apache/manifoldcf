@@ -23,7 +23,7 @@ import java.util.*;
 
 /** This class represents a node in a configuration structure.
 */
-public class ConfigurationNode
+public class ConfigurationNode implements IHierarchyParent
 {
   public static final String _rcsid = "@(#)$Id: ConfigurationNode.java 988245 2010-08-23 18:39:35Z kwright $";
 
