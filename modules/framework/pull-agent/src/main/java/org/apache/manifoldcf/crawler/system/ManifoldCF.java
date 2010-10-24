@@ -2650,8 +2650,6 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       else
         throw new ManifoldCFException("Unrecognized output connection field: '"+childType+"'");
     }
-    if (connection.getName() == null)
-      throw new ManifoldCFException("Missing connection field: '"+CONNECTIONNODE_NAME+"'");
     if (connection.getClassName() == null)
       throw new ManifoldCFException("Missing connection field: '"+CONNECTIONNODE_CLASSNAME+"'");
 
@@ -2764,8 +2762,6 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       else
         throw new ManifoldCFException("Unrecognized authority connection field: '"+childType+"'");
     }
-    if (connection.getName() == null)
-      throw new ManifoldCFException("Missing connection field: '"+CONNECTIONNODE_NAME+"'");
     if (connection.getClassName() == null)
       throw new ManifoldCFException("Missing connection field: '"+CONNECTIONNODE_CLASSNAME+"'");
 
@@ -2916,8 +2912,6 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       else
         throw new ManifoldCFException("Unrecognized repository connection field: '"+childType+"'");
     }
-    if (connection.getName() == null)
-      throw new ManifoldCFException("Missing connection field: '"+CONNECTIONNODE_NAME+"'");
     if (connection.getClassName() == null)
       throw new ManifoldCFException("Missing connection field: '"+CONNECTIONNODE_CLASSNAME+"'");
 
