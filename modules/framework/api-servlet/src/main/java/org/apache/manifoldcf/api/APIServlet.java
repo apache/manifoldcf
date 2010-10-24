@@ -103,6 +103,7 @@ public class APIServlet extends HttpServlet
     catch (ManifoldCFException e)
     {
       // We should only see this error if there's an API problem, not if there's an actual problem with the method being called.
+      Logging.api.debug("API error doing GET: "+e.getMessage(),e);
       response.sendError(response.SC_BAD_REQUEST,e.getMessage());
     }
   }
@@ -144,6 +145,7 @@ public class APIServlet extends HttpServlet
     catch (ManifoldCFException e)
     {
       // We should only see this error if there's an API problem, not if there's an actual problem with the method being called.
+      Logging.api.debug("API error doing PUT: "+e.getMessage(),e);
       response.sendError(response.SC_BAD_REQUEST,e.getMessage());
     }
   }
@@ -187,6 +189,7 @@ public class APIServlet extends HttpServlet
     catch (ManifoldCFException e)
     {
       // We should only see this error if there's an API problem, not if there's an actual problem with the method being called.
+      Logging.api.debug("API error doing POST: "+e.getMessage(),e);
       response.sendError(response.SC_BAD_REQUEST,e.getMessage());
     }
   }
@@ -220,6 +223,7 @@ public class APIServlet extends HttpServlet
     catch (ManifoldCFException e)
     {
       // We should only see this error if there's an API problem, not if there's an actual problem with the method being called.
+      Logging.api.debug("API error doing DELETE: "+e.getMessage(),e);
       response.sendError(response.SC_BAD_REQUEST,e.getMessage());
     }
   }
