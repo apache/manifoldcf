@@ -2242,29 +2242,18 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     jobNode.addChild(jobNode.getChildCount(),child);
 
     // Recrawl interval
-    if (job.getInterval() != null)
-    {
-      child = new ConfigurationNode(JOBNODE_RECRAWLINTERVAL);
-      child.setValue(job.getInterval().toString());
-      jobNode.addChild(jobNode.getChildCount(),child);
-    }
-    
-    // Expiration interval
-    if (job.getExpiration() != null)
-    {
-      child = new ConfigurationNode(JOBNODE_EXPIRATIONINTERVAL);
-      child.setValue(job.getExpiration().toString());
-      jobNode.addChild(jobNode.getChildCount(),child);
-    }
-    
-    // Reseed interval
-    if (job.getReseedInterval() != null)
-    {
-      child = new ConfigurationNode(JOBNODE_RESEEDINTERVAL);
-      child.setValue(job.getReseedInterval().toString());
-      jobNode.addChild(jobNode.getChildCount(),child);
-    }
-    
+    child = new ConfigurationNode(JOBNODE_RECRAWLINTERVAL);
+    child.setValue((job.getInterval()==null)?"infinite":job.getInterval().toString());
+    jobNode.addChild(jobNode.getChildCount(),child);
+
+    child = new ConfigurationNode(JOBNODE_EXPIRATIONINTERVAL);
+    child.setValue((job.getExpiration()==null)?"infinite":job.getExpiration().toString());
+    jobNode.addChild(jobNode.getChildCount(),child);
+
+    child = new ConfigurationNode(JOBNODE_RESEEDINTERVAL);
+    child.setValue((job.getReseedInterval()==null)?"infinite":job.getReseedInterval().toString());
+    jobNode.addChild(jobNode.getChildCount(),child);
+
     // Hopcount records
     Map filters = job.getHopCountFilters();
     Iterator iter = filters.keySet().iterator();
