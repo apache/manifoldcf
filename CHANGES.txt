@@ -3,6 +3,10 @@ $Id$
 
 ======================= Trunk (not yet released) =======================
 
+CONNECTORS-121: Fixed broken javascript in the Windows Share connector "insert here"
+button.
+(Fred Schmitt, Karl Wright)
+
 CONNECTORS-116: Removed Memex connector due to intellectual property concerns.
 (Robert Muir)
 

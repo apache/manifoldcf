@@ -3054,7 +3054,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
             out.print(
 "              <tr>\n"+
 "                <td class=\"value\">\n"+
-"                    <input type=\"button\" value=\"Insert\" onClick='Javascript:SpecInsertSpec(\""+instanceDescription+"\",\"filespec_"+Integer.toString(k)+"_"+Integer.toString(j+1)+"\") alt=\""+"Insert new match for path #"+Integer.toString(k)+" before position #"+Integer.toString(j)+"\"/>\n"+
+"                    <input type=\"button\" value=\"Insert\" onClick='Javascript:SpecInsertSpec(\""+instanceDescription+"\",\"filespec_"+Integer.toString(k)+"_"+Integer.toString(j+1)+"\")' alt=\""+"Insert new match for path #"+Integer.toString(k)+" before position #"+Integer.toString(j)+"\"/>\n"+
 "                </td>\n"+
 "                <td class=\"value\">\n"+
 "                  <nobr>\n"+
