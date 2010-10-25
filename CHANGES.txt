@@ -7,6 +7,10 @@ CONNECTORS-121: Fixed broken javascript in the Windows Share connector "insert h
 button.
 (Fred Schmitt, Karl Wright)
 
+CONNECTORS-117: Revised manner by which dynamic table maintenance is performed,
+so that it can be controlled by configuration parameters.
+(Farzad, Karl Wright)
+
 CONNECTORS-116: Removed Memex connector due to intellectual property concerns.
 (Robert Muir)
 
