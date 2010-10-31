@@ -538,16 +538,29 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     {
       rootDatabase.executeQuery("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.user."+userName+"', '"+password+"')",null,invalidateKeys,null,null,false,0,null,null);
       rootDatabase.executeQuery("CREATE SCHEMA "+userName+" AUTHORIZATION "+userName,null,invalidateKeys,null,null,false,0,null,null);
-      // Create user-defined functions
-      rootDatabase.executeQuery("CREATE FUNCTION caseInsensitiveRegularExpressionCompare (value varchar(255), regexp varchar(255)) returns varchar(255) "+
-        "language java parameter style java no sql external name 'org.apache.manifoldcf.core.database.DBInterfaceDerby.caseInsensitiveRegularExpressionCompare",null,invalidateKeys,null,null,false,0,null,null);
-      rootDatabase.executeQuery("CREATE FUNCTION caseSensitiveRegularExpressionCompare (value varchar(255), regexp varchar(255)) returns varchar(255) "+
-        "language java parameter style java no sql external name 'org.apache.manifoldcf.core.database.DBInterfaceDerby.caseSensitiveRegularExpressionCompare",null,invalidateKeys,null,null,false,0,null,null);
-      rootDatabase.executeQuery("CREATE FUNCTION caseInsensitiveSubstring (value varchar(255), regexp varchar(255)) returns varchar(255) "+
-        "language java parameter style java no sql external name 'org.apache.manifoldcf.core.database.DBInterfaceDerby.caseInsensitiveSubstring",null,invalidateKeys,null,null,false,0,null,null);
-      rootDatabase.executeQuery("CREATE FUNCTION caseSensitiveSubstring (value varchar(255), regexp varchar(255)) returns varchar(255) "+
-        "language java parameter style java no sql external name 'org.apache.manifoldcf.core.database.DBInterfaceDerby.caseSensitiveSubstring",null,invalidateKeys,null,null,false,0,null,null);
     }
+    try
+    {
+      rootDatabase.executeQuery("DROP FUNCTION CASEINSENSITIVEREGULAREXPRESSIONCOMPARE",null,invalidateKeys,null,null,false,0,null,null);
+      rootDatabase.executeQuery("DROP FUNCTION CASESENSITIVEREGULAREXPRESSIONCOMPARE",null,invalidateKeys,null,null,false,0,null,null);
+      rootDatabase.executeQuery("DROP FUNCTION CASEINSENSITIVESUBSTRING",null,invalidateKeys,null,null,false,0,null,null);
+      rootDatabase.executeQuery("DROP FUNCTION CASESENSITIVESUBSTRING",null,invalidateKeys,null,null,false,0,null,null);
+    }
+    catch (ManifoldCFException e)
+    {
+      if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+        throw e;
+      // Otherwise, eat it.
+    }
+    // Create user-defined functions
+    rootDatabase.executeQuery("CREATE FUNCTION CASEINSENSITIVEREGULAREXPRESSIONCOMPARE (value varchar(255), regexp varchar(255)) returns varchar(255) "+
+      "language java parameter style java no sql external name 'org.apache.manifoldcf.core.database.DBInterfaceDerby.caseInsensitiveRegularExpressionCompare'",null,invalidateKeys,null,null,false,0,null,null);
+    rootDatabase.executeQuery("CREATE FUNCTION CASESENSITIVEREGULAREXPRESSIONCOMPARE (value varchar(255), regexp varchar(255)) returns varchar(255) "+
+      "language java parameter style java no sql external name 'org.apache.manifoldcf.core.database.DBInterfaceDerby.caseSensitiveRegularExpressionCompare'",null,invalidateKeys,null,null,false,0,null,null);
+    rootDatabase.executeQuery("CREATE FUNCTION CASEINSENSITIVESUBSTRING (value varchar(255), regexp varchar(255)) returns varchar(255) "+
+      "language java parameter style java no sql external name 'org.apache.manifoldcf.core.database.DBInterfaceDerby.caseInsensitiveSubstring'",null,invalidateKeys,null,null,false,0,null,null);
+    rootDatabase.executeQuery("CREATE FUNCTION CASESENSITIVESUBSTRING (value varchar(255), regexp varchar(255)) returns varchar(255) "+
+      "language java parameter style java no sql external name 'org.apache.manifoldcf.core.database.DBInterfaceDerby.caseSensitiveSubstring'",null,invalidateKeys,null,null,false,0,null,null);
   }
 
   /** Drop user and database.
@@ -835,12 +848,17 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   */
   public String constructRegexpClause(String column, String regularExpression, boolean caseInsensitive)
   {
-    return column + " LIKE " + regularExpression;
+    //return column + " LIKE " + regularExpression;
     // Waiting for DERBY-4066 to be resolved in a release for the following:
     //if (caseInsensitive)
     //  return "caseInsensitiveRegularExpressionCompare("+column+","+regularExpression+")='true'";
     //else
     //  return "caseSensitiveRegularExpressionCompare("+column+","+regularExpression+")='true'";
+    if (caseInsensitive)
+      return "CASEINSENSITIVEREGULAREXPRESSIONCOMPARE(CAST("+column+" AS VARCHAR(255)),"+regularExpression+")='true'";
+    else
+      return "CASESENSITIVEREGULAREXPRESSIONCOMPARE(CAST("+column+" AS VARCHAR(255)),"+regularExpression+")='true'";
+
   }
 
   /** Construct a regular-expression substring clause.
@@ -853,12 +871,16 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   */
   public String constructSubstringClause(String column, String regularExpression, boolean caseInsensitive)
   {
-    return "''";
+    //return "''";
     // Waiting for DERBY-4066 to be resolved in a release for the following:
     //if (caseInsensitive)
     //  return "caseInsensitiveSubstring("+column+","+regularExpression+")";
     //else
     //  return "caseSensitiveSubstring("+column+","+regularExpression+")";
+    if (caseInsensitive)
+      return "CASEINSENSITIVESUBSTRING(CAST("+column+" AS VARCHAR(255)),"+regularExpression+")";
+    else
+      return "CASESENSITIVESUBSTRING(CAST("+column+" AS VARCHAR(255)),"+regularExpression+")";
   }
 
   /** Construct an offset/limit clause.
