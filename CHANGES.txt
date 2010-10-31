@@ -3,6 +3,10 @@ $Id$
 
 ======================= Trunk (not yet released) =======================
 
+CONNECTORS-109: Hooked up user-defined functions in Derby to perform the needed
+regular expression matching and grouping.
+(Karl Wright)
+
 CONNECTORS-121: Fixed broken javascript in the Windows Share connector "insert here"
 button.
 (Fred Schmitt, Karl Wright)
