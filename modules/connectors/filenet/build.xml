@@ -159,6 +159,7 @@
 
     <target name="server-process" depends="jar-interface,jar-implementation,jar-rmiskel,jar-server,precompile-check" if="canBuild">
         <mkdir dir="dist/server-process/jar"/>
+        <mkdir dir="dist/server-process/script"/>
         <copy todir="dist/server-process/jar">
             <fileset dir="filenet-api" includes="*.jar"/>
         </copy>
@@ -169,11 +170,24 @@
                 <include name="mcf-filenet-implementation.jar"/>
             </fileset>
         </copy>
+        <copy todir="dist/server-process/script">
+            <fileset dir="server-scripts">
+                <include name="*.sh"/>
+                <include name="*.bat"/>
+            </fileset>
+        </copy>
     </target>
 
     <target name="registry-process" depends="jar-registry,precompile-check" if="canBuild">
         <mkdir dir="dist/registry-process/jar"/>
+        <mkdir dir="dist/registry-process/script"/>
         <copy todir="dist/registry-process/jar" file="build/jar/mcf-filenet-registry.jar"/>
+        <copy todir="dist/registry-process/script">
+            <fileset dir="registry-scripts">
+                <include name="*.sh"/>
+                <include name="*.bat"/>
+            </fileset>
+        </copy>
     </target>
 
     <target name="all" depends="lib,server-process,registry-process,doc"/>
