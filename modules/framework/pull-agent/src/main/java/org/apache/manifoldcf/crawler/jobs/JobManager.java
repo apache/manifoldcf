@@ -5807,7 +5807,7 @@ public class JobManager implements IJobManager
       .append(" OR ").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY)))
       .append(")")
       .append(" THEN 'Expiring'")
-      .append(" ELSE 'Unknown ' || t0.").append(jobQueue.statusField).append(" || t0.").append(jobQueue.checkActionField)
+      .append(" ELSE 'Unknown'")
       .append(" END AS status,")
       .append("t0.").append(jobQueue.checkTimeField).append(" AS scheduled,")
       .append("CASE")
