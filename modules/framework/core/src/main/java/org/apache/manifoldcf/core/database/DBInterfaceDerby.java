@@ -1239,7 +1239,9 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     {
       Pattern p = Pattern.compile(regularExpression,Pattern.CASE_INSENSITIVE);
       Matcher m = p.matcher(value);
-      return m.group(1);
+      if (m.find())
+        return m.group(1);
+      return "";
     }
     catch (IndexOutOfBoundsException e)
     {
@@ -1260,7 +1262,9 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     {
       Pattern p = Pattern.compile(regularExpression,0);
       Matcher m = p.matcher(value);
-      return m.group(1);
+      if (m.find())
+        return m.group(1);
+      return "";
     }
     catch (IndexOutOfBoundsException e)
     {
