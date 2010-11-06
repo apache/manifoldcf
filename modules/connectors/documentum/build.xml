@@ -164,6 +164,7 @@
 
     <target name="server-process" depends="jar-interface,jar-implementation,jar-rmiskel,jar-server,precompile-check" if="canBuild">
         <mkdir dir="dist/server-process/jar"/>
+        <mkdir dir="dist/server-process/script"/>
         <copy todir="dist/server-process/jar">
             <fileset dir="dfc" includes="*.jar"/>
         </copy>
@@ -174,14 +175,27 @@
                 <include name="mcf-documentum-implementation.jar"/>
             </fileset>
         </copy>
+        <copy todir="dist/server-process/script">
+            <fileset dir="server-scripts">
+                <include name="*.sh"/>
+                <include name="*.bat"/>
+            </fileset>
+        </copy>
     </target>
 
     <target name="registry-process" depends="jar-registry,precompile-check" if="canBuild">
         <mkdir dir="dist/registry-process/jar"/>
+        <mkdir dir="dist/registry-process/script"/>
         <copy todir="dist/registry-process/jar">
             <fileset dir="build/jar">
                 <include name="mcf-documentum-registry.jar"/>
                 <include name="mcf-documentum-interface.jar"/>
+            </fileset>
+        </copy>
+        <copy todir="dist/registry-process/script">
+            <fileset dir="registry-scripts">
+                <include name="*.sh"/>
+                <include name="*.bat"/>
             </fileset>
         </copy>
     </target>

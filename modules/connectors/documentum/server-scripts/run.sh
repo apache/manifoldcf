@@ -1,0 +1,43 @@
+#!/bin/bash -e
+
+if [[ $OSTYPE == "cygwin" ]] ; then
+    PATHSEP=";"
+else
+    PATHSEP=":"
+fi
+
+#Make sure environment variables are properly set
+if [ -e "$JAVA_HOME"/bin/java ] ; then
+    if [ -f "$MCF_HOME"/properties.xml ] ; then
+        # TODO: Check this on both Windows and Redhat
+        if [ -f "$DOCUMENTUM"/dmcl.ini ] ; then
+    
+            # Build the classpath
+            CLASSPATH=""
+            for filename in $(ls -1 "$MCF_HOME"/documentum-server-process/jar) ; do
+                if [ -n "$CLASSPATH" ] ; then
+                    CLASSPATH="$CLASSPATH""$PATHSEP""$MCF_HOME"/documentum-server-process/jar/"$filename"
+                else
+                    CLASSPATH="$MCF_HOME"/documentum-server-process/jar/"$filename"
+                fi
+            done
+            
+            LIB_STATEMENT=""
+            if [[ $JAVA_LIB_PATH != "" ]] ; then
+                LIB_STATEMENT=-Djava.library.path="$JAVA_LIB_PATH"
+            "$JAVA_HOME/bin/java" -Xmx512m -Xms32m $LIB_STATEMENT -cp "$CLASSPATH" org.apache.manifoldcf.crawler.server.DCTM.DCTM
+            exit $?
+        
+        else
+            echo "Environment variable DOCUMENTUM is not properly set." 1>&2
+            exit 1
+            
+    else
+        echo "Environment variable MCF_HOME is not properly set." 1>&2
+        exit 1
+    fi
+    
+else
+    echo "Environment variable JAVA_HOME is not properly set." 1>&2
+    exit 1
+fi
