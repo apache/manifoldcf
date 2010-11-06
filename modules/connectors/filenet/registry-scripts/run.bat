@@ -9,7 +9,7 @@ set CLASSPATH=.
 for %%f in (jar/*) do call script\setclasspath.bat %%f
 rem restore old path here
 cd "%OLDDIR%"
-"%JAVA_HOME%\bin\java" -Xmx=32m -Xms=32m -classpath "%CLASSPATH%" org.apache.manifoldcf.crawler.registry.filenet.Filenet
+"%JAVA_HOME%\bin\java" -Xmx32m -Xms32m -classpath "%CLASSPATH%" org.apache.manifoldcf.crawler.registry.filenet.Filenet
 goto done
 :nojavahome
 echo Environment variable JAVA_HOME is not set properly.

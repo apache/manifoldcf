@@ -1,1 +1,1 @@
-set CLASSPATH=%CLASSPATH%;%MCF_HOME%\processes\jar\%1
+set CLASSPATH=%CLASSPATH%;%MCF_HOME%\filenet-server-process\jar\%1

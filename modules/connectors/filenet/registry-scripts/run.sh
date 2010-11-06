@@ -20,7 +20,7 @@ if [ -e "$JAVA_HOME"/bin/java ] ; then
             fi
         done
         
-        "$JAVA_HOME/bin/java" -Xmx=32m -Xms=32m -cp "$CLASSPATH" org.apache.manifoldcf.crawler.registry.filenet.Filenet
+        "$JAVA_HOME/bin/java" -Xmx32m -Xms32m -cp "$CLASSPATH" org.apache.manifoldcf.crawler.registry.filenet.Filenet
         exit $?
         
     else

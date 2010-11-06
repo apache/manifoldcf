@@ -540,6 +540,14 @@
     </target>
 
     <target name="deliver-documentum-example" depends="deliver-framework-example,build-documentum-connector,calculate-documentum-condition" if="documentum.include">
+        <mkdir dir="dist/example/documentum-server-process"/>
+        <copy todir="dist/example/documentum-server-process">
+            <fileset dir="connectors/documentum/dist/server-process"/>
+        </copy>
+        <mkdir dir="dist/example/documentum-registry-process"/>
+        <copy todir="dist/example/documentum-registry-process">
+            <fileset dir="connectors/documentum/dist/registry-process"/>
+        </copy>
         <mkdir dir="dist/example/connector-lib"/>
         <copy todir="dist/example/connector-lib">
             <fileset dir="connectors/documentum/dist/lib"/>
@@ -557,6 +565,14 @@
     </target>
 
     <target name="deliver-filenet-example" depends="deliver-framework-example,build-filenet-connector,calculate-filenet-condition" if="filenet.include">
+        <mkdir dir="dist/example/filenet-server-process"/>
+        <copy todir="dist/example/filenet-server-process">
+            <fileset dir="connectors/filenet/dist/server-process"/>
+        </copy>
+        <mkdir dir="dist/example/filenet-registry-process"/>
+        <copy todir="dist/example/filenet-registry-process">
+            <fileset dir="connectors/filenet/dist/registry-process"/>
+        </copy>
         <mkdir dir="dist/example/connector-lib"/>
         <copy todir="dist/example/connector-lib">
             <fileset dir="connectors/filenet/dist/lib"/>

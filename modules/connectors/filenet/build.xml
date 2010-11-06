@@ -181,7 +181,12 @@
     <target name="registry-process" depends="jar-registry,precompile-check" if="canBuild">
         <mkdir dir="dist/registry-process/jar"/>
         <mkdir dir="dist/registry-process/script"/>
-        <copy todir="dist/registry-process/jar" file="build/jar/mcf-filenet-registry.jar"/>
+        <copy todir="dist/registry-process/jar">
+            <fileset dir="build/jar">
+                <include name="mcf-filenet-registry.jar"/>
+                <include name="mcf-filenet-interface.jar"/>
+            </fileset>
+        </copy>
         <copy todir="dist/registry-process/script">
             <fileset dir="registry-scripts">
                 <include name="*.sh"/>

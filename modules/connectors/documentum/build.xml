@@ -178,7 +178,12 @@
 
     <target name="registry-process" depends="jar-registry,precompile-check" if="canBuild">
         <mkdir dir="dist/registry-process/jar"/>
-        <copy todir="dist/registry-process/jar" file="build/jar/mcf-documentum-registry.jar"/>
+        <copy todir="dist/registry-process/jar">
+            <fileset dir="build/jar">
+                <include name="mcf-documentum-registry.jar"/>
+                <include name="mcf-documentum-interface.jar"/>
+            </fileset>
+        </copy>
     </target>
 
     <target name="all" depends="lib,server-process,registry-process,doc"/>

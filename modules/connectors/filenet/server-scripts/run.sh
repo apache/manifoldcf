@@ -26,7 +26,7 @@ if [ -e "$JAVA_HOME"/bin/java ] ; then
         LIB_STATEMENT=""
         if [[ $JAVA_LIB_PATH != "" ]] ; then
             LIB_STATEMENT=-Djava.library.path="$JAVA_LIB_PATH"
-        "$JAVA_HOME/bin/java" -Xmx=512m -Xms=32m $WASP_STATEMENT $LIB_STATEMENT -cp "$CLASSPATH" org.apache.manifoldcf.crawler.server.filenet.Filenet
+        "$JAVA_HOME/bin/java" -Xmx512m -Xms32m $WASP_STATEMENT $LIB_STATEMENT -cp "$CLASSPATH" org.apache.manifoldcf.crawler.server.filenet.Filenet
         exit $?
         
     else
