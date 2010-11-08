@@ -3,6 +3,10 @@ $Id$
 
 ======================= Trunk (not yet released) =======================
 
+CONNECTORS-124: Add a null authority connector, so authority tests can be
+written.
+(Karl Wright)
+
 CONNECTORS-109: Hooked up user-defined functions in Derby to perform the needed
 regular expression matching and grouping.
 (Karl Wright)

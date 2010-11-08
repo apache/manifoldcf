@@ -28,6 +28,8 @@
         <delete dir="connectors/memex/lib"/>
         <ant dir="connectors/meridio" target="clean"/>
         <delete dir="connectors/meridio/lib"/>
+        <ant dir="connectors/nullauthority" target="clean"/>
+        <delete dir="connectors/nullauthority/lib"/>
         <ant dir="connectors/nulloutput" target="clean"/>
         <delete dir="connectors/nulloutput/lib"/>
         <ant dir="connectors/rss" target="clean"/>
@@ -220,6 +222,17 @@
             <fileset dir="framework/build/jar"/>
         </copy>
         <ant dir="connectors/meridio"/>
+    </target>
+
+    <target name="build-nullauthority-connector" depends="build-framework">
+        <mkdir dir="connectors/nullauthority/lib"/>
+        <copy todir="connectors/nulloutput/lib">
+            <fileset dir="framework/lib"/>
+        </copy>
+        <copy todir="connectors/nullauthority/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+        <ant dir="connectors/nullauthority"/>
     </target>
 
     <target name="build-nulloutput-connector" depends="build-framework">
@@ -459,11 +472,25 @@
         </copy>
     </target>
 
+    <target name="calculate-nullauthority-condition" depends="build-nullauthority-connector">
+        <available file="connectors/nullauthority/dist" type="dir" property="nullauthority.exists"/>
+        <condition property="nullauthority.include">
+            <isset property="nullauthority.exists"/>
+        </condition>
+    </target>
+
     <target name="calculate-nulloutput-condition" depends="build-nulloutput-connector">
         <available file="connectors/nulloutput/dist" type="dir" property="nulloutput.exists"/>
         <condition property="nulloutput.include">
             <isset property="nulloutput.exists"/>
         </condition>
+    </target>
+
+    <target name="deliver-nullauthority-connector" depends="calculate-nullauthority-condition" if="nullauthority.include">
+        <mkdir dir="dist/lib"/>
+        <copy todir="dist/lib">
+            <fileset dir="connectors/nullauthority/dist/lib"/>
+        </copy>
     </target>
 
     <target name="deliver-nulloutput-connector" depends="calculate-nulloutput-condition" if="nulloutput.include">
@@ -636,6 +663,14 @@
         <replace file="dist/example/properties.xml" token="&lt;!-- WSDD references --&gt;" value="&lt;!-- WSDD references --&gt;&#0010;  &lt;property name=&quot;org.apache.manifoldcf.meridio.wsddpath&quot; value=&quot;./wsdd/meridio-client-config.wsdd&quot;/&gt;"/>
     </target>
 
+    <target name="deliver-nullauthority-example" depends="deliver-framework-example,build-nullauthority-connector,calculate-nullauthority-condition" if="nullauthority.include">
+        <mkdir dir="dist/example/connector-lib"/>
+        <copy todir="dist/example/connector-lib">
+            <fileset dir="connectors/nullauthority/dist/lib"/>
+        </copy>
+        <replace file="dist/example/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;authorityconnector name=&quot;Null&quot; class=&quot;org.apache.manifoldcf.authorities.authorities.nullauthority.NullAuthority&quot;/&gt;"/>
+    </target>
+
     <target name="deliver-nulloutput-example" depends="deliver-framework-example,build-nulloutput-connector,calculate-nulloutput-condition" if="nulloutput.include">
         <mkdir dir="dist/example/connector-lib"/>
         <copy todir="dist/example/connector-lib">
@@ -681,7 +716,7 @@
         <replace file="dist/example/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;Web&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConnector&quot;/&gt;"/>
     </target>
 
-    <target name="deliver-example" depends="deliver-framework-example,deliver-activedirectory-example,deliver-documentum-example,deliver-filesystem-example,deliver-filenet-example,deliver-gts-example,deliver-jcifs-example,deliver-jdbc-example,deliver-livelink-example,deliver-memex-example,deliver-meridio-example,deliver-nulloutput-example,deliver-rss-example,deliver-sharepoint-example,deliver-solr-example,deliver-webcrawler-example">
+    <target name="deliver-example" depends="deliver-framework-example,deliver-activedirectory-example,deliver-documentum-example,deliver-filesystem-example,deliver-filenet-example,deliver-gts-example,deliver-jcifs-example,deliver-jdbc-example,deliver-livelink-example,deliver-memex-example,deliver-meridio-example,deliver-nullauthority-example,deliver-nulloutput-example,deliver-rss-example,deliver-sharepoint-example,deliver-solr-example,deliver-webcrawler-example">
         <!-- Build a manifest file.  There doesn't seem to be any good way to do this automatically in ant without developing my own
         custom task, so I've hard coded all the class path libs. -->
         <mkdir dir="build/example"/>
@@ -790,7 +825,7 @@
 
     <target name="run-tests" depends="run-filesystem-tests,run-sharepoint-tests"/>
     
-    <target name="deliver-open-connectors" depends="deliver-activedirectory-connector,deliver-filesystem-connector,deliver-rss-connector,deliver-webcrawler-connector,deliver-jdbc-connector"/>
+    <target name="deliver-open-connectors" depends="deliver-nullauthority-connector,deliver-activedirectory-connector,deliver-filesystem-connector,deliver-rss-connector,deliver-webcrawler-connector,deliver-jdbc-connector"/>
     
     <target name="deliver-output-connectors" depends="deliver-gts-connector,deliver-solr-connector,deliver-nulloutput-connector"/>
     
