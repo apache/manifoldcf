@@ -36,8 +36,8 @@ public class ConnectionFactory
 {
   public static final String _rcsid = "@(#)$Id: ConnectionFactory.java 988245 2010-08-23 18:39:35Z kwright $";
 
-
-  private static final int defaultMaxDBConnections = 200;
+  // This default is designed to avoid strange errors with people using postgresql out of the box, where the maximum connection count is set to 100.
+  private static final int defaultMaxDBConnections = 50;
   private static final int defaultTimeoutValue = 86400;
 
   private static HashMap checkedOutConnections = new HashMap();
