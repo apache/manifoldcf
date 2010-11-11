@@ -1,6 +1,8 @@
 <project default="all">
 
     <target name="clean">
+        <delete file="manifoldcf-*.zip"/>
+        <delete file="manifoldcf-*.tar.gz"/>
         <delete dir="build"/>
         <delete dir="dist"/>
         <delete dir="test-output"/>
@@ -296,6 +298,10 @@
         <copy todir="dist/web">
             <fileset dir="framework/dist/web"/>
         </copy>
+        <mkdir dir="dist/doc/framework"/>
+        <copy todir="dist/doc/framework">
+	  <fileset dir="framework/dist/doc"/>
+        </copy>
     </target>
 
     <target name="calculate-activedirectory-condition" depends="build-activedirectory-connector">
@@ -309,6 +315,10 @@
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
             <fileset dir="connectors/activedirectory/dist/lib"/>
+        </copy>
+        <mkdir dir="dist/doc/activedirectory"/>
+        <copy todir="dist/doc/activedirectory">
+	  <fileset dir="connectors/activedirectory/dist/doc"/>
         </copy>
     </target>
 
@@ -332,6 +342,10 @@
         <copy todir="dist/documentum-registry-process">
             <fileset dir="connectors/documentum/dist/registry-process"/>
         </copy>
+        <mkdir dir="dist/doc/documentum"/>
+        <copy todir="dist/doc/documentum">
+	  <fileset dir="connectors/documentum/dist/doc"/>
+        </copy>
     </target>
 
     <target name="calculate-filenet-condition" depends="build-filenet-connector">
@@ -354,6 +368,10 @@
         <copy todir="dist/filenet-registry-process">
             <fileset dir="connectors/filenet/dist/registry-process"/>
         </copy>
+        <mkdir dir="dist/doc/filenet"/>
+        <copy todir="dist/doc/filenet">
+	  <fileset dir="connectors/filenet/dist/doc"/>
+        </copy>
     </target>
 
     <target name="calculate-filesystem-condition" depends="build-filesystem-connector">
@@ -367,6 +385,10 @@
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
             <fileset dir="connectors/filesystem/dist/lib"/>
+        </copy>
+        <mkdir dir="dist/doc/filesystem"/>
+        <copy todir="dist/doc/filesystem">
+	  <fileset dir="connectors/filesystem/dist/doc"/>
         </copy>
     </target>
 
@@ -382,6 +404,10 @@
         <copy todir="dist/lib">
             <fileset dir="connectors/gts/dist/lib"/>
         </copy>
+        <mkdir dir="dist/doc/gts"/>
+        <copy todir="dist/doc/gts">
+	  <fileset dir="connectors/gts/dist/doc"/>
+        </copy>
     </target>
 
     <target name="calculate-jdbc-condition" depends="build-jdbc-connector">
@@ -395,6 +421,10 @@
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
             <fileset dir="connectors/jdbc/dist/lib"/>
+        </copy>
+        <mkdir dir="dist/doc/jdbc"/>
+        <copy todir="dist/doc/jdbc">
+	  <fileset dir="connectors/jdbc/dist/doc"/>
         </copy>
     </target>
 
@@ -410,6 +440,10 @@
         <copy todir="dist/lib">
             <fileset dir="connectors/jcifs/dist/lib"/>
         </copy>
+        <mkdir dir="dist/doc/jcifs"/>
+        <copy todir="dist/doc/jcifs">
+	  <fileset dir="connectors/jcifs/dist/doc"/>
+        </copy>
     </target>
 
     <target name="calculate-livelink-condition" depends="build-livelink-connector">
@@ -423,6 +457,10 @@
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
             <fileset dir="connectors/livelink/dist/lib"/>
+        </copy>
+        <mkdir dir="dist/doc/livelink"/>
+        <copy todir="dist/doc/livelink">
+	  <fileset dir="connectors/livelink/dist/doc"/>
         </copy>
     </target>
 
@@ -438,6 +476,10 @@
         <copy todir="dist/lib">
             <fileset dir="connectors/solr/dist/lib"/>
         </copy>
+        <mkdir dir="dist/doc/solr"/>
+        <copy todir="dist/doc/solr">
+	  <fileset dir="connectors/solr/dist/doc"/>
+        </copy>
     </target>
 
     <target name="calculate-memex-condition" depends="build-memex-connector">
@@ -451,6 +493,10 @@
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
             <fileset dir="connectors/memex/dist/lib"/>
+        </copy>
+        <mkdir dir="dist/doc/memex"/>
+        <copy todir="dist/doc/memex">
+	  <fileset dir="connectors/memex/dist/doc"/>
         </copy>
     </target>
 
@@ -469,6 +515,10 @@
         <mkdir dir="dist/wsdd"/>
         <copy todir="dist/wsdd">
             <fileset dir="connectors/meridio/dist/wsdd"/>
+        </copy>
+        <mkdir dir="dist/doc/meridio"/>
+        <copy todir="dist/doc/meridio">
+	  <fileset dir="connectors/meridio/dist/doc"/>
         </copy>
     </target>
 
@@ -491,12 +541,20 @@
         <copy todir="dist/lib">
             <fileset dir="connectors/nullauthority/dist/lib"/>
         </copy>
+        <mkdir dir="dist/doc/nullauthority"/>
+        <copy todir="dist/doc/nullauthority">
+	  <fileset dir="connectors/nullauthority/dist/doc"/>
+        </copy>
     </target>
 
     <target name="deliver-nulloutput-connector" depends="calculate-nulloutput-condition" if="nulloutput.include">
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
             <fileset dir="connectors/nulloutput/dist/lib"/>
+        </copy>
+        <mkdir dir="dist/doc/nulloutput"/>
+        <copy todir="dist/doc/nulloutput">
+	  <fileset dir="connectors/nulloutput/dist/doc"/>
         </copy>
     </target>
 
@@ -511,6 +569,10 @@
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
             <fileset dir="connectors/rss/dist/lib"/>
+        </copy>
+        <mkdir dir="dist/doc/rss"/>
+        <copy todir="dist/doc/rss">
+	  <fileset dir="connectors/rss/dist/doc"/>
         </copy>
     </target>
 
@@ -530,6 +592,10 @@
         <copy todir="dist/wsdd">
             <fileset dir="connectors/sharepoint/dist/wsdd"/>
         </copy>
+        <mkdir dir="dist/doc/sharepoint"/>
+        <copy todir="dist/doc/sharepoint">
+	  <fileset dir="connectors/sharepoint/dist/doc"/>
+        </copy>
     </target>
 
     <target name="calculate-webcrawler-condition" depends="build-webcrawler-connector">
@@ -543,6 +609,10 @@
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
             <fileset dir="connectors/webcrawler/dist/lib"/>
+        </copy>
+        <mkdir dir="dist/doc/webcrawler"/>
+        <copy todir="dist/doc/webcrawler">
+	  <fileset dir="connectors/webcrawler/dist/doc"/>
         </copy>
     </target>
 
@@ -833,7 +903,18 @@
     
     <target name="deliver-proprietary-connectors" depends="deliver-documentum-connector,deliver-filenet-connector,deliver-livelink-connector,deliver-memex-connector,deliver-meridio-connector,deliver-sharepoint-connector"/>
     
-    <target name="all" depends="deliver-framework,deliver-open-connectors,deliver-output-connectors,deliver-lgpl-connectors,deliver-proprietary-connectors,deliver-example,run-tests"/>
+    <target name="deliver" depends="deliver-framework,deliver-open-connectors,deliver-output-connectors,deliver-lgpl-connectors,deliver-proprietary-connectors,deliver-example"/>
 
+    <target name="dist-zip" depends="deliver">
+	<zip destfile="manifoldcf-SNAPSHOT-0.1.zip" basedir="dist" update="true"/>
+    </target>
+    
+    <target name="dist-tar" depends="deliver">
+	<tar destfile="manifoldcf-SNAPSHOT-0.1.tar.gz" basedir="dist" compression="gzip" longfile="gnu"/>
+    </target>
+
+    <target name="dist" depends="dist-zip,dist-tar"/>
+    
+    <target name="all" depends="deliver,run-tests"/>
     
 </project>

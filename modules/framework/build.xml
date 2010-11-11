@@ -3,13 +3,12 @@
     <target name="clean">
         <delete dir="build"/>
         <delete dir="dist"/>
-        <delete dir="doc"/>
         <delete dir="test-output"/>
     </target>
     
     <target name="doc">
-        <mkdir dir="doc"/>
-        <javadoc destdir="doc" maxmemory="256M" source="1.4" useexternalfile="true">
+        <mkdir dir="dist/doc/framework"/>
+        <javadoc destdir="dist/doc/framework" maxmemory="256M" source="1.4" useexternalfile="true">
             <classpath>
                 <fileset dir="lib"> 
                     <include name="*.jar"/> 

@@ -3,7 +3,6 @@
     <target name="clean">
         <delete dir="build"/>
         <delete dir="dist"/>
-        <delete dir="doc"/>
     </target>
 
     <target name="calculate-condition">
@@ -18,8 +17,8 @@
     </target>
 
     <target name="doc" depends="precompile-check" if="canBuild">
-        <mkdir dir="doc"/>
-        <javadoc destdir="doc" classpath="mxie-java/JavaMXIELIB.jar:lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient-lcf.jar:lib/mcf-core.jar:lib/mcf-agents.jar:lib/mcf-pull-agent.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar" source="1.5">
+        <mkdir dir="dist/doc"/>
+        <javadoc destdir="dist/doc" classpath="mxie-java/JavaMXIELIB.jar:lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient-lcf.jar:lib/mcf-core.jar:lib/mcf-agents.jar:lib/mcf-pull-agent.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar" source="1.5">
             <classpath>
                 <fileset dir="lib" includes="*.jar"/>
                 <fileset dir="mxie-java" includes="*.jar"/>

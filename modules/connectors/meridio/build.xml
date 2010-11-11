@@ -3,7 +3,6 @@
     <target name="clean">
         <delete dir="build"/>
         <delete dir="dist"/>
-        <delete dir="doc"/>
     </target>
 
     <target name="calculate-condition">
@@ -118,8 +117,8 @@
     </target>
 
     <target name="doc" depends="precompile-check,compile-wsdls,compile-xsds" if="canBuild">
-        <mkdir dir="doc"/>
-        <javadoc destdir="doc" source="1.5">
+        <mkdir dir="dist/doc"/>
+        <javadoc destdir="dist/doc" source="1.5">
             <classpath>
                 <fileset dir="lib" includes="*.jar"/>
                 <pathelement location="build/wsdljava"/>

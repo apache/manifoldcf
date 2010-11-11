@@ -3,7 +3,6 @@
     <target name="clean">
         <delete dir="build"/>
         <delete dir="dist"/>
-        <delete dir="doc"/>
     </target>
 
     
@@ -87,8 +86,8 @@
     </target>
 
     <target name="doc" depends="precompile-check,compile-wsdls" if="canBuild">
-        <mkdir dir="doc"/>
-        <javadoc destdir="doc" source="1.4">
+        <mkdir dir="dist/doc"/>
+        <javadoc destdir="dist/doc" source="1.4">
             <classpath>
                 <fileset dir="lib" includes="*.jar"/>
                 <pathelement location="build/wsdlclasses"/>
