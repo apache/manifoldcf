@@ -3,6 +3,10 @@ $Id$
 
 ======================= Trunk (not yet released) =======================
 
+CONNECTORS-125: Set the default max handles property to be consistent with
+a default PostgreSQL installation.
+(Farzad, Karl Wright)
+
 CONNECTORS-124: Add a null authority connector, so authority tests can be
 written.
 (Karl Wright)
