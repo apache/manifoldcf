@@ -1,0 +1,28 @@
+<project default="all">
+
+    <target name="clean">
+        <delete dir="dist"/>
+        <delete file="manifoldcf-*.zip"/>
+        <delete file="manifoldcf-*.tar.gz"/>
+        <ant dir="modules" target="clean"/>
+    </target>
+    
+    <target name="deliver">
+          <ant dir="modules" target="all"/>
+    </target>
+    
+    <target name="dist-zip" depends="deliver">
+          <mkdir dir="dist"/>
+	<zip destfile="dist/manifoldcf-SNAPSHOT-0.1.zip" basedir="modules/dist" update="true"/>
+    </target>
+    
+    <target name="dist-tar" depends="deliver">
+          <mkdir dir="dist"/>
+	<tar destfile="dist/manifoldcf-SNAPSHOT-0.1.tar.gz" basedir="modules/dist" compression="gzip" longfile="gnu"/>
+    </target>
+
+    <target name="dist" depends="dist-zip,dist-tar"/>
+    
+    <target name="all" depends="dist"/>
+    
+</project>
