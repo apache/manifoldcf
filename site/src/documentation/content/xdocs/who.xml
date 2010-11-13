@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE document PUBLIC "-//APACHE//DTD Documentation V2.0//EN" 
+          "http://forrest.apache.org/dtd/document-v20.dtd">
+
+<document> 
+
+  <header> 
+    <title>Who We Are</title> 
+  </header> 
+
+  <body> 
+
+      <section>
+        <title>Committers</title>
+  
+        <p>
+        (in alphabetical order): 
+        </p>
+  
+        <ul>
+        <li>Grant Ingersoll &lt;gsingers&gt; </li>
+	<li>Shalin Shekhar Mangar &lt;shalin&gt; </li>
+        <li>Mark Miller &lt;markrmiller&gt; </li>
+        <li>Robert Muir &lt;rmuir&gt; </li>
+        <li>Ryan McKinley &lt;ryan&gt; </li>
+        <li>Sami Siren &lt;siren&gt; </li>
+        <li>Simon Willnauer &lt;simonw&gt; </li>
+        <li>Karl Wright &lt;kwright&gt; </li>
+        <li>Jukka Zitting &lt;jukka&gt; </li>
+        </ul>
+  
+      </section>
+
+  </body>
+
+</document>

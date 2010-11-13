@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<document>
+    <header>
+        <title>ManifoldCF - Mailing Lists</title>
+    </header>
+    <body>
+	<section id="ACF Mailing Lists"><title>ManifoldCF Mailing Lists</title>
+		<p>The ManifoldCF project supports several mailing lists.</p>
+	</section>
+	<section id="user"><title>ManifoldCF User Mailing List</title>
+		<p>User questions on how to use ACF.</p>
+		<ul>
+			<li><a href="mailto:connectors-user-subscribe@incubator.apache.org">Subscribe</a></li>
+			<li><a href="mailto:connectors-user-unsubscribe@incubator.apache.org">Unsubscribe</a></li>
+			<li><a href="http://mail-archives.apache.org/mod_mbox/incubator-connectors-user/">Archive</a></li>
+		</ul>
+	</section>
+	<section id="dev"><title>ManifoldCF Development Mailing List</title>
+		<p>Discussion on the development of the internals of ManifoldCF.</p>
+		<ul>
+			<li><a href="mailto:connectors-dev-subscribe@incubator.apache.org">Subscribe</a></li>
+			<li><a href="mailto:connectors-dev-unsubscribe@incubator.apache.org">Unsubscribe</a></li>
+			<li><a href="http://mail-archives.apache.org/mod_mbox/incubator-connectors-dev/">Archive</a></li>
+		</ul>
+	</section>
+	<section id="commits"><title>ManifoldCF Commits Mailing List</title>
+		<p>Commit messages</p>
+		<ul>
+			<li><a href="mailto:connectors-commits-subscribe@incubator.apache.org">Subscribe</a></li>
+			<li><a href="mailto:connectors-commits-unsubscribe@incubator.apache.org">Unsubscribe</a></li>
+			<li><a href="http://mail-archives.apache.org/mod_mbox/incubator-connectors-commits/">Archive</a></li>
+		</ul>
+	</section>
+		
+
+    </body>
+</document>

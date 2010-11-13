@@ -1,0 +1,102 @@
+<?xml version="1.0"?>
+<document>
+<header><title>ManifoldCF - Developer Resources</title></header>
+<properties>
+</properties>
+<body>
+
+    <section id="source">
+	<title>Source Code</title>
+	<p>The source files are stored using Subversion (see <a href="http://subversion.tigris.org/">http://subversion.tigris.org/</a> and <a href="http://svnbook.red-bean.com/">http://svnbook.red-bean.com/</a>)
+	</p>
+	<p>
+	    <code>svn checkout http://svn.apache.org/repos/asf/incubator/lcf/trunk mcf-trunk</code>
+	</p>
+    </section>
+
+    <section id="understandingManifoldCF">
+	<title>Familiarize Yourself with the Concepts and Terminology</title>
+	<p>Like any software project, ManifoldCF has its own underlying concepts and terminology.  Read about that <a href="concepts.html">here</a>.
+	</p>
+    </section>
+    
+    <section id="interoperability">
+        <title>Interoperability Matrix</title>
+        <p>The interoperability and testing matrix for ManifoldCF can be found <a href="included-connectors.html">here</a>.
+        </p>
+    </section>
+    
+    <section id="howtobuilddeploy">
+	<title>How to Build and Deploy</title>
+	<p>Building ManifoldCF requires ant 1.7 or greater.  Instructions for building and deploying can be found <a href="how-to-build-and-deploy.html">here</a>.
+	</p>
+    </section>
+
+    <section id="howtointegrate">
+          <title>How to Integrate</title>
+          <p>ManifoldCF provides a number of API's and services.  Documentation of these API's can be found <a href="programmatic-operation.html">here</a>.
+          </p>
+    </section>
+    
+    <section id="securityarchitecturediagrams">
+          <title>Security Architecture Diagrams</title>
+          <p>For those who prefer a pictorial representation of ManifoldCF's security architecture, this might help.</p>
+          <br/><br/>
+          <figure src="images/SecurityArchitecture.png" alt="ManifoldCF Security Architecture" width="80%"/>
+          <br/><br/>
+          <p>If you are using Apache to perform authentication, the model is slightly different.</p>
+          <br/><br/>
+          <figure src="images/LCFApacheArchitecture.png" alt="ManifoldCF Security Architecture, with Apache" width="80%"/>
+          <br/><br/>
+    </section>
+
+    <section id="processarchitecturediagrams">
+          <title>Process Architecture Diagrams</title>
+          <p>A pictorial representation of ManifoldCF's process architecture is below.</p>
+          <br/><br/>
+          <figure src="images/LCFProcessArchitecture.png" alt="ManifoldCF Process Architecture" width="80%"/>
+          <br/><br/>
+    </section>
+
+    <section id="howtowriteconnectors">
+	<title>How to Write Connectors</title>
+	<p>Writing connectors for ManifoldCF is a great way to learn about the project and contribute something useful!  Read about how to do that by navigating to the links provided below.
+	</p> 
+	<ul>
+	    <li><a href="writing-output-connectors.html">How to write an output connector</a></li>
+	    <li><a href="writing-authority-connectors.html">How to write an authority connector</a></li>
+	    <li><a href="writing-repository-connectors.html">How to write a repository connector</a></li>
+	</ul>
+    </section>
+
+    <section id="debugging">
+	<title>Debugging Connections</title>
+	<p>Sooner or later, you will encounter a repository that should be supported, but doesn't seem to want to connect properly to ManifoldCF.  When that happens, you will need all the help you
+	    can get.  Start <a href="https://cwiki.apache.org/confluence/display/CONNECTORS/Debugging+Connections">here</a>, and if you find a new hint, technique,
+	    or trick, don't forget to add it to the page!</p>
+    </section>
+    
+    <section id="Changes">
+	<title>Changes List</title>
+	<p>Current changes list (as of the most recent nightly build) is available 
+	    <a href="http://svn.apache.org/repos/asf/incubator/lcf/trunk/CHANGES.txt">here</a>.
+	</p>
+    </section>
+    
+    <section id="Bugs">
+          <title>Reporting a Bug, Problem, or Feature Request</title>
+          <p>If you think you've found a problem, or you just have a good idea for an improvement, you can create a JIRA ticket <a href="http://issues.apache.org/jira">here</a>.  You may need to create yourself an account.  Be sure to select the "Lucene Connector Framework" project.
+	  (This project name may change in the future to Apache Connectors Framework.)
+          </p>
+          <p>Please make every effort to search through the current issues list before creating a new ticket.  Your problem might already have been logged!</p>
+    </section>
+    
+    <section id="Making a Contribution">
+	<title>Making a Contribution</title>
+	<p>ManifoldCF is always looking for contributions.  See the <a href="http://cwiki.apache.org/confluence/display/CONNECTORS/HowToContribute">Wiki</a> for details on contributing. </p>
+	<p>We're also looking for logo ideas.  Here are the <a href="http://cwiki.apache.org/confluence/display/CONNECTORS/Logo+Criteria">guidelines</a>.
+	</p>
+    </section>
+
+</body>
+</document>

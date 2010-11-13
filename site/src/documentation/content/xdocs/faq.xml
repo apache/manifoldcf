@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE document PUBLIC "-//APACHE//DTD Documentation V2.0//EN" 
+          "http://forrest.apache.org/dtd/document-v20.dtd">
+
+<document> 
+
+  <header> 
+    <title>Frequently Asked Questions</title> 
+  </header> 
+
+  <body> 
+
+      <section>
+        <title>End-user Questions</title>
+        <p>Currently empty - send your questions to connectors-user@incubator.apache.org .</p>
+      </section>
+      
+      <section>
+         <title>Developer/Integrator Questions</title>
+         <p>Your questions/answers are currently located in the wiki, <a href="https://cwiki.apache.org/confluence/display/CONNECTORS/FAQ">here</a>.
+         </p>
+      </section>
+
+  </body>
+
+</document>

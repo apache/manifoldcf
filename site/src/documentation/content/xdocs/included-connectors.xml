@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE document PUBLIC "-//APACHE//DTD Documentation V2.0//EN" 
+          "http://forrest.apache.org/dtd/document-v20.dtd">
+
+<document> 
+
+  <header> 
+    <title>Included connectors</title> 
+  </header> 
+
+  <body> 
+    <section>
+      <title>Included connectors</title>
+      <p>ManifoldCF supports the following connectors:</p>
+      <p></p>
+      <table>
+        <caption>Connector interoperability table</caption>
+        <tr><th>System</th><th>Connector Platform</th><th>Server Platform</th><th>Client Version</th><th>Server Version</th></tr>
+        <tr><td>File System</td><td>Pure Java</td><td>Win/*NIX</td><td>N/A</td><td>N/A</td></tr>
+        <tr><td>Windows Shares</td><td>Pure Java</td><td> Win, Samba, NetApp, other NAS systems </td><td>N/A</td><td>N/A</td></tr>
+        <tr><td>JDBC</td><td> Pure Java </td><td> Various </td><td> Supports JDBC V2, V3, V4; tested with Oracle 10, JTDS 1.2, Postgresql 8.3 drivers </td><td> Various </td></tr>
+        <tr><td>RSS</td><td> Pure Java </td><td> N/A </td><td> N/A </td><td>Atom, RSS 2.0, others </td></tr>
+        <tr><td>Web</td><td> Pure Java </td><td>N/A</td><td> N/A </td><td>HTML Version 1.0, 1.1, 2.0, Atom, RSS 2.0, others </td></tr>
+        <tr><td>LiveLink (OpenText)</td><td> Pure Java </td><td> Win </td><td> LAPI 9.7.1 </td><td> Tested with 9.2.0 - 9.7.1 </td></tr>
+        <tr><td>Documentum (EMC)</td><td> Win, RedHat </td><td> Win, RedHat </td><td> Tested with DFC 5.3 SP5 </td><td> Tested against 5.3, 6.0, and 6.5 servers </td></tr>
+        <tr><td>SharePoint (MSFT)</td><td>Pure Java </td><td>Win</td><td> N/A </td><td> Tested with SharePoint 2003 (2.0), 2007 (3.0) </td></tr>
+        <tr><td>Meridio (Autonomy)</td><td> Pure Java </td><td> Win </td><td> N/A </td><td> Tested with Meridio 4.1, 5.0 </td></tr>
+        <tr><td>FileNet (IBM)</td><td> Pure Java </td><td> Win, RedHat </td><td> Tested with P8 V4.1 </td><td> Tested with P8 V4.1 </td></tr>
+      </table>
+    </section>
+  </body>
+</document>
+  
