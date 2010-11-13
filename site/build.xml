@@ -1,0 +1,18 @@
+<project default="all">
+
+    <target name="clean">
+        <delete dir="build"/>
+    </target>
+    
+    <target name="dist">
+        <exec executable="cmd.exe" dir="." searchpath="true" failonerror="true" osfamily="windows">
+            <arg line="/c forrest.bat site"/>
+        </exec>
+        <exec executable="forrest" dir="." searchpath="true" failonerror="true" osfamily="unix">
+            <arg line="site"/>
+        </exec>
+    </target>
+    
+    <target name="all" depends="dist"/>
+    
+</project>
