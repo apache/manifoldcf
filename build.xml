@@ -1,4 +1,4 @@
-<project default="all">
+<project default="help">
 
     <target name="clean">
         <delete file="manifoldcf-*.zip"/>
@@ -1340,22 +1340,53 @@
     
     <target name="deliver-proprietary-connectors" depends="deliver-documentum-connector,deliver-filenet-connector,deliver-livelink-connector,deliver-memex-connector,deliver-meridio-connector,deliver-sharepoint-connector"/>
     <target name="deliver-proprietary-connectors-doc" depends="deliver-documentum-connector-doc,deliver-filenet-connector-doc,deliver-livelink-connector-doc,deliver-memex-connector-doc,deliver-meridio-connector-doc,deliver-sharepoint-connector-doc"/>
+        
+
+    <target name="build" depends="deliver-framework,deliver-open-connectors,deliver-output-connectors,deliver-lgpl-connectors,deliver-proprietary-connectors,deliver-example"/>
+    <target name="javadoc" depends="deliver-framework-doc,deliver-open-connectors-doc,deliver-output-connectors-doc,deliver-lgpl-connectors-doc,deliver-proprietary-connectors-doc"/>
+    <target name="doc" depends="deliver-site-doc"/>
     
-    <target name="deliver-code" depends="deliver-framework,deliver-open-connectors,deliver-output-connectors,deliver-lgpl-connectors,deliver-proprietary-connectors,deliver-example"/>
-    <target name="deliver-doc" depends="deliver-framework-doc,deliver-open-connectors-doc,deliver-output-connectors-doc,deliver-lgpl-connectors-doc,deliver-proprietary-connectors-doc"/>
-    
-    <target name="create-zip" depends="deliver-code,deliver-doc,deliver-site-doc">
-	<zip destfile="manifoldcf-SNAPSHOT-0.1.zip" basedir="." update="false"/>
+    <target name="create-zip" depends="build,javadoc,doc">
+      <zip destfile="manifoldcf-SNAPSHOT-0.1.zip" basedir="." update="false">
+        <exclude name="connectors/*/lib"/>
+        <exclude name="**/build"/>
+        <exclude name="connectors/*/dist"/>
+        <exclude name="**/test-output"/>
+      </zip>
     </target>
     
-    <target name="create-tar" depends="deliver-code,deliver-doc,deliver-site-doc">
-	<tar destfile="manifoldcf-SNAPSHOT-0.1.tar.gz" basedir="." compression="gzip" longfile="gnu"/>
+    <target name="create-tar" depends="build,javadoc,doc">
+      <tar destfile="manifoldcf-SNAPSHOT-0.1.tar.gz" basedir="." compression="gzip" longfile="gnu">
+        <exclude name="connectors/*/lib"/>
+        <exclude name="**/build"/>
+        <exclude name="connectors/*/dist"/>
+        <exclude name="**/test-output"/>
+      </tar>
     </target>
 
-    <target name="create-archive" depends="create-zip,create-tar"/>
+    <target name="image" depends="create-zip,create-tar"/>
+    <target name="test" depends="run-tests-framework,run-tests-open-connectors,run-tests-lgpl-connectors,run-tests-proprietary-connectors,end-to-end-tests"/>
 
-    <target name="run-tests" depends="run-tests-framework,run-tests-open-connectors,run-tests-lgpl-connectors,run-tests-proprietary-connectors,end-to-end-tests"/>
+    <target name="all" depends="build,javadoc,doc,image,test"/>
 
-    <target name="all" depends="deliver-code,deliver-doc,run-tests"/>
+    <target name="help">
+      <echo level="info">
+ManifoldCF build file.  Use this file to build ManifoldCF, generate
+javadocs, generate site docs, run tests, or build distributables.
+
+Valid targets are:
+
+clean   - Clean the build area
+build   - Build executable code, jars, processes, and example,
+          under the 'dist' directory
+javadoc - Create the javadocs, under the 'dist/doc' directory
+test    - Compile and run tests for all connectors and framework
+doc     - Build html site, under the 'dist/doc' directory
+          (requires Apache Forrest)
+image   - Build release image, under the '.' directory (requires
+          Apache Forrest)
+all     - Do it all (requires Apache Forrest)
+      </echo>
+    </target>
     
 </project>
