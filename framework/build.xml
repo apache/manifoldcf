@@ -7,8 +7,8 @@
     </target>
     
     <target name="doc">
-        <mkdir dir="dist/doc/framework"/>
-        <javadoc destdir="dist/doc/framework" maxmemory="256M" source="1.4" useexternalfile="true">
+        <mkdir dir="dist/doc"/>
+        <javadoc destdir="dist/doc" maxmemory="256M" source="1.4" useexternalfile="true">
             <classpath>
                 <fileset dir="lib"> 
                     <include name="*.jar"/> 
