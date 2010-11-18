@@ -63,6 +63,7 @@
 	<p>Writing connectors for ManifoldCF is a great way to learn about the project and contribute something useful!  Read about how to do that by navigating to the links provided below.
 	</p> 
 	<ul>
+              <li><a href="javadoc.html">ManifoldCF Javadoc</a></li>
 	    <li><a href="writing-output-connectors.html">How to write an output connector</a></li>
 	    <li><a href="writing-authority-connectors.html">How to write an authority connector</a></li>
 	    <li><a href="writing-repository-connectors.html">How to write a repository connector</a></li>
