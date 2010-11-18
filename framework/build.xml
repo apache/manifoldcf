@@ -426,7 +426,7 @@
         <jar destfile="build/jar/mcf-tests.jar" basedir="build/tests/classes"/>
     </target>
 
-    <target name="tests" depends="jar-tests">
+    <target name="build-tests" depends="jar-tests">
         <mkdir dir="dist/tests/jar"/>
         <copy todir="dist/tests/jar">
             <fileset dir="build/jar">
@@ -456,6 +456,8 @@
         </junit>
     </target>
     
-    <target name="all" depends="processes,war-authority-service,war-crawler-ui,war-api-service,example,doc,tests,run-tests"/>
+    <target name="build" depends="processes,war-authority-service,war-crawler-ui,war-api-service,example"/>
+    
+    <target name="all" depends="build,doc,build-tests,run-tests"/>
     
 </project>

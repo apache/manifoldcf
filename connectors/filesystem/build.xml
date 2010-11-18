@@ -62,6 +62,8 @@
         </junit>
     </target>
 
-    <target name="all" depends="lib,doc,run-tests"/>
+    <target name="build" depends="lib"/>
+    <target name="build-tests" depends="compile-tests"/>
+    <target name="all" depends="build,doc,build-tests,run-tests"/>
     
 </project>

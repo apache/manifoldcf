@@ -50,6 +50,9 @@
         </copy>
     </target>
 
-    <target name="all" depends="lib,doc"/>
+    <target name="build" depends="lib"/>
+    <target name="build-tests"/>
+    <target name="run-tests"/>
+    <target name="all" depends="build,doc,build-tests,run-tests"/>
     
 </project>
