@@ -23,9 +23,9 @@
         <p></p>
         <ol>
           <li>Check out https://svn.apache.org/repos/asf/incubator/lcf/trunk.</li>
-          <li>cd to "modules".</li>
           <li>Install desired dependent LGPL and proprietary libraries, wsdls, and xsds.  See below for details.</li>
-          <li>Run ant.</li>
+          <li>cd to "trunk".</li>
+          <li>Run "ant build".</li>
         </ol>
         <p></p>
         <p>If you supply <strong>no</strong> LGPL or proprietary libraries, the framework itself and only the following repository connectors will be built:</p>
@@ -49,11 +49,11 @@
         <p></p>
         <p>The LGPL and proprietary connector dependencies are described in separate sections below.</p>
         <p></p>
-        <p>The output of the ant build is produced in the <em>modules/dist</em> directory, which is further broken down by process.  The number of produced process directories may vary, because optional individual connectors do sometimes supply processes that must be run to support the connector.  See the table below for a description of the <em>modules/dist</em> folder.</p>
+        <p>The output of the ant build is produced in the <em>dist</em> directory, which is further broken down by process.  The number of produced process directories may vary, because optional individual connectors do sometimes supply processes that must be run to support the connector.  See the table below for a description of the <em>dist</em> folder.</p>
         <p></p>
         <table>
           <caption>Distribution directories</caption>
-          <tr><th><em>modules/dist</em> directory</th><th>Meaning</th></tr>
+          <tr><th><em>dist</em> directory</th><th>Meaning</th></tr>
           <tr><td><em>web</em></td><td>Web applications that should be deployed on tomcat or the equivalent, plus recommended application server -D switch names and values</td></tr>
           <tr><td><em>processes</em></td><td>classpath jars that should be included in the class path for all non-connector-specific processes, along with -D switches, using the same convention as described for tomcat, above</td></tr>
           <tr><td><em>lib</em></td><td>jars for all the connector plugins, which should be referenced by the appropriate clause in the ManifoldCF configuration file</td></tr>
@@ -71,42 +71,42 @@
         <section>
           <title>Building the Documentum connector</title>
           <p></p>
-          <p>The Documentum connector requires EMC's DFC product in order to be built.  Install DFC on the build system, and locate the jars it installs.  You will need to copy at least dfc.jar, dfcbase.jar, and dctm.jar into the directory "modules/connectors/documentum/dfc".</p>
+          <p>The Documentum connector requires EMC's DFC product in order to be built.  Install DFC on the build system, and locate the jars it installs.  You will need to copy at least dfc.jar, dfcbase.jar, and dctm.jar into the directory "connectors/documentum/dfc".</p>
           <p></p>
         </section>
         
         <section>
           <title>Building the FileNet connector</title>
           <p></p>
-          <p>The FileNet connector requires IBM's FileNet P8 API jar in order to be build.  Install the FileNet P8 API on the build system, and copy at least "Jace.jar" from that installation into "modules/connectors/filenet/filenet-api".</p>
+          <p>The FileNet connector requires IBM's FileNet P8 API jar in order to be build.  Install the FileNet P8 API on the build system, and copy at least "Jace.jar" from that installation into "connectors/filenet/filenet-api".</p>
           <p></p>
         </section>
         
         <section>
           <title>Building the JDBC connector, including Oracle, SQLServer, or Sybase JDBC drivers</title>
           <p></p>
-          <p>The JDBC connector also knows how to work with Oracle, SQLServer, and Sybase JDBC drivers.  For Oracle, download the appropriate Oracle JDBC jar from the Oracle site, and copy it into the directory "modules/connectors/jdbc/jdbc-drivers".  For SQLServer and Sybase, download jtds.jar, and copy it into the same directory.</p>
+          <p>The JDBC connector also knows how to work with Oracle, SQLServer, and Sybase JDBC drivers.  For Oracle, download the appropriate Oracle JDBC jar from the Oracle site, and copy it into the directory "connectors/jdbc/jdbc-drivers".  For SQLServer and Sybase, download jtds.jar, and copy it into the same directory.</p>
           <p></p>
         </section>
         
         <section>
           <title>Building the jCIFS connector</title>
           <p></p>
-          <p>To build this connector, you need to download jcifs.jar from <a href="http://samba.jcifs.org">http://samba.jcifs.org</a>, and copy it into the "modules/connectors/jcifs/jcifs" directory.</p>
+          <p>To build this connector, you need to download jcifs.jar from <a href="http://samba.jcifs.org">http://samba.jcifs.org</a>, and copy it into the "connectors/jcifs/jcifs" directory.</p>
           <p></p>
         </section>
         
         <section>
           <title>Building the LiveLink connector</title>
           <p></p>
-          <p>This connector needs LAPI, which is a proprietary java library that allows access to OpenText's LiveLink server.  Copy the lapi.jar into the "modules/connectors/livelink/lapi" directory.</p>
+          <p>This connector needs LAPI, which is a proprietary java library that allows access to OpenText's LiveLink server.  Copy the lapi.jar into the "connectors/livelink/lapi" directory.</p>
           <p></p>
         </section>
         
         <section>
           <title>Building the Memex connector</title>
           <p></p>
-          <p>This connector needs the Memex API jar, usually called JavaMXIELIB.jar.  Copy this jar into the "modules/connectors/memex/mxie-java" directory.</p>
+          <p>This connector needs the Memex API jar, usually called JavaMXIELIB.jar.  Copy this jar into the "connectors/memex/mxie-java" directory.</p>
           <p></p>
         </section>
         
@@ -130,7 +130,7 @@
              <li>RMClassificationDataSet.xsd</li>
           </ul>
           <p></p>
-          <p>Next, patch these using Microsoft's <strong>xmldiffpatch</strong> utility suite, downloadable for Windows from <a href="http://msdn.microsoft.com/en-us/library/aa302294.aspx">http://msdn.microsoft.com/en-us/library/aa302294.aspx</a>.  The appropriate diff files to apply as patches can be found in "modules/connectors/meridio/upstream-diffs".  After the patching, rename so that you have the files:</p>
+          <p>Next, patch these using Microsoft's <strong>xmldiffpatch</strong> utility suite, downloadable for Windows from <a href="http://msdn.microsoft.com/en-us/library/aa302294.aspx">http://msdn.microsoft.com/en-us/library/aa302294.aspx</a>.  The appropriate diff files to apply as patches can be found in "connectors/meridio/upstream-diffs".  After the patching, rename so that you have the files:</p>
           <p></p>
           <ul>
              <li>MeridioDMWS_axis.wsdl</li>
@@ -140,7 +140,7 @@
              <li>RMClassificationDataSet_castor.xsd</li>
           </ul>
           <p></p>
-          <p>Finally, copy all of these to: "modules/connectors/meridio/wsdls".</p>
+          <p>Finally, copy all of these to: "connectors/meridio/wsdls".</p>
           <p></p>
         </section>
         
@@ -169,7 +169,7 @@
              <li>http[s]://&#60;server_name&#62;/_vti_bin/webs.asmx</li>
           </ul>
           <p></p>
-          <p>When the wsdl files have been downloaded, copy them to: "modules/connectors/sharepoint/wsdls".</p>
+          <p>When the wsdl files have been downloaded, copy them to: "connectors/sharepoint/wsdls".</p>
           <p></p>
           <p>Note well: For SharePoint instances version 3.0 or higher, in order to support file and folder level security, you also must deploy a custom SharePoint web service on the SharePoint instance you intend to connect to.  This is because Microsoft apparently overlooked support for web-service-based access to such security information when SharePoint 3.0 was released.</p>
           <p></p>
@@ -189,7 +189,7 @@ cd webservice/Package
         <section>
           <title>Building ManifoldCF's Apache2 plugin</title>
           <p></p>
-          <p>To build the mod-authz-annotate plugin, you need to start with a Unix system that has the apache2 development tools installed on it, plus the curl development package (from <a href="http://curl.haxx.se">http://curl.haxx.se</a> or elsewhere).  Then, cd to modules/mod-authz-annotate, and type "make".  The build will produce a file called mod-authz-annotate.so, which should be copied to the appropriate Apache2 directory so it can be used as a plugin.</p>
+          <p>To build the mod-authz-annotate plugin, you need to start with a Unix system that has the apache2 development tools installed on it, plus the curl development package (from <a href="http://curl.haxx.se">http://curl.haxx.se</a> or elsewhere).  Then, cd to mod-authz-annotate, and type "make".  The build will produce a file called mod-authz-annotate.so, which should be copied to the appropriate Apache2 directory so it can be used as a plugin.</p>
           <p></p>
           <p></p>
         </section>
@@ -275,7 +275,7 @@ cd dist/example
            <li>A recommended set of java "define" variables, which should be used consistently with all involved processes, e.g. the <strong>agents</strong> process, the application server running the <strong>authority-service</strong> and <strong>crawler-ui</strong>, and any commands.  (This is historical, and no connectors as of this writing have any of these any longer).</li>
         </ul>
         <p></p>
-        <p>An individual connector package will typically supply an output connector, or a repository connector, or both a repository connector and an authority connector.  The ant build script under <em>modules</em> automatically forms each individual connector's contribution to the overall system into the overall package.</p>
+        <p>An individual connector package will typically supply an output connector, or a repository connector, or both a repository connector and an authority connector.  The ant build script under <em>trunk</em> automatically forms each individual connector's contribution to the overall system into the overall package.</p>
         <p></p>
         <p>The basic steps required to set up and run ManifoldCF are as follows:</p>
         <p></p>
@@ -283,7 +283,7 @@ cd dist/example
           <li>Check out and build, using "ant".  The default target builds everything.</li>
           <li>Install postgresql.  The postgresql JDBC driver included with ManifoldCF is known to work with version 8.3.x, so that version is the currently recommended one.  Configure postgresql for your environment; the default configuration is acceptable for testing and experimentation.</li>
           <li>Install a Java application server, such as Tomcat.</li>
-          <li>Create a home directory for ManifoldCF.  To do this, make a copy of the contents of <em>modules/dist</em> from the build.  In this directory, create properties.ini and logging.ini, as described above.  Note that you will also need to create a synchronization directory, also detailed above, and refer to this directory within your properties.xml.</li>
+          <li>Create a home directory for ManifoldCF.  To do this, make a copy of the contents of <em>dist</em> from the build.  In this directory, create properties.ini and logging.ini, as described above.  Note that you will also need to create a synchronization directory, also detailed above, and refer to this directory within your properties.xml.</li>
           <li>Deploy the war files in <em>&#60;MCF_HOME&#62;/web/war</em> to your application server.</li>
           <li>Set the starting environment variables for your app server to include the -D commands found in <em>&#60;MCF_HOME&#62;/web/define</em>.  The -D commands should be of the form, "-D&#60;file name&#62;=&#60;file contents&#62;".</li>
           <li>Use the <em>&#60;MCF_HOME&#62;/processes/script/executecommand.bat</em> command from execute the appropriate commands from the next section below, being sure to first set the JAVA_HOME and MCF_HOME environment variables properly.</li>
@@ -538,9 +538,9 @@ log4j.appender.MAIN.layout.ConversionPattern=[%d]%-5p %m%n
         <section>
           <title>Deploying the <strong>mcf-crawler-ui</strong>, <strong>mcf-authority-service</strong>, and <strong>mcf-api-service</strong> web applications</title>
           <p></p>
-          <p>If you built ManifoldCF using ant under the <em>modules</em> directory, then the ant build will have constructed three war files for you under <em>modules/dist/web</em>.  Take these war files and deploy them as web applications under one or more instances of your application server.  There is no requirement that the <strong>mcf-crawler-ui</strong>, <strong>mcf-authority-service</strong>, and <strong>mcf-api-service</strong> web applications be deployed on the same instance of the application server.  With the current architecture of ManifoldCF, they must be deployed on the same physical server, however.</p>
+          <p>If you built ManifoldCF using ant under the <em>trunk</em> directory, then the ant build will have constructed three war files for you under <em>dist/web</em>.  Take these war files and deploy them as web applications under one or more instances of your application server.  There is no requirement that the <strong>mcf-crawler-ui</strong>, <strong>mcf-authority-service</strong>, and <strong>mcf-api-service</strong> web applications be deployed on the same instance of the application server.  With the current architecture of ManifoldCF, they must be deployed on the same physical server, however.</p>
           <p></p>
-          <p>Under <em>modules/dist/web</em>, you may also see files that are not war files.  These files are meant to be used as command-line -D switches for the application server process.  The switches may or may not be identical for the two web applications, but they will never conflict.  You may need to alter environment variables or your application server startup scripts in order to provide these switches.  (More about this in the future...)</p>
+          <p>Under <em>dist/web</em>, you may also see files that are not war files.  These files are meant to be used as command-line -D switches for the application server process.  The switches may or may not be identical for the two web applications, but they will never conflict.  You may need to alter environment variables or your application server startup scripts in order to provide these switches.  (More about this in the future...)</p>
           <p></p>
         </section>
         <section>
@@ -552,7 +552,7 @@ log4j.appender.MAIN.layout.ConversionPattern=[%d]%-5p %m%n
         <section>
           <title>Running connector-specific processes</title>
           <p></p>
-          <p>Connector-specific processes require the classpath for their invocation to include all the jars that are in the corresponding <em>modules/dist/&#60;process_name&#62;-process</em> directory.  The Documentum and FileNet connectors are the only two connectors that currently require additional processes.  Start these processes using the commands listed below, and stop them with SIGTERM.</p>
+          <p>Connector-specific processes require the classpath for their invocation to include all the jars that are in the corresponding <em>dist/&#60;process_name&#62;-process</em> directory.  The Documentum and FileNet connectors are the only two connectors that currently require additional processes.  Start these processes using the commands listed below, and stop them with SIGTERM.</p>
           <p></p>
           <table>
             <tr><th>Connector</th><th>Process</th><th>Start class</th></tr>
