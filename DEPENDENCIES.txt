@@ -1,14 +1,14 @@
-Apache Connector Framework requires
------------------------------------
+ManifoldCF requires
+------------------
 * JRE 1.5 or above
 * All other libraries checked in under modules/lib
 
-For building ACF:
------------------
-* Read the wiki page at http://cwiki.apache.org/confluence/display/CONNECTORS/How+to+Build+and+Deploy+Lucene+Connectors+Framework
+For building ManifoldCF:
+----------------------
+* Read the documentation at http://incubator.apache.org/connectors/how-to-build-and-deploy.html
 
-For testing ACF:
-----------------
+For testing ManifoldCF:
+----------------------
 * Unit tests included in build
 
 

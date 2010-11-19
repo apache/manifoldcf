@@ -1,12 +1,12 @@
-Apache Connectors Framework
-=======================
+ManifoldCF
+=======
 
-Welcome to the Apache Connectors Framework top-level Apache project.
+Welcome to the ManifoldCF top-level Apache project, under incubation.
 
 Licensing
 ---------
 
-Apache Connectors Framework is licensed under the
+ManifoldCF is licensed under the
 Apache License 2.0. See the files called LICENSE.txt and NOTICE.txt
 for more information.
 
@@ -35,17 +35,17 @@ code and source code.
 The following provides more details on the included software that
 may be subject to export controls on cryptographic software:
 
-  Apache Connectors Framework interfaces with the
+  ManifoldCF interfaces with the
   Java Secure Socket Extension (JSSE) API to provide
 
     - HTTPS support
 
-  Apache Connectors Framework interfaces with the
+  ManifoldCF interfaces with the
   Java Cryptography Extension (JCE) API to provide
 
     - NTLM authentication
 
-  Apache Connectors Framework does not include any
+  ManifoldCF does not include any
   implementation of JSSE or JCE.
 
 Contact

@@ -3,6 +3,10 @@ $Id$
 
 ======================= Trunk (not yet released) =======================
 
+Removed modules level of tree, and revamped build.xml in anticipation of
+a release.
+(Karl Wright)
+
 CONNECTORS-125: Set the default max handles property to be consistent with
 a default PostgreSQL installation.
 (Farzad, Karl Wright)
