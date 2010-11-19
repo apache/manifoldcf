@@ -1,8 +1,8 @@
 <project default="help">
 
     <target name="clean">
-        <delete file="manifoldcf-*.zip"/>
-        <delete file="manifoldcf-*.tar.gz"/>
+        <delete file="manifoldcf-SNAPSHOT.zip"/>
+        <delete file="manifoldcf-SNAPSHOT.tar.gz"/>
         <delete dir="build"/>
         <delete dir="dist"/>
         <delete dir="test-output"/>
