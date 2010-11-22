@@ -58,7 +58,7 @@
           <tr><td><em>processes</em></td><td>classpath jars that should be included in the class path for all non-connector-specific processes, along with -D switches, using the same convention as described for tomcat, above</td></tr>
           <tr><td><em>lib</em></td><td>jars for all the connector plugins, which should be referenced by the appropriate clause in the ManifoldCF configuration file</td></tr>
           <tr><td><em>wsdd</em></td><td>wsdd files that are needed by the included connectors in order to function</td></tr>
-          <tr><td><em>xxx-process</em></td><td>classpath jars and -D switches needed for a required connector-specific process</td></tr>
+          <tr><td><em>xxx-process</em></td><td>scripts, classpath jars, and -D switch values needed for a required connector-specific process</td></tr>
           <tr><td><em>example</em></td><td>a jetty-based example that runs in a single process (except for any connector-specific processes)</td></tr>
           <tr><td><em>doc</em></td><td>javadocs for framework and all included connectors</td></tr>
         </table>
@@ -212,11 +212,11 @@ cd dist/example
         <p></p>
         <p>In this jetty setup, all database initialization and connector registration takes place automatically (at the cost of some startup delay).  The crawler UI can be found at http://&#62;host&#60;:8345/mcf-crawler-ui.  The authority service can be found at http://&#62;host&#60;:8345/mcf-authority-service.  The programmatic API is at http://&#62;host&#60;:8345/mcf-api.</p>
         <p></p>
-        <p>You can stop ManifoldCF at any time using ^C.</p>
+        <p>You can stop the quick-start ManifoldCF at any time using ^C.</p>
         <p></p>
         <p>Bear in mind that Derby is not as full-featured a database as is Postgresql.  This means that any performance testing you may do against the quick start example may not be applicable to a full installation.  Furthermore, Derby only permits one process at a time to be connected to its databases, so you <strong>cannot</strong> use any of the ManifoldCF commands (as described below) while the quick-start ManifoldCF is running.</p>
         <p></p>
-        <p>Another caveat that you will need to be aware of with the quick-start version of ManifoldCF is that it in no way removes the need for you to run any separate processes that individual connectors require.  Specifically, the Documentum and FileNet connectors require processes to be independently started in order to function.  You will need to read about these connector-specific processes below in order to use the corresponding connectors.</p>
+        <p>Another caveat that you will need to be aware of with the quick-start version of ManifoldCF is that it in no way removes the need for you to run any separate processes that individual connectors require.  Specifically, the Documentum and FileNet connectors require processes to be independently started in order to function.  You will need to read about these connector-specific processes below in order to use the corresponding connectors.  However, the Quick Start build does place the necessary jars, script, and defines in a set of <em>xxx-process</em> directories right underneath the <em>dist/example</em> directory.</p>
         <p></p>
         <section>
           <title>The quick-start connectors.xml configuration file</title>
@@ -552,15 +552,17 @@ log4j.appender.MAIN.layout.ConversionPattern=[%d]%-5p %m%n
         <section>
           <title>Running connector-specific processes</title>
           <p></p>
-          <p>Connector-specific processes require the classpath for their invocation to include all the jars that are in the corresponding <em>dist/&#60;process_name&#62;-process</em> directory.  The Documentum and FileNet connectors are the only two connectors that currently require additional processes.  Start these processes using the commands listed below, and stop them with SIGTERM.</p>
+        <p>Connector-specific processes require the classpath for their invocation to include all the jars that are in the corresponding <em>dist/&#60;process_name&#62;-process</em> directory.  The Documentum and FileNet connectors are the only two connectors that currently require additional processes.  Start these processes using the commands listed below, and stop them with SIGTERM (or ^C, if they are running in a shell).</p>
           <p></p>
           <table>
-            <tr><th>Connector</th><th>Process</th><th>Start class</th></tr>
-            <tr><td>Documentum</td><td>documentum-server-process</td><td>org.apache.manifoldcf.crawler.server.DCTM.DCTM</td></tr>
-            <tr><td>Documentum</td><td>documentum-registry-process</td><td>org.apache.manifoldcf.crawler.registry.DCTM.DCTM</td></tr>
-            <tr><td>FileNet</td><td>filenet-server-process</td><td>org.apache.manifoldcf.crawler.server.filenet.Filenet</td></tr>
-            <tr><td>FileNet</td><td>filenet-registry-process</td><td>org.apache.manifoldcf.crawler.registry.filenet.Filenet</td></tr>
+            <tr><th>Connector</th><th>Process</th><th>Main class</th><th>Script name (relative to MCF_HOME)</th></tr>
+            <tr><td>Documentum</td><td>documentum-server-process</td><td>org.apache.manifoldcf.crawler.server.DCTM.DCTM</td><td>documentum-server-process/script/run[.sh|.bat]</td></tr>
+            <tr><td>Documentum</td><td>documentum-registry-process</td><td>org.apache.manifoldcf.crawler.registry.DCTM.DCTM</td><td>documentum-registry-process/script/run[.sh|.bat]</td></tr>
+            <tr><td>FileNet</td><td>filenet-server-process</td><td>org.apache.manifoldcf.crawler.server.filenet.Filenet</td><td>filenet-server-process/script/run[.sh|.bat]</td></tr>
+            <tr><td>FileNet</td><td>filenet-registry-process</td><td>org.apache.manifoldcf.crawler.registry.filenet.Filenet</td><td>filenet-registry-process/script/run[.sh|.bat]</td></tr>
           </table>
+          <p>The registry process in all cases must be started before the corresponding server process, or the server process will report an error.  (It will, however, retry after some period of time.)  The scripts all require an MCF_HOME environment variable pointing to the place where properties.xml is found, as well as a JAVA_HOME environment variable pointing the JDK.  The server scripts also require other environment variables as well, consistent with the needs of the DFC or the FileNet API respectively.  For example, DFC requires the DOCUMENTUM environment variable to be set, while the FileNet server script requires the WASP_HOME environment variable.</p>
+          <p>It is important to understand that the scripts work by building a classpath out of all jars that get copied into the <em>jar</em> directory underneath each process during the ant build.  These jars come in part from the <em>dfc></em> or <em>filenet-api</em> directories underneath the documentum or filenet connector directories.  For the server startup scripts to work properly, therefore, these directories should have <strong>all</strong> of the jars needed to allow the api code to function, and the ant build scripts will take care of the rest.</p>
           <p></p>
         </section>
       </section>
