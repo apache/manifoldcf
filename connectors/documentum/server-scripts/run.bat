@@ -11,9 +11,9 @@ set CLASSPATH=.
 for %%f in (jar/*) do call script\setclasspath.bat %%f
 rem restore old path here
 cd "%OLDDIR%"
-set LIB_STATEMENT=""
+set LIB_STATEMENT=
 if defined JAVA_LIB_PATH set LIB_STATEMENT="-Djava.library.path=%JAVA_LIB_PATH%"
-"%JAVA_HOME%\bin\java" -Xmx512m -Xms32m "%LIB_STATEMENT%" -classpath "%CLASSPATH%" org.apache.manifoldcf.crawler.server.DCTM.DCTM
+"%JAVA_HOME%\bin\java" -Xmx512m -Xms32m %LIB_STATEMENT% -classpath "%CLASSPATH%" org.apache.manifoldcf.crawler.server.DCTM.DCTM
 goto done
 :nojavahome
 echo Environment variable JAVA_HOME is not set properly.
