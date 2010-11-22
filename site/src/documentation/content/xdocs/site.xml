@@ -26,7 +26,12 @@
     <thanks      label="Sponsors of Apache" href="ext:thanks" />    
   </project>
   <docs label="Documentation">
+    <dev label="Concepts" href="concepts.html"/>
+    <dev lable="Compatibility Matrix" href="included-connectors.html"/>
     <dev label="Frequently Asked Questions" href="faq.html"/>
+    <dev label="API Documentation" href="programmatic-operation.html"/>
+    <dev label="Javadoc" href="javadoc.html"/>
+    <dev label="Building and Deploying" href="how-to-build-and-deploy.html"/>
     <dev label="Developer/Integrator Resources" href="developer-resources.html"/>
     <dev label="End-user Documentation" href="end-user-documentation.html"/>
   </docs>
