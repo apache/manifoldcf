@@ -25,24 +25,30 @@
     <sponsor     label="Sponsor Apache"     href="ext:sponsor" />    
     <thanks      label="Sponsors of Apache" href="ext:thanks" />    
   </project>
+  
   <docs label="Documentation">
     <dev label="Concepts" href="concepts.html"/>
-    <dev lable="Compatibility Matrix" href="included-connectors.html"/>
+    <dev label="Compatibility Matrix" href="included-connectors.html"/>
     <dev label="Frequently Asked Questions" href="faq.html"/>
     <dev label="API Documentation" href="programmatic-operation.html"/>
     <dev label="Javadoc" href="javadoc.html"/>
     <dev label="Building and Deploying" href="how-to-build-and-deploy.html"/>
-    <dev label="Developer/Integrator Resources" href="developer-resources.html"/>
     <dev label="End-user Documentation" href="end-user-documentation.html"/>
   </docs>
+  
+  <resources label="Resources">
+    <download label="Download" href="ext:releases" />
+    <dev label="Developer/Integrator Resources" href="developer-resources.html"/>
+  </resources>
+
   <rel label="Related-Projects">    
-	<droids      label="Droids"           href="ext:droids" />
+    <droids      label="Droids"           href="ext:droids" />
     <java        label="Java"             href="ext:java" />
     <lucene.net  label="Lucene.Net"       href="ext:lucene.net" />    
-	<lucy        label="Lucy"             href="ext:lucy" />
+    <lucy        label="Lucy"             href="ext:lucy" />
     <mahout      label="Mahout"           href="ext:mahout" />
-	<nutch       label="Nutch"            href="ext:nutch" />    
-	<orp       	 label="Open Relevance"            href="ext:orp" />
+    <nutch       label="Nutch"            href="ext:nutch" />    
+    <orp       	 label="Open Relevance"            href="ext:orp" />
     <pylucene    label="PyLucene"         href="ext:pylucene"/>
     <solr        label="Solr"             href="ext:solr" />
     <tika        label="Tika"             href="ext:tika" />
@@ -62,6 +68,7 @@
     <store     href="http://www.cafepress.com/lucene/" />
     <sponsor   href="http://www.apache.org/foundation/sponsorship.html" />
     <thanks    href="http://www.apache.org/foundation/thanks.html" />
+    <releases  href="http://www.apache.org/dyn/closer.cgi/manifoldcf/" />
   </external-refs>
  
 </site>
