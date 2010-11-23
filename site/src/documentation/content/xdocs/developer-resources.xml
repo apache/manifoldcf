@@ -45,6 +45,11 @@
 	</ul>
     </section>
 
+    <section id="performancetuning">
+      <title>Performance tuning</title>
+      <p>Getting the best performance out of ManifoldCF requires some tinkering.  Learn how to do that <a href="performance-tuning.html">here</a>.</p>
+    </section>
+    
     <section id="debugging">
 	<title>Debugging Connections</title>
 	<p>Sooner or later, you will encounter a repository that should be supported, but doesn't seem to want to connect properly to ManifoldCF.  When that happens, you will need all the help you

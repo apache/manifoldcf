@@ -3,6 +3,9 @@ $Id$
 
 ======================= Trunk (not yet released) =======================
 
+CONNECTORS-126: Added a performance tuning page to the site.
+(Farzad, Karl Wright)
+
 Removed modules level of tree, and revamped build.xml in anticipation of
 a release.
 (Karl Wright)
