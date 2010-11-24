@@ -1952,19 +1952,19 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "                <td class=\"description\">\n"+
 "                  <input type=\"hidden\" name=\""+opName+"\" value=\"\"/>\n"+
 "                  <a name=\""+labelName+"\">\n"+
-"                    <input type=\"button\" value=\"Delete\" alt=\""+"Delete "+documentClass+" match # "+Integer.toString(q)+"\" onClick='Javascript:SpecOp(\""+opName+"\",\"Delete\",\""+labelName+"\")'/>\n"+
+"                    <input type=\"button\" value=\"Delete\" alt=\"Delete "+documentClass+" match # "+Integer.toString(q)+"\" onClick='Javascript:SpecOp(\""+opName+"\",\"Delete\",\""+labelName+"\")'/>\n"+
 "                  </a>\n"+
 "                </td>\n"+
 "                <td class=\"value\">\n"+
-"                  <input type=\"hidden\" name=\""+"matchfield_" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass) + "_" + Integer.toString(q)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchField)+"\"/>\n"+
+"                  <input type=\"hidden\" name=\"matchfield_" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass) + "_" + Integer.toString(q)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchField)+"\"/>\n"+
 "                  <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(matchField)+"</nobr>\n"+
 "                </td>\n"+
 "                <td class=\"value\">\n"+
-"                  <input type=\"hidden\" name=\""+"matchtype_" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass) + "_" + Integer.toString(q)+"\" value=\""+matchType+"\"/>\n"+
+"                  <input type=\"hidden\" name=\"matchtype_" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass) + "_" + Integer.toString(q)+"\" value=\""+matchType+"\"/>\n"+
 "                  <nobr>"+matchType+"</nobr>\n"+
 "                </td>\n"+
 "                <td class=\"value\">\n"+
-"                  <input type=\"hidden\" name=\""+"matchvalue_" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass) + "_" + Integer.toString(q)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchValue)+"\"/>\n"+
+"                  <input type=\"hidden\" name=\"matchvalue_" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass) + "_" + Integer.toString(q)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchValue)+"\"/>\n"+
 "                  <nobr>\""+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(matchValue)+"\"</nobr>\n"+
 "                </td>\n"+
 "              </tr>\n"
@@ -1986,11 +1986,11 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "                  <input type=\"hidden\" name=\""+"matchcount_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" value=\""+Integer.toString(matchCount)+"\"/>\n"+
 "                  <input type=\"hidden\" name=\""+addOpName+"\" value=\"\"/>\n"+
 "                  <a name=\""+addLabelName+"\">\n"+
-"                    <input type=\"button\" value=\"Add\" alt=\""+"Add match for "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" onClick='Javascript:SpecAddMatch(\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\",\"match_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q+1)+"\")'/>\n"+
+"                    <input type=\"button\" value=\"Add\" alt=\"Add match for "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" onClick='Javascript:SpecAddMatch(\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\",\"match_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q+1)+"\")'/>\n"+
 "                  </a>\n"+
 "                </td>\n"+
 "                <td class=\"value\">\n"+
-"                  <select name=\""+"matchfield_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" size=\"5\">\n"
+"                  <select name=\"matchfield_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" size=\"5\">\n"
           );
           q = 0;
           while (q < fieldArray.length)
@@ -2005,16 +2005,17 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "                  </select>\n"+
 "                </td>\n"+
 "                <td class=\"value\">\n"+
-"                  <select name=\""+"matchtype_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\">\n"+
+"                  <select name=\"matchtype_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\">\n"+
 "                    <option value=\"=\">Equals</option>\n"+
-"                    <option value="!=">Not equals</option>\n"+
+"                    <option value=\"!=\">Not equals</option>\n"+
 "                    <option value=\"LIKE\">'Like' (with % wildcards)</option>\n"+
 "                  </select>\n"+
 "                </td>\n"+
 "                <td class=\"value\">\n"+
-"                  <input name=\""+"matchvalue_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" type=\"text\" size=\"32\" value=\"\"/>\n"+
+"                  <input name=\"matchvalue_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" type=\"text\" size=\"32\" value=\"\"/>\n"+
 "                </td>\n"+
 "              </tr>\n"+
+          
 "            </table>\n"+
 "          </td>\n"+
 "        </tr>\n"+
@@ -2023,7 +2024,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "            <nobr>Ingest all metadata fields?</nobr>\n"+
 "          </td>\n"+
 "          <td class=\"value\">\n"+
-"            <nobr><input type=\"checkbox\" name=\""+"allmetadata_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" value=\"true\" "+((spec != null && spec.getAllMetadata())?"checked=\"\"":"")+"></input></nobr><br/>\n"+
+"            <nobr><input type=\"checkbox\" name=\"allmetadata_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" value=\"true\" "+((spec != null && spec.getAllMetadata())?"checked=\"\"":"")+"></input></nobr><br/>\n"+
 "          </td>\n"+
 "        </tr>\n"+
 "        <tr>\n"+
