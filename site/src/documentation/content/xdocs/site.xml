@@ -20,7 +20,6 @@
   <project label="About">
     <news        label="Welcome"          href="index.html" />    
     <who         label="Who We Are"       href="who.html" />    
-    <mail        label="Mailing Lists"    href="mail.html" />    
     <store       label="Buy Stuff"        href="ext:store" />    
     <sponsor     label="Sponsor Apache"     href="ext:sponsor" />    
     <thanks      label="Sponsors of Apache" href="ext:thanks" />    
@@ -38,6 +37,7 @@
   
   <resources label="Resources">
     <download label="Download" href="ext:releases" />
+    <mail        label="Mailing Lists"    href="mail.html" />    
     <dev label="Developer/Integrator Resources" href="developer-resources.html"/>
   </resources>
 
