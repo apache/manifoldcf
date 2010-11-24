@@ -3,6 +3,13 @@ $Id$
 
 ======================= Trunk (not yet released) =======================
 
+CONNECTORS-122: FileNet and Documentum connector-specific process
+scripts needed.
+(Oleg Tikhonov, Karl Wright)
+
+CONNECTORS-127: Broken FileNet Document Classes tab.
+(Oleg Tikhonov, Karl Wright)
+
 CONNECTORS-126: Added a performance tuning page to the site.
 (Farzad, Karl Wright)
 

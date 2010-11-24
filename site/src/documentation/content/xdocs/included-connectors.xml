@@ -26,7 +26,7 @@
         <tr><td>Documentum (EMC)</td><td> Win, RedHat </td><td> Win, RedHat </td><td> Tested with DFC 5.3 SP5 </td><td> Tested against 5.3, 6.0, and 6.5 servers </td></tr>
         <tr><td>SharePoint (MSFT)</td><td>Pure Java </td><td>Win</td><td> N/A </td><td> Tested with SharePoint 2003 (2.0), 2007 (3.0) </td></tr>
         <tr><td>Meridio (Autonomy)</td><td> Pure Java </td><td> Win </td><td> N/A </td><td> Tested with Meridio 4.1, 5.0 </td></tr>
-        <tr><td>FileNet (IBM)</td><td> Pure Java </td><td> Win, RedHat </td><td> Tested with P8 V4.1 </td><td> Tested with P8 V4.1 </td></tr>
+        <tr><td>FileNet (IBM)</td><td>Pure Java</td><td>Win, RedHat</td><td>Tested with P8 V4.1, V4.5</td><td>Tested with P8 V4.1, V4.5</td></tr>
       </table>
     </section>
   </body>
