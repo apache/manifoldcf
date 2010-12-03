@@ -1404,6 +1404,8 @@ doc     - Build html site, under the 'dist/doc' directory
 image   - Build release image, under the '.' directory (requires
           Apache Forrest)
 all     - Do it all (requires Apache Forrest)
+
+All targets requiring Apache Forrest also require Sun JDK 1.5.
       </echo>
     </target>
     
