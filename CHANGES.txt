@@ -1,7 +1,8 @@
 ManifoldCF Change Log
 $Id$
 
-======================= Trunk (not yet released) =======================
+======================= Release 0.1 =======================
+Release Date:  See http://incubator.apache.org/connectors for the official release date.
 
 CONNECTORS-122: FileNet and Documentum connector-specific process
 scripts needed.
