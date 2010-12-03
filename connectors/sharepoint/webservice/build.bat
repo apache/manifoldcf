@@ -14,7 +14,7 @@ REM WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 REM See the License for the specific language governing permissions and
 REM limitations under the License.
 
-REM Command-line build script for MetaCarta SharePoint web service extension.
+REM Command-line build script for the ManifoldCF SharePoint web service extension.
 REM $Id$
 
 REM This build script handles only changes to the code itself; changing other things (like the form of the WSDL) requires more work.
