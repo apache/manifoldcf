@@ -18,7 +18,7 @@ MCPermissions SharePoint Web Service
 
 I.  SharePoint Web Services Model
 
-The MetaCarta SharePoint Connector only communicates with SharePoint
+The ManifoldCF SharePoint Connector only communicates with SharePoint
 through web services.  SharePoint has a well-developed web services API,
 along with a very convenient deployment model which allows additional,
 custom web services to be easily deployed, even across entire SharePoint
@@ -100,13 +100,15 @@ When SharePoint 3.0 was released, and new folder and item security levels were p
 one would have thought that Microsoft would have augmented the Permissions web
 service accordingly.  Unfortunately, however, they did not.  No other out-of-the-box
 web services which performed this necessary functionality were available either.  We did
-inquire (through Magenic, our SharePoint contractor) whether Microsoft would be willing to
+inquire (through Magenic, MetaCarta's SharePoint contractor) whether Microsoft would be willing to
 release an augmented Permissions service as a patch, but they declined to do so.
 
-As a result, we asked Magenic to provide a web service that did what we needed: give
-us access to item and folder level security information.  What they eventually provided
+As a result, MetaCarta Inc. asked Magenic to provide a web service that did what was needed: give
+access to item and folder level security information.  What they eventually provided
 was a web service that looks identical to the Permissions web service, except that it
 understands the types "folder" and "item" as well as the other types.  The MCPermissions
 web service also performs the necessary inheritance so that the SharePoint Connector
 could simply ask for the SIDs for an item, and it would get all the inherited SIDs, as appropriate.
 
+This web service was granted to the Apache Software Foundation by MetaCarta, Inc. as part of
+the entire ManifoldCF software grant.

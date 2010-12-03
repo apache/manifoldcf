@@ -21,13 +21,13 @@
 -->
 
 <web-app>
-  <display-name>Apache Connectors Framework Authorities API</display-name>
+  <display-name>ManifoldCF Authorities API</display-name>
 
-  <description>Apache Connectors Framework Authorities API</description>
+  <description>ManifoldCF Authorities API</description>
 
   <servlet>
 	<servlet-name>UserACLServlet</servlet-name>
-    	<servlet-class>org.apache.lcf.authorityservice.servlet.UserACLServlet</servlet-class>
+    	<servlet-class>org.apache.manifoldcf.authorityservice.servlet.UserACLServlet</servlet-class>
   </servlet>
 
   <servlet-mapping>
@@ -42,7 +42,7 @@
   <security-constraint>
     <web-resource-collection>
       <web-resource-name>
-        Authority Service
+        ManifoldCF Authority Service
       </web-resource-name>
       <url-pattern>*</url-pattern>
     </web-resource-collection>
@@ -54,13 +54,13 @@
   <!-- Define the Login Configuration for this Application -->
   <login-config>
     <auth-method>BASIC</auth-method>
-    <realm-name>Authority Service Servlet</realm-name>
+    <realm-name>ManifoldCF Authority Service Servlet</realm-name>
   </login-config>
 
   <security-role>
     <description>
             This role describes people who are allowed to use the
-            Connector Framework web UI.
+            ManifoldCF Authority Service.
     </description>
     <role-name>authorityuser</role-name>
   </security-role>
