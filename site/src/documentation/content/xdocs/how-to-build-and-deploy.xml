@@ -210,7 +210,7 @@ cd dist/example
 &#60;java&#62; -jar start.jar
         </source>
         <p></p>
-        <p>In this jetty setup, all database initialization and connector registration takes place automatically (at the cost of some startup delay).  The crawler UI can be found at http://&#62;host&#60;:8345/mcf-crawler-ui.  The authority service can be found at http://&#62;host&#60;:8345/mcf-authority-service.  The programmatic API is at http://&#62;host&#60;:8345/mcf-api.</p>
+        <p>In this jetty setup, all database initialization and connector registration takes place automatically (at the cost of some startup delay).  The crawler UI can be found at http://&#60;host&#62;:8345/mcf-crawler-ui.  The authority service can be found at http://&#60;host&#62;:8345/mcf-authority-service.  The programmatic API is at http://&#60;host&#62;:8345/mcf-api.</p>
         <p></p>
         <p>You can stop the quick-start ManifoldCF at any time using ^C.</p>
         <p></p>
@@ -309,7 +309,7 @@ cd dist/example
              <li>Postgresql has a high degree of parallelism and lack of internal single-threadedness.</li>
           </ul>
           <p></p>
-          <p>ManifoldCF has been tested against Postgresql 8.3.7.  We recommend the following configuration parameter settings to work optimally with ManifoldCF:</p>
+          <p>ManifoldCF has been tested against PostgreSQL 8.3.7 and PostgreSQL 8.4.5.  We recommend the following configuration parameter settings to work optimally with ManifoldCF:</p>
           <p></p>
           <ul>
              <li>A default database encoding of UTF-8</li>
@@ -580,7 +580,7 @@ log4j.appender.MAIN.layout.ConversionPattern=[%d]%-5p %m%n
         <p></p>
         <ul>
          <li>FileNet</li>
-         <li>Meridio</li>
+         <li>CIFS</li>
          <li>SharePoint</li>
         </ul>
         <p></p>
