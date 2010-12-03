@@ -1346,31 +1346,39 @@
     <target name="javadoc" depends="deliver-framework-doc,deliver-open-connectors-doc,deliver-output-connectors-doc,deliver-lgpl-connectors-doc,deliver-proprietary-connectors-doc"/>
     <target name="doc" depends="deliver-site-doc"/>
     
-    <target name="create-zip" depends="build,javadoc,doc">
-      <zip destfile="manifoldcf-SNAPSHOT.zip" basedir="." update="false">
-        <exclude name="/connectors/*/lib/"/>
-        <exclude name="/framework/lib/"/>
-        <exclude name="**/build/"/>
-        <exclude name="/connectors/*/dist/"/>
-        <exclude name="/framework/dist/"/>
-        <exclude name="**/test-output/"/>
-        <exclude name="/legacy-*/"/>
-        <exclude name="/manifoldcf-*.zip"/>
-        <exclude name="/manifoldcf-*.tar.gz"/>
+    <target name="set-version">
+      <property name="release-version" value="0.1"/>
+    </target>
+    
+    <target name="create-zip" depends="build,javadoc,doc,set-version">
+      <zip destfile="apache-manifoldcf-${release-version}.zip" update="false">
+        <zipfileset dir="." prefix="apache-manifoldcf-${release-version}">
+          <exclude name="/connectors/*/lib/"/>
+          <exclude name="/framework/lib/"/>
+          <exclude name="**/build/"/>
+          <exclude name="/connectors/*/dist/"/>
+          <exclude name="/framework/dist/"/>
+          <exclude name="**/test-output/"/>
+          <exclude name="/legacy-*/"/>
+          <exclude name="/apache-manifoldcf-*.zip"/>
+          <exclude name="/apache-manifoldcf-*.tar.gz"/>
+        </zipfileset>
       </zip>
     </target>
     
-    <target name="create-tar" depends="build,javadoc,doc">
-      <tar destfile="manifoldcf-SNAPSHOT.tar.gz" basedir="." compression="gzip" longfile="gnu">
-        <exclude name="/connectors/*/lib/"/>
-        <exclude name="/framework/lib/"/>
-        <exclude name="**/build/"/>
-        <exclude name="/connectors/*/dist/"/>
-        <exclude name="/framework/dist/"/>
-        <exclude name="**/test-output/"/>
-        <exclude name="/legacy-*/"/>
-        <exclude name="/manifoldcf-*.zip"/>
-        <exclude name="/manifoldcf-*.tar.gz"/>
+    <target name="create-tar" depends="build,javadoc,doc,set-version">
+      <tar destfile="apache-manifoldcf-${release-version}.tar.gz" compression="gzip" longfile="gnu">
+        <tarfileset dir="." prefix="apache-manifoldcf-${release-version}">
+          <exclude name="/connectors/*/lib/"/>
+          <exclude name="/framework/lib/"/>
+          <exclude name="**/build/"/>
+          <exclude name="/connectors/*/dist/"/>
+          <exclude name="/framework/dist/"/>
+          <exclude name="**/test-output/"/>
+          <exclude name="/legacy-*/"/>
+          <exclude name="/apache-manifoldcf-*.zip"/>
+          <exclude name="/apache-manifoldcf-*.tar.gz"/>
+        </tarfileset>
       </tar>
     </target>
 
