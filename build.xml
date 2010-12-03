@@ -1408,5 +1408,22 @@ all     - Do it all (requires Apache Forrest)
 All targets requiring Apache Forrest also require Sun JDK 1.5.
       </echo>
     </target>
+
+<target name="-taskdef">
+    <typedef resource="org/apache/rat/anttasks/antlib.xml" uri="antlib:rat.anttasks">
+      <classpath>
+        <fileset dir="." includes="rat*.jar"/>
+      </classpath>
+    </typedef>
+  </target>
+  <target name="rat-sources" depends="-taskdef"
+    description="runs the tasks over src/java excluding the license directory">
+    <rat:report xmlns:rat="antlib:org.apache.rat.anttasks">
+      <fileset dir="connectors/"/>
+      <fileset dir="framework/"/>
+      <fileset dir="site/src/"/>
+    </rat:report>
+  </target>
+
     
 </project>
