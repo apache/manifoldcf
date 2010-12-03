@@ -1,4 +1,4 @@
-<project default="help">
+<project name="manifoldcf" default="help">
 
     <target name="clean">
         <delete file="manifoldcf-SNAPSHOT.zip"/>
@@ -123,7 +123,17 @@
             <fileset dir="framework/build/jar"/>
         </copy>
     </target>
-      
+
+    <target name="setup-activedirectory-connector-tests" depends="build-framework,build-tests-framework">
+        <mkdir dir="connectors/activedirectory/lib"/>
+        <copy todir="connectors/activedirectory/lib">
+            <fileset dir="framework/lib"/>
+        </copy>
+        <copy todir="connectors/activedirectory/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+    </target>
+
     <target name="build-activedirectory-connector" depends="setup-activedirectory-connector">
         <ant dir="connectors/activedirectory" target="build"/>
     </target>
@@ -132,11 +142,11 @@
       <ant dir="connectors/activedirectory" target="doc"/>
     </target>
     
-    <target name="build-tests-activedirectory-connector" depends="setup-activedirectory-connector">
+    <target name="build-tests-activedirectory-connector" depends="setup-activedirectory-connector-tests">
         <ant dir="connectors/activedirectory" target="build-tests"/>
     </target>
     
-    <target name="run-tests-activedirectory-connector" depends="setup-activedirectory-connector">
+    <target name="run-tests-activedirectory-connector" depends="setup-activedirectory-connector-tests">
         <ant dir="connectors/activedirectory" target="run-tests"/>
     </target>
 
@@ -149,7 +159,17 @@
             <fileset dir="framework/build/jar"/>
         </copy>
     </target>
-      
+
+    <target name="setup-documentum-connector-tests" depends="build-framework,build-tests-framework">
+        <mkdir dir="connectors/documentum/lib"/>
+        <copy todir="connectors/documentum/lib">
+            <fileset dir="framework/lib"/>
+        </copy>
+        <copy todir="connectors/documentum/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+    </target>
+
     <target name="build-documentum-connector" depends="setup-documentum-connector">
         <ant dir="connectors/documentum" target="build"/>
     </target>
@@ -158,11 +178,11 @@
       <ant dir="connectors/documentum" target="doc"/>
     </target>
 
-    <target name="build-tests-documentum-connector" depends="setup-documentum-connector">
+    <target name="build-tests-documentum-connector" depends="setup-documentum-connector-tests">
         <ant dir="connectors/documentum" target="build-tests"/>
     </target>
 
-    <target name="run-tests-documentum-connector" depends="setup-documentum-connector">
+    <target name="run-tests-documentum-connector" depends="setup-documentum-connector-tests">
         <ant dir="connectors/documentum" target="run-tests"/>
     </target>
 
@@ -175,7 +195,17 @@
             <fileset dir="framework/build/jar"/>
         </copy>
     </target>
-      
+  
+      <target name="setup-filenet-connector-tests" depends="build-framework,build-tests-framework">
+        <mkdir dir="connectors/filenet/lib"/>
+        <copy todir="connectors/filenet/lib">
+            <fileset dir="framework/lib"/>
+        </copy>
+        <copy todir="connectors/filenet/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+    </target>
+
     <target name="build-filenet-connector" depends="setup-filenet-connector">
         <ant dir="connectors/filenet" target="build"/>
     </target>
@@ -184,11 +214,11 @@
       <ant dir="connectors/filenet" target="doc"/>
     </target>
 
-    <target name="build-tests-filenet-connector" depends="setup-filenet-connector">
+    <target name="build-tests-filenet-connector" depends="setup-filenet-connector-tests">
         <ant dir="connectors/filenet" target="build-tests"/>
     </target>
 
-    <target name="run-tests-filenet-connector" depends="setup-filenet-connector">
+    <target name="run-tests-filenet-connector" depends="setup-filenet-connector-tests">
         <ant dir="connectors/filenet" target="run-tests"/>
     </target>
 
@@ -202,6 +232,16 @@
         </copy>
     </target>
     
+    <target name="setup-filesystem-connector-tests" depends="build-framework,build-tests-framework">
+        <mkdir dir="connectors/filesystem/lib"/>
+        <copy todir="connectors/filesystem/lib">
+            <fileset dir="framework/lib"/>
+        </copy>
+        <copy todir="connectors/filesystem/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+    </target>
+
     <target name="build-filesystem-connector" depends="setup-filesystem-connector">
         <ant dir="connectors/filesystem" target="build"/>
     </target>
@@ -210,11 +250,11 @@
       <ant dir="connectors/filesystem" target="doc"/>
     </target>
 
-    <target name="build-tests-filesystem-connector" depends="setup-filesystem-connector">
+    <target name="build-tests-filesystem-connector" depends="setup-filesystem-connector-tests">
         <ant dir="connectors/filesystem" target="build-tests"/>
     </target>
 
-    <target name="run-tests-filesystem-connector" depends="setup-filesystem-connector">
+    <target name="run-tests-filesystem-connector" depends="setup-filesystem-connector-tests">
         <ant dir="connectors/filesystem" target="run-tests"/>
     </target>
 
@@ -230,7 +270,20 @@
             <fileset dir="framework/build/jar"/>
         </copy>
     </target>
-    
+
+    <target name="setup-gts-connector-tests" depends="build-framework,build-tests-framework">
+        <mkdir dir="connectors/gts/lib"/>
+        <copy todir="connectors/gts/lib">
+            <fileset dir="framework/lib"/>
+            <fileset dir="lib">
+	      <include name="poi*.jar"/>
+            </fileset>
+        </copy>
+        <copy todir="connectors/gts/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+    </target>
+
     <target name="build-gts-connector" depends="setup-gts-connector">
         <ant dir="connectors/gts" target="build"/>
     </target>
@@ -239,11 +292,11 @@
         <ant dir="connectors/gts" target="doc"/>
     </target>
 
-    <target name="build-tests-gts-connector" depends="setup-gts-connector">
+    <target name="build-tests-gts-connector" depends="setup-gts-connector-tests">
         <ant dir="connectors/gts" target="build-tests"/>
     </target>
 
-    <target name="run-tests-gts-connector" depends="setup-gts-connector">
+    <target name="run-tests-gts-connector" depends="setup-gts-connector-tests">
         <ant dir="connectors/gts" target="run-tests"/>
     </target>
 
@@ -254,7 +307,15 @@
             <fileset dir="framework/build/jar"/>
         </copy>
     </target>
-    
+
+    <target name="setup-jcifs-connector-tests" depends="build-framework,build-tests-framework">
+        <mkdir dir="connectors/jcifs/lib"/>
+        <copy todir="connectors/jcifs/lib">
+            <fileset dir="framework/lib"/>
+            <fileset dir="framework/build/jar"/>
+        </copy>
+    </target>
+
     <target name="build-jcifs-connector" depends="setup-jcifs-connector">
         <ant dir="connectors/jcifs" target="build"/>
     </target>
@@ -263,11 +324,11 @@
         <ant dir="connectors/jcifs" target="doc"/>
     </target>
 
-    <target name="build-tests-jcifs-connector" depends="setup-jcifs-connector">
+    <target name="build-tests-jcifs-connector" depends="setup-jcifs-connector-tests">
         <ant dir="connectors/jcifs" target="build-tests"/>
     </target>
 
-    <target name="run-tests-jcifs-connector" depends="setup-jcifs-connector">
+    <target name="run-tests-jcifs-connector" depends="setup-jcifs-connector-tests">
         <ant dir="connectors/jcifs" target="run-tests"/>
     </target>
 
@@ -280,7 +341,17 @@
             <fileset dir="framework/build/jar"/>
         </copy>
     </target>
-    
+
+    <target name="setup-jdbc-connector-tests" depends="build-framework,build-tests-framework">
+        <mkdir dir="connectors/jdbc/lib"/>
+        <copy todir="connectors/jdbc/lib">
+            <fileset dir="framework/lib"/>
+        </copy>
+        <copy todir="connectors/jdbc/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+    </target>
+
     <target name="build-jdbc-connector" depends="setup-jdbc-connector">
         <ant dir="connectors/jdbc" target="build"/>
     </target>
@@ -289,11 +360,11 @@
         <ant dir="connectors/jdbc" target="doc"/>
     </target>
 
-    <target name="build-tests-jdbc-connector" depends="setup-jdbc-connector">
+    <target name="build-tests-jdbc-connector" depends="setup-jdbc-connector-tests">
         <ant dir="connectors/jdbc" target="build-tests"/>
     </target>
 
-    <target name="run-tests-jdbc-connector" depends="setup-jdbc-connector">
+    <target name="run-tests-jdbc-connector" depends="setup-jdbc-connector-tests">
         <ant dir="connectors/jdbc" target="run-tests"/>
     </target>
 
@@ -307,6 +378,16 @@
         </copy>
     </target>
     
+    <target name="setup-livelink-connector-tests" depends="build-framework,build-tests-framework">
+        <mkdir dir="connectors/livelink/lib"/>
+        <copy todir="connectors/livelink/lib">
+            <fileset dir="framework/lib"/>
+        </copy>
+        <copy todir="connectors/livelink/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+    </target>
+
     <target name="build-livelink-connector" depends="setup-livelink-connector">
         <ant dir="connectors/livelink" target="build"/>
     </target>
@@ -315,11 +396,11 @@
         <ant dir="connectors/livelink" target="doc"/>
     </target>
 
-    <target name="build-tests-livelink-connector" depends="setup-livelink-connector">
+    <target name="build-tests-livelink-connector" depends="setup-livelink-connector-tests">
         <ant dir="connectors/livelink" target="build-tests"/>
     </target>
 
-    <target name="run-tests-livelink-connector" depends="setup-livelink-connector">
+    <target name="run-tests-livelink-connector" depends="setup-livelink-connector-tests">
         <ant dir="connectors/livelink" target="run-tests"/>
     </target>
 
@@ -332,7 +413,17 @@
             <fileset dir="framework/build/jar"/>
         </copy>
     </target>
-    
+
+    <target name="setup-solr-connector-tests" depends="build-framework,build-tests-framework">
+        <mkdir dir="connectors/solr/lib"/>
+        <copy todir="connectors/solr/lib">
+            <fileset dir="framework/lib"/>
+        </copy>
+        <copy todir="connectors/solr/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+    </target>
+
     <target name="build-solr-connector" depends="setup-solr-connector">
         <ant dir="connectors/solr" target="build"/>
     </target>
@@ -341,11 +432,11 @@
         <ant dir="connectors/solr" target="doc"/>
     </target>
 
-    <target name="build-tests-solr-connector" depends="setup-solr-connector">
+    <target name="build-tests-solr-connector" depends="setup-solr-connector-tests">
         <ant dir="connectors/solr" target="build-tests"/>
     </target>
 
-    <target name="run-tests-solr-connector" depends="setup-solr-connector">
+    <target name="run-tests-solr-connector" depends="setup-solr-connector-tests">
         <ant dir="connectors/solr" target="run-tests"/>
     </target>
 
@@ -359,6 +450,16 @@
         </copy>
     </target>
     
+    <target name="setup-memex-connector-tests" depends="build-framework,build-tests-framework">
+        <mkdir dir="connectors/memex/lib"/>
+        <copy todir="connectors/memex/lib">
+            <fileset dir="framework/lib"/>
+        </copy>
+        <copy todir="connectors/memex/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+    </target>
+
     <target name="build-memex-connector" depends="setup-memex-connector">
         <ant dir="connectors/memex" target="build"/>
     </target>
@@ -367,11 +468,11 @@
         <ant dir="connectors/memex" target="doc"/>
     </target>
 
-    <target name="build-tests-memex-connector" depends="setup-memex-connector">
+    <target name="build-tests-memex-connector" depends="setup-memex-connector-tests">
         <ant dir="connectors/memex" target="build-tests"/>
     </target>
 
-    <target name="run-tests-memex-connector" depends="setup-memex-connector">
+    <target name="run-tests-memex-connector" depends="setup-memex-connector-tests">
         <ant dir="connectors/memex" target="run-tests"/>
     </target>
 
@@ -394,7 +495,27 @@
             <fileset dir="framework/build/jar"/>
         </copy>
     </target>
-    
+
+    <target name="setup-meridio-connector-tests" depends="build-framework,build-tests-framework">
+        <mkdir dir="connectors/meridio/lib"/>
+        <copy todir="connectors/meridio/lib">
+            <fileset dir="lib">
+                <include name="axis*.jar"/>
+                <include name="wsdl4j*.jar"/>
+                <include name="castor*.jar"/>
+                <include name="commons-discovery*.jar"/>
+                <include name="geronimo-activation_1.1_spec*.jar"/>
+                <include name="geronimo-javamail_1.4_spec*.jar"/>
+            </fileset>
+        </copy>
+        <copy todir="connectors/meridio/lib">
+            <fileset dir="framework/lib"/>
+        </copy>
+        <copy todir="connectors/meridio/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+    </target>
+
     <target name="build-meridio-connector" depends="setup-meridio-connector">
         <ant dir="connectors/meridio" target="build"/>
     </target>
@@ -403,11 +524,11 @@
         <ant dir="connectors/meridio" target="doc"/>
     </target>
 
-    <target name="build-tests-meridio-connector" depends="setup-meridio-connector">
+    <target name="build-tests-meridio-connector" depends="setup-meridio-connector-tests">
         <ant dir="connectors/meridio" target="build-tests"/>
     </target>
 
-    <target name="run-tests-meridio-connector" depends="setup-meridio-connector">
+    <target name="run-tests-meridio-connector" depends="setup-meridio-connector-tests">
         <ant dir="connectors/meridio" target="run-tests"/>
     </target>
 
@@ -421,6 +542,16 @@
         </copy>
     </target>
     
+    <target name="setup-nullauthority-connector-tests" depends="build-framework,build-tests-framework">
+        <mkdir dir="connectors/nullauthority/lib"/>
+        <copy todir="connectors/nulloutput/lib">
+            <fileset dir="framework/lib"/>
+        </copy>
+        <copy todir="connectors/nullauthority/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+    </target>
+
     <target name="build-nullauthority-connector" depends="setup-nullauthority-connector">
         <ant dir="connectors/nullauthority" target="build"/>
     </target>
@@ -429,11 +560,11 @@
         <ant dir="connectors/nullauthority" target="doc"/>
     </target>
 
-    <target name="build-tests-nullauthority-connector" depends="setup-nullauthority-connector">
+    <target name="build-tests-nullauthority-connector" depends="setup-nullauthority-connector-tests">
         <ant dir="connectors/nullauthority" target="build-tests"/>
     </target>
 
-    <target name="run-tests-nullauthority-connector" depends="setup-nullauthority-connector">
+    <target name="run-tests-nullauthority-connector" depends="setup-nullauthority-connector-tests">
         <ant dir="connectors/nullauthority" target="run-tests"/>
     </target>
 
@@ -447,6 +578,16 @@
         </copy>
     </target>
     
+    <target name="setup-nulloutput-connector-tests" depends="build-framework,build-tests-framework">
+        <mkdir dir="connectors/nulloutput/lib"/>
+        <copy todir="connectors/nulloutput/lib">
+            <fileset dir="framework/lib"/>
+        </copy>
+        <copy todir="connectors/nulloutput/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+    </target>
+
     <target name="build-nulloutput-connector" depends="setup-nulloutput-connector">
         <ant dir="connectors/nulloutput" target="build"/>
     </target>
@@ -455,11 +596,11 @@
         <ant dir="connectors/nulloutput" target="doc"/>
     </target>
 
-    <target name="build-tests-nulloutput-connector" depends="setup-nulloutput-connector">
+    <target name="build-tests-nulloutput-connector" depends="setup-nulloutput-connector-tests">
         <ant dir="connectors/nulloutput" target="build-tests"/>
     </target>
 
-    <target name="run-tests-nulloutput-connector" depends="setup-nulloutput-connector">
+    <target name="run-tests-nulloutput-connector" depends="setup-nulloutput-connector-tests">
         <ant dir="connectors/nulloutput" target="run-tests"/>
     </target>
 
@@ -472,7 +613,17 @@
             <fileset dir="framework/build/jar"/>
         </copy>
     </target>
-    
+
+    <target name="setup-rss-connector-tests" depends="build-framework,build-tests-framework">
+        <mkdir dir="connectors/rss/lib"/>
+        <copy todir="connectors/rss/lib">
+            <fileset dir="framework/lib"/>
+        </copy>
+        <copy todir="connectors/rss/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+    </target>
+
     <target name="build-rss-connector" depends="setup-rss-connector">
         <ant dir="connectors/rss" target="build"/>
     </target>
@@ -481,11 +632,11 @@
         <ant dir="connectors/rss" target="doc"/>
     </target>
 
-    <target name="build-tests-rss-connector" depends="setup-rss-connector">
+    <target name="build-tests-rss-connector" depends="setup-rss-connector-tests">
         <ant dir="connectors/rss" target="build-tests"/>
     </target>
 
-    <target name="run-tests-rss-connector" depends="setup-rss-connector">
+    <target name="run-tests-rss-connector" depends="setup-rss-connector-tests">
         <ant dir="connectors/rss" target="run-tests"/>
     </target>
 
@@ -507,6 +658,24 @@
         </copy>
     </target>
     
+    <target name="setup-sharepoint-connector-tests" depends="build-framework,build-tests-framework">
+        <mkdir dir="connectors/sharepoint/lib"/>
+        <copy todir="connectors/sharepoint/lib">
+            <fileset dir="lib">
+                <include name="axis*.jar"/>
+                <include name="wsdl4j*.jar"/>
+                <include name="commons-discovery*.jar"/>
+                <include name="geronimo-activation_1.1_spec*.jar"/>
+            </fileset>
+        </copy>
+        <copy todir="connectors/sharepoint/lib">
+            <fileset dir="framework/lib"/>
+        </copy>
+        <copy todir="connectors/sharepoint/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+    </target>
+
     <target name="build-sharepoint-connector" depends="setup-sharepoint-connector">
         <ant dir="connectors/sharepoint" target="build"/>
     </target>
@@ -515,11 +684,11 @@
         <ant dir="connectors/sharepoint" target="doc"/>
     </target>
 
-    <target name="build-tests-sharepoint-connector" depends="setup-sharepoint-connector">
+    <target name="build-tests-sharepoint-connector" depends="setup-sharepoint-connector-tests">
         <ant dir="connectors/sharepoint" target="build-tests"/>
     </target>
 
-    <target name="run-tests-sharepoint-connector" depends="setup-sharepoint-connector">
+    <target name="run-tests-sharepoint-connector" depends="setup-sharepoint-connector-tests">
         <ant dir="connectors/sharepoint" target="run-tests"/>
     </target>
 
@@ -533,6 +702,16 @@
         </copy>
     </target>
     
+    <target name="setup-webcrawler-connector-tests" depends="build-framework,build-tests-framework">
+        <mkdir dir="connectors/webcrawler/lib"/>
+        <copy todir="connectors/webcrawler/lib">
+            <fileset dir="framework/lib"/>
+        </copy>
+        <copy todir="connectors/webcrawler/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+    </target>
+
     <target name="build-webcrawler-connector" depends="setup-webcrawler-connector">
         <ant dir="connectors/webcrawler" target="build"/>
     </target>
@@ -541,11 +720,11 @@
         <ant dir="connectors/webcrawler" target="doc"/>
     </target>
 
-    <target name="build-tests-webcrawler-connector" depends="setup-webcrawler-connector">
+    <target name="build-tests-webcrawler-connector" depends="setup-webcrawler-connector-tests">
         <ant dir="connectors/webcrawler" target="build-tests"/>
     </target>
 
-    <target name="run-tests-webcrawler-connector" depends="setup-webcrawler-connector">
+    <target name="run-tests-webcrawler-connector" depends="setup-webcrawler-connector-tests">
         <ant dir="connectors/webcrawler" target="run-tests"/>
     </target>
 
