@@ -439,18 +439,11 @@
     </target>
 
     <target name="jar-tests" depends="compile-tests">
-        <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/mcf-tests.jar" basedir="build/tests/classes"/>
+        <mkdir dir="build/test-jar"/>
+        <jar destfile="build/test-jar/mcf-tests.jar" basedir="build/tests/classes"/>
     </target>
 
-    <target name="build-tests" depends="jar-tests">
-        <mkdir dir="dist/tests/jar"/>
-        <copy todir="dist/tests/jar">
-            <fileset dir="build/jar">
-                <include name="mcf-tests.jar"/>
-            </fileset>
-        </copy>
-    </target>
+    <target name="build-tests" depends="jar-tests"/>
 
     <target name="run-tests" depends="compile-tests">
         <mkdir dir="test-output"/>

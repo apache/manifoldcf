@@ -64,6 +64,11 @@
         </javac>
     </target>
     
+    <target name="jar-tests" depends="compile-tests">
+        <mkdir dir="build/test-jar"/>
+        <jar destfile="build/test-jar/mcf-filesystem-connector-tests.jar" basedir="build/tests/classes"/>
+    </target>
+
     <target name="run-tests" depends="compile-tests">
         <mkdir dir="test-output"/>
         <junit fork="true" maxmemory="128m" dir="test-output" showoutput="true">
@@ -80,7 +85,7 @@
     </target>
 
     <target name="build" depends="lib"/>
-    <target name="build-tests" depends="compile-tests"/>
+    <target name="build-tests" depends="jar-tests"/>
     <target name="all" depends="build,doc,build-tests,run-tests"/>
     
 </project>
