@@ -154,7 +154,9 @@
     </target>
 
     <target name="build" depends="lib,wsdd"/>
-    <target name="build-tests"/>
+    <target name="build-tests">
+      <mkdir dir="build/test-jar"/>
+    </target>
     <target name="run-tests"/>
     <target name="all" depends="build,doc,build-tests,run-tests"/>
     
