@@ -1,8 +1,10 @@
 <project name="manifoldcf" default="help">
 
     <target name="clean">
-        <delete file="apache-manifoldcf-*.zip"/>
-        <delete file="apache-manifoldcf-*.tar.gz"/>
+        <delete>
+          <fileset dir="." includes="apache-manifoldcf-*.zip"/>
+          <fileset dir="." includes="apache-manifoldcf-*.tar.gz"/>
+        </delete>
         <delete dir="build"/>
         <delete dir="dist"/>
         <delete dir="test-output"/>
@@ -1508,7 +1510,7 @@
     <target name="doc" depends="deliver-site-doc"/>
     
     <target name="set-version">
-      <property name="release-version" value="0.1"/>
+      <property name="release-version" value="0.1-incubator"/>
     </target>
     
     <target name="create-zip" depends="build,javadoc,doc,set-version">
