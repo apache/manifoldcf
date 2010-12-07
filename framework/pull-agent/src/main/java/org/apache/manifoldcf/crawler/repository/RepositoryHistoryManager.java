@@ -39,9 +39,6 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
   protected final static String resultCodeField = "resultcode";
   protected final static String resultDescriptionField = "resultdesc";
 
-  /** Counter for kicking off analyze */
-  protected static AnalyzeTracker tracker = new AnalyzeTracker();
-
   /** Thread context */
   protected IThreadContext threadContext;
 
@@ -174,7 +171,8 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
     if (resultDescription != null)
       map.put(resultDescriptionField,resultDescription);
     performInsert(map,null);
-    conditionallyAnalyzeInsert();
+    // Not accurate, but best we can do without overhead
+    noteModifications(1,0,0);
     return id;
   }
 
@@ -681,55 +679,5 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
     sb.append(" ").append(constructOffsetLimitClause(startRow,maxRowCount));
   }
 
-
-  /** Conditionally do analyze operation.
-  */
-  protected void conditionallyAnalyzeInsert()
-    throws ManifoldCFException
-  {
-    synchronized (tracker)
-    {
-      if (tracker.checkAnalyzeInsert())
-      {
-        // Do the analyze
-        analyzeTable();
-        // Simply reanalyze every 8000 inserts
-        tracker.doAnalyze(8000);
-      }
-    }
-  }
-
-  /** Analyze tracker class.
-  */
-  protected static class AnalyzeTracker
-  {
-    // Number of records to insert before we need to analyze again
-    protected long recordCount = 0;
-
-    /** Constructor.
-    */
-    public AnalyzeTracker()
-    {
-
-    }
-
-    /** Note an analyze.
-    */
-    public void doAnalyze(long repeatCount)
-    {
-      recordCount = repeatCount;
-    }
-
-    /** Prepare to insert/delete a record, and see if analyze is required.
-    */
-    public boolean checkAnalyzeInsert()
-    {
-      if (recordCount > 0L)
-        recordCount--;
-      return recordCount == 0L;
-    }
-
-
-  }
 
 }
