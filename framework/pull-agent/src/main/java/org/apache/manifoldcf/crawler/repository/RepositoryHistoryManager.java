@@ -258,17 +258,18 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
   {
     // Build the query.
     StringBuffer sb = new StringBuffer("SELECT ");
+    ArrayList list = new ArrayList();
     sb.append(idField).append(" AS id,").append(activityTypeField).append(" AS activity,").append(startTimeField).append(" AS starttime,(")
       .append(endTimeField).append("-").append(startTimeField).append(")")
       .append(" AS elapsedtime,").append(resultCodeField).append(" AS resultcode,").append(resultDescriptionField)
       .append(" AS resultdesc,").append(dataSizeField).append(" AS bytes,").append(entityIdentifierField)
       .append(" AS identifier FROM ").append(getTableName());
-    addCriteria(sb,"",connectionName,criteria,false);
+    addCriteria(sb,list,"",connectionName,criteria,false);
     // Note well: We can't order by "identifier" in all databases, so in order to guarantee order we use "id".  This will force a specific internal
     // order for the OFFSET/LIMIT clause.  We include "starttime" because that's the default ordering.
     addOrdering(sb,new String[]{"starttime","id"},sort);
     addLimits(sb,startRow,maxRowCount);
-    return performQuery(sb.toString(),null,null,null,maxRowCount);
+    return performQuery(sb.toString(),list,null,null,maxRowCount);
   }
 
   /** Count the number of rows specified by a given set of criteria.  This can be used to make decisions
@@ -281,9 +282,10 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
     throws ManifoldCFException
   {
     StringBuffer sb = new StringBuffer("SELECT COUNT(*) AS countcol FROM ");
+    ArrayList list = new ArrayList();
     sb.append(getTableName());
-    addCriteria(sb,"",connectionName,criteria,false);
-    IResultSet set = performQuery(sb.toString(),null,null,null);
+    addCriteria(sb,list,"",connectionName,criteria,false);
+    IResultSet set = performQuery(sb.toString(),list,null,null);
     if (set.getRowCount() < 1)
       throw new ManifoldCFException("Expected at least one row");
     IResultRow row = set.getRow(0);
@@ -330,6 +332,7 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
     // end time of the current record.  That's why there are two inner clauses with a UNION.
 
     StringBuffer sb = new StringBuffer();
+    ArrayList list = new ArrayList();
     sb.append("SELECT * FROM (SELECT t6.bucket AS bucket,")
       .append("t6.windowstart AS windowstart,t6.windowend AS windowend, SUM(t6.activitycount) AS activitycount")
       .append(" FROM (SELECT ");
@@ -347,16 +350,16 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
       .append(" END)) AS DOUBLE PRECISION) / CAST((t1.").append(endTimeField).append("-t1.").append(startTimeField)
       .append(") AS DOUBLE PRECISION)")
       .append(" AS activitycount FROM (SELECT DISTINCT ");
-    addBucketExtract(sb,"",entityIdentifierField,idBucket);
+    addBucketExtract(sb,list,"",entityIdentifierField,idBucket);
     sb.append(" AS bucket,").append(startTimeField).append(" FROM ").append(getTableName());
-    addCriteria(sb,"",connectionName,filterCriteria,false);
+    addCriteria(sb,list,"",connectionName,filterCriteria,false);
     sb.append(") t0,")
       .append(getTableName()).append(" t1 WHERE ");
     sb.append("t0.bucket=");
-    addBucketExtract(sb,"t1.",entityIdentifierField,idBucket);
+    addBucketExtract(sb,list,"t1.",entityIdentifierField,idBucket);
     sb.append(" AND t1.").append(startTimeField).append("<t0.").append(startTimeField).append("+").append(intervalString)
       .append(" AND t1.").append(endTimeField).append(">t0.").append(startTimeField);
-    addCriteria(sb,"t1.",connectionName,filterCriteria,true);
+    addCriteria(sb,list,"t1.",connectionName,filterCriteria,true);
     sb.append(") t6 GROUP BY bucket,windowstart,windowend UNION SELECT t6a.bucket AS bucket,")
       .append("t6a.windowstart AS windowstart, t6a.windowend AS windowend, SUM(t6a.activitycount) AS activitycount")
       .append(" FROM (SELECT ");
@@ -372,16 +375,16 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
       .append(" END)) AS DOUBLE PRECISION) / CAST((t1a.").append(endTimeField).append("-t1a.").append(startTimeField)
       .append(") AS DOUBLE PRECISION)")
       .append(" AS activitycount FROM (SELECT DISTINCT ");
-    addBucketExtract(sb,"",entityIdentifierField,idBucket);
+    addBucketExtract(sb,list,"",entityIdentifierField,idBucket);
     sb.append(" AS bucket,").append(endTimeField).append(" FROM ").append(getTableName());
-    addCriteria(sb,"",connectionName,filterCriteria,false);
+    addCriteria(sb,list,"",connectionName,filterCriteria,false);
     sb.append(") t0a,")
       .append(getTableName()).append(" t1a WHERE ");
     sb.append("t0a.bucket=");
-    addBucketExtract(sb,"t1a.",entityIdentifierField,idBucket);
+    addBucketExtract(sb,list,"t1a.",entityIdentifierField,idBucket);
     sb.append(" AND t1a.").append(startTimeField).append("<t0a.").append(endTimeField)
       .append(" AND t1a.").append(endTimeField).append(">t0a.").append(endTimeField).append("-").append(intervalString);
-    addCriteria(sb,"t1a.",connectionName,filterCriteria,true);
+    addCriteria(sb,list,"t1a.",connectionName,filterCriteria,true);
     sb.append(") t6a GROUP BY bucket,windowstart,windowend) t2 ORDER BY bucket ASC, activitycount DESC");
 
     Map otherColumns = new HashMap();
@@ -389,12 +392,13 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
     otherColumns.put("activitycount","activitycount");
     otherColumns.put("starttime","windowstart");
     otherColumns.put("endtime","windowend");
-    String filteredQuery = constructDistinctOnClause(null,sb.toString(),null,new String[]{"idbucket"},otherColumns);
-    sb = new StringBuffer("SELECT * FROM (");
-    sb.append(filteredQuery).append(") t4");
-    addOrdering(sb,new String[]{"activitycount","starttime","endtime","idbucket"},sort);
-    addLimits(sb,startRow,maxRowCount);
-    return performQuery(sb.toString(),null,null,null,maxRowCount);
+    
+    StringBuffer newsb = new StringBuffer("SELECT * FROM (");
+    ArrayList newList = new ArrayList();
+    newsb.append(constructDistinctOnClause(newList,sb.toString(),list,new String[]{"idbucket"},otherColumns)).append(") t4");
+    addOrdering(newsb,new String[]{"activitycount","starttime","endtime","idbucket"},sort);
+    addLimits(newsb,startRow,maxRowCount);
+    return performQuery(newsb.toString(),newList,null,null,maxRowCount);
   }
 
 
@@ -435,6 +439,7 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
     // end time of the current record.  That's why there are two inner clauses with a UNION.
 
     StringBuffer sb = new StringBuffer();
+    ArrayList list = new ArrayList();
     sb.append("SELECT * FROM (SELECT t6.bucket AS bucket,")
       .append("t6.windowstart AS windowstart, t6.windowend AS windowend, SUM(t6.bytecount) AS bytecount")
       .append(" FROM (SELECT ");
@@ -453,16 +458,16 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
       .append(" END)) / (t1.").append(endTimeField).append("-t1.").append(startTimeField)
       .append(")")
       .append(" AS bytecount FROM (SELECT DISTINCT ");
-    addBucketExtract(sb,"",entityIdentifierField,idBucket);
+    addBucketExtract(sb,list,"",entityIdentifierField,idBucket);
     sb.append(" AS bucket,").append(startTimeField).append(" FROM ").append(getTableName());
-    addCriteria(sb,"",connectionName,filterCriteria,false);
+    addCriteria(sb,list,"",connectionName,filterCriteria,false);
     sb.append(") t0,")
       .append(getTableName()).append(" t1 WHERE ");
     sb.append("t0.bucket=");
-    addBucketExtract(sb,"t1.",entityIdentifierField,idBucket);
+    addBucketExtract(sb,list,"t1.",entityIdentifierField,idBucket);
     sb.append(" AND t1.").append(startTimeField).append("<t0.").append(startTimeField).append("+").append(intervalString)
       .append(" AND t1.").append(endTimeField).append(">t0.").append(startTimeField);
-    addCriteria(sb,"t1.",connectionName,filterCriteria,true);
+    addCriteria(sb,list,"t1.",connectionName,filterCriteria,true);
     sb.append(") t6 GROUP BY bucket,windowstart,windowend UNION SELECT t6a.bucket AS bucket,")
       .append("t6a.windowstart AS windowstart, t6a.windowend AS windowend, SUM(t6a.bytecount) AS bytecount")
       .append(" FROM (SELECT ")
@@ -478,16 +483,16 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
       .append(" END)) / (t1a.").append(endTimeField).append("-t1a.").append(startTimeField)
       .append(")")
       .append(" AS bytecount FROM (SELECT DISTINCT ");
-    addBucketExtract(sb,"",entityIdentifierField,idBucket);
+    addBucketExtract(sb,list,"",entityIdentifierField,idBucket);
     sb.append(" AS bucket,").append(endTimeField).append(" FROM ").append(getTableName());
-    addCriteria(sb,"",connectionName,filterCriteria,false);
+    addCriteria(sb,list,"",connectionName,filterCriteria,false);
     sb.append(") t0a,")
       .append(getTableName()).append(" t1a WHERE ");
     sb.append("t0a.bucket=");
-    addBucketExtract(sb,"t1a.",entityIdentifierField,idBucket);
+    addBucketExtract(sb,list,"t1a.",entityIdentifierField,idBucket);
     sb.append(" AND t1a.").append(startTimeField).append("<t0a.").append(endTimeField)
       .append(" AND t1a.").append(endTimeField).append(">t0a.").append(endTimeField).append("-").append(intervalString);
-    addCriteria(sb,"t1a.",connectionName,filterCriteria,true);
+    addCriteria(sb,list,"t1a.",connectionName,filterCriteria,true);
     sb.append(") t6a GROUP BY bucket,windowstart,windowend) t2 ORDER BY bucket ASC, bytecount DESC");
     
     Map otherColumns = new HashMap();
@@ -495,12 +500,12 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
     otherColumns.put("bytecount","bytecount");
     otherColumns.put("starttime","windowstart");
     otherColumns.put("endtime","windowend");
-    String filteredQuery = constructDistinctOnClause(null,sb.toString(),null,new String[]{"idbucket"},otherColumns);
-    sb = new StringBuffer("SELECT * FROM (");
-    sb.append(filteredQuery).append(") t4");
-    addOrdering(sb,new String[]{"bytecount","starttime","endtime","idbucket"},sort);
-    addLimits(sb,startRow,maxRowCount);
-    return performQuery(sb.toString(),null,null,null,maxRowCount);
+    StringBuffer newsb = new StringBuffer("SELECT * FROM (");
+    ArrayList newList = new ArrayList();
+    newsb.append(constructDistinctOnClause(newList,sb.toString(),list,new String[]{"idbucket"},otherColumns)).append(") t4");
+    addOrdering(newsb,new String[]{"bytecount","starttime","endtime","idbucket"},sort);
+    addLimits(newsb,startRow,maxRowCount);
+    return performQuery(newsb.toString(),newList,null,null,maxRowCount);
   }
 
   /** Get a bucketed history of different result code/identifier combinations.
@@ -519,33 +524,36 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
     //                      ORDER BY xxx LIMIT yyy OFFSET zzz
 
     StringBuffer sb = new StringBuffer("SELECT t1.resultcodebucket,t1.idbucket,COUNT('x') AS eventcount FROM (SELECT ");
-    addBucketExtract(sb,"",resultCodeField,resultCodeBucket);
+    ArrayList list = new ArrayList();
+    addBucketExtract(sb,list,"",resultCodeField,resultCodeBucket);
     sb.append(" AS resultcodebucket, ");
-    addBucketExtract(sb,"",entityIdentifierField,idBucket);
+    addBucketExtract(sb,list,"",entityIdentifierField,idBucket);
     sb.append(" AS idbucket FROM ").append(getTableName());
-    addCriteria(sb,"",connectionName,filterCriteria,false);
+    addCriteria(sb,list,"",connectionName,filterCriteria,false);
     sb.append(") t1 GROUP BY resultcodebucket,idbucket");
     addOrdering(sb,new String[]{"eventcount","resultcodebucket","idbucket"},sort);
     addLimits(sb,startRow,maxRowCount);
-    return performQuery(sb.toString(),null,null,null,maxRowCount);
+    return performQuery(sb.toString(),list,null,null,maxRowCount);
   }
 
   /** Turn a bucket description into a return column.
   * This is complicated by the fact that the extraction code is inherently case sensitive.  So if case insensitive is
   * desired, that means we whack the whole thing to lower case before doing the match.
   */
-  protected void addBucketExtract(StringBuffer sb, String columnPrefix, String columnName, BucketDescription bucketDesc)
+  protected void addBucketExtract(StringBuffer sb, ArrayList list, String columnPrefix, String columnName, BucketDescription bucketDesc)
   {
     boolean isSensitive = bucketDesc.isSensitive();
-    sb.append(constructSubstringClause(columnPrefix+columnName,quoteSQLString(bucketDesc.getRegexp()),!isSensitive));
+    sb.append(constructSubstringClause(columnPrefix+columnName,"?",!isSensitive));
+    list.add(bucketDesc.getRegexp());
   }
 
   /** Add criteria clauses to query.
   */
-  protected boolean addCriteria(StringBuffer sb, String fieldPrefix, String connectionName, FilterCriteria criteria, boolean whereEmitted)
+  protected boolean addCriteria(StringBuffer sb, ArrayList list, String fieldPrefix, String connectionName, FilterCriteria criteria, boolean whereEmitted)
   {
     whereEmitted = emitClauseStart(sb,whereEmitted);
-    sb.append(fieldPrefix).append(ownerNameField).append("=").append(quoteSQLString(connectionName));
+    sb.append(fieldPrefix).append(ownerNameField).append("=?");
+    list.add(connectionName);
 
     String[] activities = criteria.getActivities();
     if (activities != null)
@@ -564,7 +572,8 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
           if (i > 0)
             sb.append(",");
           String activity = activities[i++];
-          sb.append(quoteSQLString(activity));
+          sb.append("?");
+          list.add(activity);
         }
         sb.append(")");
       }
@@ -588,14 +597,16 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
     if (entityMatch != null)
     {
       whereEmitted = emitClauseStart(sb,whereEmitted);
-      sb.append(constructRegexpClause(fieldPrefix+entityIdentifierField,quoteSQLString(entityMatch.getRegexpString()),entityMatch.isInsensitive()));
+      sb.append(constructRegexpClause(fieldPrefix+entityIdentifierField,"?",entityMatch.isInsensitive()));
+      list.add(entityMatch.getRegexpString());
     }
 
     RegExpCriteria resultCodeMatch = criteria.getResultCodeMatch();
     if (resultCodeMatch != null)
     {
       whereEmitted = emitClauseStart(sb,whereEmitted);
-      sb.append(constructRegexpClause(fieldPrefix+resultCodeField,quoteSQLString(resultCodeMatch.getRegexpString()),resultCodeMatch.isInsensitive()));
+      sb.append(constructRegexpClause(fieldPrefix+resultCodeField,"?",resultCodeMatch.isInsensitive()));
+      list.add(resultCodeMatch.getRegexpString());
     }
 
     return whereEmitted;

@@ -913,7 +913,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
         sb.append(",");
       sb.append(distinctFields[i++]);
     }
-    sb.append(" ");
+    sb.append(") ");
     Iterator iter = otherFields.keySet().iterator();
     boolean needComma = false;
     while (iter.hasNext())
