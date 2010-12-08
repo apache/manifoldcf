@@ -338,6 +338,7 @@ cd dist/example
           <table>
             <caption>Postgresql.conf parameters</caption>
             <tr><th><em>postgresql.conf</em> parameter</th><th>Tested value</th></tr>
+            <tr><td>standard_conforming_strings</td><td>on</td></tr>
             <tr><td>shared_buffers</td><td>1024MB</td></tr>
             <tr><td>checkpoint_segments</td><td>300</td></tr>
             <tr><td>maintenance<em>work</em>mem</td><td>2MB</td></tr>
@@ -348,6 +349,7 @@ cd dist/example
             <tr><td>autovacuum</td><td>off</td></tr>
           </table>
           <p></p>
+          <p>Note well: The <em>standard_conforming_strings</em> parameter setting is important to prevent any possibility of SQL injection attacks.  While ManifoldCF uses parameterized queries in almost all cases, when it does do string quoting it presumes that the SQL standard for quoting is adhered to.  It is in general good practice to set this parameter when working with PostgreSQL for this reason.</p>
         </section>
         <section>
           <title>A note about maintenance</title>
