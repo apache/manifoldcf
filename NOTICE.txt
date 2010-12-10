@@ -4,17 +4,134 @@ Copyright 2010 The Apache Software Foundation
 This product includes software developed by
 The Apache Software Foundation (http://www.apache.org/).
 
-Portions of the software are licensed as follows:
+Includes software from other Apache Software Foundation projects,
+including, but not limited to:
+  - Apache Tomcat
+  - Apache Commons
+  - Apache Geronimo
+  - Apache Log4j
+  - Apache Derby
+  - Apache Axis
+  - Apache Xerces2
+  - Apache Jetty
 
-Copyright (c) 2002 JSON.org
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
-files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
-merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished
-to do so, subject to the following conditions:
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-The Software shall be used for Good, not Evil.
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
-TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
-CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-DEALINGS IN THE SOFTWARE. 
+This product includes code from: http://www.json.org
+License: JSON license (http://www.json.org/license.html)
+
+This product includes a postgresql.jar: http://jdbc.postgresql.org
+License: BSD License (http://jdbc.postgresql.org/license.html)
+
+This product includes a JUnit jar: http://junit.sourceforge.net/
+License: Common Public License - v 1.0 (http://junit.sourceforge.net/cpl-v10.html)
+
+This product includes a jdbcpool-0.99.jar.
+License: Apache Software Foundation - v 1.1
+
+This product includes an eclipse-ecj.jar.
+License: Eclipse Public License - v 1.0 (http://www.eclipse.org/legal/epl-v10.html)
+
+This product includes an hsqldb.jar: http://hsqldb.org/
+License: HSQL Development Group License (http://hsqldb.org/web/hsqlLicense.html)
+
+This product includes JSP API jars.
+License: Common Development and Distribution License (CDDL) v1.0 (https://glassfish.dev.java.net/public/CDDLv1.0.html)
+
+=========================================================================
+==     Jetty Notice                                                    ==
+=========================================================================
+==============================================================
+ Jetty Web Container 
+ Copyright 1995-2006 Mort Bay Consulting Pty Ltd
+==============================================================
+
+This product includes some software developed at The Apache Software 
+Foundation (http://www.apache.org/).
+
+The javax.servlet package used by Jetty is copyright 
+Sun Microsystems, Inc and Apache Software Foundation. It is 
+distributed under the Common Development and Distribution License.
+You can obtain a copy of the license at 
+https://glassfish.dev.java.net/public/CDDLv1.0.html.
+
+The UnixCrypt.java code ~Implements the one way cryptography used by
+Unix systems for simple password protection.  Copyright 1996 Aki Yoshida,
+modified April 2001  by Iris Van den Broeke, Daniel Deville.
+
+The default JSP implementation is provided by the Glassfish JSP engine
+from project Glassfish http://glassfish.dev.java.net.  Copyright 2005
+Sun Microsystems, Inc. and portions Copyright Apache Software Foundation.
+
+Some portions of the code are Copyright:
+  2006 Tim Vernum 
+  1999 Jason Gilbert.
+
+The jboss integration module contains some LGPL code.
+
+=========================================================================
+==     HSQLDB Notice                                                   ==
+=========================================================================
+
+For content, code, and products originally developed by Thomas Mueller and the Hypersonic SQL Group:
+
+Copyright (c) 1995-2000 by the Hypersonic SQL Group.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimer.
+
+Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution.
+
+Neither the name of the Hypersonic SQL Group nor the names of its
+contributors may be used to endorse or promote products derived from this
+software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE HYPERSONIC SQL GROUP,
+OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+This software consists of voluntary contributions made by many individuals on behalf of the
+Hypersonic SQL Group.
+
+For work added by the HSQL Development Group (a.k.a. hsqldb_lic.txt):
+
+Copyright (c) 2001-2005, The HSQL Development Group
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimer.
+
+Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution.
+
+Neither the name of the HSQL Development Group nor the names of its
+contributors may be used to endorse or promote products derived from this
+software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL HSQL DEVELOPMENT GROUP, HSQLDB.ORG,
+OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
