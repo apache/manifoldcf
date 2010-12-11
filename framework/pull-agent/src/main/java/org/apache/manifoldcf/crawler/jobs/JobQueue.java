@@ -390,11 +390,10 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     // Delete PENDING and ACTIVE entries
     ArrayList list = new ArrayList();
     list.add(jobID);
+    list.add(statusToString(STATUS_PENDING));
     // Clean out prereqevents table first
-    prereqEventManager.deleteRows(getTableName()+" t0","t0."+idField,"t0."+jobIDField+"=? AND t0."+statusField+"="+
-      quoteSQLString(statusToString(STATUS_PENDING)),list);
-    performDelete("WHERE "+jobIDField+"=? AND "+statusField+"="+
-      quoteSQLString(statusToString(STATUS_PENDING)),list,null);
+    prereqEventManager.deleteRows(getTableName()+" t0","t0."+idField,"t0."+jobIDField+"=? AND t0."+statusField+"=?",list);
+    performDelete("WHERE "+jobIDField+"=? AND "+statusField+"=?",list,null);
 
     // Turn PENDINGPURGATORY, COMPLETED into PURGATORY.
     HashMap map = new HashMap();
@@ -408,9 +407,11 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     // The alternative, which would be to reprioritize all the documents at this point, is somewhat attractive, but let's see if we can get away
     // without for now.
 
-    performUpdate(map,"WHERE "+jobIDField+"=? AND "+statusField+" IN ("+
-      quoteSQLString(statusToString(STATUS_PENDINGPURGATORY))+","+
-      quoteSQLString(statusToString(STATUS_COMPLETE))+")",list,null);
+    list.clear();
+    list.add(jobID);
+    list.add(statusToString(STATUS_PENDINGPURGATORY));
+    list.add(statusToString(STATUS_COMPLETE));
+    performUpdate(map,"WHERE "+jobIDField+"=? AND "+statusField+" IN (?,?)",list,null);
 
     // Not accurate, but best we can do without overhead
     noteModifications(0,2,0);
@@ -430,8 +431,6 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     // Delete PENDING and ACTIVE entries
-    ArrayList list = new ArrayList();
-    list.add(jobID);
     HashMap map = new HashMap();
     map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
     // Do not reset priorities.  This means, of course, that they may be out of date - but they are probably more accurate in their current form
@@ -443,8 +442,10 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     map.put(checkActionField,actionToString(ACTION_RESCAN));
     map.put(failTimeField,null);
     map.put(failCountField,null);
-    performUpdate(map,"WHERE "+jobIDField+"=? AND "+statusField+"="+
-      quoteSQLString(statusToString(STATUS_COMPLETE)),list,null);
+    ArrayList list = new ArrayList();
+    list.add(jobID);
+    list.add(statusToString(STATUS_COMPLETE));
+    performUpdate(map,"WHERE "+jobIDField+"=? AND "+statusField+"=?",list,null);
     noteModifications(0,1,0);
     // Do an analyze, otherwise our plans are going to be crap right off the bat
     unconditionallyAnalyzeTables();
@@ -479,12 +480,12 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   {
     ArrayList list = new ArrayList();
     list.add(jobID);
+    list.add(statusToString(STATUS_ACTIVE));
+    list.add(statusToString(STATUS_ACTIVEPURGATORY));
+    list.add(statusToString(STATUS_ACTIVENEEDRESCAN));
+    list.add(statusToString(STATUS_ACTIVENEEDRESCANPURGATORY));
     IResultSet set = performQuery("SELECT "+docHashField+" FROM "+getTableName()+
-      " WHERE "+jobIDField+"=? AND "+statusField+" IN ("+
-      quoteSQLString(statusToString(STATUS_ACTIVE))+","+
-      quoteSQLString(statusToString(STATUS_ACTIVEPURGATORY))+","+
-      quoteSQLString(statusToString(STATUS_ACTIVENEEDRESCAN))+","+
-      quoteSQLString(statusToString(STATUS_ACTIVENEEDRESCANPURGATORY))+") "+constructOffsetLimitClause(0,1),list,null,null,1);
+      " WHERE "+jobIDField+"=? AND "+statusField+" IN (?,?,?,?) "+constructOffsetLimitClause(0,1),list,null,null,1);
     return set.getRowCount() > 0;
   }
 

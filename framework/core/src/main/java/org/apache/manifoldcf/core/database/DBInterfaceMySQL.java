@@ -387,14 +387,18 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   {
     // Connect to super database
     Database masterDatabase = new Database(context,_url+"mysql",_driver,"mysql",adminUserName,adminPassword);
-    masterDatabase.executeQuery("CREATE DATABASE "+databaseName+" CHARACTER SET "+
-      quoteSQLString("utf8"),null,null,invalidateKeys,null,false,0,null,null);
+    ArrayList list = new ArrayList();
+    list.add("utf8");
+    masterDatabase.executeQuery("CREATE DATABASE "+databaseName+" CHARACTER SET ?",list,
+      null,invalidateKeys,null,false,0,null,null);
     if (userName != null)
     {
-      masterDatabase.executeQuery("GRANT ALL ON "+databaseName+".* TO "+
-        quoteSQLString(userName)+"@"+
-        quoteSQLString("localhost")+" IDENTIFIED BY "+
-        quoteSQLString(password),null,null,invalidateKeys,null,false,0,null,null);
+      list.clear();
+      list.add(userName);
+      list.add("localhost");
+      list.add(password);
+      masterDatabase.executeQuery("GRANT ALL ON "+databaseName+".* TO ?@? IDENTIFIED BY ?",list,
+        null,invalidateKeys,null,false,0,null,null);
     }
   }
 
@@ -560,7 +564,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   public String constructSubstringClause(String column, String regularExpression, boolean caseInsensitive)
   {
     // MHL for mysql
-    return quoteSQLString("");
+    return regularExpression;
   }
 
   /** Construct an offset/limit clause.
@@ -617,41 +621,6 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     }
     sb.append(" FROM (").append(baseQuery).append(") txxx1");
     return sb.toString();
-  }
-
-  /** Quote a sql string.
-  * This method quotes a sql string in the proper manner for the database in question.
-  *@param string is the input string.
-  *@return the properly quoted (and escaped) output string.
-  */
-  public String quoteSQLString(String string)
-  {
-    StringBuffer rval = new StringBuffer();
-    char quoteChar = '\'';
-    rval.append(quoteChar);
-    int i = 0;
-    while (i < string.length())
-    {
-      char x = string.charAt(i++);
-      if (x == quoteChar)
-        rval.append(quoteChar);
-      rval.append(x);
-    }
-    rval.append(quoteChar);
-    return rval.toString();
-  }
-
-  /** Prepare a sql date for use in a query.
-  * This method prepares a query constant using the sql date string passed in.
-  * The date passed in is presumed to be in "standard form", or something that might have
-  * come back from a resultset of a query.
-  *@param date is the date in standard form.
-  *@return the sql date expression to use for date comparisons.
-  */
-  public String prepareSQLDate(String date)
-  {
-    // MHL
-    return null;
   }
 
   /** Obtain the maximum number of individual items that should be

@@ -510,7 +510,9 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
   */
   public void deleteMatchingDocuments(Long jobID, String[] legalLinkTypes,
     String sourceTableName,
-    String sourceTableIDColumn, String sourceTableJobColumn, String sourceTableCriteria, int hopcountMethod)
+    String sourceTableIDColumn, String sourceTableJobColumn,
+    String sourceTableCriteria, ArrayList sourceTableParams,
+    int hopcountMethod)
     throws ManifoldCFException
   {
     // This should work similarly to deleteDocumentIdentifiers() except that the identifiers
@@ -523,7 +525,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       {
         doDeleteInvalidation(jobID,legalLinkTypes,false,null,sourceTableName,
           sourceTableIDColumn,sourceTableJobColumn,
-          sourceTableCriteria);
+          sourceTableCriteria,sourceTableParams);
       }
 
     }
@@ -566,7 +568,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
 
       // This also removes the links themselves...
       if (hopcountMethod == IJobDescription.HOPCOUNT_ACCURATE)
-        doDeleteInvalidation(jobID,legalLinkTypes,false,sourceDocumentHashes,null,null,null,null);
+        doDeleteInvalidation(jobID,legalLinkTypes,false,sourceDocumentHashes,null,null,null,null,null);
 
     }
     catch (ManifoldCFException e)
@@ -1024,7 +1026,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
 
 
         // Invalidate all links with the given source documents that match the common expression
-        doDeleteInvalidation(jobID,legalLinkTypes,true,sourceDocumentHashes,null,null,null,null);
+        doDeleteInvalidation(jobID,legalLinkTypes,true,sourceDocumentHashes,null,null,null,null,null);
       }
       // Make all new and existing links become just "base" again.
       intrinsicLinkManager.restoreLinks(jobID,sourceDocumentHashes);
@@ -1052,13 +1054,19 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
   * still connected to the root. */
   protected void doDeleteInvalidation(Long jobID, String[] legalLinkTypes, boolean existingOnly,
     String[] sourceDocumentHashes, String sourceTableName,
-    String sourceTableIDColumn, String sourceTableJobColumn, String sourceTableCriteria)
+    String sourceTableIDColumn, String sourceTableJobColumn,
+    String sourceTableCriteria, ArrayList sourceTableParams)
     throws ManifoldCFException
   {
 
     String commonNewExpression = null;
+    ArrayList commonNewList = null;
     if (existingOnly)
-      commonNewExpression = intrinsicLinkManager.newField+"="+quoteSQLString(intrinsicLinkManager.statusToString(intrinsicLinkManager.LINKSTATUS_BASE));
+    {
+      commonNewList = new ArrayList();
+      commonNewList.add(intrinsicLinkManager.statusToString(intrinsicLinkManager.LINKSTATUS_BASE));
+      commonNewExpression = intrinsicLinkManager.newField+"=?";
+    }
 
     // Clear up hopcount table
     if (sourceDocumentHashes == null || sourceDocumentHashes.length > 0)
@@ -1112,7 +1120,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
         {
           if (k == maxClause)
           {
-            markForDelete(sb.toString(),list,commonNewExpression);
+            markForDelete(sb.toString(),list,commonNewExpression,commonNewList);
             sb.setLength(0);
             list.clear();
             k = 0;
@@ -1128,7 +1136,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
           k++;
         }
         if (k > 0)
-          markForDelete(sb.toString(),list,commonNewExpression);
+          markForDelete(sb.toString(),list,commonNewExpression,commonNewList);
         noteModifications(0,sourceDocumentHashes.length,0);
       }
       else
@@ -1146,6 +1154,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
         list.add(jobID);
         list.add(jobID);
         list.add(jobID);
+        list.addAll(sourceTableParams);
         sb.append(idField).append(" IN(SELECT t0.").append(deleteDepsManager.ownerIDField).append(" FROM ")
           .append(deleteDepsManager.getTableName()).append(" t0,").append(sourceTableName).append(",")
           .append(intrinsicLinkManager.getTableName()).append(" t1 WHERE ")
@@ -1173,9 +1182,12 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
         Logging.hopcount.debug("Done setting hopcount rows for job "+jobID+" to initial distances");
 
       // Remove the intrinsic links that we said we would - BEFORE we evaluate the queue.
-      intrinsicLinkManager.removeLinks(jobID,commonNewExpression,sourceDocumentHashes,
-        sourceTableName,sourceTableIDColumn,sourceTableJobColumn,
-        sourceTableCriteria);
+      intrinsicLinkManager.removeLinks(jobID,
+        commonNewExpression,commonNewList,
+        sourceDocumentHashes,
+        sourceTableName,
+        sourceTableIDColumn,sourceTableJobColumn,
+        sourceTableCriteria,sourceTableParams);
 
       // Remove the delete dependencies of the nodes marked as being queued, with distance infinity.
       ArrayList queryList = new ArrayList();
@@ -1200,9 +1212,11 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
 
   }
 
-  protected void markForDelete(String query, ArrayList list, String commonNewExpression)
+  protected void markForDelete(String query, ArrayList list, String commonNewExpression, ArrayList commonNewList)
     throws ManifoldCFException
   {
+    ArrayList thisList = new ArrayList();
+    thisList.addAll(list);
     StringBuffer sb = new StringBuffer("WHERE ");
     sb.append(idField).append(" IN(SELECT ").append(deleteDepsManager.ownerIDField).append(" FROM ")
       .append(deleteDepsManager.getTableName()).append(" t0 WHERE (").append(query).append(") AND EXISTS(SELECT 'x' FROM ")
@@ -1214,14 +1228,17 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       .append(deleteDepsManager.parentIDHashField).append(" AND t1.").append(intrinsicLinkManager.childIDHashField)
       .append("=t0.").append(deleteDepsManager.childIDHashField);
     if (commonNewExpression != null)
+    {
       sb.append(" AND t1.").append(commonNewExpression);
+      thisList.addAll(commonNewList);
+    }
     sb.append("))");
 
     HashMap map = new HashMap();
     // These are whacked back to "infinity" to avoid infinite looping in a cut-off graph.
     map.put(distanceField,new Long(-1L));
     map.put(markForDeathField,markToString(MARK_DELETING));
-    performUpdate(map,sb.toString(),list,null);
+    performUpdate(map,sb.toString(),thisList,null);
   }
 
   /** Get document's children.

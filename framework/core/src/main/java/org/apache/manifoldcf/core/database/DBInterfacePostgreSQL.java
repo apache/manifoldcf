@@ -514,21 +514,27 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
       // Create user
       ArrayList params = new ArrayList();
       params.add(userName);
-      IResultSet set = masterDatabase.executeQuery("SELECT * FROM pg_user WHERE usename=?",params,null,null,null,true,-1,null,null);
+      IResultSet set = masterDatabase.executeQuery("SELECT * FROM pg_user WHERE usename=?",params,
+        null,null,null,true,-1,null,null);
       if (set.getRowCount() == 0)
       {
-	masterDatabase.executeQuery("CREATE USER "+userName+" PASSWORD "+
-	  quoteSQLString(password),null,null,invalidateKeys,null,false,0,null,null);
+        params.clear();
+        params.add(password);
+	masterDatabase.executeQuery("CREATE USER "+userName+" PASSWORD ?",params,
+          null,invalidateKeys,null,false,0,null,null);
       }
       
       // Create database
-      params = new ArrayList();
+      params.clear();
       params.add(databaseName);
-      set = masterDatabase.executeQuery("SELECT * FROM pg_database WHERE datname=?",params,null,null,null,true,-1,null,null);
+      set = masterDatabase.executeQuery("SELECT * FROM pg_database WHERE datname=?",params,
+        null,null,null,true,-1,null,null);
       if (set.getRowCount() == 0)
       {
+        params.clear();
+        params.add("utf8");
 	masterDatabase.executeQuery("CREATE DATABASE "+databaseName+" OWNER="+
-	  userName+" ENCODING="+quoteSQLString("utf8"),null,null,invalidateKeys,null,false,0,null,null);
+	  userName+" ENCODING=?",params,null,invalidateKeys,null,false,0,null,null);
       }
     }
     catch (ManifoldCFException e)
@@ -624,6 +630,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
     throws ManifoldCFException
   {
     StringBuffer query = new StringBuffer();
+    ArrayList list = new ArrayList();
     query.append("SELECT pg_attribute.attname AS \"Field\",");
     query.append("CASE pg_type.typname WHEN 'int2' THEN 'smallint' WHEN 'int4' THEN 'int'");
     query.append(" WHEN 'int8' THEN 'bigint' WHEN 'varchar' THEN 'varchar(' || pg_attribute.atttypmod-4 || ')'");
@@ -634,10 +641,11 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
     query.append("CASE pg_type.typname WHEN 'varchar' THEN substring(pg_attrdef.adsrc from '^(.*).*$') ELSE pg_attrdef.adsrc END AS Default ");
     query.append("FROM pg_class INNER JOIN pg_attribute ON (pg_class.oid=pg_attribute.attrelid) INNER JOIN pg_type ON (pg_attribute.atttypid=pg_type.oid) ");
     query.append("LEFT JOIN pg_attrdef ON (pg_class.oid=pg_attrdef.adrelid AND pg_attribute.attnum=pg_attrdef.adnum) ");
-    query.append("WHERE pg_class.relname=").append(quoteSQLString(tableName)).append(" AND pg_attribute.attnum>=1 AND NOT pg_attribute.attisdropped ");
+    query.append("WHERE pg_class.relname=? AND pg_attribute.attnum>=1 AND NOT pg_attribute.attisdropped ");
     query.append("ORDER BY pg_attribute.attnum");
+    list.add(tableName);
 
-    IResultSet set = performQuery(query.toString(),null,cacheKeys,queryClass);
+    IResultSet set = performQuery(query.toString(),list,cacheKeys,queryClass);
     if (set.getRowCount() == 0)
       return null;
     // Digest the result
@@ -669,9 +677,11 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
 
     String query = "SELECT pg_catalog.pg_get_indexdef(i.indexrelid, 0, true) AS indexdef "+
       "FROM pg_catalog.pg_class c, pg_catalog.pg_class c2, pg_catalog.pg_index i "+
-      "WHERE c.relname = '"+tableName+"' AND c.oid = i.indrelid AND i.indexrelid = c2.oid";
-
-    IResultSet result = performQuery(query,null,cacheKeys,queryClass);
+      "WHERE c.relname = ? AND c.oid = i.indrelid AND i.indexrelid = c2.oid";
+    ArrayList list = new ArrayList();
+    list.add(tableName);
+    
+    IResultSet result = performQuery(query,list,cacheKeys,queryClass);
     int i = 0;
     while (i < result.getRowCount())
     {
@@ -927,41 +937,6 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
     }
     sb.append(" FROM (").append(baseQuery).append(") txxx1");
     return sb.toString();
-  }
-
-  /** Quote a sql string.
-  * This method quotes a sql string in the proper manner for the database in question.
-  *@param string is the input string.
-  *@return the properly quoted (and escaped) output string.
-  */
-  public String quoteSQLString(String string)
-  {
-    StringBuffer rval = new StringBuffer();
-    char quoteChar = '\'';
-    rval.append(quoteChar);
-    int i = 0;
-    while (i < string.length())
-    {
-      char x = string.charAt(i++);
-      if (x == quoteChar)
-        rval.append(quoteChar);
-      rval.append(x);
-    }
-    rval.append(quoteChar);
-    return rval.toString();
-  }
-
-  /** Prepare a sql date for use in a query.
-  * This method prepares a query constant using the sql date string passed in.
-  * The date passed in is presumed to be in "standard form", or something that might have
-  * come back from a resultset of a query.
-  *@param date is the date in standard form.
-  *@return the sql date expression to use for date comparisons.
-  */
-  public String prepareSQLDate(String date)
-  {
-    // MHL
-    return null;
   }
 
   /** Obtain the maximum number of individual items that should be

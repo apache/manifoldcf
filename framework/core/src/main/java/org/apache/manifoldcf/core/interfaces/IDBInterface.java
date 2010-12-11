@@ -297,22 +297,6 @@ public interface IDBInterface
   */
   public String constructDistinctOnClause(ArrayList outputParameters, String baseQuery, ArrayList baseParameters, String[] distinctFields, Map otherFields);
   
-  /** Quote a sql string.
-  * This method quotes a sql string in the proper manner for the database in question.
-  *@param string is the input string.
-  *@return the properly quoted (and escaped) output string.
-  */
-  public String quoteSQLString(String string);
-
-  /** Prepare a sql date for use in a query.
-  * This method prepares a query constant using the sql date string passed in.
-  * The date passed in is presumed to be in "standard form", or something that might have
-  * come back from a resultset of a query.
-  *@param date is the date in standard form.
-  *@return the sql date expression to use for date comparisons.
-  */
-  public String prepareSQLDate(String date);
-
   /** Obtain the maximum number of individual items that should be
   * present in an IN clause.  Exceeding this amount will potentially cause the query performance
   * to drop.
