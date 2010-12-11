@@ -417,10 +417,12 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       ssb.add(getJobStatusKey());
       StringSet cacheKeys = new StringSet(ssb);
 
+      ArrayList list = new ArrayList();
+      list.add(statusToString(STATUS_READYFORDELETE));
+      list.add(statusToString(STATUS_READYFORDELETE_NOOUTPUT));
       IResultSet set = performQuery("SELECT "+idField+","+descriptionField+" FROM "+
-        getTableName()+" WHERE "+statusField+"!="+quoteSQLString(statusToString(STATUS_READYFORDELETE))+
-        " AND "+statusField+"!="+quoteSQLString(statusToString(STATUS_READYFORDELETE_NOOUTPUT))+
-        " ORDER BY "+descriptionField+" ASC",null,cacheKeys,null);
+        getTableName()+" WHERE "+statusField+"!=? AND "+statusField+"!=?"+
+        " ORDER BY "+descriptionField+" ASC",list,cacheKeys,null);
       // Convert to an array of id's, and then load them
       Long[] ids = new Long[set.getRowCount()];
       boolean[] readOnlies = new boolean[set.getRowCount()];
@@ -455,10 +457,11 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public IResultSet getActiveJobConnections()
     throws ManifoldCFException
   {
+    ArrayList list = new ArrayList();
+    list.add(statusToString(STATUS_ACTIVE));
+    list.add(statusToString(STATUS_ACTIVESEEDING));
     return performQuery("SELECT "+idField+" AS jobid,"+connectionNameField+" AS connectionname FROM "+getTableName()+" WHERE "+
-      statusField+" IN ("+
-      quoteSQLString(statusToString(STATUS_ACTIVE))+","+
-      quoteSQLString(statusToString(STATUS_ACTIVESEEDING))+")",null,null,null);
+      statusField+" IN (?,?)",list,null,null);
   }
 
   /** Get unique connection names for all active jobs.
@@ -467,10 +470,11 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public String[] getActiveConnectionNames()
     throws ManifoldCFException
   {
+    ArrayList list = new ArrayList();
+    list.add(statusToString(STATUS_ACTIVE));
+    list.add(statusToString(STATUS_ACTIVESEEDING));
     IResultSet set = performQuery("SELECT DISTINCT "+connectionNameField+" FROM "+getTableName()+" WHERE "+
-      statusField+" IN ("+
-      quoteSQLString(statusToString(STATUS_ACTIVE))+","+
-      quoteSQLString(statusToString(STATUS_ACTIVESEEDING))+")",null,null,null);
+      statusField+" IN (?,?)",list,null,null);
     String[] rval = new String[set.getRowCount()];
     int i = 0;
     while (i < set.getRowCount())
@@ -486,11 +490,12 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public boolean hasPriorityJobs(int priority)
     throws ManifoldCFException
   {
+    ArrayList list = new ArrayList();
+    list.add(statusToString(STATUS_ACTIVE));
+    list.add(statusToString(STATUS_ACTIVESEEDING));
     IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+priorityField+"="+Integer.toString(priority)+
       " AND "+
-      statusField+" IN ("+
-      quoteSQLString(statusToString(STATUS_ACTIVE))+","+
-      quoteSQLString(statusToString(STATUS_ACTIVESEEDING))+") "+constructOffsetLimitClause(0,1),null,null,null,1);
+      statusField+" IN (?,?) "+constructOffsetLimitClause(0,1),list,null,null,1);
     return set.getRowCount() > 0;
   }
 
@@ -1766,10 +1771,12 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public boolean deletingJobsPresent()
     throws ManifoldCFException
   {
+    ArrayList list = new ArrayList();
+    list.add(statusToString(STATUS_READYFORDELETE));
+    list.add(statusToString(STATUS_SHUTTINGDOWN));
     IResultSet set = performQuery("SELECT "+idField+" FROM "+getTableName()+" WHERE "+
-      statusField+" IN ("+quoteSQLString(statusToString(STATUS_READYFORDELETE))+","+
-      quoteSQLString(statusToString(STATUS_SHUTTINGDOWN))+") "+constructOffsetLimitClause(0,1),
-      null,new StringSet(getJobStatusKey()),null,1);
+      statusField+" IN (?,?) "+constructOffsetLimitClause(0,1),
+      list,new StringSet(getJobStatusKey()),null,1);
     return set.getRowCount() > 0;
   }
 
@@ -1783,11 +1790,11 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   {
     // To improve the postgres CPU usage of the system at rest, we do a *fast* check to be
     // sure there are ANY jobs in an active state.
+    ArrayList list = new ArrayList();
+    list.add(statusToString(STATUS_ACTIVE));
+    list.add(statusToString(STATUS_ACTIVESEEDING));
     IResultSet set = performQuery("SELECT "+idField+" FROM "+getTableName()+" WHERE "+
-      statusField+" IN ("+
-      quoteSQLString(statusToString(STATUS_ACTIVE)) + "," +
-      quoteSQLString(statusToString(STATUS_ACTIVESEEDING)) +
-      ") "+constructOffsetLimitClause(0,1),null,new StringSet(getJobStatusKey()),null,1);
+      statusField+" IN (?,?) "+constructOffsetLimitClause(0,1),list,new StringSet(getJobStatusKey()),null,1);
     return set.getRowCount() > 0;
   }
 

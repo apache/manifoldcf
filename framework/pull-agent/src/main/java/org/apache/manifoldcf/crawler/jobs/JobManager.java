@@ -820,27 +820,35 @@ public class JobManager implements IJobManager
 
         // Note: This query does not do "FOR UPDATE", because it is running under the only thread that can possibly change the document's state to "being deleted".
         // If FOR UPDATE was included, deadlock happened a lot.
+        ArrayList list = new ArrayList();
+        list.add(jobQueue.statusToString(jobQueue.STATUS_COMPLETE));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_PURGATORY));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY));
+        
+        list.add(jobs.statusToString(jobs.STATUS_READYFORDELETE));
+        
+        list.add(jobQueue.statusToString(jobQueue.STATUS_PURGATORY));
+        
+        list.add(jobs.statusToString(jobs.STATUS_SHUTTINGDOWN));
+        
+        list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVE));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
+        
         IResultSet set = database.performQuery("SELECT "+jobQueue.idField+","+jobQueue.jobIDField+","+jobQueue.docHashField+","+jobQueue.docIDField+","+
           jobQueue.failTimeField+","+jobQueue.failCountField+" FROM "+
-          jobQueue.getTableName()+" t0 WHERE ((t0."+jobQueue.statusField+" IN ("+
-          database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_COMPLETE))+","+
-          database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PURGATORY))+","+
-          database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY))+
-          ") AND EXISTS(SELECT 'x' FROM "+jobs.getTableName()+" t1 WHERE t0."+jobQueue.jobIDField+"=t1."+jobs.idField+
-          " AND t1."+jobs.statusField+"="+database.quoteSQLString(jobs.statusToString(jobs.STATUS_READYFORDELETE))+
-          ")) OR (t0."+jobQueue.statusField+"="+database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PURGATORY))+
+          jobQueue.getTableName()+" t0 WHERE ((t0."+jobQueue.statusField+" IN (?,?,?) "+
+          " AND EXISTS(SELECT 'x' FROM "+jobs.getTableName()+" t1 WHERE t0."+jobQueue.jobIDField+"=t1."+jobs.idField+
+          " AND t1."+jobs.statusField+"=?"+
+          ")) OR (t0."+jobQueue.statusField+"=?"+
           " AND EXISTS(SELECT 'x' FROM "+jobs.getTableName()+" t3 WHERE t0."+jobQueue.jobIDField+"=t3."+jobs.idField+
-          " AND t3."+jobs.statusField+"="+database.quoteSQLString(jobs.statusToString(jobs.STATUS_SHUTTINGDOWN))+
+          " AND t3."+jobs.statusField+"=?"+
           "))) AND NOT EXISTS(SELECT 'x' FROM "+jobQueue.getTableName()+" t2 WHERE t0."+jobQueue.docHashField+"=t2."+
           jobQueue.docHashField+" AND t0."+jobQueue.jobIDField+"!=t2."+jobQueue.jobIDField+
-          " AND t2."+jobQueue.statusField+" IN ("+
-          database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVE))+","+
-          database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY))+","+
-          database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN))+","+
-          database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY))+","+
-          database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED))+
-          ")) "+database.constructOffsetLimitClause(0,maxCount),
-          null,null,null,maxCount,null);
+          " AND t2."+jobQueue.statusField+" IN (?,?,?,?,?)) "+database.constructOffsetLimitClause(0,maxCount),
+          list,null,null,maxCount,null);
 
         if (Logging.perf.isDebugEnabled())
           Logging.perf.debug("Done getting docs to delete queue after "+new Long(System.currentTimeMillis()-startTime).toString()+" ms.");
@@ -1034,13 +1042,16 @@ public class JobManager implements IJobManager
     // for a document.  This state will allow the various queries that queue up activities to avoid documents that
     // are currently being processed elsewhere.
 
-    sb.append(") AND t0.").append(jobQueue.statusField).append(" IN (")
-      .append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PURGATORY))).append(",")
-      .append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY))).append(",")
-      .append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_COMPLETE))).append(") AND EXISTS(SELECT 'x' FROM ").append(jobs.getTableName()).append(" t1 WHERE t0.")
+    list.add(jobQueue.statusToString(jobQueue.STATUS_PURGATORY));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_COMPLETE));
+    
+    list.add(connectionName);
+    
+    sb.append(") AND t0.").append(jobQueue.statusField).append(" IN (?,?,?) AND EXISTS(SELECT 'x' FROM ")
+      .append(jobs.getTableName()).append(" t1 WHERE t0.")
       .append(jobQueue.jobIDField).append("=t1.").append(jobs.idField).append(" AND t1.")
       .append(jobs.connectionNameField).append("=?)");
-    list.add(connectionName);
 
     // Do the query, and then count the number of times each document identifier occurs.
     IResultSet results = database.performQuery(sb.toString(),list,null,null);
@@ -1097,14 +1108,16 @@ public class JobManager implements IJobManager
     // The desired query is:
     // SELECT docid FROM jobqueue WHERE prioritysettime < (currentTime) LIMIT (n)
 
+    list.add(new Long(currentTime));
+    
+    list.add(jobQueue.statusToString(JobQueue.STATUS_COMPLETE));
+    list.add(jobQueue.statusToString(JobQueue.STATUS_PURGATORY));
+    
     sb.append("SELECT ").append(jobQueue.idField).append(",").append(jobQueue.docHashField).append(",")
       .append(jobQueue.docIDField).append(",").append(jobQueue.jobIDField)
       .append(" FROM ").append(jobQueue.getTableName()).append(" WHERE ")
-      .append(jobQueue.prioritySetField).append("<? AND ").append(jobQueue.statusField).append(" IN(")
-      .append(database.quoteSQLString(jobQueue.statusToString(JobQueue.STATUS_COMPLETE))).append(",")
-      .append(database.quoteSQLString(jobQueue.statusToString(JobQueue.STATUS_PURGATORY))).append(")")
-      .append(" ").append(database.constructOffsetLimitClause(0,n));
-    list.add(new Long(currentTime));
+      .append(jobQueue.prioritySetField).append("<? AND ").append(jobQueue.statusField).append(" IN(?,?) ")
+      .append(database.constructOffsetLimitClause(0,n));
 
     IResultSet set = database.performQuery(sb.toString(),list,null,null,n,null);
 
@@ -1139,34 +1152,39 @@ public class JobManager implements IJobManager
 
     // This query MUST return only documents that are in a pending state which belong to an active job!!!
 
+    list.add(Jobs.statusToString(Jobs.STATUS_ACTIVE));
+    list.add(Jobs.statusToString(Jobs.STATUS_PAUSED));
+    list.add(Jobs.statusToString(Jobs.STATUS_ACTIVEWAIT));
+    list.add(Jobs.statusToString(Jobs.STATUS_PAUSEDWAIT));
+    list.add(Jobs.statusToString(Jobs.STATUS_ACTIVE));
+    list.add(Jobs.statusToString(Jobs.STATUS_READYFORSTARTUP));
+    list.add(Jobs.statusToString(Jobs.STATUS_STARTINGUP));
+    list.add(Jobs.statusToString(Jobs.STATUS_ABORTINGSTARTINGUPFORRESTART));
+    list.add(Jobs.statusToString(Jobs.STATUS_ABORTINGSTARTINGUP));
+    list.add(Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING));
+    list.add(Jobs.statusToString(Jobs.STATUS_PAUSEDSEEDING));
+    list.add(Jobs.statusToString(Jobs.STATUS_ACTIVEWAITSEEDING));
+    list.add(Jobs.statusToString(Jobs.STATUS_PAUSEDWAITSEEDING));
+    list.add(Jobs.statusToString(Jobs.STATUS_ABORTING));
+    list.add(Jobs.statusToString(Jobs.STATUS_ABORTINGFORRESTART));
+    list.add(Jobs.statusToString(Jobs.STATUS_ABORTINGFORRESTARTSEEDING));
+    
+    list.add(new Long(currentTime));
+
+    list.add(JobQueue.statusToString(jobQueue.STATUS_PENDING));
+    list.add(JobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY));
+    
+    list.add(jobQueue.actionToString(JobQueue.ACTION_RESCAN));
+    
     sb.append("SELECT ").append(jobQueue.idField).append(",").append(jobQueue.docHashField).append(",")
       .append(jobQueue.docIDField).append(",").append(jobQueue.jobIDField)
       .append(" FROM ").append(jobQueue.getTableName()).append(" t0 WHERE EXISTS(SELECT 'x' FROM ").append(jobs.getTableName())
       .append(" t1 WHERE t0.").append(jobQueue.jobIDField).append("=t1.").append(jobs.idField).append(" AND t1.")
-      .append(jobs.statusField).append(" IN(")
-      .append(database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_ACTIVE))).append(",")
-      .append(database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_PAUSED))).append(",")
-      .append(database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_ACTIVEWAIT))).append(",")
-      .append(database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_PAUSEDWAIT))).append(",")
-      .append(database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_ACTIVE))).append(",")
-      .append(database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_READYFORSTARTUP))).append(",")
-      .append(database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_STARTINGUP))).append(",")
-      .append(database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_ABORTINGSTARTINGUPFORRESTART))).append(",")
-      .append(database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_ABORTINGSTARTINGUP))).append(",")
-      .append(database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING))).append(",")
-      .append(database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_PAUSEDSEEDING))).append(",")
-      .append(database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_ACTIVEWAITSEEDING))).append(",")
-      .append(database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_PAUSEDWAITSEEDING))).append(",")
-      .append(database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_ABORTING))).append(",")
-      .append(database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_ABORTINGFORRESTART))).append(",")
-      .append(database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_ABORTINGFORRESTARTSEEDING))).append(")) AND ")
-      .append(jobQueue.prioritySetField).append("<? AND ").append(jobQueue.statusField).append(" IN(")
-      .append(database.quoteSQLString(JobQueue.statusToString(jobQueue.STATUS_PENDING))).append(",")
-      .append(database.quoteSQLString(JobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY))).append(") AND (")
+      .append(jobs.statusField).append(" IN(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)) AND ")
+      .append(jobQueue.prioritySetField).append("<? AND ").append(jobQueue.statusField).append(" IN(?,?) AND (")
       .append(jobQueue.checkActionField).append(" IS NULL OR ")
-      .append(jobQueue.checkActionField).append("=").append(database.quoteSQLString(jobQueue.actionToString(JobQueue.ACTION_RESCAN)))
+      .append(jobQueue.checkActionField).append("=?")
       .append(") ").append(database.constructOffsetLimitClause(0,n));
-    list.add(new Long(currentTime));
 
     // Analyze jobqueue tables unconditionally, since it's become much more sensitive in 8.3 than it used to be.
     jobQueue.unconditionallyAnalyzeTables();
@@ -1303,6 +1321,15 @@ public class JobManager implements IJobManager
     list.add(jobQueue.statusToString(JobQueue.STATUS_PENDING));
     list.add(jobQueue.statusToString(JobQueue.STATUS_PENDINGPURGATORY));
 
+    list.add(jobs.statusToString(jobs.STATUS_ACTIVE));
+    list.add(jobs.statusToString(jobs.STATUS_ACTIVESEEDING));
+    
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVE));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
+    
     StringBuffer sb = new StringBuffer("SELECT t0.");
     sb.append(jobQueue.idField).append(",t0.");
     sb.append(jobQueue.jobIDField).append(",t0.");
@@ -1315,19 +1342,11 @@ public class JobManager implements IJobManager
     sb.append(jobQueue.checkTimeField).append("<=? AND t0.");
     sb.append(jobQueue.checkActionField).append("=? AND ");
     sb.append("t0.").append(jobQueue.statusField).append(" IN(?,?) AND t0.").append(jobQueue.jobIDField).append("=t1.").append(jobs.idField).append(" AND t1.")
-      .append(jobs.statusField).append(" IN (")
-      .append(database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVE))).append(",")
-      .append(database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVESEEDING))).append(") AND ");
+      .append(jobs.statusField).append(" IN (?,?) AND ");
     sb.append("NOT EXISTS(SELECT 'x' FROM ").append(jobQueue.getTableName()).append(" t2 WHERE t0.")
       .append(jobQueue.docHashField).append("=t2.").append(jobQueue.docHashField).append(" AND t0.")
       .append(jobQueue.jobIDField).append("!=t2.").append(jobQueue.jobIDField).append(" AND t2.")
-      .append(jobQueue.statusField).append(" IN (")
-      .append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVE))).append(",")
-      .append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY))).append(",")
-      .append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN))).append(",")
-      .append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY))).append(",")
-      .append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED)))
-      .append("))");
+      .append(jobQueue.statusField).append(" IN (?,?,?,?,?))");
     sb.append(" ").append(database.constructOffsetLimitClause(0,n));
 
     // Analyze jobqueue tables unconditionally, since it's become much more sensitive in 8.3 than it used to be.
@@ -1701,14 +1720,22 @@ public class JobManager implements IJobManager
 
     StringBuffer sb = new StringBuffer("SELECT ");
     ArrayList list = new ArrayList();
+    
+    list.add(Jobs.statusToString(jobs.STATUS_ACTIVE));
+    list.add(Jobs.statusToString(jobs.STATUS_ACTIVESEEDING));
+    
+    list.add(currentTimeValue);
+    
+    list.add(jobQueue.actionToString(JobQueue.ACTION_RESCAN));
+    
+    list.add(jobQueue.statusToString(JobQueue.STATUS_PENDING));
+    list.add(jobQueue.statusToString(JobQueue.STATUS_PENDINGPURGATORY));
+    
     sb.append(jobQueue.docPriorityField).append(",").append(jobQueue.jobIDField).append(",")
       .append(jobQueue.docHashField).append(",").append(jobQueue.docIDField)
       .append(" FROM ").append(jobQueue.getTableName())
       .append(" t0 WHERE EXISTS(SELECT 'x' FROM ").append(jobs.getTableName()).append(" t1 WHERE t0.").append(jobQueue.jobIDField)
-      .append("=t1.").append(jobs.idField).append(" AND t1.").append(jobs.statusField).append(" IN(")
-      .append(database.quoteSQLString(Jobs.statusToString(jobs.STATUS_ACTIVE))).append(",")
-      .append(database.quoteSQLString(Jobs.statusToString(jobs.STATUS_ACTIVESEEDING)))
-      .append(")) AND ")
+      .append("=t1.").append(jobs.idField).append(" AND t1.").append(jobs.statusField).append(" IN(?,?)) AND ")
       .append(jobQueue.checkTimeField).append("<=? AND (")
       .append(jobQueue.checkActionField).append(" IS NULL OR ")
       .append(jobQueue.checkActionField).append("=?")
@@ -1716,10 +1743,6 @@ public class JobManager implements IJobManager
       .append(jobQueue.statusField).append("=? OR ").append(jobQueue.statusField).append("=?)")
       .append(" ORDER BY ").append(jobQueue.docPriorityField).append(" ASC ").append(database.constructOffsetLimitClause(0,1));
 
-    list.add(currentTimeValue);
-    list.add(jobQueue.actionToString(JobQueue.ACTION_RESCAN));
-    list.add(jobQueue.statusToString(JobQueue.STATUS_PENDING));
-    list.add(jobQueue.statusToString(JobQueue.STATUS_PENDINGPURGATORY));
 
     IResultSet set = database.performQuery(sb.toString(),list,null,null,1,null);
     if (set.getRowCount() > 0)
@@ -1734,30 +1757,35 @@ public class JobManager implements IJobManager
   protected void addDocumentCriteria(StringBuffer sb, ArrayList list, Long currentTimeValue, Long currentPriorityValue)
     throws ManifoldCFException
   {
+    
     list.add(currentTimeValue);
+    
     list.add(jobQueue.actionToString(JobQueue.ACTION_RESCAN));
+    
     list.add(jobQueue.statusToString(JobQueue.STATUS_PENDING));
     list.add(jobQueue.statusToString(JobQueue.STATUS_PENDINGPURGATORY));
+    
+    list.add(jobs.statusToString(jobs.STATUS_ACTIVE));
+    list.add(jobs.statusToString(jobs.STATUS_ACTIVESEEDING));
+    
     list.add(currentPriorityValue);
 
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVE));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
+    
     sb.append("t0.").append(jobQueue.checkTimeField).append("<=? AND ");
     sb.append("(t0.").append(jobQueue.checkActionField).append(" IS NULL OR t0.").append(jobQueue.checkActionField)
       .append("=?) AND ");
     sb.append("(t0.").append(jobQueue.statusField).append("=? OR t0.").append(jobQueue.statusField).append("=?) AND t0.").append(jobQueue.jobIDField).append("=t1.").append(jobs.idField).append(" AND t1.")
-      .append(jobs.statusField).append(" IN (")
-      .append(database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVE))).append(",")
-      .append(database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVESEEDING))).append(") AND t1.")
+      .append(jobs.statusField).append(" IN (?,?) AND t1.")
       .append(jobs.priorityField).append("=? AND ");
     sb.append("NOT EXISTS(SELECT 'x' FROM ").append(jobQueue.getTableName()).append(" t2 WHERE t0.")
       .append(jobQueue.docHashField).append("=t2.").append(jobQueue.docHashField).append(" AND t0.")
       .append(jobQueue.jobIDField).append("!=t2.").append(jobQueue.jobIDField).append(" AND t2.")
-      .append(jobQueue.statusField).append(" IN (")
-      .append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVE))).append(",")
-      .append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY))).append(",")
-      .append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN))).append(",")
-      .append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY))).append(",")
-      .append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED)))
-      .append(")) AND ");
+      .append(jobQueue.statusField).append(" IN (?,?,?,?,?)) AND ");
 
     // Prerequisite event clause: AND NOT EXISTS(SELECT 'x' FROM prereqevents t3,events t4 WHERE t3.ownerid=t0.id AND t3.name=t4.name)
     sb.append("NOT EXISTS(SELECT 'x' FROM ").append(jobQueue.prereqEventManager.getTableName()).append(" t3,").append(eventManager.getTableName()).append(" t4 WHERE t0.")
@@ -3856,6 +3884,15 @@ public class JobManager implements IJobManager
     try
     {
       // First, query the appropriate fields of all jobs.
+      ArrayList list = new ArrayList();
+      list.add(jobs.statusToString(jobs.STATUS_INACTIVE));
+      list.add(jobs.statusToString(jobs.STATUS_ACTIVEWAIT));
+      list.add(jobs.statusToString(jobs.STATUS_ACTIVEWAITSEEDING));
+      list.add(jobs.statusToString(jobs.STATUS_PAUSEDWAIT));
+      list.add(jobs.statusToString(jobs.STATUS_PAUSEDWAITSEEDING));
+      
+      list.add(jobs.startMethodToString(IJobDescription.START_DISABLE));
+      
       IResultSet set = database.performQuery("SELECT "+
         jobs.idField+","+
         jobs.lastTimeField+","+
@@ -3864,15 +3901,9 @@ public class JobManager implements IJobManager
         jobs.outputNameField+","+
         jobs.connectionNameField+
         " FROM "+jobs.getTableName()+" WHERE "+
-        jobs.statusField+" IN ("+
-        database.quoteSQLString(jobs.statusToString(jobs.STATUS_INACTIVE))+","+
-        database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVEWAIT))+","+
-        database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVEWAITSEEDING))+","+
-        database.quoteSQLString(jobs.statusToString(jobs.STATUS_PAUSEDWAIT))+","+
-        database.quoteSQLString(jobs.statusToString(jobs.STATUS_PAUSEDWAITSEEDING))+") AND "+
-        jobs.startMethodField+"!="+database.quoteSQLString(jobs.startMethodToString(IJobDescription.START_DISABLE))+
-        " FOR UPDATE",
-        null,null,null);
+        jobs.statusField+" IN (?,?,?,?,?) AND "+
+        jobs.startMethodField+"!=? FOR UPDATE",
+        list,null,null);
 
       // Next, we query for the schedule information.  In order to do that, we amass a list of job identifiers that we want schedule info
       // for.
@@ -4094,23 +4125,25 @@ public class JobManager implements IJobManager
     try
     {
       // First, query the appropriate fields of all jobs.
+      ArrayList list = new ArrayList();
+      list.add(jobs.statusToString(jobs.STATUS_ACTIVE));
+      list.add(jobs.statusToString(jobs.STATUS_ACTIVESEEDING));
+      list.add(jobs.statusToString(jobs.STATUS_ACTIVE_UNINSTALLED));
+      list.add(jobs.statusToString(jobs.STATUS_ACTIVESEEDING_UNINSTALLED));
+      list.add(jobs.statusToString(jobs.STATUS_ACTIVE_NOOUTPUT));
+      list.add(jobs.statusToString(jobs.STATUS_ACTIVESEEDING_NOOUTPUT));
+      list.add(jobs.statusToString(jobs.STATUS_ACTIVE_NEITHER));
+      list.add(jobs.statusToString(jobs.STATUS_ACTIVESEEDING_NEITHER));
+      list.add(jobs.statusToString(jobs.STATUS_PAUSED));
+      list.add(jobs.statusToString(jobs.STATUS_PAUSEDSEEDING));
+      
       IResultSet set = database.performQuery("SELECT "+
         jobs.idField+","+
         jobs.statusField+
         " FROM "+jobs.getTableName()+" WHERE "+
-        jobs.statusField+" IN ("+
-        database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVE))+","+
-        database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVESEEDING))+","+
-        database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVE_UNINSTALLED))+","+
-        database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVESEEDING_UNINSTALLED))+","+
-        database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVE_NOOUTPUT))+","+
-        database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVESEEDING_NOOUTPUT))+","+
-        database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVE_NEITHER))+","+
-        database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVESEEDING_NEITHER))+","+
-        database.quoteSQLString(jobs.statusToString(jobs.STATUS_PAUSED))+","+
-        database.quoteSQLString(jobs.statusToString(jobs.STATUS_PAUSEDSEEDING))+") AND "+
+        jobs.statusField+" IN (?,?,?,?,?,?,?,?,?,?) AND "+
         jobs.windowEndField+"<"+(new Long(currentTime)).toString()+" FOR UPDATE",
-        null,null,null);
+        list,null,null);
 
       int i = 0;
       while (i < set.getRowCount())
@@ -4490,10 +4523,14 @@ public class JobManager implements IJobManager
       {
         // Delete all documents that match a given criteria
         if (legalLinkTypes.length > 0)
+        {
+          ArrayList list = new ArrayList();
+          list.add(jobQueue.statusToString(jobQueue.STATUS_PENDING));
           hopCount.deleteMatchingDocuments(jobID,legalLinkTypes,jobQueue.getTableName()+" t99",
-          "t99."+jobQueue.docHashField,"t99."+jobQueue.jobIDField,
-          "t99."+jobQueue.statusField+"="+database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDING)),
-          hopcountMethod);
+            "t99."+jobQueue.docHashField,"t99."+jobQueue.jobIDField,
+            "t99."+jobQueue.statusField+"=?",list,
+            hopcountMethod);
+        }
 
         jobQueue.prepareFullScan(jobID);
         break;
@@ -4664,12 +4701,16 @@ public class JobManager implements IJobManager
       {
         // Do the query
         ArrayList list = new ArrayList();
+        
+        list.add(jobs.statusToString(jobs.STATUS_ACTIVE));
+        list.add(jobs.typeToString(jobs.TYPE_CONTINUOUS));
+        
         list.add(new Long(currentTime));
+        
         IResultSet set = database.performQuery("SELECT "+jobs.idField+","+jobs.lastCheckTimeField+","+
           jobs.reseedIntervalField+" FROM "+
-          jobs.getTableName()+" WHERE "+jobs.statusField+"="+
-          database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVE))+" AND "+
-          jobs.typeField+"="+database.quoteSQLString(jobs.typeToString(jobs.TYPE_CONTINUOUS))+" AND ("+
+          jobs.getTableName()+" WHERE "+jobs.statusField+"=? AND "+
+          jobs.typeField+"=? AND ("+
           jobs.reseedTimeField+" IS NULL OR "+jobs.reseedTimeField+"<=?) FOR UPDATE",list,null,null);
         // Update them all
         JobStartRecord[] rval = new JobStartRecord[set.getRowCount()];
@@ -4741,9 +4782,10 @@ public class JobManager implements IJobManager
       try
       {
         // Do the query
+        ArrayList list = new ArrayList();
+        list.add(jobs.statusToString(jobs.STATUS_READYFORSTARTUP));
         IResultSet set = database.performQuery("SELECT "+jobs.idField+","+jobs.lastCheckTimeField+" FROM "+
-          jobs.getTableName()+" WHERE "+jobs.statusField+"="+
-          database.quoteSQLString(jobs.statusToString(jobs.STATUS_READYFORSTARTUP))+" FOR UPDATE",null,null,null);
+          jobs.getTableName()+" WHERE "+jobs.statusField+"=? FOR UPDATE",list,null,null);
         // Update them all
         JobStartRecord[] rval = new JobStartRecord[set.getRowCount()];
         int i = 0;
@@ -5088,10 +5130,11 @@ public class JobManager implements IJobManager
         // early exit!!
 
         // Do the first query, getting the candidate jobs to be considered
+        ArrayList list = new ArrayList();
+        list.add(jobs.statusToString(jobs.STATUS_READYFORDELETE));
+        list.add(jobs.statusToString(jobs.STATUS_READYFORDELETE_NOOUTPUT));
         IResultSet set = database.performQuery("SELECT "+jobs.idField+" FROM "+
-          jobs.getTableName()+" WHERE "+jobs.statusField+" IN("+
-          database.quoteSQLString(jobs.statusToString(jobs.STATUS_READYFORDELETE))+","+
-          database.quoteSQLString(jobs.statusToString(jobs.STATUS_READYFORDELETE_NOOUTPUT))+") FOR UPDATE",null,null,null);
+          jobs.getTableName()+" WHERE "+jobs.statusField+" IN(?,?) FOR UPDATE",list,null,null);
 
         // Now, loop through this list.  For each one, verify that it's okay to delete it
         int i = 0;
@@ -5100,7 +5143,7 @@ public class JobManager implements IJobManager
           IResultRow row = set.getRow(i++);
           Long jobID = (Long)row.getValue(jobs.idField);
 
-          ArrayList list = new ArrayList();
+          list.clear();
           list.add(jobID);
           list.add(jobQueue.statusToString(jobQueue.STATUS_COMPLETE));
           list.add(jobID);
@@ -5186,13 +5229,15 @@ public class JobManager implements IJobManager
         // early exit!!
 
         // Do the first query, getting the candidate jobs to be considered
+        ArrayList list = new ArrayList();
+        list.add(jobs.statusToString(jobs.STATUS_ACTIVE));
+        list.add(jobs.statusToString(jobs.STATUS_ACTIVEWAIT));
+        list.add(jobs.statusToString(jobs.STATUS_ACTIVE_UNINSTALLED));
+        list.add(jobs.statusToString(jobs.STATUS_ACTIVE_NOOUTPUT));
+        list.add(jobs.statusToString(jobs.STATUS_ACTIVE_NEITHER));
+        
         IResultSet set = database.performQuery("SELECT "+jobs.idField+" FROM "+
-          jobs.getTableName()+" WHERE "+jobs.statusField+" IN ("+
-          database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVE))+","+
-          database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVEWAIT))+","+
-          database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVE_UNINSTALLED))+","+
-          database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVE_NOOUTPUT))+","+
-          database.quoteSQLString(jobs.statusToString(jobs.STATUS_ACTIVE_NEITHER))+") FOR UPDATE",null,null,null);
+          jobs.getTableName()+" WHERE "+jobs.statusField+" IN (?,?,?,?,?) FOR UPDATE",list,null,null);
 
         int i = 0;
         while (i < set.getRowCount())
@@ -5201,7 +5246,7 @@ public class JobManager implements IJobManager
           Long jobID = (Long)row.getValue(jobs.idField);
 
           // Check to be sure the job is a candidate for shutdown
-          ArrayList list = new ArrayList();
+          list.clear();
           list.add(jobID);
           list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVE));
           list.add(jobID);
@@ -5269,9 +5314,10 @@ public class JobManager implements IJobManager
     throws ManifoldCFException
   {
     // Do the query
+    ArrayList list = new ArrayList();
+    list.add(jobs.statusToString(jobs.STATUS_NOTIFYINGOFCOMPLETION));
     IResultSet set = database.performQuery("SELECT "+jobs.idField+" FROM "+
-      jobs.getTableName()+" WHERE "+jobs.statusField+"="+
-      database.quoteSQLString(jobs.statusToString(jobs.STATUS_NOTIFYINGOFCOMPLETION)),null,null,null);
+      jobs.getTableName()+" WHERE "+jobs.statusField+"=?",list,null,null);
     // Return them all
     Long[] rval = new Long[set.getRowCount()];
     int i = 0;
@@ -5307,10 +5353,12 @@ public class JobManager implements IJobManager
         // Now the query is broken up so that Postgresql behaves more efficiently.
 
         // Do the first query, getting the candidate jobs to be considered
+        ArrayList list = new ArrayList();
+        list.add(jobs.statusToString(jobs.STATUS_ABORTING));
+        list.add(jobs.statusToString(jobs.STATUS_ABORTINGFORRESTART));
+        
         IResultSet set = database.performQuery("SELECT "+jobs.idField+","+jobs.statusField+" FROM "+
-          jobs.getTableName()+" WHERE "+jobs.statusField+" IN ("+
-          database.quoteSQLString(jobs.statusToString(jobs.STATUS_ABORTING))+","+
-          database.quoteSQLString(jobs.statusToString(jobs.STATUS_ABORTINGFORRESTART))+") FOR UPDATE",null,null,null);
+          jobs.getTableName()+" WHERE "+jobs.statusField+" IN (?,?) FOR UPDATE",list,null,null);
 
         int i = 0;
         while (i < set.getRowCount())
@@ -5318,7 +5366,7 @@ public class JobManager implements IJobManager
           IResultRow row = set.getRow(i++);
           Long jobID = (Long)row.getValue(jobs.idField);
 
-          ArrayList list = new ArrayList();
+          list.clear();
           list.add(jobID);
           list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVE));
           list.add(jobID);
@@ -5413,9 +5461,10 @@ public class JobManager implements IJobManager
         // Now, the query is broken up, for performance
 
         // Do the first query, getting the candidate jobs to be considered
+        ArrayList list = new ArrayList();
+        list.add(jobs.statusToString(jobs.STATUS_SHUTTINGDOWN));
         IResultSet set = database.performQuery("SELECT "+jobs.idField+" FROM "+
-          jobs.getTableName()+" WHERE "+jobs.statusField+"="+
-          database.quoteSQLString(jobs.statusToString(jobs.STATUS_SHUTTINGDOWN))+" FOR UPDATE",null,null,null);
+          jobs.getTableName()+" WHERE "+jobs.statusField+"=? FOR UPDATE",list,null,null);
 
         int i = 0;
         while (i < set.getRowCount())
@@ -5424,7 +5473,7 @@ public class JobManager implements IJobManager
           Long jobID = (Long)row.getValue(jobs.idField);
 
           // Check to be sure the job is a candidate for shutdown
-          ArrayList list = new ArrayList();
+          list.clear();
           list.add(jobID);
           list.add(jobQueue.statusToString(jobQueue.STATUS_PURGATORY));
           list.add(jobID);
@@ -5484,8 +5533,10 @@ public class JobManager implements IJobManager
   public JobStatus getStatus(Long jobID)
     throws ManifoldCFException
   {
-    String whereClause = Jobs.idField+"="+jobID.toString();
-    JobStatus[] records = makeJobStatus(whereClause);
+    ArrayList list = new ArrayList();
+    String whereClause = Jobs.idField+"=?";
+    list.add(jobID.toString());
+    JobStatus[] records = makeJobStatus(whereClause,list);
     if (records.length == 0)
       return null;
     return records[0];
@@ -5498,9 +5549,7 @@ public class JobManager implements IJobManager
   public JobStatus[] getAllStatus()
     throws ManifoldCFException
   {
-    String whereClause = null;
-    return makeJobStatus(whereClause);
-
+    return makeJobStatus(null,null);
   }
 
   /** Get a list of running jobs.  This is for status reporting.
@@ -5509,24 +5558,26 @@ public class JobManager implements IJobManager
   public JobStatus[] getRunningJobs()
     throws ManifoldCFException
   {
+    ArrayList whereParams = new ArrayList();
+    whereParams.add(Jobs.statusToString(Jobs.STATUS_ACTIVE));
+    whereParams.add(Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING));
+    whereParams.add(Jobs.statusToString(Jobs.STATUS_ACTIVE_UNINSTALLED));
+    whereParams.add(Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING_UNINSTALLED));
+    whereParams.add(Jobs.statusToString(Jobs.STATUS_ACTIVE_NOOUTPUT));
+    whereParams.add(Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING_NOOUTPUT));
+    whereParams.add(Jobs.statusToString(Jobs.STATUS_ACTIVE_NEITHER));
+    whereParams.add(Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING_NEITHER));
+    whereParams.add(Jobs.statusToString(Jobs.STATUS_PAUSED));
+    whereParams.add(Jobs.statusToString(Jobs.STATUS_PAUSEDSEEDING));
+    whereParams.add(Jobs.statusToString(Jobs.STATUS_ACTIVEWAIT));
+    whereParams.add(Jobs.statusToString(Jobs.STATUS_ACTIVEWAITSEEDING));
+    whereParams.add(Jobs.statusToString(Jobs.STATUS_PAUSEDWAIT));
+    whereParams.add(Jobs.statusToString(Jobs.STATUS_PAUSEDWAITSEEDING));
+    
     String whereClause =
-      Jobs.statusField+" IN ("+
-      database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_ACTIVE))+","+
-      database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING))+","+
-      database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_ACTIVE_UNINSTALLED))+","+
-      database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING_UNINSTALLED))+","+
-      database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_ACTIVE_NOOUTPUT))+","+
-      database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING_NOOUTPUT))+","+
-      database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_ACTIVE_NEITHER))+","+
-      database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING_NEITHER))+","+
-      database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_PAUSED))+","+
-      database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_PAUSEDSEEDING))+","+
-      database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_ACTIVEWAIT))+","+
-      database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_ACTIVEWAITSEEDING))+","+
-      database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_PAUSEDWAIT))+","+
-      database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_PAUSEDWAITSEEDING))+")";
+      Jobs.statusField+" IN (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
-    return makeJobStatus(whereClause);
+    return makeJobStatus(whereClause,whereParams);
   }
 
   /** Get a list of completed jobs, and their statistics.
@@ -5535,11 +5586,13 @@ public class JobManager implements IJobManager
   public JobStatus[] getFinishedJobs()
     throws ManifoldCFException
   {
+    ArrayList whereParams = new ArrayList();
+    whereParams.add(Jobs.statusToString(Jobs.STATUS_INACTIVE));
     String whereClause =
-      Jobs.statusField+"="+database.quoteSQLString(Jobs.statusToString(Jobs.STATUS_INACTIVE))+" AND "+
+      Jobs.statusField+"=? AND "+
       Jobs.endTimeField+"IS NOT NULL";
 
-    return makeJobStatus(whereClause);
+    return makeJobStatus(whereClause,whereParams);
   }
 
   // Protected methods and classes
@@ -5548,7 +5601,7 @@ public class JobManager implements IJobManager
   *@param whereClause is the where clause for the jobs we are interested in.
   *@return the status array.
   */
-  protected JobStatus[] makeJobStatus(String whereClause)
+  protected JobStatus[] makeJobStatus(String whereClause, ArrayList whereParams)
     throws ManifoldCFException
   {
     IResultSet set = database.performQuery("SELECT t0."+
@@ -5559,41 +5612,47 @@ public class JobManager implements IJobManager
       Jobs.endTimeField+",t0."+
       Jobs.errorField+
       " FROM "+jobs.getTableName()+" t0 "+((whereClause==null)?"":(" WHERE "+whereClause))+" ORDER BY "+Jobs.descriptionField+" ASC",
-      null,null,null);
+      whereParams,null,null);
 
     IResultSet set2 = database.performQuery("SELECT "+
       JobQueue.jobIDField+",CAST(COUNT("+JobQueue.docHashField+") AS BIGINT) AS doccount FROM "+
       jobQueue.getTableName()+" t1"+
       ((whereClause==null)?"":(" WHERE EXISTS(SELECT 'x' FROM "+
       jobs.getTableName()+" t0 WHERE t0."+Jobs.idField+"=t1."+JobQueue.jobIDField+" AND "+whereClause+")"))+
-      " GROUP BY "+JobQueue.jobIDField,null,null,null);
+      " GROUP BY "+JobQueue.jobIDField,whereParams,null,null);
 
+    ArrayList list = new ArrayList();
+    list.add(JobQueue.statusToString(JobQueue.STATUS_ACTIVE));
+    list.add(JobQueue.statusToString(JobQueue.STATUS_ACTIVENEEDRESCAN));
+    list.add(JobQueue.statusToString(JobQueue.STATUS_PENDING));
+    list.add(JobQueue.statusToString(JobQueue.STATUS_ACTIVEPURGATORY));
+    list.add(JobQueue.statusToString(JobQueue.STATUS_ACTIVENEEDRESCANPURGATORY));
+    list.add(JobQueue.statusToString(JobQueue.STATUS_PENDINGPURGATORY));
+    if (whereParams != null)
+      list.addAll(whereParams);
     IResultSet set3 = database.performQuery("SELECT "+
       JobQueue.jobIDField+",CAST(COUNT("+JobQueue.docHashField+") AS BIGINT) AS doccount FROM "+
       jobQueue.getTableName()+" t1 WHERE "+
-      JobQueue.statusField+" IN ("+
-      database.quoteSQLString(JobQueue.statusToString(JobQueue.STATUS_ACTIVE))+","+
-      database.quoteSQLString(JobQueue.statusToString(JobQueue.STATUS_ACTIVENEEDRESCAN))+","+
-      database.quoteSQLString(JobQueue.statusToString(JobQueue.STATUS_PENDING))+","+
-      database.quoteSQLString(JobQueue.statusToString(JobQueue.STATUS_ACTIVEPURGATORY))+","+
-      database.quoteSQLString(JobQueue.statusToString(JobQueue.STATUS_ACTIVENEEDRESCANPURGATORY))+","+
-      database.quoteSQLString(JobQueue.statusToString(JobQueue.STATUS_PENDINGPURGATORY))+")"+
+      JobQueue.statusField+" IN (?,?,?,?,?,?)"+
       ((whereClause==null)?"":(" AND EXISTS(SELECT 'x' FROM "+
       jobs.getTableName()+" t0 WHERE t0."+Jobs.idField+"=t1."+JobQueue.jobIDField+" AND "+whereClause+")"))+
-      " GROUP BY "+JobQueue.jobIDField,null,null,null);
+      " GROUP BY "+JobQueue.jobIDField,list,null,null);
 
+    list.clear();
+    list.add(JobQueue.statusToString(JobQueue.STATUS_COMPLETE));
+    list.add(JobQueue.statusToString(JobQueue.STATUS_PURGATORY));
+    list.add(JobQueue.statusToString(JobQueue.STATUS_ACTIVEPURGATORY));
+    list.add(JobQueue.statusToString(JobQueue.STATUS_ACTIVENEEDRESCANPURGATORY));
+    list.add(JobQueue.statusToString(JobQueue.STATUS_PENDINGPURGATORY));
+    if (whereParams != null)
+      list.addAll(whereParams);
     IResultSet set4 = database.performQuery("SELECT "+
       JobQueue.jobIDField+",CAST(COUNT("+JobQueue.docHashField+") AS BIGINT) AS doccount FROM "+
       jobQueue.getTableName()+" t1 WHERE "+
-      JobQueue.statusField+" IN ("+
-      database.quoteSQLString(JobQueue.statusToString(JobQueue.STATUS_COMPLETE))+","+
-      database.quoteSQLString(JobQueue.statusToString(JobQueue.STATUS_PURGATORY))+","+
-      database.quoteSQLString(JobQueue.statusToString(JobQueue.STATUS_ACTIVEPURGATORY))+","+
-      database.quoteSQLString(JobQueue.statusToString(JobQueue.STATUS_ACTIVENEEDRESCANPURGATORY))+","+
-      database.quoteSQLString(JobQueue.statusToString(JobQueue.STATUS_PENDINGPURGATORY))+")"+
+      JobQueue.statusField+" IN (?,?,?,?,?)"+
       ((whereClause==null)?"":(" AND EXISTS(SELECT 'x' FROM "+
       jobs.getTableName()+" t0 WHERE t0."+Jobs.idField+"=t1."+JobQueue.jobIDField+" AND "+whereClause+")"))+
-      " GROUP BY "+JobQueue.jobIDField,null,null,null);
+      " GROUP BY "+JobQueue.jobIDField,list,null,null);
 
     // Build hashes for set2 and set3
     HashMap set2Hash = new HashMap();
@@ -5734,96 +5793,146 @@ public class JobManager implements IJobManager
     // Build the query.
     Long currentTime = new Long(System.currentTimeMillis());
     StringBuffer sb = new StringBuffer("SELECT ");
+    ArrayList list = new ArrayList();
+    
+    list.add(jobQueue.statusToString(jobQueue.STATUS_PENDING));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVE));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_COMPLETE));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_PURGATORY));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
+    
+    list.add(jobQueue.statusToString(jobQueue.STATUS_COMPLETE));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_PURGATORY));
+    
+    list.add(jobQueue.actionToString(jobQueue.ACTION_RESCAN));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_PENDING));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY));
+    
+    list.add(jobQueue.actionToString(jobQueue.ACTION_REMOVE));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_PENDING));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY));
+    
+    list.add(jobQueue.actionToString(jobQueue.ACTION_RESCAN));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_PENDING));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY));
+    
+    list.add(jobQueue.actionToString(jobQueue.ACTION_REMOVE));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_PENDING));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY));
+    
+    list.add(jobQueue.statusToString(jobQueue.STATUS_PENDING));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY));
+    
+    list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
+    
+    list.add(jobQueue.actionToString(jobQueue.ACTION_RESCAN));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVE));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY));
+    
+    list.add(jobQueue.actionToString(jobQueue.ACTION_REMOVE));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVE));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY));
+    
+    list.add(jobQueue.actionToString(jobQueue.ACTION_RESCAN));
+    list.add(jobQueue.actionToString(jobQueue.ACTION_REMOVE));
+    
     sb.append("t0.").append(jobQueue.idField).append(" AS id,")
       .append("t0.").append(jobQueue.docIDField).append(" AS identifier,")
       .append("t1.").append(jobs.descriptionField).append(" AS job,")
       .append("CASE")
-      .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDING))).append(" THEN 'Not yet processed'")
-      .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVE))).append(" THEN 'Not yet processed'")
-      .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN))).append(" THEN 'Not yet processed'")
-      .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY))).append(" THEN 'Processed'")
-      .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY))).append(" THEN 'Processed'")
-      .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY))).append(" THEN 'Processed'")
-      .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_COMPLETE))).append(" THEN 'Processed'")
-      .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PURGATORY))).append(" THEN 'Processed'")
-      .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED))).append(" THEN 'Being removed'")
+      .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=? THEN 'Not yet processed'")
+      .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=? THEN 'Not yet processed'")
+      .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=? THEN 'Not yet processed'")
+      .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=? THEN 'Processed'")
+      .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=? THEN 'Processed'")
+      .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=? THEN 'Processed'")
+      .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=? THEN 'Processed'")
+      .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=? THEN 'Processed'")
+      .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=? THEN 'Being removed'")
       .append(" ELSE 'Unknown'")
       .append(" END AS state,")
       .append("CASE")
       .append(" WHEN ")
-      .append("(").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_COMPLETE)))
-      .append(" OR ").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PURGATORY)))
+      .append("(").append("t0.").append(jobQueue.statusField).append("=? OR ").append("t0.").append(jobQueue.statusField).append("=?")
       .append(")")
       .append(" THEN 'Inactive'")
       .append(" WHEN ")
       .append("t0.").append(jobQueue.checkTimeField).append("<=").append(currentTime.toString())
-      .append(" AND (t0.").append(jobQueue.checkActionField).append(" IS NULL OR t0.").append(jobQueue.checkActionField).append("=").append(database.quoteSQLString(jobQueue.actionToString(jobQueue.ACTION_RESCAN))).append(")")
-      .append(" AND (").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDING)))
-      .append(" OR ").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY)))
+      .append(" AND (t0.").append(jobQueue.checkActionField).append(" IS NULL OR t0.").append(jobQueue.checkActionField).append("=?)")
+      .append(" AND (").append("t0.").append(jobQueue.statusField).append("=?")
+      .append(" OR ").append("t0.").append(jobQueue.statusField).append("=?")
       .append(")")
       .append(" THEN 'Ready for processing'")
       .append(" WHEN ")
       .append("t0.").append(jobQueue.checkTimeField).append("<=").append(currentTime.toString())
-      .append(" AND t0.").append(jobQueue.checkActionField).append("=").append(database.quoteSQLString(jobQueue.actionToString(jobQueue.ACTION_REMOVE)))
-      .append(" AND (").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDING)))
-      .append(" OR ").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY)))
+      .append(" AND t0.").append(jobQueue.checkActionField).append("=?")
+      .append(" AND (").append("t0.").append(jobQueue.statusField).append("=?")
+      .append(" OR ").append("t0.").append(jobQueue.statusField).append("=?")
       .append(")")
       .append(" THEN 'Ready for expiration'")
       .append(" WHEN ")
       .append("t0.").append(jobQueue.checkTimeField).append(">").append(currentTime.toString())
-      .append(" AND (t0.").append(jobQueue.checkActionField).append(" IS NULL OR t0.").append(jobQueue.checkActionField).append("=").append(database.quoteSQLString(jobQueue.actionToString(jobQueue.ACTION_RESCAN))).append(")")
-      .append(" AND (").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDING)))
-      .append(" OR ").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY)))
+      .append(" AND (t0.").append(jobQueue.checkActionField).append(" IS NULL OR t0.").append(jobQueue.checkActionField).append("=?)")
+      .append(" AND (").append("t0.").append(jobQueue.statusField).append("=?")
+      .append(" OR ").append("t0.").append(jobQueue.statusField).append("=?")
       .append(")")
       .append(" THEN 'Waiting for processing'")
       .append(" WHEN ")
       .append("t0.").append(jobQueue.checkTimeField).append(">").append(currentTime.toString())
-      .append(" AND t0.").append(jobQueue.checkActionField).append("=").append(database.quoteSQLString(jobQueue.actionToString(jobQueue.ACTION_REMOVE)))
-      .append(" AND (").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDING)))
-      .append(" OR ").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY)))
+      .append(" AND t0.").append(jobQueue.checkActionField).append("=?")
+      .append(" AND (").append("t0.").append(jobQueue.statusField).append("=?")
+      .append(" OR ").append("t0.").append(jobQueue.statusField).append("=?")
       .append(")")
       .append(" THEN 'Waiting for expiration'")
       .append(" WHEN ")
       .append("t0.").append(jobQueue.checkTimeField).append(" IS NULL")
-      .append(" AND (").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDING)))
-      .append(" OR ").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY)))
+      .append(" AND (").append("t0.").append(jobQueue.statusField).append("=?")
+      .append(" OR ").append("t0.").append(jobQueue.statusField).append("=?")
       .append(")")
       .append(" THEN 'Waiting forever'")
-      .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED)))
+      .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=?")
       .append(" THEN 'Deleting'")
       .append(" WHEN ")
-      .append("(t0.").append(jobQueue.checkActionField).append(" IS NULL OR t0.").append(jobQueue.checkActionField).append("=").append(database.quoteSQLString(jobQueue.actionToString(jobQueue.ACTION_RESCAN))).append(")")
-      .append(" AND (").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVE)))
-      .append(" OR ").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN)))
-      .append(" OR ").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY)))
-      .append(" OR ").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY)))
+      .append("(t0.").append(jobQueue.checkActionField).append(" IS NULL OR t0.").append(jobQueue.checkActionField).append("=?)")
+      .append(" AND (").append("t0.").append(jobQueue.statusField).append("=?")
+      .append(" OR ").append("t0.").append(jobQueue.statusField).append("=?")
+      .append(" OR ").append("t0.").append(jobQueue.statusField).append("=?")
+      .append(" OR ").append("t0.").append(jobQueue.statusField).append("=?")
       .append(")")
       .append(" THEN 'Processing'")
       .append(" WHEN ")
-      .append("t0.").append(jobQueue.checkActionField).append("=").append(database.quoteSQLString(jobQueue.actionToString(jobQueue.ACTION_REMOVE)))
-      .append(" AND (").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVE)))
-      .append(" OR ").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN)))
-      .append(" OR ").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY)))
-      .append(" OR ").append("t0.").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY)))
+      .append("t0.").append(jobQueue.checkActionField).append("=?")
+      .append(" AND (").append("t0.").append(jobQueue.statusField).append("=?")
+      .append(" OR ").append("t0.").append(jobQueue.statusField).append("=?")
+      .append(" OR ").append("t0.").append(jobQueue.statusField).append("=?")
+      .append(" OR ").append("t0.").append(jobQueue.statusField).append("=?")
       .append(")")
       .append(" THEN 'Expiring'")
       .append(" ELSE 'Unknown'")
       .append(" END AS status,")
       .append("t0.").append(jobQueue.checkTimeField).append(" AS scheduled,")
       .append("CASE")
-      .append(" WHEN ").append("(t0.").append(jobQueue.checkActionField).append(" IS NULL OR t0.").append(jobQueue.checkActionField).append("=").append(database.quoteSQLString(jobQueue.actionToString(jobQueue.ACTION_RESCAN))).append(") THEN 'Process'")
-      .append(" WHEN ").append("t0.").append(jobQueue.checkActionField).append("=").append(database.quoteSQLString(jobQueue.actionToString(jobQueue.ACTION_REMOVE))).append(" THEN 'Expire'")
+      .append(" WHEN ").append("(t0.").append(jobQueue.checkActionField).append(" IS NULL OR t0.").append(jobQueue.checkActionField).append("=?) THEN 'Process'")
+      .append(" WHEN ").append("t0.").append(jobQueue.checkActionField).append("=? THEN 'Expire'")
       .append(" ELSE 'Unknown'")
       .append(" END AS action,")
       .append("t0.").append(jobQueue.failCountField).append(" AS retrycount,")
       .append("t0.").append(jobQueue.failTimeField).append(" AS retrylimit")
       .append(" FROM ").append(jobQueue.getTableName()).append(" t0,").append(jobs.getTableName()).append(" t1 WHERE ")
       .append("t0.").append(jobQueue.jobIDField).append("=t1.").append(jobs.idField);
-    addCriteria(sb,"t0.",connectionName,filterCriteria,true);
+    addCriteria(sb,list,"t0.",connectionName,filterCriteria,true);
     // The intrinsic ordering is provided by the "id" column, and nothing else.
     addOrdering(sb,new String[]{"id"},sortOrder);
     addLimits(sb,startRow,rowCount);
-    return database.performQuery(sb.toString(),null,null,null,rowCount,null);
+    return database.performQuery(sb.toString(),list,null,null,rowCount,null);
   }
 
   /** Run a 'queue status' report.
@@ -5848,53 +5957,93 @@ public class JobManager implements IJobManager
     Long currentTime = new Long(System.currentTimeMillis());
 
     StringBuffer sb = new StringBuffer();
+    ArrayList list = new ArrayList();
+    
+    
     sb.append("SELECT t1.idbucket,SUM(t1.inactive) AS inactive,SUM(t1.processing) AS processing,SUM(t1.expiring) AS expiring,SUM(t1.deleting) AS deleting,")
       .append("SUM(t1.processready) AS processready,SUM(t1.expireready) AS expireready,SUM(t1.processwaiting) AS processwaiting,SUM(t1.expirewaiting) AS expirewaiting,")
       .append("SUM(t1.waitingforever) AS waitingforever FROM (SELECT ");
-    addBucketExtract(sb,"",jobQueue.docIDField,idBucketDescription);
+    
+    addBucketExtract(sb,list,"",jobQueue.docIDField,idBucketDescription);
+    
+    list.add(jobQueue.statusToString(jobQueue.STATUS_COMPLETE));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_PURGATORY));
+    
+    list.add(jobQueue.actionToString(jobQueue.ACTION_RESCAN));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVE));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY));
+    
+    list.add(jobQueue.actionToString(jobQueue.ACTION_REMOVE));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVE));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY));
+    
+    list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
+    
+    list.add(jobQueue.actionToString(jobQueue.ACTION_RESCAN));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_PENDING));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY));
+    
+    list.add(jobQueue.actionToString(jobQueue.ACTION_REMOVE));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_PENDING));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY));
+    
+    list.add(jobQueue.actionToString(jobQueue.ACTION_RESCAN));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_PENDING));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY));
+    
+    list.add(jobQueue.actionToString(jobQueue.ACTION_REMOVE));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_PENDING));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY));
+    
+    list.add(jobQueue.statusToString(jobQueue.STATUS_PENDING));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY));
     sb.append(" AS idbucket,")
       .append("CASE")
       .append(" WHEN ")
-      .append("(").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_COMPLETE)))
-      .append(" OR ").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PURGATORY)))
+      .append("(").append(jobQueue.statusField).append("=?")
+      .append(" OR ").append(jobQueue.statusField).append("=?")
       .append(")")
       .append(" THEN 1 ELSE 0")
       .append(" END")
       .append(" AS inactive,")
       .append("CASE")
       .append(" WHEN ")
-      .append("(").append(jobQueue.checkActionField).append(" IS NULL OR ").append(jobQueue.checkActionField).append("=").append(database.quoteSQLString(jobQueue.actionToString(jobQueue.ACTION_RESCAN))).append(")")
-      .append(" AND (").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVE)))
-      .append(" OR ").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN)))
-      .append(" OR ").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY)))
-      .append(" OR ").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY)))
+      .append("(").append(jobQueue.checkActionField).append(" IS NULL OR ").append(jobQueue.checkActionField).append("=?)")
+      .append(" AND (").append(jobQueue.statusField).append("=?")
+      .append(" OR ").append(jobQueue.statusField).append("=?")
+      .append(" OR ").append(jobQueue.statusField).append("=?")
+      .append(" OR ").append(jobQueue.statusField).append("=?")
       .append(")")
       .append(" THEN 1 ELSE 0")
       .append(" END")
       .append(" as processing,")
       .append("CASE")
       .append(" WHEN ")
-      .append(jobQueue.checkActionField).append("=").append(database.quoteSQLString(jobQueue.actionToString(jobQueue.ACTION_REMOVE)))
-      .append(" AND (").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVE)))
-      .append(" OR ").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN)))
-      .append(" OR ").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY)))
-      .append(" OR ").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY)))
+      .append(jobQueue.checkActionField).append("=?")
+      .append(" AND (").append(jobQueue.statusField).append("=?")
+      .append(" OR ").append(jobQueue.statusField).append("=?")
+      .append(" OR ").append(jobQueue.statusField).append("=?")
+      .append(" OR ").append(jobQueue.statusField).append("=?")
       .append(")")
       .append(" THEN 1 ELSE 0")
       .append(" END")
       .append(" as expiring,")
       .append("CASE")
       .append(" WHEN ")
-      .append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED)))
+      .append(jobQueue.statusField).append("=?")
       .append(" THEN 1 ELSE 0")
       .append(" END")
       .append(" as deleting,")
       .append("CASE")
       .append(" WHEN ")
       .append(jobQueue.checkTimeField).append("<=").append(currentTime.toString())
-      .append(" AND (").append(jobQueue.checkActionField).append(" IS NULL OR ").append(jobQueue.checkActionField).append("=").append(database.quoteSQLString(jobQueue.actionToString(jobQueue.ACTION_RESCAN))).append(")")
-      .append(" AND (").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDING)))
-      .append(" OR ").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY)))
+      .append(" AND (").append(jobQueue.checkActionField).append(" IS NULL OR ").append(jobQueue.checkActionField).append("=?)")
+      .append(" AND (").append(jobQueue.statusField).append("=?")
+      .append(" OR ").append(jobQueue.statusField).append("=?")
       .append(")")
       .append(" THEN 1 ELSE 0")
       .append(" END")
@@ -5902,9 +6051,9 @@ public class JobManager implements IJobManager
       .append("CASE")
       .append(" WHEN ")
       .append(jobQueue.checkTimeField).append("<=").append(currentTime.toString())
-      .append(" AND ").append(jobQueue.checkActionField).append("=").append(database.quoteSQLString(jobQueue.actionToString(jobQueue.ACTION_REMOVE)))
-      .append(" AND (").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDING)))
-      .append(" OR ").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY)))
+      .append(" AND ").append(jobQueue.checkActionField).append("=?")
+      .append(" AND (").append(jobQueue.statusField).append("=?")
+      .append(" OR ").append(jobQueue.statusField).append("=?")
       .append(")")
       .append(" THEN 1 ELSE 0")
       .append(" END")
@@ -5912,9 +6061,9 @@ public class JobManager implements IJobManager
       .append("CASE")
       .append(" WHEN ")
       .append(jobQueue.checkTimeField).append(">").append(currentTime.toString())
-      .append(" AND (").append(jobQueue.checkActionField).append(" IS NULL OR ").append(jobQueue.checkActionField).append("=").append(database.quoteSQLString(jobQueue.actionToString(jobQueue.ACTION_RESCAN))).append(")")
-      .append(" AND (").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDING)))
-      .append(" OR ").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY)))
+      .append(" AND (").append(jobQueue.checkActionField).append(" IS NULL OR ").append(jobQueue.checkActionField).append("=?)")
+      .append(" AND (").append(jobQueue.statusField).append("=?")
+      .append(" OR ").append(jobQueue.statusField).append("=?")
       .append(")")
       .append(" THEN 1 ELSE 0")
       .append(" END")
@@ -5922,9 +6071,9 @@ public class JobManager implements IJobManager
       .append("CASE")
       .append(" WHEN ")
       .append(jobQueue.checkTimeField).append(">").append(currentTime.toString())
-      .append(" AND ").append(jobQueue.checkActionField).append("=").append(database.quoteSQLString(jobQueue.actionToString(jobQueue.ACTION_REMOVE)))
-      .append(" AND (").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDING)))
-      .append(" OR ").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY)))
+      .append(" AND ").append(jobQueue.checkActionField).append("=?")
+      .append(" AND (").append(jobQueue.statusField).append("=?")
+      .append(" OR ").append(jobQueue.statusField).append("=?")
       .append(")")
       .append(" THEN 1 ELSE 0")
       .append(" END")
@@ -5932,18 +6081,18 @@ public class JobManager implements IJobManager
       .append("CASE")
       .append(" WHEN ")
       .append(jobQueue.checkTimeField).append(" IS NULL")
-      .append(" AND (").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDING)))
-      .append(" OR ").append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY)))
+      .append(" AND (").append(jobQueue.statusField).append("=?")
+      .append(" OR ").append(jobQueue.statusField).append("=?")
       .append(")")
       .append(" THEN 1 ELSE 0")
       .append(" END")
       .append(" as waitingforever");
     sb.append(" FROM ").append(jobQueue.getTableName());
-    addCriteria(sb,"",connectionName,filterCriteria,false);
+    addCriteria(sb,list,"",connectionName,filterCriteria,false);
     sb.append(") t1 GROUP BY idbucket");
     addOrdering(sb,new String[]{"idbucket","inactive","processing","expiring","deleting","processready","expireready","processwaiting","expirewaiting","waitingforever"},sortOrder);
     addLimits(sb,startRow,rowCount);
-    return database.performQuery(sb.toString(),null,null,null,rowCount,null);
+    return database.performQuery(sb.toString(),list,null,null,rowCount,null);
   }
 
   // Protected methods for report generation
@@ -5952,15 +6101,16 @@ public class JobManager implements IJobManager
   * This is complicated by the fact that the extraction code is inherently case sensitive.  So if case insensitive is
   * desired, that means we whack the whole thing to lower case before doing the match.
   */
-  protected void addBucketExtract(StringBuffer sb, String columnPrefix, String columnName, BucketDescription bucketDesc)
+  protected void addBucketExtract(StringBuffer sb, ArrayList list, String columnPrefix, String columnName, BucketDescription bucketDesc)
   {
     boolean isSensitive = bucketDesc.isSensitive();
-    sb.append(database.constructSubstringClause(columnPrefix+columnName,database.quoteSQLString(bucketDesc.getRegexp()),!isSensitive));
+    list.add(bucketDesc.getRegexp());
+    sb.append(database.constructSubstringClause(columnPrefix+columnName,"?",!isSensitive));
   }
 
   /** Add criteria clauses to query.
   */
-  protected boolean addCriteria(StringBuffer sb, String fieldPrefix, String connectionName, StatusFilterCriteria criteria, boolean whereEmitted)
+  protected boolean addCriteria(StringBuffer sb, ArrayList list, String fieldPrefix, String connectionName, StatusFilterCriteria criteria, boolean whereEmitted)
     throws ManifoldCFException
   {
     Long[] matchingJobs = criteria.getJobs();
@@ -5991,7 +6141,8 @@ public class JobManager implements IJobManager
     if (identifierRegexp != null)
     {
       whereEmitted = emitClauseStart(sb,whereEmitted);
-      sb.append(database.constructRegexpClause(fieldPrefix+jobQueue.docIDField,database.quoteSQLString(identifierRegexp.getRegexpString()),identifierRegexp.isInsensitive()));
+      list.add(identifierRegexp.getRegexpString());
+      sb.append(database.constructRegexpClause(fieldPrefix+jobQueue.docIDField,"?",identifierRegexp.isInsensitive()));
     }
 
     Long nowTime = new Long(criteria.getNowTime());
@@ -6016,21 +6167,19 @@ public class JobManager implements IJobManager
       switch (stateValue)
       {
       case DOCSTATE_NEVERPROCESSED:
-        sb.append(fieldPrefix).append(jobQueue.statusField).append(" IN ")
-          .append("(").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDING)))
-          .append(",").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVE)))
-          .append(",").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN)))
-          .append(")");
+        list.add(jobQueue.statusToString(jobQueue.STATUS_PENDING));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVE));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN));
+        sb.append(fieldPrefix).append(jobQueue.statusField).append(" IN (?,?,?)");
         break;
       case DOCSTATE_PREVIOUSLYPROCESSED:
-        sb.append(fieldPrefix).append(jobQueue.statusField).append(" IN ")
-          .append("(").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY)))
-          .append(",").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY)))
-          .append(",").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY)))
-          .append(",").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED)))
-          .append(",").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_COMPLETE)))
-          .append(",").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PURGATORY)))
-          .append(")");
+        list.add(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_COMPLETE));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_PURGATORY));
+        sb.append(fieldPrefix).append(jobQueue.statusField).append(" IN (?,?,?,?,?,?)");
         break;
       }
       k++;
@@ -6048,69 +6197,68 @@ public class JobManager implements IJobManager
       switch (stateValue)
       {
       case DOCSTATUS_INACTIVE:
-        sb.append(fieldPrefix).append(jobQueue.statusField).append(" IN ")
-          .append("(").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_COMPLETE)))
-          .append(",").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PURGATORY)))
-          .append(")");
+        list.add(jobQueue.statusToString(jobQueue.STATUS_COMPLETE));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_PURGATORY));
+        sb.append(fieldPrefix).append(jobQueue.statusField).append(" IN (?,?)");
         break;
       case DOCSTATUS_PROCESSING:
-        sb.append(fieldPrefix).append(jobQueue.statusField).append(" IN ")
-          .append("(").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVE)))
-          .append(",").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN)))
-          .append(",").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY)))
-          .append(",").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY)))
-          .append(")")
-          .append(" AND (").append(fieldPrefix).append(jobQueue.checkActionField).append(" IS NULL OR ").append(fieldPrefix).append(jobQueue.checkActionField).append("=").append(database.quoteSQLString(jobQueue.actionToString(jobQueue.ACTION_RESCAN))).append(")");
+        list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVE));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY));
+        list.add(jobQueue.actionToString(jobQueue.ACTION_RESCAN));
+        sb.append(fieldPrefix).append(jobQueue.statusField).append(" IN (?,?,?,?)")
+          .append(" AND (").append(fieldPrefix).append(jobQueue.checkActionField).append(" IS NULL OR ").append(fieldPrefix).append(jobQueue.checkActionField).append("=?)");
         break;
       case DOCSTATUS_EXPIRING:
-        sb.append(fieldPrefix).append(jobQueue.statusField).append(" IN ")
-          .append("(").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVE)))
-          .append(",").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN)))
-          .append(",").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY)))
-          .append(",").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY)))
-          .append(")")
-          .append(" AND ").append(fieldPrefix).append(jobQueue.checkActionField).append("=").append(database.quoteSQLString(jobQueue.actionToString(jobQueue.ACTION_REMOVE)));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVE));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY));
+        list.add(jobQueue.actionToString(jobQueue.ACTION_REMOVE));
+        sb.append(fieldPrefix).append(jobQueue.statusField).append(" IN (?,?,?,?)")
+          .append(" AND ").append(fieldPrefix).append(jobQueue.checkActionField).append("=?");
         break;
       case DOCSTATUS_DELETING:
-        sb.append(fieldPrefix).append(jobQueue.statusField).append("=").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED)));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
+        sb.append(fieldPrefix).append(jobQueue.statusField).append("=?");
         break;
       case DOCSTATUS_READYFORPROCESSING:
-        sb.append(fieldPrefix).append(jobQueue.statusField).append(" IN ")
-          .append("(").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDING)))
-          .append(",").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY)))
-          .append(")")
-          .append(" AND (").append(fieldPrefix).append(jobQueue.checkActionField).append(" IS NULL OR ").append(fieldPrefix).append(jobQueue.checkActionField).append("=").append(database.quoteSQLString(jobQueue.actionToString(jobQueue.ACTION_RESCAN))).append(")")
+        list.add(jobQueue.statusToString(jobQueue.STATUS_PENDING));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY));
+        list.add(jobQueue.actionToString(jobQueue.ACTION_RESCAN));
+        sb.append(fieldPrefix).append(jobQueue.statusField).append(" IN (?,?)")
+          .append(" AND (").append(fieldPrefix).append(jobQueue.checkActionField).append(" IS NULL OR ").append(fieldPrefix).append(jobQueue.checkActionField).append("=?)")
           .append(" AND ").append(fieldPrefix).append(jobQueue.checkTimeField).append("<=").append(nowTime.toString());
         break;
       case DOCSTATUS_READYFOREXPIRATION:
-        sb.append(fieldPrefix).append(jobQueue.statusField).append(" IN ")
-          .append("(").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDING)))
-          .append(",").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY)))
-          .append(")")
-          .append(" AND ").append(fieldPrefix).append(jobQueue.checkActionField).append("=").append(database.quoteSQLString(jobQueue.actionToString(jobQueue.ACTION_REMOVE)))
+        list.add(jobQueue.statusToString(jobQueue.STATUS_PENDING));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY));
+        list.add(jobQueue.actionToString(jobQueue.ACTION_REMOVE));
+        sb.append(fieldPrefix).append(jobQueue.statusField).append(" IN (?,?)")
+          .append(" AND ").append(fieldPrefix).append(jobQueue.checkActionField).append("=?")
           .append(" AND ").append(fieldPrefix).append(jobQueue.checkTimeField).append("<=").append(nowTime.toString());
         break;
       case DOCSTATUS_WAITINGFORPROCESSING:
-        sb.append(fieldPrefix).append(jobQueue.statusField).append(" IN ")
-          .append("(").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDING)))
-          .append(",").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY)))
-          .append(")")
-          .append(" AND (").append(fieldPrefix).append(jobQueue.checkActionField).append(" IS NULL OR ").append(fieldPrefix).append(jobQueue.checkActionField).append("=").append(database.quoteSQLString(jobQueue.actionToString(jobQueue.ACTION_RESCAN))).append(")")
+        list.add(jobQueue.statusToString(jobQueue.STATUS_PENDING));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY));
+        list.add(jobQueue.actionToString(jobQueue.ACTION_RESCAN));
+        sb.append(fieldPrefix).append(jobQueue.statusField).append(" IN (?,?)")
+          .append(" AND (").append(fieldPrefix).append(jobQueue.checkActionField).append(" IS NULL OR ").append(fieldPrefix).append(jobQueue.checkActionField).append("=?)")
           .append(" AND ").append(fieldPrefix).append(jobQueue.checkTimeField).append(">").append(nowTime.toString());
         break;
       case DOCSTATUS_WAITINGFOREXPIRATION:
-        sb.append(fieldPrefix).append(jobQueue.statusField).append(" IN ")
-          .append("(").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDING)))
-          .append(",").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY)))
-          .append(")")
-          .append(" AND ").append(fieldPrefix).append(jobQueue.checkActionField).append("=").append(database.quoteSQLString(jobQueue.actionToString(jobQueue.ACTION_REMOVE)))
+        list.add(jobQueue.statusToString(jobQueue.STATUS_PENDING));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY));
+        list.add(jobQueue.actionToString(jobQueue.ACTION_REMOVE));
+        sb.append(fieldPrefix).append(jobQueue.statusField).append(" IN (?,?)")
+          .append(" AND ").append(fieldPrefix).append(jobQueue.checkActionField).append("=?")
           .append(" AND ").append(fieldPrefix).append(jobQueue.checkTimeField).append(">").append(nowTime.toString());
         break;
       case DOCSTATUS_WAITINGFOREVER:
-        sb.append(fieldPrefix).append(jobQueue.statusField).append(" IN ")
-          .append("(").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDING)))
-          .append(",").append(database.quoteSQLString(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY)))
-          .append(")")
+        list.add(jobQueue.statusToString(jobQueue.STATUS_PENDING));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY));
+        sb.append(fieldPrefix).append(jobQueue.statusField).append(" IN (?,?)")
           .append(" AND ").append(fieldPrefix).append(jobQueue.checkTimeField).append(" IS NULL");
         break;
       }

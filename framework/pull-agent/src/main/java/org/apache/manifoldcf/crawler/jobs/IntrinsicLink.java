@@ -306,9 +306,12 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
   /** Remove all target links of the specified source documents that are not marked as "new" or "existing", and
   * return the others to their base state.
   */
-  public void removeLinks(Long jobID, String commonNewExpression, String[] sourceDocumentIDHashes,
+  public void removeLinks(Long jobID,
+    String commonNewExpression, ArrayList commonNewParams,
+    String[] sourceDocumentIDHashes,
     String sourceTableName,
-    String sourceTableIDColumn, String sourceTableJobColumn, String sourceTableCriteria)
+    String sourceTableIDColumn, String sourceTableJobColumn,
+    String sourceTableCriteria, ArrayList sourceTableParams)
     throws ManifoldCFException
   {
     beginTransaction();
@@ -325,7 +328,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
         {
           if (k == maxClause)
           {
-            performRemoveLinks(sb.toString(),list,commonNewExpression);
+            performRemoveLinks(sb.toString(),list,commonNewExpression,commonNewParams);
             sb.setLength(0);
             list.clear();
             k = 0;
@@ -341,13 +344,14 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
         }
 
         if (k > 0)
-          performRemoveLinks(sb.toString(),list,commonNewExpression);
+          performRemoveLinks(sb.toString(),list,commonNewExpression,commonNewParams);
         noteModifications(0,0,sourceDocumentIDHashes.length);
       }
       else
       {
         ArrayList list = new ArrayList();
         list.add(jobID);
+        list.addAll(sourceTableParams);
         StringBuffer sb = new StringBuffer("WHERE EXISTS(SELECT 'x' FROM ");
         sb.append(sourceTableName).append(" WHERE ").append(sourceTableJobColumn).append("=? AND ")
           .append(sourceTableIDColumn).append("=").append(getTableName()).append(".").append(childIDHashField)
@@ -373,14 +377,20 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
 
   }
 
-  protected void performRemoveLinks(String query, ArrayList list, String commonNewExpression)
+  protected void performRemoveLinks(String query, ArrayList list, String commonNewExpression,
+    ArrayList commonNewParams)
     throws ManifoldCFException
   {
+    ArrayList thisList = new ArrayList();
+    thisList.addAll(list);
     StringBuffer sb = new StringBuffer("WHERE (");
     sb.append(query).append(")");
     if (commonNewExpression != null)
+    {
+      thisList.addAll(commonNewParams);
       sb.append(" AND ").append(commonNewExpression);
-    performDelete(sb.toString(),list,null);
+    }
+    performDelete(sb.toString(),thisList,null);
   }
 
   /** Return all target links of the specified source documents to their base state.

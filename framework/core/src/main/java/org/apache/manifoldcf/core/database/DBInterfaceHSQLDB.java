@@ -524,28 +524,6 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   public void createUserAndDatabase(String adminUserName, String adminPassword, StringSet invalidateKeys)
     throws ManifoldCFException
   {
-    /*
-    // Database name is already fully expanded, so we don't need to do it again.
-    // Create a connection to the master database, using the credentials supplied
-    Database masterDatabase = new Database(context,_url+databaseName,_driver,databaseName,adminUserName,adminPassword);
-    try
-    {
-      // Create user
-      ArrayList params = new ArrayList();
-      params.add(userName);
-      IResultSet set = masterDatabase.executeQuery("SELECT * FROM INFORMATION_SCHEMA.SYSTEM_USERS WHERE USER_NAME=?",params,null,null,null,true,-1,null,null);
-      if (set.getRowCount() == 0)
-      {
-	masterDatabase.executeQuery("CREATE USER \""+userName+"\" PASSWORD "+
-	  quoteSQLString(password),null,null,invalidateKeys,null,false,0,null,null);
-      }
-      
-    }
-    catch (ManifoldCFException e)
-    {
-      throw reinterpretException(e);
-    }
-    */
   }
 
   /** Drop user and database.
@@ -860,7 +838,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   */
   public String constructRegexpClause(String column, String regularExpression, boolean caseInsensitive)
   {
-    return "REGEXP_MATCHES("+column+","+quoteSQLString(regularExpression)+")";
+    return "REGEXP_MATCHES("+column+","+regularExpression+")";
   }
 
   /** Construct a regular-expression substring clause.
@@ -946,41 +924,6 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     }
     sb.append(" FROM (").append(baseQuery).append(") txxx1");
     return sb.toString();
-  }
-
-  /** Quote a sql string.
-  * This method quotes a sql string in the proper manner for the database in question.
-  *@param string is the input string.
-  *@return the properly quoted (and escaped) output string.
-  */
-  public String quoteSQLString(String string)
-  {
-    StringBuffer rval = new StringBuffer();
-    char quoteChar = '\'';
-    rval.append(quoteChar);
-    int i = 0;
-    while (i < string.length())
-    {
-      char x = string.charAt(i++);
-      if (x == quoteChar)
-        rval.append(quoteChar);
-      rval.append(x);
-    }
-    rval.append(quoteChar);
-    return rval.toString();
-  }
-
-  /** Prepare a sql date for use in a query.
-  * This method prepares a query constant using the sql date string passed in.
-  * The date passed in is presumed to be in "standard form", or something that might have
-  * come back from a resultset of a query.
-  *@param date is the date in standard form.
-  *@return the sql date expression to use for date comparisons.
-  */
-  public String prepareSQLDate(String date)
-  {
-    // MHL
-    return null;
   }
 
   /** Obtain the maximum number of individual items that should be
