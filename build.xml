@@ -1424,7 +1424,7 @@
 
     <target name="run-filesystem-tests" depends="compile-filesystem-tests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
         <mkdir dir="test-output/filesystem"/>
-        <junit fork="true" maxmemory="128m" dir="test-output/filesystem" showoutput="true">
+        <junit fork="true" maxmemory="128m" dir="test-output/filesystem" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -1451,13 +1451,15 @@
             </classpath>
             <test name="org.apache.manifoldcf.filesystem_tests.Sanity" todir="test-output/filesystem"/>
             <test name="org.apache.manifoldcf.filesystem_tests.APISanity" todir="test-output/filesystem"/>
+            <test name="org.apache.manifoldcf.filesystem_tests.Hopcount" todir="test-output/filesystem"/>
+            <test name="org.apache.manifoldcf.filesystem_tests.Expiration" todir="test-output/filesystem"/>
             <!-- MHL -->
         </junit>
     </target>
 
     <target name="run-sharepoint-tests" depends="compile-sharepoint-tests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
         <mkdir dir="test-output/sharepoint"/>
-        <junit fork="true" maxmemory="128m" dir="test-output/sharepoint" showoutput="true">
+        <junit fork="true" maxmemory="128m" dir="test-output/sharepoint" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -1573,5 +1575,21 @@ all     - Do it all (requires Apache Forrest)
 All targets requiring Apache Forrest also require Sun JDK 1.5.
       </echo>
     </target>
-    
+
+    <target name="-taskdef">
+      <typedef resource="org/apache/rat/anttasks/antlib.xml" uri="antlib:rat.anttasks">
+        <classpath>
+          <fileset dir="." includes="rat*.jar"/>
+        </classpath>
+      </typedef>
+    </target>
+    <target name="rat-sources" depends="-taskdef"
+      description="runs the tasks over src/java excluding the license directory">
+      <rat:report xmlns:rat="antlib:org.apache.rat.anttasks">
+        <fileset dir="connectors/"/>
+        <fileset dir="framework/"/>
+        <fileset dir="site/src/"/>
+      </rat:report>
+    </target>
+
 </project>

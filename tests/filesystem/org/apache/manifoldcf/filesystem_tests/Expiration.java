@@ -1,4 +1,4 @@
-/* $Id: Sanity.java 988245 2010-08-23 18:39:35Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -27,8 +27,8 @@ import java.io.*;
 import java.util.*;
 import org.junit.*;
 
-/** This is a very basic sanity check */
-public class Sanity extends TestBase
+/** This is a test which checks to see if document expiration works properly. */
+public class Expiration extends TestBase
 {
   
   @Before
@@ -65,7 +65,7 @@ public class Sanity extends TestBase
   }
   
   @Test
-  public void sanityCheck()
+  public void expirationCheck()
     throws Exception
   {
     try
@@ -103,6 +103,12 @@ public class Sanity extends TestBase
       job.setType(job.TYPE_SPECIFIED);
       job.setStartMethod(job.START_DISABLE);
       job.setHopcountMode(job.HOPCOUNT_ACCURATE);
+      // 60-second expiration for all documents..
+      job.setExpiration(new Long(60000L));
+      // Infinite rescan interval.
+      job.setInterval(null);
+      // Continuous job.
+      job.setType(IJobDescription.TYPE_CONTINUOUS);
       
       // Now, set up the document specification.
       DocumentSpecification ds = job.getSpecification();
@@ -136,55 +142,35 @@ public class Sanity extends TestBase
       createFile(new File("testdata/test2.txt"),"This is another test file");
       createDirectory(new File("testdata/testdir"));
       createFile(new File("testdata/testdir/test3.txt"),"This is yet another test file");
+      createDirectory(new File("testdata/testdir/seconddir"));
+      createFile(new File("testdata/testdir/seconddir/test4.txt"),"Lowest test file");
       
-      // Now, start the job, and wait until it completes.
+      // Now, start the job, and wait until it is running.
       jobManager.manualStart(job.getID());
-      waitJobInactive(jobManager,job.getID(),120000L);
-
-      // Check to be sure we actually processed the right number of documents.
-      JobStatus status = jobManager.getStatus(job.getID());
-      // The test data area has 3 documents and one directory, and we have to count the root directory too.
-      if (status.getDocumentsProcessed() != 5)
-        throw new ManifoldCFException("Wrong number of documents processed - expected 5, saw "+new Long(status.getDocumentsProcessed()).toString());
+      waitJobRunning(jobManager,job.getID(),30000L);
       
-      // Add a file and recrawl
-      createFile(new File("testdata/testdir/test4.txt"),"Added file");
+      JobStatus status;
+      
+      // Now we wait, and we should see 7 documents eventually.
+      long startTime = System.currentTimeMillis();
+      while (System.currentTimeMillis() < startTime + 120000L)
+      {
+        status = jobManager.getStatus(job.getID());
+        if (status.getDocumentsProcessed() == 7)
+          break;
 
-      // Now, start the job, and wait until it completes.
-      jobManager.manualStart(job.getID());
-      waitJobInactive(jobManager,job.getID(),120000L);
+        ManifoldCF.sleep(1000L);
+      }
+      
+      // At this point there should be 7 documents.
+      // OK, documents should expire starting a minute later.  The number of documents will go quickly to zero after this time. 
+      // So all we need to do is confirm that the job stops within 2 minutes.
+      waitJobInactive(jobManager,job.getID(),180000L);
 
       status = jobManager.getStatus(job.getID());
-      // The test data area has 4 documents and one directory, and we have to count the root directory too.
-      if (status.getDocumentsProcessed() != 6)
-        throw new ManifoldCFException("Wrong number of documents processed after add - expected 6, saw "+new Long(status.getDocumentsProcessed()).toString());
-
-      // Change a file, and recrawl
-      changeFile(new File("testdata/test1.txt"),"Modified contents");
+      if (status.getDocumentsProcessed() != 0)
+        throw new ManifoldCFException("Wrong number of documents processed - expected 0, saw "+new Long(status.getDocumentsProcessed()).toString());
       
-      // Now, start the job, and wait until it completes.
-      jobManager.manualStart(job.getID());
-      waitJobInactive(jobManager,job.getID(),120000L);
-
-      status = jobManager.getStatus(job.getID());
-      // The test data area has 4 documents and one directory, and we have to count the root directory too.
-      if (status.getDocumentsProcessed() != 6)
-        throw new ManifoldCFException("Wrong number of documents processed after change - expected 6, saw "+new Long(status.getDocumentsProcessed()).toString());
-      // We also need to make sure the new document was indexed.  Have to think about how to do this though.
-      // MHL
-      
-      // Delete a file, and recrawl
-      removeFile(new File("testdata/test2.txt"));
-      
-      // Now, start the job, and wait until it completes.
-      jobManager.manualStart(job.getID());
-      waitJobInactive(jobManager,job.getID(),120000L);
-
-      // Check to be sure we actually processed the right number of documents.
-      status = jobManager.getStatus(job.getID());
-      // The test data area has 3 documents and one directory, and we have to count the root directory too.
-      if (status.getDocumentsProcessed() != 5)
-        throw new ManifoldCFException("Wrong number of documents processed after delete - expected 5, saw "+new Long(status.getDocumentsProcessed()).toString());
 
       // Now, delete the job.
       jobManager.deleteJob(job.getID());
@@ -226,6 +212,35 @@ public class Sanity extends TestBase
     throw new ManifoldCFException("ManifoldCF did not terminate in the allotted time of "+new Long(maxTime).toString()+" milliseconds");
   }
   
+  protected void waitJobRunning(IJobManager jobManager, Long jobID, long maxTime)
+    throws ManifoldCFException, InterruptedException
+  {
+    long startTime = System.currentTimeMillis();
+    while (System.currentTimeMillis() < startTime + maxTime)
+    {
+      JobStatus status = jobManager.getStatus(jobID);
+      if (status == null)
+        throw new ManifoldCFException("No such job: '"+jobID+"'");
+      int statusValue = status.getStatus();
+      switch (statusValue)
+      {
+        case JobStatus.JOBSTATUS_NOTYETRUN:
+          throw new ManifoldCFException("Job was never started.");
+        case JobStatus.JOBSTATUS_COMPLETED:
+          throw new ManifoldCFException("Job ended on its own!");
+        case JobStatus.JOBSTATUS_ERROR:
+          throw new ManifoldCFException("Job reports error status: "+status.getErrorText());
+        case JobStatus.JOBSTATUS_RUNNING:
+          break;
+        default:
+          ManifoldCF.sleep(1000L);
+          continue;
+      }
+      return;
+    }
+    throw new ManifoldCFException("ManifoldCF did not start in the allotted time of "+new Long(maxTime).toString()+" milliseconds");
+  }
+
   protected void waitJobDeleted(IJobManager jobManager, Long jobID, long maxTime)
     throws ManifoldCFException, InterruptedException
   {

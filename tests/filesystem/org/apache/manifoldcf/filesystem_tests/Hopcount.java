@@ -1,4 +1,4 @@
-/* $Id: Sanity.java 988245 2010-08-23 18:39:35Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -27,8 +27,8 @@ import java.io.*;
 import java.util.*;
 import org.junit.*;
 
-/** This is a very basic sanity check */
-public class Sanity extends TestBase
+/** This is a test which checks to be sure hopcount functionality is working properly. */
+public class Hopcount extends TestBase
 {
   
   @Before
@@ -65,7 +65,7 @@ public class Sanity extends TestBase
   }
   
   @Test
-  public void sanityCheck()
+  public void hopcountCheck()
     throws Exception
   {
     try
@@ -103,6 +103,7 @@ public class Sanity extends TestBase
       job.setType(job.TYPE_SPECIFIED);
       job.setStartMethod(job.START_DISABLE);
       job.setHopcountMode(job.HOPCOUNT_ACCURATE);
+      job.addHopCountFilter("child",new Long(2));
       
       // Now, set up the document specification.
       DocumentSpecification ds = job.getSpecification();
@@ -136,6 +137,8 @@ public class Sanity extends TestBase
       createFile(new File("testdata/test2.txt"),"This is another test file");
       createDirectory(new File("testdata/testdir"));
       createFile(new File("testdata/testdir/test3.txt"),"This is yet another test file");
+      createDirectory(new File("testdata/testdir/seconddir"));
+      createFile(new File("testdata/testdir/seconddir/test4.txt"),"Lowest test file");
       
       // Now, start the job, and wait until it completes.
       jobManager.manualStart(job.getID());
@@ -143,52 +146,14 @@ public class Sanity extends TestBase
 
       // Check to be sure we actually processed the right number of documents.
       JobStatus status = jobManager.getStatus(job.getID());
-      // The test data area has 3 documents and one directory, and we have to count the root directory too.
-      if (status.getDocumentsProcessed() != 5)
-        throw new ManifoldCFException("Wrong number of documents processed - expected 5, saw "+new Long(status.getDocumentsProcessed()).toString());
-      
-      // Add a file and recrawl
-      createFile(new File("testdata/testdir/test4.txt"),"Added file");
-
-      // Now, start the job, and wait until it completes.
-      jobManager.manualStart(job.getID());
-      waitJobInactive(jobManager,job.getID(),120000L);
-
-      status = jobManager.getStatus(job.getID());
-      // The test data area has 4 documents and one directory, and we have to count the root directory too.
+      // The test data area has 4 documents and 2 directories and we have to count the root directory too.
+      // But the max hopcount is 2, so one file will be left behind, so the count should be 6, not 7.
       if (status.getDocumentsProcessed() != 6)
-        throw new ManifoldCFException("Wrong number of documents processed after add - expected 6, saw "+new Long(status.getDocumentsProcessed()).toString());
-
-      // Change a file, and recrawl
-      changeFile(new File("testdata/test1.txt"),"Modified contents");
+        throw new ManifoldCFException("Wrong number of documents processed - expected 6, saw "+new Long(status.getDocumentsProcessed()).toString());
       
-      // Now, start the job, and wait until it completes.
-      jobManager.manualStart(job.getID());
-      waitJobInactive(jobManager,job.getID(),120000L);
-
-      status = jobManager.getStatus(job.getID());
-      // The test data area has 4 documents and one directory, and we have to count the root directory too.
-      if (status.getDocumentsProcessed() != 6)
-        throw new ManifoldCFException("Wrong number of documents processed after change - expected 6, saw "+new Long(status.getDocumentsProcessed()).toString());
-      // We also need to make sure the new document was indexed.  Have to think about how to do this though.
-      // MHL
-      
-      // Delete a file, and recrawl
-      removeFile(new File("testdata/test2.txt"));
-      
-      // Now, start the job, and wait until it completes.
-      jobManager.manualStart(job.getID());
-      waitJobInactive(jobManager,job.getID(),120000L);
-
-      // Check to be sure we actually processed the right number of documents.
-      status = jobManager.getStatus(job.getID());
-      // The test data area has 3 documents and one directory, and we have to count the root directory too.
-      if (status.getDocumentsProcessed() != 5)
-        throw new ManifoldCFException("Wrong number of documents processed after delete - expected 5, saw "+new Long(status.getDocumentsProcessed()).toString());
-
       // Now, delete the job.
       jobManager.deleteJob(job.getID());
-      waitJobDeleted(jobManager,job.getID(),120000L);
+      waitJobDeleted(jobManager,job.getID(), 120000L);
       
       // Cleanup is automatic by the base class, so we can feel free to leave jobs and connections lying around.
     }
