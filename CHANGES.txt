@@ -4,6 +4,10 @@ $Id$
 ======================= Release 0.1 =======================
 Release Date:  See http://incubator.apache.org/connectors for the official release date.
 
+CONNECTORS-128: Remove sql quoting logic to make sql injection attacks
+less possible.
+(Grant Ingersoll, Robert Muir, Karl Wright)
+
 CONNECTORS-122: FileNet and Documentum connector-specific process
 scripts needed.
 (Oleg Tikhonov, Karl Wright)
