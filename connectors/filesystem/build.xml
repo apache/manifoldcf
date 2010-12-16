@@ -71,7 +71,7 @@
 
     <target name="run-tests" depends="compile-tests">
         <mkdir dir="test-output"/>
-        <junit fork="true" maxmemory="128m" dir="test-output" showoutput="true">
+        <junit fork="true" maxmemory="128m" dir="test-output" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="lib">
                     <include name="*.jar"/>

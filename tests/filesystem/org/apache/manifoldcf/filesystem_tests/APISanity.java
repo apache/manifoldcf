@@ -222,7 +222,7 @@ public class APISanity extends TestBase
       
       // Now, start the job, and wait until it completes.
       startJob(jobIDString);
-      waitJobInactive(jobIDString);
+      waitJobInactive(jobIDString, 120000L);
 
       // Check to be sure we actually processed the right number of documents.
       // The test data area has 3 documents and one directory, and we have to count the root directory too.
@@ -236,7 +236,7 @@ public class APISanity extends TestBase
 
       // Now, start the job, and wait until it completes.
       startJob(jobIDString);
-      waitJobInactive(jobIDString);
+      waitJobInactive(jobIDString, 120000L);
 
       // The test data area has 4 documents and one directory, and we have to count the root directory too.
       count = getJobDocumentsProcessed(jobIDString);
@@ -248,7 +248,7 @@ public class APISanity extends TestBase
       
       // Now, start the job, and wait until it completes.
       startJob(jobIDString);
-      waitJobInactive(jobIDString);
+      waitJobInactive(jobIDString, 120000L);
 
       // The test data area has 4 documents and one directory, and we have to count the root directory too.
       count = getJobDocumentsProcessed(jobIDString);
@@ -262,7 +262,7 @@ public class APISanity extends TestBase
       
       // Now, start the job, and wait until it completes.
       startJob(jobIDString);
-      waitJobInactive(jobIDString);
+      waitJobInactive(jobIDString, 120000L);
 
       // Check to be sure we actually processed the right number of documents.
       // The test data area has 3 documents and one directory, and we have to count the root directory too.
@@ -273,7 +273,7 @@ public class APISanity extends TestBase
       // Now, delete the job.
       deleteJob(jobIDString);
 
-      waitJobDeleted(jobIDString);
+      waitJobDeleted(jobIDString, 120000L);
       
       // Cleanup is automatic by the base class, so we can feel free to leave jobs and connections lying around.
     }
@@ -365,10 +365,11 @@ public class APISanity extends TestBase
     return new Long(documentsProcessed).longValue();
   }
 
-  protected void waitJobInactive(String jobIDString)
+  protected void waitJobInactive(String jobIDString, long maxTime)
     throws Exception
   {
-    while (true)
+    long startTime = System.currentTimeMillis();
+    while (System.currentTimeMillis() < startTime + maxTime)
     {
       String status = getJobStatus(jobIDString);
       if (status == null)
@@ -376,24 +377,27 @@ public class APISanity extends TestBase
       if (status.equals("not yet run"))
         throw new Exception("Job was never started.");
       if (status.equals("done"))
-        break;
+        return;
       if (status.equals("error"))
         throw new Exception("Job reports error.");
-      ManifoldCF.sleep(10000L);
+      ManifoldCF.sleep(1000L);
       continue;
     }
+    throw new ManifoldCFException("ManifoldCF did not terminate in the allotted time of "+new Long(maxTime).toString()+" milliseconds");
   }
   
-  protected void waitJobDeleted(String jobIDString)
+  protected void waitJobDeleted(String jobIDString, long maxTime)
     throws Exception
   {
-    while (true)
+    long startTime = System.currentTimeMillis();
+    while (System.currentTimeMillis() < startTime + maxTime)
     {
       String status = getJobStatus(jobIDString);
       if (status == null)
-        break;
-      ManifoldCF.sleep(10000L);
+        return;
+      ManifoldCF.sleep(1000L);
     }
+    throw new ManifoldCFException("ManifoldCF did not delete in the allotted time of "+new Long(maxTime).toString()+" milliseconds");
   }
     
 
