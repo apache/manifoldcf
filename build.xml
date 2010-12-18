@@ -1,3 +1,20 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
 <project name="manifoldcf" default="help">
 
     <target name="clean">
@@ -1586,9 +1603,32 @@ All targets requiring Apache Forrest also require Sun JDK 1.5.
     <target name="rat-sources" depends="-taskdef"
       description="runs the tasks over src/java excluding the license directory">
       <rat:report xmlns:rat="antlib:org.apache.rat.anttasks">
-        <fileset dir="connectors/"/>
-        <fileset dir="framework/"/>
-        <fileset dir="site/src/"/>
+        <fileset dir="json/">
+        </fileset>
+        <fileset dir="mod-authz-annotate/">
+        </fileset>
+        <fileset dir="connectors/">
+          <exclude name="**/build/"/>
+          <exclude name="**/dist/"/>
+          <exclude name="**/test-output/"/>
+          <exclude name="filenet/filenet-api/"/>
+          <exclude name="documentum/dfc/"/>
+          <exclude name="jcifs/upstream-diffs/jcifs.diffs"/>
+          <exclude name="jcifs/jcifs/"/>
+          <exclude name="jdbc/jdbc-drivers/"/>
+          <exclude name="livelink/lapi/"/>
+          <exclude name="meridio/wsdls/"/>
+          <exclude name="sharepoint/wsdls/"/>
+        </fileset>
+        <fileset dir="framework/">
+          <exclude name="**/build/"/>
+          <exclude name="**/dist/"/>
+          <exclude name="**/test-output/"/>
+          <exclude name="**/web-generated.xml"/>
+        </fileset>
+        <fileset dir="site/">
+          <exclude name="**/build/"/>
+        </fileset>
       </rat:report>
     </target>
 
