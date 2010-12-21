@@ -1870,6 +1870,41 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         createErrorNode(output,e);
       }
     }
+    else if (path.startsWith("reset/"))
+    {
+      int firstSeparator = "reset/".length();
+      int secondSeparator = path.indexOf("/",firstSeparator);
+      if (secondSeparator == -1)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Need connection name.");
+        output.addChild(output.getChildCount(),error);
+        return WRITERESULT_NOTFOUND;
+      }
+      
+      String connectionType = path.substring(firstSeparator,secondSeparator);
+      String connectionName = decodeAPIPathElement(path.substring(secondSeparator+1));
+      
+      if (connectionType.equals("outputconnections"))
+      {
+        try
+        {
+          signalOutputConnectionRedo(tc,connectionName);
+          return WRITERESULT_CREATED;
+        }
+        catch (ManifoldCFException e)
+        {
+          createErrorNode(output,e);
+        }
+      }
+      else
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Unknown connection type '"+connectionType+"'.");
+        output.addChild(output.getChildCount(),error);
+        return WRITERESULT_NOTFOUND;
+      }
+    }
     else
     {
       ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
