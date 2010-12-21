@@ -3,6 +3,10 @@ $Id$
 
 ==================  0.2-dev ==================
 
+CONNECTORS-129: Add an API reset/outputconnections/xxx command, to 
+forget the index state for an output connection.
+(Karl Wright)
+
 ======================= Release 0.1 =======================
 Release Date:  See http://incubator.apache.org/connectors for the official release date.
 
