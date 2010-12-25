@@ -23,10 +23,9 @@ import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.CacheKeyFactory;
 import java.util.*;
 
-/** This class manages the prerequisite event table.
-* An existing row in this table indicates that an event has not yet taken place that *must* take place before certain jobqueue entries
-* may be queued.  Non-existence of a row conversely indicates that nothing should prevent any dependent jobqueue entries from being
-* queued.
+/** This class manages the events table.
+* A row in this table indicates that a specific event sequence is in progress.  For example, a login sequence for a specific web domain
+* may be underway.  During the time that the event is taking place, no documents that depend on that event will be queued for processing.
 */
 public class EventManager extends org.apache.manifoldcf.core.database.BaseTable
 {
