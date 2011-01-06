@@ -15,7 +15,7 @@
   limitations under the License.
 -->
 
-<site label="Lucene" href="" xmlns="http://apache.org/forrest/linkmap/1.0">
+<site label="ManifoldCF" href="" xmlns="http://apache.org/forrest/linkmap/1.0">
 
   <project label="About">
     <news        label="Welcome"          href="index.html" />    
@@ -36,7 +36,7 @@
   </docs>
   
   <resources label="Resources">
-    <download label="Download" href="ext:releases" />
+    <dev label="Download" href="download.html" />
     <mail        label="Mailing Lists"    href="mail.html" />    
     <dev label="Developer/Integrator Resources" href="developer-resources.html"/>
   </resources>
@@ -68,7 +68,6 @@
     <store     href="http://www.cafepress.com/lucene/" />
     <sponsor   href="http://www.apache.org/foundation/sponsorship.html" />
     <thanks    href="http://www.apache.org/foundation/thanks.html" />
-    <releases  href="http://www.apache.org/dyn/closer.cgi/manifoldcf/" />
   </external-refs>
  
 </site>
