@@ -4,6 +4,9 @@ $Id$
 ======================= Release 0.1 =======================
 Release Date:  See http://incubator.apache.org/connectors for the official release date.
 
+CONNECTORS-133: Update README.txt to include incubator disclaimer.
+(Ant Elder, Sebb, Karl Wright)
+
 CONNECTORS-131: Create download page with separate references for KEYS,
 CHANGES.txt, signatures, and artifacts.
 (Chris Mattmann, Karl Wright)
