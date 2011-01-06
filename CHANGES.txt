@@ -3,6 +3,10 @@ $Id$
 
 ==================  0.2-dev ==================
 
+CONNECTORS-130: Block the Solr output connector from accepting documents
+that have folder-level security.
+(Karl Wright)
+
 CONNECTORS-129: Add an API reset/outputconnections/xxx command, to 
 forget the index state for an output connection.
 (Karl Wright)

@@ -266,6 +266,10 @@ public class HttpPoster
     if (Logging.ingest.isDebugEnabled())
       Logging.ingest.debug("indexPost(): '" + documentURI + "'");
 
+    // The SOLR connector cannot deal with folder-level security at this time.  If they are seen, reject the document.
+    if (document.countDirectoryACLs() != 0)
+      return false;
+    
     // Convert the incoming acls to qualified forms
     String[] shareAcls = convertACL(document.getShareACL(),authorityNameString,activities);
     String[] shareDenyAcls = convertACL(document.getShareDenyACL(),authorityNameString,activities);
