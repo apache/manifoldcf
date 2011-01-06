@@ -36,7 +36,10 @@ disco /out:<output_directory> "http://<server_name>/_vti_bin/Webs.asmx"
 disco /out:<output_directory> "http://<server_name>/_vti_bin/Lists.asmx"
 disco /out:<output_directory> "http://<server_name>/_vti_bin/versions.asmx"
 
-The Permissions.wsdl file should be placed in TWO places: under products/connectors/sharepoint, and also under products/connectors/sharepoint/webservice/Web References/SPPermissionsService.  All other wsdls should go just in products/connectors/sharepoint.  The Permissions.disco file also needs to be placed in products/connectors/sharepoint/webservice/Web References/SPPermissionsService.
+The Permissions.wsdl file should be placed in TWO places: under this directory,
+and also under connectors/sharepoint/webservice/Web References/SPPermissionsService.
+All other wsdls should go just in this directory.  The Permissions.disco file also
+needs to be placed in connectors/sharepoint/webservice/Web References/SPPermissionsService.
 
 
 

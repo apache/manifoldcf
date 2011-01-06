@@ -14,6 +14,11 @@ forget the index state for an output connection.
 ======================= Release 0.1 =======================
 Release Date:  See http://incubator.apache.org/connectors for the official release date.
 
+CONNECTORS-134: Put README.txt files in all empty directories that are meant
+for a user to supply third-party content.  This prevents the archive from not
+delivering an empty directory.
+(Ant Elder, Sebb, Karl Wright)
+
 CONNECTORS-133: Update README.txt to include incubator disclaimer.
 (Ant Elder, Sebb, Karl Wright)
 

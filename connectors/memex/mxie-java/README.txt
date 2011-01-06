@@ -13,5 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-The LiveLink connector requires a client library from OpenText in order to function.  The client jar is call lapi.jar, and the version we have tested against can be found in the LAPI 9.7.1 package from OpenText.
+The Memex connector is no longer distributed at the request of Memex, who
+is now owned by SAS.  If you have the Memex connector sources and an agreement
+from Memex, note that the Memex connector requires compilation against a Memex
+client library, usually called JavaMXIELIB.jar.  Copy that jar into this directory,
+and the sources for the connector into the directory above, and the normal
+connector ant build should build the connector.
 
+The API for Memex Patriarch changes pretty dramatically between revisions.
+The revision number this connector was written against was 1.3.0.
+  
