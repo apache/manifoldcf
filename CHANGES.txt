@@ -4,6 +4,10 @@ $Id$
 ======================= Release 0.1 =======================
 Release Date:  See http://incubator.apache.org/connectors for the official release date.
 
+CONNECTORS-131: Create download page with separate references for KEYS,
+CHANGES.txt, signatures, and artifacts.
+(Chris Mattmann, Karl Wright)
+
 CONNECTORS-128: Remove sql quoting logic to make sql injection attacks
 less possible.
 (Grant Ingersoll, Robert Muir, Karl Wright)
