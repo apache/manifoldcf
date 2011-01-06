@@ -13,15 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-This connector requires someone obtain correct versions of the appropriate wsdls and xsds before it can be built.  This will require two utilities from Microsoft.  The first is "disco.exe", which is a web-service discovery utility.  The second is a Microsoft xml difference utility called xmldiffpatch.
+This connector requires someone obtain correct versions of the appropriate wsdls
+and xsds before it can be built.  This will require two utilities from Microsoft.  The
+first is "disco.exe", which is a web-service discovery utility.  The second is a
+Microsoft xml difference utility called xmldiffpatch.
 
-disco.exe can be found under c:\Program Files\Microsoft SDKs\Windows\V6.x\bin, after Visual Studio is installed.  The xml diff utility used is downloadable from:
+disco.exe can be found under c:\Program Files\Microsoft SDKs\Windows\V6.x\bin,
+after Visual Studio is installed.  The xml diff utility used is downloadable from:
 
 http://msdn.microsoft.com/en-us/library/aa302294.aspx
 
 Patches are meant to be applied using the xmlpatch.exe also included in the same package.
 
-The Meridio version this comparision applies to is Meridio 5.0 SR 1.  With that version of Meridio correctly installed, run the following disco commands, as modified with the correct server name, credentials, and output directory:
+The Meridio version this comparision applies to is Meridio 5.0 SR 1.  With that version
+of Meridio correctly installed, run the following disco commands, as modified with the
+correct server name, credentials, and output directory:
 
 disco /out:<output_directory> /username:<user_name> /password:<password> /domain:<domain> "http://<server_name>/DMWS/MeridioDMWS.asmx"
 disco /out:<output_directory> /username:<user_name> /password:<password> /domain:<domain> "http://<server_name>/RMWS/MeridioRMWS.asmx"
