@@ -29,7 +29,7 @@
   <body> 
     <section>
         <title>Incubation Status</title>
-        <p>ManifoldCF (formerly Apache Connectors Framework) is an effort undergoing incubation at The Apache Software Foundation (ASF), sponsored by the Lucene PMC. Incubation is required of all newly accepted projects until a further review indicates that the infrastructure, communications, and decision making process have stabilized in a manner consistent with other successful ASF projects. While incubation status is not necessarily a reflection of the completeness or stability of the code, it does indicate that the project has yet to be fully endorsed by the ASF.
+        <p>Apache ManifoldCF (formerly Apache Connectors Framework) is an effort undergoing incubation at The Apache Software Foundation (ASF), sponsored by the Lucene PMC. Incubation is required of all newly accepted projects until a further review indicates that the infrastructure, communications, and decision making process have stabilized in a manner consistent with other successful ASF projects. While incubation status is not necessarily a reflection of the completeness or stability of the code, it does indicate that the project has yet to be fully endorsed by the ASF.
         </p>
     </section>
     
@@ -42,7 +42,7 @@
 
     <section>
 	<title>Project status</title>
-	<p>There are currently no released versions of ManifoldCF available, although one is planned  However, a trunk svn checkout has been built and successfully hand-tested.  Nightly builds and online javadoc will be coming shortly.</p>
+	<p>Apache ManifoldCF 0.1 is available!  Download it <a href="download.html">here</a>.</p>
     </section>
 
     <section>
@@ -53,6 +53,10 @@
 
     <section>
         <title>News</title>
+	  <section>
+	     <title>06 January 2011 - ManifoldCF 0.1 release candidate is built</title>
+                <p>Developer community signs off on release</p>
+	  </section>
 	  <section>
 	     <title>03 October 2010 - Apache Connectors Framework officially becomes Apache ManifoldCF</title>
                 <p>Developer community approves second name change</p>
