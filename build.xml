@@ -1529,7 +1529,7 @@
     <target name="doc" depends="deliver-site-doc"/>
     
     <target name="set-version">
-      <property name="release-version" value="0.1-incubator"/>
+      <property name="release-version" value="0.1-incubating"/>
     </target>
     
     <target name="create-zip" depends="doc,javadoc,set-version">

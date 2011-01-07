@@ -30,19 +30,19 @@
   <body> 
 
     <section>
-      <title>Latest release (Apache ManifoldCF 0.1, 2011 Jan 06)</title>
+      <title>Latest release (Apache ManifoldCF 0.1-incubating, 2011 Jan 06)</title>
       <p>
-        <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-0.1-incubator.KEYS">KEYS</a><br/>
-        <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-0.1-incubator.CHANGES.txt">CHANGES.txt</a><br/>
+        <a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.1-incubating.KEYS">KEYS</a><br/>
+        <a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.1-incubating.CHANGES.txt">CHANGES.txt</a><br/>
       </p>
 
       <p>
-        <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-0.1-incubator.tar.gz">apache-manifoldcf-0.1-incubator.tar.gz</a>
-          [<a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-0.1-incubator.tar.gz.asc">PGP</a>]
-          [<a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-0.1-incubator.tar.gz.md5">MD5</a>]<br/>
-        <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-0.1-incubator.zip">apache-manifoldcf-0.1-incubator.zip</a>
-          [<a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-0.1-incubator.zip.asc">PGP</a>]
-          [<a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-0.1-incubator.zip.md5">MD5</a>]<br/>
+        <a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.1-incubating.tar.gz">apache-manifoldcf-0.1-incubating.tar.gz</a>
+          [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.1-incubating.tar.gz.asc">PGP</a>]
+          [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.1-incubating.tar.gz.md5">MD5</a>]<br/>
+        <a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.1-incubating.zip">apache-manifoldcf-0.1-incubating.zip</a>
+          [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.1-incubating.zip.asc">PGP</a>]
+          [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.1-incubating.zip.md5">MD5</a>]<br/>
       </p>
 
     </section>
