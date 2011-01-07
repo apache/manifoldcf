@@ -1532,12 +1532,18 @@
       <property name="release-version" value="0.1-incubator"/>
     </target>
     
-    <target name="create-zip" depends="build,javadoc,doc,set-version">
+    <target name="create-zip" depends="doc,javadoc,set-version">
       <zip destfile="apache-manifoldcf-${release-version}.zip" update="false">
         <zipfileset dir="." prefix="apache-manifoldcf-${release-version}">
+          <include name="/"/>
           <exclude name="/connectors/*/lib/"/>
           <exclude name="/framework/lib/"/>
           <exclude name="**/build/"/>
+          <exclude name="/dist/example/"/>
+          <exclude name="/dist/processes/"/>
+          <exclude name="/dist/web/"/>
+          <exclude name="/dist/lib/"/>
+          <exclude name="/dist/*-process/"/>
           <exclude name="/connectors/*/dist/"/>
           <exclude name="/framework/dist/"/>
           <exclude name="**/test-output/"/>
@@ -1549,12 +1555,17 @@
       </zip>
     </target>
     
-    <target name="create-tar" depends="build,javadoc,doc,set-version">
+    <target name="create-tar" depends="doc,javadoc,set-version">
       <tar destfile="apache-manifoldcf-${release-version}.tar.gz" compression="gzip" longfile="gnu">
         <tarfileset dir="." prefix="apache-manifoldcf-${release-version}">
           <exclude name="/connectors/*/lib/"/>
           <exclude name="/framework/lib/"/>
           <exclude name="**/build/"/>
+          <exclude name="/dist/example/"/>
+          <exclude name="/dist/processes/"/>
+          <exclude name="/dist/web/"/>
+          <exclude name="/dist/lib/"/>
+          <exclude name="/dist/*-process/"/>
           <exclude name="/connectors/*/dist/"/>
           <exclude name="/framework/dist/"/>
           <exclude name="**/test-output/"/>
