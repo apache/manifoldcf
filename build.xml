@@ -1532,52 +1532,72 @@
       <property name="release-version" value="0.1-incubating"/>
     </target>
     
-    <target name="create-zip" depends="doc,javadoc,set-version">
-      <zip destfile="apache-manifoldcf-${release-version}.zip" update="false">
+    <target name="create-source-zip" depends="set-version">
+      <zip destfile="apache-manifoldcf-${release-version}-src.zip" update="false">
         <zipfileset dir="." prefix="apache-manifoldcf-${release-version}">
-          <include name="/"/>
           <exclude name="/connectors/*/lib/"/>
           <exclude name="/framework/lib/"/>
           <exclude name="**/build/"/>
-          <exclude name="/dist/example/"/>
-          <exclude name="/dist/processes/"/>
-          <exclude name="/dist/web/"/>
-          <exclude name="/dist/lib/"/>
-          <exclude name="/dist/*-process/"/>
+          <exclude name="/dist/"/>
           <exclude name="/connectors/*/dist/"/>
           <exclude name="/framework/dist/"/>
           <exclude name="**/test-output/"/>
           <exclude name="/legacy-*/"/>
-          <exclude name="**/*.pdf"/>
-          <exclude name="/apache-manifoldcf-*.zip"/>
-          <exclude name="/apache-manifoldcf-*.tar.gz"/>
+          <exclude name="/apache-manifoldcf-*"/>
         </zipfileset>
       </zip>
     </target>
     
-    <target name="create-tar" depends="doc,javadoc,set-version">
-      <tar destfile="apache-manifoldcf-${release-version}.tar.gz" compression="gzip" longfile="gnu">
+    <target name="create-source-tar" depends="set-version">
+      <tar destfile="apache-manifoldcf-${release-version}-src.tar.gz" compression="gzip" longfile="gnu">
         <tarfileset dir="." prefix="apache-manifoldcf-${release-version}">
           <exclude name="/connectors/*/lib/"/>
           <exclude name="/framework/lib/"/>
           <exclude name="**/build/"/>
-          <exclude name="/dist/example/"/>
-          <exclude name="/dist/processes/"/>
-          <exclude name="/dist/web/"/>
-          <exclude name="/dist/lib/"/>
-          <exclude name="/dist/*-process/"/>
+          <exclude name="/dist/"/>
+          <exclude name="/connectors/*/dist/"/>
+          <exclude name="/framework/dist/"/>
+          <exclude name="**/test-output/"/>
+          <exclude name="/legacy-*/"/>
+          <exclude name="/apache-manifoldcf-*"/>
+        </tarfileset>
+      </tar>
+    </target>
+
+    <target name="create-bin-zip" depends="build,doc,javadoc,set-version">
+      <zip destfile="apache-manifoldcf-${release-version}-bin.zip" update="false">
+        <zipfileset dir="." prefix="apache-manifoldcf-${release-version}">
+          <exclude name="/connectors/*/lib/"/>
+          <exclude name="/framework/lib/"/>
+          <exclude name="**/build/"/>
           <exclude name="/connectors/*/dist/"/>
           <exclude name="/framework/dist/"/>
           <exclude name="**/test-output/"/>
           <exclude name="/legacy-*/"/>
           <exclude name="**/*.pdf"/>
-          <exclude name="/apache-manifoldcf-*.zip"/>
-          <exclude name="/apache-manifoldcf-*.tar.gz"/>
+          <exclude name="/apache-manifoldcf-*"/>
+        </zipfileset>
+      </zip>
+    </target>
+    
+    <target name="create-bin-tar" depends="build,doc,javadoc,set-version">
+      <tar destfile="apache-manifoldcf-${release-version}-bin.tar.gz" compression="gzip" longfile="gnu">
+        <tarfileset dir="." prefix="apache-manifoldcf-${release-version}">
+          <exclude name="/connectors/*/lib/"/>
+          <exclude name="/framework/lib/"/>
+          <exclude name="**/build/"/>
+          <exclude name="/connectors/*/dist/"/>
+          <exclude name="/framework/dist/"/>
+          <exclude name="**/test-output/"/>
+          <exclude name="/legacy-*/"/>
+          <exclude name="**/*.pdf"/>
+          <exclude name="/apache-manifoldcf-*"/>
         </tarfileset>
       </tar>
     </target>
 
-    <target name="image" depends="create-zip,create-tar"/>
+    <target name="image" depends="create-source-zip,create-source-tar,create-bin-zip,create-bin-tar"/>
+    
     <target name="test" depends="run-tests-framework,run-tests-open-connectors,run-tests-lgpl-connectors,run-tests-proprietary-connectors,end-to-end-tests"/>
 
     <target name="all" depends="build,javadoc,doc,image,test"/>
