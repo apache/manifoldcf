@@ -4,6 +4,14 @@ $Id$
 ======================= Release 0.1 =======================
 Release Date:  See http://incubator.apache.org/connectors for the official release date.
 
+CONNECTORS-132: Remove build artifacts from the archives, except for documentation.
+This is to save space.
+(Karl Wright)
+
+CONNECTORS-136: Change rat-sources build target to exclude all files known good
+despite RAT complaints.
+(Sebb, Karl Wright)
+
 CONNECTORS-135: Adjust svn properties of files to be consistent with intended
 usage.
 (Sebb)
