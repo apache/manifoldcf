@@ -4,6 +4,11 @@ $Id$
 ======================= Release 0.1 =======================
 Release Date:  See http://incubator.apache.org/connectors for the official release date.
 
+CONNECTORS-137: Add ASF headers to the jakarta standard tag library tld's
+that the crawler-ui uses.  RAT detected these as a problem, and I have confirmed
+that they have an Apache origin.
+(Sebb, Karl Wright)
+
 CONNECTORS-132: Remove build artifacts from the archives, except for documentation.
 This is to save space.
 (Karl Wright)
