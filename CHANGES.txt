@@ -14,6 +14,12 @@ forget the index state for an output connection.
 ======================= Release 0.1 =======================
 Release Date:  See http://incubator.apache.org/connectors for the official release date.
 
+CONNECTORS-143: Copyright notice needs to be changed to 2011.
+(Sebb, Karl Wright)
+
+CONNECTORS-142: License and notice file revisions.
+(Ant Elder, Sebb, Ralph Goers, Karl Wright)
+
 CONNECTORS-140: Change build to generate both a -src and a -bin distribution.
 (Grant Ingersoll, Karl Wright)
 
