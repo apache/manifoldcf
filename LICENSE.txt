@@ -174,7 +174,40 @@
       of your accepting any such warranty or additional liability.
 
    END OF TERMS AND CONDITIONS
-   
+
+
+Includes software from other Apache Software Foundation projects,
+including, but not limited to:
+  - Apache Tomcat
+  - Apache Commons
+  - Apache Geronimo
+  - Apache Log4j
+  - Apache Derby
+  - Apache Axis
+  - Apache Xerces2
+  - Apache Jetty
+
+This product includes code from: http://www.json.org
+License: JSON license (http://www.json.org/license.html)
+
+This product includes a postgresql.jar: http://jdbc.postgresql.org
+License: BSD License (http://jdbc.postgresql.org/license.html)
+
+This product includes a JUnit jar: http://junit.sourceforge.net/
+License: Common Public License - v 1.0 (http://junit.sourceforge.net/cpl-v10.html)
+
+This product includes a jdbcpool-0.99.jar.
+License: Apache Software Foundation - v 1.1
+
+This product includes an eclipse-ecj.jar.
+License: Eclipse Public License - v 1.0 (http://www.eclipse.org/legal/epl-v10.html)
+
+This product includes an hsqldb.jar: http://hsqldb.org/
+License: HSQL Development Group License (http://hsqldb.org/web/hsqlLicense.html)
+
+This product includes JSP API jars.
+License: Common Development and Distribution License (CDDL) v1.0 (https://glassfish.dev.java.net/public/CDDLv1.0.html)
+
 ==========================================================================
 The following license applies to json.jar, which is generated from the json
 sources from http://www.json.org/java/index.html
