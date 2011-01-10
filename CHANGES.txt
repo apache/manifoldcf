@@ -14,6 +14,9 @@ forget the index state for an output connection.
 ======================= Release 0.1 =======================
 Release Date:  See http://incubator.apache.org/connectors for the official release date.
 
+CONNECTORS-147: Disable PDF's everywhere except for user documentation.
+(Grant Ingersoll, David Crossley, Karl Wright)
+
 CONNECTORS-148: Creating the database in PostgreSQL failed intermittently
 when a parameter was used for the encoding; the PostgreSQL documentation
 specifies that it must be a quoted string in that case.

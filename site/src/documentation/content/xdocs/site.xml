@@ -32,7 +32,8 @@
     <dev label="API Documentation" href="programmatic-operation.html"/>
     <dev label="Javadoc" href="javadoc.html"/>
     <dev label="Building and Deploying" href="how-to-build-and-deploy.html"/>
-    <dev label="End-user Documentation" href="end-user-documentation.html"/>
+    <dev label="End-user Documentation (HTML)" href="end-user-documentation.html"/>
+    <dev label="End-user Documentation (PDF)" href="end-user-documentation.pdf"/>
   </docs>
   
   <resources label="Resources">
