@@ -45,6 +45,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   public final static int STATUS_BEINGDELETED = 6;
   public final static int STATUS_ACTIVENEEDRESCAN = 7;
   public final static int STATUS_ACTIVENEEDRESCANPURGATORY = 8;
+  public final static int STATUS_BEINGCLEANED = 9;
 
   // Action values
   public final static int ACTION_RESCAN = 0;
@@ -66,9 +67,12 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   // an aborted job.  On recovery, PENDING and ACTIVE records are deleted (since they were never
   // completed), while PENDINGPURGATORY and ACTIVEPURGATORY records are retained but get marked as PURGATORY.
   //
-  // BEINGDELETED means that the document is queued to be cleaned up because the owning job is being
+  // BEINGDELETED means that the document is queued because the owning job is being
   //   deleted.  It exists so that jobs that are active can avoid processing a document until the cleanup
   //   activity is done.
+  //
+  // BEINGCLEANED means that the document is queued because the owning job is in the SHUTTINGDOWN
+  //   state, and the document was never encountered during the crawl.
 
   // Field names
   public static final String idField = "id";
@@ -98,6 +102,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     statusMap.put("D",new Integer(STATUS_BEINGDELETED));
     statusMap.put("a",new Integer(STATUS_ACTIVENEEDRESCAN));
     statusMap.put("f",new Integer(STATUS_ACTIVENEEDRESCANPURGATORY));
+    statusMap.put("d",new Integer(STATUS_BEINGCLEANED));
   }
 
   protected static Map seedstatusMap;
@@ -307,6 +312,12 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     list.add(statusToString(STATUS_BEINGDELETED));
     performUpdate(map,"WHERE "+statusField+"=?",list,null);
 
+    // Map BEINGCLEANED to PURGATORY
+    map.put(statusField,statusToString(STATUS_PURGATORY));
+    list.clear();
+    list.add(statusToString(STATUS_BEINGCLEANED));
+    performUpdate(map,"WHERE "+statusField+"=?",list,null);
+
     // Map newseed fields to seed
     map.put(isSeedField,seedstatusToString(SEEDSTATUS_SEED));
     list.clear();
@@ -373,6 +384,20 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     map.put(statusField,statusToString(STATUS_COMPLETE));
     list.clear();
     list.add(statusToString(STATUS_BEINGDELETED));
+    performUpdate(map,"WHERE "+statusField+"=?",list,null);
+  }
+
+  /** Reset doc cleaning worker status.
+  */
+  public void resetDocCleanupWorkerStatus()
+    throws ManifoldCFException
+  {
+    HashMap map = new HashMap();
+    ArrayList list = new ArrayList();
+    // Map BEINGCLEANED to PURGATORY
+    map.put(statusField,statusToString(STATUS_PURGATORY));
+    list.clear();
+    list.add(statusToString(STATUS_BEINGCLEANED));
     performUpdate(map,"WHERE "+statusField+"=?",list,null);
   }
 
@@ -642,6 +667,34 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     performUpdate(map,"WHERE "+idField+"=?",list,null);
   }
 
+  /** Set the status of a document to "being cleaned".
+  */
+  public void setCleaningStatus(Long id)
+    throws ManifoldCFException
+  {
+    ArrayList list = new ArrayList();
+    list.add(id);
+    HashMap map = new HashMap();
+    map.put(statusField,statusToString(STATUS_BEINGCLEANED));
+    performUpdate(map,"WHERE "+idField+"=?",list,null);
+    noteModifications(0,1,0);
+  }
+
+  /** Set the status of a document to be "no longer cleaning" */
+  public void setUncleaningStatus(Long id)
+    throws ManifoldCFException
+  {
+    HashMap map = new HashMap();
+    map.put(statusField,statusToString(STATUS_PURGATORY));
+    map.put(checkTimeField,null);
+    map.put(checkActionField,null);
+    map.put(failTimeField,null);
+    map.put(failCountField,null);
+    ArrayList list = new ArrayList();
+    list.add(id);
+    performUpdate(map,"WHERE "+idField+"=?",list,null);
+  }
+
   /** Remove multiple records entirely.
   *@param ids is the set of job queue id's
   */
@@ -715,12 +768,14 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     case STATUS_ACTIVEPURGATORY:
     case STATUS_ACTIVENEEDRESCAN:
     case STATUS_ACTIVENEEDRESCANPURGATORY:
+    case STATUS_BEINGCLEANED:
+      // These are all the active states.  Being in this state implies that a thread may be working on the document.  We
+      // must not interrupt it.
       // Initial adds never bring along any carrydown info, so we should be satisfied as long as the record exists.
       break;
 
     case STATUS_COMPLETE:
     case STATUS_PURGATORY:
-    case STATUS_BEINGDELETED:
       // Set the status and time both
       map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
       if (desiredExecuteTime == -1L)
@@ -996,6 +1051,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       rval = true;
       break;
     case STATUS_COMPLETE:
+    case STATUS_BEINGCLEANED:
       // Requeue the document for processing, if there have been other changes.
       if (otherChangesSeen)
       {
@@ -1222,6 +1278,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       return "a";
     case STATUS_ACTIVENEEDRESCANPURGATORY:
       return "f";
+    case STATUS_BEINGCLEANED:
+      return "d";
     default:
       throw new ManifoldCFException("Bad status value: "+Integer.toString(status));
     }

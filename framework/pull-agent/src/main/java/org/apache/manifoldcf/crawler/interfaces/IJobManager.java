@@ -3,7 +3,7 @@
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
 * contributor license agreements. See the NOTICE file distributed with
-* this work for additional information regarding copyright ownership.
+* this work for additional information regarding copyright ownership.f
 * The ASF licenses this file to You under the Apache License, Version 2.0
 * (the "License"); you may not use this file except in compliance with
 * the License. You may obtain a copy of the License at
@@ -156,6 +156,11 @@ public interface IJobManager
   /** Reset as part of restoring doc delete threads.
   */
   public void resetDocDeleteWorkerStatus()
+    throws ManifoldCFException;
+
+  /** Reset as part of restoring doc cleanup threads.
+  */
+  public void resetDocCleanupWorkerStatus()
     throws ManifoldCFException;
 
   /** Reset as part of restoring startup threads.
@@ -363,6 +368,23 @@ public interface IJobManager
   * This gets done when a deleting thread sees a service interruption, etc., from the ingestion system.
   */
   public void resetDeletingDocument(DocumentDescription documentDescription)
+    throws ManifoldCFException;
+
+  /** Reset a cleaning document back to its former state.
+  * This gets done when a deleting thread sees a service interruption, etc., from the ingestion system.
+  */
+  public void resetCleaningDocument(DocumentDescription documentDescription)
+    throws ManifoldCFException;
+
+  /** Reset a set of cleaning documents for further processing in the future.
+  * This method is called after some unknown number of the documents were cleaned, but then an ingestion service interruption occurred.
+  * Note well: The logic here basically presumes that we cannot know whether the documents were indeed cleaned or not.
+  * If we knew for a fact that none of the documents had been handled, it would be possible to look at the document's
+  * current status and decide what the new status ought to be, based on a true rollback scenario.  Such cases, however, are rare enough so that
+  * special logic is probably not worth it.
+  *@param documentDescriptions is the set of description objects for the document that was cleaned.
+  */
+  public void resetCleaningDocumentMultiple(DocumentDescription[] documentDescriptions)
     throws ManifoldCFException;
 
   /** Add an initial set of documents to the queue.
@@ -727,6 +749,14 @@ public interface IJobManager
   public DocumentDescription[] getNextDeletableDocuments(int n)
     throws ManifoldCFException;
 
+  /** Get list of cleanable document descriptions.  This list will take into account
+  * multiple jobs that may own the same document.
+  *@param n is the maximum number of documents to return.
+  *@return the document descriptions for these documents.
+  */
+  public DocumentSetAndFlags getNextCleanableDocuments(int n)
+    throws ManifoldCFException;
+
   /** Delete ingested document identifiers (as part of deleting the owning job).
   * The number of identifiers specified is guaranteed to be less than the maxInClauseCount
   * for the database.
@@ -755,8 +785,12 @@ public interface IJobManager
   public void finishJobs()
     throws ManifoldCFException;
 
-  /** Reset eligible jobs back to "inactive" state.  This method is used to pick up all jobs in the shutting down state
-  * whose purgatory records have been all cleaned up.
+  /** Reset eligible jobs either back to the "inactive" state, or make them active again.  The
+  * latter will occur if the cleanup phase of the job generated more pending documents.
+  *
+  *  This method is used to pick up all jobs in the shutting down state
+  * whose purgatory or being-cleaned records have been all processed.
+  *
   *@param currentTime is the current time in milliseconds since epoch.
   *@param resetJobs is filled in with the set of IJobDescription objects that were reset.
   */

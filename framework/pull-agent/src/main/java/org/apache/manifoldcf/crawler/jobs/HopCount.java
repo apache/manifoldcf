@@ -506,7 +506,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
   }
 
   /** Remove a set of document identifiers specified as a criteria.  This will remove hopcount rows and
-  * also intrinsic links that have the specified document identifiers are sources.
+  * also intrinsic links that have the specified document identifiers as sources.
   */
   public void deleteMatchingDocuments(Long jobID, String[] legalLinkTypes,
     String sourceTableName,

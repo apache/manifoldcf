@@ -740,6 +740,16 @@ public class JobManager implements IJobManager
     Logging.jobs.debug("Reset complete");
   }
 
+  /** Reset as part of restoring doc cleanup threads.
+  */
+  public void resetDocCleanupWorkerStatus()
+    throws ManifoldCFException
+  {
+    Logging.jobs.debug("Resetting doc cleaning status");
+    jobQueue.resetDocCleanupWorkerStatus();
+    Logging.jobs.debug("Reset complete");
+  }
+
   /** Reset as part of restoring startup threads.
   */
   public void resetStartupWorkerStatus()
@@ -763,6 +773,198 @@ public class JobManager implements IJobManager
     jobQueue.deleteIngestedDocumentIdentifiers(identifiers);
     // Hopcount rows get removed when the job itself is removed.
     // carrydown records get removed when the job itself is removed.
+  }
+
+  /** Get list of cleanable document descriptions.  This list will take into account
+  * multiple jobs that may own the same document.  All documents for which a description
+  * is returned will be transitioned to the "beingcleaned" state.  Documents which are
+  * not in transition and are eligible, but are owned by other jobs, will have their
+  * jobqueue entries deleted by this method.
+  *@param maxCount is the maximum number of documents to return.
+  *@return the document descriptions for these documents.
+  */
+  public DocumentSetAndFlags getNextCleanableDocuments(int maxCount)
+    throws ManifoldCFException
+  {
+    // The query will be built here, because it joins the jobs table against the jobqueue
+    // table.
+    //
+    // This query must only pick up documents that are not active in any job and
+    // which belong to a job that's in a "shutting down" state and are in
+    // a "purgatory" state.
+    //
+    // We are in fact more conservative in this query than we need to be; the documents
+    // excluded will include some that simply match our criteria, which is designed to
+    // be fast rather than perfect.  The match we make is: hashvalue against hashvalue, and
+    // different job id's.
+    //
+    // SELECT id,jobid,docid FROM jobqueue t0 WHERE t0.status='P' AND EXISTS(SELECT 'x' FROM
+    //              jobs t3 WHERE t0.jobid=t3.id AND t3.status='X')
+    //      AND NOT EXISTS(SELECT 'x' FROM jobqueue t2 WHERE t0.hashval=t2.hashval AND t0.jobid!=t2.jobid
+    //              AND t2.status IN ('A','F','B'))
+    //
+
+    // Do a simple preliminary query, since the big query is currently slow, so that we don't waste time during stasis or
+    // ingestion.
+    // Moved outside of transaction, so we have no chance of locking up job status cache key for an extended period of time.
+    if (!jobs.cleaningJobsPresent())
+      return new DocumentSetAndFlags(new DocumentDescription[0],new boolean[0]);
+
+    long startTime = 0L;
+    if (Logging.perf.isDebugEnabled())
+    {
+      startTime = System.currentTimeMillis();
+      Logging.perf.debug("Waiting to find documents to put on the cleaning queue");
+    }
+
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        if (Logging.perf.isDebugEnabled())
+          Logging.perf.debug("After "+new Long(System.currentTimeMillis()-startTime).toString()+" ms, beginning query to look for documents to put on cleaning queue");
+
+        // Note: This query does not do "FOR UPDATE", because it is running under the only thread that can possibly change the document's state to "being cleaned".
+        ArrayList list = new ArrayList();
+        list.add(jobQueue.statusToString(jobQueue.STATUS_PURGATORY));
+        
+        list.add(jobs.statusToString(jobs.STATUS_SHUTTINGDOWN));
+        
+        list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVE));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED));
+        
+        IResultSet set = database.performQuery("SELECT "+jobQueue.idField+","+jobQueue.jobIDField+","+jobQueue.docHashField+","+jobQueue.docIDField+","+
+          jobQueue.failTimeField+","+jobQueue.failCountField+" FROM "+
+          jobQueue.getTableName()+" t0 WHERE t0."+jobQueue.statusField+"=? "+
+          " AND EXISTS(SELECT 'x' FROM "+jobs.getTableName()+" t1 WHERE t0."+jobQueue.jobIDField+"=t1."+jobs.idField+
+          " AND t1."+jobs.statusField+"=?"+
+          ") AND NOT EXISTS(SELECT 'x' FROM "+jobQueue.getTableName()+" t2 WHERE t0."+jobQueue.docHashField+"=t2."+
+          jobQueue.docHashField+" AND t0."+jobQueue.jobIDField+"!=t2."+jobQueue.jobIDField+
+          " AND t2."+jobQueue.statusField+" IN (?,?,?,?,?,?)) "+database.constructOffsetLimitClause(0,maxCount),
+          list,null,null,maxCount,null);
+
+        if (Logging.perf.isDebugEnabled())
+          Logging.perf.debug("Done getting docs to cleaning queue after "+new Long(System.currentTimeMillis()-startTime).toString()+" ms.");
+
+        // We need to organize the returned set by connection name, so that we can efficiently
+        // use  getUnindexableDocumentIdentifiers.
+        // This is a table keyed by connection name and containing an ArrayList, which in turn contains DocumentDescription
+        // objects.
+        HashMap connectionNameMap = new HashMap();
+        HashMap documentIDMap = new HashMap();
+        int i = 0;
+        while (i < set.getRowCount())
+        {
+          IResultRow row = set.getRow(i);
+          Long jobID = (Long)row.getValue(jobQueue.jobIDField);
+          String documentIDHash = (String)row.getValue(jobQueue.docHashField);
+          String documentID = (String)row.getValue(jobQueue.docIDField);
+          Long failTimeValue = (Long)row.getValue(jobQueue.failTimeField);
+          Long failCountValue = (Long)row.getValue(jobQueue.failCountField);
+          // Failtime is probably not useful in this context, but we'll bring it along for completeness
+          long failTime;
+          if (failTimeValue == null)
+            failTime = -1L;
+          else
+            failTime = failTimeValue.longValue();
+          int failCount;
+          if (failCountValue == null)
+            failCount = 0;
+          else
+            failCount = (int)failCountValue.longValue();
+          IJobDescription jobDesc = load(jobID);
+          String connectionName = jobDesc.getConnectionName();
+          DocumentDescription dd = new DocumentDescription((Long)row.getValue(jobQueue.idField),
+            jobID,documentIDHash,documentID,failTime,failCount);
+          documentIDMap.put(documentIDHash,dd);
+          ArrayList x = (ArrayList)connectionNameMap.get(connectionName);
+          if (x == null)
+          {
+            // New entry needed
+            x = new ArrayList();
+            connectionNameMap.put(connectionName,x);
+          }
+          x.add(dd);
+          i++;
+        }
+
+        // For each bin, obtain a filtered answer, and enter all answers into a hash table.
+        // We'll then scan the result again to look up the right descriptions for return,
+        // and delete the ones that are owned multiply.
+        HashMap allowedDocIds = new HashMap();
+        Iterator iter = connectionNameMap.keySet().iterator();
+        while (iter.hasNext())
+        {
+          String connectionName = (String)iter.next();
+          ArrayList x = (ArrayList)connectionNameMap.get(connectionName);
+          // Do the filter query
+          DocumentDescription[] descriptions = new DocumentDescription[x.size()];
+          int j = 0;
+          while (j < descriptions.length)
+          {
+            descriptions[j] = (DocumentDescription)x.get(j);
+            j++;
+          }
+          String[] docIDHashes = getUnindexableDocumentIdentifiers(descriptions,connectionName);
+          j = 0;
+          while (j < docIDHashes.length)
+          {
+            String docIDHash = docIDHashes[j++];
+            allowedDocIds.put(docIDHash,docIDHash);
+          }
+        }
+
+        // Now, assemble a result, and change the state of the records accordingly
+        DocumentDescription[] rval = new DocumentDescription[documentIDMap.size()];
+        boolean[] rvalBoolean = new boolean[documentIDMap.size()];
+        i = 0;
+        iter = documentIDMap.keySet().iterator();
+        while (iter.hasNext())
+        {
+          String docIDHash = (String)iter.next();
+          DocumentDescription dd = (DocumentDescription)documentIDMap.get(docIDHash);
+          // Determine whether we can delete it from the index or not
+          rvalBoolean[i] = (allowedDocIds.get(docIDHash) != null);
+          // Set the record status to "being cleaned" and return it
+          rval[i++] = dd;
+          jobQueue.setCleaningStatus(dd.getID());
+        }
+
+        if (Logging.perf.isDebugEnabled())
+          Logging.perf.debug("Done pruning unindexable docs after "+new Long(System.currentTimeMillis()-startTime).toString()+" ms.");
+
+        return new DocumentSetAndFlags(rval,rvalBoolean);
+
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        throw e;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction finding deleteable docs: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
   }
 
   /** Get list of deletable document descriptions.  This list will take into account
@@ -789,9 +991,8 @@ public class JobManager implements IJobManager
     // be fast rather than perfect.  The match we make is: hashvalue against hashvalue, and
     // different job id's.
     //
-    // SELECT id,jobid,docid FROM jobqueue t0 WHERE ((t0.status IN ('C','P','G') AND EXISTS(SELECT 'x' FROM
-    //      jobs t1 WHERE t0.jobid=t1.id AND t1.status='D')) OR (t0.status='P' AND EXISTS(SELECT 'x' FROM
-    //              jobs t3 WHERE t0.jobid=t3.id AND t3.status='X')))
+    // SELECT id,jobid,docid FROM jobqueue t0 WHERE (t0.status IN ('C','P','G') AND EXISTS(SELECT 'x' FROM
+    //      jobs t1 WHERE t0.jobid=t1.id AND t1.status='D')
     //      AND NOT EXISTS(SELECT 'x' FROM jobqueue t2 WHERE t0.hashval=t2.hashval AND t0.jobid!=t2.jobid
     //              AND t2.status IN ('A','F','B'))
     //
@@ -827,27 +1028,21 @@ public class JobManager implements IJobManager
         
         list.add(jobs.statusToString(jobs.STATUS_READYFORDELETE));
         
-        list.add(jobQueue.statusToString(jobQueue.STATUS_PURGATORY));
-        
-        list.add(jobs.statusToString(jobs.STATUS_SHUTTINGDOWN));
-        
         list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVE));
         list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY));
         list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN));
         list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY));
         list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED));
         
         IResultSet set = database.performQuery("SELECT "+jobQueue.idField+","+jobQueue.jobIDField+","+jobQueue.docHashField+","+jobQueue.docIDField+","+
           jobQueue.failTimeField+","+jobQueue.failCountField+" FROM "+
-          jobQueue.getTableName()+" t0 WHERE ((t0."+jobQueue.statusField+" IN (?,?,?) "+
+          jobQueue.getTableName()+" t0 WHERE t0."+jobQueue.statusField+" IN (?,?,?) "+
           " AND EXISTS(SELECT 'x' FROM "+jobs.getTableName()+" t1 WHERE t0."+jobQueue.jobIDField+"=t1."+jobs.idField+
           " AND t1."+jobs.statusField+"=?"+
-          ")) OR (t0."+jobQueue.statusField+"=?"+
-          " AND EXISTS(SELECT 'x' FROM "+jobs.getTableName()+" t3 WHERE t0."+jobQueue.jobIDField+"=t3."+jobs.idField+
-          " AND t3."+jobs.statusField+"=?"+
-          "))) AND NOT EXISTS(SELECT 'x' FROM "+jobQueue.getTableName()+" t2 WHERE t0."+jobQueue.docHashField+"=t2."+
+          ") AND NOT EXISTS(SELECT 'x' FROM "+jobQueue.getTableName()+" t2 WHERE t0."+jobQueue.docHashField+"=t2."+
           jobQueue.docHashField+" AND t0."+jobQueue.jobIDField+"!=t2."+jobQueue.jobIDField+
-          " AND t2."+jobQueue.statusField+" IN (?,?,?,?,?)) "+database.constructOffsetLimitClause(0,maxCount),
+          " AND t2."+jobQueue.statusField+" IN (?,?,?,?,?,?)) "+database.constructOffsetLimitClause(0,maxCount),
           list,null,null,maxCount,null);
 
         if (Logging.perf.isDebugEnabled())
@@ -1329,6 +1524,7 @@ public class JobManager implements IJobManager
     list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN));
     list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY));
     list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED));
     
     StringBuffer sb = new StringBuffer("SELECT t0.");
     sb.append(jobQueue.idField).append(",t0.");
@@ -1346,7 +1542,7 @@ public class JobManager implements IJobManager
     sb.append("NOT EXISTS(SELECT 'x' FROM ").append(jobQueue.getTableName()).append(" t2 WHERE t0.")
       .append(jobQueue.docHashField).append("=t2.").append(jobQueue.docHashField).append(" AND t0.")
       .append(jobQueue.jobIDField).append("!=t2.").append(jobQueue.jobIDField).append(" AND t2.")
-      .append(jobQueue.statusField).append(" IN (?,?,?,?,?))");
+      .append(jobQueue.statusField).append(" IN (?,?,?,?,?,?))");
     sb.append(" ").append(database.constructOffsetLimitClause(0,n));
 
     // Analyze jobqueue tables unconditionally, since it's become much more sensitive in 8.3 than it used to be.
@@ -1775,6 +1971,7 @@ public class JobManager implements IJobManager
     list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN));
     list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY));
     list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED));
     
     sb.append("t0.").append(jobQueue.checkTimeField).append("<=? AND ");
     sb.append("(t0.").append(jobQueue.checkActionField).append(" IS NULL OR t0.").append(jobQueue.checkActionField)
@@ -1785,7 +1982,7 @@ public class JobManager implements IJobManager
     sb.append("NOT EXISTS(SELECT 'x' FROM ").append(jobQueue.getTableName()).append(" t2 WHERE t0.")
       .append(jobQueue.docHashField).append("=t2.").append(jobQueue.docHashField).append(" AND t0.")
       .append(jobQueue.jobIDField).append("!=t2.").append(jobQueue.jobIDField).append(" AND t2.")
-      .append(jobQueue.statusField).append(" IN (?,?,?,?,?)) AND ");
+      .append(jobQueue.statusField).append(" IN (?,?,?,?,?,?)) AND ");
 
     // Prerequisite event clause: AND NOT EXISTS(SELECT 'x' FROM prereqevents t3,events t4 WHERE t3.ownerid=t0.id AND t3.name=t4.name)
     sb.append("NOT EXISTS(SELECT 'x' FROM ").append(jobQueue.prereqEventManager.getTableName()).append(" t3,").append(eventManager.getTableName()).append(" t4 WHERE t0.")
@@ -2485,6 +2682,97 @@ public class JobManager implements IJobManager
         sleepFor(sleepAmt);
       }
     }
+  }
+
+  /** Reset a set of cleaning documents for further processing in the future.
+  * This method is called after some unknown number of the documents were cleaned, but then an ingestion service interruption occurred.
+  * Note well: The logic here basically presumes that we cannot know whether the documents were indeed cleaned or not.
+  * If we knew for a fact that none of the documents had been handled, it would be possible to look at the document's
+  * current status and decide what the new status ought to be, based on a true rollback scenario.  Such cases, however, are rare enough so that
+  * special logic is probably not worth it.
+  *@param documentDescriptions is the set of description objects for the document that was cleaned.
+  */
+  public void resetCleaningDocumentMultiple(DocumentDescription[] documentDescriptions)
+    throws ManifoldCFException
+  {
+    Long[] ids = new Long[documentDescriptions.length];
+    String[] docIDHashes = new String[documentDescriptions.length];
+
+    // First loop maps document identifier back to an index.
+    HashMap indexMap = new HashMap();
+    int i = 0;
+    while (i < documentDescriptions.length)
+    {
+      docIDHashes[i] =documentDescriptions[i].getDocumentIdentifierHash() + ":" + documentDescriptions[i].getJobID();
+      indexMap.put(docIDHashes[i],new Integer(i));
+      i++;
+    }
+
+    // Sort!
+    java.util.Arrays.sort(docIDHashes);
+
+    // Next loop populates the actual arrays we use to feed the operation so that the ordering is correct.
+    i = 0;
+    while (i < docIDHashes.length)
+    {
+      String docIDHash = docIDHashes[i];
+      Integer x = (Integer)indexMap.remove(docIDHash);
+      if (x == null)
+        throw new ManifoldCFException("Assertion failure: duplicate document identifier jobid/hash detected!");
+      int index = x.intValue();
+      ids[i] = documentDescriptions[index].getID();
+      i++;
+    }
+
+    // Documents get marked PURGATORY regardless of their current state; this is because we can't know at this point what the actual prior state was.
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        // Going through ids in order should greatly reduce or eliminate chances of deadlock occurring.  We thus need to pay attention to the sorted order.
+        i = 0;
+        while (i < ids.length)
+        {
+          jobQueue.setUncleaningStatus(ids[i]);
+          i++;
+        }
+
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction resetting cleaning documents: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+  }
+
+  /** Reset a cleaning document back to its former state.
+  * This gets done when a deleting thread sees a service interruption, etc., from the ingestion system.
+  */
+  public void resetCleaningDocument(DocumentDescription documentDescription)
+    throws ManifoldCFException
+  {
+    resetCleaningDocumentMultiple(new DocumentDescription[]{documentDescription});
   }
 
   /** Reset a set of deleting documents for further processing in the future.
@@ -5113,7 +5401,7 @@ public class JobManager implements IJobManager
       // This method must find only jobs that have nothing hanging around in their jobqueue that represents an ingested
       // document.  Any jobqueue entries which are in a state to interfere with the delete will be cleaned up by other
       // threads, so eventually a job will become eligible.  This happens when there are no records that have an ingested
-      // status: complete, purgatory, being-deleted, or pending purgatory.
+      // status: complete, purgatory, being-cleaned, being-deleted, or pending purgatory.
       database.beginTransaction();
       try
       {
@@ -5152,9 +5440,12 @@ public class JobManager implements IJobManager
           list.add(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY));
           list.add(jobID);
           list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
+          list.add(jobID);
+          list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED));
 
           IResultSet confirmSet = database.performQuery("SELECT "+jobQueue.idField+" FROM "+
             jobQueue.getTableName()+" WHERE "+
+            "("+jobQueue.jobIDField+"=? AND "+jobQueue.statusField+"=?) OR "+
             "("+jobQueue.jobIDField+"=? AND "+jobQueue.statusField+"=?) OR "+
             "("+jobQueue.jobIDField+"=? AND "+jobQueue.statusField+"=?) OR "+
             "("+jobQueue.jobIDField+"=? AND "+jobQueue.statusField+"=?) OR "+
@@ -5438,8 +5729,12 @@ public class JobManager implements IJobManager
     }
   }
 
-  /** Reset eligible jobs back to "inactive" state.  This method is used to pick up all jobs in the shutting down state
-  * whose purgatory or being-deleted records have been all cleaned up.
+  /** Reset eligible jobs either back to the "inactive" state, or make them active again.  The
+  * latter will occur if the cleanup phase of the job generated more pending documents.
+  *
+  *  This method is used to pick up all jobs in the shutting down state
+  * whose purgatory or being-cleaned records have been all processed.
+  *
   *@param currentTime is the current time in milliseconds since epoch.
   *@param resetJobs is filled in with the set of IJobDescription objects that were reset.
   */
@@ -5477,7 +5772,7 @@ public class JobManager implements IJobManager
           list.add(jobID);
           list.add(jobQueue.statusToString(jobQueue.STATUS_PURGATORY));
           list.add(jobID);
-          list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
+          list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED));
 
           IResultSet confirmSet = database.performQuery("SELECT "+jobQueue.idField+" FROM "+
             jobQueue.getTableName()+" WHERE "+
@@ -5487,14 +5782,40 @@ public class JobManager implements IJobManager
           if (confirmSet.getRowCount() > 0)
             continue;
 
-          IJobDescription jobDesc = jobs.load(jobID,true);
-          resetJobs.add(jobDesc);
-          
-          // Label the job "finished"
-          jobs.finishJob(jobID,currentTime);
-          if (Logging.jobs.isDebugEnabled())
+          // The shutting-down phase is complete.  However, we need to check if there are any outstanding
+          // PENDING or PENDINGPURGATORY records before we can decide what to do.
+          list.clear();
+          list.add(jobID);
+          list.add(jobQueue.statusToString(jobQueue.STATUS_PENDING));
+          list.add(jobID);
+          list.add(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY));
+
+          confirmSet = database.performQuery("SELECT "+jobQueue.idField+" FROM "+
+            jobQueue.getTableName()+" WHERE "+
+            "("+jobQueue.jobIDField+"=? AND "+jobQueue.statusField+"=?) OR "+
+            "("+jobQueue.jobIDField+"=? AND "+jobQueue.statusField+"=?) "+database.constructOffsetLimitClause(0,1),list,null,null,1,null);
+
+          if (confirmSet.getRowCount() > 0)
           {
-            Logging.jobs.debug("Job "+jobID+" now completed");
+            // This job needs to re-enter the active state.  Make that happen.
+            jobs.returnJobToActive(jobID);
+            if (Logging.jobs.isDebugEnabled())
+            {
+              Logging.jobs.debug("Job "+jobID+" is re-entering active state");
+            }
+          }
+          else
+          {
+            // This job should be marked as finished.
+            IJobDescription jobDesc = jobs.load(jobID,true);
+            resetJobs.add(jobDesc);
+            
+            // Label the job "finished"
+            jobs.finishJob(jobID,currentTime);
+            if (Logging.jobs.isDebugEnabled())
+            {
+              Logging.jobs.debug("Job "+jobID+" now completed");
+            }
           }
         }
         return;
@@ -5804,6 +6125,7 @@ public class JobManager implements IJobManager
     list.add(jobQueue.statusToString(jobQueue.STATUS_COMPLETE));
     list.add(jobQueue.statusToString(jobQueue.STATUS_PURGATORY));
     list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED));
     
     list.add(jobQueue.statusToString(jobQueue.STATUS_COMPLETE));
     list.add(jobQueue.statusToString(jobQueue.STATUS_PURGATORY));
@@ -5856,6 +6178,7 @@ public class JobManager implements IJobManager
       .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=? THEN 'Processed'")
       .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=? THEN 'Processed'")
       .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=? THEN 'Processed'")
+      .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=? THEN 'Being removed'")
       .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=? THEN 'Being removed'")
       .append(" ELSE 'Unknown'")
       .append(" END AS state,")
@@ -5982,6 +6305,7 @@ public class JobManager implements IJobManager
     list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY));
     
     list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED));
     
     list.add(jobQueue.actionToString(jobQueue.ACTION_RESCAN));
     list.add(jobQueue.statusToString(jobQueue.STATUS_PENDING));
@@ -6035,6 +6359,7 @@ public class JobManager implements IJobManager
       .append("CASE")
       .append(" WHEN ")
       .append(jobQueue.statusField).append("=?")
+      .append(" OR ").append(jobQueue.statusField).append("=?")
       .append(" THEN 1 ELSE 0")
       .append(" END")
       .append(" as deleting,")
@@ -6177,9 +6502,10 @@ public class JobManager implements IJobManager
         list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY));
         list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY));
         list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED));
         list.add(jobQueue.statusToString(jobQueue.STATUS_COMPLETE));
         list.add(jobQueue.statusToString(jobQueue.STATUS_PURGATORY));
-        sb.append(fieldPrefix).append(jobQueue.statusField).append(" IN (?,?,?,?,?,?)");
+        sb.append(fieldPrefix).append(jobQueue.statusField).append(" IN (?,?,?,?,?,?,?)");
         break;
       }
       k++;
@@ -6221,7 +6547,8 @@ public class JobManager implements IJobManager
         break;
       case DOCSTATUS_DELETING:
         list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
-        sb.append(fieldPrefix).append(jobQueue.statusField).append("=?");
+        list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED));
+        sb.append(fieldPrefix).append(jobQueue.statusField).append(" IN (?,?)");
         break;
       case DOCSTATUS_READYFORPROCESSING:
         list.add(jobQueue.statusToString(jobQueue.STATUS_PENDING));

@@ -14,6 +14,10 @@ forget the index state for an output connection.
 ======================= Release 0.1 =======================
 Release Date:  See http://incubator.apache.org/connectors for the official release date.
 
+CONNECTORS-146: Problem with document cleanup logic would cause data corruption
+in carrydown data and in hopcount information.
+(Karl Wright)
+
 CONNECTORS-143: Copyright notice needs to be changed to 2011.
 (Sebb, Karl Wright)
 

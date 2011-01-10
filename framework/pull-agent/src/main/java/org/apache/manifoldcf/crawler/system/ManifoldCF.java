@@ -46,6 +46,8 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static ExpireThread[] expireThreads = null;
   protected static DocumentDeleteStufferThread deleteStufferThread = null;
   protected static DocumentDeleteThread[] deleteThreads = null;
+  protected static DocumentCleanupStufferThread cleanupStufferThread = null;
+  protected static DocumentCleanupThread[] cleanupThreads = null;
   protected static JobResetThread jobResetThread = null;
   protected static SeedingThread seedingThread = null;
   protected static IdleCleanupThread idleCleanupThread = null;
@@ -56,11 +58,15 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static WorkerResetManager workerResetManager = null;
   /** Delete thread pool reset manager */
   protected static DocDeleteResetManager docDeleteResetManager = null;
+  /** Cleanup thread pool reset manager */
+  protected static DocCleanupResetManager docCleanupResetManager = null;
 
   // Number of worker threads
   protected static int numWorkerThreads = 0;
   // Number of delete threads
   protected static int numDeleteThreads = 0;
+  // Number of cleanup threads
+  protected static int numCleanupThreads = 0;
   // Number of expiration threads
   protected static int numExpireThreads = 0;
   // Factor for low water level in queueing
@@ -70,6 +76,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
   protected static final String workerThreadCountProperty = "org.apache.manifoldcf.crawler.threads";
   protected static final String deleteThreadCountProperty = "org.apache.manifoldcf.crawler.deletethreads";
+  protected static final String cleanupThreadCountProperty = "org.apache.manifoldcf.crawler.cleanupthreads";
   protected static final String expireThreadCountProperty = "org.apache.manifoldcf.crawler.expirethreads";
   protected static final String lowWaterFactorProperty = "org.apache.manifoldcf.crawler.lowwaterfactor";
   protected static final String stuffAmtFactorProperty = "org.apache.manifoldcf.crawler.stuffamountfactor";
@@ -150,12 +157,18 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       String maxDeleteThreads = getProperty(deleteThreadCountProperty);
       if (maxDeleteThreads == null)
         maxDeleteThreads = "10";
+      String maxCleanupThreads = getProperty(cleanupThreadCountProperty);
+      if (maxCleanupThreads == null)
+        maxCleanupThreads = "10";
       String maxExpireThreads = getProperty(expireThreadCountProperty);
       if (maxExpireThreads == null)
         maxExpireThreads = "10";
       numDeleteThreads = new Integer(maxDeleteThreads).intValue();
       if (numDeleteThreads < 1 || numDeleteThreads > 300)
         throw new ManifoldCFException("Illegal value for the number of delete threads");
+      numCleanupThreads = new Integer(maxCleanupThreads).intValue();
+      if (numCleanupThreads < 1 || numCleanupThreads > 300)
+        throw new ManifoldCFException("Illegal value for the number of cleanup threads");
       numExpireThreads = new Integer(maxExpireThreads).intValue();
       if (numExpireThreads < 1 || numExpireThreads > 300)
         throw new ManifoldCFException("Illegal value for the number of expire threads");
@@ -180,12 +193,14 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
       DocumentQueue documentQueue = new DocumentQueue();
       DocumentDeleteQueue documentDeleteQueue = new DocumentDeleteQueue();
+      DocumentCleanupQueue documentCleanupQueue = new DocumentCleanupQueue();
       DocumentDeleteQueue expireQueue = new DocumentDeleteQueue();
 
       BlockingDocuments blockingDocuments = new BlockingDocuments();
 
       workerResetManager = new WorkerResetManager(documentQueue);
       docDeleteResetManager = new DocDeleteResetManager(documentDeleteQueue);
+      docCleanupResetManager = new DocCleanupResetManager(documentCleanupQueue);
 
       jobStartThread = new JobStartThread();
       startupThread = new StartupThread(queueTracker);
@@ -220,6 +235,16 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         deleteThreads[i] = new DocumentDeleteThread(Integer.toString(i),documentDeleteQueue,docDeleteResetManager);
         i++;
       }
+      
+      cleanupStufferThread = new DocumentCleanupStufferThread(documentCleanupQueue,numCleanupThreads,docCleanupResetManager);
+      cleanupThreads = new DocumentCleanupThread[numCleanupThreads];
+      i = 0;
+      while (i < numCleanupThreads)
+      {
+        cleanupThreads[i] = new DocumentCleanupThread(Integer.toString(i),documentCleanupQueue,queueTracker,docCleanupResetManager);
+        i++;
+      }
+
       jobResetThread = new JobResetThread(queueTracker);
       seedingThread = new SeedingThread(queueTracker);
       idleCleanupThread = new IdleCleanupThread();
@@ -311,6 +336,14 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           i++;
         }
 
+        cleanupStufferThread.start();
+        i = 0;
+        while (i < numCleanupThreads)
+        {
+          cleanupThreads[i].start();
+          i++;
+        }
+
         deleteStufferThread.start();
         i = 0;
         while (i < numDeleteThreads)
@@ -351,6 +384,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       while (initializationThread != null || jobDeleteThread != null || startupThread != null || jobStartThread != null || stufferThread != null ||
         finisherThread != null || notificationThread != null || workerThreads != null || expireStufferThread != null | expireThreads != null ||
         deleteStufferThread != null || deleteThreads != null ||
+        cleanupStufferThread != null || cleanupThreads != null ||
         jobResetThread != null || seedingThread != null || idleCleanupThread != null || setPriorityThread != null)
       {
         // Send an interrupt to all threads that are still there.
@@ -410,6 +444,20 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
             Thread expireThread = expireThreads[i++];
             if (expireThread != null)
               expireThread.interrupt();
+          }
+        }
+        if (cleanupStufferThread != null)
+        {
+          cleanupStufferThread.interrupt();
+        }
+        if (cleanupThreads != null)
+        {
+          int i = 0;
+          while (i < cleanupThreads.length)
+          {
+            Thread cleanupThread = cleanupThreads[i++];
+            if (cleanupThread != null)
+              cleanupThread.interrupt();
           }
         }
         if (deleteStufferThread != null)
@@ -532,6 +580,31 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           }
           if (!isAlive)
             expireThreads = null;
+        }
+
+        if (cleanupStufferThread != null)
+        {
+          if (!cleanupStufferThread.isAlive())
+            cleanupStufferThread = null;
+        }
+        if (cleanupThreads != null)
+        {
+          int i = 0;
+          boolean isAlive = false;
+          while (i < cleanupThreads.length)
+          {
+            Thread cleanupThread = cleanupThreads[i];
+            if (cleanupThread != null)
+            {
+              if (!cleanupThread.isAlive())
+                cleanupThreads[i] = null;
+              else
+                isAlive = true;
+            }
+            i++;
+          }
+          if (!isAlive)
+            cleanupThreads = null;
         }
 
         if (deleteStufferThread != null)
