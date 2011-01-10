@@ -531,10 +531,8 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
         null,null,null,true,-1,null,null);
       if (set.getRowCount() == 0)
       {
-        params.clear();
-        params.add("utf8");
-	masterDatabase.executeQuery("CREATE DATABASE "+databaseName+" OWNER="+
-	  userName+" ENCODING=?",params,null,invalidateKeys,null,false,0,null,null);
+	masterDatabase.executeQuery("CREATE DATABASE "+databaseName+" OWNER "+
+	  userName+" ENCODING 'utf8'",null,null,invalidateKeys,null,false,0,null,null);
       }
     }
     catch (ManifoldCFException e)

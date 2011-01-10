@@ -1115,6 +1115,67 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     performUpdate(map,"WHERE "+idField+"=?",list,new StringSet(getJobStatusKey()));
   }
 
+  /** Put job back into active state, from the shutting-down state.
+  *@param jobID is the job identifier.
+  */
+  public void returnJobToActive(Long jobID)
+    throws ManifoldCFException
+  {
+    beginTransaction();
+    try
+    {
+      ArrayList list = new ArrayList();
+      list.add(jobID);
+      IResultSet set = performQuery("SELECT "+statusField+","+connectionNameField+","+outputNameField+" FROM "+getTableName()+" WHERE "+
+        idField+"=? FOR UPDATE",list,null,null);
+      if (set.getRowCount() == 0)
+        throw new ManifoldCFException("Can't find job "+jobID.toString());
+      IResultRow row = set.getRow(0);
+      int status = stringToStatus((String)row.getValue(statusField));
+      int newStatus;
+      switch (status)
+      {
+      case STATUS_SHUTTINGDOWN:
+        if (connectionMgr.checkConnectorExists((String)row.getValue(connectionNameField)))
+        {
+          if (outputMgr.checkConnectorExists((String)row.getValue(outputNameField)))
+            newStatus = STATUS_ACTIVE;
+          else
+            newStatus = STATUS_ACTIVE_NOOUTPUT;
+        }
+        else
+        {
+          if (outputMgr.checkConnectorExists((String)row.getValue(outputNameField)))
+            newStatus = STATUS_ACTIVE_UNINSTALLED;
+          else
+            newStatus = STATUS_ACTIVE_NEITHER;
+        }
+        break;
+      default:
+        // Complain!
+        throw new ManifoldCFException("Unexpected job status encountered: "+Integer.toString(status));
+      }
+
+      HashMap map = new HashMap();
+      map.put(statusField,statusToString(newStatus));
+      performUpdate(map,"WHERE "+idField+"=?",list,new StringSet(getJobStatusKey()));
+    }
+    catch (ManifoldCFException e)
+    {
+      signalRollback();
+      throw e;
+    }
+    catch (Error e)
+    {
+      signalRollback();
+      throw e;
+    }
+    finally
+    {
+      endTransaction();
+    }
+  }
+  
   /** Make job active, and set the start time field.
   *@param jobID is the job identifier.
   *@param startTime is the current time in milliseconds from start of epoch.
@@ -1763,8 +1824,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
 
   }
 
-  /** Return true if there is a job in either the READYFORDELETE state or the
-  * SHUTTINGDOWN state.  (This matches the conditions for values to be returned from
+  /** Return true if there is a job in the READYFORDELETE state.  (This matches the
+  * conditions for values to be returned from
   * getNextDeletableDocuments).
   *@return true if such jobs exist.
   */
@@ -1773,9 +1834,24 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   {
     ArrayList list = new ArrayList();
     list.add(statusToString(STATUS_READYFORDELETE));
+    IResultSet set = performQuery("SELECT "+idField+" FROM "+getTableName()+" WHERE "+
+      statusField+"=? "+constructOffsetLimitClause(0,1),
+      list,new StringSet(getJobStatusKey()),null,1);
+    return set.getRowCount() > 0;
+  }
+
+  /** Return true if there is a job in the
+  * SHUTTINGDOWN state.  (This matches the conditions for values to be returned from
+  * getNextCleanableDocuments).
+  *@return true if such jobs exist.
+  */
+  public boolean cleaningJobsPresent()
+    throws ManifoldCFException
+  {
+    ArrayList list = new ArrayList();
     list.add(statusToString(STATUS_SHUTTINGDOWN));
     IResultSet set = performQuery("SELECT "+idField+" FROM "+getTableName()+" WHERE "+
-      statusField+" IN (?,?) "+constructOffsetLimitClause(0,1),
+      statusField+"=? "+constructOffsetLimitClause(0,1),
       list,new StringSet(getJobStatusKey()),null,1);
     return set.getRowCount() > 0;
   }

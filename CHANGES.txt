@@ -4,6 +4,15 @@ $Id$
 ======================= Release 0.1 =======================
 Release Date:  See http://incubator.apache.org/connectors for the official release date.
 
+CONNECTORS-148: Creating the database in PostgreSQL failed intermittently
+when a parameter was used for the encoding; the PostgreSQL documentation
+specifies that it must be a quoted string in that case.
+(Karl Wright)
+
+CONNECTORS-146: Problem with document cleanup logic would cause data corruption
+in carrydown data and in hopcount information.
+(Karl Wright)
+
 CONNECTORS-143: Copyright notice needs to be changed to 2011.
 (Sebb, Karl Wright)
 
