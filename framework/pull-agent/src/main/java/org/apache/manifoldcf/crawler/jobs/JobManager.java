@@ -852,7 +852,7 @@ public class JobManager implements IJobManager
         if (Logging.perf.isDebugEnabled())
           Logging.perf.debug("Done getting docs to cleaning queue after "+new Long(System.currentTimeMillis()-startTime).toString()+" ms.");
 
-        // We need to organize the returned set by connection name, so that we can efficiently
+        // We need to organize the returned set by connection name and output connection name, so that we can efficiently
         // use  getUnindexableDocumentIdentifiers.
         // This is a table keyed by connection name and containing an ArrayList, which in turn contains DocumentDescription
         // objects.
@@ -880,15 +880,23 @@ public class JobManager implements IJobManager
             failCount = (int)failCountValue.longValue();
           IJobDescription jobDesc = load(jobID);
           String connectionName = jobDesc.getConnectionName();
+          String outputConnectionName = jobDesc.getOutputConnectionName();
           DocumentDescription dd = new DocumentDescription((Long)row.getValue(jobQueue.idField),
             jobID,documentIDHash,documentID,failTime,failCount);
-          documentIDMap.put(documentIDHash,dd);
-          ArrayList x = (ArrayList)connectionNameMap.get(connectionName);
+          String compositeDocumentID = makeCompositeID(documentIDHash,connectionName);
+          documentIDMap.put(compositeDocumentID,dd);
+          Map y = (Map)connectionNameMap.get(connectionName);
+          if (y == null)
+          {
+            y = new HashMap();
+            connectionNameMap.put(connectionName,y);
+          }
+          ArrayList x = (ArrayList)y.get(outputConnectionName);
           if (x == null)
           {
             // New entry needed
             x = new ArrayList();
-            connectionNameMap.put(connectionName,x);
+            y.put(outputConnectionName,x);
           }
           x.add(dd);
           i++;
@@ -902,35 +910,52 @@ public class JobManager implements IJobManager
         while (iter.hasNext())
         {
           String connectionName = (String)iter.next();
-          ArrayList x = (ArrayList)connectionNameMap.get(connectionName);
-          // Do the filter query
-          DocumentDescription[] descriptions = new DocumentDescription[x.size()];
-          int j = 0;
-          while (j < descriptions.length)
+          Map y = (Map)connectionNameMap.get(connectionName);
+          Iterator outputIter = y.keySet().iterator();
+          while (outputIter.hasNext())
           {
-            descriptions[j] = (DocumentDescription)x.get(j);
-            j++;
-          }
-          String[] docIDHashes = getUnindexableDocumentIdentifiers(descriptions,connectionName);
-          j = 0;
-          while (j < docIDHashes.length)
-          {
-            String docIDHash = docIDHashes[j++];
-            allowedDocIds.put(docIDHash,docIDHash);
+            String outputConnectionName = (String)outputIter.next();
+            ArrayList x = (ArrayList)y.get(outputConnectionName);
+            // Do the filter query
+            DocumentDescription[] descriptions = new DocumentDescription[x.size()];
+            int j = 0;
+            while (j < descriptions.length)
+            {
+              descriptions[j] = (DocumentDescription)x.get(j);
+              j++;
+            }
+            String[] docIDHashes = getUnindexableDocumentIdentifiers(descriptions,connectionName,outputConnectionName);
+            j = 0;
+            while (j < docIDHashes.length)
+            {
+              String docIDHash = docIDHashes[j++];
+              String key = makeCompositeID(docIDHash,connectionName);
+              allowedDocIds.put(key,docIDHash);
+            }
           }
         }
 
         // Now, assemble a result, and change the state of the records accordingly
-        DocumentDescription[] rval = new DocumentDescription[documentIDMap.size()];
-        boolean[] rvalBoolean = new boolean[documentIDMap.size()];
+        // First thing to do is order by document hash, so we reduce the risk of deadlock.
+        String[] compositeIDArray = new String[documentIDMap.size()];
         i = 0;
         iter = documentIDMap.keySet().iterator();
         while (iter.hasNext())
         {
-          String docIDHash = (String)iter.next();
-          DocumentDescription dd = (DocumentDescription)documentIDMap.get(docIDHash);
+          compositeIDArray[i++] = (String)iter.next();
+        }
+        
+        java.util.Arrays.sort(compositeIDArray);
+        
+        DocumentDescription[] rval = new DocumentDescription[documentIDMap.size()];
+        boolean[] rvalBoolean = new boolean[documentIDMap.size()];
+        i = 0;
+        while (i < compositeIDArray.length)
+        {
+          String compositeDocID = compositeIDArray[i];
+          DocumentDescription dd = (DocumentDescription)documentIDMap.get(compositeDocID);
           // Determine whether we can delete it from the index or not
-          rvalBoolean[i] = (allowedDocIds.get(docIDHash) != null);
+          rvalBoolean[i] = (allowedDocIds.get(compositeDocID) != null);
           // Set the record status to "being cleaned" and return it
           rval[i++] = dd;
           jobQueue.setCleaningStatus(dd.getID());
@@ -967,6 +992,14 @@ public class JobManager implements IJobManager
     }
   }
 
+  /** Create a composite document hash key.  This consists of the document id hash plus the
+  * connection name.
+  */
+  protected static String makeCompositeID(String docIDHash, String connectionName)
+  {
+    return docIDHash + ":" + connectionName;
+  }
+  
   /** Get list of deletable document descriptions.  This list will take into account
   * multiple jobs that may own the same document.  All documents for which a description
   * is returned will be transitioned to the "beingdeleted" state.  Documents which are
@@ -1076,15 +1109,23 @@ public class JobManager implements IJobManager
             failCount = (int)failCountValue.longValue();
           IJobDescription jobDesc = load(jobID);
           String connectionName = jobDesc.getConnectionName();
+          String outputConnectionName = jobDesc.getOutputConnectionName();
           DocumentDescription dd = new DocumentDescription((Long)row.getValue(jobQueue.idField),
             jobID,documentIDHash,documentID,failTime,failCount);
-          documentIDMap.put(documentIDHash,dd);
-          ArrayList x = (ArrayList)connectionNameMap.get(connectionName);
+          String compositeDocumentID = makeCompositeID(documentIDHash,connectionName);
+          documentIDMap.put(compositeDocumentID,dd);
+          Map y = (Map)connectionNameMap.get(connectionName);
+          if (y == null)
+          {
+            y = new HashMap();
+            connectionNameMap.put(connectionName,y);
+          }
+          ArrayList x = (ArrayList)y.get(outputConnectionName);
           if (x == null)
           {
             // New entry needed
             x = new ArrayList();
-            connectionNameMap.put(connectionName,x);
+            y.put(outputConnectionName,x);
           }
           x.add(dd);
           i++;
@@ -1098,33 +1139,51 @@ public class JobManager implements IJobManager
         while (iter.hasNext())
         {
           String connectionName = (String)iter.next();
-          ArrayList x = (ArrayList)connectionNameMap.get(connectionName);
-          // Do the filter query
-          DocumentDescription[] descriptions = new DocumentDescription[x.size()];
-          int j = 0;
-          while (j < descriptions.length)
+          Map y = (Map)connectionNameMap.get(connectionName);
+          Iterator outputIter = y.keySet().iterator();
+          while (outputIter.hasNext())
           {
-            descriptions[j] = (DocumentDescription)x.get(j);
-            j++;
-          }
-          String[] docIDHashes = getUnindexableDocumentIdentifiers(descriptions,connectionName);
-          j = 0;
-          while (j < docIDHashes.length)
-          {
-            String docIDHash = docIDHashes[j++];
-            allowedDocIds.put(docIDHash,docIDHash);
+            String outputConnectionName = (String)outputIter.next();
+            ArrayList x = (ArrayList)y.get(outputConnectionName);
+            // Do the filter query
+            DocumentDescription[] descriptions = new DocumentDescription[x.size()];
+            int j = 0;
+            while (j < descriptions.length)
+            {
+              descriptions[j] = (DocumentDescription)x.get(j);
+              j++;
+            }
+            String[] docIDHashes = getUnindexableDocumentIdentifiers(descriptions,connectionName,outputConnectionName);
+            j = 0;
+            while (j < docIDHashes.length)
+            {
+              String docIDHash = docIDHashes[j++];
+              String key = makeCompositeID(docIDHash,connectionName);
+              allowedDocIds.put(key,docIDHash);
+            }
           }
         }
 
         // Now, assemble a result, and change the state of the records accordingly
-        DocumentDescription[] rval = new DocumentDescription[allowedDocIds.size()];
+        // First thing to do is order by document hash to reduce chances of deadlock.
+        String[] compositeIDArray = new String[documentIDMap.size()];
         i = 0;
         iter = documentIDMap.keySet().iterator();
         while (iter.hasNext())
         {
-          String docIDHash = (String)iter.next();
-          DocumentDescription dd = (DocumentDescription)documentIDMap.get(docIDHash);
-          if (allowedDocIds.get(docIDHash) == null)
+          compositeIDArray[i++] = (String)iter.next();
+        }
+        
+        java.util.Arrays.sort(compositeIDArray);
+        
+        DocumentDescription[] rval = new DocumentDescription[allowedDocIds.size()];
+        int j = 0;
+        i = 0;
+        while (i < compositeIDArray.length)
+        {
+          String compositeDocumentID = compositeIDArray[i];
+          DocumentDescription dd = (DocumentDescription)documentIDMap.get(compositeDocumentID);
+          if (allowedDocIds.get(compositeDocumentID) == null)
           {
             // Delete this record and do NOT return it.
             jobQueue.deleteRecord(dd.getID());
@@ -1140,9 +1199,10 @@ public class JobManager implements IJobManager
           else
           {
             // Set the record status to "being deleted" and return it
-            rval[i++] = dd;
+            rval[j++] = dd;
             jobQueue.setDeletingStatus(dd.getID());
           }
+          i++;
         }
 
         if (Logging.perf.isDebugEnabled())
@@ -1177,13 +1237,14 @@ public class JobManager implements IJobManager
   }
 
   /** Get a list of document identifiers that should actually be deleted from the index, from a list that
-  * might contain identifiers that are shared with other jobs.  The input list is guaranteed to be
-  * smaller in size than maxInClauseCount for the database.
+  * might contain identifiers that are shared with other jobs, which are targeted to the same output connection.
+  * The input list is guaranteed to be smaller in size than maxInClauseCount for the database.
   *@param documentIdentifiers is the set of document identifiers to consider.
   *@param connectionName is the connection name for ALL the document identifiers.
+  *@param outputConnectionName is the output connection name for ALL the document identifiers.
   *@return the set of documents which should be removed from the index.
   */
-  protected String[] getUnindexableDocumentIdentifiers(DocumentDescription[] documentIdentifiers, String connectionName)
+  protected String[] getUnindexableDocumentIdentifiers(DocumentDescription[] documentIdentifiers, String connectionName, String outputConnectionName)
     throws ManifoldCFException
   {
     // This is where we will count the individual document id's
@@ -1233,8 +1294,9 @@ public class JobManager implements IJobManager
     // will never be removed from the index.
     //
     // Instead, the only solution is to not queue a document for any activity that is inconsistent with activities
-    // that may already be ongoing for that document.  For this reason, I have introduced a "BEING_DELETED" state
-    // for a document.  This state will allow the various queries that queue up activities to avoid documents that
+    // that may already be ongoing for that document.  For this reason, I have introduced a "BEING_DELETED"
+    // and "BEING_CLEANED" state
+    // for a document.  These states will allow the various queries that queue up activities to avoid documents that
     // are currently being processed elsewhere.
 
     list.add(jobQueue.statusToString(jobQueue.STATUS_PURGATORY));
@@ -1242,11 +1304,13 @@ public class JobManager implements IJobManager
     list.add(jobQueue.statusToString(jobQueue.STATUS_COMPLETE));
     
     list.add(connectionName);
+    list.add(outputConnectionName);
     
     sb.append(") AND t0.").append(jobQueue.statusField).append(" IN (?,?,?) AND EXISTS(SELECT 'x' FROM ")
       .append(jobs.getTableName()).append(" t1 WHERE t0.")
       .append(jobQueue.jobIDField).append("=t1.").append(jobs.idField).append(" AND t1.")
-      .append(jobs.connectionNameField).append("=?)");
+      .append(jobs.connectionNameField).append("=? AND t1.")
+      .append(jobs.outputNameField).append("=?)");
 
     // Do the query, and then count the number of times each document identifier occurs.
     IResultSet results = database.performQuery(sb.toString(),list,null,null);
@@ -1489,14 +1553,14 @@ public class JobManager implements IJobManager
   *@param currentTime is the current time.
   *@return the array of document descriptions to expire.
   */
-  public DocumentDescription[] getExpiredDocuments(int n, long currentTime)
+  public DocumentSetAndFlags getExpiredDocuments(int n, long currentTime)
     throws ManifoldCFException
   {
     // Screening query
     // Moved outside of transaction, so there's less chance of keeping jobstatus cache key tied up
     // for an extended period of time.
     if (!jobs.activeJobsPresent())
-      return new DocumentDescription[0];
+      return new DocumentSetAndFlags(new DocumentDescription[0], new boolean[0]);
 
     long startTime = 0L;
     if (Logging.perf.isDebugEnabled())
@@ -1572,21 +1636,21 @@ public class JobManager implements IJobManager
 
         // To avoid deadlock, we want to update the document id hashes in order.  This means reading into a structure I can sort by docid hash,
         // before updating any rows in jobqueue.
-        String[] docIDHashes = new String[set.getRowCount()];
-        Map storageMap = new HashMap();
+        HashMap connectionNameMap = new HashMap();
+        HashMap documentIDMap = new HashMap();
         Map statusMap = new HashMap();
 
         int i = 0;
         while (i < set.getRowCount())
         {
           IResultRow row = set.getRow(i);
-          Long id = (Long)row.getValue(jobQueue.idField);
           Long jobID = (Long)row.getValue(jobQueue.jobIDField);
-          String docIDHash = (String)row.getValue(jobQueue.docHashField);
-          String docID = (String)row.getValue(jobQueue.docIDField);
+          String documentIDHash = (String)row.getValue(jobQueue.docHashField);
+          String documentID = (String)row.getValue(jobQueue.docIDField);
           int status = jobQueue.stringToStatus(row.getValue(jobQueue.statusField).toString());
           Long failTimeValue = (Long)row.getValue(jobQueue.failTimeField);
           Long failCountValue = (Long)row.getValue(jobQueue.failCountField);
+          // Failtime is probably not useful in this context, but we'll bring it along for completeness
           long failTime;
           if (failTimeValue == null)
             failTime = -1L;
@@ -1594,35 +1658,95 @@ public class JobManager implements IJobManager
             failTime = failTimeValue.longValue();
           int failCount;
           if (failCountValue == null)
-            failCount = -1;
+            failCount = 0;
           else
             failCount = (int)failCountValue.longValue();
-
-          DocumentDescription dd = new DocumentDescription(id,jobID,docIDHash,docID,failTime,failCount);
-          docIDHashes[i] = docIDHash + ":" +jobID;
-          storageMap.put(docIDHashes[i],dd);
-          statusMap.put(docIDHashes[i],new Integer(status));
+          IJobDescription jobDesc = load(jobID);
+          String connectionName = jobDesc.getConnectionName();
+          String outputConnectionName = jobDesc.getOutputConnectionName();
+          DocumentDescription dd = new DocumentDescription((Long)row.getValue(jobQueue.idField),
+            jobID,documentIDHash,documentID,failTime,failCount);
+          String compositeDocumentID = makeCompositeID(documentIDHash,connectionName);
+          documentIDMap.put(compositeDocumentID,dd);
+          statusMap.put(compositeDocumentID,new Integer(status));
+          Map y = (Map)connectionNameMap.get(connectionName);
+          if (y == null)
+          {
+            y = new HashMap();
+            connectionNameMap.put(connectionName,y);
+          }
+          ArrayList x = (ArrayList)y.get(outputConnectionName);
+          if (x == null)
+          {
+            // New entry needed
+            x = new ArrayList();
+            y.put(outputConnectionName,x);
+          }
+          x.add(dd);
           i++;
         }
 
-        // No duplicates are possible here
-        java.util.Arrays.sort(docIDHashes);
-
-        i = 0;
-        while (i < docIDHashes.length)
+        // For each bin, obtain a filtered answer, and enter all answers into a hash table.
+        // We'll then scan the result again to look up the right descriptions for return,
+        // and delete the ones that are owned multiply.
+        HashMap allowedDocIds = new HashMap();
+        Iterator iter = connectionNameMap.keySet().iterator();
+        while (iter.hasNext())
         {
-          String docIDHash = docIDHashes[i];
-          DocumentDescription dd = (DocumentDescription)storageMap.get(docIDHash);
-          Long id = dd.getID();
-          int status = ((Integer)statusMap.get(docIDHash)).intValue();
-
-          // Set status to "ACTIVE".
-          jobQueue.updateActiveRecord(id,status);
-
-          answers.add(dd);
-
-          i++;
+          String connectionName = (String)iter.next();
+          Map y = (Map)connectionNameMap.get(connectionName);
+          Iterator outputIter = y.keySet().iterator();
+          while (outputIter.hasNext())
+          {
+            String outputConnectionName = (String)outputIter.next();
+            ArrayList x = (ArrayList)y.get(outputConnectionName);
+            // Do the filter query
+            DocumentDescription[] descriptions = new DocumentDescription[x.size()];
+            int j = 0;
+            while (j < descriptions.length)
+            {
+              descriptions[j] = (DocumentDescription)x.get(j);
+              j++;
+            }
+            String[] docIDHashes = getUnindexableDocumentIdentifiers(descriptions,connectionName,outputConnectionName);
+            j = 0;
+            while (j < docIDHashes.length)
+            {
+              String docIDHash = docIDHashes[j++];
+              String key = makeCompositeID(docIDHash,connectionName);
+              allowedDocIds.put(key,docIDHash);
+            }
+          }
         }
+
+        // Now, assemble a result, and change the state of the records accordingly
+        // First thing to do is order by document hash, so we reduce the risk of deadlock.
+        String[] compositeIDArray = new String[documentIDMap.size()];
+        i = 0;
+        iter = documentIDMap.keySet().iterator();
+        while (iter.hasNext())
+        {
+          compositeIDArray[i++] = (String)iter.next();
+        }
+        
+        java.util.Arrays.sort(compositeIDArray);
+        
+        DocumentDescription[] rval = new DocumentDescription[documentIDMap.size()];
+        boolean[] rvalBoolean = new boolean[documentIDMap.size()];
+        i = 0;
+        while (i < compositeIDArray.length)
+        {
+          String compositeDocID = compositeIDArray[i];
+          DocumentDescription dd = (DocumentDescription)documentIDMap.get(compositeDocID);
+          // Determine whether we can delete it from the index or not
+          rvalBoolean[i] = (allowedDocIds.get(compositeDocID) != null);
+          // Set the record status to "being cleaned" and return it
+          rval[i++] = dd;
+          jobQueue.updateActiveRecord(dd.getID(),((Integer)statusMap.get(compositeDocID)).intValue());
+        }
+
+        return new DocumentSetAndFlags(rval, rvalBoolean);
+
       }
       catch (ManifoldCFException e)
       {
@@ -1647,14 +1771,6 @@ public class JobManager implements IJobManager
         sleepFor(sleepAmt);
       }
 
-      DocumentDescription[] rval = new DocumentDescription[answers.size()];
-      int k = 0;
-      while (k < rval.length)
-      {
-        rval[k] = (DocumentDescription)answers.get(k);
-        k++;
-      }
-      return rval;
     }
   }
 
