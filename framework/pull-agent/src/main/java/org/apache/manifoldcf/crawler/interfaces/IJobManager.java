@@ -210,7 +210,7 @@ public interface IJobManager
   *@param currentTime is the current time.
   *@return the array of document descriptions to expire.
   */
-  public DocumentDescription[] getExpiredDocuments(int n, long currentTime)
+  public DocumentSetAndFlags getExpiredDocuments(int n, long currentTime)
     throws ManifoldCFException;
 
   // This method supports the "queue stuffer" thread

@@ -32,12 +32,15 @@ public class WorkerResetManager extends ResetManager
 
   /** The document queue */
   protected DocumentQueue dq;
+  /** The expiration queue */
+  protected DocumentCleanupQueue eq;
 
   /** Constructor. */
-  public WorkerResetManager(DocumentQueue dq)
+  public WorkerResetManager(DocumentQueue dq, DocumentCleanupQueue eq)
   {
     super();
     this.dq = dq;
+    this.eq = eq;
   }
 
   /** Reset */
@@ -47,6 +50,7 @@ public class WorkerResetManager extends ResetManager
     IJobManager jobManager = JobManagerFactory.make(tc);
     jobManager.resetDocumentWorkerStatus();
     dq.clear();
+    eq.clear();
   }
 }
 

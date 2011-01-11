@@ -34,7 +34,7 @@ public class ExpireStufferThread extends Thread
 
   // Local data
   // This is a reference to the static main document expiration queue
-  protected DocumentDeleteQueue documentQueue;
+  protected DocumentCleanupQueue documentQueue;
   /** Worker thread pool reset manager */
   protected WorkerResetManager resetManager;
   // This is the number of entries we want to stuff at any one time.
@@ -45,7 +45,7 @@ public class ExpireStufferThread extends Thread
   *@param n represents the number of threads that will be processing queued stuff, NOT the
   * number of documents to be done at once!
   */
-  public ExpireStufferThread(DocumentDeleteQueue documentQueue, int n, WorkerResetManager resetManager)
+  public ExpireStufferThread(DocumentCleanupQueue documentQueue, int n, WorkerResetManager resetManager)
     throws ManifoldCFException
   {
     super();
@@ -115,8 +115,10 @@ public class ExpireStufferThread extends Thread
           // The number n passed in here thus cannot be used in a query to limit the number of returned
           // results.  Instead, it must be factored into the limit portion of the query.
           long currentTime = System.currentTimeMillis();
-          DocumentDescription[] descs = jobManager.getExpiredDocuments(deleteChunkSize,currentTime);
-
+          DocumentSetAndFlags docsAndFlags = jobManager.getExpiredDocuments(deleteChunkSize,currentTime);
+          DocumentDescription[] descs = docsAndFlags.getDocumentSet();
+          boolean[] deleteFromIndex = docsAndFlags.getFlags();
+          
           if (Thread.currentThread().isInterrupted())
             throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
 
@@ -134,14 +136,14 @@ public class ExpireStufferThread extends Thread
           }
 
           // Do the stuffing
-          DeleteQueuedDocument[] docDescs = new DeleteQueuedDocument[descs.length];
+          CleanupQueuedDocument[] docDescs = new CleanupQueuedDocument[descs.length];
           int k = 0;
           while (k < docDescs.length)
           {
-            docDescs[k] = new DeleteQueuedDocument(descs[k]);
+            docDescs[k] = new CleanupQueuedDocument(descs[k],deleteFromIndex[k]);
             k++;
           }
-          DocumentDeleteSet set = new DocumentDeleteSet(docDescs);
+          DocumentCleanupSet set = new DocumentCleanupSet(docDescs);
           documentQueue.addDocuments(set);
 
           // If we don't wait here, the other threads don't seem to have a chance to queue anything else up.

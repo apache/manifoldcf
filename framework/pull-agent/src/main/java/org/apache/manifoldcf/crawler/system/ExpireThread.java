@@ -35,7 +35,7 @@ public class ExpireThread extends Thread
   // Local data
   protected String id;
   // This is a reference to the static main document queue
-  protected DocumentDeleteQueue documentQueue;
+  protected DocumentCleanupQueue documentQueue;
   /** Worker thread pool reset manager */
   protected WorkerResetManager resetManager;
   /** Queue tracker */
@@ -44,7 +44,7 @@ public class ExpireThread extends Thread
   /** Constructor.
   *@param id is the expire thread id.
   */
-  public ExpireThread(String id, DocumentDeleteQueue documentQueue, QueueTracker queueTracker, WorkerResetManager resetManager)
+  public ExpireThread(String id, DocumentCleanupQueue documentQueue, QueueTracker queueTracker, WorkerResetManager resetManager)
     throws ManifoldCFException
   {
     super();
@@ -86,7 +86,7 @@ public class ExpireThread extends Thread
           // we update its status, even if there is an exception!!!
 
           // See if there is anything on the queue for me
-          DocumentDeleteSet dds = documentQueue.getDocuments();
+          DocumentCleanupSet dds = documentQueue.getDocuments();
           if (dds == null)
             // It's a reset, so recycle
             continue;
@@ -104,7 +104,7 @@ public class ExpireThread extends Thread
             int j = 0;
             while (j < dds.getCount())
             {
-              DeleteQueuedDocument dqd = dds.getDocument(j++);
+              CleanupQueuedDocument dqd = dds.getDocument(j++);
               DocumentDescription ddd = dqd.getDocumentDescription();
               Long jobID = ddd.getJobID();
               IJobDescription job = jobManager.load(jobID,true);
@@ -138,7 +138,7 @@ public class ExpireThread extends Thread
               j = 0;
               while (j < list.size())
               {
-                DeleteQueuedDocument dqd = (DeleteQueuedDocument)list.get(j);
+                CleanupQueuedDocument dqd = (CleanupQueuedDocument)list.get(j);
                 DocumentDescription ddd = dqd.getDocumentDescription();
                 Long jobID = ddd.getJobID();
                 IJobDescription job = jobManager.load(jobID,true);
@@ -188,16 +188,32 @@ public class ExpireThread extends Thread
                   {
                     String outputConnectionName = (String)outputIterator.next();
                     ArrayList indexList = (ArrayList)outputMap.get(outputConnectionName);
-                    String[] docClassesToRemove = new String[indexList.size()];
-                    String[] hashedDocsToRemove = new String[indexList.size()];
+                    // Count the number of docs to actually delete.  This will be a subset of the documents in the list.
+                    int k = 0;
+                    int removeCount = 0;
+                    while (k < indexList.size())
+                    {
+                      int index = ((Integer)indexList.get(k++)).intValue();
+                      if (((CleanupQueuedDocument)arrayDocsToDelete.get(index)).shouldBeRemovedFromIndex())
+                        removeCount++;
+                    }
+                    
+                    // Allocate removal arrays
+                    String[] docClassesToRemove = new String[removeCount];
+                    String[] hashedDocsToRemove = new String[removeCount];
 
                     // Now, iterate over the index list
-                    int k = 0;
+                    k = 0;
+                    removeCount = 0;
                     while (k < indexList.size())
                     {
                       int index = ((Integer)indexList.get(k)).intValue();
-                      docClassesToRemove[k] = (String)arrayDocClasses.get(index);
-                      hashedDocsToRemove[k] = (String)arrayDocHashes.get(index);
+                      if (((CleanupQueuedDocument)arrayDocsToDelete.get(index)).shouldBeRemovedFromIndex())
+                      {
+                        docClassesToRemove[removeCount] = (String)arrayDocClasses.get(index);
+                        hashedDocsToRemove[removeCount] = (String)arrayDocHashes.get(index);
+                        removeCount++;
+                      }
                       k++;
                     }
 
@@ -235,7 +251,7 @@ public class ExpireThread extends Thread
                     {
                       int index = ((Integer)indexList.get(k)).intValue();
 
-                      DeleteQueuedDocument dqd = (DeleteQueuedDocument)arrayDocsToDelete.get(index);
+                      CleanupQueuedDocument dqd = (CleanupQueuedDocument)arrayDocsToDelete.get(index);
                       DocumentDescription ddd = dqd.getDocumentDescription();
                       Long jobID = ddd.getJobID();
                       int hopcountMethod = ((Integer)hopcountMethods.get(index)).intValue();
@@ -287,7 +303,7 @@ public class ExpireThread extends Thread
             int j = 0;
             while (j < dds.getCount())
             {
-              DeleteQueuedDocument dqd = dds.getDocument(j);
+              CleanupQueuedDocument dqd = dds.getDocument(j);
               if (dqd.wasProcessed() == false)
               {
                 DocumentDescription ddd = dqd.getDocumentDescription();

@@ -194,11 +194,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       DocumentQueue documentQueue = new DocumentQueue();
       DocumentDeleteQueue documentDeleteQueue = new DocumentDeleteQueue();
       DocumentCleanupQueue documentCleanupQueue = new DocumentCleanupQueue();
-      DocumentDeleteQueue expireQueue = new DocumentDeleteQueue();
+      DocumentCleanupQueue expireQueue = new DocumentCleanupQueue();
 
       BlockingDocuments blockingDocuments = new BlockingDocuments();
 
-      workerResetManager = new WorkerResetManager(documentQueue);
+      workerResetManager = new WorkerResetManager(documentQueue,expireQueue);
       docDeleteResetManager = new DocDeleteResetManager(documentDeleteQueue);
       docCleanupResetManager = new DocCleanupResetManager(documentCleanupQueue);
 
