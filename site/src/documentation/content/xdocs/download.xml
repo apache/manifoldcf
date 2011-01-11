@@ -30,6 +30,10 @@
   <body> 
 
     <section>
+      <title>Latest release</title>
+        <p>No releases have currently been made.  ManifoldCF 0.1-incubating is expected shortly.</p>
+    </section>
+    <!-- section>
       <title>Latest release (Apache ManifoldCF 0.1-incubating, 2011 Jan 07)</title>
       <p>
         <a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.1-incubating.KEYS">KEYS</a><br/>
@@ -54,7 +58,7 @@
           [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.1-incubating-bin.zip.md5">MD5</a>]<br/>
       </p>
 
-    </section>
+    </section -->
 
   </body>
 
