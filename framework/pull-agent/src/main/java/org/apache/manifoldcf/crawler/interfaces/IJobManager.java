@@ -360,20 +360,25 @@ public interface IJobManager
   * current status and decide what the new status ought to be, based on a true rollback scenario.  Such cases, however, are rare enough so that
   * special logic is probably not worth it.
   *@param documentDescriptions is the set of description objects for the document that was processed.
+  *@param checkTime is the minimum time for the next cleaning attempt.
   */
-  public void resetDeletingDocumentMultiple(DocumentDescription[] documentDescriptions)
+  public void resetDeletingDocumentMultiple(DocumentDescription[] documentDescriptions, long checkTime)
     throws ManifoldCFException;
 
   /** Reset a deleting document back to its former state.
   * This gets done when a deleting thread sees a service interruption, etc., from the ingestion system.
+  *@param documentDescription is the description object for the document that was cleaned.
+  *@param checkTime is the minimum time for the next cleaning attempt.
   */
-  public void resetDeletingDocument(DocumentDescription documentDescription)
+  public void resetDeletingDocument(DocumentDescription documentDescription, long checkTime)
     throws ManifoldCFException;
 
   /** Reset a cleaning document back to its former state.
-  * This gets done when a deleting thread sees a service interruption, etc., from the ingestion system.
+  * This gets done when a cleaning thread sees a service interruption, etc., from the ingestion system.
+  *@param documentDescription is the description object for the document that was cleaned.
+  *@param checkTime is the minimum time for the next cleaning attempt.
   */
-  public void resetCleaningDocument(DocumentDescription documentDescription)
+  public void resetCleaningDocument(DocumentDescription documentDescription, long checkTime)
     throws ManifoldCFException;
 
   /** Reset a set of cleaning documents for further processing in the future.
@@ -383,8 +388,9 @@ public interface IJobManager
   * current status and decide what the new status ought to be, based on a true rollback scenario.  Such cases, however, are rare enough so that
   * special logic is probably not worth it.
   *@param documentDescriptions is the set of description objects for the document that was cleaned.
+  *@param checkTime is the minimum time for the next cleaning attempt.
   */
-  public void resetCleaningDocumentMultiple(DocumentDescription[] documentDescriptions)
+  public void resetCleaningDocumentMultiple(DocumentDescription[] documentDescriptions, long checkTime)
     throws ManifoldCFException;
 
   /** Add an initial set of documents to the queue.
@@ -744,17 +750,19 @@ public interface IJobManager
   /** Get list of deletable document descriptions.  This list will take into account
   * multiple jobs that may own the same document.
   *@param n is the maximum number of documents to return.
+  *@param currentTime is the current time; some fetches do not occur until a specific time.
   *@return the document descriptions for these documents.
   */
-  public DocumentDescription[] getNextDeletableDocuments(int n)
+  public DocumentDescription[] getNextDeletableDocuments(int n, long currentTime)
     throws ManifoldCFException;
 
   /** Get list of cleanable document descriptions.  This list will take into account
   * multiple jobs that may own the same document.
   *@param n is the maximum number of documents to return.
+  *@param currentTime is the current time; some fetches do not occur until a specific time.
   *@return the document descriptions for these documents.
   */
-  public DocumentSetAndFlags getNextCleanableDocuments(int n)
+  public DocumentSetAndFlags getNextCleanableDocuments(int n, long currentTime)
     throws ManifoldCFException;
 
   /** Delete ingested document identifiers (as part of deleting the owning job).

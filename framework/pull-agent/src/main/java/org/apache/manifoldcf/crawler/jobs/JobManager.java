@@ -781,9 +781,10 @@ public class JobManager implements IJobManager
   * not in transition and are eligible, but are owned by other jobs, will have their
   * jobqueue entries deleted by this method.
   *@param maxCount is the maximum number of documents to return.
+  *@param currentTime is the current time; some fetches do not occur until a specific time.
   *@return the document descriptions for these documents.
   */
-  public DocumentSetAndFlags getNextCleanableDocuments(int maxCount)
+  public DocumentSetAndFlags getNextCleanableDocuments(int maxCount, long currentTime)
     throws ManifoldCFException
   {
     // The query will be built here, because it joins the jobs table against the jobqueue
@@ -830,6 +831,8 @@ public class JobManager implements IJobManager
         ArrayList list = new ArrayList();
         list.add(jobQueue.statusToString(jobQueue.STATUS_PURGATORY));
         
+        list.add(new Long(currentTime));
+
         list.add(jobs.statusToString(jobs.STATUS_SHUTTINGDOWN));
         
         list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVE));
@@ -839,9 +842,11 @@ public class JobManager implements IJobManager
         list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
         list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED));
         
+        // The checktime is null field check is for backwards compatibility
         IResultSet set = database.performQuery("SELECT "+jobQueue.idField+","+jobQueue.jobIDField+","+jobQueue.docHashField+","+jobQueue.docIDField+","+
           jobQueue.failTimeField+","+jobQueue.failCountField+" FROM "+
           jobQueue.getTableName()+" t0 WHERE t0."+jobQueue.statusField+"=? "+
+          " AND (t0."+jobQueue.checkTimeField+" IS NULL OR t0."+jobQueue.checkTimeField+"<=?) "+
           " AND EXISTS(SELECT 'x' FROM "+jobs.getTableName()+" t1 WHERE t0."+jobQueue.jobIDField+"=t1."+jobs.idField+
           " AND t1."+jobs.statusField+"=?"+
           ") AND NOT EXISTS(SELECT 'x' FROM "+jobQueue.getTableName()+" t2 WHERE t0."+jobQueue.docHashField+"=t2."+
@@ -1006,9 +1011,10 @@ public class JobManager implements IJobManager
   * not in transition and are eligible, but are owned by other jobs, will have their
   * jobqueue entries deleted by this method.
   *@param maxCount is the maximum number of documents to return.
+  *@param currentTime is the current time; some fetches do not occur until a specific time.
   *@return the document descriptions for these documents.
   */
-  public DocumentDescription[] getNextDeletableDocuments(int maxCount)
+  public DocumentDescription[] getNextDeletableDocuments(int maxCount, long currentTime)
     throws ManifoldCFException
   {
     // The query will be built here, because it joins the jobs table against the jobqueue
@@ -1059,6 +1065,8 @@ public class JobManager implements IJobManager
         list.add(jobQueue.statusToString(jobQueue.STATUS_PURGATORY));
         list.add(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY));
         
+        list.add(new Long(currentTime));
+        
         list.add(jobs.statusToString(jobs.STATUS_READYFORDELETE));
         
         list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVE));
@@ -1068,9 +1076,11 @@ public class JobManager implements IJobManager
         list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
         list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED));
         
+        // The checktime is null field check is for backwards compatibility
         IResultSet set = database.performQuery("SELECT "+jobQueue.idField+","+jobQueue.jobIDField+","+jobQueue.docHashField+","+jobQueue.docIDField+","+
           jobQueue.failTimeField+","+jobQueue.failCountField+" FROM "+
           jobQueue.getTableName()+" t0 WHERE t0."+jobQueue.statusField+" IN (?,?,?) "+
+          " AND (t0."+jobQueue.checkTimeField+" IS NULL OR t0."+jobQueue.checkTimeField+"<=?) "+
           " AND EXISTS(SELECT 'x' FROM "+jobs.getTableName()+" t1 WHERE t0."+jobQueue.jobIDField+"=t1."+jobs.idField+
           " AND t1."+jobs.statusField+"=?"+
           ") AND NOT EXISTS(SELECT 'x' FROM "+jobQueue.getTableName()+" t2 WHERE t0."+jobQueue.docHashField+"=t2."+
@@ -2807,8 +2817,9 @@ public class JobManager implements IJobManager
   * current status and decide what the new status ought to be, based on a true rollback scenario.  Such cases, however, are rare enough so that
   * special logic is probably not worth it.
   *@param documentDescriptions is the set of description objects for the document that was cleaned.
+  *@param checkTime is the minimum time for the next cleaning attempt.
   */
-  public void resetCleaningDocumentMultiple(DocumentDescription[] documentDescriptions)
+  public void resetCleaningDocumentMultiple(DocumentDescription[] documentDescriptions, long checkTime)
     throws ManifoldCFException
   {
     Long[] ids = new Long[documentDescriptions.length];
@@ -2851,7 +2862,7 @@ public class JobManager implements IJobManager
         i = 0;
         while (i < ids.length)
         {
-          jobQueue.setUncleaningStatus(ids[i]);
+          jobQueue.setUncleaningStatus(ids[i],checkTime);
           i++;
         }
 
@@ -2884,11 +2895,13 @@ public class JobManager implements IJobManager
 
   /** Reset a cleaning document back to its former state.
   * This gets done when a deleting thread sees a service interruption, etc., from the ingestion system.
+  *@param documentDescription is the description of the document that was cleaned.
+  *@param checkTime is the minimum time for the next cleaning attempt.
   */
-  public void resetCleaningDocument(DocumentDescription documentDescription)
+  public void resetCleaningDocument(DocumentDescription documentDescription, long checkTime)
     throws ManifoldCFException
   {
-    resetCleaningDocumentMultiple(new DocumentDescription[]{documentDescription});
+    resetCleaningDocumentMultiple(new DocumentDescription[]{documentDescription},checkTime);
   }
 
   /** Reset a set of deleting documents for further processing in the future.
@@ -2898,8 +2911,9 @@ public class JobManager implements IJobManager
   * current status and decide what the new status ought to be, based on a true rollback scenario.  Such cases, however, are rare enough so that
   * special logic is probably not worth it.
   *@param documentDescriptions is the set of description objects for the document that was processed.
+  *@param checkTime is the minimum time for the next cleaning attempt.
   */
-  public void resetDeletingDocumentMultiple(DocumentDescription[] documentDescriptions)
+  public void resetDeletingDocumentMultiple(DocumentDescription[] documentDescriptions, long checkTime)
     throws ManifoldCFException
   {
     Long[] ids = new Long[documentDescriptions.length];
@@ -2942,7 +2956,7 @@ public class JobManager implements IJobManager
         i = 0;
         while (i < ids.length)
         {
-          jobQueue.setUndeletingStatus(ids[i]);
+          jobQueue.setUndeletingStatus(ids[i],checkTime);
           i++;
         }
 
@@ -2975,11 +2989,13 @@ public class JobManager implements IJobManager
 
   /** Reset a deleting document back to its former state.
   * This gets done when a deleting thread sees a service interruption, etc., from the ingestion system.
+  *@param documentDescription is the description object for the document that was cleaned.
+  *@param checkTime is the minimum time for the next cleaning attempt.
   */
-  public void resetDeletingDocument(DocumentDescription documentDescription)
+  public void resetDeletingDocument(DocumentDescription documentDescription, long checkTime)
     throws ManifoldCFException
   {
-    resetDeletingDocumentMultiple(new DocumentDescription[]{documentDescription});
+    resetDeletingDocumentMultiple(new DocumentDescription[]{documentDescription},checkTime);
   }
 
 
@@ -6266,6 +6282,7 @@ public class JobManager implements IJobManager
     list.add(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY));
     
     list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED));
     
     list.add(jobQueue.actionToString(jobQueue.ACTION_RESCAN));
     list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVE));
@@ -6337,7 +6354,9 @@ public class JobManager implements IJobManager
       .append(" OR ").append("t0.").append(jobQueue.statusField).append("=?")
       .append(")")
       .append(" THEN 'Waiting forever'")
-      .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=?")
+      .append(" WHEN (").append("t0.").append(jobQueue.statusField).append("=?")
+      .append(" OR ").append("t0.").append(jobQueue.statusField).append("=?)")
+      .append(")")
       .append(" THEN 'Deleting'")
       .append(" WHEN ")
       .append("(t0.").append(jobQueue.checkActionField).append(" IS NULL OR t0.").append(jobQueue.checkActionField).append("=?)")

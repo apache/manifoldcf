@@ -32,15 +32,27 @@ public class DocumentDeleteSet
 
   /** This is the array of documents to delete. */
   protected DeleteQueuedDocument[] documents;
-
+  /** The job description for this set of documents. */
+  protected IJobDescription jobDescription;
+  
   /** Constructor.
   *@param documents is the arraylist representing the documents for this chunk.
+  *@param jobDescription is the job description for all the documents.
   */
-  public DocumentDeleteSet(DeleteQueuedDocument[] documents)
+  public DocumentDeleteSet(DeleteQueuedDocument[] documents, IJobDescription jobDescription)
   {
     this.documents = documents;
+    this.jobDescription = jobDescription;
   }
 
+  /** Get the job description.
+  *@return the job description.
+  */
+  public IJobDescription getJobDescription()
+  {
+    return this.jobDescription;
+  }
+  
   /** Get the number of documents.
   *@return the number.
   */

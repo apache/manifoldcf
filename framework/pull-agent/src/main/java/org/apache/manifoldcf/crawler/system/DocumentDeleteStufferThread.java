@@ -96,11 +96,13 @@ public class DocumentDeleteStufferThread extends Thread
 
           Logging.threads.debug("Document delete stuffer thread woke up");
 
+          long currentTime = System.currentTimeMillis();
+          
+          // Get a single chunk at a time (but keep going until everything is stuffed)
           // This method will set the status of the documents in question
           // to "beingdeleted".
 
-          // Get a single chunk at a time (but keep going until everything is stuffed)
-          DocumentDescription[] descs = jobManager.getNextDeletableDocuments(deleteChunkSize);
+          DocumentDescription[] descs = jobManager.getNextDeletableDocuments(deleteChunkSize,currentTime);
 
           // If there are no chunks at all, then we can sleep for a while.
           // The theory is that we need to allow stuff to accumulate.
@@ -114,16 +116,39 @@ public class DocumentDeleteStufferThread extends Thread
           if (Logging.threads.isDebugEnabled())
             Logging.threads.debug("Document delete stuffer thread found "+Integer.toString(descs.length)+" documents");
 
-          // Do the stuffing
-          DeleteQueuedDocument[] docDescs = new DeleteQueuedDocument[descs.length];
+          // Do the stuffing.  Each set must be segregated by job, since we need the job ID in the doc set.
+          Map jobMap = new HashMap();
           int k = 0;
-          while (k < docDescs.length)
+          while (k < descs.length)
           {
-            docDescs[k] = new DeleteQueuedDocument(descs[k]);
+            DeleteQueuedDocument x = new DeleteQueuedDocument(descs[k]);
+            Long jobID = descs[k].getJobID();
+            List y = (List)jobMap.get(jobID);
+            if (y == null)
+            {
+              y = new ArrayList();
+              jobMap.put(jobID,y);
+            }
+            y.add(x);
             k++;
           }
-          DocumentDeleteSet set = new DocumentDeleteSet(docDescs);
-          documentDeleteQueue.addDocuments(set);
+          
+          Iterator iter = jobMap.keySet().iterator();
+          while (iter.hasNext())
+          {
+            Long jobID = (Long)iter.next();
+            IJobDescription jobDescription = jobManager.load(jobID,true);
+            List y = (List)jobMap.get(jobID);
+            DeleteQueuedDocument[] docDescs = new DeleteQueuedDocument[y.size()];
+            k = 0;
+            while (k < docDescs.length)
+            {
+              docDescs[k] = (DeleteQueuedDocument)y.get(k);
+              k++;
+            }
+            DocumentDeleteSet set = new DocumentDeleteSet(docDescs,jobDescription);
+            documentDeleteQueue.addDocuments(set);
+          }
 
           // If we don't wait here, the other threads don't have a chance to queue anything else up.
           yield();

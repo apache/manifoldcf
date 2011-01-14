@@ -308,12 +308,14 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
 
     // Map BEINGDELETED to COMPLETE
     map.put(statusField,statusToString(STATUS_COMPLETE));
+    map.put(checkTimeField,new Long(0L));
     list.clear();
     list.add(statusToString(STATUS_BEINGDELETED));
     performUpdate(map,"WHERE "+statusField+"=?",list,null);
 
     // Map BEINGCLEANED to PURGATORY
     map.put(statusField,statusToString(STATUS_PURGATORY));
+    map.put(checkTimeField,new Long(0L));
     list.clear();
     list.add(statusToString(STATUS_BEINGCLEANED));
     performUpdate(map,"WHERE "+statusField+"=?",list,null);
@@ -382,6 +384,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     ArrayList list = new ArrayList();
     // Map BEINGDELETED to COMPLETE
     map.put(statusField,statusToString(STATUS_COMPLETE));
+    map.put(checkTimeField,new Long(0L));
     list.clear();
     list.add(statusToString(STATUS_BEINGDELETED));
     performUpdate(map,"WHERE "+statusField+"=?",list,null);
@@ -396,6 +399,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     ArrayList list = new ArrayList();
     // Map BEINGCLEANED to PURGATORY
     map.put(statusField,statusToString(STATUS_PURGATORY));
+    map.put(checkTimeField,new Long(0L));
     list.clear();
     list.add(statusToString(STATUS_BEINGCLEANED));
     performUpdate(map,"WHERE "+statusField+"=?",list,null);
@@ -423,7 +427,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     // Turn PENDINGPURGATORY, COMPLETED into PURGATORY.
     HashMap map = new HashMap();
     map.put(statusField,statusToString(STATUS_PURGATORY));
-    map.put(checkTimeField,null);
+    map.put(checkTimeField,new Long(0L));
     map.put(checkActionField,null);
     map.put(failTimeField,null);
     map.put(failCountField,null);
@@ -555,7 +559,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     case STATUS_ACTIVEPURGATORY:
       newStatus = STATUS_COMPLETE;
       actionFieldValue = null;
-      checkTimeValue = null;
+      checkTimeValue = new Long(0L);
       break;
     case STATUS_ACTIVENEEDRESCAN:
     case STATUS_ACTIVENEEDRESCANPURGATORY:
@@ -653,12 +657,12 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   }
 
   /** Set the status of a document to be "no longer deleting" */
-  public void setUndeletingStatus(Long id)
+  public void setUndeletingStatus(Long id, long checkTime)
     throws ManifoldCFException
   {
     HashMap map = new HashMap();
     map.put(statusField,statusToString(STATUS_COMPLETE));
-    map.put(checkTimeField,null);
+    map.put(checkTimeField,new Long(checkTime));
     map.put(checkActionField,null);
     map.put(failTimeField,null);
     map.put(failCountField,null);
@@ -681,12 +685,12 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   }
 
   /** Set the status of a document to be "no longer cleaning" */
-  public void setUncleaningStatus(Long id)
+  public void setUncleaningStatus(Long id, long checkTime)
     throws ManifoldCFException
   {
     HashMap map = new HashMap();
     map.put(statusField,statusToString(STATUS_PURGATORY));
-    map.put(checkTimeField,null);
+    map.put(checkTimeField,new Long(checkTime));
     map.put(checkActionField,null);
     map.put(failTimeField,null);
     map.put(failCountField,null);

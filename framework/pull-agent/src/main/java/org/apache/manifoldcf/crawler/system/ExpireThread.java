@@ -94,197 +94,177 @@ public class ExpireThread extends Thread
           if (Thread.currentThread().isInterrupted())
             throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
 
+          IJobDescription job = dds.getJobDescription();
+          String connectionName = job.getConnectionName();
+          String outputConnectionName = job.getOutputConnectionName();
+          
           try
           {
             long currentTime = System.currentTimeMillis();
 
-            // We need to segregate all the documents by connection, in order to be able to form a decent activities object
-            // to pass into the incremental ingester.  So, first pass through the document descriptions will build that.
-            Map mappedDocs = new HashMap();
+            // Documents will be naturally segregated by connection, since each set comes from a single job.
+
+            // Produce a map of connection name->connection object.  We will use this to perform a request for multiple connector objects
+            IRepositoryConnection connection = connMgr.load(connectionName);
+            
+            // This is where we store the hopcount cleanup data
+            ArrayList arrayDocHashes = new ArrayList();
+            ArrayList arrayDocsToDelete = new ArrayList();
+            ArrayList arrayRelationshipTypes = new ArrayList();
+            ArrayList hopcountMethods = new ArrayList();
+            
             int j = 0;
             while (j < dds.getCount())
             {
-              CleanupQueuedDocument dqd = dds.getDocument(j++);
+              CleanupQueuedDocument dqd = dds.getDocument(j);
               DocumentDescription ddd = dqd.getDocumentDescription();
-              Long jobID = ddd.getJobID();
-              IJobDescription job = jobManager.load(jobID,true);
-              String connectionName = job.getConnectionName();
-              ArrayList list = (ArrayList)mappedDocs.get(connectionName);
-              if (list == null)
+              if (job != null && connection != null)
               {
-                list = new ArrayList();
-                mappedDocs.put(connectionName,list);
+                // We'll need the legal link types; grab those before we proceed
+                String[] legalLinkTypes = RepositoryConnectorFactory.getRelationshipTypes(threadContext,connection.getClassName());
+                if (legalLinkTypes != null)
+                {
+                  arrayDocHashes.add(ddd.getDocumentIdentifierHash());
+                  arrayDocsToDelete.add(dqd);
+                  arrayRelationshipTypes.add(legalLinkTypes);
+                  hopcountMethods.add(new Integer(job.getHopcountMode()));
+                }
               }
-              list.add(dqd);
+              j++;
             }
 
-            // Now, cycle through all represented connections.
-            // For each connection, construct the necessary pieces to do the deletion.
-            Iterator iter = mappedDocs.keySet().iterator();
-            while (iter.hasNext())
+            // Grab one connection for the connectionName.  If we fail, nothing is lost and retries are possible.
+            try
             {
-              String connectionName = (String)iter.next();
-              ArrayList list = (ArrayList)mappedDocs.get(connectionName);
-
-              // Produce a map of connection name->connection object.  We will use this to perform a request for multiple connector objects
-              IRepositoryConnection connection = connMgr.load(connectionName);
-              ArrayList arrayOutputConnectionNames = new ArrayList();
-              ArrayList arrayDocHashes = new ArrayList();
-              ArrayList arrayDocClasses = new ArrayList();
-              ArrayList arrayDocsToDelete = new ArrayList();
-              ArrayList arrayRelationshipTypes = new ArrayList();
-              ArrayList hopcountMethods = new ArrayList();
-              ArrayList connections = new ArrayList();
-              j = 0;
-              while (j < list.size())
-              {
-                CleanupQueuedDocument dqd = (CleanupQueuedDocument)list.get(j);
-                DocumentDescription ddd = dqd.getDocumentDescription();
-                Long jobID = ddd.getJobID();
-                IJobDescription job = jobManager.load(jobID,true);
-                if (job != null && connection != null)
-                {
-                  // We'll need the legal link types; grab those before we proceed
-                  String[] legalLinkTypes = RepositoryConnectorFactory.getRelationshipTypes(threadContext,connection.getClassName());
-                  if (legalLinkTypes != null)
-                  {
-                    arrayOutputConnectionNames.add(job.getOutputConnectionName());
-                    arrayDocClasses.add(connectionName);
-                    arrayDocHashes.add(ddd.getDocumentIdentifierHash());
-                    arrayDocsToDelete.add(dqd);
-                    arrayRelationshipTypes.add(legalLinkTypes);
-                    hopcountMethods.add(new Integer(job.getHopcountMode()));
-                  }
-                }
-                j++;
-              }
-
-              // Next, segregate the documents by output connection name.  This will permit logging to know what actual activity type to use.
-              HashMap outputMap = new HashMap();
-              j = 0;
-              while (j < arrayDocHashes.size())
-              {
-                String outputConnectionName = (String)arrayOutputConnectionNames.get(j);
-                ArrayList subList = (ArrayList)outputMap.get(outputConnectionName);
-                if (subList == null)
-                {
-                  subList = new ArrayList();
-                  outputMap.put(outputConnectionName,subList);
-                }
-                subList.add(new Integer(j));
-                j++;
-              }
-
-              // Grab one connection for each connectionName.  If we fail, nothing is lost and retries are possible.
+              IRepositoryConnector connector = RepositoryConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
               try
               {
-                IRepositoryConnector connector = RepositoryConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+
+                // Iterate over the outputs
+                boolean[] deleteFromQueue = new boolean[arrayDocHashes.size()];
+                    
+                // Count the number of docs to actually delete.  This will be a subset of the documents in the list.
+                int k = 0;
+                int removeCount = 0;
+                while (k < arrayDocHashes.size())
+                {
+                  if (((CleanupQueuedDocument)arrayDocsToDelete.get(k)).shouldBeRemovedFromIndex())
+                  {
+                    deleteFromQueue[k] = false;
+                    removeCount++;
+                  }
+                  else
+                    deleteFromQueue[k] = true;
+                  k++;
+                }
+                    
+                // Allocate removal arrays
+                String[] docClassesToRemove = new String[removeCount];
+                String[] hashedDocsToRemove = new String[removeCount];
+
+                // Now, iterate over the list
+                k = 0;
+                removeCount = 0;
+                while (k < arrayDocHashes.size())
+                {
+                  if (((CleanupQueuedDocument)arrayDocsToDelete.get(k)).shouldBeRemovedFromIndex())
+                  {
+                    docClassesToRemove[removeCount] = connectionName;
+                    hashedDocsToRemove[removeCount] = (String)arrayDocHashes.get(k);
+                    removeCount++;
+                  }
+                  k++;
+                }
+
+                OutputRemoveActivity activities = new OutputRemoveActivity(connectionName,connMgr,outputConnectionName);
+
+                // Finally, go ahead and delete the documents from the ingestion system.
+                // If we fail, we need to put the documents back on the queue.
                 try
                 {
-
-                  // Iterate over the outputs
-                  Iterator outputIterator = outputMap.keySet().iterator();
-                  while (outputIterator.hasNext())
+                  ingester.documentDeleteMultiple(outputConnectionName,docClassesToRemove,hashedDocsToRemove,activities);
+                  // Success!  Label all these as needing deletion from queue.
+                  k = 0;
+                  while (k < arrayDocHashes.size())
                   {
-                    String outputConnectionName = (String)outputIterator.next();
-                    ArrayList indexList = (ArrayList)outputMap.get(outputConnectionName);
-                    // Count the number of docs to actually delete.  This will be a subset of the documents in the list.
-                    int k = 0;
-                    int removeCount = 0;
-                    while (k < indexList.size())
-                    {
-                      int index = ((Integer)indexList.get(k++)).intValue();
-                      if (((CleanupQueuedDocument)arrayDocsToDelete.get(index)).shouldBeRemovedFromIndex())
-                        removeCount++;
-                    }
-                    
-                    // Allocate removal arrays
-                    String[] docClassesToRemove = new String[removeCount];
-                    String[] hashedDocsToRemove = new String[removeCount];
-
-                    // Now, iterate over the index list
-                    k = 0;
-                    removeCount = 0;
-                    while (k < indexList.size())
-                    {
-                      int index = ((Integer)indexList.get(k)).intValue();
-                      if (((CleanupQueuedDocument)arrayDocsToDelete.get(index)).shouldBeRemovedFromIndex())
-                      {
-                        docClassesToRemove[removeCount] = (String)arrayDocClasses.get(index);
-                        hashedDocsToRemove[removeCount] = (String)arrayDocHashes.get(index);
-                        removeCount++;
-                      }
-                      k++;
-                    }
-
-                    OutputRemoveActivity activities = new OutputRemoveActivity(connectionName,connMgr,outputConnectionName);
-
-                    // Finally, go ahead and delete the documents from the ingestion system.
-
-                    while (true)
-                    {
-                      try
-                      {
-                        ingester.documentDeleteMultiple(outputConnectionName,docClassesToRemove,hashedDocsToRemove,activities);
-                        break;
-                      }
-                      catch (ServiceInterruption e)
-                      {
-                        // If we get a service interruption here, it means that the ingestion API is down.
-                        // There is no point, therefore, in freeing up this thread to go do something else;
-                        // might as well just wait here for our retries.
-                        // Wait for the prescribed time
-                        long amt = e.getRetryTime();
-                        long now = System.currentTimeMillis();
-                        long waittime = amt-now;
-                        if (waittime <= 0L)
-                          waittime = 300000L;
-                        ManifoldCF.sleep(waittime);
-                      }
-                    }
-
-                    // Successfully deleted some documents from ingestion system.  Now, remove them from job queue.  This
-                    // must currently happen one document at a time, because the jobs and connectors for each document
-                    // potentially differ.
-                    k = 0;
-                    while (k < indexList.size())
-                    {
-                      int index = ((Integer)indexList.get(k)).intValue();
-
-                      CleanupQueuedDocument dqd = (CleanupQueuedDocument)arrayDocsToDelete.get(index);
-                      DocumentDescription ddd = dqd.getDocumentDescription();
-                      Long jobID = ddd.getJobID();
-                      int hopcountMethod = ((Integer)hopcountMethods.get(index)).intValue();
-                      String[] legalLinkTypes = (String[])arrayRelationshipTypes.get(index);
-                      DocumentDescription[] requeueCandidates = jobManager.markDocumentDeleted(jobID,legalLinkTypes,ddd,hopcountMethod);
-                      // Use the common method for doing the requeuing
-                      ManifoldCF.requeueDocumentsDueToCarrydown(jobManager,requeueCandidates,
-                        connector,connection,queueTracker,currentTime);
-                      // Finally, completed expiration of the document.
-                      dqd.setProcessed();
-                      k++;
-                    }
+                    if (((CleanupQueuedDocument)arrayDocsToDelete.get(k)).shouldBeRemovedFromIndex())
+                      deleteFromQueue[k] = true;
+                    k++;
                   }
                 }
-                finally
+                catch (ServiceInterruption e)
                 {
-                  // Free up the reserved connector instance
-                  RepositoryConnectorFactory.release(connector);
+                  // We don't know which failed, or maybe they all did.
+                  // Go through the list of documents we just tried, and reset them on the queue based on the
+                  // ServiceInterruption parameters.  Then we must proceed to delete ONLY the documents that
+                  // were not part of the index deletion attempt.
+                  k = 0;
+                  while (k < arrayDocHashes.size())
+                  {
+                    CleanupQueuedDocument cqd = (CleanupQueuedDocument)arrayDocsToDelete.get(k);
+                    if (cqd.shouldBeRemovedFromIndex())
+                    {
+                      DocumentDescription dd = cqd.getDocumentDescription();
+                      if (dd.getFailTime() != -1L && dd.getFailTime() < e.getRetryTime() ||
+                        dd.getFailRetryCount() == 0)
+                      {
+                        // Treat this as a hard failure.
+                        if (e.isAbortOnFail())
+                          throw new ManifoldCFException("Repeated service interruptions - failure expiring document"+((e.getCause()!=null)?": "+e.getCause().getMessage():""),e.getCause());
+                      }
+                      else
+                      {
+                        // To recover from an expiration failure, requeue the document to PENDING etc.
+                        jobManager.resetDocument(dd,e.getRetryTime(),
+                          IJobManager.ACTION_REMOVE,e.getFailTime(),e.getFailRetryCount());
+                        cqd.setProcessed();
+                      }
+                    }
+                    k++;
+                  }
                 }
-              }
-              catch (ManifoldCFException e)
-              {
-                if (e.getErrorCode() == ManifoldCFException.REPOSITORY_CONNECTION_ERROR)
-                {
-                  // This error can only come from grabbing the connections.  So, if this occurs it means that
-                  // all the documents we've been handed have to be stuffed back onto the queue for processing at a later time.
-                  Logging.threads.warn("Expire thread couldn't establish necessary connections, retrying later: "+e.getMessage(),e);
 
-                  // Let the unprocessed documents get requeued!  This is handled at the end of the loop...
+                // Successfully deleted some documents from ingestion system.  Now, remove them from job queue.  This
+                // must currently happen one document at a time, because the jobs and connectors for each document
+                // potentially differ.
+                k = 0;
+                while (k < arrayDocHashes.size())
+                {
+                  if (deleteFromQueue[k])
+                  {
+                    CleanupQueuedDocument dqd = (CleanupQueuedDocument)arrayDocsToDelete.get(k);
+                    DocumentDescription ddd = dqd.getDocumentDescription();
+                    Long jobID = ddd.getJobID();
+                    int hopcountMethod = ((Integer)hopcountMethods.get(k)).intValue();
+                    String[] legalLinkTypes = (String[])arrayRelationshipTypes.get(k);
+                    DocumentDescription[] requeueCandidates = jobManager.markDocumentDeleted(jobID,legalLinkTypes,ddd,hopcountMethod);
+                    // Use the common method for doing the requeuing
+                    ManifoldCF.requeueDocumentsDueToCarrydown(jobManager,requeueCandidates,
+                      connector,connection,queueTracker,currentTime);
+                    // Finally, completed expiration of the document.
+                    dqd.setProcessed();
+                  }
+                  k++;
                 }
-                else
-                  throw e;
               }
+              finally
+              {
+                // Free up the reserved connector instance
+                RepositoryConnectorFactory.release(connector);
+              }
+            }
+            catch (ManifoldCFException e)
+            {
+              if (e.getErrorCode() == ManifoldCFException.REPOSITORY_CONNECTION_ERROR)
+              {
+                // This error can only come from grabbing the connections.  So, if this occurs it means that
+                // all the documents we've been handed have to be stuffed back onto the queue for processing at a later time.
+                Logging.threads.warn("Expire thread couldn't establish necessary connections, retrying later: "+e.getMessage(),e);
+
+                // Let the unprocessed documents get requeued!  This is handled at the end of the loop...
+              }
+              else
+                throw e;
             }
           }
           catch (ManifoldCFException e)
@@ -295,7 +275,15 @@ public class ExpireThread extends Thread
             if (e.getErrorCode() == ManifoldCFException.DATABASE_CONNECTION_ERROR)
               throw e;
 
-            Logging.threads.error("Exception tossed: "+e.getMessage(),e);
+            // It's ok to abort a job because we can't talk to the search engine.
+            if (jobManager.errorAbort(dds.getJobDescription().getID(),e.getMessage()))
+            {
+              // We eat the exception if there was already one recorded.
+
+              // An exception occurred in the processing of a set of documents.
+              // Shut the corresponding job down, with an appropriate error
+              Logging.threads.error("Exception tossed: "+e.getMessage(),e);
+            }
           }
           finally
           {

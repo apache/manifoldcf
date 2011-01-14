@@ -135,19 +135,41 @@ public class ExpireStufferThread extends Thread
             continue;
           }
 
-          // Do the stuffing
-          CleanupQueuedDocument[] docDescs = new CleanupQueuedDocument[descs.length];
+          // Do the stuffing.  Each set must be segregated by job, since we need the job ID in the doc set.
+          Map jobMap = new HashMap();
           int k = 0;
-          while (k < docDescs.length)
+          while (k < descs.length)
           {
-            docDescs[k] = new CleanupQueuedDocument(descs[k],deleteFromIndex[k]);
+            CleanupQueuedDocument x = new CleanupQueuedDocument(descs[k],deleteFromIndex[k]);
+            Long jobID = descs[k].getJobID();
+            List y = (List)jobMap.get(jobID);
+            if (y == null)
+            {
+              y = new ArrayList();
+              jobMap.put(jobID,y);
+            }
+            y.add(x);
             k++;
           }
-          DocumentCleanupSet set = new DocumentCleanupSet(docDescs);
-          documentQueue.addDocuments(set);
+          
+          Iterator iter = jobMap.keySet().iterator();
+          while (iter.hasNext())
+          {
+            Long jobID = (Long)iter.next();
+            IJobDescription jobDescription = jobManager.load(jobID,true);
+            List y = (List)jobMap.get(jobID);
+            CleanupQueuedDocument[] docDescs = new CleanupQueuedDocument[y.size()];
+            k = 0;
+            while (k < docDescs.length)
+            {
+              docDescs[k] = (CleanupQueuedDocument)y.get(k);
+              k++;
+            }
+            DocumentCleanupSet set = new DocumentCleanupSet(docDescs,jobDescription);
+            documentQueue.addDocuments(set);
+          }
 
-          // If we don't wait here, the other threads don't seem to have a chance to queue anything else up.
-          ManifoldCF.sleep(1000L);
+          yield();
         }
         catch (ManifoldCFException e)
         {

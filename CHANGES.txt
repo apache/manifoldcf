@@ -3,6 +3,10 @@ $Id$
 
 ==================  0.2-dev ==================
 
+CONNECTORS-145: Refactor cleanup worker threads, expire threads, and
+document delete threads to handle failure of the output connection gracefully.
+(Karl Wright)
+
 CONNECTORS-130: Block the Solr output connector from accepting documents
 that have folder-level security.
 (Karl Wright)

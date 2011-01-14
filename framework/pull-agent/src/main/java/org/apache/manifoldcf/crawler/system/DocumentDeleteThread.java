@@ -91,6 +91,10 @@ public class DocumentDeleteThread extends Thread
             // Reset
             continue;
 
+          IJobDescription job = dds.getJobDescription();
+          String connectionName = job.getConnectionName();
+          String outputConnectionName = job.getOutputConnectionName();
+
           try
           {
             // Do the delete work.
@@ -99,116 +103,82 @@ public class DocumentDeleteThread extends Thread
             // with the individual connection, so the first job is to segregate what came in into connection bins.  Then, we process each connection
             // bin appropriately.
 
-            // This is a map keyed by connection name, and containing elements that are an ArrayList of DeleteQueuedDocument objects.
-            Map mappedDocs = new HashMap();
+            boolean[] deleteFromQueue = new boolean[dds.getCount()];
+                
+            String[] docClassesToRemove = new String[dds.getCount()];
+            String[] hashedDocsToRemove = new String[dds.getCount()];
+            DeleteQueuedDocument[] docsToDelete = new DeleteQueuedDocument[dds.getCount()];
             int j = 0;
             while (j < dds.getCount())
             {
-              DeleteQueuedDocument dqd = dds.getDocument(j++);
+              DeleteQueuedDocument dqd = dds.getDocument(j);
               DocumentDescription ddd = dqd.getDocumentDescription();
-              Long jobID = ddd.getJobID();
-              IJobDescription job = jobManager.load(jobID,true);
-              String connectionName = job.getConnectionName();
-              ArrayList list = (ArrayList)mappedDocs.get(connectionName);
-              if (list == null)
-              {
-                list = new ArrayList();
-                mappedDocs.put(connectionName,list);
-              }
-              list.add(dqd);
+              docClassesToRemove[j] = connectionName;
+              hashedDocsToRemove[j] = ddd.getDocumentIdentifierHash();
+              docsToDelete[j] = dqd;
+              deleteFromQueue[j] = false;
+              j++;
             }
-
-            // For each connection, construct the necessary pieces to do the deletion.
-            Iterator iter = mappedDocs.keySet().iterator();
-            while (iter.hasNext())
+                
+            OutputRemoveActivity logger = new OutputRemoveActivity(connectionName,connMgr,outputConnectionName);
+                
+            try
             {
-              String connectionName = (String)iter.next();
-              ArrayList list = (ArrayList)mappedDocs.get(connectionName);
-
-              // Segregate by output connection as well.
-              HashMap outputMap = new HashMap();
+              ingester.documentDeleteMultiple(outputConnectionName,docClassesToRemove,hashedDocsToRemove,logger);
               j = 0;
-              while (j < list.size())
+              while (j < dds.getCount())
               {
-                DeleteQueuedDocument dqd = (DeleteQueuedDocument)list.get(j);
-                DocumentDescription ddd = dqd.getDocumentDescription();
-                Long jobID = ddd.getJobID();
-                IJobDescription job = jobManager.load(jobID,true);
-                String outputConnectionName = job.getOutputConnectionName();
-
-                ArrayList subList = (ArrayList)outputMap.get(outputConnectionName);
-                if (subList == null)
-                {
-                  subList = new ArrayList();
-                  outputMap.put(outputConnectionName,subList);
-                }
-                subList.add(new Integer(j));
+                deleteFromQueue[j] = true;
                 j++;
               }
-
-              // Now, cycle through all the output connections
-              Iterator outputIterator = outputMap.keySet().iterator();
-              while (outputIterator.hasNext())
+            }
+            catch (ServiceInterruption e)
+            {
+              // We don't know which failed, or maybe they all did.
+              // Go through the list of documents we just tried, and reset them on the queue based on the
+              // ServiceInterruption parameters.  Then we must proceed to delete ONLY the documents that
+              // were not part of the index deletion attempt.
+              j = 0;
+              while (j < dds.getCount())
               {
-                String outputConnectionName = (String)outputIterator.next();
-                ArrayList subList = (ArrayList)outputMap.get(outputConnectionName);
-
-                String[] docClassesToRemove = new String[subList.size()];
-                String[] hashedDocsToRemove = new String[subList.size()];
-                DeleteQueuedDocument[] docsToDelete = new DeleteQueuedDocument[subList.size()];
-                j = 0;
-                while (j < subList.size())
-                {
-                  int index = ((Integer)subList.get(j)).intValue();
-                  DeleteQueuedDocument dqd = (DeleteQueuedDocument)list.get(index);
-                  DocumentDescription ddd = dqd.getDocumentDescription();
-                  Long jobID = ddd.getJobID();
-                  IJobDescription job = jobManager.load(jobID,true);
-                  docClassesToRemove[j] = connectionName;
-                  hashedDocsToRemove[j] = ddd.getDocumentIdentifierHash();
-                  docsToDelete[j] = dqd;
-                  j++;
-                }
-                OutputRemoveActivity logger = new OutputRemoveActivity(connectionName,connMgr,outputConnectionName);
-                while (true)
-                {
-                  try
-                  {
-                    ingester.documentDeleteMultiple(outputConnectionName,docClassesToRemove,hashedDocsToRemove,logger);
-                    break;
-                  }
-                  catch (ServiceInterruption e)
-                  {
-                    // No document deletions can take place while the ingestion API is down, so simply wait for it to come back up.  There's
-                    // nothing better for this thread to be doing...
-                    // Wait for the prescribed time
-                    long amt = e.getRetryTime();
-                    long now = System.currentTimeMillis();
-                    long waittime = amt-now;
-                    if (waittime <= 0L)
-                      waittime = 300000L;
-                    ManifoldCF.sleep(waittime);
-                  }
-                }
-
-                // Delete the records
-                DocumentDescription[] deleteDescriptions = new DocumentDescription[docsToDelete.length];
-                j = 0;
-                while (j < deleteDescriptions.length)
-                {
-                  deleteDescriptions[j] = docsToDelete[j].getDocumentDescription();
-                  j++;
-                }
-                jobManager.deleteIngestedDocumentIdentifiers(deleteDescriptions);
-                // Mark them as gone
-                j = 0;
-                while (j < docsToDelete.length)
-                {
-                  docsToDelete[j++].wasProcessed();
-                }
+                DeleteQueuedDocument cqd = docsToDelete[j];
+                DocumentDescription dd = cqd.getDocumentDescription();
+                // To recover from an expiration failure, requeue the document to COMPLETED etc.
+                jobManager.resetDeletingDocument(dd,e.getRetryTime());
+                cqd.setProcessed();
+                j++;
               }
             }
 
+            // Count the records we're actually going to delete
+            int recordCount = 0;
+            j = 0;
+            while (j < dds.getCount())
+            {
+              if (deleteFromQueue[j])
+                recordCount++;
+              j++;
+            }
+                
+            // Delete the records
+            DocumentDescription[] deleteDescriptions = new DocumentDescription[recordCount];
+            j = 0;
+            recordCount = 0;
+            while (j < dds.getCount())
+            {
+              if (deleteFromQueue[j])
+                deleteDescriptions[recordCount++] = docsToDelete[j].getDocumentDescription();
+              j++;
+            }
+            jobManager.deleteIngestedDocumentIdentifiers(deleteDescriptions);
+            // Mark them as gone
+            j = 0;
+            while (j < dds.getCount())
+            {
+              if (deleteFromQueue[j])
+                docsToDelete[j].wasProcessed();
+              j++;
+            }
             // Go around again
           }
           finally
@@ -226,7 +196,7 @@ public class DocumentDeleteThread extends Thread
                 // Pop this document back into the jobqueue in an appropriate state
                 DocumentDescription ddd = dqd.getDocumentDescription();
                 // Requeue this document!
-                jobManager.resetDeletingDocument(ddd);
+                jobManager.resetDeletingDocument(ddd,0L);
                 dqd.setProcessed();
 
               }

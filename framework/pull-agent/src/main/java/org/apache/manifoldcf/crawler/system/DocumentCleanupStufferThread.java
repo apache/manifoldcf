@@ -96,11 +96,13 @@ public class DocumentCleanupStufferThread extends Thread
 
           Logging.threads.debug("Document cleanup stuffer thread woke up");
 
+          long currentTime = System.currentTimeMillis();
+          
+          // Get a single chunk at a time (but keep going until everything is stuffed)
           // This method will set the status of the documents in question
           // to "beingcleaned".
 
-          // Get a single chunk at a time (but keep going until everything is stuffed)
-          DocumentSetAndFlags documentsToClean = jobManager.getNextCleanableDocuments(deleteChunkSize);
+          DocumentSetAndFlags documentsToClean = jobManager.getNextCleanableDocuments(deleteChunkSize,currentTime);
           DocumentDescription[] descs = documentsToClean.getDocumentSet();
           boolean[] removeFromIndex = documentsToClean.getFlags();
           
@@ -116,16 +118,39 @@ public class DocumentCleanupStufferThread extends Thread
           if (Logging.threads.isDebugEnabled())
             Logging.threads.debug("Document cleanup stuffer thread found "+Integer.toString(descs.length)+" documents");
 
-          // Do the stuffing
-          CleanupQueuedDocument[] docDescs = new CleanupQueuedDocument[descs.length];
+          // Do the stuffing.  Each set must be segregated by job, since we need the job ID in the doc set.
+          Map jobMap = new HashMap();
           int k = 0;
-          while (k < docDescs.length)
+          while (k < descs.length)
           {
-            docDescs[k] = new CleanupQueuedDocument(descs[k],removeFromIndex[k]);
+            CleanupQueuedDocument x = new CleanupQueuedDocument(descs[k],removeFromIndex[k]);
+            Long jobID = descs[k].getJobID();
+            List y = (List)jobMap.get(jobID);
+            if (y == null)
+            {
+              y = new ArrayList();
+              jobMap.put(jobID,y);
+            }
+            y.add(x);
             k++;
           }
-          DocumentCleanupSet set = new DocumentCleanupSet(docDescs);
-          documentCleanupQueue.addDocuments(set);
+          
+          Iterator iter = jobMap.keySet().iterator();
+          while (iter.hasNext())
+          {
+            Long jobID = (Long)iter.next();
+            IJobDescription jobDescription = jobManager.load(jobID,true);
+            List y = (List)jobMap.get(jobID);
+            CleanupQueuedDocument[] docDescs = new CleanupQueuedDocument[y.size()];
+            k = 0;
+            while (k < docDescs.length)
+            {
+              docDescs[k] = (CleanupQueuedDocument)y.get(k);
+              k++;
+            }
+            DocumentCleanupSet set = new DocumentCleanupSet(docDescs,jobDescription);
+            documentCleanupQueue.addDocuments(set);
+          }
 
           // If we don't wait here, the other threads don't have a chance to queue anything else up.
           yield();
