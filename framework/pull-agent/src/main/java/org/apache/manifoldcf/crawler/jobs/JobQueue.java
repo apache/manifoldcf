@@ -46,6 +46,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   public final static int STATUS_ACTIVENEEDRESCAN = 7;
   public final static int STATUS_ACTIVENEEDRESCANPURGATORY = 8;
   public final static int STATUS_BEINGCLEANED = 9;
+  public final static int STATUS_ELIGIBLEFORDELETE = 10;
 
   // Action values
   public final static int ACTION_RESCAN = 0;
@@ -99,6 +100,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     statusMap.put("G",new Integer(STATUS_PENDINGPURGATORY));
     statusMap.put("F",new Integer(STATUS_ACTIVEPURGATORY));
     statusMap.put("Z",new Integer(STATUS_PURGATORY));
+    statusMap.put("E",new Integer(STATUS_ELIGIBLEFORDELETE));
     statusMap.put("D",new Integer(STATUS_BEINGDELETED));
     statusMap.put("a",new Integer(STATUS_ACTIVENEEDRESCAN));
     statusMap.put("f",new Integer(STATUS_ACTIVENEEDRESCANPURGATORY));
@@ -306,8 +308,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     list.add(statusToString(STATUS_ACTIVENEEDRESCANPURGATORY));
     performUpdate(map,"WHERE "+statusField+"=? OR "+statusField+"=?",list,null);
 
-    // Map BEINGDELETED to COMPLETE
-    map.put(statusField,statusToString(STATUS_COMPLETE));
+    // Map BEINGDELETED to ELIGIBLEFORDELETE
+    map.put(statusField,statusToString(STATUS_ELIGIBLEFORDELETE));
     map.put(checkTimeField,new Long(0L));
     list.clear();
     list.add(statusToString(STATUS_BEINGDELETED));
@@ -382,8 +384,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   {
     HashMap map = new HashMap();
     ArrayList list = new ArrayList();
-    // Map BEINGDELETED to COMPLETE
-    map.put(statusField,statusToString(STATUS_COMPLETE));
+    // Map BEINGDELETED to ELIGIBLEFORDELETE
+    map.put(statusField,statusToString(STATUS_ELIGIBLEFORDELETE));
     map.put(checkTimeField,new Long(0L));
     list.clear();
     list.add(statusToString(STATUS_BEINGDELETED));
@@ -405,6 +407,45 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     performUpdate(map,"WHERE "+statusField+"=?",list,null);
   }
 
+  /** Prepare for a job delete pass.  This will not be called
+  * unless the job is in an INACTIVE state.
+  * Does the following:
+  * (1) Delete PENDING entries
+  * (2) Maps PENDINGPURGATORY, PURGATORY, and COMPLETED entries to ELIGIBLEFORDELETE
+  *@param jobID is the job identifier.
+  */
+  public void prepareDeleteScan(Long jobID)
+    throws ManifoldCFException
+  {
+    // Delete PENDING entries
+    ArrayList list = new ArrayList();
+    list.add(jobID);
+    list.add(statusToString(STATUS_PENDING));
+    // Clean out prereqevents table first
+    prereqEventManager.deleteRows(getTableName()+" t0","t0."+idField,"t0."+jobIDField+"=? AND t0."+statusField+"=?",list);
+    performDelete("WHERE "+jobIDField+"=? AND "+statusField+"=?",list,null);
+
+    // Turn PENDINGPURGATORY, PURGATORY, COMPLETED into ELIGIBLEFORDELETE.
+    HashMap map = new HashMap();
+    map.put(statusField,statusToString(STATUS_ELIGIBLEFORDELETE));
+    map.put(checkTimeField,new Long(0L));
+    map.put(checkActionField,null);
+    map.put(failTimeField,null);
+    map.put(failCountField,null);
+    list.clear();
+    list.add(jobID);
+    list.add(statusToString(STATUS_PENDINGPURGATORY));
+    list.add(statusToString(STATUS_COMPLETE));
+    list.add(statusToString(STATUS_PURGATORY));
+    performUpdate(map,"WHERE "+jobIDField+"=? AND "+statusField+" IN (?,?,?)",list,null);
+
+    // Not accurate, but best we can do without overhead
+    noteModifications(0,2,0);
+    // Do an analyze, otherwise our plans are going to be crap right off the bat
+    unconditionallyAnalyzeTables();
+
+  }
+  
   /** Prepare for a "full scan" job.  This will not be called
   * unless the job is in the "INACTIVE" state.
   * This does the following:
@@ -416,7 +457,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   public void prepareFullScan(Long jobID)
     throws ManifoldCFException
   {
-    // Delete PENDING and ACTIVE entries
+    // Delete PENDING entries
     ArrayList list = new ArrayList();
     list.add(jobID);
     list.add(statusToString(STATUS_PENDING));
@@ -559,7 +600,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     case STATUS_ACTIVEPURGATORY:
       newStatus = STATUS_COMPLETE;
       actionFieldValue = null;
-      checkTimeValue = new Long(0L);
+      checkTimeValue = null;
       break;
     case STATUS_ACTIVENEEDRESCAN:
     case STATUS_ACTIVENEEDRESCANPURGATORY:
@@ -661,7 +702,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     HashMap map = new HashMap();
-    map.put(statusField,statusToString(STATUS_COMPLETE));
+    map.put(statusField,statusToString(STATUS_ELIGIBLEFORDELETE));
     map.put(checkTimeField,new Long(checkTime));
     map.put(checkActionField,null);
     map.put(failTimeField,null);
@@ -1276,6 +1317,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       return "F";
     case STATUS_PURGATORY:
       return "Z";
+    case STATUS_ELIGIBLEFORDELETE:
+      return "E";
     case STATUS_BEINGDELETED:
       return "D";
     case STATUS_ACTIVENEEDRESCAN:

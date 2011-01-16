@@ -51,6 +51,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public static final int STATUS_ABORTINGFORRESTARTSEEDING = 17;  // Seeding version of aborting for restart
   public static final int STATUS_ABORTINGSTARTINGUPFORRESTART = 18; // Starting up version of aborting for restart
   public static final int STATUS_NOTIFYINGOFCOMPLETION = 19;    // Notifying connector of terminating job (either aborted, or finished)
+  public static final int STATUS_DELETING = 20;                         // The job is deleting.
+  public static final int STATUS_DELETESTARTINGUP = 21;         // The delete is starting up.
   
   // These statuses have to do with whether a job has an installed underlying connector or not.
   // There are two reasons to have a special state here: (1) if the behavior of the crawler differs, or (2) if the
@@ -61,13 +63,13 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   // But, since there is no indication in the jobs table of an uninstalled connector for such jobs, the code which starts
   // jobs up (or otherwise would enter any state that has a corresponding special state) must check to see if the underlying
   // connector exists before deciding what state to put the job into.
-  public static final int STATUS_ACTIVE_UNINSTALLED = 21;               // Active, but repository connector not installed
-  public static final int STATUS_ACTIVESEEDING_UNINSTALLED = 22;   // Active and seeding, but repository connector not installed
-  public static final int STATUS_ACTIVE_NOOUTPUT = 23;                  // Active, but output connector not installed
-  public static final int STATUS_ACTIVESEEDING_NOOUTPUT = 24;       // Active and seeding, but output connector not installed
-  public static final int STATUS_ACTIVE_NEITHER = 25;                     // Active, but neither repository connector nor output connector installed
-  public static final int STATUS_ACTIVESEEDING_NEITHER = 26;          // Active and seeding, but neither repository connector nor output connector installed
-  public static final int STATUS_READYFORDELETE_NOOUTPUT = 27;    // Job is being deleted but there's no output connector installed
+  public static final int STATUS_ACTIVE_UNINSTALLED = 22;               // Active, but repository connector not installed
+  public static final int STATUS_ACTIVESEEDING_UNINSTALLED = 23;   // Active and seeding, but repository connector not installed
+  public static final int STATUS_ACTIVE_NOOUTPUT = 24;                  // Active, but output connector not installed
+  public static final int STATUS_ACTIVESEEDING_NOOUTPUT = 25;       // Active and seeding, but output connector not installed
+  public static final int STATUS_ACTIVE_NEITHER = 26;                     // Active, but neither repository connector nor output connector installed
+  public static final int STATUS_ACTIVESEEDING_NEITHER = 27;          // Active and seeding, but neither repository connector nor output connector installed
+  public static final int STATUS_DELETING_NOOUTPUT = 28;                // Job is being deleted but there's no output connector installed
 
   // Type field values
   public static final int TYPE_CONTINUOUS = IJobDescription.TYPE_CONTINUOUS;
@@ -144,6 +146,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     statusMap.put("Q",new Integer(STATUS_ABORTINGSTARTINGUP));
     statusMap.put("C",new Integer(STATUS_READYFORSTARTUP));
     statusMap.put("E",new Integer(STATUS_READYFORDELETE));
+    statusMap.put("V",new Integer(STATUS_DELETESTARTINGUP));
+    statusMap.put("e",new Integer(STATUS_DELETING));
     statusMap.put("Y",new Integer(STATUS_ABORTINGFORRESTART));
     statusMap.put("T",new Integer(STATUS_ABORTINGSTARTINGUPFORRESTART));
 
@@ -161,7 +165,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     statusMap.put("o",new Integer(STATUS_ACTIVESEEDING_NOOUTPUT));
     statusMap.put("U",new Integer(STATUS_ACTIVE_NEITHER));
     statusMap.put("u",new Integer(STATUS_ACTIVESEEDING_NEITHER));
-    statusMap.put("D",new Integer(STATUS_READYFORDELETE_NOOUTPUT));
+    statusMap.put("D",new Integer(STATUS_DELETING_NOOUTPUT));
     
     typeMap = new HashMap();
     typeMap.put("C",new Integer(TYPE_CONTINUOUS));
@@ -419,9 +423,11 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
 
       ArrayList list = new ArrayList();
       list.add(statusToString(STATUS_READYFORDELETE));
-      list.add(statusToString(STATUS_READYFORDELETE_NOOUTPUT));
+      list.add(statusToString(STATUS_DELETESTARTINGUP));
+      list.add(statusToString(STATUS_DELETING));
+      list.add(statusToString(STATUS_DELETING_NOOUTPUT));
       IResultSet set = performQuery("SELECT "+idField+","+descriptionField+" FROM "+
-        getTableName()+" WHERE "+statusField+"!=? AND "+statusField+"!=?"+
+        getTableName()+" WHERE "+statusField+"!=? AND "+statusField+"!=? AND "+statusField+"!=? AND "+statusField+"!=?"+
         " ORDER BY "+descriptionField+" ASC",list,cacheKeys,null);
       // Convert to an array of id's, and then load them
       Long[] ids = new Long[set.getRowCount()];
@@ -711,10 +717,16 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       StringSet invKey = new StringSet(getJobStatusKey());
       ArrayList list = new ArrayList();
 
+      // Starting up delete goes back to just being ready for delete
+      list.add(statusToString(STATUS_DELETESTARTINGUP));
+      HashMap map = new HashMap();
+      map.put(statusField,statusToString(STATUS_READYFORDELETE));
+      performUpdate(map,"WHERE "+statusField+"=?",list,invKey);
+
       // Starting up or aborting starting up goes back to just being ready
+      list.clear();
       list.add(statusToString(STATUS_STARTINGUP));
       list.add(statusToString(STATUS_ABORTINGSTARTINGUP));
-      HashMap map = new HashMap();
       map.put(statusField,statusToString(STATUS_READYFORSTARTUP));
       performUpdate(map,"WHERE "+statusField+"=? OR "+statusField+"=?",list,invKey);
 
@@ -809,8 +821,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     case STATUS_ACTIVESEEDING_UNINSTALLED:
       newStatusValue = STATUS_ACTIVESEEDING_NEITHER;
       break;
-    case STATUS_READYFORDELETE:
-      newStatusValue = STATUS_READYFORDELETE_NOOUTPUT;
+    case STATUS_DELETING:
+      newStatusValue = STATUS_DELETING_NOOUTPUT;
       break;
     default:
       newStatusValue = oldStatusValue;
@@ -852,8 +864,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     case STATUS_ACTIVESEEDING_NEITHER:
       newStatusValue = STATUS_ACTIVESEEDING_UNINSTALLED;
       break;
-    case STATUS_READYFORDELETE_NOOUTPUT:
-      newStatusValue = STATUS_READYFORDELETE;
+    case STATUS_DELETING_NOOUTPUT:
+      newStatusValue = STATUS_DELETING;
       break;
     default:
       newStatusValue = oldStatusValue;
@@ -1004,6 +1016,21 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     return (status == STATUS_ACTIVE || status == STATUS_ACTIVESEEDING || status == STATUS_STARTINGUP);
   }
 
+  /** Reset delete startup worker thread status.
+  */
+  public void resetDeleteStartupWorkerStatus()
+    throws ManifoldCFException
+  {
+    // This handles everything that the delete startup thread would resolve.
+
+    ArrayList list = new ArrayList();
+    list.add(statusToString(STATUS_DELETESTARTINGUP));
+    HashMap map = new HashMap();
+    map.put(statusField,statusToString(STATUS_READYFORDELETE));
+    performUpdate(map,"WHERE "+statusField+"=?",list,new StringSet(getJobStatusKey()));
+
+  }
+  
   /** Reset startup worker thread status.
   */
   public void resetStartupWorkerStatus()
@@ -1176,6 +1203,63 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     }
   }
   
+  /** Put job into "deleting" state, and set the start time field.
+  *@param jobID is the job identifier.
+  *@param startTime is the current time in milliseconds from start of epoch.
+  */
+  public void noteJobDeleteStarted(Long jobID, long startTime)
+    throws ManifoldCFException
+  {
+    beginTransaction();
+    try
+    {
+      ArrayList list = new ArrayList();
+      list.add(jobID);
+      IResultSet set = performQuery("SELECT "+statusField+","+connectionNameField+","+outputNameField+" FROM "+getTableName()+" WHERE "+
+        idField+"=? FOR UPDATE",list,null,null);
+      if (set.getRowCount() == 0)
+        throw new ManifoldCFException("Can't find job "+jobID.toString());
+      IResultRow row = set.getRow(0);
+      int status = stringToStatus((String)row.getValue(statusField));
+      int newStatus;
+      switch (status)
+      {
+      case STATUS_DELETESTARTINGUP:
+        if (outputMgr.checkConnectorExists((String)row.getValue(outputNameField)))
+          newStatus = STATUS_DELETING;
+        else
+          newStatus = STATUS_DELETING_NOOUTPUT;
+        break;
+      default:
+        // Complain!
+        throw new ManifoldCFException("Unexpected job status encountered: "+Integer.toString(status));
+      }
+
+      HashMap map = new HashMap();
+      map.put(statusField,statusToString(newStatus));
+      if (newStatus == STATUS_DELETING || newStatus == STATUS_DELETING_NOOUTPUT)
+      {
+        map.put(startTimeField,new Long(startTime));
+      }
+      map.put(lastCheckTimeField,new Long(startTime));
+      performUpdate(map,"WHERE "+idField+"=?",list,new StringSet(getJobStatusKey()));
+    }
+    catch (ManifoldCFException e)
+    {
+      signalRollback();
+      throw e;
+    }
+    catch (Error e)
+    {
+      signalRollback();
+      throw e;
+    }
+    finally
+    {
+      endTransaction();
+    }
+  }
+
   /** Make job active, and set the start time field.
   *@param jobID is the job identifier.
   *@param startTime is the current time in milliseconds from start of epoch.
@@ -1230,7 +1314,6 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       {
         map.put(startTimeField,new Long(startTime));
       }
-      map.put(lastCheckTimeField,new Long(startTime));
       performUpdate(map,"WHERE "+idField+"=?",list,new StringSet(getJobStatusKey()));
     }
     catch (ManifoldCFException e)
@@ -1824,7 +1907,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
 
   }
 
-  /** Return true if there is a job in the READYFORDELETE state.  (This matches the
+  /** Return true if there is a job in the DELETING state.  (This matches the
   * conditions for values to be returned from
   * getNextDeletableDocuments).
   *@return true if such jobs exist.
@@ -1833,7 +1916,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
-    list.add(statusToString(STATUS_READYFORDELETE));
+    list.add(statusToString(STATUS_DELETING));
     IResultSet set = performQuery("SELECT "+idField+" FROM "+getTableName()+" WHERE "+
       statusField+"=? "+constructOffsetLimitClause(0,1),
       list,new StringSet(getJobStatusKey()),null,1);
@@ -1926,6 +2009,10 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       return "C";
     case STATUS_READYFORDELETE:
       return "E";
+    case STATUS_DELETESTARTINGUP:
+      return "V";
+    case STATUS_DELETING:
+      return "e";
     case STATUS_ACTIVESEEDING:
       return "a";
     case STATUS_ABORTINGSEEDING:
@@ -1950,7 +2037,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       return "U";
     case STATUS_ACTIVESEEDING_NEITHER:
       return "u";
-    case STATUS_READYFORDELETE_NOOUTPUT:
+    case STATUS_DELETING_NOOUTPUT:
       return "D";
 
     default:

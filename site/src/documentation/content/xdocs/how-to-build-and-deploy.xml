@@ -410,6 +410,8 @@ cd dist/example
             <tr><td>org.apache.manifoldcf.database.username</td><td>No</td><td>Describes database user name for ManifoldCF; defaults to "manifoldcf" if not specified.</td></tr>
             <tr><td>org.apache.manifoldcf.database.password</td><td>No</td><td>Describes database user's password for ManifoldCF; defaults to "local_pg_password" if not specified.</td></tr>
             <tr><td>org.apache.manifoldcf.crawler.threads</td><td>No</td><td>Number of crawler worker threads created.  Suggest a value of 30.</td></tr>
+            <tr><td>org.apache.manifoldcf.crawler.expirethreads</td><td>No</td><td>Number of crawler expiration threads created.  Suggest a value of 10.</td></tr>
+            <tr><td>org.apache.manifoldcf.crawler.cleanupthreads</td><td>No</td><td>Number of crawler cleanup threads created.  Suggest a value of 10.</td></tr>
             <tr><td>org.apache.manifoldcf.crawler.deletethreads</td><td>No</td><td>Number of crawler delete threads created.  Suggest a value of 10.</td></tr>
             <tr><td>org.apache.manifoldcf.misc</td><td>No</td><td>Miscellaneous debugging output.  Legal values INFO, WARN, or DEBUG.</td></tr>
             <tr><td>org.apache.manifoldcf.db</td><td>No</td><td>Database debugging output.  Legal values INFO, WARN, or DEBUG.</td></tr>

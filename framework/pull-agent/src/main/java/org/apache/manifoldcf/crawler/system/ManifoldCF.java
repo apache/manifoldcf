@@ -40,6 +40,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static FinisherThread finisherThread = null;
   protected static JobNotificationThread notificationThread = null;
   protected static StartupThread startupThread = null;
+  protected static StartDeleteThread startDeleteThread = null;
   protected static JobDeleteThread jobDeleteThread = null;
   protected static WorkerThread[] workerThreads = null;
   protected static ExpireStufferThread expireStufferThread = null;
@@ -204,6 +205,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
       jobStartThread = new JobStartThread();
       startupThread = new StartupThread(queueTracker);
+      startDeleteThread = new StartDeleteThread();
       finisherThread = new FinisherThread();
       notificationThread = new JobNotificationThread();
       jobDeleteThread = new JobDeleteThread();
@@ -315,6 +317,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         // Start all the threads
         jobStartThread.start();
         startupThread.start();
+        startDeleteThread.start();
         finisherThread.start();
         notificationThread.start();
         jobDeleteThread.start();
@@ -381,8 +384,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     Logging.root.info("Shutting down pull-agent...");
     synchronized (startupLock)
     {
-      while (initializationThread != null || jobDeleteThread != null || startupThread != null || jobStartThread != null || stufferThread != null ||
-        finisherThread != null || notificationThread != null || workerThreads != null || expireStufferThread != null | expireThreads != null ||
+      while (initializationThread != null || jobDeleteThread != null || startupThread != null || startDeleteThread != null ||
+        jobStartThread != null || stufferThread != null ||
+        finisherThread != null || notificationThread != null || workerThreads != null || expireStufferThread != null || expireThreads != null ||
         deleteStufferThread != null || deleteThreads != null ||
         cleanupStufferThread != null || cleanupThreads != null ||
         jobResetThread != null || seedingThread != null || idleCleanupThread != null || setPriorityThread != null)
@@ -409,6 +413,10 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         if (startupThread != null)
         {
           startupThread.interrupt();
+        }
+        if (startDeleteThread != null)
+        {
+          startDeleteThread.interrupt();
         }
         if (stufferThread != null)
         {
@@ -516,6 +524,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         {
           if (!startupThread.isAlive())
             startupThread = null;
+        }
+        if (startDeleteThread != null)
+        {
+          if (!startDeleteThread.isAlive())
+            startDeleteThread = null;
         }
         if (jobStartThread != null)
         {

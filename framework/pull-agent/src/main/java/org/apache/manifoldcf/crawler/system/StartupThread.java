@@ -38,9 +38,6 @@ public class StartupThread extends Thread
   // Local data
   protected QueueTracker queueTracker;
 
-  /** The number of documents that are added to the queue per transaction */
-  protected final static int MAX_COUNT = 100;
-
   /** Constructor.
   */
   public StartupThread(QueueTracker queueTracker)
@@ -67,8 +64,6 @@ public class StartupThread extends Thread
         ManifoldCF.getMasterDatabaseName(),
         ManifoldCF.getMasterDatabaseUsername(),
         ManifoldCF.getMasterDatabasePassword());
-
-      String[] identifiers = new String[MAX_COUNT];
 
       // Loop
       while (true)

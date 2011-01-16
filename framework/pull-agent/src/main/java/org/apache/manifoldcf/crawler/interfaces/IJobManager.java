@@ -163,6 +163,11 @@ public interface IJobManager
   public void resetDocCleanupWorkerStatus()
     throws ManifoldCFException;
 
+  /** Reset as part of restoring delete startup threads.
+  */
+  public void resetDeleteStartupWorkerStatus()
+    throws ManifoldCFException;
+
   /** Reset as part of restoring startup threads.
   */
   public void resetStartupWorkerStatus()
@@ -643,6 +648,12 @@ public interface IJobManager
   public void resetSeedJob(Long jobID)
     throws ManifoldCFException;
 
+  /** Get the list of jobs that are ready for deletion.
+  *@return jobs that were in the "readyfordelete" state.
+  */
+  public JobStartRecord[] getJobsReadyForDelete()
+    throws ManifoldCFException;
+    
   /** Get the list of jobs that are ready for startup.
   *@return jobs that were in the "readyforstartup" state.  These will be marked as being in the "starting up" state.
   */
@@ -660,15 +671,29 @@ public interface IJobManager
   */
   public void inactivateJob(Long jobID)
     throws ManifoldCFException;
-    
+
+  /** Reset a job starting for delete back to "ready for delete"
+  * state.
+  *@param jobID is the job id.
+  */
+  public void resetStartDeleteJob(Long jobID)
+    throws ManifoldCFException;
+
   /** Reset a starting job back to "ready for startup" state.
   *@param jobID is the job id.
   */
   public void resetStartupJob(Long jobID)
     throws ManifoldCFException;
 
+  /** Prepare for a delete scan.
+  *@param jobID is the job id.
+  */
+  public void prepareDeleteScan(Long jobID)
+    throws ManifoldCFException;
+
   /** Prepare for a full scan.
   *@param jobID is the job id.
+  *@param legalLinkTypes are the link types allowed for the job.
   *@param hopcountMethod describes how to handle deletions for hopcount purposes.
   */
   public void prepareFullScan(Long jobID, String[] legalLinkTypes, int hopcountMethod)
@@ -676,9 +701,17 @@ public interface IJobManager
 
   /** Prepare for an incremental scan.
   *@param jobID is the job id.
+  *@param legalLinkTypes are the link types allowed for the job.
   *@param hopcountMethod describes how to handle deletions for hopcount purposes.
   */
   public void prepareIncrementalScan(Long jobID, String[] legalLinkTypes, int hopcountMethod)
+    throws ManifoldCFException;
+
+  /** Note job delete started.
+  *@param jobID is the job id.
+  *@param startTime is the job start time.
+  */
+  public void noteJobDeleteStarted(Long jobID, long startTime)
     throws ManifoldCFException;
 
   /** Note job started.

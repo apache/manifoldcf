@@ -91,6 +91,9 @@ public class DocumentDeleteThread extends Thread
             // Reset
             continue;
 
+          if (Logging.threads.isDebugEnabled())
+            Logging.threads.debug("Document delete thread received "+Integer.toString(dds.getCount())+" documents to delete for job "+dds.getJobDescription().getID().toString());
+          
           IJobDescription job = dds.getJobDescription();
           String connectionName = job.getConnectionName();
           String outputConnectionName = job.getOutputConnectionName();

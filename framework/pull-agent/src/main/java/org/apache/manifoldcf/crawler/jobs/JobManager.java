@@ -520,12 +520,11 @@ public class JobManager implements IJobManager
       // If the job is running, throw an error
       ArrayList list = new ArrayList();
       list.add(id);
-      IResultSet set = database.performQuery("SELECT "+jobs.statusField+","+jobs.outputNameField+" FROM "+
+      IResultSet set = database.performQuery("SELECT "+jobs.statusField+" FROM "+
         jobs.getTableName()+" WHERE "+jobs.idField+"=? FOR UPDATE",list,null,null);
       if (set.getRowCount() == 0)
         throw new ManifoldCFException("Attempting to delete a job that doesn't exist: "+id);
       IResultRow row = set.getRow(0);
-      String outputName = (String)row.getValue(jobs.outputNameField);
       int status = jobs.stringToStatus(row.getValue(jobs.statusField).toString());
       if (status == jobs.STATUS_ACTIVE || status == jobs.STATUS_ACTIVESEEDING ||
         status == jobs.STATUS_ACTIVE_UNINSTALLED || status == jobs.STATUS_ACTIVESEEDING_UNINSTALLED ||
@@ -534,10 +533,7 @@ public class JobManager implements IJobManager
       throw new ManifoldCFException("Job "+id+" is active; you must shut it down before deleting it");
       if (status != jobs.STATUS_INACTIVE)
         throw new ManifoldCFException("Job "+id+" is busy; you must wait and/or shut it down before deleting it");
-      if (outputMgr.checkConnectorExists(outputName))
-        jobs.writeStatus(id,jobs.STATUS_READYFORDELETE);
-      else
-        jobs.writeStatus(id,jobs.STATUS_READYFORDELETE_NOOUTPUT);
+      jobs.writeStatus(id,jobs.STATUS_READYFORDELETE);
       if (Logging.jobs.isDebugEnabled())
         Logging.jobs.debug("Job "+id+" marked for deletion");
     }
@@ -747,6 +743,16 @@ public class JobManager implements IJobManager
   {
     Logging.jobs.debug("Resetting doc cleaning status");
     jobQueue.resetDocCleanupWorkerStatus();
+    Logging.jobs.debug("Reset complete");
+  }
+
+  /** Reset as part of restoring delete startup threads.
+  */
+  public void resetDeleteStartupWorkerStatus()
+    throws ManifoldCFException
+  {
+    Logging.jobs.debug("Resetting job delete starting up status");
+    jobs.resetDeleteStartupWorkerStatus();
     Logging.jobs.debug("Reset complete");
   }
 
@@ -1061,13 +1067,11 @@ public class JobManager implements IJobManager
         // Note: This query does not do "FOR UPDATE", because it is running under the only thread that can possibly change the document's state to "being deleted".
         // If FOR UPDATE was included, deadlock happened a lot.
         ArrayList list = new ArrayList();
-        list.add(jobQueue.statusToString(jobQueue.STATUS_COMPLETE));
-        list.add(jobQueue.statusToString(jobQueue.STATUS_PURGATORY));
-        list.add(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_ELIGIBLEFORDELETE));
         
         list.add(new Long(currentTime));
         
-        list.add(jobs.statusToString(jobs.STATUS_READYFORDELETE));
+        list.add(jobs.statusToString(jobs.STATUS_DELETING));
         
         list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVE));
         list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY));
@@ -1079,8 +1083,8 @@ public class JobManager implements IJobManager
         // The checktime is null field check is for backwards compatibility
         IResultSet set = database.performQuery("SELECT "+jobQueue.idField+","+jobQueue.jobIDField+","+jobQueue.docHashField+","+jobQueue.docIDField+","+
           jobQueue.failTimeField+","+jobQueue.failCountField+" FROM "+
-          jobQueue.getTableName()+" t0 WHERE t0."+jobQueue.statusField+" IN (?,?,?) "+
-          " AND (t0."+jobQueue.checkTimeField+" IS NULL OR t0."+jobQueue.checkTimeField+"<=?) "+
+          jobQueue.getTableName()+" t0 WHERE t0."+jobQueue.statusField+"=? "+
+          " AND t0."+jobQueue.checkTimeField+"<=? "+
           " AND EXISTS(SELECT 'x' FROM "+jobs.getTableName()+" t1 WHERE t0."+jobQueue.jobIDField+"=t1."+jobs.idField+
           " AND t1."+jobs.statusField+"=?"+
           ") AND NOT EXISTS(SELECT 'x' FROM "+jobQueue.getTableName()+" t2 WHERE t0."+jobQueue.docHashField+"=t2."+
@@ -1312,11 +1316,12 @@ public class JobManager implements IJobManager
     list.add(jobQueue.statusToString(jobQueue.STATUS_PURGATORY));
     list.add(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY));
     list.add(jobQueue.statusToString(jobQueue.STATUS_COMPLETE));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ELIGIBLEFORDELETE));
     
     list.add(connectionName);
     list.add(outputConnectionName);
     
-    sb.append(") AND t0.").append(jobQueue.statusField).append(" IN (?,?,?) AND EXISTS(SELECT 'x' FROM ")
+    sb.append(") AND t0.").append(jobQueue.statusField).append(" IN (?,?,?,?) AND EXISTS(SELECT 'x' FROM ")
       .append(jobs.getTableName()).append(" t1 WHERE t0.")
       .append(jobQueue.jobIDField).append("=t1.").append(jobs.idField).append(" AND t1.")
       .append(jobs.connectionNameField).append("=? AND t1.")
@@ -4903,6 +4908,18 @@ public class JobManager implements IJobManager
     }
   }
 
+  /** Note job delete started.
+  *@param jobID is the job id.
+  *@param startTime is the job delete start time.
+  */
+  public void noteJobDeleteStarted(Long jobID, long startTime)
+    throws ManifoldCFException
+  {
+    jobs.noteJobDeleteStarted(jobID,startTime);
+    if (Logging.jobs.isDebugEnabled())
+      Logging.jobs.debug("Job "+jobID+" delete is now started");
+  }
+
   /** Note job started.
   *@param jobID is the job id.
   *@param startTime is the job start time.
@@ -4927,8 +4944,20 @@ public class JobManager implements IJobManager
       Logging.jobs.debug("Job "+jobID+" has been successfully reseeded");
   }
 
+  /** Prepare for a delete scan.
+  *@param jobID is the job id.
+  */
+  public void prepareDeleteScan(Long jobID)
+    throws ManifoldCFException
+  {
+    // No special treatment needed for hopcount or carrydown, since these all get deleted at once
+    // at the end of the job delete process.
+    jobQueue.prepareDeleteScan(jobID);
+  }
+  
   /** Prepare for a full scan.
   *@param jobID is the job id.
+  *@param legalLinkTypes are the link types allowed for the job.
   *@param hopcountMethod describes how to handle deletions for hopcount purposes.
   */
   public void prepareFullScan(Long jobID, String[] legalLinkTypes, int hopcountMethod)
@@ -4982,6 +5011,7 @@ public class JobManager implements IJobManager
 
   /** Prepare for an incremental scan.
   *@param jobID is the job id.
+  *@param legalLinkTypes are the link types allowed for the job.
   *@param hopcountMethod describes how to handle deletions for hopcount purposes.
   */
   public void prepareIncrementalScan(Long jobID, String[] legalLinkTypes, int hopcountMethod)
@@ -5189,6 +5219,68 @@ public class JobManager implements IJobManager
     }
   }
 
+  /** Get the list of jobs that are ready for deletion.
+  *@return jobs that were in the "readyfordelete" state.
+  */
+  public JobStartRecord[] getJobsReadyForDelete()
+    throws ManifoldCFException
+  {
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        // Do the query
+        ArrayList list = new ArrayList();
+        list.add(jobs.statusToString(jobs.STATUS_READYFORDELETE));
+        IResultSet set = database.performQuery("SELECT "+jobs.idField+" FROM "+
+          jobs.getTableName()+" WHERE "+jobs.statusField+"=? FOR UPDATE",list,null,null);
+        // Update them all
+        JobStartRecord[] rval = new JobStartRecord[set.getRowCount()];
+        int i = 0;
+        while (i < rval.length)
+        {
+          IResultRow row = set.getRow(i);
+          Long jobID = (Long)row.getValue(jobs.idField);
+
+          // Mark status of job as "starting delete"
+          jobs.writeStatus(jobID,jobs.STATUS_DELETESTARTINGUP);
+          if (Logging.jobs.isDebugEnabled())
+          {
+            Logging.jobs.debug("Marked job "+jobID+" for delete startup");
+          }
+
+          rval[i] = new JobStartRecord(jobID,0L);
+          i++;
+        }
+        return rval;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted getting jobs ready for startup: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+  }
+
   /** Get the list of jobs that are ready for startup.
   *@return jobs that were in the "readyforstartup" state.  These will be marked as being in the "starting up" state.
   */
@@ -5296,6 +5388,68 @@ public class JobManager implements IJobManager
         {
           if (Logging.perf.isDebugEnabled())
             Logging.perf.debug("Aborted clearing notification state for job: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+  }
+
+  /** Reset a job starting for delete back to "ready for delete"
+  * state.
+  *@param jobID is the job id.
+  */
+  public void resetStartDeleteJob(Long jobID)
+    throws ManifoldCFException
+  {
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        // Check job status
+        ArrayList list = new ArrayList();
+        list.add(jobID);
+        IResultSet set = database.performQuery("SELECT "+jobs.statusField+" FROM "+jobs.getTableName()+
+          " WHERE "+jobs.idField+"=? FOR UPDATE",list,null,null);
+        if (set.getRowCount() == 0)
+          throw new ManifoldCFException("No such job: "+jobID);
+        IResultRow row = set.getRow(0);
+        int status = jobs.stringToStatus((String)row.getValue(jobs.statusField));
+
+        switch (status)
+        {
+        case Jobs.STATUS_DELETESTARTINGUP:
+          if (Logging.jobs.isDebugEnabled())
+            Logging.jobs.debug("Setting job "+jobID+" back to 'ReadyForDelete' state");
+
+          // Set the state of the job back to "ReadyForStartup"
+          jobs.writeStatus(jobID,jobs.STATUS_READYFORDELETE);
+          break;
+        default:
+          throw new ManifoldCFException("Unexpected job status: "+Integer.toString(status));
+        }
+        return;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted resetting start delete job: "+e.getMessage());
           sleepAmt = getRandomAmount();
           continue;
         }
@@ -5551,10 +5705,9 @@ public class JobManager implements IJobManager
 
         // Do the first query, getting the candidate jobs to be considered
         ArrayList list = new ArrayList();
-        list.add(jobs.statusToString(jobs.STATUS_READYFORDELETE));
-        list.add(jobs.statusToString(jobs.STATUS_READYFORDELETE_NOOUTPUT));
+        list.add(jobs.statusToString(jobs.STATUS_DELETING));
         IResultSet set = database.performQuery("SELECT "+jobs.idField+" FROM "+
-          jobs.getTableName()+" WHERE "+jobs.statusField+" IN(?,?) FOR UPDATE",list,null,null);
+          jobs.getTableName()+" WHERE "+jobs.statusField+"=? FOR UPDATE",list,null,null);
 
         // Now, loop through this list.  For each one, verify that it's okay to delete it
         int i = 0;
@@ -5565,23 +5718,12 @@ public class JobManager implements IJobManager
 
           list.clear();
           list.add(jobID);
-          list.add(jobQueue.statusToString(jobQueue.STATUS_COMPLETE));
-          list.add(jobID);
-          list.add(jobQueue.statusToString(jobQueue.STATUS_PURGATORY));
-          list.add(jobID);
-          list.add(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY));
-          list.add(jobID);
+          list.add(jobQueue.statusToString(jobQueue.STATUS_ELIGIBLEFORDELETE));
           list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
-          list.add(jobID);
-          list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED));
 
           IResultSet confirmSet = database.performQuery("SELECT "+jobQueue.idField+" FROM "+
             jobQueue.getTableName()+" WHERE "+
-            "("+jobQueue.jobIDField+"=? AND "+jobQueue.statusField+"=?) OR "+
-            "("+jobQueue.jobIDField+"=? AND "+jobQueue.statusField+"=?) OR "+
-            "("+jobQueue.jobIDField+"=? AND "+jobQueue.statusField+"=?) OR "+
-            "("+jobQueue.jobIDField+"=? AND "+jobQueue.statusField+"=?) OR "+
-            "("+jobQueue.jobIDField+"=? AND "+jobQueue.statusField+"=?) "+database.constructOffsetLimitClause(0,1),list,null,null,1,null);
+            jobQueue.jobIDField+"=? AND "+jobQueue.statusField+" IN (?,?) "+database.constructOffsetLimitClause(0,1),list,null,null,1,null);
 
           if (confirmSet.getRowCount() > 0)
             continue;
@@ -6209,7 +6351,8 @@ public class JobManager implements IJobManager
         rstatus = JobStatus.JOBSTATUS_STARTING;
         break;
       case Jobs.STATUS_READYFORDELETE:
-      case Jobs.STATUS_READYFORDELETE_NOOUTPUT:
+      case Jobs.STATUS_DELETING:
+      case Jobs.STATUS_DELETING_NOOUTPUT:
         rstatus = JobStatus.JOBSTATUS_DESTRUCTING;
         break;
       default:
@@ -6258,6 +6401,7 @@ public class JobManager implements IJobManager
     list.add(jobQueue.statusToString(jobQueue.STATUS_PURGATORY));
     list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
     list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ELIGIBLEFORDELETE));
     
     list.add(jobQueue.statusToString(jobQueue.STATUS_COMPLETE));
     list.add(jobQueue.statusToString(jobQueue.STATUS_PURGATORY));
@@ -6311,6 +6455,7 @@ public class JobManager implements IJobManager
       .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=? THEN 'Processed'")
       .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=? THEN 'Processed'")
       .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=? THEN 'Processed'")
+      .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=? THEN 'Being removed'")
       .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=? THEN 'Being removed'")
       .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=? THEN 'Being removed'")
       .append(" ELSE 'Unknown'")
@@ -6441,6 +6586,7 @@ public class JobManager implements IJobManager
     
     list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
     list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ELIGIBLEFORDELETE));
     
     list.add(jobQueue.actionToString(jobQueue.ACTION_RESCAN));
     list.add(jobQueue.statusToString(jobQueue.STATUS_PENDING));
@@ -6494,6 +6640,7 @@ public class JobManager implements IJobManager
       .append("CASE")
       .append(" WHEN ")
       .append(jobQueue.statusField).append("=?")
+      .append(" OR ").append(jobQueue.statusField).append("=?")
       .append(" OR ").append(jobQueue.statusField).append("=?")
       .append(" THEN 1 ELSE 0")
       .append(" END")
@@ -6636,11 +6783,12 @@ public class JobManager implements IJobManager
         list.add(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY));
         list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY));
         list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY));
+        list.add(jobQueue.statusToString(jobQueue.STATUS_ELIGIBLEFORDELETE));
         list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
         list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED));
         list.add(jobQueue.statusToString(jobQueue.STATUS_COMPLETE));
         list.add(jobQueue.statusToString(jobQueue.STATUS_PURGATORY));
-        sb.append(fieldPrefix).append(jobQueue.statusField).append(" IN (?,?,?,?,?,?,?)");
+        sb.append(fieldPrefix).append(jobQueue.statusField).append(" IN (?,?,?,?,?,?,?,?)");
         break;
       }
       k++;
@@ -6683,7 +6831,8 @@ public class JobManager implements IJobManager
       case DOCSTATUS_DELETING:
         list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
         list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED));
-        sb.append(fieldPrefix).append(jobQueue.statusField).append(" IN (?,?)");
+        list.add(jobQueue.statusToString(jobQueue.STATUS_ELIGIBLEFORDELETE));
+        sb.append(fieldPrefix).append(jobQueue.statusField).append(" IN (?,?,?)");
         break;
       case DOCSTATUS_READYFORPROCESSING:
         list.add(jobQueue.statusToString(jobQueue.STATUS_PENDING));
