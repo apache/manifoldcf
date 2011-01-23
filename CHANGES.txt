@@ -3,6 +3,10 @@ $Id$
 
 ==================  0.2-dev ==================
 
+CONNECTORS-152: Refactor notification thread and states to make the framework
+more resilient.
+(Karl Wright)
+
 CONNECTORS-145: Refactor cleanup worker threads, expire threads, and
 document delete threads to handle failure of the output connection gracefully.
 (Karl Wright)
