@@ -50,9 +50,10 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public static final int STATUS_ABORTINGFORRESTART = 16;       // Same as aborting, except after abort is complete startup will happen.
   public static final int STATUS_ABORTINGFORRESTARTSEEDING = 17;  // Seeding version of aborting for restart
   public static final int STATUS_ABORTINGSTARTINGUPFORRESTART = 18; // Starting up version of aborting for restart
-  public static final int STATUS_NOTIFYINGOFCOMPLETION = 19;    // Notifying connector of terminating job (either aborted, or finished)
-  public static final int STATUS_DELETING = 20;                         // The job is deleting.
-  public static final int STATUS_DELETESTARTINGUP = 21;         // The delete is starting up.
+  public static final int STATUS_READYFORNOTIFY = 19;                   // Job is ready to be notified of completion
+  public static final int STATUS_NOTIFYINGOFCOMPLETION = 20;    // Notifying connector of terminating job (either aborted, or finished)
+  public static final int STATUS_DELETING = 21;                         // The job is deleting.
+  public static final int STATUS_DELETESTARTINGUP = 22;         // The delete is starting up.
   
   // These statuses have to do with whether a job has an installed underlying connector or not.
   // There are two reasons to have a special state here: (1) if the behavior of the crawler differs, or (2) if the
@@ -63,13 +64,13 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   // But, since there is no indication in the jobs table of an uninstalled connector for such jobs, the code which starts
   // jobs up (or otherwise would enter any state that has a corresponding special state) must check to see if the underlying
   // connector exists before deciding what state to put the job into.
-  public static final int STATUS_ACTIVE_UNINSTALLED = 22;               // Active, but repository connector not installed
-  public static final int STATUS_ACTIVESEEDING_UNINSTALLED = 23;   // Active and seeding, but repository connector not installed
-  public static final int STATUS_ACTIVE_NOOUTPUT = 24;                  // Active, but output connector not installed
-  public static final int STATUS_ACTIVESEEDING_NOOUTPUT = 25;       // Active and seeding, but output connector not installed
-  public static final int STATUS_ACTIVE_NEITHER = 26;                     // Active, but neither repository connector nor output connector installed
-  public static final int STATUS_ACTIVESEEDING_NEITHER = 27;          // Active and seeding, but neither repository connector nor output connector installed
-  public static final int STATUS_DELETING_NOOUTPUT = 28;                // Job is being deleted but there's no output connector installed
+  public static final int STATUS_ACTIVE_UNINSTALLED = 23;               // Active, but repository connector not installed
+  public static final int STATUS_ACTIVESEEDING_UNINSTALLED = 24;   // Active and seeding, but repository connector not installed
+  public static final int STATUS_ACTIVE_NOOUTPUT = 25;                  // Active, but output connector not installed
+  public static final int STATUS_ACTIVESEEDING_NOOUTPUT = 26;       // Active and seeding, but output connector not installed
+  public static final int STATUS_ACTIVE_NEITHER = 27;                     // Active, but neither repository connector nor output connector installed
+  public static final int STATUS_ACTIVESEEDING_NEITHER = 28;          // Active and seeding, but neither repository connector nor output connector installed
+  public static final int STATUS_DELETING_NOOUTPUT = 29;                // Job is being deleted but there's no output connector installed
 
   // Type field values
   public static final int TYPE_CONTINUOUS = IJobDescription.TYPE_CONTINUOUS;
@@ -138,7 +139,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     statusMap.put("A",new Integer(STATUS_ACTIVE));
     statusMap.put("P",new Integer(STATUS_PAUSED));
     statusMap.put("S",new Integer(STATUS_SHUTTINGDOWN));
-    statusMap.put("s",new Integer(STATUS_NOTIFYINGOFCOMPLETION));
+    statusMap.put("s",new Integer(STATUS_READYFORNOTIFY));
+    statusMap.put("n",new Integer(STATUS_NOTIFYINGOFCOMPLETION));
     statusMap.put("W",new Integer(STATUS_ACTIVEWAIT));
     statusMap.put("Z",new Integer(STATUS_PAUSEDWAIT));
     statusMap.put("X",new Integer(STATUS_ABORTING));
@@ -723,6 +725,12 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       map.put(statusField,statusToString(STATUS_READYFORDELETE));
       performUpdate(map,"WHERE "+statusField+"=?",list,invKey);
 
+      // Notifying of completion goes back to just being ready for notify
+      list.clear();
+      list.add(statusToString(STATUS_NOTIFYINGOFCOMPLETION));
+      map.put(statusField,statusToString(STATUS_READYFORNOTIFY));
+      performUpdate(map,"WHERE "+statusField+"=?",list,invKey);
+
       // Starting up or aborting starting up goes back to just being ready
       list.clear();
       list.add(statusToString(STATUS_STARTINGUP));
@@ -1027,6 +1035,21 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     list.add(statusToString(STATUS_DELETESTARTINGUP));
     HashMap map = new HashMap();
     map.put(statusField,statusToString(STATUS_READYFORDELETE));
+    performUpdate(map,"WHERE "+statusField+"=?",list,new StringSet(getJobStatusKey()));
+
+  }
+  
+  /** Reset notification worker thread status.
+  */
+  public void resetNotificationWorkerStatus()
+    throws ManifoldCFException
+  {
+    // This resets everything that the job notification thread would resolve.
+
+    ArrayList list = new ArrayList();
+    list.add(statusToString(STATUS_NOTIFYINGOFCOMPLETION));
+    HashMap map = new HashMap();
+    map.put(statusField,statusToString(STATUS_READYFORNOTIFY));
     performUpdate(map,"WHERE "+statusField+"=?",list,new StringSet(getJobStatusKey()));
 
   }
@@ -1786,7 +1809,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     ArrayList list = new ArrayList();
     list.add(jobID);
     HashMap map = new HashMap();
-    map.put(statusField,statusToString(STATUS_NOTIFYINGOFCOMPLETION));
+    map.put(statusField,statusToString(STATUS_READYFORNOTIFY));
     map.put(errorField,null);
     map.put(endTimeField,new Long(finishTime));
     map.put(lastTimeField,new Long(finishTime));
@@ -1805,7 +1828,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     ArrayList list = new ArrayList();
     list.add(jobID);
     HashMap map = new HashMap();
-    map.put(statusField,statusToString(STATUS_NOTIFYINGOFCOMPLETION));
+    map.put(statusField,statusToString(STATUS_READYFORNOTIFY));
     map.put(endTimeField,null);
     map.put(lastTimeField,new Long(abortTime));
     map.put(windowEndField,null);
@@ -1990,6 +2013,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     case STATUS_SHUTTINGDOWN:
       return "S";
     case STATUS_NOTIFYINGOFCOMPLETION:
+      return "n";
+    case STATUS_READYFORNOTIFY:
       return "s";
     case STATUS_ACTIVEWAIT:
       return "W";

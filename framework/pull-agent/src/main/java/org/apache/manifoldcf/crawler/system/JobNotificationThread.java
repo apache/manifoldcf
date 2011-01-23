@@ -32,6 +32,9 @@ public class JobNotificationThread extends Thread
 {
   public static final String _rcsid = "@(#)$Id: JobNotificationThread.java 998081 2010-09-17 11:33:15Z kwright $";
 
+  /** Notification reset manager */
+  protected static NotificationResetManager resetManager = new NotificationResetManager();
+
   /** Constructor.
   */
   public JobNotificationThread()
@@ -44,6 +47,8 @@ public class JobNotificationThread extends Thread
 
   public void run()
   {
+    resetManager.registerMe();
+
     try
     {
       // Create a thread context object.
@@ -58,98 +63,130 @@ public class JobNotificationThread extends Thread
         // Do another try/catch around everything in the loop
         try
         {
-          Long[] jobsNeedingNotification = jobManager.getJobsReadyForInactivity();
-          
-          HashMap connectionNames = new HashMap();
-          
-          int k = 0;
-          while (k < jobsNeedingNotification.length)
+          // Before we begin, conditionally reset
+          resetManager.waitForReset(threadContext);
+
+          JobStartRecord[] jobsNeedingNotification = jobManager.getJobsReadyForInactivity();
+          try
           {
-            Long jobID = jobsNeedingNotification[k++];
-            IJobDescription job = jobManager.load(jobID,true);
-            if (job != null)
+            HashMap connectionNames = new HashMap();
+            
+            int k = 0;
+            while (k < jobsNeedingNotification.length)
             {
-              // Get the connection name
-              String repositoryConnectionName = job.getConnectionName();
-              String outputConnectionName = job.getOutputConnectionName();
-              OutputAndRepositoryConnection c = new OutputAndRepositoryConnection(outputConnectionName, repositoryConnectionName);
-              connectionNames.put(c,c);
-            }
-          }
-          
-          // Attempt to notify the specified connections
-          HashMap notifiedConnections = new HashMap();
-          
-          Iterator iter = connectionNames.keySet().iterator();
-          while (iter.hasNext())
-          {
-            OutputAndRepositoryConnection connections = (OutputAndRepositoryConnection)iter.next();
-            
-            String outputConnectionName = connections.getOutputConnectionName();
-            String repositoryConnectionName = connections.getRepositoryConnectionName();
-            
-            OutputNotifyActivity activity = new OutputNotifyActivity(repositoryConnectionName,repositoryConnectionManager,outputConnectionName);
-            
-            IOutputConnection connection = connectionManager.load(outputConnectionName);
-            if (connection != null)
-            {
-              // Grab an appropriate connection instance
-              IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
-              if (connector != null)
+              JobStartRecord jsr = jobsNeedingNotification[k++];
+              Long jobID = jsr.getJobID();
+              IJobDescription job = jobManager.load(jobID,true);
+              if (job != null)
               {
-                try
+                // Get the connection name
+                String repositoryConnectionName = job.getConnectionName();
+                String outputConnectionName = job.getOutputConnectionName();
+                OutputAndRepositoryConnection c = new OutputAndRepositoryConnection(outputConnectionName, repositoryConnectionName);
+                connectionNames.put(c,c);
+              }
+            }
+            
+            // Attempt to notify the specified connections
+            HashMap notifiedConnections = new HashMap();
+            
+            Iterator iter = connectionNames.keySet().iterator();
+            while (iter.hasNext())
+            {
+              OutputAndRepositoryConnection connections = (OutputAndRepositoryConnection)iter.next();
+              
+              String outputConnectionName = connections.getOutputConnectionName();
+              String repositoryConnectionName = connections.getRepositoryConnectionName();
+              
+              OutputNotifyActivity activity = new OutputNotifyActivity(repositoryConnectionName,repositoryConnectionManager,outputConnectionName);
+              
+              IOutputConnection connection = connectionManager.load(outputConnectionName);
+              if (connection != null)
+              {
+                // Grab an appropriate connection instance
+                IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+                if (connector != null)
                 {
-                  // Do the notification itself
                   try
                   {
-                    connector.noteJobComplete(activity);
-                    notifiedConnections.put(connections,connections);
+                    // Do the notification itself
+                    try
+                    {
+                      connector.noteJobComplete(activity);
+                      notifiedConnections.put(connections,connections);
+                    }
+                    catch (ServiceInterruption e)
+                    {
+                      Logging.threads.warn("Service interruption notifying connection - retrying: "+e.getMessage(),e);
+                      continue;
+                    }
+                    catch (ManifoldCFException e)
+                    {
+                      if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+                        throw e;
+                      if (e.getErrorCode() == ManifoldCFException.DATABASE_CONNECTION_ERROR)
+                        throw e;
+                      if (e.getErrorCode() == ManifoldCFException.SETUP_ERROR)
+                        throw e;
+                      // Nothing special; report the error and keep going.
+                      Logging.threads.error(e.getMessage(),e);
+                      continue;
+                    }
                   }
-                  catch (ServiceInterruption e)
+                  finally
                   {
-                    Logging.threads.warn("Service interruption notifying connection - retrying: "+e.getMessage(),e);
-                    continue;
-                  }
-                  catch (ManifoldCFException e)
-                  {
-                    if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
-                      throw e;
-                    if (e.getErrorCode() == ManifoldCFException.DATABASE_CONNECTION_ERROR)
-                      throw e;
-                    if (e.getErrorCode() == ManifoldCFException.SETUP_ERROR)
-                      throw e;
-                    // Nothing special; report the error and keep going.
-                    Logging.threads.error(e.getMessage(),e);
-                    continue;
+                    OutputConnectorFactory.release(connector);
                   }
                 }
-                finally
+              }
+            }
+            
+            // Go through jobs again, and put the notified ones into the inactive state.
+            k = 0;
+            while (k < jobsNeedingNotification.length)
+            {
+              JobStartRecord jsr = jobsNeedingNotification[k++];
+              Long jobID = jsr.getJobID();
+              IJobDescription job = jobManager.load(jobID,true);
+              if (job != null)
+              {
+                // Get the connection name
+                String outputConnectionName = job.getOutputConnectionName();
+                String repositoryConnectionName = job.getConnectionName();
+                OutputAndRepositoryConnection c = new OutputAndRepositoryConnection(outputConnectionName, repositoryConnectionName);
+                
+                if (notifiedConnections.get(c) != null)
                 {
-                  OutputConnectorFactory.release(connector);
+                  // When done, put the job into the Inactive state.  Otherwise, the notification will be retried until it succeeds.
+                  jobManager.inactivateJob(jobID);
+                  jsr.noteStarted();
                 }
               }
             }
           }
-          
-          // Go through jobs again, and put the notified ones into the inactive state.
-          k = 0;
-          while (k < jobsNeedingNotification.length)
+          finally
           {
-            Long jobID = jobsNeedingNotification[k++];
-            IJobDescription job = jobManager.load(jobID,true);
-            if (job != null)
+            // Clean up all jobs that did not start
+            ManifoldCFException exception = null;
+            int i = 0;
+            while (i < jobsNeedingNotification.length)
             {
-              // Get the connection name
-              String outputConnectionName = job.getOutputConnectionName();
-              String repositoryConnectionName = job.getConnectionName();
-              OutputAndRepositoryConnection c = new OutputAndRepositoryConnection(outputConnectionName, repositoryConnectionName);
-              
-              if (notifiedConnections.get(c) != null)
+              JobStartRecord jsr = jobsNeedingNotification[i++];
+              if (!jsr.wasStarted())
               {
-                // When done, put the job into the Inactive state.  Otherwise, the notification will be retried until it succeeds.
-                jobManager.inactivateJob(jobID);
+                // Clean up from failed start.
+                try
+                {
+                  jobManager.resetNotifyJob(jsr.getJobID());
+                }
+                catch (ManifoldCFException e)
+                {
+                  exception = e;
+                }
               }
             }
+            if (exception != null)
+              throw exception;
           }
 
           ManifoldCF.sleep(10000L);
@@ -161,6 +198,8 @@ public class JobNotificationThread extends Thread
 
           if (e.getErrorCode() == ManifoldCFException.DATABASE_CONNECTION_ERROR)
           {
+            resetManager.noteEvent();
+            
             Logging.threads.error("Job notification thread aborting and restarting due to database connection reset: "+e.getMessage(),e);
             try
             {
@@ -290,4 +329,27 @@ public class JobNotificationThread extends Thread
     }
 
   }
+  
+  /** Class which handles reset for seeding thread pool (of which there's
+  * typically only one member).  The reset action here
+  * is to move the status of jobs back from "seeding" to normal.
+  */
+  protected static class NotificationResetManager extends ResetManager
+  {
+
+    /** Constructor. */
+    public NotificationResetManager()
+    {
+      super();
+    }
+
+    /** Reset */
+    protected void performResetLogic(IThreadContext tc)
+      throws ManifoldCFException
+    {
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      jobManager.resetNotificationWorkerStatus();
+    }
+  }
+
 }

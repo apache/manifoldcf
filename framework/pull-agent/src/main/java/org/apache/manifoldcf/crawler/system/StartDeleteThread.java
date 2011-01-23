@@ -32,11 +32,8 @@ public class StartDeleteThread extends Thread
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  /** Worker thread pool reset manager */
+  /** Delete startup reset manager */
   protected static DeleteStartupResetManager resetManager = new DeleteStartupResetManager();
-
-  /** The number of documents that are added to the queue per transaction */
-  protected final static int MAX_COUNT = 100;
 
   /** Constructor.
   */

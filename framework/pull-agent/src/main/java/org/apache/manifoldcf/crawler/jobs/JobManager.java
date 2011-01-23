@@ -756,6 +756,16 @@ public class JobManager implements IJobManager
     Logging.jobs.debug("Reset complete");
   }
 
+  /** Reset as part of restoring notification threads.
+  */
+  public void resetNotificationWorkerStatus()
+    throws ManifoldCFException
+  {
+    Logging.jobs.debug("Resetting notification up status");
+    jobs.resetNotificationWorkerStatus();
+    Logging.jobs.debug("Reset complete");
+  }
+
   /** Reset as part of restoring startup threads.
   */
   public void resetStartupWorkerStatus()
@@ -5468,6 +5478,68 @@ public class JobManager implements IJobManager
     }
   }
 
+  /** Reset a job that is notifying back to "ready for notify"
+  * state.
+  *@param jobID is the job id.
+  */
+  public void resetNotifyJob(Long jobID)
+    throws ManifoldCFException
+  {
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        // Check job status
+        ArrayList list = new ArrayList();
+        list.add(jobID);
+        IResultSet set = database.performQuery("SELECT "+jobs.statusField+" FROM "+jobs.getTableName()+
+          " WHERE "+jobs.idField+"=? FOR UPDATE",list,null,null);
+        if (set.getRowCount() == 0)
+          throw new ManifoldCFException("No such job: "+jobID);
+        IResultRow row = set.getRow(0);
+        int status = jobs.stringToStatus((String)row.getValue(jobs.statusField));
+
+        switch (status)
+        {
+        case Jobs.STATUS_NOTIFYINGOFCOMPLETION:
+          if (Logging.jobs.isDebugEnabled())
+            Logging.jobs.debug("Setting job "+jobID+" back to 'ReadyForNotify' state");
+
+          // Set the state of the job back to "ReadyForStartup"
+          jobs.writeStatus(jobID,jobs.STATUS_READYFORDELETE);
+          break;
+        default:
+          throw new ManifoldCFException("Unexpected job status: "+Integer.toString(status));
+        }
+        return;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted resetting notify job: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+  }
+
   /** Reset a starting job back to "ready for startup" state.
   *@param jobID is the job id.
   */
@@ -5875,28 +5947,60 @@ public class JobManager implements IJobManager
   /** Find the list of jobs that need to have their connectors notified of job completion.
   *@return the ID's of jobs that need their output connectors notified in order to become inactive.
   */
-  public Long[] getJobsReadyForInactivity()
+  public JobStartRecord[] getJobsReadyForInactivity()
     throws ManifoldCFException
   {
-    // Do the query
-    ArrayList list = new ArrayList();
-    list.add(jobs.statusToString(jobs.STATUS_NOTIFYINGOFCOMPLETION));
-    IResultSet set = database.performQuery("SELECT "+jobs.idField+" FROM "+
-      jobs.getTableName()+" WHERE "+jobs.statusField+"=?",list,null,null);
-    // Return them all
-    Long[] rval = new Long[set.getRowCount()];
-    int i = 0;
-    while (i < rval.length)
+    while (true)
     {
-      IResultRow row = set.getRow(i);
-      Long jobID = (Long)row.getValue(jobs.idField);
-      rval[i++] = jobID;
-      if (Logging.jobs.isDebugEnabled())
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
       {
-        Logging.jobs.debug("Found job "+jobID+" in need of notification");
+        // Do the query
+        ArrayList list = new ArrayList();
+        list.add(jobs.statusToString(jobs.STATUS_READYFORNOTIFY));
+        IResultSet set = database.performQuery("SELECT "+jobs.idField+" FROM "+
+          jobs.getTableName()+" WHERE "+jobs.statusField+"=?",list,null,null);
+        // Return them all
+        JobStartRecord[] rval = new JobStartRecord[set.getRowCount()];
+        int i = 0;
+        while (i < rval.length)
+        {
+          IResultRow row = set.getRow(i);
+          Long jobID = (Long)row.getValue(jobs.idField);
+          // Mark status of job as "starting delete"
+          jobs.writeStatus(jobID,jobs.STATUS_NOTIFYINGOFCOMPLETION);
+          if (Logging.jobs.isDebugEnabled())
+          {
+            Logging.jobs.debug("Found job "+jobID+" in need of notification");
+          }
+          rval[i++] = new JobStartRecord(jobID,0L);
+        }
+        return rval;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted getting jobs ready for notify: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
       }
     }
-    return rval;
   }
   
   /** Complete the sequence that aborts jobs and makes them runnable again.
@@ -6321,6 +6425,7 @@ public class JobManager implements IJobManager
       case Jobs.STATUS_SHUTTINGDOWN:
         rstatus = JobStatus.JOBSTATUS_JOBENDCLEANUP;
         break;
+      case Jobs.STATUS_READYFORNOTIFY:
       case Jobs.STATUS_NOTIFYINGOFCOMPLETION:
         rstatus = JobStatus.JOBSTATUS_JOBENDNOTIFICATION;
         break;

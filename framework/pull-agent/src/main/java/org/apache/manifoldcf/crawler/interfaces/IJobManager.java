@@ -168,6 +168,11 @@ public interface IJobManager
   public void resetDeleteStartupWorkerStatus()
     throws ManifoldCFException;
 
+  /** Reset as part of restoring notification threads.
+  */
+  public void resetNotificationWorkerStatus()
+    throws ManifoldCFException;
+
   /** Reset as part of restoring startup threads.
   */
   public void resetStartupWorkerStatus()
@@ -663,7 +668,7 @@ public interface IJobManager
   /** Find the list of jobs that need to have their connectors notified of job completion.
   *@return the ID's of jobs that need their output connectors notified in order to become inactive.
   */
-  public Long[] getJobsReadyForInactivity()
+  public JobStartRecord[] getJobsReadyForInactivity()
     throws ManifoldCFException;
 
   /** Inactivate a job, from the notification state.
@@ -677,6 +682,13 @@ public interface IJobManager
   *@param jobID is the job id.
   */
   public void resetStartDeleteJob(Long jobID)
+    throws ManifoldCFException;
+
+  /** Reset a job that is notifying back to "ready for notify"
+  * state.
+  *@param jobID is the job id.
+  */
+  public void resetNotifyJob(Long jobID)
     throws ManifoldCFException;
 
   /** Reset a starting job back to "ready for startup" state.
