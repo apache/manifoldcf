@@ -3,6 +3,9 @@ $Id$
 
 ==================  0.2-dev ==================
 
+CONNECTORS-153: Add support for robots meta tag to web connector.
+(Erlend Garåsen, Karl Wright)
+
 CONNECTORS-152: Refactor notification thread and states to make the framework
 more resilient.
 (Karl Wright)
