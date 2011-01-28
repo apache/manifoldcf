@@ -21,35 +21,13 @@ package org.apache.manifoldcf.crawler.connectors.webcrawler;
 import org.apache.manifoldcf.core.interfaces.*;
 import java.util.*;
 
-/** This interface describes the functionality needed by an HTML processor in order to handle an HTML document.
+/** This interface describes the functionality needed by a parser to handle metadata tags.
 */
-public interface IHTMLHandler extends IDiscoveredLinkHandler, IMetaTagHandler
+public interface IMetaTagHandler
 {
-  /** Note the start of a form */
-  public void noteFormStart(Map formAttributes)
-    throws ManifoldCFException;
-
-  /** Note an input tag */
-  public void noteFormInput(Map inputAttributes)
-    throws ManifoldCFException;
-
-  /** Note the end of a form */
-  public void noteFormEnd()
-    throws ManifoldCFException;
-
-  /** Note discovered href */
-  public void noteAHREF(String rawURL)
-    throws ManifoldCFException;
-
-  /** Note discovered href */
-  public void noteLINKHREF(String rawURL)
-    throws ManifoldCFException;
-
-  /** Note discovered IMG SRC */
-  public void noteIMGSRC(String rawURL)
-    throws ManifoldCFException;
-
-  /** Note discovered FRAME SRC */
-  public void noteFRAMESRC(String rawURL)
+  /** Inform the world of a discovered metadata tag.
+  *@param tagAttributes are the attributes that belong to the tag.
+  */
+  public void noteMetaTag(Map tagAttributes)
     throws ManifoldCFException;
 }

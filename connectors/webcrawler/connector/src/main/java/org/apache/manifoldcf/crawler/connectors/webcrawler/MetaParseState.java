@@ -21,15 +21,14 @@ package org.apache.manifoldcf.crawler.connectors.webcrawler;
 import org.apache.manifoldcf.core.interfaces.*;
 import java.util.*;
 
-/** This class recognizes and interprets all links */
-public class LinkParseState extends MetaParseState
+/** This class recognizes and interprets all meta tags */
+public class MetaParseState extends ScriptParseState
 {
+  protected IMetaTagHandler handler;
 
-  protected IHTMLHandler handler;
-
-  public LinkParseState(IHTMLHandler handler)
+  public MetaParseState(IMetaTagHandler handler)
   {
-    super(handler);
+    super();
     this.handler = handler;
   }
 
@@ -37,29 +36,9 @@ public class LinkParseState extends MetaParseState
     throws ManifoldCFException
   {
     super.noteNonscriptTag(tagName,attributes);
-    if (tagName.equals("a"))
+    if (tagName.equals("meta"))
     {
-      String hrefValue = (String)attributes.get("href");
-      if (hrefValue != null && hrefValue.length() > 0)
-        handler.noteAHREF(hrefValue);
-    }
-    else if (tagName.equals("link"))
-    {
-      String hrefValue = (String)attributes.get("href");
-      if (hrefValue != null && hrefValue.length() > 0)
-        handler.noteLINKHREF(hrefValue);
-    }
-    else if (tagName.equals("img"))
-    {
-      String srcValue = (String)attributes.get("src");
-      if (srcValue != null && srcValue.length() > 0)
-        handler.noteIMGSRC(srcValue);
-    }
-    else if (tagName.equals("frame"))
-    {
-      String srcValue = (String)attributes.get("src");
-      if (srcValue != null && srcValue.length() > 0)
-        handler.noteFRAMESRC(srcValue);
+      handler.noteMetaTag(attributes);
     }
   }
 

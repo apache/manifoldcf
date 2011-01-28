@@ -1127,12 +1127,18 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         continue;
       }
 
+      // Now, extract links.
+      // We'll call the "link extractor" series, so we can plug more stuff in over time.
+      boolean indexDocument = extractLinks(documentIdentifier,activities,filter);
+
       // If scanOnly is set, we never ingest.  But all else is the same.
       if (!doScanOnly)
       {
         // Consider this document for ingestion.
         // We can exclude it if it does not seem to be a kind of document that the ingestion system knows
         // about.
+        if (indexDocument)
+          indexDocument = isDataIngestable(activities,documentIdentifier);
 
         if (isDataIngestable(activities,documentIdentifier))
         {
@@ -1239,14 +1245,19 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         }
         else
         {
+          // In case the indexability of the document changed, we still want to notify the incremental indexer.
+          // We do this by using a null url and a null repository document.  If a document with this identifier was
+          // previously indexed, it will be removed.
+          
+          // This is NOT quite the same as deleteDocument().  The deleteDocument() method removes the record, and
+          // thus the version string.  So, when that is used, we cannot tell if the document has changed; we simply have to try again.
+          activities.ingestDocument(documentIdentifier,version,null,null);
+          
           if (Logging.connectors.isDebugEnabled())
             Logging.connectors.debug("WEB: Decided not to ingest '"+documentIdentifier+"' because it did not match ingestability criteria");
         }
       }
 
-      // Now, extract links.
-      // We'll call the "link extractor" series, so we can plug more stuff in over time.
-      extractLinks(documentIdentifier,activities,filter);
 
       i++;
     }
@@ -5242,6 +5253,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       return discoveredFormData;
     }
 
+    /** Note a meta tag */
+    public void noteMetaTag(Map metaAttributes)
+      throws ManifoldCFException
+    {
+    }
+    
     /** Note the start of a form */
     public void noteFormStart(Map formAttributes)
       throws ManifoldCFException
@@ -5345,6 +5362,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     {
       super(parentURI);
       this.preferredLinkPattern = preferredLinkPattern;
+    }
+
+    /** Note a meta tag */
+    public void noteMetaTag(Map metaAttributes)
+      throws ManifoldCFException
+    {
     }
 
     /** Note the start of a form */
@@ -5509,14 +5532,18 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
 
   /** Code to extract links from an already-fetched document. */
-  protected void extractLinks(String documentIdentifier, IProcessActivity activities, DocumentURLFilter filter)
+  protected boolean extractLinks(String documentIdentifier, IProcessActivity activities, DocumentURLFilter filter)
     throws ManifoldCFException, ServiceInterruption
   {
-    handleRedirects(documentIdentifier,new ProcessActivityRedirectionHandler(documentIdentifier,activities,filter));
+    ProcessActivityRedirectionHandler redirectHandler = new ProcessActivityRedirectionHandler(documentIdentifier,activities,filter);
+    handleRedirects(documentIdentifier,redirectHandler);
     // For html, we don't want any actions, because we don't do form submission.
-    handleHTML(documentIdentifier,new ProcessActivityHTMLHandler(documentIdentifier,activities,filter));
-    handleXML(documentIdentifier,new ProcessActivityXMLHandler(documentIdentifier,activities,filter));
+    ProcessActivityHTMLHandler htmlHandler = new ProcessActivityHTMLHandler(documentIdentifier,activities,filter);
+    handleHTML(documentIdentifier,htmlHandler);
+    ProcessActivityXMLHandler xmlHandler = new ProcessActivityXMLHandler(documentIdentifier,activities,filter);
+    handleXML(documentIdentifier,xmlHandler);
     // May add more later for other extraction tasks.
+    return htmlHandler.shouldIndex() && redirectHandler.shouldIndex() && xmlHandler.shouldIndex();
   }
 
   /** This class is the handler for links that get added into a IProcessActivity object.
@@ -5569,15 +5596,72 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     {
       super(documentIdentifier,activities,filter,"redirection",REL_REDIRECT);
     }
+    
+    public boolean shouldIndex()
+    {
+      return true;
+    }
+
   }
 
   /** Class that describes HTML handling */
   protected class ProcessActivityHTMLHandler extends ProcessActivityLinkHandler implements IHTMLHandler
   {
+    boolean allowIndex = true;
+    boolean allowFollow = true;
+    
     /** Constructor. */
     public ProcessActivityHTMLHandler(String documentIdentifier, IProcessActivity activities, DocumentURLFilter filter)
     {
       super(documentIdentifier,activities,filter,"html",REL_LINK);
+    }
+
+    /** Decide whether we should index. */
+    public boolean shouldIndex()
+    {
+      return allowIndex;
+    }
+    
+    /** Note a meta tag */
+    public void noteMetaTag(Map metaAttributes)
+      throws ManifoldCFException
+    {
+      String name = (String)metaAttributes.get("name");
+      if (name != null && name.toLowerCase().equals("robots"))
+      {
+        String contentValue = (String)metaAttributes.get("content");
+        if (contentValue != null)
+        {
+          contentValue = contentValue.toLowerCase();
+          // Parse content value
+          try
+          {
+            String[] contentValues = contentValue.split("[, ]");
+            int i = 0;
+            while (i < contentValues.length)
+            {
+              String cv = contentValues[i++];
+              if (cv.equals("index"))
+                allowIndex = true;
+              else if (cv.equals("noindex"))
+                allowIndex = false;
+              else if (cv.equals("none"))
+              {
+                allowFollow = false;
+                allowIndex = false;
+              }
+              else if (cv.equals("follow"))
+                allowFollow = true;
+              else if (cv.equals("nofollow"))
+                allowFollow = false;
+            }
+          }
+          catch (PatternSyntaxException e)
+          {
+            throw new ManifoldCFException(e.getMessage(),e);
+          }
+        }
+      }
     }
 
     /** Note the start of a form */
@@ -5602,28 +5686,32 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     public void noteAHREF(String rawURL)
       throws ManifoldCFException
     {
-      noteDiscoveredLink(rawURL);
+      if (allowFollow)
+        noteDiscoveredLink(rawURL);
     }
 
     /** Note discovered href */
     public void noteLINKHREF(String rawURL)
       throws ManifoldCFException
     {
-      noteDiscoveredLink(rawURL);
+      if (allowFollow)
+        noteDiscoveredLink(rawURL);
     }
 
     /** Note discovered IMG SRC */
     public void noteIMGSRC(String rawURL)
       throws ManifoldCFException
     {
-      noteDiscoveredLink(rawURL);
+      if (allowFollow)
+        noteDiscoveredLink(rawURL);
     }
 
     /** Note discovered FRAME SRC */
     public void noteFRAMESRC(String rawURL)
       throws ManifoldCFException
     {
-      noteDiscoveredLink(rawURL);
+      if (allowFollow)
+        noteDiscoveredLink(rawURL);
     }
 
   }
@@ -5637,6 +5725,11 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       super(documentIdentifier,activities,filter,"xml",REL_LINK);
     }
 
+    public boolean shouldIndex()
+    {
+      return true;
+    }
+    
     /** Inform the world of a discovered ttl value.
     *@param rawTtlValue is the raw discovered ttl value.  Null indicates we should set the default.
     */
