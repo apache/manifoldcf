@@ -43,7 +43,7 @@ public class TestBase
       // First, write a properties file and a logging file, in the current directory.
       configFile = new File("properties.xml").getCanonicalFile();
       loggingFile = new File("logging.ini").getCanonicalFile();
-      logOutputFile = new File("lcf.log").getCanonicalFile();
+      logOutputFile = new File("manifoldcf.log").getCanonicalFile();
 
       // Set a system property that will point us to the proper place to find the properties file
       System.setProperty("org.apache.manifoldcf.configfile",configFile.getCanonicalFile().getAbsolutePath());
