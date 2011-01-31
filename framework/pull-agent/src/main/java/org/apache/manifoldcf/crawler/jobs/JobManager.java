@@ -6234,7 +6234,7 @@ public class JobManager implements IJobManager
   {
     ArrayList list = new ArrayList();
     String whereClause = Jobs.idField+"=?";
-    list.add(jobID.toString());
+    list.add(jobID);
     JobStatus[] records = makeJobStatus(whereClause,list);
     if (records.length == 0)
       return null;

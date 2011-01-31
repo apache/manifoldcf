@@ -3,6 +3,10 @@ $Id$
 
 ==================  0.2-dev ==================
 
+CONNECTORS-155: Fix a query bug with fetching the job status of a single,
+specified job.
+(Karl Wright
+
 CONNECTORS-148: Intermittent failures creating the PostgreSQL database
 still occurring; traced the problem this time to PostgreSQL not accepting
 a parameter for the password when creating a user.
