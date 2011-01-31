@@ -465,9 +465,30 @@
             <!-- MHL -->
         </junit>
     </target>
-    
+
+    <target name="run-tests-postgresql" depends="compile-tests">
+        <mkdir dir="test-output-postgresql"/>
+        <junit fork="true" maxmemory="128m" dir="test-output-postgresql" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="lib">
+                    <include name="*.jar"/>
+                </fileset>
+                <pathelement location="build/core/classes"/>
+                <pathelement location="build/ui-core/classes"/>
+                <pathelement location="build/agents/classes"/>
+                <pathelement location="build/pull-agent/classes"/>
+                <pathelement location="build/authority-servlet/classes"/>
+                <pathelement location="build/api-servlet/classes"/>
+                <pathelement location="build/tests/classes"/>
+            </classpath>
+            <test name="org.apache.manifoldcf.agents.tests.SanityPostgresql" todir="test-output-postgresql"/>
+            <test name="org.apache.manifoldcf.crawler.tests.SanityPostgresql" todir="test-output-postgresql"/>
+            <!-- MHL -->
+        </junit>
+    </target>
+
     <target name="build" depends="processes,war-authority-service,war-crawler-ui,war-api-service,example"/>
     
-    <target name="all" depends="build,doc,build-tests,run-tests"/>
+    <target name="all" depends="build,doc,build-tests,run-tests,run-tests-postgresql"/>
     
 </project>

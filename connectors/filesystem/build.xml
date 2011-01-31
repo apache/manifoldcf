@@ -83,9 +83,24 @@
             <!-- MHL -->
         </junit>
     </target>
+    
+    <target name="run-tests-postgresql" depends="compile-tests">
+        <mkdir dir="test-output-postgresql"/>
+        <junit fork="true" maxmemory="128m" dir="test-output-postgresql" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="lib">
+                    <include name="*.jar"/>
+                </fileset>
+                <pathelement location="build/connector/classes"/>
+                <pathelement location="build/tests/classes"/>
+            </classpath>
+            <test name="org.apache.manifoldcf.crawler.connectors.filesystem.tests.SanityPostgresql" todir="test-output-postgresql"/>
+            <!-- MHL -->
+        </junit>
+    </target>
 
     <target name="build" depends="lib"/>
     <target name="build-tests" depends="jar-tests"/>
-    <target name="all" depends="build,doc,build-tests,run-tests"/>
+    <target name="all" depends="build,doc,build-tests,run-tests,run-tests-postgresql"/>
     
 </project>
