@@ -518,9 +518,21 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
         null,null,null,true,-1,null,null);
       if (set.getRowCount() == 0)
       {
-        params.clear();
-        params.add(password);
-	masterDatabase.executeQuery("CREATE USER "+userName+" PASSWORD ?",params,
+        // We have to quote the password.  Due to a postgresql bug, parameters don't work for this field.
+        StringBuffer sb = new StringBuffer();
+        sb.append("'");
+        int i = 0;
+        while (i < password.length())
+        {
+          char x = password.charAt(i);
+          if (x == '\'')
+            sb.append("'");
+          sb.append(x);
+          i++;
+        }
+        sb.append("'");
+        String quotedPassword = sb.toString();
+	masterDatabase.executeQuery("CREATE USER "+userName+" PASSWORD "+quotedPassword,null,
           null,invalidateKeys,null,false,0,null,null);
       }
       

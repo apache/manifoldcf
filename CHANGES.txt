@@ -3,6 +3,11 @@ $Id$
 
 ==================  0.2-dev ==================
 
+CONNECTORS-148: Intermittent failures creating the PostgreSQL database
+still occurring; traced the problem this time to PostgreSQL not accepting
+a parameter for the password when creating a user.
+(Nicolas Max, Karl Wright)
+
 CONNECTORS-153: Add support for robots meta tag to web connector.
 (Erlend Garåsen, Karl Wright)
 
