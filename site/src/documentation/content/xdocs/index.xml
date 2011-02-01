@@ -28,18 +28,18 @@
 
   <body> 
     <section>
-        <title>Incubation Status</title>
-        <p>Apache ManifoldCF (formerly Apache Connectors Framework) is an effort undergoing incubation at The Apache Software Foundation (ASF), sponsored by the Lucene PMC. Incubation is required of all newly accepted projects until a further review indicates that the infrastructure, communications, and decision making process have stabilized in a manner consistent with other successful ASF projects. While incubation status is not necessarily a reflection of the completeness or stability of the code, it does indicate that the project has yet to be fully endorsed by the ASF.
-        </p>
-    </section>
-    
-    <section>
 	<title>What Is ManifoldCF?</title>
 	<p>ManifoldCF is an effort to provide build and support an open source framework for connecting source content repositories like Microsoft Sharepoint and EMC Documentum, to target repositories or indexes, such as Apache Solr.  ACF also defines a security model for target repositories that permits them to enforce source-repository security policies.</p>
 	<p>Currently included connectors support FileNet P8 (IBM), Documentum (EMC), LiveLink (OpenText), Patriarch (Memex), Meridio (Autonomy), Windows shares (Microsoft), and SharePoint (Microsoft).  Also included are a general file system connector, a general JDBC connector, a general RSS crawler, and a general web crawler.  Currently supported targets include Apache Solr and QBase (formerly MetaCarta) GTS.  The complete repository compatibility list can be found <a href="http://cwiki.apache.org/confluence/display/CONNECTORS/SupportedConnectors">here</a>.</p>
 	<p>The original ManifoldCF code base was granted by MetaCarta, Inc., to the Apache Software Foundation in December 2009.  The MetaCarta effort represented more than five years of successful development and testing in multiple, challenging enterprise environments.</p>
     </section>
 
+    <section>
+        <title>Incubation Status</title>
+        <p>Apache ManifoldCF (formerly Apache Connectors Framework) is an effort undergoing incubation at The Apache Software Foundation (ASF), sponsored by the Lucene PMC. Incubation is required of all newly accepted projects until a further review indicates that the infrastructure, communications, and decision making process have stabilized in a manner consistent with other successful ASF projects. While incubation status is not necessarily a reflection of the completeness or stability of the code, it does indicate that the project has yet to be fully endorsed by the ASF.
+        </p>
+    </section>
+    
     <section>
 	<title>Project status</title>
 	<p>Apache ManifoldCF 0.1-incubating is available!  Download it <a href="download.html">here</a>.</p>
@@ -53,6 +53,10 @@
 
     <section>
         <title>News</title>
+	  <section>
+	     <title>31 January 2011 - ManifoldCF 0.1-incubating is released!</title>
+                <p>Incubator signs off on release</p>
+	  </section>
 	  <section>
 	     <title>07 January 2011 - ManifoldCF 0.1-incubating release candidate is built</title>
                 <p>Developer community signs off on release</p>

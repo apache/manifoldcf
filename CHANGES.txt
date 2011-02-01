@@ -3,6 +3,9 @@ $Id$
 
 ==================  0.2-dev ==================
 
+CONNECTORS-156: Update site to describe work-around instructions.
+(Karl Wright)
+
 CONNECTORS-154: Add an ant target, and tests, that work against the
 postgresql database.
 (Karl Wright)
