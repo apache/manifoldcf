@@ -1140,7 +1140,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         if (indexDocument)
           indexDocument = isDataIngestable(activities,documentIdentifier);
 
-        if (isDataIngestable(activities,documentIdentifier))
+        if (indexDocument)
         {
           // Ingest the document
           if (Logging.connectors.isDebugEnabled())
@@ -4771,13 +4771,24 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     try
     {
       java.net.URI url;
+      java.net.URI rawPiece = new java.net.URI(rawURL);
       if (parentIdentifier != null)
       {
-        java.net.URI parentURL = new java.net.URI(parentIdentifier);
-        url = parentURL.resolve(rawURL);
+        // Work around bug in java.net.URI.resolve().  Relative paths do not work
+        // here; we must make them absolute somehow.
+        if (rawPiece.isAbsolute())
+          url = rawPiece;
+        else
+        {
+          java.net.URI parentURL = new java.net.URI(parentIdentifier);
+          if (!rawURL.startsWith("/"))
+            url = parentURL.resolve("/"+rawURL);
+          else
+            url = parentURL.resolve(rawPiece);
+        }
       }
       else
-        url = new java.net.URI(rawURL);
+        url = rawPiece;
 
       String protocol = url.getScheme();
       String host = url.getHost();
@@ -4834,6 +4845,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
     catch (java.net.URISyntaxException e)
     {
+      e.printStackTrace();
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("WEB: Can't use url '"+rawURL+"' because it is badly formed: "+e.getMessage());
       return null;
@@ -5636,11 +5648,11 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           // Parse content value
           try
           {
-            String[] contentValues = contentValue.split("[, ]");
+            String[] contentValues = contentValue.split(",");
             int i = 0;
             while (i < contentValues.length)
             {
-              String cv = contentValues[i++];
+              String cv = contentValues[i++].trim();
               if (cv.equals("index"))
                 allowIndex = true;
               else if (cv.equals("noindex"))

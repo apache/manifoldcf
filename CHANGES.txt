@@ -3,6 +3,10 @@ $Id$
 
 ==================  0.2-dev ==================
 
+CONNECTORS-157: Web crawler url resolution was broken for relative
+paths, because the way java.net.URI resolved them changed.
+(Karl Wright)
+
 CONNECTORS-156: Update site to describe work-around instructions.
 (Karl Wright)
 
