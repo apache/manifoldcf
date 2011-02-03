@@ -4781,10 +4781,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         else
         {
           java.net.URI parentURL = new java.net.URI(parentIdentifier);
-          if (!rawURL.startsWith("/"))
-            url = parentURL.resolve("/"+rawURL);
-          else
-            url = parentURL.resolve(rawPiece);
+          if (parentURL.getPath() == null || parentURL.getPath().length() == 0)
+            parentURL = new java.net.URI(parentIdentifier + "/");
+          url = parentURL.resolve(rawPiece);
         }
       }
       else
