@@ -29,7 +29,7 @@
   <body> 
     <section>
 	<title>What Is ManifoldCF?</title>
-	<p>ManifoldCF is an effort to provide build and support an open source framework for connecting source content repositories like Microsoft Sharepoint and EMC Documentum, to target repositories or indexes, such as Apache Solr.  ACF also defines a security model for target repositories that permits them to enforce source-repository security policies.</p>
+	<p>ManifoldCF is an effort to provide an open source framework for connecting source content repositories like Microsoft Sharepoint and EMC Documentum, to target repositories or indexes, such as Apache Solr.  ManifoldCF also defines a security model for target repositories that permits them to enforce source-repository security policies.</p>
 	<p>Currently included connectors support FileNet P8 (IBM), Documentum (EMC), LiveLink (OpenText), Patriarch (Memex), Meridio (Autonomy), Windows shares (Microsoft), and SharePoint (Microsoft).  Also included are a general file system connector, a general JDBC connector, a general RSS crawler, and a general web crawler.  Currently supported targets include Apache Solr and QBase (formerly MetaCarta) GTS.  The complete repository compatibility list can be found <a href="http://cwiki.apache.org/confluence/display/CONNECTORS/SupportedConnectors">here</a>.</p>
 	<p>The original ManifoldCF code base was granted by MetaCarta, Inc., to the Apache Software Foundation in December 2009.  The MetaCarta effort represented more than five years of successful development and testing in multiple, challenging enterprise environments.</p>
     </section>
