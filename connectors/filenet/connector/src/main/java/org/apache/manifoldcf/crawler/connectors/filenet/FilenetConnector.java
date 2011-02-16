@@ -51,6 +51,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   public static final String CONFIG_PARAM_URLLOCATION = "Document URL location";
 
   // Specification nodes
+  public static final String SPEC_NODE_FOLDER = "folder";
   public static final String SPEC_NODE_MIMETYPE = "mimetype";
   public static final String SPEC_NODE_DOCUMENTCLASS = "documentclass";
   // This specification node is only ever a child of SPEC_NODE_DOCUMENTCLASS
@@ -629,6 +630,40 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     return true;
   }
   
+  /** Get child folder names, given a starting folder name.
+  *@param folderName is the starting folder name.
+  *@return the child folder names.
+  */
+  public String[] getChildFolders(String folderName)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    try
+    {
+      if (folderName.startsWith("/"))
+        folderName = folderName.substring(1);
+      
+      String[] folderPath;
+      if (folderName.length() == 0)
+        folderPath = new String[0];
+      else
+        folderPath = folderName.split("/");
+      
+      String[] rval = doGetChildFolders(folderPath);
+      if (rval == null)
+        return null;
+      java.util.Arrays.sort(rval);
+      return rval;
+    }
+    catch (FilenetException e)
+    {
+      // Base our treatment on the kind of error it is.
+      if (e.getType() == FilenetException.TYPE_SERVICEINTERRUPTION)
+        throw new ServiceInterruption(e.getMessage(),0L);
+      else
+        throw new ManifoldCFException(e.getMessage(),e);
+    }
+  }
+  
   /** Queue "seed" documents.  Seed documents are the starting places for crawling activity.  Documents
   * are seeded when this method calls appropriate methods in the passed in ISeedingActivity object.
   *@param activities is the interface this method should use to perform whatever framework actions are desired.
@@ -650,9 +685,9 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     while (i < spec.getChildCount())
     {
       SpecificationNode n = spec.getChild(i);
-      if (n.getType().equals("mimetype"))
+      if (n.getType().equals(SPEC_NODE_MIMETYPE))
       {
-        String mimeType = n.getAttributeValue("value");
+        String mimeType = n.getAttributeValue(SPEC_ATTRIBUTE_VALUE);
         if (mimeType != null)
         {
           if (mimeTypesClause.length() != 0)
@@ -693,11 +728,34 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       sqlBuffer.append(" AND [DateLastModified] >= ").append(buildTime(c,startTime));
     }
 
-
     sqlBuffer.append(" AND  [DateLastModified] <= ").append(buildTime(c,endTime));
 
-
-
+    // Folders are also based just on objectstore, so we add those here.
+    boolean seenAny = false;
+    i = 0;
+    while (i < spec.getChildCount())
+    {
+      SpecificationNode n = spec.getChild(i++);
+      if (n.getType().equals(SPEC_NODE_FOLDER))
+      {
+        if (!seenAny)
+        {
+          sqlBuffer.append(" AND (");
+          seenAny = true;
+        }
+        else
+        {
+          sqlBuffer.append(" or ");
+        }
+        String folderValue = n.getAttributeValue(SPEC_ATTRIBUTE_VALUE);
+        sqlBuffer.append("This INSUBFOLDER "+quoteSQLString(folderValue));
+      }
+    }
+    if (seenAny)
+    {
+      sqlBuffer.append(")");
+    }
+    
     String whereClause = sqlBuffer.toString();
 
     i = 0;
@@ -705,9 +763,9 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     {
       SpecificationNode n = spec.getChild(i);
 
-      if (n.getType().equals("documentclass"))
+      if (n.getType().equals(SPEC_NODE_DOCUMENTCLASS))
       {
-        String dc = n.getAttributeValue("value");
+        String dc = n.getAttributeValue(SPEC_ATTRIBUTE_VALUE);
         DocClassSpec dcs = new DocClassSpec(n);
         int matchCount = dcs.getMatchCount();
         StringBuffer moreWhereClause = new StringBuffer(whereClause);
@@ -1777,6 +1835,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   {
     tabsArray.add("Document Classes");
     tabsArray.add("Mime Types");
+    tabsArray.add("Folders");
     tabsArray.add("Security");
     out.print(
 "<script type=\"text/javascript\">\n"+
@@ -1791,6 +1850,17 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "{\n"+
 "  eval(\"editjob.\"+n+\".value = \\\"\"+opValue+\"\\\"\");\n"+
 "  postFormSetAnchor(anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function SpecAddToPath(anchorvalue)\n"+
+"{\n"+
+"  if (editjob.pathaddon.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Select a folder first\");\n"+
+"    editjob.pathaddon.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  SpecOp(\"pathop\",\"AddToPath\",anchorvalue);\n"+
 "}\n"+
 "\n"+
 "function SpecAddMatch(docclass, anchorvalue)\n"+
@@ -1810,7 +1880,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "\n"+
 "  SpecOp(\"matchop_\"+docclass,\"Add\",anchorvalue);\n"+
 "}\n"+
-"	\n"+
+"\n"+
 "function SpecAddToken(anchorvalue)\n"+
 "{\n"+
 "  if (editjob.spectoken.value == \"\")\n"+
@@ -1840,6 +1910,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     throws ManifoldCFException, IOException
   {
     int i;
+    int k;
     Iterator iter;
 
     // "Document Classes" tab
@@ -1858,6 +1929,154 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
     }
 
+    // Folders tab
+    if (tabName.equals("Folders"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+      );
+      // Now, loop through paths.  There will be a row in the current table for each one.
+      // The row will contain a delete button on the left.  On the right will be the startpoint itself at the top,
+      // and underneath it the table where the filter criteria are edited.
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals(SPEC_NODE_FOLDER))
+        {
+          String pathDescription = "_"+Integer.toString(k);
+          String pathOpName = "pathop"+pathDescription;
+          String startPath = sn.getAttributeValue(SPEC_ATTRIBUTE_VALUE);
+          out.print(
+"  <tr>\n"+
+"    <td class=\"value\">\n"+
+"      <a name=\""+"path_"+Integer.toString(k)+"\">\n"+
+"        <input type=\"button\" value=\"Delete\" alt=\""+"Delete path #"+Integer.toString(k)+"\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")'/>\n"+
+"      </a>&nbsp;\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"hidden\" name=\""+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(startPath)+"\"/>\n"+
+"      <input type=\"hidden\" name=\""+pathOpName+"\" value=\"\"/>\n"+
+"      <nobr>"+((startPath.length() == 0)?"(root)":org.apache.manifoldcf.ui.util.Encoder.bodyEscape(startPath))+"</nobr>\n"+
+"    </td>\n"+
+"  </tr>\n"
+          );
+          k++;
+        }
+      }
+      if (k == 0)
+      {
+        out.print(
+"  <tr>\n"+
+"    <td class=\"message\" colspan=\"2\">No folders chosen - all documents will be taken</td>\n"+
+"  </tr>\n"
+        );
+      }
+      out.print(
+"  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"value\" colspan=\"2\">\n"+
+"      <nobr>\n"+
+"        <input type=\"hidden\" name=\"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"        <a name=\""+"path_"+Integer.toString(k)+"\">\n"
+      );
+	
+      String pathSoFar = (String)currentContext.get("specpath");
+      if (pathSoFar == null)
+        pathSoFar = "/";
+
+      // Grab next folder/project list
+      try
+      {
+        String[] childList;
+        childList = getChildFolders(pathSoFar);
+        if (childList == null)
+        {
+          // Illegal path - set it back
+          pathSoFar = "/";
+          childList = getChildFolders("/");
+          if (childList == null)
+            throw new ManifoldCFException("Can't find any children for root folder");
+        }
+        out.print(
+"          <input type=\"hidden\" name=\"specpath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathSoFar)+"\"/>\n"+
+"          <input type=\"hidden\" name=\"pathop\" value=\"\"/>\n"+
+"          <input type=\"button\" value=\"Add\" alt=\"Add path\" onClick='Javascript:SpecOp(\"pathop\",\"Add\",\"path_"+Integer.toString(k+1)+"\")'/>\n"+
+"          &nbsp;"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(pathSoFar)+"\n"
+        );
+        if (pathSoFar.length() > 0)
+        {
+          out.print(
+"          <input type=\"button\" value=\"-\" alt=\"Remove from path\" onClick='Javascript:SpecOp(\"pathop\",\"Up\",\"path_"+Integer.toString(k)+"\")'/>\n"
+          );
+        }
+        if (childList.length > 0)
+        {
+          out.print(
+"          <nobr>\n"+
+"            <input type=\"button\" value=\"+\" alt=\"Add to path\" onClick='Javascript:SpecAddToPath(\"path_"+Integer.toString(k)+"\")'/>&nbsp;\n"+
+"            <select multiple=\"false\" name=\"pathaddon\" size=\"4\">\n"+
+"              <option value=\"\" selected=\"selected\">-- Pick a folder --</option>\n"
+          );
+          int j = 0;
+          while (j < childList.length)
+          {
+            String folder = org.apache.manifoldcf.ui.util.Encoder.attributeEscape(childList[j]);
+            out.print(
+"              <option value=\""+folder+"\">"+folder+"</option>\n"
+            );
+            j++;
+          }
+          out.print(
+"            </select>\n"+
+"          </nobr>\n"
+          );
+        }
+      }
+      catch (ManifoldCFException e)
+      {
+        e.printStackTrace();
+        out.println(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage()));
+      }
+      catch (ServiceInterruption e)
+      {
+        e.printStackTrace();
+        out.println(org.apache.manifoldcf.ui.util.Encoder.bodyEscape("Transient error - "+e.getMessage()));
+      }
+      out.print(
+"        </a>\n"+
+"      </nobr>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Generate hiddens for the folders tab
+      i = 0;
+      k = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i++);
+        if (sn.getType().equals(SPEC_NODE_FOLDER))
+        {
+          String pathDescription = "_"+Integer.toString(k);
+          String startPath = sn.getAttributeValue(SPEC_ATTRIBUTE_VALUE);
+          out.print(
+"<input type=\"hidden\" name=\""+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(startPath)+"\"/>\n"
+          );
+          k++;
+        }
+      }
+      out.print(
+"<input type=\"hidden\" name=\"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"
+      );
+    }
+    
+    // Document classes tab
     if (tabName.equals("Document Classes"))
     {
       out.print(
@@ -2214,7 +2433,6 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     }
 
     // Security tab
-    int k;
     // Find whether security is on or off
     i = 0;
     boolean securityOn = true;
@@ -2446,6 +2664,79 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
           node.setAttribute(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE,value);
           ds.addChild(ds.getChildCount(),node);
         }
+      }
+    }
+
+    y = variableContext.getParameter("pathcount");
+    if (y != null)
+    {
+      // Delete all path specs first
+      i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(SPEC_NODE_FOLDER))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      // Find out how many children were sent
+      int pathCount = Integer.parseInt(y);
+      // Gather up these
+      i = 0;
+      while (i < pathCount)
+      {
+        String pathDescription = "_"+Integer.toString(i);
+        String pathOpName = "pathop"+pathDescription;
+        y = variableContext.getParameter(pathOpName);
+        if (y != null && y.equals("Delete"))
+        {
+          // Skip to the next
+          i++;
+          continue;
+        }
+        // Path inserts won't happen until the very end
+        String path = variableContext.getParameter("specpath"+pathDescription);
+        SpecificationNode node = new SpecificationNode(SPEC_NODE_FOLDER);
+        node.setAttribute(SPEC_ATTRIBUTE_VALUE,path);
+
+        ds.addChild(ds.getChildCount(),node);
+        i++;
+      }
+
+      // See if there's a global add operation
+      String op = variableContext.getParameter("pathop");
+      if (op != null && op.equals("Add"))
+      {
+        String path = variableContext.getParameter("specpath");
+        SpecificationNode node = new SpecificationNode(SPEC_NODE_FOLDER);
+        node.setAttribute(SPEC_ATTRIBUTE_VALUE,path);
+        ds.addChild(ds.getChildCount(),node);
+      }
+      else if (op != null && op.equals("Up"))
+      {
+        // Strip off end
+        String path = variableContext.getParameter("specpath");
+        int k = path.lastIndexOf("/");
+        if (k <= 0)
+          path = "/";
+        else
+          path = path.substring(0,k);
+        currentContext.save("specpath",path);
+      }
+      else if (op != null && op.equals("AddToPath"))
+      {
+        String path = variableContext.getParameter("specpath");
+        String addon = variableContext.getParameter("pathaddon");
+        if (addon != null && addon.length() > 0)
+        {
+          if (path.length() <= 1)
+            path = "/" + addon;
+          else
+            path += "/" + addon;
+        }
+        currentContext.save("specpath",path);
       }
     }
 
@@ -2695,6 +2986,40 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "  </tr>\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
     );
+    
+    // Handle Folders
+    i = 0;
+    boolean seenAny = false;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode spn = ds.getChild(i++);
+      if (spn.getType().equals(SPEC_NODE_FOLDER))
+      {
+        if (seenAny == false)
+        {
+          seenAny = true;
+        }
+        out.print(
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Folders:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(spn.getAttributeValue(SPEC_ATTRIBUTE_VALUE))+"</nobr>\n"+
+"    </td>\n"+
+"  </tr>\n"
+        );
+      }
+    }
+    if (seenAny == false)
+    {
+      out.print(
+"  <tr><td class=\"message\" colspan=\"2\">All folders specified</td></tr>\n"
+      );
+    }
+    out.print(
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"\n"
+    );
+    
     // Find whether security is on or off
     i = 0;
     boolean securityOn = true;
@@ -2718,7 +3043,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
     );
     // Go through looking for access tokens
-    boolean seenAny = false;
+    seenAny = false;
     i = 0;
     while (i < ds.getChildCount())
     {
@@ -3109,6 +3434,92 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     }
   }
 
+  protected class GetChildFoldersThread extends Thread
+  {
+    protected String[] folderPath;
+    protected String[] rval = null;
+    protected Throwable exception = null;
+
+    public GetChildFoldersThread(String[] folderPath)
+    {
+      super();
+      setDaemon(true);
+      this.folderPath = folderPath;
+    }
+
+    public void run()
+    {
+      try
+      {
+        rval = session.getChildFolders(folderPath);
+      }
+      catch (Throwable e)
+      {
+        this.exception = e;
+      }
+    }
+
+    public String[] getResponse()
+    {
+      return rval;
+    }
+
+    public Throwable getException()
+    {
+      return exception;
+    }
+
+  }
+
+
+  /** Get child folder names */
+  protected String[] doGetChildFolders(String[] folderPath)
+    throws FilenetException, ManifoldCFException, ServiceInterruption
+  {
+    while (true)
+    {
+      boolean noSession = (session==null);
+      getSession();
+      long currentTime;
+      GetChildFoldersThread t = new GetChildFoldersThread(folderPath);
+      try
+      {
+        t.start();
+        t.join();
+        Throwable thr = t.getException();
+        if (thr != null)
+        {
+          if (thr instanceof RemoteException)
+            throw (RemoteException)thr;
+          else if (thr instanceof FilenetException)
+            throw (FilenetException)thr;
+          else
+            throw (Error)thr;
+        }
+        return t.getResponse();
+      }
+      catch (InterruptedException e)
+      {
+        t.interrupt();
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+      }
+      catch (RemoteException e)
+      {
+        Throwable e2 = e.getCause();
+        if (e2 instanceof InterruptedException || e2 instanceof InterruptedIOException)
+          throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
+        if (noSession)
+        {
+          currentTime = System.currentTimeMillis();
+          throw new ServiceInterruption("Transient error connecting to filenet service: "+e.getMessage(),currentTime+60000L);
+        }
+        session = null;
+        lastSessionFetch = -1L;
+        continue;
+      }
+    }
+  }
+
   protected class GetMatchingObjectIdsThread extends Thread
   {
     protected String sql;
@@ -3145,7 +3556,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     }
 
   }
-
+  
   /** Get matching object id's for a given query */
   protected String[] doGetMatchingObjectIds(String sql)
     throws FilenetException, ManifoldCFException, ServiceInterruption

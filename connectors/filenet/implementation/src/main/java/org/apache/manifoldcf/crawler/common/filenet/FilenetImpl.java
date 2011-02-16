@@ -146,6 +146,54 @@ public class FilenetImpl extends UnicastRemoteObject implements IFilenet
     // Establishing a working session is enough to test connectivity
   }
 
+  /** Get the set of folder names that are children of the specified folder path. */
+  public String[] getChildFolders(String[] parentFolderPath)
+    throws FilenetException, RemoteException
+  {
+    setConnectionCredentials();
+    // Start at root.
+    Folder currentFolder = os.get_RootFolder();
+    // Work our way down through the path.  If the path turns out to be invalid,
+    // we return null.
+    int i = 0;
+    while (i < parentFolderPath.length)
+    {
+      // For each path segment, find the matching child folder
+      FolderSet folderSet = currentFolder.get_SubFolders();
+      currentFolder = null;
+      Iterator fldrIter = folderSet.iterator();
+      while (fldrIter.hasNext())
+      {
+        Folder folder = (Folder)fldrIter.next();
+        if (folder.get_FolderName().equals(parentFolderPath[i]))
+        {
+          currentFolder = folder;
+          break;
+        }
+      }
+      
+      // Found no folder object with the correct name; the setup must have changed.
+      if (currentFolder == null)
+        return null;
+      
+      i++;
+    }
+    
+    // We've located the correct parent folder object.  Construct a list of children to return.
+    ArrayList rval = new ArrayList();
+    FolderSet children = currentFolder.get_SubFolders();
+    Iterator childFolderIterator = children.iterator();
+    while (childFolderIterator.hasNext())
+    {
+      Folder child = (Folder)childFolderIterator.next();
+      rval.add(child.get_FolderName());
+    }
+    
+    String[] rvalArray = new String[rval.size()];
+    rval.toArray(rvalArray);
+    return rvalArray;
+  }
+  
   /** Get the set of available document classes. */
   public DocumentClassDefinition[] getDocumentClassesDetails()
     throws FilenetException, RemoteException

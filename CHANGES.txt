@@ -3,6 +3,9 @@ $Id$
 
 ==================  0.2-dev ==================
 
+CONNECTORS-151; Add folder support to FileNet connector.
+(Oleg Tikhonov, Karl Wright)
+
 CONNECTORS-157: Web crawler url resolution was broken for relative
 paths, because the way java.net.URI resolved them changed.
 (Karl Wright)

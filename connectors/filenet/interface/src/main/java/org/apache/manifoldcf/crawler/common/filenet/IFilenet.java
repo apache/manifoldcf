@@ -54,6 +54,10 @@ public interface IFilenet extends Remote
   public void checkConnection()
     throws FilenetException, RemoteException;
 
+  /** Get the set of folder names that are children of the specified folder path. */
+  public String[] getChildFolders(String[] parentFolderPath)
+    throws FilenetException, RemoteException;
+
   /** Get the set of available document classes
   */
   public DocumentClassDefinition[] getDocumentClassesDetails()
