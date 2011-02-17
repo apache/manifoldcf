@@ -6605,7 +6605,7 @@ public class JobManager implements IJobManager
       .append(")")
       .append(" THEN 'Waiting forever'")
       .append(" WHEN (").append("t0.").append(jobQueue.statusField).append("=?")
-      .append(" OR ").append("t0.").append(jobQueue.statusField).append("=?)")
+      .append(" OR ").append("t0.").append(jobQueue.statusField).append("=?")
       .append(")")
       .append(" THEN 'Deleting'")
       .append(" WHEN ")
