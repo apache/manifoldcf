@@ -4844,7 +4844,6 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
     catch (java.net.URISyntaxException e)
     {
-      e.printStackTrace();
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("WEB: Can't use url '"+rawURL+"' because it is badly formed: "+e.getMessage());
       return null;
