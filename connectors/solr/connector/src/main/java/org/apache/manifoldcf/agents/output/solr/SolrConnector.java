@@ -141,6 +141,12 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       String userID = params.getParameter(SolrConfig.PARAM_USERID);
       String password = params.getObfuscatedParameter(SolrConfig.PARAM_PASSWORD);
       String realm = params.getParameter(SolrConfig.PARAM_REALM);
+      String keystoreData = params.getParameter(SolrConfig.PARAM_KEYSTORE);
+      IKeystoreManager keystoreManager;
+      if (keystoreData != null)
+        keystoreManager = KeystoreManagerFactory.make("",keystoreData);
+      else
+        keystoreManager = null;
       
       if (core != null)
       {
@@ -152,7 +158,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       try
       {
         poster = new HttpPoster(protocol,server,Integer.parseInt(port),webapp,updatePath,removePath,statusPath,realm,userID,password,
-          allowAttributeName,denyAttributeName,idAttributeName);
+          allowAttributeName,denyAttributeName,idAttributeName,keystoreManager);
       }
       catch (NumberFormatException e)
       {
@@ -410,6 +416,27 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
+"function SolrDeleteCertificate(aliasName)\n"+
+"{\n"+
+"  editconnection.solrkeystorealias.value = aliasName;\n"+
+"  editconnection.configop.value = \"Delete\";\n"+
+"  postForm();\n"+
+"}\n"+
+"\n"+
+"function SolrAddCertificate()\n"+
+"{\n"+
+"  if (editconnection.solrcertificate.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Choose a certificate file\");\n"+
+"    editconnection.solrcertificate.focus();\n"+
+"  }\n"+
+"  else\n"+
+"  {\n"+
+"    editconnection.configop.value = \"Add\";\n"+
+"    postForm();\n"+
+"  }\n"+
+"}\n"+
+"\n"+
 "function checkConfig()\n"+
 "{\n"+
 "  if (editconnection.servername.value == \"\")\n"+
@@ -619,7 +646,25 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     if (commits == null)
       commits = "true";
     
+    String solrKeystore = parameters.getParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_KEYSTORE);
+    IKeystoreManager localKeystore;
+    if (solrKeystore == null)
+      localKeystore = KeystoreManagerFactory.make("");
+    else
+      localKeystore = KeystoreManagerFactory.make("",solrKeystore);
+
     // "Server" tab
+    // Always pass the whole keystore as a hidden.
+    if (solrKeystore != null)
+    {
+      out.print(
+"<input type=\"hidden\" name=\"keystoredata\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(solrKeystore)+"\"/>\n"
+      );
+    }
+    out.print(
+"<input name=\"configop\" type=\"hidden\" value=\"Continue\"/>\n"
+    );
+    
     if (tabName.equals("Server"))
     {
       out.print(
@@ -693,6 +738,45 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "    <td class=\"description\"><nobr>Password:</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input type=\"password\" size=\"32\" name=\"password\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>SSL trust certificate list:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"hidden\" name=\"solrkeystorealias\" value=\"\"/>\n"+
+"      <table class=\"displaytable\">\n"
+      );
+      // List the individual certificates in the store, with a delete button for each
+      String[] contents = localKeystore.getContents();
+      if (contents.length == 0)
+      {
+        out.print(
+"        <tr><td class=\"message\" colspan=\"2\"><nobr>No certificates present</nobr></td></tr>\n"
+        );
+      }
+      else
+      {
+        int i = 0;
+        while (i < contents.length)
+        {
+          String alias = contents[i];
+          String description = localKeystore.getDescription(alias);
+          if (description.length() > 128)
+            description = description.substring(0,125) + "...";
+          out.print(
+"        <tr>\n"+
+"          <td class=\"value\"><input type=\"button\" onclick='Javascript:SolrDeleteCertificate(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(alias)+"\")' alt=\""+"Delete cert "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(alias)+"\" value=\"Delete\"/></td>\n"+
+"          <td>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)+"</td>\n"+
+"        </tr>\n"
+          );
+          i++;
+        }
+      }
+      out.print(
+"      </table>\n"+
+"      <input type=\"button\" onclick='Javascript:SolrAddCertificate()' alt=\"Add cert\" value=\"Add\"/>&nbsp;\n"+
+"      Certificate:&nbsp;<input name=\"solrcertificate\" size=\"50\" type=\"file\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -960,6 +1044,14 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       parameters.setParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_COMMITS,commits);
     }
     
+    String keystoreValue = variableContext.getParameter("keystoredata");
+    IKeystoreManager mgr;
+    if (keystoreValue != null)
+      mgr = KeystoreManagerFactory.make("",keystoreValue);
+    else
+      mgr = KeystoreManagerFactory.make("");
+    parameters.setParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_KEYSTORE,mgr.getString());
+
     String x = variableContext.getParameter("argument_count");
     if (x != null && x.length() > 0)
     {
@@ -1002,6 +1094,60 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         parameters.addChild(parameters.getChildCount(),node);
       }
     }
+    
+    String configOp = variableContext.getParameter("configop");
+    if (configOp != null)
+    {
+      if (configOp.equals("Delete"))
+      {
+        String alias = variableContext.getParameter("solrkeystorealias");
+        keystoreValue = parameters.getParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_KEYSTORE);
+        if (keystoreValue != null)
+          mgr = KeystoreManagerFactory.make("",keystoreValue);
+        else
+          mgr = KeystoreManagerFactory.make("");
+        mgr.remove(alias);
+        parameters.setParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_KEYSTORE,mgr.getString());
+      }
+      else if (configOp.equals("Add"))
+      {
+        String alias = IDFactory.make(threadContext);
+        byte[] certificateValue = variableContext.getBinaryBytes("solrcertificate");
+        keystoreValue = parameters.getParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_KEYSTORE);
+        if (keystoreValue != null)
+          mgr = KeystoreManagerFactory.make("",keystoreValue);
+        else
+          mgr = KeystoreManagerFactory.make("");
+        java.io.InputStream is = new java.io.ByteArrayInputStream(certificateValue);
+        String certError = null;
+        try
+        {
+          mgr.importCertificate(alias,is);
+        }
+        catch (Throwable e)
+        {
+          certError = e.getMessage();
+        }
+        finally
+        {
+          try
+          {
+            is.close();
+          }
+          catch (IOException e)
+          {
+            // Eat this exception
+          }
+        }
+
+        if (certError != null)
+        {
+          return "Illegal certificate: "+certError;
+        }
+        parameters.setParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_KEYSTORE,mgr.getString());
+      }
+    }
+
     return null;
   }
   
@@ -1111,7 +1257,6 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
-"\n"+
 "function checkOutputSpecification()\n"+
 "{\n"+
 "  return true;\n"+

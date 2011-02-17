@@ -3,7 +3,11 @@ $Id$
 
 ==================  0.2-dev ==================
 
-CONNECTORS-151; Add folder support to FileNet connector.
+CONNECTORS-160: Add local trust store and working https support
+for Solr connector.
+(Carina Lannig, Karl Wright)
+
+CONNECTORS-151: Add folder support to FileNet connector.
 (Oleg Tikhonov, Karl Wright)
 
 CONNECTORS-157: Web crawler url resolution was broken for relative

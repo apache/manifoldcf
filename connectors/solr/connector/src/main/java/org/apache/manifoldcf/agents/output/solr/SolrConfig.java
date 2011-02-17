@@ -53,6 +53,8 @@ public class SolrConfig
   public static final String PARAM_PASSWORD = "Password";
   /** Enable commits */
   public static final String PARAM_COMMITS = "Commits";
+  /** Keystore */
+  public static final String PARAM_KEYSTORE = "Keystore";
   /** Node describing an argument */
   public static final String NODE_ARGUMENT = "argument";
   /** Attribute with the argument name */

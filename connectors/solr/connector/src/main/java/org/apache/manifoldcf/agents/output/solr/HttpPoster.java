@@ -57,6 +57,7 @@ public class HttpPoster
 
   private String protocol;
   private String host;
+  private javax.net.ssl.SSLSocketFactory socketFactory;
   private int port;
   private String encodedCredentials;
   private String realm;
@@ -104,12 +105,12 @@ public class HttpPoster
 
   /** This is the secure socket factory we will use.  I'm presuming it's thread-safe, but
   * if not, synchronization blocks are in order when it's used. */
-  protected static javax.net.ssl.SSLSocketFactory secureSocketFactory = null;
+  protected static javax.net.ssl.SSLSocketFactory openSecureSocketFactory = null;
   static
   {
     try
     {
-      secureSocketFactory = getSecureSocketFactory();
+      openSecureSocketFactory = getOpenSecureSocketFactory();
     }
     catch (ManifoldCFException e)
     {
@@ -127,7 +128,8 @@ public class HttpPoster
   public HttpPoster(String protocol, String server, int port, String webappName,
     String updatePath, String removePath, String statusPath,
     String realm, String userID, String password,
-    String allowAttributeName, String denyAttributeName, String idAttributeName)
+    String allowAttributeName, String denyAttributeName, String idAttributeName,
+    IKeystoreManager keystoreManager)
     throws ManifoldCFException
   {
     this.allowAttributeName = allowAttributeName;
@@ -137,6 +139,11 @@ public class HttpPoster
     this.host = server;
     this.port = port;
     this.protocol = protocol;
+    if (keystoreManager != null)
+      this.socketFactory = keystoreManager.getSecureSocketFactory();
+    else
+      // Use the "trust everything" one.
+      this.socketFactory = openSecureSocketFactory;
 
     if (userID != null && userID.length() > 0 && password != null)
     {
@@ -685,7 +692,7 @@ public class HttpPoster
 
   /** Build a secure socket factory based on no keystore and a lax trust manager.
   * This allows use of SSL for privacy but not identification. */
-  protected static javax.net.ssl.SSLSocketFactory getSecureSocketFactory()
+  protected static javax.net.ssl.SSLSocketFactory getOpenSecureSocketFactory()
     throws ManifoldCFException
   {
     try
@@ -713,12 +720,12 @@ public class HttpPoster
     throws IOException, ManifoldCFException
   {
     Socket socket;
-    if (protocol.equals("https"))
+    if (protocol.equals("https") && socketFactory != null)
     {
       try
       {
-        SocketFactory factory = SSLSocketFactory.getDefault();
-        socket = factory.createSocket(host,port);
+        //SocketFactory factory = SSLSocketFactory.getDefault();
+        socket = socketFactory.createSocket(host,port);
       }
       catch (InterruptedIOException e)
       {
