@@ -2584,12 +2584,10 @@ public class JobManager implements IJobManager
   {
     // The query here mirrors the carrydown.restoreRecords() delete query!  However, it also fetches enough information to build a DocumentDescription
     // object for return, and so a join is necessary against the jobqueue table.
-    //???
     String query = "SELECT t0."+jobQueue.idField+",t0."+jobQueue.docHashField+",t0."+jobQueue.docIDField+" FROM "+
       jobQueue.getTableName()+" t0 WHERE EXISTS(SELECT 'x' FROM "+carryDown.getTableName()+
       " t1 WHERE t1."+carryDown.parentIDHashField+" IN ("+queryPart+") AND t1."+carryDown.childIDHashField+"=t0."+jobQueue.docHashField+
-      " AND t0."+jobQueue.jobIDField+"=? AND t1."+carryDown.jobIDField+"=?)";
-    list.add(jobID);
+      " AND t0."+jobQueue.jobIDField+"=t1."+carryDown.jobIDField+") AND t0."+jobQueue.jobIDField+"=?";
     list.add(jobID);
     IResultSet set = database.performQuery(query,list,null,null);
     int i = 0;
@@ -4052,10 +4050,9 @@ public class JobManager implements IJobManager
     String query = "SELECT t0."+jobQueue.idField+",t0."+jobQueue.docHashField+",t0."+jobQueue.docIDField+" FROM "+
       jobQueue.getTableName()+" t0 WHERE EXISTS(SELECT 'x' FROM "+carryDown.getTableName()+
       " t1 WHERE "+carryDown.parentIDHashField+" IN ("+queryPart+") AND t1."+carryDown.childIDHashField+"=t0."+jobQueue.docHashField+
-      " AND t0."+jobQueue.jobIDField+"=? AND t1."+jobQueue.jobIDField+"=? AND t1."+carryDown.newField+"=?)";
-    list.add(jobID);
-    list.add(jobID);
+      " AND t0."+jobQueue.jobIDField+"=t1."+jobQueue.jobIDField+" AND t1."+carryDown.newField+"=?) AND t0."+jobQueue.jobIDField+"=?";
     list.add(carryDown.statusToString(carryDown.ISNEW_BASE));
+    list.add(jobID);
 
     IResultSet set = database.performQuery(query,list,null,null);
     int i = 0;
