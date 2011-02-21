@@ -1094,6 +1094,14 @@ public class ManifoldCF
     }
   }
   
+  /** Create a new resource loader based on the default one.  This is used by
+  * connectors wishing to make their own resource loaders for isolation purposes.
+  */
+  public static ManifoldCFResourceLoader createResourceLoader()
+    throws ManifoldCFException
+  {
+    return new ManifoldCFResourceLoader(resourceLoader.getClassLoader());
+  }
   
   /** Locate a class in the configuration-determined class path.  This method
   * is designed for loading plugin classes, and their downstream dependents.

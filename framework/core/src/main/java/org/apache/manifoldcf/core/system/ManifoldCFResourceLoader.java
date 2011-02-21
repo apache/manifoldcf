@@ -106,11 +106,10 @@ public class ManifoldCFResourceLoader
     addDirsToClassPath(new File[]{dir}, new FileFilter[]{filter});
   }
 
-  /** Get the specified class using the proper classloader.
-  *@param cname is the fully-qualified class name.
+  /** Get the class loader representing this resource loader.
   */
-  public synchronized Class findClass(String cname)
-    throws ClassNotFoundException,ManifoldCFException
+  public synchronized ClassLoader getClassLoader()
+    throws ManifoldCFException
   {
     if (classLoader == null)
     {
@@ -137,9 +136,17 @@ public class ManifoldCFResourceLoader
         classLoader = URLClassLoader.newInstance(elements, parent);
       }
     }
-    
+    return classLoader;
+  }
+
+  /** Get the specified class using the proper classloader.
+  *@param cname is the fully-qualified class name.
+  */
+  public Class findClass(String cname)
+    throws ClassNotFoundException,ManifoldCFException
+  {
     // If we ever get this far, we have a classloader at least...
-    return Class.forName(cname,true,classLoader);
+    return Class.forName(cname,true,getClassLoader());
   }
 
   /** Add fully-resolved directories (with filters) to the current class path.

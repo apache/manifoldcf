@@ -3,6 +3,11 @@ $Id$
 
 ==================  0.2-dev ==================
 
+CONNECTORS-162: Add infrastructure support for derived resource
+loading, so that individual connectors can use this model to prevent jar
+conflicts.
+(Karl Wright)
+
 CONNECTORS-160: Add local trust store and working https support
 for Solr connector.
 (Carina Lannig, Karl Wright)
