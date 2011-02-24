@@ -3,6 +3,9 @@ $Id$
 
 ==================  0.2-dev ==================
 
+CONNECTORS-163: Use Derby 10.7.1.1.
+(Oleg Tikhonov, Karl Wright)
+
 CONNECTORS-162: Add infrastructure support for derived resource
 loading, so that individual connectors can use this model to prevent jar
 conflicts.
