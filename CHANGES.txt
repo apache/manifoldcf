@@ -3,6 +3,10 @@ $Id$
 
 ==================  0.2-dev ==================
 
+CONNECTORS-165: Upgrade to jetty 6.1.26, plus patches, which is what
+Solr is using.
+(Robert Muir, Karl Wright)
+
 CONNECTORS-163: Use Derby 10.7.1.1.
 (Oleg Tikhonov, Karl Wright)
 
