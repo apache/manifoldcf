@@ -27,7 +27,14 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
 {
   public static final String _rcsid = "@(#)$Id: DBInterfacePostgreSQL.java 999670 2010-09-21 22:18:19Z kwright $";
 
-  private static final String _url = "jdbc:postgresql://localhost/";
+  /** PostgreSQL host name property */
+  public static final String postgresqlHostnameProperty = "org.apache.manifoldcf.postgresql.hostname";
+  /** PostgreSQL port property */
+  public static final String postgresqlPortProperty = "org.apache.manifoldcf.postgresql.port";
+  /** PostgreSQL ssl property */
+  public static final String postgresqlSslProperty = "org.apache.manifoldcf.postgresql.ssl";
+
+  private static final String _defaultUrl = "jdbc:postgresql://localhost/";
   private static final String _driver = "org.postgresql.Driver";
 
   /** A lock manager handle. */
@@ -47,9 +54,31 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   public DBInterfacePostgreSQL(IThreadContext tc, String databaseName, String userName, String password)
     throws ManifoldCFException
   {
-    super(tc,_url+databaseName,_driver,databaseName,userName,password);
+    super(tc,getJdbcUrl(databaseName),_driver,databaseName,userName,password);
     cacheKey = CacheKeyFactory.makeDatabaseKey(this.databaseName);
     lockManager = LockManagerFactory.make(tc);
+  }
+  
+  private static String getJdbcUrl(final String databaseName)
+  {
+    String jdbcUrl = _defaultUrl + databaseName;
+    final String hostname = ManifoldCF.getProperty(postgresqlHostnameProperty);
+    final String ssl = ManifoldCF.getProperty(postgresqlSslProperty);
+    final String port = ManifoldCF.getProperty(postgresqlPortProperty);
+    if (hostname != null && hostname.length() > 0)
+    {
+      jdbcUrl = "jdbc:postgresql://" + hostname;
+      if (port != null && port.length() > 0)
+      {
+        jdbcUrl += ":" + port;
+      }
+      jdbcUrl += "/" + databaseName;
+      if (ssl != null && ssl.equals("true"))
+      {
+        jdbcUrl += "?ssl=true";
+      }
+    }
+    return jdbcUrl;
   }
 
   /** Initialize.  This method is called once per JVM instance, in order to set up
@@ -508,7 +537,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
     throws ManifoldCFException
   {
     // Create a connection to the master database, using the credentials supplied
-    Database masterDatabase = new Database(context,_url+"template1",_driver,"template1",adminUserName,adminPassword);
+    Database masterDatabase = new Database(context,getJdbcUrl("template1"),_driver,"template1",adminUserName,adminPassword);
     try
     {
       // Create user
@@ -562,7 +591,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
     throws ManifoldCFException
   {
     // Create a connection to the master database, using the credentials supplied
-    Database masterDatabase = new Database(context,_url+"template1",_driver,"template1",adminUserName,adminPassword);
+    Database masterDatabase = new Database(context,getJdbcUrl("template1"),_driver,"template1",adminUserName,adminPassword);
     try
     {
       // Drop database

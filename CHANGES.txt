@@ -3,6 +3,9 @@ $Id$
 
 ==================  0.2-dev ==================
 
+CONNECTORS-159: Add support for external PostgreSQL server
+(Erlend Garåsen, Karl Wright)
+
 CONNECTORS-165: Upgrade to jetty 6.1.26, plus patches, which is what
 Solr is using.
 (Robert Muir, Karl Wright)
