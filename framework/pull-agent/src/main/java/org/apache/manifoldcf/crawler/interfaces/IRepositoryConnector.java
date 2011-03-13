@@ -89,7 +89,7 @@ public interface IRepositoryConnector extends IConnector
   public static final int JOBMODE_ONCEONLY = IJobDescription.TYPE_SPECIFIED;
   public static final int JOBMODE_CONTINUOUS = IJobDescription.TYPE_CONTINUOUS;
 
-  /** Tell the world what model this connector uses for getDocumentIdentifiers().
+  /** Tell the world what model this connector uses for addSeedDocuments().
   * This must return a model value as specified above.  The connector does not have to be connected
   * for this method to be called.
   *@return the model type value.
@@ -114,7 +114,7 @@ public interface IRepositoryConnector extends IConnector
   * multiple queues or bins.
   * For example, if you implement a web crawler, a good choice of bin name would be the server name, since
   * that is likely to correspond to a real resource that will need real throttle protection.
-  * The connector does not need to be connected for this method to be called.
+  * The connector must be connected for this method to be called.
   *@param documentIdentifier is the document identifier.
   *@return the set of bin names.  If an empty array is returned, it is equivalent to there being no request
   * rate throttling available for this identifier.
@@ -122,8 +122,9 @@ public interface IRepositoryConnector extends IConnector
   public String[] getBinNames(String documentIdentifier);
 
   /** Request arbitrary connector information.
-  * This method is called directly from the API in order to allow API users to perform any one of several connector-specific
-  * queries.
+  * This method is called directly from the API in order to allow API users to perform any one of several
+  * connector-specific queries.  These are usually used to create external UI's.  The connector will be
+  * connected before this method is called.
   *@param output is the response object, to be filled in by this method.
   *@param command is the command, which is taken directly from the API request.
   *@return true if the resource is found, false if not.  In either case, output may be filled in.
@@ -151,6 +152,7 @@ public interface IRepositoryConnector extends IConnector
   * getConnectorModel().
   *
   * Note that it is always ok to send MORE documents rather than less to this method.
+  * The connector will be connected before this method can be called.
   *@param activities is the interface this method should use to perform whatever framework actions are desired.
   *@param spec is a document specification (that comes from the job).
   *@param startTime is the beginning of the time range to consider, inclusive.
@@ -162,8 +164,9 @@ public interface IRepositoryConnector extends IConnector
     throws ManifoldCFException, ServiceInterruption;
 
   /** Get document versions given an array of document identifiers.
-  * This method is called for EVERY document that is considered. It is
-  * therefore important to perform as little work as possible here.
+  * This method is called for EVERY document that is considered. It is therefore important to perform
+  * as little work as possible here.
+  * The connector will be connected before this method can be called.
   *@param documentIdentifiers is the array of local document identifiers, as understood by this connector.
   *@param oldVersions is the corresponding array of version strings that have been saved for the document identifiers.
   *   A null value indicates that this is a first-time fetch, while an empty string indicates that the previous document
@@ -186,6 +189,7 @@ public interface IRepositoryConnector extends IConnector
   * This is the method that should cause each document to be fetched, processed, and the results either added
   * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
   * The document specification allows this class to filter what is done based on the job.
+  * The connector will be connected before this method can be called.
   *@param documentIdentifiers is the set of document identifiers to process.
   *@param versions is the corresponding document versions to process, as returned by getDocumentVersions() above.
   *       The implementation may choose to ignore this parameter and always process the current version.
@@ -204,6 +208,7 @@ public interface IRepositoryConnector extends IConnector
   * the getDocumentVersions() method, including those that returned null versions.  It may be used to free resources
   * committed during the getDocumentVersions() method.  It is guaranteed to be called AFTER any calls to
   * processDocuments() for the documents in question.
+  * The connector will be connected before this method can be called.
   *@param documentIdentifiers is the set of document identifiers.
   *@param versions is the corresponding set of version identifiers (individual identifiers may be null).
   */
@@ -218,16 +223,22 @@ public interface IRepositoryConnector extends IConnector
 
   // UI support methods.
   //
-  // These support methods come in two varieties.  The first bunch (inherited from IConnector) is involved in setting up connection configuration information.
-  // The second bunch
-  // is involved in presenting and editing document specification information for a job.  The two kinds of methods are accordingly treated differently,
-  // in that the first bunch cannot assume that the current connector object is connected, while the second bunch can.  That is why the first bunch
-  // receives a thread context argument for all UI methods, while the second bunch does not need one (since it has already been applied via the connect()
-  // method, above).
+  // The UI support methods come in two varieties.  The first group (inherited from IConnector) is involved
+  //  in setting up connection configuration information.
+  //
+  // The second group is listed here.  These methods are is involved in presenting and editing document specification
+  //  information for a job.
+  //
+  // The two kinds of methods are accordingly treated differently, in that the first group cannot assume that
+  // the current connector object is connected, while the second group can.  That is why the first group
+  // receives a thread context argument for all UI methods, while the second group does not need one
+  // (since it has already been applied via the connect() method).
     
   /** Output the specification header section.
-  * This method is called in the head section of a job page which has selected a repository connection of the current type.  Its purpose is to add the required tabs
-  * to the list, and to output any javascript methods that might be needed by the job editing HTML.
+  * This method is called in the head section of a job page which has selected a repository connection of the
+  * current type.  Its purpose is to add the required tabs to the list, and to output any javascript methods
+  * that might be needed by the job editing HTML.
+  * The connector will be connected before this method can be called.
   *@param out is the output to which any HTML should be sent.
   *@param ds is the current document specification for this job.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
@@ -236,9 +247,11 @@ public interface IRepositoryConnector extends IConnector
     throws ManifoldCFException, IOException;
   
   /** Output the specification body section.
-  * This method is called in the body section of a job page which has selected a repository connection of the current type.  Its purpose is to present the required form elements for editing.
-  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
-  * form is "editjob".
+  * This method is called in the body section of a job page which has selected a repository connection of the
+  * current type.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate
+  *  <html>, <body>, and <form> tags.  The name of the form is always "editjob".
+  * The connector will be connected before this method can be called.
   *@param out is the output to which any HTML should be sent.
   *@param ds is the current document specification for this job.
   *@param tabName is the current tab name.
@@ -247,19 +260,23 @@ public interface IRepositoryConnector extends IConnector
     throws ManifoldCFException, IOException;
   
   /** Process a specification post.
-  * This method is called at the start of job's edit or view page, whenever there is a possibility that form data for a connection has been
-  * posted.  Its purpose is to gather form information and modify the document specification accordingly.
-  * The name of the posted form is "editjob".
+  * This method is called at the start of job's edit or view page, whenever there is a possibility that form
+  * data for a connection has been posted.  Its purpose is to gather form information and modify the
+  * document specification accordingly.  The name of the posted form is always "editjob".
+  * The connector will be connected before this method can be called.
   *@param variableContext contains the post data, including binary file-upload information.
   *@param ds is the current document specification for this job.
-  *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of
+  * the job (and cause a redirection to an error page).
   */
   public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
     throws ManifoldCFException;
   
   /** View specification.
-  * This method is called in the body section of a job's view page.  Its purpose is to present the document specification information to the user.
-  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  * This method is called in the body section of a job's view page.  Its purpose is to present the document
+  * specification information to the user.  The coder can presume that the HTML that is output from
+  * this configuration will be within appropriate <html> and <body> tags.
+  * The connector will be connected before this method can be called.
   *@param out is the output to which any HTML should be sent.
   *@param ds is the current document specification for this job.
   */
@@ -267,5 +284,3 @@ public interface IRepositoryConnector extends IConnector
     throws ManifoldCFException, IOException;
 
 }
-
-
