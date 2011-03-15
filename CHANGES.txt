@@ -3,6 +3,10 @@ $Id$
 
 ==================  0.2-dev ==================
 
+CONNECTORS-168: Change error reporting logic in Solr connector
+to handle non-XML responses
+(Fuad Efendi, Karl Wright)
+
 CONNECTORS-159: Add support for external PostgreSQL server
 (Erlend Garåsen, Karl Wright)
 

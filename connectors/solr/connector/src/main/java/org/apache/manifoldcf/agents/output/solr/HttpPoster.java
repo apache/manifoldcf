@@ -612,20 +612,36 @@ public class HttpPoster
       if (charsetIndex != -1)
         charsetName = contentType.substring(charsetIndex+8);
 
-      // Now that we calculated the character set, we're not actually going to use it, since we're looking for XML and xerces would prefer binary.  So, instead, we're going to pass the stream off to xerces.
+      // NOTE: We may get back an unparseable pile of goo here, especially if the error is a 500 error.
+      // But we can't hand the binary to the XML parser and still be able to get at the raw data.  So we
+      // read the data into memory first (as binary), and then make a decision based on parseability as to whether
+      // we attempt to decode it.
+      byte[] responseContent = readInputStream(in);
+      
       XMLDoc doc = null;
+      String rawString = null;
       try
       {
-        doc = new XMLDoc(in);
+        doc = new XMLDoc(new ByteArrayInputStream(responseContent));
       }
       catch (ManifoldCFException e)
       {
         // Syntax errors should be eaten; we'll just return a null doc in that case.
-        e.printStackTrace();
+        // But we do try to convert the raw data to string form.
+        try
+        {
+          rawString = new String(responseContent,charsetName);
+        }
+        catch (UnsupportedEncodingException e2)
+        {
+          // Uh oh, can't even convert it to a string.  Now we are desperate.
+          rawString = "Response had an illegal encoding: "+e2.getMessage();
+          e.printStackTrace();
+        }
       }
 
       Logging.ingest.debug("Read of response stream complete");
-      return new CodeDetails(responseCode,doc);
+      return new CodeDetails(responseCode,doc,rawString);
     }
     catch (java.net.SocketTimeoutException e)
     {
@@ -657,7 +673,7 @@ public class HttpPoster
     {
       // Return 400 error; likely a connection reset which lost us the response data, so
       // just treat it as something OK.
-      return new CodeDetails("HTTP/1.0 400 Connection Reset",null);
+      return new CodeDetails("HTTP/1.0 400 Connection Reset",null,null);
 
     }
     catch (IOException ioe)
@@ -674,6 +690,42 @@ public class HttpPoster
     }
   }
 
+  /** Read input stream into an in-memory array */
+  protected static byte[] readInputStream(InputStream is)
+    throws IOException
+  {
+    // Create an array of byte arrays, and assemble the result into a final piece at the end.
+    List array = new ArrayList();
+    int count = 0;
+    while (true)
+    {
+      byte[] buffer = new byte[65536];
+      int amt = is.read(buffer);
+      if (amt == -1)
+        break;
+      count += amt;
+      array.add(buffer);
+    }
+    byte[] rval = new byte[count];
+    int pointer = 0;
+    int index = 0;
+    while (pointer < count)
+    {
+      byte[] buffer = (byte[])array.get(index++);
+      if (buffer.length > count-pointer)
+      {
+        System.arraycopy(buffer,0,rval,pointer,count-pointer);
+        pointer = count;
+      }
+      else
+      {
+        System.arraycopy(buffer,0,rval,pointer,buffer.length);
+        pointer += buffer.length;
+      }
+    }
+    return rval;
+  }
+  
   /** Write credentials to output */
   protected void writeCredentials(OutputStream out)
     throws IOException
@@ -1862,11 +1914,13 @@ public class HttpPoster
     protected String details;
     protected String res;
     protected XMLDoc returnDoc;
+    protected String rawString;
 
-    public CodeDetails(String res, XMLDoc returnDoc)
+    public CodeDetails(String res, XMLDoc returnDoc, String rawString)
     {
       this.res = res;
       this.returnDoc = returnDoc;
+      this.rawString = rawString;
       codeValue = -100;
       code = "-100";
       details = "Http response was improperly formed";
@@ -1916,7 +1970,7 @@ public class HttpPoster
     public String getDescription()
       throws ManifoldCFException
     {
-      return res + "\r\n" + ((returnDoc!=null)?returnDoc.getXML():"");
+      return res + "\r\n" + ((returnDoc!=null)?returnDoc.getXML():((rawString!=null)?rawString:""));
     }
 
     public void parseIngestionResponse()
