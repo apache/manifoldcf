@@ -3,6 +3,10 @@ $Id$
 
 ==================  0.2-dev ==================
 
+CONNECTORS-166: Pull a Derby fix down from trunk into Derby 10.7.1.1,
+to fix deadlock problems
+(Oleg Tikhonov, Karl Wright)
+
 CONNECTORS-168: Change error reporting logic in Solr connector
 to handle non-XML responses
 (Fuad Efendi, Karl Wright)
