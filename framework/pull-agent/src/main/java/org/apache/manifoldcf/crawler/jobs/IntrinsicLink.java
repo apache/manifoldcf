@@ -190,7 +190,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
       // one thread can make it into here at any given time for any given parent.
       //performLock();
       HashMap duplicateRemoval = new HashMap();
-      int maxClause = 25;
+      int maxClause = getMaxOrClause();
       StringBuffer sb = new StringBuffer();
       ArrayList list = new ArrayList();
       int i = 0;
@@ -319,7 +319,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
     {
       if (sourceDocumentIDHashes != null)
       {
-        int maxClause = 25;
+        int maxClause = getMaxOrClause();
         StringBuffer sb = new StringBuffer();
         ArrayList list = new ArrayList();
         int i = 0;
@@ -401,7 +401,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
     beginTransaction();
     try
     {
-      int maxClause = 25;
+      int maxClause = getMaxOrClause();
       StringBuffer sb = new StringBuffer();
       ArrayList list = new ArrayList();
       int i = 0;

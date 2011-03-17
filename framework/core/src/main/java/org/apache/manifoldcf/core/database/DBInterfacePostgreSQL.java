@@ -988,6 +988,17 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
     return 100;
   }
 
+  /** Obtain the maximum number of individual clauses that should be
+  * present in a sequence of OR clauses.  Exceeding this amount will potentially cause the query performance
+  * to drop.
+  *@return the maximum number of OR clause members.
+  */
+  public int getMaxOrClause()
+  {
+    return 25;
+  }
+
+
   /** Begin a database transaction.  This method call MUST be paired with an endTransaction() call,
   * or database handles will be lost.  If the transaction should be rolled back, then signalRollback() should
   * be called before the transaction is ended.

@@ -227,7 +227,7 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
     HashMap duplicateRemoval = new HashMap();
     HashMap presentMap = new HashMap();
 
-    int maxClause = 25;
+    int maxClause = getMaxOrClause();
     StringBuffer sb = new StringBuffer();
     ArrayList list = new ArrayList();
     int i = 0;
@@ -409,7 +409,7 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
     beginTransaction();
     try
     {
-      int maxClause = 25;
+      int maxClause = getMaxOrClause();
       StringBuffer sb = new StringBuffer();
       ArrayList list = new ArrayList();
       int i = 0;
@@ -481,7 +481,7 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
     beginTransaction();
     try
     {
-      int maxClause = 25;
+      int maxClause = getMaxOrClause();
       StringBuffer sb = new StringBuffer();
       StringBuffer sb2 = new StringBuffer();
       ArrayList list = new ArrayList();

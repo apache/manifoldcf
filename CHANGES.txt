@@ -3,6 +3,11 @@ $Id$
 
 ==================  0.2-dev ==================
 
+CONNECTORS-169: Add a method to the database abstraction to
+return the maximum number of OR clauses in a query.  This is to make
+Derby efficient, since it can't seem to use indexes in this situation
+(Karl Wright)
+
 CONNECTORS-166: Pull a Derby fix down from trunk into Derby 10.7.1.1,
 to fix deadlock problems
 (Oleg Tikhonov, Karl Wright)

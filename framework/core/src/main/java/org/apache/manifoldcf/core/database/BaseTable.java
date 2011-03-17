@@ -357,6 +357,17 @@ public class BaseTable
     return dbInterface.getMaxInClause();
   }
 
+  /** Obtain the maximum number of individual clauses that should be
+  * present in a sequence of OR clauses.  Exceeding this amount will potentially cause the query performance
+  * to drop.
+  *@return the maximum number of OR clause members.
+  */
+  protected int getMaxOrClause()
+  {
+    return dbInterface.getMaxOrClause();
+  }
+
+
   /** Set up a base object from a database row.
   *@param object is the object to read into.
   *@param resultRow is the row to use to initialize the object.

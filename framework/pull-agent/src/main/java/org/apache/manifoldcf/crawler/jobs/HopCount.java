@@ -607,7 +607,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       i++;
     }
 
-    int maxClause = 25;
+    int maxClause = getMaxOrClause();
     i = 0;
     int k = 0;
     while (i < parentIdentifierHashes.length)
@@ -809,7 +809,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       // an IN clause for one index field, and = clauses for the others.  So I have to generate this
       // as ORed together match tuples.  I do 25 at a pop, which is arbitrary.
 
-      int maxClause = 25;
+      int maxClause = getMaxOrClause();
       StringBuffer sb = new StringBuffer();
       ArrayList list = new ArrayList();
       int i = 0;
@@ -1111,7 +1111,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
         //       ...
         //       OR (t0.jobid=? AND t0.childidhash=? AND t0.childid=?))
 
-        int maxClause = 25;
+        int maxClause = getMaxOrClause();
         ArrayList list = new ArrayList();
         StringBuffer sb = new StringBuffer();
         int i = 0;
@@ -1305,7 +1305,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       // Accumulate the ids of rows where I need deps too.  This is keyed by id and has the right answer object as a value.
       Map depsMap = new HashMap();
 
-      int maxClause = 25;
+      int maxClause = getMaxOrClause();
       i = 0;
       int k = 0;
       while (i < unansweredQuestions.length)
@@ -2854,7 +2854,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
 
       HashMap referenceMap = new HashMap();
 
-      int maxClause = 25;
+      int maxClause = getMaxOrClause();
       StringBuffer sb = new StringBuffer();
       ArrayList list = new ArrayList();
       k = 0;

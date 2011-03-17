@@ -2541,7 +2541,7 @@ public class JobManager implements IJobManager
     HashMap resultHash = new HashMap();
     StringBuffer sb = new StringBuffer();
     ArrayList list = new ArrayList();
-    int maxCount = 25;
+    int maxCount = database.getMaxOrClause();
     int i = 0;
     int z = 0;
     while (i < docIDHashes.length)
@@ -4003,7 +4003,7 @@ public class JobManager implements IJobManager
     HashMap resultHash = new HashMap();
     StringBuffer sb = new StringBuffer();
     ArrayList list = new ArrayList();
-    int maxCount = 25;
+    int maxCount = database.getMaxOrClause();
     int i = 0;
     int z = 0;
     while (i < parentIDHashes.length)
