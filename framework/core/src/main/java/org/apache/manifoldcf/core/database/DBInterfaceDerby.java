@@ -35,14 +35,50 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   
   public final static String databasePathProperty = "org.apache.manifoldcf.derbydatabasepath";
   
+  /** A lock manager handle. */
+  protected ILockManager lockManager;
 
+  // Credentials
   protected String userName;
   protected String password;
   
+  // Database cache key
   protected String cacheKey;
-  // Postgresql serializable transactions are broken in that transactions that occur within them do not in fact work properly.
-  // So, once we enter the serializable realm, STOP any additional transactions from doing anything at all.
+  
+  // Once we enter the serializable realm, STOP any additional transactions from doing anything at all.
   protected int serializableDepth = 0;
+
+  // Internal transaction depth, and flag whether we're in a transaction or not
+  int depthCount = 0;
+  boolean inTransaction = false;
+  
+  // This is where we keep track of tables that we need to analyze on transaction exit
+  protected ArrayList tablesToAnalyze = new ArrayList();
+
+  // Keep track of tables to reindex on transaction exit
+  protected ArrayList tablesToReindex = new ArrayList();
+
+  // This is where we keep temporary table statistics, which accumulate until they reach a threshold, and then are added into shared memory.
+  
+  /** Accumulated reindex statistics.  This map is keyed by the table name, and contains TableStatistics values. */
+  protected static Map currentReindexStatistics = new HashMap();
+  /** Table reindex thresholds, as read from configuration information.  Keyed by table name, contains Integer values. */
+  protected static Map reindexThresholds = new HashMap();
+  
+  /** Accumulated analyze statistics.  This map is keyed by the table name, and contains TableStatistics values. */
+  protected static Map currentAnalyzeStatistics = new HashMap();
+  /** Table analyze thresholds, as read from configuration information.  Keyed by table name, contains Integer values. */
+  protected static Map analyzeThresholds = new HashMap();
+  
+  /** The number of inserts, deletes, etc. before we update the shared area. */
+  protected static final int commitThreshold = 100;
+
+  // Lock and shared datum name prefixes (to be combined with table names)
+  protected static final String statslockReindexPrefix = "statslock-reindex-";
+  protected static final String statsReindexPrefix = "stats-reindex-";
+  protected static final String statslockAnalyzePrefix = "statslock-analyze-";
+  protected static final String statsAnalyzePrefix = "stats-analyze-";
+  
 
   // Override the Derby default lock timeout, and make it wait indefinitely instead.
   static
@@ -67,6 +103,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   {
     super(tc,_url+getFullDatabasePath(databaseName)+";user="+userName+";password="+password,_driver,getFullDatabasePath(databaseName),userName,password);
     cacheKey = CacheKeyFactory.makeDatabaseKey(this.databaseName);
+    lockManager = LockManagerFactory.make(tc);
     this.userName = userName;
     this.password = password;
   }
@@ -496,13 +533,63 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     performModification("DROP INDEX "+indexName,null,null);
   }
 
+  /** Read a datum, presuming zero if the datum does not exist.
+  */
+  protected int readDatum(String datumName)
+    throws ManifoldCFException
+  {
+    byte[] bytes = lockManager.readData(datumName);
+    if (bytes == null)
+      return 0;
+    return (((int)bytes[0]) & 0xff) + ((((int)bytes[1]) & 0xff) << 8) + ((((int)bytes[2]) & 0xff) << 16) + ((((int)bytes[3]) & 0xff) << 24);
+  }
+
+  /** Write a datum, presuming zero if the datum does not exist.
+  */
+  protected void writeDatum(String datumName, int value)
+    throws ManifoldCFException
+  {
+    byte[] bytes = new byte[4];
+    bytes[0] = (byte)(value & 0xff);
+    bytes[1] = (byte)((value >> 8) & 0xff);
+    bytes[2] = (byte)((value >> 16) & 0xff);
+    bytes[3] = (byte)((value >> 24) & 0xff);
+    
+    lockManager.writeData(datumName,bytes);
+  }
+
   /** Analyze a table.
   *@param tableName is the name of the table to analyze/calculate statistics for.
   */
   public void analyzeTable(String tableName)
     throws ManifoldCFException
   {
-    // Does nothing on Derby
+    String tableStatisticsLock = statslockAnalyzePrefix+tableName;
+    lockManager.enterWriteCriticalSection(tableStatisticsLock);
+    try
+    {
+      TableStatistics ts = (TableStatistics)currentAnalyzeStatistics.get(tableName);
+      // Lock this table's statistics files
+      lockManager.enterWriteLock(tableStatisticsLock);
+      try
+      {
+        String eventDatum = statsAnalyzePrefix+tableName;
+        // Time to reindex this table!
+        analyzeTableInternal(tableName);
+        // Now, clear out the data
+        writeDatum(eventDatum,0);
+        if (ts != null)
+          ts.reset();
+      }
+      finally
+      {
+        lockManager.leaveWriteLock(tableStatisticsLock);
+      }
+    }
+    finally
+    {
+      lockManager.leaveWriteCriticalSection(tableStatisticsLock);
+    }
   }
 
   /** Reindex a table.
@@ -511,7 +598,90 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   public void reindexTable(String tableName)
     throws ManifoldCFException
   {
-    // Does nothing on Derby
+    String tableStatisticsLock;
+    
+    // Reindexing.
+    tableStatisticsLock = statslockReindexPrefix+tableName;
+    lockManager.enterWriteCriticalSection(tableStatisticsLock);
+    try
+    {
+      TableStatistics ts = (TableStatistics)currentReindexStatistics.get(tableName);
+      // Lock this table's statistics files
+      lockManager.enterWriteLock(tableStatisticsLock);
+      try
+      {
+        String eventDatum = statsReindexPrefix+tableName;
+        // Time to reindex this table!
+        reindexTableInternal(tableName);
+        // Now, clear out the data
+        writeDatum(eventDatum,0);
+        if (ts != null)
+          ts.reset();
+      }
+      finally
+      {
+        lockManager.leaveWriteLock(tableStatisticsLock);
+      }
+    }
+    finally
+    {
+      lockManager.leaveWriteCriticalSection(tableStatisticsLock);
+    }
+  }
+
+  protected void analyzeTableInternal(String tableName)
+    throws ManifoldCFException
+  {
+    if (getTransactionID() == null)
+    {
+      ArrayList list = new ArrayList();
+      list.add("APP");
+      list.add(tableName.toUpperCase());
+      performModification("CALL SYSCS_UTIL.SYSCS_UPDATE_STATISTICS(?,?,null)",list,null);
+    }
+    else
+      tablesToAnalyze.add(tableName);
+  }
+
+  protected void reindexTableInternal(String tableName)
+    throws ManifoldCFException
+  {
+    if (getTransactionID() == null)
+    {
+      long sleepAmt = 0L;
+      while (true)
+      {
+        try
+        {
+          // To reindex, we (a) get all the table's indexes, (b) drop them, (c) recreate them
+          Map x = getTableIndexes(tableName,null,null);
+          Iterator iter = x.keySet().iterator();
+          while (iter.hasNext())
+          {
+            String indexName = (String)iter.next();
+            IndexDescription id = (IndexDescription)x.get(indexName);
+            performRemoveIndex(indexName);
+            performAddIndex(indexName,tableName,id);
+          }
+          break;
+        }
+        catch (ManifoldCFException e)
+        {
+          if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+          {
+            sleepAmt = getSleepAmt();
+            continue;
+          }
+          throw e;
+        }
+        finally
+        {
+          sleepFor(sleepAmt);
+        }
+      }
+    }
+    else
+      tablesToReindex.add(tableName);
   }
 
   /** Perform a table drop operation.
@@ -974,6 +1144,134 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     return 1;
   }
 
+  /** Note a number of inserts, modifications, or deletions to a specific table.  This is so we can decide when to do appropriate maintenance.
+  *@param tableName is the name of the table being modified.
+  *@param insertCount is the number of inserts.
+  *@param modifyCount is the number of updates.
+  *@param deleteCount is the number of deletions.
+  */
+  public void noteModifications(String tableName, int insertCount, int modifyCount, int deleteCount)
+    throws ManifoldCFException
+  {
+    String tableStatisticsLock;
+    int eventCount;
+    
+    // Reindexing.
+    // Here we count tuple deletion.  So we want to know the deletecount + modifycount.
+    eventCount = modifyCount + deleteCount;
+    tableStatisticsLock = statslockReindexPrefix+tableName;
+    lockManager.enterWriteCriticalSection(tableStatisticsLock);
+    try
+    {
+      Integer threshold = (Integer)reindexThresholds.get(tableName);
+      int reindexThreshold;
+      if (threshold == null)
+      {
+        // Look for this parameter; if we don't find it, use a default value.
+        reindexThreshold = ManifoldCF.getIntProperty("org.apache.manifold.db.derby.reindex."+tableName,250000);
+        reindexThresholds.put(tableName,new Integer(reindexThreshold));
+      }
+      else
+        reindexThreshold = threshold.intValue();
+      
+      TableStatistics ts = (TableStatistics)currentReindexStatistics.get(tableName);
+      if (ts == null)
+      {
+        ts = new TableStatistics();
+        currentReindexStatistics.put(tableName,ts);
+      }
+      ts.add(eventCount);
+      // Check if we have passed threshold yet for this table, for committing the data to the shared area
+      if (ts.getEventCount() >= commitThreshold)
+      {
+        // Lock this table's statistics files
+        lockManager.enterWriteLock(tableStatisticsLock);
+        try
+        {
+          String eventDatum = statsReindexPrefix+tableName;
+          int oldEventCount = readDatum(eventDatum);
+          oldEventCount += ts.getEventCount();
+          if (oldEventCount >= reindexThreshold)
+          {
+            // Time to reindex this table!
+            reindexTableInternal(tableName);
+            // Now, clear out the data
+            writeDatum(eventDatum,0);
+          }
+          else
+            writeDatum(eventDatum,oldEventCount);
+          ts.reset();
+        }
+        finally
+        {
+          lockManager.leaveWriteLock(tableStatisticsLock);
+        }
+      }
+    }
+    finally
+    {
+      lockManager.leaveWriteCriticalSection(tableStatisticsLock);
+    }
+    
+      // Analysis.
+    // Here we count tuple addition.
+    eventCount = modifyCount + insertCount;
+    tableStatisticsLock = statslockAnalyzePrefix+tableName;
+    lockManager.enterWriteCriticalSection(tableStatisticsLock);
+    try
+    {
+      Integer threshold = (Integer)analyzeThresholds.get(tableName);
+      int analyzeThreshold;
+      if (threshold == null)
+      {
+        // Look for this parameter; if we don't find it, use a default value.
+        analyzeThreshold = ManifoldCF.getIntProperty("org.apache.manifold.db.derby.analyze."+tableName,5000);
+        analyzeThresholds.put(tableName,new Integer(analyzeThreshold));
+      }
+      else
+        analyzeThreshold = threshold.intValue();
+      
+      TableStatistics ts = (TableStatistics)currentAnalyzeStatistics.get(tableName);
+      if (ts == null)
+      {
+        ts = new TableStatistics();
+        currentAnalyzeStatistics.put(tableName,ts);
+      }
+      ts.add(eventCount);
+      // Check if we have passed threshold yet for this table, for committing the data to the shared area
+      if (ts.getEventCount() >= commitThreshold)
+      {
+        // Lock this table's statistics files
+        lockManager.enterWriteLock(tableStatisticsLock);
+        try
+        {
+          String eventDatum = statsAnalyzePrefix+tableName;
+          int oldEventCount = readDatum(eventDatum);
+          oldEventCount += ts.getEventCount();
+          if (oldEventCount >= analyzeThreshold)
+          {
+            // Time to reindex this table!
+            analyzeTableInternal(tableName);
+            // Now, clear out the data
+            writeDatum(eventDatum,0);
+          }
+          else
+            writeDatum(eventDatum,oldEventCount);
+          ts.reset();
+        }
+        finally
+        {
+          lockManager.leaveWriteLock(tableStatisticsLock);
+        }
+      }
+    }
+    finally
+    {
+      lockManager.leaveWriteCriticalSection(tableStatisticsLock);
+    }
+
+  }
+  
 
   /** Begin a database transaction.  This method call MUST be paired with an endTransaction() call,
   * or database handles will be lost.  If the transaction should be rolled back, then signalRollback() should
@@ -1078,11 +1376,24 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     }
 
     super.endTransaction();
+    if (getTransactionID() == null)
+    {
+      int i = 0;
+      while (i < tablesToAnalyze.size())
+      {
+        analyzeTableInternal((String)tablesToAnalyze.get(i++));
+      }
+      tablesToAnalyze.clear();
+      i = 0;
+      while (i < tablesToReindex.size())
+      {
+        reindexTableInternal((String)tablesToReindex.get(i++));
+      }
+      tablesToReindex.clear();
+    }
+
   }
 
-  int depthCount = 0;
-  boolean inTransaction = false;
-  
   /** Abstract method to start a transaction */
   protected void startATransaction()
     throws ManifoldCFException
@@ -1163,6 +1474,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   {
     return rawColumnName.toLowerCase();
   }
+
 
   // Functions that correspond to user-defined functions in Derby
   
@@ -1249,6 +1561,32 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     catch (PatternSyntaxException e)
     {
       throw new SQLException("Pattern syntax exception: "+e.getMessage());
+    }
+  }
+
+  /** Table accumulation records.
+  */
+  protected static class TableStatistics
+  {
+    protected int eventCount = 0;
+    
+    public TableStatistics()
+    {
+    }
+    
+    public void reset()
+    {
+      eventCount = 0;
+    }
+    
+    public void add(int eventCount)
+    {
+      this.eventCount += eventCount;
+    }
+    
+    public int getEventCount()
+    {
+      return eventCount;
     }
   }
 

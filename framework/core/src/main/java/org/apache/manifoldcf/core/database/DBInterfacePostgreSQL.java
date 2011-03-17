@@ -40,7 +40,9 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   /** A lock manager handle. */
   protected ILockManager lockManager;
   
+  // Database cache key
   protected String cacheKey;
+	
   // Postgresql serializable transactions are broken in that transactions that occur within them do not in fact work properly.
   // So, once we enter the serializable realm, STOP any additional transactions from doing anything at all.
   protected int serializableDepth = 0;
@@ -50,6 +52,28 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
 
   // Keep track of tables to reindex on transaction exit
   protected ArrayList tablesToReindex = new ArrayList();
+
+  // This is where we keep temporary table statistics, which accumulate until they reach a threshold, and then are added into shared memory.
+  
+  /** Accumulated reindex statistics.  This map is keyed by the table name, and contains TableStatistics values. */
+  protected static Map currentReindexStatistics = new HashMap();
+  /** Table reindex thresholds, as read from configuration information.  Keyed by table name, contains Integer values. */
+  protected static Map reindexThresholds = new HashMap();
+  
+  /** Accumulated analyze statistics.  This map is keyed by the table name, and contains TableStatistics values. */
+  protected static Map currentAnalyzeStatistics = new HashMap();
+  /** Table analyze thresholds, as read from configuration information.  Keyed by table name, contains Integer values. */
+  protected static Map analyzeThresholds = new HashMap();
+  
+  /** The number of inserts, deletes, etc. before we update the shared area. */
+  protected static final int commitThreshold = 100;
+
+  // Lock and shared datum name prefixes (to be combined with table names)
+  protected static final String statslockReindexPrefix = "statslock-reindex-";
+  protected static final String statsReindexPrefix = "stats-reindex-";
+  protected static final String statslockAnalyzePrefix = "statslock-analyze-";
+  protected static final String statsAnalyzePrefix = "stats-analyze-";
+  
 
   public DBInterfacePostgreSQL(IThreadContext tc, String databaseName, String userName, String password)
     throws ManifoldCFException
@@ -477,46 +501,6 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
     performModification("DROP INDEX "+indexName,null,null);
   }
 
-  protected void analyzeTableInternal(String tableName)
-    throws ManifoldCFException
-  {
-    if (getTransactionID() == null)
-      performModification("ANALYZE "+tableName,null,null);
-    else
-      tablesToAnalyze.add(tableName);
-  }
-
-  protected void reindexTableInternal(String tableName)
-    throws ManifoldCFException
-  {
-    if (getTransactionID() == null)
-    {
-      long sleepAmt = 0L;
-      while (true)
-      {
-        try
-        {
-          performModification("REINDEX TABLE "+tableName,null,null);
-          break;
-        }
-        catch (ManifoldCFException e)
-        {
-          if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
-          {
-            sleepAmt = getSleepAmt();
-            continue;
-          }
-          throw e;
-        }
-        finally
-        {
-          sleepFor(sleepAmt);
-        }
-      }
-    }
-    else
-      tablesToReindex.add(tableName);
-  }
 
   /** Perform a table drop operation.
   *@param tableName is the name of the table to drop.
@@ -1141,21 +1125,6 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
     Logging.db.warn("");
   }
 
-  // This is where we keep temporary table statistics, which accumulate until they reach a threshold, and then are added into shared memory.
-  
-  /** Accumulated reindex statistics.  This map is keyed by the table name, and contains TableStatistics values. */
-  protected static Map currentReindexStatistics = new HashMap();
-  /** Table reindex thresholds, as read from configuration information.  Keyed by table name, contains Integer values. */
-  protected static Map reindexThresholds = new HashMap();
-  
-  /** Accumulated analyze statistics.  This map is keyed by the table name, and contains TableStatistics values. */
-  protected static Map currentAnalyzeStatistics = new HashMap();
-  /** Table analyze thresholds, as read from configuration information.  Keyed by table name, contains Integer values. */
-  protected static Map analyzeThresholds = new HashMap();
-  
-  /** The number of inserts, deletes, etc. before we update the shared area.
-  */
-  protected static final int commitThreshold = 100;
   
   /** Read a datum, presuming zero if the datum does not exist.
   */
@@ -1182,12 +1151,6 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
     lockManager.writeData(datumName,bytes);
   }
 
-  // Lock and shared datum name prefixes (to be combined with table names)
-  protected static final String statslockReindexPrefix = "statslock-reindex-";
-  protected static final String statsReindexPrefix = "stats-reindex-";
-  protected static final String statslockAnalyzePrefix = "statslock-analyze-";
-  protected static final String statsAnalyzePrefix = "stats-analyze-";
-  
   /** Analyze a table.
   *@param tableName is the name of the table to analyze/calculate statistics for.
   */
@@ -1220,8 +1183,6 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
     {
       lockManager.leaveWriteCriticalSection(tableStatisticsLock);
     }
-
-    analyzeTableInternal(tableName);
   }
 
   /** Reindex a table.
@@ -1259,6 +1220,47 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
     {
       lockManager.leaveWriteCriticalSection(tableStatisticsLock);
     }
+  }
+
+  protected void analyzeTableInternal(String tableName)
+    throws ManifoldCFException
+  {
+    if (getTransactionID() == null)
+      performModification("ANALYZE "+tableName,null,null);
+    else
+      tablesToAnalyze.add(tableName);
+  }
+
+  protected void reindexTableInternal(String tableName)
+    throws ManifoldCFException
+  {
+    if (getTransactionID() == null)
+    {
+      long sleepAmt = 0L;
+      while (true)
+      {
+        try
+        {
+          performModification("REINDEX TABLE "+tableName,null,null);
+          break;
+        }
+        catch (ManifoldCFException e)
+        {
+          if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+          {
+            sleepAmt = getSleepAmt();
+            continue;
+          }
+          throw e;
+        }
+        finally
+        {
+          sleepFor(sleepAmt);
+        }
+      }
+    }
+    else
+      tablesToReindex.add(tableName);
   }
 
   /** Note a number of inserts, modifications, or deletions to a specific table.  This is so we can decide when to do appropriate maintenance.
