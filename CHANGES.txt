@@ -1,7 +1,10 @@
 ManifoldCF Change Log
 $Id$
 
-==================  0.2-dev ==================
+======================= Release 0.2 =======================
+Release Date:  See http://incubator.apache.org/connectors for the official release date.
+
+Web site updated to reflect proposed release.
 
 CONNECTORS-170: Add support to the Derby driver for periodic analysis and
 reindexing, since after 10.7.1.1 it seems this is now supported.

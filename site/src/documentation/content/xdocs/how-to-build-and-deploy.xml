@@ -39,7 +39,7 @@
         <p>To build the ManifoldCF framework code, and the particular connectors you are interested in, you currently need to do the following:</p>
         <p></p>
         <ol>
-          <li>Check out https://svn.apache.org/repos/asf/incubator/lcf/trunk.</li>
+          <li>Check out https://svn.apache.org/repos/asf/incubator/lcf/trunk, or unpack the source or binary distribution.  (The binary distribution includes sources).</li>
           <li>Install desired dependent LGPL and proprietary libraries, wsdls, and xsds.  See below for details.</li>
           <li>cd to "trunk".</li>
           <li>Run "ant build".</li>
@@ -48,20 +48,25 @@
         <p>If you supply <strong>no</strong> LGPL or proprietary libraries, the framework itself and only the following repository connectors will be built:</p>
         <p></p>
         <ul>
-          <li>Active Directory authority</li>
           <li>Filesystem connector</li>
           <li>JDBC connector, with just the postgresql jdbc driver</li>
           <li>RSS connector</li>
           <li>Webcrawler connector</li>
         </ul>
         <p></p>
-        <p>In addition, the following output connectors will be built:</p>
+        <p>In addition, the following authority connectors will be built:</p>
+        <p></p>
+        <ul>
+          <li>Active Directory authority</li>
+          <li>Null authority connector</li>
+        </ul>
+        <p></p>
+        <p>Finally, the following output connectors will be built:</p>
         <p></p>
         <ul>
           <li>MetaCarta GTS output connector</li>
           <li>Apache Solr output connector</li>
           <li>Null output connector</li>
-          <li>Null authority connector</li>
         </ul>
         <p></p>
         <p>The LGPL and proprietary connector dependencies are described in separate sections below.</p>
