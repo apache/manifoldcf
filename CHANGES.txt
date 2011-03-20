@@ -1,6 +1,9 @@
 ManifoldCF Change Log
 $Id$
 
+======================= 0.3-dev =========================
+
+
 ======================= Release 0.2 =======================
 Release Date:  See http://incubator.apache.org/connectors for the official release date.
 
