@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-171: Make sure XML output from within XML document does not
+corrupt entity references.
+(Fuad Efendi)
 
 ======================= Release 0.2 =======================
 Release Date:  See http://incubator.apache.org/connectors for the official release date.

@@ -76,7 +76,7 @@ public class XMLWriterContext extends XMLContext
   {
     try
     {
-      theWriter.write(ch,start,length);
+      escapeCharData(ch,start,length,theWriter);
     }
     catch (java.net.SocketTimeoutException e)
     {
@@ -177,5 +177,21 @@ public class XMLWriterContext extends XMLContext
         rval.append(x);
     }
     return rval.toString();
+  }
+  
+  /** Escapes sequence of characters to output writer */
+  protected static void escapeCharData(char [] chars, int start, int length, Writer out) throws IOException
+  {
+    for (int i=start; i<length; i++) {
+      char x = chars[i];
+      if (x == '<' || x == '>' || x == '&'|| (x < ' ' && x >= 0))
+      {
+        StringBuffer rval = new StringBuffer();
+        rval.append("&#").append(Integer.toString((int)x)).append(";");
+        out.write(rval.toString());
+        continue;
+      }
+      out.write(x);
+    }
   }
 }
