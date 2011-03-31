@@ -33,6 +33,26 @@ import java.io.*;
 * A secondary purpose of this module is to provide a mapping between the key by which a document is described internally (by an
 * identifier hash, plus the name of an identifier space), and the way the document is identified in the output space (by the name of an
 * output connection, plus a URI which is considered local to that output connection space).
+*
+* <br><br>
+* <b>ingeststatus</b>
+* <table border="1" cellpadding="3" cellspacing="0">
+* <tr class="TableHeadingColor">
+* <th>Field</th><th>Type</th><th>Description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+* <tr><td>id</td><td>BIGINT</td><td>Primary Key</td></tr>
+* <tr><td>connectionname</td><td>VARCHAR(32)</td><td>Reference:outputconnections.connectionname</td></tr>
+* <tr><td>dockey</td><td>VARCHAR(73)</td><td></td></tr>
+* <tr><td>docuri</td><td>LONGTEXT</td><td></td></tr>
+* <tr><td>urihash</td><td>VARCHAR(40)</td><td></td></tr>
+* <tr><td>lastversion</td><td>LONGTEXT</td><td></td></tr>
+* <tr><td>lastoutputversion</td><td>LONGTEXT</td><td></td></tr>
+* <tr><td>changecount</td><td>BIGINT</td><td></td></tr>
+* <tr><td>firstingest</td><td>BIGINT</td><td></td></tr>
+* <tr><td>lastingest</td><td>BIGINT</td><td></td></tr>
+* <tr><td>authorityname</td><td>VARCHAR(32)</td><td></td></tr>
+* </table>
+* <br><br>
+* 
 */
 public class IncrementalIngester extends org.apache.manifoldcf.core.database.BaseTable implements IIncrementalIngester
 {

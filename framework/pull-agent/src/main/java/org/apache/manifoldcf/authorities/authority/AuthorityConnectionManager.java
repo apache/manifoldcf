@@ -28,7 +28,21 @@ import org.apache.manifoldcf.crawler.interfaces.IRepositoryConnectionManager;
 import org.apache.manifoldcf.crawler.interfaces.RepositoryConnectionManagerFactory;
 
 /** Implementation of the authority connection manager functionality.
-*/
+ * 
+ * <br><br>
+ * <b>authconnectors</b>
+ * <table border="1" cellpadding="3" cellspacing="0">
+ * <tr class="TableHeadingColor">
+ * <th>Field</th><th>Type</th><th>Description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+ * <tr><td>authorityname</td><td>VARCHAR(32)</td><td>Primary Key</td></tr>
+ * <tr><td>description</td><td>VARCHAR(255)</td><td></td></tr>
+ * <tr><td>classname</td><td>VARCHAR(255)</td><td></td></tr>
+ * <tr><td>maxcount</td><td>BIGINT</td><td></td></tr>
+ * <tr><td>configxml</td><td>LONGTEXT</td><td></td></tr>
+ * </table>
+ * <br><br>
+ * 
+ */
 public class AuthorityConnectionManager extends org.apache.manifoldcf.core.database.BaseTable implements IAuthorityConnectionManager
 {
   public static final String _rcsid = "@(#)$Id: AuthorityConnectionManager.java 996524 2010-09-13 13:38:01Z kwright $";

@@ -27,6 +27,21 @@ import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
 /** This class manages the table that keeps track of hop count, and algorithmically determines this value
 * for a document identifier upon request.
+* 
+* <br><br>
+* <b>hopcount</b>
+* <table border="1" cellpadding="3" cellspacing="0">
+* <tr class="TableHeadingColor">
+* <th>Field</th><th>Type</th><th>Description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+* <tr><td>id</td><td>BIGINT</td><td>Primary Key</td></tr>
+* <tr><td>jobid</td><td>BIGINT</td><td>Reference:jobs.id</td></tr>
+* <tr><td>linktype</td><td>VARCHAR(255)</td><td></td></tr>
+* <tr><td>parentidhash</td><td>VARCHAR(40)</td><td></td></tr>
+* <tr><td>distance</td><td>BIGINT</td><td></td></tr>
+* <tr><td>deathmark</td><td>CHAR(1)</td><td></td></tr>
+* </table>
+* <br><br>
+* 
 */
 public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
 {

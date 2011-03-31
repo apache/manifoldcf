@@ -26,7 +26,23 @@ import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
 /** This class manages the table that keeps track of intrinsic relationships between documents.
-*/
+ * 
+ * <br><br>
+ * <b>carrydown</b>
+ * <table border="1" cellpadding="3" cellspacing="0">
+ * <tr class="TableHeadingColor">
+ * <th>Field</th><th>Type</th><th>Description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+ * <tr><td>jobid</td><td>BIGINT</td><td>Reference:jobs.id</td></tr>
+ * <tr><td>parentidhash</td><td>VARCHAR(40)</td><td></td></tr>
+ * <tr><td>childidhash</td><td>VARCHAR(40)</td><td></td></tr>
+ * <tr><td>dataname</td><td>VARCHAR(255)</td><td></td></tr>
+ * <tr><td>datavaluehash</td><td>VARCHAR(40)</td><td></td></tr>
+ * <tr><td>datavalue</td><td>LONGTEXT</td><td></td></tr>
+ * <tr><td>isnew</td><td>CHAR(1)</td><td></td></tr>
+ * </table>
+ * <br><br>
+ * 
+ */
 public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
 {
   public static final String _rcsid = "@(#)$Id: Carrydown.java 988245 2010-08-23 18:39:35Z kwright $";

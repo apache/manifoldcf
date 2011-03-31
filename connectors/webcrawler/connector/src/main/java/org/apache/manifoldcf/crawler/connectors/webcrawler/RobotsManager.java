@@ -31,6 +31,18 @@ import org.apache.manifoldcf.crawler.system.Logging;
 /** This class manages the database table into which we write robots.txt files for hosts.  The data resides in the database,
 * as well as in cache (up to a certain point).  The result is that there is a memory limited, database-backed repository
 * of robots files that we can draw on.
+* 
+* <br><br>
+* <b>robotsdata</b>
+* <table border="1" cellpadding="3" cellspacing="0">
+* <tr class="TableHeadingColor">
+* <th>Field</th><th>Type</th><th>Description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+* <tr><td>hostname</td><td>VARCHAR(255)</td><td>Primary Key</td></tr>
+* <tr><td>robotsdata</td><td>BIGINT</td><td></td></tr>
+* <tr><td>expirationtime</td><td>BLOB</td><td></td></tr>
+* </table>
+* <br><br>
+* 
 */
 public class RobotsManager extends org.apache.manifoldcf.core.database.BaseTable
 {

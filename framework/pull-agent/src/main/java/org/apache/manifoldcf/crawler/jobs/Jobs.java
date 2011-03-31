@@ -25,7 +25,37 @@ import org.apache.manifoldcf.crawler.interfaces.CacheKeyFactory;
 import java.util.*;
 
 /** This class manages the jobs table.
-*/
+ * 
+ * <br><br>
+ * <b>jobs</b>
+ * <table border="1" cellpadding="3" cellspacing="0">
+ * <tr class="TableHeadingColor">
+ * <th>Field</th><th>Type</th><th>Description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+ * <tr><td>id</td><td>BIGINT</td><td>Primary Key</td></tr>
+ * <tr><td>description</td><td>VARCHAR(255)</td><td></td></tr>
+ * <tr><td>status</td><td>CHAR(1)</td><td>operational field</td></tr>
+ * <tr><td>lasttime</td><td>BIGINT</td><td>operational field</td></tr>
+ * <tr><td>starttime</td><td>BIGINT</td><td>operational field</td></tr>
+ * <tr><td>lastchecktime</td><td>BIGINT</td><td>operational field</td></tr>
+ * <tr><td>endtime</td><td>BIGINT</td><td>operational field</td></tr>
+ * <tr><td>docspec</td><td>LONGTEXT</td><td></td></tr>
+ * <tr><td>outputspec</td><td>LONGTEXT</td><td></td></tr>
+ * <tr><td>connectionname</td><td>VARCHAR(32)</td><td>Reference:repoconnections.connectionname</td></tr>
+ * <tr><td>outputname</td><td>VARCHAR(32)</td><td>Reference:outputconnections.connectionname</td></tr>
+ * <tr><td>type</td><td>CHAR(1)</td><td></td></tr>
+ * <tr><td>intervaltime</td><td>BIGINT</td><td></td></tr>
+ * <tr><td>expirationtime</td><td>BIGINT</td><td></td></tr>
+ * <tr><td>windowend</td><td>BIGINT</td><td></td></tr>
+ * <tr><td>priority</td><td>BIGINT</td><td></td></tr>
+ * <tr><td>startmethod</td><td>CHAR(1)</td><td></td></tr>
+ * <tr><td>errortext</td><td>LONGTEXT</td><td></td></tr>
+ * <tr><td>reseedinterval</td><td>BIGINT</td><td></td></tr>
+ * <tr><td>reseedtime</td><td>BIGINT</td><td></td></tr>
+ * <tr><td>hopcountmode</td><td>CHAR(1)</td><td></td></tr>
+ * </table>
+ * <br><br>
+ * 
+ */
 public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
 {
   public static final String _rcsid = "@(#)$Id: Jobs.java 991295 2010-08-31 19:12:14Z kwright $";

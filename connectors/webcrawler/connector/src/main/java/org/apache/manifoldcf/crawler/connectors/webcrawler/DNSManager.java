@@ -32,6 +32,19 @@ import org.apache.manifoldcf.crawler.system.Logging;
 * as well as in cache (up to a certain point).  The result is that there is a memory limited, database-backed repository
 * of DNS entries that we can draw on.
 * Note that this code is also responsible for efficiently caching the mapping of IP address to a canonical host name.
+* 
+* <br><br>
+* <b>dnsdata</b>
+* <table border="1" cellpadding="3" cellspacing="0">
+* <tr class="TableHeadingColor">
+* <th>Field</th><th>Type</th><th>Description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+* <tr><td>hostname</td><td>VARCHAR(255)</td><td>Primary Key</td></tr>
+* <tr><td>canonicalhostname</td><td>VARCHAR(255)</td><td></td></tr>
+* <tr><td>ipaddress</td><td>VARCHAR(16)</td><td></td></tr>
+* <tr><td>expirationtime</td><td>BIGINT</td><td></td></tr>
+* </table>
+* <br><br>
+* 
 */
 public class DNSManager extends org.apache.manifoldcf.core.database.BaseTable
 {

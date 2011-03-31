@@ -24,7 +24,18 @@ import org.apache.manifoldcf.crawler.interfaces.CacheKeyFactory;
 import java.util.*;
 
 /** Implementation of IConnectorManager.
-*/
+ * 
+ * <br><br>
+ * <b>connectors</b>
+ * <table border="1" cellpadding="3" cellspacing="0">
+ * <tr class="TableHeadingColor">
+ * <th>Field</th><th>Type</th><th>Description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+ * <tr><td>description</td><td>VARCHAR(255)</td><td></td></tr>
+ * <tr><td>classname</td><td>VARCHAR(255)</td><td>Primary Key</td></tr>
+ * </table>
+ * <br><br>
+ * 
+ */
 public class ConnectorManager extends org.apache.manifoldcf.core.database.BaseTable implements IConnectorManager
 {
   public static final String _rcsid = "@(#)$Id: ConnectorManager.java 988245 2010-08-23 18:39:35Z kwright $";

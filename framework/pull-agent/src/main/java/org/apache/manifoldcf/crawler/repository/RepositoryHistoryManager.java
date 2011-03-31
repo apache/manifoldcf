@@ -23,7 +23,25 @@ import org.apache.manifoldcf.crawler.interfaces.*;
 import java.util.*;
 
 /** This class is the manager for the history records belonging to the repository connector.
-*/
+ * 
+ * <br><br>
+ * <b>repohistory</b>
+ * <table border="1" cellpadding="3" cellspacing="0">
+ * <tr class="TableHeadingColor">
+ * <th>Field</th><th>Type</th><th>Description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+ * <tr><td>id</td><td>BIGINT</td><td>Primary Key</td></tr>
+ * <tr><td>owner</td><td>VARCHAR(32)</td><td>Reference:repoconnections.connectionname</td></tr>
+ * <tr><td>starttime</td><td>BIGINT</td><td></td></tr>
+ * <tr><td>endtime</td><td>BIGINT</td><td></td></tr>
+ * <tr><td>datasize</td><td>BIGINT</td><td></td></tr>
+ * <tr><td>activitytype</td><td>VARCHAR(64)</td><td></td></tr>
+ * <tr><td>entityid</td><td>LONGTEXT</td><td></td></tr>
+ * <tr><td>resultcode</td><td>VARCHAR(255)</td><td></td></tr>
+ * <tr><td>resultdesc</td><td>LONGTEXT</td><td></td></tr>
+ * </table>
+ * <br><br>
+ * 
+ */
 public class RepositoryHistoryManager extends org.apache.manifoldcf.core.database.BaseTable
 {
   public static final String _rcsid = "@(#)$Id: RepositoryHistoryManager.java 999670 2010-09-21 22:18:19Z kwright $";

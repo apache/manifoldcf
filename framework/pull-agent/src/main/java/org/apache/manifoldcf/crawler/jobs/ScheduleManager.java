@@ -25,6 +25,25 @@ import java.util.*;
 
 /** This class manages the "schedules" table, which contains the automatic execution schedule for each job.
 * It's separated from the main jobs table because we will need multiple timeslots per job.
+* 
+* <br><br>
+* <b>schedules</b>
+* <table border="1" cellpadding="3" cellspacing="0">
+* <tr class="TableHeadingColor">
+* <th>Field</th><th>Type</th><th>Description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+* <tr><td>ownerid</td><td>BIGINT</td><td>Reference:jobs.id</td></tr>
+* <tr><td>ordinal</td><td>BIGINT</td><td></td></tr>
+* <tr><td>dayofweek</td><td>VARCHAR(255)</td><td></td></tr>
+* <tr><td>dayofmonth</td><td>VARCHAR(255)</td><td></td></tr>
+* <tr><td>monthofyear</td><td>VARCHAR(255)</td><td></td></tr>
+* <tr><td>yearlist</td><td>VARCHAR(255)</td><td></td></tr>
+* <tr><td>hourofday</td><td>VARCHAR(255)</td><td></td></tr>
+* <tr><td>minutesofhour</td><td>VARCHAR(255)</td><td></td></tr>
+* <tr><td>timezone</td><td>VARCHAR(32)</td><td></td></tr>
+* <tr><td>windowlength</td><td>BIGINT</td><td></td></tr>
+* </table>
+* <br><br>
+* 
 */
 public class ScheduleManager extends org.apache.manifoldcf.core.database.BaseTable
 {

@@ -26,6 +26,16 @@ import java.util.*;
 /** This class manages the events table.
 * A row in this table indicates that a specific event sequence is in progress.  For example, a login sequence for a specific web domain
 * may be underway.  During the time that the event is taking place, no documents that depend on that event will be queued for processing.
+* 
+* <br><br>
+* <b>events</b>
+* <table border="1" cellpadding="3" cellspacing="0">
+* <tr class="TableHeadingColor">
+* <th>Field</th><th>Type</th><th>Description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+* <tr><td>name</td><td>VARCHAR(255)</td><td>Primary Key</td></tr>
+* </table>
+* <br><br>
+* 
 */
 public class EventManager extends org.apache.manifoldcf.core.database.BaseTable
 {

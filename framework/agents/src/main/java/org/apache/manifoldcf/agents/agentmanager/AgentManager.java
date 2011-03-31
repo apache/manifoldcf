@@ -23,7 +23,17 @@ import org.apache.manifoldcf.agents.interfaces.*;
 import java.util.*;
 
 /** This is the implementation of IAgentManager.
-*/
+ * 
+ * <br><br>
+ * <b>agents</b>
+ * <table border="1" cellpadding="3" cellspacing="0">
+ * <tr class="TableHeadingColor">
+ * <th>Field</th><th>Type</th><th>Description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+ * <tr><td>classname</td><td>VARCHAR(255)</td><td>Primary Key</td></tr>
+ * </table>
+ * <br><br>
+ * 
+ */
 public class AgentManager extends org.apache.manifoldcf.core.database.BaseTable implements IAgentManager
 {
   public static final String _rcsid = "@(#)$Id: AgentManager.java 988245 2010-08-23 18:39:35Z kwright $";

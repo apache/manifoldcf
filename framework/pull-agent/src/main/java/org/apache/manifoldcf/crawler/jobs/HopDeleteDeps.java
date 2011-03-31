@@ -26,6 +26,20 @@ import java.util.*;
 
 /** This class manages the table that keeps track of link deletion dependencies for cached
 * hopcounts.
+* 
+* <br><br>
+* <b>hopdeletedeps</b>
+* <table border="1" cellpadding="3" cellspacing="0">
+* <tr class="TableHeadingColor">
+* <th>Field</th><th>Type</th><th>Description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+* <tr><td>jobid</td><td>BIGINT</td><td>Reference:jobs.id</td></tr>
+* <tr><td>ownerid</td><td>BIGINT</td><td>Reference:hopcount.id</td></tr>
+* <tr><td>linktype</td><td>VARCHAR(255)</td><td></td></tr>
+* <tr><td>parentidhash</td><td>VARCHAR(40)</td><td></td></tr>
+* <tr><td>childidhash</td><td>VARCHAR(40)</td><td></td></tr>
+* </table>
+* <br><br>
+* 
 */
 public class HopDeleteDeps extends org.apache.manifoldcf.core.database.BaseTable
 {

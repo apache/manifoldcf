@@ -26,6 +26,19 @@ import java.util.*;
 /** This class manages the "throttlespec" table, which contains the throttle specifications for each connection.
 * These are basically tuples consisting of a regexp and a fetch rate.  There's a description of each tuple,
 * so that a person can attach a description of what they are attempting to do with each limit.
+* 
+* <br><br>
+* <b>throttlespec</b>
+* <table border="1" cellpadding="3" cellspacing="0">
+* <tr class="TableHeadingColor">
+* <th>Field</th><th>Type</th><th>Description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+* <tr><td>ownername</td><td>VARCHAR(32)</td><td>Reference:repoconnections.connectionname</td></tr>
+* <tr><td>description</td><td>VARCHAR(255)</td><td></td></tr>
+* <tr><td>matchstring</td><td>VARCHAR(255)</td><td></td></tr>
+* <tr><td>throttle</td><td>FLOAT</td><td></td></tr>
+* </table>
+* <br><br>
+* 
 */
 public class ThrottleSpecManager extends org.apache.manifoldcf.core.database.BaseTable
 {

@@ -25,7 +25,28 @@ import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import java.util.*;
 
 /** This is the job queue manager class.  It is responsible for managing the jobqueue database table.
-*/
+ * 
+ * <br><br>
+ * <b>jobqueue</b>
+ * <table border="1" cellpadding="3" cellspacing="0">
+ * <tr class="TableHeadingColor">
+ * <th>Field</th><th>Type</th><th>Description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+ * <tr><td>id</td><td>BIGINT</td><td>Primary Key</td></tr>
+ * <tr><td>jobid</td><td>BIGINT</td><td>Reference:jobs.id</td></tr>
+ * <tr><td>dochash</td><td>VARCHAR(40)</td><td></td></tr>
+ * <tr><td>docid</td><td>LONGTEXT</td><td></td></tr>
+ * <tr><td>checktime</td><td>BIGINT</td><td></td></tr>
+ * <tr><td>failtime</td><td>BIGINT</td><td></td></tr>
+ * <tr><td>failcount</td><td>BIGINT</td><td></td></tr>
+ * <tr><td>status</td><td>CHAR(1)</td><td></td></tr>
+ * <tr><td>isseed</td><td>CHAR(1)</td><td></td></tr>
+ * <tr><td>docpriority</td><td>FLOAT</td><td></td></tr>
+ * <tr><td>priorityset</td><td>BIGINT</td><td></td></tr>
+ * <tr><td>checkaction</td><td>CHAR(1)</td><td></td></tr>
+ * </table>
+ * <br><br>
+ * 
+ */
 public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
 {
   public static final String _rcsid = "@(#)$Id: JobQueue.java 988245 2010-08-23 18:39:35Z kwright $";

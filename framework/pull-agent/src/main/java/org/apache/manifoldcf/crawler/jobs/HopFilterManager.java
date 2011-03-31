@@ -25,6 +25,18 @@ import java.util.*;
 
 /** This class manages the "hopfilters" table, which contains the hopcount filters for each job.
 * It's separated from the main jobs table because we will need multiple hop filters per job.
+* 
+* <br><br>
+* <b>jobhopfilters</b>
+* <table border="1" cellpadding="3" cellspacing="0">
+* <tr class="TableHeadingColor">
+* <th>Field</th><th>Type</th><th>Description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+* <tr><td>ownerid</td><td>BIGINT</td><td>Reference:jobs.id</td></tr>
+* <tr><td>linktype</td><td>VARCHAR(255)</td><td></td></tr>
+* <tr><td>maxhops</td><td>BIGINT</td><td></td></tr>
+* </table>
+* <br><br>
+* 
 */
 public class HopFilterManager extends org.apache.manifoldcf.core.database.BaseTable
 {

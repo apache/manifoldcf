@@ -26,6 +26,17 @@ import java.util.*;
 /** This class manages the prerequisite event table.
 * This table lists the prerequisite event rows that must NOT exist in order for a jobqueue entry to be queued for processing.  If a prerequisite event row does, in fact,
 * exist, then queuing and processing do not take place until that row is cleared.
+* 
+* <br><br>
+* <b>prereqevents</b>
+* <table border="1" cellpadding="3" cellspacing="0">
+* <tr class="TableHeadingColor">
+* <th>Field</th><th>Type</th><th>Description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+* <tr><td>owner</td><td>BIGINT</td><td>Reference:jobqueue.id</td></tr>
+* <tr><td>eventname</td><td>VARCHAR(255)</td><td></td></tr>
+* </table>
+* <br><br>
+* 
 */
 public class PrereqEventManager extends org.apache.manifoldcf.core.database.BaseTable
 {

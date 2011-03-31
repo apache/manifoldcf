@@ -29,6 +29,20 @@ import org.apache.manifoldcf.agents.system.ManifoldCF;
 * with appropriate caching.
 * Note well: The database handle is instantiated here using the DBInterfaceFactory.  This is acceptable because the
 * actual database that this table is located in is fixed.
+* 
+* <br><br>
+* <b>outputconnections</b>
+* <table border="1" cellpadding="3" cellspacing="0">
+* <tr class="TableHeadingColor">
+* <th>Field</th><th>Type</th><th>Description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+* <tr><td>connectionname</td><td>VARCHAR(32)</td><td>Primary Key</td></tr>
+* <tr><td>description</td><td>VARCHAR(255)</td><td></td></tr>
+* <tr><td>classname</td><td>VARCHAR(255)</td><td></td></tr>
+* <tr><td>maxcount</td><td>BIGINT</td><td></td></tr>
+* <tr><td>configxml</td><td>LONGTEXT</td><td></td></tr>
+* </table>
+* <br><br>
+* 
 */
 public class OutputConnectionManager extends org.apache.manifoldcf.core.database.BaseTable implements IOutputConnectionManager
 {

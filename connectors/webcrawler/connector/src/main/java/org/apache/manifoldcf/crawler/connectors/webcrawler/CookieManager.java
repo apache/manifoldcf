@@ -33,6 +33,33 @@ import org.apache.commons.httpclient.cookie.Cookie2;
 /** This class manages the database table into which we write cookies.  The data resides in the database,
 * as well as in cache (up to a certain point).  The result is that there is a memory limited, database-backed repository
 * of cookies that we can draw on.
+* 
+* <br><br>
+* <b>cookiedata</b>
+* <table border="1" cellpadding="3" cellspacing="0">
+* <tr class="TableHeadingColor">
+* <th>Field</th><th>Type</th><th>Description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+* <tr><td>sequencekey</td><td>VARCHAR(255)</td><td></td></tr>
+* <tr><td>ordinal</td><td>BIGINT</td><td></td></tr>
+* <tr><td>domainspecified</td><td>CHAR(1)</td><td></td></tr>
+* <tr><td>domain</td><td>LONGTEXT</td><td></td></tr>
+* <tr><td>name</td><td>LONGTEXT</td><td></td></tr>
+* <tr><td>value</td><td>LONGTEXT</td><td></td></tr>
+* <tr><td>pathspecified</td><td>CHAR(1)</td><td></td></tr>
+* <tr><td>path</td><td>LONGTEXT</td><td></td></tr>
+* <tr><td>versionspecified</td><td>CHAR(1)</td><td></td></tr>
+* <tr><td>version</td><td>BIGINT</td><td></td></tr>
+* <tr><td>comment</td><td>LONGTEXT</td><td></td></tr>
+* <tr><td>secure</td><td>CHAR(1)</td><td></td></tr>
+* <tr><td>expirationdate</td><td>BIGINT</td><td></td></tr>
+* <tr><td>discard</td><td>CHAR(1)</td><td></td></tr>
+* <tr><td>commenturl</td><td>LONGTEXT</td><td></td></tr>
+* <tr><td>portblank</td><td>CHAR(1)</td><td></td></tr>
+* <tr><td>portspecified</td><td>CHAR(1)</td><td></td></tr>
+* <tr><td>ports</td><td>LONGTEXT</td><td></td></tr>
+* </table>
+* <br><br>
+* 
 */
 public class CookieManager extends org.apache.manifoldcf.core.database.BaseTable
 {
