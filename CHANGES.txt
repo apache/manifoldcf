@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-173: Update javadoc to include table schemas.
+(Shinichiro Abe)
+
 CONNECTORS-171: Make sure XML output from within XML document does not
 corrupt entity references.
 (Fuad Efendi)
