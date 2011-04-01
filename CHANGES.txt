@@ -15,6 +15,10 @@ Release Date:  See http://incubator.apache.org/connectors for the official relea
 
 Web site updated to reflect proposed release.
 
+CONNECTORS-172: At the advice of the Derby team, build Derby in
+"insane" mode to allow it to recover from internal errors.
+(Koji Sekiguchi, Karl Wright)
+
 CONNECTORS-170: Add support to the Derby driver for periodic analysis and
 reindexing, since after 10.7.1.1 it seems this is now supported.
 (Karl Wright)
