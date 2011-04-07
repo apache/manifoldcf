@@ -405,6 +405,13 @@ cd dist/example
           <table>
             <caption>Property.xml properties</caption>
             <tr><th>Property</th><th>Required?</th><th>Function</th></tr>
+            <tr><td>org.apache.manifoldcf.connectorsconfigurationfile</td><td>No</td><td>Location of connectors.xml file, for QuickStart, so ManifoldCF can register connectors.</td></tr>
+            <tr><td>org.apache.manifoldcf.dbsuperusername</td><td>No</td><td>Database superuser name, for QuickStart, so ManifoldCF can create database instance.</td></tr>
+            <tr><td>org.apache.manifoldcf.dbsuperuserpassword</td><td>No</td><td>Database superuser password, for QuickStart, so ManifoldCF can create database instance.</td></tr>
+            <tr><td>org.apache.manifoldcf.postgresql.hostname</td><td>No</td><td>PostgreSQL server host name, or localhost if not specified.</td></tr>
+            <tr><td>org.apache.manifoldcf.postgresql.port</td><td>No</td><td>PostgreSQL server port, or standard port if not specified.</td></tr>
+            <tr><td>org.apache.manifoldcf.postgresql.ssl</td><td>No</td><td>Set to "true" for ssl communication with PostgreSQL.</td></tr>
+            <tr><td>org.apache.manifoldcf.derbydatabasepath</td><td>No</td><td>Absolute or relative path to Derby database; default is '.'.</td></tr>
             <tr><td>org.apache.manifoldcf.lockmanagerclass</td><td>No</td><td>Specifies the class to use to implement synchronization.  Default is a built-in file-based synchronization class.</td></tr>
             <tr><td>org.apache.manifoldcf.databaseimplementationclass</td><td>No</td><td>Specifies the class to use to implement database access.  Default is a built-in Postgresql implementation.</td></tr>
             <tr><td>org.apache.manifoldcf.synchdirectory</td><td>Yes, if file-based synchronization class is used</td><td>Specifies the path of a synchronization directory.  All ManifoldCF process owners <strong>must</strong> have read/write privileges to this directory.</td></tr>

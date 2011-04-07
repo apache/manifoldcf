@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-175: Update documentation of properties.xml parameters
+to include missing ones.
+(Shinichiro Abe, Karl Wright)
+
 CONNECTORS-173: Update javadoc to include table schemas.
 (Shinichiro Abe)
 
