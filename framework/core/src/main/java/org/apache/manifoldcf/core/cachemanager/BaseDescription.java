@@ -40,6 +40,12 @@ public abstract class BaseDescription implements ICacheDescription
       cacheClass = new LocalCacheClass(objectClassName);
   }
 
+  public BaseDescription(String objectClassName, int maxLRUCount)
+  {
+    if (objectClassName != null)
+      cacheClass = new LocalCacheClass(objectClassName,maxLRUCount);
+  }
+
   /** Get the object class for an object.  The object class is used to determine
   * the group of objects treated in the same LRU manner.
   * @return the newly created object's object class, or null if there is no
@@ -71,7 +77,14 @@ public abstract class BaseDescription implements ICacheDescription
 
     public LocalCacheClass(String objectClassName)
     {
+      this(objectClassName,-1);
+    }
+    
+    public LocalCacheClass(String objectClassName, int maxLRUCount)
+    {
       this.objectClassName = objectClassName;
+      if (maxLRUCount != -1)
+        this.maxLRUCount = new Integer(maxLRUCount);
     }
 
     /** Get the name of the object class.
