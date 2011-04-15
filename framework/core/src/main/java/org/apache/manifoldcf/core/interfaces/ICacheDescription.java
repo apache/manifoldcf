@@ -54,11 +54,12 @@ public interface ICacheDescription
   public ICacheClass getObjectClass();
 
   /** Obtain an expiration time for an object, in milliseconds since epoch.
-  * The cache manager will call this method for all objects that are being operated on,
-  * so that their expiration timestamps get properly updated to a new time.
+  * The cache manager will call this method whenever the object is being looked up,
+  * so that its expiration timestamps can be properly updated to a new time.
+  * @param currentTime is the time of the lookup, in milliseconds since epoch.
   * @return a time in milliseconds since epoch for the object to expire, or -1 if there is no expiration
   * desired.
   */
-  public long getObjectExpirationTime();
+  public long getObjectExpirationTime(long currentTime);
 
 }

@@ -487,9 +487,7 @@ public class CacheManager implements ICacheManager
   {
 
     // Update the expiration time for this object.
-    long expireInterval = objectDescription.getObjectExpirationTime();
-    if (expireInterval >= 0)
-      expireInterval += currentTime;
+    long expireInterval = objectDescription.getObjectExpirationTime(currentTime);
     cache.setObjectExpiration(objectDescription,expireInterval);
 
     // Update LRU and max counts.  This also flushes the cache to meet the criteria.

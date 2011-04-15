@@ -3,6 +3,11 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-181: Fix the way timed expiration works to agree with
+the description, and pass in a current time parameter to make it
+work readily for continuous renewal.
+(Karl Wright)
+
 CONNECTORS-179: Add ability to throw ManifoldCFException from the
 IConnector method setThreadContext.
 (Karl Wright)

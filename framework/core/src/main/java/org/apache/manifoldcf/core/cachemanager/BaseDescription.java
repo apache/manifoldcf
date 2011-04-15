@@ -56,7 +56,7 @@ public abstract class BaseDescription implements ICacheDescription
   * @return a time in milliseconds for the object to expire, or -1 if there is no expiration
   * desired.
   */
-  public long getObjectExpirationTime()
+  public long getObjectExpirationTime(long currentTime)
   {
     return -1;
   }
