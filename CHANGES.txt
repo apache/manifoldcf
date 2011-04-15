@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-179: Add ability to throw ManifoldCFException from the
+IConnector method setThreadContext.
+(Karl Wright)
+
 CONNECTORS-175: Update documentation of properties.xml parameters
 to include missing ones.
 (Shinichiro Abe, Karl Wright)

@@ -82,7 +82,8 @@ public interface IConnector
   /** Attach to a new thread.
   *@param threadContext is the new thread context.
   */
-  public void setThreadContext(IThreadContext threadContext);
+  public void setThreadContext(IThreadContext threadContext)
+    throws ManifoldCFException;
 
 
   // UI support methods.
