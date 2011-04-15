@@ -439,7 +439,6 @@ public class AuthorityConnectorFactory
         }
       }
 
-      IAuthorityConnector rc;
       if (stack.size() == 0)
       {
         String className = key.getClassName();
@@ -459,10 +458,9 @@ public class AuthorityConnectorFactory
           Object o = c.newInstance(arguments);
           if (!(o instanceof IAuthorityConnector))
             throw new ManifoldCFException("Class '"+className+"' does not implement IAuthorityConnector.");
-          // System.out.println("Authority connector instantiated");
-          rc = (IAuthorityConnector)o;
-          rc.connect(configParams);
-          // System.out.println("Connect has been called for authority connector");
+          IAuthorityConnector newrc = (IAuthorityConnector)o;
+          newrc.connect(configParams);
+	  stack.add(newrc);
         }
         catch (InvocationTargetException e)
         {
@@ -512,15 +510,13 @@ public class AuthorityConnectorFactory
             e);
         }
       }
-      else
-      {
-        // System.out.println("Getting existing authority connector off the stack");
-        rc = (IAuthorityConnector)stack.remove(stack.size()-1);
-      }
-
+      
+      // Since thread context set can fail, do that before we remove it from the pool.
+      IAuthorityConnector rc = (IAuthorityConnector)stack.get(stack.size()-1);
+      rc.setThreadContext(threadContext);
+      stack.remove(stack.size()-1);
       numFree--;
 
-      rc.setThreadContext(threadContext);
       return rc;
     }
 
@@ -549,11 +545,17 @@ public class AuthorityConnectorFactory
       int i = 0;
       while (i < stack.size())
       {
-        IAuthorityConnector rc = (IAuthorityConnector)stack.get(i++);
+        IConnector rc = (IConnector)stack.get(i++);
         // Notify
         rc.setThreadContext(threadContext);
-        rc.poll();
-        rc.clearThreadContext();
+        try
+        {
+          rc.poll();
+        }
+        finally
+        {
+          rc.clearThreadContext();
+        }
       }
     }
 
@@ -564,11 +566,18 @@ public class AuthorityConnectorFactory
     {
       while (stack.size() > 0)
       {
-        IAuthorityConnector rc = (IAuthorityConnector)stack.remove(stack.size()-1);
         // Disconnect
+        IConnector rc = (IConnector)stack.get(stack.size()-1);
         rc.setThreadContext(threadContext);
-        rc.disconnect();
-        rc.clearThreadContext();
+        try
+        {
+          rc.disconnect();
+          stack.remove(stack.size()-1);
+        }
+        finally
+        {
+          rc.clearThreadContext();
+        }
       }
     }
 

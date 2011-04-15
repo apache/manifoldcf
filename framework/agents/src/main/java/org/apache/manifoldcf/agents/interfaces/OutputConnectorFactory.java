@@ -539,7 +539,6 @@ public class OutputConnectorFactory
         }
       }
 
-      IOutputConnector rc;
       if (stack.size() == 0)
       {
         String className = key.getClassName();
@@ -559,8 +558,9 @@ public class OutputConnectorFactory
           Object o = c.newInstance(arguments);
           if (!(o instanceof IOutputConnector))
             throw new ManifoldCFException("Class '"+className+"' does not implement IOutputConnector.");
-          rc = (IOutputConnector)o;
-          rc.connect(configParams);
+          IOutputConnector newrc = (IOutputConnector)o;
+          newrc.connect(configParams);
+          stack.add(newrc);
         }
         catch (InvocationTargetException e)
         {
@@ -612,12 +612,13 @@ public class OutputConnectorFactory
             e);
         }
       }
-      else
-        rc = (IOutputConnector)stack.remove(stack.size()-1);
-
-      numFree--;
-
+      
+      // Since thread context set can fail, do that before we remove it from the pool.
+      IOutputConnector rc = (IOutputConnector)stack.get(stack.size()-1);
       rc.setThreadContext(threadContext);
+      stack.remove(stack.size()-1);
+      numFree--;
+      
       return rc;
     }
 
@@ -646,11 +647,17 @@ public class OutputConnectorFactory
       int i = 0;
       while (i < stack.size())
       {
-        IOutputConnector rc = (IOutputConnector)stack.get(i++);
+        IConnector rc = (IConnector)stack.get(i++);
         // Notify
         rc.setThreadContext(threadContext);
-        rc.poll();
-        rc.clearThreadContext();
+        try
+        {
+          rc.poll();
+        }
+        finally
+        {
+          rc.clearThreadContext();
+        }
       }
     }
 
@@ -661,11 +668,18 @@ public class OutputConnectorFactory
     {
       while (stack.size() > 0)
       {
-        IOutputConnector rc = (IOutputConnector)stack.remove(stack.size()-1);
         // Disconnect
+        IConnector rc = (IConnector)stack.get(stack.size()-1);
         rc.setThreadContext(threadContext);
-        rc.disconnect();
-        rc.clearThreadContext();
+        try
+        {
+          rc.disconnect();
+          stack.remove(stack.size()-1);
+        }
+        finally
+        {
+          rc.clearThreadContext();
+        }
       }
     }
 

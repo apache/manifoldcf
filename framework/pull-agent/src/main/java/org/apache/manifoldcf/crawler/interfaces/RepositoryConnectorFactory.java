@@ -592,7 +592,6 @@ public class RepositoryConnectorFactory
         }
       }
 
-      IRepositoryConnector rc;
       if (stack.size() == 0)
       {
         String className = key.getClassName();
@@ -612,8 +611,9 @@ public class RepositoryConnectorFactory
           Object o = c.newInstance(arguments);
           if (!(o instanceof IRepositoryConnector))
             throw new ManifoldCFException("Class '"+className+"' does not implement IRepositoryConnector.");
-          rc = (IRepositoryConnector)o;
-          rc.connect(configParams);
+          IRepositoryConnector newrc = (IRepositoryConnector)o;
+          newrc.connect(configParams);
+          stack.add(newrc);
         }
         catch (InvocationTargetException e)
         {
@@ -665,12 +665,13 @@ public class RepositoryConnectorFactory
             e);
         }
       }
-      else
-        rc = (IRepositoryConnector)stack.remove(stack.size()-1);
 
+      // Since thread context set can fail, do that before we remove it from the pool.
+      IRepositoryConnector rc = (IRepositoryConnector)stack.get(stack.size()-1);
+      rc.setThreadContext(threadContext);
+      stack.remove(stack.size()-1);
       numFree--;
 
-      rc.setThreadContext(threadContext);
       return rc;
     }
 
@@ -699,11 +700,17 @@ public class RepositoryConnectorFactory
       int i = 0;
       while (i < stack.size())
       {
-        IRepositoryConnector rc = (IRepositoryConnector)stack.get(i++);
+        IConnector rc = (IConnector)stack.get(i++);
         // Notify
         rc.setThreadContext(threadContext);
-        rc.poll();
-        rc.clearThreadContext();
+        try
+        {
+          rc.poll();
+        }
+        finally
+        {
+          rc.clearThreadContext();
+        }
       }
     }
 
@@ -714,11 +721,18 @@ public class RepositoryConnectorFactory
     {
       while (stack.size() > 0)
       {
-        IRepositoryConnector rc = (IRepositoryConnector)stack.remove(stack.size()-1);
         // Disconnect
+        IConnector rc = (IConnector)stack.get(stack.size()-1);
         rc.setThreadContext(threadContext);
-        rc.disconnect();
-        rc.clearThreadContext();
+        try
+        {
+          rc.disconnect();
+          stack.remove(stack.size()-1);
+        }
+        finally
+        {
+          rc.clearThreadContext();
+        }
       }
     }
 
