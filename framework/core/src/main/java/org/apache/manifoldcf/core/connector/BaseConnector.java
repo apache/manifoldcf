@@ -106,6 +106,7 @@ public abstract class BaseConnector implements IConnector
   *@param threadContext is the new thread context.
   */
   public void setThreadContext(IThreadContext threadContext)
+    throws ManifoldCFException
   {
     currentContext = threadContext;
   }
