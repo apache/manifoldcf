@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-182: Install timed expiration of cached objects, which
+was not hooked up to the idle cleanup architecture.
+(Karl Wright)
+
 CONNECTORS-181: Fix the way timed expiration works to agree with
 the description, and pass in a current time parameter to make it
 work readily for continuous renewal.

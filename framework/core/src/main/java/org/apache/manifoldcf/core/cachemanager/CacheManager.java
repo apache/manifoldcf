@@ -430,6 +430,15 @@ public class CacheManager implements ICacheManager
     {
       Logging.cache.debug(" Object '"+objectDescription.getCriticalSectionName()+"' exists locally; checking if local copy is valid");
     }
+
+    // See if the object's attached expiration is before the current time.
+    long expireTime = cache.getObjectExpirationTime(objectDescription);
+    if (expireTime != -1L && expireTime <= handle.getLookupTime())
+    {
+      // Blow away the entry in cache, since it has expired
+      cache.deleteObject(objectDescription);
+      return null;
+    }
     
     // Before we conclude that the object is found, if we are on a multi-JVM environment we MUST check
     // the object's timestamp!!!  We check it against the invalidation key file timestamps for the object.

@@ -80,6 +80,18 @@ public class GeneralCache
     return o.getKeys();
   }
 
+  /** Get the expiration time for an object in the cache.
+  *@param objectDescription is the object's unique identifier.
+  *@return the expiration time (-1L means none).
+  */
+  public synchronized long getObjectExpirationTime(Object objectDescription)
+  {
+    ObjectRecord o = hashtable.lookup(objectDescription);
+    if (o == null)
+      return -1L;
+    return o.getObjectExpiration();
+  }
+
   /** Delete a record from the cache.
   *@param objectDescription is the unique description.
   */

@@ -47,46 +47,58 @@ public class IdleCleanupThread extends Thread
 
   public void run()
   {
-    // Create a thread context object.
-    IThreadContext threadContext = ThreadContextFactory.make();
-
-    // Loop
-    while (true)
+    try
     {
-      // Do another try/catch around everything in the loop
-      try
+      // Create a thread context object.
+      IThreadContext threadContext = ThreadContextFactory.make();
+      ICacheManager cacheManager = CacheManagerFactory.make(threadContext);
+      
+      // Loop
+      while (true)
       {
-        // Do the cleanup
-        AuthorityConnectorFactory.pollAllConnectors(threadContext);
-
-        // Sleep for the retry interval.
-        ManifoldCF.sleep(15000L);
-      }
-      catch (ManifoldCFException e)
-      {
-        if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
-          break;
-
-        // Log it, but keep the thread alive
-        Logging.authorityService.error("Exception tossed",e);
-
-        if (e.getErrorCode() == ManifoldCFException.SETUP_ERROR)
+        // Do another try/catch around everything in the loop
+        try
         {
-          // Shut the whole system down!
-          System.exit(1);
+          // Do the cleanup
+          AuthorityConnectorFactory.pollAllConnectors(threadContext);
+          cacheManager.expireObjects(System.currentTimeMillis());
+          
+          // Sleep for the retry interval.
+          ManifoldCF.sleep(15000L);
         }
+        catch (ManifoldCFException e)
+        {
+          if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+            break;
 
+          // Log it, but keep the thread alive
+          Logging.authorityService.error("Exception tossed",e);
+
+          if (e.getErrorCode() == ManifoldCFException.SETUP_ERROR)
+          {
+            // Shut the whole system down!
+            System.exit(1);
+          }
+
+        }
+        catch (InterruptedException e)
+        {
+          // We're supposed to quit
+          break;
+        }
+        catch (Throwable e)
+        {
+          // A more severe error - but stay alive
+          Logging.authorityService.fatal("Error tossed: "+e.getMessage(),e);
+        }
       }
-      catch (InterruptedException e)
-      {
-        // We're supposed to quit
-        break;
-      }
-      catch (Throwable e)
-      {
-        // A more severe error - but stay alive
-        Logging.authorityService.fatal("Error tossed",e);
-      }
+    }
+    catch (Throwable e)
+    {
+      // Severe error on initialization
+      System.err.println("Authority service idle cleanup could not start - shutting down");
+      Logging.authorityService.fatal("IdleCleanupThread initialization error tossed: "+e.getMessage(),e);
+      System.exit(-300);
     }
   }
 
