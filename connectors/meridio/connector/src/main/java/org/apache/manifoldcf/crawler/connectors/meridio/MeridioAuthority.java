@@ -67,7 +67,9 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
   private String UserName = null;
   private String Password = null;
 
-
+  /** Cache manager. */
+  protected ICacheManager cacheManager = null;
+  
   final private static int MANAGE_DOCUMENT_PRIVILEGE = 17;
 
   /** Deny access token for Meridio.  All tokens begin with "U" or with "G", except the blanket "READ_ALL" that I create.
@@ -83,20 +85,22 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
   */
   public MeridioAuthority() {}
 
-  /** Return the path for the UI interface JSP elements.
-  * These JSP's must be provided to allow the connector to be configured, and to
-  * permit it to present document filtering specification information in the UI.
-  * This method should return the name of the folder, under the <webapp>/connectors/
-  * area, where the appropriate JSP's can be found.  The name should NOT have a slash in it.
-  *@return the folder part
+  /** Set thread context.
   */
-  public String getJSPFolder()
+  public void setThreadContext(IThreadContext tc)
+    throws ManifoldCFException
   {
-    final String jspFolder = "meridio";
-    return jspFolder;
+    super.setThreadContext(tc);
+    cacheManager = CacheManagerFactory.make(tc);
   }
-
-
+  
+  /** Clear thread context.
+  */
+  public void clearThreadContext()
+  {
+    super.clearThreadContext();
+    cacheManager = null;
+  }
 
   /** Connect.  The configuration parameters are included.
   *@param configParams are the configuration parameters for this connection.
@@ -442,6 +446,45 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
   * (Should throws an exception only when a condition cannot be properly described within the authorization response object.)
   */
   public AuthorizationResponse getAuthorizationResponse(String userName)
+    throws ManifoldCFException
+  {
+    // Construct a cache description object
+    ICacheDescription objectDescription = new AuthorizationResponseDescription(userName,
+      DmwsURL.toString(),RmwsURL.toString(),MetaCartawsURL.toString(),
+      DMWSProxyHost,DMWSProxyPort,RMWSProxyHost,RMWSProxyPort,
+      MetaCartaWSProxyHost,MetaCartaWSProxyPort,this.UserName,this.Password);
+    
+    // Enter the cache
+    ICacheHandle ch = cacheManager.enterCache(new ICacheDescription[]{objectDescription},null,null);
+    try
+    {
+      ICacheCreateHandle createHandle = cacheManager.enterCreateSection(ch);
+      try
+      {
+        // Lookup the object
+        AuthorizationResponse response = (AuthorizationResponse)cacheManager.lookupObject(createHandle,objectDescription);
+        if (response != null)
+          return response;
+        // Create the object.
+        response = getAuthorizationResponseUncached(userName);
+        // Save it in the cache
+        cacheManager.saveObject(createHandle,objectDescription,response);
+        // And return it...
+        return response;
+      }
+      finally
+      {
+        cacheManager.leaveCreateSection(createHandle);
+      }
+    }
+    finally
+    {
+      cacheManager.leaveCache(ch);
+    }
+  }
+  
+  /** Uncached method to get an authorization response. */
+  public AuthorizationResponse getAuthorizationResponseUncached(String userName)
     throws ManifoldCFException
   {
     if (Logging.authorityConnectors.isDebugEnabled())
@@ -1255,6 +1298,112 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
 "  </tr>\n"+
 "</table>\n"
     );
+  }
+
+  protected static long responseLifetime = 60000L;
+  protected static int LRUsize = 1000;
+  protected static StringSet emptyStringSet = new StringSet();
+  
+  /** This is the cache object descriptor for cached access tokens from
+  * this connector.
+  */
+  protected static class AuthorizationResponseDescription extends org.apache.manifoldcf.core.cachemanager.BaseDescription
+  {
+    /** The user name associated with the access tokens */
+    protected String userName;
+    
+    // The server connection parameters
+    protected String DmwsURL;
+    protected String RmwsURL;
+    protected String wsURL;
+    protected String DMWSProxyHost;
+    protected String DMWSProxyPort;
+    protected String RMWSProxyHost;
+    protected String RMWSProxyPort;
+    protected String wsProxyHost;
+    protected String wsProxyPort;
+    protected String adminUserName;
+    protected String adminPassword;
+
+    /** The expiration time */
+    protected long expirationTime = -1;
+    
+    /** Constructor. */
+    public AuthorizationResponseDescription(String userName, String DmwsURL, String RmwsURL, String wsURL,
+      String DMWSProxyHost, String DMWSProxyPort, String RMWSProxyHost, String RMWSProxyPort,
+      String wsProxyHost, String wsProxyPort, String adminUserName, String adminPassword)
+    {
+      super("MeridioAuthority",LRUsize);
+      this.userName = userName;
+      this.DmwsURL = DmwsURL;
+      this.RmwsURL = RmwsURL;
+      this.wsURL = wsURL;
+      this.DMWSProxyHost = DMWSProxyHost;
+      this.DMWSProxyPort = DMWSProxyPort;
+      this.RMWSProxyHost = RMWSProxyHost;
+      this.RMWSProxyPort = RMWSProxyPort;
+      this.wsProxyHost = wsProxyHost;
+      this.wsProxyPort = wsProxyPort;
+      this.adminUserName = adminUserName;
+      this.adminPassword = adminPassword;
+    }
+
+    /** Return the invalidation keys for this object. */
+    public StringSet getObjectKeys()
+    {
+      return emptyStringSet;
+    }
+
+    /** Get the critical section name, used for synchronizing the creation of the object */
+    public String getCriticalSectionName()
+    {
+      return getClass().getName() + "-" + userName + "-" + DmwsURL +
+        "-" + RmwsURL+ "-" + wsURL + "-" + 
+        ((DMWSProxyHost==null)?"":DMWSProxyHost) + "-" +
+        ((DMWSProxyPort==null)?"":DMWSProxyPort) + "-" +
+        ((RMWSProxyHost==null)?"":RMWSProxyHost) + "-" +
+        ((RMWSProxyPort==null)?"":RMWSProxyPort) + "-" +
+        ((wsProxyHost==null)?"":wsProxyHost) + "-" +
+        ((wsProxyPort==null)?"":wsProxyPort) + "-" +
+        adminUserName + "-" + adminPassword;
+    }
+
+    /** Return the object expiration interval */
+    public long getObjectExpirationTime(long currentTime)
+    {
+      if (expirationTime == -1)
+        expirationTime = currentTime + responseLifetime;
+      return expirationTime;
+    }
+
+    public int hashCode()
+    {
+      return userName.hashCode() + DmwsURL.hashCode() + RmwsURL.hashCode() + wsURL.hashCode() +
+        ((DMWSProxyHost==null)?0:DMWSProxyHost.hashCode()) +
+        ((DMWSProxyPort==null)?0:DMWSProxyPort.hashCode()) +
+        ((RMWSProxyHost==null)?0:RMWSProxyHost.hashCode()) +
+        ((RMWSProxyPort==null)?0:RMWSProxyPort.hashCode()) +
+        ((wsProxyHost==null)?0:wsProxyHost.hashCode()) +
+        ((wsProxyPort==null)?0:wsProxyPort.hashCode()) +
+        adminUserName.hashCode() + adminPassword.hashCode();
+    }
+    
+    public boolean equals(Object o)
+    {
+      if (!(o instanceof AuthorizationResponseDescription))
+        return false;
+      AuthorizationResponseDescription ard = (AuthorizationResponseDescription)o;
+      return ard.userName.equals(userName) &&
+        ard.DmwsURL.equals(DmwsURL) && ard.RmwsURL.equals(RmwsURL) && ard.wsURL.equals(wsURL) &&
+        ((ard.DMWSProxyHost==null||DMWSProxyHost==null)?ard.DMWSProxyHost==DMWSProxyHost:ard.DMWSProxyHost.equals(DMWSProxyHost)) &&
+        ((ard.DMWSProxyPort==null||DMWSProxyPort==null)?ard.DMWSProxyPort==DMWSProxyPort:ard.DMWSProxyPort.equals(DMWSProxyPort)) &&
+        ((ard.RMWSProxyHost==null||RMWSProxyHost==null)?ard.RMWSProxyHost==RMWSProxyHost:ard.RMWSProxyHost.equals(RMWSProxyHost)) &&
+        ((ard.RMWSProxyPort==null||RMWSProxyPort==null)?ard.RMWSProxyPort==RMWSProxyPort:ard.RMWSProxyPort.equals(RMWSProxyPort)) &&
+        ((ard.wsProxyHost==null||wsProxyHost==null)?ard.wsProxyHost==wsProxyHost:ard.wsProxyHost.equals(wsProxyHost)) &&
+        ((ard.wsProxyPort==null||wsProxyPort==null)?ard.wsProxyPort==wsProxyPort:ard.wsProxyPort.equals(wsProxyPort)) &&
+        ard.adminUserName.equals(adminUserName) && ard.adminPassword.equals(adminPassword);
+    }
+    
   }
 
 }

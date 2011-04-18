@@ -2,6 +2,10 @@ ManifoldCF Change Log
 $Id$
 
 ======================= 0.3-dev =========================
+CONNECTORS-32: Add access token caching to the Active Directory
+authority connector, LiveLink authority connector, Meridio authority
+connector, and Documentum authority connector.
+(Shinichiro Abe, Karl Wright)
 
 CONNECTORS-182: Install timed expiration of cached objects, which
 was not hooked up to the idle cleanup architecture.

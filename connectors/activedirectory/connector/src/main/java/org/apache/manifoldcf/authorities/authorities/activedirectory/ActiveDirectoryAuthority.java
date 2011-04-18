@@ -45,6 +45,9 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   private String userName = null;
   private String password = null;
 
+  /** Cache manager. */
+  private ICacheManager cacheManager = null;
+  
   /** The initialized LDAP context (which functions as a session) */
   private LdapContext ctx = null;
   /** The time of last access to this ctx object */
@@ -67,18 +70,23 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   {
   }
 
-  /** Return the path for the UI interface JSP elements.
-  * These JSP's must be provided to allow the connector to be configured, and to
-  * permit it to present document filtering specification information in the UI.
-  * This method should return the name of the folder, under the <webapp>/connectors/
-  * area, where the appropriate JSP's can be found.  The name should NOT have a slash in it.
-  *@return the folder part
+  /** Set thread context.
   */
-  public String getJSPFolder()
+  public void setThreadContext(IThreadContext tc)
+    throws ManifoldCFException
   {
-    return "activedirectory";
+    super.setThreadContext(tc);
+    cacheManager = CacheManagerFactory.make(tc);
   }
-
+  
+  /** Clear thread context.
+  */
+  public void clearThreadContext()
+  {
+    super.clearThreadContext();
+    cacheManager = null;
+  }
+  
   /** Connect.  The configuration parameters are included.
   *@param configParams are the configuration parameters for this connection.
   */
@@ -150,6 +158,46 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   * (Should throws an exception only when a condition cannot be properly described within the authorization response object.)
   */
   public AuthorizationResponse getAuthorizationResponse(String userName)
+    throws ManifoldCFException
+  {
+    // Construct a cache description object
+    ICacheDescription objectDescription = new AuthorizationResponseDescription(userName,domainControllerName,this.userName,this.password);
+    
+    // Enter the cache
+    ICacheHandle ch = cacheManager.enterCache(new ICacheDescription[]{objectDescription},null,null);
+    try
+    {
+      ICacheCreateHandle createHandle = cacheManager.enterCreateSection(ch);
+      try
+      {
+        // Lookup the object
+        AuthorizationResponse response = (AuthorizationResponse)cacheManager.lookupObject(createHandle,objectDescription);
+        if (response != null)
+          return response;
+        // Create the object.
+        response = getAuthorizationResponseUncached(userName);
+        // Save it in the cache
+        cacheManager.saveObject(createHandle,objectDescription,response);
+        // And return it...
+        return response;
+      }
+      finally
+      {
+        cacheManager.leaveCreateSection(createHandle);
+      }
+    }
+    finally
+    {
+      cacheManager.leaveCache(ch);
+    }
+  }
+  
+  /** Obtain the access tokens for a given user name, uncached.
+  *@param userName is the user name or identifier.
+  *@return the response tokens (according to the current authority).
+  * (Should throws an exception only when a condition cannot be properly described within the authorization response object.)
+  */
+  protected AuthorizationResponse getAuthorizationResponseUncached(String userName)
     throws ManifoldCFException
   {
     getSession();
@@ -418,7 +466,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   }
 
   // Protected methods
-  
+
   protected void getSession()
     throws ManifoldCFException
   {
@@ -542,6 +590,75 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     return strSID.toString();
   }
 
+  protected static long responseLifetime = 60000L;
+  protected static int LRUsize = 1000;
+  protected static StringSet emptyStringSet = new StringSet();
+  
+  /** This is the cache object descriptor for cached access tokens from
+  * this connector.
+  */
+  protected static class AuthorizationResponseDescription extends org.apache.manifoldcf.core.cachemanager.BaseDescription
+  {
+    /** The user name associated with the access tokens */
+    protected String userName;
+    /** The domain controller associated with the access tokens */
+    protected String domainControllerName;
+    /** The admin user name */
+    protected String adminUserName;
+    /** The admin password */
+    protected String adminPassword;
+    /** The expiration time */
+    protected long expirationTime = -1;
+    
+    /** Constructor. */
+    public AuthorizationResponseDescription(String userName, String domainControllerName,
+      String adminUserName, String adminPassword)
+    {
+      super("ActiveDirectoryAuthority",LRUsize);
+      this.userName = userName;
+      this.domainControllerName = domainControllerName;
+      this.adminUserName = adminUserName;
+      this.adminPassword = adminPassword;
+    }
+
+    /** Return the invalidation keys for this object. */
+    public StringSet getObjectKeys()
+    {
+      return emptyStringSet;
+    }
+
+    /** Get the critical section name, used for synchronizing the creation of the object */
+    public String getCriticalSectionName()
+    {
+      return getClass().getName() + "-" + userName + "-" + domainControllerName +
+        "-" + adminUserName + "-" + adminPassword;
+    }
+
+    /** Return the object expiration interval */
+    public long getObjectExpirationTime(long currentTime)
+    {
+      if (expirationTime == -1)
+        expirationTime = currentTime + responseLifetime;
+      return expirationTime;
+    }
+
+    public int hashCode()
+    {
+      return userName.hashCode() + domainControllerName.hashCode() + adminUserName.hashCode() +
+        adminPassword.hashCode();
+    }
+    
+    public boolean equals(Object o)
+    {
+      if (!(o instanceof AuthorizationResponseDescription))
+        return false;
+      AuthorizationResponseDescription ard = (AuthorizationResponseDescription)o;
+      return ard.userName.equals(userName) && ard.domainControllerName.equals(domainControllerName) &&
+        ard.adminUserName.equals(adminUserName) && ard.adminPassword.equals(adminPassword);
+    }
+    
+  }
+  
 }
 
 

@@ -68,6 +68,9 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   // So, for some kinds of errors, we just retry for a while hoping it will go away.
   private static final int FAILURE_RETRY_COUNT = 5;
 
+  /** Cache manager. */
+  protected ICacheManager cacheManager = null;
+  
   // Livelink does not have "deny" permissions, and there is no such thing as a document with no tokens, so it is safe to not have a local "deny" token.
   // However, people feel that a suspenders-and-belt approach is called for, so this restriction has been added.
   // Livelink tokens are numbers, "SYSTEM", or "GUEST", so they can't collide with the standard form.
@@ -83,16 +86,21 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   {
   }
 
-  /** Return the path for the UI interface JSP elements.
-  * These JSP's must be provided to allow the connector to be configured, and to
-  * permit it to present document filtering specification information in the UI.
-  * This method should return the name of the folder, under the <webapp>/connectors/
-  * area, where the appropriate JSP's can be found.  The name should NOT have a slash in it.
-  *@return the folder part
+  /** Set thread context.
   */
-  public String getJSPFolder()
+  public void setThreadContext(IThreadContext tc)
+    throws ManifoldCFException
   {
-    return "livelink";
+    super.setThreadContext(tc);
+    cacheManager = CacheManagerFactory.make(tc);
+  }
+  
+  /** Clear thread context.
+  */
+  public void clearThreadContext()
+  {
+    super.clearThreadContext();
+    cacheManager = null;
   }
 
   /** Connect.  The configuration parameters are included.
@@ -235,6 +243,43 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   * (Should throws an exception only when a condition cannot be properly described within the authorization response object.)
   */
   public AuthorizationResponse getAuthorizationResponse(String userName)
+    throws ManifoldCFException
+  {
+    // Construct a cache description object
+    ICacheDescription objectDescription = new AuthorizationResponseDescription(userName,serverName,serverPort,
+      serverUsername,serverPassword);
+    
+    // Enter the cache
+    ICacheHandle ch = cacheManager.enterCache(new ICacheDescription[]{objectDescription},null,null);
+    try
+    {
+      ICacheCreateHandle createHandle = cacheManager.enterCreateSection(ch);
+      try
+      {
+        // Lookup the object
+        AuthorizationResponse response = (AuthorizationResponse)cacheManager.lookupObject(createHandle,objectDescription);
+        if (response != null)
+          return response;
+        // Create the object.
+        response = getAuthorizationResponseUncached(userName);
+        // Save it in the cache
+        cacheManager.saveObject(createHandle,objectDescription,response);
+        // And return it...
+        return response;
+      }
+      finally
+      {
+        cacheManager.leaveCreateSection(createHandle);
+      }
+    }
+    finally
+    {
+      cacheManager.leaveCache(ch);
+    }
+  }
+  
+  /** Uncached method to get access tokens for a user name. */
+  public AuthorizationResponse getAuthorizationResponseUncached(String userName)
     throws ManifoldCFException
   {
     // First, do what's necessary to map the user name that comes in to a reasonable
@@ -739,6 +784,77 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     // Exit the method
     return sanityRetryCount;
 
+  }
+
+  protected static long responseLifetime = 60000L;
+  protected static int LRUsize = 1000;
+  protected static StringSet emptyStringSet = new StringSet();
+  
+  /** This is the cache object descriptor for cached access tokens from
+  * this connector.
+  */
+  protected static class AuthorizationResponseDescription extends org.apache.manifoldcf.core.cachemanager.BaseDescription
+  {
+    /** The user name associated with the access tokens */
+    protected String userName;
+    
+    // The server connection parameters
+    protected String serverName;
+    protected int serverPort;
+    protected String serverUsername;
+    protected String serverPassword;
+
+    /** The expiration time */
+    protected long expirationTime = -1;
+    
+    /** Constructor. */
+    public AuthorizationResponseDescription(String userName, String serverName, int serverPort,
+      String serverUsername, String serverPassword)
+    {
+      super("LiveLinkAuthority",LRUsize);
+      this.userName = userName;
+      this.serverName = serverName;
+      this.serverPort = serverPort;
+      this.serverUsername = serverUsername;
+      this.serverPassword = serverPassword;
+    }
+
+    /** Return the invalidation keys for this object. */
+    public StringSet getObjectKeys()
+    {
+      return emptyStringSet;
+    }
+
+    /** Get the critical section name, used for synchronizing the creation of the object */
+    public String getCriticalSectionName()
+    {
+      return getClass().getName() + "-" + userName + "-" + serverName +
+        "-" + Integer.toString(serverPort) + "-" + serverUsername + "-" + serverPassword;
+    }
+
+    /** Return the object expiration interval */
+    public long getObjectExpirationTime(long currentTime)
+    {
+      if (expirationTime == -1)
+        expirationTime = currentTime + responseLifetime;
+      return expirationTime;
+    }
+
+    public int hashCode()
+    {
+      return userName.hashCode() + serverName.hashCode() + new Integer(serverPort).hashCode() +
+        serverUsername.hashCode() + serverPassword.hashCode();
+    }
+    
+    public boolean equals(Object o)
+    {
+      if (!(o instanceof AuthorizationResponseDescription))
+        return false;
+      AuthorizationResponseDescription ard = (AuthorizationResponseDescription)o;
+      return ard.userName.equals(userName) && ard.serverName.equals(serverName) && ard.serverPort == serverPort &&
+        ard.serverUsername.equals(serverUsername) && ard.serverPassword.equals(serverPassword);
+    }
+    
   }
 
 }

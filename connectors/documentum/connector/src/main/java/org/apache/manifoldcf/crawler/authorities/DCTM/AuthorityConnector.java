@@ -57,6 +57,9 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   protected static final AuthorizationResponse userNotFoundResponse = new AuthorizationResponse(new String[]{denyToken},AuthorizationResponse.RESPONSE_USERNOTFOUND);
   protected static final AuthorizationResponse userUnauthorizedResponse = new AuthorizationResponse(new String[]{denyToken},AuthorizationResponse.RESPONSE_USERUNAUTHORIZED);
 
+    /** Cache manager. */
+  protected ICacheManager cacheManager = null;
+
   // This is the DFC session; it may be null, or it may be set.
   protected IDocumentum session = null;
   protected long lastSessionFetch = -1L;
@@ -66,6 +69,23 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   public AuthorityConnector()
   {
     super();
+  }
+
+  /** Set thread context.
+  */
+  public void setThreadContext(IThreadContext tc)
+    throws ManifoldCFException
+  {
+    super.setThreadContext(tc);
+    cacheManager = CacheManagerFactory.make(tc);
+  }
+  
+  /** Clear thread context.
+  */
+  public void clearThreadContext()
+  {
+    super.clearThreadContext();
+    cacheManager = null;
   }
 
   protected class GetSessionThread extends Thread
@@ -582,6 +602,46 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
 
     if (Logging.authorityConnectors.isDebugEnabled())
       Logging.authorityConnectors.debug("DCTM: Inside AuthorityConnector.getAuthorizationResponse for user '"+strUserNamePassedIn+"'");
+
+    // Construct a cache description object
+    ICacheDescription objectDescription = new AuthorizationResponseDescription(strUserNamePassedIn,docbaseName,userName,password,
+      domain,caseInsensitive,useSystemAcls);
+    
+    // Enter the cache
+    ICacheHandle ch = cacheManager.enterCache(new ICacheDescription[]{objectDescription},null,null);
+    try
+    {
+      ICacheCreateHandle createHandle = cacheManager.enterCreateSection(ch);
+      try
+      {
+        // Lookup the object
+        AuthorizationResponse response = (AuthorizationResponse)cacheManager.lookupObject(createHandle,objectDescription);
+        if (response != null)
+          return response;
+        // Create the object.
+        response = getAuthorizationResponseUncached(strUserNamePassedIn);
+        // Save it in the cache
+        cacheManager.saveObject(createHandle,objectDescription,response);
+        // And return it...
+        return response;
+      }
+      finally
+      {
+        cacheManager.leaveCreateSection(createHandle);
+      }
+    }
+    finally
+    {
+      cacheManager.leaveCache(ch);
+    }
+  }
+  
+  /** Uncached get response method. */
+  protected AuthorizationResponse getAuthorizationResponseUncached(String strUserNamePassedIn)
+    throws ManifoldCFException
+  {
+    if (Logging.authorityConnectors.isDebugEnabled())
+      Logging.authorityConnectors.debug("DCTM: Inside AuthorityConnector.getAuthorizationResponseUncached for user '"+strUserNamePassedIn+"'");
 
     try
     {
@@ -1184,6 +1244,82 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
 "  </tr>\n"+
 "</table>\n"
     );
+  }
+
+  protected static long responseLifetime = 60000L;
+  protected static int LRUsize = 1000;
+  protected static StringSet emptyStringSet = new StringSet();
+
+  /** This is the cache object descriptor for cached access tokens from
+  * this connector.
+  */
+  protected static class AuthorizationResponseDescription extends org.apache.manifoldcf.core.cachemanager.BaseDescription
+  {
+    // The parameters upon which the cached results are based.
+    protected String userName;
+    protected String docbaseName;
+    protected String adminUserName;
+    protected String adminPassword;
+    protected String domain;
+    protected boolean caseInsensitive;
+    protected boolean useSystemACLs;
+    /** The expiration time */
+    protected long expirationTime = -1;
+    
+    /** Constructor. */
+    public AuthorizationResponseDescription(String userName, String docbaseName,
+      String adminUserName, String adminPassword, String domain, boolean caseInsensitive, boolean useSystemACLs)
+    {
+      super("DocumentumDirectoryAuthority",LRUsize);
+      this.userName = userName;
+      this.docbaseName = docbaseName;
+      this.adminUserName = adminUserName;
+      this.adminPassword = adminPassword;
+      this.domain = domain;
+      this.caseInsensitive = caseInsensitive;
+      this.useSystemACLs = useSystemACLs;
+    }
+
+    /** Return the invalidation keys for this object. */
+    public StringSet getObjectKeys()
+    {
+      return emptyStringSet;
+    }
+
+    /** Get the critical section name, used for synchronizing the creation of the object */
+    public String getCriticalSectionName()
+    {
+      return getClass().getName() + "-" + userName + "-" + docbaseName +
+        "-" + adminUserName + "-" + adminPassword + "-" + ((domain==null)?"NULL":domain) + "-" +
+        (caseInsensitive?"true":"false") + "-" + (useSystemACLs?"true":"false");
+    }
+
+    /** Return the object expiration interval */
+    public long getObjectExpirationTime(long currentTime)
+    {
+      if (expirationTime == -1)
+        expirationTime = currentTime + responseLifetime;
+      return expirationTime;
+    }
+
+    public int hashCode()
+    {
+      return userName.hashCode() + docbaseName.hashCode() + adminUserName.hashCode() +
+        adminPassword.hashCode() + ((domain==null)?0:domain.hashCode()) +
+        (caseInsensitive?1:0) + (useSystemACLs?1:0);
+    }
+    
+    public boolean equals(Object o)
+    {
+      if (!(o instanceof AuthorizationResponseDescription))
+        return false;
+      AuthorizationResponseDescription ard = (AuthorizationResponseDescription)o;
+      return ard.userName.equals(userName) && ard.docbaseName.equals(docbaseName) &&
+        ard.adminUserName.equals(adminUserName) && ard.adminPassword.equals(adminPassword) &&
+        ((ard.domain==null||domain==null)?(ard.domain == domain):(ard.domain.equals(domain))) &&
+        ard.caseInsensitive == caseInsensitive && ard.useSystemACLs == useSystemACLs;
+    }
+    
   }
 
 }
