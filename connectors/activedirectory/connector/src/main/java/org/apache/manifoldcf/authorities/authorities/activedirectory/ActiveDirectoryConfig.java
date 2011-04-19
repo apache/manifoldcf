@@ -33,6 +33,8 @@ public class ActiveDirectoryConfig
   public static final String PARAM_USERNAME = "User name";
   /** Administrative password */
   public static final String PARAM_PASSWORD = "Password";
+  /** Authentication */
+  public static final String PARAM_AUTHENTICATION = "Authentication";
 
 
 }

@@ -44,6 +44,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   private String domainControllerName = null;
   private String userName = null;
   private String password = null;
+  private String authentication = null;
 
   /** Cache manager. */
   private ICacheManager cacheManager = null;
@@ -98,6 +99,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     domainControllerName = configParams.getParameter(ActiveDirectoryConfig.PARAM_DOMAINCONTROLLER);
     userName = configParams.getParameter(ActiveDirectoryConfig.PARAM_USERNAME);
     password = configParams.getObfuscatedParameter(ActiveDirectoryConfig.PARAM_PASSWORD);
+    authentication = configParams.getParameter(ActiveDirectoryConfig.PARAM_AUTHENTICATION);
   }
 
   // All methods below this line will ONLY be called if a connect() call succeeded
@@ -149,6 +151,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     domainControllerName = null;
     userName = null;
     password = null;
+    authentication = null;
     super.disconnect();
   }
 
@@ -331,6 +334,13 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
 "    editconnection.username.focus();\n"+
 "    return false;\n"+
 "  }\n"+
+"  if (editconnection.authentication.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Authentication cannot be null\");\n"+
+"    SelectTab(\"Domain Controller\");\n"+
+"    editconnection.authentication.focus();\n"+
+"    return false;\n"+
+"  }\n"+
 "  return true;\n"+
 "}\n"+
 "\n"+
@@ -360,7 +370,10 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     String password = parameters.getObfuscatedParameter(org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_PASSWORD);
     if (password == null)
       password = "";
-
+    String authentication = parameters.getParameter(org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_AUTHENTICATION);
+    if (authentication == null)
+    	authentication = "DIGEST-MD5 GSSAPI";
+    
     // The "Domain Controller" tab
     if (tabName.equals("Domain Controller"))
     {
@@ -379,6 +392,10 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
 "    <td class=\"description\"><nobr>Administrative password:</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"password\" size=\"32\" name=\"password\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/></td>\n"+
 "  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Authentication:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"authentication\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(authentication)+"\"/></td>\n"+
+"  </tr>\n"+
 "</table>\n"
       );
     }
@@ -388,7 +405,8 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
       out.print(
 "<input type=\"hidden\" name=\"domaincontrollername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(domainControllerName)+"\"/>\n"+
 "<input type=\"hidden\" name=\"username\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(userName)+"\"/>\n"+
-"<input type=\"hidden\" name=\"password\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/>\n"
+"<input type=\"hidden\" name=\"password\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/>\n"+
+"<input type=\"hidden\" name=\"authentication\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(authentication)+"\"/>\n"
       );
     }
   }
@@ -414,6 +432,9 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     String password = variableContext.getParameter("password");
     if (password != null)
       parameters.setObfuscatedParameter(org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_PASSWORD,password);
+    String authentication = variableContext.getParameter("authentication");
+    if (authentication != null)
+      parameters.setParameter(org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_AUTHENTICATION,authentication);
     return null;
   }
   
@@ -477,7 +498,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
       
       Hashtable env = new Hashtable();
       env.put(Context.INITIAL_CONTEXT_FACTORY,"com.sun.jndi.ldap.LdapCtxFactory");
-      env.put(Context.SECURITY_AUTHENTICATION,"DIGEST-MD5 GSSAPI");
+      env.put(Context.SECURITY_AUTHENTICATION,authentication);      
       env.put(Context.SECURITY_PRINCIPAL,userName);
       env.put(Context.SECURITY_CREDENTIALS,password);
 				
