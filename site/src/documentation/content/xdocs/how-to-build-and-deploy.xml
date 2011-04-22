@@ -302,12 +302,12 @@ cd dist/example
         <p>The basic steps required to set up and run ManifoldCF are as follows:</p>
         <p></p>
         <ul>
-          <li>Check out and build, using "ant".  The default target builds everything.</li>
-          <li>Install postgresql.  The postgresql JDBC driver included with ManifoldCF is known to work with version 8.3.x, so that version is the currently recommended one.  Configure postgresql for your environment; the default configuration is acceptable for testing and experimentation.</li>
+          <li>Check out and build, using "ant build".</li>
+          <li>Install postgresql.  The postgresql JDBC driver included with ManifoldCF is known to work with version 8.4.x, so that version is the currently recommended one.  Configure postgresql for your environment; the default configuration is acceptable for testing and experimentation.</li>
           <li>Install a Java application server, such as Tomcat.</li>
-          <li>Create a home directory for ManifoldCF.  To do this, make a copy of the contents of <em>dist</em> from the build.  In this directory, create properties.ini and logging.ini, as described above.  Note that you will also need to create a synchronization directory, also detailed above, and refer to this directory within your properties.xml.</li>
+          <li>Create a home directory for ManifoldCF.  To do this, make a copy of the contents of <em>dist</em> from the build.  In this directory, create properties.xml and logging.ini, as described above.  Note that you will also need to create a synchronization directory, also detailed above, and refer to this directory within your properties.xml.</li>
           <li>Deploy the war files in <em>&#60;MCF_HOME&#62;/web/war</em> to your application server.</li>
-          <li>Set the starting environment variables for your app server to include the -D commands found in <em>&#60;MCF_HOME&#62;/web/define</em>.  The -D commands should be of the form, "-D&#60;file name&#62;=&#60;file contents&#62;".</li>
+          <li>Set the starting environment variables for your app server to include the -D commands found in <em>&#60;MCF_HOME&#62;/web/define</em>.  The -D commands should be of the form, "-D&#60;file name&#62;=&#60;file contents&#62;".  You will also need a "-Dorg.apache.manifoldcf.configfile=&#60;properties file&#62;" define option, or the equivalent, in the application server's JVM startup in order for ManifoldCF to be able to locate its configuration file.</li>
           <li>Use the <em>&#60;MCF_HOME&#62;/processes/script/executecommand.bat</em> command from execute the appropriate commands from the next section below, being sure to first set the JAVA_HOME and MCF_HOME environment variables properly.</li>
           <li>Start any supporting processes that result from your build.  (Some connectors such as Documentum and FileNet have auxiliary processes you need to run to make these connectors functional.)</li>
           <li>Start your application server.</li>
@@ -533,7 +533,8 @@ log4j.appender.MAIN.layout.ConversionPattern=[%d]%-5p %m%n
             <tr><td>org.apache.manifoldcf.authorities.SynchronizeAuthorities</td><td>None</td><td>Un-register all registered authority connector classes that can't be found</td></tr>
           </table>
           <p></p>
-          <p>Remember that you need to include all the jars under <em>module/dist/processes</em> in the classpath whenever you run one of these commands!  You also must include the corresponding -D switches, as described earlier.</p>
+          <p>Remember that you need to include all the jars under <em>dist/processes/jar</em> in the classpath whenever you run one of these commands!  You also must include the corresponding -D switches if present, as described earlier.  But, luckily, there are scripts which do all of this available.  These can be found in <em>dist/processes/script/executecommand[.sh,.bat]</em>.
+              The scripts require some environment variables to be set, such as <em>MCF_HOME</em> and <em>JAVA_HOME</em>, and expect the configuration file to be found at <em>MCF_HOME/properties.xml</em>.</p>
           <p></p>
         </section>
         <section>
@@ -571,9 +572,15 @@ log4j.appender.MAIN.layout.ConversionPattern=[%d]%-5p %m%n
         <section>
           <title>Deploying the <strong>mcf-crawler-ui</strong>, <strong>mcf-authority-service</strong>, and <strong>mcf-api-service</strong> web applications</title>
           <p></p>
-          <p>If you built ManifoldCF using ant under the <em>trunk</em> directory, then the ant build will have constructed three war files for you under <em>dist/web</em>.  Take these war files and deploy them as web applications under one or more instances of your application server.  There is no requirement that the <strong>mcf-crawler-ui</strong>, <strong>mcf-authority-service</strong>, and <strong>mcf-api-service</strong> web applications be deployed on the same instance of the application server.  With the current architecture of ManifoldCF, they must be deployed on the same physical server, however.</p>
+          <p>If you built ManifoldCF using ant under the <em>trunk</em> directory, then the ant build will have constructed three war files for you under <em>dist/web</em>.  Take these war
+              files and deploy them as web applications under one or more instances of your application server.  There is no requirement that the <strong>mcf-crawler-ui</strong>, <strong>mcf-authority-service</strong>, and <strong>mcf-api-service</strong> web
+              applications be deployed on the same instance of the application server.  With the current architecture of ManifoldCF, they must be deployed on the same physical server, however.</p>
           <p></p>
-          <p>Under <em>dist/web</em>, you may also see files that are not war files.  These files are meant to be used as command-line -D switches for the application server process.  The switches may or may not be identical for the two web applications, but they will never conflict.  You may need to alter environment variables or your application server startup scripts in order to provide these switches.  (More about this in the future...)</p>
+          <p>For each of the application servers involved with ManifoldCF, you must set the following define, so that the ManifoldCF web applications can locate the configuration file:</p>
+          <p>-Dorg.apache.manifoldcf.configfile=&#60;configuration file path&#62;</p>
+          <p>Under <em>dist/web/define</em>, if it exists at all, you may also see files that are not war files.  These files are meant to be used as command-line -D switches for the application server process.
+                The switches may or may not be identical for the two web applications, but they will never conflict.  You may need to alter environment variables or your application server startup scripts in order to
+                provide these switches.  Luckily, no existing connectors require these at this time.</p>
           <p></p>
         </section>
         <section>
