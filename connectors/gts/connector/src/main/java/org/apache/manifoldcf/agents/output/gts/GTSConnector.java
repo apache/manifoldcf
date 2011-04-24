@@ -242,7 +242,7 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
   * the document will not need to be sent again to the output data store.
   */
   public String getOutputDescription(OutputSpecification spec)
-    throws ManifoldCFException
+    throws ManifoldCFException, ServiceInterruption
   {
     // The information we want in this string is:
     // (1) the collection name(s), in sorted order.

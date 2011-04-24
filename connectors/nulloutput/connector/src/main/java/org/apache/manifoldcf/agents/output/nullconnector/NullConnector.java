@@ -113,7 +113,7 @@ public class NullConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   * the document will not need to be sent again to the output data store.
   */
   public String getOutputDescription(OutputSpecification spec)
-    throws ManifoldCFException
+    throws ManifoldCFException, ServiceInterruption
   {
     return "";
   }

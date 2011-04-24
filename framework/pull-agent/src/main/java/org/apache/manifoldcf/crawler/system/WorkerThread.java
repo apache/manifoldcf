@@ -144,8 +144,7 @@ public class WorkerThread extends Thread
             int jobType = job.getType();
 
             IRepositoryConnection connection = qds.getConnection();
-            IOutputConnection outputConnection = outputMgr.load(outputName);
-
+            
             OutputActivity ingestLogger = new OutputActivity(connectionName,connMgr,outputName);
 
             // Put together document id's into an array, and versions into a map
@@ -271,29 +270,6 @@ public class WorkerThread extends Thread
                 // This try is so that we can process errors from getting a connection specially
                 try
                 {
-                  // All documents in this batch will have the same output version string, so calculate that string up front.
-                  String outputVersion = null;
-                  IOutputConnector outputConnector = OutputConnectorFactory.grab(threadContext,
-                    outputConnection.getClassName(),
-                    outputConnection.getConfigParams(),
-                    outputConnection.getMaxConnections());
-                  // If we wind up with a null here, it means that a document got queued for an output connector which is now gone.
-                  // Basically, what we want to do in that case is to treat this kind of like a service interruption - the document
-                  // must be requeued for immediate reprocessing.  When the rest of the world figures out that the job that owns this
-                  // document is in fact unable to function, we'll stop getting such documents handed to us, because the state of the
-                  // job will be changed.
-                  if (outputConnector != null)
-                  {
-                    try
-                    {
-                      outputVersion = outputConnector.getOutputDescription(outputSpec);
-                    }
-                    finally
-                    {
-                      OutputConnectorFactory.release(outputConnector);
-                    }
-                  }
-
                   // Grab a connector handle
                   IRepositoryConnector connector = RepositoryConnectorFactory.grab(threadContext,
                     connection.getClassName(),
@@ -305,7 +281,7 @@ public class WorkerThread extends Thread
                   // must be requeued for immediate reprocessing.  When the rest of the world figures out that the job that owns this
                   // document is in fact unable to function, we'll stop getting such documents handed to us, because the state of the
                   // job will be changed.
-                  if (connector == null || outputConnector == null)
+                  if (connector == null)
                   {
                     i = 0;
                     while (i < qds.getCount())
@@ -326,6 +302,9 @@ public class WorkerThread extends Thread
                       if (Thread.currentThread().isInterrupted())
                         throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
 
+                      // Get the output version string.
+                      String outputVersion = ingester.getOutputDescription(outputName,outputSpec);
+                      
                       HashMap abortSet = new HashMap();
                       ProcessActivity activity;
                       VersionActivity versionActivity = new VersionActivity(connectionName,connMgr,jobManager,job,ingester,abortSet);

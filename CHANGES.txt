@@ -6,6 +6,11 @@ CONNECTORS-185: Clarify the build-and-deploy document to make sure
 it is clear that the configfile define is needed for the application server.
 (Mark Moloney, Karl Wright)
 
+CONNECTORS-186: Refactor WorkerThread code to permit all output
+connector methods to throw a ServiceInterruption, including the
+getOutputDescription() method.
+(Karl Wright)
+
 CONNECTORS-183: Add a text field to make Active Directory authority
 configuration more flexible with regards to protocol.
 (Shinichiro Abe, Karl Wright)

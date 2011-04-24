@@ -102,7 +102,7 @@ public interface IOutputConnector extends IConnector
   * the document will not need to be sent again to the output data store.
   */
   public String getOutputDescription(OutputSpecification spec)
-    throws ManifoldCFException;
+    throws ManifoldCFException, ServiceInterruption;
 
   /** Add (or replace) a document in the output data store using the connector.
   * This method presumes that the connector object has been configured, and it is thus able to communicate with the output data store should that be

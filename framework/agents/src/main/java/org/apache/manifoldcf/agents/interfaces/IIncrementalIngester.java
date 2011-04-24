@@ -74,6 +74,14 @@ public interface IIncrementalIngester
   public boolean checkDocumentIndexable(String outputConnectionName, File localFile)
     throws ManifoldCFException, ServiceInterruption;
 
+  /** Get an output version string for a document.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param spec is the output specification.
+  *@return the description string.
+  */
+  public String getOutputDescription(String outputConnectionName, OutputSpecification spec)
+    throws ManifoldCFException, ServiceInterruption;
+    
   /** Record a document version, but don't ingest it.
   * The purpose of this method is to keep track of the frequency at which ingestion "attempts" take place.
   * ServiceInterruption is thrown if this action must be rescheduled.

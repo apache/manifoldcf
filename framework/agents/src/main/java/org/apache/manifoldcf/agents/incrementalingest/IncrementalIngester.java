@@ -188,7 +188,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
     if (connector == null)
       // The connector is not installed; treat this as a service interruption.
-      throw new ServiceInterruption("Output connector not installed",300000L);
+      throw new ServiceInterruption("Output connector not installed",0L);
     try
     {
       return connector.checkMimeTypeIndexable(mimeType);
@@ -211,7 +211,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
     if (connector == null)
       // The connector is not installed; treat this as a service interruption.
-      throw new ServiceInterruption("Output connector not installed",300000L);
+      throw new ServiceInterruption("Output connector not installed",0L);
     try
     {
       return connector.checkDocumentIndexable(localFile);
@@ -221,7 +221,31 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       OutputConnectorFactory.release(connector);
     }
   }
-  
+
+  /** Get an output version string for a document.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param spec is the output specification.
+  *@return the description string.
+  */
+  public String getOutputDescription(String outputConnectionName, OutputSpecification spec)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    IOutputConnection connection = connectionManager.load(outputConnectionName);
+    IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+    if (connector == null)
+      // The connector is not installed; treat this as a service interruption.
+      throw new ServiceInterruption("Output connector not installed",0L);
+    try
+    {
+      return connector.getOutputDescription(spec);
+    }
+    finally
+    {
+      OutputConnectorFactory.release(connector);
+    }
+
+  }
+
   /** Record a document version, but don't ingest it.
   * The purpose of this method is to keep track of the frequency at which ingestion "attempts" take place.
   * ServiceInterruption is thrown if this action must be rescheduled.
@@ -1403,7 +1427,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
     if (connector == null)
       // The connector is not installed; treat this as a service interruption.
-      throw new ServiceInterruption("Output connector not installed",300000L);
+      throw new ServiceInterruption("Output connector not installed",0L);
     try
     {
       return connector.addOrReplaceDocument(documentURI,outputDescription,document,authorityNameString,activities);
@@ -1422,7 +1446,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
     if (connector == null)
       // The connector is not installed; treat this as a service interruption.
-      throw new ServiceInterruption("Output connector not installed",300000L);
+      throw new ServiceInterruption("Output connector not installed",0L);
     try
     {
       connector.removeDocument(documentURI,outputDescription,activities);
