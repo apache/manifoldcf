@@ -20,6 +20,7 @@
   <project label="About">
     <news        label="Welcome"          href="index.html" />    
     <who         label="Who We Are"       href="who.html" />    
+    <book        label="Get the Book"      href="ext:book" />
     <store       label="Buy Stuff"        href="ext:store" />    
     <sponsor     label="Sponsor Apache"     href="ext:sponsor" />    
     <thanks      label="Sponsors of Apache" href="ext:thanks" />    
@@ -66,6 +67,7 @@
     <mahout    href="http://lucene.apache.org/mahout/" />
     <droids    href="http://incubator.apache.org/droids/" />
     <pylucene    href="http://lucene.apache.org/pylucene/" />
+    <book     href="http://www.manning.com/wright/" />
     <store     href="http://www.cafepress.com/lucene/" />
     <sponsor   href="http://www.apache.org/foundation/sponsorship.html" />
     <thanks    href="http://www.apache.org/foundation/thanks.html" />

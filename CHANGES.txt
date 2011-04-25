@@ -2,6 +2,11 @@ ManifoldCF Change Log
 $Id$
 
 ======================= 0.3-dev =========================
+
+Update the site to create a direct link to the book, and also bring the
+copyrights and breadcrumbs to the current era.
+(Karl Wright)
+
 CONNECTORS-185: Clarify the build-and-deploy document to make sure
 it is clear that the configfile define is needed for the application server.
 (Mark Moloney, Karl Wright)

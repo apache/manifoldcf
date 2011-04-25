@@ -30,7 +30,7 @@ which will be used to configure the chosen Forrest skin.
     In other words google will search the @domain for the query string.
 
   -->
-  <search name="Lucene" domain="lucene.apache.org" provider="Solr"/>
+  <search name="Lucene" domain="incubator.apache.org" provider="Solr"/>
 
   <!-- Disable the print link? If enabled, invalid HTML 4.0.1 -->
   <disable-print-link>true</disable-print-link>  
@@ -90,7 +90,7 @@ which will be used to configure the chosen Forrest skin.
   <favicon-url>images/favicon.ico</favicon-url>
 
   <!-- The following are used to construct a copyright statement -->
-  <year>2009, 2010</year>
+  <year>2009, 2010, 2011</year>
   <vendor>The Apache Software Foundation.</vendor>
   <copyright-link>http://www.apache.org/licenses/</copyright-link>
 
@@ -103,7 +103,7 @@ which will be used to configure the chosen Forrest skin.
   -->
   <trail>
     <link1 name="Apache" href="http://www.apache.org/"/>
-    <link2 name="" href=""/>
+    <link2 name="Incubator" href="http://incubator.apache.org/"/>
     <link3 name="" href=""/>
   </trail>
 
