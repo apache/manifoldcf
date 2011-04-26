@@ -52,6 +52,9 @@ corrupt entity references.
 ======================= Release 0.2 =======================
 Release Date:  See http://incubator.apache.org/connectors for the official release date.
 
+CONNECTORS-188: Change the eol-style attribute to LF for all the .sh files.
+(Erlend Garåsen, Karl Wright)
+
 Web site updated to reflect proposed release.
 
 CONNECTORS-172: At the advice of the Derby team, build Derby in
