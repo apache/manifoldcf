@@ -35,7 +35,7 @@
       <section>
         <title>Control by Servlet API</title>
         <p></p>
-        <p>ManifoldCF provides a servlet-based JSON API that gives you the complete ability to define connections and jobs, and control job execution.  You can read about JSON [here|http://www.json.org].  The API is designed to be RESTful in character.  Thus, it makes full use of the HTTP verbs GET, PUT, POST, and DELETE, and represents objects as URLs.  The basic format of the JSON servlet resource URLs is as follows:</p>
+        <p>ManifoldCF provides a servlet-based JSON API that gives you the complete ability to define connections and jobs, and control job execution.  You can read about JSON <a href="http://www.json.org">here</a>.  The API is designed to be RESTful in character.  Thus, it makes full use of the HTTP verbs GET, PUT, POST, and DELETE, and represents objects as URLs.  The basic format of the JSON servlet resource URLs is as follows:</p>
         <p></p>
         <p>http[s]://<em>&lt;server_and_port&gt;</em>/mcf-api-service/json/<em>&lt;resource&gt;</em></p>
         <p></p>

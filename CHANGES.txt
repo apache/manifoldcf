@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-190: Fix busted link to JSON stuff.
+(Karl Wright)
+
 CONNECTORS-189: Added links to directly access the group distribution
 email archives.
 (Farzad Valad)
