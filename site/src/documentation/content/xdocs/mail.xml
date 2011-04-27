@@ -50,6 +50,14 @@
 		</ul>
 	</section>
 		
+	<section id="archives"><title>ManifoldCF Email Archives</title>
+		<p>Emails sent to the group distributions are archived and accessible via the links below.</p>
+		<ul>
+			<li><a href="http://www.mail-archive.com/general@incubator.apache.org/index.html">general@incubator.apache.org</a></li>
+			<li><a href="http://www.mail-archive.com/connectors-dev@incubator.apache.org/index.html">connectors-dev@incubator.apache.org</a></li>
+			<li><a href="http://www.mail-archive.com/connectors-user@incubator.apache.org/index.html">connectors-user@incubator.apache.org</a></li>
+		</ul>
+	</section>
 
     </body>
 </document>

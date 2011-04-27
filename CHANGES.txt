@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-189: Added links to directly access the group distribution
+email archives.
+(Farzad Valad)
+
 Update the site to create a direct link to the book, and also bring the
 copyrights and breadcrumbs to the current era.
 (Karl Wright)
