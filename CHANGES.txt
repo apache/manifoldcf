@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-191: Fix eol-style attribute for .bat files to always be
+CRLF.
+(Karl Wright)
+
 CONNECTORS-190: Fix busted link to JSON stuff.
 (Karl Wright)
 
