@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-192: Specification processing would sometimes be called
+without the specification data being posted.
+(Karl Wright)
+
 CONNECTORS-191: Fix eol-style attribute for .bat files to always be
 CRLF.
 (Karl Wright)

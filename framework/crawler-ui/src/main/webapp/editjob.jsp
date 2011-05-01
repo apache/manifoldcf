@@ -1116,6 +1116,9 @@
 			{
 				OutputConnectorFactory.release(outputConnector);
 			}
+%>
+		  <input type="hidden" name="outputpresent" value="true"/>
+<%
 		}
 	}
 
@@ -1133,6 +1136,9 @@
 			{
 				RepositoryConnectorFactory.release(repositoryConnector);
 			}
+%>
+		  <input type="hidden" name="connectionpresent" value="true"/>
+<%
 		}
 	}
 %>

@@ -479,8 +479,14 @@
 					if (job == null)
 						job = manager.createJob();
 
-					// Gather all the data from the form.
-					String x = variableContext.getParameter("description");
+					// Figure out what got posted.
+					String x = variableContext.getParameter("connectionpresent");
+					boolean connectionPresent = (x != null && x.equals("true"));
+					x = variableContext.getParameter("outputpresent");
+					boolean outputPresent = (x != null && x.equals("true"));
+					
+					// Gather the rest of the data.
+					x = variableContext.getParameter("description");
 					if (x != null)
 						job.setDescription(x);
 					x = variableContext.getParameter("outputname");
@@ -705,7 +711,6 @@
 						{
 							job.clearHopCountFilters();
 							int j = 0;
-							job.clearHopCountFilters();
 							while (j < relationshipTypes.length)
 							{
 								String relationshipType = relationshipTypes[j++];
@@ -718,7 +723,7 @@
 						}
 					}
 					
-					if (outputConnection != null)
+					if (outputPresent && outputConnection != null)
 					{
 						IOutputConnector outputConnector = OutputConnectorFactory.grab(threadContext,
 							outputConnection.getClassName(),outputConnection.getConfigParams(),outputConnection.getMaxConnections());
@@ -743,7 +748,7 @@
 						}
 					}
 					
-					if (connection != null)
+					if (connectionPresent && connection != null)
 					{
 						IRepositoryConnector repositoryConnector = RepositoryConnectorFactory.grab(threadContext,
 							connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
