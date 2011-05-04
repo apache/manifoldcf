@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-195: Active directory authority does not properly identify
+non-existing users on all versions of Java and all versions of AD.
+(Kadri Atalay, Karl Wright)
+
 CONNECTORS-192: Specification processing would sometimes be called
 without the specification data being posted.
 (Karl Wright)

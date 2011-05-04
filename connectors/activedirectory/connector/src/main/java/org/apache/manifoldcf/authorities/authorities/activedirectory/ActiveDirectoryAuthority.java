@@ -205,17 +205,17 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   {
     getSession();
 
-    //Create the search controls 		
-    SearchControls searchCtls = new SearchControls();
-
-    //Specify the search scope, must be base level search for tokenGroups
-    searchCtls.setSearchScope(SearchControls.OBJECT_SCOPE);
- 
     //specify the LDAP search filter
     String searchFilter = "(objectClass=user)";
 		
     //Specify the Base for the search
     String searchBase = parseUser(userName);
+
+    //Create the search controls for finding the access tokens	
+    SearchControls searchCtls = new SearchControls();
+
+    //Specify the search scope, must be base level search for tokenGroups
+    searchCtls.setSearchScope(SearchControls.OBJECT_SCOPE);
  
     //Specify the attributes to return
     String returnedAtts[] = {"tokenGroups","objectSid"};
@@ -223,12 +223,10 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
 
     try
     {
-      //Search for objects using the filter
+      //Search for tokens.  Since every user *must* have a SID, the no user detection should be safe.
       NamingEnumeration answer = ctx.search(searchBase, searchFilter, searchCtls);
 
       ArrayList theGroups = new ArrayList();
-      // All users get certain well-known groups
-      theGroups.add("S-1-1-0");
 
       //Loop through the search results
       while (answer.hasMoreElements())
@@ -259,7 +257,13 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
 				
         }
       }
+
+      if (theGroups.size() == 0)
+        return userNotFoundResponse;
       
+      // All users get certain well-known groups
+      theGroups.add("S-1-1-0");
+
       String[] tokens = new String[theGroups.size()];
       int k = 0;
       while (k < tokens.length)
