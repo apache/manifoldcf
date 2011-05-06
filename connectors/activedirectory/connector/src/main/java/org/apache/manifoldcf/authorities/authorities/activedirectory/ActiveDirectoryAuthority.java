@@ -203,13 +203,13 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   protected AuthorizationResponse getAuthorizationResponseUncached(String userName)
     throws ManifoldCFException
   {
-    getSession();
+    //Specify the Base for the search
+    String searchBase = parseUser(userName);
+    if (searchBase == null)
+      return userNotFoundResponse;
 
     //specify the LDAP search filter
     String searchFilter = "(objectClass=user)";
-		
-    //Specify the Base for the search
-    String searchBase = parseUser(userName);
 
     //Create the search controls for finding the access tokens	
     SearchControls searchCtls = new SearchControls();
@@ -218,11 +218,12 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     searchCtls.setSearchScope(SearchControls.OBJECT_SCOPE);
  
     //Specify the attributes to return
-    String returnedAtts[] = {"tokenGroups","objectSid"};
+    String returnedAtts[]={"tokenGroups","objectSid"};
     searchCtls.setReturningAttributes(returnedAtts);
 
     try
     {
+      getSession();  
       //Search for tokens.  Since every user *must* have a SID, the no user detection should be safe.
       NamingEnumeration answer = ctx.search(searchBase, searchFilter, searchCtls);
 
@@ -559,7 +560,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   }
   
   /** Parse a user name into an ldap search base. */
-  protected static String parseUser(String userName)
+  protected String parseUser(String userName)
     throws ManifoldCFException
   {
     //String searchBase = "CN=Administrator,CN=Users,DC=qa-ad-76,DC=metacarta,DC=com";
@@ -568,24 +569,113 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
       throw new ManifoldCFException("Username is in unexpected form (no @): '"+userName+"'");
     String userPart = userName.substring(0,index);
     String domainPart = userName.substring(index+1);
-    // Start the search base assembly
-    StringBuffer sb = new StringBuffer();
-    sb.append("CN=").append(userPart).append(",CN=Users");
+
+    //Build the DN searchBase from domain part
+    StringBuffer domainsb = new StringBuffer();
     int j = 0;
     while (true)
     {
+      if (j > 0)
+        domainsb.append(",");
+
       int k = domainPart.indexOf(".",j);
       if (k == -1)
       {
-        sb.append(",DC=").append(domainPart.substring(j));
+        domainsb.append("DC=").append(ldapEscape(domainPart.substring(j)));
         break;
       }
-      sb.append(",DC=").append(domainPart.substring(j,k));
+      domainsb.append("DC=").append(ldapEscape(domainPart.substring(j,k)));
       j = k+1;
+    }
+
+    //Get CN Attribute (for this method we are using DomainPart as a searchBase ie: DC=qa-ad-76,DC=metacarta,DC=com")
+    String userCN = getCnAttribute(userPart, domainsb.toString());
+    if (userCN == null)
+      return null;
+
+    // Start the final search base assembly for object scope
+    StringBuffer sb = new StringBuffer();
+    sb.append("CN=").append(ldapEscape(userCN)).append(",CN=Users,");
+    sb.append(domainsb);
+    return sb.toString();
+  }
+  
+  /** Obtain the CN Attribute for a given user logon name.
+  *@param userName (Domain Logon Name) is the user name or identifier.
+  *@param searchBase (Full Domain Name for the search ie: DC=qa-ad-76,DC=metacarta,DC=com)
+  *@return CN Attribute for given domain user logon name. (User Domain Logon Name MAY not be same as the CN Name (ie. display name))
+  * (Should throws an exception if user is not found.)
+  */
+  protected String getCnAttribute(String userName, String searchBase)
+    throws ManifoldCFException
+  {
+    getSession();  
+    //First we need to make sure we have the correct CN attribute for username (logon name may not be CN name)
+    String returnedAtts[] = {"cn"};
+    String searchFilter = "(&(objectClass=user)(sAMAccountName=" + userName + "))";
+    SearchControls searchCtls = new SearchControls();
+    searchCtls.setReturningAttributes(returnedAtts);
+    //Specify the search scope  
+    searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+    searchCtls.setReturningAttributes(returnedAtts);
+
+    try
+    {
+      NamingEnumeration answer = ctx.search(searchBase, searchFilter, searchCtls);
+      while (answer.hasMoreElements())
+      {
+        SearchResult sr = (SearchResult)answer.next();
+        Attributes attrs = sr.getAttributes();
+        if (attrs != null)
+        {
+          String cn = attrs.get("cn").toString();
+          cn = cleanUpCnAttribute(cn);
+          return cn;
+        }
+      }
+      return null;
+    }
+    catch (NamingException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
+  }
+   
+  /** Clean-up CN Attribute from prefix cn, :
+  *@param cnAttribute
+  *@return String   
+  */
+  protected static String cleanUpCnAttribute(String cnAttribute)
+  {
+    //Remove cn: 
+    int index = cnAttribute.indexOf(":");
+    if (index > 0)
+      cnAttribute = cnAttribute.substring(index+1,cnAttribute.length()-(index-2)).trim();
+    return cnAttribute;
+  }
+  
+  /** LDAP escape a string.
+  */
+  protected static String ldapEscape(String input)
+  {
+    //Add escape sequence to all commas
+    StringBuffer sb = new StringBuffer();
+    int index = 0;
+    while (true)
+    {
+      int oldIndex = index;
+      index = input.indexOf(",",oldIndex);
+      if (index == -1)
+      {
+        sb.append(input.substring(oldIndex));
+        break;
+      }
+      sb.append(input.substring(oldIndex,index)).append("\\,");
+      index++;
     }
     return sb.toString();
   }
-
+    	
   /** Convert a binary SID to a string */
   protected static String sid2String(byte[] SID)
   {
