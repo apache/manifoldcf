@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-196: Active directory authority did not work if login name
+and common name differed.
+(Kadri Atalay, Shinichiro Abe, Karl Wright)
+
 CONNECTORS-195: Active directory authority does not properly identify
 non-existing users on all versions of Java and all versions of AD.
 (Kadri Atalay, Karl Wright)
