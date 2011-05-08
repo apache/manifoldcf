@@ -588,30 +588,23 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
       j = k+1;
     }
 
-    //Get CN Attribute (for this method we are using DomainPart as a searchBase ie: DC=qa-ad-76,DC=metacarta,DC=com")
-    String userCN = getCnAttribute(userPart, domainsb.toString());
-    if (userCN == null)
-      return null;
+    //Get DistinguishedName (for this method we are using DomainPart as a searchBase ie: DC=qa-ad-76,DC=metacarta,DC=com")
+    String userDN = getDistinguishedName(userPart, domainsb.toString());
 
-    // Start the final search base assembly for object scope
-    StringBuffer sb = new StringBuffer();
-    sb.append("CN=").append(ldapEscape(userCN)).append(",CN=Users,");
-    sb.append(domainsb);
-    return sb.toString();
+    return userDN;
   }
   
-  /** Obtain the CN Attribute for a given user logon name.
+  /** Obtain the DistinguishedNamefor a given user logon name.
   *@param userName (Domain Logon Name) is the user name or identifier.
   *@param searchBase (Full Domain Name for the search ie: DC=qa-ad-76,DC=metacarta,DC=com)
-  *@return CN Attribute for given domain user logon name. (User Domain Logon Name MAY not be same as the CN Name (ie. display name))
+  *@return DistinguishedName for given domain user logon name. 
   * (Should throws an exception if user is not found.)
   */
-  protected String getCnAttribute(String userName, String searchBase)
+  protected String getDistinguishedName(String userName, String searchBase)
     throws ManifoldCFException
   {
     getSession();  
-    //First we need to make sure we have the correct CN attribute for username (logon name may not be CN name)
-    String returnedAtts[] = {"cn"};
+    String returnedAtts[] = {"distinguishedName"};
     String searchFilter = "(&(objectClass=user)(sAMAccountName=" + userName + "))";
     SearchControls searchCtls = new SearchControls();
     searchCtls.setReturningAttributes(returnedAtts);
@@ -628,9 +621,8 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
         Attributes attrs = sr.getAttributes();
         if (attrs != null)
         {
-          String cn = attrs.get("cn").toString();
-          cn = cleanUpCnAttribute(cn);
-          return cn;
+          String dn = attrs.get("distinguishedName").get().toString();
+          return dn;
         }
       }
       return null;
@@ -641,19 +633,6 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     }
   }
    
-  /** Clean-up CN Attribute from prefix cn, :
-  *@param cnAttribute
-  *@return String   
-  */
-  protected static String cleanUpCnAttribute(String cnAttribute)
-  {
-    //Remove cn: 
-    int index = cnAttribute.indexOf(":");
-    if (index > 0)
-      cnAttribute = cnAttribute.substring(index+1,cnAttribute.length()-(index-2)).trim();
-    return cnAttribute;
-  }
-  
   /** LDAP escape a string.
   */
   protected static String ldapEscape(String input)
