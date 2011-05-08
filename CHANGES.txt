@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-194: Forrest doc build always gets an error because of relative
+references to javadoc roots.
+(Erlend Garåsen, Karl Wright)
+
 CONNECTORS-196: Active directory authority did not work if login name
 and common name differed.
 (Kadri Atalay, Shinichiro Abe, Karl Wright)

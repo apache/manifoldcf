@@ -31,22 +31,22 @@
       <title>ManifoldCF Javadoc</title>
       <p></p>
       <p>The javadoc for the last released version of ManifoldCF and its connectors can be found by following the links below.</p>
-      <p><a href="framework/index.html">ManifoldCF Framework</a></p>
-      <p><a href="activedirectory/index.html">Active Directory authority</a></p>
-      <p><a href="documentum/index.html">Documentum authority, connector, and support processes</a></p>
-      <p><a href="filenet/index.html">FileNet connector and support processes</a></p>
-      <p><a href="filesystem/index.html">File system connector</a></p>
-      <p><a href="gts/index.html">qBase GTS output connector</a></p>
-      <p><a href="jcifs/index.html">CIFS connector</a></p>
-      <p><a href="jdbc/index.html">JDBC connector</a></p>
-      <p><a href="livelink/index.html">LiveLink authority and connector</a></p>
-      <p><a href="meridio/index.html">Meridio authority and connector</a></p>
-      <p><a href="nullauthority/index.html">Null authority</a></p>
-      <p><a href="nulloutput/index.html">Null output connector</a></p>
-      <p><a href="rss/index.html">RSS connector</a></p>
-      <p><a href="sharepoint/index.html">SharePoint connector</a></p>
-      <p><a href="solr/index.html">Solr output connector</a></p>
-      <p><a href="webcrawler/index.html">Web connector</a></p>
+      <p><a href="api/framework/index.html">ManifoldCF Framework</a></p>
+      <p><a href="api/activedirectory/index.html">Active Directory authority</a></p>
+      <p><a href="api/documentum/index.html">Documentum authority, connector, and support processes</a></p>
+      <p><a href="api/filenet/index.html">FileNet connector and support processes</a></p>
+      <p><a href="api/filesystem/index.html">File system connector</a></p>
+      <p><a href="api/gts/index.html">qBase GTS output connector</a></p>
+      <p><a href="api/jcifs/index.html">CIFS connector</a></p>
+      <p><a href="api/jdbc/index.html">JDBC connector</a></p>
+      <p><a href="api/livelink/index.html">LiveLink authority and connector</a></p>
+      <p><a href="api/meridio/index.html">Meridio authority and connector</a></p>
+      <p><a href="api/nullauthority/index.html">Null authority</a></p>
+      <p><a href="api/nulloutput/index.html">Null output connector</a></p>
+      <p><a href="api/rss/index.html">RSS connector</a></p>
+      <p><a href="api/sharepoint/index.html">SharePoint connector</a></p>
+      <p><a href="api/solr/index.html">Solr output connector</a></p>
+      <p><a href="api/webcrawler/index.html">Web connector</a></p>
     </section>
   </body>
 </document>

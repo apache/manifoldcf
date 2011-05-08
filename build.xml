@@ -769,8 +769,8 @@
     </target>
     
     <target name="deliver-framework-doc" depends="doc-framework">
-        <mkdir dir="dist/doc/framework"/>
-        <copy todir="dist/doc/framework">
+        <mkdir dir="dist/doc/api/framework"/>
+        <copy todir="dist/doc/api/framework">
 	  <fileset dir="framework/dist/doc"/>
         </copy>
     </target>
@@ -797,8 +797,8 @@
     </target>
     
     <target name="deliver-activedirectory-connector-doc" depends="calculate-activedirectory-doc-condition" if="activedirectory-doc.include">
-        <mkdir dir="dist/doc/activedirectory"/>
-        <copy todir="dist/doc/activedirectory">
+        <mkdir dir="dist/doc/api/activedirectory"/>
+        <copy todir="dist/doc/api/activedirectory">
 	  <fileset dir="connectors/activedirectory/dist/doc"/>
         </copy>
     </target>
@@ -833,8 +833,8 @@
     </target>
     
     <target name="deliver-documentum-connector-doc" depends="calculate-documentum-doc-condition" if="documentum-doc.include">
-        <mkdir dir="dist/doc/documentum"/>
-        <copy todir="dist/doc/documentum">
+        <mkdir dir="dist/doc/api/documentum"/>
+        <copy todir="dist/doc/api/documentum">
 	  <fileset dir="connectors/documentum/dist/doc"/>
         </copy>
     </target>
@@ -869,8 +869,8 @@
     </target>
     
     <target name="deliver-filenet-connector-doc" depends="calculate-filenet-doc-condition" if="filenet-doc.include">
-        <mkdir dir="dist/doc/filenet"/>
-        <copy todir="dist/doc/filenet">
+        <mkdir dir="dist/doc/api/filenet"/>
+        <copy todir="dist/doc/api/filenet">
 	  <fileset dir="connectors/filenet/dist/doc"/>
         </copy>
     </target>
@@ -897,8 +897,8 @@
     </target>
     
     <target name="deliver-filesystem-connector-doc" depends="calculate-filesystem-doc-condition" if="filesystem-doc.include">
-        <mkdir dir="dist/doc/filesystem"/>
-        <copy todir="dist/doc/filesystem">
+        <mkdir dir="dist/doc/api/filesystem"/>
+        <copy todir="dist/doc/api/filesystem">
 	  <fileset dir="connectors/filesystem/dist/doc"/>
         </copy>
     </target>
@@ -925,8 +925,8 @@
     </target>
     
     <target name="deliver-gts-connector-doc" depends="calculate-gts-doc-condition" if="gts-doc.include">
-        <mkdir dir="dist/doc/gts"/>
-        <copy todir="dist/doc/gts">
+        <mkdir dir="dist/doc/api/gts"/>
+        <copy todir="dist/doc/api/gts">
 	  <fileset dir="connectors/gts/dist/doc"/>
         </copy>
     </target>
@@ -953,8 +953,8 @@
     </target>
     
     <target name="deliver-jdbc-connector-doc" depends="calculate-jdbc-doc-condition" if="jdbc-doc.include">
-        <mkdir dir="dist/doc/jdbc"/>
-        <copy todir="dist/doc/jdbc">
+        <mkdir dir="dist/doc/api/jdbc"/>
+        <copy todir="dist/doc/api/jdbc">
 	  <fileset dir="connectors/jdbc/dist/doc"/>
         </copy>
     </target>
@@ -981,8 +981,8 @@
     </target>
     
     <target name="deliver-jcifs-connector-doc" depends="calculate-jcifs-doc-condition" if="jcifs-doc.include">
-        <mkdir dir="dist/doc/jcifs"/>
-        <copy todir="dist/doc/jcifs">
+        <mkdir dir="dist/doc/api/jcifs"/>
+        <copy todir="dist/doc/api/jcifs">
 	  <fileset dir="connectors/jcifs/dist/doc"/>
         </copy>
     </target>
@@ -1009,8 +1009,8 @@
     </target>
 
     <target name="deliver-livelink-connector-doc" depends="calculate-livelink-doc-condition" if="livelink-doc.include">
-        <mkdir dir="dist/doc/livelink"/>
-        <copy todir="dist/doc/livelink">
+        <mkdir dir="dist/doc/api/livelink"/>
+        <copy todir="dist/doc/api/livelink">
 	  <fileset dir="connectors/livelink/dist/doc"/>
         </copy>
     </target>
@@ -1037,8 +1037,8 @@
     </target>
     
     <target name="deliver-solr-connector-doc" depends="calculate-solr-doc-condition" if="solr-doc.include">
-        <mkdir dir="dist/doc/solr"/>
-        <copy todir="dist/doc/solr">
+        <mkdir dir="dist/doc/api/solr"/>
+        <copy todir="dist/doc/api/solr">
 	  <fileset dir="connectors/solr/dist/doc"/>
         </copy>
     </target>
@@ -1065,8 +1065,8 @@
     </target>
     
     <target name="deliver-memex-connector-doc" depends="calculate-memex-doc-condition" if="memex-doc.include">
-        <mkdir dir="dist/doc/memex"/>
-        <copy todir="dist/doc/memex">
+        <mkdir dir="dist/doc/api/memex"/>
+        <copy todir="dist/doc/api/memex">
 	  <fileset dir="connectors/memex/dist/doc"/>
         </copy>
     </target>
@@ -1097,8 +1097,8 @@
     </target>
     
     <target name="deliver-meridio-connector-doc" depends="calculate-meridio-doc-condition" if="meridio-doc.include">
-        <mkdir dir="dist/doc/meridio"/>
-        <copy todir="dist/doc/meridio">
+        <mkdir dir="dist/doc/api/meridio"/>
+        <copy todir="dist/doc/api/meridio">
 	  <fileset dir="connectors/meridio/dist/doc"/>
         </copy>
     </target>
@@ -1125,8 +1125,8 @@
     </target>
     
     <target name="deliver-nullauthority-connector-doc" depends="calculate-nullauthority-doc-condition" if="nullauthority-doc.include">
-        <mkdir dir="dist/doc/nullauthority"/>
-        <copy todir="dist/doc/nullauthority">
+        <mkdir dir="dist/doc/api/nullauthority"/>
+        <copy todir="dist/doc/api/nullauthority">
 	  <fileset dir="connectors/nullauthority/dist/doc"/>
         </copy>
     </target>
@@ -1153,8 +1153,8 @@
     </target>
     
     <target name="deliver-nulloutput-connector-doc" depends="calculate-nulloutput-doc-condition" if="nulloutput-doc.include">
-        <mkdir dir="dist/doc/nulloutput"/>
-        <copy todir="dist/doc/nulloutput">
+        <mkdir dir="dist/doc/api/nulloutput"/>
+        <copy todir="dist/doc/api/nulloutput">
 	  <fileset dir="connectors/nulloutput/dist/doc"/>
         </copy>
     </target>
@@ -1181,8 +1181,8 @@
     </target>
     
     <target name="deliver-rss-connector-doc" depends="calculate-rss-doc-condition" if="rss-doc.include">
-        <mkdir dir="dist/doc/rss"/>
-        <copy todir="dist/doc/rss">
+        <mkdir dir="dist/doc/api/rss"/>
+        <copy todir="dist/doc/api/rss">
 	  <fileset dir="connectors/rss/dist/doc"/>
         </copy>
     </target>
@@ -1213,8 +1213,8 @@
     </target>
     
     <target name="deliver-sharepoint-connector-doc" depends="calculate-sharepoint-doc-condition" if="sharepoint-doc.include">
-        <mkdir dir="dist/doc/sharepoint"/>
-        <copy todir="dist/doc/sharepoint">
+        <mkdir dir="dist/doc/api/sharepoint"/>
+        <copy todir="dist/doc/api/sharepoint">
 	  <fileset dir="connectors/sharepoint/dist/doc"/>
         </copy>
     </target>
@@ -1241,8 +1241,8 @@
     </target>
     
     <target name="deliver-webcrawler-connector-doc" depends="calculate-webcrawler-doc-condition" if="webcrawler-doc.include">
-        <mkdir dir="dist/doc/webcrawler"/>
-        <copy todir="dist/doc/webcrawler">
+        <mkdir dir="dist/doc/api/webcrawler"/>
+        <copy todir="dist/doc/api/webcrawler">
 	  <fileset dir="connectors/webcrawler/dist/doc"/>
         </copy>
     </target>
