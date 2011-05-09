@@ -35,6 +35,7 @@ public class ActiveDirectoryConfig
   public static final String PARAM_PASSWORD = "Password";
   /** Authentication */
   public static final String PARAM_AUTHENTICATION = "Authentication";
-
+  /** UserACLs username attribute */
+  public static final String PARAM_USERACLsUSERNAME = "UserACLs username attribute";
 
 }

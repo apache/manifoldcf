@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-197: Add a switch that allows user to select which AD
+attribute to use for login name.
+(Shinichiro Abe, Karl Wright)
+
 CONNECTORS-198: Update rat-sources ant target to exclude
 test-output-postgresql folders.
 (Karl Wright)

@@ -45,6 +45,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   private String userName = null;
   private String password = null;
   private String authentication = null;
+  private String userACLsUsername = null;
 
   /** Cache manager. */
   private ICacheManager cacheManager = null;
@@ -64,7 +65,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     AuthorizationResponse.RESPONSE_UNREACHABLE);
   private static final AuthorizationResponse userNotFoundResponse = new AuthorizationResponse(new String[]{globalDenyToken},
     AuthorizationResponse.RESPONSE_USERNOTFOUND);
-
+  
   /** Constructor.
   */
   public ActiveDirectoryAuthority()
@@ -100,6 +101,9 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     userName = configParams.getParameter(ActiveDirectoryConfig.PARAM_USERNAME);
     password = configParams.getObfuscatedParameter(ActiveDirectoryConfig.PARAM_PASSWORD);
     authentication = configParams.getParameter(ActiveDirectoryConfig.PARAM_AUTHENTICATION);
+    userACLsUsername = configParams.getParameter(ActiveDirectoryConfig.PARAM_USERACLsUSERNAME);
+    if (userACLsUsername == null)
+      userACLsUsername = "sAMAccountName";
   }
 
   // All methods below this line will ONLY be called if a connect() call succeeded
@@ -152,6 +156,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     userName = null;
     password = null;
     authentication = null;
+    userACLsUsername = null;
     super.disconnect();
   }
 
@@ -378,6 +383,9 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     String authentication = parameters.getParameter(org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_AUTHENTICATION);
     if (authentication == null)
     	authentication = "DIGEST-MD5 GSSAPI";
+    String userACLsUsername = parameters.getParameter(org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_USERACLsUSERNAME);
+    if (userACLsUsername == null)
+    	userACLsUsername = "sAMAccountName";
     
     // The "Domain Controller" tab
     if (tabName.equals("Domain Controller"))
@@ -400,6 +408,15 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>Authentication:</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"authentication\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(authentication)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Login name AD attribute:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <select name=\"userACLsUsername\">\n"+
+"        <option value=\"sAMAccountName\""+(userACLsUsername.equals("sAMAccountName")?" selected=\"true\"":"")+">sAMAccountName</option>\n"+
+"        <option value=\"userPrincipalName\""+(userACLsUsername.equals("userPrincipalName")?" selected=\"true\"":"")+">userPrincipalName</option>\n"+
+"      </select>\n"+
+"    </td>\n"+
 "  </tr>\n"+
 "</table>\n"
       );
@@ -440,6 +457,9 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     String authentication = variableContext.getParameter("authentication");
     if (authentication != null)
       parameters.setParameter(org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_AUTHENTICATION,authentication);
+    String userACLsUsername = variableContext.getParameter("userACLsUsername");
+    if (userACLsUsername != null)
+      parameters.setParameter(org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_USERACLsUSERNAME,userACLsUsername);
     return null;
   }
   
@@ -569,7 +589,10 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
       throw new ManifoldCFException("Username is in unexpected form (no @): '"+userName+"'");
     String userPart = userName.substring(0,index);
     String domainPart = userName.substring(index+1);
-
+    if (userACLsUsername.equals("userPrincipalName")){
+    	userPart = userName;
+    }
+    
     //Build the DN searchBase from domain part
     StringBuffer domainsb = new StringBuffer();
     int j = 0;
@@ -605,7 +628,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   {
     getSession();  
     String returnedAtts[] = {"distinguishedName"};
-    String searchFilter = "(&(objectClass=user)(sAMAccountName=" + userName + "))";
+    String searchFilter = "(&(objectClass=user)(" + userACLsUsername + "=" + userName + "))";
     SearchControls searchCtls = new SearchControls();
     searchCtls.setReturningAttributes(returnedAtts);
     //Specify the search scope  
