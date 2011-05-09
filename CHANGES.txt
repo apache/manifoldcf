@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-198: Update rat-sources ant target to exclude
+test-output-postgresql folders.
+(Karl Wright)
+
 CONNECTORS-194: Forrest doc build always gets an error because of relative
 references to javadoc roots.
 (Erlend Garåsen, Karl Wright)

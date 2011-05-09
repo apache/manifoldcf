@@ -1786,6 +1786,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
           <exclude name="**/build/"/>
           <exclude name="**/dist/"/>
           <exclude name="**/test-output/"/>
+          <exclude name="**/test-output-postgresql/"/>
           <exclude name="filenet/filenet-api/*.jar"/>
           <exclude name="documentum/dfc/*.jar"/>
           <exclude name="jcifs/jcifs/*.jar"/>
@@ -1810,6 +1811,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
           <exclude name="**/build/"/>
           <exclude name="**/dist/"/>
           <exclude name="**/test-output/"/>
+          <exclude name="**/test-output-postgresql/"/>
           <exclude name="**/web-generated.xml"/>
         </fileset>
         <fileset dir="site/">
