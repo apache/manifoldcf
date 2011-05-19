@@ -1351,7 +1351,8 @@ public class HttpPoster
                 if (codeValue == 401)
                   throw new ManifoldCFException("Bad credentials for ingestion",ManifoldCFException.SETUP_ERROR);
 
-                if (codeValue >= 400 && codeValue < 500)
+                if ((codeValue >= 400 && codeValue < 500) ||
+                  (codeValue == 500 && cd.getDetails() != null && cd.getDetails().indexOf("org.apache.tika.exception.TikaException") != -1))
                 {
                   rval = false;
                   return;
