@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-200: Interpret TikaExceptions as being permanent failures.
+(Erlend Garåsen, Shinichiro Abe, Karl Wright)
+
 CONNECTORS-199: Modify site to point to new 0.2-incubating release.
 (Karl Wright)
 
