@@ -24,7 +24,8 @@ import java.util.*;
 
 /** This interface abstracts from the activities that a fetched document processor can do.
 */
-public interface IProcessActivity extends IHistoryActivity, IEventActivity, IAbortActivity, IFingerprintActivity
+public interface IProcessActivity extends IHistoryActivity, IEventActivity, IAbortActivity, IFingerprintActivity,
+    ICarrydownActivity
 {
   public static final String _rcsid = "@(#)$Id: IProcessActivity.java 988245 2010-08-23 18:39:35Z kwright $";
 
@@ -100,21 +101,6 @@ public interface IProcessActivity extends IHistoryActivity, IEventActivity, IAbo
   public void addDocumentReference(String localIdentifier)
     throws ManifoldCFException;
 
-  /** Retrieve data passed from parents to a specified child document.
-  *@param localIdentifier is the document identifier of the document we want the recorded data for.
-  *@param dataName is the name of the data items to retrieve.
-  *@return an array containing the unique data values passed from ALL parents.  Note that these are in no particular order, and there will not be any duplicates.
-  */
-  public String[] retrieveParentData(String localIdentifier, String dataName)
-    throws ManifoldCFException;
-
-  /** Retrieve data passed from parents to a specified child document.
-  *@param localIdentifier is the document identifier of the document we want the recorded data for.
-  *@param dataName is the name of the data items to retrieve.
-  *@return an array containing the unique data values passed from ALL parents.  Note that these are in no particular order, and there will not be any duplicates.
-  */
-  public CharacterInput[] retrieveParentDataAsFiles(String localIdentifier, String dataName)
-    throws ManifoldCFException;
 
   /** Record a document version, but don't ingest it.
   *@param localIdentifier is the document identifier.

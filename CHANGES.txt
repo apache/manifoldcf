@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-201: Add activity interface ICarrydownActivity to allow
+sharing of functionality across IVersionActivity and IProcessActivity.
+(Karl Wright)
+
 CONNECTORS-200: Interpret TikaExceptions as being permanent failures.
 (Erlend Garåsen, Shinichiro Abe, Karl Wright)
 

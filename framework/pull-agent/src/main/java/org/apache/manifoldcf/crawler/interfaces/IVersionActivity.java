@@ -25,24 +25,9 @@ import java.util.*;
 /** This interface abstracts from the activities that a versioning operation can do.
 * See IProcessActivity for a description of the event model.
 */
-public interface IVersionActivity extends IHistoryActivity, IEventActivity, IAbortActivity, IFingerprintActivity
+public interface IVersionActivity extends IHistoryActivity, IEventActivity, IAbortActivity, IFingerprintActivity,
+    ICarrydownActivity
 {
   public static final String _rcsid = "@(#)$Id: IVersionActivity.java 988245 2010-08-23 18:39:35Z kwright $";
-
-  /** Retrieve data passed from parents to a specified child document.
-  *@param localIdentifier is the document identifier of the document we want the recorded data for.
-  *@param dataName is the name of the data items to retrieve.
-  *@return an array containing the unique data values passed from ALL parents.  Note that these are in no particular order, and there will not be any duplicates.
-  */
-  public String[] retrieveParentData(String localIdentifier, String dataName)
-    throws ManifoldCFException;
-
-  /** Retrieve data passed from parents to a specified child document.
-  *@param localIdentifier is the document identifier of the document we want the recorded data for.
-  *@param dataName is the name of the data items to retrieve.
-  *@return an array containing the unique data values passed from ALL parents.  Note that these are in no particular order, and there will not be any duplicates.
-  */
-  public CharacterInput[] retrieveParentDataAsFiles(String localIdentifier, String dataName)
-    throws ManifoldCFException;
 
 }
