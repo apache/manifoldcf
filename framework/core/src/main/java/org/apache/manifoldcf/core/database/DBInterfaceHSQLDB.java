@@ -838,7 +838,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   */
   public String constructRegexpClause(String column, String regularExpression, boolean caseInsensitive)
   {
-    return "REGEXP_MATCHES("+column+","+regularExpression+")";
+    return "REGEXP_MATCHES(CAST("+column+" AS VARCHAR(4096)),"+regularExpression+")";
   }
 
   /** Construct a regular-expression substring clause.
@@ -851,8 +851,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   */
   public String constructSubstringClause(String column, String regularExpression, boolean caseInsensitive)
   {
-    // MHL
-    return "''";
+    return "REGEXP_SUBSTRING(CAST("+column+" AS VARCHAR(4096)),"+regularExpression+")";
   }
 
   /** Construct an offset/limit clause.
