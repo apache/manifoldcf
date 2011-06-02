@@ -294,11 +294,13 @@ public interface IDBInterface
   * e.g. "SELECT ..."
   *@param baseParameters are the parameters corresponding to the baseQuery.
   *@param distinctFields are the fields to consider to be distinct.  These should all be keys in otherFields below.
+  *@param orderFields are the otherfield keys that determine the ordering.
+  *@param orderFields ascending are true for orderFields that are ordered as ASC, false for DESC.  
   *@param otherFields are the rest of the fields to return, keyed by the AS name, value being the base query column value, e.g. "value AS key"
   *@return a revised query that performs the necessary DISTINCT ON operation.  The list outputParameters will also be appropriately filled in.
   */
   public String constructDistinctOnClause(List outputParameters, String baseQuery, List baseParameters,
-    String[] distinctFields, Map<String,String> otherFields);
+    String[] distinctFields, String[] orderFields, boolean[] orderFieldsAscending, Map<String,String> otherFields);
   
   /** Obtain the maximum number of individual items that should be
   * present in an IN clause.  Exceeding this amount will potentially cause the query performance

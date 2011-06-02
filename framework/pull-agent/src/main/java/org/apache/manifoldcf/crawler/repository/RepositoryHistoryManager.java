@@ -401,7 +401,7 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
     sb.append(" AND t1a.").append(startTimeField).append("<t0a.").append(endTimeField)
       .append(" AND t1a.").append(endTimeField).append(">t0a.").append(endTimeField).append("-").append(intervalString);
     addCriteria(sb,list,"t1a.",connectionName,filterCriteria,true);
-    sb.append(") t6a GROUP BY bucket,windowstart,windowend) t2 ORDER BY bucket ASC, activitycount DESC");
+    sb.append(") t6a GROUP BY bucket,windowstart,windowend) t2");
 
     Map otherColumns = new HashMap();
     otherColumns.put("idbucket","bucket");
@@ -411,7 +411,8 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
     
     StringBuilder newsb = new StringBuilder("SELECT * FROM (");
     ArrayList newList = new ArrayList();
-    newsb.append(constructDistinctOnClause(newList,sb.toString(),list,new String[]{"idbucket"},otherColumns)).append(") t4");
+    newsb.append(constructDistinctOnClause(newList,sb.toString(),list,new String[]{"idbucket"},
+      new String[]{"activitycount"},new boolean[]{false},otherColumns)).append(") t4");
     addOrdering(newsb,new String[]{"activitycount","starttime","endtime","idbucket"},sort);
     addLimits(newsb,startRow,maxRowCount);
     return performQuery(newsb.toString(),newList,null,null,maxRowCount);
@@ -509,7 +510,7 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
     sb.append(" AND t1a.").append(startTimeField).append("<t0a.").append(endTimeField)
       .append(" AND t1a.").append(endTimeField).append(">t0a.").append(endTimeField).append("-").append(intervalString);
     addCriteria(sb,list,"t1a.",connectionName,filterCriteria,true);
-    sb.append(") t6a GROUP BY bucket,windowstart,windowend) t2 ORDER BY bucket ASC, bytecount DESC");
+    sb.append(") t6a GROUP BY bucket,windowstart,windowend) t2");
     
     Map otherColumns = new HashMap();
     otherColumns.put("idbucket","bucket");
@@ -518,7 +519,8 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
     otherColumns.put("endtime","windowend");
     StringBuilder newsb = new StringBuilder("SELECT * FROM (");
     ArrayList newList = new ArrayList();
-    newsb.append(constructDistinctOnClause(newList,sb.toString(),list,new String[]{"idbucket"},otherColumns)).append(") t4");
+    newsb.append(constructDistinctOnClause(newList,sb.toString(),list,new String[]{"idbucket"},
+      new String[]{"bytecount"},new boolean[]{false},otherColumns)).append(") t4");
     addOrdering(newsb,new String[]{"bytecount","starttime","endtime","idbucket"},sort);
     addLimits(newsb,startRow,maxRowCount);
     return performQuery(newsb.toString(),newList,null,null,maxRowCount);

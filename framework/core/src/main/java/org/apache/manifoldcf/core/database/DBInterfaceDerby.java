@@ -1084,11 +1084,13 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   * e.g. "SELECT ..."
   *@param baseParameters are the parameters corresponding to the baseQuery.
   *@param distinctFields are the fields to consider to be distinct.  These should all be keys in otherFields below.
+  *@param orderFields are the otherfield keys that determine the ordering.
+  *@param orderFields ascending are true for orderFields that are ordered as ASC, false for DESC.  
   *@param otherFields are the rest of the fields to return, keyed by the AS name, value being the base query column value, e.g. "value AS key"
   *@return a revised query that performs the necessary DISTINCT ON operation.  The list outputParameters will also be appropriately filled in.
   */
-  public String constructDistinctOnClause(List outputParameters, String baseQuery, List baseParameters, String[] distinctFields,
-    Map<String,String> otherFields)
+  public String constructDistinctOnClause(List outputParameters, String baseQuery, List baseParameters,
+    String[] distinctFields, String[] orderFields, boolean[] orderFieldsAscending, Map<String,String> otherFields)
   {
     // Derby does not really support this functionality.
     // We could hack a workaround, along the following lines:
@@ -1124,6 +1126,33 @@ public class DBInterfaceDerby extends Database implements IDBInterface
       sb.append("txxx1.").append(columnValue).append(" AS ").append(fieldName);
     }
     sb.append(" FROM (").append(baseQuery).append(") txxx1");
+    if (distinctFields.length > 0 || orderFields.length > 0)
+    {
+      sb.append(" ORDER BY ");
+      int k = 0;
+      int i = 0;
+      while (i < distinctFields.length)
+      {
+        if (k > 0)
+          sb.append(",");
+        sb.append(distinctFields[i]).append(" ASC");
+        k++;
+        i++;
+      }
+      i = 0;
+      while (i < orderFields.length)
+      {
+        if (k > 0)
+          sb.append(",");
+        sb.append(orderFields[i]).append(" ");
+        if (orderFieldsAscending[i])
+          sb.append("ASC");
+        else
+          sb.append("DESC");
+        i++;
+        k++;
+      }
+    }
     return sb.toString();
   }
 

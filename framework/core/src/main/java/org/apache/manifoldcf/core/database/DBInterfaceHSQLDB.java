@@ -885,29 +885,27 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   * e.g. "SELECT ..."
   *@param baseParameters are the parameters corresponding to the baseQuery.
   *@param distinctFields are the fields to consider to be distinct.  These should all be keys in otherFields below.
+  *@param orderFields are the otherfield keys that determine the ordering.
+  *@param orderFields ascending are true for orderFields that are ordered as ASC, false for DESC.  
   *@param otherFields are the rest of the fields to return, keyed by the AS name, value being the base query column value, e.g. "value AS key"
   *@return a revised query that performs the necessary DISTINCT ON operation.  The list outputParameters will also be appropriately filled in.
   */
   public String constructDistinctOnClause(List outputParameters, String baseQuery, List baseParameters,
-    String[] distinctFields, Map<String,String> otherFields)
+    String[] distinctFields, String[] orderFields, boolean[] orderFieldsAscending, Map<String,String> otherFields)
   {
-    // HSQLDB does not really support this functionality.
-    // We could hack a workaround, along the following lines:
+    // For HSQLDB, we want to generate the following:
+    // WITH ct01 ( ... otherfields ... ) AS ( ... baseQuery ... )
+    //   SELECT * FROM (SELECT DISTINCT ... distinctFields ... FROM ct01) AS ct02,
+    //   LATERAL ( SELECT ... otherfields ... FROM ct01 WHERE ... distinctFields = ct02.distinctField ... ORDER BY ??? LIMIT 1) AS ct03
     //
-    // SELECT
-    //   t1.bucket, t1.bytecount, t1.windowstart, t1.windowend
-    // FROM
-    //   (xxx) t1
-    // WHERE
-    //   t1.bytecount=( SELECT t2.bytecount FROM (xxx) t2 WHERE
-    //     t2.bucket = t1.bucket LIMIT 1 ) AND
-    //   t1.windowstart=( SELECT t2.windowstart FROM (xxx) t2 WHERE
-    //     t2.bucket = t1.bucket LIMIT 1 ) AND
-    //   t1.windowend=( SELECT t2.windowend FROM (xxx) t2 WHERE
-    //     t2.bucket = t1.bucket LIMIT 1 )
+    // The problem is that this requires the ORDER BY to not appear in the base query but appear in the LATERAL clause.  The
+    // only solution involves pulling the ORDER BY into this abstraction, so that the base query does not include it and it gets added to
+    // the end in the appropriate place by this method.
     //
-    // However, the cost of doing 3 identical and very costly queries is likely to be too high for this to be viable.
-
+    // If we change the abstraction in that way, the ordering criteria should be a List of column names, and a parallel List of Booleans.
+    // We'll have to be very careful to apply the otherfields mapping to the temporary table also, and the order-by will need to be in terms
+    // of the TARGET column names, not the source column names.
+    
     // Copy arguments
     if (baseParameters != null)
       outputParameters.addAll(baseParameters);
@@ -925,6 +923,33 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
       sb.append("txxx1.").append(columnValue).append(" AS ").append(fieldName);
     }
     sb.append(" FROM (").append(baseQuery).append(") txxx1");
+    if (distinctFields.length > 0 || orderFields.length > 0)
+    {
+      sb.append(" ORDER BY ");
+      int k = 0;
+      int i = 0;
+      while (i < distinctFields.length)
+      {
+        if (k > 0)
+          sb.append(",");
+        sb.append(distinctFields[i]).append(" ASC");
+        k++;
+        i++;
+      }
+      i = 0;
+      while (i < orderFields.length)
+      {
+        if (k > 0)
+          sb.append(",");
+        sb.append(orderFields[i]).append(" ");
+        if (orderFieldsAscending[i])
+          sb.append("ASC");
+        else
+          sb.append("DESC");
+        i++;
+        k++;
+      }
+    }
     return sb.toString();
   }
 

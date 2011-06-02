@@ -3,6 +3,11 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-205: Changed the database interface distinct-on abstraction
+to also include the order-by clause, so we can write something that will
+work for HSQLDB.
+(Karl Wright)
+
 CONNECTORS-203: Move to Java 1.5 compilation and conventions.
 (Erlend Garåsen, Tommaso Teofili, Karl Wright et al)
 
