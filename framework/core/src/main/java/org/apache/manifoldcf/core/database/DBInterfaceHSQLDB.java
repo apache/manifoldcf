@@ -896,23 +896,27 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     // For HSQLDB, we want to generate the following:
     // WITH ct01 ( ... otherfields ... ) AS ( ... baseQuery ... )
     //   SELECT * FROM (SELECT DISTINCT ... distinctFields ... FROM ct01) AS ct02,
-    //   LATERAL ( SELECT ... otherfields ... FROM ct01 WHERE ... distinctFields = ct02.distinctField ... ORDER BY ??? LIMIT 1) AS ct03
+    //   LATERAL ( SELECT ... otherfields ... FROM ct01 WHERE ... distinctFields = ct02.distinctField ... ORDER BY ... order by ... LIMIT 1) AS ct03
     //
-    // The problem is that this requires the ORDER BY to not appear in the base query but appear in the LATERAL clause.  The
-    // only solution involves pulling the ORDER BY into this abstraction, so that the base query does not include it and it gets added to
-    // the end in the appropriate place by this method.
-    //
-    // If we change the abstraction in that way, the ordering criteria should be a List of column names, and a parallel List of Booleans.
-    // We'll have to be very careful to apply the otherfields mapping to the temporary table also, and the order-by will need to be in terms
-    // of the TARGET column names, not the source column names.
     
     // Copy arguments
     if (baseParameters != null)
       outputParameters.addAll(baseParameters);
 
-    StringBuilder sb = new StringBuilder("SELECT ");
+    StringBuilder sb = new StringBuilder("WITH txxx1 (");
     boolean needComma = false;
     Iterator<String> iter = otherFields.keySet().iterator();
+    while (iter.hasNext())
+    {
+      String fieldName = iter.next();
+      if (needComma)
+        sb.append(",");
+      sb.append(fieldName);
+      needComma = true;
+    }
+    sb.append(") AS (SELECT ");
+    needComma = false;
+    iter = otherFields.keySet().iterator();
     while (iter.hasNext())
     {
       String fieldName = iter.next();
@@ -920,14 +924,50 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
       if (needComma)
         sb.append(",");
       needComma = true;
-      sb.append("txxx1.").append(columnValue).append(" AS ").append(fieldName);
+      sb.append("txxx2.").append(columnValue).append(" AS ").append(fieldName);
     }
-    sb.append(" FROM (").append(baseQuery).append(") txxx1");
+    sb.append(" FROM (").append(baseQuery).append(") txxx2)");
+    sb.append(" SELECT * FROM (SELECT DISTINCT ");
+    Map<String,String> distinctMap = new HashMap<String,String>();
+    int i = 0;
+    while (i < distinctFields.length)
+    {
+      String distinctField = distinctFields[i];
+      if (i > 0)
+        sb.append(",");
+      sb.append(distinctField);
+      distinctMap.put(distinctField,distinctField);
+      i++;
+    }
+    sb.append(" FROM txxx1) AS txxx3, LATERAL (SELECT ");
+    iter = otherFields.keySet().iterator();
+    needComma = false;
+    while (iter.hasNext())
+    {
+      String fieldName = iter.next();
+      if (distinctMap.get(fieldName) == null)
+      {
+        if (needComma)
+          sb.append(",");
+        needComma = true;
+        sb.append(fieldName);
+      }
+    }
+    sb.append(" FROM txxx1 WHERE ");
+    i = 0;
+    while (i < distinctFields.length)
+    {
+      String distinctField = distinctFields[i];
+      if (i > 0)
+        sb.append(" AND ");
+      sb.append(distinctField).append("=txxx3.").append(distinctField);
+      i++;
+    }
     if (distinctFields.length > 0 || orderFields.length > 0)
     {
       sb.append(" ORDER BY ");
       int k = 0;
-      int i = 0;
+      i = 0;
       while (i < distinctFields.length)
       {
         if (k > 0)
@@ -950,6 +990,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
         k++;
       }
     }
+    sb.append(" LIMIT 1) AS txxx4");
     return sb.toString();
   }
 

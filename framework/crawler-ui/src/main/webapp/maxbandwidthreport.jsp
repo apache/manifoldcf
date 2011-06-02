@@ -775,8 +775,8 @@ if (maintenanceUnderway == false)
 				idBucketString = "";
 			    else
 				idBucketString = idBucketObject.toString();
-			    String startTimeString = org.apache.manifoldcf.ui.util.Formatter.formatTime(((Long)row.getValue("starttime")).longValue());
-			    String endTimeString = org.apache.manifoldcf.ui.util.Formatter.formatTime(((Long)row.getValue("endtime")).longValue());
+			    String startTimeString = org.apache.manifoldcf.ui.util.Formatter.formatTime(new Long(row.getValue("starttime").toString()).longValue());
+			    String endTimeString = org.apache.manifoldcf.ui.util.Formatter.formatTime(new Long(row.getValue("endtime").toString()).longValue());
 			    long byteCount = new Long(row.getValue("bytecount").toString()).longValue();
 			    double bandwidth = ((double)byteCount) * 1000.0 / intervalMilliseconds;
 
