@@ -458,7 +458,19 @@ public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core
   *@param ds is the current document specification for this job.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
+  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, List<String> tabsArray)
+    throws ManifoldCFException, IOException
+  {
+    // Call the old method signature, for backwards compatibility
+    ArrayList<Object> localTabsArray = new ArrayList<Object>();
+    outputSpecificationHeader(out,ds,localTabsArray);
+    for (Object o : localTabsArray)
+    {
+      tabsArray.add((String)o);
+    }
+  }
+  
+  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList<Object> tabsArray)
     throws ManifoldCFException, IOException
   {
   }

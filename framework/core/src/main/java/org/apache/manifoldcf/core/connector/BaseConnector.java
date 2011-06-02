@@ -127,7 +127,19 @@ public abstract class BaseConnector implements IConnector
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
+    throws ManifoldCFException, IOException
+  {
+    // Call the old method signature, for backwards compatibility
+    ArrayList<Object> localTabsArray = new ArrayList<Object>();
+    outputConfigurationHeader(threadContext,out,parameters,localTabsArray);
+    for (Object o : localTabsArray)
+    {
+      tabsArray.add((String)o);
+    }
+  }
+  
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList<Object> tabsArray)
     throws ManifoldCFException, IOException
   {
   }

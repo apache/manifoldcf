@@ -101,6 +101,57 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
     return true;
   }
 
+  /** Get an output version string, given an output specification.  The output version string is used to uniquely describe the pertinent details of
+  * the output specification and the configuration, to allow the Connector Framework to determine whether a document will need to be output again.
+  * Note that the contents of the document cannot be considered by this method, and that a different version string (defined in IRepositoryConnector)
+  * is used to describe the version of the actual document.
+  *
+  * This method presumes that the connector object has been configured, and it is thus able to communicate with the output data store should that be
+  * necessary.
+  *@param spec is the current output specification for the job that is doing the crawling.
+  *@return a string, of unlimited length, which uniquely describes output configuration and specification in such a way that if two such strings are equal,
+  * the document will not need to be sent again to the output data store.
+  */
+  public String getOutputDescription(OutputSpecification spec)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    // Empty string from the base class.
+    return "";
+  }
+
+  /** Add (or replace) a document in the output data store using the connector.
+  * This method presumes that the connector object has been configured, and it is thus able to communicate with the output data store should that be
+  * necessary.
+  * The OutputSpecification is *not* provided to this method, because the goal is consistency, and if output is done it must be consistent with the
+  * output description, since that was what was partly used to determine if output should be taking place.  So it may be necessary for this method to decode
+  * an output description string in order to determine what should be done.
+  *@param documentURI is the URI of the document.  The URI is presumed to be the unique identifier which the output data store will use to process
+  * and serve the document.  This URI is constructed by the repository connector which fetches the document, and is thus universal across all output connectors.
+  *@param outputDescription is the description string that was constructed for this document by the getOutputDescription() method.
+  *@param document is the document data to be processed (handed to the output data store).
+  *@param authorityNameString is the name of the authority responsible for authorizing any access tokens passed in with the repository document.  May be null.
+  *@param activities is the handle to an object that the implementer of an output connector may use to perform operations, such as logging processing activity.
+  *@return the document status (accepted or permanently rejected).
+  */
+  public int addOrReplaceDocument(String documentURI, String outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    return DOCUMENTSTATUS_REJECTED;
+  }
+
+  /** Remove a document using the connector.
+  * Note that the last outputDescription is included, since it may be necessary for the connector to use such information to know how to properly remove the document.
+  *@param documentURI is the URI of the document.  The URI is presumed to be the unique identifier which the output data store will use to process
+  * and serve the document.  This URI is constructed by the repository connector which fetches the document, and is thus universal across all output connectors.
+  *@param outputDescription is the last description string that was constructed for this document by the getOutputDescription() method above.
+  *@param activities is the handle to an object that the implementer of an output connector may use to perform operations, such as logging processing activity.
+  */
+  public void removeDocument(String documentURI, String outputDescription, IOutputRemoveActivity activities)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    // Does nothing in the base class
+  }
+  
   // UI support methods.
   //
   // These support methods come in two varieties.  The first bunch is involved in setting up connection configuration information.  The second bunch
@@ -117,7 +168,19 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   *@param os is the current output specification for this job.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  public void outputSpecificationHeader(IHTTPOutput out, OutputSpecification os, ArrayList tabsArray)
+  public void outputSpecificationHeader(IHTTPOutput out, OutputSpecification os, List<String> tabsArray)
+    throws ManifoldCFException, IOException
+  {
+    // Call the old method signature, for backwards compatibility
+    ArrayList<Object> localTabsArray = new ArrayList<Object>();
+    outputSpecificationHeader(out,os,localTabsArray);
+    for (Object o : localTabsArray)
+    {
+      tabsArray.add((String)o);
+    }
+  }
+  
+  public void outputSpecificationHeader(IHTTPOutput out, OutputSpecification os, ArrayList<Object> tabsArray)
     throws ManifoldCFException, IOException
   {
   }

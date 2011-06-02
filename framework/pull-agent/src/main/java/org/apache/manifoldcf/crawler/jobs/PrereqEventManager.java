@@ -132,7 +132,7 @@ public class PrereqEventManager extends org.apache.manifoldcf.core.database.Base
   public void deleteRows(String parentTableName, String joinField, String parentCriteria, ArrayList list)
     throws ManifoldCFException
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     sb.append("WHERE EXISTS(SELECT 'x' FROM ").append(parentTableName).append(" WHERE ").append(joinField).append("=")
       .append(getTableName()).append(".").append(ownerField);
     if (parentCriteria != null)

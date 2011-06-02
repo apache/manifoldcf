@@ -187,22 +187,11 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   * This must return a model value as specified above.
   *@return the model type value.
   */
+  @Override
   public int getConnectorModel()
   {
     // We return all seeds every time.
     return MODEL_ALL;
-  }
-
-  /** Return the path for the UI interface JSP elements.
-  * These JSP's must be provided to allow the connector to be configured, and to
-  * permit it to present document filtering specification information in the UI.
-  * This method should return the name of the folder, under the <webapp>/connectors/
-  * area, where the appropriate JSP's can be found.  The name should NOT have a slash in it.
-  *@return the folder part
-  */
-  public String getJSPFolder()
-  {
-    return "webcrawler";
   }
 
   /** Install the connector.
@@ -210,6 +199,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   * It is called when the connector is registered.
   *@param threadContext is the current thread context.
   */
+  @Override
   public void install(IThreadContext threadContext)
     throws ManifoldCFException
   {
@@ -251,6 +241,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   * It is called when the connector is deregistered.
   *@param threadContext is the current thread context.
   */
+  @Override
   public void deinstall(IThreadContext threadContext)
     throws ManifoldCFException
   {
@@ -289,6 +280,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   /** Return the list of activities that this connector supports (i.e. writes into the log).
   *@return the list.
   */
+  @Override
   public String[] getActivitiesList()
   {
     return new String[]{ACTIVITY_FETCH, ACTIVITY_ROBOTSPARSE, ACTIVITY_LOGON_START, ACTIVITY_LOGON_END};
@@ -298,6 +290,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   /** Return the list of relationship types that this connector recognizes.
   *@return the list.
   */
+  @Override
   public String[] getRelationshipTypes()
   {
     return new String[]{REL_LINK,REL_REDIRECT};
@@ -306,6 +299,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   /** Clear out any state information specific to a given thread.
   * This method is called when this object is returned to the connection pool.
   */
+  @Override
   public void clearThreadContext()
   {
     super.clearThreadContext();
@@ -365,6 +359,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   /** This method is periodically called for all connectors that are connected but not
   * in active use.
   */
+  @Override
   public void poll()
     throws ManifoldCFException
   {
@@ -373,6 +368,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
   /** Check status of connection.
   */
+  @Override
   public String check()
     throws ManifoldCFException
   {
@@ -382,6 +378,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
   /** Close the connection.  Call this before discarding the repository connector.
   */
+  @Override
   public void disconnect()
     throws ManifoldCFException
   {
@@ -404,6 +401,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   *@param documentIdentifier is the document identifier.
   *@return the bin name.
   */
+  @Override
   public String[] getBinNames(String documentIdentifier)
   {
     try
@@ -443,6 +441,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   *@param startTime is the beginning of the time range to consider, inclusive.
   *@param endTime is the end of the time range to consider, exclusive.
   */
+  @Override
   public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
     long startTime, long endTime)
     throws ManifoldCFException, ServiceInterruption
@@ -511,6 +510,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   * Empty version strings indicate that there is no versioning ability for the corresponding document, and the document
   * will always be processed.
   */
+  @Override
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
     DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption
@@ -538,7 +538,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       String value = nv.getValue();
       fixedListStrings[0] = name;
       fixedListStrings[1] = value;
-      StringBuffer newsb = new StringBuffer();
+      StringBuilder newsb = new StringBuilder();
       packFixedList(newsb,fixedListStrings,'=');
       metadata[k++] = newsb.toString();
     }
@@ -613,7 +613,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
               // Do the mapping from the current host name to the IP address
               URL url = new URL(currentURI);
               String hostName = url.getHost();
-              StringBuffer ipAddressBuffer = new StringBuffer();
+              StringBuilder ipAddressBuffer = new StringBuilder();
               int ipAddressStatus = lookupIPAddress(currentURI,activities,hostName,currentTime,ipAddressBuffer);
               if (ipAddressStatus == RESULTSTATUS_TRUE)
               {
@@ -1038,7 +1038,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             break;
           case RESULT_VERSION_NEEDED:
             // Calculate version from document data, which is presumed to be present.
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
 
             // Acls
             packList(sb,acls,'+');
@@ -1100,6 +1100,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   *@param scanOnly is an array corresponding to the document identifiers.  It is set to true to indicate when the processing
   * should only find other references, and should not actually call the ingestion methods.
   */
+  @Override
   public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -1148,7 +1149,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
           // Unpack the version string
           ArrayList acls = new ArrayList();
-          StringBuffer denyAclBuffer = new StringBuffer();
+          StringBuilder denyAclBuffer = new StringBuilder();
           ArrayList metadata = new ArrayList();
           int index = unpackList(acls,version,0,'+');
           if (index < version.length() && version.charAt(index++) == '+')
@@ -1270,6 +1271,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   *@param documentIdentifiers is the set of document identifiers.
   *@param versions is the corresponding set of version identifiers (individual identifiers may be null).
   */
+  @Override
   public void releaseDocumentVersions(String[] documentIdentifiers, String[] versions)
     throws ManifoldCFException
   {
@@ -1289,6 +1291,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   /** Get the maximum number of documents to amalgamate together into one batch, for this connector.
   *@return the maximum number. 0 indicates "unlimited".
   */
+  @Override
   public int getMaxDocumentRequest()
   {
     // The web in general does not batch well.  Multiple chunks have no advantage over one-at-a-time requests.
@@ -1311,7 +1314,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
+  @Override
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
     tabsArray.add("Email");
@@ -1642,6 +1646,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@param tabName is the current tab name.
   */
+  @Override
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
@@ -2561,6 +2566,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
+  @Override
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
     throws ManifoldCFException
   {
@@ -2936,6 +2942,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   *@param out is the output to which any HTML should be sent.
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
+  @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
@@ -3270,7 +3277,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   *@param ds is the current document specification for this job.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
+  @Override
+  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
     tabsArray.add("Seeds");
@@ -3383,6 +3391,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   *@param ds is the current document specification for this job.
   *@param tabName is the current tab name.
   */
+  @Override
   public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
     throws ManifoldCFException, IOException
   {
@@ -3849,6 +3858,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   *@param ds is the current document specification for this job.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
+  @Override
   public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
     throws ManifoldCFException
   {
@@ -4122,6 +4132,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   *@param out is the output to which any HTML should be sent.
   *@param ds is the current document specification for this job.
   */
+  @Override
   public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
     throws ManifoldCFException, IOException
   {
@@ -4469,7 +4480,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   */
   protected String makeSessionLoginEventName(INamingActivity activities, String sequenceKey)
   {
-    return activities.createGlobalString(getJSPFolder()+":session:"+sequenceKey);
+    return activities.createGlobalString("webcrawler:session:"+sequenceKey);
   }
 
   /** Calculate the event name for DNS access.
@@ -4477,13 +4488,13 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   protected String makeDNSEventName(INamingActivity activities, String hostNameKey)
   {
     // Use the connector unique id, and use a convention that guarantees uniqueness.
-    return activities.createGlobalString(getJSPFolder()+":dns:"+hostNameKey);
+    return activities.createGlobalString("webcrawler:dns:"+hostNameKey);
   }
 
   /** Look up an ipaddress given a non-canonical host name.
   *@return appropriate status.
   */
-  protected int lookupIPAddress(String documentIdentifier, IVersionActivity activities, String hostName, long currentTime, StringBuffer ipAddressBuffer)
+  protected int lookupIPAddress(String documentIdentifier, IVersionActivity activities, String hostName, long currentTime, StringBuilder ipAddressBuffer)
     throws ManifoldCFException, ServiceInterruption
   {
     String eventName = makeDNSEventName(activities,hostName);
@@ -4554,7 +4565,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   protected String makeRobotsEventName(INamingActivity versionActivities, String robotsKey)
   {
     // Use the connector unique id, and use a convention that guarantees uniqueness.
-    return versionActivities.createGlobalString(getJSPFolder()+":robots:"+robotsKey);
+    return versionActivities.createGlobalString("webcrawler:robots:"+robotsKey);
   }
 
   /** Check robots to see if fetch is allowed.
@@ -4976,7 +4987,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         }
         java.util.Arrays.sort(sortArray);
 
-        StringBuffer newString = new StringBuffer();
+        StringBuilder newString = new StringBuilder();
         boolean isFirst = true;
         i = 0;
         while (i < sortArray.length)
@@ -5000,7 +5011,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       else
       {
         // Do not reorder!
-        StringBuffer newString = new StringBuffer();
+        StringBuilder newString = new StringBuilder();
         int index = 0;
         boolean isFirst = true;
         while (index < queryString.length())
@@ -6748,7 +6759,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   }
 
   /** Stuffer for packing a single string with an end delimiter */
-  protected static void pack(StringBuffer output, String value, char delimiter)
+  protected static void pack(StringBuilder output, String value, char delimiter)
   {
     int i = 0;
     while (i < value.length())
@@ -6762,7 +6773,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   }
 
   /** Unstuffer for the above. */
-  protected static int unpack(StringBuffer sb, String value, int startPosition, char delimiter)
+  protected static int unpack(StringBuilder sb, String value, int startPosition, char delimiter)
   {
     while (startPosition < value.length())
     {
@@ -6780,7 +6791,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   }
 
   /** Stuffer for packing lists of fixed length */
-  protected static void packFixedList(StringBuffer output, String[] values, char delimiter)
+  protected static void packFixedList(StringBuilder output, String[] values, char delimiter)
   {
     int i = 0;
     while (i < values.length)
@@ -6792,7 +6803,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   /** Unstuffer for unpacking lists of fixed length */
   protected static int unpackFixedList(String[] output, String value, int startPosition, char delimiter)
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     int i = 0;
     while (i < output.length)
     {
@@ -6804,7 +6815,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   }
 
   /** Stuffer for packing lists of variable length */
-  protected static void packList(StringBuffer output, ArrayList values, char delimiter)
+  protected static void packList(StringBuilder output, ArrayList values, char delimiter)
   {
     pack(output,Integer.toString(values.size()),delimiter);
     int i = 0;
@@ -6815,7 +6826,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   }
 
   /** Another stuffer for packing lists of variable length */
-  protected static void packList(StringBuffer output, String[] values, char delimiter)
+  protected static void packList(StringBuilder output, String[] values, char delimiter)
   {
     pack(output,Integer.toString(values.length),delimiter);
     int i = 0;
@@ -6834,7 +6845,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   */
   protected static int unpackList(ArrayList output, String value, int startPosition, char delimiter)
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     startPosition = unpack(sb,value,startPosition,delimiter);
     try
     {

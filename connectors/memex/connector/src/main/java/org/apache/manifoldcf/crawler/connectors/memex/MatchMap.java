@@ -56,8 +56,8 @@ public class MatchMap
   {
     matchStrings = new ArrayList();
     replaceStrings = new ArrayList();
-    StringBuffer matchString = new StringBuffer();
-    StringBuffer replaceString = new StringBuffer();
+    StringBuilder matchString = new StringBuilder();
+    StringBuilder replaceString = new StringBuilder();
     int i = 0;
     while (i < stringForm.length())
     {
@@ -167,7 +167,7 @@ public class MatchMap
     // original parser (which basically will guarantee that we get it right)
 
     EvaluatorTokenStream et = new EvaluatorTokenStream(oldstyleReplace);
-    StringBuffer newStyleReplace = new StringBuffer();
+    StringBuilder newStyleReplace = new StringBuilder();
 
     while (true)
     {
@@ -213,7 +213,7 @@ public class MatchMap
   }
 
   /** Escape a string so it is verbatim */
-  protected static void escape(StringBuffer output, String input)
+  protected static void escape(StringBuilder output, String input)
   {
     int i = 0;
     while (i < input.length())
@@ -229,7 +229,7 @@ public class MatchMap
   public String toString()
   {
     int i = 0;
-    StringBuffer rval = new StringBuffer();
+    StringBuilder rval = new StringBuilder();
     while (i < matchStrings.size())
     {
       String matchString = (String)matchStrings.get(i);
@@ -245,7 +245,7 @@ public class MatchMap
   }
 
   /** Stuff characters */
-  protected static void stuff(StringBuffer sb, String value)
+  protected static void stuff(StringBuilder sb, String value)
   {
     int i = 0;
     while (i < value.length())
@@ -283,7 +283,7 @@ public class MatchMap
       String outputDescription = (String)replaceStrings.get(j);
       j++;
       // Create a copy buffer
-      StringBuffer outputBuffer = new StringBuffer();
+      StringBuilder outputBuffer = new StringBuilder();
       // Keep track of the index in the original string we have done up to
       int currentIndex = 0;
       // Scan the string using find, and for each one found, do a translation
@@ -324,7 +324,7 @@ public class MatchMap
             if (x == '(')
             {
               // Process evaluation expression
-              StringBuffer numberBuf = new StringBuffer();
+              StringBuilder numberBuf = new StringBuilder();
               boolean upper = false;
               boolean lower = false;
               boolean mixed = false;
@@ -491,13 +491,13 @@ public class MatchMap
         pos++;
       }
 
-      StringBuffer sb;
+      StringBuilder sb;
 
       if (x == '"')
       {
         // Parse text
         pos++;
-        sb = new StringBuffer();
+        sb = new StringBuilder();
         while (true)
         {
           if (pos == text.length())
@@ -527,7 +527,7 @@ public class MatchMap
       }
 
       // Eat number at beginning
-      sb = new StringBuffer();
+      sb = new StringBuilder();
       while (true)
       {
         if (pos == text.length())

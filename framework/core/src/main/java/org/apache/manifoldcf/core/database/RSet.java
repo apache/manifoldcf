@@ -26,7 +26,7 @@ public class RSet implements IResultSet
   public static final String _rcsid = "@(#)$Id: RSet.java 988245 2010-08-23 18:39:35Z kwright $";
 
   // Instance of a result
-  protected ArrayList _rows = new ArrayList();
+  protected List<IResultRow> rows = new ArrayList<IResultRow>();
 
   public RSet()
   {
@@ -36,7 +36,7 @@ public class RSet implements IResultSet
   */
   public void addRow(IResultRow m)
   {
-    _rows.add(m);
+    rows.add(m);
   }
 
   /** Get a specific row in the resultset.
@@ -45,7 +45,7 @@ public class RSet implements IResultSet
   */
   public IResultRow getRow(int rowNumber)
   {
-    return (IResultRow)_rows.get(rowNumber);
+    return rows.get(rowNumber);
   }
 
   /** Get the number of rows in this resultset.
@@ -53,7 +53,7 @@ public class RSet implements IResultSet
   */
   public int getRowCount()
   {
-    return _rows.size();
+    return rows.size();
   }
 
   /** Get an array of all the rows.
@@ -63,11 +63,11 @@ public class RSet implements IResultSet
   */
   public IResultRow[] getRows()
   {
-    IResultRow[] rval = new IResultRow[_rows.size()];
+    IResultRow[] rval = new IResultRow[rows.size()];
     int i = 0;
-    while (i < _rows.size())
+    while (i < rows.size())
     {
-      rval[i] = (IResultRow)_rows.get(i);
+      rval[i] = rows.get(i);
       i++;
     }
     return rval;

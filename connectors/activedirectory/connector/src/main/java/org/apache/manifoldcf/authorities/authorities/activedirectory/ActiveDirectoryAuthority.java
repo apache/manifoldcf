@@ -74,6 +74,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
 
   /** Set thread context.
   */
+  @Override
   public void setThreadContext(IThreadContext tc)
     throws ManifoldCFException
   {
@@ -83,6 +84,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   
   /** Clear thread context.
   */
+  @Override
   public void clearThreadContext()
   {
     super.clearThreadContext();
@@ -92,6 +94,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   /** Connect.  The configuration parameters are included.
   *@param configParams are the configuration parameters for this connection.
   */
+  @Override
   public void connect(ConfigParams configParams)
   {
     super.connect(configParams);
@@ -111,6 +114,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
 
   /** Check connection for sanity.
   */
+  @Override
   public String check()
     throws ManifoldCFException
   {
@@ -120,6 +124,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
 
   /** Poll.  The connection should be closed if it has been idle for too long.
   */
+  @Override
   public void poll()
     throws ManifoldCFException
   {
@@ -148,6 +153,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   
   /** Close the connection.  Call this before discarding the repository connector.
   */
+  @Override
   public void disconnect()
     throws ManifoldCFException
   {
@@ -165,6 +171,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   *@return the response tokens (according to the current authority).
   * (Should throws an exception only when a condition cannot be properly described within the authorization response object.)
   */
+  @Override
   public AuthorizationResponse getAuthorizationResponse(String userName)
     throws ManifoldCFException
   {
@@ -297,6 +304,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   *@param userName is the user name or identifier.
   *@return the default response tokens, presuming that the connect method fails.
   */
+  @Override
   public AuthorizationResponse getDefaultAuthorizationResponse(String userName)
   {
     // The default response if the getConnection method fails
@@ -316,7 +324,8 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
+  @Override
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
     tabsArray.add("Domain Controller");
@@ -368,6 +377,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@param tabName is the current tab name.
   */
+  @Override
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
@@ -442,6 +452,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
+  @Override
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
     throws ManifoldCFException
   {
@@ -470,6 +481,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   *@param out is the output to which any HTML should be sent.
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
+  @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
@@ -594,7 +606,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     }
     
     //Build the DN searchBase from domain part
-    StringBuffer domainsb = new StringBuffer();
+    StringBuilder domainsb = new StringBuilder();
     int j = 0;
     while (true)
     {
@@ -661,7 +673,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   protected static String ldapEscape(String input)
   {
     //Add escape sequence to all commas
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     int index = 0;
     while (true)
     {
@@ -681,7 +693,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   /** Convert a binary SID to a string */
   protected static String sid2String(byte[] SID)
   {
-    StringBuffer strSID = new StringBuffer("S");
+    StringBuilder strSID = new StringBuilder("S");
     long version = SID[0];
     strSID.append("-").append(Long.toString(version));
     long authority = SID[4];

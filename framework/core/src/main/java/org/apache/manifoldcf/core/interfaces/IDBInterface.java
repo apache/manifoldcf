@@ -78,7 +78,7 @@ public interface IDBInterface
   * invalidated.
   *@param parameterMap is the map of column name/values to write.
   */
-  public void performInsert(String tableName, Map parameterMap, StringSet invalidateKeys)
+  public void performInsert(String tableName, Map<String,Object> parameterMap, StringSet invalidateKeys)
     throws ManifoldCFException;
 
   /** Perform an update operation.
@@ -88,7 +88,8 @@ public interface IDBInterface
   *@param whereClause is the where clause describing the match (including the WHERE), or null if none.
   *@param whereParameters are the parameters that come with the where clause, if any.
   */
-  public void performUpdate(String tableName, Map parameterMap, String whereClause, ArrayList whereParameters, StringSet invalidateKeys)
+  public void performUpdate(String tableName, Map<String,Object> parameterMap, String whereClause,
+    List whereParameters, StringSet invalidateKeys)
     throws ManifoldCFException;
 
   /** Perform a delete operation.
@@ -97,7 +98,7 @@ public interface IDBInterface
   *@param whereClause is the where clause describing the match (including the WHERE), or null if none.
   *@param whereParameters are the parameters that come with the where clause, if any.
   */
-  public void performDelete(String tableName, String whereClause, ArrayList whereParameters, StringSet invalidateKeys)
+  public void performDelete(String tableName, String whereClause, List whereParameters, StringSet invalidateKeys)
     throws ManifoldCFException;
 
   /** Perform a table creation operation.
@@ -107,7 +108,7 @@ public interface IDBInterface
   * layer.  The types are ColumnDefinition objects.
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
-  public void performCreate(String tableName, Map columnMap, StringSet invalidateKeys)
+  public void performCreate(String tableName, Map<String,ColumnDescription> columnMap, StringSet invalidateKeys)
     throws ManifoldCFException;
 
   /** Perform a table alter operation.
@@ -120,7 +121,8 @@ public interface IDBInterface
   *@param columnDeleteList is the list of column names to delete.
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
-  public void performAlter(String tableName, Map columnMap, Map columnModifyMap, ArrayList columnDeleteList,
+  public void performAlter(String tableName, Map<String,ColumnDescription> columnMap,
+    Map<String,ColumnDescription> columnModifyMap, List<String> columnDeleteList,
     StringSet invalidateKeys)
     throws ManifoldCFException;
 
@@ -130,7 +132,7 @@ public interface IDBInterface
   *@param columnList is the list of columns that need to be included
   * in the index, in order.
   */
-  public void addTableIndex(String tableName, boolean unique, ArrayList columnList)
+  public void addTableIndex(String tableName, boolean unique, List<String> columnList)
     throws ManifoldCFException;
 
   /** Add an index to a table.
@@ -188,7 +190,7 @@ public interface IDBInterface
   *@param queryClass is the name of the query class, or null.
   *@return a map of column names and ColumnDescription objects, describing the schema.
   */
-  public Map getTableSchema(String tableName, StringSet cacheKeys, String queryClass)
+  public Map<String,ColumnDescription> getTableSchema(String tableName, StringSet cacheKeys, String queryClass)
     throws ManifoldCFException;
 
   /** Get a table's indexes.
@@ -197,7 +199,7 @@ public interface IDBInterface
   *@param queryClass is the name of the query class, or null.
   *@return a map of index names and IndexDescription objects, describing the indexes.
   */
-  public Map getTableIndexes(String tableName, StringSet cacheKeys, String queryClass)
+  public Map<String,IndexDescription> getTableIndexes(String tableName, StringSet cacheKeys, String queryClass)
     throws ManifoldCFException;
 
   /** Get a database's tables.
@@ -213,7 +215,7 @@ public interface IDBInterface
   *@param params are the parameterized values, if needed.
   *@param invalidateKeys are the cache keys to invalidate.
   */
-  public void performModification(String query, ArrayList params, StringSet invalidateKeys)
+  public void performModification(String query, List params, StringSet invalidateKeys)
     throws ManifoldCFException;
 
   /** Perform a general "data fetch" query.
@@ -224,7 +226,7 @@ public interface IDBInterface
   * or null if no LRU behavior desired.
   *@return a resultset.
   */
-  public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass)
+  public IResultSet performQuery(String query, List params, StringSet cacheKeys, String queryClass)
     throws ManifoldCFException;
 
   /** Perform a general "data fetch" query.
@@ -237,7 +239,7 @@ public interface IDBInterface
   *@param returnLimit is a description of how to limit the return result, or null if no limit.
   *@return a resultset.
   */
-  public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass,
+  public IResultSet performQuery(String query, List params, StringSet cacheKeys, String queryClass,
     int maxResults, ILimitChecker returnLimit)
     throws ManifoldCFException;
 
@@ -252,7 +254,7 @@ public interface IDBInterface
   *@param returnLimit is a description of how to limit the return result, or null if no limit.
   *@return a resultset.
   */
-  public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass,
+  public IResultSet performQuery(String query, List params, StringSet cacheKeys, String queryClass,
     int maxResults, ResultSpecification resultSpec, ILimitChecker returnLimit)
     throws ManifoldCFException;
 
@@ -287,15 +289,16 @@ public interface IDBInterface
   * This filter wraps a query and returns a new query whose results are similar to POSTGRESQL's DISTINCT-ON feature.
   * Specifically, for each combination of the specified distinct fields in the result, only the first such row is included in the final
   * result.
-  *@param outputParameters is a blank arraylist into which to put parameters.  Null may be used if the baseParameters parameter is null.
+  *@param outputParameters is a blank list into which to put parameters.  Null may be used if the baseParameters parameter is null.
   *@param baseQuery is the base query, which is another SELECT statement, without parens,
   * e.g. "SELECT ..."
   *@param baseParameters are the parameters corresponding to the baseQuery.
   *@param distinctFields are the fields to consider to be distinct.  These should all be keys in otherFields below.
   *@param otherFields are the rest of the fields to return, keyed by the AS name, value being the base query column value, e.g. "value AS key"
-  *@return a revised query that performs the necessary DISTINCT ON operation.  The arraylist outputParameters will also be appropriately filled in.
+  *@return a revised query that performs the necessary DISTINCT ON operation.  The list outputParameters will also be appropriately filled in.
   */
-  public String constructDistinctOnClause(ArrayList outputParameters, String baseQuery, ArrayList baseParameters, String[] distinctFields, Map otherFields);
+  public String constructDistinctOnClause(List outputParameters, String baseQuery, List baseParameters,
+    String[] distinctFields, Map<String,String> otherFields);
   
   /** Obtain the maximum number of individual items that should be
   * present in an IN clause.  Exceeding this amount will potentially cause the query performance

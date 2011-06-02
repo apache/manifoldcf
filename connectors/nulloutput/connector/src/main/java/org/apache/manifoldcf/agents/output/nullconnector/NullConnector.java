@@ -45,19 +45,10 @@ public class NullConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   /** Return the list of activities that this connector supports (i.e. writes into the log).
   *@return the list.
   */
+  @Override
   public String[] getActivitiesList()
   {
     return new String[]{INGEST_ACTIVITY,REMOVE_ACTIVITY};
-  }
-
-  /** Return the path for the UI interface JSP elements.
-  * This method should return the name of the folder, under the <webapp>/output/
-  * area, where the appropriate JSP's can be found.  The name should NOT have a slash in it.
-  *@return the folder part
-  */
-  public String getJSPFolder()
-  {
-    return "nullconnector";
   }
 
   /** Connect.
@@ -65,6 +56,7 @@ public class NullConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   * in this case describe the target appliance, basic auth configuration, etc.  (This formerly came
   * out of the ini file.)
   */
+  @Override
   public void connect(ConfigParams configParameters)
   {
     super.connect(configParameters);
@@ -72,6 +64,7 @@ public class NullConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 
   /** Close the connection.  Call this before discarding the connection.
   */
+  @Override
   public void disconnect()
     throws ManifoldCFException
   {
@@ -87,6 +80,7 @@ public class NullConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   /** Test the connection.  Returns a string describing the connection integrity.
   *@return the connection's status as a displayable string.
   */
+  @Override
   public String check()
     throws ManifoldCFException
   {
@@ -112,6 +106,7 @@ public class NullConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@return a string, of unlimited length, which uniquely describes output configuration and specification in such a way that if two such strings are equal,
   * the document will not need to be sent again to the output data store.
   */
+  @Override
   public String getOutputDescription(OutputSpecification spec)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -132,6 +127,7 @@ public class NullConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@param activities is the handle to an object that the implementer of an output connector may use to perform operations, such as logging processing activity.
   *@return the document status (accepted or permanently rejected).
   */
+  @Override
   public int addOrReplaceDocument(String documentURI, String outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -148,6 +144,7 @@ public class NullConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@param outputDescription is the last description string that was constructed for this document by the getOutputDescription() method above.
   *@param activities is the handle to an object that the implementer of an output connector may use to perform operations, such as logging processing activity.
   */
+  @Override
   public void removeDocument(String documentURI, String outputDescription, IOutputRemoveActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {

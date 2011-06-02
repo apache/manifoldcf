@@ -243,7 +243,7 @@ public interface IRepositoryConnector extends IConnector
   *@param ds is the current document specification for this job.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
+  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, List<String> tabsArray)
     throws ManifoldCFException, IOException;
   
   /** Output the specification body section.

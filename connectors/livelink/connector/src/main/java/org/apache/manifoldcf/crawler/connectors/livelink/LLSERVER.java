@@ -157,7 +157,7 @@ public class LLSERVER
   {
     if (session == null)
       return null;
-    StringBuffer rval = new StringBuffer();
+    StringBuilder rval = new StringBuilder();
     if (session.getStatus() != 0)
       rval.append("LAPI status code: ").append(session.getStatus());
     if (session.getApiError().length() > 0)

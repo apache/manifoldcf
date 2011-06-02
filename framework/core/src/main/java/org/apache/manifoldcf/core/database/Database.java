@@ -100,7 +100,7 @@ public class Database
   }
   
   /** Abstract method for explaining a query */
-  protected void explainQuery(String query, ArrayList params)
+  protected void explainQuery(String query, List params)
     throws ManifoldCFException
   {
   }
@@ -137,7 +137,7 @@ public class Database
   *  Pass null if no limits are desired.
   * @return the resultset
   */
-  public IResultSet executeQuery(String query, ArrayList params, StringSet cacheKeys, StringSet invalidateKeys,
+  public IResultSet executeQuery(String query, List params, StringSet cacheKeys, StringSet invalidateKeys,
     String queryClass, boolean needResult, int maxReturn, ResultSpecification spec, ILimitChecker returnLimits)
     throws ManifoldCFException
   {
@@ -391,7 +391,7 @@ public class Database
   {
     protected Connection connection;
     protected String query;
-    protected ArrayList params;
+    protected List params;
     protected boolean bResults;
     protected int maxResults;
     protected ResultSpecification spec;
@@ -399,7 +399,7 @@ public class Database
     protected Throwable exception = null;
     protected IResultSet rval = null;
 
-    public ExecuteQueryThread(Connection connection, String query, ArrayList params, boolean bResults, int maxResults,
+    public ExecuteQueryThread(Connection connection, String query, List params, boolean bResults, int maxResults,
       ResultSpecification spec, ILimitChecker returnLimit)
     {
       super();
@@ -438,7 +438,7 @@ public class Database
   }
 
   /** Do query execution via a subthread, so the primary thread can be interrupted */
-  protected IResultSet executeViaThread(Connection connection, String query, ArrayList params, boolean bResults, int maxResults,
+  protected IResultSet executeViaThread(Connection connection, String query, List params, boolean bResults, int maxResults,
     ResultSpecification spec, ILimitChecker returnLimit)
     throws ManifoldCFException
   {
@@ -477,7 +477,7 @@ public class Database
   /** This method does NOT appear in any interface; it is here to
   * service the cache object.
   */
-  protected IResultSet executeUncachedQuery(String query, ArrayList params, boolean bResults, int maxResults,
+  protected IResultSet executeUncachedQuery(String query, List params, boolean bResults, int maxResults,
     ResultSpecification spec, ILimitChecker returnLimit)
     throws ManifoldCFException
   {
@@ -526,9 +526,9 @@ public class Database
   * @param query String the query string
   * @param bResults boolean whether to load the resultset or not
   * @param maxResults is the maximum number of results to load: -1 if all
-  * @param params ArrayList if params !=null, use preparedStatement
+  * @param params List if params !=null, use preparedStatement
   */
-  protected IResultSet execute(Connection connection, String query, ArrayList params, boolean bResults, int maxResults,
+  protected IResultSet execute(Connection connection, String query, List params, boolean bResults, int maxResults,
     ResultSpecification spec, ILimitChecker returnLimit)
     throws ManifoldCFException
   {
@@ -761,7 +761,7 @@ public class Database
   }
 
   // pass params to preparedStatement
-  protected static void loadPS(PreparedStatement ps, ArrayList data)
+  protected static void loadPS(PreparedStatement ps, List data)
     throws java.sql.SQLException, ManifoldCFException
   {
     if (data!=null)
@@ -820,7 +820,7 @@ public class Database
 
   /** Clean up parameters after query has been triggered.
   */
-  protected static void cleanupParameters(ArrayList data)
+  protected static void cleanupParameters(List data)
     throws ManifoldCFException
   {
     if (data != null)

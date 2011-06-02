@@ -108,7 +108,7 @@ public class CheckAll
   /** Encode a string so that it doesn't have control characters, newlines, or colons in it */
   protected static String encode(String input)
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     int i = 0;
     while (i < input.length())
     {

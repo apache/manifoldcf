@@ -53,22 +53,10 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
   {
   }
 
-
-  /** Return the path for the UI interface JSP elements.
-  * These JSP's must be provided to allow the connector to be configured, and to
-  * permit it to present document filtering specification information in the UI.
-  * This method should return the name of the folder, under the <webapp>/connectors/
-  * area, where the appropriate JSP's can be found.  The name should NOT have a slash in it.
-  *@return the folder part
-  */
-  public String getJSPFolder()
-  {
-    return "filesystem";
-  }
-
   /** Return the list of relationship types that this connector recognizes.
   *@return the list.
   */
+  @Override
   public String[] getRelationshipTypes()
   {
     return new String[]{RELATIONSHIP_CHILD};
@@ -76,6 +64,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
   /** List the activities we might report on.
   */
+  @Override
   public String[] getActivitiesList()
   {
     return activitiesList;
@@ -85,6 +74,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
   * For the file system, this would be typically just a blank value, but since we use this connector for testing, I have
   * it returning TWO values for each document, so I can set up tests to see how the scheduler behaves under those conditions.
   */
+  @Override
   public String[] getBinNames(String documentIdentifier)
   {
     // Note: This code is for testing, so we can see how documents behave when they are in various kinds of bin situations.
@@ -133,6 +123,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param endTime is the end of the time range to consider, exclusive.
   *@return the stream of local document identifiers that should be added to the queue.
   */
+  @Override
   public IDocumentIdentifierStream getDocumentIdentifiers(DocumentSpecification spec, long startTime, long endTime)
     throws ManifoldCFException
   {
@@ -148,6 +139,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
   * Empty version strings indicate that there is no versioning ability for the corresponding document, and the document
   * will always be processed.
   */
+  @Override
   public String[] getDocumentVersions(String[] documentIdentifiers, DocumentSpecification spec)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -174,7 +166,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
           // Get the file's modified date.
           long lastModified = file.lastModified();
           long fileLength = file.length();
-          StringBuffer sb = new StringBuffer();
+          StringBuilder sb = new StringBuilder();
           sb.append(new Long(lastModified).toString()).append(":").append(new Long(fileLength).toString());
           rval[i] = sb.toString();
         }
@@ -198,6 +190,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param scanOnly is an array corresponding to the document identifiers.  It is set to true to indicate when the processing
   * should only find other references, and should not actually call the ingestion methods.
   */
+  @Override
   public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -315,7 +308,8 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
+  @Override
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
     out.print(
@@ -354,6 +348,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
+  @Override
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
     throws ManifoldCFException
   {
@@ -367,6 +362,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param out is the output to which any HTML should be sent.
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
+  @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
@@ -379,7 +375,8 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param ds is the current document specification for this job.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
+  @Override
+  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
     tabsArray.add("Paths");
@@ -411,6 +408,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param ds is the current document specification for this job.
   *@param tabName is the current tab name.
   */
+  @Override
   public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
     throws ManifoldCFException, IOException
   {
@@ -664,6 +662,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param ds is the current document specification for this job.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
+  @Override
   public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
     throws ManifoldCFException
   {
@@ -777,6 +776,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param out is the output to which any HTML should be sent.
   *@param ds is the current document specification for this job.
   */
+  @Override
   public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
     throws ManifoldCFException, IOException
   {

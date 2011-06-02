@@ -88,6 +88,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
 
   /** Set thread context.
   */
+  @Override
   public void setThreadContext(IThreadContext tc)
     throws ManifoldCFException
   {
@@ -97,6 +98,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   
   /** Clear thread context.
   */
+  @Override
   public void clearThreadContext()
   {
     super.clearThreadContext();
@@ -106,6 +108,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   /** Connect.  The configuration parameters are included.
   *@param configParams are the configuration parameters for this connection.
   */
+  @Override
   public void connect(ConfigParams configParams)
   {
     super.connect(configParams);
@@ -181,6 +184,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
 
   /** Check connection for sanity.
   */
+  @Override
   public String check()
     throws ManifoldCFException
   {
@@ -219,6 +223,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
 
   /** Close the connection.  Call this before discarding the repository connector.
   */
+  @Override
   public void disconnect()
     throws ManifoldCFException
   {
@@ -242,6 +247,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   *@return the response tokens (according to the current authority).
   * (Should throws an exception only when a condition cannot be properly described within the authorization response object.)
   */
+  @Override
   public AuthorizationResponse getAuthorizationResponse(String userName)
     throws ManifoldCFException
   {
@@ -279,7 +285,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   }
   
   /** Uncached method to get access tokens for a user name. */
-  public AuthorizationResponse getAuthorizationResponseUncached(String userName)
+  protected AuthorizationResponse getAuthorizationResponseUncached(String userName)
     throws ManifoldCFException
   {
     // First, do what's necessary to map the user name that comes in to a reasonable
@@ -430,6 +436,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   *@param userName is the user name or identifier.
   *@return the default response tokens, presuming that the connect method fails.
   */
+  @Override
   public AuthorizationResponse getDefaultAuthorizationResponse(String userName)
   {
     // The default response if the getConnection method fails
@@ -449,7 +456,8 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
+  @Override
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
     tabsArray.add("Server");
@@ -514,6 +522,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@param tabName is the current tab name.
   */
+  @Override
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
@@ -622,6 +631,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
+  @Override
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
     throws ManifoldCFException
   {
@@ -658,6 +668,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   *@param out is the output to which any HTML should be sent.
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
+  @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {

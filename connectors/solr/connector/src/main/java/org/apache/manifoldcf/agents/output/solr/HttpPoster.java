@@ -994,7 +994,7 @@ public class HttpPoster
   /** XML encoding */
   protected static String xmlEncode(String input)
   {
-    StringBuffer sb = new StringBuffer("<![CDATA[");
+    StringBuilder sb = new StringBuilder("<![CDATA[");
     sb.append(input);
     sb.append("]]>");
     return sb.toString();

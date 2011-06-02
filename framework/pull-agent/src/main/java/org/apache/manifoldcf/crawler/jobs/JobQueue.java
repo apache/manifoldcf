@@ -551,7 +551,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     int i = 0;
     while (i < identifiers.length)
     {
@@ -770,7 +770,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     // Delete in chunks
     int maxInClause = getMaxInClause();
     ArrayList list = new ArrayList();
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     int j = 0;
     int i = 0;
     while (i < ids.length)
@@ -962,7 +962,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     // To avoid deadlock, use 1 instead of something larger.  The docIDs are presumed to come in in sorted order.
     int maxClause = 1;
 
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     ArrayList list = new ArrayList();
     j = 0;
     while (j < docIDHashes.length)

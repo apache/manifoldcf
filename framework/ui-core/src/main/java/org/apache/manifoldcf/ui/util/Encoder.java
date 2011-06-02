@@ -30,7 +30,7 @@ public class Encoder
   */
   public static String attributeJavascriptEscape(String value)
   {
-    StringBuffer rval = new StringBuffer();
+    StringBuilder rval = new StringBuilder();
     int i = 0;
     while (i < value.length())
     {
@@ -52,7 +52,7 @@ public class Encoder
   */
   public static String attributeEscape(String value)
   {
-    StringBuffer rval = new StringBuffer();
+    StringBuilder rval = new StringBuilder();
     int i = 0;
     while (i < value.length())
     {
@@ -73,7 +73,7 @@ public class Encoder
   */
   public static String bodyEscape(String value)
   {
-    StringBuffer rval = new StringBuffer();
+    StringBuilder rval = new StringBuilder();
     int i = 0;
     while (i < value.length())
     {

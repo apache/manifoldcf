@@ -73,7 +73,7 @@ public class XMLDoc
   {
 
     Object element = currentRoot;
-    StringBuffer bf = new StringBuffer();
+    StringBuilder bf = new StringBuilder();
     boolean bWild = false;
     ArrayList working = new ArrayList();
 
@@ -288,11 +288,11 @@ public class XMLDoc
     }
   }
 
-  /** Construct a new document tree from a stringbuffer form of
+  /** Construct a new document tree from a StringBuilder form of
   * an xml document
   * @param data xml to parse
   */
-  public XMLDoc(StringBuffer data)
+  public XMLDoc(StringBuilder data)
     throws ManifoldCFException
   {
     try
@@ -409,7 +409,7 @@ public class XMLDoc
   public final String getData(Object obj)
   {
     Node enode = (Node)obj;
-    StringBuffer data = new StringBuffer();
+    StringBuilder data = new StringBuilder();
     NodeList cdata = enode.getChildNodes();
 
     // expect just 1

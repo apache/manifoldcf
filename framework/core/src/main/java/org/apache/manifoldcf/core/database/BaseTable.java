@@ -82,7 +82,7 @@ public class BaseTable
   *@param whereClause is the where clause describing the match (including the WHERE), or null if none.
   *@param whereParameters are the parameters that come with the where clause, if any.
   */
-  protected void performUpdate(Map parameterMap, String whereClause, ArrayList whereParameters, StringSet invalidateKeys)
+  protected void performUpdate(Map parameterMap, String whereClause, List whereParameters, StringSet invalidateKeys)
     throws ManifoldCFException
   {
     dbInterface.performUpdate(tableName,parameterMap,whereClause,whereParameters,invalidateKeys);
@@ -93,7 +93,7 @@ public class BaseTable
   *@param whereClause is the where clause describing the match (including the WHERE), or null if none.
   *@param whereParameters are the parameters that come with the where clause, if any.
   */
-  protected void performDelete(String whereClause, ArrayList whereParameters, StringSet invalidateKeys)
+  protected void performDelete(String whereClause, List whereParameters, StringSet invalidateKeys)
     throws ManifoldCFException
   {
     dbInterface.performDelete(tableName,whereClause,whereParameters,invalidateKeys);
@@ -119,7 +119,7 @@ public class BaseTable
   *@param columnDeleteList is the list of column names to delete.
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
-  public void performAlter(Map columnMap, Map columnModifyMap, ArrayList columnDeleteList,
+  public void performAlter(Map columnMap, Map columnModifyMap, List<String> columnDeleteList,
     StringSet invalidateKeys)
     throws ManifoldCFException
   {
@@ -131,7 +131,7 @@ public class BaseTable
   *@param columnList is the list of columns that need to be included
   * in the index, in order.
   */
-  protected void addTableIndex(boolean unique, ArrayList columnList)
+  protected void addTableIndex(boolean unique, List<String> columnList)
     throws ManifoldCFException
   {
     dbInterface.addTableIndex(tableName,unique,columnList);
@@ -209,7 +209,7 @@ public class BaseTable
   *@param params are the parameterized values, if needed.
   *@param invalidateKeys are the cache keys to invalidate.
   */
-  protected void performModification(String query, ArrayList params, StringSet invalidateKeys)
+  protected void performModification(String query, List params, StringSet invalidateKeys)
     throws ManifoldCFException
   {
     dbInterface.performModification(query,params,invalidateKeys);
@@ -223,7 +223,7 @@ public class BaseTable
   * or null if no LRU behavior desired.
   *@return a resultset.
   */
-  protected IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass)
+  protected IResultSet performQuery(String query, List params, StringSet cacheKeys, String queryClass)
     throws ManifoldCFException
   {
     return dbInterface.performQuery(query,params,cacheKeys,queryClass);
@@ -238,7 +238,7 @@ public class BaseTable
   *@param resultLimit is the maximum number of results desired.
   *@return a resultset.
   */
-  protected IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass, int resultLimit)
+  protected IResultSet performQuery(String query, List params, StringSet cacheKeys, String queryClass, int resultLimit)
     throws ManifoldCFException
   {
     return dbInterface.performQuery(query,params,cacheKeys,queryClass,resultLimit,null);
@@ -334,15 +334,15 @@ public class BaseTable
   * This filter wraps a query and returns a new query whose results are similar to POSTGRESQL's DISTINCT-ON feature.
   * Specifically, for each combination of the specified distinct fields in the result, only the first such row is included in the final
   * result.
-  *@param outputParameters is a blank arraylist into which to put parameters.  Null may be used if the baseParameters parameter is null.
+  *@param outputParameters is a blank list into which to put parameters.  Null may be used if the baseParameters parameter is null.
   *@param baseQuery is the base query, which can either be tables and where clause, or can be another SELECT in parens,
   * e.g. "(SELECT ...) t3"
   *@param baseParameters are the parameters corresponding to the baseQuery.
   *@param distinctFields are the fields to consider to be distinct.
   *@param otherFields are the rest of the fields to return, keyed by the AS name, value being the column value, e.g. "value AS key"
-  *@return a revised query that performs the necessary DISTINCT ON operation.  The arraylist outputParameters will also be appropriately filled in.
+  *@return a revised query that performs the necessary DISTINCT ON operation.  The list outputParameters will also be appropriately filled in.
   */
-  public String constructDistinctOnClause(ArrayList outputParameters, String baseQuery, ArrayList baseParameters, String[] distinctFields, Map otherFields)
+  public String constructDistinctOnClause(List outputParameters, String baseQuery, List baseParameters, String[] distinctFields, Map otherFields)
   {
     return dbInterface.constructDistinctOnClause(outputParameters,baseQuery,baseParameters,distinctFields,otherFields);
   }

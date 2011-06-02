@@ -130,25 +130,25 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   * invalidated.
   *@param parameterMap is the map of column name/values to write.
   */
-  public void performInsert(String tableName, Map parameterMap, StringSet invalidateKeys)
+  public void performInsert(String tableName, Map<String,Object> parameterMap, StringSet invalidateKeys)
     throws ManifoldCFException
   {
-    ArrayList paramArray = new ArrayList();
+    List paramArray = new ArrayList();
 
-    StringBuffer bf = new StringBuffer();
+    StringBuilder bf = new StringBuilder();
     bf.append("INSERT INTO ");
     bf.append(tableName);
     bf.append(" (") ;
 
-    StringBuffer values = new StringBuffer(" VALUES (");
+    StringBuilder values = new StringBuilder(" VALUES (");
 
     // loop for cols
-    Iterator it = parameterMap.entrySet().iterator();
+    Iterator<Map.Entry<String,Object>> it = parameterMap.entrySet().iterator();
     boolean first = true;
     while (it.hasNext())
     {
-      Map.Entry e = (Map.Entry)it.next();
-      String key = (String)e.getKey();
+      Map.Entry<String,Object> e = it.next();
+      String key = e.getKey();
 
       Object o = e.getValue();
       if (o != null)
@@ -183,23 +183,24 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   *@param whereClause is the where clause describing the match (including the WHERE), or null if none.
   *@param whereParameters are the parameters that come with the where clause, if any.
   */
-  public void performUpdate(String tableName, Map parameterMap, String whereClause, ArrayList whereParameters, StringSet invalidateKeys)
+  public void performUpdate(String tableName, Map<String,Object> parameterMap, String whereClause,
+    List whereParameters, StringSet invalidateKeys)
     throws ManifoldCFException
   {
-    ArrayList paramArray = new ArrayList();
+    List paramArray = new ArrayList();
 
-    StringBuffer bf = new StringBuffer();
+    StringBuilder bf = new StringBuilder();
     bf.append("UPDATE ");
     bf.append(tableName);
     bf.append(" SET ") ;
 
     // loop for parameters
-    Iterator it = parameterMap.entrySet().iterator();
+    Iterator<Map.Entry<String,Object>> it = parameterMap.entrySet().iterator();
     boolean first = true;
     while (it.hasNext())
     {
-      Map.Entry e = (Map.Entry)it.next();
-      String key = (String)e.getKey();
+      Map.Entry<String,Object> e = it.next();
+      String key = e.getKey();
 
       Object o = e.getValue();
 
@@ -248,10 +249,10 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   *@param whereClause is the where clause describing the match (including the WHERE), or null if none.
   *@param whereParameters are the parameters that come with the where clause, if any.
   */
-  public void performDelete(String tableName, String whereClause, ArrayList whereParameters, StringSet invalidateKeys)
+  public void performDelete(String tableName, String whereClause, List whereParameters, StringSet invalidateKeys)
     throws ManifoldCFException
   {
-    StringBuffer bf = new StringBuffer();
+    StringBuilder bf = new StringBuilder();
     bf.append("DELETE FROM ");
     bf.append(tableName);
     if (whereClause != null)
@@ -274,18 +275,18 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   * layer.
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
-  public void performCreate(String tableName, Map columnMap, StringSet invalidateKeys)
+  public void performCreate(String tableName, Map<String,ColumnDescription> columnMap, StringSet invalidateKeys)
     throws ManifoldCFException
   {
-    StringBuffer queryBuffer = new StringBuffer("CREATE TABLE ");
+    StringBuilder queryBuffer = new StringBuilder("CREATE TABLE ");
     queryBuffer.append(tableName);
     queryBuffer.append('(');
-    Iterator iter = columnMap.keySet().iterator();
+    Iterator<String> iter = columnMap.keySet().iterator();
     boolean first = true;
     while (iter.hasNext())
     {
-      String columnName = (String)iter.next();
-      ColumnDescription cd = (ColumnDescription)columnMap.get(columnName);
+      String columnName = iter.next();
+      ColumnDescription cd = columnMap.get(columnName);
       if (!first)
         queryBuffer.append(',');
       else
@@ -298,7 +299,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
 
   }
 
-  protected static void appendDescription(StringBuffer queryBuffer, String columnName, ColumnDescription cd, boolean forceNull)
+  protected static void appendDescription(StringBuilder queryBuffer, String columnName, ColumnDescription cd, boolean forceNull)
   {
     queryBuffer.append(columnName);
     queryBuffer.append(' ');
@@ -333,7 +334,8 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   *@param columnDeleteList is the list of column names to delete.
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
-  public void performAlter(String tableName, Map columnMap, Map columnModifyMap, ArrayList columnDeleteList,
+  public void performAlter(String tableName, Map<String,ColumnDescription> columnMap,
+    Map<String,ColumnDescription> columnModifyMap, List<String> columnDeleteList,
     StringSet invalidateKeys)
     throws ManifoldCFException
   {
@@ -345,7 +347,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
         int i = 0;
         while (i < columnDeleteList.size())
         {
-          String columnName = (String)columnDeleteList.get(i++);
+          String columnName = columnDeleteList.get(i++);
           performModification("ALTER TABLE "+tableName+" DROP "+columnName+" RESTRICT",null,invalidateKeys);
         }
       }
@@ -353,21 +355,21 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
       // Do the modifies.  This involves renaming each column to a temp column, then creating a new one, then copying
       if (columnModifyMap != null)
       {
-        Iterator iter = columnModifyMap.keySet().iterator();
+        Iterator<String> iter = columnModifyMap.keySet().iterator();
         while (iter.hasNext())
         {
-          StringBuffer sb;
-          String columnName = (String)iter.next();
-          ColumnDescription cd = (ColumnDescription)columnModifyMap.get(columnName);
+          StringBuilder sb;
+          String columnName = iter.next();
+          ColumnDescription cd = columnModifyMap.get(columnName);
           String renameColumn = "__temp__";
-          sb = new StringBuffer();
+          sb = new StringBuilder();
           appendDescription(sb,renameColumn,cd,true);
           // Rename current column.  This too involves a copy.
           performModification("ALTER TABLE "+tableName+" ADD "+sb.toString(),null,invalidateKeys);
           performModification("UPDATE "+tableName+" SET "+renameColumn+"="+columnName,null,invalidateKeys);
           performModification("ALTER TABLE "+tableName+" DROP "+columnName+" RESTRICT",null,invalidateKeys);
           // Create new column
-          sb = new StringBuffer();
+          sb = new StringBuilder();
           appendDescription(sb,columnName,cd,true);
           performModification("ALTER TABLE "+tableName+" ADD "+sb.toString(),null,invalidateKeys);
           // Copy old data to new
@@ -383,12 +385,12 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
       // Now, do the adds
       if (columnMap != null)
       {
-        Iterator iter = columnMap.keySet().iterator();
+        Iterator<String> iter = columnMap.keySet().iterator();
         while (iter.hasNext())
         {
-          String columnName = (String)iter.next();
-          ColumnDescription cd = (ColumnDescription)columnMap.get(columnName);
-          StringBuffer sb = new StringBuffer();
+          String columnName = iter.next();
+          ColumnDescription cd = columnMap.get(columnName);
+          StringBuilder sb = new StringBuilder();
           appendDescription(sb,columnName,cd,false);
           performModification("ALTER TABLE "+tableName+" ADD "+sb.toString(),null,invalidateKeys);
         }
@@ -429,14 +431,14 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   *@param columnList is the list of columns that need to be included
   * in the index, in order.
   */
-  public void addTableIndex(String tableName, boolean unique, ArrayList columnList)
+  public void addTableIndex(String tableName, boolean unique, List<String> columnList)
     throws ManifoldCFException
   {
     String[] columns = new String[columnList.size()];
     int i = 0;
     while (i < columns.length)
     {
-      columns[i] = (String)columnList.get(i);
+      columns[i] = columnList.get(i);
       i++;
     }
     performAddIndex(null,tableName,new IndexDescription(unique,columns));
@@ -457,7 +459,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     if (indexName == null)
       // Build an index name
       indexName = "I"+IDFactory.make(context);
-    StringBuffer queryBuffer = new StringBuffer("CREATE ");
+    StringBuilder queryBuffer = new StringBuilder("CREATE ");
     if (description.getIsUnique())
       queryBuffer.append("UNIQUE ");
     queryBuffer.append("INDEX ");
@@ -605,7 +607,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   *@param params are the parameterized values, if needed.
   *@param invalidateKeys are the cache keys to invalidate.
   */
-  public void performModification(String query, ArrayList params, StringSet invalidateKeys)
+  public void performModification(String query, List params, StringSet invalidateKeys)
     throws ManifoldCFException
   {
     try
@@ -625,11 +627,11 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   *@return a map of column names and ColumnDescription objects, describing the schema, or null if the
   * table doesn't exist.
   */
-  public Map getTableSchema(String tableName, StringSet cacheKeys, String queryClass)
+  public Map<String,ColumnDescription> getTableSchema(String tableName, StringSet cacheKeys, String queryClass)
     throws ManifoldCFException
   {
-    StringBuffer query = new StringBuffer();
-    ArrayList list = new ArrayList();
+    StringBuilder query = new StringBuilder();
+    List list = new ArrayList();
     list.add(tableName.toUpperCase());
     query.append("SELECT column_name, is_nullable, data_type, character_maximum_length ")
       .append("FROM INFORMATION_SCHEMA.COLUMNS WHERE table_schema='PUBLIC' AND table_name=?");
@@ -637,7 +639,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     if (set.getRowCount() == 0)
       return null;
 
-    query = new StringBuffer();
+    query = new StringBuilder();
     query.append("SELECT column_name ")
       .append("FROM INFORMATION_SCHEMA.SYSTEM_PRIMARYKEYS WHERE table_schem='PUBLIC' AND table_name=?");
     IResultSet primarySet = performQuery(query.toString(),list,cacheKeys,queryClass);
@@ -648,7 +650,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
       primaryKey = "";
     
     // Digest the result
-    HashMap rval = new HashMap();
+    Map<String,ColumnDescription> rval = new HashMap<String,ColumnDescription>();
     int i = 0;
     while (i < set.getRowCount())
     {
@@ -678,18 +680,18 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   *@param queryClass is the name of the query class, or null.
   *@return a map of index names and IndexDescription objects, describing the indexes.
   */
-  public Map getTableIndexes(String tableName, StringSet cacheKeys, String queryClass)
+  public Map<String,IndexDescription> getTableIndexes(String tableName, StringSet cacheKeys, String queryClass)
     throws ManifoldCFException
   {
-    Map rval = new HashMap();
+    Map<String,IndexDescription> rval = new HashMap<String,IndexDescription>();
 
     String query = "SELECT index_name,column_name,non_unique,ordinal_position FROM INFORMATION_SCHEMA.SYSTEM_INDEXINFO "+
       "WHERE table_schem='PUBLIC' AND TABLE_NAME=? ORDER BY index_name,ordinal_position ASC";
-    ArrayList list = new ArrayList();
+    List list = new ArrayList();
     list.add(tableName.toUpperCase());
     IResultSet result = performQuery(query,list,cacheKeys,queryClass);
     String lastIndexName = null;
-    ArrayList indexColumns = null;
+    List<String> indexColumns = null;
     boolean isUnique = false;
     int i = 0;
     while (i < result.getRowCount())
@@ -710,7 +712,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
       if (lastIndexName == null)
       {
         lastIndexName = indexName;
-        indexColumns = new ArrayList();
+        indexColumns = new ArrayList<String>();
         isUnique = false;
       }
       indexColumns.add(columnName);
@@ -723,7 +725,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     return rval;
   }
 
-  protected void addIndex(Map rval, String indexName, boolean isUnique, ArrayList indexColumns)
+  protected void addIndex(Map rval, String indexName, boolean isUnique, List<String> indexColumns)
   {
     if (indexName.indexOf("sys_idx") != -1)
       return;
@@ -731,7 +733,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     int i = 0;
     while (i < columnNames.length)
     {
-      columnNames[i] = (String)indexColumns.get(i);
+      columnNames[i] = indexColumns.get(i);
       i++;
     }
     rval.put(indexName,new IndexDescription(isUnique,columnNames));
@@ -767,7 +769,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   * or null if no LRU behavior desired.
   *@return a resultset.
   */
-  public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass)
+  public IResultSet performQuery(String query, List params, StringSet cacheKeys, String queryClass)
     throws ManifoldCFException
   {
     try
@@ -790,7 +792,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   *@param returnLimit is a description of how to limit the return result, or null if no limit.
   *@return a resultset.
   */
-  public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass,
+  public IResultSet performQuery(String query, List params, StringSet cacheKeys, String queryClass,
     int maxResults, ILimitChecker returnLimit)
     throws ManifoldCFException
   {
@@ -815,7 +817,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   *@param returnLimit is a description of how to limit the return result, or null if no limit.
   *@return a resultset.
   */
-  public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass,
+  public IResultSet performQuery(String query, List params, StringSet cacheKeys, String queryClass,
     int maxResults, ResultSpecification resultSpec, ILimitChecker returnLimit)
     throws ManifoldCFException
   {
@@ -862,7 +864,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   */
   public String constructOffsetLimitClause(int offset, int limit)
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     if (offset != 0)
       sb.append("OFFSET ").append(Integer.toString(offset));
     if (limit != -1)
@@ -878,15 +880,16 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   * This filter wraps a query and returns a new query whose results are similar to POSTGRESQL's DISTINCT-ON feature.
   * Specifically, for each combination of the specified distinct fields in the result, only the first such row is included in the final
   * result.
-  *@param outputParameters is a blank arraylist into which to put parameters.  Null may be used if the baseParameters parameter is null.
+  *@param outputParameters is a blank list into which to put parameters.  Null may be used if the baseParameters parameter is null.
   *@param baseQuery is the base query, which is another SELECT statement, without parens,
   * e.g. "SELECT ..."
   *@param baseParameters are the parameters corresponding to the baseQuery.
   *@param distinctFields are the fields to consider to be distinct.  These should all be keys in otherFields below.
   *@param otherFields are the rest of the fields to return, keyed by the AS name, value being the base query column value, e.g. "value AS key"
-  *@return a revised query that performs the necessary DISTINCT ON operation.  The arraylist outputParameters will also be appropriately filled in.
+  *@return a revised query that performs the necessary DISTINCT ON operation.  The list outputParameters will also be appropriately filled in.
   */
-  public String constructDistinctOnClause(ArrayList outputParameters, String baseQuery, ArrayList baseParameters, String[] distinctFields, Map otherFields)
+  public String constructDistinctOnClause(List outputParameters, String baseQuery, List baseParameters,
+    String[] distinctFields, Map<String,String> otherFields)
   {
     // HSQLDB does not really support this functionality.
     // We could hack a workaround, along the following lines:
@@ -909,13 +912,13 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     if (baseParameters != null)
       outputParameters.addAll(baseParameters);
 
-    StringBuffer sb = new StringBuffer("SELECT ");
+    StringBuilder sb = new StringBuilder("SELECT ");
     boolean needComma = false;
-    Iterator iter = otherFields.keySet().iterator();
+    Iterator<String> iter = otherFields.keySet().iterator();
     while (iter.hasNext())
     {
-      String fieldName = (String)iter.next();
-      String columnValue = (String)otherFields.get(fieldName);
+      String fieldName = iter.next();
+      String columnValue = otherFields.get(fieldName);
       if (needComma)
         sb.append(",");
       needComma = true;

@@ -913,7 +913,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   /** Stuff colons so we can't have conflicts. */
   public static String colonStuff(String input)
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     int i = 0;
     while (i < input.length())
     {
@@ -1107,7 +1107,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   public static String decodeAPIPathElement(String startingPathElement)
     throws ManifoldCFException
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     int i = 0;
     while (i < startingPathElement.length())
     {

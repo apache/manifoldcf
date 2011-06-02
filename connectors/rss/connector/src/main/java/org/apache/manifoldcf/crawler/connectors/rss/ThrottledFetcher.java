@@ -561,7 +561,7 @@ public class ThrottledFetcher
       throws ManifoldCFException, ServiceInterruption
     {
 
-      StringBuffer sb = new StringBuffer(protocol);
+      StringBuilder sb = new StringBuilder(protocol);
       sb.append("://").append(server.getServerName());
       if (port != -1)
         sb.append(":").append(Integer.toString(port));

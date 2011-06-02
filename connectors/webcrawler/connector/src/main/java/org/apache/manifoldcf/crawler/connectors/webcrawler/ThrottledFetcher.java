@@ -1281,7 +1281,7 @@ public class ThrottledFetcher
       LoginCookies loginCookies)
       throws ManifoldCFException, ServiceInterruption
     {
-      StringBuffer sb = new StringBuffer(protocol);
+      StringBuilder sb = new StringBuilder(protocol);
       sb.append("://").append(server);
       if (port != -1)
       {
@@ -1359,7 +1359,7 @@ public class ThrottledFetcher
           String fullUrlPath;
           if (formData != null)
           {
-            StringBuffer psb = new StringBuffer(urlPath);
+            StringBuilder psb = new StringBuilder(urlPath);
             Iterator iter = formData.getElementIterator();
             char appendChar;
             if (urlPath.indexOf("?") == -1)

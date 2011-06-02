@@ -278,7 +278,7 @@ public class RobotsManager extends org.apache.manifoldcf.core.database.BaseTable
   */
   protected static String makeReadable(String inputString)
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     int i = 0;
     while (i < inputString.length())
     {

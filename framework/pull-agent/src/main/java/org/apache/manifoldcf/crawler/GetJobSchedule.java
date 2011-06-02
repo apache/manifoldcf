@@ -85,7 +85,7 @@ public class GetJobSchedule
   {
     if (ev == null)
       return "any";
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     Iterator iter = ev.getValues();
     boolean first = true;
     while (iter.hasNext())
@@ -110,7 +110,7 @@ public class GetJobSchedule
 
   protected static String commaEscape(String input)
   {
-    StringBuffer output = new StringBuffer();
+    StringBuilder output = new StringBuilder();
     int i = 0;
     while (i < input.length())
     {

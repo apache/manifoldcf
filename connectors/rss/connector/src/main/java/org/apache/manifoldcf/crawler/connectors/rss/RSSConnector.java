@@ -260,6 +260,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   /** Return the list of activities that this connector supports (i.e. writes into the log).
   *@return the list.
   */
+  @Override
   public String[] getActivitiesList()
   {
     return new String[]{ACTIVITY_FETCH, ACTIVITY_ROBOTSPARSE};
@@ -269,22 +270,11 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   * This must return a model value as specified above.
   *@return the model type value.
   */
+  @Override
   public int getConnectorModel()
   {
     // This connector is currently structured that the RSS feeds are the seeds.
     return MODEL_ALL;
-  }
-
-  /** Return the path for the UI interface JSP elements.
-  * These JSP's must be provided to allow the connector to be configured, and to
-  * permit it to present document filtering specification information in the UI.
-  * This method should return the name of the folder, under the <webapp>/connectors/
-  * area, where the appropriate JSP's can be found.  The name should NOT have a slash in it.
-  *@return the folder part
-  */
-  public String getJSPFolder()
-  {
-    return "rss";
   }
 
   // All methods below this line will ONLY be called if a connect() call succeeded
@@ -294,6 +284,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   *@param configParams are the configuration parameters for this connection.
   * Note well: There are no exceptions allowed from this call, since it is expected to mainly establish connection parameters.
   */
+  @Override
   public void connect(ConfigParams configParams)
   {
     super.connect(configParams);
@@ -314,6 +305,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   /** This method is periodically called for all connectors that are connected but not
   * in active use.
   */
+  @Override
   public void poll()
     throws ManifoldCFException
   {
@@ -323,6 +315,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 
   /** Check status of connection.
   */
+  @Override
   public String check()
     throws ManifoldCFException
   {
@@ -332,6 +325,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 
   /** Close the connection.  Call this before discarding the repository connector.
   */
+  @Override
   public void disconnect()
     throws ManifoldCFException
   {
@@ -366,6 +360,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   *@param documentIdentifier is the document identifier.
   *@return the bin name.
   */
+  @Override
   public String[] getBinNames(String documentIdentifier)
   {
     try
@@ -405,6 +400,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   *@param startTime is the beginning of the time range to consider, inclusive.
   *@param endTime is the end of the time range to consider, exclusive.
   */
+  @Override
   public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
     long startTime, long endTime)
     throws ManifoldCFException, ServiceInterruption
@@ -441,7 +437,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       CanonicalizationPolicy p = policies.findMatch(rawURL);
 
       // Filter out control characters
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       int i = 0;
       while (i < rawURL.length())
       {
@@ -626,7 +622,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         }
         java.util.Arrays.sort(sortArray);
 
-        StringBuffer newString = new StringBuffer();
+        StringBuilder newString = new StringBuilder();
         boolean isFirst = true;
         i = 0;
         while (i < sortArray.length)
@@ -650,7 +646,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       else
       {
         // Do not reorder!
-        StringBuffer newString = new StringBuffer();
+        StringBuilder newString = new StringBuilder();
         int index = 0;
         boolean isFirst = true;
         while (index < queryString.length())
@@ -743,6 +739,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   * Empty version strings indicate that there is no versioning ability for the corresponding document, and the document
   * will always be processed.
   */
+  @Override
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
     DocumentSpecification spec, int jobType, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption
@@ -776,7 +773,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       String value = nv.getValue();
       fixedListStrings[0] = name;
       fixedListStrings[1] = value;
-      StringBuffer newsb = new StringBuffer();
+      StringBuilder newsb = new StringBuilder();
       packFixedList(newsb,fixedListStrings,'=');
       metadata[k++] = newsb.toString();
     }
@@ -839,7 +836,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
               InputStream is = dechromedData[0].getUtf8Stream();
               try
               {
-                StringBuffer sb = new StringBuffer();
+                StringBuilder sb = new StringBuilder();
                 long checkSum = cache.addData(activities,urlValue,is);
                 // Grab what we need from the passed-down data for the document.  These will all become part
                 // of the version string.
@@ -931,9 +928,9 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           if (false && jobType == JOBMODE_CONTINUOUS && oldVersionString != null && oldVersionString.startsWith("-"))
           {
             // It's a feed, so the last etag and last-modified fields should be encoded in this version string.
-            StringBuffer lastETagBuffer = new StringBuffer();
+            StringBuilder lastETagBuffer = new StringBuilder();
             int unpackPos = unpack(lastETagBuffer,oldVersionString,1,'+');
-            StringBuffer lastModifiedBuffer = new StringBuffer();
+            StringBuilder lastModifiedBuffer = new StringBuilder();
             unpackPos = unpack(lastModifiedBuffer,oldVersionString,unpackPos,'+');
             if (lastETagBuffer.length() > 0)
               lastETagValue = lastETagBuffer.toString();
@@ -1068,7 +1065,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                       try
                       {
                         long checkSum = cache.addData(activities,urlValue,is);
-                        StringBuffer sb = new StringBuffer();
+                        StringBuilder sb = new StringBuilder();
                         if (ingestURL != null)
                         {
                           // We think it is ingestable.  The version string accordingly starts with a "+".
@@ -1218,6 +1215,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   *@param scanOnly is an array corresponding to the document identifiers.  It is set to true to indicate when the processing
   * should only find other references, and should not actually call the ingestion methods.
   */
+  @Override
   public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities,
     DocumentSpecification spec, boolean[] scanOnly, int jobType)
     throws ManifoldCFException, ServiceInterruption
@@ -1315,7 +1313,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         // Treat it as an ingestable document.
         // Version *should* start with a "+".
         ArrayList acls = new ArrayList();
-        StringBuffer denyAclBuffer = new StringBuffer();
+        StringBuilder denyAclBuffer = new StringBuilder();
         int startPos = unpackList(acls,version,1,'+');
         if (startPos < version.length() && version.charAt(startPos++) == '+')
         {
@@ -1323,7 +1321,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         }
         ArrayList metadata = new ArrayList();
         startPos = unpackList(metadata,version,startPos,'+');
-        StringBuffer ingestUrlBuffer = new StringBuffer();
+        StringBuilder ingestUrlBuffer = new StringBuilder();
         startPos = unpack(ingestUrlBuffer,version,startPos,'+');
         String ingestURL = ingestUrlBuffer.toString();
         ArrayList pubDates = new ArrayList();
@@ -1493,6 +1491,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   *@param documentIdentifiers is the set of document identifiers.
   *@param versions is the corresponding set of version identifiers (individual identifiers may be null).
   */
+  @Override
   public void releaseDocumentVersions(String[] documentIdentifiers, String[] versions)
     throws ManifoldCFException
   {
@@ -1525,7 +1524,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
+  @Override
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
     tabsArray.add("Email");
@@ -1590,6 +1590,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@param tabName is the current tab name.
   */
+  @Override
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
@@ -1757,6 +1758,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
+  @Override
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
     throws ManifoldCFException
   {
@@ -1804,6 +1806,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   *@param out is the output to which any HTML should be sent.
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
+  @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
@@ -1852,7 +1855,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   *@param ds is the current document specification for this job.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
+  @Override
+  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
     tabsArray.add("URLs");
@@ -1971,6 +1975,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   *@param ds is the current document specification for this job.
   *@param tabName is the current tab name.
   */
+  @Override
   public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
     throws ManifoldCFException, IOException
   {
@@ -1979,7 +1984,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 
 
     // Build the url seed string, and the url regexp match and map
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     ArrayList regexp = new ArrayList();
     ArrayList matchStrings = new ArrayList();
     int feedTimeoutValue = 60;
@@ -2567,6 +2572,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   *@param ds is the current document specification for this job.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
+  @Override
   public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
     throws ManifoldCFException
   {
@@ -2990,6 +2996,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   *@param out is the output to which any HTML should be sent.
   *@param ds is the current document specification for this job.
   */
+  @Override
   public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
     throws ManifoldCFException, IOException
   {
@@ -5043,7 +5050,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   }
 
   /** Stuffer for packing a single string with an end delimiter */
-  protected static void pack(StringBuffer output, String value, char delimiter)
+  protected static void pack(StringBuilder output, String value, char delimiter)
   {
     int i = 0;
     while (i < value.length())
@@ -5057,7 +5064,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   }
 
   /** Unstuffer for the above. */
-  protected static int unpack(StringBuffer sb, String value, int startPosition, char delimiter)
+  protected static int unpack(StringBuilder sb, String value, int startPosition, char delimiter)
   {
     while (startPosition < value.length())
     {
@@ -5075,7 +5082,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   }
 
   /** Stuffer for packing lists of fixed length */
-  protected static void packFixedList(StringBuffer output, String[] values, char delimiter)
+  protected static void packFixedList(StringBuilder output, String[] values, char delimiter)
   {
     int i = 0;
     while (i < values.length)
@@ -5087,7 +5094,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   /** Unstuffer for unpacking lists of fixed length */
   protected static int unpackFixedList(String[] output, String value, int startPosition, char delimiter)
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     int i = 0;
     while (i < output.length)
     {
@@ -5099,7 +5106,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   }
 
   /** Stuffer for packing lists of variable length */
-  protected static void packList(StringBuffer output, ArrayList values, char delimiter)
+  protected static void packList(StringBuilder output, ArrayList values, char delimiter)
   {
     pack(output,Integer.toString(values.size()),delimiter);
     int i = 0;
@@ -5110,7 +5117,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   }
 
   /** Another stuffer for packing lists of variable length */
-  protected static void packList(StringBuffer output, String[] values, char delimiter)
+  protected static void packList(StringBuilder output, String[] values, char delimiter)
   {
     pack(output,Integer.toString(values.length),delimiter);
     int i = 0;
@@ -5129,7 +5136,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   */
   protected static int unpackList(ArrayList output, String value, int startPosition, char delimiter)
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     startPosition = unpack(sb,value,startPosition,delimiter);
     try
     {
@@ -5318,13 +5325,13 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         pos++;
       }
 
-      StringBuffer sb;
+      StringBuilder sb;
 
       if (x == '"')
       {
         // Parse text
         pos++;
-        sb = new StringBuffer();
+        sb = new StringBuilder();
         while (true)
         {
           if (pos == text.length())
@@ -5354,7 +5361,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       }
 
       // Eat number at beginning
-      sb = new StringBuffer();
+      sb = new StringBuilder();
       while (true)
       {
         if (pos == text.length())
@@ -5515,7 +5522,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       if (evalExpression == null || evalExpression.length() == 0)
         return url;
 
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       EvaluatorTokenStream et = new EvaluatorTokenStream(evalExpression);
 
       while (true)

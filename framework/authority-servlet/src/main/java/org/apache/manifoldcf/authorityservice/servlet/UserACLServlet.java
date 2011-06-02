@@ -171,7 +171,7 @@ public class UserACLServlet extends HttpServlet
       i = 0;
 
       // Ask all the registered authorities for their ACLs, and merge the final list together.
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       // Set response mime type
       response.setContentType("text/plain; charset=ISO8859-1");
       ServletOutputStream out = response.getOutputStream();

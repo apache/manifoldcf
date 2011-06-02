@@ -244,7 +244,7 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
     HashMap presentMap = new HashMap();
 
     int maxClause = getMaxOrClause();
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     ArrayList list = new ArrayList();
     int i = 0;
     int k = 0;
@@ -359,7 +359,7 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
       }
       else
       {
-        sb = new StringBuffer();
+        sb = new StringBuilder();
         sb.append("WHERE ").append(jobIDField).append("=? AND ")
           .append(dataNameField).append("=? AND ")
           .append(parentIDHashField).append("=? AND ").append(childIDHashField).append("=? AND ");
@@ -426,7 +426,7 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
     try
     {
       int maxClause = getMaxOrClause();
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       ArrayList list = new ArrayList();
       int i = 0;
       int k = 0;
@@ -472,14 +472,14 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     // Delete
-    StringBuffer sb = new StringBuffer("WHERE (");
+    StringBuilder sb = new StringBuilder("WHERE (");
     sb.append(query).append(") AND (").append(newField).append("=?)");
     ArrayList newList = (ArrayList)list.clone();
     newList.add(statusToString(ISNEW_BASE));
     performDelete(sb.toString(),newList,null);
 
     // Restore new values
-    sb = new StringBuffer("WHERE (");
+    sb = new StringBuilder("WHERE (");
     sb.append(query).append(") AND (").append(newField).append("=? OR ").append(newField).append("=?)");
     list.add(statusToString(ISNEW_EXISTING));
     list.add(statusToString(ISNEW_NEW));
@@ -498,8 +498,8 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
     try
     {
       int maxClause = getMaxOrClause();
-      StringBuffer sb = new StringBuffer();
-      StringBuffer sb2 = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
+      StringBuilder sb2 = new StringBuilder();
       ArrayList list = new ArrayList();
       ArrayList list2 = new ArrayList();
       int i = 0;

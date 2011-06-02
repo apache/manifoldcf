@@ -155,7 +155,7 @@ public interface IOutputConnector extends IConnector
   *@param os is the current output specification for this job.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  public void outputSpecificationHeader(IHTTPOutput out, OutputSpecification os, ArrayList tabsArray)
+  public void outputSpecificationHeader(IHTTPOutput out, OutputSpecification os, List<String> tabsArray)
     throws ManifoldCFException, IOException;
   
   /** Output the specification body section.

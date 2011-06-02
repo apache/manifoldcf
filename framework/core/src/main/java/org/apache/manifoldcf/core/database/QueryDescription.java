@@ -31,7 +31,7 @@ public class QueryDescription extends org.apache.manifoldcf.core.cachemanager.Ba
   // We don't want to hold onto the actual open database handle!
   protected String databaseName;
   protected String query;
-  protected ArrayList parameters;
+  protected List parameters;
   protected String criticalSectionName = null;
   protected String cacheClassName;
   protected StringSet keys;
@@ -39,7 +39,7 @@ public class QueryDescription extends org.apache.manifoldcf.core.cachemanager.Ba
   protected ResultSpecification spec;
   protected ILimitChecker returnLimit;
 
-  public QueryDescription(String databaseName, String query, ArrayList parameters,
+  public QueryDescription(String databaseName, String query, List parameters,
     String cacheClassName, StringSet cacheKeys, int maxReturn, ResultSpecification spec,
     ILimitChecker returnLimit)
   {
@@ -49,7 +49,7 @@ public class QueryDescription extends org.apache.manifoldcf.core.cachemanager.Ba
     this.parameters = null;
     if (parameters != null)
     {
-      this.parameters = (ArrayList)parameters.clone();
+      this.parameters = listClone(parameters);
     }
     keys = cacheKeys;
     this.maxReturn = maxReturn;
@@ -74,11 +74,11 @@ public class QueryDescription extends org.apache.manifoldcf.core.cachemanager.Ba
     return query;
   }
 
-  public ArrayList getParameters()
+  public List getParameters()
   {
     if (parameters == null)
       return null;
-    return (ArrayList)parameters.clone();
+    return listClone(parameters);
   }
 
   public int getMaxReturn()
@@ -186,7 +186,7 @@ public class QueryDescription extends org.apache.manifoldcf.core.cachemanager.Ba
   {
     if (criticalSectionName == null)
     {
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       if (databaseName != null)
         sb.append(databaseName);
       sb.append("-").append(getClass().getName()).append("-");
@@ -216,6 +216,16 @@ public class QueryDescription extends org.apache.manifoldcf.core.cachemanager.Ba
     return criticalSectionName;
   }
 
+  protected static List listClone(List list)
+  {
+    List rval = new ArrayList(list.size());
+    for (Object o : list)
+    {
+      rval.add(o);
+    }
+    return rval;
+  }
+  
 }
 
 

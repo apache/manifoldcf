@@ -56,19 +56,10 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   /** Return the list of activities that this connector supports (i.e. writes into the log).
   *@return the list.
   */
+  @Override
   public String[] getActivitiesList()
   {
     return new String[]{INGEST_ACTIVITY,REMOVE_ACTIVITY};
-  }
-
-  /** Return the path for the UI interface JSP elements.
-  * This method should return the name of the folder, under the <webapp>/output/
-  * area, where the appropriate JSP's can be found.  The name should NOT have a slash in it.
-  *@return the folder part
-  */
-  public String getJSPFolder()
-  {
-    return "solr";
   }
 
   /** Connect.
@@ -76,6 +67,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   * in this case describe the target appliance, basic auth configuration, etc.  (This formerly came
   * out of the ini file.)
   */
+  @Override
   public void connect(ConfigParams configParameters)
   {
     super.connect(configParameters);
@@ -83,6 +75,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 
   /** Close the connection.  Call this before discarding the connection.
   */
+  @Override
   public void disconnect()
     throws ManifoldCFException
   {
@@ -170,6 +163,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   /** Test the connection.  Returns a string describing the connection integrity.
   *@return the connection's status as a displayable string.
   */
+  @Override
   public String check()
     throws ManifoldCFException
   {
@@ -196,10 +190,11 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@return a string, of unlimited length, which uniquely describes output configuration and specification in such a way that if two such strings are equal,
   * the document will not need to be sent again to the output data store.
   */
+  @Override
   public String getOutputDescription(OutputSpecification spec)
     throws ManifoldCFException, ServiceInterruption
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
 
     // All the arguments need to go into this string, since they affect ingestion.
     Map args = new HashMap();
@@ -244,7 +239,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         String value = (String)values.get(j++);
         fixedList[0] = name;
         fixedList[1] = value;
-        StringBuffer pairBuffer = new StringBuffer();
+        StringBuilder pairBuffer = new StringBuilder();
         packFixedList(pairBuffer,fixedList,'=');
         nameValues.add(pairBuffer.toString());
       }
@@ -285,7 +280,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       String target = (String)fieldMap.get(source);
       fixedList[0] = source;
       fixedList[1] = target;
-      StringBuffer pairBuffer = new StringBuffer();
+      StringBuilder pairBuffer = new StringBuilder();
       packFixedList(pairBuffer,fixedList,'=');
       sourceTargets.add(pairBuffer.toString());
     }
@@ -309,6 +304,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@param activities is the handle to an object that the implementer of an output connector may use to perform operations, such as logging processing activity.
   *@return the document status (accepted or permanently rejected).
   */
+  @Override
   public int addOrReplaceDocument(String documentURI, String outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -363,6 +359,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@param outputDescription is the last description string that was constructed for this document by the getOutputDescription() method above.
   *@param activities is the handle to an object that the implementer of an output connector may use to perform operations, such as logging processing activity.
   */
+  @Override
   public void removeDocument(String documentURI, String outputDescription, IOutputRemoveActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -378,6 +375,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   * is a good time to synchronize things.  It is called whenever a job is either completed or aborted.
   *@param activities is the handle to an object that the implementer of an output connector may use to perform operations, such as logging processing activity.
   */
+  @Override
   public void noteJobComplete(IOutputNotifyActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -405,7 +403,8 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
+  @Override
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
     tabsArray.add("Server");
@@ -591,6 +590,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@param tabName is the current tab name.
   */
+  @Override
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
@@ -984,6 +984,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
+  @Override
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
     throws ManifoldCFException
   {
@@ -1158,6 +1159,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@param out is the output to which any HTML should be sent.
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
+  @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
@@ -1250,7 +1252,8 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@param os is the current output specification for this job.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  public void outputSpecificationHeader(IHTTPOutput out, OutputSpecification os, ArrayList tabsArray)
+  @Override
+  public void outputSpecificationHeader(IHTTPOutput out, OutputSpecification os, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
     tabsArray.add("Field Mapping");
@@ -1300,6 +1303,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@param os is the current output specification for this job.
   *@param tabName is the current tab name.
   */
+  @Override
   public void outputSpecificationBody(IHTTPOutput out, OutputSpecification os, String tabName)
     throws ManifoldCFException, IOException
   {
@@ -1443,6 +1447,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@param os is the current output specification for this job.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
+  @Override
   public String processSpecificationPost(IPostParameters variableContext, OutputSpecification os)
     throws ManifoldCFException
   {
@@ -1501,6 +1506,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@param out is the output to which any HTML should be sent.
   *@param os is the current output specification for this job.
   */
+  @Override
   public void viewSpecification(IHTTPOutput out, OutputSpecification os)
     throws ManifoldCFException, IOException
   {
@@ -1585,7 +1591,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   // Protected methods
 
   /** Stuffer for packing a single string with an end delimiter */
-  protected static void pack(StringBuffer output, String value, char delimiter)
+  protected static void pack(StringBuilder output, String value, char delimiter)
   {
     int i = 0;
     while (i < value.length())
@@ -1599,7 +1605,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   }
 
   /** Unstuffer for the above. */
-  protected static int unpack(StringBuffer sb, String value, int startPosition, char delimiter)
+  protected static int unpack(StringBuilder sb, String value, int startPosition, char delimiter)
   {
     while (startPosition < value.length())
     {
@@ -1617,7 +1623,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   }
 
   /** Stuffer for packing lists of fixed length */
-  protected static void packFixedList(StringBuffer output, String[] values, char delimiter)
+  protected static void packFixedList(StringBuilder output, String[] values, char delimiter)
   {
     int i = 0;
     while (i < values.length)
@@ -1629,7 +1635,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   /** Unstuffer for unpacking lists of fixed length */
   protected static int unpackFixedList(String[] output, String value, int startPosition, char delimiter)
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     int i = 0;
     while (i < output.length)
     {
@@ -1641,7 +1647,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   }
 
   /** Stuffer for packing lists of variable length */
-  protected static void packList(StringBuffer output, ArrayList values, char delimiter)
+  protected static void packList(StringBuilder output, ArrayList values, char delimiter)
   {
     pack(output,Integer.toString(values.size()),delimiter);
     int i = 0;
@@ -1652,7 +1658,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   }
 
   /** Another stuffer for packing lists of variable length */
-  protected static void packList(StringBuffer output, String[] values, char delimiter)
+  protected static void packList(StringBuilder output, String[] values, char delimiter)
   {
     pack(output,Integer.toString(values.length),delimiter);
     int i = 0;
@@ -1671,7 +1677,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   */
   protected static int unpackList(ArrayList output, String value, int startPosition, char delimiter)
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     startPosition = unpack(sb,value,startPosition,delimiter);
     try
     {

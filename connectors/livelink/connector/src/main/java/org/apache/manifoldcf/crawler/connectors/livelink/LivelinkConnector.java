@@ -149,22 +149,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   {
   }
 
-
-  /** Return the path for the UI interface JSP elements.
-  * These JSP's must be provided to allow the connector to be configured, and to
-  * permit it to present document filtering specification information in the UI.
-  * This method should return the name of the folder, under the <webapp>/connectors/
-  * area, where the appropriate JSP's can be found.  The name should NOT have a slash in it.
-  *@return the folder part
-  */
-  public String getJSPFolder()
-  {
-    return "livelink";
-  }
-
   /** Connect.  The configuration parameters are included.
   *@param configParams are the configuration parameters for this connection.
   */
+  @Override
   public void connect(ConfigParams configParams)
   {
     super.connect(configParams);
@@ -240,6 +228,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param documentIdentifier is the document identifier.
   *@return the bin name.
   */
+  @Override
   public String[] getBinNames(String documentIdentifier)
   {
     // This should return server name
@@ -494,6 +483,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
   /** Check status of connection.
   */
+  @Override
   public String check()
     throws ManifoldCFException
   {
@@ -590,6 +580,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   /** This method is periodically called for all connectors that are connected but not
   * in active use.
   */
+  @Override
   public void poll()
     throws ManifoldCFException
   {
@@ -599,6 +590,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
   /** Close the connection.  Call this before discarding the repository connector.
   */
+  @Override
   public void disconnect()
     throws ManifoldCFException
   {
@@ -642,6 +634,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
   /** List the activities we might report on.
   */
+  @Override
   public String[] getActivitiesList()
   {
     return activitiesList;
@@ -714,6 +707,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param command is the command, which is taken directly from the API request.
   *@return true if the resource is found, false if not.  In either case, output may be filled in.
   */
+  @Override
   public boolean requestInfo(Configuration output, String command)
     throws ManifoldCFException
   {
@@ -828,6 +822,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param startTime is the beginning of the time range to consider, inclusive.
   *@param endTime is the end of the time range to consider, exclusive.
   */
+  @Override
   public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
     long startTime, long endTime)
     throws ManifoldCFException, ServiceInterruption
@@ -895,6 +890,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   * Empty version strings indicate that there is no versioning ability for the corresponding document, and the document
   * will always be processed.
   */
+  @Override
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
     DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption
@@ -969,11 +965,11 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     }
 
     // Prepare the specified metadata
-    StringBuffer metadataString = null;
+    StringBuilder metadataString = null;
     CategoryPathAccumulator catAccum = null;
     if (!includeAllMetadata)
     {
-      metadataString = new StringBuffer();
+      metadataString = new StringBuilder();
       // Put into an array
       String[] sortArray = new String[holder.size()];
       i = 0;
@@ -993,7 +989,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
     // Calculate the part of the version string that comes from path name and mapping.
     // This starts with = since ; is used by another optional component (the forced acls)
-    StringBuffer pathNameAttributeVersion = new StringBuffer();
+    StringBuilder pathNameAttributeVersion = new StringBuilder();
     if (pathAttributeName != null)
       pathNameAttributeVersion.append("=").append(pathAttributeName).append(":").append(matchMap);
 
@@ -1051,7 +1047,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
             // we want to pull the transient information out of the version string where
             // possible (so there is no mismatch between version checking and ingestion).
 
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
 
             // On 1/17/2008 I changed the version generation code to NOT include metadata, view info, etc. for folders, since
             // folders make absolutely no use of this info.
@@ -1222,6 +1218,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param scanOnly is an array corresponding to the document identifiers.  It is set to true to indicate when the processing
   * should only find other references, and should not actually call the ingestion methods.
   */
+  @Override
   public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -1393,6 +1390,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   /** Get the maximum number of documents to amalgamate together into one batch, for this connector.
   *@return the maximum number. 0 indicates "unlimited".
   */
+  @Override
   public int getMaxDocumentRequest()
   {
     // Intrinsically, Livelink doesn't batch well.  Multiple chunks have no advantage over one-at-a-time requests,
@@ -1420,7 +1418,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
+  @Override
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
     tabsArray.add("Server");
@@ -1527,6 +1526,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@param tabName is the current tab name.
   */
+  @Override
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
@@ -1771,6 +1771,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
+  @Override
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
     throws ManifoldCFException
   {
@@ -1885,6 +1886,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param out is the output to which any HTML should be sent.
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
+  @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
@@ -1933,7 +1935,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param ds is the current document specification for this job.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
+  @Override
+  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
     tabsArray.add("Paths");
@@ -2063,6 +2066,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param ds is the current document specification for this job.
   *@param tabName is the current tab name.
   */
+  @Override
   public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
     throws ManifoldCFException, IOException
   {
@@ -2786,6 +2790,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param ds is the current document specification for this job.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
+  @Override
   public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
     throws ManifoldCFException
   {
@@ -2864,7 +2869,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         String addon = variableContext.getParameter("pathaddon");
         if (addon != null && addon.length() > 0)
         {
-          StringBuffer sb = new StringBuffer();
+          StringBuilder sb = new StringBuilder();
           int k = 0;
           while (k < addon.length())
           {
@@ -3130,7 +3135,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         String addon = variableContext.getParameter("metadataaddon");
         if (addon != null && addon.length() > 0)
         {
-          StringBuffer sb = new StringBuffer();
+          StringBuilder sb = new StringBuilder();
           int k = 0;
           while (k < addon.length())
           {
@@ -3151,7 +3156,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         String addon = variableContext.getParameter("metadataaddon");
         if (addon != null && addon.length() > 0)
         {
-          StringBuffer sb = new StringBuffer();
+          StringBuilder sb = new StringBuilder();
           int k = 0;
           while (k < addon.length())
           {
@@ -3171,7 +3176,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         String addon = variableContext.getParameter("categoryaddon");
         if (addon != null && addon.length() > 0)
         {
-          StringBuffer sb = new StringBuffer();
+          StringBuilder sb = new StringBuilder();
           int k = 0;
           while (k < addon.length())
           {
@@ -3271,6 +3276,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param out is the output to which any HTML should be sent.
   *@param ds is the current document specification for this job.
   */
+  @Override
   public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
     throws ManifoldCFException, IOException
   {
@@ -3637,7 +3643,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   {
     try
     {
-      StringBuffer llURI = new StringBuffer();
+      StringBuilder llURI = new StringBuilder();
 
       llURI.append(ingestCgiPath);
       llURI.append("?func=ll.login&CurrentClientTime=D%2F2005%2F3%2F9%3A13%3A16%3A30&NextURL=");
@@ -3803,7 +3809,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         }
         rd.setACL(aclArray);
 
-        StringBuffer denyBuffer = new StringBuffer();
+        StringBuilder denyBuffer = new StringBuilder();
         startPos = unpack(denyBuffer,version,startPos,'+');
         String denyAcl = denyBuffer.toString();
         String[] denyAclArray = new String[1];
@@ -4151,14 +4157,14 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   /** Pack category and attribute */
   protected static String packCategoryAttribute(String category, String attribute)
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     pack(sb,category,':');
     pack(sb,attribute,':');
     return sb.toString();
   }
 
   /** Unpack category and attribute */
-  protected static void unpackCategoryAttribute(StringBuffer category, StringBuffer attribute, String value)
+  protected static void unpackCategoryAttribute(StringBuilder category, StringBuilder attribute, String value)
   {
     int startPos = 0;
     startPos = unpack(category,value,startPos,':');
@@ -4166,7 +4172,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   }
 
   /** Stuffer for packing a single string with an end delimiter */
-  protected static void pack(StringBuffer output, String value, char delimiter)
+  protected static void pack(StringBuilder output, String value, char delimiter)
   {
     int i = 0;
     while (i < value.length())
@@ -4180,7 +4186,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   }
 
   /** Unstuffer for the above. */
-  protected static int unpack(StringBuffer sb, String value, int startPosition, char delimiter)
+  protected static int unpack(StringBuilder sb, String value, int startPosition, char delimiter)
   {
     while (startPosition < value.length())
     {
@@ -4198,7 +4204,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   }
 
   /** Stuffer for packing lists of fixed length */
-  protected static void packFixedList(StringBuffer output, String[] values, char delimiter)
+  protected static void packFixedList(StringBuilder output, String[] values, char delimiter)
   {
     int i = 0;
     while (i < values.length)
@@ -4210,7 +4216,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   /** Unstuffer for unpacking lists of fixed length */
   protected static int unpackFixedList(String[] output, String value, int startPosition, char delimiter)
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     int i = 0;
     while (i < output.length)
     {
@@ -4222,7 +4228,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   }
 
   /** Stuffer for packing lists of variable length */
-  protected static void packList(StringBuffer output, ArrayList values, char delimiter)
+  protected static void packList(StringBuilder output, ArrayList values, char delimiter)
   {
     pack(output,Integer.toString(values.size()),delimiter);
     int i = 0;
@@ -4233,7 +4239,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   }
 
   /** Another stuffer for packing lists of variable length */
-  protected static void packList(StringBuffer output, String[] values, char delimiter)
+  protected static void packList(StringBuilder output, String[] values, char delimiter)
   {
     pack(output,Integer.toString(values.length),delimiter);
     int i = 0;
@@ -4252,7 +4258,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   */
   protected static int unpackList(ArrayList output, String value, int startPosition, char delimiter)
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     startPosition = unpack(sb,value,startPosition,delimiter);
     try
     {
@@ -5269,7 +5275,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     int charindex = 0;
     while (charindex < startPath.length())
     {
-      StringBuffer currentTokenBuffer = new StringBuffer();
+      StringBuilder currentTokenBuffer = new StringBuilder();
       // Find the current token
       while (charindex < startPath.length())
       {
@@ -5380,7 +5386,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     int charindex = 0;
     while (charindex < startPath.length())
     {
-      StringBuffer currentTokenBuffer = new StringBuffer();
+      StringBuilder currentTokenBuffer = new StringBuilder();
       // Find the current token
       while (charindex < startPath.length())
       {
@@ -5476,7 +5482,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   */
   protected static String buildFilterString(DocumentSpecification spec)
   {
-    StringBuffer rval = new StringBuffer();
+    StringBuilder rval = new StringBuilder();
 
 
     boolean first = true;
@@ -5506,7 +5512,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     String filterStringPiece = rval.toString();
     if (filterStringPiece.length() == 0)
       return "0>1";
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     sb.append("SubType=").append(new Integer(LAPI_DOCUMENTS.FOLDERSUBTYPE).toString());
     sb.append(" or SubType=").append(new Integer(LAPI_DOCUMENTS.COMPOUNDDOCUMENTSUBTYPE).toString());
     sb.append(" or SubType=").append(new Integer(LAPI_DOCUMENTS.PROJECTSUBTYPE).toString());
@@ -5950,8 +5956,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       while (i < metadataItems.size())
       {
         String metadataSpec = (String)metadataItems.get(i++);
-        StringBuffer categoryBuffer = new StringBuffer();
-        StringBuffer attributeBuffer = new StringBuffer();
+        StringBuilder categoryBuffer = new StringBuilder();
+        StringBuilder attributeBuffer = new StringBuilder();
         unpackCategoryAttribute(categoryBuffer,attributeBuffer,metadataSpec);
         String category = categoryBuffer.toString();
         String attributeName = attributeBuffer.toString();

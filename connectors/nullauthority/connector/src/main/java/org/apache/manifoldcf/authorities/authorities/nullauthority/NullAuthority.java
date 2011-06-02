@@ -52,6 +52,7 @@ public class NullAuthority extends org.apache.manifoldcf.authorities.authorities
 
   /** Check connection for sanity.
   */
+  @Override
   public String check()
     throws ManifoldCFException
   {
@@ -63,6 +64,7 @@ public class NullAuthority extends org.apache.manifoldcf.authorities.authorities
   *@return the response tokens (according to the current authority).
   * (Should throws an exception only when a condition cannot be properly described within the authorization response object.)
   */
+  @Override
   public AuthorizationResponse getAuthorizationResponse(String userName)
     throws ManifoldCFException
   {
@@ -74,6 +76,7 @@ public class NullAuthority extends org.apache.manifoldcf.authorities.authorities
   *@param userName is the user name or identifier.
   *@return the default response tokens, presuming that the connect method fails.
   */
+  @Override
   public AuthorizationResponse getDefaultAuthorizationResponse(String userName)
   {
     // The default response if the getConnection method fails, which should never happen.
@@ -93,7 +96,8 @@ public class NullAuthority extends org.apache.manifoldcf.authorities.authorities
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
+  @Override
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
     out.print(
@@ -123,6 +127,7 @@ public class NullAuthority extends org.apache.manifoldcf.authorities.authorities
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@param tabName is the current tab name.
   */
+  @Override
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
@@ -138,6 +143,7 @@ public class NullAuthority extends org.apache.manifoldcf.authorities.authorities
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
+  @Override
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
     throws ManifoldCFException
   {
@@ -151,6 +157,7 @@ public class NullAuthority extends org.apache.manifoldcf.authorities.authorities
   *@param out is the output to which any HTML should be sent.
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
+  @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {

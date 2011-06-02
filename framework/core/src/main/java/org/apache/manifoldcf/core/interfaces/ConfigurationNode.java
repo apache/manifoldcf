@@ -28,8 +28,8 @@ public class ConfigurationNode implements IHierarchyParent
   public static final String _rcsid = "@(#)$Id: ConfigurationNode.java 988245 2010-08-23 18:39:35Z kwright $";
 
   // Member variables
-  protected ArrayList children = null;
-  protected HashMap attributes = null;
+  protected List<ConfigurationNode> children = null;
+  protected Map<String,String> attributes = null;
   protected String type = null;
   protected String value = null;
 
@@ -52,13 +52,13 @@ public class ConfigurationNode implements IHierarchyParent
     this.readOnly = source.readOnly;
     if (source.attributes != null)
     {
-      Iterator iter = source.attributes.keySet().iterator();
+      Iterator<String> iter = source.attributes.keySet().iterator();
       while (iter.hasNext())
       {
-        String attribute = (String)iter.next();
-        String attrValue = (String)source.attributes.get(attribute);
+        String attribute = iter.next();
+        String attrValue = source.attributes.get(attribute);
         if (this.attributes == null)
-          this.attributes = new HashMap();
+          this.attributes = new HashMap<String,String>();
         this.attributes.put(attribute,attrValue);
       }
     }
@@ -113,14 +113,14 @@ public class ConfigurationNode implements IHierarchyParent
     ConfigurationNode rval = createNewNode();
     rval.value = value;
     if (attributes != null)
-      rval.attributes = (HashMap)attributes.clone();
+      rval.attributes = cloneAttributes(attributes);
     if (children != null)
     {
-      rval.children = new ArrayList();
+      rval.children = new ArrayList<ConfigurationNode>();
       int i = 0;
       while (i < children.size())
       {
-        ConfigurationNode node = (ConfigurationNode)children.get(i++);
+        ConfigurationNode node = children.get(i++);
         rval.children.add(node.createDuplicate(readOnly));
       }
     }
@@ -170,7 +170,7 @@ public class ConfigurationNode implements IHierarchyParent
   */
   public ConfigurationNode findChild(int index)
   {
-    return (ConfigurationNode)children.get(index);
+    return children.get(index);
   }
 
   /** Remove child n.
@@ -198,7 +198,7 @@ public class ConfigurationNode implements IHierarchyParent
       throw new IllegalStateException("Attempt to change read-only object");
 
     if (children == null)
-      children = new ArrayList();
+      children = new ArrayList<ConfigurationNode>();
     children.add(index,child);
   }
 
@@ -241,10 +241,10 @@ public class ConfigurationNode implements IHierarchyParent
   /** Iterate over attributes.
   *@return the attribute iterator.
   */
-  public Iterator getAttributes()
+  public Iterator<String> getAttributes()
   {
     if (attributes == null)
-      return new HashMap().keySet().iterator();
+      return new HashMap<String,String>().keySet().iterator();
     return attributes.keySet().iterator();
   }
 
@@ -256,7 +256,7 @@ public class ConfigurationNode implements IHierarchyParent
   {
     if (attributes == null)
       return null;
-    return (String)attributes.get(attribute);
+    return attributes.get(attribute);
   }
 
   /** Calculate a hashcode */
@@ -267,12 +267,12 @@ public class ConfigurationNode implements IHierarchyParent
       rval += value.hashCode();
     if (attributes != null)
     {
-      Iterator iter = attributes.keySet().iterator();
+      Iterator<String> iter = attributes.keySet().iterator();
       // Make sure this is not sensitive to order!
       while (iter.hasNext())
       {
-        String key = (String)iter.next();
-        String attrValue = (String)attributes.get(key);
+        String key = iter.next();
+        String attrValue = attributes.get(key);
         rval += key.hashCode() + attrValue.hashCode();
       }
     }
@@ -312,12 +312,12 @@ public class ConfigurationNode implements IHierarchyParent
     }
     if (attributes != null && n.attributes != null)
     {
-      Iterator iter = attributes.keySet().iterator();
+      Iterator<String> iter = attributes.keySet().iterator();
       while (iter.hasNext())
       {
-        String key = (String)iter.next();
-        String attrValue = (String)attributes.get(key);
-        String nAttrValue = (String)n.attributes.get(key);
+        String key = iter.next();
+        String attrValue = attributes.get(key);
+        String nAttrValue = n.attributes.get(key);
         if (nAttrValue == null || !attrValue.equals(nAttrValue))
           return false;
       }
@@ -327,8 +327,8 @@ public class ConfigurationNode implements IHierarchyParent
       int i = 0;
       while (i < children.size())
       {
-        ConfigurationNode child = (ConfigurationNode)children.get(i);
-        ConfigurationNode nChild = (ConfigurationNode)n.children.get(i);
+        ConfigurationNode child = children.get(i);
+        ConfigurationNode nChild = n.children.get(i);
         if (!child.equals(nChild))
           return false;
         i++;
@@ -337,4 +337,15 @@ public class ConfigurationNode implements IHierarchyParent
     return true;
   }
 
+  protected static Map<String,String> cloneAttributes(Map<String,String> attributes)
+  {
+    Map<String,String> rval = new HashMap<String,String>();
+    Iterator<Map.Entry<String,String>> iter = attributes.entrySet().iterator();
+    while (iter.hasNext())
+    {
+      Map.Entry<String,String> entry = iter.next();
+      rval.put(entry.getKey(),entry.getValue());
+    }
+    return rval;
+  }
 }

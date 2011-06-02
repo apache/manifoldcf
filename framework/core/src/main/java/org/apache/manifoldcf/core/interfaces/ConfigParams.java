@@ -35,7 +35,7 @@ public class ConfigParams extends Configuration
   protected final static String ATTR_NAME = "name";
 
   // The parameter map (which stores name/value pairs also listed in the children)
-  protected HashMap params = new HashMap();
+  protected Map<String,String> params = new HashMap<String,String>();
 
   /** Constructor.
   */
@@ -48,14 +48,14 @@ public class ConfigParams extends Configuration
   *@param map is the initialized (mutable) map describing the name/value configuration parameters.
   * This method of setting up a ConfigParams object will go away when the parameters are all in XML.
   */
-  public ConfigParams(Map map)
+  public ConfigParams(Map<String,String> map)
   {
     super("configuration");
-    Iterator iter = map.keySet().iterator();
+    Iterator<String> iter = map.keySet().iterator();
     while (iter.hasNext())
     {
-      String key = (String)iter.next();
-      String value = (String)map.get(key);
+      String key = iter.next();
+      String value = map.get(key);
       ConfigNode cn = new ConfigNode(PARAMETER_TYPE);
       cn.setAttribute(ATTR_NAME,key);
       cn.setValue(value);
@@ -137,7 +137,7 @@ public class ConfigParams extends Configuration
   */
   public String getParameter(String key)
   {
-    return (String)params.get(key);
+    return params.get(key);
   }
 
   /** Get an obfuscated parameter value.

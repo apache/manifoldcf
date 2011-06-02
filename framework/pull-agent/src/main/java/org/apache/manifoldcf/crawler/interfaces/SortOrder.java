@@ -47,7 +47,7 @@ public class SortOrder
     throws ManifoldCFException
   {
     ParseBuffer pb = new ParseBuffer(rep);
-    StringBuffer numBuffer = new StringBuffer();
+    StringBuilder numBuffer = new StringBuilder();
     while (true)
     {
       int x = pb.peekCharAt();
@@ -80,7 +80,7 @@ public class SortOrder
   */
   public String toString()
   {
-    StringBuffer output = new StringBuffer();
+    StringBuilder output = new StringBuilder();
     output.append(Integer.toString(sortList.size()));
     output.append(":");
     int i = 0;
@@ -203,7 +203,7 @@ public class SortOrder
       else
         throw new ManifoldCFException("Bad direction");
       pb.next();
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       while (true)
       {
         x = pb.peekCharAt();
@@ -230,7 +230,7 @@ public class SortOrder
 
     public String toString()
     {
-      StringBuffer output = new StringBuffer();
+      StringBuilder output = new StringBuilder();
       if (direction == SORT_ASCENDING)
         output.append("+");
       else

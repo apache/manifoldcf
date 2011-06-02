@@ -117,7 +117,7 @@
 
     <target name="compile-wsdls" depends="classcreate-wsdls,precompile-check" if="canBuild">
         <mkdir dir="build/wsdlclasses"/>
-        <javac srcdir="build/wsdljava" destdir="build/wsdlclasses" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="build/wsdljava" destdir="build/wsdlclasses" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <fileset dir="lib" includes="*.jar"/>
             </classpath>
@@ -147,7 +147,7 @@
 
     <target name="compile-connector" depends="compile-wsdls,compile-xsds,precompile-check" if="canBuild">
         <mkdir dir="build/connector/classes"/>
-        <javac srcdir="connector/src/main/java" destdir="build/connector/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="connector/src/main/java" destdir="build/connector/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <fileset dir="lib" includes="*.jar"/>
                 <pathelement location="build/wsdlclasses"/>

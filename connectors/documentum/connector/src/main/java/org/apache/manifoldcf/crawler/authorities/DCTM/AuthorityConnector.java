@@ -73,6 +73,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
 
   /** Set thread context.
   */
+  @Override
   public void setThreadContext(IThreadContext tc)
     throws ManifoldCFException
   {
@@ -82,6 +83,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   
   /** Clear thread context.
   */
+  @Override
   public void clearThreadContext()
   {
     super.clearThreadContext();
@@ -596,6 +598,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   *@return the response tokens (according to the current authority).
   * (Should throws an exception only when a condition cannot be properly described within the authorization response object.)
   */
+  @Override
   public AuthorizationResponse getAuthorizationResponse(String strUserNamePassedIn)
     throws ManifoldCFException
   {
@@ -799,6 +802,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   *@param userName is the user name or identifier.
   *@return the default response tokens, presuming that the connect method fails.
   */
+  @Override
   public AuthorizationResponse getDefaultAuthorizationResponse(String userName)
   {
     return unreachableResponse;
@@ -806,7 +810,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
 
   protected static String insensitiveMatch(boolean insensitive, String field, String value)
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     if (insensitive)
       sb.append("upper(").append(field).append(")");
     else
@@ -821,7 +825,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
 
   protected static String quoteDQLString(String value)
   {
-    StringBuffer sb = new StringBuffer("'");
+    StringBuilder sb = new StringBuilder("'");
     int i = 0;
     while (i < value.length())
     {
@@ -837,6 +841,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   /** Test the connection.  Returns a string describing the connection integrity.
   *@return the connection's status as a displayable string.
   */
+  @Override
   public String check()
     throws ManifoldCFException
   {
@@ -864,6 +869,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   }
 
 
+  @Override
   public void connect(ConfigParams configParams)
   {
     super.connect(configParams);
@@ -898,6 +904,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
 
   /** Disconnect from Documentum.
   */
+  @Override
   public void disconnect()
     throws ManifoldCFException
   {
@@ -955,14 +962,10 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     domain = null;
   }
 
-  public String getJSPFolder()
-  {
-    return "DCTM";
-  }
-
   /** This method is periodically called for all connectors that are connected but not
   * in active use.
   */
+  @Override
   public void poll()
     throws ManifoldCFException
   {
@@ -982,7 +985,8 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
+  @Override
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
     tabsArray.add("Docbase");
@@ -1031,6 +1035,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@param tabName is the current tab name.
   */
+  @Override
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
@@ -1168,6 +1173,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
+  @Override
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
     throws ManifoldCFException
   {
@@ -1205,6 +1211,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   *@param out is the output to which any HTML should be sent.
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
+  @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {

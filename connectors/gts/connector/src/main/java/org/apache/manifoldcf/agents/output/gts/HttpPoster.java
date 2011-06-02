@@ -162,7 +162,7 @@ public class HttpPoster
     RepositoryDocument document, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
-    StringBuffer aclXml = new StringBuffer();
+    StringBuilder aclXml = new StringBuilder();
     writeACLs(aclXml,"share",document.getShareACL(),document.getShareDenyACL(),authorityNameString,activities);
     int directoryCount = document.countDirectoryACLs();
     int q = 0;
@@ -268,8 +268,8 @@ public class HttpPoster
 
   }
 
-  /** Write acls into a stringbuffer */
-  protected static void writeACLs(StringBuffer aclXml, String type, String[] acl, String[] denyAcl, String authorityNameString, IOutputAddActivity activities)
+  /** Write acls into a StringBuilder */
+  protected static void writeACLs(StringBuilder aclXml, String type, String[] acl, String[] denyAcl, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException
   {
     if (acl != null && acl.length > 0 || denyAcl != null && denyAcl.length > 0)
@@ -462,7 +462,7 @@ public class HttpPoster
   protected String getResponse(BufferedReader stream) throws ManifoldCFException, ServiceInterruption
   {
     Logging.ingest.debug("Waiting for response stream");
-    StringBuffer res = new StringBuffer();
+    StringBuilder res = new StringBuilder();
     try
     {
       // Stream.ready() always returns false for secure sockets :-(.  So
@@ -548,7 +548,7 @@ public class HttpPoster
   */
   protected static String metadataEncode(String inputString)
   {
-    StringBuffer rval = new StringBuffer();
+    StringBuilder rval = new StringBuilder();
     int i = 0;
     while (i < inputString.length())
     {

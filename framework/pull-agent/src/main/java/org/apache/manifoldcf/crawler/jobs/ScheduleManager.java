@@ -314,7 +314,7 @@ public class ScheduleManager extends org.apache.manifoldcf.core.database.BaseTab
       return null;
     if (values.size() == 0)
       return "*";
-    StringBuffer rval = new StringBuffer();
+    StringBuilder rval = new StringBuilder();
     Iterator iter = values.getValues();
     boolean first = true;
     while (iter.hasNext())

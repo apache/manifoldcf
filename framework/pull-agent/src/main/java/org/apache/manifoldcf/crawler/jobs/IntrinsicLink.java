@@ -205,7 +205,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
       //performLock();
       HashMap duplicateRemoval = new HashMap();
       int maxClause = getMaxOrClause();
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       ArrayList list = new ArrayList();
       int i = 0;
       int k = 0;
@@ -334,7 +334,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
       if (sourceDocumentIDHashes != null)
       {
         int maxClause = getMaxOrClause();
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         ArrayList list = new ArrayList();
         int i = 0;
         int k = 0;
@@ -366,7 +366,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
         ArrayList list = new ArrayList();
         list.add(jobID);
         list.addAll(sourceTableParams);
-        StringBuffer sb = new StringBuffer("WHERE EXISTS(SELECT 'x' FROM ");
+        StringBuilder sb = new StringBuilder("WHERE EXISTS(SELECT 'x' FROM ");
         sb.append(sourceTableName).append(" WHERE ").append(sourceTableJobColumn).append("=? AND ")
           .append(sourceTableIDColumn).append("=").append(getTableName()).append(".").append(childIDHashField)
           .append(" AND ").append(sourceTableCriteria).append(")");
@@ -397,7 +397,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
   {
     ArrayList thisList = new ArrayList();
     thisList.addAll(list);
-    StringBuffer sb = new StringBuffer("WHERE (");
+    StringBuilder sb = new StringBuilder("WHERE (");
     sb.append(query).append(")");
     if (commonNewExpression != null)
     {
@@ -416,7 +416,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
     try
     {
       int maxClause = getMaxOrClause();
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       ArrayList list = new ArrayList();
       int i = 0;
       int k = 0;
@@ -462,7 +462,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
   protected void performRestoreLinks(String query, ArrayList list)
     throws ManifoldCFException
   {
-    StringBuffer sb = new StringBuffer("WHERE (");
+    StringBuilder sb = new StringBuilder("WHERE (");
     sb.append(query).append(") AND (").append(newField).append("=? OR ").append(newField).append("=?)");
     list.add(statusToString(LINKSTATUS_EXISTING));
     list.add(statusToString(LINKSTATUS_NEW));

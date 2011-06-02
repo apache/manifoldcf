@@ -79,25 +79,25 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   * invalidated.
   *@param parameterMap is the map of column name/values to write.
   */
-  public void performInsert(String tableName, Map parameterMap, StringSet invalidateKeys)
+  public void performInsert(String tableName, Map<String,Object> parameterMap, StringSet invalidateKeys)
     throws ManifoldCFException
   {
-    ArrayList paramArray = new ArrayList();
+    List paramArray = new ArrayList();
 
-    StringBuffer bf = new StringBuffer();
+    StringBuilder bf = new StringBuilder();
     bf.append("INSERT INTO ");
     bf.append(tableName);
     bf.append(" (") ;
 
-    StringBuffer values = new StringBuffer(" VALUES (");
+    StringBuilder values = new StringBuilder(" VALUES (");
 
     // loop for cols
-    Iterator it = parameterMap.entrySet().iterator();
+    Iterator<Map.Entry<String,Object>> it = parameterMap.entrySet().iterator();
     boolean first = true;
     while (it.hasNext())
     {
-      Map.Entry e = (Map.Entry)it.next();
-      String key = (String)e.getKey();
+      Map.Entry<String,Object> e = it.next();
+      String key = e.getKey();
 
       Object o = e.getValue();
       if (o != null)
@@ -132,23 +132,24 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param whereClause is the where clause describing the match (including the WHERE), or null if none.
   *@param whereParameters are the parameters that come with the where clause, if any.
   */
-  public void performUpdate(String tableName, Map parameterMap, String whereClause, ArrayList whereParameters, StringSet invalidateKeys)
+  public void performUpdate(String tableName, Map<String,Object> parameterMap, String whereClause,
+    List whereParameters, StringSet invalidateKeys)
     throws ManifoldCFException
   {
-    ArrayList paramArray = new ArrayList();
+    List paramArray = new ArrayList();
 
-    StringBuffer bf = new StringBuffer();
+    StringBuilder bf = new StringBuilder();
     bf.append("UPDATE ");
     bf.append(tableName);
     bf.append(" SET ") ;
 
     // loop for parameters
-    Iterator it = parameterMap.entrySet().iterator();
+    Iterator<Map.Entry<String,Object>> it = parameterMap.entrySet().iterator();
     boolean first = true;
     while (it.hasNext())
     {
-      Map.Entry e = (Map.Entry)it.next();
-      String key = (String)e.getKey();
+      Map.Entry<String,Object> e = it.next();
+      String key = e.getKey();
 
       Object o = e.getValue();
 
@@ -197,10 +198,10 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param whereClause is the where clause describing the match (including the WHERE), or null if none.
   *@param whereParameters are the parameters that come with the where clause, if any.
   */
-  public void performDelete(String tableName, String whereClause, ArrayList whereParameters, StringSet invalidateKeys)
+  public void performDelete(String tableName, String whereClause, List whereParameters, StringSet invalidateKeys)
     throws ManifoldCFException
   {
-    StringBuffer bf = new StringBuffer();
+    StringBuilder bf = new StringBuilder();
     bf.append("DELETE FROM ");
     bf.append(tableName);
     if (whereClause != null)
@@ -223,18 +224,18 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   * layer.
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
-  public void performCreate(String tableName, Map columnMap, StringSet invalidateKeys)
+  public void performCreate(String tableName, Map<String,ColumnDescription> columnMap, StringSet invalidateKeys)
     throws ManifoldCFException
   {
-    StringBuffer queryBuffer = new StringBuffer("CREATE TABLE ");
+    StringBuilder queryBuffer = new StringBuilder("CREATE TABLE ");
     queryBuffer.append(tableName);
     queryBuffer.append('(');
-    Iterator iter = columnMap.keySet().iterator();
+    Iterator<String> iter = columnMap.keySet().iterator();
     boolean first = true;
     while (iter.hasNext())
     {
-      String columnName = (String)iter.next();
-      ColumnDescription cd = (ColumnDescription)columnMap.get(columnName);
+      String columnName = iter.next();
+      ColumnDescription cd = columnMap.get(columnName);
       if (!first)
         queryBuffer.append(',');
       else
@@ -277,7 +278,8 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param columnDeleteList is the list of column names to delete.
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
-  public void performAlter(String tableName, Map columnMap, Map columnModifyMap, ArrayList columnDeleteList,
+  public void performAlter(String tableName, Map<String,ColumnDescription> columnMap,
+    Map<String,ColumnDescription> columnModifyMap, List<String> columnDeleteList,
     StringSet invalidateKeys)
     throws ManifoldCFException
   {
@@ -290,14 +292,14 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param columnList is the list of columns that need to be included
   * in the index, in order.
   */
-  public void addTableIndex(String tableName, boolean unique, ArrayList columnList)
+  public void addTableIndex(String tableName, boolean unique, List<String> columnList)
     throws ManifoldCFException
   {
     String[] columns = new String[columnList.size()];
     int i = 0;
     while (i < columns.length)
     {
-      columns[i] = (String)columnList.get(i);
+      columns[i] = columnList.get(i);
       i++;
     }
     performAddIndex(null,tableName,new IndexDescription(unique,columns));
@@ -318,7 +320,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     if (indexName == null)
       // Build an index name
       indexName = "I"+IDFactory.make(context);
-    StringBuffer queryBuffer = new StringBuffer("CREATE ");
+    StringBuilder queryBuffer = new StringBuilder("CREATE ");
     if (description.getIsUnique())
       queryBuffer.append("UNIQUE ");
     queryBuffer.append("INDEX ");
@@ -387,7 +389,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   {
     // Connect to super database
     Database masterDatabase = new Database(context,_url+"mysql",_driver,"mysql",adminUserName,adminPassword);
-    ArrayList list = new ArrayList();
+    List list = new ArrayList();
     list.add("utf8");
     masterDatabase.executeQuery("CREATE DATABASE "+databaseName+" CHARACTER SET ?",list,
       null,invalidateKeys,null,false,0,null,null);
@@ -420,7 +422,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param params are the parameterized values, if needed.
   *@param invalidateKeys are the cache keys to invalidate.
   */
-  public void performModification(String query, ArrayList params, StringSet invalidateKeys)
+  public void performModification(String query, List params, StringSet invalidateKeys)
     throws ManifoldCFException
   {
     executeQuery(query,params,null,invalidateKeys,null,false,0,null,null);
@@ -432,12 +434,12 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param queryClass is the name of the query class, or null.
   *@return a map of column names and ColumnDescription objects, describing the schema.
   */
-  public Map getTableSchema(String tableName, StringSet cacheKeys, String queryClass)
+  public Map<String,ColumnDescription> getTableSchema(String tableName, StringSet cacheKeys, String queryClass)
     throws ManifoldCFException
   {
     IResultSet set = performQuery("DESCRIBE "+tableName,null,cacheKeys,queryClass);
     // Digest the result
-    HashMap rval = new HashMap();
+    Map<String,ColumnDescription> rval = new HashMap<String,ColumnDescription>();
     int i = 0;
     while (i < set.getRowCount())
     {
@@ -458,7 +460,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param queryClass is the name of the query class, or null.
   *@return a map of index names and IndexDescription objects, describing the indexes.
   */
-  public Map getTableIndexes(String tableName, StringSet cacheKeys, String queryClass)
+  public Map<String,IndexDescription> getTableIndexes(String tableName, StringSet cacheKeys, String queryClass)
     throws ManifoldCFException
   {
     // MHL
@@ -499,7 +501,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   * or null if no LRU behavior desired.
   *@return a resultset.
   */
-  public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass)
+  public IResultSet performQuery(String query, List params, StringSet cacheKeys, String queryClass)
     throws ManifoldCFException
   {
     return executeQuery(query,params,cacheKeys,null,queryClass,true,-1,null,null);
@@ -515,7 +517,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param returnLimit is a description of how to limit the return result, or null if no limit.
   *@return a resultset.
   */
-  public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass,
+  public IResultSet performQuery(String query, List params, StringSet cacheKeys, String queryClass,
     int maxResults, ILimitChecker returnLimit)
     throws ManifoldCFException
   {
@@ -533,7 +535,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   *@param returnLimit is a description of how to limit the return result, or null if no limit.
   *@return a resultset.
   */
-  public IResultSet performQuery(String query, ArrayList params, StringSet cacheKeys, String queryClass,
+  public IResultSet performQuery(String query, List params, StringSet cacheKeys, String queryClass,
     int maxResults, ResultSpecification resultSpec, ILimitChecker returnLimit)
     throws ManifoldCFException
   {
@@ -575,7 +577,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   */
   public String constructOffsetLimitClause(int offset, int limit)
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     if (offset != 0)
       sb.append("OFFSET ").append(Integer.toString(offset));
     if (limit != -1)
@@ -591,15 +593,16 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   * This filter wraps a query and returns a new query whose results are similar to POSTGRESQL's DISTINCT-ON feature.
   * Specifically, for each combination of the specified distinct fields in the result, only the first such row is included in the final
   * result.
-  *@param outputParameters is a blank arraylist into which to put parameters.  Null may be used if the baseParameters parameter is null.
+  *@param outputParameters is a blank list into which to put parameters.  Null may be used if the baseParameters parameter is null.
   *@param baseQuery is the base query, which is another SELECT statement, without parens,
   * e.g. "SELECT ..."
   *@param baseParameters are the parameters corresponding to the baseQuery.
   *@param distinctFields are the fields to consider to be distinct.  These should all be keys in otherFields below.
   *@param otherFields are the rest of the fields to return, keyed by the AS name, value being the base query column value, e.g. "value AS key"
-  *@return a revised query that performs the necessary DISTINCT ON operation.  The arraylist outputParameters will also be appropriately filled in.
+  *@return a revised query that performs the necessary DISTINCT ON operation.  The list outputParameters will also be appropriately filled in.
   */
-  public String constructDistinctOnClause(ArrayList outputParameters, String baseQuery, ArrayList baseParameters, String[] distinctFields, Map otherFields)
+  public String constructDistinctOnClause(List outputParameters, String baseQuery, List baseParameters,
+    String[] distinctFields, Map<String,String> otherFields)
   {
     // I don't know whether MySql supports this functionality or not.
     // MHL
@@ -607,13 +610,13 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     if (baseParameters != null)
       outputParameters.addAll(baseParameters);
 
-    StringBuffer sb = new StringBuffer("SELECT ");
+    StringBuilder sb = new StringBuilder("SELECT ");
     boolean needComma = false;
-    Iterator iter = otherFields.keySet().iterator();
+    Iterator<String> iter = otherFields.keySet().iterator();
     while (iter.hasNext())
     {
-      String fieldName = (String)iter.next();
-      String columnValue = (String)otherFields.get(fieldName);
+      String fieldName = iter.next();
+      String columnValue = otherFields.get(fieldName);
       if (needComma)
         sb.append(",");
       needComma = true;

@@ -27,7 +27,7 @@ public class RRow implements IResultRow
 {
   public static final String _rcsid = "@(#)$Id: RRow.java 988245 2010-08-23 18:39:35Z kwright $";
 
-  protected Map rowData = new HashMap();
+  protected Map<String,Object> rowData = new HashMap<String,Object>();
 
   public RRow()
   {
@@ -49,7 +49,7 @@ public class RRow implements IResultRow
   /** Obtain the set of columns for a row.
   @return an iterator that will list all the (String) column names stored in that row.
   */
-  public Iterator getColumns()
+  public Iterator<String> getColumns()
   {
     return rowData.keySet().iterator();
   }

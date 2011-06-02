@@ -374,7 +374,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     beginTransaction();
     try
     {
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       ArrayList params = new ArrayList();
       int j = 0;
       int maxIn = getMaxInClause();
@@ -2242,7 +2242,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       return null;
     if (values.size() == 0)
       return "*";
-    StringBuffer rval = new StringBuffer();
+    StringBuilder rval = new StringBuilder();
     Iterator iter = values.getValues();
     boolean first = true;
     while (iter.hasNext())
@@ -2293,7 +2293,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     beginTransaction();
     try
     {
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       ArrayList params = new ArrayList();
       int j = 0;
       int maxIn = getMaxInClause();

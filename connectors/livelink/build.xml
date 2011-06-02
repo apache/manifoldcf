@@ -35,7 +35,7 @@
 
     <target name="doc" depends="precompile-check" if="canBuild">
         <mkdir dir="dist/doc"/>
-        <javadoc destdir="dist/doc" source="1.4">
+        <javadoc destdir="dist/doc" source="1.5">
             <classpath>
                 <fileset dir="lib" includes="*.jar"/>
                 <fileset dir="lapi" includes="*.jar"/>
@@ -46,7 +46,7 @@
 
     <target name="compile-connector" depends="precompile-check" if="canBuild">
         <mkdir dir="build/connector/classes"/>
-        <javac srcdir="connector/src/main/java" destdir="build/connector/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="connector/src/main/java" destdir="build/connector/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <fileset dir="lib" includes="*.jar"/>
                 <fileset dir="lapi" includes="*.jar"/>

@@ -164,7 +164,7 @@ public class XMLWriterContext extends XMLContext
   /** Convert a string to a value that's safe to include inside an attribute value */
   protected static String escapeAttribute(String value)
   {
-    StringBuffer rval = new StringBuffer();
+    StringBuilder rval = new StringBuilder();
     int i = 0;
     while (i < value.length())
     {
@@ -186,7 +186,7 @@ public class XMLWriterContext extends XMLContext
       char x = chars[i];
       if (x == '<' || x == '>' || x == '&'|| (x < ' ' && x >= 0))
       {
-        StringBuffer rval = new StringBuffer();
+        StringBuilder rval = new StringBuilder();
         rval.append("&#").append(Integer.toString((int)x)).append(";");
         out.write(rval.toString());
         continue;

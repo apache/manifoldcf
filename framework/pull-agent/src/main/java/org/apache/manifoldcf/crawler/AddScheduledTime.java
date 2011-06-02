@@ -99,7 +99,7 @@ public class AddScheduledTime
                 if (list.length() == 0)
                         return null;
 
-                StringBuffer sb = new StringBuffer();
+                StringBuilder sb = new StringBuilder();
                 int index = 0;
                 while (true)
                 {
@@ -143,7 +143,7 @@ public class AddScheduledTime
                 if (list.length() == 0)
                         return null;
 
-                StringBuffer sb = new StringBuffer();
+                StringBuilder sb = new StringBuilder();
                 int index = 0;
                 while (true)
                 {
@@ -200,7 +200,7 @@ public class AddScheduledTime
                 if (list.length() == 0)
                         return null;
 
-                StringBuffer sb = new StringBuffer();
+                StringBuilder sb = new StringBuilder();
                 int index = 0;
                 while (true)
                 {
@@ -232,7 +232,7 @@ public class AddScheduledTime
                 if (list.length() == 0)
                         return null;
 
-                StringBuffer sb = new StringBuffer();
+                StringBuilder sb = new StringBuilder();
                 int index = 0;
                 while (true)
                 {

@@ -256,7 +256,7 @@ public class JobManager implements IJobManager
     throws ManifoldCFException
   {
     // For each connection, find the corresponding list of jobs.  From these jobs, we want the job id and the status.
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     ArrayList list = new ArrayList();
     int maxCount = database.getMaxInClause();
     int currentCount = 0;
@@ -310,7 +310,7 @@ public class JobManager implements IJobManager
     throws ManifoldCFException
   {
     // For each connection, find the corresponding list of jobs.  From these jobs, we want the job id and the status.
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     ArrayList list = new ArrayList();
     int maxCount = database.getMaxInClause();
     int currentCount = 0;
@@ -373,7 +373,7 @@ public class JobManager implements IJobManager
     throws ManifoldCFException
   {
     // For each connection, find the corresponding list of jobs.  From these jobs, we want the job id and the status.
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     ArrayList list = new ArrayList();
     int maxCount = database.getMaxInClause();
     int currentCount = 0;
@@ -427,7 +427,7 @@ public class JobManager implements IJobManager
     throws ManifoldCFException
   {
     // For each connection, find the corresponding list of jobs.  From these jobs, we want the job id and the status.
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     ArrayList list = new ArrayList();
     int maxCount = database.getMaxInClause();
     int currentCount = 0;
@@ -1288,7 +1288,7 @@ public class JobManager implements IJobManager
       return new String[0];
 
     // Build a query
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     ArrayList list = new ArrayList();
     sb.append("SELECT t0.").append(jobQueue.docHashField).append(" FROM ").append(jobQueue.getTableName())
       .append(" t0 WHERE t0.").append(jobQueue.docHashField).append(" IN(");
@@ -1386,7 +1386,7 @@ public class JobManager implements IJobManager
   public DocumentDescription[] getNextAlreadyProcessedReprioritizationDocuments(long currentTime, int n)
     throws ManifoldCFException
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     ArrayList list = new ArrayList();
 
     // The desired query is:
@@ -1431,7 +1431,7 @@ public class JobManager implements IJobManager
   public DocumentDescription[] getNextNotYetProcessedReprioritizationDocuments(long currentTime, int n)
     throws ManifoldCFException
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     ArrayList list = new ArrayList();
 
     // This query MUST return only documents that are in a pending state which belong to an active job!!!
@@ -1615,7 +1615,7 @@ public class JobManager implements IJobManager
     list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
     list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED));
     
-    StringBuffer sb = new StringBuffer("SELECT t0.");
+    StringBuilder sb = new StringBuilder("SELECT t0.");
     sb.append(jobQueue.idField).append(",t0.");
     sb.append(jobQueue.jobIDField).append(",t0.");
     sb.append(jobQueue.docHashField).append(",t0.");
@@ -2055,7 +2055,7 @@ public class JobManager implements IJobManager
     // Note that if there is NO such document, it means we were able to queue all eligible documents, and thus prioritization is probably not even
     // germane at the moment.
 
-    StringBuffer sb = new StringBuffer("SELECT ");
+    StringBuilder sb = new StringBuilder("SELECT ");
     ArrayList list = new ArrayList();
     
     list.add(Jobs.statusToString(jobs.STATUS_ACTIVE));
@@ -2091,7 +2091,7 @@ public class JobManager implements IJobManager
     return rval;
   }
 
-  protected void addDocumentCriteria(StringBuffer sb, ArrayList list, Long currentTimeValue, Long currentPriorityValue)
+  protected void addDocumentCriteria(StringBuilder sb, ArrayList list, Long currentTimeValue, Long currentPriorityValue)
     throws ManifoldCFException
   {
     
@@ -2143,7 +2143,7 @@ public class JobManager implements IJobManager
 
     ArrayList list = new ArrayList();
 
-    StringBuffer sb = new StringBuffer("SELECT t0.");
+    StringBuilder sb = new StringBuilder("SELECT t0.");
     sb.append(jobQueue.idField).append(",t0.");
     if (Logging.scheduling.isDebugEnabled())
       sb.append(jobQueue.docPriorityField).append(",t0.");
@@ -2539,7 +2539,7 @@ public class JobManager implements IJobManager
     // We are going to need to break up this query into a number of subqueries, each covering a subset of parent id hashes.
     // The goal is to throw all the children into a hash, to make them unique at the end.
     HashMap resultHash = new HashMap();
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     ArrayList list = new ArrayList();
     int maxCount = database.getMaxOrClause();
     int i = 0;
@@ -4001,7 +4001,7 @@ public class JobManager implements IJobManager
     // We are going to need to break up this query into a number of subqueries, each covering a subset of parent id hashes.
     // The goal is to throw all the children into a hash, to make them unique at the end.
     HashMap resultHash = new HashMap();
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     ArrayList list = new ArrayList();
     int maxCount = database.getMaxOrClause();
     int i = 0;
@@ -6490,7 +6490,7 @@ public class JobManager implements IJobManager
   {
     // Build the query.
     Long currentTime = new Long(System.currentTimeMillis());
-    StringBuffer sb = new StringBuffer("SELECT ");
+    StringBuilder sb = new StringBuilder("SELECT ");
     ArrayList list = new ArrayList();
     
     list.add(jobQueue.statusToString(jobQueue.STATUS_PENDING));
@@ -6661,7 +6661,7 @@ public class JobManager implements IJobManager
 
     Long currentTime = new Long(System.currentTimeMillis());
 
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     ArrayList list = new ArrayList();
     
     
@@ -6810,7 +6810,7 @@ public class JobManager implements IJobManager
   * This is complicated by the fact that the extraction code is inherently case sensitive.  So if case insensitive is
   * desired, that means we whack the whole thing to lower case before doing the match.
   */
-  protected void addBucketExtract(StringBuffer sb, ArrayList list, String columnPrefix, String columnName, BucketDescription bucketDesc)
+  protected void addBucketExtract(StringBuilder sb, ArrayList list, String columnPrefix, String columnName, BucketDescription bucketDesc)
   {
     boolean isSensitive = bucketDesc.isSensitive();
     list.add(bucketDesc.getRegexp());
@@ -6819,7 +6819,7 @@ public class JobManager implements IJobManager
 
   /** Add criteria clauses to query.
   */
-  protected boolean addCriteria(StringBuffer sb, ArrayList list, String fieldPrefix, String connectionName, StatusFilterCriteria criteria, boolean whereEmitted)
+  protected boolean addCriteria(StringBuilder sb, ArrayList list, String fieldPrefix, String connectionName, StatusFilterCriteria criteria, boolean whereEmitted)
     throws ManifoldCFException
   {
     Long[] matchingJobs = criteria.getJobs();
@@ -6984,7 +6984,7 @@ public class JobManager implements IJobManager
 
   /** Emit a WHERE or an AND, depending...
   */
-  protected boolean emitClauseStart(StringBuffer sb, boolean whereEmitted)
+  protected boolean emitClauseStart(StringBuilder sb, boolean whereEmitted)
   {
     if (whereEmitted)
       sb.append(" AND ");
@@ -6995,7 +6995,7 @@ public class JobManager implements IJobManager
 
   /** Add ordering.
   */
-  protected void addOrdering(StringBuffer sb, String[] completeFieldList, SortOrder sort)
+  protected void addOrdering(StringBuilder sb, String[] completeFieldList, SortOrder sort)
   {
     // Keep track of the fields we've seen
     Map hash = new HashMap();
@@ -7045,7 +7045,7 @@ public class JobManager implements IJobManager
 
   /** Add limit and offset.
   */
-  protected void addLimits(StringBuffer sb, int startRow, int maxRowCount)
+  protected void addLimits(StringBuilder sb, int startRow, int maxRowCount)
   {
     sb.append(" ").append(database.constructOffsetLimitClause(startRow,maxRowCount));
   }

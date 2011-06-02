@@ -463,7 +463,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       Iterator iter = docIDValues.keySet().iterator();
       j = 0;
       ArrayList list = new ArrayList();
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       while (iter.hasNext())
       {
         if (j == maxInClause)
@@ -697,7 +697,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         Iterator iter = docURIHashValues.keySet().iterator();
         j = 0;
         ArrayList hashList = new ArrayList();
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         while (iter.hasNext())
         {
           if (j == maxInClause)
@@ -915,7 +915,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     beginTransaction();
     try
     {
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       ArrayList list = new ArrayList();
       int maxCount = getMaxInClause();
       int j = 0;
@@ -1038,7 +1038,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     beginTransaction();
     try
     {
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       ArrayList list = new ArrayList();
       int maxCount = getMaxInClause();
       int j = 0;
@@ -1140,7 +1140,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     // Loop through the hash codes
     Iterator iter = idCodes.keySet().iterator();
     ArrayList list = new ArrayList();
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     j = 0;
     while (iter.hasNext())
     {

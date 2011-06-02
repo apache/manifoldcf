@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-203: Move to Java 1.5 compilation and conventions.
+(Erlend Garåsen, Tommaso Teofili, Karl Wright et al)
+
 CONNECTORS-201: Add activity interface ICarrydownActivity to allow
 sharing of functionality across IVersionActivity and IProcessActivity.
 (Karl Wright)

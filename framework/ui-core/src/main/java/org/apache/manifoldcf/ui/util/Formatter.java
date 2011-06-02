@@ -36,7 +36,7 @@ public class Formatter
     c.setTimeInMillis(time);
     // We want to format this string in a compact way:
     // mm-dd-yyyy hh:mm:ss.mmm
-    StringBuffer returnString = new StringBuffer();
+    StringBuilder returnString = new StringBuilder();
     writechars(returnString,c.get(Calendar.MONTH)+1,2);
     returnString.append("-");
     writechars(returnString,c.get(Calendar.DAY_OF_MONTH),2);
@@ -97,7 +97,7 @@ public class Formatter
 
   // Helpful formatting methods
 
-  protected static void writechars(StringBuffer sb, int value, int length)
+  protected static void writechars(StringBuilder sb, int value, int length)
   {
     String stuff = Integer.toString(value);
     if (length < stuff.length())

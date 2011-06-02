@@ -126,7 +126,7 @@ public class QueueTracker
   {
     if (Logging.scheduling.isDebugEnabled())
     {
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       int j = 0;
       while (j < binNames.length)
       {
@@ -231,7 +231,7 @@ public class QueueTracker
   {
     if (Logging.scheduling.isDebugEnabled())
     {
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       int j = 0;
       while (j < binNames.length)
       {
@@ -330,7 +330,7 @@ public class QueueTracker
   {
     if (Logging.scheduling.isDebugEnabled())
     {
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       int j = 0;
       while (j < binNames.length)
       {
@@ -393,7 +393,7 @@ public class QueueTracker
 
     if (false && Logging.scheduling.isDebugEnabled())
     {
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       int j = 0;
       while (j < binNames.length)
       {
@@ -594,7 +594,7 @@ public class QueueTracker
 
       if (Logging.scheduling.isDebugEnabled())
       {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         int k = 0;
         while (k < binNames.length)
         {

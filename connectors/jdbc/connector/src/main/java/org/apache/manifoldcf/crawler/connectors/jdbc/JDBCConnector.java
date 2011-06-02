@@ -106,27 +106,17 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   /** Return the list of activities that this connector supports (i.e. writes into the log).
   *@return the list.
   */
+  @Override
   public String[] getActivitiesList()
   {
     return activitiesList;
-  }
-
-  /** Return the path for the UI interface JSP elements.
-  * These JSP's must be provided to allow the connector to be configured, and to
-  * permit it to present document filtering specification information in the UI.
-  * This method should return the name of the folder, under the <webapp>/connectors/
-  * area, where the appropriate JSP's can be found.  The name should NOT have a slash in it.
-  *@return the folder part
-  */
-  public String getJSPFolder()
-  {
-    return "jdbc";
   }
 
   /** Model.  Depending on what people enter for the seeding query, this could be either ALL or
   * could be less than that.  So, I've decided it will be at least the adds and changes, and
   * won't include the deletes.
   */
+  @Override
   public int getConnectorModel()
   {
     return MODEL_ADD_CHANGE;
@@ -135,6 +125,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   /** Connect.  The configuration parameters are included.
   *@param configParams are the configuration parameters for this connection.
   */
+  @Override
   public void connect(ConfigParams configParams)
   {
     super.connect(configParams);
@@ -148,6 +139,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
   /** Check status of connection.
   */
+  @Override
   public String check()
     throws ManifoldCFException
   {
@@ -168,6 +160,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
   /** Close the connection.  Call this before discarding the repository connector.
   */
+  @Override
   public void disconnect()
     throws ManifoldCFException
   {
@@ -190,6 +183,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param documentIdentifier is the document identifier.
   *@return the bin name.
   */
+  @Override
   public String[] getBinNames(String documentIdentifier)
   {
     return new String[]{host};
@@ -221,6 +215,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param endTime is the end of the time range to consider, exclusive.
   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
   */
+  @Override
   public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
     long startTime, long endTime, int jobMode)
     throws ManifoldCFException, ServiceInterruption
@@ -237,7 +232,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
     // Do the substitution
     ArrayList paramList = new ArrayList();
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     substituteQuery(ts.idQuery,vm,sb,paramList);
 
     IDynamicResultSet idSet;
@@ -304,6 +299,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   * Empty version strings indicate that there is no versioning ability for the corresponding document, and the document
   * will always be processed.
   */
+  @Override
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
     DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption
@@ -341,7 +337,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
     // Do the substitution
     ArrayList paramList = new ArrayList();
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     substituteQuery(ts.versionQuery,vm,sb,paramList);
 
     // Now, build a result return, and a hash table so we can correlate the returned values with the place to put them.
@@ -393,7 +389,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
         else
         {
           // A real version string!  Any acls must be added to the front, if they are present...
-          sb = new StringBuffer();
+          sb = new StringBuilder();
           packList(sb,acls,'+');
           if (acls.length > 0)
           {
@@ -431,6 +427,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param scanOnly is an array corresponding to the document identifiers.  It is set to true to indicate when the processing
   * should only find other references, and should not actually call the ingestion methods.
   */
+  @Override
   public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -448,7 +445,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
     // Do the substitution
     ArrayList paramList = new ArrayList();
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     substituteQuery(ts.dataQuery,vm,sb,paramList);
 
     int i;
@@ -653,7 +650,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
+  @Override
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
     tabsArray.add("Database Type");
@@ -703,6 +701,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@param tabName is the current tab name.
   */
+  @Override
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
@@ -804,6 +803,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
+  @Override
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
     throws ManifoldCFException
   {
@@ -837,6 +837,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param out is the output to which any HTML should be sent.
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
+  @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
@@ -885,7 +886,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param ds is the current document specification for this job.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
+  @Override
+  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
     tabsArray.add("Queries");
@@ -994,6 +996,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param ds is the current document specification for this job.
   *@param tabName is the current tab name.
   */
+  @Override
   public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
     throws ManifoldCFException, IOException
   {
@@ -1151,6 +1154,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param ds is the current document specification for this job.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
+  @Override
   public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
     throws ManifoldCFException
   {
@@ -1255,6 +1259,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param out is the output to which any HTML should be sent.
   *@param ds is the current document specification for this job.
   */
+  @Override
   public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
     throws ManifoldCFException, IOException
   {
@@ -1405,7 +1410,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       // Unpack access tokens and the deny token too
       ArrayList acls = new ArrayList();
-      StringBuffer denyAclBuffer = new StringBuffer();
+      StringBuilder denyAclBuffer = new StringBuilder();
       int startPos = unpackList(acls,version,0,'+');
       if (startPos < version.length() && version.charAt(startPos++) == '+')
       {
@@ -1436,6 +1441,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   /** Get the maximum number of documents to amalgamate together into one batch, for this connector.
   *@return the maximum number. 0 indicates "unlimited".
   */
+  @Override
   public int getMaxDocumentRequest()
   {
     // This is a number that is comfortably processed by the query processor as part of an IN clause.
@@ -1475,7 +1481,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected static boolean addIDList(VariableMap map, String varName, String[] documentIdentifiers, boolean[] scanOnly)
   {
     ArrayList params = new ArrayList();
-    StringBuffer sb = new StringBuffer(" (");
+    StringBuilder sb = new StringBuilder(" (");
     int i = 0;
     int k = 0;
     while (i < documentIdentifiers.length)
@@ -1499,7 +1505,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   /** Given a query, and a parameter map, substitute it.
   * Each variable substitutes the string, and it also substitutes zero or more query parameters.
   */
-  protected static void substituteQuery(String inputString, VariableMap inputMap, StringBuffer outputQuery, ArrayList outputParams)
+  protected static void substituteQuery(String inputString, VariableMap inputMap, StringBuilder outputQuery, ArrayList outputParams)
     throws ManifoldCFException
   {
     // We are looking for strings that look like this: $(something)
@@ -1568,7 +1574,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   }
 
   /** Stuffer for packing a single string with an end delimiter */
-  protected static void pack(StringBuffer output, String value, char delimiter)
+  protected static void pack(StringBuilder output, String value, char delimiter)
   {
     int i = 0;
     while (i < value.length())
@@ -1582,7 +1588,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   }
 
   /** Unstuffer for the above. */
-  protected static int unpack(StringBuffer sb, String value, int startPosition, char delimiter)
+  protected static int unpack(StringBuilder sb, String value, int startPosition, char delimiter)
   {
     while (startPosition < value.length())
     {
@@ -1600,7 +1606,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   }
 
   /** Stuffer for packing lists of fixed length */
-  protected static void packFixedList(StringBuffer output, String[] values, char delimiter)
+  protected static void packFixedList(StringBuilder output, String[] values, char delimiter)
   {
     int i = 0;
     while (i < values.length)
@@ -1612,7 +1618,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   /** Unstuffer for unpacking lists of fixed length */
   protected static int unpackFixedList(String[] output, String value, int startPosition, char delimiter)
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     int i = 0;
     while (i < output.length)
     {
@@ -1624,7 +1630,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   }
 
   /** Stuffer for packing lists of variable length */
-  protected static void packList(StringBuffer output, ArrayList values, char delimiter)
+  protected static void packList(StringBuilder output, ArrayList values, char delimiter)
   {
     pack(output,Integer.toString(values.size()),delimiter);
     int i = 0;
@@ -1635,7 +1641,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   }
 
   /** Another stuffer for packing lists of variable length */
-  protected static void packList(StringBuffer output, String[] values, char delimiter)
+  protected static void packList(StringBuilder output, String[] values, char delimiter)
   {
     pack(output,Integer.toString(values.length),delimiter);
     int i = 0;
@@ -1654,7 +1660,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   */
   protected static int unpackList(ArrayList output, String value, int startPosition, char delimiter)
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     startPosition = unpack(sb,value,startPosition,delimiter);
     try
     {
@@ -1678,7 +1684,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   */
   protected static String createQueryString(String queryText, ArrayList paramList)
   {
-    StringBuffer sb = new StringBuffer(queryText);
+    StringBuilder sb = new StringBuilder(queryText);
     sb.append("; arguments = (");
     int i = 0;
     while (i < paramList.size())
@@ -1699,7 +1705,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   */
   protected static String quoteSQLString(String input)
   {
-    StringBuffer sb = new StringBuffer("\'");
+    StringBuilder sb = new StringBuilder("\'");
     int i = 0;
     while (i < input.length())
     {
@@ -1729,7 +1735,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
         try
         {
           InputStreamReader reader = new InputStreamReader(is,"utf-8");
-          StringBuffer sb = new StringBuffer();
+          StringBuilder sb = new StringBuilder();
           while (true)
           {
             int x = reader.read();

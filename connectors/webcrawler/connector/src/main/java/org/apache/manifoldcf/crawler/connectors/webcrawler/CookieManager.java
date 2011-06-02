@@ -422,7 +422,7 @@ public class CookieManager extends org.apache.manifoldcf.core.database.BaseTable
   */
   protected static String portsToString(int[] ports)
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     int i = 0;
     while (i < ports.length)
     {

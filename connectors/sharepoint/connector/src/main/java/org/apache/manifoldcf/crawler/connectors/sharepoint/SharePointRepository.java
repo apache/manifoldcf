@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.List;
 import java.net.*;
 
 import org.apache.commons.httpclient.*;
@@ -199,27 +200,17 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   /** Return the list of activities that this connector supports (i.e. writes into the log).
   *@return the list.
   */
+  @Override
   public String[] getActivitiesList()
   {
     return new String[]{ACTIVITY_FETCH};
-  }
-
-  /** Return the path for the UI interface JSP elements.
-  * These JSP's must be provided to allow the connector to be configured, and to
-  * permit it to present document filtering specification information in the UI.
-  * This method should return the name of the folder, under the <webapp>/connectors/
-  * area, where the appropriate JSP's can be found.  The name should NOT have a slash in it.
-  *@return the folder part
-  */
-  public String getJSPFolder()
-  {
-    return "sharepoint";
   }
 
   /** Connect.
   *@param configParameters is the set of configuration parameters, which
   * in this case describe the root directory.
   */
+  @Override
   public void connect(ConfigParams configParameters)
   {
     super.connect(configParameters);
@@ -229,6 +220,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
   /** Close the connection.  Call this before discarding the repository connector.
   */
+  @Override
   public void disconnect()
     throws ManifoldCFException
   {
@@ -265,6 +257,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param documentIdentifier is the document identifier.
   *@return the bin name.
   */
+  @Override
   public String[] getBinNames(String documentIdentifier)
   {
     return new String[]{serverName};
@@ -273,6 +266,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   /** Get the maximum number of documents to amalgamate together into one batch, for this connector.
   *@return the maximum number. 0 indicates "unlimited".
   */
+  @Override
   public int getMaxDocumentRequest()
   {
     // Since we pick up acls on a per-lib basis, it helps to have this bigger than 1.
@@ -282,6 +276,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   /** Test the connection.  Returns a string describing the connection integrity.
   *@return the connection's status as a displayable string.
   */
+  @Override
   public String check()
     throws ManifoldCFException
   {
@@ -314,6 +309,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   /** This method is periodically called for all connectors that are connected but not
   * in active use.
   */
+  @Override
   public void poll()
     throws ManifoldCFException
   {
@@ -328,6 +324,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param command is the command, which is taken directly from the API request.
   *@return true if the resource is found, false if not.  In either case, output may be filled in.
   */
+  @Override
   public boolean requestInfo(Configuration output, String command)
     throws ManifoldCFException
   {
@@ -457,6 +454,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param endTime is the end of the time range to consider, exclusive.
   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
   */
+  @Override
   public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
     long startTime, long endTime, int jobMode)
     throws ManifoldCFException, ServiceInterruption
@@ -485,6 +483,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   * Empty version strings indicate that there is no versioning ability for the corresponding document, and the document
   * will always be processed.
   */
+  @Override
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
     DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption
@@ -530,7 +529,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
     // Calculate the part of the version string that comes from path name and mapping.
     // This starts with = since ; is used by another optional component (the forced acls)
-    StringBuffer pathNameAttributeVersion = new StringBuffer();
+    StringBuilder pathNameAttributeVersion = new StringBuilder();
     if (pathAttributeName != null)
       pathNameAttributeVersion.append("=").append(pathAttributeName).append(":").append(matchMap);
 
@@ -677,7 +676,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                   String versionToken = modifyDate;
                   // Revamped version string on 11/8/2006 to make parseability better
 
-                  StringBuffer sb = new StringBuffer();
+                  StringBuilder sb = new StringBuilder();
 
                   packList(sb,sortedMetadataFields,'+');
 
@@ -810,6 +809,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param scanOnly is an array corresponding to the document identifiers.  It is set to true to indicate when the processing
   * should only find other references, and should not actually call the ingestion methods.
   */
+  @Override
   public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -915,7 +915,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               nodeDocs.clear();
               docs.processPath(nodeDocs, "*", documents);
 
-              StringBuffer sb = new StringBuffer();
+              StringBuilder sb = new StringBuilder();
               for( int j =0; j < nodeDocs.size(); j++)
               {
                 Object node = nodeDocs.get(j);
@@ -989,7 +989,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               startPosition = unpackList(acls,version,startPosition,'+');
               if (startPosition < version.length())
               {
-                StringBuffer denyAclBuffer = new StringBuffer();
+                StringBuilder denyAclBuffer = new StringBuilder();
                 startPosition = unpack(denyAclBuffer,version,startPosition,'+');
                 denyAcl = denyAclBuffer.toString();
               }
@@ -1197,7 +1197,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                     if (Logging.connectors.isDebugEnabled())
                     {
                       j = 0;
-                      StringBuffer sb = new StringBuffer("SharePoint: Acls: [ ");
+                      StringBuilder sb = new StringBuilder("SharePoint: Acls: [ ");
                       while (j < actualAcls.length)
                       {
                         sb.append(actualAcls[j++]).append(" ");
@@ -1349,7 +1349,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
+  @Override
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
     tabsArray.add("Server");
@@ -1475,6 +1476,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@param tabName is the current tab name.
   */
+  @Override
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
@@ -1632,6 +1634,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
+  @Override
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
     throws ManifoldCFException
   {
@@ -1732,6 +1735,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param out is the output to which any HTML should be sent.
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
+  @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
@@ -1780,7 +1784,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param ds is the current document specification for this job.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
+  @Override
+  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
     tabsArray.add("Paths");
@@ -1956,6 +1961,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param ds is the current document specification for this job.
   *@param tabName is the current tab name.
   */
+  @Override
   public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
     throws ManifoldCFException, IOException
   {
@@ -2631,7 +2637,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           String lib = sn.getAttributeValue("lib");
           String path = site + "/" + lib + "/*";
           String allmetadata = sn.getAttributeValue("allmetadata");
-          StringBuffer metadataFieldList = new StringBuffer();
+          StringBuilder metadataFieldList = new StringBuilder();
           ArrayList metadataFieldArray = new ArrayList();
           if (allmetadata == null || !allmetadata.equals("true"))
           {
@@ -2717,7 +2723,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           String path = sn.getAttributeValue("match");
           String action = sn.getAttributeValue("action");
           String allmetadata = sn.getAttributeValue("allmetadata");
-          StringBuffer metadataFieldList = new StringBuffer();
+          StringBuilder metadataFieldList = new StringBuilder();
           ArrayList metadataFieldArray = new ArrayList();
           if (action.equals("include"))
           {
@@ -3231,6 +3237,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param ds is the current document specification for this job.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
+  @Override
   public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
     throws ManifoldCFException
   {
@@ -3747,6 +3754,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param out is the output to which any HTML should be sent.
   *@param ds is the current document specification for this job.
   */
+  @Override
   public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
     throws ManifoldCFException, IOException
   {
@@ -3886,7 +3894,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         String path = site + "/" + lib + "/*";
         
         String allmetadata = sn.getAttributeValue("allmetadata");
-        StringBuffer metadataFieldList = new StringBuffer();
+        StringBuilder metadataFieldList = new StringBuilder();
         if (allmetadata == null || !allmetadata.equals("true"))
         {
           int j = 0;
@@ -3936,7 +3944,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         String path = sn.getAttributeValue("match");
         String action = sn.getAttributeValue("action");
         String allmetadata = sn.getAttributeValue("allmetadata");
-        StringBuffer metadataFieldList = new StringBuffer();
+        StringBuilder metadataFieldList = new StringBuilder();
         if (action.equals("include"))
         {
           if (allmetadata == null || !allmetadata.equals("true"))
@@ -4861,7 +4869,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   */
   public static String decodePath(String relPath)
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     String[] pathEntries = relPath.split("/");
     int k = 0;
 
@@ -4882,7 +4890,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   */
   public static String encodePath(String relPath)
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     String[] pathEntries = relPath.split("/");
     int k = 0;
 
@@ -4899,7 +4907,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   }
 
   /** Stuffer for packing a single string with an end delimiter */
-  protected static void pack(StringBuffer output, String value, char delimiter)
+  protected static void pack(StringBuilder output, String value, char delimiter)
   {
     int i = 0;
     while (i < value.length())
@@ -4913,7 +4921,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   }
 
   /** Unstuffer for the above. */
-  protected static int unpack(StringBuffer sb, String value, int startPosition, char delimiter)
+  protected static int unpack(StringBuilder sb, String value, int startPosition, char delimiter)
   {
     while (startPosition < value.length())
     {
@@ -4931,7 +4939,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   }
 
   /** Stuffer for packing lists of fixed length */
-  protected static void packFixedList(StringBuffer output, String[] values, char delimiter)
+  protected static void packFixedList(StringBuilder output, String[] values, char delimiter)
   {
     int i = 0;
     while (i < values.length)
@@ -4943,7 +4951,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   /** Unstuffer for unpacking lists of fixed length */
   protected static int unpackFixedList(String[] output, String value, int startPosition, char delimiter)
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     int i = 0;
     while (i < output.length)
     {
@@ -4955,7 +4963,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   }
 
   /** Stuffer for packing lists of variable length */
-  protected static void packList(StringBuffer output, ArrayList values, char delimiter)
+  protected static void packList(StringBuilder output, ArrayList values, char delimiter)
   {
     pack(output,Integer.toString(values.size()),delimiter);
     int i = 0;
@@ -4966,7 +4974,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   }
 
   /** Another stuffer for packing lists of variable length */
-  protected static void packList(StringBuffer output, String[] values, char delimiter)
+  protected static void packList(StringBuilder output, String[] values, char delimiter)
   {
     pack(output,Integer.toString(values.length),delimiter);
     int i = 0;
@@ -4985,7 +4993,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   */
   protected static int unpackList(ArrayList output, String value, int startPosition, char delimiter)
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     startPosition = unpack(sb,value,startPosition,delimiter);
     try
     {

@@ -45,9 +45,9 @@ public class BasicParseState
 
   protected int currentState = BASICPARSESTATE_NORMAL;
 
-  protected StringBuffer currentTagNameBuffer = null;
-  protected StringBuffer currentAttrNameBuffer = null;
-  protected StringBuffer currentValueBuffer = null;
+  protected StringBuilder currentTagNameBuffer = null;
+  protected StringBuilder currentAttrNameBuffer = null;
+  protected StringBuilder currentValueBuffer = null;
 
   protected String currentTagName = null;
   protected String currentAttrName = null;
@@ -84,12 +84,12 @@ public class BasicParseState
       else if (thisChar == '/')
       {
         currentState = BASICPARSESTATE_IN_END_TAG_NAME;
-        currentTagNameBuffer = new StringBuffer();
+        currentTagNameBuffer = new StringBuilder();
       }
       else
       {
         currentState = BASICPARSESTATE_IN_TAG_NAME;
-        currentTagNameBuffer = new StringBuffer();
+        currentTagNameBuffer = new StringBuilder();
         if (!isHTMLWhitespace(thisChar))
           currentTagNameBuffer.append(thisCharLower);
       }
@@ -133,7 +133,7 @@ public class BasicParseState
           currentTagNameBuffer = null;
           currentAttrMap = new HashMap();
           currentState = BASICPARSESTATE_IN_ATTR_NAME;
-          currentAttrNameBuffer = new StringBuffer();
+          currentAttrNameBuffer = new StringBuilder();
         }
       }
       else if (thisChar == '/')
@@ -189,7 +189,7 @@ public class BasicParseState
           currentAttrName = currentAttrNameBuffer.toString();
           currentAttrNameBuffer = null;
           currentState = BASICPARSESTATE_IN_ATTR_VALUE;
-          currentValueBuffer = new StringBuffer();
+          currentValueBuffer = new StringBuilder();
         }
       }
       else if (thisChar == '/')
@@ -231,7 +231,7 @@ public class BasicParseState
       if (thisChar == '=')
       {
         currentState = BASICPARSESTATE_IN_ATTR_VALUE;
-        currentValueBuffer = new StringBuffer();
+        currentValueBuffer = new StringBuilder();
       }
       else if (thisChar == '>')
       {
@@ -251,7 +251,7 @@ public class BasicParseState
       {
         currentAttrMap.put(currentAttrName,"");
         currentState = BASICPARSESTATE_IN_ATTR_NAME;
-        currentAttrNameBuffer = new StringBuffer();
+        currentAttrNameBuffer = new StringBuilder();
         currentAttrNameBuffer.append(thisCharLower);
         currentAttrName = null;
       }
@@ -310,7 +310,7 @@ public class BasicParseState
         currentAttrName = null;
         currentValueBuffer = null;
         currentState = BASICPARSESTATE_IN_ATTR_NAME;
-        currentAttrNameBuffer = new StringBuffer();
+        currentAttrNameBuffer = new StringBuilder();
       }
       else
         currentValueBuffer.append(thisChar);
@@ -322,7 +322,7 @@ public class BasicParseState
         currentAttrName = null;
         currentValueBuffer = null;
         currentState = BASICPARSESTATE_IN_ATTR_NAME;
-        currentAttrNameBuffer = new StringBuffer();
+        currentAttrNameBuffer = new StringBuilder();
       }
       else
         currentValueBuffer.append(thisChar);
@@ -334,7 +334,7 @@ public class BasicParseState
         currentAttrName = null;
         currentValueBuffer = null;
         currentState = BASICPARSESTATE_IN_ATTR_NAME;
-        currentAttrNameBuffer = new StringBuffer();
+        currentAttrNameBuffer = new StringBuilder();
       }
       else if (thisChar == '/')
       {
@@ -381,7 +381,7 @@ public class BasicParseState
   /** Decode an html attribute */
   protected static String htmlAttributeDecode(String input)
   {
-    StringBuffer output = new StringBuffer();
+    StringBuilder output = new StringBuilder();
     int i = 0;
     while (i < input.length())
     {
@@ -415,7 +415,7 @@ public class BasicParseState
       try
       {
         int value = Integer.parseInt(input.substring(1));
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append((char)value);
         return sb.toString();
       }

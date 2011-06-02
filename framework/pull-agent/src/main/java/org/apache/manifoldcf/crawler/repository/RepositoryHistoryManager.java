@@ -273,7 +273,7 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
     throws ManifoldCFException
   {
     // Build the query.
-    StringBuffer sb = new StringBuffer("SELECT ");
+    StringBuilder sb = new StringBuilder("SELECT ");
     ArrayList list = new ArrayList();
     sb.append(idField).append(" AS id,").append(activityTypeField).append(" AS activity,").append(startTimeField).append(" AS starttime,(")
       .append(endTimeField).append("-").append(startTimeField).append(")")
@@ -297,7 +297,7 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
   public long countHistoryRows(String connectionName, FilterCriteria criteria)
     throws ManifoldCFException
   {
-    StringBuffer sb = new StringBuffer("SELECT COUNT(*) AS countcol FROM ");
+    StringBuilder sb = new StringBuilder("SELECT COUNT(*) AS countcol FROM ");
     ArrayList list = new ArrayList();
     sb.append(getTableName());
     addCriteria(sb,list,"",connectionName,criteria,false);
@@ -347,7 +347,7 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
     // items to the list.  One is based on the start time of the current record; the other is based on the
     // end time of the current record.  That's why there are two inner clauses with a UNION.
 
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     ArrayList list = new ArrayList();
     sb.append("SELECT * FROM (SELECT t6.bucket AS bucket,")
       .append("t6.windowstart AS windowstart,t6.windowend AS windowend, SUM(t6.activitycount) AS activitycount")
@@ -409,7 +409,7 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
     otherColumns.put("starttime","windowstart");
     otherColumns.put("endtime","windowend");
     
-    StringBuffer newsb = new StringBuffer("SELECT * FROM (");
+    StringBuilder newsb = new StringBuilder("SELECT * FROM (");
     ArrayList newList = new ArrayList();
     newsb.append(constructDistinctOnClause(newList,sb.toString(),list,new String[]{"idbucket"},otherColumns)).append(") t4");
     addOrdering(newsb,new String[]{"activitycount","starttime","endtime","idbucket"},sort);
@@ -454,7 +454,7 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
     // items to the list.  One is based on the start time of the current record; the other is based on the
     // end time of the current record.  That's why there are two inner clauses with a UNION.
 
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     ArrayList list = new ArrayList();
     sb.append("SELECT * FROM (SELECT t6.bucket AS bucket,")
       .append("t6.windowstart AS windowstart, t6.windowend AS windowend, SUM(t6.bytecount) AS bytecount")
@@ -516,7 +516,7 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
     otherColumns.put("bytecount","bytecount");
     otherColumns.put("starttime","windowstart");
     otherColumns.put("endtime","windowend");
-    StringBuffer newsb = new StringBuffer("SELECT * FROM (");
+    StringBuilder newsb = new StringBuilder("SELECT * FROM (");
     ArrayList newList = new ArrayList();
     newsb.append(constructDistinctOnClause(newList,sb.toString(),list,new String[]{"idbucket"},otherColumns)).append(") t4");
     addOrdering(newsb,new String[]{"bytecount","starttime","endtime","idbucket"},sort);
@@ -539,7 +539,7 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
     //              GROUP BY t1.resultcodebucket,t1.idbucket
     //                      ORDER BY xxx LIMIT yyy OFFSET zzz
 
-    StringBuffer sb = new StringBuffer("SELECT t1.resultcodebucket,t1.idbucket,COUNT('x') AS eventcount FROM (SELECT ");
+    StringBuilder sb = new StringBuilder("SELECT t1.resultcodebucket,t1.idbucket,COUNT('x') AS eventcount FROM (SELECT ");
     ArrayList list = new ArrayList();
     addBucketExtract(sb,list,"",resultCodeField,resultCodeBucket);
     sb.append(" AS resultcodebucket, ");
@@ -556,7 +556,7 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
   * This is complicated by the fact that the extraction code is inherently case sensitive.  So if case insensitive is
   * desired, that means we whack the whole thing to lower case before doing the match.
   */
-  protected void addBucketExtract(StringBuffer sb, ArrayList list, String columnPrefix, String columnName, BucketDescription bucketDesc)
+  protected void addBucketExtract(StringBuilder sb, ArrayList list, String columnPrefix, String columnName, BucketDescription bucketDesc)
   {
     boolean isSensitive = bucketDesc.isSensitive();
     sb.append(constructSubstringClause(columnPrefix+columnName,"?",!isSensitive));
@@ -565,7 +565,7 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
 
   /** Add criteria clauses to query.
   */
-  protected boolean addCriteria(StringBuffer sb, ArrayList list, String fieldPrefix, String connectionName, FilterCriteria criteria, boolean whereEmitted)
+  protected boolean addCriteria(StringBuilder sb, ArrayList list, String fieldPrefix, String connectionName, FilterCriteria criteria, boolean whereEmitted)
   {
     whereEmitted = emitClauseStart(sb,whereEmitted);
     sb.append(fieldPrefix).append(ownerNameField).append("=?");
@@ -630,7 +630,7 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
 
   /** Emit a WHERE or an AND, depending...
   */
-  protected boolean emitClauseStart(StringBuffer sb, boolean whereEmitted)
+  protected boolean emitClauseStart(StringBuilder sb, boolean whereEmitted)
   {
     if (whereEmitted)
       sb.append(" AND ");
@@ -641,7 +641,7 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
 
   /** Add ordering.
   */
-  protected void addOrdering(StringBuffer sb, String[] completeFieldList, SortOrder sort)
+  protected void addOrdering(StringBuilder sb, String[] completeFieldList, SortOrder sort)
   {
     // Keep track of the fields we've seen
     Map hash = new HashMap();
@@ -692,7 +692,7 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
 
   /** Add limit and offset.
   */
-  protected void addLimits(StringBuffer sb, int startRow, int maxRowCount)
+  protected void addLimits(StringBuilder sb, int startRow, int maxRowCount)
   {
     sb.append(" ").append(constructOffsetLimitClause(startRow,maxRowCount));
   }

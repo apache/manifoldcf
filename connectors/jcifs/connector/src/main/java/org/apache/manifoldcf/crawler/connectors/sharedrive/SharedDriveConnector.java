@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.ArrayList;
+import java.util.List;
 
 import jcifs.smb.ACE;
 import jcifs.smb.NtlmPasswordAuthentication;
@@ -172,25 +173,15 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   /** Return the list of activities that this connector supports (i.e. writes into the log).
   *@return the list.
   */
+  @Override
   public String[] getActivitiesList()
   {
     return new String[]{ACTIVITY_ACCESS};
   }
 
-  /** Return the path for the UI interface JSP elements.
-  * These JSP's must be provided to allow the connector to be configured, and to
-  * permit it to present document filtering specification information in the UI.
-  * This method should return the name of the folder, under the <webapp>/connectors/
-  * area, where the appropriate JSP's can be found.  The name should NOT have a slash in it.
-  *@return the folder part
-  */
-  public String getJSPFolder()
-  {
-    return "sharedrive";
-  }
-
   /** Close the connection.  Call this before discarding the repository connector.
   */
+  @Override
   public void disconnect()
     throws ManifoldCFException
   {
@@ -207,6 +198,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param configParameters is the set of configuration parameters, which
   * in this case describe the root directory.
   */
+  @Override
   public void connect(ConfigParams configParameters)
   {
     super.connect(configParameters);
@@ -251,6 +243,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param documentIdentifier is the document identifier.
   *@return the bin name.
   */
+  @Override
   public String[] getBinNames(String documentIdentifier)
   {
     return new String[]{server};
@@ -288,7 +281,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       try
       {
         byte[] byteArray = serverPath.getBytes("utf-8");
-        StringBuffer output = new StringBuffer();
+        StringBuilder output = new StringBuilder();
         int i = 0;
         while (i < byteArray.length)
         {
@@ -326,7 +319,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       // 3.9.0), and the various clients are responsible for converting that form into something the browser will accept.
       try
       {
-        StringBuffer output = new StringBuffer();
+        StringBuilder output = new StringBuilder();
 
         int i = 0;
         while (i < serverPath.length())
@@ -377,6 +370,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param command is the command, which is taken directly from the API request.
   *@return true if the resource is found, false if not.  In either case, output may be filled in.
   */
+  @Override
   public boolean requestInfo(Configuration output, String command)
     throws ManifoldCFException
   {
@@ -436,6 +430,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param endTime is the end of the time range to consider, exclusive.
   *@return the stream of local document identifiers that should be added to the queue.
   */
+  @Override
   public IDocumentIdentifierStream getDocumentIdentifiers(DocumentSpecification spec, long startTime, long endTime)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -461,6 +456,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   * Empty version strings indicate that there is no versioning ability for the corresponding document, and the document
   * will always be processed.
   */
+  @Override
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
     DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption
@@ -543,7 +539,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
             // The format of this string changed again on 7/3/2009 to permit the ingestion uri/iri to be included.
             // This was to support filename/uri mapping functionality.
 
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
 
             // Parseable stuff goes first.  There's no metadata for jcifs, so this will just be the acls
             describeDocumentSecurity(sb,file,acls,shareAcls);
@@ -661,6 +657,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *            other references, and should not actually call the ingestion
   *            methods.
   */
+  @Override
   public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities,
     DocumentSpecification spec, boolean[] scanOnly) throws ManifoldCFException, ServiceInterruption
   {
@@ -776,7 +773,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                         int index = 0;
                         index = setDocumentSecurity(rd,version,index);
                         index = setPathMetadata(rd,version,index);
-                        StringBuffer ingestURI = new StringBuffer();
+                        StringBuilder ingestURI = new StringBuilder();
                         index = unpack(ingestURI,version,index,'+');
                         activities.ingestDocument(documentIdentifier, versions[i], ingestURI.toString(), rd);
                       }
@@ -828,7 +825,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                     int index = 0;
                     index = setDocumentSecurity(rd,version,index);
                     index = setPathMetadata(rd,version,index);
-                    StringBuffer ingestURI = new StringBuffer();
+                    StringBuilder ingestURI = new StringBuilder();
                     index = unpack(ingestURI,version,index,'+');
                     activities.ingestDocument(documentIdentifier, versions[i], ingestURI.toString(), rd);
                   }
@@ -973,7 +970,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   /** This method calculates an ACL string based on whether there are forced acls and also based on
   * the acls in place for a file.
   */
-  protected void describeDocumentSecurity(StringBuffer description, SmbFile file, String[] forcedacls,
+  protected void describeDocumentSecurity(StringBuilder description, SmbFile file, String[] forcedacls,
     String[] forcedShareAcls)
     throws ManifoldCFException, IOException
   {
@@ -1277,8 +1274,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   {
     if (version.length() > index && version.charAt(index++) == '+')
     {
-      StringBuffer pathAttributeNameBuffer = new StringBuffer();
-      StringBuffer pathAttributeValueBuffer = new StringBuffer();
+      StringBuilder pathAttributeNameBuffer = new StringBuilder();
+      StringBuilder pathAttributeValueBuffer = new StringBuilder();
       index = unpack(pathAttributeNameBuffer,version,index,'+');
       index = unpack(pathAttributeValueBuffer,version,index,'+');
       String pathAttributeName = pathAttributeNameBuffer.toString();
@@ -1296,6 +1293,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 
   /** Check status of connection.
   */
+  @Override
   public String check()
     throws ManifoldCFException
   {
@@ -2040,7 +2038,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   }
 
   /** Stuffer for packing a single string with an end delimiter */
-  protected static void pack(StringBuffer output, String value, char delimiter)
+  protected static void pack(StringBuilder output, String value, char delimiter)
   {
     int i = 0;
     while (i < value.length())
@@ -2054,7 +2052,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   }
 
   /** Unstuffer for the above. */
-  protected static int unpack(StringBuffer sb, String value, int startPosition, char delimiter)
+  protected static int unpack(StringBuilder sb, String value, int startPosition, char delimiter)
   {
     while (startPosition < value.length())
     {
@@ -2072,7 +2070,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   }
 
   /** Stuffer for packing lists of fixed length */
-  protected static void packFixedList(StringBuffer output, String[] values, char delimiter)
+  protected static void packFixedList(StringBuilder output, String[] values, char delimiter)
   {
     int i = 0;
     while (i < values.length)
@@ -2084,7 +2082,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   /** Unstuffer for unpacking lists of fixed length */
   protected static int unpackFixedList(String[] output, String value, int startPosition, char delimiter)
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     int i = 0;
     while (i < output.length)
     {
@@ -2096,7 +2094,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   }
 
   /** Stuffer for packing lists of variable length */
-  protected static void packList(StringBuffer output, ArrayList values, char delimiter)
+  protected static void packList(StringBuilder output, ArrayList values, char delimiter)
   {
     pack(output,Integer.toString(values.size()),delimiter);
     int i = 0;
@@ -2107,7 +2105,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   }
 
   /** Another stuffer for packing lists of variable length */
-  protected static void packList(StringBuffer output, String[] values, char delimiter)
+  protected static void packList(StringBuilder output, String[] values, char delimiter)
   {
     pack(output,Integer.toString(values.length),delimiter);
     int i = 0;
@@ -2126,7 +2124,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   */
   protected static int unpackList(ArrayList output, String value, int startPosition, char delimiter)
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     startPosition = unpack(sb,value,startPosition,delimiter);
     try
     {
@@ -2630,7 +2628,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
+  @Override
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
     tabsArray.add("Server");
@@ -2680,6 +2679,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@param tabName is the current tab name.
   */
+  @Override
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
@@ -2737,6 +2737,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
+  @Override
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
     throws ManifoldCFException
   {
@@ -2765,6 +2766,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param out is the output to which any HTML should be sent.
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
+  @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
@@ -2813,7 +2815,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param ds is the current document specification for this job.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
+  @Override
+  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
     tabsArray.add("Paths");
@@ -2957,6 +2960,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param ds is the current document specification for this job.
   *@param tabName is the current tab name.
   */
+  @Override
   public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
     throws ManifoldCFException, IOException
   {
@@ -3686,6 +3690,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param ds is the current document specification for this job.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
+  @Override
   public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
     throws ManifoldCFException
   {
@@ -4181,6 +4186,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param out is the output to which any HTML should be sent.
   *@param ds is the current document specification for this job.
   */
+  @Override
   public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
     throws ManifoldCFException, IOException
   {

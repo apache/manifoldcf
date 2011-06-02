@@ -34,7 +34,7 @@ public interface IResultRow
   /** Obtain the set of columns for a row.
   @return an iterator that will list all the (String) column names stored in that row.
   */
-  public Iterator getColumns();
+  public Iterator<String> getColumns();
 
   /** Get the row value for a column.
   *@param columnName is the name of the column.

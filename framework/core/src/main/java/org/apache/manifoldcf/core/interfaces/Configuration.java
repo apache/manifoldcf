@@ -41,7 +41,7 @@ public class Configuration implements IHierarchyParent
   // The root node type
   protected String rootNodeLabel;
   // The children
-  protected ArrayList children = new ArrayList();
+  protected List<ConfigurationNode> children = new ArrayList<ConfigurationNode>();
   // Read-only flag
   protected boolean readOnly = false;
 
@@ -111,7 +111,7 @@ public class Configuration implements IHierarchyParent
       int i = 0;
       while (i < children.size())
       {
-        ConfigurationNode child = (ConfigurationNode)children.get(i++);
+        ConfigurationNode child = children.get(i++);
         // Duplicate the child
         ConfigurationNode newChild = child.createDuplicate(readOnly);
         rval.addChild(rval.getChildCount(),newChild);
@@ -130,7 +130,7 @@ public class Configuration implements IHierarchyParent
       int i = 0;
       while (i < children.size())
       {
-        ConfigurationNode child = (ConfigurationNode)children.get(i++);
+        ConfigurationNode child = children.get(i++);
         child.makeReadOnly();
       }
     }
@@ -150,7 +150,7 @@ public class Configuration implements IHierarchyParent
     int i = 0;
     while (i < children.size())
     {
-      ConfigurationNode node = (ConfigurationNode)children.get(i++);
+      ConfigurationNode node = children.get(i++);
       writeNode(doc,top,node);
     }
 
@@ -173,8 +173,8 @@ public class Configuration implements IHierarchyParent
       // same type, which requires us to do an appropriate pass to gather that stuff together.
       // Since we also need to maintain order, it is essential that we detect the out-of-order condition
       // properly, and use an alternate representation if we should find it.
-      Map childMap = new HashMap();
-      ArrayList childList = new ArrayList();
+      Map<String,List<ConfigurationNode>> childMap = new HashMap<String,List<ConfigurationNode>>();
+      List<String> childList = new ArrayList<String>();
       String lastChildType = null;
       boolean needAlternate = false;
       int i = 0;
@@ -182,10 +182,10 @@ public class Configuration implements IHierarchyParent
       {
         ConfigurationNode child = findChild(i++);
         String key = child.getType();
-        ArrayList list = (ArrayList)childMap.get(key);
+        List<ConfigurationNode> list = childMap.get(key);
         if (list == null)
         {
-          list = new ArrayList();
+          list = new ArrayList<ConfigurationNode>();
           childMap.put(key,list);
           childList.add(key);
         }
@@ -224,8 +224,8 @@ public class Configuration implements IHierarchyParent
         int q = 0;
         while (q < childList.size())
         {
-          String key = (String)childList.get(q++);
-          ArrayList list = (ArrayList)childMap.get(key);
+          String key = childList.get(q++);
+          List<ConfigurationNode> list = childMap.get(key);
           if (list.size() > 1)
           {
             // Write the key
@@ -235,7 +235,7 @@ public class Configuration implements IHierarchyParent
             i = 0;
             while (i < list.size())
             {
-              ConfigurationNode child = (ConfigurationNode)list.get(i++);
+              ConfigurationNode child = list.get(i++);
               writeNode(writer,child,false,false);
             }
             writer.endArray();
@@ -243,7 +243,7 @@ public class Configuration implements IHierarchyParent
           else
           {
             // Write it as a singleton
-            writeNode(writer,(ConfigurationNode)list.get(0),true,false);
+            writeNode(writer,list.get(0),true,false);
           }
         }
       }
@@ -334,10 +334,10 @@ public class Configuration implements IHierarchyParent
           writer.value(value);
         }
         
-        Iterator iter = node.getAttributes();
+        Iterator<String> iter = node.getAttributes();
         while (iter.hasNext())
         {
-          String attribute = (String)iter.next();
+          String attribute = iter.next();
           String attrValue = node.getAttributeValue(attribute);
           writer.key(JSON_ATTRIBUTE+attribute);
           writer.value(attrValue);
@@ -347,8 +347,8 @@ public class Configuration implements IHierarchyParent
         // same type, which requires us to do an appropriate pass to gather that stuff together.
 	// Since we also need to maintain order, it is essential that we detect the out-of-order condition
 	// properly, and use an alternate representation if we should find it.
-        Map childMap = new HashMap();
-	ArrayList childList = new ArrayList();
+        Map<String,List<ConfigurationNode>> childMap = new HashMap<String,List<ConfigurationNode>>();
+	List<String> childList = new ArrayList<String>();
 	String lastChildType = null;
         boolean needAlternate = false;
         int i = 0;
@@ -356,10 +356,10 @@ public class Configuration implements IHierarchyParent
         {
           ConfigurationNode child = node.findChild(i++);
           String key = child.getType();
-          ArrayList list = (ArrayList)childMap.get(key);
+          List<ConfigurationNode> list = childMap.get(key);
           if (list == null)
           {
-            list = new ArrayList();
+            list = new ArrayList<ConfigurationNode>();
             childMap.put(key,list);
             childList.add(key);
           }
@@ -398,8 +398,8 @@ public class Configuration implements IHierarchyParent
           int q = 0;
           while (q < childList.size())
           {
-            String key = (String)childList.get(q++);
-            ArrayList list = (ArrayList)childMap.get(key);
+            String key = childList.get(q++);
+            List<ConfigurationNode> list = childMap.get(key);
             if (list.size() > 1)
             {
               // Write the key
@@ -409,7 +409,7 @@ public class Configuration implements IHierarchyParent
               i = 0;
               while (i < list.size())
               {
-                ConfigurationNode child = (ConfigurationNode)list.get(i++);
+                ConfigurationNode child = list.get(i++);
                 writeNode(writer,child,false,false);
               }
               writer.endArray();
@@ -417,7 +417,7 @@ public class Configuration implements IHierarchyParent
             else
             {
               // Write it as a singleton
-              writeNode(writer,(ConfigurationNode)list.get(0),true,false);
+              writeNode(writer,list.get(0),true,false);
             }
           }
         }
@@ -712,7 +712,7 @@ public class Configuration implements IHierarchyParent
   */
   public ConfigurationNode findChild(int index)
   {
-    return (ConfigurationNode)children.get(index);
+    return children.get(index);
   }
 
   /** Remove child n.
@@ -722,7 +722,7 @@ public class Configuration implements IHierarchyParent
   {
     if (readOnly)
       throw new IllegalStateException("Attempt to change read-only object");
-    ConfigurationNode node = (ConfigurationNode)children.remove(index);
+    ConfigurationNode node = children.remove(index);
     removeOuterNode(node);
   }
 

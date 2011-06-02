@@ -87,7 +87,7 @@ public class ResultSpecification
   /** Convert to a unique string */
   public String toString()
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     String[] keys = new String[columnSpecifications.size()];
     Iterator iter = columnSpecifications.keySet().iterator();
     int i = 0;

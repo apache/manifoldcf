@@ -658,7 +658,7 @@ public class LockObject
         BufferedReader x = new BufferedReader(fr);
         try
         {
-          StringBuffer sb = new StringBuffer();
+          StringBuilder sb = new StringBuilder();
           while (true)
           {
             int rval = x.read();

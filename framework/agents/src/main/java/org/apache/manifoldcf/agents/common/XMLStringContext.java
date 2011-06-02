@@ -32,12 +32,12 @@ import java.io.IOException;
 import org.apache.manifoldcf.core.interfaces.*;
 
 /** An instance of this class represents a parsing context within a node, where the data value is to be recorded as an in-memory string.  The data string is
-* available as a local stringbuffer object, which will be accessible to any class that extends this one.
+* available as a local StringBuilder object, which will be accessible to any class that extends this one.
 */
 public class XMLStringContext extends XMLContext
 {
   /** The string buffer */
-  protected StringBuffer value = new StringBuffer();
+  protected StringBuilder value = new StringBuilder();
 
   /** Full constructor.  Used for individual tags. */
   public XMLStringContext(XMLStream theStream, String namespaceURI, String localname, String qname, Attributes theseAttributes)

@@ -451,7 +451,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
         else
         {
           ArrayList list = new ArrayList();
-          StringBuffer sb = new StringBuffer("SELECT ");
+          StringBuilder sb = new StringBuilder("SELECT ");
           sb.append(idField).append(",").append(distanceField).append(",").append(linkTypeField)
             .append(" FROM ").append(getTableName()).append(" WHERE ");
           int i = 0;
@@ -609,7 +609,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     // No transaction, since we can happily interpret whatever comes back.
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     ArrayList list = new ArrayList();
 
     int[] rval = new int[parentIdentifierHashes.length];
@@ -825,7 +825,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       // as ORed together match tuples.  I do 25 at a pop, which is arbitrary.
 
       int maxClause = getMaxOrClause();
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       ArrayList list = new ArrayList();
       int i = 0;
       int k = 0;
@@ -939,7 +939,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       // but postgresql is stupid and won't use the index that way.  So do this instead:
       // UPDATE hopcount SET markfordeath='Q' WHERE (jobID=? AND parentid=?) OR (jobid=? AND parentid=?)...
 
-      sb = new StringBuffer();
+      sb = new StringBuilder();
       list = new ArrayList();
       k = 0;
       i = 0;
@@ -1128,7 +1128,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
 
         int maxClause = getMaxOrClause();
         ArrayList list = new ArrayList();
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         int i = 0;
         int k = 0;
         while (i < sourceDocumentHashes.length)
@@ -1164,7 +1164,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
         //      t0.parentidhash=t1.parentidhash and t0.childidhash=t1.childidhash and t0.linktype=t1.linktype and
         //      t0.parentid=t1.parentid and t0.childid=t1.childid)
 
-        StringBuffer sb = new StringBuffer("WHERE ");
+        StringBuilder sb = new StringBuilder("WHERE ");
         ArrayList list = new ArrayList();
         list.add(jobID);
         list.add(jobID);
@@ -1232,7 +1232,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
   {
     ArrayList thisList = new ArrayList();
     thisList.addAll(list);
-    StringBuffer sb = new StringBuffer("WHERE ");
+    StringBuilder sb = new StringBuilder("WHERE ");
     sb.append(idField).append(" IN(SELECT ").append(deleteDepsManager.ownerIDField).append(" FROM ")
       .append(deleteDepsManager.getTableName()).append(" t0 WHERE (").append(query).append(") AND EXISTS(SELECT 'x' FROM ")
       .append(intrinsicLinkManager.getTableName()).append(" t1 WHERE t1.")
@@ -1284,7 +1284,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       // for the root).
 
       ArrayList list = new ArrayList();
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
 
       DocumentNode[] rval = new DocumentNode[unansweredQuestions.length];
 
@@ -2870,7 +2870,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       HashMap referenceMap = new HashMap();
 
       int maxClause = getMaxOrClause();
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       ArrayList list = new ArrayList();
       k = 0;
       Iterator iter = parentMap.keySet().iterator();

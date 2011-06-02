@@ -183,7 +183,7 @@ public class StringSet
       // Get as array first
       String[] array = getArray(null);
       java.util.Arrays.sort(array);
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       int i = 0;
       while (i < array.length)
       {

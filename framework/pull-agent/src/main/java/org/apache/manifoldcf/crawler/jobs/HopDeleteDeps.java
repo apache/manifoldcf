@@ -178,7 +178,7 @@ public class HopDeleteDeps extends org.apache.manifoldcf.core.database.BaseTable
   public void deleteOwnerRows(Long[] ownerIDs)
     throws ManifoldCFException
   {
-    StringBuffer sb = new StringBuffer("WHERE ");
+    StringBuilder sb = new StringBuilder("WHERE ");
     sb.append(ownerIDField).append(" IN(");
     ArrayList list = new ArrayList();
     int i = 0;
@@ -222,7 +222,7 @@ public class HopDeleteDeps extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
-    StringBuffer sb = new StringBuffer("WHERE ");
+    StringBuilder sb = new StringBuilder("WHERE ");
     sb.append(ownerIDField).append("=? AND ");
     list.add(ownerID);
     if (dd.getLinkType().length() > 0)

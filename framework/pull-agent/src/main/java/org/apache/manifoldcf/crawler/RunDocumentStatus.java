@@ -113,7 +113,7 @@ public class RunDocumentStatus
 
   protected static String commaEscape(String input)
   {
-    StringBuffer output = new StringBuffer();
+    StringBuilder output = new StringBuilder();
     int i = 0;
     while (i < input.length())
     {

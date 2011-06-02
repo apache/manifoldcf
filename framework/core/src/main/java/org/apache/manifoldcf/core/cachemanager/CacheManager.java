@@ -202,7 +202,7 @@ public class CacheManager implements ICacheManager
   {
     if (Logging.cache.isDebugEnabled())
     {
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       if (locateObjectDescriptions != null)
       {
         sb.append("{");
@@ -219,7 +219,7 @@ public class CacheManager implements ICacheManager
       else
         sb.append("NULL");
 
-      StringBuffer inv = new StringBuffer();
+      StringBuilder inv = new StringBuilder();
       if (invalidateKeys != null)
       {
         inv.append("{");
@@ -525,7 +525,7 @@ public class CacheManager implements ICacheManager
     if (Logging.cache.isDebugEnabled())
     {
       StringSet ks = objectDescription.getObjectKeys();
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       if (ks != null)
       {
         sb.append("{");

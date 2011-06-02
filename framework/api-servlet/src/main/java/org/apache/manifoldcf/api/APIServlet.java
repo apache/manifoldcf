@@ -331,7 +331,7 @@ public class APIServlet extends HttpServlet
     }
 
     // We presume the data is utf-8
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     char[] buffer = new char[65536];
     Reader r = new InputStreamReader(data,"utf-8");
     while (true)
@@ -445,7 +445,7 @@ public class APIServlet extends HttpServlet
     }
 
     // We presume the data is utf-8
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     char[] buffer = new char[65536];
     Reader r = new InputStreamReader(data,"utf-8");
     while (true)

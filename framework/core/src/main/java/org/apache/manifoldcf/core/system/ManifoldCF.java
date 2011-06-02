@@ -386,7 +386,7 @@ public class ManifoldCF
   */
   public static String safeFileName(String value)
   {
-    StringBuffer rval = new StringBuffer();
+    StringBuilder rval = new StringBuilder();
     int i = 0;
     while (i < value.length())
     {
@@ -488,7 +488,7 @@ public class ManifoldCF
     try
     {
       byte[] encryptedBytes = digest.digest();
-      StringBuffer rval = new StringBuffer();
+      StringBuilder rval = new StringBuilder();
       int i = 0;
       while (i < encryptedBytes.length)
       {
@@ -545,7 +545,7 @@ public class ManifoldCF
         array[i++] = (byte)(x ^ 0x59);
       }
       // Now, convert to hex
-      StringBuffer rval = new StringBuffer();
+      StringBuilder rval = new StringBuilder();
       i = 0;
       while (i < array.length)
       {
@@ -723,7 +723,7 @@ public class ManifoldCF
           break;
         currentIndex++;
       }
-      StringBuffer argBuffer = new StringBuffer();
+      StringBuilder argBuffer = new StringBuilder();
       boolean isQuoted = false;
       while (currentIndex < configChangeSignalCommand.length())
       {
@@ -817,7 +817,7 @@ public class ManifoldCF
               BufferedReader br = new BufferedReader(r);
               try
               {
-                StringBuffer sb = new StringBuffer();
+                StringBuilder sb = new StringBuilder();
                 while (true)
                 {
                   String value = br.readLine();

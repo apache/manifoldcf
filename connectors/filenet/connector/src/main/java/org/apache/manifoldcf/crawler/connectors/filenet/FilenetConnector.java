@@ -345,6 +345,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 
   /** Let the crawler know the completeness of the information we are giving it.
   */
+  @Override
   public int getConnectorModel()
   {
     return MODEL_ADD;
@@ -359,6 +360,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param documentIdentifier is the document identifier.
   *@return the bin name.
   */
+  @Override
   public String[] getBinNames(String documentIdentifier)
   {
     return new String[]{serverHostname};
@@ -367,20 +369,15 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   /** Return the list of activities that this connector supports (i.e. writes into the log).
   *@return the list.
   */
+  @Override
   public String[] getActivitiesList()
   {
     return new String[]{ACTIVITY_FETCH};
   }
 
-  /** Get the folder for the jsps.
-  */
-  public String getJSPFolder()
-  {
-    return "filenet";
-  }
-
   /** Connect to filenet.
   */
+  @Override
   public void connect(ConfigParams configParams)
   {
     super.connect(configParams);
@@ -432,6 +429,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   /** Test the connection.  Returns a string describing the connection integrity.
   *@return the connection's status as a displayable string.
   */
+  @Override
   public String check()
     throws ManifoldCFException
   {
@@ -464,6 +462,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   /** This method is periodically called for all connectors that are connected but not
   * in active use.
   */
+  @Override
   public void poll()
     throws ManifoldCFException
   {
@@ -472,6 +471,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 
   /** Disconnect from Filenet.
   */
+  @Override
   public void disconnect()
     throws ManifoldCFException
   {
@@ -540,6 +540,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param command is the command, which is taken directly from the API request.
   *@return true if the resource is found, false if not.  In either case, output may be filled in.
   */
+  @Override
   public boolean requestInfo(Configuration output, String command)
     throws ManifoldCFException
   {
@@ -671,6 +672,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param startTime is the beginning of the time range to consider, inclusive.
   *@param endTime is the end of the time range to consider, exclusive.
   */
+  @Override
   public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
     long startTime, long endTime)
     throws ManifoldCFException, ServiceInterruption
@@ -680,7 +682,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     // Go through all the document classes and do a query for each one
     //get all mimetypes and build a SQL "where condition"
 
-    StringBuffer mimeTypesClause = new StringBuffer();
+    StringBuilder mimeTypesClause = new StringBuilder();
     int i = 0;
     while (i < spec.getChildCount())
     {
@@ -711,7 +713,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
     }
 
-    StringBuffer sqlBuffer = new StringBuffer(" WHERE ([IsCurrentVersion] = TRUE AND (");
+    StringBuilder sqlBuffer = new StringBuilder(" WHERE ([IsCurrentVersion] = TRUE AND (");
     sqlBuffer.append(mimeTypesClause);
     sqlBuffer.append(")");
     Calendar c = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
@@ -768,7 +770,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
         String dc = n.getAttributeValue(SPEC_ATTRIBUTE_VALUE);
         DocClassSpec dcs = new DocClassSpec(n);
         int matchCount = dcs.getMatchCount();
-        StringBuffer moreWhereClause = new StringBuffer(whereClause);
+        StringBuilder moreWhereClause = new StringBuilder(whereClause);
         int q = 0;
         while (q < matchCount)
         {
@@ -812,7 +814,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 
   protected static String quoteSQLString(String value)
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     sb.append('\'');
     int i = 0;
     while (i < value.length())
@@ -830,7 +832,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   {
     c.setTimeInMillis(timeValue);
     //c.computeFields();
-    StringBuffer rval = new StringBuffer();
+    StringBuilder rval = new StringBuilder();
     print_int(rval,c.get(Calendar.YEAR),4);
     print_int(rval,c.get(Calendar.MONTH)+1,2);
     print_int(rval,c.get(Calendar.DAY_OF_MONTH),2);
@@ -842,7 +844,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     return rval.toString();
   }
 
-  protected static void print_int(StringBuffer sb, int value, int digits)
+  protected static void print_int(StringBuilder sb, int value, int digits)
   {
     if (digits == 4)
     {
@@ -865,7 +867,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     }
   }
 
-  protected static int print_digit(StringBuffer sb, int value, int divisor)
+  protected static int print_digit(StringBuilder sb, int value, int divisor)
   {
     int digit = value / divisor;
     int x = '0' + digit;
@@ -890,6 +892,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   * Empty version strings indicate that there is no versioning ability for the corresponding document, and the document
   * will always be processed.
   */
+  @Override
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activity,
     DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption
@@ -981,7 +984,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
             // (a) metadata info
             // (b) acl info
             // (c) the url prefix to use
-            StringBuffer versionBuffer = new StringBuffer();
+            StringBuilder versionBuffer = new StringBuilder();
 
             String docClass = fileInfo.getDocClass();
             DocClassSpec docclassspec = (DocClassSpec)docClassSpecs.get(docClass);
@@ -1199,8 +1202,8 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
           ArrayList metadataValues = new ArrayList();
           ArrayList aclValues = null;
           ArrayList denyAclValues = null;
-          StringBuffer documentClass = new StringBuffer();
-          StringBuffer urlBase = new StringBuffer();
+          StringBuilder documentClass = new StringBuilder();
+          StringBuilder urlBase = new StringBuilder();
           int position = 0;
           position = unpackList(metadataNames, documentVersion, position, '+');
           position = unpackList(metadataValues, documentVersion, position, '+');
@@ -1410,12 +1413,14 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param documentIdentifiers is the set of document identifiers.
   *@param versions is the corresponding set of version identifiers (individual identifiers may be null).
   */
+  @Override
   public void releaseDocumentVersions(String[] documentIdentifiers, String[] versions)
     throws ManifoldCFException
   {
     // Nothing to do
   }
 
+  @Override
   public int getMaxDocumentRequest()
   {
     // 1 at a time, since this connector does not deal with documents en masse, but one at a time.
@@ -1438,7 +1443,8 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, ArrayList tabsArray)
+  @Override
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
     tabsArray.add("Server");
@@ -1542,6 +1548,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@param tabName is the current tab name.
   */
+  @Override
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
@@ -1722,6 +1729,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
+  @Override
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
     throws ManifoldCFException
   {
@@ -1782,6 +1790,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param out is the output to which any HTML should be sent.
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
+  @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
@@ -1830,7 +1839,8 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param ds is the current document specification for this job.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, ArrayList tabsArray)
+  @Override
+  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
     tabsArray.add("Document Classes");
@@ -1906,6 +1916,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param ds is the current document specification for this job.
   *@param tabName is the current tab name.
   */
+  @Override
   public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
     throws ManifoldCFException, IOException
   {
@@ -2551,6 +2562,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param ds is the current document specification for this job.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
+  @Override
   public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
     throws ManifoldCFException
   {
@@ -2814,6 +2826,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param out is the output to which any HTML should be sent.
   *@param ds is the current document specification for this job.
   */
+  @Override
   public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
     throws ManifoldCFException, IOException
   {
@@ -3905,7 +3918,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 
 
   /** Stuffer for packing a single string with an end delimiter */
-  protected static void pack(StringBuffer output, String value, char delimiter)
+  protected static void pack(StringBuilder output, String value, char delimiter)
   {
     int i = 0;
     while (i < value.length())
@@ -3919,7 +3932,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   }
 
   /** Unstuffer for the above. */
-  protected static int unpack(StringBuffer sb, String value, int startPosition, char delimiter)
+  protected static int unpack(StringBuilder sb, String value, int startPosition, char delimiter)
   {
     while (startPosition < value.length())
     {
@@ -3937,7 +3950,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   }
 
   /** Stuffer for packing lists of fixed length */
-  protected static void packFixedList(StringBuffer output, String[] values, char delimiter)
+  protected static void packFixedList(StringBuilder output, String[] values, char delimiter)
   {
     int i = 0;
     while (i < values.length)
@@ -3949,7 +3962,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   /** Unstuffer for unpacking lists of fixed length */
   protected static int unpackFixedList(String[] output, String value, int startPosition, char delimiter)
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     int i = 0;
     while (i < output.length)
     {
@@ -3961,7 +3974,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   }
 
   /** Stuffer for packing lists of variable length */
-  protected static void packList(StringBuffer output, ArrayList values, char delimiter)
+  protected static void packList(StringBuilder output, ArrayList values, char delimiter)
   {
     pack(output,Integer.toString(values.size()),delimiter);
     int i = 0;
@@ -3972,7 +3985,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   }
 
   /** Another stuffer for packing lists of variable length */
-  protected static void packList(StringBuffer output, String[] values, char delimiter)
+  protected static void packList(StringBuilder output, String[] values, char delimiter)
   {
     pack(output,Integer.toString(values.length),delimiter);
     int i = 0;
@@ -3991,7 +4004,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   */
   protected static int unpackList(ArrayList output, String value, int startPosition, char delimiter)
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     startPosition = unpack(sb,value,startPosition,delimiter);
     try
     {

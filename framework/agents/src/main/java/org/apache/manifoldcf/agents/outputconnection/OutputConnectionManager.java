@@ -524,7 +524,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
     try
     {
       i = 0;
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       ArrayList params = new ArrayList();
       int j = 0;
       int maxIn = getMaxInClause();
