@@ -21,6 +21,8 @@
         <delete dir="build"/>
         <delete dir="dist"/>
         <delete dir="test-output"/>
+        <delete dir="test-output-postgresql"/>
+        <delete dir="test-output-HSQLDB"/>
     </target>
     
     <target name="doc">
@@ -483,6 +485,27 @@
             </classpath>
             <test name="org.apache.manifoldcf.agents.tests.SanityPostgresql" todir="test-output-postgresql"/>
             <test name="org.apache.manifoldcf.crawler.tests.SanityPostgresql" todir="test-output-postgresql"/>
+            <!-- MHL -->
+        </junit>
+    </target>
+
+    <target name="run-tests-HSQLDB" depends="compile-tests">
+        <mkdir dir="test-output-HSQLDB"/>
+        <junit fork="true" maxmemory="128m" dir="test-output-HSQLDB" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="lib">
+                    <include name="*.jar"/>
+                </fileset>
+                <pathelement location="build/core/classes"/>
+                <pathelement location="build/ui-core/classes"/>
+                <pathelement location="build/agents/classes"/>
+                <pathelement location="build/pull-agent/classes"/>
+                <pathelement location="build/authority-servlet/classes"/>
+                <pathelement location="build/api-servlet/classes"/>
+                <pathelement location="build/tests/classes"/>
+            </classpath>
+            <test name="org.apache.manifoldcf.agents.tests.SanityHSQLDB" todir="test-output-HSQLDB"/>
+            <test name="org.apache.manifoldcf.crawler.tests.SanityHSQLDB" todir="test-output-HSQLDB"/>
             <!-- MHL -->
         </junit>
     </target>

@@ -25,6 +25,8 @@
         <delete dir="build"/>
         <delete dir="dist"/>
         <delete dir="test-output"/>
+        <delete dir="test-postgresql-output"/>
+        <delete dir="test-HSQLDB-output"/>
         <ant dir="site" target="clean"/>
         <ant dir="framework" target="clean"/>
         <delete dir="framework/lib"/>
@@ -137,6 +139,10 @@
         <ant dir="framework" target="run-tests-postgresql"/>
     </target>
 
+    <target name="run-tests-HSQLDB-framework" depends="setup-framework">
+        <ant dir="framework" target="run-tests-HSQLDB"/>
+    </target>
+
     <target name="setup-activedirectory-connector" depends="build-framework">
         <mkdir dir="connectors/activedirectory/lib"/>
         <copy todir="connectors/activedirectory/lib">
@@ -172,6 +178,10 @@
 
     <target name="run-tests-postgresql-activedirectory-connector" depends="setup-activedirectory-connector,setup-activedirectory-connector-tests">
         <ant dir="connectors/activedirectory" target="run-tests-postgresql"/>
+    </target>
+
+    <target name="run-tests-HSQLDB-activedirectory-connector" depends="setup-activedirectory-connector,setup-activedirectory-connector-tests">
+        <ant dir="connectors/activedirectory" target="run-tests-HSQLDB"/>
     </target>
 
     <target name="setup-documentum-connector" depends="build-framework">
@@ -211,6 +221,10 @@
         <ant dir="connectors/documentum" target="run-tests-postgresql"/>
     </target>
 
+    <target name="run-tests-HSQLDB-documentum-connector" depends="setup-documentum-connector,setup-documentum-connector-tests">
+        <ant dir="connectors/documentum" target="run-tests-HSQLDB"/>
+    </target>
+
     <target name="setup-filenet-connector" depends="build-framework">
         <mkdir dir="connectors/filenet/lib"/>
         <copy todir="connectors/filenet/lib">
@@ -245,7 +259,11 @@
     </target>
 
     <target name="run-tests-postgresql-filenet-connector" depends="setup-filenet-connector,setup-filenet-connector-tests">
-        <ant dir="connectors/filenet" target="run-tests"/>
+        <ant dir="connectors/filenet" target="run-tests-postgresql"/>
+    </target>
+
+    <target name="run-tests-HSQLDB-filenet-connector" depends="setup-filenet-connector,setup-filenet-connector-tests">
+        <ant dir="connectors/filenet" target="run-tests-HSQLDB"/>
     </target>
 
     <target name="setup-filesystem-connector" depends="build-framework">
@@ -283,6 +301,10 @@
 
     <target name="run-tests-postgresql-filesystem-connector" depends="setup-filesystem-connector,setup-filesystem-connector-tests">
         <ant dir="connectors/filesystem" target="run-tests-postgresql"/>
+    </target>
+
+    <target name="run-tests-HSQLDB-filesystem-connector" depends="setup-filesystem-connector,setup-filesystem-connector-tests">
+        <ant dir="connectors/filesystem" target="run-tests-HSQLDB"/>
     </target>
 
     <target name="setup-gts-connector" depends="build-framework">
@@ -325,6 +347,10 @@
         <ant dir="connectors/gts" target="run-tests-postgresql"/>
     </target>
 
+    <target name="run-tests-HSQLDB-gts-connector" depends="setup-gts-connector,setup-gts-connector-tests">
+        <ant dir="connectors/gts" target="run-tests-HSQLDB"/>
+    </target>
+
     <target name="setup-jcifs-connector" depends="build-framework">
         <mkdir dir="connectors/jcifs/lib"/>
         <copy todir="connectors/jcifs/lib">
@@ -358,6 +384,10 @@
 
     <target name="run-tests-postgresql-jcifs-connector" depends="setup-jcifs-connector,setup-jcifs-connector-tests">
         <ant dir="connectors/jcifs" target="run-tests-postgresql"/>
+    </target>
+
+    <target name="run-tests-HSQLDB-jcifs-connector" depends="setup-jcifs-connector,setup-jcifs-connector-tests">
+        <ant dir="connectors/jcifs" target="run-tests-HSQLDB"/>
     </target>
 
     <target name="setup-jdbc-connector" depends="build-framework">
@@ -397,6 +427,10 @@
         <ant dir="connectors/jdbc" target="run-tests-postgresql"/>
     </target>
 
+    <target name="run-tests-HSQLDB-jdbc-connector" depends="setup-jdbc-connector,setup-jdbc-connector-tests">
+        <ant dir="connectors/jdbc" target="run-tests-HSQLDB"/>
+    </target>
+
     <target name="setup-livelink-connector" depends="build-framework">
         <mkdir dir="connectors/livelink/lib"/>
         <copy todir="connectors/livelink/lib">
@@ -432,6 +466,10 @@
 
     <target name="run-tests-postgresql-livelink-connector" depends="setup-livelink-connector,setup-livelink-connector-tests">
         <ant dir="connectors/livelink" target="run-tests-postgresql"/>
+    </target>
+
+    <target name="run-tests-HSQLDB-livelink-connector" depends="setup-livelink-connector,setup-livelink-connector-tests">
+        <ant dir="connectors/livelink" target="run-tests-HSQLDB"/>
     </target>
 
     <target name="setup-solr-connector" depends="build-framework">
@@ -471,6 +509,10 @@
         <ant dir="connectors/solr" target="run-tests-postgresql"/>
     </target>
 
+    <target name="run-tests-HSQLDB-solr-connector" depends="setup-solr-connector,setup-solr-connector-tests">
+        <ant dir="connectors/solr" target="run-tests-HSQLDB"/>
+    </target>
+
     <target name="setup-memex-connector" depends="build-framework">
         <mkdir dir="connectors/memex/lib"/>
         <copy todir="connectors/memex/lib">
@@ -506,6 +548,10 @@
 
     <target name="run-tests-postgresql-memex-connector" depends="setup-memex-connector,setup-memex-connector-tests">
         <ant dir="connectors/memex" target="run-tests-postgresql"/>
+    </target>
+
+    <target name="run-tests-HSQLDB-memex-connector" depends="setup-memex-connector,setup-memex-connector-tests">
+        <ant dir="connectors/memex" target="run-tests-HSQLDB"/>
     </target>
 
     <target name="setup-meridio-connector" depends="build-framework">
@@ -555,6 +601,10 @@
         <ant dir="connectors/meridio" target="run-tests-postgresql"/>
     </target>
 
+    <target name="run-tests-HSQLDB-meridio-connector" depends="setup-meridio-connector,setup-meridio-connector-tests">
+        <ant dir="connectors/meridio" target="run-tests-HSQLDB"/>
+    </target>
+
     <target name="setup-nullauthority-connector" depends="build-framework">
         <mkdir dir="connectors/nullauthority/lib"/>
         <copy todir="connectors/nulloutput/lib">
@@ -590,6 +640,10 @@
 
     <target name="run-tests-postgresql-nullauthority-connector" depends="setup-nullauthority-connector,setup-nullauthority-connector-tests">
         <ant dir="connectors/nullauthority" target="run-tests-postgresql"/>
+    </target>
+
+    <target name="run-tests-HSQLDB-nullauthority-connector" depends="setup-nullauthority-connector,setup-nullauthority-connector-tests">
+        <ant dir="connectors/nullauthority" target="run-tests-HSQLDB"/>
     </target>
 
     <target name="setup-nulloutput-connector" depends="build-framework">
@@ -629,6 +683,10 @@
         <ant dir="connectors/nulloutput" target="run-tests-postgresql"/>
     </target>
 
+    <target name="run-tests-HSQLDB-nulloutput-connector" depends="setup-nulloutput-connector,setup-nulloutput-connector-tests">
+        <ant dir="connectors/nulloutput" target="run-tests-HSQLDB"/>
+    </target>
+
     <target name="setup-rss-connector" depends="build-framework">
         <mkdir dir="connectors/rss/lib"/>
         <copy todir="connectors/rss/lib">
@@ -664,6 +722,10 @@
 
     <target name="run-tests-postgresql-rss-connector" depends="setup-rss-connector,setup-rss-connector-tests">
         <ant dir="connectors/rss" target="run-tests-postgresql"/>
+    </target>
+
+    <target name="run-tests-HSQLDB-rss-connector" depends="setup-rss-connector,setup-rss-connector-tests">
+        <ant dir="connectors/rss" target="run-tests-HSQLDB"/>
     </target>
 
     <target name="setup-sharepoint-connector" depends="build-framework">
@@ -711,6 +773,10 @@
         <ant dir="connectors/sharepoint" target="run-tests-postgresql"/>
     </target>
 
+    <target name="run-tests-HSQLDB-sharepoint-connector" depends="setup-sharepoint-connector,setup-sharepoint-connector-tests">
+        <ant dir="connectors/sharepoint" target="run-tests-HSQLDB"/>
+    </target>
+
     <target name="setup-webcrawler-connector" depends="build-framework">
         <mkdir dir="connectors/webcrawler/lib"/>
         <copy todir="connectors/webcrawler/lib">
@@ -746,6 +812,10 @@
 
     <target name="run-tests-postgresql-webcrawler-connector" depends="setup-webcrawler-connector,setup-webcrawler-connector-tests">
         <ant dir="connectors/webcrawler" target="run-tests-postgresql"/>
+    </target>
+
+    <target name="run-tests-HSQLDB-webcrawler-connector" depends="setup-webcrawler-connector,setup-webcrawler-connector-tests">
+        <ant dir="connectors/webcrawler" target="run-tests-HSQLDB"/>
     </target>
 
     <target name="deliver-site-doc" depends="build-site">
