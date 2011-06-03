@@ -38,10 +38,10 @@ public class RepositoryDocument
   // Member variables.
   protected InputStream binaryFieldData = null;
   protected long binaryLength = 0;
-  protected HashMap fields = new HashMap();
+  protected Map<String,Object> fields = new HashMap<String,Object>();
   protected Security fileSecurity = new Security();
   protected Security shareSecurity = new Security();
-  protected ArrayList directorySecurity = new ArrayList();
+  protected List<Security> directorySecurity = new ArrayList<Security>();
 
   /** Constructor.
   */
@@ -129,14 +129,14 @@ public class RepositoryDocument
   /** Get directory security access acl */
   public String[] getDirectoryACL(int index)
   {
-    Security s = (Security)directorySecurity.get(index);
+    Security s = directorySecurity.get(index);
     return s.getACL();
   }
 
   /** Get directory security deny acl */
   public String[] getDirectoryDenyACL(int index)
   {
-    Security s = (Security)directorySecurity.get(index);
+    Security s = directorySecurity.get(index);
     return s.getDenyACL();
   }
 
@@ -231,7 +231,7 @@ public class RepositoryDocument
 
   /** Iterate through the field name Strings.
   */
-  public Iterator getFields()
+  public Iterator<String> getFields()
   {
     return fields.keySet().iterator();
   }

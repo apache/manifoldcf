@@ -20,7 +20,6 @@ package org.apache.manifoldcf.crawler.interfaces;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
-import java.util.*;
 import java.io.*;
 
 /** This interface abstracts from the activities that handle document fingerprinting and mime type acceptance.

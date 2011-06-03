@@ -20,7 +20,6 @@ package org.apache.manifoldcf.crawler.interfaces;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
-import java.util.*;
 
 /** This interface abstracts from the activities that handle job aborts.
 */
