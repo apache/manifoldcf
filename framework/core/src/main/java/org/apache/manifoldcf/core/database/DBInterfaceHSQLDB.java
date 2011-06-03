@@ -78,6 +78,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     {
       throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
     }
+    performModification("SET DATABASE TRANSACTION CONTROL MVCC",null,null);
   }
   
   /** Uninitialize.  This method is called during JVM shutdown, in order to close
@@ -278,7 +279,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   public void performCreate(String tableName, Map<String,ColumnDescription> columnMap, StringSet invalidateKeys)
     throws ManifoldCFException
   {
-    StringBuilder queryBuffer = new StringBuilder("CREATE TABLE ");
+    StringBuilder queryBuffer = new StringBuilder("CREATE CACHED TABLE ");
     queryBuffer.append(tableName);
     queryBuffer.append('(');
     Iterator<String> iter = columnMap.keySet().iterator();
@@ -421,7 +422,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   protected static String mapType(String inputType)
   {
     if (inputType.equalsIgnoreCase("longtext"))
-      return "clob";
+      return "longvarchar";
     return inputType;
   }
 
@@ -526,6 +527,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   public void createUserAndDatabase(String adminUserName, String adminPassword, StringSet invalidateKeys)
     throws ManifoldCFException
   {
+    performModification("SET FILES SCALE 512",null,null);
   }
 
   /** Drop user and database.
