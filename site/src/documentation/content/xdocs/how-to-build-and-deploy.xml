@@ -412,8 +412,9 @@ cd dist/example
             <tr><td>org.apache.manifoldcf.postgresql.port</td><td>No</td><td>PostgreSQL server port, or standard port if not specified.</td></tr>
             <tr><td>org.apache.manifoldcf.postgresql.ssl</td><td>No</td><td>Set to "true" for ssl communication with PostgreSQL.</td></tr>
             <tr><td>org.apache.manifoldcf.derbydatabasepath</td><td>No</td><td>Absolute or relative path to Derby database; default is '.'.</td></tr>
+            <tr><td>org.apache.manifoldcf.hsqldbdatabasepath</td><td>No</td><td>Absolute or relative path to HSQLDB database; default is '.'.</td></tr>
             <tr><td>org.apache.manifoldcf.lockmanagerclass</td><td>No</td><td>Specifies the class to use to implement synchronization.  Default is a built-in file-based synchronization class.</td></tr>
-            <tr><td>org.apache.manifoldcf.databaseimplementationclass</td><td>No</td><td>Specifies the class to use to implement database access.  Default is a built-in Postgresql implementation.</td></tr>
+            <tr><td>org.apache.manifoldcf.databaseimplementationclass</td><td>No</td><td>Specifies the class to use to implement database access.  Default is a built-in Postgresql implementation.  Supported choices are: org.apache.manifoldcf.core.database.DBInterfaceDerby, org.apache.manifoldcf.core.database.DBInterfacePostgreSQL, org.apache.manifoldcf.core.database.DBInterfaceHSQLDB</td></tr>
             <tr><td>org.apache.manifoldcf.synchdirectory</td><td>Yes, if file-based synchronization class is used</td><td>Specifies the path of a synchronization directory.  All ManifoldCF process owners <strong>must</strong> have read/write privileges to this directory.</td></tr>
             <tr><td>org.apache.manifoldcf.database.maxhandles</td><td>No</td><td>Specifies the maximum number of database connection handles that will by pooled.  Recommended value is 200.</td></tr>
             <tr><td>org.apache.manifoldcf.database.handletimeout</td><td>No</td><td>Specifies the maximum time a handle is to live before it is presumed dead.  Recommend a value of 604800, which is the maximum allowable.</td></tr>
