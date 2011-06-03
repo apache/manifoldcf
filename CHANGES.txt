@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-114: Finish HSQLDB implementation.
+(Fred Toussi, Karl Wright)
+
 CONNECTORS-205: Changed the database interface distinct-on abstraction
 to also include the order-by clause, so we can write something that will
 work for HSQLDB.
