@@ -309,6 +309,15 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
     return value.longValue();
   }
 
+  /** Get the maximum number of rows a window-based report can work with.
+  *@return the maximum rows.
+  */
+  public long getMaxRows()
+    throws ManifoldCFException
+  {
+    return getWindowedReportMaxRows();
+  }
+
   /** Get a bucketed history, with sliding window, of maximum activity level.
   * The resultset returned should have the following columns: "starttime","endtime","activitycount","idbucket".
   * An activity is counted as being within the interval window on a prorated basis, which can lead to fractional

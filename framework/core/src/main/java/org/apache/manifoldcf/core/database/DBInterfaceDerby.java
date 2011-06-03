@@ -1176,6 +1176,15 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     return 1;
   }
 
+  /** For windowed report queries, e.g. maxActivity or maxBandwidth, obtain the maximum number of rows
+  * that can reasonably be expected to complete in an acceptable time.
+  *@return the maximum number of rows.
+  */
+  public int getWindowedReportMaxRows()
+  {
+    return 5000;
+  }
+
   /** Note a number of inserts, modifications, or deletions to a specific table.  This is so we can decide when to do appropriate maintenance.
   *@param tableName is the name of the table being modified.
   *@param insertCount is the number of inserts.

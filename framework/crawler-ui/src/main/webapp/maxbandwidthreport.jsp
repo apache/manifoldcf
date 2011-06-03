@@ -738,12 +738,13 @@ if (maintenanceUnderway == false)
 		<input type="hidden" name="sortorder" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(sortOrder.toString())%>'/>
 <%
 		long count = connMgr.countHistoryRows(reportConnection,criteria);
+		long maxCount = connMgr.getMaxRows();
 		boolean hasMoreRows;
-		if (count > 5000L)
+		if (count > maxCount)
 		{
 			hasMoreRows = false;
 %>
-		<table class="displaytable"><tr><td class="message">You have selected <%=new Long(count).toString()%> rows.  Maximum allowed is 5000.</td></tr></table>
+		<table class="displaytable"><tr><td class="message">You have selected <%=new Long(count).toString()%> rows.  Maximum allowed is <%=new Long(maxCount).toString()%>.</td></tr></table>
 <%
 		}
 		else

@@ -371,6 +371,13 @@ public class BaseTable
     return dbInterface.getMaxOrClause();
   }
 
+  /** Calculate history cutoff for windowed report queries.
+  * @return the cutoff history row count.
+  */
+  public int getWindowedReportMaxRows()
+  {
+    return dbInterface.getWindowedReportMaxRows();
+  }
 
   /** Set up a base object from a database row.
   *@param object is the object to read into.

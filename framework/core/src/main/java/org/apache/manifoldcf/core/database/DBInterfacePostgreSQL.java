@@ -1014,6 +1014,14 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
     return 25;
   }
 
+  /** For windowed report queries, e.g. maxActivity or maxBandwidth, obtain the maximum number of rows
+  * that can reasonably be expected to complete in an acceptable time.
+  *@return the maximum number of rows.
+  */
+  public int getWindowedReportMaxRows()
+  {
+    return 5000;
+  }
 
   /** Begin a database transaction.  This method call MUST be paired with an endTransaction() call,
   * or database handles will be lost.  If the transaction should be rolled back, then signalRollback() should

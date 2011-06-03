@@ -187,6 +187,12 @@ public interface IRepositoryConnectionManager
   public long countHistoryRows(String connectionName, FilterCriteria criteria)
     throws ManifoldCFException;
 
+  /** Get the maximum number of rows a window-based report can work with.
+  *@return the maximum rows.
+  */
+  public long getMaxRows()
+    throws ManifoldCFException;
+    
   /** Generate a report, listing the start time, activity count, and identifier bucket, given
   * a time slice (interval) size.
   * The records selected for this report are based on the filtering criteria object passed into this method.

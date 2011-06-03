@@ -635,6 +635,15 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
     return historyManager.countHistoryRows(connectionName,criteria);
   }
 
+  /** Get the maximum number of rows a window-based report can work with.
+  *@return the maximum rows.
+  */
+  public long getMaxRows()
+    throws ManifoldCFException
+  {
+    return historyManager.getMaxRows();
+  }
+
   /** Generate a report, listing the start time, elapsed time, result code and description, number of bytes, and entity identifier.
   * The records selected for this report are based on the filtering criteria object passed into this method.
   * The record order is based on the sorting criteria object passed into this method.
