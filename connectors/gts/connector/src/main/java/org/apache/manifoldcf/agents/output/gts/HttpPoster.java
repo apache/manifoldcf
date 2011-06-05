@@ -780,11 +780,11 @@ public class HttpPoster
                   }
 
                   // Write all the metadata, if any
-                  Iterator iter = document.getFields();
+                  Iterator<String> iter = document.getFields();
                   while (iter.hasNext())
                   {
-                    String fieldName = (String)iter.next();
-                    Object[] values = document.getField(fieldName);
+                    String fieldName = iter.next();
+                    String[] values = document.getFieldAsStrings(fieldName);
                     // We only handle strings right now!!!
                     int k = 0;
                     while (k < values.length)

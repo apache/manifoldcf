@@ -39,6 +39,8 @@ public class RepositoryDocument
   protected InputStream binaryFieldData = null;
   protected long binaryLength = 0;
   protected Map<String,Object> fields = new HashMap<String,Object>();
+  protected Map<String,String[]> stringFields = new HashMap<String,String[]>();
+  protected Map<String,Reader[]> readerFields = new HashMap<String,Reader[]>();
   protected Security fileSecurity = new Security();
   protected Security shareSecurity = new Security();
   protected List<Security> directorySecurity = new ArrayList<Security>();
@@ -174,9 +176,17 @@ public class RepositoryDocument
     throws ManifoldCFException
   {
     if (fieldData == null)
+    {
       fields.remove(fieldName);
+      stringFields.remove(fieldName);
+      readerFields.remove(fieldName);
+    }
     else
+    {
       fields.put(fieldName,fieldData);
+      stringFields.remove(fieldName);
+      readerFields.put(fieldName,fieldData);
+    }
   }
 
   /** Add a character field.
@@ -186,7 +196,7 @@ public class RepositoryDocument
   public void addField(String fieldName, Reader fieldData)
     throws ManifoldCFException
   {
-    fields.put(fieldName,new Reader[]{fieldData});
+    addField(fieldName,new Reader[]{fieldData});
   }
 
   /** Remove a multivalue character field.
@@ -198,9 +208,17 @@ public class RepositoryDocument
     throws ManifoldCFException
   {
     if (fieldData == null)
+    {
       fields.remove(fieldName);
+      stringFields.remove(fieldName);
+      readerFields.remove(fieldName);
+    }
     else
+    {
       fields.put(fieldName,fieldData);
+      readerFields.remove(fieldName);
+      stringFields.put(fieldName,fieldData);
+    }
   }
 
   /** Add a character field.
@@ -210,7 +228,7 @@ public class RepositoryDocument
   public void addField(String fieldName, String fieldData)
     throws ManifoldCFException
   {
-    fields.put(fieldName,new String[]{fieldData});
+    addField(fieldName,new String[]{fieldData});
   }
 
   /** Get a field.
@@ -220,6 +238,67 @@ public class RepositoryDocument
   public Object[] getField(String fieldName)
   {
     return (Object[])fields.get(fieldName);
+  }
+
+  /** Get a field as an array of strings.  If the data was originally in the form
+  * of Readers, a one-time conversion is made to the String form, so that the same
+  * field can be fetched multiple times.
+  *@param fieldName is the field name.
+  *@return the field data.
+  */
+  public String[] getFieldAsStrings(String fieldName)
+    throws IOException
+  {
+    String[] stringFieldData = stringFields.get(fieldName);
+    if (stringFieldData != null)
+      return stringFieldData;
+    Reader[] oldValues = readerFields.get(fieldName);
+    if (oldValues == null)
+      return null;
+    
+    String[] newValues = new String[oldValues.length];
+    char[] buffer = new char[65536];
+    int i = 0;
+    while (i < newValues.length)
+    {
+      Reader oldValue = oldValues[i];
+      StringBuilder newValue = new StringBuilder();
+      while (true)
+      {
+        int amt = oldValue.read(buffer);
+        if (amt == -1)
+          break;
+        newValue.append(buffer,0,amt);
+      }
+      newValues[i++] = newValue.toString();
+    }
+    stringFields.put(fieldName,newValues);
+    return newValues;
+  }
+
+  /** Get a field as an array of Readers.  If the field was originally
+  * strings, a one-time creation of a Readers array is made.
+  *@param fieldName is the field name.
+  *@return the field data.
+  */
+  public Reader[] getFieldAsReaders(String fieldName)
+  {
+    Reader[] readerFieldData = readerFields.get(fieldName);
+    if (readerFieldData != null)
+      return readerFieldData;
+    String[] oldValues = stringFields.get(fieldName);
+    if (oldValues == null)
+      return null;
+    
+    Reader[] newValues = new Reader[oldValues.length];
+    int i = 0;
+    while (i < newValues.length)
+    {
+      newValues[i] = new StringReader(oldValues[i]);
+      i++;
+    }
+    readerFields.put(fieldName,newValues);
+    return newValues;
   }
 
   /** Get the number of fields.

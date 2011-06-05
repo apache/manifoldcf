@@ -1116,12 +1116,12 @@ public class HttpPoster
 		  {
 		    if (newFieldName.toLowerCase().equals(idAttributeName.toLowerCase()))
 		      newFieldName = ID_METADATA;
-                    Object[] values = document.getField(fieldName);
+                    String[] values = document.getFieldAsStrings(fieldName);
                     // We only handle strings right now!!!
                     int k = 0;
                     while (k < values.length)
                     {
-                      String value = (String)values[k++];
+                      String value = values[k++];
                       totalLength += lengthField(LITERAL+newFieldName,value);
                     }
                   }
@@ -1180,12 +1180,12 @@ public class HttpPoster
 		  {
 		    if (newFieldName.toLowerCase().equals(idAttributeName.toLowerCase()))
 		      newFieldName = ID_METADATA;
-                    Object[] values = document.getField(fieldName);
+                    String[] values = document.getFieldAsStrings(fieldName);
                     // We only handle strings right now!!!
                     int k = 0;
                     while (k < values.length)
                     {
-                      String value = (String)values[k++];
+                      String value = values[k++];
                       writeField(out,LITERAL+newFieldName,value);
                     }
                   }

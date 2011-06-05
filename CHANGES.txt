@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-208: Make support for metadata Reader objects really
+work.
+(Karl Wright)
+
 CONNECTORS-204: Add an HSQLDB set of test targets, which use that
 database.
 (Karl Wright)
