@@ -1678,9 +1678,75 @@
         </junit>
     </target>
 
+    <target name="run-filesystem-tests-HSQLDB" depends="compile-filesystem-tests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
+        <mkdir dir="test-HSQLDB-output/filesystem"/>
+        <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output/filesystem" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/filesystem/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/filesystem/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/filesystem-tests/classes"/>
+            </classpath>
+            <test name="org.apache.manifoldcf.filesystem_tests.SanityHSQLDB" todir="test-HSQLDB-output/filesystem"/>
+            <test name="org.apache.manifoldcf.filesystem_tests.APISanityHSQLDB" todir="test-HSQLDB-output/filesystem"/>
+            <test name="org.apache.manifoldcf.filesystem_tests.HopcountHSQLDB" todir="test-HSQLDB-output/filesystem"/>
+            <test name="org.apache.manifoldcf.filesystem_tests.ExpirationHSQLDB" todir="test-HSQLDB-output/filesystem"/>
+            <!-- MHL -->
+        </junit>
+    </target>
+
     <target name="run-sharepoint-tests-postgresql" depends="compile-sharepoint-tests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
         <mkdir dir="test-postgresql-output/sharepoint"/>
         <junit fork="true" maxmemory="128m" dir="test-postgresql-output/sharepoint" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/sharepoint/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/sharepoint/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/sharepoint-tests/classes"/>
+            </classpath>
+            <!-- MHL -->
+        </junit>
+    </target>
+
+    <target name="run-sharepoint-tests-HSQLDB" depends="compile-sharepoint-tests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
+        <mkdir dir="test-postgresql-output/sharepoint"/>
+        <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output/sharepoint" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -1720,6 +1786,12 @@
     <target name="run-tests-postgresql-proprietary-connectors" depends="run-tests-postgresql-documentum-connector,run-tests-postgresql-filenet-connector,run-tests-postgresql-livelink-connector,run-tests-postgresql-memex-connector,run-tests-postgresql-meridio-connector,run-tests-postgresql-sharepoint-connector"/>
     
     <target name="end-to-end-tests-postgresql" depends="run-filesystem-tests-postgresql,run-sharepoint-tests-postgresql"/>
+
+    <target name="run-tests-HSQLDB-open-connectors" depends="run-tests-HSQLDB-activedirectory-connector,run-tests-HSQLDB-filesystem-connector,run-tests-HSQLDB-nullauthority-connector,run-tests-HSQLDB-nulloutput-connector,run-tests-HSQLDB-rss-connector,run-tests-HSQLDB-solr-connector,run-tests-HSQLDB-webcrawler-connector,run-tests-HSQLDB-jdbc-connector"/>
+    <target name="run-tests-HSQLDB-lgpl-connectors" depends="run-tests-HSQLDB-jcifs-connector"/>
+    <target name="run-tests-HSQLDB-proprietary-connectors" depends="run-tests-HSQLDB-documentum-connector,run-tests-HSQLDB-filenet-connector,run-tests-HSQLDB-livelink-connector,run-tests-HSQLDB-memex-connector,run-tests-HSQLDB-meridio-connector,run-tests-HSQLDB-sharepoint-connector"/>
+    
+    <target name="end-to-end-tests-HSQLDB" depends="run-filesystem-tests-HSQLDB,run-sharepoint-tests-HSQLDB"/>
 
     <target name="deliver-open-connectors" depends="deliver-nullauthority-connector,deliver-activedirectory-connector,deliver-filesystem-connector,deliver-rss-connector,deliver-webcrawler-connector,deliver-jdbc-connector"/>
     <target name="deliver-open-connectors-doc" depends="deliver-nullauthority-connector-doc,deliver-activedirectory-connector-doc,deliver-filesystem-connector-doc,deliver-rss-connector-doc,deliver-webcrawler-connector-doc,deliver-jdbc-connector-doc"/>
@@ -1808,11 +1880,15 @@
 
     <target name="image" depends="create-source-zip,create-source-tar,create-bin-zip,create-bin-tar"/>
     
-    <target name="test" depends="run-tests-framework,run-tests-open-connectors,run-tests-lgpl-connectors,run-tests-proprietary-connectors,end-to-end-tests"/>
+    <target name="test-dr" depends="run-tests-framework,run-tests-open-connectors,run-tests-lgpl-connectors,run-tests-proprietary-connectors,end-to-end-tests"/>
 
     <target name="test-pg" depends="run-tests-postgresql-framework,run-tests-postgresql-open-connectors,run-tests-postgresql-lgpl-connectors,run-tests-postgresql-proprietary-connectors,end-to-end-tests-postgresql"/>
 
-    <target name="all" depends="build,javadoc,doc,image,test,test-pg"/>
+    <target name="test-hs" depends="run-tests-HSQLDB-framework,run-tests-HSQLDB-open-connectors,run-tests-HSQLDB-lgpl-connectors,run-tests-HSQLDB-proprietary-connectors,end-to-end-tests-HSQLDB"/>
+
+    <target name="test" depends="test-dr,test-hs"/>
+    
+    <target name="all" depends="build,javadoc,doc,image,test-dr,test-pg,test-hs"/>
 
     <target name="help">
       <echo level="info">
@@ -1825,8 +1901,10 @@ clean   - Clean the build area
 build   - Build executable code, jars, processes, and example,
           under the 'dist' directory
 javadoc - Create the javadocs, under the 'dist/doc' directory
-test    - Compile and run tests for all connectors and framework
+test-dr - Compile and run Derby-based tests
 test-pg - Compile and run postgresql-based tests (needs Postgresql)
+test-hs - Compile and run HSQLDB-based tests
+test    - Compile and run all local tests (Derby and HSQLDB)
 doc     - Build html site, under the 'dist/doc' directory
           (requires Apache Forrest)
 image   - Build release image, under the '.' directory (requires

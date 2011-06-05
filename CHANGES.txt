@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-204: Add an HSQLDB set of test targets, which use that
+database.
+(Karl Wright)
+
 CONNECTORS-206: Document HSQLDB properties, and mention it as a
 supported choice in the documentation.
 (Karl Wright)
