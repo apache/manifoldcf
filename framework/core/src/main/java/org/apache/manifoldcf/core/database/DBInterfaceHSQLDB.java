@@ -349,7 +349,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
         while (i < columnDeleteList.size())
         {
           String columnName = columnDeleteList.get(i++);
-          performModification("ALTER TABLE "+tableName+" DROP "+columnName+" RESTRICT",null,invalidateKeys);
+          performModification("ALTER TABLE "+tableName+" DROP "+columnName,null,invalidateKeys);
         }
       }
 
@@ -362,24 +362,10 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
           StringBuilder sb;
           String columnName = iter.next();
           ColumnDescription cd = columnModifyMap.get(columnName);
-          String renameColumn = "__temp__";
           sb = new StringBuilder();
-          appendDescription(sb,renameColumn,cd,true);
+          appendDescription(sb,columnName,cd,false);
           // Rename current column.  This too involves a copy.
-          performModification("ALTER TABLE "+tableName+" ADD "+sb.toString(),null,invalidateKeys);
-          performModification("UPDATE "+tableName+" SET "+renameColumn+"="+columnName,null,invalidateKeys);
-          performModification("ALTER TABLE "+tableName+" DROP "+columnName+" RESTRICT",null,invalidateKeys);
-          // Create new column
-          sb = new StringBuilder();
-          appendDescription(sb,columnName,cd,true);
-          performModification("ALTER TABLE "+tableName+" ADD "+sb.toString(),null,invalidateKeys);
-          // Copy old data to new
-          performModification("UPDATE "+tableName+" SET "+columnName+"="+renameColumn,null,invalidateKeys);
-          // Make the column null, if it needs it
-          if (cd.getIsNull() == false)
-            performModification("ALTER TABLE "+tableName+" ALTER "+columnName+" SET NOT NULL",null,invalidateKeys);
-          // Drop old column
-          performModification("ALTER TABLE "+tableName+" DROP "+renameColumn+" RESTRICT",null,invalidateKeys);
+          performModification("ALTER TABLE "+tableName+" ALTER COLUMN "+sb.toString(),null,invalidateKeys);
         }
       }
 
