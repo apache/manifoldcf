@@ -136,6 +136,8 @@ public class AuthorityConnectorFactory
       Throwable z = e.getTargetException();
       if (z instanceof Error)
         throw (Error)z;
+      else if (z instanceof RuntimeException)
+        throw (RuntimeException)z;
       else
         throw (ManifoldCFException)z;
     }
@@ -205,6 +207,8 @@ public class AuthorityConnectorFactory
       Throwable z = e.getTargetException();
       if (z instanceof Error)
         throw (Error)z;
+      else if (z instanceof RuntimeException)
+        throw (RuntimeException)z;
       else
         throw (ManifoldCFException)z;
     }
@@ -467,6 +471,8 @@ public class AuthorityConnectorFactory
           Throwable z = e.getTargetException();
           if (z instanceof Error)
             throw (Error)z;
+          else if (z instanceof RuntimeException)
+            throw (RuntimeException)z;
           else
             throw (ManifoldCFException)z;
         }

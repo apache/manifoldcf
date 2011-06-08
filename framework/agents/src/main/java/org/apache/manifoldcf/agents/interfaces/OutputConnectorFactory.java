@@ -145,6 +145,8 @@ public class OutputConnectorFactory
       Throwable z = e.getTargetException();
       if (z instanceof Error)
         throw (Error)z;
+      else if (z instanceof RuntimeException)
+        throw (RuntimeException)z;
       else
         throw (ManifoldCFException)z;
     }
@@ -214,6 +216,8 @@ public class OutputConnectorFactory
       Throwable z = e.getTargetException();
       if (z instanceof Error)
         throw (Error)z;
+      else if (z instanceof RuntimeException)
+        throw (RuntimeException)z;
       else
         throw (ManifoldCFException)z;
     }
@@ -307,9 +311,9 @@ public class OutputConnectorFactory
           }
         }
         if (e instanceof ManifoldCFException)
-        {
           throw (ManifoldCFException)e;
-        }
+        else if (e instanceof RuntimeException)
+          throw (RuntimeException)e;
         throw (Error)e;
       }
       i++;
@@ -567,6 +571,8 @@ public class OutputConnectorFactory
           Throwable z = e.getTargetException();
           if (z instanceof Error)
             throw (Error)z;
+          else if (z instanceof RuntimeException)
+            throw (RuntimeException)z;
           else
             throw (ManifoldCFException)z;
         }

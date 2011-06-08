@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-210: Handle RuntimeException exceptions better in
+connector factories.
+(Farzad Valad, Karl Wright)
+
 CONNECTORS-208: Make support for metadata Reader objects really
 work.
 (Karl Wright)
