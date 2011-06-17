@@ -28,7 +28,6 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   private static final String _url = "jdbc:mysql://localhost/";
   private static final String _driver = "org.gjt.mm.mysql.Driver";
 
-  protected IThreadContext context;
   protected String cacheKey;
 
   public DBInterfaceMySQL(IThreadContext tc, String databaseName, String userName, String password)
