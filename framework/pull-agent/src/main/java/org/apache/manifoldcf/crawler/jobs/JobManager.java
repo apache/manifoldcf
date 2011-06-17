@@ -5504,8 +5504,8 @@ public class JobManager implements IJobManager
           if (Logging.jobs.isDebugEnabled())
             Logging.jobs.debug("Setting job "+jobID+" back to 'ReadyForNotify' state");
 
-          // Set the state of the job back to "ReadyForStartup"
-          jobs.writeStatus(jobID,jobs.STATUS_READYFORDELETE);
+          // Set the state of the job back to "ReadyForNotify"
+          jobs.writeStatus(jobID,jobs.STATUS_READYFORNOTIFY);
           break;
         default:
           throw new ManifoldCFException("Unexpected job status: "+Integer.toString(status));

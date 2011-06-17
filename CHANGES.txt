@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-212: Failure during notify should send job back to
+ReadyForNotify state, not ReadyForDelete state.
+(Karl Wright)
+
 CONNECTORS-211: Move pack() and unpack() utility methods into the
 connector base class.
 (Karl Wright)
