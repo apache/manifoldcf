@@ -43,4 +43,19 @@ public interface IFingerprintActivity
   public boolean checkDocumentIndexable(File localFile)
     throws ManifoldCFException, ServiceInterruption;
 
+  /** Check whether a document of a specific length is indexable by the currently specified output connector.
+  *@param length is the document length.
+  *@return true if the document is indexable.
+  */
+  public boolean checkLengthIndexable(long length)
+    throws ManifoldCFException, ServiceInterruption;
+
+  /** Pre-determine whether a document's URL is indexable by this connector.  This method is used by participating repository connectors
+  * to help filter out documents that are not worth indexing.
+  *@param url is the URL of the document.
+  *@return true if the file is indexable.
+  */
+  public boolean checkURLIndexable(String url)
+    throws ManifoldCFException, ServiceInterruption;
+
 }

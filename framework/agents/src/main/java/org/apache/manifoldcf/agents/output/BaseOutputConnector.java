@@ -80,6 +80,18 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
 
   /** Detect if a mime type is indexable or not.  This method is used by participating repository connectors to pre-filter the number of
   * unusable documents that will be passed to this output connector.
+  *@param outputDescription is the document's output version.
+  *@param mimeType is the mime type of the document.
+  *@return true if the mime type is indexable by this connector.
+  */
+  public boolean checkMimeTypeIndexable(String outputDescription, String mimeType)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    return checkMimeTypeIndexable(mimeType);
+  }
+
+  /** Detect if a mime type is indexable or not.  This method is used by participating repository connectors to pre-filter the number of
+  * unusable documents that will be passed to this output connector.
   *@param mimeType is the mime type of the document.
   *@return true if the mime type is indexable by this connector.
   */
@@ -92,10 +104,47 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   /** Pre-determine whether a document (passed here as a File object) is indexable by this connector.  This method is used by participating
   * repository connectors to help reduce the number of unmanageable documents that are passed to this output connector in advance of an
   * actual transfer.  This hook is provided mainly to support search engines that only handle a small set of accepted file types.
+  *@param outputDescription is the document's output version.
+  *@param localFile is the local file to check.
+  *@return true if the file is indexable.
+  */
+  public boolean checkDocumentIndexable(String outputDescription, File localFile)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    return checkDocumentIndexable(localFile);
+  }
+
+  /** Pre-determine whether a document (passed here as a File object) is indexable by this connector.  This method is used by participating
+  * repository connectors to help reduce the number of unmanageable documents that are passed to this output connector in advance of an
+  * actual transfer.  This hook is provided mainly to support search engines that only handle a small set of accepted file types.
   *@param localFile is the local file to check.
   *@return true if the file is indexable.
   */
   public boolean checkDocumentIndexable(File localFile)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    return true;
+  }
+
+  /** Pre-determine whether a document's length is indexable by this connector.  This method is used by participating repository connectors
+  * to help filter out documents that are too long to be indexable.
+  *@param outputDescription is the document's output version.
+  *@param length is the length of the document.
+  *@return true if the file is indexable.
+  */
+  public boolean checkLengthIndexable(String outputDescription, long length)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    return true;
+  }
+
+  /** Pre-determine whether a document's URL is indexable by this connector.  This method is used by participating repository connectors
+  * to help filter out documents that are not worth indexing.
+  *@param outputDescription is the document's output version.
+  *@param url is the URL of the document.
+  *@return true if the file is indexable.
+  */
+  public boolean checkURLIndexable(String outputDescription, String url)
     throws ManifoldCFException, ServiceInterruption
   {
     return true;

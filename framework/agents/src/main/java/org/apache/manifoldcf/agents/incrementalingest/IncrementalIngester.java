@@ -178,10 +178,11 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
 
   /** Check if a mime type is indexable.
   *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param outputDescription is the output description string.
   *@param mimeType is the mime type to check.
   *@return true if the mimeType is indexable.
   */
-  public boolean checkMimeTypeIndexable(String outputConnectionName, String mimeType)
+  public boolean checkMimeTypeIndexable(String outputConnectionName, String outputDescription, String mimeType)
     throws ManifoldCFException, ServiceInterruption
   {
     IOutputConnection connection = connectionManager.load(outputConnectionName);
@@ -191,7 +192,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       throw new ServiceInterruption("Output connector not installed",0L);
     try
     {
-      return connector.checkMimeTypeIndexable(mimeType);
+      return connector.checkMimeTypeIndexable(outputDescription,mimeType);
     }
     finally
     {
@@ -201,10 +202,11 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
 
   /** Check if a file is indexable.
   *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param outputDescription is the output description string.
   *@param localFile is the local file to check.
   *@return true if the local file is indexable.
   */
-  public boolean checkDocumentIndexable(String outputConnectionName, File localFile)
+  public boolean checkDocumentIndexable(String outputConnectionName, String outputDescription, File localFile)
     throws ManifoldCFException, ServiceInterruption
   {
     IOutputConnection connection = connectionManager.load(outputConnectionName);
@@ -214,7 +216,57 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       throw new ServiceInterruption("Output connector not installed",0L);
     try
     {
-      return connector.checkDocumentIndexable(localFile);
+      return connector.checkDocumentIndexable(outputDescription,localFile);
+    }
+    finally
+    {
+      OutputConnectorFactory.release(connector);
+    }
+  }
+
+  /** Pre-determine whether a document's length is indexable by this connector.  This method is used by participating repository connectors
+  * to help filter out documents that are too long to be indexable.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param outputDescription is the output description string.
+  *@param length is the length of the document.
+  *@return true if the file is indexable.
+  */
+  public boolean checkLengthIndexable(String outputConnectionName, String outputDescription, long length)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    IOutputConnection connection = connectionManager.load(outputConnectionName);
+    IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+    if (connector == null)
+      // The connector is not installed; treat this as a service interruption.
+      throw new ServiceInterruption("Output connector not installed",0L);
+    try
+    {
+      return connector.checkLengthIndexable(outputDescription,length);
+    }
+    finally
+    {
+      OutputConnectorFactory.release(connector);
+    }
+  }
+
+  /** Pre-determine whether a document's URL is indexable by this connector.  This method is used by participating repository connectors
+  * to help filter out documents that not indexable.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param outputDescription is the output description string.
+  *@param url is the url of the document.
+  *@return true if the file is indexable.
+  */
+  public boolean checkURLIndexable(String outputConnectionName, String outputDescription, String url)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    IOutputConnection connection = connectionManager.load(outputConnectionName);
+    IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+    if (connector == null)
+      // The connector is not installed; treat this as a service interruption.
+      throw new ServiceInterruption("Output connector not installed",0L);
+    try
+    {
+      return connector.checkURLIndexable(outputDescription,url);
     }
     finally
     {

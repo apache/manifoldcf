@@ -307,7 +307,7 @@ public class WorkerThread extends Thread
                       
                       HashMap abortSet = new HashMap();
                       ProcessActivity activity;
-                      VersionActivity versionActivity = new VersionActivity(connectionName,connMgr,jobManager,job,ingester,abortSet);
+                      VersionActivity versionActivity = new VersionActivity(connectionName,connMgr,jobManager,job,ingester,abortSet,outputVersion);
 
                       String aclAuthority = connection.getACLAuthority();
                       boolean isDefaultAuthority = (aclAuthority == null || aclAuthority.length() == 0);
@@ -1119,11 +1119,13 @@ public class WorkerThread extends Thread
     protected IJobDescription job;
     protected IIncrementalIngester ingester;
     protected HashMap abortSet;
+    protected String outputVersion;
 
     /** Constructor.
     */
     public VersionActivity(String connectionName, IRepositoryConnectionManager connMgr,
-      IJobManager jobManager, IJobDescription job, IIncrementalIngester ingester, HashMap abortSet)
+      IJobManager jobManager, IJobDescription job, IIncrementalIngester ingester, HashMap abortSet,
+      String outputVersion)
     {
       this.connectionName = connectionName;
       this.connMgr = connMgr;
@@ -1131,6 +1133,7 @@ public class WorkerThread extends Thread
       this.job = job;
       this.ingester = ingester;
       this.abortSet = abortSet;
+      this.outputVersion = outputVersion;
     }
 
     /** Check whether a mime type is indexable by the currently specified output connector.
@@ -1140,7 +1143,7 @@ public class WorkerThread extends Thread
     public boolean checkMimeTypeIndexable(String mimeType)
       throws ManifoldCFException, ServiceInterruption
     {
-      return ingester.checkMimeTypeIndexable(job.getOutputConnectionName(),mimeType);
+      return ingester.checkMimeTypeIndexable(job.getOutputConnectionName(),outputVersion,mimeType);
     }
 
     /** Check whether a document is indexable by the currently specified output connector.
@@ -1150,7 +1153,28 @@ public class WorkerThread extends Thread
     public boolean checkDocumentIndexable(File localFile)
       throws ManifoldCFException, ServiceInterruption
     {
-      return ingester.checkDocumentIndexable(job.getOutputConnectionName(),localFile);
+      return ingester.checkDocumentIndexable(job.getOutputConnectionName(),outputVersion,localFile);
+    }
+
+    /** Check whether a document of a specified length is indexable by the currently specified output connector.
+    *@param length is the length to check.
+    *@return true if the document is indexable.
+    */
+    public boolean checkLengthIndexable(long length)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return ingester.checkLengthIndexable(job.getOutputConnectionName(),outputVersion,length);
+    }
+
+    /** Pre-determine whether a document's URL is indexable by this connector.  This method is used by participating repository connectors
+    * to help filter out documents that are not worth indexing.
+    *@param url is the URL of the document.
+    *@return true if the file is indexable.
+    */
+    public boolean checkURLIndexable(String url)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return ingester.checkURLIndexable(job.getOutputConnectionName(),outputVersion,url);
     }
 
     /** Record time-stamped information about the activity of the connector.
@@ -1902,7 +1926,7 @@ public class WorkerThread extends Thread
     public boolean checkMimeTypeIndexable(String mimeType)
       throws ManifoldCFException, ServiceInterruption
     {
-      return ingester.checkMimeTypeIndexable(job.getOutputConnectionName(),mimeType);
+      return ingester.checkMimeTypeIndexable(job.getOutputConnectionName(),outputVersion,mimeType);
     }
 
     /** Check whether a document is indexable by the currently specified output connector.
@@ -1912,7 +1936,28 @@ public class WorkerThread extends Thread
     public boolean checkDocumentIndexable(File localFile)
       throws ManifoldCFException, ServiceInterruption
     {
-      return ingester.checkDocumentIndexable(job.getOutputConnectionName(),localFile);
+      return ingester.checkDocumentIndexable(job.getOutputConnectionName(),outputVersion,localFile);
+    }
+
+    /** Check whether a document of a specified length is indexable by the currently specified output connector.
+    *@param length is the length to check.
+    *@return true if the document is indexable.
+    */
+    public boolean checkLengthIndexable(long length)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return ingester.checkLengthIndexable(job.getOutputConnectionName(),outputVersion,length);
+    }
+
+    /** Pre-determine whether a document's URL is indexable by this connector.  This method is used by participating repository connectors
+    * to help filter out documents that are not worth indexing.
+    *@param url is the URL of the document.
+    *@return true if the file is indexable.
+    */
+    public boolean checkURLIndexable(String url)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      return ingester.checkURLIndexable(job.getOutputConnectionName(),outputVersion,url);
     }
 
     /** Create a global string from a simple string.

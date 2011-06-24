@@ -58,21 +58,6 @@ public interface IIncrementalIngester
   public void clearAll()
     throws ManifoldCFException;
 
-  /** Check if a mime type is indexable.
-  *@param outputConnectionName is the name of the output connection associated with this action.
-  *@param mimeType is the mime type to check.
-  *@return true if the mimeType is indexable.
-  */
-  public boolean checkMimeTypeIndexable(String outputConnectionName, String mimeType)
-    throws ManifoldCFException, ServiceInterruption;
-
-  /** Check if a file is indexable.
-  *@param outputConnectionName is the name of the output connection associated with this action.
-  *@param localFile is the local file to check.
-  *@return true if the local file is indexable.
-  */
-  public boolean checkDocumentIndexable(String outputConnectionName, File localFile)
-    throws ManifoldCFException, ServiceInterruption;
 
   /** Get an output version string for a document.
   *@param outputConnectionName is the name of the output connection associated with this action.
@@ -81,7 +66,45 @@ public interface IIncrementalIngester
   */
   public String getOutputDescription(String outputConnectionName, OutputSpecification spec)
     throws ManifoldCFException, ServiceInterruption;
-    
+
+  /** Check if a mime type is indexable.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param outputDescription is the output description string.
+  *@param mimeType is the mime type to check.
+  *@return true if the mimeType is indexable.
+  */
+  public boolean checkMimeTypeIndexable(String outputConnectionName, String outputDescription, String mimeType)
+    throws ManifoldCFException, ServiceInterruption;
+
+  /** Check if a file is indexable.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param outputDescription is the output description string.
+  *@param localFile is the local file to check.
+  *@return true if the local file is indexable.
+  */
+  public boolean checkDocumentIndexable(String outputConnectionName, String outputDescription, File localFile)
+    throws ManifoldCFException, ServiceInterruption;
+
+  /** Pre-determine whether a document's length is indexable by this connector.  This method is used by participating repository connectors
+  * to help filter out documents that are too long to be indexable.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param outputDescription is the output description string.
+  *@param length is the length of the document.
+  *@return true if the file is indexable.
+  */
+  public boolean checkLengthIndexable(String outputConnectionName, String outputDescription, long length)
+    throws ManifoldCFException, ServiceInterruption;
+
+  /** Pre-determine whether a document's URL is indexable by this connector.  This method is used by participating repository connectors
+  * to help filter out documents that not indexable.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param outputDescription is the output description string.
+  *@param url is the url of the document.
+  *@return true if the file is indexable.
+  */
+  public boolean checkURLIndexable(String outputConnectionName, String outputDescription, String url)
+    throws ManifoldCFException, ServiceInterruption;
+
   /** Record a document version, but don't ingest it.
   * The purpose of this method is to keep track of the frequency at which ingestion "attempts" take place.
   * ServiceInterruption is thrown if this action must be rescheduled.
