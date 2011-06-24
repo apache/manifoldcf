@@ -837,7 +837,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
               try
               {
                 StringBuilder sb = new StringBuilder();
-                long checkSum = cache.addData(activities,urlValue,is);
+                long checkSum = cache.addData(activities,urlValue,"text/html",is);
                 // Grab what we need from the passed-down data for the document.  These will all become part
                 // of the version string.
                 String[] pubDates = activities.retrieveParentData(urlValue,"pubdate");
@@ -1064,7 +1064,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                       InputStream is = connection.getResponseBodyStream();
                       try
                       {
-                        long checkSum = cache.addData(activities,urlValue,is);
+                        long checkSum = cache.addData(activities,urlValue,contentType,is);
                         StringBuilder sb = new StringBuilder();
                         if (ingestURL != null)
                         {
@@ -1310,168 +1310,180 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("RSS: Interpreting '"+urlValue+"' as a document");
 
-        // Treat it as an ingestable document.
-        // Version *should* start with a "+".
-        ArrayList acls = new ArrayList();
-        StringBuilder denyAclBuffer = new StringBuilder();
-        int startPos = unpackList(acls,version,1,'+');
-        if (startPos < version.length() && version.charAt(startPos++) == '+')
+        if (isDataIngestable(activities,urlValue))
         {
-          startPos = unpack(denyAclBuffer,version,startPos,'+');
-        }
-        ArrayList metadata = new ArrayList();
-        startPos = unpackList(metadata,version,startPos,'+');
-        StringBuilder ingestUrlBuffer = new StringBuilder();
-        startPos = unpack(ingestUrlBuffer,version,startPos,'+');
-        String ingestURL = ingestUrlBuffer.toString();
-        ArrayList pubDates = new ArrayList();
-        startPos = unpackList(pubDates,version,startPos,'+');
-        ArrayList titles = new ArrayList();
-        startPos = unpackList(titles,version,startPos,'+');
-        ArrayList sources = new ArrayList();
-        startPos = unpackList(sources,version,startPos,'+');
-        ArrayList categories = new ArrayList();
-        startPos = unpackList(categories,version,startPos,'+');
-
-        if (ingestURL.length() > 0)
-        {
-          long dataSize = cache.getDataLength(urlValue);
-          RepositoryDocument rd = new RepositoryDocument();
-
-          // Turn into acls and add into description
-          String[] aclArray = new String[acls.size()];
-          int j = 0;
-          while (j < aclArray.length)
+          // Treat it as an ingestable document.
+          // Version *should* start with a "+".
+          ArrayList acls = new ArrayList();
+          StringBuilder denyAclBuffer = new StringBuilder();
+          int startPos = unpackList(acls,version,1,'+');
+          if (startPos < version.length() && version.charAt(startPos++) == '+')
           {
-            aclArray[j] = (String)acls.get(j);
-            j++;
+            startPos = unpack(denyAclBuffer,version,startPos,'+');
           }
-          rd.setACL(aclArray);
+          ArrayList metadata = new ArrayList();
+          startPos = unpackList(metadata,version,startPos,'+');
+          StringBuilder ingestUrlBuffer = new StringBuilder();
+          startPos = unpack(ingestUrlBuffer,version,startPos,'+');
+          String ingestURL = ingestUrlBuffer.toString();
+          ArrayList pubDates = new ArrayList();
+          startPos = unpackList(pubDates,version,startPos,'+');
+          ArrayList titles = new ArrayList();
+          startPos = unpackList(titles,version,startPos,'+');
+          ArrayList sources = new ArrayList();
+          startPos = unpackList(sources,version,startPos,'+');
+          ArrayList categories = new ArrayList();
+          startPos = unpackList(categories,version,startPos,'+');
 
-          // Deny acl too
-          if (denyAclBuffer.length() > 0)
+          if (ingestURL.length() > 0)
           {
-            String[] denyAclArray = new String[]{denyAclBuffer.toString()};
-            rd.setDenyACL(denyAclArray);
-          }
+            long dataSize = cache.getDataLength(urlValue);
+            RepositoryDocument rd = new RepositoryDocument();
 
-          // Grab metadata
-          HashMap metaHash = new HashMap();
-          int k = 0;
-          while (k < metadata.size())
-          {
-            String metadataItem = (String)metadata.get(k++);
-            unpackFixedList(fixedList,metadataItem,0,'=');
-            HashMap hashValue = (HashMap)metaHash.get(fixedList[0]);
-            if (hashValue == null)
+            // Turn into acls and add into description
+            String[] aclArray = new String[acls.size()];
+            int j = 0;
+            while (j < aclArray.length)
             {
-              hashValue = new HashMap();
-              metaHash.put(fixedList[0],hashValue);
+              aclArray[j] = (String)acls.get(j);
+              j++;
             }
-            hashValue.put(fixedList[1],fixedList[1]);
-          }
-          Iterator metaIter = metaHash.keySet().iterator();
-          while (metaIter.hasNext())
-          {
-            String key = (String)metaIter.next();
-            HashMap metaList = (HashMap)metaHash.get(key);
-            String[] values = new String[metaList.size()];
-            Iterator iter = metaList.keySet().iterator();
-            k = 0;
-            while (iter.hasNext())
+            rd.setACL(aclArray);
+
+            // Deny acl too
+            if (denyAclBuffer.length() > 0)
             {
-              values[k] = (String)iter.next();
+              String[] denyAclArray = new String[]{denyAclBuffer.toString()};
+              rd.setDenyACL(denyAclArray);
+            }
+
+            // Grab metadata
+            HashMap metaHash = new HashMap();
+            int k = 0;
+            while (k < metadata.size())
+            {
+              String metadataItem = (String)metadata.get(k++);
+              unpackFixedList(fixedList,metadataItem,0,'=');
+              HashMap hashValue = (HashMap)metaHash.get(fixedList[0]);
+              if (hashValue == null)
+              {
+                hashValue = new HashMap();
+                metaHash.put(fixedList[0],hashValue);
+              }
+              hashValue.put(fixedList[1],fixedList[1]);
+            }
+            Iterator metaIter = metaHash.keySet().iterator();
+            while (metaIter.hasNext())
+            {
+              String key = (String)metaIter.next();
+              HashMap metaList = (HashMap)metaHash.get(key);
+              String[] values = new String[metaList.size()];
+              Iterator iter = metaList.keySet().iterator();
+              k = 0;
+              while (iter.hasNext())
+              {
+                values[k] = (String)iter.next();
+                k++;
+              }
+              rd.addField(key,values);
+            }
+
+            // Loop through the titles to add those to the metadata
+            String[] titleValues = new String[titles.size()];
+            k = 0;
+            while (k < titleValues.length)
+            {
+              titleValues[k] = (String)titles.get(k);
               k++;
             }
-            rd.addField(key,values);
-          }
+            if (k > 0)
+              rd.addField("title",titleValues);
 
-          // Loop through the titles to add those to the metadata
-          String[] titleValues = new String[titles.size()];
-          k = 0;
-          while (k < titleValues.length)
-          {
-            titleValues[k] = (String)titles.get(k);
-            k++;
-          }
-          if (k > 0)
-            rd.addField("title",titleValues);
-
-          // Loop through the sources to add those to the metadata
-          String[] sourceValues = new String[sources.size()];
-          k = 0;
-          while (k < sourceValues.length)
-          {
-            sourceValues[k] = (String)sources.get(k);
-            k++;
-          }
-          if (k > 0)
-            rd.addField("source",sourceValues);
-
-          // Add the categories now
-          String[] categoryValues = new String[categories.size()];
-          k = 0;
-          while (k < categoryValues.length)
-          {
-            categoryValues[k] = (String)categories.get(k);
-            k++;
-          }
-          if (k > 0)
-            rd.addField("category",categoryValues);
-
-          // The pubdates are a ms since epoch value; we want the minimum one for the origination time.
-          Long minimumOrigTime = null;
-          String[] pubDateValues = new String[pubDates.size()];
-          k = 0;
-          while (k < pubDates.size())
-          {
-            String pubDate = (String)pubDates.get(k);
-            pubDateValues[k++] = pubDate;
-            try
+            // Loop through the sources to add those to the metadata
+            String[] sourceValues = new String[sources.size()];
+            k = 0;
+            while (k < sourceValues.length)
             {
-              Long pubDateLong = new Long(pubDate);
-              if (minimumOrigTime == null || pubDateLong.longValue() < minimumOrigTime.longValue())
-                minimumOrigTime = pubDateLong;
+              sourceValues[k] = (String)sources.get(k);
+              k++;
             }
-            catch (NumberFormatException e)
-            {
-              // Do nothing; the version string seems to not mean anything
-            }
-          }
-          if (k > 0)
-            rd.addField("pubdate",pubDateValues);
+            if (k > 0)
+              rd.addField("source",sourceValues);
 
-          if (minimumOrigTime != null)
-            activities.setDocumentOriginationTime(urlValue,minimumOrigTime);
-
-          InputStream is = cache.getData(urlValue);
-          if (is != null)
-          {
-            try
+            // Add the categories now
+            String[] categoryValues = new String[categories.size()];
+            k = 0;
+            while (k < categoryValues.length)
             {
-              rd.setBinary(is,dataSize);
-              activities.ingestDocument(urlValue,version,ingestURL,rd);
+              categoryValues[k] = (String)categories.get(k);
+              k++;
             }
-            finally
+            if (k > 0)
+              rd.addField("category",categoryValues);
+
+            // The pubdates are a ms since epoch value; we want the minimum one for the origination time.
+            Long minimumOrigTime = null;
+            String[] pubDateValues = new String[pubDates.size()];
+            k = 0;
+            while (k < pubDates.size())
+            {
+              String pubDate = (String)pubDates.get(k);
+              pubDateValues[k++] = pubDate;
+              try
+              {
+                Long pubDateLong = new Long(pubDate);
+                if (minimumOrigTime == null || pubDateLong.longValue() < minimumOrigTime.longValue())
+                  minimumOrigTime = pubDateLong;
+              }
+              catch (NumberFormatException e)
+              {
+                // Do nothing; the version string seems to not mean anything
+              }
+            }
+            if (k > 0)
+              rd.addField("pubdate",pubDateValues);
+
+            if (minimumOrigTime != null)
+              activities.setDocumentOriginationTime(urlValue,minimumOrigTime);
+
+            InputStream is = cache.getData(urlValue);
+            if (is != null)
             {
               try
               {
-                is.close();
+                rd.setBinary(is,dataSize);
+                activities.ingestDocument(urlValue,version,ingestURL,rd);
               }
-              catch (java.net.SocketTimeoutException e)
+              finally
               {
-                throw new ManifoldCFException("IO error closing stream: "+e.getMessage(),e);
-              }
-              catch (InterruptedIOException e)
-              {
-                throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-              }
-              catch (IOException e)
-              {
-                throw new ManifoldCFException("IO error closing stream: "+e.getMessage(),e);
+                try
+                {
+                  is.close();
+                }
+                catch (java.net.SocketTimeoutException e)
+                {
+                  throw new ManifoldCFException("IO error closing stream: "+e.getMessage(),e);
+                }
+                catch (InterruptedIOException e)
+                {
+                  throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+                }
+                catch (IOException e)
+                {
+                  throw new ManifoldCFException("IO error closing stream: "+e.getMessage(),e);
+                }
               }
             }
           }
+        }
+        else
+        {
+          // This is NOT quite the same as deleteDocument().  The deleteDocument() method removes the record, and
+          // thus the version string.  So, when that is used, we cannot tell if the document has changed; we simply have to try again.
+          activities.ingestDocument(urlValue,version,null,null);
+
+          if (Logging.connectors.isDebugEnabled())
+            Logging.connectors.debug("RSS: Skipping document '"+urlValue+"' because it cannot be indexed");
         }
       }
       else
@@ -5046,6 +5058,41 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       contentType = contentType.substring(0,pos);
     contentType = contentType.trim();
     
+    return activities.checkMimeTypeIndexable(contentType);
+  }
+
+  /** Code to check if an already-fetched document should be ingested.
+  */
+  protected boolean isDataIngestable(IFingerprintActivity activities, String documentIdentifier)
+    throws ServiceInterruption, ManifoldCFException
+  {
+    if (activities.checkLengthIndexable(cache.getDataLength(documentIdentifier)) == false)
+      return false;
+
+    if (activities.checkURLIndexable(documentIdentifier) == false)
+      return false;
+
+    // Check if it's a recognized content type
+    String contentType = cache.getContentType(documentIdentifier);
+
+    // Some sites have multiple content types.  We just look at the LAST one in that case.
+    if (contentType != null)
+    {
+      String[] contentTypes = contentType.split(",");
+      if (contentTypes.length > 0)
+        contentType = contentTypes[contentTypes.length-1].trim();
+      else
+        contentType = null;
+    }
+
+    if (contentType == null)
+      return false;
+
+    int pos = contentType.indexOf(";");
+    if (pos != -1)
+      contentType = contentType.substring(0,pos);
+    contentType = contentType.trim();
+
     return activities.checkMimeTypeIndexable(contentType);
   }
 

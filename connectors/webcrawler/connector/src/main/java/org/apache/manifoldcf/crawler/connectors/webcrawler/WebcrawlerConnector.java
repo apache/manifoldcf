@@ -5114,13 +5114,19 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     
     return activities.checkMimeTypeIndexable(contentType);
   }
-
+  
   /** Code to check if an already-fetched document should be ingested.
   */
   protected boolean isDataIngestable(IFingerprintActivity activities, String documentIdentifier)
     throws ServiceInterruption, ManifoldCFException
   {
     if (cache.getResponseCode(documentIdentifier) != 200)
+      return false;
+
+    if (activities.checkLengthIndexable(cache.getDataLength(documentIdentifier)) == false)
+      return false;
+
+    if (activities.checkURLIndexable(documentIdentifier) == false)
       return false;
 
     // Check if it's a recognized content type

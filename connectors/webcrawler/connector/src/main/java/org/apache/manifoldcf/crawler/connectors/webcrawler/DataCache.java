@@ -36,7 +36,7 @@ public class DataCache
 
   // Hashmap containing the cache of files.
   // This is keyed by document identifier, and contains DocumentData objects.
-  protected HashMap cacheData = new HashMap();
+  protected Map<String,DocumentData> cacheData = new HashMap<String,DocumentData>();
 
   /** Constructor.
   */
@@ -220,7 +220,7 @@ public class DataCache
   */
   public synchronized int getResponseCode(String documentIdentifier)
   {
-    DocumentData dd = (DocumentData)cacheData.get(documentIdentifier);
+    DocumentData dd = cacheData.get(documentIdentifier);
     if (dd == null)
       return IThrottledConnection.FETCH_NOT_TRIED;
     return dd.getResponseCode();
@@ -232,7 +232,7 @@ public class DataCache
   */
   public synchronized String getContentType(String documentIdentifier)
   {
-    DocumentData dd = (DocumentData)cacheData.get(documentIdentifier);
+    DocumentData dd = cacheData.get(documentIdentifier);
     if (dd == null)
       return null;
     return dd.getContentType();
@@ -244,7 +244,7 @@ public class DataCache
   */
   public synchronized String getReferralURI(String documentIdentifier)
   {
-    DocumentData dd = (DocumentData)cacheData.get(documentIdentifier);
+    DocumentData dd = cacheData.get(documentIdentifier);
     if (dd == null)
       return null;
     return dd.getReferralURI();
@@ -256,7 +256,7 @@ public class DataCache
   */
   public synchronized long getDataLength(String documentIdentifier)
   {
-    DocumentData dd = (DocumentData)cacheData.get(documentIdentifier);
+    DocumentData dd = cacheData.get(documentIdentifier);
     if (dd == null)
       return 0L;
     return dd.getData().length();
@@ -269,7 +269,7 @@ public class DataCache
   public synchronized InputStream getData(String documentIdentifier)
     throws ManifoldCFException
   {
-    DocumentData dd = (DocumentData)cacheData.get(documentIdentifier);
+    DocumentData dd = cacheData.get(documentIdentifier);
     if (dd == null)
       return null;
     try
@@ -287,7 +287,7 @@ public class DataCache
   */
   public synchronized void deleteData(String documentIdentifier)
   {
-    DocumentData dd = (DocumentData)cacheData.remove(documentIdentifier);
+    DocumentData dd = cacheData.remove(documentIdentifier);
     if (dd != null)
     {
       ManifoldCF.deleteFile(dd.getData());

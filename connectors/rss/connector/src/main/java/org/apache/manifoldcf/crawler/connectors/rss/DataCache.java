@@ -35,7 +35,7 @@ public class DataCache
   public static final String _rcsid = "@(#)$Id: DataCache.java 988245 2010-08-23 18:39:35Z kwright $";
 
   // Hashmap containing the cache
-  protected HashMap cacheData = new HashMap();
+  protected Map<String,DocumentData> cacheData = new HashMap<String,DocumentData>();
 
   /** Constructor.
   */
@@ -46,10 +46,11 @@ public class DataCache
 
   /** Add binary data entry into the cache.  Does NOT close the input stream when done!
   *@param documentIdentifier is the document identifier (url).
+  *@param contentType is the content type for the data.
   *@param dataStream is the data stream.
   *@return the checksum value.
   */
-  public long addData(IVersionActivity activities, String documentIdentifier, InputStream dataStream)
+  public long addData(IVersionActivity activities, String documentIdentifier, String contentType, InputStream dataStream)
     throws ManifoldCFException, ServiceInterruption
   {
     // Create a temporary file; that's what we will cache
@@ -126,7 +127,7 @@ public class DataCache
         synchronized(this)
         {
           deleteData(documentIdentifier);
-          cacheData.put(documentIdentifier,tempFile);
+          cacheData.put(documentIdentifier,new DocumentData(tempFile,contentType));
           return checkSum;
         }
 
@@ -172,10 +173,10 @@ public class DataCache
   public synchronized long getDataLength(String documentIdentifier)
     throws ManifoldCFException
   {
-    File f = (File)cacheData.get(documentIdentifier);
+    DocumentData f = cacheData.get(documentIdentifier);
     if (f == null)
       return 0L;
-    return f.length();
+    return f.getData().length();
   }
 
   /** Fetch binary data entry from the cache.
@@ -185,12 +186,12 @@ public class DataCache
   public synchronized InputStream getData(String documentIdentifier)
     throws ManifoldCFException
   {
-    File f = (File)cacheData.get(documentIdentifier);
+    DocumentData f = cacheData.get(documentIdentifier);
     if (f == null)
       return null;
     try
     {
-      return new FileInputStream(f);
+      return new FileInputStream(f.getData());
     }
     catch (IOException e)
     {
@@ -198,17 +199,62 @@ public class DataCache
     }
   }
 
+  /** Get the content type.
+  *@param documentIdentifier is the document identifier.
+  *@return the content type, or null if there is none.
+  */
+  public synchronized String getContentType(String documentIdentifier)
+  {
+    DocumentData dd = cacheData.get(documentIdentifier);
+    if (dd == null)
+      return null;
+    return dd.getContentType();
+  }
+
   /** Delete specified item of data.
   *@param documentIdentifier is the document identifier (url).
   */
   public synchronized void deleteData(String documentIdentifier)
   {
-    File f = (File)cacheData.get(documentIdentifier);
+    DocumentData f = cacheData.get(documentIdentifier);
     cacheData.remove(documentIdentifier);
     if (f != null)
     {
-      ManifoldCF.deleteFile(f);
+      ManifoldCF.deleteFile(f.getData());
     }
+  }
+
+  // Protected classes
+
+  /** This class represents everything we need to know about a document that's getting passed from the
+  * getDocumentVersions() phase to the processDocuments() phase.
+  */
+  protected static class DocumentData
+  {
+    /** The cache file for the data */
+    protected File data;
+    /** The content-type header value */
+    protected String contentType;
+
+    /** Constructor. */
+    public DocumentData(File data, String contentType)
+    {
+      this.data = data;
+      this.contentType = contentType;
+    }
+
+    /** Get the data */
+    public File getData()
+    {
+      return data;
+    }
+
+    /** Get the contentType */
+    public String getContentType()
+    {
+      return contentType;
+    }
+
   }
 
 }
