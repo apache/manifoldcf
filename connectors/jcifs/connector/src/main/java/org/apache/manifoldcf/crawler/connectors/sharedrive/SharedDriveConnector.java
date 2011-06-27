@@ -775,7 +775,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                         index = setPathMetadata(rd,version,index);
                         StringBuilder ingestURI = new StringBuilder();
                         index = unpack(ingestURI,version,index,'+');
-                        activities.ingestDocument(documentIdentifier, versions[i], ingestURI.toString(), rd);
+                        activities.ingestDocument(documentIdentifier, version, ingestURI.toString(), rd);
                       }
                       finally
                       {
@@ -796,7 +796,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                       // method has no way of signalling this, since it does not do the fingerprinting.
                       if (Logging.connectors.isDebugEnabled())
                         Logging.connectors.debug("JCIFS: Decided to remove '"+documentIdentifier+"'");
-                      activities.deleteDocument(documentIdentifier);
+                      activities.deleteDocument(documentIdentifier, version);
                       // We should record the access here as well, since this is a non-exception way through the code path.
                       // (I noticed that this was not being recorded in the history while fixing 25477.)
                       activities.recordActivity(new Long(startFetchTime),ACTIVITY_ACCESS,
@@ -859,8 +859,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
         Logging.connectors.warn("JCIFS: Authorization exception reading document/directory "+documentIdentifier+" - skipping");
         activities.recordActivity(null,ACTIVITY_ACCESS,
           null,documentIdentifier,"Skip","Authorization: "+e.getMessage(),null);
-        // We call the delete even if it's a directory; this is harmless and it cleans up the jobqueue row.
-        activities.deleteDocument(documentIdentifier);
+        // We call the delete even if it's a directory; this is harmless.
+        activities.deleteDocument(documentIdentifier, version);
       }
       catch (SmbException se)
       {
@@ -919,7 +919,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
             Logging.connectors.debug("JCIFS: Skipping document/directory "+documentIdentifier+" because it cannot be found");
           activities.recordActivity(null,ACTIVITY_ACCESS,
             null,documentIdentifier,"Not found",null,null);
-          activities.deleteDocument(documentIdentifier);
+          activities.deleteDocument(documentIdentifier, version);
         }
         else if (se.getMessage().indexOf("is denied") != -1)
         {
@@ -927,7 +927,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
           // We call the delete even if it's a directory; this is harmless and it cleans up the jobqueue row.
           activities.recordActivity(null,ACTIVITY_ACCESS,
             null,documentIdentifier,"Skip","Authorization: "+se.getMessage(),null);
-          activities.deleteDocument(documentIdentifier);
+          activities.deleteDocument(documentIdentifier, version);
         }
         else
         {

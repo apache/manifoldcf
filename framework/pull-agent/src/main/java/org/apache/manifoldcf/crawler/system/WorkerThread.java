@@ -1595,9 +1595,27 @@ public class WorkerThread extends Thread
         ingestLogger);
     }
 
-    /** Delete the current document from the search engine index.
+    /** Delete the current document from the search engine index, while keeping track of the version information
+    * for it (to reduce churn).
     *@param documentIdentifier is the document's local identifier.
+    *@param version is the version of the document, as reported by the getDocumentVersions() method of the
+    *       corresponding repository connector.
     */
+    public void deleteDocument(String documentIdentifier, String version)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      if (version.length() == 0)
+        deleteDocument(documentIdentifier);
+      else
+        ingestDocument(documentIdentifier,version,null,null);
+    }
+
+  /** Delete the current document from the search engine index.  This method does NOT keep track of version
+  * information for the document and thus can lead to "churn", whereby the same document is queued, versioned,
+  * and removed on subsequent crawls.  It therefore should be considered to be deprecated, in favor of
+  * deleteDocument(String localIdentifier, String version).
+  *@param documentIdentifier is the document's local identifier.
+  */
     public void deleteDocument(String documentIdentifier)
       throws ManifoldCFException, ServiceInterruption
     {

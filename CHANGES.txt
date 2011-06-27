@@ -3,10 +3,16 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-216: Clean up document removal options in IProcessActivity,
+and modify connectors accordingly to avoid using the deprecated form of
+deleteDocument().
+(Karl Wright)
+
 CONNECTORS-214: Add output connector support for restricting documents based on
 mime type, URL, and document length.  Hook this up to the web and RSS
 connectors, and add mime type and maximum length fields to the Solr
 connector.
+(Erlend Garåsen, Karl Wright)
 
 CONNECTORS-212: Failure during notify should send job back to
 ReadyForNotify state, not ReadyForDelete state.

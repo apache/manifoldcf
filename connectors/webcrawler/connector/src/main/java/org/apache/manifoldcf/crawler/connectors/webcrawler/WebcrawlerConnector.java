@@ -1124,7 +1124,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         // Leave document in jobqueue, but do NOT get rid of it, or we will wind up seeing it queued again by
         // somebody else.  We *do* have to signal the document to be removed from the index, however, or it will
         // stick around until the job is deleted.
-        activities.deleteDocument(documentIdentifier);
+        activities.deleteDocument(documentIdentifier,version);
         continue;
       }
 
@@ -1250,9 +1250,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           // We do this by using a null url and a null repository document.  If a document with this identifier was
           // previously indexed, it will be removed.
           
-          // This is NOT quite the same as deleteDocument().  The deleteDocument() method removes the record, and
-          // thus the version string.  So, when that is used, we cannot tell if the document has changed; we simply have to try again.
-          activities.ingestDocument(documentIdentifier,version,null,null);
+          activities.deleteDocument(documentIdentifier,version);
           
           if (Logging.connectors.isDebugEnabled())
             Logging.connectors.debug("WEB: Decided not to ingest '"+documentIdentifier+"' because it did not match ingestability criteria");

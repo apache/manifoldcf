@@ -1241,7 +1241,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         // Leave document in jobqueue, but do NOT get rid of it, or we will wind up seeing it queued again by
         // somebody else.  We *do* have to signal the document to be removed from the index, however, or it will
         // stick around until the job is deleted.
-        activities.deleteDocument(urlValue);
+        activities.deleteDocument(urlValue,version);
         continue;
       }
 
@@ -1478,9 +1478,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         }
         else
         {
-          // This is NOT quite the same as deleteDocument().  The deleteDocument() method removes the record, and
-          // thus the version string.  So, when that is used, we cannot tell if the document has changed; we simply have to try again.
-          activities.ingestDocument(urlValue,version,null,null);
+          activities.deleteDocument(urlValue,version);
 
           if (Logging.connectors.isDebugEnabled())
             Logging.connectors.debug("RSS: Skipping document '"+urlValue+"' because it cannot be indexed");

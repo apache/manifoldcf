@@ -1250,7 +1250,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
                     null,documentIdentifier,"Authorization error",e.getMessage(),null);
                   if (Logging.connectors.isDebugEnabled())
                     Logging.connectors.debug("FileNet: Removing file '"+documentIdentifier+"' because: "+e.getMessage(),e);
-                  activities.deleteDocument(documentIdentifier);
+                  activities.deleteDocument(documentIdentifier,documentVersion);
                   i++;
                   continue;
                 }
@@ -1361,7 +1361,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("FileNet: Removing version '"+documentIdentifier+"' because it seems to no longer exist");
 
-            activities.deleteDocument(documentIdentifier);
+            activities.deleteDocument(documentIdentifier,documentVersion);
             i++;
             continue;
           }
@@ -1391,7 +1391,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
           {
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("FileNet: Removing version '"+documentIdentifier+"' because: "+e.getMessage(),e);
-            activities.deleteDocument(documentIdentifier);
+            activities.deleteDocument(documentIdentifier,documentVersion);
             i++;
             continue;
           }

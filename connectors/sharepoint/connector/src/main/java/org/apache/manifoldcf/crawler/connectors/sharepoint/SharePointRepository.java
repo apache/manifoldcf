@@ -949,14 +949,14 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               // Site/library no longer exists, so delete entry
               if (Logging.connectors.isDebugEnabled())
                 Logging.connectors.debug("SharePoint: No list found for library '"+siteLibPath+"' - deleting");
-              activities.deleteDocument(documentIdentifier);
+              activities.deleteDocument(documentIdentifier,version);
             }
           }
           else
           {
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("SharePoint: GUID lookup failed for library '"+siteLibPath+"' - deleting");
-            activities.deleteDocument(documentIdentifier);
+            activities.deleteDocument(documentIdentifier,version);
           }
         }
         else
@@ -1064,7 +1064,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                           Logging.connectors.debug("SharePoint: Document at '"+encodedServerLocation+encodedDocumentPath+"' failed to fetch with code "+Integer.toString(returnCode)+", deleting");
                         activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
                           null,documentIdentifier,"Not found",Integer.toString(returnCode),null);
-                        activities.deleteDocument(documentIdentifier);
+                        activities.deleteDocument(documentIdentifier,version);
                         i++;
                         continue;
                       }
@@ -1245,7 +1245,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                     {
                       if (Logging.connectors.isDebugEnabled())
                         Logging.connectors.debug("SharePoint: Library '"+decodedLibPath+"' no longer exists - deleting document '"+documentIdentifier+"'");
-                      activities.deleteDocument( documentIdentifier );
+                      activities.deleteDocument(documentIdentifier,version);
                       i++;
                       continue;
                     }
@@ -1267,7 +1267,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                       // Document has vanished
                       if (Logging.connectors.isDebugEnabled())
                         Logging.connectors.debug("SharePoint: Document metadata fetch failure indicated that document is gone: '"+documentIdentifier+"' - removing");
-                      activities.deleteDocument( documentIdentifier );
+                      activities.deleteDocument(documentIdentifier,version);
                       i++;
                       continue;
                     }

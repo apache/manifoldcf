@@ -119,7 +119,19 @@ public interface IProcessActivity extends IHistoryActivity, IEventActivity, IAbo
   public void ingestDocument(String localIdentifier, String version, String documentURI, RepositoryDocument data)
     throws ManifoldCFException, ServiceInterruption;
 
-  /** Delete the current document from the search engine index.
+  /** Delete the current document from the search engine index, while keeping track of the version information
+  * for it (to reduce churn).
+  *@param localIdentifier is the document's local identifier.
+  *@param version is the version of the document, as reported by the getDocumentVersions() method of the
+  *       corresponding repository connector.
+  */
+  public void deleteDocument(String localIdentifier, String version)
+    throws ManifoldCFException, ServiceInterruption;
+
+  /** Delete the current document from the search engine index.  This method does NOT keep track of version
+  * information for the document and thus can lead to "churn", whereby the same document is queued, versioned,
+  * and removed on subsequent crawls.  It therefore should be considered to be deprecated, in favor of
+  * deleteDocument(String localIdentifier, String version).
   *@param localIdentifier is the document's local identifier.
   */
   public void deleteDocument(String localIdentifier)
