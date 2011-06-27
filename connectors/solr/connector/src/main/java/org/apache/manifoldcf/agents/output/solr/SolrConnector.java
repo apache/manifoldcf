@@ -43,6 +43,16 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   protected String allowAttributeName = "allow_token_";
   /** The deny attribute name */
   protected String denyAttributeName = "deny_token_";
+  /** The maximum document length */
+  protected Long maxDocumentLength = null;
+  /** Included mime types string */
+  protected String includedMimeTypesString = null;
+  /** Included mime types */
+  protected Map<String,String> includedMimeTypes = null;
+  /** Excluded mime types string */
+  protected String excludedMimeTypesString = null;
+  /** Excluded mime types */
+  protected Map<String,String> excludedMimeTypes = null;
   
   /** Whether or not to commit */
   protected boolean doCommits = false;
@@ -80,6 +90,11 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     throws ManifoldCFException
   {
     poster = null;
+    maxDocumentLength = null;
+    includedMimeTypesString = null;
+    includedMimeTypes = null;
+    excludedMimeTypesString = null;
+    excludedMimeTypes = null;
     super.disconnect();
   }
 
@@ -89,47 +104,87 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   {
     if (poster == null)
     {
-      String protocol = params.getParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_PROTOCOL);
+      String protocol = params.getParameter(SolrConfig.PARAM_PROTOCOL);
       if (protocol == null || protocol.length() == 0)
-        throw new ManifoldCFException("Missing parameter: "+org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_PROTOCOL);
+        throw new ManifoldCFException("Missing parameter: "+SolrConfig.PARAM_PROTOCOL);
 
-      String server = params.getParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_SERVER);
+      String server = params.getParameter(SolrConfig.PARAM_SERVER);
       if (server == null || server.length() == 0)
-        throw new ManifoldCFException("Missing parameter: "+org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_SERVER);
+        throw new ManifoldCFException("Missing parameter: "+SolrConfig.PARAM_SERVER);
 
-      String port = params.getParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_PORT);
+      String port = params.getParameter(SolrConfig.PARAM_PORT);
       if (port == null || port.length() == 0)
         port = "80";
 
-      String webapp = params.getParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_WEBAPPNAME);
+      String webapp = params.getParameter(SolrConfig.PARAM_WEBAPPNAME);
       if (webapp == null || webapp.length() == 0)
         webapp = "";
 
-      String core = params.getParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_CORE);
+      String core = params.getParameter(SolrConfig.PARAM_CORE);
       if (core != null && core.length() == 0)
         core = null;
       
-      String updatePath = params.getParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_UPDATEPATH);
+      String updatePath = params.getParameter(SolrConfig.PARAM_UPDATEPATH);
       if (updatePath == null || updatePath.length() == 0)
         updatePath = "";
 
-      String removePath = params.getParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_REMOVEPATH);
+      String removePath = params.getParameter(SolrConfig.PARAM_REMOVEPATH);
       if (removePath == null || removePath.length() == 0)
         removePath = "";
 
-      String statusPath = params.getParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_STATUSPATH);
+      String statusPath = params.getParameter(SolrConfig.PARAM_STATUSPATH);
       if (statusPath == null || statusPath.length() == 0)
         statusPath = "";
 
-      String idAttributeName = params.getParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_IDFIELD);
+      String idAttributeName = params.getParameter(SolrConfig.PARAM_IDFIELD);
       if (idAttributeName == null || idAttributeName.length() == 0)
         idAttributeName = "id";
       
-      String commits = params.getParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_COMMITS);
+      String commits = params.getParameter(SolrConfig.PARAM_COMMITS);
       if (commits == null || commits.length() == 0)
         commits = "true";
       
       doCommits = commits.equals("true");
+      
+      String docMax = params.getParameter(SolrConfig.PARAM_MAXLENGTH);
+      if (docMax == null || docMax.length() == 0)
+        maxDocumentLength = null;
+      else
+        maxDocumentLength = new Long(docMax);
+      
+      includedMimeTypesString = params.getParameter(SolrConfig.PARAM_INCLUDEDMIMETYPES);
+      if (includedMimeTypesString == null || includedMimeTypesString.length() == 0)
+      {
+        includedMimeTypesString = null;
+        includedMimeTypes = null;
+      }
+      else
+      {
+        // Parse the included mime types
+        includedMimeTypes = parseMimeTypes(includedMimeTypesString);
+        if (includedMimeTypes.size() == 0)
+        {
+          includedMimeTypesString = null;
+          includedMimeTypes = null;
+        }
+      }
+
+      excludedMimeTypesString = params.getParameter(SolrConfig.PARAM_EXCLUDEDMIMETYPES);
+      if (excludedMimeTypesString == null || excludedMimeTypesString.length() == 0)
+      {
+        excludedMimeTypesString = null;
+        excludedMimeTypes = null;
+      }
+      else
+      {
+        // Parse the included mime types
+        excludedMimeTypes = parseMimeTypes(excludedMimeTypesString);
+        if (excludedMimeTypes.size() == 0)
+        {
+          excludedMimeTypesString = null;
+          excludedMimeTypes = null;
+        }
+      }
       
       String userID = params.getParameter(SolrConfig.PARAM_USERID);
       String password = params.getObfuscatedParameter(SolrConfig.PARAM_PASSWORD);
@@ -151,12 +206,52 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       try
       {
         poster = new HttpPoster(protocol,server,Integer.parseInt(port),webapp,updatePath,removePath,statusPath,realm,userID,password,
-          allowAttributeName,denyAttributeName,idAttributeName,keystoreManager);
+          allowAttributeName,denyAttributeName,idAttributeName,keystoreManager,maxDocumentLength);
       }
       catch (NumberFormatException e)
       {
         throw new ManifoldCFException(e.getMessage());
       }
+    }
+  }
+
+  /** Parse a mime type field into individual mime types in a hash */
+  protected static Map<String,String> parseMimeTypes(String mimeTypes)
+    throws ManifoldCFException
+  {
+    Map<String,String> rval = new HashMap<String,String>();
+    try
+    {
+      java.io.Reader str = new java.io.StringReader(mimeTypes);
+      try
+      {
+        java.io.BufferedReader is = new java.io.BufferedReader(str);
+        try
+        {
+          while (true)
+          {
+            String nextString = is.readLine();
+            if (nextString == null)
+              break;
+            if (nextString.length() == 0)
+              continue;
+            rval.put(nextString,nextString);
+          }
+          return rval;
+        }
+        finally
+        {
+          is.close();
+        }
+      }
+      finally
+      {
+        str.close();
+      }
+    }
+    catch (java.io.IOException e)
+    {
+      throw new ManifoldCFException("IO error: "+e.getMessage(),e);
     }
   }
 
@@ -287,7 +382,68 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     
     packList(sb,sourceTargets,'+');
 
+    // Here, append things which we have no intention of unpacking.  This includes stuff that comes from
+    // the configuration information, for instance.
+    
+    if (maxDocumentLength != null || includedMimeTypesString != null || excludedMimeTypesString != null)
+    {
+      // Length limitation.  We pack this because when it is changed we want to be sure we get any previously excluded documents.
+      if (maxDocumentLength != null)
+      {
+        sb.append('+');
+        pack(sb,maxDocumentLength.toString(),'+');
+      }
+      else
+        sb.append('-');
+      // Included mime types
+      if (includedMimeTypesString != null)
+      {
+        sb.append('+');
+        pack(sb,includedMimeTypesString,'+');
+      }
+      else
+        sb.append('-');
+      // Excluded mime types
+      if (excludedMimeTypesString != null)
+      {
+        sb.append('+');
+        pack(sb,excludedMimeTypesString,'+');
+      }
+      else
+        sb.append('-');
+    }
+    
     return sb.toString();
+  }
+
+  /** Detect if a mime type is indexable or not.  This method is used by participating repository connectors to pre-filter the number of
+  * unusable documents that will be passed to this output connector.
+  *@param outputDescription is the document's output version.
+  *@param mimeType is the mime type of the document.
+  *@return true if the mime type is indexable by this connector.
+  */
+  public boolean checkMimeTypeIndexable(String outputDescription, String mimeType)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    if (includedMimeTypes != null && includedMimeTypes.get(mimeType) == null)
+      return false;
+    if (excludedMimeTypes != null && excludedMimeTypes.get(mimeType) != null)
+      return false;
+    return super.checkMimeTypeIndexable(outputDescription,mimeType);
+  }
+
+  /** Pre-determine whether a document's length is indexable by this connector.  This method is used by participating repository connectors
+  * to help filter out documents that are too long to be indexable.
+  *@param outputDescription is the document's output version.
+  *@param length is the length of the document.
+  *@return true if the file is indexable.
+  */
+  public boolean checkLengthIndexable(String outputDescription, long length)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    if (maxDocumentLength != null && length > maxDocumentLength.longValue())
+      return false;
+    return super.checkLengthIndexable(outputDescription,length);
   }
 
   /** Add (or replace) a document in the output data store using the connector.
@@ -410,6 +566,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     tabsArray.add("Server");
     tabsArray.add("Schema");
     tabsArray.add("Arguments");
+    tabsArray.add("Documents");
     tabsArray.add("Commits");
 
     out.print(
@@ -486,6 +643,12 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "    editconnection.statuspath.focus();\n"+
 "    return false;\n"+
 "  }\n"+
+"  if (editconnection.maxdocumentlength.value != \"\" && !isInteger(editconnection.maxdocumentlength.value))\n"+
+"  {\n"+
+"    alert(\"Maximum document length must be an integer\");\n"+
+"    editconnection.maxdocumentlength.focus();\n"+
+"    return false;\n"+
+"  }\n"+
 "  return true;\n"+
 "}\n"+
 "\n"+
@@ -547,6 +710,13 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "    editconnection.statuspath.focus();\n"+
 "    return false;\n"+
 "  }\n"+
+"  if (editconnection.maxdocumentlength.value != \"\" && !isInteger(editconnection.maxdocumentlength.value))\n"+
+"  {\n"+
+"    alert(\"Maximum document length must be an integer\");\n"+
+"    SelectTab(\"Documents\");\n"+
+"    editconnection.maxdocumentlength.focus();\n"+
+"    return false;\n"+
+"  }\n"+
 "  return true;\n"+
 "}\n"+
 "\n"+
@@ -594,65 +764,77 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
-    String protocol = parameters.getParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_PROTOCOL);
+    String protocol = parameters.getParameter(SolrConfig.PARAM_PROTOCOL);
     if (protocol == null)
       protocol = "http";
 		
-    String server = parameters.getParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_SERVER);
+    String server = parameters.getParameter(SolrConfig.PARAM_SERVER);
     if (server == null)
       server = "localhost";
 
-    String port = parameters.getParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_PORT);
+    String port = parameters.getParameter(SolrConfig.PARAM_PORT);
     if (port == null)
       port = "8983";
 
-    String webapp = parameters.getParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_WEBAPPNAME);
+    String webapp = parameters.getParameter(SolrConfig.PARAM_WEBAPPNAME);
     if (webapp == null)
       webapp = "solr";
 
-    String core = parameters.getParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_CORE);
+    String core = parameters.getParameter(SolrConfig.PARAM_CORE);
     if (core == null)
       core = "";
 
-    String updatePath = parameters.getParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_UPDATEPATH);
+    String updatePath = parameters.getParameter(SolrConfig.PARAM_UPDATEPATH);
     if (updatePath == null)
       updatePath = "/update/extract";
 
-    String removePath = parameters.getParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_REMOVEPATH);
+    String removePath = parameters.getParameter(SolrConfig.PARAM_REMOVEPATH);
     if (removePath == null)
       removePath = "/update";
 
-    String statusPath = parameters.getParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_STATUSPATH);
+    String statusPath = parameters.getParameter(SolrConfig.PARAM_STATUSPATH);
     if (statusPath == null)
       statusPath = "/admin/ping";
 
-    String idField = parameters.getParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_IDFIELD);
+    String idField = parameters.getParameter(SolrConfig.PARAM_IDFIELD);
     if (idField == null)
       idField = "id";
     
-    String realm = parameters.getParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_REALM);
+    String realm = parameters.getParameter(SolrConfig.PARAM_REALM);
     if (realm == null)
       realm = "";
 
-    String userID = parameters.getParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_USERID);
+    String userID = parameters.getParameter(SolrConfig.PARAM_USERID);
     if (userID == null)
       userID = "";
 		
-    String password = parameters.getObfuscatedParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_PASSWORD);
+    String password = parameters.getObfuscatedParameter(SolrConfig.PARAM_PASSWORD);
     if (password == null)
       password = "";
     
-    String commits = parameters.getParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_COMMITS);
+    String commits = parameters.getParameter(SolrConfig.PARAM_COMMITS);
     if (commits == null)
       commits = "true";
     
-    String solrKeystore = parameters.getParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_KEYSTORE);
+    String solrKeystore = parameters.getParameter(SolrConfig.PARAM_KEYSTORE);
     IKeystoreManager localKeystore;
     if (solrKeystore == null)
       localKeystore = KeystoreManagerFactory.make("");
     else
       localKeystore = KeystoreManagerFactory.make("",solrKeystore);
 
+    String maxLength = parameters.getParameter(SolrConfig.PARAM_MAXLENGTH);
+    if (maxLength == null)
+      maxLength = "";
+    
+    String includedMimeTypes = parameters.getParameter(SolrConfig.PARAM_INCLUDEDMIMETYPES);
+    if (includedMimeTypes == null)
+      includedMimeTypes = "";
+    
+    String excludedMimeTypes = parameters.getParameter(SolrConfig.PARAM_EXCLUDEDMIMETYPES);
+    if (excludedMimeTypes == null)
+      excludedMimeTypes = "";
+    
     // "Server" tab
     // Always pass the whole keystore as a hidden.
     if (solrKeystore != null)
@@ -821,24 +1003,39 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       );
     }
     
-    // Prepare for the argument tab
-    Map argumentMap = new HashMap();
-    int i = 0;
-    while (i < parameters.getChildCount())
+    // "Documents" tab
+    if (tabName.equals("Documents"))
     {
-      ConfigNode sn = parameters.getChild(i++);
-      if (sn.getType().equals(org.apache.manifoldcf.agents.output.solr.SolrConfig.NODE_ARGUMENT))
-      {
-        String name = sn.getAttributeValue(org.apache.manifoldcf.agents.output.solr.SolrConfig.ATTRIBUTE_NAME);
-        String value = sn.getAttributeValue(org.apache.manifoldcf.agents.output.solr.SolrConfig.ATTRIBUTE_VALUE);
-        ArrayList values = (ArrayList)argumentMap.get(name);
-        if (values == null)
-        {
-          values = new ArrayList();
-          argumentMap.put(name,values);
-        }
-        values.add(value);
-      }
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Maximum document length:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"maxdocumentlength\" type=\"text\" size=\"16\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(maxLength)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Included mime types:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <textarea rows=\"10\" cols=\"20\" name=\"includedmimetypes\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(includedMimeTypes)+"</textarea>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Excluded mime types:</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <textarea rows=\"10\" cols=\"20\" name=\"excludedmimetypes\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(excludedMimeTypes)+"</textarea>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"maxdocumentlength\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(maxLength)+"\"/>\n"+
+"<input type=\"hidden\" name=\"includedmimetypes\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(includedMimeTypes)+"\"/>\n"+
+"<input type=\"hidden\" name=\"excludedmimetypes\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(excludedMimeTypes)+"\"/>\n"
+      );
     }
     
     // "Commits" tab
@@ -862,6 +1059,26 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "<input type=\"hidden\" name=\"commits_present\" value=\"true\"/>\n"+
 "<input name=\"commits\" type=\"hidden\" value=\""+commits+"\"/>\n"
       );
+    }
+
+    // Prepare for the argument tab
+    Map argumentMap = new HashMap();
+    int i = 0;
+    while (i < parameters.getChildCount())
+    {
+      ConfigNode sn = parameters.getChild(i++);
+      if (sn.getType().equals(SolrConfig.NODE_ARGUMENT))
+      {
+        String name = sn.getAttributeValue(SolrConfig.ATTRIBUTE_NAME);
+        String value = sn.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE);
+        ArrayList values = (ArrayList)argumentMap.get(name);
+        if (values == null)
+        {
+          values = new ArrayList();
+          argumentMap.put(name,values);
+        }
+        values.add(value);
+      }
     }
     
     // "Arguments" tab
@@ -990,51 +1207,63 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   {
     String protocol = variableContext.getParameter("serverprotocol");
     if (protocol != null)
-      parameters.setParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_PROTOCOL,protocol);
+      parameters.setParameter(SolrConfig.PARAM_PROTOCOL,protocol);
 		
     String server = variableContext.getParameter("servername");
     if (server != null)
-      parameters.setParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_SERVER,server);
+      parameters.setParameter(SolrConfig.PARAM_SERVER,server);
 
     String port = variableContext.getParameter("serverport");
     if (port != null)
-      parameters.setParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_PORT,port);
+      parameters.setParameter(SolrConfig.PARAM_PORT,port);
 
     String webapp = variableContext.getParameter("webappname");
     if (webapp != null)
-      parameters.setParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_WEBAPPNAME,webapp);
+      parameters.setParameter(SolrConfig.PARAM_WEBAPPNAME,webapp);
 
     String core = variableContext.getParameter("core");
     if (core != null)
-      parameters.setParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_CORE,core);
+      parameters.setParameter(SolrConfig.PARAM_CORE,core);
 
     String updatePath = variableContext.getParameter("updatepath");
     if (updatePath != null)
-      parameters.setParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_UPDATEPATH,updatePath);
+      parameters.setParameter(SolrConfig.PARAM_UPDATEPATH,updatePath);
 
     String removePath = variableContext.getParameter("removepath");
     if (removePath != null)
-      parameters.setParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_REMOVEPATH,removePath);
+      parameters.setParameter(SolrConfig.PARAM_REMOVEPATH,removePath);
 
     String statusPath = variableContext.getParameter("statuspath");
     if (statusPath != null)
-      parameters.setParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_STATUSPATH,statusPath);
+      parameters.setParameter(SolrConfig.PARAM_STATUSPATH,statusPath);
 
     String idField = variableContext.getParameter("idfield");
     if (idField != null)
-      parameters.setParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_IDFIELD,idField);
+      parameters.setParameter(SolrConfig.PARAM_IDFIELD,idField);
 
     String realm = variableContext.getParameter("realm");
     if (realm != null)
-      parameters.setParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_REALM,realm);
+      parameters.setParameter(SolrConfig.PARAM_REALM,realm);
 
     String userID = variableContext.getParameter("userid");
     if (userID != null)
-      parameters.setParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_USERID,userID);
+      parameters.setParameter(SolrConfig.PARAM_USERID,userID);
 		
     String password = variableContext.getParameter("password");
     if (password != null)
-      parameters.setObfuscatedParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_PASSWORD,password);
+      parameters.setObfuscatedParameter(SolrConfig.PARAM_PASSWORD,password);
+    
+    String maxLength = variableContext.getParameter("maxdocumentlength");
+    if (maxLength != null)
+      parameters.setParameter(SolrConfig.PARAM_MAXLENGTH,maxLength);
+    
+    String includedMimeTypes = variableContext.getParameter("includedmimetypes");
+    if (includedMimeTypes != null)
+      parameters.setParameter(SolrConfig.PARAM_INCLUDEDMIMETYPES,includedMimeTypes);
+    
+    String excludedMimeTypes = variableContext.getParameter("excludedmimetypes");
+    if (excludedMimeTypes != null)
+      parameters.setParameter(SolrConfig.PARAM_EXCLUDEDMIMETYPES,excludedMimeTypes);
     
     String commitsPresent = variableContext.getParameter("commits_present");
     if (commitsPresent != null)
@@ -1042,7 +1271,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       String commits = variableContext.getParameter("commits");
       if (commits == null)
         commits = "false";
-      parameters.setParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_COMMITS,commits);
+      parameters.setParameter(SolrConfig.PARAM_COMMITS,commits);
     }
     
     String keystoreValue = variableContext.getParameter("keystoredata");
@@ -1051,7 +1280,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       mgr = KeystoreManagerFactory.make("",keystoreValue);
     else
       mgr = KeystoreManagerFactory.make("");
-    parameters.setParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_KEYSTORE,mgr.getString());
+    parameters.setParameter(SolrConfig.PARAM_KEYSTORE,mgr.getString());
 
     String x = variableContext.getParameter("argument_count");
     if (x != null && x.length() > 0)
@@ -1061,7 +1290,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       while (i < parameters.getChildCount())
       {
         ConfigNode node = parameters.getChild(i);
-        if (node.getType().equals(org.apache.manifoldcf.agents.output.solr.SolrConfig.NODE_ARGUMENT))
+        if (node.getType().equals(SolrConfig.NODE_ARGUMENT))
           parameters.removeChild(i);
         else
           i++;
@@ -1077,9 +1306,9 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
           // Gather the name and value.
           String name = variableContext.getParameter(prefix+"_name");
           String value = variableContext.getParameter(prefix+"_value");
-          ConfigNode node = new ConfigNode(org.apache.manifoldcf.agents.output.solr.SolrConfig.NODE_ARGUMENT);
-          node.setAttribute(org.apache.manifoldcf.agents.output.solr.SolrConfig.ATTRIBUTE_NAME,name);
-          node.setAttribute(org.apache.manifoldcf.agents.output.solr.SolrConfig.ATTRIBUTE_VALUE,value);
+          ConfigNode node = new ConfigNode(SolrConfig.NODE_ARGUMENT);
+          node.setAttribute(SolrConfig.ATTRIBUTE_NAME,name);
+          node.setAttribute(SolrConfig.ATTRIBUTE_VALUE,value);
           parameters.addChild(parameters.getChildCount(),node);
         }
         i++;
@@ -1089,9 +1318,9 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       {
         String name = variableContext.getParameter("argument_name");
         String value = variableContext.getParameter("argument_value");
-        ConfigNode node = new ConfigNode(org.apache.manifoldcf.agents.output.solr.SolrConfig.NODE_ARGUMENT);
-        node.setAttribute(org.apache.manifoldcf.agents.output.solr.SolrConfig.ATTRIBUTE_NAME,name);
-        node.setAttribute(org.apache.manifoldcf.agents.output.solr.SolrConfig.ATTRIBUTE_VALUE,value);
+        ConfigNode node = new ConfigNode(SolrConfig.NODE_ARGUMENT);
+        node.setAttribute(SolrConfig.ATTRIBUTE_NAME,name);
+        node.setAttribute(SolrConfig.ATTRIBUTE_VALUE,value);
         parameters.addChild(parameters.getChildCount(),node);
       }
     }
@@ -1102,19 +1331,19 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       if (configOp.equals("Delete"))
       {
         String alias = variableContext.getParameter("solrkeystorealias");
-        keystoreValue = parameters.getParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_KEYSTORE);
+        keystoreValue = parameters.getParameter(SolrConfig.PARAM_KEYSTORE);
         if (keystoreValue != null)
           mgr = KeystoreManagerFactory.make("",keystoreValue);
         else
           mgr = KeystoreManagerFactory.make("");
         mgr.remove(alias);
-        parameters.setParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_KEYSTORE,mgr.getString());
+        parameters.setParameter(SolrConfig.PARAM_KEYSTORE,mgr.getString());
       }
       else if (configOp.equals("Add"))
       {
         String alias = IDFactory.make(threadContext);
         byte[] certificateValue = variableContext.getBinaryBytes("solrcertificate");
-        keystoreValue = parameters.getParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_KEYSTORE);
+        keystoreValue = parameters.getParameter(SolrConfig.PARAM_KEYSTORE);
         if (keystoreValue != null)
           mgr = KeystoreManagerFactory.make("",keystoreValue);
         else
@@ -1145,7 +1374,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         {
           return "Illegal certificate: "+certError;
         }
-        parameters.setParameter(org.apache.manifoldcf.agents.output.solr.SolrConfig.PARAM_KEYSTORE,mgr.getString());
+        parameters.setParameter(SolrConfig.PARAM_KEYSTORE,mgr.getString());
       }
     }
 
@@ -1214,11 +1443,11 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     while (i < parameters.getChildCount())
     {
       ConfigNode cn = parameters.getChild(i++);
-      if (cn.getType().equals(org.apache.manifoldcf.agents.output.solr.SolrConfig.NODE_ARGUMENT))
+      if (cn.getType().equals(SolrConfig.NODE_ARGUMENT))
       {
         // An argument node!  Look for all its parameters.
-        String name = cn.getAttributeValue(org.apache.manifoldcf.agents.output.solr.SolrConfig.ATTRIBUTE_NAME);
-        String value = cn.getAttributeValue(org.apache.manifoldcf.agents.output.solr.SolrConfig.ATTRIBUTE_VALUE);
+        String name = cn.getAttributeValue(SolrConfig.ATTRIBUTE_NAME);
+        String value = cn.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE);
 
         out.print(
 "        <tr class=\""+(((instanceNumber % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+

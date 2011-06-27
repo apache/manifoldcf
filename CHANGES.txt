@@ -3,6 +3,11 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-214: Add output connector support for restricting documents based on
+mime type, URL, and document length.  Hook this up to the web and RSS
+connectors, and add mime type and maximum length fields to the Solr
+connector.
+
 CONNECTORS-212: Failure during notify should send job back to
 ReadyForNotify state, not ReadyForDelete state.
 (Karl Wright)

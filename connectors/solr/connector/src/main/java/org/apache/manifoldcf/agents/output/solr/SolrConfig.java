@@ -55,6 +55,12 @@ public class SolrConfig
   public static final String PARAM_COMMITS = "Commits";
   /** Keystore */
   public static final String PARAM_KEYSTORE = "Keystore";
+  /** Maximum document length */
+  public static final String PARAM_MAXLENGTH = "Maximum document length";
+  /** Included mime types */
+  public static final String PARAM_INCLUDEDMIMETYPES = "Included mime types";
+  /** Excluded mime types */
+  public static final String PARAM_EXCLUDEDMIMETYPES="Excluded mime types";
   /** Node describing an argument */
   public static final String NODE_ARGUMENT = "argument";
   /** Attribute with the argument name */

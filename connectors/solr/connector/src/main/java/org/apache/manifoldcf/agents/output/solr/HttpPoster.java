@@ -67,6 +67,8 @@ public class HttpPoster
   private String allowAttributeName;
   private String denyAttributeName;
   private String idAttributeName;
+  
+  private Long maxDocumentLength;
 
   private static final String LITERAL = "literal.";
   private static final String NOTHING = "__NOTHING__";
@@ -129,12 +131,14 @@ public class HttpPoster
     String updatePath, String removePath, String statusPath,
     String realm, String userID, String password,
     String allowAttributeName, String denyAttributeName, String idAttributeName,
-    IKeystoreManager keystoreManager)
+    IKeystoreManager keystoreManager, Long maxDocumentLength)
     throws ManifoldCFException
   {
     this.allowAttributeName = allowAttributeName;
     this.denyAttributeName = denyAttributeName;
     this.idAttributeName = idAttributeName;
+    
+    this.maxDocumentLength = maxDocumentLength;
     
     this.host = server;
     this.port = port;
@@ -275,6 +279,10 @@ public class HttpPoster
 
     // The SOLR connector cannot deal with folder-level security at this time.  If they are seen, reject the document.
     if (document.countDirectoryACLs() != 0)
+      return false;
+    
+    // If the document is too long, reject it.
+    if (maxDocumentLength != null && document.getBinaryLength() > maxDocumentLength.longValue())
       return false;
     
     // Convert the incoming acls to qualified forms
