@@ -34,6 +34,9 @@ if [ -e "$JAVA_HOME"/bin/java ] ; then
                 CLASSPATH="$MCF_HOME"/processes/jar/"$filename"
             fi
         done
+
+        # Build the options
+	OPTIONS=$(cat "$MCF_HOME"/processes/script/options.env)
         
         # Build the defines
         DEFINES="-Dorg.apache.manifoldcf.configfile=$MCF_HOME/properties.xml"
@@ -44,7 +47,7 @@ if [ -e "$JAVA_HOME"/bin/java ] ; then
             done
         fi
 
-        "$JAVA_HOME/bin/java" $DEFINES -cp "$CLASSPATH" "$@"
+        "$JAVA_HOME/bin/java" $OPTIONS $DEFINES -cp "$CLASSPATH" "$@"
         exit $?
         
     else

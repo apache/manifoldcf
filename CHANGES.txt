@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-215: Setting an environment variable of agent.
+Add options.env file, in which we can define optional value.
+(Karl Wright, Shinichiro Abe)
+
 CONNECTORS-216: Clean up document removal options in IProcessActivity,
 and modify connectors accordingly to avoid using the deprecated form of
 deleteDocument().
