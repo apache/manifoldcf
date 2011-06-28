@@ -1775,21 +1775,30 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
                 RepositoryDocument rd = t.getResponse();
                 if (rd != null)
                 {
-                  // Stream the data to the ingestion system
-                  InputStream is = new FileInputStream(objFileTemp);
-                  try
+                  long fileLength = t.getActivityFileLength().longValue();
+                  if (activities.checkLengthIndexable(fileLength))
                   {
-                    rd.setBinary(is, t.getActivityFileLength().longValue());
-                    // Do the ingestion
-                    activities.ingestDocument(documentIdentifier,versionString,
-                      t.getURI(), rd);
+                    // Stream the data to the ingestion system
+                    InputStream is = new FileInputStream(objFileTemp);
+                    try
+                    {
+                      rd.setBinary(is, fileLength);
+                      // Do the ingestion
+                      activities.ingestDocument(documentIdentifier,versionString,
+                        t.getURI(), rd);
+                    }
+                    finally
+                    {
+                      is.close();
+                    }
                   }
-                  finally
-                  {
-                    is.close();
-                  }
+                  else
+                    rd = null;
                 }
-
+                
+                if (rd == null)
+                  activities.deleteDocument(documentIdentifier,versionString);
+                
                 // Abort the retry loop and go on to the next document
                 break;
 

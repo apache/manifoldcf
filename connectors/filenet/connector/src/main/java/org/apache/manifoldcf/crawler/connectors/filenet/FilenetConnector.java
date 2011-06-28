@@ -1268,66 +1268,72 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
               activities.recordActivity(new Long(startTime),ACTIVITY_FETCH,
                 new Long(fileLength),documentIdentifier,"Success",null,null);
 
-              InputStream is = new FileInputStream(objFileTemp);
-              try
+              if (activities.checkLengthIndexable(fileLength))
               {
-                RepositoryDocument rd = new RepositoryDocument();
-                rd.setBinary(is, fileLength);
 
-                // Apply metadata
-                int j = 0;
-                while (j < metadataNames.size())
-                {
-                  String metadataName = (String)metadataNames.get(j);
-                  String metadataValue = (String)metadataValues.get(j);
-                  rd.addField(metadataName,metadataValue);
-                  j++;
-                }
-
-                // Apply acls
-                if (aclValues != null)
-                {
-                  String[] acls = new String[aclValues.size()];
-                  j = 0;
-                  while (j < aclValues.size())
-                  {
-                    acls[j] = (String)aclValues.get(j);
-                    j++;
-                  }
-                  rd.setACL(acls);
-                }
-                if (denyAclValues != null)
-                {
-                  String[] denyAcls = new String[denyAclValues.size()];
-                  j = 0;
-                  while (j < denyAclValues.size())
-                  {
-                    denyAcls[j] = (String)denyAclValues.get(j);
-                    j++;
-                  }
-                  rd.setDenyACL(denyAcls);
-                }
-
-                // Ingest
-                activities.ingestDocument(documentIdentifier,documentVersion,
-                  convertToURI(urlBase.toString(),vId,elementNumber,documentClass.toString()),rd);
-
-              }
-              finally
-              {
+                InputStream is = new FileInputStream(objFileTemp);
                 try
                 {
-                  is.close();
+                  RepositoryDocument rd = new RepositoryDocument();
+                  rd.setBinary(is, fileLength);
+
+                  // Apply metadata
+                  int j = 0;
+                  while (j < metadataNames.size())
+                  {
+                    String metadataName = (String)metadataNames.get(j);
+                    String metadataValue = (String)metadataValues.get(j);
+                    rd.addField(metadataName,metadataValue);
+                    j++;
+                  }
+
+                  // Apply acls
+                  if (aclValues != null)
+                  {
+                    String[] acls = new String[aclValues.size()];
+                    j = 0;
+                    while (j < aclValues.size())
+                    {
+                      acls[j] = (String)aclValues.get(j);
+                      j++;
+                    }
+                    rd.setACL(acls);
+                  }
+                  if (denyAclValues != null)
+                  {
+                    String[] denyAcls = new String[denyAclValues.size()];
+                    j = 0;
+                    while (j < denyAclValues.size())
+                    {
+                      denyAcls[j] = (String)denyAclValues.get(j);
+                      j++;
+                    }
+                    rd.setDenyACL(denyAcls);
+                  }
+
+                  // Ingest
+                  activities.ingestDocument(documentIdentifier,documentVersion,
+                    convertToURI(urlBase.toString(),vId,elementNumber,documentClass.toString()),rd);
+
                 }
-                catch (InterruptedIOException e)
+                finally
                 {
-                  throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                }
-                catch (IOException e)
-                {
-                  Logging.connectors.warn("FileNet: IOException closing file input stream: "+e.getMessage(),e);
+                  try
+                  {
+                    is.close();
+                  }
+                  catch (InterruptedIOException e)
+                  {
+                    throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+                  }
+                  catch (IOException e)
+                  {
+                    Logging.connectors.warn("FileNet: IOException closing file input stream: "+e.getMessage(),e);
+                  }
                 }
               }
+              else
+                activities.deleteDocument(documentIdentifier,documentVersion);
             }
             finally
             {

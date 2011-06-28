@@ -518,7 +518,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
         // null, it means that the windows permissions are not right and directory/file is not readable!!!
         String newPath = getFileCanonicalPath(file);
         // We MUST check the specification here, otherwise a recrawl may not delete what it's supposed to!
-        if (fileExists(file) && newPath != null && checkInclude(file,newPath,spec))
+        if (fileExists(file) && newPath != null && checkInclude(file,newPath,spec,activities))
         {
           if (fileIsDirectory(file))
           {
@@ -1352,7 +1352,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param documentSpecification is the specification.
   *@return true if it should be included.
   */
-  protected boolean checkInclude(SmbFile file, String fileName, DocumentSpecification documentSpecification)
+  protected boolean checkInclude(SmbFile file, String fileName, DocumentSpecification documentSpecification, IFingerprintActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
     if (Logging.connectors.isDebugEnabled())
@@ -1393,6 +1393,9 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       int i;
       if (!isDirectory)
       {
+        long fileLength = fileLength(file);
+        if (!activities.checkLengthIndexable(fileLength))
+          return false;
         long maxFileLength = Long.MAX_VALUE;
         i = 0;
         while (i < documentSpecification.getChildCount())
@@ -1408,11 +1411,11 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
             }
             catch (NumberFormatException e)
             {
-              throw new ManifoldCFException("Bad number",e);
+              throw new ManifoldCFException("Bad number: "+e.getMessage(),e);
             }
           }
         }
-        if (fileLength(file) > maxFileLength)
+        if (fileLength > maxFileLength)
           return false;
       }
 
@@ -4714,7 +4717,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
           // documents that we will immediately turn around and remove.  However, if this
           // check was not here, everything should still function, provided the getDocumentVersions()
           // method does the right thing.
-          if (checkInclude(f, newPath, spec))
+          if (checkInclude(f, newPath, spec, activities))
           {
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("JCIFS: Recorded path is '" + newPath + "' and is included.");
