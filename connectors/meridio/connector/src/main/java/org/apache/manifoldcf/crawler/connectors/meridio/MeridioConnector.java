@@ -1361,26 +1361,32 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
               if (theTempFile.isFile())
               {
                 long fileSize = theTempFile.length();                   // ap.getSize();
-                InputStream is = new FileInputStream(theTempFile);      // ap.getDataHandler().getInputStream();
-                try
+                if (activities.checkLengthIndexable(fileSize))
                 {
-                  repositoryDocument.setBinary(is, fileSize);
-
-                  if (null != activities)
+                  InputStream is = new FileInputStream(theTempFile);      // ap.getDataHandler().getInputStream();
+                  try
                   {
-                    activities.ingestDocument(documentIdentifier, docVersion,
-                      fileURL, repositoryDocument);
+                    repositoryDocument.setBinary(is, fileSize);
+
+                    if (null != activities)
+                    {
+                      activities.ingestDocument(documentIdentifier, docVersion,
+                        fileURL, repositoryDocument);
+                    }
+                  }
+                  finally
+                  {
+                    is.close();
                   }
                 }
-                finally
-                {
-                  is.close();
-                }
+                else
+                  activities.deleteDocument(documentIdentifier, docVersion);
               }
               else
               {
                 if (Logging.connectors.isDebugEnabled())
                   Logging.connectors.debug("Meridio: Expected temporary file was not present - skipping document '"+new Long(docId).toString() + "'");
+                activities.deleteDocument(documentIdentifier, docVersion);
               }
             }
             finally

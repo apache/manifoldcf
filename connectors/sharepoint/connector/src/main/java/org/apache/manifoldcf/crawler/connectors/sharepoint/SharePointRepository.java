@@ -1178,129 +1178,137 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 {
                   os.close();
                 }
-                InputStream is = new FileInputStream(tempFile);
-                try
+                
+                long documentLength = tempFile.length();
+                if (activities.checkLengthIndexable(documentLength))
                 {
-                  RepositoryDocument data = new RepositoryDocument();
-                  data.setBinary( is, tempFile.length() );
-
-                  if (acls != null)
-                  {
-                    String[] actualAcls = new String[acls.size()];
-                    int j = 0;
-                    while (j < actualAcls.length)
-                    {
-                      actualAcls[j] = (String)acls.get(j);
-                      j++;
-                    }
-
-                    if (Logging.connectors.isDebugEnabled())
-                    {
-                      j = 0;
-                      StringBuilder sb = new StringBuilder("SharePoint: Acls: [ ");
-                      while (j < actualAcls.length)
-                      {
-                        sb.append(actualAcls[j++]).append(" ");
-                      }
-                      sb.append("]");
-                      Logging.connectors.debug( sb.toString() );
-                    }
-
-                    data.setACL( actualAcls );
-                  }
-
-                  if (denyAcl != null)
-                  {
-                    String[] actualDenyAcls = new String[]{denyAcl};
-                    data.setDenyACL(actualDenyAcls);
-                  }
-
-                  // Add the path metadata item into the mix, if enabled
-                  String pathAttributeName = sDesc.getPathAttributeName();
-                  if (pathAttributeName != null && pathAttributeName.length() > 0)
-                  {
-                    if (Logging.connectors.isDebugEnabled())
-                      Logging.connectors.debug("SharePoint: Path attribute name is '"+pathAttributeName+"'");
-                    String pathString = sDesc.getPathAttributeValue(documentIdentifier);
-                    if (Logging.connectors.isDebugEnabled())
-                      Logging.connectors.debug("SharePoint: Path attribute value is '"+pathString+"'");
-                    data.addField(pathAttributeName,pathString);
-                  }
-                  else
-                    Logging.connectors.debug("SharePoint: Path attribute name is null");
-
-                  // Retrieve field values from SharePoint
-                  if (metadataDescription.size() > 0)
-                  {
-                    String documentLibID = (String)docLibIDMap.get(decodedLibPath);
-                    if (documentLibID == null)
-                    {
-                      documentLibID = proxy.getDocLibID( encodePath(site), site, libName);
-                      if (documentLibID == null)
-                        documentLibID = "";
-                      docLibIDMap.put(decodedLibPath,documentLibID);
-                    }
-
-                    if (documentLibID.length() == 0)
-                    {
-                      if (Logging.connectors.isDebugEnabled())
-                        Logging.connectors.debug("SharePoint: Library '"+decodedLibPath+"' no longer exists - deleting document '"+documentIdentifier+"'");
-                      activities.deleteDocument(documentIdentifier,version);
-                      i++;
-                      continue;
-                    }
-
-                    int cutoff = decodedLibPath.lastIndexOf("/");
-                    Map values = proxy.getFieldValues( metadataDescription, encodePath(site), documentLibID, decodedDocumentPath.substring(cutoff+1) );
-                    if (values != null)
-                    {
-                      Iterator iter = values.keySet().iterator();
-                      while (iter.hasNext())
-                      {
-                        String fieldName = (String)iter.next();
-                        String fieldData = (String)values.get(fieldName);
-                        data.addField(fieldName,fieldData);
-                      }
-                    }
-                    else
-                    {
-                      // Document has vanished
-                      if (Logging.connectors.isDebugEnabled())
-                        Logging.connectors.debug("SharePoint: Document metadata fetch failure indicated that document is gone: '"+documentIdentifier+"' - removing");
-                      activities.deleteDocument(documentIdentifier,version);
-                      i++;
-                      continue;
-                    }
-                  }
-
-                  activities.ingestDocument( documentIdentifier, version, fileUrl , data );
-                }
-                finally
-                {
+                  InputStream is = new FileInputStream(tempFile);
                   try
                   {
-                    is.close();
+                    RepositoryDocument data = new RepositoryDocument();
+                    data.setBinary( is, documentLength );
+
+                    if (acls != null)
+                    {
+                      String[] actualAcls = new String[acls.size()];
+                      int j = 0;
+                      while (j < actualAcls.length)
+                      {
+                        actualAcls[j] = (String)acls.get(j);
+                        j++;
+                      }
+
+                      if (Logging.connectors.isDebugEnabled())
+                      {
+                        j = 0;
+                        StringBuilder sb = new StringBuilder("SharePoint: Acls: [ ");
+                        while (j < actualAcls.length)
+                        {
+                          sb.append(actualAcls[j++]).append(" ");
+                        }
+                        sb.append("]");
+                        Logging.connectors.debug( sb.toString() );
+                      }
+
+                      data.setACL( actualAcls );
+                    }
+
+                    if (denyAcl != null)
+                    {
+                      String[] actualDenyAcls = new String[]{denyAcl};
+                      data.setDenyACL(actualDenyAcls);
+                    }
+
+                    // Add the path metadata item into the mix, if enabled
+                    String pathAttributeName = sDesc.getPathAttributeName();
+                    if (pathAttributeName != null && pathAttributeName.length() > 0)
+                    {
+                      if (Logging.connectors.isDebugEnabled())
+                        Logging.connectors.debug("SharePoint: Path attribute name is '"+pathAttributeName+"'");
+                      String pathString = sDesc.getPathAttributeValue(documentIdentifier);
+                      if (Logging.connectors.isDebugEnabled())
+                        Logging.connectors.debug("SharePoint: Path attribute value is '"+pathString+"'");
+                      data.addField(pathAttributeName,pathString);
+                    }
+                    else
+                      Logging.connectors.debug("SharePoint: Path attribute name is null");
+
+                    // Retrieve field values from SharePoint
+                    if (metadataDescription.size() > 0)
+                    {
+                      String documentLibID = (String)docLibIDMap.get(decodedLibPath);
+                      if (documentLibID == null)
+                      {
+                        documentLibID = proxy.getDocLibID( encodePath(site), site, libName);
+                        if (documentLibID == null)
+                          documentLibID = "";
+                        docLibIDMap.put(decodedLibPath,documentLibID);
+                      }
+
+                      if (documentLibID.length() == 0)
+                      {
+                        if (Logging.connectors.isDebugEnabled())
+                          Logging.connectors.debug("SharePoint: Library '"+decodedLibPath+"' no longer exists - deleting document '"+documentIdentifier+"'");
+                        activities.deleteDocument(documentIdentifier,version);
+                        i++;
+                        continue;
+                      }
+
+                      int cutoff = decodedLibPath.lastIndexOf("/");
+                      Map values = proxy.getFieldValues( metadataDescription, encodePath(site), documentLibID, decodedDocumentPath.substring(cutoff+1) );
+                      if (values != null)
+                      {
+                        Iterator iter = values.keySet().iterator();
+                        while (iter.hasNext())
+                        {
+                          String fieldName = (String)iter.next();
+                          String fieldData = (String)values.get(fieldName);
+                          data.addField(fieldName,fieldData);
+                        }
+                      }
+                      else
+                      {
+                        // Document has vanished
+                        if (Logging.connectors.isDebugEnabled())
+                          Logging.connectors.debug("SharePoint: Document metadata fetch failure indicated that document is gone: '"+documentIdentifier+"' - removing");
+                        activities.deleteDocument(documentIdentifier,version);
+                        i++;
+                        continue;
+                      }
+                    }
+
+                    activities.ingestDocument( documentIdentifier, version, fileUrl , data );
                   }
-                  catch (java.net.SocketTimeoutException e)
+                  finally
                   {
-                    // This is not fatal
-                    Logging.connectors.debug("SharePoint: Timeout before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
-                  }
-                  catch (org.apache.commons.httpclient.ConnectTimeoutException e)
-                  {
-                    // This is not fatal
-                    Logging.connectors.debug("SharePoint: Connect timeout before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
-                  }
-                  catch (InterruptedIOException e)
-                  {
-                    throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                  }
-                  catch (IOException e)
-                  {
-                    // This is not fatal
-                    Logging.connectors.debug("SharePoint: Server closed connection before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
+                    try
+                    {
+                      is.close();
+                    }
+                    catch (java.net.SocketTimeoutException e)
+                    {
+                      // This is not fatal
+                      Logging.connectors.debug("SharePoint: Timeout before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
+                    }
+                    catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+                    {
+                      // This is not fatal
+                      Logging.connectors.debug("SharePoint: Connect timeout before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
+                    }
+                    catch (InterruptedIOException e)
+                    {
+                      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+                    }
+                    catch (IOException e)
+                    {
+                      // This is not fatal
+                      Logging.connectors.debug("SharePoint: Server closed connection before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
+                    }
                   }
                 }
+                else
+                  // Document too long
+                  activities.deleteDocument( documentIdentifier, version );
               }
               finally
               {
