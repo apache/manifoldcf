@@ -1529,6 +1529,8 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     protected String activityStatus = null;
     protected String activityMessage = null;
     protected String uri = null;
+    protected String contentType = null;
+    protected Long contentSize = null;
 
 
     public ProcessDocumentThread(String documentIdentifier, String versionString, File objFileTemp, SystemMetadataDescription sDesc)
@@ -1549,9 +1551,12 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
           "' and any r_version_label='CURRENT'");
         try
         {
+          long contentSizeValue = object.getContentSize();
           if (object.exists() && !object.isDeleted() && !object.isHidden() && object.getPermit() > 1 &&
-            object.getContentSize() > 0 && object.getPageCount() > 0)
+            contentSizeValue > 0 && object.getPageCount() > 0)
           {
+            contentSize = new Long(contentSizeValue);
+            
             String objName = object.getObjectName();
 
             // This particular way of getting content failed, because DFC loaded the
@@ -1659,7 +1664,8 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
               rval.setDenyACL(denyAcls);
             }
 
-            uri = convertToURI(object.getObjectId(),object.getContentType());
+            contentType = object.getContentType();
+            uri = convertToURI(object.getObjectId(),contentType);
           }
         }
         finally
@@ -1683,6 +1689,16 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       return rval;
     }
 
+    public Long getContentSize()
+    {
+      return contentSize;
+    }
+    
+    public String getContentType()
+    {
+      return contentType;
+    }
+    
     public Long getActivityStartTime()
     {
       return activityStartTime;
@@ -1766,18 +1782,19 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
                     throw (Error)thr;
                 }
 
-                // Log the fetch activity
-                if (t.getActivityStatus() != null)
-                  activities.recordActivity(t.getActivityStartTime(),ACTIVITY_FETCH,
-                  t.getActivityFileLength(),documentIdentifier,t.getActivityStatus(),t.getActivityMessage(),
-                  null);
-
                 RepositoryDocument rd = t.getResponse();
                 if (rd != null)
                 {
-                  long fileLength = t.getActivityFileLength().longValue();
-                  if (activities.checkLengthIndexable(fileLength))
+                  long fileLength = t.getContentSize().longValue();
+                  String contentType = t.getContentType();
+                  if (activities.checkLengthIndexable(fileLength) && activities.checkMimeTypeIndexable(contentType))
                   {
+                    // Log the fetch activity
+                    if (t.getActivityStatus() != null)
+                      activities.recordActivity(t.getActivityStartTime(),ACTIVITY_FETCH,
+                      t.getActivityFileLength(),documentIdentifier,t.getActivityStatus(),t.getActivityMessage(),
+                      null);
+
                     // Stream the data to the ingestion system
                     InputStream is = new FileInputStream(objFileTemp);
                     try
@@ -1793,7 +1810,14 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
                     }
                   }
                   else
+                  {
                     rd = null;
+                    // Log the fetch activity
+                    if (t.getActivityStatus() != null)
+                      activities.recordActivity(t.getActivityStartTime(),ACTIVITY_FETCH,
+                      t.getActivityFileLength(),documentIdentifier,"REJECTED",null,
+                      null);
+                  }
                 }
                 
                 if (rd == null)
