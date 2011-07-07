@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-218: LockClean supports relative path 
+to the synchronization directory. 
+(Shinichiro Abe)
+
 CONNECTORS-215: Setting an environment variable of agent.
 Add options.env file, in which we can define optional value.
 (Karl Wright, Shinichiro Abe)
