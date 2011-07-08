@@ -28,6 +28,7 @@ public class AgentRun extends BaseAgentsInitializationCommand
 {
   public static final String _rcsid = "@(#)$Id: AgentRun.java 988245 2010-08-23 18:39:35Z kwright $";
 
+  public static final String agentInUseSignal = "_AGENTINUSE_";
   public static final String agentShutdownSignal = "_AGENTRUN_";
   
   public AgentRun()
@@ -37,28 +38,48 @@ public class AgentRun extends BaseAgentsInitializationCommand
   protected void doExecute(IThreadContext tc) throws ManifoldCFException
   {
     ILockManager lockManager = LockManagerFactory.make(tc);
-    // Clear the agents shutdown signal.
-    lockManager.clearGlobalFlag(agentShutdownSignal);
-    Logging.root.info("Running...");
-    while (true)
+    // Agent already in use?
+    if (lockManager.checkGlobalFlag(agentInUseSignal))
     {
-      // Any shutdown signal yet?
-      if (lockManager.checkGlobalFlag(agentShutdownSignal))
-        break;
-
-      // Start whatever agents need to be started
-      ManifoldCF.startAgents(tc);
-
-      try
-      {
-        ManifoldCF.sleep(5000);
-      }
-      catch (InterruptedException e)
-      {
-        break;
-      }
+      System.err.println("Agent already in use");
+      System.exit(1);
     }
-    Logging.root.info("Shutting down...");
+    // Set the agents in use signal.
+    lockManager.setGlobalFlag(agentInUseSignal);    
+    try
+    {
+      // Clear the agents shutdown signal.
+      lockManager.clearGlobalFlag(agentShutdownSignal);
+      Logging.root.info("Running...");
+      while (true)
+      {
+        // Any shutdown signal yet?
+        if (lockManager.checkGlobalFlag(agentShutdownSignal))
+          break;
+
+        // Start whatever agents need to be started
+        ManifoldCF.startAgents(tc);
+
+        try
+        {
+          ManifoldCF.sleep(5000);
+        }
+        catch (InterruptedException e)
+        {
+          break;
+        }
+      }
+      Logging.root.info("Shutting down...");
+    }
+    catch (ManifoldCFException e)
+    {
+      Logging.root.error("Exception: "+e.getMessage(),e);
+      e.printStackTrace(System.err);
+    }
+    finally
+    {
+      lockManager.clearGlobalFlag(agentInUseSignal);
+    }
   }
 
 

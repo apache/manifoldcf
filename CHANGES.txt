@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-217: Check running more than one of instance of agent. 
+(Shinichiro Abe)
+
 CONNECTORS-218: LockClean supports relative path 
 to the synchronization directory. 
 (Shinichiro Abe)
