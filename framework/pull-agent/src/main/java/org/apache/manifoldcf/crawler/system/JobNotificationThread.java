@@ -350,6 +350,13 @@ public class JobNotificationThread extends Thread
       IJobManager jobManager = JobManagerFactory.make(tc);
       jobManager.resetNotificationWorkerStatus();
     }
+
+    /** Do the wakeup logic.
+    */
+    protected void performWakeupLogic()
+    {
+    }
+
   }
 
 }

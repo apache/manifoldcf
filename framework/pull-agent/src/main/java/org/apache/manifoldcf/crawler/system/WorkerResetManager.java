@@ -52,5 +52,14 @@ public class WorkerResetManager extends ResetManager
     dq.clear();
     eq.clear();
   }
+  
+  /** Do the wakeup logic.
+  */
+  protected void performWakeupLogic()
+  {
+    // Wake up all sleeping worker threads
+    dq.reset();
+    eq.reset();
+  }
 }
 

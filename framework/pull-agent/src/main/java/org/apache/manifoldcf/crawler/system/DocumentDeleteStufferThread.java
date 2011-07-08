@@ -161,7 +161,6 @@ public class DocumentDeleteStufferThread extends Thread
           if (e.getErrorCode() == ManifoldCFException.DATABASE_CONNECTION_ERROR)
           {
             resetManager.noteEvent();
-            documentDeleteQueue.reset();
 
             Logging.threads.error("Delete stuffer thread aborting and restarting due to database connection reset",e);
             try

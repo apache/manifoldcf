@@ -163,7 +163,6 @@ public class DocumentCleanupStufferThread extends Thread
           if (e.getErrorCode() == ManifoldCFException.DATABASE_CONNECTION_ERROR)
           {
             resetManager.noteEvent();
-            documentCleanupQueue.reset();
 
             Logging.threads.error("Cleanup stuffer thread aborting and restarting due to database connection reset",e);
             try

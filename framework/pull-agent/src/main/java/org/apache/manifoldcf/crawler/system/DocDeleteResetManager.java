@@ -48,4 +48,12 @@ public class DocDeleteResetManager extends ResetManager
     jobManager.resetDocDeleteWorkerStatus();
     ddq.clear();
   }
+
+  /** Do the wakeup logic.
+  */
+  protected void performWakeupLogic()
+  {
+    ddq.reset();
+  }
+
 }

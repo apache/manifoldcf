@@ -312,6 +312,13 @@ public class SeedingThread extends Thread
       IJobManager jobManager = JobManagerFactory.make(tc);
       jobManager.resetSeedingWorkerStatus();
     }
+    
+    /** Do the wakeup logic.
+    */
+    protected void performWakeupLogic()
+    {
+    }
+
   }
 
 }

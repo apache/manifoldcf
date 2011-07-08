@@ -917,8 +917,6 @@ public class WorkerThread extends Thread
           {
             // Note the failure, which will cause a reset to occur
             resetManager.noteEvent();
-            // Wake up all sleeping worker threads
-            documentQueue.reset();
 
             Logging.threads.error("Worker thread aborting and restarting due to database connection reset: "+e.getMessage(),e);
             try

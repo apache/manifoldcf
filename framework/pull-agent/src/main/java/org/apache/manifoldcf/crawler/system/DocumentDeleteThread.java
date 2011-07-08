@@ -214,7 +214,6 @@ public class DocumentDeleteThread extends Thread
           if (e.getErrorCode() == ManifoldCFException.DATABASE_CONNECTION_ERROR)
           {
             resetManager.noteEvent();
-            documentDeleteQueue.reset();
 
             Logging.threads.error("Document delete thread aborting and restarting due to database connection reset: "+e.getMessage(),e);
             try

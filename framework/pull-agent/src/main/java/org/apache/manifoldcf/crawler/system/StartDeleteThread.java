@@ -228,6 +228,13 @@ public class StartDeleteThread extends Thread
       IJobManager jobManager = JobManagerFactory.make(tc);
       jobManager.resetDeleteStartupWorkerStatus();
     }
+    
+    /** Do the wakeup logic.
+    */
+    protected void performWakeupLogic()
+    {
+    }
+
   }
 
 }

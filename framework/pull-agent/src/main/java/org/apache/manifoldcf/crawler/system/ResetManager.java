@@ -62,6 +62,7 @@ public abstract class ResetManager
   public synchronized void noteEvent()
   {
     resetRequired = true;
+    performWakeupLogic();
   }
 
   /** Enter "wait" state for current thread.
@@ -114,5 +115,8 @@ public abstract class ResetManager
   protected abstract void performResetLogic(IThreadContext tc)
     throws ManifoldCFException;
 
-
+  /** Do the wakeup logic.
+  */
+  protected abstract void performWakeupLogic();
+  
 }

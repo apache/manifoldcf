@@ -327,6 +327,13 @@ public class StartupThread extends Thread
       IJobManager jobManager = JobManagerFactory.make(tc);
       jobManager.resetStartupWorkerStatus();
     }
+    
+    /** Do the wakeup logic.
+    */
+    protected void performWakeupLogic()
+    {
+    }
+
   }
 
 }

@@ -179,7 +179,6 @@ public class ExpireStufferThread extends Thread
           if (e.getErrorCode() == ManifoldCFException.DATABASE_CONNECTION_ERROR)
           {
             resetManager.noteEvent();
-            documentQueue.reset();
 
             Logging.threads.error("Expiration stuffer thread aborting and restarting due to database connection reset: "+e.getMessage(),e);
             try

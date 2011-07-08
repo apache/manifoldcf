@@ -309,8 +309,6 @@ public class DocumentCleanupThread extends Thread
           {
             // Note the failure, which will cause a reset to occur
             resetManager.noteEvent();
-            // Wake up all sleeping worker threads
-            documentCleanupQueue.reset();
 
             Logging.threads.error("Document cleanup thread aborting and restarting due to database connection reset: "+e.getMessage(),e);
             try
