@@ -20,17 +20,19 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<parent>
 		<groupId>org.apache.manifoldcf</groupId>
-		<artifactId>mcf-framework</artifactId>
+		<artifactId>mcf-connectors</artifactId>
 		<version>0.3.0-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>mcf-api-servlet</artifactId>
-	<name>ManifoldCF - Framework - API Servlet</name>
-	<packaging>jar</packaging>
+	<artifactId>mcf-web-connector</artifactId>
+	<name>ManifoldCF - Connectors - Web</name>
 
+	<build>
+		<sourceDirectory>${basedir}/connector/src/main/java</sourceDirectory>
+	</build>
+	
 	<dependencies>
-		<!-- Internal dependencies -->
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>mcf-core</artifactId>
@@ -51,13 +53,20 @@
 			<artifactId>mcf-ui-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
-		<!-- web dependencies -->
 		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
-			<version>2.5</version>
-			<scope>provided</scope>
+			<groupId>commons-httpclient</groupId>
+			<artifactId>commons-httpclient-mcf</artifactId>
+			<version>3.1</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+			<version>1.1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.5</version>
 		</dependency>
 	</dependencies>
 </project>

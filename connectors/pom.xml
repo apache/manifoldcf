@@ -21,10 +21,10 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.apache.manifoldcf</groupId>
-	<artifactId>mcf-framework</artifactId>
+	<artifactId>mcf-connectors</artifactId>
 	<version>0.3.0-SNAPSHOT</version>
 
-	<name>ManifoldCF - Framework</name>
+	<name>ManifoldCF - Connectors</name>
 	<packaging>pom</packaging>
 
 	<properties>
@@ -57,16 +57,17 @@
 	</build>
 
 	<modules>
-		<module>core</module>
-		<module>ui-core</module>
-		<module>agents</module>
-		<module>pull-agent</module>
-		<module>jetty-runner</module>
-		<module>authority-servlet</module>
-		<module>api-servlet</module>
-		<module>authority-service</module>
-		<module>api-service</module>
-		<module>crawler-ui</module>
+  	<!-- common modules -->
+    <module>activedirectory</module>
+		<module>filesystem</module>
+    <module>gts</module>
+		<module>jcifs</module>
+		<module>jdbc</module>
+		<module>nullauthority</module>
+		<module>nulloutput</module>
+		<module>rss</module>
+		<module>solr</module>
+		<module>webcrawler</module>
 	</modules>
 
 </project>

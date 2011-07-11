@@ -20,17 +20,19 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<parent>
 		<groupId>org.apache.manifoldcf</groupId>
-		<artifactId>mcf-framework</artifactId>
+		<artifactId>mcf-connectors</artifactId>
 		<version>0.3.0-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>mcf-api-servlet</artifactId>
-	<name>ManifoldCF - Framework - API Servlet</name>
-	<packaging>jar</packaging>
+	<artifactId>mcf-jdbc-connector</artifactId>
+	<name>ManifoldCF - Connectors - JDBC</name>
 
+	<build>
+		<sourceDirectory>${basedir}/connector/src/main/java</sourceDirectory>
+	</build>
+	
 	<dependencies>
-		<!-- Internal dependencies -->
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>mcf-core</artifactId>
@@ -50,14 +52,6 @@
 			<groupId>${project.groupId}</groupId>
 			<artifactId>mcf-ui-core</artifactId>
 			<version>${project.version}</version>
-		</dependency>
-
-		<!-- web dependencies -->
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
-			<version>2.5</version>
-			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 </project>

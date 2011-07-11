@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-219: Update maven pom.xml files to include proper
+dependencies and version numbers.
+(Tobias Rübner)
+
 CONNECTORS-220: Fix long-standing issue with database connection
 problems.  Reset logic was insufficiently robust.
 (Farzad Valad, Karl Wright)
