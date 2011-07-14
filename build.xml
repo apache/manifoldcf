@@ -1518,7 +1518,7 @@
 
     <target name="compile-filesystem-tests" depends="build-framework,build-filesystem-connector,build-nulloutput-connector,calculate-filesystem-tests-condition,build-tests-filesystem-connector,build-tests-nulloutput-connector" if="filesystem-tests.include">
         <mkdir dir="build/filesystem-tests/classes"/>
-        <javac srcdir="tests/filesystem" destdir="build/filesystem-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="tests/filesystem/src/test/java" destdir="build/filesystem-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
                  <fileset dir="framework/lib"> 
                     <include name="*.jar"/> 
@@ -1550,7 +1550,7 @@
 
     <target name="compile-sharepoint-tests" depends="build-framework,build-sharepoint-connector,build-nulloutput-connector,calculate-sharepoint-tests-condition,build-tests-sharepoint-connector,build-tests-nulloutput-connector" if="sharepoint-tests.include">
         <mkdir dir="build/sharepoint-tests/classes"/>
-        <javac srcdir="tests/sharepoint" destdir="build/sharepoint-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="tests/sharepoint/src/test/java" destdir="build/sharepoint-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>

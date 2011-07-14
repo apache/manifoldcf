@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-223: Move test classes to be compatible with maven
+conventions.
+(Karl Wright)
+
 CONNECTORS-219: Update maven pom.xml files to include proper
 dependencies and version numbers.
 (Tobias Rübner)
