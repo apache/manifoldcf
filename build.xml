@@ -1604,10 +1604,10 @@
 	      </fileset>
                 <pathelement location="build/filesystem-tests/classes"/>
             </classpath>
-            <test name="org.apache.manifoldcf.filesystem_tests.Sanity" todir="test-output/filesystem"/>
-            <test name="org.apache.manifoldcf.filesystem_tests.APISanity" todir="test-output/filesystem"/>
-            <test name="org.apache.manifoldcf.filesystem_tests.Hopcount" todir="test-output/filesystem"/>
-            <test name="org.apache.manifoldcf.filesystem_tests.Expiration" todir="test-output/filesystem"/>
+            <test name="org.apache.manifoldcf.filesystem_tests.SanityTest" todir="test-output/filesystem"/>
+            <test name="org.apache.manifoldcf.filesystem_tests.APISanityTest" todir="test-output/filesystem"/>
+            <test name="org.apache.manifoldcf.filesystem_tests.HopcountTest" todir="test-output/filesystem"/>
+            <test name="org.apache.manifoldcf.filesystem_tests.ExpirationTest" todir="test-output/filesystem"/>
             <!-- MHL -->
         </junit>
     </target>
@@ -1670,10 +1670,10 @@
 	      </fileset>
                 <pathelement location="build/filesystem-tests/classes"/>
             </classpath>
-            <test name="org.apache.manifoldcf.filesystem_tests.SanityPostgresql" todir="test-postgresql-output/filesystem"/>
-            <test name="org.apache.manifoldcf.filesystem_tests.APISanityPostgresql" todir="test-postgresql-output/filesystem"/>
-            <test name="org.apache.manifoldcf.filesystem_tests.HopcountPostgresql" todir="test-postgresql-output/filesystem"/>
-            <test name="org.apache.manifoldcf.filesystem_tests.ExpirationPostgresql" todir="test-postgresql-output/filesystem"/>
+            <test name="org.apache.manifoldcf.filesystem_tests.SanityPostgresqlTest" todir="test-postgresql-output/filesystem"/>
+            <test name="org.apache.manifoldcf.filesystem_tests.APISanityPostgresqlTest" todir="test-postgresql-output/filesystem"/>
+            <test name="org.apache.manifoldcf.filesystem_tests.HopcountPostgresqlTest" todir="test-postgresql-output/filesystem"/>
+            <test name="org.apache.manifoldcf.filesystem_tests.ExpirationPostgresqlTest" todir="test-postgresql-output/filesystem"/>
             <!-- MHL -->
         </junit>
     </target>
@@ -1705,10 +1705,10 @@
 	      </fileset>
                 <pathelement location="build/filesystem-tests/classes"/>
             </classpath>
-            <test name="org.apache.manifoldcf.filesystem_tests.SanityHSQLDB" todir="test-HSQLDB-output/filesystem"/>
-            <test name="org.apache.manifoldcf.filesystem_tests.APISanityHSQLDB" todir="test-HSQLDB-output/filesystem"/>
-            <test name="org.apache.manifoldcf.filesystem_tests.HopcountHSQLDB" todir="test-HSQLDB-output/filesystem"/>
-            <test name="org.apache.manifoldcf.filesystem_tests.ExpirationHSQLDB" todir="test-HSQLDB-output/filesystem"/>
+            <test name="org.apache.manifoldcf.filesystem_tests.SanityHSQLDBTest" todir="test-HSQLDB-output/filesystem"/>
+            <test name="org.apache.manifoldcf.filesystem_tests.APISanityHSQLDBTest" todir="test-HSQLDB-output/filesystem"/>
+            <test name="org.apache.manifoldcf.filesystem_tests.HopcountHSQLDBTest" todir="test-HSQLDB-output/filesystem"/>
+            <test name="org.apache.manifoldcf.filesystem_tests.ExpirationHSQLDBTest" todir="test-HSQLDB-output/filesystem"/>
             <!-- MHL -->
         </junit>
     </target>

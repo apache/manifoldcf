@@ -85,7 +85,7 @@
                 <pathelement location="build/connector/classes"/>
                 <pathelement location="build/connector-tests/classes"/>
             </classpath>
-            <test name="org.apache.manifoldcf.crawler.connectors.filesystem.tests.Sanity" todir="test-output"/>
+            <test name="org.apache.manifoldcf.crawler.connectors.filesystem.tests.SanityTest" todir="test-output"/>
             <!-- MHL -->
         </junit>
     </target>
@@ -100,7 +100,7 @@
                 <pathelement location="build/connector/classes"/>
                 <pathelement location="build/connector-tests/classes"/>
             </classpath>
-            <test name="org.apache.manifoldcf.crawler.connectors.filesystem.tests.SanityPostgresql" todir="test-output-postgresql"/>
+            <test name="org.apache.manifoldcf.crawler.connectors.filesystem.tests.SanityPostgresqlTest" todir="test-output-postgresql"/>
             <!-- MHL -->
         </junit>
     </target>
@@ -115,7 +115,7 @@
                 <pathelement location="build/connector/classes"/>
                 <pathelement location="build/connector-tests/classes"/>
             </classpath>
-            <test name="org.apache.manifoldcf.crawler.connectors.filesystem.tests.SanityHSQLDB" todir="test-output-HSQLDB"/>
+            <test name="org.apache.manifoldcf.crawler.connectors.filesystem.tests.SanityHSQLDBTest" todir="test-output-HSQLDB"/>
             <!-- MHL -->
         </junit>
     </target>
