@@ -30,6 +30,7 @@
 
 	<build>
 		<sourceDirectory>${basedir}/connector/src/main/java</sourceDirectory>
+    <testSourceDirectory>${basedir}/connector/src/test/java</testSourceDirectory>
 	</build>
 
 	<dependencies>

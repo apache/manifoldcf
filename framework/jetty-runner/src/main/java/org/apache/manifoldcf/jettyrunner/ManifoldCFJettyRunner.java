@@ -174,7 +174,8 @@ public class ManifoldCFJettyRunner
     }
     
     // Ready to begin in earnest...
-    System.setProperty(ManifoldCF.lcfConfigFileProperty,"./properties.xml");
+    if (System.getProperty(ManifoldCF.lcfConfigFileProperty) == null)
+    	System.setProperty(ManifoldCF.lcfConfigFileProperty,"./properties.xml");
     try
     {
       ManifoldCF.initializeEnvironment();
