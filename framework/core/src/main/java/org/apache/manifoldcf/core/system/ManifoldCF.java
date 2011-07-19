@@ -125,6 +125,29 @@ public class ManifoldCF
   /** File to look for to block access to UI during database maintenance */
   public static final String maintenanceFileSignalProperty = "org.apache.manifoldcf.database.maintenanceflag";
 
+  /** Reset environment.
+  */
+  public static void resetEnvironment()
+    throws ManifoldCFException
+  {
+    synchronized (initializeFlagLock)
+    {
+      if (!isInitialized)
+        return;
+      // Clean up the system doing the same thing the shutdown thread would have if the process was killed
+      cleanUpSystem();
+      masterDatabaseName = null;
+      masterDatabaseUsername = null;
+      masterDatabasePassword = null;
+      localConfiguration = null;
+      localProperties = null;
+      propertyFilelastMod = -1L;
+      propertyFilePath = null;
+      isInitialized = false;
+      alreadyClosed = false;
+    }
+  }
+  
   /** Initialize environment.
   */
   public static void initializeEnvironment()

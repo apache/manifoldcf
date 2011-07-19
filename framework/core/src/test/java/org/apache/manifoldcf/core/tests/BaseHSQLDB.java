@@ -137,6 +137,8 @@ public class BaseHSQLDB
       logOutputFile.delete();
       configFile.delete();
       loggingFile.delete();
+      
+      ManifoldCF.resetEnvironment();
     }
   }
 

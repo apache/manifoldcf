@@ -137,6 +137,8 @@ public class Base
       logOutputFile.delete();
       configFile.delete();
       loggingFile.delete();
+      
+      ManifoldCF.resetEnvironment();
     }
   }
 

@@ -141,6 +141,8 @@ public class BasePostgresql
       logOutputFile.delete();
       configFile.delete();
       loggingFile.delete();
+      
+      ManifoldCF.resetEnvironment();
     }
   }
 
