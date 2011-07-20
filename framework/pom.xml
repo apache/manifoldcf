@@ -37,7 +37,6 @@
 		<module>ui-core</module>
 		<module>agents</module>
 		<module>pull-agent</module>
-		<module>jetty-runner</module>
 		<module>authority-servlet</module>
 		<module>api-servlet</module>
 		<module>authority-service</module>

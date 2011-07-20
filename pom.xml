@@ -41,6 +41,7 @@
 		<module>framework</module>
 		<module>connectors</module>
     <module>tests</module>
+    <module>framework/jetty-runner</module>
 	</modules>
 
   <build>
