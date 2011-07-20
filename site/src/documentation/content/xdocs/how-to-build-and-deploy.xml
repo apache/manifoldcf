@@ -34,7 +34,7 @@
       <p></p>
 
       <section>
-        <title>Building the framework and the connectors</title>
+        <title>Building the framework and the connectors using Apache Ant</title>
         <p></p>
         <p>To build the ManifoldCF framework code, and the particular connectors you are interested in, you currently need to do the following:</p>
         <p></p>
@@ -217,6 +217,36 @@ cd webservice/Package
         </section>
         
       </section>
+      
+      <section>
+        <title>Building the framework and the connectors using Apache Maven</title>
+        <p></p>
+        <p>ManifoldCF includes some support for building jars under Maven.  Apache Ant is considered to be ManifoldCF's primary build system, so your mileage with Maven may vary.</p>
+        <p>The biggest limitation of the current Maven build is that it does not support any of the proprietary connectors or the multi-process model of execution.
+            The build includes only the Apache-licensed and LGPL-licensed connectors, thus avoiding conditional compilation, and executes under Maven using only the
+            Quick Start example.</p>
+        <p>A canned version of all configuration files are included as resources.  If you want to change the configuration in any way, you will need to rebuild with Maven accordingly.</p>
+        <section>
+          <title>Preparation</title>
+          <p>Before you begin, you will need to install Maven (if you haven't already) and prepare by downloading the necessary materials to support the LGPL connector builds, just as you would for the Ant
+              build described in the previous section.  We therefore strongly recommend reading about the Ant build process before proceeding.</p>
+          <p>Once the LGPL connector prerequisites are in place, you need to push various ManifoldCF-required jars into your local Maven repository, as follows:</p>
+          <source>
+mvn install:install-file -Dfile=lib/jdbcpool-0.99.jar -DgroupId=com.bitmechanic -DartifactId=jdbcpool -Dversion=0.99 -Dpackaging=jar
+mvn install:install-file -Dfile=lib/commons-httpclient-mcf.jar -DgroupId=commons-httpclient -DartifactId=commons-httpclient-mcf -Dversion=3.1 -Dpackaging=jar
+mvn install:install-file -Dfile=lib/xercesImpl-mcf.jar -DgroupId=xerces -DartifactId=xercesImpl-mcf -Dversion=2.9.1 -Dpackaging=jar
+mvn install:install-file -Dfile=connectors/jcifs/jcifs/jcifs.jar -DgroupId=org.samba.jcifs -DartifactId=jcifs -Dversion=1.3.16 -Dpackaging=jar
+          </source>
+        </section>
+        <section>
+          <title>How to build</title>
+          <p>Building is straightforward.  In the ManifoldCF root, type:</p>
+          <source>
+mvn clean install
+          </source>
+          <p>This should generate all the necessary artifacts to run with, and also run the Apache Derby-based tests.</p>
+        </section>
+      </section>
     </section>
     
     <section>
@@ -225,7 +255,7 @@ cd webservice/Package
       <section>
         <title>Quick start</title>
         <p></p>
-        <p>You can run most of ManifoldCF in a single process, for evaluation and convenience.  This single-process version uses Jetty to handle its web applications, and Derby as an embedded database.  All you need to do to run this version of ManifoldCF is to follow the build instructions above, and then:</p>
+        <p>You can run most of ManifoldCF in a single process, for evaluation and convenience.  This single-process version uses Jetty to handle its web applications, and Derby as an embedded database.  All you need to do to run this version of ManifoldCF is to follow the Ant-based build instructions above, and then:</p>
         <p></p>
         <source>
 cd dist/example
@@ -640,7 +670,20 @@ log4j.appender.MAIN.layout.ConversionPattern=[%d]%-5p %m%n
           </table>
         </section>
       </section>
+    
+      <section>
+        <title>Running ManifoldCF with Apache Maven</title>
+        <p></p>
+        <p>If you build ManifoldCF with Maven, then you will need to run ManifoldCF under Maven.  You currently don't get a lot of options here; the only model
+            offered is the QuickStart single process model.  To run it, all you need to do is:</p>
+        <source>
+cd framework/jetty-runner
+mvn exec:exec
+        </source>
+      </section>
+
     </section>
+
   </body>
 
 </document>
