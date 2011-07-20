@@ -83,6 +83,7 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
+          <forkMode>always</forkMode>
           <excludes>
             <exclude>**/*HSQLDBTest.java</exclude>
             <exclude>**/*PostgresqlTest.java</exclude>
