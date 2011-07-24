@@ -106,13 +106,21 @@ public class WebcrawlerConfig
   * text area. */
   public static final String NODE_SEEDS = "seeds";
   /** Include regexps node.  The value of this node contains the regexps that
-  * must match the canonical URL in order for that URL to be included.  These
+  * must match the canonical URL in order for that URL to be included in the crawl.  These
   * regexps are newline separated, and # starts a comment.  */
   public static final String NODE_INCLUDES = "includes";
   /** Exclude regexps node.  The value of this node contains the regexps that
-  * if any one matches, causes the URL to be excluded.  These
+  * if any one matches, causes the URL to be excluded from the crawl.  These
   * regexps are newline separated, and # starts a comment.  */
   public static final String NODE_EXCLUDES = "excludes";
+  /** Include regexps node.  The value of this node contains the regexps that
+  * must match the canonical URL in order for that URL to be included for indexing.  These
+  * regexps are newline separated, and # starts a comment.  */
+  public static final String NODE_INCLUDESINDEX = "includesindex";
+  /** Exclude regexps node.  The value of this node contains the regexps that
+  * if any one matches, causes the URL to be excluded from indexing.  These
+  * regexps are newline separated, and # starts a comment.  */
+  public static final String NODE_EXCLUDESINDEX = "excludesindex";
   /** Limit to seeds.  When value attribute is true, only seed domains will be permitted. */
   public static final String NODE_LIMITTOSEEDS = "limittoseeds";
   

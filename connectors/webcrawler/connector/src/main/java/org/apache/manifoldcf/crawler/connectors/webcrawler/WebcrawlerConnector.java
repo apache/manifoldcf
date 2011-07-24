@@ -549,6 +549,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     // an object that knows how to do this.
     DocumentURLFilter filter = new DocumentURLFilter(spec);
 
+    String filterVersion = filter.getVersionString();
+    
     String[] rval = new String[documentIdentifiers.length];
 
     long currentTime = System.currentTimeMillis();
@@ -1054,6 +1056,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             packList(sb,metadata,'+');
             // Done with the parseable part!  Add the checksum.
             sb.append(checkSum);
+            // Add the filter version
+            sb.append("+");
+            sb.append(filterVersion);
             rval[i] = sb.toString();
             break;
           case RESULT_RETRY_DOCUMENT:
@@ -1139,7 +1144,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         // We can exclude it if it does not seem to be a kind of document that the ingestion system knows
         // about.
         if (indexDocument)
-          indexDocument = isDataIngestable(activities,documentIdentifier);
+          indexDocument = isDataIngestable(activities,documentIdentifier,filter);
 
         if (indexDocument)
         {
@@ -3400,6 +3405,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     String seeds = "";
     String inclusions = ".*\n";
     String exclusions = "";
+    String inclusionsIndex = ".*\n";
+    String exclusionsIndex = "";
     boolean includeMatching = false;
     
     // Now, loop through description
@@ -3424,6 +3431,18 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         exclusions = sn.getValue();
         if (exclusions == null)
           exclusions = "";
+      }
+      else if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_INCLUDESINDEX))
+      {
+        inclusionsIndex = sn.getValue();
+        if (inclusionsIndex == null)
+          inclusionsIndex = "";
+      }
+      else if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_EXCLUDESINDEX))
+      {
+        exclusionsIndex = sn.getValue();
+        if (exclusionsIndex == null)
+          exclusionsIndex = "";
       }
       else if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_LIMITTOSEEDS))
       {
@@ -3619,8 +3638,15 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"value\" colspan=\"2\">\n"+
-"      <textarea rows=\"25\" cols=\"80\" name=\"inclusions\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(inclusions)+"</textarea>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>Include in crawl:</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"1\">\n"+
+"      <textarea rows=\"25\" cols=\"60\" name=\"inclusions\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(inclusions)+"</textarea>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>Include in index:</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"1\">\n"+
+"      <textarea rows=\"10\" cols=\"60\" name=\"inclusionsindex\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(inclusionsIndex)+"</textarea>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
@@ -3636,6 +3662,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     {
       out.print(
 "<input type=\"hidden\" name=\"inclusions\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(inclusions)+"\"/>\n"+
+"<input type=\"hidden\" name=\"inclusionsindex\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(inclusionsIndex)+"\"/>\n"+
 "<input type=\"hidden\" name=\"matchinghosts\" value=\""+(includeMatching?"true":"false")+"\"/>\n"+
 "<input type=\"hidden\" name=\"matchinghosts_present\" value=\"true\"/>\n"
       );
@@ -3649,8 +3676,15 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"value\" colspan=\"2\">\n"+
-"      <textarea rows=\"25\" cols=\"80\" name=\"exclusions\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(exclusions)+"</textarea>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>Exclude from crawl:</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"1\">\n"+
+"      <textarea rows=\"25\" cols=\"60\" name=\"exclusions\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(exclusions)+"</textarea>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>Exclude from index:</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"1\">\n"+
+"      <textarea rows=\"10\" cols=\"60\" name=\"exclusionsindex\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(exclusionsIndex)+"</textarea>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -3659,7 +3693,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     else
     {
       out.print(
-"<input type=\"hidden\" name=\"exclusions\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(exclusions)+"\"/>\n"
+"<input type=\"hidden\" name=\"exclusions\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(exclusions)+"\"/>\n"+
+"<input type=\"hidden\" name=\"exclusionsindex\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(exclusionsIndex)+"\"/>\n"
       );
     }
   
@@ -3900,6 +3935,26 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       ds.addChild(ds.getChildCount(),cn);
     }
 
+    // Get the index inclusions
+    String inclusionsIndex = variableContext.getParameter("inclusionsindex");
+    if (inclusionsIndex != null)
+    {
+      // Delete existing index inclusions record first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_INCLUDESINDEX))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      SpecificationNode cn = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_INCLUDESINDEX);
+      cn.setValue(inclusionsIndex);
+      ds.addChild(ds.getChildCount(),cn);
+    }
+
     // Handle the seeds-only switch
     String matchingHostsPresent = variableContext.getParameter("matchinghosts_present");
     if (matchingHostsPresent != null)
@@ -3938,6 +3993,26 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
       SpecificationNode cn = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_EXCLUDES);
       cn.setValue(exclusions);
+      ds.addChild(ds.getChildCount(),cn);
+    }
+
+    // Get the index exclusions
+    String exclusionsIndex = variableContext.getParameter("exclusionsindex");
+    if (exclusionsIndex != null)
+    {
+      // Delete existing exclusions record first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_EXCLUDESINDEX))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      SpecificationNode cn = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_EXCLUDESINDEX);
+      cn.setValue(exclusionsIndex);
       ds.addChild(ds.getChildCount(),cn);
     }
 
@@ -4140,6 +4215,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     String seeds = "";
     String inclusions = ".*\n";
     String exclusions = "";
+    String inclusionsIndex = ".*\n";
+    String exclusionsIndex = "";
     boolean includeMatching = false;
     
     int i = 0;
@@ -4163,6 +4240,18 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         exclusions = sn.getValue();
         if (exclusions == null)
           exclusions = "";
+      }
+      else if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_INCLUDESINDEX))
+      {
+        inclusionsIndex = sn.getValue();
+        if (inclusionsIndex == null)
+          inclusionsIndex = "";
+      }
+      else if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_EXCLUDESINDEX))
+      {
+        exclusionsIndex = sn.getValue();
+        if (exclusionsIndex == null)
+          exclusionsIndex = "";
       }
       else if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_LIMITTOSEEDS))
       {
@@ -4304,7 +4393,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     out.print(
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Includes:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>Include in crawl:</nobr></td>\n"+
 "    <td class=\"value\">\n"
     );
     try
@@ -4346,12 +4435,96 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "  </tr>\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Excludes:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>Include in index:</nobr></td>\n"+
+"    <td class=\"value\">\n"
+    );
+    try
+    {
+      java.io.Reader str = new java.io.StringReader(inclusionsIndex);
+      try
+      {
+        java.io.BufferedReader is = new java.io.BufferedReader(str);
+        try
+        {
+          while (true)
+          {
+            String nextString = is.readLine();
+            if (nextString == null)
+              break;
+            if (nextString.length() == 0)
+              continue;
+            out.print(
+"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(nextString)+"</nobr><br/>\n"
+            );
+          }
+        }
+        finally
+        {
+          is.close();
+        }
+      }
+      finally
+      {
+        str.close();
+      }
+    }
+    catch (java.io.IOException e)
+    {
+      throw new ManifoldCFException("IO error: "+e.getMessage(),e);
+    }
+    out.print(
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Exclude from crawl:</nobr></td>\n"+
 "    <td class=\"value\">\n"
     );
     try
     {
       java.io.Reader str = new java.io.StringReader(exclusions);
+      try
+      {
+        java.io.BufferedReader is = new java.io.BufferedReader(str);
+        try
+        {
+          while (true)
+          {
+            String nextString = is.readLine();
+            if (nextString == null)
+              break;
+            if (nextString.length() == 0)
+              continue;
+            out.print(
+"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(nextString)+"</nobr><br/>\n"
+            );
+          }
+        }
+        finally
+        {
+          is.close();
+        }
+      }
+      finally
+      {
+        str.close();
+      }
+    }
+    catch (java.io.IOException e)
+    {
+      throw new ManifoldCFException("IO error: "+e.getMessage(),e);
+    }
+    out.print(
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Exclude from index:</nobr></td>\n"+
+"    <td class=\"value\">\n"
+    );
+    try
+    {
+      java.io.Reader str = new java.io.StringReader(exclusionsIndex);
       try
       {
         java.io.BufferedReader is = new java.io.BufferedReader(str);
@@ -5115,7 +5288,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   
   /** Code to check if an already-fetched document should be ingested.
   */
-  protected boolean isDataIngestable(IFingerprintActivity activities, String documentIdentifier)
+  protected boolean isDataIngestable(IFingerprintActivity activities, String documentIdentifier, DocumentURLFilter filter)
     throws ServiceInterruption, ManifoldCFException
   {
     if (cache.getResponseCode(documentIdentifier) != 200)
@@ -5127,6 +5300,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     if (activities.checkURLIndexable(documentIdentifier) == false)
       return false;
 
+    if (filter.isDocumentIndexable(documentIdentifier) == false)
+      return false;
+    
     // Check if it's a recognized content type
     String contentType = cache.getContentType(documentIdentifier);
 
@@ -6901,14 +7077,20 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
   }
 
-  /** This class describes the url filtering information obtained from a digested DocumentSpecification.
+  /** This class describes the url filtering information (for crawling and indexing) obtained from a digested DocumentSpecification.
   */
   protected static class DocumentURLFilter
   {
+    /** The version string */
+    protected String versionString;
     /** The arraylist of include patterns */
     protected ArrayList includePatterns = new ArrayList();
     /** The arraylist of exclude patterns */
     protected ArrayList excludePatterns = new ArrayList();
+    /** The arraylist of index include patterns */
+    protected ArrayList includeIndexPatterns = new ArrayList();
+    /** The arraylist of index exclude patterns */
+    protected ArrayList excludeIndexPatterns = new ArrayList();
     /** The hash map of seed hosts, to limit urls by, if non-null */
     protected HashMap seedHosts = null;
     
@@ -6923,8 +7105,10 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     public DocumentURLFilter(DocumentSpecification spec)
       throws ManifoldCFException
     {
-      String includes = "";
+      String includes = ".*";
       String excludes = "";
+      String includesIndex = ".*";
+      String excludesIndex = "";
       String seeds = "";
       boolean limitToSeeds = false;
       int i = 0;
@@ -6949,6 +7133,18 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           excludes = sn.getValue();
           if (excludes == null)
             excludes = "";
+        }
+        else if (sn.getType().equals(WebcrawlerConfig.NODE_INCLUDESINDEX))
+        {
+          includesIndex = sn.getValue();
+          if (includesIndex == null)
+            includesIndex = "";
+        }
+        else if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDESINDEX))
+        {
+          excludesIndex = sn.getValue();
+          if (excludesIndex == null)
+            excludesIndex = "";
         }
         else if (sn.getType().equals(WebcrawlerConfig.NODE_LIMITTOSEEDS))
         {
@@ -7034,10 +7230,16 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         }
       }
 
+      versionString = includesIndex + "+" + excludesIndex;
+      
       ArrayList list = stringToArray(includes);
       compileList(includePatterns,list);
       list = stringToArray(excludes);
       compileList(excludePatterns,list);
+      list = stringToArray(includesIndex);
+      compileList(includeIndexPatterns,list);
+      list = stringToArray(excludesIndex);
+      compileList(excludeIndexPatterns,list);
       
       if (limitToSeeds)
       {
@@ -7072,6 +7274,14 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       }
     }
 
+    /** Get whatever contribution to the version string should come from this data.
+    */
+    public String getVersionString()
+    {
+      // In practice, this is NOT what controls the set that is spidered, but rather the set that is indexed
+      return versionString;
+    }
+    
     /** Check if both a document and host are legal.
     */
     public boolean isDocumentAndHostLegal(String url)
@@ -7139,6 +7349,45 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         {
           if (Logging.connectors.isDebugEnabled())
             Logging.connectors.debug("WEB: Url '"+url+"' is illegal because exclude pattern '"+p.toString()+"' matched it");
+          return false;
+        }
+        i++;
+      }
+
+      return true;
+    }
+
+    /** Check if the document identifier is indexable.
+    */
+    public boolean isDocumentIndexable(String url)
+    {
+      // First, verify that the url matches one of the patterns in the include list.
+      int i = 0;
+      while (i < includeIndexPatterns.size())
+      {
+        Pattern p = (Pattern)includeIndexPatterns.get(i);
+        Matcher m = p.matcher(url);
+        if (m.find())
+          break;
+        i++;
+      }
+      if (i == includeIndexPatterns.size())
+      {
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("WEB: Url '"+url+"' is not indexable because no include patterns match it");
+        return false;
+      }
+
+      // Now make sure it's not in the exclude list.
+      i = 0;
+      while (i < excludeIndexPatterns.size())
+      {
+        Pattern p = (Pattern)excludeIndexPatterns.get(i);
+        Matcher m = p.matcher(url);
+        if (m.find())
+        {
+          if (Logging.connectors.isDebugEnabled())
+            Logging.connectors.debug("WEB: Url '"+url+"' is not indexable because exclude pattern '"+p.toString()+"' matched it");
           return false;
         }
         i++;
