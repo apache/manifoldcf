@@ -274,6 +274,19 @@ public class BaseTable
     dbInterface.endTransaction();
   }
 
+  /** Get a random amount to sleep for (to resolve a deadlock) */
+  protected long getSleepAmt()
+  {
+    return dbInterface.getSleepAmt();
+  }
+  
+  /** Sleep for a specified amount, to resolve a deadlock */
+  protected void sleepFor(long amt)
+    throws ManifoldCFException
+  {
+    dbInterface.sleepFor(amt);
+  }
+  
   /** Note a number of inserts, modifications, or deletions to a specific table.  This is so we can decide when to do appropriate maintenance.
   *@param tableName is the name of the table being modified.
   *@param insertCount is the number of inserts.

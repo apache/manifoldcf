@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-225: Derby throws deadlock exceptions when indexing
+rapidly.
+(Karl Wright)
+
 CONNECTORS-223: Move test classes to be compatible with maven
 conventions.
 (Karl Wright)

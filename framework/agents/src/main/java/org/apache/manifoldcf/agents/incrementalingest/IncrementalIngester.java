@@ -78,7 +78,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   // Output connection manager
   protected IOutputConnectionManager connectionManager;
 
-
   /** Constructor.
   */
   public IncrementalIngester(IThreadContext threadContext, IDBInterface database)
@@ -1362,47 +1361,62 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       else
         map.put(authorityNameField,"");
 
-      beginTransaction();
-      try
+      // Transaction abort due to deadlock should be retried here.
+      while (true)
       {
-        // Look for existing row.
-        ArrayList list = new ArrayList();
-        list.add(docKey);
-        list.add(outputConnectionName);
-        IResultSet set = performQuery("SELECT "+idField+","+changeCountField+" FROM "+getTableName()+" WHERE "+
-          docKeyField+"=? AND "+outputConnNameField+"=? FOR UPDATE",list,null,null);
-        IResultRow row = null;
-        if (set.getRowCount() > 0)
-          row = set.getRow(0);
+        long sleepAmt = 0L;
 
-        if (row != null)
+        beginTransaction();
+        try
         {
-          // Update the record
-          list.clear();
-          list.add(row.getValue(idField));
-          long changeCount = ((Long)row.getValue(changeCountField)).longValue();
-          changeCount++;
-          map.put(changeCountField,new Long(changeCount));
-          performUpdate(map,"WHERE "+idField+"=?",list,null);
-          // Update successful!
-          return;
-        }
+          // Look for existing row.
+          ArrayList list = new ArrayList();
+          list.add(docKey);
+          list.add(outputConnectionName);
+          IResultSet set = performQuery("SELECT "+idField+","+changeCountField+" FROM "+getTableName()+" WHERE "+
+            docKeyField+"=? AND "+outputConnNameField+"=? FOR UPDATE",list,null,null);
+          IResultRow row = null;
+          if (set.getRowCount() > 0)
+            row = set.getRow(0);
 
-        // Update failed to find a matching record, so cycle back to retry the insert
-      }
-      catch (ManifoldCFException e)
-      {
-        signalRollback();
-        throw e;
-      }
-      catch (Error e)
-      {
-        signalRollback();
-        throw e;
-      }
-      finally
-      {
-        endTransaction();
+          if (row != null)
+          {
+            // Update the record
+            list.clear();
+            list.add(row.getValue(idField));
+            long changeCount = ((Long)row.getValue(changeCountField)).longValue();
+            changeCount++;
+            map.put(changeCountField,new Long(changeCount));
+            performUpdate(map,"WHERE "+idField+"=?",list,null);
+            // Update successful!
+            return;
+          }
+
+          // Update failed to find a matching record, so cycle back to retry the insert
+        }
+        catch (ManifoldCFException e)
+        {
+          signalRollback();
+          if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+          {
+            if (Logging.perf.isDebugEnabled())
+              Logging.perf.debug("Aborted transaction noting ingestion: "+e.getMessage());
+            sleepAmt = getSleepAmt();
+            continue;
+          }
+
+          throw e;
+        }
+        catch (Error e)
+        {
+          signalRollback();
+          throw e;
+        }
+        finally
+        {
+          endTransaction();
+          sleepFor(sleepAmt);
+        }
       }
     }
   }

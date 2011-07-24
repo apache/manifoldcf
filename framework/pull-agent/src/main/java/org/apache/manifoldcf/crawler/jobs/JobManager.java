@@ -4230,24 +4230,13 @@ public class JobManager implements IJobManager
   */
   protected long getRandomAmount()
   {
-    // Amount should be between .5 and 1 minute, approx, to give things time to unwind
-    return (long)(random.nextDouble() * 60000.0 + 500.0);
+    return database.getSleepAmt();
   }
 
   protected void sleepFor(long amt)
     throws ManifoldCFException
   {
-    if (amt == 0L)
-      return;
-
-    try
-    {
-      ManifoldCF.sleep(amt);
-    }
-    catch (InterruptedException e)
-    {
-      throw new ManifoldCFException("Interrupted",e,ManifoldCFException.INTERRUPTED);
-    }
+    database.sleepFor(amt);
   }
 
   /** Retrieve specific parent data for a given document.
