@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-227: Fix the error reporting so it includes the problem message.
+(Piergiorgio Lucidi)
+
 CONNECTORS-221: Add CMIS connector.
 (Piergiorgio Lucidi, Karl Wright)
 

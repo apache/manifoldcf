@@ -147,7 +147,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
             repos = factory.getRepositories(parameters);
             session = repos.get(0).createSession();
           } catch (Exception e) {
-            Logging.connectors.error("CMIS: Error during getting CMIS repositories: please check the endpoint parameters");
+            Logging.connectors.error("CMIS: Error during getting CMIS repositories. Please check the endpoint parameters: " + e.getMessage(), e);
             this.exception = e;
           }
           
@@ -160,7 +160,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
           try {
             session = factory.createSession(parameters);
           } catch (Exception e) {
-            Logging.connectors.error("CMIS: Error during the creation of the new session: please check the endpoint parameters");
+            Logging.connectors.error("CMIS: Error during the creation of the new session. Please check the endpoint parameters: " + e.getMessage(), e);
             this.exception = e;
           }
         
@@ -326,7 +326,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
           else if (thr instanceof RemoteException)
             throw (RemoteException) thr;
           else if (thr instanceof CmisConnectionException)
-            throw new ManifoldCFException("CMIS: Error during getting a new session", thr);
+            throw new ManifoldCFException("CMIS: Error during getting a new session: " + thr.getMessage(), thr);
           else
             throw (Error) thr;
         }
@@ -419,7 +419,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
           if (thr instanceof RemoteException)
             throw (RemoteException) thr;
           else if (thr instanceof CmisConnectionException)
-            throw new ManifoldCFException("CMIS: Error during checking connection", thr);
+            throw new ManifoldCFException("CMIS: Error during checking connection: " + thr.getMessage(), thr);
           else
             throw (Error) thr;
         }
