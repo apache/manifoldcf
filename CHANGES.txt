@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-231: Missing dependency in pom.xml.
+(Piergiorgio Lucidi)
+
 CONNECTORS-227: Fix the error reporting so it includes the problem message.
 (Piergiorgio Lucidi)
 
