@@ -44,6 +44,7 @@
     <module>rss</module>
     <module>solr</module>
     <module>webcrawler</module>
+    <module>cmis</module>
   </modules>
 
 </project>
