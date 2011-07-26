@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-221: Add CMIS connector.
+(Piergiorgio Lucidi, Karl Wright)
+
 CONNECTORS-214: Add post-fetch regular expression filtering to Web
 connector.
 (Karl Wright)

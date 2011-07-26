@@ -1,7 +1,7 @@
 ManifoldCF requires
 ------------------
 * JRE 1.5 or above
-* All other libraries checked in under modules/lib
+* All other libraries checked in under lib
 
 For building ManifoldCF:
 ----------------------

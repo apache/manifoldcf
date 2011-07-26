@@ -30,6 +30,8 @@
         <ant dir="site" target="clean"/>
         <ant dir="framework" target="clean"/>
         <delete dir="framework/lib"/>
+        <ant dir="connectors/cmis" target="clean"/>
+        <delete dir="connectors/cmis/lib"/>
         <ant dir="connectors/activedirectory" target="clean"/>
         <delete dir="connectors/activedirectory/lib"/>
         <ant dir="connectors/documentum" target="clean"/>
@@ -163,7 +165,7 @@
     <target name="build-activedirectory-connector" depends="setup-activedirectory-connector">
         <ant dir="connectors/activedirectory" target="build"/>
     </target>
-    
+
     <target name="doc-activedirectory-connector" depends="setup-activedirectory-connector">
       <ant dir="connectors/activedirectory" target="doc"/>
     </target>
@@ -182,6 +184,65 @@
 
     <target name="run-tests-HSQLDB-activedirectory-connector" depends="setup-activedirectory-connector,setup-activedirectory-connector-tests">
         <ant dir="connectors/activedirectory" target="run-tests-HSQLDB"/>
+    </target>
+
+    <target name="setup-cmis-connector" depends="build-framework">
+        <mkdir dir="connectors/cmis/lib"/>
+        <copy todir="connectors/cmis/lib">
+            <fileset dir="framework/lib"/>
+        </copy>
+        <copy todir="connectors/cmis/lib">
+            <fileset dir="lib">
+                <include name="chemistry*.jar"/>
+                <include name="saaj*.jar"/>
+                <include name="stax*.jar"/>
+                <include name="streambuffer*.jar"/>
+                <include name="jaxb*.jar"/>
+                <include name="jaxws*.jar"/>
+                <include name="wstx-asl*.jar"/>
+                <include name="mimepull*.jar"/>
+                <include name="resolver*.jar"/>
+                <include name="org.osgi.core*.jar"/>
+                <include name="jsr181-api*.jar"/>
+                <include name="jsr250-api*.jar"/>
+                <include name="activation*.jar"/>
+                <include name="commons-lang*.jar"/>
+            </fileset>
+        </copy>
+        <copy todir="connectors/cmis/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+    </target>
+
+    <target name="setup-cmis-connector-tests" depends="build-tests-framework">
+        <mkdir dir="connectors/cmis/lib"/>
+        <copy todir="connectors/cmis/lib">
+            <fileset dir="framework/build/test-jar"/>
+        </copy>
+    </target>
+
+    <target name="build-cmis-connector" depends="setup-cmis-connector">
+        <ant dir="connectors/cmis" target="build"/>
+    </target>
+    
+    <target name="doc-cmis-connector" depends="setup-cmis-connector">
+        <ant dir="connectors/cmis" target="doc"/>
+    </target>
+
+    <target name="build-tests-cmis-connector" depends="setup-cmis-connector,setup-cmis-connector-tests">
+        <ant dir="connectors/cmis" target="build-tests"/>
+    </target>
+
+    <target name="run-tests-cmis-connector" depends="setup-cmis-connector,setup-cmis-connector-tests">
+        <ant dir="connectors/cmis" target="run-tests"/>
+    </target>
+
+    <target name="run-tests-postgresql-cmis-connector" depends="setup-cmis-connector,setup-cmis-connector-tests">
+        <ant dir="connectors/cmis" target="run-tests-postgresql"/>
+    </target>
+
+    <target name="run-tests-HSQLDB-cmis-connector" depends="setup-cmis-connector,setup-cmis-connector-tests">
+        <ant dir="connectors/cmis" target="run-tests-HSQLDB"/>
     </target>
 
     <target name="setup-documentum-connector" depends="build-framework">
@@ -559,10 +620,11 @@
         <copy todir="connectors/meridio/lib">
             <fileset dir="lib">
                 <include name="axis*.jar"/>
+                <include name="saaj*.jar"/>
                 <include name="wsdl4j*.jar"/>
                 <include name="castor*.jar"/>
                 <include name="commons-discovery*.jar"/>
-                <include name="geronimo-activation_1.1_spec*.jar"/>
+                <include name="activation*.jar"/>
                 <include name="geronimo-javamail_1.4_spec*.jar"/>
             </fileset>
         </copy>
@@ -733,9 +795,10 @@
         <copy todir="connectors/sharepoint/lib">
             <fileset dir="lib">
                 <include name="axis*.jar"/>
+                <include name="saaj*.jar"/>
                 <include name="wsdl4j*.jar"/>
                 <include name="commons-discovery*.jar"/>
-                <include name="geronimo-activation_1.1_spec*.jar"/>
+                <include name="activation*.jar"/>
             </fileset>
         </copy>
         <copy todir="connectors/sharepoint/lib">
@@ -865,11 +928,39 @@
             <fileset dir="connectors/activedirectory/dist/lib"/>
         </copy>
     </target>
-    
+
     <target name="deliver-activedirectory-connector-doc" depends="calculate-activedirectory-doc-condition" if="activedirectory-doc.include">
         <mkdir dir="dist/doc/api/activedirectory"/>
         <copy todir="dist/doc/api/activedirectory">
 	  <fileset dir="connectors/activedirectory/dist/doc"/>
+        </copy>
+    </target>
+
+    <target name="calculate-cmis-condition" depends="build-cmis-connector">
+        <available file="connectors/cmis/dist/lib" type="dir" property="cmis.exists"/>
+        <condition property="cmis.include">
+            <isset property="cmis.exists"/>
+        </condition>
+    </target>
+
+    <target name="calculate-cmis-doc-condition" depends="doc-cmis-connector">
+        <available file="connectors/cmis/dist/doc" type="dir" property="cmis-doc.exists"/>
+        <condition property="cmis-doc.include">
+            <isset property="cmis-doc.exists"/>
+        </condition>
+    </target>
+
+    <target name="deliver-cmis-connector" depends="calculate-cmis-condition" if="cmis.include">
+        <mkdir dir="dist/lib"/>
+        <copy todir="dist/lib">
+            <fileset dir="connectors/cmis/dist/lib"/>
+        </copy>
+    </target>
+
+    <target name="deliver-cmis-connector-doc" depends="calculate-cmis-doc-condition" if="cmis-doc.include">
+        <mkdir dir="dist/doc/api/cmis"/>
+        <copy todir="dist/doc/api/cmis">
+	  <fileset dir="connectors/cmis/dist/doc"/>
         </copy>
     </target>
 
@@ -1337,6 +1428,15 @@
         <replace file="dist/example/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;authorityconnector name=&quot;Active Directory&quot; class=&quot;org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryAuthority&quot;/&gt;"/>
     </target>
 
+    <target name="deliver-cmis-example" depends="deliver-framework-example,calculate-cmis-condition" if="cmis.include">
+        <mkdir dir="dist/example/connector-lib"/>
+        <copy todir="dist/example/connector-lib">
+            <fileset dir="connectors/cmis/dist/lib"/>
+        </copy>
+        <replace file="dist/example/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;CMIS&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.cmis.CmisRepositoryConnector&quot;/&gt;"/>
+        <replace file="dist/example/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;authorityconnector name=&quot;CMIS&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.cmis.CmisAuthorityConnector&quot;/&gt;"/>
+    </target>
+    
     <target name="deliver-documentum-example" depends="deliver-framework-example,calculate-documentum-condition" if="documentum.include">
         <mkdir dir="dist/example/documentum-server-process"/>
         <copy todir="dist/example/documentum-server-process">
@@ -1487,7 +1587,7 @@
         <replace file="dist/example/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;Web&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConnector&quot;/&gt;"/>
     </target>
 
-    <target name="deliver-example" depends="deliver-framework-example,deliver-activedirectory-example,deliver-documentum-example,deliver-filesystem-example,deliver-filenet-example,deliver-gts-example,deliver-jcifs-example,deliver-jdbc-example,deliver-livelink-example,deliver-memex-example,deliver-meridio-example,deliver-nullauthority-example,deliver-nulloutput-example,deliver-rss-example,deliver-sharepoint-example,deliver-solr-example,deliver-webcrawler-example">
+    <target name="deliver-example" depends="deliver-framework-example,deliver-activedirectory-example,deliver-cmis-example,deliver-documentum-example,deliver-filesystem-example,deliver-filenet-example,deliver-gts-example,deliver-jcifs-example,deliver-jdbc-example,deliver-livelink-example,deliver-memex-example,deliver-meridio-example,deliver-nullauthority-example,deliver-nulloutput-example,deliver-rss-example,deliver-sharepoint-example,deliver-solr-example,deliver-webcrawler-example">
         <!-- Build a manifest file.  There doesn't seem to be any good way to do this automatically in ant without developing my own
         custom task, so I've hard coded all the class path libs. -->
         <mkdir dir="build/example"/>
@@ -1775,26 +1875,26 @@
         </junit>
     </target>
 
-    <target name="run-tests-open-connectors" depends="run-tests-activedirectory-connector,run-tests-filesystem-connector,run-tests-nullauthority-connector,run-tests-nulloutput-connector,run-tests-rss-connector,run-tests-solr-connector,run-tests-webcrawler-connector,run-tests-jdbc-connector"/>
+    <target name="run-tests-open-connectors" depends="run-tests-activedirectory-connector,run-tests-cmis-connector,run-tests-filesystem-connector,run-tests-nullauthority-connector,run-tests-nulloutput-connector,run-tests-rss-connector,run-tests-solr-connector,run-tests-webcrawler-connector,run-tests-jdbc-connector"/>
     <target name="run-tests-lgpl-connectors" depends="run-tests-jcifs-connector"/>
     <target name="run-tests-proprietary-connectors" depends="run-tests-documentum-connector,run-tests-filenet-connector,run-tests-livelink-connector,run-tests-memex-connector,run-tests-meridio-connector,run-tests-sharepoint-connector"/>
     
     <target name="end-to-end-tests" depends="run-filesystem-tests,run-sharepoint-tests"/>
 
-    <target name="run-tests-postgresql-open-connectors" depends="run-tests-postgresql-activedirectory-connector,run-tests-postgresql-filesystem-connector,run-tests-postgresql-nullauthority-connector,run-tests-postgresql-nulloutput-connector,run-tests-postgresql-rss-connector,run-tests-postgresql-solr-connector,run-tests-postgresql-webcrawler-connector,run-tests-postgresql-jdbc-connector"/>
+    <target name="run-tests-postgresql-open-connectors" depends="run-tests-postgresql-activedirectory-connector,run-tests-postgresql-cmis-connector,run-tests-postgresql-filesystem-connector,run-tests-postgresql-nullauthority-connector,run-tests-postgresql-nulloutput-connector,run-tests-postgresql-rss-connector,run-tests-postgresql-solr-connector,run-tests-postgresql-webcrawler-connector,run-tests-postgresql-jdbc-connector"/>
     <target name="run-tests-postgresql-lgpl-connectors" depends="run-tests-postgresql-jcifs-connector"/>
     <target name="run-tests-postgresql-proprietary-connectors" depends="run-tests-postgresql-documentum-connector,run-tests-postgresql-filenet-connector,run-tests-postgresql-livelink-connector,run-tests-postgresql-memex-connector,run-tests-postgresql-meridio-connector,run-tests-postgresql-sharepoint-connector"/>
     
     <target name="end-to-end-tests-postgresql" depends="run-filesystem-tests-postgresql,run-sharepoint-tests-postgresql"/>
 
-    <target name="run-tests-HSQLDB-open-connectors" depends="run-tests-HSQLDB-activedirectory-connector,run-tests-HSQLDB-filesystem-connector,run-tests-HSQLDB-nullauthority-connector,run-tests-HSQLDB-nulloutput-connector,run-tests-HSQLDB-rss-connector,run-tests-HSQLDB-solr-connector,run-tests-HSQLDB-webcrawler-connector,run-tests-HSQLDB-jdbc-connector"/>
+    <target name="run-tests-HSQLDB-open-connectors" depends="run-tests-HSQLDB-activedirectory-connector,run-tests-HSQLDB-cmis-connector,run-tests-HSQLDB-filesystem-connector,run-tests-HSQLDB-nullauthority-connector,run-tests-HSQLDB-nulloutput-connector,run-tests-HSQLDB-rss-connector,run-tests-HSQLDB-solr-connector,run-tests-HSQLDB-webcrawler-connector,run-tests-HSQLDB-jdbc-connector"/>
     <target name="run-tests-HSQLDB-lgpl-connectors" depends="run-tests-HSQLDB-jcifs-connector"/>
     <target name="run-tests-HSQLDB-proprietary-connectors" depends="run-tests-HSQLDB-documentum-connector,run-tests-HSQLDB-filenet-connector,run-tests-HSQLDB-livelink-connector,run-tests-HSQLDB-memex-connector,run-tests-HSQLDB-meridio-connector,run-tests-HSQLDB-sharepoint-connector"/>
     
     <target name="end-to-end-tests-HSQLDB" depends="run-filesystem-tests-HSQLDB,run-sharepoint-tests-HSQLDB"/>
 
-    <target name="deliver-open-connectors" depends="deliver-nullauthority-connector,deliver-activedirectory-connector,deliver-filesystem-connector,deliver-rss-connector,deliver-webcrawler-connector,deliver-jdbc-connector"/>
-    <target name="deliver-open-connectors-doc" depends="deliver-nullauthority-connector-doc,deliver-activedirectory-connector-doc,deliver-filesystem-connector-doc,deliver-rss-connector-doc,deliver-webcrawler-connector-doc,deliver-jdbc-connector-doc"/>
+    <target name="deliver-open-connectors" depends="deliver-nullauthority-connector,deliver-activedirectory-connector,deliver-cmis-connector,deliver-filesystem-connector,deliver-rss-connector,deliver-webcrawler-connector,deliver-jdbc-connector"/>
+    <target name="deliver-open-connectors-doc" depends="deliver-nullauthority-connector-doc,deliver-activedirectory-connector-doc,deliver-cmis-connector-doc,deliver-filesystem-connector-doc,deliver-rss-connector-doc,deliver-webcrawler-connector-doc,deliver-jdbc-connector-doc"/>
     
     <target name="deliver-output-connectors" depends="deliver-gts-connector,deliver-solr-connector,deliver-nulloutput-connector"/>
     <target name="deliver-output-connectors-doc" depends="deliver-gts-connector-doc,deliver-solr-connector-doc,deliver-nulloutput-connector-doc"/>

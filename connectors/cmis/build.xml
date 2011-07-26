@@ -1,0 +1,83 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<project default="all">
+
+    <target name="clean">
+        <delete dir="build"/>
+        <delete dir="dist"/>
+    </target>
+    
+    <target name="doc">
+        <mkdir dir="dist/doc"/>
+        <javadoc destdir="dist/doc" source="1.5">
+            <classpath>
+                <fileset dir="lib" includes="*.jar"/>
+            </classpath>
+            <fileset dir="connector/src/main/java" includes="**/*.java"/>
+        </javadoc>
+    </target>
+
+    <target name="compile-connector">
+        <mkdir dir="build/connector/classes"/>
+        <javac srcdir="connector/src/main/java" destdir="build/connector/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+            <classpath>
+                <fileset dir="lib" includes="*.jar"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="jar-connector" depends="compile-connector">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/mcf-cmis-connector.jar" basedir="build/connector/classes"/>
+    </target>
+
+    <target name="lib" depends="jar-connector">
+        <mkdir dir="dist/lib"/>
+        <copy todir="dist/lib">
+            <fileset dir="build/jar">
+                <include name="mcf-cmis-connector.jar"/>
+            </fileset>
+            <fileset dir="lib">
+                <include name="chemistry*.jar"/>
+                <include name="saaj*.jar"/>
+                <include name="stax*.jar"/>
+                <include name="streambuffer*.jar"/>
+                <include name="jaxb*.jar"/>
+                <include name="jaxws*.jar"/>
+                <include name="wstx-asl*.jar"/>
+                <include name="mimepull*.jar"/>
+                <include name="resolver*.jar"/>
+                <include name="org.osgi.core*.jar"/>
+                <include name="jsr181-api*.jar"/>
+                <include name="jsr250-api*.jar"/>
+                <include name="activation*.jar"/>
+                <include name="commons-lang*.jar"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="build" depends="lib"/>
+    <target name="build-tests">
+      <mkdir dir="build/test-jar"/>
+    </target>
+    <target name="run-tests"/>
+    <target name="run-tests-postgresql"/>
+    <target name="run-tests-HSQLDB"/>
+    <target name="all" depends="build,doc,build-tests,run-tests,run-tests-postgresql,run-tests-HSQLDB"/>
+    
+</project>
