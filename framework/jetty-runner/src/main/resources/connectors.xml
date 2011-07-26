@@ -28,10 +28,12 @@
   <outputconnector name="MetaCarta GTS" class="org.apache.manifoldcf.agents.output.gts.GTSConnector"/>
     <!-- Add your authority connectors here -->
   <authorityconnector name="Null" class="org.apache.manifoldcf.authorities.authorities.nullauthority.NullAuthority"/>
+  <authorityconnector name="CMIS" class="org.apache.manifoldcf.crawler.connectors.cmis.CmisAuthorityConnector"/>
   <authorityconnector name="Active Directory" class="org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryAuthority"/>
     <!-- Add your repository connectors here -->
   <repositoryconnector name="Web" class="org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConnector"/>
   <repositoryconnector name="RSS" class="org.apache.manifoldcf.crawler.connectors.rss.RSSConnector"/>
   <repositoryconnector name="JDBC" class="org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConnector"/>
   <repositoryconnector name="File system" class="org.apache.manifoldcf.crawler.connectors.filesystem.FileConnector"/>
+  <repositoryconnector name="CMIS" class="org.apache.manifoldcf.crawler.connectors.cmis.CmisRepositoryConnector"/>
 </connectors>

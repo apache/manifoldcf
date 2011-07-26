@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-228: Add maven support for CMIS connector.
+(Piergiorgio Lucidi, Karl Wright)
+
 CONNECTORS-231: Missing dependency in pom.xml.
 (Piergiorgio Lucidi)
 
