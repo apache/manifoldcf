@@ -30,7 +30,7 @@
     <section>
       <title>Building ManifoldCF</title>
       <p></p>
-      <p>ManifoldCF consists of the framework itself, a set of connectors, and an Apache2 plug-in module.  These can be built as follows.</p>
+      <p>ManifoldCF consists of the framework itself, a set of connectors, and an optional Apache2 plug-in module.  These can be built as follows.</p>
       <p></p>
 
       <section>
@@ -48,6 +48,7 @@
         <p>If you supply <strong>no</strong> LGPL or proprietary libraries, the framework itself and only the following repository connectors will be built:</p>
         <p></p>
         <ul>
+          <li>CMIS connector</li>
           <li>Filesystem connector</li>
           <li>JDBC connector, with just the postgresql jdbc driver</li>
           <li>RSS connector</li>
@@ -58,6 +59,7 @@
         <p></p>
         <ul>
           <li>Active Directory authority</li>
+          <li>CMIS authority</li>
           <li>Null authority connector</li>
         </ul>
         <p></p>
@@ -582,6 +584,8 @@ log4j.appender.MAIN.layout.ConversionPattern=[%d]%-5p %m%n
             <tr><td>org.apache.manifoldcf.agents.RegisterOutput</td><td>org.apache.manifoldcf.agents.output.solr.SolrConnector "SOLR Connector"</td></tr>
             <tr><td>org.apache.manifoldcf.agents.RegisterOutput</td><td>org.apache.manifoldcf.agents.output.nullconnector.NullConnector "Null Connector"</td></tr>
             <tr><td>org.apache.manifoldcf.authorities.RegisterAuthority</td><td>org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryAuthority "Active Directory Authority"</td></tr>
+            <tr><td>org.apache.manifoldcf.crawler.Register</td><td>org.apache.manifoldcf.crawler.connectors.cmis.CmisRepositoryConnector "CMIS"</td></tr>
+            <tr><td>org.apache.manifoldcf.authorities.RegisterAuthority</td><td>org.apache.manifoldcf.crawler.connectors.cmis.CmisAuthorityConnector "CMIS"</td></tr>
             <tr><td>org.apache.manifoldcf.crawler.Register</td><td>org.apache.manifoldcf.crawler.connectors.DCTM.DCTM "Documentum Connector"</td></tr>
             <tr><td>org.apache.manifoldcf.authorities.RegisterAuthority</td><td>org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector "Documentum Authority"</td></tr>
             <tr><td>org.apache.manifoldcf.crawler.Register</td><td>org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector "FileNet Connector"</td></tr>

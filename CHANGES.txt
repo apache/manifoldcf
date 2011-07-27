@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-230: Add CMIS mention to the ManifoldCF documentation.
+(Karl Wright)
+
 CONNECTORS-228: Add maven support for CMIS connector.
 (Piergiorgio Lucidi, Karl Wright)
 
