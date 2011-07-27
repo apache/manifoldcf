@@ -31,6 +31,58 @@
 
   <build>
     <defaultGoal>test</defaultGoal>
+    <plugins>
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+           <execution>
+            <id>copy-war</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>target/dependency</outputDirectory>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>${project.groupId}</groupId>
+                  <artifactId>mcf-api-service</artifactId>
+                  <version>${project.version}</version>
+                  <type>war</type>
+                  <overWrite>false</overWrite>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>${project.groupId}</groupId>
+                  <artifactId>mcf-authority-service</artifactId>
+                  <version>${project.version}</version>
+                  <type>war</type>
+                  <overWrite>false</overWrite>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>${project.groupId}</groupId>
+                  <artifactId>mcf-crawler-ui</artifactId>
+                  <version>${project.version}</version>
+                  <type>war</type>
+                  <overWrite>false</overWrite>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <systemPropertyVariables>
+            <crawlerWarPath>target/dependency/mcf-crawler-ui-${project.version}.war</crawlerWarPath>
+            <authorityserviceWarPath>target/dependency/mcf-authority-service-${project.version}.war</authorityserviceWarPath>
+            <apiWarPath>target/dependency/mcf-api-service-${project.version}.war</apiWarPath>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+
+    </plugins>
   </build>
 
   <dependencies>

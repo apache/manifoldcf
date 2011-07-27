@@ -293,16 +293,28 @@ public class Base extends org.apache.manifoldcf.crawler.tests.ConnectorBase
     server = new Server( testPort );    
     server.setStopAtShutdown( true );
     
+    String crawlerWarPath = "../../framework/dist/web/war/mcf-crawler-ui.war";
+    String authorityserviceWarPath = "../../framework/dist/web/war/mcf-authority-service.war";
+    String apiWarPath = "../../framework/dist/web/war/mcf-api-service.war";
+
+    if (System.getProperty("crawlerWarPath") != null)
+    	crawlerWarPath = System.getProperty("crawlerWarPath");
+    if (System.getProperty("authorityserviceWarPath") != null)
+    	authorityserviceWarPath = System.getProperty("authorityserviceWarPath");
+    if (System.getProperty("apiWarPath") != null)
+    	apiWarPath = System.getProperty("apiWarPath");
+
+    
     // Initialize the servlets
-    WebAppContext lcfCrawlerUI = new WebAppContext("../../framework/dist/web/war/mcf-crawler-ui.war","/mcf-crawler-ui");
+    WebAppContext lcfCrawlerUI = new WebAppContext(crawlerWarPath,"/mcf-crawler-ui");
     // This will cause jetty to ignore all of the framework and jdbc jars in the war, which is what we want.
     lcfCrawlerUI.setParentLoaderPriority(true);
     server.addHandler(lcfCrawlerUI);
-    WebAppContext lcfAuthorityService = new WebAppContext("../../framework/dist/web/war/mcf-authority-service.war","/mcf-authority-service");
+    WebAppContext lcfAuthorityService = new WebAppContext(authorityserviceWarPath,"/mcf-authority-service");
     // This will cause jetty to ignore all of the framework and jdbc jars in the war, which is what we want.
     lcfAuthorityService.setParentLoaderPriority(true);
     server.addHandler(lcfAuthorityService);
-    WebAppContext lcfApi = new WebAppContext("../../framework/dist/web/war/mcf-api-service.war","/mcf-api-service");
+    WebAppContext lcfApi = new WebAppContext(apiWarPath,"/mcf-api-service");
     lcfApi.setParentLoaderPriority(true);
     server.addHandler(lcfApi);
     server.start();
