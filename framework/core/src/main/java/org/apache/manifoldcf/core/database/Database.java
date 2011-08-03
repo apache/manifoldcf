@@ -688,7 +688,7 @@ public class Database
                 value = null;
                 if (colnum > -1)
                 {
-                  value = getObject(rs,rsmd,colnum,(spec == null)?ResultSpecification.FORM_DEFAULT:spec.getForm(key));
+                  value = getObject(rs,rsmd,colnum,(spec == null)?ResultSpecification.FORM_DEFAULT:spec.getForm(key.toLowerCase()));
                 }
                 //System.out.println(" Key = '"+resultLabels[i]+"', value = "+((value==null)?"NULL":value.toString()));
                 m.put(resultLabels[i], value);
@@ -966,12 +966,22 @@ public class Database
             }
             break;
           case java.sql.Types.CLOB :
-            if ((clob = rs.getClob(col)) != null)
+            switch (desiredForm)
             {
-              result = clob.getSubString(1, (int) clob.length());
+            case ResultSpecification.FORM_DEFAULT:
+            case ResultSpecification.FORM_STRING:
+              if ((clob = rs.getClob(col)) != null)
+              {
+                result = clob.getSubString(1, (int) clob.length());
+              }
+              break;
+            case ResultSpecification.FORM_STREAM:
+              result = new TempFileCharacterInput(rs.getCharacterStream(col));
+              break;
+            default:
+              throw new ManifoldCFException("Illegal form requested for column "+Integer.toString(col)+": "+Integer.toString(desiredForm));
             }
             break;
-            
           case java.sql.Types.BIGINT :
             long l = rs.getLong(col);
             if (!rs.wasNull())
