@@ -955,14 +955,25 @@ public class Database
           {
           case java.sql.Types.CHAR :
           case java.sql.Types.VARCHAR :
-            if ((resultString = rs.getString(col)) != null)
+            switch (desiredForm)
             {
-              if (rsmd.getColumnDisplaySize(col) < resultString.length())
+            case ResultSpecification.FORM_DEFAULT:
+            case ResultSpecification.FORM_STRING:
+              if ((resultString = rs.getString(col)) != null)
               {
-                result = resultString.substring(0,rsmd.getColumnDisplaySize(col));
+                if (rsmd.getColumnDisplaySize(col) < resultString.length())
+                {
+                  result = resultString.substring(0,rsmd.getColumnDisplaySize(col));
+                }
+                else
+                  result = resultString;
               }
-              else
-                result = resultString;
+              break;
+            case ResultSpecification.FORM_STREAM:
+              result = new TempFileCharacterInput(rs.getCharacterStream(col));
+              break;
+            default:
+              throw new ManifoldCFException("Illegal form requested for column "+Integer.toString(col)+": "+Integer.toString(desiredForm));
             }
             break;
           case java.sql.Types.CLOB :
