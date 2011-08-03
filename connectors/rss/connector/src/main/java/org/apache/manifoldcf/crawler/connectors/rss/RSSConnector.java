@@ -844,10 +844,12 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                 String[] sources = activities.retrieveParentData(urlValue,"source");
                 String[] titles = activities.retrieveParentData(urlValue,"title");
                 String[] categories = activities.retrieveParentData(urlValue,"category");
+                String[] descriptions = activities.retrieveParentData(urlValue,"description");
                 java.util.Arrays.sort(pubDates);
                 java.util.Arrays.sort(sources);
                 java.util.Arrays.sort(titles);
                 java.util.Arrays.sort(categories);
+                java.util.Arrays.sort(descriptions);
 
                 if (sources.length == 0)
                 {
@@ -876,6 +878,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                 packList(sb,sources,'+');
                 // The categories
                 packList(sb,categories,'+');
+                // The descriptions
+                packList(sb,descriptions,'+');
 
                 // Do the checksum part, which does not need to be parseable.
                 sb.append(new Long(checkSum).toString());
@@ -1334,6 +1338,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           startPos = unpackList(sources,version,startPos,'+');
           ArrayList categories = new ArrayList();
           startPos = unpackList(categories,version,startPos,'+');
+          ArrayList descriptions = new ArrayList();
+          startPos = unpackList(descriptions,version,startPos,'+');
 
           if (ingestURL.length() > 0)
           {
@@ -1398,6 +1404,17 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
             }
             if (k > 0)
               rd.addField("title",titleValues);
+            
+            // Loop through the descriptions to add those to the metadata
+            String[] descriptionValues = new String[descriptions.size()];
+            k = 0;
+            while (k < descriptionValues.length)
+            {
+              descriptionValues[k] = (String)descriptions.get(k);
+              k++;
+            }
+            if (k > 0)
+              rd.addField("description",descriptionValues);
 
             // Loop through the sources to add those to the metadata
             String[] sourceValues = new String[sources.size()];
@@ -3680,6 +3697,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     protected String linkField = null;
     protected String pubDateField = null;
     protected String titleField = null;
+    protected String descriptionField = null;
     protected ArrayList categoryField = new ArrayList();
     protected File contentsFile = null;
 
@@ -3720,9 +3738,16 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       }
       else
       {
+        // Handle potentially longer fields.  Both "description" and "content" fields can potentially be large; they are thus
+        // processed as temporary files.  But the dance is complicated because (a) we only want one PRIMARY content source,
+        // and (b) we want access to the description field, if it is not used as primary content.
         switch (dechromedContentMode)
         {
         case DECHROMED_NONE:
+          if (qName.equals("description"))
+          {
+            return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+          }
           break;
         case DECHROMED_DESCRIPTION:
           if (qName.equals("description"))
@@ -3767,6 +3792,10 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
               throw new ManifoldCFException("IO exception creating temp file: "+e.getMessage(),e);
             }
           }
+          else if (qName.equals("description"))
+          {
+            return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+          }
           break;
         default:
           break;
@@ -3804,9 +3833,16 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       }
       else
       {
+        // What we want is: (a) if dechromed mode is NONE, just put the description file in the description field; (b)
+        // if dechromed mode is "description", put the description field in the primary content field; (c)
+        // if dechromed mode is "content", put the content field in the primary content field, and the description field in the description field.
         switch (dechromedContentMode)
         {
         case DECHROMED_NONE:
+          if (theTag.equals("description"))
+          {
+            descriptionField = ((XMLStringContext)theContext).getValue();
+          }
           break;
         case DECHROMED_DESCRIPTION:
           if (theTag.equals("description"))
@@ -3820,10 +3856,14 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         case DECHROMED_CONTENT:
           if (theTag.equals("content"))
           {
-            // Retrieve content file
             tagCleanup();
+            // Retrieve content file
             contentsFile = ((XMLFileContext)theContext).getCompletedFile();
             return;
+          }
+          else if (theTag.equals("description"))
+          {
+            descriptionField = ((XMLStringContext)theContext).getValue();
           }
           break;
         default:
@@ -3880,23 +3920,46 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
               if (contentsFile == null)
               {
                 // It's a reference!  Add it.
-                String[] dataNames = new String[]{"pubdate","title","source","category"};
-                String[][] dataValues = new String[dataNames.length][];
-                if (origDate != null)
-                  dataValues[0] = new String[]{origDate.toString()};
-                if (titleField != null)
-                  dataValues[1] = new String[]{titleField};
-                dataValues[2] = new String[]{documentIdentifier};
-                dataValues[3] = new String[categoryField.size()];
-                int q = 0;
-                while (q < categoryField.size())
+                if (descriptionField == null)
                 {
-                  (dataValues[3])[q] = (String)categoryField.get(q);
-                  q++;
-                }
+                  String[] dataNames = new String[]{"pubdate","title","source","category"};
+                  String[][] dataValues = new String[dataNames.length][];
+                  if (origDate != null)
+                    dataValues[0] = new String[]{origDate.toString()};
+                  if (titleField != null)
+                    dataValues[1] = new String[]{titleField};
+                  dataValues[2] = new String[]{documentIdentifier};
+                  dataValues[3] = new String[categoryField.size()];
+                  int q = 0;
+                  while (q < categoryField.size())
+                  {
+                    (dataValues[3])[q] = (String)categoryField.get(q);
+                    q++;
+                  }
 
-                // Add document reference, including the data to pass down
-                activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
+                  // Add document reference, not including any data or description to pass down
+                  activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
+                }
+                else
+                {
+                  String[] dataNames = new String[]{"pubdate","title","source","category","description"};
+                  String[][] dataValues = new String[dataNames.length][];
+                  if (origDate != null)
+                    dataValues[0] = new String[]{origDate.toString()};
+                  if (titleField != null)
+                    dataValues[1] = new String[]{titleField};
+                  dataValues[2] = new String[]{documentIdentifier};
+                  dataValues[3] = new String[categoryField.size()];
+                  int q = 0;
+                  while (q < categoryField.size())
+                  {
+                    (dataValues[3])[q] = (String)categoryField.get(q);
+                    q++;
+                  }
+                  dataValues[4] = new String[]{descriptionField};
+                  // Add document reference, not including the data to pass down, but including a description
+                  activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
+                }
               }
               else
               {
@@ -3908,33 +3971,70 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                 // Since the dechromed data is available from the feed, the possibility remains of passing the document
 
                 // Now, set up the carrydown info
-                String[] dataNames = new String[]{"pubdate","title","source","category","data"};
-                Object[][] dataValues = new Object[dataNames.length][];
-                if (origDate != null)
-                  dataValues[0] = new String[]{origDate.toString()};
-                if (titleField != null)
-                  dataValues[1] = new String[]{titleField};
-                dataValues[2] = new String[]{documentIdentifier};
-                dataValues[3] = new String[categoryField.size()];
-                int q = 0;
-                while (q < categoryField.size())
+                if (descriptionField == null)
                 {
-                  (dataValues[3])[q] = (String)categoryField.get(q);
-                  q++;
-                }
+                  String[] dataNames = new String[]{"pubdate","title","source","category","data"};
+                  Object[][] dataValues = new Object[dataNames.length][];
+                  if (origDate != null)
+                    dataValues[0] = new String[]{origDate.toString()};
+                  if (titleField != null)
+                    dataValues[1] = new String[]{titleField};
+                  dataValues[2] = new String[]{documentIdentifier};
+                  dataValues[3] = new String[categoryField.size()];
+                  int q = 0;
+                  while (q < categoryField.size())
+                  {
+                    (dataValues[3])[q] = (String)categoryField.get(q);
+                    q++;
+                  }
 
-                CharacterInput ci = new TempFileCharacterInput(contentsFile);
-                try
-                {
-                  contentsFile = null;
-                  dataValues[4] = new Object[]{ci};
+                  CharacterInput ci = new TempFileCharacterInput(contentsFile);
+                  try
+                  {
+                    contentsFile = null;
+                    dataValues[4] = new Object[]{ci};
 
-                  // Add document reference, including the data to pass down, and the dechromed content too
-                  activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
+                    // Add document reference, including the data to pass down, and the dechromed content too
+                    activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
+                  }
+                  finally
+                  {
+                    ci.discard();
+                  }
                 }
-                finally
+                else
                 {
-                  ci.discard();
+                  // Pass both data and description
+                  String[] dataNames = new String[]{"pubdate","title","source","category","data","description"};
+                  Object[][] dataValues = new Object[dataNames.length][];
+                  if (origDate != null)
+                    dataValues[0] = new String[]{origDate.toString()};
+                  if (titleField != null)
+                    dataValues[1] = new String[]{titleField};
+                  dataValues[2] = new String[]{documentIdentifier};
+                  dataValues[3] = new String[categoryField.size()];
+                  int q = 0;
+                  while (q < categoryField.size())
+                  {
+                    (dataValues[3])[q] = (String)categoryField.get(q);
+                    q++;
+                  }
+
+                  dataValues[5] = new String[]{descriptionField};
+
+                  CharacterInput ci = new TempFileCharacterInput(contentsFile);
+                  try
+                  {
+                    contentsFile = null;
+                    dataValues[4] = new Object[]{ci};
+
+                    // Add document reference, including the data to pass down, and the dechromed content too
+                    activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
+                  }
+                  finally
+                  {
+                    ci.discard();
+                  }
                 }
               }
             }

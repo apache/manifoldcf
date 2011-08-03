@@ -3,6 +3,11 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-235: Fix broken Derby and HSQLDB file-based carrydown
+data, and added the ability to handle RSS feed description values outside
+of dechromed content.
+(Kat McGonigal, Karl Wright)
+
 CONNECTORS-232: Fix site icon link.
 (Piergiorgio Lucidi, Karl Wright)
 
