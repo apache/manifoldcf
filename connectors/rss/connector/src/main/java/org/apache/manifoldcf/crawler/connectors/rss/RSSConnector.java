@@ -1892,7 +1892,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   {
     tabsArray.add("URLs");
     tabsArray.add("Canonicalization");
-    tabsArray.add("Mappings");
+    tabsArray.add("URL Mappings");
     tabsArray.add("Time Values");
     tabsArray.add("Security");
     tabsArray.add("Metadata");
@@ -2248,7 +2248,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   
     // Mappings tab
 
-    if (tabName.equals("Mappings"))
+    if (tabName.equals("URL Mappings"))
     {
       out.print(
 "<input type=\"hidden\" name=\"rssop\" value=\"\"/>\n"+
