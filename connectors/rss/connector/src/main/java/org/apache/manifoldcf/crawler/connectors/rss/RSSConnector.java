@@ -1080,10 +1080,12 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                           String[] sources = activities.retrieveParentData(urlValue,"source");
                           String[] titles = activities.retrieveParentData(urlValue,"title");
                           String[] categories = activities.retrieveParentData(urlValue,"category");
+                          String[] descriptions = activities.retrieveParentData(urlValue,"description");
                           java.util.Arrays.sort(pubDates);
                           java.util.Arrays.sort(sources);
                           java.util.Arrays.sort(titles);
                           java.util.Arrays.sort(categories);
+                          java.util.Arrays.sort(descriptions);
 
                           if (sources.length == 0)
                           {
@@ -1112,6 +1114,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                           packList(sb,sources,'+');
                           // The categories
                           packList(sb,categories,'+');
+                          // The descriptions
+                          packList(sb,descriptions,'+');
 
                         }
                         else
@@ -1414,7 +1418,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
               k++;
             }
             if (k > 0)
-              rd.addField("description",descriptionValues);
+              rd.addField("summary",descriptionValues);
 
             // Loop through the sources to add those to the metadata
             String[] sourceValues = new String[sources.size()];
@@ -3920,46 +3924,24 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
               if (contentsFile == null)
               {
                 // It's a reference!  Add it.
-                if (descriptionField == null)
+                String[] dataNames = new String[]{"pubdate","title","source","category","description"};
+                String[][] dataValues = new String[dataNames.length][];
+                if (origDate != null)
+                  dataValues[0] = new String[]{origDate.toString()};
+                if (titleField != null)
+                  dataValues[1] = new String[]{titleField};
+                dataValues[2] = new String[]{documentIdentifier};
+                dataValues[3] = new String[categoryField.size()];
+                int q = 0;
+                while (q < categoryField.size())
                 {
-                  String[] dataNames = new String[]{"pubdate","title","source","category"};
-                  String[][] dataValues = new String[dataNames.length][];
-                  if (origDate != null)
-                    dataValues[0] = new String[]{origDate.toString()};
-                  if (titleField != null)
-                    dataValues[1] = new String[]{titleField};
-                  dataValues[2] = new String[]{documentIdentifier};
-                  dataValues[3] = new String[categoryField.size()];
-                  int q = 0;
-                  while (q < categoryField.size())
-                  {
-                    (dataValues[3])[q] = (String)categoryField.get(q);
-                    q++;
-                  }
-
-                  // Add document reference, not including any data or description to pass down
-                  activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
+                  (dataValues[3])[q] = (String)categoryField.get(q);
+                  q++;
                 }
-                else
-                {
-                  String[] dataNames = new String[]{"pubdate","title","source","category","description"};
-                  String[][] dataValues = new String[dataNames.length][];
-                  if (origDate != null)
-                    dataValues[0] = new String[]{origDate.toString()};
-                  if (titleField != null)
-                    dataValues[1] = new String[]{titleField};
-                  dataValues[2] = new String[]{documentIdentifier};
-                  dataValues[3] = new String[categoryField.size()];
-                  int q = 0;
-                  while (q < categoryField.size())
-                  {
-                    (dataValues[3])[q] = (String)categoryField.get(q);
-                    q++;
-                  }
+                if (descriptionField != null)
                   dataValues[4] = new String[]{descriptionField};
-                  // Add document reference, not including the data to pass down, but including a description
-                  activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
-                }
+                // Add document reference, not including the data to pass down, but including a description
+                activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
               }
               else
               {
@@ -3971,70 +3953,36 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                 // Since the dechromed data is available from the feed, the possibility remains of passing the document
 
                 // Now, set up the carrydown info
-                if (descriptionField == null)
+                String[] dataNames = new String[]{"pubdate","title","source","category","data","description"};
+                Object[][] dataValues = new Object[dataNames.length][];
+                if (origDate != null)
+                  dataValues[0] = new String[]{origDate.toString()};
+                if (titleField != null)
+                  dataValues[1] = new String[]{titleField};
+                dataValues[2] = new String[]{documentIdentifier};
+                dataValues[3] = new String[categoryField.size()];
+                int q = 0;
+                while (q < categoryField.size())
                 {
-                  String[] dataNames = new String[]{"pubdate","title","source","category","data"};
-                  Object[][] dataValues = new Object[dataNames.length][];
-                  if (origDate != null)
-                    dataValues[0] = new String[]{origDate.toString()};
-                  if (titleField != null)
-                    dataValues[1] = new String[]{titleField};
-                  dataValues[2] = new String[]{documentIdentifier};
-                  dataValues[3] = new String[categoryField.size()];
-                  int q = 0;
-                  while (q < categoryField.size())
-                  {
-                    (dataValues[3])[q] = (String)categoryField.get(q);
-                    q++;
-                  }
-
-                  CharacterInput ci = new TempFileCharacterInput(contentsFile);
-                  try
-                  {
-                    contentsFile = null;
-                    dataValues[4] = new Object[]{ci};
-
-                    // Add document reference, including the data to pass down, and the dechromed content too
-                    activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
-                  }
-                  finally
-                  {
-                    ci.discard();
-                  }
+                  (dataValues[3])[q] = (String)categoryField.get(q);
+                  q++;
                 }
-                else
-                {
-                  // Pass both data and description
-                  String[] dataNames = new String[]{"pubdate","title","source","category","data","description"};
-                  Object[][] dataValues = new Object[dataNames.length][];
-                  if (origDate != null)
-                    dataValues[0] = new String[]{origDate.toString()};
-                  if (titleField != null)
-                    dataValues[1] = new String[]{titleField};
-                  dataValues[2] = new String[]{documentIdentifier};
-                  dataValues[3] = new String[categoryField.size()];
-                  int q = 0;
-                  while (q < categoryField.size())
-                  {
-                    (dataValues[3])[q] = (String)categoryField.get(q);
-                    q++;
-                  }
 
+                if (descriptionField != null)
                   dataValues[5] = new String[]{descriptionField};
 
-                  CharacterInput ci = new TempFileCharacterInput(contentsFile);
-                  try
-                  {
-                    contentsFile = null;
-                    dataValues[4] = new Object[]{ci};
+                CharacterInput ci = new TempFileCharacterInput(contentsFile);
+                try
+                {
+                  contentsFile = null;
+                  dataValues[4] = new Object[]{ci};
 
-                    // Add document reference, including the data to pass down, and the dechromed content too
-                    activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
-                  }
-                  finally
-                  {
-                    ci.discard();
-                  }
+                  // Add document reference, including the data to pass down, and the dechromed content too
+                  activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
+                }
+                finally
+                {
+                  ci.discard();
                 }
               }
             }
@@ -4170,6 +4118,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     protected String linkField = null;
     protected String pubDateField = null;
     protected String titleField = null;
+    protected String descriptionField = null;
     protected File contentsFile = null;
 
     public RDFItemContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts, int dechromedContentMode)
@@ -4202,6 +4151,10 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         switch (dechromedContentMode)
         {
         case DECHROMED_NONE:
+          if (qName.equals("description"))
+          {
+            return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+          }
           break;
         case DECHROMED_DESCRIPTION:
           if (qName.equals("description"))
@@ -4246,6 +4199,10 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
               throw new ManifoldCFException("IO exception creating temp file: "+e.getMessage(),e);
             }
           }
+          else if (qName.equals("description"))
+          {
+            return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+          }
           break;
         default:
           break;
@@ -4278,6 +4235,10 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         switch (dechromedContentMode)
         {
         case DECHROMED_NONE:
+          if (theTag.equals("description"))
+          {
+            descriptionField = ((XMLStringContext)theContext).getValue();
+          }
           break;
         case DECHROMED_DESCRIPTION:
           if (theTag.equals("description"))
@@ -4295,6 +4256,10 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
             tagCleanup();
             contentsFile = ((XMLFileContext)theContext).getCompletedFile();
             return;
+          }
+          else if (theTag.equals("description"))
+          {
+            descriptionField = ((XMLStringContext)theContext).getValue();
           }
           break;
         default:
@@ -4343,13 +4308,15 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
               if (contentsFile == null)
               {
                 // It's a reference!  Add it.
-                String[] dataNames = new String[]{"pubdate","title","source"};
+                String[] dataNames = new String[]{"pubdate","title","source","description"};
                 String[][] dataValues = new String[dataNames.length][];
                 if (origDate != null)
                   dataValues[0] = new String[]{origDate.toString()};
                 if (titleField != null)
                   dataValues[1] = new String[]{titleField};
                 dataValues[2] = new String[]{documentIdentifier};
+                if (descriptionField != null)
+                  dataValues[3] = new String[]{descriptionField};
 
                 // Add document reference, including the data to pass down
                 activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
@@ -4362,14 +4329,15 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                 // right here.
 
                 // Now, set up the carrydown info
-                String[] dataNames = new String[]{"pubdate","title","source","data"};
+                String[] dataNames = new String[]{"pubdate","title","source","data","description"};
                 Object[][] dataValues = new Object[dataNames.length][];
                 if (origDate != null)
                   dataValues[0] = new String[]{origDate.toString()};
                 if (titleField != null)
                   dataValues[1] = new String[]{titleField};
                 dataValues[2] = new String[]{documentIdentifier};
-
+                if (descriptionField != null)
+                  dataValues[4] = new String[]{descriptionField};
                 CharacterInput ci = new TempFileCharacterInput(contentsFile);
                 try
                 {
@@ -4519,6 +4487,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     protected String titleField = null;
     protected ArrayList categoryField = new ArrayList();
     protected File contentsFile = null;
+    protected String descriptionField = null;
 
     public FeedItemContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts, int dechromedContentMode)
     {
@@ -4558,6 +4527,10 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         switch (dechromedContentMode)
         {
         case DECHROMED_NONE:
+          if (qName.equals("subtitle"))
+          {
+            return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+          }
           break;
         case DECHROMED_DESCRIPTION:
           if (qName.equals("subtitle"))
@@ -4602,6 +4575,10 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
               throw new ManifoldCFException("IO exception creating temp file: "+e.getMessage(),e);
             }
           }
+          else if (qName.equals("subtitle"))
+          {
+            return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+          }
           break;
         default:
           break;
@@ -4630,9 +4607,13 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         switch (dechromedContentMode)
         {
         case DECHROMED_NONE:
+          if (theTag.equals("subtitle"))
+          {
+            titleField = ((XMLStringContext)theContext).getValue();
+          }
           break;
         case DECHROMED_DESCRIPTION:
-          if (theTag.equals("description"))
+          if (theTag.equals("subtitle"))
           {
             // Content file has been written; retrieve it (being sure not to leak any files already hanging around!)
             tagCleanup();
@@ -4647,6 +4628,10 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
             tagCleanup();
             contentsFile = ((XMLFileContext)theContext).getCompletedFile();
             return;
+          }
+          else if (theTag.equals("subtitle"))
+          {
+            titleField = ((XMLStringContext)theContext).getValue();
           }
           break;
         default:
@@ -4695,7 +4680,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
               if (contentsFile == null)
               {
                 // It's a reference!  Add it.
-                String[] dataNames = new String[]{"pubdate","title","source","category"};
+                String[] dataNames = new String[]{"pubdate","title","source","category","description"};
                 String[][] dataValues = new String[dataNames.length][];
                 if (origDate != null)
                   dataValues[0] = new String[]{origDate.toString()};
@@ -4709,7 +4694,9 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                   (dataValues[3])[q] = (String)categoryField.get(q);
                   q++;
                 }
-
+                if (descriptionField != null)
+                  dataValues[4] = new String[]{descriptionField};
+                  
                 // Add document reference, including the data to pass down
                 activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
               }
@@ -4721,7 +4708,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                 // right here.
 
                 // Now, set up the carrydown info
-                String[] dataNames = new String[]{"pubdate","title","source","category","data"};
+                String[] dataNames = new String[]{"pubdate","title","source","category","data","description"};
                 Object[][] dataValues = new Object[dataNames.length][];
                 if (origDate != null)
                   dataValues[0] = new String[]{origDate.toString()};
@@ -4735,7 +4722,9 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                   (dataValues[3])[q] = (String)categoryField.get(q);
                   q++;
                 }
-
+                if (descriptionField != null)
+                  dataValues[5] = new String[]{descriptionField};
+                  
                 CharacterInput ci = new TempFileCharacterInput(contentsFile);
                 try
                 {
