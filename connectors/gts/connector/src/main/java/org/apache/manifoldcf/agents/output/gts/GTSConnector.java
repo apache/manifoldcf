@@ -565,8 +565,8 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
   public void outputSpecificationHeader(IHTTPOutput out, OutputSpecification os, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
-    tabsArray.add("Collections");
-    tabsArray.add("Template");
+    tabsArray.add("GTS Collections");
+    tabsArray.add("GTS Template");
     out.print(
 "\n"+
 "<script type=\"text/javascript\">\n"+
@@ -621,7 +621,7 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
       documentTemplate = "";
 
     // Collections tab
-    if (tabName.equals("Collections"))
+    if (tabName.equals("GTS Collections"))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -644,7 +644,7 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
     }
 
     // Template tab
-    if (tabName.equals("Template"))
+    if (tabName.equals("GTS Template"))
     {
       out.print(
 "<table class=\"displaytable\">\n"+

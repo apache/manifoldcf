@@ -1485,7 +1485,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   public void outputSpecificationHeader(IHTTPOutput out, OutputSpecification os, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
-    tabsArray.add("Field Mapping");
+    tabsArray.add("Solr Field Mapping");
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
@@ -1553,7 +1553,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     }
     
     // Field Mapping tab
-    if (tabName.equals("Field Mapping"))
+    if (tabName.equals("Solr Field Mapping"))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
