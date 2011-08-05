@@ -1616,6 +1616,15 @@
       </condition>
     </target>
 
+    <target name="calculate-cmis-tests-condition" depends="calculate-cmis-condition,calculate-nulloutput-condition">
+      <condition property="cmis-tests.include">
+        <and>
+            <isset property="cmis.include"/>
+            <isset property="nulloutput.include"/>
+        </and>
+      </condition>
+    </target>
+
     <target name="compile-filesystem-tests" depends="build-framework,build-filesystem-connector,build-nulloutput-connector,calculate-filesystem-tests-condition,build-tests-filesystem-connector,build-tests-nulloutput-connector" if="filesystem-tests.include">
         <mkdir dir="build/filesystem-tests/classes"/>
         <javac srcdir="tests/filesystem/src/test/java" destdir="build/filesystem-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
@@ -1677,6 +1686,41 @@
         </javac>
     </target>
 
+    <target name="compile-cmis-tests" depends="build-framework,build-cmis-connector,build-nulloutput-connector,calculate-cmis-tests-condition,build-tests-cmis-connector,build-tests-nulloutput-connector" if="cmis-tests.include">
+        <mkdir dir="build/cmis-tests/classes"/>
+        <javac srcdir="tests/cmis/src/test/java" destdir="build/cmis-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+            <classpath>
+                 <fileset dir="framework/lib"> 
+                    <include name="*.jar"/> 
+                </fileset>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/cmis/lib">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/cmis/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/cmis/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+            </classpath>
+        </javac>
+    </target>
+
     <target name="run-filesystem-tests" depends="compile-filesystem-tests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
         <mkdir dir="test-output/filesystem"/>
         <junit fork="true" maxmemory="128m" dir="test-output/filesystem" showoutput="true" haltonfailure="true">
@@ -1708,6 +1752,41 @@
             <test name="org.apache.manifoldcf.filesystem_tests.APISanityTest" todir="test-output/filesystem"/>
             <test name="org.apache.manifoldcf.filesystem_tests.HopcountTest" todir="test-output/filesystem"/>
             <test name="org.apache.manifoldcf.filesystem_tests.ExpirationTest" todir="test-output/filesystem"/>
+            <!-- MHL -->
+        </junit>
+    </target>
+
+    <target name="run-cmis-tests" depends="compile-cmis-tests,calculate-cmis-tests-condition" if="cmis-tests.include">
+        <mkdir dir="test-output/cmis"/>
+        <junit fork="true" maxmemory="128m" dir="test-output/cmis" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+  	      <fileset dir="connectors/cmis/lib">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/cmis/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/cmis/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/cmis-tests/classes"/>
+            </classpath>
+            <test name="org.apache.manifoldcf.cmis_tests.APISanityTest" todir="test-output/cmis"/>
             <!-- MHL -->
         </junit>
     </target>

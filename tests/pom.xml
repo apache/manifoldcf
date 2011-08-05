@@ -33,6 +33,7 @@
   <packaging>pom</packaging>
 
   <modules>
+  	<module>cmis</module>
     <module>filesystem</module>
     <module>sharepoint</module>
   </modules>

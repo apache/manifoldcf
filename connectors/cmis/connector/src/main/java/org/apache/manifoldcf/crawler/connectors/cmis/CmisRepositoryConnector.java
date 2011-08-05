@@ -80,7 +80,8 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   protected final static String ACTIVITY_READ = "read document";
   protected static final String RELATIONSHIP_CHILD = "child";
 
-  private static final String CMIS_FOLDER_BASE_TYPE = "Folder";
+  private static final String CMIS_FOLDER_BASE_TYPE = "cmis:folder";
+  private static final String CMIS_DOCUMENT_BASE_TYPE = "cmis:document";
   private static final SimpleDateFormat ISO8601_DATE_FORMATTER = new SimpleDateFormat(
       "yyyy-MM-dd'T'HH:mm:ssZ");
 
@@ -893,9 +894,9 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
       
       String errorCode = "OK";
       String errorDesc = StringUtils.EMPTY;
+      String baseTypeId = cmisObject.getBaseType().getId();
 
-      if (cmisObject.getBaseType().getDisplayName()
-          .equals(CMIS_FOLDER_BASE_TYPE)) {
+      if (baseTypeId.equals(CMIS_FOLDER_BASE_TYPE)) {
 
         // adding all the children for a folder
 
@@ -906,7 +907,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
               RELATIONSHIP_CHILD);
         }
 
-      } else {
+      } else if(baseTypeId.equals(CMIS_DOCUMENT_BASE_TYPE)){
 
         // content ingestion
 
@@ -1022,9 +1023,17 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     int i = 0;
     while (i < rval.length){
       CmisObject cmisObject = session.getObject(documentIdentifiers[i]);
-      if (!cmisObject.getBaseType().getDisplayName().equals(CMIS_FOLDER_BASE_TYPE)) {
+      if (cmisObject.getBaseType().getId().equals(CMIS_DOCUMENT_BASE_TYPE)) {
         Document document = (Document) cmisObject;
-        rval[i] = document.getVersionLabel();
+        
+        //we have to check if this CMIS repository support versioning
+        // or if the versioning is disabled for this content
+        if(StringUtils.isNotEmpty(document.getVersionLabel())){
+          rval[i] = document.getVersionLabel();
+        } else {
+        //a CMIS document that doesn't contain versioning information will always be processed
+          rval[i] = StringUtils.EMPTY;
+        }
       } else {
         //a CMIS folder will always be processed
         rval[i] = StringUtils.EMPTY;
