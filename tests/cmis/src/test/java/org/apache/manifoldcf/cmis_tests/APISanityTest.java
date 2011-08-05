@@ -43,6 +43,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.core.interfaces.Configuration;
 import org.apache.manifoldcf.core.interfaces.ConfigurationNode;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.crawler.connectors.cmis.CmisRepositoryConnector;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import org.junit.After;
 import org.junit.Before;
@@ -60,6 +61,7 @@ public class APISanityTest extends Base
   private static final String CMIS_ENDPOINT_TEST_SERVER = "http://localhost:9090/chemistry-opencmis-server-inmemory/atom";
   private static final String CMIS_USERNAME = "dummyuser"; 
   private static final String CMIS_PASSWORD = "dummysecret";
+  private static final String CMIS_BINDING = "atom";
   
   private Session cmisClientSession = null;
   
@@ -225,21 +227,27 @@ public class APISanityTest extends Base
       
       //CMIS Repository Connector parameters
       
+      //binding
+      ConfigurationNode cmisBindingNode = new ConfigurationNode("_PARAMETER_");
+      cmisBindingNode.setAttribute("name", CmisRepositoryConnector.CONFIG_PARAM_BINDING);
+      cmisBindingNode.setValue(CMIS_BINDING);
+      child.addChild(child.getChildCount(), cmisBindingNode);
+      
       //username
       ConfigurationNode cmisUsernameNode = new ConfigurationNode("_PARAMETER_");
-      cmisUsernameNode.setAttribute("name", "username");
+      cmisUsernameNode.setAttribute("name", CmisRepositoryConnector.CONFIG_PARAM_USERNAME);
       cmisUsernameNode.setValue(CMIS_USERNAME);
       child.addChild(child.getChildCount(), cmisUsernameNode);
       
       //password
       ConfigurationNode cmisPasswordNode = new ConfigurationNode("_PARAMETER_");
-      cmisPasswordNode.setAttribute("name", "password");
+      cmisPasswordNode.setAttribute("name", CmisRepositoryConnector.CONFIG_PARAM_PASSWORD);
       cmisPasswordNode.setValue(CMIS_PASSWORD);
       child.addChild(child.getChildCount(), cmisPasswordNode);
       
       //endpoint
       ConfigurationNode cmisEndpointNode = new ConfigurationNode("_PARAMETER_");
-      cmisEndpointNode.setAttribute("name", "endpoint");
+      cmisEndpointNode.setAttribute("name", CmisRepositoryConnector.CONFIG_PARAM_ENDPOINT);
       cmisEndpointNode.setValue(CMIS_ENDPOINT_TEST_SERVER);
       child.addChild(child.getChildCount(), cmisEndpointNode);
       

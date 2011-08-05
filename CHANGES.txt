@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-234: Add support for CMIS binding protocol.
+(Piergiorgio Lucidi, Karl Wright)
+
 CONNECTORS-235: Fix broken Derby and HSQLDB file-based carrydown
 data, and added the ability to handle RSS feed description values outside
 of dechromed content.

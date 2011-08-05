@@ -73,6 +73,10 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   public static final String CONFIG_PARAM_ENDPOINT = "endpoint";
   public static final String CONFIG_PARAM_REPOSITORY_ID = "repositoryId";
   public static final String CONFIG_PARAM_CMIS_QUERY = "cmisQuery";
+  public static final String CONFIG_PARAM_BINDING = "binding";
+  
+  private static final String BINDING_ATOM_VALUE = "atom";
+  private static final String BINDING_WS_VALUE = "ws";
 
   private static final String JOB_STARTPOINT_NODE_TYPE = "startpoint";
   private static final String TAB_LABEL_CMIS_QUERY = "CMIS Query";
@@ -94,6 +98,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   protected String password = null;
   protected String endpoint = null;
   protected String repositoryId = null;
+  protected String binding = null;
 
   protected SessionFactory factory = SessionFactoryImpl.newInstance();
   protected Map<String, String> parameters = new HashMap<String, String>();
@@ -135,9 +140,23 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
         parameters.put(SessionParameter.PASSWORD, password);
 
         // connection settings
-        parameters.put(SessionParameter.ATOMPUB_URL, endpoint);
-        parameters.put(SessionParameter.BINDING_TYPE, BindingType.ATOMPUB.value());
-
+        if(BINDING_ATOM_VALUE.equals(binding)){
+          //AtomPub protocol
+          parameters.put(SessionParameter.ATOMPUB_URL, endpoint);
+          parameters.put(SessionParameter.BINDING_TYPE, BindingType.ATOMPUB.value());
+        } else if(BINDING_WS_VALUE.equals(binding)){
+          //Web Services - SOAP - protocol
+          parameters.put(SessionParameter.BINDING_TYPE, BindingType.WEBSERVICES.value());
+          parameters.put(SessionParameter.WEBSERVICES_ACL_SERVICE, endpoint+"/ACLService?wsdl");
+          parameters.put(SessionParameter.WEBSERVICES_DISCOVERY_SERVICE, endpoint+"/DiscoveryService?wsdl");
+          parameters.put(SessionParameter.WEBSERVICES_MULTIFILING_SERVICE, endpoint+"/MultiFilingService?wsdl");
+          parameters.put(SessionParameter.WEBSERVICES_NAVIGATION_SERVICE, endpoint+"/NavigationService?wsdl");
+          parameters.put(SessionParameter.WEBSERVICES_OBJECT_SERVICE, endpoint+"/ObjectService?wsdl");
+          parameters.put(SessionParameter.WEBSERVICES_POLICY_SERVICE, endpoint+"/PolicyService?wsdl");
+          parameters.put(SessionParameter.WEBSERVICES_RELATIONSHIP_SERVICE, endpoint+"/RelationshipService?wsdl");
+          parameters.put(SessionParameter.WEBSERVICES_REPOSITORY_SERVICE, endpoint+"/RepositoryService?wsdl");
+          parameters.put(SessionParameter.WEBSERVICES_VERSIONING_SERVICE, endpoint+"/VersioningService?wsdl");
+        }
         // create session
         if (StringUtils.isEmpty(repositoryId)) {
 
@@ -277,6 +296,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     username = params.getParameter(CONFIG_PARAM_USERNAME);
     password = params.getParameter(CONFIG_PARAM_PASSWORD);
     endpoint = params.getParameter(CONFIG_PARAM_ENDPOINT);
+    binding = params.getParameter(CONFIG_PARAM_BINDING);
     if (StringUtils.isNotEmpty(params.getParameter(CONFIG_PARAM_REPOSITORY_ID)))
       repositoryId = params.getParameter(CONFIG_PARAM_REPOSITORY_ID);
   }
@@ -296,6 +316,11 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   protected void getSession() throws ManifoldCFException, ServiceInterruption {
     if (session == null) {
       // Check for parameter validity
+      
+      if (StringUtils.isEmpty(binding))
+        throw new ManifoldCFException("Parameter " + CONFIG_PARAM_BINDING
+            + " required but not set");
+      
       if (StringUtils.isEmpty(username))
         throw new ManifoldCFException("Parameter " + CONFIG_PARAM_USERNAME
             + " required but not set");
@@ -613,6 +638,9 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
         + "  }\n" + "  if (editconnection.endpoint.value == \"\")\n" + "  {\n"
         + "    alert(\"The endpoint must be not null\");\n"
         + "    editconnection.endpoint.focus();\n" + "    return false;\n"
+        + "  }\n" + "  if (editconnection.binding.value == \"\")\n" + "  {\n"
+        + "    alert(\"The binding must be not null\");\n"
+        + "    editconnection.binding.focus();\n" + "    return false;\n"
         + "  }\n" + "\n" + "  return true;\n" + "}\n" + " \n"
         + "function checkConfigForSave()\n" + "{\n"
         + "  if (editconnection.username.value == \"\")\n" + "  {\n"
@@ -621,6 +649,9 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
         + "  }\n" + "  if (editconnection.password.value == \"\")\n" + "  {\n"
         + "    alert(\"The password must be not null\");\n"
         + "    editconnection.password.focus();\n" + "    return false;\n"
+        + "  }\n" + "  if (editconnection.binding.value == \"\")\n" + "  {\n"
+        + "    alert(\"The binding must be not null\");\n"
+        + "    editconnection.binding.focus();\n" + "    return false;\n"
         + "  }\n" + "  if (editconnection.endpoint.value == \"\")\n" + "  {\n"
         + "    alert(\"The endpoint must be not null\");\n"
         + "    editconnection.endpoint.focus();\n" + "    return false;\n"
@@ -637,6 +668,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     String password = parameters.getParameter(CONFIG_PARAM_PASSWORD);
     String endpoint = parameters.getParameter(CONFIG_PARAM_ENDPOINT);
     String repositoryId = parameters.getParameter(CONFIG_PARAM_REPOSITORY_ID);
+    String binding = parameters.getParameter(CONFIG_PARAM_BINDING);
     
     if(StringUtils.isEmpty(username))
       username = StringUtils.EMPTY;
@@ -646,12 +678,28 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
       endpoint = StringUtils.EMPTY;
     if(StringUtils.isEmpty(repositoryId))
       repositoryId = StringUtils.EMPTY;
+    if(StringUtils.isEmpty(binding))
+      binding = BINDING_ATOM_VALUE;
     
     out.print("<table class=\"displaytable\">\n"
         + "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n");
     out.print(
-        "<tr><td class=\"description\"><nobr>Username:</nobr></td>\n"
-       +"<td class=\"value\"><input type=\"text\" name=\""
+         "<tr><td class=\"description\"><nobr>Binding:</nobr></td>\n"
+        +"<td class=\"value\"><select name=\"binding\">");
+    
+    if(BINDING_ATOM_VALUE.equals(binding)){    
+      out.print("<option value=\""+BINDING_ATOM_VALUE+"\" selected=\"selected\">AtomPub</option>"
+          +"<option value=\""+BINDING_WS_VALUE+"\">Web Services</option>"
+          +"</select></td></tr>");
+      
+    } else if(BINDING_WS_VALUE.equals(binding)) {
+      out.print("<option value=\""+BINDING_ATOM_VALUE+"\">AtomPub</option>"
+          +"<option value=\""+BINDING_WS_VALUE+"\" selected=\"selected\">Web Services</option>"
+          +"</select></td></tr>");
+    }
+    
+    out.print("<tr><td class=\"description\"><nobr>Username:</nobr></td>\n"
+        +"<td class=\"value\"><input type=\"text\" name=\""
         + CONFIG_PARAM_USERNAME + "\" value=\""+username+"\"/></td></tr>\n");
     out.print("<tr><td class=\"description\"><nobr>Password:</nobr></td>" +
     		"<td class=\"value\"><input type=\"password\" name=\""
@@ -689,6 +737,11 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   public String processConfigurationPost(IThreadContext threadContext,
       IPostParameters variableContext, ConfigParams parameters)
       throws ManifoldCFException {
+    
+    String binding = variableContext.getParameter(CONFIG_PARAM_BINDING);
+    if (StringUtils.isNotEmpty(binding))
+      parameters.setParameter(CONFIG_PARAM_BINDING, binding);
+    
     String username = variableContext.getParameter(CONFIG_PARAM_USERNAME);
     if (StringUtils.isNotEmpty(username))
       parameters.setParameter(CONFIG_PARAM_USERNAME, username);
