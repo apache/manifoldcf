@@ -1958,7 +1958,7 @@
     <target name="run-tests-lgpl-connectors" depends="run-tests-jcifs-connector"/>
     <target name="run-tests-proprietary-connectors" depends="run-tests-documentum-connector,run-tests-filenet-connector,run-tests-livelink-connector,run-tests-memex-connector,run-tests-meridio-connector,run-tests-sharepoint-connector"/>
     
-    <target name="end-to-end-tests" depends="run-filesystem-tests,run-sharepoint-tests"/>
+    <target name="end-to-end-tests" depends="run-filesystem-tests,run-cmis-tests,run-sharepoint-tests"/>
 
     <target name="run-tests-postgresql-open-connectors" depends="run-tests-postgresql-activedirectory-connector,run-tests-postgresql-cmis-connector,run-tests-postgresql-filesystem-connector,run-tests-postgresql-nullauthority-connector,run-tests-postgresql-nulloutput-connector,run-tests-postgresql-rss-connector,run-tests-postgresql-solr-connector,run-tests-postgresql-webcrawler-connector,run-tests-postgresql-jdbc-connector"/>
     <target name="run-tests-postgresql-lgpl-connectors" depends="run-tests-postgresql-jcifs-connector"/>
