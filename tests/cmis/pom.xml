@@ -107,28 +107,24 @@
       <artifactId>chemistry-opencmis-server-inmemory-war</artifactId>
       <version>0.5.0-SNAPSHOT</version>
       <type>war</type>
-      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>mcf-api-service</artifactId>
       <version>${project.version}</version>
       <type>war</type>
-      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>mcf-authority-service</artifactId>
       <version>${project.version}</version>
       <type>war</type>
-      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>mcf-crawler-ui</artifactId>
       <version>${project.version}</version>
       <type>war</type>
-      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
@@ -152,18 +148,15 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>mcf-filesystem-connector</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
       <artifactId>mcf-cmis-connector</artifactId>
       <version>${project.version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>mcf-nulloutput-connector</artifactId>
       <version>${project.version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mortbay.jetty</groupId>
@@ -228,11 +221,11 @@
       <groupId>org.apache.derby</groupId>
       <artifactId>derby</artifactId>
       <version>${derby.version}</version>
-      <scope>runtime</scope>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>commons-httpclient</groupId>
-      <artifactId>commons-httpclient</artifactId>
+      <artifactId>commons-httpclient-mcf</artifactId>
       <version>3.1</version>
     </dependency>
     

@@ -36,21 +36,18 @@
       <artifactId>mcf-api-service</artifactId>
       <version>${project.version}</version>
       <type>war</type>
-      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>mcf-authority-service</artifactId>
       <version>${project.version}</version>
       <type>war</type>
-      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>mcf-crawler-ui</artifactId>
       <version>${project.version}</version>
       <type>war</type>
-      <scope>runtime</scope>
     </dependency>
 
     <dependency>
@@ -88,6 +85,11 @@
       <artifactId>derby</artifactId>
       <version>${derby.version}</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>commons-httpclient</groupId>
+      <artifactId>commons-httpclient-mcf</artifactId>
+      <version>3.1</version>
     </dependency>
   </dependencies>
 </project>

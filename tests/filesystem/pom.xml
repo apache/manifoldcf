@@ -92,21 +92,18 @@
       <artifactId>mcf-api-service</artifactId>
       <version>${project.version}</version>
       <type>war</type>
-      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>mcf-authority-service</artifactId>
       <version>${project.version}</version>
       <type>war</type>
-      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>mcf-crawler-ui</artifactId>
       <version>${project.version}</version>
       <type>war</type>
-      <scope>runtime</scope>
     </dependency>
 
     <dependency>
@@ -128,11 +125,13 @@
       <groupId>${project.groupId}</groupId>
       <artifactId>mcf-filesystem-connector</artifactId>
       <version>${project.version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>mcf-nulloutput-connector</artifactId>
       <version>${project.version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mortbay.jetty</groupId>
@@ -145,14 +144,14 @@
       <version>6.1.14</version>
     </dependency>    
     <dependency>
-	    <groupId>javax.servlet.jsp</groupId>
-	    <artifactId>jsp-api</artifactId>
-	    <version>2.1</version>
+      <groupId>javax.servlet.jsp</groupId>
+      <artifactId>jsp-api</artifactId>
+      <version>2.1</version>
     </dependency>
     <dependency>
       <groupId>org.mortbay.jetty</groupId>
-			<artifactId>jsp-2.1-glassfish</artifactId>
-			<version>2.1.v20091210</version>
+      <artifactId>jsp-2.1-glassfish</artifactId>
+      <version>2.1.v20091210</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
@@ -200,9 +199,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-    	<groupId>commons-httpclient</groupId>
-    	<artifactId>commons-httpclient</artifactId>
-    	<version>3.1</version>
+      <groupId>commons-httpclient</groupId>
+      <artifactId>commons-httpclient-mcf</artifactId>
+      <version>3.1</version>
     </dependency>
   </dependencies>
 </project>

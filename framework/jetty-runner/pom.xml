@@ -104,21 +104,18 @@
       <artifactId>mcf-api-service</artifactId>
       <version>${project.version}</version>
       <type>war</type>
-      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>mcf-authority-service</artifactId>
       <version>${project.version}</version>
       <type>war</type>
-      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>mcf-crawler-ui</artifactId>
       <version>${project.version}</version>
       <type>war</type>
-      <scope>runtime</scope>
     </dependency>
 
     <dependency>
