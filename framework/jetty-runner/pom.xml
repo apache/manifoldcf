@@ -97,23 +97,45 @@
     </plugins>
   </build>
 
-	<dependencies>
-		<!-- Internal dependencies -->
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>mcf-core</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>mcf-agents</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>mcf-pull-agent</artifactId>
-			<version>${project.version}</version>
-		</dependency>
+  <dependencies>
+    <!-- Internal dependencies -->
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>mcf-api-service</artifactId>
+      <version>${project.version}</version>
+      <type>war</type>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>mcf-authority-service</artifactId>
+      <version>${project.version}</version>
+      <type>war</type>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>mcf-crawler-ui</artifactId>
+      <version>${project.version}</version>
+      <type>war</type>
+      <scope>runtime</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>mcf-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>mcf-agents</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>mcf-pull-agent</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <!-- output connectors -->
     <dependency>
@@ -145,6 +167,12 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>mcf-activedirectory-connector</artifactId>
+      <version>${project.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>mcf-cmis-connector</artifactId>
       <version>${project.version}</version>
       <scope>runtime</scope>
     </dependency>
@@ -204,7 +232,7 @@
     </dependency>
 
     <!-- database -->
-		<dependency>
+    <dependency>
       <groupId>org.apache.derby</groupId>
       <artifactId>derby</artifactId>
       <version>${derby.version}</version>

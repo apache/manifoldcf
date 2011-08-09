@@ -37,11 +37,7 @@
   
   <artifactId>mcf-cmis-test</artifactId>
   <name>ManifoldCF - Test - CMIS</name>
-
-  <properties>
-    <opencmis.server.war.path>/Users/piergiorgiolucidi/Documents/workspaces/manifold/CONNECTORS-236/lib</opencmis.server.war.path>
-  </properties>
-
+  
   <build>
     <defaultGoal>test</defaultGoal>
     <plugins>
@@ -57,6 +53,13 @@
             <configuration>
               <outputDirectory>target/dependency</outputDirectory>
               <artifactItems>
+                <artifactItem>
+                  <groupId>org.apache.chemistry.opencmis</groupId>
+                  <artifactId>chemistry-opencmis-server-inmemory-war</artifactId>
+                  <version>0.5.0-SNAPSHOT</version>
+                  <type>war</type>
+                  <overWrite>false</overWrite>
+                </artifactItem>
                 <artifactItem>
                   <groupId>${project.groupId}</groupId>
                   <artifactId>mcf-api-service</artifactId>
@@ -91,14 +94,42 @@
             <crawlerWarPath>target/dependency/mcf-crawler-ui-${project.version}.war</crawlerWarPath>
             <authorityserviceWarPath>target/dependency/mcf-authority-service-${project.version}.war</authorityserviceWarPath>
             <apiWarPath>target/dependency/mcf-api-service-${project.version}.war</apiWarPath>
-            <openCmisServerWarPath>${opencmis.server.war.path}/chemistry-opencmis-server-inmemory-war-0.5.0-SNAPSHOT.war</openCmisServerWarPath>
+            <openCmisServerWarPath>target/dependency/chemistry-opencmis-server-inmemory-war-0.5.0-SNAPSHOT.war</openCmisServerWarPath>
           </systemPropertyVariables>
         </configuration>
       </plugin>
-  </plugins>
+    </plugins>
   </build>
   <dependencies>
     <!-- Internal dependencies -->
+    <dependency>
+      <groupId>org.apache.chemistry.opencmis</groupId>
+      <artifactId>chemistry-opencmis-server-inmemory-war</artifactId>
+      <version>0.5.0-SNAPSHOT</version>
+      <type>war</type>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>mcf-api-service</artifactId>
+      <version>${project.version}</version>
+      <type>war</type>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>mcf-authority-service</artifactId>
+      <version>${project.version}</version>
+      <type>war</type>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>mcf-crawler-ui</artifactId>
+      <version>${project.version}</version>
+      <type>war</type>
+      <scope>runtime</scope>
+    </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>mcf-jettyrunner</artifactId>
@@ -209,7 +240,7 @@
     <dependency>
       <groupId>org.apache.chemistry.opencmis</groupId>
       <artifactId>chemistry-opencmis-client-impl</artifactId>
-      <version>0.5.0-SNAPSHOT</version>
+      <version>0.4.0</version>
   </dependency>
   <dependency>
       <groupId>commons-lang</groupId>
