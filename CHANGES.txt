@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-226: Clean up usage of REPOSITORY_CONNECTION_ERROR
+ManifoldCFException type.
+(Karl Wright)
+
 CONNECTORS-236: Add tests for CMIS connector.
 (Piergiorgio Lucidi, Karl Wright)
 

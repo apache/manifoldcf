@@ -189,11 +189,6 @@ public class SeedingThread extends Thread
                   throw new InterruptedException();
                 if (e.getErrorCode() == ManifoldCFException.DATABASE_CONNECTION_ERROR)
                   throw e;
-                if (e.getErrorCode() == ManifoldCFException.REPOSITORY_CONNECTION_ERROR)
-                {
-                  Logging.threads.warn("Seeding thread: Ignoring connection error: "+e.getMessage(),e);
-                  continue;
-                }
                 if (jobManager.errorAbort(jobID,e.getMessage()))
                   Logging.threads.error("Exception tossed: "+e.getMessage(),e);
                 // We DO have to clean up, because there is otherwise no

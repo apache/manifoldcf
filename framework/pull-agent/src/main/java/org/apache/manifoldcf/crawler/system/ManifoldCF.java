@@ -980,34 +980,22 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
 
       String[] binNames;
+      // Grab a connector handle
+      IRepositoryConnector connector = RepositoryConnectorFactory.grab(threadContext,
+        connection.getClassName(),
+        connection.getConfigParams(),
+        connection.getMaxConnections());
       try
       {
-        // Grab a connector handle
-        IRepositoryConnector connector = RepositoryConnectorFactory.grab(threadContext,
-          connection.getClassName(),
-          connection.getConfigParams(),
-          connection.getMaxConnections());
-        try
-        {
-          if (connector == null)
-            binNames = new String[]{""};
-          else
-            // Get the bins for the document identifier
-            binNames = connector.getBinNames(descs[i].getDocumentIdentifier());
-        }
-        finally
-        {
-          RepositoryConnectorFactory.release(connector);
-        }
-      }
-      catch (ManifoldCFException e)
-      {
-        if (e.getErrorCode() == ManifoldCFException.REPOSITORY_CONNECTION_ERROR)
-        {
+        if (connector == null)
           binNames = new String[]{""};
-        }
         else
-          throw e;
+          // Get the bins for the document identifier
+          binNames = connector.getBinNames(descs[i].getDocumentIdentifier());
+      }
+      finally
+      {
+        RepositoryConnectorFactory.release(connector);
       }
 
       priorities[i] = queueTracker.calculatePriority(binNames,connection);

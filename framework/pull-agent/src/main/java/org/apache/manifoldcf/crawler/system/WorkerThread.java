@@ -267,102 +267,166 @@ public class WorkerThread extends Thread
                   z++;
                 }
 
-                // This try is so that we can process errors from getting a connection specially
-                try
+                // Grab a connector handle
+                IRepositoryConnector connector = RepositoryConnectorFactory.grab(threadContext,
+                  connection.getClassName(),
+                  connection.getConfigParams(),
+                  connection.getMaxConnections());
+
+                // If we wind up with a null here, it means that a document got queued for a connector which is now gone.
+                // Basically, what we want to do in that case is to treat this kind of like a service interruption - the document
+                // must be requeued for immediate reprocessing.  When the rest of the world figures out that the job that owns this
+                // document is in fact unable to function, we'll stop getting such documents handed to us, because the state of the
+                // job will be changed.
+                if (connector == null)
                 {
-                  // Grab a connector handle
-                  IRepositoryConnector connector = RepositoryConnectorFactory.grab(threadContext,
-                    connection.getClassName(),
-                    connection.getConfigParams(),
-                    connection.getMaxConnections());
-
-                  // If we wind up with a null here, it means that a document got queued for a connector which is now gone.
-                  // Basically, what we want to do in that case is to treat this kind of like a service interruption - the document
-                  // must be requeued for immediate reprocessing.  When the rest of the world figures out that the job that owns this
-                  // document is in fact unable to function, we'll stop getting such documents handed to us, because the state of the
-                  // job will be changed.
-                  if (connector == null)
+                  i = 0;
+                  while (i < qds.getCount())
                   {
-                    i = 0;
-                    while (i < qds.getCount())
-                    {
-                      QueuedDocument qd = qds.getDocument(i++);
-                      DocumentDescription dd = qd.getDocumentDescription();
+                    QueuedDocument qd = qds.getDocument(i++);
+                    DocumentDescription dd = qd.getDocumentDescription();
 
-                      jobManager.resetDocument(dd,0L,IJobManager.ACTION_RESCAN,-1L,-1);
-                      qd.setProcessed();
-                    }
+                    jobManager.resetDocument(dd,0L,IJobManager.ACTION_RESCAN,-1L,-1);
+                    qd.setProcessed();
                   }
-                  else
+                }
+                else
+                {
+                  // System.out.println(" Got a connector in thread "+id);
+                  try
                   {
-                    // System.out.println(" Got a connector in thread "+id);
+
+                    if (Thread.currentThread().isInterrupted())
+                      throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
+
+                    // Get the output version string.
+                    String outputVersion = ingester.getOutputDescription(outputName,outputSpec);
+                      
+                    HashMap abortSet = new HashMap();
+                    ProcessActivity activity;
+                    VersionActivity versionActivity = new VersionActivity(connectionName,connMgr,jobManager,job,ingester,abortSet,outputVersion);
+
+                    String aclAuthority = connection.getACLAuthority();
+                    boolean isDefaultAuthority = (aclAuthority == null || aclAuthority.length() == 0);
+
+                    // Fetch documents (if we need to)
                     try
                     {
+                      if (Logging.threads.isDebugEnabled())
+                        Logging.threads.debug("Worker thread getting versions for "+Integer.toString(currentDocIDArray.length)+" documents");
 
-                      if (Thread.currentThread().isInterrupted())
-                        throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
-
-                      // Get the output version string.
-                      String outputVersion = ingester.getOutputDescription(outputName,outputSpec);
-                      
-                      HashMap abortSet = new HashMap();
-                      ProcessActivity activity;
-                      VersionActivity versionActivity = new VersionActivity(connectionName,connMgr,jobManager,job,ingester,abortSet,outputVersion);
-
-                      String aclAuthority = connection.getACLAuthority();
-                      boolean isDefaultAuthority = (aclAuthority == null || aclAuthority.length() == 0);
-
-                      // Fetch documents (if we need to)
-                      try
+                      String[] newCurrentVersions = connector.getDocumentVersions(currentDocIDArray,oldVersionStringArray,
+                        versionActivity,spec,jobType,isDefaultAuthority);
+                      z = 0;
+                      while (z < currentDocIDHashArray.length)
                       {
-                        if (Logging.threads.isDebugEnabled())
-                          Logging.threads.debug("Worker thread getting versions for "+Integer.toString(currentDocIDArray.length)+" documents");
-
-                        String[] newCurrentVersions = connector.getDocumentVersions(currentDocIDArray,oldVersionStringArray,
-                          versionActivity,spec,jobType,isDefaultAuthority);
-                        z = 0;
-                        while (z < currentDocIDHashArray.length)
-                        {
-                          currentVersions[((Integer)idHashIndexMap.get(currentDocIDHashArray[z])).intValue()] =
-                            newCurrentVersions[z];
-                          z++;
-                        }
-
-                        if (Logging.threads.isDebugEnabled())
-                          Logging.threads.debug("Worker thread done getting versions for "+Integer.toString(currentDocIDArray.length)+" documents");
-
+                        currentVersions[((Integer)idHashIndexMap.get(currentDocIDHashArray[z])).intValue()] =
+                          newCurrentVersions[z];
+                        z++;
                       }
-                      catch (ServiceInterruption e)
+
+                      if (Logging.threads.isDebugEnabled())
+                        Logging.threads.debug("Worker thread done getting versions for "+Integer.toString(currentDocIDArray.length)+" documents");
+
+                    }
+                    catch (ServiceInterruption e)
+                    {
+                      // This service interruption comes from a point where we
+                      // know that no documents were ingested.
+                      // Therefore, active -> pending and activepurgatory -> pendingpurgatory
+
+                      Logging.jobs.warn("Pre-ingest service interruption reported for job "+
+                        job.getID()+" connection '"+job.getConnectionName()+"': "+
+                        e.getMessage());
+
+                      // Mark the current documents to be recrawled at the
+                      // time specified, with the proper error handling.
+                      i = 0;
+                      while (i < qds.getCount())
                       {
-                        // This service interruption comes from a point where we
-                        // know that no documents were ingested.
-                        // Therefore, active -> pending and activepurgatory -> pendingpurgatory
-
-                        Logging.jobs.warn("Pre-ingest service interruption reported for job "+
-                          job.getID()+" connection '"+job.getConnectionName()+"': "+
-                          e.getMessage());
-
-                        // Mark the current documents to be recrawled at the
-                        // time specified, with the proper error handling.
-                        i = 0;
-                        while (i < qds.getCount())
+                        QueuedDocument qd = qds.getDocument(i++);
+                        DocumentDescription dd = qd.getDocumentDescription();
+                        // If either we are going to be requeuing beyond the fail time, OR
+                        // the number of retries available has hit 0, THEN we treat this
+                        // as either an "ignore" or a hard error.
+                        if (dd.getFailTime() != -1L && dd.getFailTime() < e.getRetryTime() ||
+                          dd.getFailRetryCount() == 0)
                         {
-                          QueuedDocument qd = qds.getDocument(i++);
-                          DocumentDescription dd = qd.getDocumentDescription();
-                          // If either we are going to be requeuing beyond the fail time, OR
-                          // the number of retries available has hit 0, THEN we treat this
-                          // as either an "ignore" or a hard error.
-                          if (dd.getFailTime() != -1L && dd.getFailTime() < e.getRetryTime() ||
-                            dd.getFailRetryCount() == 0)
+                          // Treat this as a hard failure.
+                          if (e.isAbortOnFail())
+                            throw new ManifoldCFException("Repeated service interruptions - failure getting document version"+((e.getCause()!=null)?": "+e.getCause().getMessage():""),e.getCause());
+                          // We want this particular document to be not included in the
+                          // reprocessing.  Therefore, we do the same thing as we would
+                          // if we got back a null version.
+                          DocumentIngestStatus oldDocStatus = qd.getLastIngestedStatus();
+                          String documentIDHash = dd.getDocumentIdentifierHash();
+                          // See if we need to delete
+                          if (oldDocStatus != null)
                           {
-                            // Treat this as a hard failure.
-                            if (e.isAbortOnFail())
-                              throw new ManifoldCFException("Repeated service interruptions - failure getting document version"+((e.getCause()!=null)?": "+e.getCause().getMessage():""),e.getCause());
-                            // We want this particular document to be not included in the
-                            // reprocessing.  Therefore, we do the same thing as we would
-                            // if we got back a null version.
-                            DocumentIngestStatus oldDocStatus = qd.getLastIngestedStatus();
-                            String documentIDHash = dd.getDocumentIdentifierHash();
+                            // Queue up to issue deletion
+                            ingesterDeleteList.add(documentIDHash);
+                            ingesterDeleteListUnhashed.add(dd.getDocumentIdentifier());
+                          }
+                          jobmanagerDeleteList.add(qd);
+                        }
+                        else
+                        {
+                          jobManager.resetDocument(dd,e.getRetryTime(),
+                            IJobManager.ACTION_RESCAN,e.getFailTime(),e.getFailRetryCount());
+                          qd.setProcessed();
+                        }
+                      }
+
+                      processDeleteLists(outputName,connector,connection,jobManager,
+                        jobmanagerDeleteList,ingester,ingesterDeleteList,ingesterDeleteListUnhashed,
+                        job.getID(),legalLinkTypes,ingestLogger,job.getHopcountMode(),queueTracker,currentTime);
+
+                      // Done processing this set of documents; they've either been
+                      // requeued, deleted, or an exception has been thrown...
+                      continue;
+                    }
+
+                    // Organize what we need for document status comparison, and get it into a canonical form.
+                    String newOutputVersion = outputVersion;
+                    if (newOutputVersion == null)
+                      newOutputVersion = "";
+
+                    try
+                    {
+                      // Loop through documents now, and amass what we need to fetch.
+                      // We also need to tally: (1) what needs to be marked as deleted via
+                      //   jobManager.markDocumentDeleted();
+                      // (2) what needs to be noted as a deletion to ingester
+                      // (3) what needs to be noted as a check for the ingester
+                      i = 0;
+                      while (i < currentVersions.length)
+                      {
+                        QueuedDocument qd = qds.getDocument(i);
+                        DocumentDescription dd = qd.getDocumentDescription();
+                        // If this document was aborted, then treat it specially; we never go on to fetch it, for one thing.
+                        if (abortSet.get(dd.getDocumentIdentifier()) != null)
+                        {
+                          // Special treatment for aborted documents.
+                          // We ignore the returned version string completely, since it's presumed that processing was not completed for this doc.
+                          // We want to give up immediately on this one, and just requeue it for immediate reprocessing (pending its prereqs being all met).
+                          // Add to the finish list, so it gets requeued.  Because the document is already marked as aborted, this should be enough to cause an
+                          // unconditional requeue.
+                          finishList.add(qd);
+                        }
+                        else
+                        {
+                          DocumentIngestStatus oldDocStatus = qd.getLastIngestedStatus();
+                          String documentIDHash = dd.getDocumentIdentifierHash();
+                          String newDocVersion = currentVersions[i];
+                          String newAuthorityName = aclAuthority;
+                          if (newAuthorityName == null)
+                            newAuthorityName = "";
+
+                          versionMap.put(dd.getDocumentIdentifierHash(),newDocVersion);
+
+
+                          if (newDocVersion == null)
+                          {
                             // See if we need to delete
                             if (oldDocStatus != null)
                             {
@@ -370,503 +434,407 @@ public class WorkerThread extends Thread
                               ingesterDeleteList.add(documentIDHash);
                               ingesterDeleteListUnhashed.add(dd.getDocumentIdentifier());
                             }
+                            // We always add to the jobqueue delete list regardless.
                             jobmanagerDeleteList.add(qd);
                           }
                           else
                           {
-                            jobManager.resetDocument(dd,e.getRetryTime(),
-                              IJobManager.ACTION_RESCAN,e.getFailTime(),e.getFailRetryCount());
-                            qd.setProcessed();
-                          }
-                        }
-
-                        processDeleteLists(outputName,connector,connection,jobManager,
-                          jobmanagerDeleteList,ingester,ingesterDeleteList,ingesterDeleteListUnhashed,
-                          job.getID(),legalLinkTypes,ingestLogger,job.getHopcountMode(),queueTracker,currentTime);
-
-                        // Done processing this set of documents; they've either been
-                        // requeued, deleted, or an exception has been thrown...
-                        continue;
-                      }
-
-                      // Organize what we need for document status comparison, and get it into a canonical form.
-                      String newOutputVersion = outputVersion;
-                      if (newOutputVersion == null)
-                        newOutputVersion = "";
-
-                      try
-                      {
-                        // Loop through documents now, and amass what we need to fetch.
-                        // We also need to tally: (1) what needs to be marked as deleted via
-                        //   jobManager.markDocumentDeleted();
-                        // (2) what needs to be noted as a deletion to ingester
-                        // (3) what needs to be noted as a check for the ingester
-                        i = 0;
-                        while (i < currentVersions.length)
-                        {
-                          QueuedDocument qd = qds.getDocument(i);
-                          DocumentDescription dd = qd.getDocumentDescription();
-                          // If this document was aborted, then treat it specially; we never go on to fetch it, for one thing.
-                          if (abortSet.get(dd.getDocumentIdentifier()) != null)
-                          {
-                            // Special treatment for aborted documents.
-                            // We ignore the returned version string completely, since it's presumed that processing was not completed for this doc.
-                            // We want to give up immediately on this one, and just requeue it for immediate reprocessing (pending its prereqs being all met).
-                            // Add to the finish list, so it gets requeued.  Because the document is already marked as aborted, this should be enough to cause an
-                            // unconditional requeue.
+                            // Not getting deleted, so we must do the finish processing (i.e. conditionally requeue), so note that.
                             finishList.add(qd);
-                          }
-                          else
-                          {
-                            DocumentIngestStatus oldDocStatus = qd.getLastIngestedStatus();
-                            String documentIDHash = dd.getDocumentIdentifierHash();
-                            String newDocVersion = currentVersions[i];
-                            String newAuthorityName = aclAuthority;
-                            if (newAuthorityName == null)
-                              newAuthorityName = "";
 
-                            versionMap.put(dd.getDocumentIdentifierHash(),newDocVersion);
-
-
-                            if (newDocVersion == null)
+                            // See if we need to add, or update.
+                            boolean allowIngest = false;
+                            if (oldDocStatus == null)
                             {
-                              // See if we need to delete
-                              if (oldDocStatus != null)
-                              {
-                                // Queue up to issue deletion
-                                ingesterDeleteList.add(documentIDHash);
-                                ingesterDeleteListUnhashed.add(dd.getDocumentIdentifier());
-                              }
-                              // We always add to the jobqueue delete list regardless.
-                              jobmanagerDeleteList.add(qd);
+                              // Add
+                              allowIngest = true;
+                              // Fall through to allow the processing
                             }
                             else
                             {
-                              // Not getting deleted, so we must do the finish processing (i.e. conditionally requeue), so note that.
-                              finishList.add(qd);
+                              // Update.  There are two possibilities here.  (1) the same version
+                              // that was there before is there now (which may mean a rescan),
+                              // or (2) there are different versions (which ALWAYS means a rescan).
+                              String oldDocVersion = oldDocStatus.getDocumentVersion();
+                              if (oldDocVersion == null)
+                                oldDocVersion = "";
+                              String oldAuthorityName = oldDocStatus.getDocumentAuthorityNameString();
+                              if (oldAuthorityName == null)
+                                oldAuthorityName = "";
+                              String oldOutputVersion = oldDocStatus.getOutputVersion();
+                              if (oldOutputVersion == null)
+                                oldOutputVersion = "";
 
-                              // See if we need to add, or update.
-                              boolean allowIngest = false;
-                              if (oldDocStatus == null)
+                              // Start the comparison processing
+                              if (newDocVersion.length() == 0)
                               {
-                                // Add
+                                // Always reingest
                                 allowIngest = true;
-                                // Fall through to allow the processing
+                              }
+                              else if (oldDocVersion.equals(newDocVersion) &&
+                                oldAuthorityName.equals(newAuthorityName) &&
+                                oldOutputVersion.equals(newOutputVersion))
+                              {
+                                // The old logic was as follows:
+                                //
+                                // If the crawl is an incremental crawl, then we do NOT add this
+                                // document to the fetch list, even for scanning and no ingestion.
+                                // But we *do* add it, scan only, if this was a "full crawl".
+                                //
+                                // Apparently this was designed to prevent a document that had
+                                // already been processed and had queued stuff from causing deletions
+                                // under 'full scan' conditions, because those child documents would
+                                // not be requeued then.  This contrasts with the incremental case,
+                                // where we really don't want to refetch the document simply to find
+                                // children - or do we?  The connector has to make that decision, it
+                                // seems to me.  If it's the kind of document that might have children,
+                                // then rescanning is warranted under ANY conditions; if it's not,
+                                // then the connector can decide to just do nothing.
+                                //
+                                // For the kinds of connectors where all documents have children,
+                                // preventing the fetch is not likely to help much.  These kinds of
+                                // connectors (rss and web) depend on the document checksum to
+                                // determine version anyway, so the document is fetched regardless.
+                                // At least we prevent the ingestion.
+
+                                // Fall through to allow the scanning, but not the ingest
+                              }
+                              else
+                                allowIngest = true;
+                            }
+
+                            fetchList.add(new DocumentToProcess(qd,!allowIngest));
+                            if (!allowIngest)
+                              ingesterCheckList.add(documentIDHash);
+                          }
+                        }
+
+                        // Next version string!
+                        i++;
+                      }
+
+
+                      // Done figuring out what to process.  Now, we need to process it.
+
+                      // Clear the documents out of the queue
+                      processDeleteLists(outputName,connector,connection,jobManager,
+                        jobmanagerDeleteList,ingester,ingesterDeleteList,ingesterDeleteListUnhashed,
+                        job.getID(),legalLinkTypes,ingestLogger,job.getHopcountMode(),queueTracker,currentTime);
+
+                      // First, make the things we will need.
+                      activity = new ProcessActivity(threadContext,queueTracker,jobManager,ingester,
+                        currentTime,job,connection,connector,connMgr,legalLinkTypes,ingestLogger,abortSet,outputVersion);
+                      try
+                      {
+                        // Fetchlist contains what we need to process.
+                        if (fetchList.size() > 0)
+                        {
+
+
+                          // Build a list of id's and flags
+                          String[] processIDs = new String[fetchList.size()];
+                          String[] processIDHashes = new String[fetchList.size()];
+                          String[] versions = new String[fetchList.size()];
+                          boolean[] scanOnly = new boolean[fetchList.size()];
+
+                          i = 0;
+                          while (i < fetchList.size())
+                          {
+                            DocumentToProcess dToP = (DocumentToProcess)fetchList.get(i);
+                            DocumentDescription dd = dToP.getDocument().getDocumentDescription();
+                            processIDs[i] = dd.getDocumentIdentifier();
+                            processIDHashes[i] = dd.getDocumentIdentifierHash();
+                            versions[i] = (String)versionMap.get(dd.getDocumentIdentifierHash());
+                            scanOnly[i] = dToP.getScanOnly();
+                            i++;
+                          }
+
+                          // Now, process in bulk
+                          try
+                          {
+                            if (Thread.currentThread().isInterrupted())
+                              throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
+
+                            if (Logging.threads.isDebugEnabled())
+                              Logging.threads.debug("Worker thread about to process "+Integer.toString(processIDs.length)+" documents");
+
+                            connector.processDocuments(processIDs,versions,activity,job.getSpecification(),scanOnly,jobType);
+
+                            // Flush remaining references into the database!
+                            activity.flush();
+
+                            // "Finish" the documents (removing unneeded carrydown info, etc.)
+                            DocumentDescription[] requeueCandidates = jobManager.finishDocuments(job.getID(),legalLinkTypes,processIDHashes,job.getHopcountMode());
+
+                            ManifoldCF.requeueDocumentsDueToCarrydown(jobManager,requeueCandidates,connector,connection,queueTracker,currentTime);
+
+                            if (Logging.threads.isDebugEnabled())
+                              Logging.threads.debug("Worker thread done processing "+Integer.toString(processIDs.length)+" documents");
+
+                          }
+                          catch (ServiceInterruption e)
+                          {
+                            // This service interruption could have resulted
+                            // after some or all of the documents ingested.
+                            // They will therefore need to go into the PENDINGPURGATORY
+                            // state.
+
+                            Logging.jobs.warn("Service interruption reported for job "+
+                              job.getID()+" connection '"+job.getConnectionName()+"': "+
+                              e.getMessage());
+
+                            // Mark the current documents to be recrawled in the
+                            // time specified, except for the ones beyond their limits.
+                            // Those will either be deleted, or an exception will be thrown that
+                            // will abort the current job.
+
+                            ingesterDeleteList.clear();
+                            ingesterDeleteListUnhashed.clear();
+                            jobmanagerDeleteList.clear();
+                            ArrayList requeueList = new ArrayList();
+
+                            i = 0;
+                            while (i < finishList.size())
+                            {
+                              QueuedDocument qd = (QueuedDocument)finishList.get(i++);
+                              DocumentDescription dd = qd.getDocumentDescription();
+                              if (dd.getFailTime() != -1L && dd.getFailTime() < e.getRetryTime() ||
+                                dd.getFailRetryCount() == 0)
+                              {
+                                // Treat this as a hard failure.
+                                if (e.isAbortOnFail())
+                                  throw new ManifoldCFException("Repeated service interruptions - failure processing document"+((e.getCause()!=null)?": "+e.getCause().getMessage():""),e.getCause());
+                                // We want this particular document to be not included in the
+                                // reprocessing.  Therefore, we do the same thing as we would
+                                // if we got back a null version.
+                                DocumentIngestStatus oldDocStatus = qd.getLastIngestedStatus();
+                                String documentIDHash = dd.getDocumentIdentifierHash();
+                                // See if we need to delete
+                                if (oldDocStatus != null)
+                                {
+                                  // Queue up to issue deletion
+                                  ingesterDeleteList.add(documentIDHash);
+                                  ingesterDeleteListUnhashed.add(dd.getDocumentIdentifier());
+                                }
+                                jobmanagerDeleteList.add(qd);
                               }
                               else
                               {
-                                // Update.  There are two possibilities here.  (1) the same version
-                                // that was there before is there now (which may mean a rescan),
-                                // or (2) there are different versions (which ALWAYS means a rescan).
-                                String oldDocVersion = oldDocStatus.getDocumentVersion();
-                                if (oldDocVersion == null)
-                                  oldDocVersion = "";
-                                String oldAuthorityName = oldDocStatus.getDocumentAuthorityNameString();
-                                if (oldAuthorityName == null)
-                                  oldAuthorityName = "";
-                                String oldOutputVersion = oldDocStatus.getOutputVersion();
-                                if (oldOutputVersion == null)
-                                  oldOutputVersion = "";
-
-                                // Start the comparison processing
-                                if (newDocVersion.length() == 0)
-                                {
-                                  // Always reingest
-                                  allowIngest = true;
-                                }
-                                else if (oldDocVersion.equals(newDocVersion) &&
-                                  oldAuthorityName.equals(newAuthorityName) &&
-                                  oldOutputVersion.equals(newOutputVersion))
-                                {
-                                  // The old logic was as follows:
-                                  //
-                                  // If the crawl is an incremental crawl, then we do NOT add this
-                                  // document to the fetch list, even for scanning and no ingestion.
-                                  // But we *do* add it, scan only, if this was a "full crawl".
-                                  //
-                                  // Apparently this was designed to prevent a document that had
-                                  // already been processed and had queued stuff from causing deletions
-                                  // under 'full scan' conditions, because those child documents would
-                                  // not be requeued then.  This contrasts with the incremental case,
-                                  // where we really don't want to refetch the document simply to find
-                                  // children - or do we?  The connector has to make that decision, it
-                                  // seems to me.  If it's the kind of document that might have children,
-                                  // then rescanning is warranted under ANY conditions; if it's not,
-                                  // then the connector can decide to just do nothing.
-                                  //
-                                  // For the kinds of connectors where all documents have children,
-                                  // preventing the fetch is not likely to help much.  These kinds of
-                                  // connectors (rss and web) depend on the document checksum to
-                                  // determine version anyway, so the document is fetched regardless.
-                                  // At least we prevent the ingestion.
-
-                                  // Fall through to allow the scanning, but not the ingest
-                                }
-                                else
-                                  allowIngest = true;
+                                requeueList.add(qd);
                               }
-
-                              fetchList.add(new DocumentToProcess(qd,!allowIngest));
-                              if (!allowIngest)
-                                ingesterCheckList.add(documentIDHash);
                             }
-                          }
 
-                          // Next version string!
-                          i++;
+                            // Requeue the documents we've identified
+                            requeueDocuments(jobManager,requeueList,e.getRetryTime(),e.getFailTime(),
+                              e.getFailRetryCount());
+
+                            // Process the deletions too.
+                            processDeleteLists(outputName,connector,connection,jobManager,
+                              jobmanagerDeleteList,ingester,ingesterDeleteList,ingesterDeleteListUnhashed,
+                              job.getID(),legalLinkTypes,ingestLogger,job.getHopcountMode(),queueTracker,currentTime);
+
+                            continue;
+                          }
                         }
 
-
-                        // Done figuring out what to process.  Now, we need to process it.
-
-                        // Clear the documents out of the queue
-                        processDeleteLists(outputName,connector,connection,jobManager,
-                          jobmanagerDeleteList,ingester,ingesterDeleteList,ingesterDeleteListUnhashed,
-                          job.getID(),legalLinkTypes,ingestLogger,job.getHopcountMode(),queueTracker,currentTime);
-
-                        // First, make the things we will need.
-                        activity = new ProcessActivity(threadContext,queueTracker,jobManager,ingester,
-                          currentTime,job,connection,connector,connMgr,legalLinkTypes,ingestLogger,abortSet,outputVersion);
-                        try
+                        // Note the documents that have been checked but not reingested.  This should happen BEFORE we need
+                        // the statistics (which are calculated during the finishlist step below)
+                        if (ingesterCheckList.size() > 0)
                         {
-                          // Fetchlist contains what we need to process.
-                          if (fetchList.size() > 0)
+                          String[] checkClasses = new String[ingesterCheckList.size()];
+                          String[] checkIDs = new String[ingesterCheckList.size()];
+                          i = 0;
+                          while (i < checkIDs.length)
                           {
+                            checkClasses[i] = connectionName;
+                            checkIDs[i] = (String)ingesterCheckList.get(i);
+                            i++;
+                          }
+                          ingester.documentCheckMultiple(outputName,checkClasses,checkIDs,currentTime);
+                        }
 
-
-                            // Build a list of id's and flags
-                            String[] processIDs = new String[fetchList.size()];
-                            String[] processIDHashes = new String[fetchList.size()];
-                            String[] versions = new String[fetchList.size()];
-                            boolean[] scanOnly = new boolean[fetchList.size()];
-
-                            i = 0;
-                            while (i < fetchList.size())
+                        // Go through the finish list and either mark completed, or requeue, depending on the kind of job this is.
+                        if (finishList.size() > 0)
+                        {
+                          // In both job types, we have to go through the finishList to figure out what to do with the documents.
+                          // In the case of a document that was aborted, we must requeue it for immediate reprocessing in BOTH job types.
+                          switch (job.getType())
+                          {
+                          case IJobDescription.TYPE_CONTINUOUS:
                             {
-                              DocumentToProcess dToP = (DocumentToProcess)fetchList.get(i);
-                              DocumentDescription dd = dToP.getDocument().getDocumentDescription();
-                              processIDs[i] = dd.getDocumentIdentifier();
-                              processIDHashes[i] = dd.getDocumentIdentifierHash();
-                              versions[i] = (String)versionMap.get(dd.getDocumentIdentifierHash());
-                              scanOnly[i] = dToP.getScanOnly();
-                              i++;
+                              // We need to populate timeArray
+                              String[] timeIDClasses = new String[finishList.size()];
+                              String[] timeIDHashes = new String[finishList.size()];
+                              i = 0;
+                              while (i < timeIDHashes.length)
+                              {
+                                QueuedDocument qd = (QueuedDocument)finishList.get(i);
+                                DocumentDescription dd = qd.getDocumentDescription();
+                                String documentIDHash = dd.getDocumentIdentifierHash();
+                                timeIDClasses[i] = connectionName;
+                                timeIDHashes[i] = documentIDHash;
+                                i++;
+                              }
+                              long[] timeArray = ingester.getDocumentUpdateIntervalMultiple(outputName,timeIDClasses,timeIDHashes);
+                              Long[] recheckTimeArray = new Long[timeArray.length];
+                              int[] actionArray = new int[timeArray.length];
+                              DocumentDescription[] recrawlDocs = new DocumentDescription[finishList.size()];
+                              i = 0;
+                              while (i < finishList.size())
+                              {
+                                QueuedDocument qd = (QueuedDocument)finishList.get(i);
+                                recrawlDocs[i] = qd.getDocumentDescription();
+                                String documentID = recrawlDocs[i].getDocumentIdentifier();
+
+                                // If aborted due to sequencing issue, then requeue for reprocessing immediately, ignoring everything else.
+                                boolean wasAborted = abortSet.get(documentID) != null;
+                                if (wasAborted)
+                                {
+                                  // Requeue for immediate reprocessing
+                                  if (Logging.scheduling.isDebugEnabled())
+                                    Logging.scheduling.debug("Document '"+documentID+"' will be RESCANNED as soon as prerequisites are met");
+
+                                  actionArray[i] = IJobManager.ACTION_RESCAN;
+                                  recheckTimeArray[i] = new Long(0L);     // Must not use null; that means 'never'.
+                                }
+                                else
+                                {
+                                  // Calculate the next time to run, or time to expire.
+
+                                  // For run time, the formula is to calculate the running avg interval between changes,
+                                  // add an additional interval (which comes from the job description),
+                                  // and add that to the current time.
+                                  // One caveat: we really want to calculate the interval from the last
+                                  // time change was detected, but this is not implemented yet.
+                                  long timeAmt = timeArray[i];
+                                  // null value indicates never to schedule
+
+                                  Long recrawlTime = activity.calculateDocumentRescheduleTime(currentTime,timeAmt,documentID);
+                                  Long expireTime = activity.calculateDocumentExpireTime(currentTime,documentID);
+
+
+                                  // Merge the two times together.  We decide on the action based on the action with the lowest time.
+                                  if (expireTime == null || (recrawlTime != null && recrawlTime.longValue() < expireTime.longValue()))
+                                  {
+                                    if (Logging.scheduling.isDebugEnabled())
+                                      Logging.scheduling.debug("Document '"+documentID+"' will be RESCANNED at "+recrawlTime.toString());
+                                    recheckTimeArray[i] = recrawlTime;
+                                    actionArray[i] = IJobManager.ACTION_RESCAN;
+                                  }
+                                  else if (recrawlTime == null || (expireTime != null && recrawlTime.longValue() > expireTime.longValue()))
+                                  {
+                                    if (Logging.scheduling.isDebugEnabled())
+                                      Logging.scheduling.debug("Document '"+documentID+"' will be REMOVED at "+expireTime.toString());
+                                    recheckTimeArray[i] = expireTime;
+                                    actionArray[i] = IJobManager.ACTION_REMOVE;
+                                  }
+                                  else
+                                  {
+                                    // Default activity if conflict will be rescan
+                                    if (Logging.scheduling.isDebugEnabled() && recrawlTime != null)
+                                      Logging.scheduling.debug("Document '"+documentID+"' will be RESCANNED at "+recrawlTime.toString());
+                                    recheckTimeArray[i] = recrawlTime;
+                                    actionArray[i] = IJobManager.ACTION_RESCAN;
+                                  }
+                                }
+                                i++;
+                              }
+
+                              jobManager.requeueDocumentMultiple(recrawlDocs,recheckTimeArray,actionArray);
+
                             }
-
-                            // Now, process in bulk
-                            try
+                            break;
+                          case IJobDescription.TYPE_SPECIFIED:
                             {
-                              if (Thread.currentThread().isInterrupted())
-                                throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
-
-                              if (Logging.threads.isDebugEnabled())
-                                Logging.threads.debug("Worker thread about to process "+Integer.toString(processIDs.length)+" documents");
-
-                              connector.processDocuments(processIDs,versions,activity,job.getSpecification(),scanOnly,jobType);
-
-                              // Flush remaining references into the database!
-                              activity.flush();
-
-                              // "Finish" the documents (removing unneeded carrydown info, etc.)
-                              DocumentDescription[] requeueCandidates = jobManager.finishDocuments(job.getID(),legalLinkTypes,processIDHashes,job.getHopcountMode());
-
-                              ManifoldCF.requeueDocumentsDueToCarrydown(jobManager,requeueCandidates,connector,connection,queueTracker,currentTime);
-
-                              if (Logging.threads.isDebugEnabled())
-                                Logging.threads.debug("Worker thread done processing "+Integer.toString(processIDs.length)+" documents");
-
-                            }
-                            catch (ServiceInterruption e)
-                            {
-                              // This service interruption could have resulted
-                              // after some or all of the documents ingested.
-                              // They will therefore need to go into the PENDINGPURGATORY
-                              // state.
-
-                              Logging.jobs.warn("Service interruption reported for job "+
-                                job.getID()+" connection '"+job.getConnectionName()+"': "+
-                                e.getMessage());
-
-                              // Mark the current documents to be recrawled in the
-                              // time specified, except for the ones beyond their limits.
-                              // Those will either be deleted, or an exception will be thrown that
-                              // will abort the current job.
-
-                              ingesterDeleteList.clear();
-                              ingesterDeleteListUnhashed.clear();
-                              jobmanagerDeleteList.clear();
-                              ArrayList requeueList = new ArrayList();
-
+                              // Separate the ones we actually finished from the ones we need to requeue because they were aborted
+                              ArrayList completedList = new ArrayList();
+                              ArrayList abortedList = new ArrayList();
                               i = 0;
                               while (i < finishList.size())
                               {
                                 QueuedDocument qd = (QueuedDocument)finishList.get(i++);
                                 DocumentDescription dd = qd.getDocumentDescription();
-                                if (dd.getFailTime() != -1L && dd.getFailTime() < e.getRetryTime() ||
-                                  dd.getFailRetryCount() == 0)
+                                if (abortSet.get(dd.getDocumentIdentifier()) != null)
                                 {
-                                  // Treat this as a hard failure.
-                                  if (e.isAbortOnFail())
-                                    throw new ManifoldCFException("Repeated service interruptions - failure processing document"+((e.getCause()!=null)?": "+e.getCause().getMessage():""),e.getCause());
-                                  // We want this particular document to be not included in the
-                                  // reprocessing.  Therefore, we do the same thing as we would
-                                  // if we got back a null version.
-                                  DocumentIngestStatus oldDocStatus = qd.getLastIngestedStatus();
-                                  String documentIDHash = dd.getDocumentIdentifierHash();
-                                  // See if we need to delete
-                                  if (oldDocStatus != null)
-                                  {
-                                    // Queue up to issue deletion
-                                    ingesterDeleteList.add(documentIDHash);
-                                    ingesterDeleteListUnhashed.add(dd.getDocumentIdentifier());
-                                  }
-                                  jobmanagerDeleteList.add(qd);
+                                  // The document was aborted, so put it into the abortedList
+                                  abortedList.add(dd);
                                 }
                                 else
                                 {
-                                  requeueList.add(qd);
+                                  // The document was completed.
+                                  completedList.add(dd);
                                 }
                               }
 
-                              // Requeue the documents we've identified
-                              requeueDocuments(jobManager,requeueList,e.getRetryTime(),e.getFailTime(),
-                                e.getFailRetryCount());
-
-                              // Process the deletions too.
-                              processDeleteLists(outputName,connector,connection,jobManager,
-                                jobmanagerDeleteList,ingester,ingesterDeleteList,ingesterDeleteListUnhashed,
-                                job.getID(),legalLinkTypes,ingestLogger,job.getHopcountMode(),queueTracker,currentTime);
-
-                              continue;
-                            }
-                          }
-
-                          // Note the documents that have been checked but not reingested.  This should happen BEFORE we need
-                          // the statistics (which are calculated during the finishlist step below)
-                          if (ingesterCheckList.size() > 0)
-                          {
-                            String[] checkClasses = new String[ingesterCheckList.size()];
-                            String[] checkIDs = new String[ingesterCheckList.size()];
-                            i = 0;
-                            while (i < checkIDs.length)
-                            {
-                              checkClasses[i] = connectionName;
-                              checkIDs[i] = (String)ingesterCheckList.get(i);
-                              i++;
-                            }
-                            ingester.documentCheckMultiple(outputName,checkClasses,checkIDs,currentTime);
-                          }
-
-                          // Go through the finish list and either mark completed, or requeue, depending on the kind of job this is.
-                          if (finishList.size() > 0)
-                          {
-                            // In both job types, we have to go through the finishList to figure out what to do with the documents.
-                            // In the case of a document that was aborted, we must requeue it for immediate reprocessing in BOTH job types.
-                            switch (job.getType())
-                            {
-                            case IJobDescription.TYPE_CONTINUOUS:
+                              // Requeue the ones that must be repeated
+                              if (abortedList.size() > 0)
                               {
-                                // We need to populate timeArray
-                                String[] timeIDClasses = new String[finishList.size()];
-                                String[] timeIDHashes = new String[finishList.size()];
+                                DocumentDescription[] docDescriptions = new DocumentDescription[abortedList.size()];
+                                Long[] recheckTimeArray = new Long[docDescriptions.length];
+                                int[] actionArray = new int[docDescriptions.length];
                                 i = 0;
-                                while (i < timeIDHashes.length)
+                                while (i < docDescriptions.length)
                                 {
-                                  QueuedDocument qd = (QueuedDocument)finishList.get(i);
-                                  DocumentDescription dd = qd.getDocumentDescription();
-                                  String documentIDHash = dd.getDocumentIdentifierHash();
-                                  timeIDClasses[i] = connectionName;
-                                  timeIDHashes[i] = documentIDHash;
-                                  i++;
-                                }
-                                long[] timeArray = ingester.getDocumentUpdateIntervalMultiple(outputName,timeIDClasses,timeIDHashes);
-                                Long[] recheckTimeArray = new Long[timeArray.length];
-                                int[] actionArray = new int[timeArray.length];
-                                DocumentDescription[] recrawlDocs = new DocumentDescription[finishList.size()];
-                                i = 0;
-                                while (i < finishList.size())
-                                {
-                                  QueuedDocument qd = (QueuedDocument)finishList.get(i);
-                                  recrawlDocs[i] = qd.getDocumentDescription();
-                                  String documentID = recrawlDocs[i].getDocumentIdentifier();
-
-                                  // If aborted due to sequencing issue, then requeue for reprocessing immediately, ignoring everything else.
-                                  boolean wasAborted = abortSet.get(documentID) != null;
-                                  if (wasAborted)
-                                  {
-                                    // Requeue for immediate reprocessing
-                                    if (Logging.scheduling.isDebugEnabled())
-                                      Logging.scheduling.debug("Document '"+documentID+"' will be RESCANNED as soon as prerequisites are met");
-
-                                    actionArray[i] = IJobManager.ACTION_RESCAN;
-                                    recheckTimeArray[i] = new Long(0L);     // Must not use null; that means 'never'.
-                                  }
-                                  else
-                                  {
-                                    // Calculate the next time to run, or time to expire.
-
-                                    // For run time, the formula is to calculate the running avg interval between changes,
-                                    // add an additional interval (which comes from the job description),
-                                    // and add that to the current time.
-                                    // One caveat: we really want to calculate the interval from the last
-                                    // time change was detected, but this is not implemented yet.
-                                    long timeAmt = timeArray[i];
-                                    // null value indicates never to schedule
-
-                                    Long recrawlTime = activity.calculateDocumentRescheduleTime(currentTime,timeAmt,documentID);
-                                    Long expireTime = activity.calculateDocumentExpireTime(currentTime,documentID);
-
-
-                                    // Merge the two times together.  We decide on the action based on the action with the lowest time.
-                                    if (expireTime == null || (recrawlTime != null && recrawlTime.longValue() < expireTime.longValue()))
-                                    {
-                                      if (Logging.scheduling.isDebugEnabled())
-                                        Logging.scheduling.debug("Document '"+documentID+"' will be RESCANNED at "+recrawlTime.toString());
-                                      recheckTimeArray[i] = recrawlTime;
-                                      actionArray[i] = IJobManager.ACTION_RESCAN;
-                                    }
-                                    else if (recrawlTime == null || (expireTime != null && recrawlTime.longValue() > expireTime.longValue()))
-                                    {
-                                      if (Logging.scheduling.isDebugEnabled())
-                                        Logging.scheduling.debug("Document '"+documentID+"' will be REMOVED at "+expireTime.toString());
-                                      recheckTimeArray[i] = expireTime;
-                                      actionArray[i] = IJobManager.ACTION_REMOVE;
-                                    }
-                                    else
-                                    {
-                                      // Default activity if conflict will be rescan
-                                      if (Logging.scheduling.isDebugEnabled() && recrawlTime != null)
-                                        Logging.scheduling.debug("Document '"+documentID+"' will be RESCANNED at "+recrawlTime.toString());
-                                      recheckTimeArray[i] = recrawlTime;
-                                      actionArray[i] = IJobManager.ACTION_RESCAN;
-                                    }
-                                  }
+                                  docDescriptions[i] = (DocumentDescription)abortedList.get(i);
+                                  recheckTimeArray[i] = new Long(0L);
+                                  actionArray[i] = IJobManager.ACTION_RESCAN;
                                   i++;
                                 }
 
-                                jobManager.requeueDocumentMultiple(recrawlDocs,recheckTimeArray,actionArray);
-
+                                jobManager.requeueDocumentMultiple(docDescriptions,recheckTimeArray,actionArray);
                               }
-                              break;
-                            case IJobDescription.TYPE_SPECIFIED:
+
+                              // Mark the ones completed that were actually completed.
+                              if (completedList.size() > 0)
                               {
-                                // Separate the ones we actually finished from the ones we need to requeue because they were aborted
-                                ArrayList completedList = new ArrayList();
-                                ArrayList abortedList = new ArrayList();
+                                DocumentDescription[] docDescriptions = new DocumentDescription[completedList.size()];
                                 i = 0;
-                                while (i < finishList.size())
+                                while (i < docDescriptions.length)
                                 {
-                                  QueuedDocument qd = (QueuedDocument)finishList.get(i++);
-                                  DocumentDescription dd = qd.getDocumentDescription();
-                                  if (abortSet.get(dd.getDocumentIdentifier()) != null)
-                                  {
-                                    // The document was aborted, so put it into the abortedList
-                                    abortedList.add(dd);
-                                  }
-                                  else
-                                  {
-                                    // The document was completed.
-                                    completedList.add(dd);
-                                  }
+                                  docDescriptions[i] = (DocumentDescription)completedList.get(i);
+                                  i++;
                                 }
 
-                                // Requeue the ones that must be repeated
-                                if (abortedList.size() > 0)
-                                {
-                                  DocumentDescription[] docDescriptions = new DocumentDescription[abortedList.size()];
-                                  Long[] recheckTimeArray = new Long[docDescriptions.length];
-                                  int[] actionArray = new int[docDescriptions.length];
-                                  i = 0;
-                                  while (i < docDescriptions.length)
-                                  {
-                                    docDescriptions[i] = (DocumentDescription)abortedList.get(i);
-                                    recheckTimeArray[i] = new Long(0L);
-                                    actionArray[i] = IJobManager.ACTION_RESCAN;
-                                    i++;
-                                  }
-
-                                  jobManager.requeueDocumentMultiple(docDescriptions,recheckTimeArray,actionArray);
-                                }
-
-                                // Mark the ones completed that were actually completed.
-                                if (completedList.size() > 0)
-                                {
-                                  DocumentDescription[] docDescriptions = new DocumentDescription[completedList.size()];
-                                  i = 0;
-                                  while (i < docDescriptions.length)
-                                  {
-                                    docDescriptions[i] = (DocumentDescription)completedList.get(i);
-                                    i++;
-                                  }
-
-                                  jobManager.markDocumentCompletedMultiple(docDescriptions);
-                                }
+                                jobManager.markDocumentCompletedMultiple(docDescriptions);
                               }
-                              break;
-                            default:
-                              throw new ManifoldCFException("Unexpected value for job type: '"+Integer.toString(job.getType())+"'");
                             }
-
-                            // Finally, if we're still alive, mark everything as "processed".
-                            i = 0;
-                            while (i < finishList.size())
-                            {
-                              QueuedDocument qd = (QueuedDocument)finishList.get(i++);
-                              qd.setProcessed();
-                            }
-
+                            break;
+                          default:
+                            throw new ManifoldCFException("Unexpected value for job type: '"+Integer.toString(job.getType())+"'");
                           }
-                        }
-                        finally
-                        {
-                          // Make sure we don't leave any dangling carrydown files
-                          activity.discard();
-                        }
 
-                        // Successful processing of the set
-                        // We count 'get version' time in the average, so even if we decide not to process a doc
-                        // it still counts.
-                        queueTracker.noteConnectionPerformance(qds.getCount(),connectionName,System.currentTimeMillis() - processingStartTime);
+                          // Finally, if we're still alive, mark everything as "processed".
+                          i = 0;
+                          while (i < finishList.size())
+                          {
+                            QueuedDocument qd = (QueuedDocument)finishList.get(i++);
+                            qd.setProcessed();
+                          }
 
+                        }
                       }
                       finally
                       {
-                        // Release any document temporary storage held by the connector
-                        connector.releaseDocumentVersions(docIDArray,currentVersions);
+                        // Make sure we don't leave any dangling carrydown files
+                        activity.discard();
                       }
+
+                      // Successful processing of the set
+                      // We count 'get version' time in the average, so even if we decide not to process a doc
+                      // it still counts.
+                      queueTracker.noteConnectionPerformance(qds.getCount(),connectionName,System.currentTimeMillis() - processingStartTime);
+
                     }
                     finally
                     {
-                      RepositoryConnectorFactory.release(connector);
+                      // Release any document temporary storage held by the connector
+                      connector.releaseDocumentVersions(docIDArray,currentVersions);
                     }
                   }
-                }
-                catch (ManifoldCFException e)
-                {
-
-                  if (e.getErrorCode() == ManifoldCFException.REPOSITORY_CONNECTION_ERROR)
+                  finally
                   {
-                    // Couldn't establish a connection.
-                    // This basically means none of the documents handed to this thread can be
-                    // processed
-                    // This service interruption comes from a point where we
-                    // know that no documents were ingested.
-                    // Therefore, active -> pending and activepurgatory -> pendingpurgatory
-
-                    Logging.jobs.warn("Connection service interruption reported for job "+
-                      job.getID()+" connection '"+job.getConnectionName()+"': "+e.getMessage(),e);
-
-                    // Mark the current documents to be recrawled at the
-                    // time specified
-                    i = 0;
-                    while (i < qds.getCount())
-                    {
-                      QueuedDocument qd = qds.getDocument(i++);
-                      jobManager.resetDocument(qd.getDocumentDescription(),System.currentTimeMillis()+5*60*1000,IJobManager.ACTION_RESCAN,-1L,-1);
-                      qd.setProcessed();
-                    }
+                    RepositoryConnectorFactory.release(connector);
                   }
-                  else
-                    throw e;
                 }
               }
             }

@@ -185,7 +185,7 @@ public class StartupThread extends Thread
                   catch (ServiceInterruption e)
                   {
                     // Note the service interruption
-                    Logging.threads.warn("Service interruption for job "+jobID,e);
+                    Logging.threads.warn("Service interruption for job "+jobID+": "+e.getMessage(),e);
                     long retryInterval = e.getRetryTime() - currentTime;
                     if (retryInterval >= 0L && retryInterval < waitTime)
                       waitTime = retryInterval;
@@ -208,11 +208,6 @@ public class StartupThread extends Thread
                   throw new InterruptedException();
                 if (e.getErrorCode() == ManifoldCFException.DATABASE_CONNECTION_ERROR)
                   throw e;
-                if (e.getErrorCode() == ManifoldCFException.REPOSITORY_CONNECTION_ERROR)
-                {
-                  Logging.threads.warn("Startup thread: connection error; continuing: "+e.getMessage(),e);
-                  continue;
-                }
                 // Note: The error abort below will put the job in the "ABORTINGSTARTUP" state.  We still need a reset at that point
                 // to get all the way back to an "aborting" state.
                 if (jobManager.errorAbort(jobID,e.getMessage()))

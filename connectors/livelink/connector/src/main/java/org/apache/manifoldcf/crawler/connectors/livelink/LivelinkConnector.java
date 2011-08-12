@@ -6175,7 +6175,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     )
     {
       String details = llServer.getErrors();
-      throw new ManifoldCFException("Livelink API error: "+e.getMessage()+((details==null)?"":"; "+details),e,ManifoldCFException.REPOSITORY_CONNECTION_ERROR);
+      long currentTime = System.currentTimeMillis();
+      throw new ServiceInterruption("Livelink API error: "+e.getMessage()+((details==null)?"":"; "+details),e,currentTime + 5*60000L,currentTime+12*60*60000L,-1,failIfTimeout);
     }
     else if (
       e instanceof com.opentext.api.LLBadServerCertificateException ||
