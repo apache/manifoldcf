@@ -113,7 +113,6 @@ public class JobNotificationThread extends Thread
                     try
                     {
                       connector.noteJobComplete(activity);
-                      notifiedConnections.put(connections,connections);
                     }
                     catch (ServiceInterruption e)
                     {
@@ -130,8 +129,8 @@ public class JobNotificationThread extends Thread
                         throw e;
                       // Nothing special; report the error and keep going.
                       Logging.threads.error(e.getMessage(),e);
-                      continue;
                     }
+                    notifiedConnections.put(connections,connections);
                   }
                   finally
                   {

@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-238: Hard errors from notification output connector method
+should be noted and then ignored.
+(Karl Wright)
+
 CONNECTORS-61: Make it easy (and document) how to integrate
 ManifoldCF into an application.
 (Karl Wright)
