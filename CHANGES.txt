@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-61: Make it easy (and document) how to integrate
+ManifoldCF into an application.
+(Karl Wright)
+
 CONNECTORS-226: Clean up usage of REPOSITORY_CONNECTION_ERROR
 ManifoldCFException type.
 (Karl Wright)

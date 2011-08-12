@@ -689,6 +689,30 @@ mvn exec:exec
 
     </section>
 
+    <section>
+      <title>Integrating ManifoldCF into another application</title>
+      <p></p>
+      <p>ManifoldCF can be integrated into another application through a variety of methods.  We'll cover these below.</p>
+      <p></p>
+
+      <section>
+        <title>Integrating the Quick Start example</title>
+        <p></p>
+        <p>The Quick Start example can readily be integrated into a single-process application, by using the support methods found in the org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner class.
+          For the web application components of ManifoldCF, you can either use this class to start them under Jetty, or you can choose to deploy them yourself.  Please note, however, that if you start the ManifoldCF
+          agents process within a web application, you are effectively not running a single-process version of ManifoldCF anymore, because each web application will effectively
+          have its own set of static classes.</p>
+        <p>If you want to try the single-process integration, you should learn what you need by reading the Javadoc for the ManifoldCFJettyRunner class.</p>
+      </section>
+      
+      <section>
+        <title>Integrating a multi-process setup</title>
+        <p></p>
+        <p>In a multi process setup, all of the ManifoldCF processes might as well exist on their own.  You can learn how to programmatically start the agents process by looking at the code
+          in the AgentRun command class, as described above.  Similarly, the command classes that register connectors are very small and should be easy to understand.</p>
+      </section>
+      
+    </section>
   </body>
 
 </document>
