@@ -35,7 +35,7 @@
         <executions>
            <execution>
             <id>copy-war</id>
-            <phase>generate-resources</phase>
+            <phase>validate</phase>
             <goals>
               <goal>copy</goal>
             </goals>
@@ -104,18 +104,21 @@
       <artifactId>mcf-api-service</artifactId>
       <version>${project.version}</version>
       <type>war</type>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>mcf-authority-service</artifactId>
       <version>${project.version}</version>
       <type>war</type>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>mcf-crawler-ui</artifactId>
       <version>${project.version}</version>
       <type>war</type>
+      <scope>test</scope>
     </dependency>
 
     <dependency>
