@@ -104,7 +104,7 @@
 
     <target name="compile-script-engine" depends="compile-core">
         <mkdir dir="build/script-engine/classes"/>
-        <javac srcdir="scriptengine/src/main/java" destdir="build/script-engine/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="script-engine/src/main/java" destdir="build/script-engine/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
                  <fileset dir="lib"> 
                     <include name="*.jar"/> 
