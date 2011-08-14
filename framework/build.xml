@@ -102,6 +102,18 @@
         </javac>
     </target>
 
+    <target name="compile-script-engine" depends="compile-core">
+        <mkdir dir="build/script-engine/classes"/>
+        <javac srcdir="scriptengine/src/main/java" destdir="build/script-engine/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+            <classpath>
+                 <fileset dir="lib"> 
+                    <include name="*.jar"/> 
+                </fileset>
+                <pathelement location="build/core/classes"/>
+            </classpath>
+        </javac>
+    </target>
+
     <target name="compile-authority-servlet" depends="compile-core,compile-agents,compile-pull-agent">
         <mkdir dir="build/authority-servlet/classes"/>
         <javac srcdir="authority-servlet/src/main/java" destdir="build/authority-servlet/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
@@ -191,6 +203,11 @@
     <target name="jar-jetty-runner" depends="compile-jetty-runner">
         <mkdir dir="build/jar"/>
         <jar destfile="build/jar/mcf-jetty-runner.jar" basedir="build/jetty-runner/classes"/>
+    </target>
+
+    <target name="jar-script-engine" depends="compile-script-engine">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/mcf-script-engine.jar" basedir="build/script-engine/classes"/>
     </target>
 
     <target name="webapp-authority-service" depends="jar-core,jar-agents,jar-pull-agent,compile-authority-servlet">
@@ -367,6 +384,24 @@
         </copy>
     </target>
 
+    <target name="script-engine" depends="jar-script-engine,jar-core">
+        <mkdir dir="dist/script-engine/lib"/>
+        <copy todir="dist/script-engine/lib">
+            <fileset dir="lib">
+                <include name="commons-codec*.jar"/>
+                <include name="commons-collections*.jar"/>
+                <include name="commons-httpclient-mcf.jar"/>
+                <include name="commons-io*.jar"/>
+                <include name="commons-logging*.jar"/>
+            </fileset>
+        </copy>
+        <copy todir="dist/example/lib">
+            <fileset dir="build/jar">
+                <include name="mcf-core.jar"/>
+            </fileset>
+        </copy>
+    </target>
+    
     <target name="example" depends="war-crawler-ui,war-api-service,war-authority-service,jar-jetty-runner,jar-core,jar-agents,jar-pull-agent">
         <mkdir dir="dist/example/lib"/>
         <copy todir="dist/example/lib">
@@ -555,7 +590,7 @@
         </junit>
     </target>
 
-    <target name="build" depends="processes,war-authority-service,war-crawler-ui,war-api-service,example"/>
+    <target name="build" depends="processes,war-authority-service,war-crawler-ui,war-api-service,example,script-engine"/>
     
     <target name="all" depends="build,doc,build-tests,run-tests,run-tests-postgresql"/>
     
