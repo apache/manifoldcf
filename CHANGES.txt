@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-239: RSS connector chromed content mode was broken.
+(Kate McGonigal, Karl Wright)
+
 CONNECTORS-238: Hard errors from notification output connector method
 should be noted and then ignored.
 (Karl Wright)

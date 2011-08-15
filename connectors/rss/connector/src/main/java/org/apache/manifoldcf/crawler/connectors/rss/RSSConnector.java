@@ -2394,7 +2394,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "    <td class=\"separator\"><hr/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"value\"><nobr><input type=\"radio\" name=\"chromedmode\" value=\"none\" "+(chromedMode.equals("use")?"checked=\"true\"":"")+"/>&nbsp;Use chromed content if no dechromed content found</nobr></td>\n"+
+"    <td class=\"value\"><nobr><input type=\"radio\" name=\"chromedmode\" value=\"use\" "+(chromedMode.equals("use")?"checked=\"true\"":"")+"/>&nbsp;Use chromed content if no dechromed content found</nobr></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
 "    <td class=\"value\"><nobr><input type=\"radio\" name=\"chromedmode\" value=\"skip\" "+(chromedMode.equals("skip")?"checked=\"true\"":"")+"/>&nbsp;Never use chromed content</nobr></td>\n"+
