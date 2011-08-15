@@ -32,8 +32,6 @@ public class ScriptParser
   public boolean parseStatements()
     throws ScriptException
   {
-    if (parseStatement() == false)
-      return false;
     while (true)
     {
       if (parseStatement() == false)
@@ -47,8 +45,6 @@ public class ScriptParser
   public boolean skipStatements()
     throws ScriptException
   {
-    if (skipStatement() == false)
-      return false;
     while (true)
     {
       if (skipStatement() == false)
@@ -91,14 +87,14 @@ public class ScriptParser
     else if (commandString.equals("if"))
     {
       currentStream.skip();
-      String ifCondition = evaluateExpression();
+      Variable ifCondition = evaluateExpression();
       if (ifCondition == null)
         syntaxError("Missing if expression");
       Token t = currentStream.peek();
       if (t == null || t.getString() == null || !t.getString().equals("then"))
         syntaxError("Missing 'then' in if statement");
       currentStream.skip();
-      if (isTrue(ifCondition))
+      if (ifCondition.getBooleanValue())
       {
         parseStatements();
         t = currentStream.peek();
@@ -128,14 +124,14 @@ public class ScriptParser
       while (true)
       {
         currentStream.setCharacterPosition(expressionPosition);
-        String ifCondition = evaluateExpression();
-        if (ifCondition == null)
+        Variable whileCondition = evaluateExpression();
+        if (whileCondition == null)
           syntaxError("Missing while expression");
         Token t = currentStream.peek();
         if (t == null || t.getString() == null || !t.getString().equals("do"))
-          syntaxError("Missing 'do' in if statement");
+          syntaxError("Missing 'do' in while statement");
         currentStream.skip();
-        if (isTrue(ifCondition))
+        if (whileCondition.getBooleanValue())
         {
           parseStatements();
         }
@@ -215,7 +211,7 @@ public class ScriptParser
     return true;
   }
   
-  public String evaluateExpression()
+  public Variable evaluateExpression()
     throws ScriptException
   {
     // MHL
@@ -226,11 +222,6 @@ public class ScriptParser
     throws ScriptException
   {
     // MHL
-  }
-  
-  protected static boolean isTrue(String string)
-  {
-    return string.equals("TRUE");
   }
   
   protected void syntaxError(String message)
