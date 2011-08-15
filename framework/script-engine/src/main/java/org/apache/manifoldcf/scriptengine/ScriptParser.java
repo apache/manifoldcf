@@ -17,11 +17,14 @@
 * limitations under the License.
 */
 
+import java.util.*;
+
 /** Parse script and execute.
 */
 public class ScriptParser
 {
   protected TokenStream currentStream = null;
+  protected Map<String,VariableReference> context = new HashMap<String,VariableReference>();
   
   public ScriptParser()
   {
@@ -178,7 +181,8 @@ public class ScriptParser
     else if (commandString.equals("if"))
     {
       currentStream.skip();
-      skipExpression();
+      if (skipExpression() == false)
+        syntaxError("Missing if expression");
       Token t = currentStream.peek();
       if (t == null || t.getString() == null || !t.getString().equals("then"))
         syntaxError("Missing 'then' in if statement");
@@ -195,7 +199,8 @@ public class ScriptParser
     else if (commandString.equals("while"))
     {
       currentStream.skip();
-      skipExpression();
+      if (skipExpression() == false)
+	syntaxError("Missing while expression");
       Token t = currentStream.peek();
       if (t == null || t.getString() == null || !t.getString().equals("do"))
         syntaxError("Missing 'do' in if statement");
@@ -211,17 +216,127 @@ public class ScriptParser
     return true;
   }
   
-  public Variable evaluateExpression()
+  protected Variable evaluateExpression()
     throws ScriptException
   {
     // MHL
     return null;
   }
   
-  public void skipExpression()
+  protected boolean skipExpression()
     throws ScriptException
   {
     // MHL
+    return false;
+  }
+  
+  protected VariableReference parseVariableReference()
+    throws ScriptException
+  {
+    // variable_reference -> variable_reference '[' expression ']'
+    // variable_reference -> variable_reference.property_name
+    // variable_reference -> variable_reference_1
+    
+    VariableReference vr = parseVariableReference_1();
+    if (vr == null)
+      return vr;
+    while (true)
+    {
+      Token t = currentStream.peek();
+      if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("["))
+      {
+	currentStream.skip();
+	Variable expression = evaluateExpression();
+	if (expression == null)
+	  syntaxError("Missing expression after '['");
+	int indexValue = expression.getIntValue();
+	Variable v = vr.resolve();
+	if (v == null)
+	  syntaxError("Null reference");
+	vr = v.getIndexed(indexValue);
+	t = currentStream.peek();
+	if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals("]"))
+	  syntaxError("Missing ']'");
+	currentStream.skip();
+      }
+      else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("."))
+      {
+	currentStream.skip();
+	t = currentStream.peek();
+	if (t == null || t.getString() == null)
+	  syntaxError("Need property name");
+	Variable v = vr.resolve();
+	if (v == null)
+	  syntaxError("Null reference");
+	vr = v.getProperty(t.getString());
+	currentStream.skip();
+      }
+      else
+	break;
+    }
+      
+    return vr;
+  }
+  
+  protected VariableReference parseVariableReference_1()
+    throws ScriptException
+  {
+    Token t = currentStream.peek();
+    if (t == null || t.getString() == null)
+      return null;
+    currentStream.skip();
+    String variableName = t.getString();
+    // Look up variable reference in current context
+    VariableReference x = context.get(variableName);
+    if (x == null)
+    {
+      x = new VariableReference();
+      context.put(variableName,x);
+    }
+    return x;
+  }
+  
+  protected boolean skipVariableReference()
+    throws ScriptException
+  {
+    if (skipVariableReference_1() == false)
+      return false;
+    while (true)
+    {
+      Token t = currentStream.peek();
+      if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("["))
+      {
+	currentStream.skip();
+	if (skipExpression() == false)
+	  syntaxError("Missing expression after '['");
+	t = currentStream.peek();
+	if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals("]"))
+	  syntaxError("Missing ']'");
+	currentStream.skip();
+      }
+      else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("."))
+      {
+	currentStream.skip();
+	t = currentStream.peek();
+	if (t == null || t.getString() == null)
+	  syntaxError("Need property name");
+	currentStream.skip();
+      }
+      else
+	break;
+    }
+      
+    return true;
+  }
+  
+  protected boolean skipVariableReference_1()
+    throws ScriptException
+  {
+    Token t = currentStream.peek();
+    if (t == null || t.getString() == null)
+      return false;
+    currentStream.skip();
+    return true;
   }
   
   protected void syntaxError(String message)

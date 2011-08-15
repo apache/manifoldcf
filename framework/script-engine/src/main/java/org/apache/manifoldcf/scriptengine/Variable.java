@@ -31,14 +31,29 @@ public interface Variable
   public boolean getBooleanValue()
     throws ScriptException;
   
-  /** Get the variable's value as a long integer */
-  public long getIntValue()
+  /** Get the variable's value as an integer */
+  public int getIntValue()
     throws ScriptException;
   
   /** Get the variable's value as a double */
   public double getDoubleValue()
     throws ScriptException;
   
+  /** Check whether this variable constitutes an "OK" status.
+  */
+  public boolean isOKStatus()
+    throws ScriptException;
+
+  /** Check whether this variable constitutes a "NOT FOUND" status.
+  */
+  public boolean isNOTFOUNDStatus()
+    throws ScriptException;
+
+  /** Check whether this variable constitutes a "CREATED" status.
+  */
+  public boolean isCREATEDStatus()
+    throws ScriptException;
+
   // The following operation corresponds to the "." operation
   
   /** Get a named property of the variable */
