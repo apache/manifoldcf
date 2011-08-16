@@ -28,6 +28,10 @@ public interface IHierarchyParent
 {
   public static final String _rcsid = "@(#)$Id$";
 
+  /** Clear children.
+  */
+  public void clearChildren();
+
    /** Get child count.
   *@return the count.
   */

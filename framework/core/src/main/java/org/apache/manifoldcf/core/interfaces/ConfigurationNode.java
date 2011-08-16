@@ -202,6 +202,15 @@ public class ConfigurationNode implements IHierarchyParent
     children.add(index,child);
   }
 
+  /** Clear children.
+  */
+  public void clearChildren()
+  {
+    if (readOnly)
+      throw new IllegalStateException("Attempt to change read-only object");
+    children.clear();
+  }
+
   /** Set an attribute.
   *@param attribute is the name of the attribute.
   *@param value is the value of the attribute (null to remove it).
