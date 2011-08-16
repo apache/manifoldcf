@@ -16,53 +16,62 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+
 package org.apache.manifoldcf.scriptengine;
 
-/** This interface represents a variable within the ManifoldCF script engine.
-* A variable may have a value, and may have various named properties, as described below.
-* 
+/** Base class for variables.
+* Basically, everything is illegal until overridden.
 */
-public interface Variable
+public class VariableBase implements Variable
 {
-  // Special attributes
-  
-  /** Name attribute */
-  public static String ATTRIBUTE_NAME = "__name__";
-  /** Size attribute */
-  public static String ATTRIBUTE_SIZE = "__size__";
-  /** OK status attribute */
-  public static String ATTRIBUTE_OKSTATUS = "__OK__";
-  /** NOTFOUND status attribute */
-  public static String ATTRIBUTE_NOTFOUNDSTATUS = "__NOTFOUND__";
-  /** CREATED status attribute */
-  public static String ATTRIBUTE_CREATED = "__CREATED__";
+  public VariableBase()
+  {
+  }
   
   /** Get the variable's value as a string */
   public String getStringValue()
-    throws ScriptException;
+    throws ScriptException
+  {
+    throw new ScriptException("Cannot convert variable to string");
+  }
   
   /** Get the variable's value as a boolean */
   public boolean getBooleanValue()
-    throws ScriptException;
+    throws ScriptException
+  {
+    throw new ScriptException("Cannot convert variable to boolean");
+  }
   
   /** Get the variable's value as an integer */
   public int getIntValue()
-    throws ScriptException;
+    throws ScriptException
+  {
+    throw new ScriptException("Cannot convert variable to int");
+  }
   
   /** Get the variable's value as a double */
   public double getDoubleValue()
-    throws ScriptException;
+    throws ScriptException
+  {
+    throw new ScriptException("Cannot convert variable to float");
+  }
   
   // The following operations allow manipulation of a Configuration structure
 
   /** Get a named attribute of the variable; e.g. xxx.yyy */
   public VariableReference getAttribute(String attributeName)
-    throws ScriptException;
+    throws ScriptException
+  {
+    throw new ScriptException("Variable has no attribute called '"+attributeName+"'");
+  }
   
   // The following two operations correspond to <xxx> and xxx[index]
   
   /** Get an indexed property of the variable */
   public VariableReference getIndexed(int index)
-    throws ScriptException;
-    
+    throws ScriptException
+  {
+    throw new ScriptException("Variable has no member number "+Integer.toString(index));
+  }
+
 }

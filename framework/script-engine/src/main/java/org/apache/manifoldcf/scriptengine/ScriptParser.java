@@ -17,6 +17,8 @@
 * limitations under the License.
 */
 
+package org.apache.manifoldcf.scriptengine;
+
 import java.util.*;
 
 /** Parse script and execute.
@@ -264,11 +266,11 @@ public class ScriptParser
 	currentStream.skip();
 	t = currentStream.peek();
 	if (t == null || t.getString() == null)
-	  syntaxError("Need property name");
+	  syntaxError("Need attribute name");
 	Variable v = vr.resolve();
 	if (v == null)
-	  syntaxError("Null reference");
-	vr = v.getProperty(t.getString());
+	  syntaxError("Null attribute reference");
+	vr = v.getAttribute(t.getString());
 	currentStream.skip();
       }
       else

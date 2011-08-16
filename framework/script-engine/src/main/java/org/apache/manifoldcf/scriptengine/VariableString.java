@@ -19,33 +19,43 @@
 
 package org.apache.manifoldcf.scriptengine;
 
-/** This class is a mutable reference to a variable.
-* It exists as a separate class so that the reference to the underlying
-* variable can be easily modified.  The reference can, of course, be null.
+/** Variable class representing an integer.
 */
-public class VariableReference
+public class VariableString extends VariableBase
 {
-  protected Variable reference;
+  protected String value;
   
-  public VariableReference()
+  public VariableString(String value)
   {
-    reference = null;
+    this.value = value;
   }
   
-  public VariableReference(Variable object)
+  /** Get the variable's value as a string */
+  public String getStringValue()
     throws ScriptException
   {
-    reference = object;
+    return value;
   }
-  
-  public void setReference(Variable object)
+
+  /** Get the variable's value as an integer */
+  public int getIntValue()
     throws ScriptException
   {
-    reference = object;
+    try
+    {
+      return Integer.parseInt(value);
+    }
+    catch (NumberFormatException e)
+    {
+      throw new ScriptException(e.getMessage(),e);
+    }
   }
   
-  public Variable resolve()
+  /** Get the variable's value as a double */
+  public double getDoubleValue()
+    throws ScriptException
   {
-    return reference;
+    return new Double(value).doubleValue();
   }
+
 }

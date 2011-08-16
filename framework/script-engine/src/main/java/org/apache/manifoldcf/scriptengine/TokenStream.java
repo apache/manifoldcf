@@ -17,6 +17,8 @@
 * limitations under the License.
 */
 
+package org.apache.manifoldcf.scriptengine;
+
 /** Convert a script into a stream of tokens.
 */
 public class TokenStream

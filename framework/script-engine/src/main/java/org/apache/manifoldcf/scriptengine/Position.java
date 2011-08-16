@@ -17,6 +17,8 @@
 * limitations under the License.
 */
 
+package org.apache.manifoldcf.scriptengine;
+
 /** This class tracks the position of a script execution, and allows
 * access to the characters in a nested file setup.
 */

@@ -17,6 +17,8 @@
 * limitations under the License.
 */
 
+package org.apache.manifoldcf.scriptengine;
+
 public class ScriptException extends Exception
 {
   public ScriptException(String msg)

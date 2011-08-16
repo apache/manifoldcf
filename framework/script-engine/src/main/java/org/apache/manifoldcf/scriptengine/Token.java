@@ -17,6 +17,8 @@
 * limitations under the License.
 */
 
+package org.apache.manifoldcf.scriptengine;
+
 public class Token
 {
   public static final int TOKEN_PUNCTUATION = 0;
