@@ -67,7 +67,7 @@
     
     <target name="jar-connector-tests" depends="compile-connector-tests">
         <mkdir dir="build/test-jar"/>
-        <jar destfile="build/test-jar/mcf-filesystem-connector-tests.jar" basedir="build/connector-tests/classes"/>
+        <jar destfile="build/test-jar/mcf-web-connector-tests.jar" basedir="build/connector-tests/classes"/>
     </target>
 
     <target name="jar-tests" depends="jar-connector-tests"/>
