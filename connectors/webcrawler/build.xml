@@ -51,11 +51,46 @@
         <copy todir="dist/lib" file="build/jar/mcf-web-connector.jar"/>
     </target>
 
-    <target name="build" depends="lib"/>
-    <target name="build-tests">
-      <mkdir dir="build/test-jar"/>
+    <target name="compile-connector-tests" depends="compile-connector">
+        <mkdir dir="build/connector-tests/classes"/>
+        <javac srcdir="connector/src/test/java" destdir="build/connector-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+            <classpath>
+                 <fileset dir="lib"> 
+                    <include name="*.jar"/> 
+                </fileset>
+                <pathelement location="build/connector/classes"/>
+            </classpath>
+        </javac>
     </target>
-    <target name="run-tests"/>
+    
+    <target name="compile-tests" depends="compile-connector-tests"/>
+    
+    <target name="jar-connector-tests" depends="compile-connector-tests">
+        <mkdir dir="build/test-jar"/>
+        <jar destfile="build/test-jar/mcf-filesystem-connector-tests.jar" basedir="build/connector-tests/classes"/>
+    </target>
+
+    <target name="jar-tests" depends="jar-connector-tests"/>
+    
+    <target name="run-tests" depends="compile-tests">
+        <mkdir dir="test-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-output" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="lib">
+                    <include name="*.jar"/>
+                </fileset>
+                <pathelement location="build/connector/classes"/>
+                <pathelement location="build/connector-tests/classes"/>
+            </classpath>
+            <test name="org.apache.manifoldcf.crawler.connectors.webcrawler.tests.URLTest" todir="test-output"/>
+            <!-- MHL -->
+        </junit>
+    </target>
+
+    <target name="build" depends="lib"/>
+    
+    <target name="build-tests" depends="jar-tests"/>
+    
     <target name="run-tests-postgresql"/>
     <target name="run-tests-HSQLDB"/>
     <target name="all" depends="build,doc,build-tests,run-tests,run-tests-postgresql,run-tests-HSQLDB"/>

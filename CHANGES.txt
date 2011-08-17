@@ -3,6 +3,11 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-157: Fixed a second kind of case where the java.net.URI
+class is broken.  Relative queries starting with "?" now replace the query
+part of the url.
+(David Broadfoot, Karl Wright)
+
 CONNECTORS-239: RSS connector chromed content mode was broken.
 (Kate McGonigal, Karl Wright)
 

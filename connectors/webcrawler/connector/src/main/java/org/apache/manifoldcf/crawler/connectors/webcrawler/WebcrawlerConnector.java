@@ -4952,24 +4952,14 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   {
     try
     {
-      java.net.URI url;
-      java.net.URI rawPiece = new java.net.URI(rawURL);
+      WebURL url;
       if (parentIdentifier != null)
       {
-        // Work around bug in java.net.URI.resolve().  Relative paths do not work
-        // here; we must make them absolute somehow.
-        if (rawPiece.isAbsolute())
-          url = rawPiece;
-        else
-        {
-          java.net.URI parentURL = new java.net.URI(parentIdentifier);
-          if (parentURL.getPath() == null || parentURL.getPath().length() == 0)
-            parentURL = new java.net.URI(parentIdentifier + "/");
-          url = parentURL.resolve(rawPiece);
-        }
+        WebURL parentURL = new WebURL(parentIdentifier);
+        url = parentURL.resolve(rawURL);
       }
       else
-        url = rawPiece;
+        url = new WebURL(rawURL);
 
       String protocol = url.getScheme();
       String host = url.getHost();
@@ -5043,7 +5033,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
   /** Code to canonicalize a URL.  If URL cannot be canonicalized (and is illegal) return null.
   */
-  protected String doCanonicalization(DocumentURLFilter filter, java.net.URI url)
+  protected String doCanonicalization(DocumentURLFilter filter, WebURL url)
     throws ManifoldCFException, java.net.URISyntaxException
   {
     // First, we have to figure out what the canonicalization policy is.
@@ -5052,13 +5042,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     String pathString = url.getPath();
     String queryString = url.getRawQuery();
 
-    java.net.URI rawURI = new java.net.URI(url.getScheme(),null,url.getHost(),url.getPort(),pathString,null,null);
+    WebURL rawURI = new WebURL(url.getScheme(),url.getHost(),url.getPort(),pathString,queryString);
     String completeRawURL = rawURI.toASCIIString();
 
-    if (completeRawURL != null && queryString != null && queryString.length() > 0)
-    {
-      completeRawURL += "?" + queryString;
-    }
     CanonicalizationPolicy p;
     if (completeRawURL != null)
       p = filter.getCanonicalizationPolicies().findMatch(completeRawURL);
@@ -5245,14 +5231,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
 
     // Put it back into the URL without the ref, and with the modified query and path parts.
-    url = new java.net.URI(url.getScheme(),null,url.getHost(),url.getPort(),pathString,null,null);
+    url = new WebURL(url.getScheme(),url.getHost(),url.getPort(),pathString,queryString);
     String rval = url.toASCIIString();
-    // If there's a non-empty query string, append it to the url using our own logic; this is necessary because java.net.URI is broken as far as query escaping
-    // goes.
-    if (rval != null && queryString != null && queryString.length() > 0)
-    {
-      rval += "?" + queryString;
-    }
     return rval;
   }
 
