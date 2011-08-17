@@ -54,6 +54,8 @@
         <delete dir="connectors/memex/lib"/>
         <ant dir="connectors/meridio" target="clean"/>
         <delete dir="connectors/meridio/lib"/>
+    	<ant dir="connectors/opensearchserver" target="clean"/>
+    	<delete dir="connectors/opensearchserver/lib"/>
         <ant dir="connectors/nullauthority" target="clean"/>
         <delete dir="connectors/nullauthority/lib"/>
         <ant dir="connectors/nulloutput" target="clean"/>
@@ -667,6 +669,47 @@
         <ant dir="connectors/meridio" target="run-tests-HSQLDB"/>
     </target>
 
+    <target name="setup-opensearchserver-connector" depends="build-framework">
+        <mkdir dir="connectors/opensearchserver/lib"/>
+        <copy todir="connectors/opensearchserver/lib">
+            <fileset dir="framework/lib"/>
+        </copy>
+        <copy todir="connectors/opensearchserver/lib">
+            <fileset dir="framework/build/jar"/>
+        </copy>
+    </target>
+
+    <target name="setup-opensearchserver-connector-tests" depends="build-tests-framework">
+        <mkdir dir="connectors/opensearchserver/lib"/>
+        <copy todir="connectors/opensearchserver/lib">
+            <fileset dir="framework/build/test-jar"/>
+        </copy>
+    </target>
+
+    <target name="build-opensearchserver-connector" depends="setup-opensearchserver-connector">
+      <ant dir="connectors/opensearchserver" target="build"/>
+    </target>
+
+    <target name="doc-opensearchserver-connector" depends="setup-opensearchserver-connector">
+        <ant dir="connectors/opensearchserver" target="doc"/>
+    </target>
+
+    <target name="build-tests-opensearchserver-connector" depends="setup-opensearchserver-connector,setup-opensearchserver-connector-tests">
+        <ant dir="connectors/opensearchserver" target="build-tests"/>
+    </target>
+
+    <target name="run-tests-opensearchserver-connector" depends="setup-opensearchserver-connector,setup-opensearchserver-connector-tests">
+        <ant dir="connectors/opensearchserver" target="run-tests"/>
+    </target>
+
+    <target name="run-tests-postgresql-opensearchserver-connector" depends="setup-opensearchserver-connector,setup-opensearchserver-connector-tests">
+        <ant dir="connectors/opensearchserver" target="run-tests-postgresql"/>
+    </target>
+
+    <target name="run-tests-HSQLDB-opensearchserver-connector" depends="setup-opensearchserver-connector,setup-opensearchserver-connector-tests">
+        <ant dir="connectors/opensearchserver" target="run-tests-HSQLDB"/>
+    </target>
+
     <target name="setup-nullauthority-connector" depends="build-framework">
         <mkdir dir="connectors/nullauthority/lib"/>
         <copy todir="connectors/nulloutput/lib">
@@ -1264,6 +1307,34 @@
         </copy>
     </target>
 
+    <target name="calculate-opensearchserver-condition" depends="build-opensearchserver-connector">
+	    <available file="connectors/opensearchserver/dist/lib" type="dir" property="opensearchserver.exists"/>
+	    <condition property="opensearchserver.include">
+	        <isset property="opensearchserver.exists"/>
+	    </condition>
+    </target>
+
+    <target name="calculate-opensearchserver-doc-condition" depends="doc-opensearchserver-connector">
+        <available file="connectors/opensearchserver/dist/doc" type="dir" property="opensearchserver-doc.exists"/>
+        <condition property="opensearchserver-doc.include">
+            <isset property="opensearchserver-doc.exists"/>
+        </condition>
+    </target>
+
+   <target name="deliver-opensearchserver-connector" depends="calculate-opensearchserver-condition" if="opensearchserver.include">
+        <mkdir dir="dist/lib"/>
+        <copy todir="dist/lib">
+            <fileset dir="connectors/opensearchserver/dist/lib"/>
+        </copy>
+    </target>
+
+    <target name="deliver-opensearchserver-connector-doc" depends="calculate-opensearchserver-doc-condition" if="opensearchserver-doc.include">
+        <mkdir dir="dist/doc/api/opensearchserver"/>
+        <copy todir="dist/doc/api/opensearchserver">
+	  <fileset dir="connectors/opensearchserver/dist/doc"/>
+        </copy>
+    </target>
+
     <target name="calculate-nullauthority-condition" depends="build-nullauthority-connector">
         <available file="connectors/nullauthority/dist/lib" type="dir" property="nullauthority.exists"/>
         <condition property="nullauthority.include">
@@ -1579,6 +1650,14 @@
         <replace file="dist/example/connectors.xml" token="&lt;!-- Add your output connectors here --&gt;" value="&lt;!-- Add your output connectors here --&gt;&#0010;  &lt;outputconnector name=&quot;Solr&quot; class=&quot;org.apache.manifoldcf.agents.output.solr.SolrConnector&quot;/&gt;"/>
     </target>
 
+   <target name="deliver-opensearchserver-example" depends="deliver-framework-example,calculate-opensearchserver-condition" if="opensearchserver.include">
+        <mkdir dir="dist/example/connector-lib"/>
+        <copy todir="dist/example/connector-lib">
+            <fileset dir="connectors/opensearchserver/dist/lib"/>
+        </copy>
+        <replace file="dist/example/connectors.xml" token="&lt;!-- Add your output connectors here --&gt;" value="&lt;!-- Add your output connectors here --&gt;&#0010;  &lt;outputconnector name=&quot;OpenSearchServer&quot; class=&quot;org.apache.manifoldcf.agents.output.opensearchserver.OpenSearchServerConnector&quot;/&gt;"/>
+    </target>
+	
     <target name="deliver-webcrawler-example" depends="deliver-framework-example,calculate-webcrawler-condition" if="webcrawler.include">
         <mkdir dir="dist/example/connector-lib"/>
         <copy todir="dist/example/connector-lib">
@@ -1587,7 +1666,7 @@
         <replace file="dist/example/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;Web&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConnector&quot;/&gt;"/>
     </target>
 
-    <target name="deliver-example" depends="deliver-framework-example,deliver-activedirectory-example,deliver-cmis-example,deliver-documentum-example,deliver-filesystem-example,deliver-filenet-example,deliver-gts-example,deliver-jcifs-example,deliver-jdbc-example,deliver-livelink-example,deliver-memex-example,deliver-meridio-example,deliver-nullauthority-example,deliver-nulloutput-example,deliver-rss-example,deliver-sharepoint-example,deliver-solr-example,deliver-webcrawler-example">
+    <target name="deliver-example" depends="deliver-framework-example,deliver-activedirectory-example,deliver-cmis-example,deliver-documentum-example,deliver-filesystem-example,deliver-filenet-example,deliver-gts-example,deliver-jcifs-example,deliver-jdbc-example,deliver-livelink-example,deliver-memex-example,deliver-meridio-example,deliver-nullauthority-example,deliver-nulloutput-example,deliver-opensearchserver-example,deliver-rss-example,deliver-sharepoint-example,deliver-solr-example,deliver-webcrawler-example">
         <!-- Build a manifest file.  There doesn't seem to be any good way to do this automatically in ant without developing my own
         custom task, so I've hard coded all the class path libs. -->
         <mkdir dir="build/example"/>
@@ -1960,13 +2039,13 @@
     
     <target name="end-to-end-tests" depends="run-filesystem-tests,run-cmis-tests,run-sharepoint-tests"/>
 
-    <target name="run-tests-postgresql-open-connectors" depends="run-tests-postgresql-activedirectory-connector,run-tests-postgresql-cmis-connector,run-tests-postgresql-filesystem-connector,run-tests-postgresql-nullauthority-connector,run-tests-postgresql-nulloutput-connector,run-tests-postgresql-rss-connector,run-tests-postgresql-solr-connector,run-tests-postgresql-webcrawler-connector,run-tests-postgresql-jdbc-connector"/>
+    <target name="run-tests-postgresql-open-connectors" depends="run-tests-postgresql-activedirectory-connector,run-tests-postgresql-cmis-connector,run-tests-postgresql-filesystem-connector,run-tests-postgresql-nullauthority-connector,run-tests-postgresql-nulloutput-connector,run-tests-postgresql-rss-connector,run-tests-postgresql-solr-connector,run-tests-postgresql-webcrawler-connector,run-tests-postgresql-jdbc-connector,run-tests-postgresql-opensearchserver-connector"/>
     <target name="run-tests-postgresql-lgpl-connectors" depends="run-tests-postgresql-jcifs-connector"/>
     <target name="run-tests-postgresql-proprietary-connectors" depends="run-tests-postgresql-documentum-connector,run-tests-postgresql-filenet-connector,run-tests-postgresql-livelink-connector,run-tests-postgresql-memex-connector,run-tests-postgresql-meridio-connector,run-tests-postgresql-sharepoint-connector"/>
     
     <target name="end-to-end-tests-postgresql" depends="run-filesystem-tests-postgresql,run-sharepoint-tests-postgresql"/>
 
-    <target name="run-tests-HSQLDB-open-connectors" depends="run-tests-HSQLDB-activedirectory-connector,run-tests-HSQLDB-cmis-connector,run-tests-HSQLDB-filesystem-connector,run-tests-HSQLDB-nullauthority-connector,run-tests-HSQLDB-nulloutput-connector,run-tests-HSQLDB-rss-connector,run-tests-HSQLDB-solr-connector,run-tests-HSQLDB-webcrawler-connector,run-tests-HSQLDB-jdbc-connector"/>
+    <target name="run-tests-HSQLDB-open-connectors" depends="run-tests-HSQLDB-activedirectory-connector,run-tests-HSQLDB-cmis-connector,run-tests-HSQLDB-filesystem-connector,run-tests-HSQLDB-nullauthority-connector,run-tests-HSQLDB-nulloutput-connector,run-tests-HSQLDB-rss-connector,run-tests-HSQLDB-solr-connector,run-tests-HSQLDB-webcrawler-connector,run-tests-HSQLDB-jdbc-connector,run-tests-HSQLDB-opensearchserver-connector"/>
     <target name="run-tests-HSQLDB-lgpl-connectors" depends="run-tests-HSQLDB-jcifs-connector"/>
     <target name="run-tests-HSQLDB-proprietary-connectors" depends="run-tests-HSQLDB-documentum-connector,run-tests-HSQLDB-filenet-connector,run-tests-HSQLDB-livelink-connector,run-tests-HSQLDB-memex-connector,run-tests-HSQLDB-meridio-connector,run-tests-HSQLDB-sharepoint-connector"/>
     
@@ -1975,15 +2054,14 @@
     <target name="deliver-open-connectors" depends="deliver-nullauthority-connector,deliver-activedirectory-connector,deliver-cmis-connector,deliver-filesystem-connector,deliver-rss-connector,deliver-webcrawler-connector,deliver-jdbc-connector"/>
     <target name="deliver-open-connectors-doc" depends="deliver-nullauthority-connector-doc,deliver-activedirectory-connector-doc,deliver-cmis-connector-doc,deliver-filesystem-connector-doc,deliver-rss-connector-doc,deliver-webcrawler-connector-doc,deliver-jdbc-connector-doc"/>
     
-    <target name="deliver-output-connectors" depends="deliver-gts-connector,deliver-solr-connector,deliver-nulloutput-connector"/>
-    <target name="deliver-output-connectors-doc" depends="deliver-gts-connector-doc,deliver-solr-connector-doc,deliver-nulloutput-connector-doc"/>
+    <target name="deliver-output-connectors" depends="deliver-gts-connector,deliver-solr-connector,deliver-nulloutput-connector,deliver-opensearchserver-connector"/>
+    <target name="deliver-output-connectors-doc" depends="deliver-gts-connector-doc,deliver-solr-connector-doc,deliver-nulloutput-connector-doc,deliver-opensearchserver-connector-doc"/>
     
     <target name="deliver-lgpl-connectors" depends="deliver-jcifs-connector"/>
     <target name="deliver-lgpl-connectors-doc" depends="deliver-jcifs-connector-doc"/>
     
     <target name="deliver-proprietary-connectors" depends="deliver-documentum-connector,deliver-filenet-connector,deliver-livelink-connector,deliver-memex-connector,deliver-meridio-connector,deliver-sharepoint-connector"/>
     <target name="deliver-proprietary-connectors-doc" depends="deliver-documentum-connector-doc,deliver-filenet-connector-doc,deliver-livelink-connector-doc,deliver-memex-connector-doc,deliver-meridio-connector-doc,deliver-sharepoint-connector-doc"/>
-        
 
     <target name="build" depends="deliver-framework,deliver-open-connectors,deliver-output-connectors,deliver-lgpl-connectors,deliver-proprietary-connectors,deliver-example"/>
     <target name="javadoc" depends="deliver-framework-doc,deliver-open-connectors-doc,deliver-output-connectors-doc,deliver-lgpl-connectors-doc,deliver-proprietary-connectors-doc"/>

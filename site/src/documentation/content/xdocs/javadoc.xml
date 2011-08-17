@@ -42,6 +42,7 @@
       <p><a href="api/jdbc/index.html">JDBC connector</a></p>
       <p><a href="api/livelink/index.html">LiveLink authority and connector</a></p>
       <p><a href="api/meridio/index.html">Meridio authority and connector</a></p>
+      <p><a href="api/opensearchserver/index.html">OpenSearchServer output connector</a></p>
       <p><a href="api/nullauthority/index.html">Null authority</a></p>
       <p><a href="api/nulloutput/index.html">Null output connector</a></p>
       <p><a href="api/rss/index.html">RSS connector</a></p>

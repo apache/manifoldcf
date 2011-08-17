@@ -45,6 +45,7 @@
     <module>solr</module>
     <module>webcrawler</module>
     <module>cmis</module>
+    <module>opensearchserver</module>
   </modules>
 
 </project>
