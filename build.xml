@@ -2213,6 +2213,10 @@ Use Apache Forrest version forrest-0.9-dev or higher.
           <exclude name="sharepoint/webservice/Properties/Settings.Designer.cs"/>
           <exclude name="sharepoint/webservice/Web References/SPPermissionsService/Reference.cs"/>
           <exclude name="**/surefire-reports/"/>
+          <exclude name="**/manifoldcf.log"/>
+          <exclude name="**/derby.log"/>
+          <exclude name="**/db.lck"/>
+          <exclude name="**/dbname/service.properties"/>
         </fileset>
         <fileset dir="framework/">
           <exclude name="**/build/"/>
@@ -2223,6 +2227,10 @@ Use Apache Forrest version forrest-0.9-dev or higher.
           <exclude name="**/web-generated.xml"/>
           <exclude name="**/surefire-reports/"/>
           <exclude name="scripts/options.env"/>
+          <exclude name="**/manifoldcf.log"/>
+          <exclude name="**/derby.log"/>
+          <exclude name="**/db.lck"/>
+          <exclude name="**/dbname/service.properties"/>
         </fileset>
         <fileset dir="site/">
           <exclude name="**/build/"/>
