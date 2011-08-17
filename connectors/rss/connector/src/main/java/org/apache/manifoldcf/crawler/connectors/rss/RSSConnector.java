@@ -365,7 +365,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   {
     try
     {
-      java.net.URI uri = new java.net.URI(documentIdentifier);
+      WebURL uri = new WebURL(documentIdentifier);
       return new String[]{uri.getHost()};
     }
     catch (URISyntaxException e)
@@ -448,14 +448,14 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       }
       rawURL = sb.toString();
 
-      java.net.URI url;
+      WebURL url;
       if (parentIdentifier != null)
       {
-        java.net.URI parentURL = new java.net.URI(parentIdentifier);
+        WebURL parentURL = new WebURL(parentIdentifier);
         url = parentURL.resolve(rawURL);
       }
       else
-        url = new java.net.URI(rawURL);
+        url = new WebURL(rawURL);
 
       String protocol = url.getScheme();
       String host = url.getHost();
@@ -527,7 +527,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 
   /** Code to canonicalize a URL.  If URL cannot be canonicalized (and is illegal) return null.
   */
-  protected static String doCanonicalization(CanonicalizationPolicy p, java.net.URI url)
+  protected static String doCanonicalization(CanonicalizationPolicy p, WebURL url)
     throws ManifoldCFException, java.net.URISyntaxException
   {
     // Note well: The java.net.URI class mistreats the query part of the URI, near as I can tell, in the following ways:
@@ -709,14 +709,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     }
 
     // Put it back into the URL without the ref, and with the modified query and path parts.
-    url = new java.net.URI(url.getScheme(),null,url.getHost(),url.getPort(),pathString,null,null);
+    url = new WebURL(url.getScheme(),url.getHost(),url.getPort(),pathString,queryString);
     String rval = url.toASCIIString();
-    // If there's a non-empty query string, append it to the url using our own logic; this is necessary because java.net.URI is broken as far as query escaping
-    // goes.
-    if (rval != null && queryString != null && queryString.length() > 0)
-    {
-      rval += "?" + queryString;
-    }
     return rval;
   }
 
