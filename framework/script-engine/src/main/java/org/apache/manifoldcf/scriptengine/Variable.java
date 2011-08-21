@@ -28,6 +28,8 @@ public interface Variable
   
   /** Name attribute */
   public static String ATTRIBUTE_NAME = "__name__";
+  /** Value attribute */
+  public static String ATTRIBUTE_VALUE = "__value__";
   /** Size attribute */
   public static String ATTRIBUTE_SIZE = "__size__";
   /** OK status attribute */
@@ -35,12 +37,18 @@ public interface Variable
   /** NOTFOUND status attribute */
   public static String ATTRIBUTE_NOTFOUNDSTATUS = "__NOTFOUND__";
   /** CREATED status attribute */
-  public static String ATTRIBUTE_CREATED = "__CREATED__";
+  public static String ATTRIBUTE_CREATEDSTATUS = "__CREATED__";
+  /** RESULT attribute */
+  public static String ATTRIBUTE_RESULT = "__result__";
   
   /** Get the variable's value as a string */
   public String getStringValue()
     throws ScriptException;
-  
+
+  /** Get the variable's value as a JSON string */
+  public String getJSONValue()
+    throws ScriptException;
+
   /** Get the variable's value as a boolean */
   public boolean getBooleanValue()
     throws ScriptException;
@@ -53,13 +61,63 @@ public interface Variable
   public double getDoubleValue()
     throws ScriptException;
   
+  // Arithmetic and comparison operators
+  
+  public VariableReference plus(Variable v)
+    throws ScriptException;
+    
+  public VariableReference minus(Variable v)
+    throws ScriptException;
+    
+  public VariableReference asterisk(Variable v)
+    throws ScriptException;
+    
+  public VariableReference slash(Variable v)
+    throws ScriptException;
+    
+  public VariableReference unaryMinus()
+    throws ScriptException;
+  
+  public VariableReference greaterAngle(Variable v)
+    throws ScriptException;
+    
+  public VariableReference lesserAngle(Variable v)
+    throws ScriptException;
+    
+  public VariableReference doubleEquals(Variable v)
+    throws ScriptException;
+    
+  public VariableReference greaterAngleEquals(Variable v)
+    throws ScriptException;
+    
+  public VariableReference lesserAngleEquals(Variable v)
+    throws ScriptException;
+  
+  public VariableReference exclamationEquals(Variable v)
+    throws ScriptException;
+  
+  public VariableReference ampersand(Variable v)
+    throws ScriptException;
+    
+  public VariableReference pipe(Variable v)
+    throws ScriptException;
+
+  public VariableReference doubleAmpersand(Variable v)
+    throws ScriptException;
+    
+  public VariableReference doublePipe(Variable v)
+    throws ScriptException;
+
+  public VariableReference unaryExclamation()
+    throws ScriptException;
+    
   // The following operations allow manipulation of a Configuration structure
 
   /** Get a named attribute of the variable; e.g. xxx.yyy */
   public VariableReference getAttribute(String attributeName)
     throws ScriptException;
   
-  // The following two operations correspond to <xxx> and xxx[index]
+  // The following operations correspond to xxx[index]
   
   /** Get an indexed property of the variable */
   public VariableReference getIndexed(int index)

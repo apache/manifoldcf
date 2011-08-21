@@ -20,226 +20,588 @@
 package org.apache.manifoldcf.scriptengine;
 
 import java.util.*;
+import java.io.*;
 
-/** Parse script and execute.
+/** Class to parse various syntactical parts of a script and execute them.
 */
 public class ScriptParser
 {
-  protected TokenStream currentStream = null;
-  protected Map<String,VariableReference> context = new HashMap<String,VariableReference>();
+  /** The current variable context. */
+  protected Map<String,ContextVariableReference> context = new HashMap<String,ContextVariableReference>();
+  
+  /** A table of commands that we know how to deal with. */
+  protected Map<String,Command> commands = new HashMap<String,Command>();
   
   public ScriptParser()
   {
   }
   
-  /** Parse multiple statements.
+  /** Add a command.
+  *@param commandName is the name of the command.
+  *@param command is the command instance.
   */
-  public boolean parseStatements()
+  public void addCommand(String commandName, Command command)
+  {
+    commands.put(commandName,command);
+  }
+
+  // Statement return codes
+  protected static final int STATEMENT_NOTME = 0;
+  protected static final int STATEMENT_ISME = 1;
+  protected static final int STATEMENT_BREAK = 2;
+  
+  /** Parse and execute multiple statements.
+  *@param currentStream is the token stream to parse.
+  *@return true for a break signal.
+  */
+  public boolean parseStatements(TokenStream currentStream)
     throws ScriptException
   {
+    boolean breakSignal = false;
     while (true)
     {
-      if (parseStatement() == false)
-        break;
-    }
-    return true;
-  }
-  
-  /** Skip multiple statements.
-  */
-  public boolean skipStatements()
-    throws ScriptException
-  {
-    while (true)
-    {
-      if (skipStatement() == false)
-        break;
-    }
-    return true;
-  }
-  
-  /** Parse a single statement.
-  */
-  public boolean parseStatement()
-    throws ScriptException
-  {
-    Token command = currentStream.peek();
-    if (command == null)
-      return false;
-    String commandString = command.getString();
-    if (commandString == null)
-      return false;
-    if (commandString.equals("POST"))
-    {
-      currentStream.skip();
-      // MHL
-    }
-    else if (commandString.equals("GET"))
-    {
-      currentStream.skip();
-      // MHL
-    }
-    else if (commandString.equals("PUT"))
-    {
-      currentStream.skip();
-      // MHL
-    }
-    else if (commandString.equals("DELETE"))
-    {
-      currentStream.skip();
-      // MHL
-    }
-    else if (commandString.equals("if"))
-    {
-      currentStream.skip();
-      Variable ifCondition = evaluateExpression();
-      if (ifCondition == null)
-        syntaxError("Missing if expression");
-      Token t = currentStream.peek();
-      if (t == null || t.getString() == null || !t.getString().equals("then"))
-        syntaxError("Missing 'then' in if statement");
-      currentStream.skip();
-      if (ifCondition.getBooleanValue())
+      if (breakSignal)
       {
-        parseStatements();
-        t = currentStream.peek();
-        if (t != null &&t.getString().equals("else"))
-        {
-          currentStream.skip();
-          // Skip statements
-          skipStatements();
-        }
+        if (skipStatement(currentStream) == false)
+          break;
       }
       else
       {
-        skipStatements();
-        t = currentStream.peek();
-        if (t != null && t.getString().equals("else"))
-        {
-          currentStream.skip();
-          // Parse statements
-          parseStatements();
-        }
+        int result = parseStatement(currentStream);
+        if (result == STATEMENT_NOTME)
+          break;
+        if (result == STATEMENT_BREAK)
+          breakSignal = true;
       }
     }
-    else if (commandString.equals("while"))
+    return breakSignal;
+  }
+  
+  /** Skip multiple statements.
+  *@param currentStream is the token stream to parse.
+  */
+  public void skipStatements(TokenStream currentStream)
+    throws ScriptException
+  {
+    while (true)
     {
-      currentStream.skip();
-      int expressionPosition = currentStream.getCharacterPosition();
-      while (true)
+      if (skipStatement(currentStream) == false)
+        break;
+    }
+  }
+  
+  
+  /** Parse a single statement.
+  *@param currentStream is the current token stream.
+  *@return a signal indicating either NOTME, ISME, or BREAK.
+  */
+  protected int parseStatement(TokenStream currentStream)
+    throws ScriptException
+  {
+    int rval = STATEMENT_ISME;
+    
+    Token command = currentStream.peek();
+    if (command == null)
+      return STATEMENT_NOTME;
+    String commandString = command.getToken();
+    if (commandString == null)
+      return STATEMENT_NOTME;
+    
+    // Let's see if we know about this command.
+    Token t = currentStream.peek();
+    if (t != null && t.getToken() != null)
+    {
+      Command c = commands.get(t.getToken());
+      if (c != null)
       {
-        currentStream.setCharacterPosition(expressionPosition);
-        Variable whileCondition = evaluateExpression();
-        if (whileCondition == null)
-          syntaxError("Missing while expression");
-        Token t = currentStream.peek();
-        if (t == null || t.getString() == null || !t.getString().equals("do"))
-          syntaxError("Missing 'do' in while statement");
+        // We do know about it.  So skip the command name and call the parse method.
         currentStream.skip();
-        if (whileCondition.getBooleanValue())
-        {
-          parseStatements();
-        }
+        if (c.parseAndExecute(this,currentStream))
+          rval = STATEMENT_BREAK;
         else
-        {
-          skipStatements();
-          break;
-        }
+          rval = STATEMENT_ISME;
       }
+      else
+        return STATEMENT_NOTME;
     }
     else
-      return false;
+      return STATEMENT_NOTME;
+    
     Token semi = currentStream.peek();
     if (semi == null || semi.getPunctuation() == null || !semi.getPunctuation().equals(";"))
-      syntaxError("Missing semicolon");
+      syntaxError(currentStream,"Missing semicolon");
     currentStream.skip();
-    return true;
+    return rval;
   }
 
   /** Skip a single statement.
+  *@param currentStream is the current token stream.
+  *@return true if a statement was detected, false otherwise.
   */
-  public boolean skipStatement()
+  protected boolean skipStatement(TokenStream currentStream)
     throws ScriptException
   {
     Token command = currentStream.peek();
     if (command == null)
       return false;
-    String commandString = command.getString();
+    String commandString = command.getToken();
     if (commandString == null)
       return false;
-    if (commandString.equals("POST") ||
-      commandString.equals("GET") ||
-      commandString.equals("PUT") ||
-      commandString.equals("DELETE"))
+    
+    // Let's see if we know about this command.
+    Token t = currentStream.peek();
+    if (t != null && t.getToken() != null)
     {
-      currentStream.skip();
-      while (true)
+      Command c = commands.get(t.getToken());
+      if (c != null)
       {
-        Token t = currentStream.peek();
-        if (t == null || t.getPunctuation().equals(";"))
-          break;
-      }
-    }
-    else if (commandString.equals("if"))
-    {
-      currentStream.skip();
-      if (skipExpression() == false)
-        syntaxError("Missing if expression");
-      Token t = currentStream.peek();
-      if (t == null || t.getString() == null || !t.getString().equals("then"))
-        syntaxError("Missing 'then' in if statement");
-      currentStream.skip();
-      skipStatements();
-      t = currentStream.peek();
-      if (t != null &&t.getString().equals("else"))
-      {
+        // We do know about it.  So skip the command name and call the parse method.
         currentStream.skip();
-        // Skip statements
-        skipStatements();
+        c.parseAndSkip(this,currentStream);
+        // Fall through
       }
-    }
-    else if (commandString.equals("while"))
-    {
-      currentStream.skip();
-      if (skipExpression() == false)
-	syntaxError("Missing while expression");
-      Token t = currentStream.peek();
-      if (t == null || t.getString() == null || !t.getString().equals("do"))
-        syntaxError("Missing 'do' in if statement");
-      currentStream.skip();
-      skipStatements();
+      else
+        return false;
     }
     else
       return false;
+    
     Token semi = currentStream.peek();
     if (semi == null || semi.getPunctuation() == null || !semi.getPunctuation().equals(";"))
-      syntaxError("Missing semicolon");
+      syntaxError(currentStream,"Missing semicolon");
     currentStream.skip();
     return true;
   }
   
-  protected Variable evaluateExpression()
+  /** Evaluate an expression.
+  *@param currentStream is the token stream to parse.
+  *@return a VariableReference object if an expression was detected, null otherwise.
+  */
+  public VariableReference evaluateExpression(TokenStream currentStream)
     throws ScriptException
   {
-    // MHL
-    return null;
+    // Look for pipe operations
+    VariableReference vr = evaluateExpression_1(currentStream);
+    if (vr == null)
+      return null;
+    while (true)
+    {
+      Token t = currentStream.peek();
+      if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("||"))
+      {
+        currentStream.skip();
+        VariableReference v = evaluateExpression_1(currentStream);
+        if (v == null)
+          syntaxError(currentStream,"Missing expression after '||'");
+        vr = vr.resolve().doublePipe(v.resolve());
+      }
+      else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("|"))
+      {
+        currentStream.skip();
+        VariableReference v = evaluateExpression_1(currentStream);
+        if (v == null)
+          syntaxError(currentStream,"Missing expression after '|'");
+        vr = vr.resolve().pipe(v.resolve());
+      }
+      else
+        break;
+    }
+    return vr;
   }
   
-  protected boolean skipExpression()
+  /** Skip an expression.
+  *@param currentStream is the token stream to parse.
+  *@return true if an expression was detected, false otherwise.
+  */
+  public boolean skipExpression(TokenStream currentStream)
     throws ScriptException
   {
-    // MHL
-    return false;
+    // Look for pipe operations
+    if (skipExpression_1(currentStream) == false)
+      return false;
+    while (true)
+    {
+      Token t = currentStream.peek();
+      if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("||"))
+      {
+        currentStream.skip();
+        if (skipExpression_1(currentStream) == false)
+          syntaxError(currentStream,"Missing expression after '||'");
+      }
+      else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("|"))
+      {
+        currentStream.skip();
+        if (skipExpression_1(currentStream) == false)
+          syntaxError(currentStream,"Missing expression after '|'");
+      }
+      else
+        break;
+    }
+    return true;
   }
   
-  protected VariableReference parseVariableReference()
+  protected VariableReference evaluateExpression_1(TokenStream currentStream)
+    throws ScriptException
+  {
+    // Look for ampersand operations
+    VariableReference vr = evaluateExpression_2(currentStream);
+    if (vr == null)
+      return null;
+    while (true)
+    {
+      Token t = currentStream.peek();
+      if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("&&"))
+      {
+        currentStream.skip();
+        VariableReference v = evaluateExpression_2(currentStream);
+        if (v == null)
+          syntaxError(currentStream,"Missing expression after '&&'");
+        vr = vr.resolve().doubleAmpersand(v.resolve());
+      }
+      else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("&"))
+      {
+        currentStream.skip();
+        VariableReference v = evaluateExpression_2(currentStream);
+        if (v == null)
+          syntaxError(currentStream,"Missing expression after '&'");
+        vr = vr.resolve().ampersand(v.resolve());
+      }
+      else
+        break;
+    }
+    return vr;
+  }
+  
+  protected boolean skipExpression_1(TokenStream currentStream)
+    throws ScriptException
+  {
+    // Look for ampersand operations
+    if (skipExpression_2(currentStream) == false)
+      return false;
+    while (true)
+    {
+      Token t = currentStream.peek();
+      if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("&&"))
+      {
+        currentStream.skip();
+        if (skipExpression_2(currentStream) == false)
+          syntaxError(currentStream,"Missing expression after '&&'");
+      }
+      else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("&"))
+      {
+        currentStream.skip();
+        if (skipExpression_2(currentStream) == false)
+          syntaxError(currentStream,"Missing expression after '&'");
+      }
+      else
+        break;
+    }
+    return true;
+  }
+
+  protected VariableReference evaluateExpression_2(TokenStream currentStream)
+    throws ScriptException
+  {
+    // Look for exclamation operations
+    Token t = currentStream.peek();
+    if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("!"))
+    {
+      currentStream.skip();
+      VariableReference v = evaluateExpression_2(currentStream);
+      if (v == null)
+        syntaxError(currentStream,"Missing expression after '!'");
+      return v.resolve().unaryExclamation();
+    }
+    return evaluateExpression_3(currentStream);
+  }
+  
+  protected boolean skipExpression_2(TokenStream currentStream)
+    throws ScriptException
+  {
+    // Look for exclamation operations
+    Token t = currentStream.peek();
+    if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("!"))
+    {
+      currentStream.skip();
+      if (skipExpression_2(currentStream) == false)
+        syntaxError(currentStream,"Missing expression after '!'");
+      return true;
+    }
+    return skipExpression_3(currentStream);
+  }
+  
+  protected VariableReference evaluateExpression_3(TokenStream currentStream)
+    throws ScriptException
+  {
+    // Look for comparison operations
+    VariableReference vr = evaluateExpression_4(currentStream);
+    if (vr == null)
+      return null;
+    while (true)
+    {
+      Token t = currentStream.peek();
+      if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("=="))
+      {
+        currentStream.skip();
+        VariableReference v = evaluateExpression_4(currentStream);
+        if (v == null)
+          syntaxError(currentStream,"Missing expression after '=='");
+        vr = vr.resolve().doubleEquals(v.resolve());
+      }
+      else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("!="))
+      {
+        currentStream.skip();
+        VariableReference v = evaluateExpression_4(currentStream);
+        if (v == null)
+          syntaxError(currentStream,"Missing expression after '!='");
+        vr = vr.resolve().exclamationEquals(v.resolve());
+      }
+      else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("<"))
+      {
+        currentStream.skip();
+        VariableReference v = evaluateExpression_4(currentStream);
+        if (v == null)
+          syntaxError(currentStream,"Missing expression after '<'");
+        vr = vr.resolve().lesserAngle(v.resolve());
+      }
+      else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals(">"))
+      {
+        currentStream.skip();
+        VariableReference v = evaluateExpression_4(currentStream);
+        if (v == null)
+          syntaxError(currentStream,"Missing expression after '>'");
+        vr = vr.resolve().greaterAngle(v.resolve());
+      }
+      else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("<="))
+      {
+        currentStream.skip();
+        VariableReference v = evaluateExpression_4(currentStream);
+        if (v == null)
+          syntaxError(currentStream,"Missing expression after '<='");
+        vr = vr.resolve().lesserAngleEquals(v.resolve());
+      }
+      else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals(">="))
+      {
+        currentStream.skip();
+        VariableReference v = evaluateExpression_4(currentStream);
+        if (v == null)
+          syntaxError(currentStream,"Missing expression after '>='");
+        vr = vr.resolve().greaterAngleEquals(v.resolve());
+      }
+      else
+        break;
+    }
+    return vr;
+  }
+  
+  protected boolean skipExpression_3(TokenStream currentStream)
+    throws ScriptException
+  {
+    // Look for comparison operations
+    if (skipExpression_4(currentStream) == false)
+      return false;
+    while (true)
+    {
+      Token t = currentStream.peek();
+      if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("=="))
+      {
+        currentStream.skip();
+        if (skipExpression_4(currentStream) == false)
+          syntaxError(currentStream,"Missing expression after '=='");
+      }
+      else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("!="))
+      {
+        currentStream.skip();
+        if (skipExpression_4(currentStream) == false)
+          syntaxError(currentStream,"Missing expression after '!='");
+      }
+      else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("<"))
+      {
+        currentStream.skip();
+        if (skipExpression_4(currentStream) == false)
+          syntaxError(currentStream,"Missing expression after '<'");
+      }
+      else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals(">"))
+      {
+        currentStream.skip();
+        if (skipExpression_4(currentStream) == false)
+          syntaxError(currentStream,"Missing expression after '>'");
+      }
+      else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("<="))
+      {
+        currentStream.skip();
+        if (skipExpression_4(currentStream) == false)
+          syntaxError(currentStream,"Missing expression after '<='");
+      }
+      else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals(">="))
+      {
+        currentStream.skip();
+        if (skipExpression_4(currentStream) == false)
+          syntaxError(currentStream,"Missing expression after '>='");
+      }
+      else
+        break;
+    }
+    return true;
+  }
+  
+  protected VariableReference evaluateExpression_4(TokenStream currentStream)
+    throws ScriptException
+  {
+    // Look for +/- operations
+    VariableReference vr = evaluateExpression_5(currentStream);
+    if (vr == null)
+      return null;
+    while (true)
+    {
+      Token t = currentStream.peek();
+      if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("+"))
+      {
+        currentStream.skip();
+        VariableReference v = evaluateExpression_5(currentStream);
+        if (v == null)
+          syntaxError(currentStream,"Missing expression after '+'");
+        vr = vr.resolve().plus(v.resolve());
+      }
+      else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("-"))
+      {
+        currentStream.skip();
+        VariableReference v = evaluateExpression_5(currentStream);
+        if (v == null)
+          syntaxError(currentStream,"Missing expression after '-'");
+        vr = vr.resolve().minus(v.resolve());
+      }
+      else
+        break;
+    }
+    return vr;
+  }
+
+  protected boolean skipExpression_4(TokenStream currentStream)
+    throws ScriptException
+  {
+    // Look for +/- operations
+    if (skipExpression_5(currentStream) == false)
+      return false;
+    while (true)
+    {
+      Token t = currentStream.peek();
+      if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("+"))
+      {
+        currentStream.skip();
+        if (skipExpression_5(currentStream) == false)
+          syntaxError(currentStream,"Missing expression after '+'");
+      }
+      else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("-"))
+      {
+        currentStream.skip();
+        if (skipExpression_5(currentStream) == false)
+          syntaxError(currentStream,"Missing expression after '-'");
+      }
+      else
+        break;
+    }
+    return true;
+  }
+
+  protected VariableReference evaluateExpression_5(TokenStream currentStream)
+    throws ScriptException
+  {
+    // Look for *// operations
+    VariableReference vr = evaluateExpression_6(currentStream);
+    if (vr == null)
+      return null;
+    while (true)
+    {
+      Token t = currentStream.peek();
+      if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("*"))
+      {
+        currentStream.skip();
+        VariableReference v = evaluateExpression_6(currentStream);
+        if (v == null)
+          syntaxError(currentStream,"Missing expression after '*'");
+        vr = vr.resolve().asterisk(v.resolve());
+      }
+      else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("/"))
+      {
+        currentStream.skip();
+        VariableReference v = evaluateExpression_6(currentStream);
+        if (v == null)
+          syntaxError(currentStream,"Missing expression after '/'");
+        vr = vr.resolve().slash(v.resolve());
+      }
+      else
+        break;
+    }
+    return vr;
+  }
+
+  protected boolean skipExpression_5(TokenStream currentStream)
+    throws ScriptException
+  {
+    // Look for *// operations
+    if (skipExpression_6(currentStream) == false)
+      return false;
+    while (true)
+    {
+      Token t = currentStream.peek();
+      if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("*"))
+      {
+        currentStream.skip();
+        if (skipExpression_6(currentStream) == false)
+          syntaxError(currentStream,"Missing expression after '*'");
+      }
+      else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("/"))
+      {
+        currentStream.skip();
+        if (skipExpression_6(currentStream) == false)
+          syntaxError(currentStream,"Missing expression after '/'");
+      }
+      else
+        break;
+    }
+    return true;
+  }
+
+  protected VariableReference evaluateExpression_6(TokenStream currentStream)
+    throws ScriptException
+  {
+    // Look for - operations
+    Token t = currentStream.peek();
+    if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("-"))
+    {
+      currentStream.skip();
+      VariableReference v = evaluateExpression_6(currentStream);
+      if (v == null)
+        syntaxError(currentStream,"Missing expression after '-'");
+      return v.resolve().unaryMinus();
+    }
+    return parseVariableReference(currentStream);
+  }
+  
+  protected boolean skipExpression_6(TokenStream currentStream)
+    throws ScriptException
+  {
+    // Look for - operations
+    Token t = currentStream.peek();
+    if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("-"))
+    {
+      currentStream.skip();
+      if (skipExpression_6(currentStream) == false)
+        syntaxError(currentStream,"Missing expression after '-'");
+      return true;
+    }
+    return skipVariableReference(currentStream);
+  }
+
+  protected VariableReference parseVariableReference(TokenStream currentStream)
     throws ScriptException
   {
     // variable_reference -> variable_reference '[' expression ']'
     // variable_reference -> variable_reference.property_name
     // variable_reference -> variable_reference_1
     
-    VariableReference vr = parseVariableReference_1();
+    VariableReference vr = parseVariableReference_1(currentStream);
     if (vr == null)
       return vr;
     while (true)
@@ -248,29 +610,23 @@ public class ScriptParser
       if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("["))
       {
 	currentStream.skip();
-	Variable expression = evaluateExpression();
+	VariableReference expression = evaluateExpression(currentStream);
 	if (expression == null)
-	  syntaxError("Missing expression after '['");
-	int indexValue = expression.getIntValue();
-	Variable v = vr.resolve();
-	if (v == null)
-	  syntaxError("Null reference");
-	vr = v.getIndexed(indexValue);
+	  syntaxError(currentStream,"Missing expression after '['");
+	int indexValue = expression.resolve().getIntValue();
+	vr = vr.resolve().getIndexed(indexValue);
 	t = currentStream.peek();
 	if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals("]"))
-	  syntaxError("Missing ']'");
+	  syntaxError(currentStream,"Missing ']'");
 	currentStream.skip();
       }
       else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("."))
       {
 	currentStream.skip();
 	t = currentStream.peek();
-	if (t == null || t.getString() == null)
-	  syntaxError("Need attribute name");
-	Variable v = vr.resolve();
-	if (v == null)
-	  syntaxError("Null attribute reference");
-	vr = v.getAttribute(t.getString());
+	if (t == null || t.getToken() == null)
+	  syntaxError(currentStream,"Need attribute name");
+	vr = vr.resolve().getAttribute(t.getToken());
 	currentStream.skip();
       }
       else
@@ -280,28 +636,72 @@ public class ScriptParser
     return vr;
   }
   
-  protected VariableReference parseVariableReference_1()
+  protected VariableReference parseVariableReference_1(TokenStream currentStream)
     throws ScriptException
   {
     Token t = currentStream.peek();
-    if (t == null || t.getString() == null)
-      return null;
-    currentStream.skip();
-    String variableName = t.getString();
-    // Look up variable reference in current context
-    VariableReference x = context.get(variableName);
-    if (x == null)
+    if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("("))
     {
-      x = new VariableReference();
-      context.put(variableName,x);
+      currentStream.skip();
+      VariableReference rval = evaluateExpression(currentStream);
+      if (rval == null)
+        syntaxError(currentStream,"Missing expression after '('");
+      t = currentStream.peek();
+      if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals(")"))
+        syntaxError(currentStream,"Missing ')'");
+      currentStream.skip();
+      return rval;
     }
-    return x;
+    return parseVariableReference_2(currentStream);
   }
   
-  protected boolean skipVariableReference()
+  protected VariableReference parseVariableReference_2(TokenStream currentStream)
     throws ScriptException
   {
-    if (skipVariableReference_1() == false)
+    Token t = currentStream.peek();
+    if (t != null && t.getToken() != null)
+    {
+      currentStream.skip();
+      String variableName = t.getToken();
+      if (variableName.equals("true"))
+        return new VariableBoolean(true);
+      else if (variableName.equals("false"))
+        return new VariableBoolean(false);
+      else
+      {
+        // Look up variable reference in current context
+        ContextVariableReference x = context.get(variableName);
+        if (x == null)
+        {
+          x = new ContextVariableReference();
+          context.put(variableName,x);
+        }
+        return x;
+      }
+    }
+    else if (t != null && t.getString() != null)
+    {
+      currentStream.skip();
+      return new VariableString(t.getString());
+    }
+    else if (t != null && t.getFloat() != null)
+    {
+      currentStream.skip();
+      return new VariableFloat(new Double(t.getFloat()).doubleValue());
+    }
+    else if (t != null && t.getInteger() != null)
+    {
+      currentStream.skip();
+      return new VariableInt(Integer.parseInt(t.getInteger()));
+    }
+    else
+      return null;
+  }
+  
+  protected boolean skipVariableReference(TokenStream currentStream)
+    throws ScriptException
+  {
+    if (skipVariableReference_1(currentStream) == false)
       return false;
     while (true)
     {
@@ -309,19 +709,19 @@ public class ScriptParser
       if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("["))
       {
 	currentStream.skip();
-	if (skipExpression() == false)
-	  syntaxError("Missing expression after '['");
+	if (skipExpression(currentStream) == false)
+	  syntaxError(currentStream,"Missing expression after '['");
 	t = currentStream.peek();
 	if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals("]"))
-	  syntaxError("Missing ']'");
+	  syntaxError(currentStream,"Missing ']'");
 	currentStream.skip();
       }
       else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("."))
       {
 	currentStream.skip();
 	t = currentStream.peek();
-	if (t == null || t.getString() == null)
-	  syntaxError("Need property name");
+	if (t == null || t.getToken() == null)
+	  syntaxError(currentStream,"Need property name");
 	currentStream.skip();
       }
       else
@@ -330,21 +730,108 @@ public class ScriptParser
       
     return true;
   }
-  
-  protected boolean skipVariableReference_1()
+
+  protected boolean skipVariableReference_1(TokenStream currentStream)
     throws ScriptException
   {
     Token t = currentStream.peek();
-    if (t == null || t.getString() == null)
-      return false;
-    currentStream.skip();
-    return true;
+    if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("("))
+    {
+      currentStream.skip();
+      if (skipExpression(currentStream) == false)
+        syntaxError(currentStream,"Missing expression after '('");
+      t = currentStream.peek();
+      if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals(")"))
+        syntaxError(currentStream,"Missing ')'");
+      currentStream.skip();
+      return true;
+    }
+    return skipVariableReference_2(currentStream);
   }
-  
-  protected void syntaxError(String message)
+
+  protected boolean skipVariableReference_2(TokenStream currentStream)
     throws ScriptException
   {
-    throw new ScriptException(message+" in file "+currentStream.getFileName()+" at position "+currentStream.getCharacterPosition());
+    Token t = currentStream.peek();
+    if (t != null && t.getToken() != null)
+    {
+      currentStream.skip();
+      return true;
+    }
+    else if (t != null && t.getString() != null)
+    {
+      currentStream.skip();
+      return true;
+    }
+    else if (t != null && t.getFloat() != null)
+    {
+      currentStream.skip();
+      return true;
+    }
+    else if (t != null && t.getInteger() != null)
+    {
+      currentStream.skip();
+      return true;
+    }
+
+    return false;
+  }
+  
+  protected void syntaxError(TokenStream currentStream, String message)
+    throws ScriptException
+  {
+    Token t = currentStream.peek();
+    if (t == null)
+      throw new ScriptException("Syntax error: "+message+", at end of file");
+    else
+      t.throwException("Syntax error: "+message+": "+t);
+  }
+  
+  public static void main(String[] argv)
+  {
+    if (argv.length > 1)
+    {
+      System.err.println("Usage: ScriptParser [<filename>]");
+      System.exit(1);
+    }
+    
+    ScriptParser sp = new ScriptParser();
+    
+    // Initialize script parser with the appropriate commands.
+    sp.addCommand("break",new BreakCommand());
+    sp.addCommand("print",new PrintCommand());
+    sp.addCommand("if",new IfCommand());
+    sp.addCommand("while",new WhileCommand());
+    sp.addCommand("set",new SetCommand());
+    
+    sp.addCommand("GET",new GETCommand());
+    sp.addCommand("PUT",new PUTCommand());
+    sp.addCommand("DELETE",new DELETECommand());
+    sp.addCommand("POST", new POSTCommand());
+    // MHL
+    
+    try
+    {
+      Reader reader;
+      if (argv.length == 1)
+      {
+        File inputFile = new File(argv[0]);
+        reader = new InputStreamReader(new FileInputStream(inputFile),"utf-8");
+      }
+      else
+        reader = new InputStreamReader(System.in);
+      
+      TokenStream ts = new BasicTokenStream(reader);
+      sp.parseStatements(ts);
+      Token t = ts.peek();
+      if (t != null)
+        t.throwException("Characters after end of script");
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace(System.err);
+      System.exit(2);
+    }
   }
   
 }

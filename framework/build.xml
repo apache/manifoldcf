@@ -393,11 +393,13 @@
                 <include name="commons-httpclient-mcf.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-logging*.jar"/>
+                <include name="json.jar"/>
             </fileset>
         </copy>
-        <copy todir="dist/example/lib">
+        <copy todir="dist/script-engine/lib">
             <fileset dir="build/jar">
                 <include name="mcf-core.jar"/>
+                <include name="mcf-script-engine.jar"/>
             </fileset>
         </copy>
     </target>
@@ -590,6 +592,16 @@
         </junit>
     </target>
 
+    <target name="run-script-engine" depends="script-engine">
+        <java classname="org.apache.manifoldcf.scriptengine.ScriptParser" fork="true" dir="dist/script-engine" maxmemory="128M">
+          <classpath>
+            <fileset dir="dist/script-engine/lib">
+              <include name="*.jar"/>
+            </fileset>
+          </classpath>
+        </java>
+    </target>
+    
     <target name="build" depends="processes,war-authority-service,war-crawler-ui,war-api-service,example,script-engine"/>
     
     <target name="all" depends="build,doc,build-tests,run-tests,run-tests-postgresql"/>

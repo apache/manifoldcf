@@ -46,13 +46,34 @@ public class VariableConfiguration extends VariableBase
     }
   }
   
+  /** Get a string from this */
+  public String getStringValue()
+    throws ScriptException
+  {
+    return configuration.toString();
+  }
+  
+  /** Get the variable's value as a JSON string */
+  public String getJSONValue()
+    throws ScriptException
+  {
+    try
+    {
+      return configuration.toJSON();
+    }
+    catch (ManifoldCFException e)
+    {
+      throw new ScriptException(e.getMessage(),e);
+    }
+  }
+
   /** Get a named attribute of the variable; e.g. xxx.yyy */
   public VariableReference getAttribute(String attributeName)
     throws ScriptException
   {
     // We recognize only the __size__ attribute
     if (attributeName.equals(ATTRIBUTE_SIZE))
-      return new VariableReference(new VariableInt(configuration.getChildCount()));
+      return new VariableInt(configuration.getChildCount());
     return super.getAttribute(attributeName);
   }
   
@@ -61,19 +82,17 @@ public class VariableConfiguration extends VariableBase
     throws ScriptException
   {
     if (index < configuration.getChildCount())
-      return new NodeReference(index, new VariableConfigurationNode(configuration.findChild(index)));
+      return new NodeReference(index);
     return super.getIndexed(index);
   }
   
   /** Extend VariableReference class so we capture attempts to set the reference, and actually overwrite the child when that is done */
-  protected class NodeReference extends VariableReference
+  protected class NodeReference implements VariableReference
   {
     protected int index;
     
-    public NodeReference(int index, VariableConfigurationNode node)
-      throws ScriptException
+    public NodeReference(int index)
     {
-      super(node);
       this.index = index;
     }
     
@@ -81,10 +100,19 @@ public class VariableConfiguration extends VariableBase
       throws ScriptException
     {
       if (!(v instanceof VariableConfigurationNode))
-        throw new ScriptException("Cannot set child value to anything other than a ConfigurationNode object");
-      super.setReference(v);
+        throw new ScriptException("Cannot set Configuration child value to anything other than a ConfigurationNode object");
+      if (index >= configuration.getChildCount())
+        throw new ScriptException("Index out of range for Configuration children");
       configuration.removeChild(index);
       configuration.addChild(index,((VariableConfigurationNode)v).getConfigurationNode());
+    }
+    
+    public Variable resolve()
+      throws ScriptException
+    {
+      if (index >= configuration.getChildCount())
+        throw new ScriptException("Index out of range for Configuration children");
+      return new VariableConfigurationNode(configuration.findChild(index));
     }
     
   }

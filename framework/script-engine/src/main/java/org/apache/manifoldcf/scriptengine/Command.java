@@ -19,16 +19,23 @@
 
 package org.apache.manifoldcf.scriptengine;
 
-/** Describe a sequence of tokens.
+/** Interface describing what a command needs to do.
 */
-public interface TokenStream
+public interface Command
 {
-  /** Examine the current token.
+  /** Parse and execute.  Parsing begins right after the command name, and should stop before the trailing semicolon.
+  *@param sp is the script parser to use to help in the parsing.
+  *@param currentStream is the current token stream.
+  *@return true to send a break signal, false otherwise.
   */
-  public Token peek()
+  public boolean parseAndExecute(ScriptParser sp, TokenStream currentStream)
     throws ScriptException;
   
-  /** Skip the current token.
+  /** Parse and skip.  Parsing begins right after the command name, and should stop before the trailing semicolon.
+  *@param sp is the script parser to use to help in the parsing.
+  *@param currentStream is the current token stream.
   */
-  public void skip();
+  public void parseAndSkip(ScriptParser sp, TokenStream currentStream)
+    throws ScriptException;
+  
 }

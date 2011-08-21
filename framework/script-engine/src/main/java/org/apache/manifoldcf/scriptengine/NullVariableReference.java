@@ -19,16 +19,26 @@
 
 package org.apache.manifoldcf.scriptengine;
 
-/** Describe a sequence of tokens.
+/** Null variable reference.
 */
-public interface TokenStream
+public class NullVariableReference implements VariableReference
 {
-  /** Examine the current token.
-  */
-  public Token peek()
-    throws ScriptException;
+  public NullVariableReference()
+  {
+  }
   
-  /** Skip the current token.
-  */
-  public void skip();
+  /** Set the reference */
+  public void setReference(Variable object)
+    throws ScriptException
+  {
+    throw new ScriptException("Null reference is immutable");
+  }
+  
+  /** Resolve the reference */
+  public Variable resolve()
+    throws ScriptException
+  {
+    throw new ScriptException("Attempt to dereference null variable pointer");
+  }
+
 }

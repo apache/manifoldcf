@@ -19,16 +19,30 @@
 
 package org.apache.manifoldcf.scriptengine;
 
-/** Describe a sequence of tokens.
+/** Overwritable variable references from within a context.
 */
-public interface TokenStream
+public class ContextVariableReference implements VariableReference
 {
-  /** Examine the current token.
-  */
-  public Token peek()
-    throws ScriptException;
+  protected Variable variable = null;
   
-  /** Skip the current token.
-  */
-  public void skip();
+  public ContextVariableReference()
+  {
+  }
+  
+  /** Set the reference */
+  public void setReference(Variable object)
+    throws ScriptException
+  {
+    variable = object;
+  }
+  
+  /** Resolve the reference */
+  public Variable resolve()
+    throws ScriptException
+  {
+    if (variable == null)
+      throw new ScriptException("Attempt to dereference null variable pointer");
+    return variable;
+  }
+
 }

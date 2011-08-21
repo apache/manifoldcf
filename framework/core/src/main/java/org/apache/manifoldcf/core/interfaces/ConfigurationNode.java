@@ -345,6 +345,41 @@ public class ConfigurationNode implements IHierarchyParent
     }
     return true;
   }
+  
+  /** Construct a human-readable string */
+  public String toString()
+  {
+    StringBuilder sb = new StringBuilder();
+    sb.append("(");
+    sb.append(type);
+    if (value != null)
+      sb.append(":").append(value);
+    if (attributes != null)
+    {
+      Iterator<String> iter = attributes.keySet().iterator();
+      while (iter.hasNext())
+      {
+        sb.append(" ");
+        String key = iter.next();
+        String attrValue = attributes.get(key);
+        sb.append(key).append("='").append(attrValue).append("'");
+      }
+    }
+    sb.append(" [");
+    if (children != null)
+    {
+      int i = 0;
+      while (i < children.size())
+      {
+        if (i > 0)
+          sb.append(", ");
+        ConfigurationNode cn = children.get(i++);
+        sb.append(cn.toString());
+      }
+    }
+    sb.append("])");
+    return sb.toString();
+  }
 
   protected static Map<String,String> cloneAttributes(Map<String,String> attributes)
   {

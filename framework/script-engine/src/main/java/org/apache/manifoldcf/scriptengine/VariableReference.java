@@ -19,33 +19,17 @@
 
 package org.apache.manifoldcf.scriptengine;
 
-/** This class is a mutable reference to a variable.
-* It exists as a separate class so that the reference to the underlying
+/** This interface represents a mutable reference to a variable.
+* It exists as a separate entity so that the reference to the underlying
 * variable can be easily modified.  The reference can, of course, be null.
 */
-public class VariableReference
+public interface VariableReference
 {
-  protected Variable reference;
-  
-  public VariableReference()
-  {
-    reference = null;
-  }
-  
-  public VariableReference(Variable object)
-    throws ScriptException
-  {
-    reference = object;
-  }
-  
+  /** Set the reference */
   public void setReference(Variable object)
-    throws ScriptException
-  {
-    reference = object;
-  }
+    throws ScriptException;
   
+  /** Resolve the reference */
   public Variable resolve()
-  {
-    return reference;
-  }
+    throws ScriptException;
 }

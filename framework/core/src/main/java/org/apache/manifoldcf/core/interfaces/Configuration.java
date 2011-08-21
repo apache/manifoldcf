@@ -778,4 +778,23 @@ public class Configuration implements IHierarchyParent
     return true;
   }
 
+  /** Construct a human-readable string */
+  public String toString()
+  {
+    StringBuilder sb = new StringBuilder();
+    sb.append("[");
+    if (children != null)
+    {
+      int i = 0;
+      while (i < children.size())
+      {
+        if (i > 0)
+          sb.append(", ");
+        ConfigurationNode cn = children.get(i++);
+        sb.append(cn.toString());
+      }
+    }
+    sb.append("]");
+    return sb.toString();
+  }
 }

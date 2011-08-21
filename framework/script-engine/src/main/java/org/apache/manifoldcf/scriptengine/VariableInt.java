@@ -51,4 +51,82 @@ public class VariableInt extends VariableBase
     return (double)value;
   }
 
+  public VariableReference plus(Variable v)
+    throws ScriptException
+  {
+    return new VariableInt(value + v.getIntValue());
+  }
+    
+  public VariableReference minus(Variable v)
+    throws ScriptException
+  {
+    return new VariableInt(value - v.getIntValue());
+  }
+    
+  public VariableReference asterisk(Variable v)
+    throws ScriptException
+  {
+    return new VariableInt(value * v.getIntValue());
+  }
+    
+  public VariableReference slash(Variable v)
+    throws ScriptException
+  {
+    return new VariableInt(value / v.getIntValue());
+  }
+    
+  public VariableReference unaryMinus()
+    throws ScriptException
+  {
+    return new VariableInt(-value);
+  }
+  
+  public VariableReference greaterAngle(Variable v)
+    throws ScriptException
+  {
+    return new VariableBoolean(value > v.getIntValue());
+  }
+  
+  public VariableReference lesserAngle(Variable v)
+    throws ScriptException
+  {
+    return new VariableBoolean(value < v.getIntValue());
+  }
+    
+  public VariableReference doubleEquals(Variable v)
+    throws ScriptException
+  {
+    return new VariableBoolean(value == v.getIntValue());
+  }
+    
+  public VariableReference greaterAngleEquals(Variable v)
+    throws ScriptException
+  {
+    return new VariableBoolean(value >= v.getIntValue());
+  }
+    
+  public VariableReference lesserAngleEquals(Variable v)
+    throws ScriptException
+  {
+    return new VariableBoolean(value <= v.getIntValue());
+  }
+  
+  public VariableReference exclamationEquals(Variable v)
+    throws ScriptException
+  {
+    return new VariableBoolean(value != v.getIntValue());
+  }
+  
+  public VariableReference ampersand(Variable v)
+    throws ScriptException
+  {
+    return new VariableInt(value & v.getIntValue());
+  }
+    
+  public VariableReference pipe(Variable v)
+    throws ScriptException
+  {
+    return new VariableInt(value | v.getIntValue());
+  }
+
 }

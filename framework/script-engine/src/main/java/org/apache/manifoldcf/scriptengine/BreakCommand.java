@@ -16,19 +16,29 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-
 package org.apache.manifoldcf.scriptengine;
 
-/** Describe a sequence of tokens.
-*/
-public interface TokenStream
+/** Break command. */
+public class BreakCommand implements Command
 {
-  /** Examine the current token.
+  /** Parse and execute.  Parsing begins right after the command name, and should stop before the trailing semicolon.
+  *@param sp is the script parser to use to help in the parsing.
+  *@param currentStream is the current token stream.
+  *@return true to send a break signal, false otherwise.
   */
-  public Token peek()
-    throws ScriptException;
+  public boolean parseAndExecute(ScriptParser sp, TokenStream currentStream)
+    throws ScriptException
+  {
+    return true;
+  }
   
-  /** Skip the current token.
+  /** Parse and skip.  Parsing begins right after the command name, and should stop before the trailing semicolon.
+  *@param sp is the script parser to use to help in the parsing.
+  *@param currentStream is the current token stream.
   */
-  public void skip();
+  public void parseAndSkip(ScriptParser sp, TokenStream currentStream)
+    throws ScriptException
+  {
+  }
+
 }

@@ -22,7 +22,7 @@ package org.apache.manifoldcf.scriptengine;
 /** Base class for variables.
 * Basically, everything is illegal until overridden.
 */
-public class VariableBase implements Variable
+public class VariableBase implements Variable, VariableReference
 {
   public VariableBase()
   {
@@ -35,6 +35,13 @@ public class VariableBase implements Variable
     throw new ScriptException("Cannot convert variable to string");
   }
   
+  /** Get the variable's value as a JSON string */
+  public String getJSONValue()
+    throws ScriptException
+  {
+    throw new ScriptException("Cannot convert variable to JSON");
+  }
+
   /** Get the variable's value as a boolean */
   public boolean getBooleanValue()
     throws ScriptException
@@ -55,7 +62,105 @@ public class VariableBase implements Variable
   {
     throw new ScriptException("Cannot convert variable to float");
   }
+
+  // Operations
   
+  public VariableReference plus(Variable v)
+    throws ScriptException
+  {
+    throw new ScriptException("+ operator illegal for this type");
+  }
+    
+  public VariableReference minus(Variable v)
+    throws ScriptException
+  {
+    throw new ScriptException("- operator illegal for this type");
+  }
+    
+  public VariableReference asterisk(Variable v)
+    throws ScriptException
+  {
+    throw new ScriptException("* operator illegal for this type");
+  }
+    
+  public VariableReference slash(Variable v)
+    throws ScriptException
+  {
+    throw new ScriptException("/ operator illegal for this type");
+  }
+    
+  public VariableReference unaryMinus()
+    throws ScriptException
+  {
+    throw new ScriptException("Unary - operator illegal for this type");
+  }
+  
+  public VariableReference greaterAngle(Variable v)
+    throws ScriptException
+  {
+    throw new ScriptException("> operator illegal for this type");
+  }
+    
+  public VariableReference lesserAngle(Variable v)
+    throws ScriptException
+  {
+    throw new ScriptException("< operator illegal for this type");
+  }
+    
+  public VariableReference doubleEquals(Variable v)
+    throws ScriptException
+  {
+    throw new ScriptException("= operator illegal for this type");
+  }
+    
+  public VariableReference greaterAngleEquals(Variable v)
+    throws ScriptException
+  {
+    throw new ScriptException(">= operator illegal for this type");
+  }
+    
+  public VariableReference lesserAngleEquals(Variable v)
+    throws ScriptException
+  {
+    throw new ScriptException("<= operator illegal for this type");
+  }
+  
+  public VariableReference exclamationEquals(Variable v)
+    throws ScriptException
+  {
+    throw new ScriptException("!= operator illegal for this type");
+  }
+  
+  public VariableReference ampersand(Variable v)
+    throws ScriptException
+  {
+    throw new ScriptException("& operator illegal for this type");
+  }
+    
+  public VariableReference pipe(Variable v)
+    throws ScriptException
+  {
+    throw new ScriptException("| operator illegal for this type");
+  }
+
+  public VariableReference doubleAmpersand(Variable v)
+    throws ScriptException
+  {
+    throw new ScriptException("&& operator illegal for this type");
+  }
+    
+  public VariableReference doublePipe(Variable v)
+    throws ScriptException
+  {
+    throw new ScriptException("|| operator illegal for this type");
+  }
+  
+  public VariableReference unaryExclamation()
+    throws ScriptException
+  {
+    throw new ScriptException("! operator illegal for this type");
+  }
+
   // The following operations allow manipulation of a Configuration structure
 
   /** Get a named attribute of the variable; e.g. xxx.yyy */
@@ -72,6 +177,22 @@ public class VariableBase implements Variable
     throws ScriptException
   {
     throw new ScriptException("Variable has no member number "+Integer.toString(index));
+  }
+
+  // As a variable reference, refer to self
+  
+  /** Set the reference */
+  public void setReference(Variable object)
+    throws ScriptException
+  {
+    throw new ScriptException("Cannot set reference of this kind");
+  }
+  
+  /** Resolve the reference */
+  public Variable resolve()
+    throws ScriptException
+  {
+    return this;
   }
 
 }

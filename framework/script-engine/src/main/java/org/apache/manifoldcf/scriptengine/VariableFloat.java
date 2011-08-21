@@ -19,28 +19,36 @@
 
 package org.apache.manifoldcf.scriptengine;
 
-/** This class tracks the position of a script execution, and allows
-* access to the characters in a nested file setup.
+/** Variable class representing an integer.
 */
-public class Position
+public class VariableFloat extends VariableBase
 {
-  protected TokenStream tokenStream;
-  protected int characterPosition;
+  protected double value;
   
-  public Position(TokenStream s, int characterPosition)
+  public VariableFloat(double value)
   {
-    this.tokenStream = s;
-    this.characterPosition = characterPosition;
+    this.value = value;
   }
   
-  public TokenStream getTokenStream()
+  /** Get the variable's value as a string */
+  public String getStringValue()
+    throws ScriptException
   {
-    return tokenStream;
+    return new Double(value).toString();
+  }
+
+  /** Get the variable's value as an integer */
+  public int getIntValue()
+    throws ScriptException
+  {
+    return (int)value;
   }
   
-  public int getCharacterPosition()
+  /** Get the variable's value as a double */
+  public double getDoubleValue()
+    throws ScriptException
   {
-    return characterPosition;
+    return value;
   }
-  
+
 }
