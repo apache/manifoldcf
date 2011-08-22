@@ -1630,6 +1630,31 @@ public class ThrottledFetcher
       return lastFetchCookies;
     }
 
+    /** Get response headers
+    *@return a map keyed by header name containing a list of values.
+    */
+    public Map<String,List<String>> getResponseHeaders()
+      throws ManifoldCFException, ServiceInterruption
+    {
+      Header[] headers = fetchMethod.getResponseHeaders();
+      Map<String,List<String>> rval = new HashMap<String,List<String>>();
+      int i = 0;
+      while (i < headers.length)
+      {
+        Header h = headers[i++];
+        String name = h.getName();
+        String value = h.getValue();
+        List<String> values = rval.get(name);
+        if (values == null)
+        {
+          values = new ArrayList<String>();
+          rval.put(name,values);
+        }
+        values.add(value);
+      }
+      return rval;
+    }
+
     /** Get a specified response header, if it exists.
     *@param headerName is the name of the header.
     *@return the header value, or null if it doesn't exist.

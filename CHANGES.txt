@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-243: Include most response headers in the metadata for
+each web connector document.
+(Jan Høydahl, Karl Wright)
+
 CONNECTORS-224: Add OpenSearchServer output connector.
 (Emmanuel Keller, Karl Wright)
 

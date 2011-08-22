@@ -141,6 +141,19 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   protected final static String FETCH_STANDARD = "URL";
   protected final static String FETCH_LOGIN = "LOGIN";
 
+  // Reserved headers
+  protected static Map<String,String> reservedHeaders;
+  static
+  {
+    reservedHeaders = new HashMap<String,String>();
+    reservedHeaders.put("age","age");
+    reservedHeaders.put("www-authenticate","www-authenticate");
+    reservedHeaders.put("proxy-authenticate","proxy-authenticate");
+    reservedHeaders.put("date","date");
+    reservedHeaders.put("set-cookie","set-cookie");
+    reservedHeaders.put("via","via");
+  }
+  
   /** Robots usage flag */
   protected int robotsUsage = ROBOTS_ALL;
   /** The user-agent for this connector instance */
@@ -607,7 +620,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           Throwable contextException = null;
           // The checksum, which will be needed if resultSignal is RESULT_VERSION_NEEDED.
           String checkSum = null;
-
+          // The headers, which will be needed if resultSignal is RESULT_VERSION_NEEDED.
+          Map<String,List<String>> headerData = null;
+          
           while (true)
           {
             try
@@ -696,6 +711,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                         {
                           // Treat it as real, and cache it.
                           checkSum = cache.addData(activities,currentURI,connection);
+                          headerData = connection.getResponseHeaders();
                           resultSignal = RESULT_VERSION_NEEDED;
                           activityResultCode = null;
                         }
@@ -1052,8 +1068,43 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             else
               sb.append('-');
 
-            // Now, do the metadata
-            packList(sb,metadata,'+');
+            // Now, do the metadata.  This comes in two parts: first, the canned metadata, then the header data.
+            // They're all folded into the same part of the version string.
+            int headerCount = 0;
+            Iterator<String> headerIterator = headerData.keySet().iterator();
+            while (headerIterator.hasNext())
+            {
+              String headerName = headerIterator.next();
+              if (reservedHeaders.get(headerName.toLowerCase()) == null)
+                headerCount += headerData.get(headerName).size();
+            }
+            String[] fullMetadata = new String[metadata.length + headerCount];
+            headerCount = 0;
+            headerIterator = headerData.keySet().iterator();
+            while (headerIterator.hasNext())
+            {
+              String headerName = headerIterator.next();
+              if (reservedHeaders.get(headerName.toLowerCase()) == null)
+              {
+                List<String> headerValues = headerData.get(headerName);
+                for (String headerValue : headerValues)
+                {
+                  fixedListStrings[0] = "header-"+headerName;
+                  fixedListStrings[1] = headerValue;
+                  StringBuilder newsb = new StringBuilder();
+                  packFixedList(newsb,fixedListStrings,'=');
+                  fullMetadata[headerCount++] = newsb.toString();
+                }
+              }
+            }
+            int index = 0;
+            while (index < metadata.length)
+            {
+              fullMetadata[headerCount++] = metadata[index++];
+            }
+            java.util.Arrays.sort(fullMetadata);
+            
+            packList(sb,fullMetadata,'+');
             // Done with the parseable part!  Add the checksum.
             sb.append(checkSum);
             // Add the filter version

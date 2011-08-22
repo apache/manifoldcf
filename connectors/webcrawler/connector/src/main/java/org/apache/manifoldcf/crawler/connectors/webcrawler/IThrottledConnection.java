@@ -22,6 +22,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import java.io.*;
+import java.util.*;
 
 /** This interface represents an established connection to a URL.
 */
@@ -78,6 +79,12 @@ public interface IThrottledConnection
   public LoginCookies getLastFetchCookies()
     throws ManifoldCFException, ServiceInterruption;
 
+  /** Get response headers
+  *@return a map keyed by header name containing a list of values.
+  */
+  public Map<String,List<String>> getResponseHeaders()
+    throws ManifoldCFException, ServiceInterruption;
+    
   /** Get a specified response header, if it exists.
   *@param headerName is the name of the header.
   *@return the header value, or null if it doesn't exist.
