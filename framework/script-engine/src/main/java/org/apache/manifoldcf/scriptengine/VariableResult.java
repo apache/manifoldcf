@@ -31,7 +31,7 @@ public class VariableResult extends VariableBase
     throws ScriptException
   {
     this.resultCode = resultCode;
-    this.result = new VariableConfiguration("result",json);
+    this.result = new VariableConfiguration(json);
   }
   
   /** Get the variable's value as a string */

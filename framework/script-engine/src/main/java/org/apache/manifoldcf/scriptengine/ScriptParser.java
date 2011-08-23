@@ -903,6 +903,10 @@ public class ScriptParser
     sp.addCommand("POST", new POSTCommand());
     // MHL
     
+    // Add the new operations we need
+    sp.addNewOperation("configuration",new NewConfiguration());
+    sp.addNewOperation("configurationnode",new NewConfigurationNode());
+    
     try
     {
       Reader reader;

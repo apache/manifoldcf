@@ -27,15 +27,15 @@ public class VariableConfiguration extends VariableBase
 {
   protected Configuration configuration;
   
-  public VariableConfiguration(String type)
+  public VariableConfiguration()
   {
-    configuration = new Configuration(type);
+    configuration = new Configuration();
   }
   
-  public VariableConfiguration(String type, String json)
+  public VariableConfiguration(String json)
     throws ScriptException
   {
-    configuration = new Configuration(type);
+    configuration = new Configuration();
     try
     {
       configuration.fromJSON(json);
