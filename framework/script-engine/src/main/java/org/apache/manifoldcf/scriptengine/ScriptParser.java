@@ -32,6 +32,9 @@ public class ScriptParser
   /** A table of commands that we know how to deal with. */
   protected Map<String,Command> commands = new HashMap<String,Command>();
   
+  /** A table of "new" operations that we know how to deal with. */
+  protected Map<String,NewOperation> newOperations = new HashMap<String,NewOperation>();
+
   public ScriptParser()
   {
   }
@@ -45,6 +48,15 @@ public class ScriptParser
     commands.put(commandName,command);
   }
 
+  /** Add a "new" operation.
+  *@param operationName is the name of the operation.
+  *@param operation is the operation to create.
+  */
+  public void addNewOperation(String operationName, NewOperation operation)
+  {
+    newOperations.put(operationName,operation);
+  }
+  
   // Statement return codes
   protected static final int STATEMENT_NOTME = 0;
   protected static final int STATEMENT_ISME = 1;
@@ -704,6 +716,20 @@ public class ScriptParser
         return new VariableBoolean(false);
       else if (variableName.equals("null"))
         return new NullVariableReference();
+      else if (variableName.equals("new"))
+      {
+        // Parse the new operation name
+        t = currentStream.peek();
+        if (t == null || t.getToken() == null)
+          syntaxError(currentStream,"Missing 'new' operation name");
+        String operationName = t.getToken();
+        // Look up operation
+        NewOperation newOperation = newOperations.get(operationName);
+        if (newOperation == null)
+          syntaxError(currentStream,"New operation type is unknown");
+        currentStream.skip();
+        return newOperation.parseAndCreate(this,currentStream);
+      }
       else
       {
         // Look up variable reference in current context
@@ -793,6 +819,20 @@ public class ScriptParser
     if (t != null && t.getToken() != null)
     {
       currentStream.skip();
+      if (t.getToken().equals("new"))
+      {
+        // Parse the new operation name
+        t = currentStream.peek();
+        if (t == null || t.getToken() == null)
+          syntaxError(currentStream,"Missing 'new' operation name");
+        String operationName = t.getToken();
+        // Look up operation
+        NewOperation newOperation = newOperations.get(operationName);
+        if (newOperation == null)
+          syntaxError(currentStream,"New operation type is unknown");
+        currentStream.skip();
+        newOperation.parseAndSkip(this,currentStream);
+      }
       return true;
     }
     else if (t != null && t.getString() != null)
