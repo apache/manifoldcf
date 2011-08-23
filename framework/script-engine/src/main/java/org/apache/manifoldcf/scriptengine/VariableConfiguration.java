@@ -85,6 +85,8 @@ public class VariableConfiguration extends VariableBase
   {
     if (index > configuration.getChildCount())
       throw new ScriptException("Insert out of bounds");
+    if (v == null)
+      throw new ScriptException("Can't insert a null object");
     configuration.addChild(index,v.getConfigurationNodeValue());
   }
 
@@ -92,7 +94,16 @@ public class VariableConfiguration extends VariableBase
   public void insert(Variable v)
     throws ScriptException
   {
+    if (v == null)
+      throw new ScriptException("Can't insert a null object");
     configuration.addChild(configuration.getChildCount(),v.getConfigurationNodeValue());
+  }
+
+  public VariableReference plus(Variable v)
+    throws ScriptException
+  {
+    insert(v);
+    return this;
   }
 
   /** Delete an object from this variable at a position. */
