@@ -88,7 +88,14 @@ public class VariableConfigurationNode extends VariableBase
     ConfigurationNode insertObject = v.getConfigurationNodeValue();
     configurationNode.addChild(index,insertObject);
   }
-    
+
+  /** Insert an object into this variable at end. */
+  public void insert(Variable v)
+    throws ScriptException
+  {
+    configurationNode.addChild(configurationNode.getChildCount(),v.getConfigurationNodeValue());
+  }
+
   /** Delete an object from this variable at a position. */
   public void removeAt(int index)
     throws ScriptException

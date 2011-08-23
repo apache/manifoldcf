@@ -127,6 +127,10 @@ public interface Variable
   public void insertAt(Variable v, int index)
     throws ScriptException;
     
+  /** Insert an object into this variable at end. */
+  public void insert(Variable v)
+    throws ScriptException;
+    
   /** Delete an object from this variable at a position. */
   public void removeAt(int index)
     throws ScriptException;

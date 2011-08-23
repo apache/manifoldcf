@@ -185,7 +185,14 @@ public class VariableBase implements Variable, VariableReference
   {
     throw new ScriptException("Can't insert into variable");
   }
-    
+
+  /** Insert an object into this variable at end. */
+  public void insert(Variable v)
+    throws ScriptException
+  {
+    throw new ScriptException("Can't insert into variable");
+  }
+
   /** Delete an object from this variable at a position. */
   public void removeAt(int index)
     throws ScriptException

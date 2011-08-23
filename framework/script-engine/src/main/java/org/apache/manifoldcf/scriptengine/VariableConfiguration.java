@@ -87,7 +87,14 @@ public class VariableConfiguration extends VariableBase
       throw new ScriptException("Insert out of bounds");
     configuration.addChild(index,v.getConfigurationNodeValue());
   }
-    
+
+  /** Insert an object into this variable at end. */
+  public void insert(Variable v)
+    throws ScriptException
+  {
+    configuration.addChild(configuration.getChildCount(),v.getConfigurationNodeValue());
+  }
+
   /** Delete an object from this variable at a position. */
   public void removeAt(int index)
     throws ScriptException

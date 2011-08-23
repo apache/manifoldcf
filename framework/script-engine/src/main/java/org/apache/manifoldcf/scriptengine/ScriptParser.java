@@ -896,12 +896,13 @@ public class ScriptParser
     sp.addCommand("if",new IfCommand());
     sp.addCommand("while",new WhileCommand());
     sp.addCommand("set",new SetCommand());
+    sp.addCommand("insert",new InsertCommand());
+    sp.addCommand("remove",new RemoveCommand());
     
     sp.addCommand("GET",new GETCommand());
     sp.addCommand("PUT",new PUTCommand());
     sp.addCommand("DELETE",new DELETECommand());
     sp.addCommand("POST", new POSTCommand());
-    // MHL
     
     // Add the new operations we need
     sp.addNewOperation("configuration",new NewConfiguration());
