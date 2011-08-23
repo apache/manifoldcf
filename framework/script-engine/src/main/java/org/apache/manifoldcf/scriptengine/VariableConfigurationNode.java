@@ -57,17 +57,10 @@ public class VariableConfigurationNode extends VariableBase
     // And the __value__ attribute
     if (attributeName.equals(ATTRIBUTE_VALUE))
     {
-      String x = configurationNode.getValue();
-      if (x == null)
-        return new NullVariableReference();
-      return new VariableString(x);
+      return new ValueReference();
     }
-    // Look for named attribute
-    String attributeValue = configurationNode.getAttributeValue(attributeName);
-    // MHL to allow attribute to be modified
-    if (attributeValue != null)
-      return new VariableString(attributeValue);
-    return super.getAttribute(attributeName);
+    // All others are presumed to be attributes of the configuration node, which can be set or cleared.
+    return new AttributeReference(attributeName);
   }
   
   /** Get an indexed property of the variable */
@@ -82,6 +75,78 @@ public class VariableConfigurationNode extends VariableBase
   public ConfigurationNode getConfigurationNode()
   {
     return configurationNode;
+  }
+  
+  /** Implement VariableReference to allow values to be set or cleared */
+  protected class ValueReference implements VariableReference
+  {
+    public ValueReference()
+    {
+    }
+    
+    public void setReference(Variable v)
+      throws ScriptException
+    {
+      if (v == null)
+        configurationNode.setValue(null);
+      else
+      {
+        String value = v.getStringValue();
+        configurationNode.setValue(value);
+      }
+    }
+    
+    public Variable resolve()
+      throws ScriptException
+    {
+      String value = configurationNode.getValue();
+      if (value == null)
+        throw new ScriptException("ConfigurationNode value is null");
+      else
+        return new VariableString(value);
+    }
+    
+    public boolean isNull()
+    {
+      return configurationNode.getValue() == null;
+    }
+  }
+  
+  /** Implement VariableReference to allow attributes to be set or cleared */
+  protected class AttributeReference implements VariableReference
+  {
+    protected String attributeName;
+    
+    public AttributeReference(String attributeName)
+    {
+      this.attributeName = attributeName;
+    }
+    
+    public void setReference(Variable v)
+      throws ScriptException
+    {
+      if (v == null)
+        configurationNode.setAttribute(attributeName,null);
+      else
+      {
+        String value = v.getStringValue();
+        configurationNode.setAttribute(attributeName,value);
+      }
+    }
+
+    public Variable resolve()
+      throws ScriptException
+    {
+      String attrValue = configurationNode.getAttributeValue(attributeName);
+      if (attrValue == null)
+        throw new ScriptException("ConfigurationNode has no attribute named '"+attributeName+"'");
+      return new VariableString(attrValue);
+    }
+
+    public boolean isNull()
+    {
+      return (configurationNode.getAttributeValue(attributeName) == null);
+    }
   }
   
   /** Extend VariableReference class so we capture attempts to set the reference, and actually overwrite the child when that is done */

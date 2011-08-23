@@ -38,7 +38,7 @@ public class NullVariableReference implements VariableReference
   public Variable resolve()
     throws ScriptException
   {
-    throw new ScriptException("Attempt to dereference null variable pointer");
+    return null;
   }
 
   /** Check if this reference is null */

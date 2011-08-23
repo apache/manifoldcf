@@ -40,8 +40,6 @@ public class ContextVariableReference implements VariableReference
   public Variable resolve()
     throws ScriptException
   {
-    if (variable == null)
-      throw new ScriptException("Attempt to dereference null variable pointer");
     return variable;
   }
 

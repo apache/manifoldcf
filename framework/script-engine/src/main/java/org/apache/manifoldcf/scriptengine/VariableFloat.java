@@ -51,4 +51,90 @@ public class VariableFloat extends VariableBase
     return value;
   }
 
+  public VariableReference plus(Variable v)
+    throws ScriptException
+  {
+    if (v == null)
+      throw new ScriptException("+ operand cannot be null");
+    return new VariableFloat(value + v.getDoubleValue());
+  }
+    
+  public VariableReference minus(Variable v)
+    throws ScriptException
+  {
+    if (v == null)
+      throw new ScriptException("- operand cannot be null");
+    return new VariableFloat(value - v.getDoubleValue());
+  }
+    
+  public VariableReference asterisk(Variable v)
+    throws ScriptException
+  {
+    if (v == null)
+      throw new ScriptException("* operand cannot be null");
+    return new VariableFloat(value * v.getDoubleValue());
+  }
+    
+  public VariableReference slash(Variable v)
+    throws ScriptException
+  {
+    if (v == null)
+      throw new ScriptException("/ operand cannot be null");
+    return new VariableFloat(value / v.getDoubleValue());
+  }
+    
+  public VariableReference unaryMinus()
+    throws ScriptException
+  {
+    return new VariableFloat(-value);
+  }
+  
+  public VariableReference greaterAngle(Variable v)
+    throws ScriptException
+  {
+    if (v == null)
+      throw new ScriptException("> operand cannot be null");
+    return new VariableBoolean(value > v.getDoubleValue());
+  }
+  
+  public VariableReference lesserAngle(Variable v)
+    throws ScriptException
+  {
+    if (v == null)
+      throw new ScriptException("< operand cannot be null");
+    return new VariableBoolean(value < v.getDoubleValue());
+  }
+    
+  public VariableReference doubleEquals(Variable v)
+    throws ScriptException
+  {
+    if (v == null)
+      throw new ScriptException("== operand cannot be null");
+    return new VariableBoolean(value == v.getDoubleValue());
+  }
+    
+  public VariableReference greaterAngleEquals(Variable v)
+    throws ScriptException
+  {
+    if (v == null)
+      throw new ScriptException(">= operand cannot be null");
+    return new VariableBoolean(value >= v.getDoubleValue());
+  }
+    
+  public VariableReference lesserAngleEquals(Variable v)
+    throws ScriptException
+  {
+    if (v == null)
+      throw new ScriptException("<= operand cannot be null");
+    return new VariableBoolean(value <= v.getDoubleValue());
+  }
+  
+  public VariableReference exclamationEquals(Variable v)
+    throws ScriptException
+  {
+    if (v == null)
+      throw new ScriptException("!= operand cannot be null");
+    return new VariableBoolean(value != v.getDoubleValue());
+  }
+
 }

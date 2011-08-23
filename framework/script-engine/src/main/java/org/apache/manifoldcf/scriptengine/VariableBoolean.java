@@ -49,12 +49,16 @@ public class VariableBoolean extends VariableBase
   public VariableReference doubleAmpersand(Variable v)
     throws ScriptException
   {
+    if (v == null)
+      throw new ScriptException("&& operand cannot be null");
     return new VariableBoolean(value && v.getBooleanValue());
   }
     
   public VariableReference doublePipe(Variable v)
     throws ScriptException
   {
+    if (v == null)
+      throw new ScriptException("|| operand cannot be null");
     return new VariableBoolean(value || v.getBooleanValue());
   }
 

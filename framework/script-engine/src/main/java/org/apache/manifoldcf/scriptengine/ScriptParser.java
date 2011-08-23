@@ -193,7 +193,7 @@ public class ScriptParser
         VariableReference v = evaluateExpression_1(currentStream);
         if (v == null)
           syntaxError(currentStream,"Missing expression after '||'");
-        vr = vr.resolve().doublePipe(v.resolve());
+        vr = resolveMustExist(vr).doublePipe(v.resolve());
       }
       else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("|"))
       {
@@ -201,7 +201,7 @@ public class ScriptParser
         VariableReference v = evaluateExpression_1(currentStream);
         if (v == null)
           syntaxError(currentStream,"Missing expression after '|'");
-        vr = vr.resolve().pipe(v.resolve());
+        vr = resolveMustExist(vr).pipe(v.resolve());
       }
       else
         break;
@@ -256,7 +256,7 @@ public class ScriptParser
         VariableReference v = evaluateExpression_2(currentStream);
         if (v == null)
           syntaxError(currentStream,"Missing expression after '&&'");
-        vr = vr.resolve().doubleAmpersand(v.resolve());
+        vr = resolveMustExist(vr).doubleAmpersand(v.resolve());
       }
       else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("&"))
       {
@@ -264,7 +264,7 @@ public class ScriptParser
         VariableReference v = evaluateExpression_2(currentStream);
         if (v == null)
           syntaxError(currentStream,"Missing expression after '&'");
-        vr = vr.resolve().ampersand(v.resolve());
+        vr = resolveMustExist(vr).ampersand(v.resolve());
       }
       else
         break;
@@ -310,7 +310,7 @@ public class ScriptParser
       VariableReference v = evaluateExpression_2(currentStream);
       if (v == null)
         syntaxError(currentStream,"Missing expression after '!'");
-      return v.resolve().unaryExclamation();
+      return resolveMustExist(v).unaryExclamation();
     }
     return evaluateExpression_3(currentStream);
   }
@@ -346,7 +346,7 @@ public class ScriptParser
         VariableReference v = evaluateExpression_4(currentStream);
         if (v == null)
           syntaxError(currentStream,"Missing expression after '=='");
-        vr = vr.resolve().doubleEquals(v.resolve());
+        vr = resolveMustExist(vr).doubleEquals(v.resolve());
       }
       else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("!="))
       {
@@ -354,7 +354,7 @@ public class ScriptParser
         VariableReference v = evaluateExpression_4(currentStream);
         if (v == null)
           syntaxError(currentStream,"Missing expression after '!='");
-        vr = vr.resolve().exclamationEquals(v.resolve());
+        vr = resolveMustExist(vr).exclamationEquals(v.resolve());
       }
       else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("<"))
       {
@@ -362,7 +362,7 @@ public class ScriptParser
         VariableReference v = evaluateExpression_4(currentStream);
         if (v == null)
           syntaxError(currentStream,"Missing expression after '<'");
-        vr = vr.resolve().lesserAngle(v.resolve());
+        vr = resolveMustExist(vr).lesserAngle(v.resolve());
       }
       else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals(">"))
       {
@@ -370,7 +370,7 @@ public class ScriptParser
         VariableReference v = evaluateExpression_4(currentStream);
         if (v == null)
           syntaxError(currentStream,"Missing expression after '>'");
-        vr = vr.resolve().greaterAngle(v.resolve());
+        vr = resolveMustExist(vr).greaterAngle(v.resolve());
       }
       else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("<="))
       {
@@ -378,7 +378,7 @@ public class ScriptParser
         VariableReference v = evaluateExpression_4(currentStream);
         if (v == null)
           syntaxError(currentStream,"Missing expression after '<='");
-        vr = vr.resolve().lesserAngleEquals(v.resolve());
+        vr = resolveMustExist(vr).lesserAngleEquals(v.resolve());
       }
       else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals(">="))
       {
@@ -386,7 +386,7 @@ public class ScriptParser
         VariableReference v = evaluateExpression_4(currentStream);
         if (v == null)
           syntaxError(currentStream,"Missing expression after '>='");
-        vr = vr.resolve().greaterAngleEquals(v.resolve());
+        vr = resolveMustExist(vr).greaterAngleEquals(v.resolve());
       }
       else
         break;
@@ -461,7 +461,7 @@ public class ScriptParser
         VariableReference v = evaluateExpression_5(currentStream);
         if (v == null)
           syntaxError(currentStream,"Missing expression after '+'");
-        vr = vr.resolve().plus(v.resolve());
+        vr = resolveMustExist(vr).plus(v.resolve());
       }
       else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("-"))
       {
@@ -469,7 +469,7 @@ public class ScriptParser
         VariableReference v = evaluateExpression_5(currentStream);
         if (v == null)
           syntaxError(currentStream,"Missing expression after '-'");
-        vr = vr.resolve().minus(v.resolve());
+        vr = resolveMustExist(vr).minus(v.resolve());
       }
       else
         break;
@@ -520,7 +520,7 @@ public class ScriptParser
         VariableReference v = evaluateExpression_6(currentStream);
         if (v == null)
           syntaxError(currentStream,"Missing expression after '*'");
-        vr = vr.resolve().asterisk(v.resolve());
+        vr = resolveMustExist(vr).asterisk(v.resolve());
       }
       else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("/"))
       {
@@ -528,7 +528,7 @@ public class ScriptParser
         VariableReference v = evaluateExpression_6(currentStream);
         if (v == null)
           syntaxError(currentStream,"Missing expression after '/'");
-        vr = vr.resolve().slash(v.resolve());
+        vr = resolveMustExist(vr).slash(v.resolve());
       }
       else
         break;
@@ -574,7 +574,7 @@ public class ScriptParser
       VariableReference v = evaluateExpression_6(currentStream);
       if (v == null)
         syntaxError(currentStream,"Missing expression after '-'");
-      return v.resolve().unaryMinus();
+      return resolveMustExist(v).unaryMinus();
     }
     return parseVariableReference(currentStream);
   }
@@ -648,8 +648,8 @@ public class ScriptParser
 	VariableReference expression = evaluateExpression(currentStream);
 	if (expression == null)
 	  syntaxError(currentStream,"Missing expression after '['");
-	int indexValue = expression.resolve().getIntValue();
-	vr = vr.resolve().getIndexed(indexValue);
+	int indexValue = resolveMustExist(expression).getIntValue();
+	vr = resolveMustExist(vr).getIndexed(indexValue);
 	t = currentStream.peek();
 	if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals("]"))
 	  syntaxError(currentStream,"Missing ']'");
@@ -661,7 +661,7 @@ public class ScriptParser
 	t = currentStream.peek();
 	if (t == null || t.getToken() == null)
 	  syntaxError(currentStream,"Need attribute name");
-	vr = vr.resolve().getAttribute(t.getToken());
+	vr = resolveMustExist(vr).getAttribute(t.getToken());
 	currentStream.skip();
       }
       else
@@ -702,6 +702,8 @@ public class ScriptParser
         return new VariableBoolean(true);
       else if (variableName.equals("false"))
         return new VariableBoolean(false);
+      else if (variableName.equals("null"))
+        return new NullVariableReference();
       else
       {
         // Look up variable reference in current context
@@ -812,7 +814,7 @@ public class ScriptParser
     return false;
   }
   
-  protected void syntaxError(TokenStream currentStream, String message)
+  public static void syntaxError(TokenStream currentStream, String message)
     throws ScriptException
   {
     Token t = currentStream.peek();
@@ -820,6 +822,15 @@ public class ScriptParser
       throw new ScriptException("Syntax error: "+message+", at end of file");
     else
       t.throwException("Syntax error: "+message+": "+t);
+  }
+  
+  public static Variable resolveMustExist(VariableReference vr)
+    throws ScriptException
+  {
+    Variable v = vr.resolve();
+    if (v == null)
+      throw new ScriptException("Expression cannot be null");
+    return v;
   }
   
   public static void main(String[] argv)

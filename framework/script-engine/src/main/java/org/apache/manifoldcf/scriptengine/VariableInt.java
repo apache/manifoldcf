@@ -54,24 +54,32 @@ public class VariableInt extends VariableBase
   public VariableReference plus(Variable v)
     throws ScriptException
   {
+    if (v == null)
+      throw new ScriptException("+ operand cannot be null");
     return new VariableInt(value + v.getIntValue());
   }
     
   public VariableReference minus(Variable v)
     throws ScriptException
   {
+    if (v == null)
+      throw new ScriptException("- operand cannot be null");
     return new VariableInt(value - v.getIntValue());
   }
     
   public VariableReference asterisk(Variable v)
     throws ScriptException
   {
+    if (v == null)
+      throw new ScriptException("* operand cannot be null");
     return new VariableInt(value * v.getIntValue());
   }
     
   public VariableReference slash(Variable v)
     throws ScriptException
   {
+    if (v == null)
+      throw new ScriptException("/ operand cannot be null");
     return new VariableInt(value / v.getIntValue());
   }
     
@@ -84,48 +92,64 @@ public class VariableInt extends VariableBase
   public VariableReference greaterAngle(Variable v)
     throws ScriptException
   {
+    if (v == null)
+      throw new ScriptException("> operand cannot be null");
     return new VariableBoolean(value > v.getIntValue());
   }
   
   public VariableReference lesserAngle(Variable v)
     throws ScriptException
   {
+    if (v == null)
+      throw new ScriptException("< operand cannot be null");
     return new VariableBoolean(value < v.getIntValue());
   }
     
   public VariableReference doubleEquals(Variable v)
     throws ScriptException
   {
+    if (v == null)
+      throw new ScriptException("== operand cannot be null");
     return new VariableBoolean(value == v.getIntValue());
   }
     
   public VariableReference greaterAngleEquals(Variable v)
     throws ScriptException
   {
+    if (v == null)
+      throw new ScriptException(">= operand cannot be null");
     return new VariableBoolean(value >= v.getIntValue());
   }
     
   public VariableReference lesserAngleEquals(Variable v)
     throws ScriptException
   {
+    if (v == null)
+      throw new ScriptException("<= operand cannot be null");
     return new VariableBoolean(value <= v.getIntValue());
   }
   
   public VariableReference exclamationEquals(Variable v)
     throws ScriptException
   {
+    if (v == null)
+      throw new ScriptException("!= operand cannot be null");
     return new VariableBoolean(value != v.getIntValue());
   }
   
   public VariableReference ampersand(Variable v)
     throws ScriptException
   {
+    if (v == null)
+      throw new ScriptException("& operand cannot be null");
     return new VariableInt(value & v.getIntValue());
   }
     
   public VariableReference pipe(Variable v)
     throws ScriptException
   {
+    if (v == null)
+      throw new ScriptException("| operand cannot be null");
     return new VariableInt(value | v.getIntValue());
   }
 

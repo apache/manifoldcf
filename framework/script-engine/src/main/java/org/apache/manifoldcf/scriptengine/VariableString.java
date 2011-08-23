@@ -58,4 +58,28 @@ public class VariableString extends VariableBase
     return new Double(value).doubleValue();
   }
 
+  public VariableReference plus(Variable v)
+    throws ScriptException
+  {
+    if (v == null)
+      throw new ScriptException("+ operand cannot be null");
+    return new VariableString(value + v.getStringValue());
+  }
+  
+  public VariableReference doubleEquals(Variable v)
+    throws ScriptException
+  {
+    if (v == null)
+      throw new ScriptException("== operand cannot be null");
+    return new VariableBoolean(value.equals(v.getStringValue()));
+  }
+
+  public VariableReference exclamationEquals(Variable v)
+    throws ScriptException
+  {
+    if (v == null)
+      throw new ScriptException("!= operand cannot be null");
+    return new VariableBoolean(!value.equals(v.getStringValue()));
+  }
+
 }
