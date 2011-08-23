@@ -18,6 +18,8 @@
 */
 package org.apache.manifoldcf.scriptengine;
 
+import org.apache.manifoldcf.core.interfaces.*;
+
 /** This interface represents a variable within the ManifoldCF script engine.
 * A variable may have a value, and may have various named properties, as described below.
 * 
@@ -45,10 +47,14 @@ public interface Variable
   public String getStringValue()
     throws ScriptException;
 
-  /** Get the variable's value as a JSON string */
-  public String getJSONValue()
+  /** Get the variable's value as a Configuration object */
+  public Configuration getConfigurationValue()
     throws ScriptException;
-
+    
+  /** Get the variable's value as a ConfigurationNode object */
+  public ConfigurationNode getConfigurationNodeValue()
+    throws ScriptException;
+    
   /** Get the variable's value as a boolean */
   public boolean getBooleanValue()
     throws ScriptException;
@@ -117,6 +123,14 @@ public interface Variable
   public VariableReference getAttribute(String attributeName)
     throws ScriptException;
   
+  /** Insert an object into this variable at a position. */
+  public void insertAt(Variable v, int index)
+    throws ScriptException;
+    
+  /** Delete an object from this variable at a position. */
+  public void removeAt(int index)
+    throws ScriptException;
+    
   // The following operations correspond to xxx[index]
   
   /** Get an indexed property of the variable */

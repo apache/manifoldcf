@@ -18,6 +18,7 @@
 */
 package org.apache.manifoldcf.scriptengine;
 
+import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.commons.httpclient.*;
 import org.apache.commons.httpclient.methods.*;
 import java.io.*;
@@ -54,10 +55,11 @@ public class POSTCommand implements Command
     
     // Perform the actual PUT.
     String urlString = sp.resolveMustExist(currentStream,url).getStringValue();
-    String json = sp.resolveMustExist(currentStream,send).getJSONValue();
+    Configuration configuration = sp.resolveMustExist(currentStream,send).getConfigurationValue();
     
     try
     {
+      String json = configuration.toJSON();
       HttpClient client = new HttpClient();
       PostMethod method = new PostMethod(urlString);
       method.setRequestHeader("Content-type", "text/plain; charset=UTF-8");
@@ -71,6 +73,10 @@ public class POSTCommand implements Command
       result.setReference(new VariableResult(resultCode,resultJSON));
     
       return false;
+    }
+    catch (ManifoldCFException e)
+    {
+      throw new ScriptException(e.getMessage(),e);
     }
     catch (IOException e)
     {

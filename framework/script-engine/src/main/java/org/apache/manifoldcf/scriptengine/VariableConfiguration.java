@@ -53,20 +53,13 @@ public class VariableConfiguration extends VariableBase
     return configuration.toString();
   }
   
-  /** Get the variable's value as a JSON string */
-  public String getJSONValue()
+  /** Get the variable's value as a Configuration object */
+  public Configuration getConfigurationValue()
     throws ScriptException
   {
-    try
-    {
-      return configuration.toJSON();
-    }
-    catch (ManifoldCFException e)
-    {
-      throw new ScriptException(e.getMessage(),e);
-    }
+    return configuration;
   }
-
+  
   /** Get a named attribute of the variable; e.g. xxx.yyy */
   public VariableReference getAttribute(String attributeName)
     throws ScriptException
@@ -86,6 +79,24 @@ public class VariableConfiguration extends VariableBase
     return super.getIndexed(index);
   }
   
+  /** Insert an object into this variable at a position. */
+  public void insertAt(Variable v, int index)
+    throws ScriptException
+  {
+    if (index > configuration.getChildCount())
+      throw new ScriptException("Insert out of bounds");
+    configuration.addChild(index,v.getConfigurationNodeValue());
+  }
+    
+  /** Delete an object from this variable at a position. */
+  public void removeAt(int index)
+    throws ScriptException
+  {
+    if (index >= configuration.getChildCount())
+      throw new ScriptException("Remove out of bounds");
+    configuration.removeChild(index);
+  }
+
   /** Extend VariableReference class so we capture attempts to set the reference, and actually overwrite the child when that is done */
   protected class NodeReference implements VariableReference
   {
@@ -99,12 +110,11 @@ public class VariableConfiguration extends VariableBase
     public void setReference(Variable v)
       throws ScriptException
     {
-      if (!(v instanceof VariableConfigurationNode))
-        throw new ScriptException("Cannot set Configuration child value to anything other than a ConfigurationNode object");
       if (index >= configuration.getChildCount())
         throw new ScriptException("Index out of range for Configuration children");
+      ConfigurationNode confNode = v.getConfigurationNodeValue();
       configuration.removeChild(index);
-      configuration.addChild(index,((VariableConfigurationNode)v).getConfigurationNode());
+      configuration.addChild(index,confNode);
     }
     
     public Variable resolve()

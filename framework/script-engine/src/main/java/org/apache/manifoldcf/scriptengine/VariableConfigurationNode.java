@@ -44,6 +44,13 @@ public class VariableConfigurationNode extends VariableBase
     return configurationNode.toString();
   }
 
+  /** Get the variable's value as a ConfigurationNode object */
+  public ConfigurationNode getConfigurationNodeValue()
+    throws ScriptException
+  {
+    return configurationNode;
+  }
+
   /** Get a named attribute of the variable; e.g. xxx.yyy */
   public VariableReference getAttribute(String attributeName)
     throws ScriptException
@@ -71,12 +78,26 @@ public class VariableConfigurationNode extends VariableBase
       return new NodeReference(index);
     return super.getIndexed(index);
   }
-  
-  public ConfigurationNode getConfigurationNode()
+
+  /** Insert an object into this variable at a position. */
+  public void insertAt(Variable v, int index)
+    throws ScriptException
   {
-    return configurationNode;
+    if (index > configurationNode.getChildCount())
+      throw new ScriptException("Insert out of bounds");
+    ConfigurationNode insertObject = v.getConfigurationNodeValue();
+    configurationNode.addChild(index,insertObject);
   }
-  
+    
+  /** Delete an object from this variable at a position. */
+  public void removeAt(int index)
+    throws ScriptException
+  {
+    if (index >= configurationNode.getChildCount())
+      throw new ScriptException("Remove out of bounds");
+    configurationNode.removeChild(index);
+  }
+
   /** Implement VariableReference to allow values to be set or cleared */
   protected class ValueReference implements VariableReference
   {
@@ -162,12 +183,11 @@ public class VariableConfigurationNode extends VariableBase
     public void setReference(Variable v)
       throws ScriptException
     {
-      if (!(v instanceof VariableConfigurationNode))
-        throw new ScriptException("Cannot set ConfigurationNode child value to anything other than a ConfigurationNode object");
       if (index >= configurationNode.getChildCount())
         throw new ScriptException("Index out of range for ConfigurationNode children");
+      ConfigurationNode confNode = v.getConfigurationNodeValue();
       configurationNode.removeChild(index);
-      configurationNode.addChild(index,((VariableConfigurationNode)v).getConfigurationNode());
+      configurationNode.addChild(index,confNode);
     }
 
     public Variable resolve()

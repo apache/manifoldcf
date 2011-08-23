@@ -19,6 +19,8 @@
 
 package org.apache.manifoldcf.scriptengine;
 
+import org.apache.manifoldcf.core.interfaces.*;
+
 /** Base class for variables.
 * Basically, everything is illegal until overridden.
 */
@@ -35,11 +37,18 @@ public class VariableBase implements Variable, VariableReference
     throw new ScriptException("Cannot convert variable to string");
   }
   
-  /** Get the variable's value as a JSON string */
-  public String getJSONValue()
+  /** Get the variable's value as a Configuration object */
+  public Configuration getConfigurationValue()
     throws ScriptException
   {
-    throw new ScriptException("Cannot convert variable to JSON");
+    throw new ScriptException("Cannot convert variable to Configuration object");
+  }
+    
+  /** Get the variable's value as a ConfigurationNode object */
+  public ConfigurationNode getConfigurationNodeValue()
+    throws ScriptException
+  {
+    throw new ScriptException("Cannot convert variable to ConfigurationNode object");
   }
 
   /** Get the variable's value as a boolean */
@@ -170,6 +179,21 @@ public class VariableBase implements Variable, VariableReference
     throw new ScriptException("Variable has no attribute called '"+attributeName+"'");
   }
   
+  /** Insert an object into this variable at a position. */
+  public void insertAt(Variable v, int index)
+    throws ScriptException
+  {
+    throw new ScriptException("Can't insert into variable");
+  }
+    
+  /** Delete an object from this variable at a position. */
+  public void removeAt(int index)
+    throws ScriptException
+  {
+    throw new ScriptException("Can't remove from variable");
+  }
+    
+
   // The following two operations correspond to <xxx> and xxx[index]
   
   /** Get an indexed property of the variable */
