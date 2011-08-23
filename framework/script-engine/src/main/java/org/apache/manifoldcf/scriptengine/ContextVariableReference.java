@@ -45,4 +45,10 @@ public class ContextVariableReference implements VariableReference
     return variable;
   }
 
+  /** Check if this reference is null */
+  public boolean isNull()
+  {
+    return variable == null;
+  }
+
 }

@@ -41,4 +41,10 @@ public class NullVariableReference implements VariableReference
     throw new ScriptException("Attempt to dereference null variable pointer");
   }
 
+  /** Check if this reference is null */
+  public boolean isNull()
+  {
+    return true;
+  }
+
 }

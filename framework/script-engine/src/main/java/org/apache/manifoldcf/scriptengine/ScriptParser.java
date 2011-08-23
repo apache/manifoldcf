@@ -597,6 +597,41 @@ public class ScriptParser
   protected VariableReference parseVariableReference(TokenStream currentStream)
     throws ScriptException
   {
+    // variable_reference -> 'isnull' variable_reference
+    // variable_reference -> variable_reference_0
+    Token t = currentStream.peek();
+    if (t != null && t.getToken() != null && t.getToken().equals("isnull"))
+    {
+      currentStream.skip();
+      VariableReference reference = parseVariableReference(currentStream);
+      if (reference == null)
+        syntaxError(currentStream,"Missing variable reference");
+      return new VariableBoolean(reference.isNull());
+    }
+    else
+      return parseVariableReference_0(currentStream);
+  }
+
+  protected boolean skipVariableReference(TokenStream currentStream)
+    throws ScriptException
+  {
+    // variable_reference -> 'isnull' variable_reference
+    // variable_reference -> variable_reference_0
+    Token t = currentStream.peek();
+    if (t != null && t.getToken() != null && t.getToken().equals("isnull"))
+    {
+      currentStream.skip();
+      if (skipVariableReference(currentStream) == false)
+        syntaxError(currentStream,"Missing variable reference");
+      return true;
+    }
+    else
+      return skipVariableReference_0(currentStream);
+  }
+  
+  protected VariableReference parseVariableReference_0(TokenStream currentStream)
+    throws ScriptException
+  {
     // variable_reference -> variable_reference '[' expression ']'
     // variable_reference -> variable_reference.property_name
     // variable_reference -> variable_reference_1
@@ -698,7 +733,7 @@ public class ScriptParser
       return null;
   }
   
-  protected boolean skipVariableReference(TokenStream currentStream)
+  protected boolean skipVariableReference_0(TokenStream currentStream)
     throws ScriptException
   {
     if (skipVariableReference_1(currentStream) == false)

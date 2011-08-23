@@ -115,5 +115,11 @@ public class VariableConfiguration extends VariableBase
       return new VariableConfigurationNode(configuration.findChild(index));
     }
     
+    /** Check if this reference is null */
+    public boolean isNull()
+    {
+      return index >= configuration.getChildCount();
+    }
+
   }
 }

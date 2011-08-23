@@ -195,4 +195,10 @@ public class VariableBase implements Variable, VariableReference
     return this;
   }
 
+  /** Check if this reference is null */
+  public boolean isNull()
+  {
+    return false;
+  }
+
 }

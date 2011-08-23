@@ -32,4 +32,8 @@ public interface VariableReference
   /** Resolve the reference */
   public Variable resolve()
     throws ScriptException;
+  
+  /** Check if this reference is null */
+  public boolean isNull();
+  
 }
