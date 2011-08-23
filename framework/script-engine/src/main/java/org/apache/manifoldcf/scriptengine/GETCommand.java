@@ -46,7 +46,7 @@ public class GETCommand implements Command
       sp.syntaxError(currentStream,"Missing URL expression");
     
     // Perform the actual GET.
-    String urlString = url.resolve().getStringValue();
+    String urlString = sp.resolveMustExist(currentStream,url).getStringValue();
     
     try
     {

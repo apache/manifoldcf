@@ -37,7 +37,7 @@ public class IfCommand implements Command
     if (t == null || t.getToken() == null || !t.getToken().equals("then"))
       sp.syntaxError(currentStream,"Missing 'then' in if statement");
     currentStream.skip();
-    if (ifCondition.resolve().getBooleanValue())
+    if (sp.resolveMustExist(currentStream,ifCondition).getBooleanValue())
     {
       rval = sp.parseStatements(currentStream);
       t = currentStream.peek();

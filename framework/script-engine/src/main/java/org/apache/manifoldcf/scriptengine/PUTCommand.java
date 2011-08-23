@@ -53,8 +53,8 @@ public class PUTCommand implements Command
       sp.syntaxError(currentStream,"Missing URL expression");
     
     // Perform the actual PUT.
-    String urlString = url.resolve().getStringValue();
-    String json = send.resolve().getJSONValue();
+    String urlString = sp.resolveMustExist(currentStream,url).getStringValue();
+    String json = sp.resolveMustExist(currentStream,send).getJSONValue();
     
     try
     {

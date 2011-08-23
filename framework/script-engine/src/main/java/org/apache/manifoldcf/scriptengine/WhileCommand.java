@@ -46,7 +46,7 @@ public class WhileCommand implements Command
       if (t == null || t.getToken() == null || !t.getToken().equals("do"))
         sp.syntaxError(rts,"Missing 'do' in while statement");
       rts.skip();
-      if (whileCondition.resolve().getBooleanValue())
+      if (sp.resolveMustExist(rts,whileCondition).getBooleanValue())
       {
         breakFromLoop = sp.parseStatements(rts);
       }

@@ -32,7 +32,7 @@ public class PrintCommand implements Command
     VariableReference expr = sp.evaluateExpression(currentStream);
     if (expr == null)
       sp.syntaxError(currentStream,"Missing print expression");
-    System.out.println(expr.resolve().getStringValue());
+    System.out.println(sp.resolveMustExist(currentStream,expr).getStringValue());
     return false;
   }
   
