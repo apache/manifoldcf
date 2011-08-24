@@ -907,6 +907,7 @@ public class ScriptParser
     // Add the new operations we need
     sp.addNewOperation("configuration",new NewConfiguration());
     sp.addNewOperation("configurationnode",new NewConfigurationNode());
+    sp.addNewOperation("url",new NewURL());
     
     try
     {
