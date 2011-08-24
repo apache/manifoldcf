@@ -42,6 +42,7 @@
 		<module>authority-service</module>
 		<module>api-service</module>
 		<module>crawler-ui</module>
+		<module>script-engine</module>
 	</modules>
 
 </project>
