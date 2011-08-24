@@ -19,51 +19,33 @@
 
 package org.apache.manifoldcf.scriptengine;
 
-import java.net.*;
-import java.io.*;
 
-/** Variable class representing a ManifoldCF API URL.  As the URL is glued together, the
-* individual path pieces are appropriately encoded.
+/** Variable class representing a ManifoldCF API URL connection name segment.  In conjunction
+* with the URL variable, this variable will properly character-stuff the connection name to make
+* a valid URL.
 */
-public class VariableURL extends VariableBase
+public class VariableConnectionName extends VariableBase
 {
-  protected String encodedURL;
+  protected String encodedConnectionName;
   
-  public VariableURL(String baseURLValue)
+  public VariableConnectionName(String connectionName)
   {
-    this.encodedURL = baseURLValue;
-    if (encodedURL.endsWith("/"))
-      this.encodedURL = this.encodedURL.substring(0,this.encodedURL.length()-1);
+    this.encodedConnectionName = encode(connectionName);
   }
   
   /** Get the variable's value as a string */
   public String getStringValue()
     throws ScriptException
   {
-    return encodedURL;
+    return encodedConnectionName;
   }
 
-  public VariableReference plus(Variable v)
-    throws ScriptException
-  {
-    if (v == null)
-      throw new ScriptException("+ operand cannot be null");
-    try
-    {
-      return new VariableURL(encodedURL + "/" + URLEncoder.encode(v.getStringValue(),"utf-8").replace("+","%20"));
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      throw new ScriptException(e.getMessage(),e);
-    }
-  }
-  
   public VariableReference doubleEquals(Variable v)
     throws ScriptException
   {
     if (v == null)
       throw new ScriptException("== operand cannot be null");
-    return new VariableBoolean(encodedURL.equals(v.getStringValue()));
+    return new VariableBoolean(encodedConnectionName.equals(v.getStringValue()));
   }
 
   public VariableReference exclamationEquals(Variable v)
@@ -71,7 +53,24 @@ public class VariableURL extends VariableBase
   {
     if (v == null)
       throw new ScriptException("!= operand cannot be null");
-    return new VariableBoolean(!encodedURL.equals(v.getStringValue()));
+    return new VariableBoolean(!encodedConnectionName.equals(v.getStringValue()));
   }
 
+  protected static String encode(String connectionName)
+  {
+    StringBuilder sb = new StringBuilder();
+    int i = 0;
+    while (i < connectionName.length())
+    {
+      char x = connectionName.charAt(i++);
+      if (x == '/')
+        sb.append('.').append('+');
+      else if (x == '.')
+        sb.append('.').append('.');
+      else
+        sb.append(x);
+    }
+    return sb.toString();
+  }
+  
 }

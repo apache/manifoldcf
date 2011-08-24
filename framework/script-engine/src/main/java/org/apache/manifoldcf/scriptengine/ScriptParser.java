@@ -908,6 +908,7 @@ public class ScriptParser
     sp.addNewOperation("configuration",new NewConfiguration());
     sp.addNewOperation("configurationnode",new NewConfigurationNode());
     sp.addNewOperation("url",new NewURL());
+    sp.addNewOperation("connectionname",new NewConnectionName());
     
     try
     {
