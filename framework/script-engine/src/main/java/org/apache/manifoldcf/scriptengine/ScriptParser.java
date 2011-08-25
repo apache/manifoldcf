@@ -57,6 +57,16 @@ public class ScriptParser
     newOperations.put(operationName,operation);
   }
   
+  /** Add a variable.
+  */
+  public void addVariable(String variableName, Variable v)
+    throws ScriptException
+  {
+    ContextVariableReference cvr = new ContextVariableReference();
+    cvr.setReference(v);
+    context.put(variableName,cvr);
+  }
+  
   // Statement return codes
   protected static final int STATEMENT_NOTME = 0;
   protected static final int STATEMENT_ISME = 1;
@@ -882,11 +892,7 @@ public class ScriptParser
   
   public static void main(String[] argv)
   {
-    if (argv.length > 1)
-    {
-      System.err.println("Usage: ScriptParser [<filename>]");
-      System.exit(1);
-    }
+    // Usage: ScriptParser [<filename> [arg1 [arg2 ...]]
     
     ScriptParser sp = new ScriptParser();
     
@@ -898,6 +904,7 @@ public class ScriptParser
     sp.addCommand("set",new SetCommand());
     sp.addCommand("insert",new InsertCommand());
     sp.addCommand("remove",new RemoveCommand());
+    sp.addCommand("error",new ErrorCommand());
     
     sp.addCommand("GET",new GETCommand());
     sp.addCommand("PUT",new PUTCommand());
@@ -909,14 +916,24 @@ public class ScriptParser
     sp.addNewOperation("configurationnode",new NewConfigurationNode());
     sp.addNewOperation("url",new NewURL());
     sp.addNewOperation("connectionname",new NewConnectionName());
+    sp.addNewOperation("array",new NewArray());
     
     try
     {
       Reader reader;
-      if (argv.length == 1)
+      if (argv.length >= 1)
       {
         File inputFile = new File(argv[0]);
         reader = new InputStreamReader(new FileInputStream(inputFile),"utf-8");
+        VariableArray va = new VariableArray();
+        int i = 0;
+        while (i < argv.length - 1)
+        {
+          String arg = argv[i-1];
+          va.insert(new VariableString(arg));
+          i++;
+        }
+        sp.addVariable("__args__",va);
       }
       else
         reader = new InputStreamReader(System.in);
