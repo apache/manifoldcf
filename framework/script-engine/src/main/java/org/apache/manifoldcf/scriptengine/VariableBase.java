@@ -176,7 +176,16 @@ public class VariableBase implements Variable, VariableReference
   public VariableReference getAttribute(String attributeName)
     throws ScriptException
   {
-    throw new ScriptException("Variable has no attribute called '"+attributeName+"'");
+    if (attributeName.equals(ATTRIBUTE_STRING))
+      return new VariableString(getStringValue());
+    else if (attributeName.equals(ATTRIBUTE_INT))
+      return new VariableInt(getIntValue());
+    else if (attributeName.equals(ATTRIBUTE_FLOAT))
+      return new VariableFloat(getDoubleValue());
+    else if (attributeName.equals(ATTRIBUTE_BOOLEAN))
+      return new VariableBoolean(getBooleanValue());
+    else
+      throw new ScriptException("Variable has no attribute called '"+attributeName+"'");
   }
   
   /** Insert an object into this variable at a position. */

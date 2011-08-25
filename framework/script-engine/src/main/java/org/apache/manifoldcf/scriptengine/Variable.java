@@ -28,6 +28,14 @@ public interface Variable
 {
   // Special attributes
   
+  /** Conversion to string */
+  public static String ATTRIBUTE_STRING = "__string__";
+  /** Conversion to int */
+  public static String ATTRIBUTE_INT = "__int__";
+  /** Conversion to float */
+  public static String ATTRIBUTE_FLOAT = "__float__";
+  /** Conversion to boolean */
+  public static String ATTRIBUTE_BOOLEAN = "__boolean__";
   /** Name attribute */
   public static String ATTRIBUTE_NAME = "__name__";
   /** Value attribute */
