@@ -938,6 +938,10 @@
         <copy todir="dist/processes">
             <fileset dir="framework/dist/processes"/>
         </copy>
+        <mkdir dir="dist/script-engine"/>
+        <copy todir="dist/script-engine">
+            <fileset dir="framework/dist/script-engine"/>
+        </copy>
         <mkdir dir="dist/web"/>
         <copy todir="dist/web">
             <fileset dir="framework/dist/web"/>

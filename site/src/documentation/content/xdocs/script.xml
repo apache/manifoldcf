@@ -1,0 +1,95 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE document PUBLIC "-//APACHE//DTD Documentation V2.0//EN" 
+          "http://forrest.apache.org/dtd/document-v20.dtd">
+
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<document> 
+
+  <header> 
+    <title>ManifoldCF Scripting Language</title> 
+  </header> 
+
+  <body> 
+    <section>
+      <title>Overview</title>
+      <p></p>
+      <p>The ManifoldCF scripting language allows symbolic communication with the ManifoldCF API Service
+        in order to define connections and jobs, and perform crawls.  The language provides support for JSON-like hierarchical
+        documents, as well as the ability to construct properly encoded REST URLs.  It also has support for simple control flow
+        and error handling.</p>
+    </section>
+    
+    <section>
+      <title>How to use the script interpreter</title>
+      <p></p>
+      <p>The ManifoldCF script interpreter can be used in two ways - either as a real-time shell (executing a script as it is typed),
+        or interpreting a script file.  The main class of the interpreter is <em>org.apache.manifoldcf.scriptengine.ScriptParser</em>,
+        and the two ways of invoking it are:</p>
+      <source>
+java -cp ... org.apache.manifoldcf.scriptengine.ScriptParser
+      </source>
+      <p>or:</p>
+      <source>
+java -cp ... org.apache.manifoldcf.scriptengine.ScriptParser &lt;script_file&gt; &lt;arg1&gt; ... &lt;argN&gt;
+      </source>
+      <p>If you choose to invoke ScriptParser in interactive mode, simply type your script one line at a time.  Any errors will be reported immediately,
+        and the ScriptParser will accordingly exit.  You can also type ^Z to terminate the script.</p>
+      <p>If you use ScriptParser with a scripting file, that file will be read and interpreted.  The arguments you provide will be loaded into an array
+        of strings, which is accessible from your script as the variable named <em>__args__</em>.</p>
+        <section>
+          <title>Running the scripting language by hand</title>
+          <p></p>
+          <p>When you build ManifoldCF, the required dependent jars for the scripting language are copied to <em>dist/script-engine/jar</em>.
+            You can run the interpreter in interactive mode by typing:</p>
+          <source>
+cd dist
+script-engine\script\run-script.bat &lt;args&gt;
+          </source>
+          <p>Or, on Linux:</p>
+          <source>
+cd dist
+script-engine/script/run-script.sh &lt;args&gt;
+          </source>
+        </section>
+        <section>
+          <title>Running the scripting language using Ant</title>
+          <p></p>
+          <p>You can also start the scripting language interpreter with all the correct required jars using Ant.  Simple type the following:</p>
+          <source>
+cd framework
+ant run-script-engine
+          </source>
+          <p>This will start the scripting language interpreter in interactive mode only.</p>
+        </section>
+        <section>
+          <title>Running the scripting language using Maven</title>
+          <p></p>
+          <p>You can also run the scripting language interpreter using maven.  The commands are:</p>
+          <source>
+cd framework/script-engine
+mvn exec:exec
+          </source>
+          <p>This, once again, will start the interpreter in interactive mode.</p>
+        </section>
+    </section>
+
+  </body>
+
+</document>

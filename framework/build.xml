@@ -385,8 +385,8 @@
     </target>
 
     <target name="script-engine" depends="jar-script-engine,jar-core">
-        <mkdir dir="dist/script-engine/lib"/>
-        <copy todir="dist/script-engine/lib">
+        <mkdir dir="dist/script-engine/jar"/>
+        <copy todir="dist/script-engine/jar">
             <fileset dir="lib">
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -396,11 +396,14 @@
                 <include name="json.jar"/>
             </fileset>
         </copy>
-        <copy todir="dist/script-engine/lib">
+        <copy todir="dist/script-engine/jar">
             <fileset dir="build/jar">
                 <include name="mcf-core.jar"/>
                 <include name="mcf-script-engine.jar"/>
             </fileset>
+        </copy>
+        <copy todir="dist/script-engine/script">
+            <fileset dir="engine-scripts"/>
         </copy>
     </target>
     
