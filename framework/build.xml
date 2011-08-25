@@ -595,7 +595,7 @@
         </junit>
     </target>
 
-    <target name="run-script-engine" depends="script-engine">
+    <target name="run-script-interpreter" depends="script-engine">
         <java classname="org.apache.manifoldcf.scriptengine.ScriptParser" fork="true" dir="dist/script-engine" maxmemory="128M">
           <classpath>
             <fileset dir="dist/script-engine/lib">

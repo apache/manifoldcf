@@ -69,19 +69,18 @@ script-engine/script/run-script.sh &lt;args&gt;
           </source>
         </section>
         <section>
-          <title>Running the scripting language using Ant</title>
+          <title>Running the script interpreter using Ant</title>
           <p></p>
-          <p>You can also start the scripting language interpreter with all the correct required jars using Ant.  Simple type the following:</p>
+          <p>You can also start the script interpreter with all the correct required jars using Ant.  Simple type the following:</p>
           <source>
-cd framework
-ant run-script-engine
+ant run-script-interpreter
           </source>
-          <p>This will start the scripting language interpreter in interactive mode only.</p>
+          <p>This will start the script interpreter in interactive mode only.</p>
         </section>
         <section>
-          <title>Running the scripting language using Maven</title>
+          <title>Running the script interpreter using Maven</title>
           <p></p>
-          <p>You can also run the scripting language interpreter using maven.  The commands are:</p>
+          <p>You can also run the script interpreter using maven.  The commands are:</p>
           <source>
 cd framework/script-engine
 mvn exec:exec

@@ -2172,6 +2172,8 @@ image   - Build release image, under the '.' directory (requires
           Apache Forrest)
 all     - Do it all (requires Apache Forrest and Postgresql)
 
+run-script-interpreter - Run the ManifoldCF script interpreter
+
 Use Apache Forrest version forrest-0.9-dev or higher.
       </echo>
     </target>
@@ -2242,5 +2244,14 @@ Use Apache Forrest version forrest-0.9-dev or higher.
       </rat:report>
     </target>
 
-    
+    <target name="run-script-interpreter" depends="deliver-framework">
+        <java classname="org.apache.manifoldcf.scriptengine.ScriptParser" fork="true" dir="dist/script-engine" maxmemory="128M">
+          <classpath>
+            <fileset dir="dist/script-engine/lib">
+              <include name="*.jar"/>
+            </fileset>
+          </classpath>
+        </java>
+    </target>
+
 </project>
