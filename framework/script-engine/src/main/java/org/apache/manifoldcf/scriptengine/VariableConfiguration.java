@@ -49,7 +49,18 @@ public class VariableConfiguration extends VariableBase
   /** Get a string from this */
   public String toString()
   {
-    return configuration.toString();
+    StringBuilder sb = new StringBuilder();
+    sb.append("{ ");
+    int i = 0;
+    while (i < configuration.getChildCount())
+    {
+      if (i > 0)
+        sb.append(", ");
+      ConfigurationNode child = configuration.findChild(i++);
+      sb.append(new VariableConfigurationNode(child).toString());
+    }
+    sb.append(" }");
+    return sb.toString();
   }
   
   /** Get the variable's value as a Configuration object */

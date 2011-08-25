@@ -20,6 +20,7 @@
 package org.apache.manifoldcf.scriptengine;
 
 import org.apache.manifoldcf.core.interfaces.*;
+import java.util.*;
 
 /** Variable wrapper for ConfigurationNode object.
 */
@@ -40,7 +41,41 @@ public class VariableConfigurationNode extends VariableBase
   /** Get the variable's value as a string */
   public String toString()
   {
-    return configurationNode.toString();
+    StringBuilder sb = new StringBuilder();
+    sb.append("< ");
+    sb.append(new VariableString(configurationNode.getType()).toString());
+    sb.append(" : ");
+    String valueField = configurationNode.getValue();
+    if (valueField == null)
+      sb.append("null");
+    else
+      sb.append(new VariableString(valueField).toString());
+    sb.append(" : ");
+    boolean needComma = false;
+    Iterator<String> iter = configurationNode.getAttributes();
+    while (iter.hasNext())
+    {
+      String attrName = iter.next();
+      String value = configurationNode.getAttributeValue(attrName);
+      if (needComma)
+        sb.append(", ");
+      else
+        needComma = true;
+      sb.append(new VariableString(attrName).toString());
+      sb.append("=");
+      sb.append(new VariableString(value).toString());
+    }
+    sb.append(" : ");
+    int i = 0;
+    while (i < configurationNode.getChildCount())
+    {
+      ConfigurationNode child = configurationNode.findChild(i++);
+      if (i > 0)
+        sb.append(", ");
+      sb.append(new VariableConfigurationNode(child).toString());
+    }
+    sb.append(" >");
+    return sb.toString();
   }
 
   /** Convert to a value */
