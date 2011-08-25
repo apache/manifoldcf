@@ -27,10 +27,28 @@ package org.apache.manifoldcf.scriptengine;
 public class VariableConnectionName extends VariableBase
 {
   protected String encodedConnectionName;
+  protected String connectionName;
   
   public VariableConnectionName(String connectionName)
   {
+    this.connectionName = connectionName;
     this.encodedConnectionName = encode(connectionName);
+  }
+  
+  public String toString()
+  {
+    StringBuilder sb = new StringBuilder();
+    sb.append("(new connectionname \"");
+    int i = 0;
+    while (i < connectionName.length())
+    {
+      char x = connectionName.charAt(i++);
+      if (x == '\\' || x == '\"')
+        sb.append('\\');
+      sb.append(x);
+    }
+    sb.append("\")");
+    return sb.toString();
   }
   
   /** Get the variable's value as a string */

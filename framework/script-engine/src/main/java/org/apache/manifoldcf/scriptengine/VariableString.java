@@ -29,7 +29,24 @@ public class VariableString extends VariableBase
   {
     this.value = value;
   }
-  
+
+  /** Get a displayable string for the value */
+  public String toString()
+  {
+    StringBuilder sb = new StringBuilder();
+    sb.append("\"");
+    int i = 0;
+    while (i < value.length())
+    {
+      char x = value.charAt(i++);
+      if (x == '\\' || x == '\"')
+        sb.append('\\');
+      sb.append(x);
+    }
+    sb.append("\"");
+    return sb.toString();
+  }
+
   /** Get the variable's value as a string */
   public String getStringValue()
     throws ScriptException

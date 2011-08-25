@@ -47,8 +47,7 @@ public class VariableConfiguration extends VariableBase
   }
   
   /** Get a string from this */
-  public String getStringValue()
-    throws ScriptException
+  public String toString()
   {
     return configuration.toString();
   }

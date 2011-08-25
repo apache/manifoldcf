@@ -38,12 +38,20 @@ public class VariableConfigurationNode extends VariableBase
   }
   
   /** Get the variable's value as a string */
-  public String getStringValue()
-    throws ScriptException
+  public String toString()
   {
     return configurationNode.toString();
   }
 
+  /** Convert to a value */
+  public String getStringValue()
+    throws ScriptException
+  {
+    if (configurationNode.getValue() == null)
+      return super.getStringValue();
+    return configurationNode.getValue();
+  }
+  
   /** Get the variable's value as a ConfigurationNode object */
   public ConfigurationNode getConfigurationNodeValue()
     throws ScriptException

@@ -2247,7 +2247,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     <target name="run-script-interpreter" depends="deliver-framework">
         <java classname="org.apache.manifoldcf.scriptengine.ScriptParser" fork="true" dir="dist/script-engine" maxmemory="128M">
           <classpath>
-            <fileset dir="dist/script-engine/lib">
+            <fileset dir="dist/script-engine/jar">
               <include name="*.jar"/>
             </fileset>
           </classpath>

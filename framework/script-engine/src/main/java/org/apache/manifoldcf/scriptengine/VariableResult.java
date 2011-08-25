@@ -35,10 +35,9 @@ public class VariableResult extends VariableBase
   }
   
   /** Get the variable's value as a string */
-  public String getStringValue()
-    throws ScriptException
+  public String toString()
   {
-    return "("+Integer.toString(resultCode)+") "+result.getStringValue();
+    return "("+Integer.toString(resultCode)+") "+result.toString();
   }
 
   /** Get the variable's value as an integer */

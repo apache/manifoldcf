@@ -32,9 +32,8 @@ public class VariableArray extends VariableBase
   {
   }
 
-  /** Get a string from this */
-  public String getStringValue()
-    throws ScriptException
+  /** Get a displayable string from this */
+  public String toString()
   {
     StringBuilder sb = new StringBuilder("[ ");
     int i = 0;
@@ -46,7 +45,7 @@ public class VariableArray extends VariableBase
       if (v == null)
         sb.append("null");
       else
-        sb.append(v.getStringValue());
+        sb.append(v.toString());
     }
     sb.append(" ]");
     return sb.toString();

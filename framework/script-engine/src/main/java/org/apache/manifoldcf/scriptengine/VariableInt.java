@@ -29,7 +29,13 @@ public class VariableInt extends VariableBase
   {
     this.value = value;
   }
-  
+
+  /** Get a displayable string for the value */
+  public String toString()
+  {
+    return Integer.toString(value);
+  }
+
   /** Get the variable's value as a string */
   public String getStringValue()
     throws ScriptException

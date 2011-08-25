@@ -709,6 +709,26 @@ public class ScriptParser
       currentStream.skip();
       return rval;
     }
+    else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("["))
+    {
+      currentStream.skip();
+      VariableArray va = new VariableArray();
+      while (true)
+      {
+        VariableReference vr = evaluateExpression(currentStream);
+        if (vr == null)
+          syntaxError(currentStream,"Missing expression in array initializer");
+        va.insert(vr.resolve());
+        t = currentStream.peek();
+        if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("]"))
+          break;
+        if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals(","))
+          syntaxError(currentStream,"Missing ','");
+        currentStream.skip();
+      }
+      currentStream.skip();
+      return va;
+    }
     return parseVariableReference_2(currentStream);
   }
   

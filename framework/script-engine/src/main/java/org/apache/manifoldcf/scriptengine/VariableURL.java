@@ -36,6 +36,22 @@ public class VariableURL extends VariableBase
       this.encodedURL = this.encodedURL.substring(0,this.encodedURL.length()-1);
   }
   
+  public String toString()
+  {
+    StringBuilder sb = new StringBuilder();
+    sb.append("\"");
+    int i = 0;
+    while (i < encodedURL.length())
+    {
+      char x = encodedURL.charAt(i++);
+      if (x == '\\' || x == '\"')
+        sb.append('\\');
+      sb.append(x);
+    }
+    sb.append("\"");
+    return sb.toString();
+  }
+  
   /** Get the variable's value as a string */
   public String getStringValue()
     throws ScriptException

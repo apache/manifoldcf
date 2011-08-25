@@ -36,6 +36,8 @@ public interface Variable
   public static String ATTRIBUTE_FLOAT = "__float__";
   /** Conversion to boolean */
   public static String ATTRIBUTE_BOOLEAN = "__boolean__";
+  /** Script value */
+  public static String ATTRIBUTE_SCRIPT = "__script__";
   /** Name attribute */
   public static String ATTRIBUTE_NAME = "__name__";
   /** Value attribute */

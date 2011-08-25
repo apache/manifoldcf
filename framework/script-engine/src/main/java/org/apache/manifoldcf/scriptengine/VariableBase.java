@@ -184,6 +184,8 @@ public class VariableBase implements Variable, VariableReference
       return new VariableFloat(getDoubleValue());
     else if (attributeName.equals(ATTRIBUTE_BOOLEAN))
       return new VariableBoolean(getBooleanValue());
+    else if (attributeName.equals(ATTRIBUTE_SCRIPT))
+      return new VariableString(toString());
     else
       throw new ScriptException("Variable has no attribute called '"+attributeName+"'");
   }

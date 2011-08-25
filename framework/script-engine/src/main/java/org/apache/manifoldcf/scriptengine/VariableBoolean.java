@@ -30,6 +30,14 @@ public class VariableBoolean extends VariableBase
     this.value = value;
   }
 
+  /** Get a displayable string for the value */
+  public String toString()
+  {
+    if (value)
+      return "true";
+    return "false";
+  }
+
   /** Get the variable's value as a boolean */
   public boolean getBooleanValue()
     throws ScriptException

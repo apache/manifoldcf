@@ -598,7 +598,7 @@
     <target name="run-script-interpreter" depends="script-engine">
         <java classname="org.apache.manifoldcf.scriptengine.ScriptParser" fork="true" dir="dist/script-engine" maxmemory="128M">
           <classpath>
-            <fileset dir="dist/script-engine/lib">
+            <fileset dir="dist/script-engine/jar">
               <include name="*.jar"/>
             </fileset>
           </classpath>
