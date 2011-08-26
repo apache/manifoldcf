@@ -713,22 +713,127 @@ public class ScriptParser
     {
       currentStream.skip();
       VariableArray va = new VariableArray();
-      while (true)
+      t = currentStream.peek();
+      if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals("]"))
       {
-        VariableReference vr = evaluateExpression(currentStream);
-        if (vr == null)
-          syntaxError(currentStream,"Missing expression in array initializer");
-        va.insert(vr.resolve());
-        t = currentStream.peek();
-        if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("]"))
-          break;
-        if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals(","))
-          syntaxError(currentStream,"Missing ','");
-        currentStream.skip();
+        while (true)
+        {
+          VariableReference vr = evaluateExpression(currentStream);
+          if (vr == null)
+            syntaxError(currentStream,"Missing expression in array initializer");
+          va.insert(vr.resolve());
+          t = currentStream.peek();
+          if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("]"))
+            break;
+          if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals(","))
+            syntaxError(currentStream,"Missing ','");
+          currentStream.skip();
+        }
       }
       currentStream.skip();
       return va;
     }
+    else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("{"))
+    {
+      currentStream.skip();
+      VariableConfiguration va = new VariableConfiguration();
+      t = currentStream.peek();
+      if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals("}"))
+      {
+        while (true)
+        {
+          VariableReference vr = evaluateExpression(currentStream);
+          if (vr == null)
+            syntaxError(currentStream,"Missing expression in configuration object initializer");
+          va.insert(vr.resolve());
+          t = currentStream.peek();
+          if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("}"))
+            break;
+          if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals(","))
+            syntaxError(currentStream,"Missing ','");
+          currentStream.skip();
+        }
+      }
+      currentStream.skip();
+      return va;
+    }
+    else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("<"))
+    {
+      currentStream.skip();
+      // Parse the node type
+      VariableReference nodeTypeRef = evaluateExpression(currentStream);
+      if (nodeTypeRef == null)
+        syntaxError(currentStream,"Missing node type");
+      Variable nodeType = resolveMustExist(currentStream,nodeTypeRef);
+      t = currentStream.peek();
+      if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals(":"))
+        syntaxError(currentStream,"Missing ':'");
+      currentStream.skip();
+      
+      VariableConfigurationNode va = new VariableConfigurationNode(nodeType.getStringValue());
+
+      // Parse the node value
+      VariableReference nodeValueRef = evaluateExpression(currentStream);
+      if (nodeValueRef == null)
+        syntaxError(currentStream,"Missing node value");
+      Variable nodeValue = resolveMustExist(currentStream,nodeValueRef);
+      t = currentStream.peek();
+      if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals(":"))
+        syntaxError(currentStream,"Missing ':'");
+      currentStream.skip();
+      
+      va.getAttribute(Variable.ATTRIBUTE_VALUE).setReference(nodeValue);
+      
+      // Parse the attributes
+      t = currentStream.peek();
+      if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals(":"))
+      {
+        while (true)
+        {
+          VariableReference vr = evaluateExpression(currentStream);
+          if (vr == null)
+            syntaxError(currentStream,"Missing name expression in configurationnode attribute initializer");
+          Variable attrName = resolveMustExist(currentStream,vr);
+          t = currentStream.peek();
+          if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals("="))
+            syntaxError(currentStream,"Missing '='");
+          currentStream.skip();
+          vr = evaluateExpression(currentStream);
+          if (vr == null)
+            syntaxError(currentStream,"Missing value expression in configurationnode attribute initializer");
+          va.getAttribute(attrName.getStringValue()).setReference(vr.resolve());
+          t = currentStream.peek();
+          if (t != null && t.getPunctuation() != null && t.getPunctuation().equals(":"))
+            break;
+          if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals(","))
+            syntaxError(currentStream,"Missing ','");
+          currentStream.skip();
+        }
+      }
+      currentStream.skip();
+
+      // Parse the children
+      t = currentStream.peek();
+      if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals(">"))
+      {
+        while (true)
+        {
+          VariableReference vr = evaluateExpression(currentStream);
+          if (vr == null)
+            syntaxError(currentStream,"Missing expression in configurationnode object initializer");
+          va.insert(vr.resolve());
+          t = currentStream.peek();
+          if (t != null && t.getPunctuation() != null && t.getPunctuation().equals(">"))
+            break;
+          if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals(","))
+            syntaxError(currentStream,"Missing ','");
+          currentStream.skip();
+        }
+      }
+      currentStream.skip();
+      return va;
+    }
+
     return parseVariableReference_2(currentStream);
   }
   
@@ -839,6 +944,111 @@ public class ScriptParser
       currentStream.skip();
       return true;
     }
+    else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("["))
+    {
+      currentStream.skip();
+      t = currentStream.peek();
+      if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals("]"))
+      {
+        while (true)
+        {
+          if (skipExpression(currentStream) == false)
+            syntaxError(currentStream,"Missing expression in array initializer");
+          t = currentStream.peek();
+          if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("]"))
+            break;
+          if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals(","))
+            syntaxError(currentStream,"Missing ','");
+          currentStream.skip();
+        }
+      }
+      currentStream.skip();
+      return true;
+    }
+    else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("{"))
+    {
+      currentStream.skip();
+      t = currentStream.peek();
+      if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals("}"))
+      {
+        while (true)
+        {
+          if (skipExpression(currentStream) == false)
+            syntaxError(currentStream,"Missing expression in configuration object initializer");
+          t = currentStream.peek();
+          if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("}"))
+            break;
+          if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals(","))
+            syntaxError(currentStream,"Missing ','");
+          currentStream.skip();
+        }
+      }
+      currentStream.skip();
+      return true;
+    }
+    else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("<"))
+    {
+      currentStream.skip();
+      // Parse the node type
+      if (skipExpression(currentStream) == false)
+        syntaxError(currentStream,"Missing node type");
+      t = currentStream.peek();
+      if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals(":"))
+        syntaxError(currentStream,"Missing ':'");
+      currentStream.skip();
+      
+      // Parse the node value
+      if (skipExpression(currentStream) == false)
+        syntaxError(currentStream,"Missing node value");
+      t = currentStream.peek();
+      if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals(":"))
+        syntaxError(currentStream,"Missing ':'");
+      currentStream.skip();
+      
+      // Parse the attributes
+      t = currentStream.peek();
+      if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals(":"))
+      {
+        while (true)
+        {
+          if (skipExpression(currentStream) == false)
+            syntaxError(currentStream,"Missing name expression in configurationnode attribute initializer");
+          t = currentStream.peek();
+          if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals("="))
+            syntaxError(currentStream,"Missing '='");
+          currentStream.skip();
+          if (skipExpression(currentStream) == false)
+            syntaxError(currentStream,"Missing value expression in configurationnode attribute initializer");
+          t = currentStream.peek();
+          if (t != null && t.getPunctuation() != null && t.getPunctuation().equals(":"))
+            break;
+          if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals(","))
+            syntaxError(currentStream,"Missing ','");
+          currentStream.skip();
+        }
+      }
+      currentStream.skip();
+
+      // Parse the children
+      t = currentStream.peek();
+      if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals(">"))
+      {
+        while (true)
+        {
+          if (skipExpression(currentStream) == false)
+            syntaxError(currentStream,"Missing expression in configurationnode object initializer");
+          t = currentStream.peek();
+          if (t != null && t.getPunctuation() != null && t.getPunctuation().equals(">"))
+            break;
+          if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals(","))
+            syntaxError(currentStream,"Missing ','");
+          currentStream.skip();
+        }
+      }
+      currentStream.skip();
+      return true;
+    }
+
     return skipVariableReference_2(currentStream);
   }
 
