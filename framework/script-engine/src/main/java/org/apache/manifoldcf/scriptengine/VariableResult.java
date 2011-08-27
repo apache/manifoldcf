@@ -57,7 +57,7 @@ public class VariableResult extends VariableBase
       return new VariableBoolean(resultCode == 201);
     else if (attributeName.equals(ATTRIBUTE_NOTFOUNDSTATUS))
       return new VariableBoolean(resultCode == 404);
-    else if (attributeName.equals(ATTRIBUTE_RESULT))
+    else if (attributeName.equals(ATTRIBUTE_VALUE))
       return result;
     else
       return super.getAttribute(attributeName);

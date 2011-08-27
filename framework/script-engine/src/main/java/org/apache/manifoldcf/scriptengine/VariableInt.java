@@ -72,7 +72,8 @@ public class VariableInt extends VariableBase
       throw new ScriptException("- operand cannot be null");
     return new VariableInt(value - v.getIntValue());
   }
-    
+
+  
   public VariableReference asterisk(Variable v)
     throws ScriptException
   {
@@ -157,6 +158,12 @@ public class VariableInt extends VariableBase
     if (v == null)
       throw new ScriptException("| operand cannot be null");
     return new VariableInt(value | v.getIntValue());
+  }
+
+  public VariableReference unaryExclamation()
+    throws ScriptException
+  {
+    return new VariableInt(value ^ value);
   }
 
 }

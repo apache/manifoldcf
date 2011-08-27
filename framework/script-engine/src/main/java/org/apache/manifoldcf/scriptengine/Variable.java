@@ -50,8 +50,6 @@ public interface Variable
   public static String ATTRIBUTE_NOTFOUNDSTATUS = "__NOTFOUND__";
   /** CREATED status attribute */
   public static String ATTRIBUTE_CREATEDSTATUS = "__CREATED__";
-  /** RESULT attribute */
-  public static String ATTRIBUTE_RESULT = "__result__";
   
   /** Get the variable's value as a string */
   public String getStringValue()

@@ -45,13 +45,20 @@ public class VariableBoolean extends VariableBase
     return value;
   }
 
-  /** Get the variable's value as a string */
-  public String getStringValue()
+  public VariableReference doubleEquals(Variable v)
     throws ScriptException
   {
-    if (value)
-      return "true";
-    return "false";
+    if (v == null)
+      throw new ScriptException("== operand cannot be null");
+    return new VariableBoolean(value == v.getBooleanValue());
+  }
+
+  public VariableReference exclamationEquals(Variable v)
+    throws ScriptException
+  {
+    if (v == null)
+      throw new ScriptException("!= operand cannot be null");
+    return new VariableBoolean(value != v.getBooleanValue());
   }
 
   public VariableReference doubleAmpersand(Variable v)
@@ -67,6 +74,22 @@ public class VariableBoolean extends VariableBase
   {
     if (v == null)
       throw new ScriptException("|| operand cannot be null");
+    return new VariableBoolean(value || v.getBooleanValue());
+  }
+
+  public VariableReference ampersand(Variable v)
+    throws ScriptException
+  {
+    if (v == null)
+      throw new ScriptException("& operand cannot be null");
+    return new VariableBoolean(value && v.getBooleanValue());
+  }
+    
+  public VariableReference pipe(Variable v)
+    throws ScriptException
+  {
+    if (v == null)
+      throw new ScriptException("| operand cannot be null");
     return new VariableBoolean(value || v.getBooleanValue());
   }
 

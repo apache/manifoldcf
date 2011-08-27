@@ -83,6 +83,7 @@
           <tr><td><em>lib</em></td><td>jars for all the connector plugins, which should be referenced by the appropriate clause in the ManifoldCF configuration file</td></tr>
           <tr><td><em>wsdd</em></td><td>wsdd files that are needed by the included connectors in order to function</td></tr>
           <tr><td><em>xxx-process</em></td><td>scripts, classpath jars, and -D switch values needed for a required connector-specific process</td></tr>
+          <tr><td><em>script-engine</em></td><td>jars and scripts for running the ManifoldCF script interpreter</td></tr>
           <tr><td><em>example</em></td><td>a jetty-based example that runs in a single process (except for any connector-specific processes)</td></tr>
           <tr><td><em>doc</em></td><td>javadocs for framework and all included connectors</td></tr>
         </table>
