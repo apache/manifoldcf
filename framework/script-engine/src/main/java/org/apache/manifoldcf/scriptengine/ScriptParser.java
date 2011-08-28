@@ -1164,15 +1164,33 @@ public class ScriptParser
           i++;
         }
         sp.addVariable("__args__",va);
+        TokenStream ts = new BasicTokenStream(reader);
+        sp.parseStatements(ts);
+        Token t = ts.peek();
+        if (t != null)
+          t.throwException("Characters after end of script");
       }
       else
+      {
         reader = new InputStreamReader(System.in);
       
-      TokenStream ts = new BasicTokenStream(reader);
-      sp.parseStatements(ts);
-      Token t = ts.peek();
-      if (t != null)
-        t.throwException("Characters after end of script");
+        while (true)
+        {
+          try
+          {
+            TokenStream ts = new BasicTokenStream(reader);
+            sp.parseStatements(ts);
+            Token t = ts.peek();
+            if (t != null)
+              t.throwException("Characters after end of script");
+            break;
+          }
+          catch (ScriptException e)
+          {
+            System.out.println("Error: "+e.getMessage());
+          }
+        }
+      }
     }
     catch (Exception e)
     {
