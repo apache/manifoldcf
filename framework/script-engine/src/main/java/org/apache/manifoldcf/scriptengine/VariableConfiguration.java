@@ -31,6 +31,11 @@ public class VariableConfiguration extends VariableBase
   {
     configuration = new Configuration();
   }
+
+  public VariableConfiguration(Configuration c)
+  {
+    configuration = c;
+  }
   
   public VariableConfiguration(String json)
     throws ScriptException
@@ -112,8 +117,18 @@ public class VariableConfiguration extends VariableBase
   public VariableReference plus(Variable v)
     throws ScriptException
   {
-    insert(v);
-    return this;
+    if (v == null)
+      throw new ScriptException("Can't add a null object");
+    ConfigurationNode node = v.getConfigurationNodeValue();
+    Configuration c = new Configuration();
+    int i = 0;
+    while (i < configuration.getChildCount())
+    {
+      ConfigurationNode child = configuration.findChild(i++);
+      c.addChild(c.getChildCount(),child);
+    }
+    c.addChild(c.getChildCount(),node);
+    return new VariableConfiguration(c);
   }
 
   /** Delete an object from this variable at a position. */

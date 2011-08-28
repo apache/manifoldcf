@@ -280,7 +280,7 @@ print "3".__int__+7;
       </section>
       <section>
         <title>Arrays</title>
-        <p>Array variable types are created by an initializer of the form '[' expression ',' ... expression ']'.  For example, the code '[3, 4]' will create an array
+        <p>Array variable types are created by an initializer of the form '[' expression ',' ... expression ']'.  For example, the script code '[3, 4]' will create an array
           variable type with two values,  the integer "3" and the integer "4".</p>
         <p>The operations supported for this variable type, and their meanings, are listed in the table below:</p>
         <table>
@@ -289,10 +289,22 @@ print "3".__int__+7;
           <tr><td>subscript []</td><td>Find the specified subscript variable, yielding the variable</td><td>[3,4] [0]</td></tr>
         </table>
         <p>In addition, the standard attributes <em>__script__</em> and <em>__size__</em> are supported 
-          by array types.</p>
+          by array types, as well as the <em>insert</em> and <em>remove</em> statements.</p>
       </section>
       <section>
         <title>Configurations</title>
+        <p>Configuration variables contain the equivalent of the JSON used to communicate with the ManifoldCF API.  They can be created using an initializer
+          of the form '{' expression ',' ... expression '}'.  For example, the script code '{ &lt; "outputconnector" : "" :  : , &lt; "description" : "Solr" :  :  &gt;, &lt; "class_name" : "org.apache.manifoldcf.agents.output.solr.SolrConnector" :  :  &gt; &gt; }'
+          would create a configuration variable equivalent to one that might be returned from the ManifoldCF API if it was queried for the output connectors registered by the system.</p>
+        <p>The operations supported for this variable type, and their meanings are listed in the table below:</p>
+        <table>
+          <caption>Configuration operations</caption>
+          <tr><th>Operation</th><th>Meaning</th><th>Example</th></tr>
+          <tr><td>subscript []</td><td>Find the specified child configuration node variable, yielding the variable</td><td>myconfig [0]</td></tr>
+          <tr><td>binary +</td><td>Append a configuration child node variable to the list</td><td>myconfig + &lt; "something" : "somethingvalue" : : &gt;</td></tr>
+        </table>
+        <p>In addition, the standard attributes <em>__script__</em> and <em>__size__</em> are supported 
+          by configuration variable types, as well as the <em>insert</em> and <em>remove</em> statements.</p>
       </section>
       <section>
         <title>Configuration nodes</title>

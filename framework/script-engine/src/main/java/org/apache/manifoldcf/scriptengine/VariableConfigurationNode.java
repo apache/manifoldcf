@@ -47,9 +47,8 @@ public class VariableConfigurationNode extends VariableBase
     sb.append(" : ");
     String valueField = configurationNode.getValue();
     if (valueField == null)
-      sb.append("null");
-    else
-      sb.append(new VariableString(valueField).toString());
+      valueField = "";
+    sb.append(new VariableString(valueField).toString());
     sb.append(" : ");
     boolean needComma = false;
     Iterator<String> iter = configurationNode.getAttributes();
@@ -83,7 +82,7 @@ public class VariableConfigurationNode extends VariableBase
     throws ScriptException
   {
     if (configurationNode.getValue() == null)
-      return super.getStringValue();
+      return "";
     return configurationNode.getValue();
   }
   
@@ -106,9 +105,7 @@ public class VariableConfigurationNode extends VariableBase
       return new VariableString(configurationNode.getType());
     // And the __value__ attribute
     if (attributeName.equals(ATTRIBUTE_VALUE))
-    {
       return new ValueReference();
-    }
     // All others are presumed to be attributes of the configuration node, which can be set or cleared.
     return new AttributeReference(attributeName);
   }
@@ -146,8 +143,26 @@ public class VariableConfigurationNode extends VariableBase
   public VariableReference plus(Variable v)
     throws ScriptException
   {
-    insert(v);
-    return this;
+    if (v == null)
+      throw new ScriptException("Can't add a null object");
+    ConfigurationNode node = v.getConfigurationNodeValue();
+    ConfigurationNode cn = new ConfigurationNode(configurationNode.getType());
+    cn.setValue(configurationNode.getValue());
+    Iterator<String> attIter = configurationNode.getAttributes();
+    while (attIter.hasNext())
+    {
+      String attrName = attIter.next();
+      String attrValue = configurationNode.getAttributeValue(attrName);
+      cn.setAttribute(attrName,attrValue);
+    }
+    int i = 0;
+    while (i < configurationNode.getChildCount())
+    {
+      ConfigurationNode child = configurationNode.findChild(i++);
+      cn.addChild(cn.getChildCount(),child);
+    }
+    cn.addChild(cn.getChildCount(),node);
+    return new VariableConfigurationNode(cn);
   }
 
   /** Delete an object from this variable at a position. */
@@ -183,14 +198,13 @@ public class VariableConfigurationNode extends VariableBase
     {
       String value = configurationNode.getValue();
       if (value == null)
-        throw new ScriptException("ConfigurationNode value is null");
-      else
-        return new VariableString(value);
+        value = "";
+      return new VariableString(value);
     }
     
     public boolean isNull()
     {
-      return configurationNode.getValue() == null;
+      return false;
     }
   }
   
