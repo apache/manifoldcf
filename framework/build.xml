@@ -37,6 +37,8 @@
             <fileset dir="agents/src/main/java" includes="**/*.java"/>
             <fileset dir="pull-agent/src/main/java" includes="**/*.java"/>
             <fileset dir="ui-core/src/main/java" includes="**/*.java"/>
+            <fileset dir="script-engine/src/main/java" includes="**/*.java"/>
+            <fileset dir="jetty-runner/src/main/java" includes="**/*.java"/>
         </javadoc>
     </target>
     
