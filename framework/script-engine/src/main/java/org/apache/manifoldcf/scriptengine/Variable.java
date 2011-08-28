@@ -39,7 +39,7 @@ public interface Variable
   /** Script value */
   public static String ATTRIBUTE_SCRIPT = "__script__";
   /** Name attribute */
-  public static String ATTRIBUTE_NAME = "__name__";
+  public static String ATTRIBUTE_TYPE = "__type__";
   /** Value attribute */
   public static String ATTRIBUTE_VALUE = "__value__";
   /** Size attribute */

@@ -100,8 +100,8 @@ public class VariableConfigurationNode extends VariableBase
     // We recognize the __size__ attribute
     if (attributeName.equals(ATTRIBUTE_SIZE))
       return new VariableInt(configurationNode.getChildCount());
-    // Also, the __name__ attribute
-    if (attributeName.equals(ATTRIBUTE_NAME))
+    // Also, the __type__ attribute
+    if (attributeName.equals(ATTRIBUTE_TYPE))
       return new VariableString(configurationNode.getType());
     // And the __value__ attribute
     if (attributeName.equals(ATTRIBUTE_VALUE))

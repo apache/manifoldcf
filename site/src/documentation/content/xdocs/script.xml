@@ -136,9 +136,9 @@ expression:
 --&gt; expression '*' expression
 --&gt; expression '/' expression
 --&gt; '-' expression
---&gt; '[' expression ',' ... expression ']'
---&gt; '{' expression ',' ... expression '}'
---&gt; '&lt;' expression ':' expression ':' expression '=' expression ',' ... expression '=' expression ':' expression ',' ... expression '&gt;'
+--&gt; '[' [expression [',' expression ...]] ']'
+--&gt; '{' [expression [',' expression ...]] '}'
+--&gt; '&lt;' expression ':' expression ':' [expression '=' expression [',' expression '=' expression ...]] ':' [expression [',' expression ...]] '&gt;'
 --&gt; expression '[' expression ']'
 --&gt; expression '.' token
 --&gt; token
@@ -186,8 +186,8 @@ print "3".__int__+7;
         <tr><td>__int__</td><td>Returns the integer value of the variable, if any</td></tr>
         <tr><td>__float__</td><td>Returns the floating-point value of the variable, if any</td></tr>
         <tr><td>__boolean__</td><td>Returns the boolean value of the variable, if any</td></tr>
-        <tr><td>__size__</td><td>Returns the number of subscript children</td></tr>
-        <tr><td>__name__</td><td>Returns the 'name' of the variable</td></tr>
+        <tr><td>__size__</td><td>Typically returns the number of subscript children</td></tr>
+        <tr><td>__type__</td><td>Returns the 'type' of the variable</td></tr>
         <tr><td>__value__</td><td>Returns the 'value' of the variable</td></tr>
         <tr><td>__OK__</td><td>Returns a boolean 'true' if the variable was "OK", false otherwise</td></tr>
         <tr><td>__NOTFOUND__</td><td>Returns a boolean 'true' if the variable was "NOTFOUND", false otherwise</td></tr>
@@ -261,7 +261,7 @@ print "3".__int__+7;
       </section>
       <section>
         <title>Booleans</title>
-        <p>Boolean variable types are created by the keywords 'true' and 'false'.  For example, the token 'true' will create a boolean
+        <p>Boolean variable types are created by the keywords <strong>true</strong> and <strong>false</strong>.  For example, the code 'true' will create a boolean
           variable type with a value of "true".</p>
         <p>The operations supported for this variable type, and their meanings, are listed in the table below:</p>
         <table>
@@ -280,7 +280,7 @@ print "3".__int__+7;
       </section>
       <section>
         <title>Arrays</title>
-        <p>Array variable types are created by an initializer of the form '[' expression ',' ... expression ']'.  For example, the script code '[3, 4]' will create an array
+        <p>Array variable types are created by an initializer of the form <strong>[</strong> [<em>expression</em> [<strong>,</strong> <em>expression</em> ...]] <strong>]</strong>.  For example, the script code '[3, 4]' will create an array
           variable type with two values,  the integer "3" and the integer "4".</p>
         <p>The operations supported for this variable type, and their meanings, are listed in the table below:</p>
         <table>
@@ -294,7 +294,7 @@ print "3".__int__+7;
       <section>
         <title>Configurations</title>
         <p>Configuration variables contain the equivalent of the JSON used to communicate with the ManifoldCF API.  They can be created using an initializer
-          of the form '{' expression ',' ... expression '}'.  For example, the script code '{ &lt; "outputconnector" : "" :  : , &lt; "description" : "Solr" :  :  &gt;, &lt; "class_name" : "org.apache.manifoldcf.agents.output.solr.SolrConnector" :  :  &gt; &gt; }'
+          of the form <strong>{</strong> [<em>expression</em> [<strong>,</strong> <em>expression</em> ...]] <strong>}</strong>.  For example, the script code '{ &lt; "outputconnector" : "" :  : , &lt; "description" : "Solr" :  :  &gt;, &lt; "class_name" : "org.apache.manifoldcf.agents.output.solr.SolrConnector" :  :  &gt; &gt; }'
           would create a configuration variable equivalent to one that might be returned from the ManifoldCF API if it was queried for the output connectors registered by the system.</p>
         <p>The operations supported for this variable type, and their meanings are listed in the table below:</p>
         <table>
@@ -308,21 +308,73 @@ print "3".__int__+7;
       </section>
       <section>
         <title>Configuration nodes</title>
+        <p>Configuration node variable types are children of configuration variable types or configuration node variable types.  They have several components, as listed below:</p>
+        <ul>
+          <li>A type</li>
+          <li>A value</li>
+          <li>Attributes, described as a set of name/value pairs</li>
+          <li>Children, which must be configuration node variable types</li>
+        </ul>
+        <p>Configuration node variable types can be created using an initializer of the form <strong>&lt;</strong> <em>expression</em> <strong>:</strong> <em>expression</em> <strong>:</strong> [<em>expression</em> <strong>=</strong> <em>expression</em> [<strong>,</strong> <em>expression</em> <strong>=</strong> <em>expression</em> ...]] <strong>:</strong> [<em>expression</em> [<strong>,</strong> <em>expression</em> ... ]] '&gt;'.
+          The first expression represents the type of the node.  The second is the node's value.  The series of '=' expressions represents attribute names and values.  The last series represents
+          the children of the node.  For example, the script code '&lt; "description" : "Solr" :  :  &gt;' represents a node of type 'description' with a value of 'Solr', with no attributes or children.</p>
+        <p>The operations supported for this variable type, and their meanings are listed in the table below:</p>
+        <table>
+          <caption>Configuration node operations</caption>
+          <tr><th>Operation</th><th>Meaning</th><th>Example</th></tr>
+          <tr><td>subscript []</td><td>Find the specified child configuration node variable, yielding the variable</td><td>myconfig [0]</td></tr>
+          <tr><td>binary +</td><td>Append a configuration child node variable to the list</td><td>myconfig + &lt; "something" : "somethingvalue" : : &gt;</td></tr>
+        </table>
+        <p>In addition, the standard attributes <em>__script__</em>, <em>__string__</em>, <em>__size__</em>, <em>__type__</em>, and <em>__value__</em> are supported 
+          by configuration node variable types, as well as the <em>insert</em> and <em>remove</em> statements.</p>
       </section>
       <section>
         <title>URLs</title>
+        <p>URL variable types exist to take care of the details of URL encoding while assembling the REST URL's needed to describe objects in ManifoldCF's REST API.  A URL variable
+          type can be created using a 'new' operation of the form <strong>new</strong> <strong>url</strong> <em>expression</em>, where the expression is the already-encoded root path.  For example, the script code 'new url "http://localhost:8345/mcf-api-service/json"'
+          would create a URL variable type with the root path "http://localhost:8345/mcf-api-service/json".</p>
+        <p>The operations supported for this variable type, and their meanings are listed in the table below:</p>
+        <table>
+          <caption>URL operations</caption>
+          <tr><th>Operation</th><th>Meaning</th><th>Example</th></tr>
+          <tr><td>binary ==</td><td>Equals comparison, yielding a boolean</td><td>url1 == url2</td></tr>
+          <tr><td>binary !=</td><td>Non-equals comparison, yielding a boolean</td><td>url1 != url2</td></tr>
+          <tr><td>binary +</td><td>Append and encode another path element, yielding a URL</td><td>url1 + "repositoryconnections"</td></tr>
+        </table>
+        <p>In addition, the standard attributes <em>__script__</em> and <em>__string__</em>  are supported 
+          by URL variable types.</p>
       </section>
       <section>
         <title>Connection names</title>
+        <p>Connection name variable types exist to perform the extra URL encoding needed for ManifoldCF's REST API.  Connection names must be specially encoded so that they do not
+          contain slash characters ('/').  Connection name variable types take care of this encoding.</p>
+        <p>You can create a connection name variable type using the following syntax: <strong>new</strong> <strong>connectionname</strong> <em>expression</em>, where the expression is the name of the connection.
+        </p>
+        <p>The operations supported for this variable type, and their meanings are listed in the table below:</p>
+        <table>
+          <caption>URL operations</caption>
+          <tr><th>Operation</th><th>Meaning</th><th>Example</th></tr>
+          <tr><td>binary ==</td><td>Equals comparison, yielding a boolean</td><td>cn1 == cn2</td></tr>
+          <tr><td>binary !=</td><td>Non-equals comparison, yielding a boolean</td><td>cn1 != cn2</td></tr>
+        </table>
+        <p>In addition, the standard attributes <em>__script__</em> and <em>__string__</em>  are supported 
+          by connection name variable types.</p>
       </section>
       <section>
         <title>Results</title>
+        <p>Result variable types capture the result of a GET, PUT, POST, or DELETE statement.  They consist of two parts:</p>
+        <ul>
+          <li>A result code</li>
+          <li>A result configuration value</li>
+        </ul>
+        <p>There is no way to directly create a result variable type, nor does it support any operations.  However, the standard attributes <em>__script__</em>, <em>__string__</em>,
+          <em>__value__</em>, <em>__OK__</em>, <em>__NOTFOUND__</em>, and <em>__CREATED__</em> are all supported by result variable types.</p>
       </section>
     </section>
     
     <section>
       <title>Statements</title>
-      <p>The statements available to a ManifoldCF programmer are designed to support interaction with the ManifoldCF API.  Thus, there is support for
+      <p>The statements available to a ManifoldCF script programmer are designed to support interaction with the ManifoldCF API.  Thus, there is support for
         all four HTTP verbs, as well as basic variable setting and control flow.  The table below describes each statement type:</p>
       <table>
         <caption>Statement types</caption>
