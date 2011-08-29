@@ -42,7 +42,7 @@ public class VariableConfigurationNode extends VariableBase
   public String toString()
   {
     StringBuilder sb = new StringBuilder();
-    sb.append("< ");
+    sb.append("<< ");
     sb.append(new VariableString(configurationNode.getType()).toString());
     sb.append(" : ");
     String valueField = configurationNode.getValue();
@@ -68,12 +68,13 @@ public class VariableConfigurationNode extends VariableBase
     int i = 0;
     while (i < configurationNode.getChildCount())
     {
-      ConfigurationNode child = configurationNode.findChild(i++);
+      ConfigurationNode child = configurationNode.findChild(i);
       if (i > 0)
         sb.append(", ");
       sb.append(new VariableConfigurationNode(child).toString());
+      i++;
     }
-    sb.append(" >");
+    sb.append(" >>");
     return sb.toString();
   }
 

@@ -190,7 +190,9 @@ public class BasicTokenStream implements TokenStream
             y == '>' && q == '=' ||
             y == '<' && q == '=' ||
             y == '&' && q == '&' ||
-            y == '|' && q == '|')
+            y == '|' && q == '|' ||
+            y == '>' && q == '>' ||
+            y == '<' && q == '<')
           {
             characterStream.skip();
             return new Token(Token.TOKEN_PUNCTUATION,new StringBuilder().append(y).append(q).toString(),

@@ -138,7 +138,7 @@ expression:
 --&gt; '-' expression
 --&gt; '[' [expression [',' expression ...]] ']'
 --&gt; '{' [expression [',' expression ...]] '}'
---&gt; '&lt;' expression ':' expression ':' [expression '=' expression [',' expression '=' expression ...]] ':' [expression [',' expression ...]] '&gt;'
+--&gt; '&lt;&lt;' expression ':' expression ':' [expression '=' expression [',' expression '=' expression ...]] ':' [expression [',' expression ...]] '&gt;&gt;'
 --&gt; expression '[' expression ']'
 --&gt; expression '.' token
 --&gt; token
@@ -315,7 +315,7 @@ print "3".__int__+7;
           <li>Attributes, described as a set of name/value pairs</li>
           <li>Children, which must be configuration node variable types</li>
         </ul>
-        <p>Configuration node variable types can be created using an initializer of the form <strong>&lt;</strong> <em>expression</em> <strong>:</strong> <em>expression</em> <strong>:</strong> [<em>expression</em> <strong>=</strong> <em>expression</em> [<strong>,</strong> <em>expression</em> <strong>=</strong> <em>expression</em> ...]] <strong>:</strong> [<em>expression</em> [<strong>,</strong> <em>expression</em> ... ]] '&gt;'.
+        <p>Configuration node variable types can be created using an initializer of the form <strong>&lt;&lt;</strong> <em>expression</em> <strong>:</strong> <em>expression</em> <strong>:</strong> [<em>expression</em> <strong>=</strong> <em>expression</em> [<strong>,</strong> <em>expression</em> <strong>=</strong> <em>expression</em> ...]] <strong>:</strong> [<em>expression</em> [<strong>,</strong> <em>expression</em> ... ]] '&gt;&gt;'.
           The first expression represents the type of the node.  The second is the node's value.  The series of '=' expressions represents attribute names and values.  The last series represents
           the children of the node.  For example, the script code '&lt; "description" : "Solr" :  :  &gt;' represents a node of type 'description' with a value of 'Solr', with no attributes or children.</p>
         <p>The operations supported for this variable type, and their meanings are listed in the table below:</p>
@@ -323,7 +323,7 @@ print "3".__int__+7;
           <caption>Configuration node operations</caption>
           <tr><th>Operation</th><th>Meaning</th><th>Example</th></tr>
           <tr><td>subscript []</td><td>Find the specified child configuration node variable, yielding the variable</td><td>myconfig [0]</td></tr>
-          <tr><td>binary +</td><td>Append a configuration child node variable to the list</td><td>myconfig + &lt; "something" : "somethingvalue" : : &gt;</td></tr>
+          <tr><td>binary +</td><td>Append a configuration child node variable to the list</td><td>myconfig + &lt;&lt; "something" : "somethingvalue" : : &gt;&gt;</td></tr>
         </table>
         <p>In addition, the standard attributes <em>__script__</em>, <em>__string__</em>, <em>__size__</em>, <em>__type__</em>, and <em>__value__</em> are supported 
           by configuration node variable types, as well as the <em>insert</em> and <em>remove</em> statements.</p>

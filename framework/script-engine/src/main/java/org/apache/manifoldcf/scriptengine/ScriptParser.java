@@ -757,7 +757,7 @@ public class ScriptParser
       currentStream.skip();
       return va;
     }
-    else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("<"))
+    else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("<<"))
     {
       currentStream.skip();
       // Parse the node type
@@ -814,7 +814,7 @@ public class ScriptParser
 
       // Parse the children
       t = currentStream.peek();
-      if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals(">"))
+      if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals(">>"))
       {
         while (true)
         {
@@ -823,7 +823,7 @@ public class ScriptParser
             syntaxError(currentStream,"Missing expression in configurationnode object initializer");
           va.insert(vr.resolve());
           t = currentStream.peek();
-          if (t != null && t.getPunctuation() != null && t.getPunctuation().equals(">"))
+          if (t != null && t.getPunctuation() != null && t.getPunctuation().equals(">>"))
             break;
           if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals(","))
             syntaxError(currentStream,"Missing ','");
@@ -986,7 +986,7 @@ public class ScriptParser
       currentStream.skip();
       return true;
     }
-    else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("<"))
+    else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("<<"))
     {
       currentStream.skip();
       // Parse the node type
@@ -1031,14 +1031,14 @@ public class ScriptParser
 
       // Parse the children
       t = currentStream.peek();
-      if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals(">"))
+      if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals(">>"))
       {
         while (true)
         {
           if (skipExpression(currentStream) == false)
             syntaxError(currentStream,"Missing expression in configurationnode object initializer");
           t = currentStream.peek();
-          if (t != null && t.getPunctuation() != null && t.getPunctuation().equals(">"))
+          if (t != null && t.getPunctuation() != null && t.getPunctuation().equals(">>"))
             break;
           if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals(","))
             syntaxError(currentStream,"Missing ','");

@@ -1,0 +1,58 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Script to create a file system job and run it, sending the files to the null output connector
+# Argument: the base path of the API service, e.g. "http://localhost:8345/mcf-api-service".
+
+# Decode the argument, if any
+if __args__.__size__ > 1 then
+  error "Usage: file-crawl-example <url_path>";
+;
+if __args__.__size__ == 0 then
+  set basepath = "http://localhost:8345/mcf-api-service";
+else
+  set basepath = __argv__[0];
+;
+set baseurl = (new url basepath) + "json";
+
+# Define all the connection names, job names, etc.
+set outputConnectionName = "Null Output";
+set outputConnectionDescription = "Null Output Connection";
+set repositoryConnectionName = "File System";
+set repositoryConnectionDescription = "File System Connection";
+set fileCrawlJobName = "File system crawl";
+set fileCrawlJobDescription = "Crawl local file system";
+set fileCrawlPath = "../../.."; # Crawl the main folder
+
+# Now, create the null output connection, unless it's already there.
+PUT result = {
+  << "outputconnection" : "" :  :
+    << "description" : outputConnectionDescription :  :  >>,
+    << "configuration" : "" :  :  >>,
+    << "class_name" : "org.apache.manifoldcf.agents.output.nullconnector.NullConnector" :  :  >>,
+    << "name" : outputConnectionName :  :  >>,
+    << "max_connections" : "100" :  :  >> >>
+  }
+  to baseurl + "outputconnections" + new connectionname outputConnectionName;
+if result.__CREATED__ then
+  print "Created output connection";
+else
+  if result.__OK__ then
+    print "Output connection already exists";
+  else
+    error "Unexpected result: "+result.__script__;
+  ;
+;
+
