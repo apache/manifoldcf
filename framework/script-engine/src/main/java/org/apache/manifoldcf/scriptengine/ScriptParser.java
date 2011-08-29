@@ -66,7 +66,18 @@ public class ScriptParser
     cvr.setReference(v);
     context.put(variableName,cvr);
   }
-  
+
+  /** Execute script. */
+  public void execute(TokenStream currentStream)
+    throws ScriptException
+  {
+    if (parseStatements(currentStream))
+      localError(currentStream,"Break command must be inside a loop");
+    Token t = currentStream.peek();
+    if (t != null)
+      t.throwException("Characters after end of script");
+  }
+
   // Statement return codes
   protected static final int STATEMENT_NOTME = 0;
   protected static final int STATEMENT_ISME = 1;
@@ -1166,10 +1177,7 @@ public class ScriptParser
         }
         sp.addVariable("__args__",va);
         TokenStream ts = new BasicTokenStream(reader);
-        sp.parseStatements(ts);
-        Token t = ts.peek();
-        if (t != null)
-          t.throwException("Characters after end of script");
+        sp.execute(ts);
       }
       else
       {
@@ -1177,18 +1185,17 @@ public class ScriptParser
       
         while (true)
         {
+          TokenStream ts = new BasicTokenStream(reader);
           try
           {
-            TokenStream ts = new BasicTokenStream(reader);
-            sp.parseStatements(ts);
-            Token t = ts.peek();
-            if (t != null)
-              t.throwException("Characters after end of script");
+            sp.execute(ts);
             break;
           }
           catch (ScriptException e)
           {
             System.out.println("Error: "+e.getMessage());
+            if (ts.peek() == null)
+              break;
           }
         }
       }
