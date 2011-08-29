@@ -1135,6 +1135,7 @@ public class ScriptParser
     sp.addCommand("insert",new InsertCommand());
     sp.addCommand("remove",new RemoveCommand());
     sp.addCommand("error",new ErrorCommand());
+    sp.addCommand("wait",new WaitCommand());
     
     sp.addCommand("GET",new GETCommand());
     sp.addCommand("PUT",new PUTCommand());
