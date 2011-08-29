@@ -113,6 +113,7 @@ statement:
 --&gt; 'error' expression ';'
 --&gt; 'insert' expression 'into' expression ['at' expression] ';'
 --&gt; 'remove' expression 'from' expression ';'
+--&gt; 'wait' expression ';'
 --&gt; 'GET' expression '=' expression ';'
 --&gt; 'PUT' expression '=' expression 'to' expression ';'
 --&gt; 'POST' expression '=' expression 'to' expression ';'
@@ -385,6 +386,7 @@ print "3".__int__+7;
         <tr><td>'while' expression 'do' statements ';'</td><td>While expression is true, execute the specified statements, and repeat</td><td>while count > 0 do set count = count - 1; ;</td></tr>
         <tr><td>'break' ';'</td><td>Exits from the nearest enclosing while loop</td><td>while true do break; ;</td></tr>
         <tr><td>'error' expression ';'</td><td>Aborts the script with a script exception based on the string value of the expression</td><td>error "bad stuff";</td></tr>
+        <tr><td>'wait' expression ';'</td><td>Waits the number of milliseconds corresponding to the integer value of the expression</td><td>wait 1000;</td></tr>
         <tr><td>'insert' expression 'into' expression ['at' expression] ';'</td><td>Inserts the first expression into the second variable expression, either at the end or optionally at the position specified by the third expression</td><td>insert 4 into myarray at 0 ;</td></tr>
         <tr><td>'delete' expression 'from' expression ';'</td><td>Deletes the element described by the first expression from the second expression</td><td>delete 0 from myarray ;</td></tr>
         <tr><td>'GET' expression '=' expression ';'</td><td>Perform an HTTP GET from the URL specified in the second expression capturing the result in the first expression</td><td>GET result = new url "http://localhost:8345/mcf-api-service/json/repositoryconnections" ;</td></tr>
