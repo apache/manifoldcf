@@ -1171,7 +1171,7 @@ public class ScriptParser
         int i = 0;
         while (i < argv.length - 1)
         {
-          String arg = argv[i-1];
+          String arg = argv[i+1];
           va.insert(new VariableString(arg));
           i++;
         }

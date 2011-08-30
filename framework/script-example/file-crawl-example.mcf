@@ -17,13 +17,13 @@
 # Argument: the base path of the API service, e.g. "http://localhost:8345/mcf-api-service".
 
 # Decode the argument, if any
-if __args__.__size__ > 1 then
-  error "Usage: file-crawl-example <url_path>";
+if __args__.__size__ > 2 || __args__.__size__ < 1 then
+  error "Usage: file-crawl-example <file_path> [<url_path>]";
 ;
-if __args__.__size__ == 0 then
+if __args__.__size__ == 1 then
   set basepath = "http://localhost:8345/mcf-api-service";
 else
-  set basepath = __argv__[0];
+  set basepath = __args__[1];
 ;
 set baseurl = (new url basepath) + "json";
 
@@ -32,9 +32,8 @@ set outputConnectionName = "Null Output";
 set outputConnectionDescription = "Null Output Connection";
 set repositoryConnectionName = "File System";
 set repositoryConnectionDescription = "File System Connection";
-set fileCrawlJobName = "File system crawl";
-set fileCrawlJobDescription = "Crawl local file system";
-set fileCrawlPath = "../../.."; # Crawl the main folder
+set fileCrawlPath = __args__[0];
+set fileCrawlJobName = "File system crawl of "+fileCrawlPath;
 
 # Now, create the null output connection, unless it's already there.
 PUT result = {
@@ -43,16 +42,88 @@ PUT result = {
     << "configuration" : "" :  :  >>,
     << "class_name" : "org.apache.manifoldcf.agents.output.nullconnector.NullConnector" :  :  >>,
     << "name" : outputConnectionName :  :  >>,
-    << "max_connections" : "100" :  :  >> >>
-  }
+    << "max_connections" : "100" :  :  >> >> }
   to baseurl + "outputconnections" + new connectionname outputConnectionName;
-if result.__CREATED__ then
-  print "Created output connection";
+if result.__CREATED__ || result.__OK__ then
+  print "Output connection created (or already exists)";
 else
-  if result.__OK__ then
-    print "Output connection already exists";
-  else
-    error "Unexpected result: "+result.__script__;
-  ;
+  error "Unexpected result: "+result.__script__;
 ;
 
+# Same deal with the repository connection
+PUT result = {
+  << "repositoryconnection" : "" :  : 
+    << "description" : repositoryConnectionDescription :  :  >>,
+    << "configuration" : "" :  :  >>,
+    << "class_name" : "org.apache.manifoldcf.crawler.connectors.filesystem.FileConnector" :  :  >>,
+    << "name" : repositoryConnectionName :  :  >>,
+    << "max_connections" : "100" :  :  >> >> }
+  to baseurl + "repositoryconnections" + new connectionname repositoryConnectionName;
+if result.__CREATED__ || result.__OK__ then
+  print "Repository connection created (or already exists)";
+else
+  error "Unexpected result: "+result.__script__;
+;
+
+# Create the job (if it can't find it)
+POST result = {
+  << "job" : "" :  : 
+    << "start_mode" : "manual" :  :  >>,
+    << "reseed_interval" : "3600000" :  :  >>,
+    << "schedule" : "" :  :  >>,
+    << "recrawl_interval" : "86400000" :  :  >>,
+    << "run_mode" : "scan once" :  :  >>,
+    << "hopcount_mode" : "never delete" :  :  >>,
+    << "output_specification" : "" :  :  >>,
+    << "description" : fileCrawlJobName :  :  >>,
+    << "document_specification" : "" :  :
+      << "startpoint" : "" : "path"=fileCrawlPath : 
+        << "include" : "" : "match"="*", "type"="file" :  >>,
+        << "include" : "" : "match"="*", "type"="directory" :  >> >> >>,
+    << "output_connection" : "Null Output" :  :  >>,
+    << "repository_connection" : "File System" :  :  >>,
+    << "priority" : "5" :  :  >>,
+    << "expiration_interval" : "infinite" :  :  >> >> }
+  to baseurl + "jobs";
+if result.__CREATED__ then
+  print "Job created";
+  set jobid = result.__value__[0].__value__;
+else
+  error "Unexpected result: "+result.__script__;
+;
+
+print "The job id is "+jobid;
+
+# Start the job
+PUT result = { }
+  to baseurl + "start" + jobid;
+  
+# Wait for the job to finish
+while true do
+  GET result = baseurl + "jobstatuses" + jobid;
+  if !result.__OK__ then
+    error "Couldn't get job status";
+  ;
+
+  # Find the job's status
+  set jobstatusData = result.__value__[0];
+  set index = 0;
+  set jobstatus = "";
+  while index < jobstatusData.__size__ do
+    set node = jobstatusData[index];
+    if node.__type__ == "status" then
+      set jobstatus = node.__value__;
+    ;
+    index = index + 1;
+  ;
+  
+  if jobstatus == "" then
+    error "Couldn't find job status in response: " + result.__script__;
+    
+  if jobstatus == "done" || jobstatus == "error" then
+    break;
+  ;
+  wait 10000;
+;
+
+print "The job completed"
