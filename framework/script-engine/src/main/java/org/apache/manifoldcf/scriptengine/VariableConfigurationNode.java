@@ -107,6 +107,12 @@ public class VariableConfigurationNode extends VariableBase
     // And the __value__ attribute
     if (attributeName.equals(ATTRIBUTE_VALUE))
       return new ValueReference();
+    if (attributeName.equals(ATTRIBUTE_SCRIPT) ||
+      attributeName.equals(ATTRIBUTE_STRING) ||
+      attributeName.equals(ATTRIBUTE_INT) ||
+      attributeName.equals(ATTRIBUTE_FLOAT) || 
+      attributeName.equals(ATTRIBUTE_BOOLEAN))
+      return super.getAttribute(attributeName);
     // All others are presumed to be attributes of the configuration node, which can be set or cleared.
     return new AttributeReference(attributeName);
   }
