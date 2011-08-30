@@ -41,7 +41,7 @@ public class IfCommand implements Command
     {
       rval = sp.parseStatements(currentStream);
       t = currentStream.peek();
-      if (t != null &&t.getToken().equals("else"))
+      if (t != null && t.getToken() != null && t.getToken().equals("else"))
       {
         currentStream.skip();
         // Skip statements
