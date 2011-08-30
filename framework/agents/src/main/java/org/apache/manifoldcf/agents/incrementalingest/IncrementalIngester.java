@@ -381,22 +381,49 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     if (documentURI != null)
       documentURIHash = ManifoldCF.hash(documentURI);
 
+    String oldURI = null;
+    String oldURIHash = null;
+    String oldOutputVersion = null;
+
     // See what uri was used before for this doc, if any
     ArrayList list = new ArrayList();
     list.add(docKey);
     list.add(connection.getName());
-    IResultSet set = performQuery("SELECT "+docURIField+","+uriHashField+","+lastOutputVersionField+" FROM "+getTableName()+
-      " WHERE "+docKeyField+"=? AND "+outputConnNameField+"=?",list,null,null);
-
-    String oldURI = null;
-    String oldURIHash = null;
-    String oldOutputVersion = null;
-    if (set.getRowCount() > 0)
+    
+    while (true)
     {
-      IResultRow row = set.getRow(0);
-      oldURI = (String)row.getValue(docURIField);
-      oldURIHash = (String)row.getValue(uriHashField);
-      oldOutputVersion = (String)row.getValue(lastOutputVersionField);
+      long sleepAmt = 0L;
+      try
+      {
+        IResultSet set = performQuery("SELECT "+docURIField+","+uriHashField+","+lastOutputVersionField+" FROM "+getTableName()+
+          " WHERE "+docKeyField+"=? AND "+outputConnNameField+"=?",list,null,null);
+
+        if (set.getRowCount() > 0)
+        {
+          IResultRow row = set.getRow(0);
+          oldURI = (String)row.getValue(docURIField);
+          oldURIHash = (String)row.getValue(uriHashField);
+          oldOutputVersion = (String)row.getValue(lastOutputVersionField);
+        }
+        
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        // Look for deadlock and retry if so
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted select looking for status: "+e.getMessage());
+          sleepAmt = getSleepAmt();
+          continue;
+        }
+        throw e;
+      }
+      finally
+      {
+        sleepFor(sleepAmt);
+      }
     }
 
     // If uri hashes collide, then we must be sure to eliminate only the *correct* records from the table, or we will leave

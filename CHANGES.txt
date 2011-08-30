@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-244: Add a fix to recover for another Derby deadlock situation.
+(Karl Wright)
+
 CONNECTORS-243: Include most response headers in the metadata for
 each web connector document.
 (Jan Høydahl, Karl Wright)
