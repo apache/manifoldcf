@@ -119,6 +119,7 @@ while true do
   
   if jobstatus == "" then
     error "Couldn't find job status in response: " + result.__script__;
+  ;
     
   if jobstatus == "done" || jobstatus == "error" then
     break;
