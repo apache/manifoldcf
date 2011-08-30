@@ -114,7 +114,7 @@ while true do
     if node.__type__ == "status" then
       set jobstatus = node.__value__;
     ;
-    index = index + 1;
+    set index = index + 1;
   ;
   
   if jobstatus == "" then
