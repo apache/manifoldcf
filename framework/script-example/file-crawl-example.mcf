@@ -126,4 +126,5 @@ while true do
   wait 10000;
 ;
 
-print "The job completed"
+print "The job completed";
+
