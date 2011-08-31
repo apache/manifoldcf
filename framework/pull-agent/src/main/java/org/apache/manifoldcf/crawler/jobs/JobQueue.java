@@ -630,7 +630,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       checkTimeValue = new Long(0L);
       break;
     default:
-      throw new ManifoldCFException("Unexpected jobqueue status - record id "+recID.toString()+", expecting active status");
+      throw new ManifoldCFException("Unexpected jobqueue status - record id "+recID.toString()+", expecting active status, saw "+Integer.toString(currentStatus));
     }
 
     HashMap map = new HashMap();
