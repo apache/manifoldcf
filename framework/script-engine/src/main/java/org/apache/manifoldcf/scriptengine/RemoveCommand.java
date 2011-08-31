@@ -33,7 +33,6 @@ public class RemoveCommand implements Command
     VariableReference indexRef = sp.evaluateExpression(currentStream);
     if (indexRef == null)
       sp.syntaxError(currentStream,"Missing index expression");
-    int index = sp.resolveMustExist(currentStream,indexRef).getIntValue();
     Token t = currentStream.peek();
     if (t == null || t.getToken() == null || !t.getToken().equals("from"))
       sp.syntaxError(currentStream,"Missing 'from'");
@@ -42,7 +41,7 @@ public class RemoveCommand implements Command
     if (targetRef == null)
       sp.syntaxError(currentStream,"Missing target expression");
     Variable target = sp.resolveMustExist(currentStream,targetRef);
-    target.removeAt(index);
+    target.removeAt(indexRef.resolve());
     return false;
   }
   

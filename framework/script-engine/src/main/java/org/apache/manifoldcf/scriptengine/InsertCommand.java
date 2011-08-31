@@ -49,12 +49,11 @@ public class InsertCommand implements Command
       VariableReference indexRef = sp.evaluateExpression(currentStream);
       if (indexRef == null)
         sp.syntaxError(currentStream,"Missing expression after 'at'");
-      int index = sp.resolveMustExist(currentStream,indexRef).getIntValue();
-      target.insertAt(object,index);
+      target.insertAt(object,indexRef.resolve());
     }
     else
     {
-      target.insert(object);
+      target.insertAt(object,null);
     }
     return false;
   }

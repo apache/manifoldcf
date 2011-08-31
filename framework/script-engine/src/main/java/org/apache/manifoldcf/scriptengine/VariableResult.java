@@ -38,7 +38,7 @@ public class VariableResult extends VariableBase
   public String getScriptValue()
     throws ScriptException
   {
-    return "("+Integer.toString(resultCode)+") "+result.toString();
+    return "("+Integer.toString(resultCode)+") "+result.getScriptValue();
   }
 
   /** Get the variable's value as an integer */

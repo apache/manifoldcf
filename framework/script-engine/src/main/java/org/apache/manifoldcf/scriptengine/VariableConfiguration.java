@@ -63,7 +63,7 @@ public class VariableConfiguration extends VariableBase
       if (i > 0)
         sb.append(", ");
       ConfigurationNode child = configuration.findChild(i++);
-      sb.append(new VariableConfigurationNode(child).toString());
+      sb.append(new VariableConfigurationNode(child).getScriptValue());
     }
     sb.append(" }");
     return sb.toString();
@@ -87,32 +87,44 @@ public class VariableConfiguration extends VariableBase
   }
   
   /** Get an indexed property of the variable */
-  public VariableReference getIndexed(int index)
+  public VariableReference getIndexed(Variable index)
     throws ScriptException
   {
-    if (index < configuration.getChildCount())
-      return new NodeReference(index);
-    return super.getIndexed(index);
+    if (index == null)
+      throw new ScriptException("Subscript cannot be null for configuration");
+    int indexValue = index.getIntValue();
+    if (indexValue < configuration.getChildCount())
+      return new NodeReference(indexValue);
+    throw new ScriptException("Subscript "+indexValue+" is out of bounds");
   }
   
   /** Insert an object into this variable at a position. */
-  public void insertAt(Variable v, int index)
+  public void insertAt(Variable v, Variable index)
     throws ScriptException
   {
-    if (index > configuration.getChildCount())
-      throw new ScriptException("Insert out of bounds");
     if (v == null)
-      throw new ScriptException("Can't insert a null object");
-    configuration.addChild(index,v.getConfigurationNodeValue());
+      throw new ScriptException("Can't insert a null object into a configuration");
+    if (index == null)
+      configuration.addChild(configuration.getChildCount(),v.getConfigurationNodeValue());
+    else
+    {
+      int indexValue = index.getIntValue();
+      if (indexValue < 0 || indexValue > configuration.getChildCount())
+        throw new ScriptException("Configuration insert out of bounds");
+      configuration.addChild(indexValue,v.getConfigurationNodeValue());
+    }
   }
 
-  /** Insert an object into this variable at end. */
-  public void insert(Variable v)
+  /** Delete an object from this variable at a position. */
+  public void removeAt(Variable index)
     throws ScriptException
   {
-    if (v == null)
-      throw new ScriptException("Can't insert a null object");
-    configuration.addChild(configuration.getChildCount(),v.getConfigurationNodeValue());
+    if (index == null)
+      throw new ScriptException("Configuration remove index cannot be null");
+    int indexValue = index.getIntValue();
+    if (indexValue < 0 || indexValue >= configuration.getChildCount())
+      throw new ScriptException("Configuration remove out of bounds");
+    configuration.removeChild(indexValue);
   }
 
   public VariableReference plus(Variable v)
@@ -132,14 +144,6 @@ public class VariableConfiguration extends VariableBase
     return new VariableConfiguration(c);
   }
 
-  /** Delete an object from this variable at a position. */
-  public void removeAt(int index)
-    throws ScriptException
-  {
-    if (index >= configuration.getChildCount())
-      throw new ScriptException("Remove out of bounds");
-    configuration.removeChild(index);
-  }
 
   /** Extend VariableReference class so we capture attempts to set the reference, and actually overwrite the child when that is done */
   protected class NodeReference implements VariableReference

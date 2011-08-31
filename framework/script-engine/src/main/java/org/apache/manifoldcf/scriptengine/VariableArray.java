@@ -77,7 +77,7 @@ public class VariableArray extends VariableBase
       if (v == null)
         sb.append("null");
       else
-        sb.append(v.toString());
+        sb.append(v.getScriptValue());
     }
     sb.append(" ]");
     return sb.toString();
@@ -94,37 +94,42 @@ public class VariableArray extends VariableBase
   }
   
   /** Get an indexed property of the variable */
-  public VariableReference getIndexed(int index)
+  public VariableReference getIndexed(Variable index)
     throws ScriptException
   {
-    if (index < array.size())
-      return new ElementReference(index);
+    if (index == null)
+      throw new ScriptException("Subscript cannot be null for array");
+    int indexValue = index.getIntValue();
+    if (indexValue < array.size())
+      return new ElementReference(indexValue);
     return super.getIndexed(index);
   }
   
   /** Insert an object into this variable at a position. */
-  public void insertAt(Variable v, int index)
+  public void insertAt(Variable v, Variable index)
     throws ScriptException
   {
-    if (index > array.size())
-      throw new ScriptException("Insert out of bounds");
-    array.add(index,v);
-  }
-
-  /** Insert an object into this variable at end. */
-  public void insert(Variable v)
-    throws ScriptException
-  {
-    array.add(v);
+    if (index == null)
+      array.add(v);
+    else
+    {
+      int indexValue = index.getIntValue();
+      if (indexValue > array.size())
+        throw new ScriptException("Array insert out of bounds");
+      array.add(indexValue,v);
+    }
   }
 
   /** Delete an object from this variable at a position. */
-  public void removeAt(int index)
+  public void removeAt(Variable index)
     throws ScriptException
   {
-    if (index >= array.size())
-      throw new ScriptException("Remove out of bounds");
-    array.remove(index);
+    if (index == null)
+      throw new ScriptException("Array remove cannot be null.");
+    int indexValue = index.getIntValue();
+    if (indexValue < 0 || indexValue >= array.size())
+      throw new ScriptException("Array remove out of bounds: "+indexValue);
+    array.remove(indexValue);
   }
 
   /** Extend VariableReference class so we capture attempts to set the reference, and actually overwrite the child when that is done */

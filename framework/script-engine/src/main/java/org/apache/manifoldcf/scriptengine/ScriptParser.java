@@ -681,7 +681,7 @@ public class ScriptParser
 	VariableReference expression = evaluateExpression(currentStream);
 	if (expression == null)
 	  syntaxError(currentStream,"Missing expression after '['");
-	int indexValue = resolveMustExist(currentStream,expression).getIntValue();
+	Variable indexValue = resolveMustExist(currentStream,expression);
 	vr = resolveMustExist(currentStream,vr).getIndexed(indexValue);
 	t = currentStream.peek();
 	if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals("]"))
@@ -732,7 +732,7 @@ public class ScriptParser
           VariableReference vr = evaluateExpression(currentStream);
           if (vr == null)
             syntaxError(currentStream,"Missing expression in array initializer");
-          va.insert(vr.resolve());
+          va.insertAt(vr.resolve(),null);
           t = currentStream.peek();
           if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("]"))
             break;
@@ -756,7 +756,7 @@ public class ScriptParser
           VariableReference vr = evaluateExpression(currentStream);
           if (vr == null)
             syntaxError(currentStream,"Missing expression in configuration object initializer");
-          va.insert(vr.resolve());
+          va.insertAt(vr.resolve(),null);
           t = currentStream.peek();
           if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("}"))
             break;
@@ -832,7 +832,7 @@ public class ScriptParser
           VariableReference vr = evaluateExpression(currentStream);
           if (vr == null)
             syntaxError(currentStream,"Missing expression in configurationnode object initializer");
-          va.insert(vr.resolve());
+          va.insertAt(vr.resolve(),null);
           t = currentStream.peek();
           if (t != null && t.getPunctuation() != null && t.getPunctuation().equals(">>"))
             break;
@@ -1159,6 +1159,7 @@ public class ScriptParser
     sp.addNewOperation("url",new NewURL());
     sp.addNewOperation("connectionname",new NewConnectionName());
     sp.addNewOperation("array",new NewArray());
+    sp.addNewOperation("dictionary",new NewDictionary());
     
     try
     {
@@ -1172,7 +1173,7 @@ public class ScriptParser
         while (i < argv.length - 1)
         {
           String arg = argv[i+1];
-          va.insert(new VariableString(arg));
+          va.insertAt(new VariableString(arg),null);
           i++;
         }
         sp.addVariable("__args__",va);

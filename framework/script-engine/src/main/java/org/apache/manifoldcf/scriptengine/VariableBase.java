@@ -198,21 +198,14 @@ public class VariableBase implements Variable, VariableReference
   }
   
   /** Insert an object into this variable at a position. */
-  public void insertAt(Variable v, int index)
-    throws ScriptException
-  {
-    throw new ScriptException("Can't insert into variable");
-  }
-
-  /** Insert an object into this variable at end. */
-  public void insert(Variable v)
+  public void insertAt(Variable v, Variable index)
     throws ScriptException
   {
     throw new ScriptException("Can't insert into variable");
   }
 
   /** Delete an object from this variable at a position. */
-  public void removeAt(int index)
+  public void removeAt(Variable index)
     throws ScriptException
   {
     throw new ScriptException("Can't remove from variable");
@@ -222,10 +215,10 @@ public class VariableBase implements Variable, VariableReference
   // The following two operations correspond to <xxx> and xxx[index]
   
   /** Get an indexed property of the variable */
-  public VariableReference getIndexed(int index)
+  public VariableReference getIndexed(Variable index)
     throws ScriptException
   {
-    throw new ScriptException("Variable has no member number "+Integer.toString(index));
+    throw new ScriptException("Variable does not support subscripts");
   }
 
   // As a variable reference, refer to self

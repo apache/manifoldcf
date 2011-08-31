@@ -137,22 +137,18 @@ public interface Variable
   public VariableReference getAttribute(String attributeName)
     throws ScriptException;
   
-  /** Insert an object into this variable at a position. */
-  public void insertAt(Variable v, int index)
-    throws ScriptException;
-    
-  /** Insert an object into this variable at end. */
-  public void insert(Variable v)
+  /** Insert an object into this variable at a position.  Use null to insert at end. */
+  public void insertAt(Variable v, Variable index)
     throws ScriptException;
     
   /** Delete an object from this variable at a position. */
-  public void removeAt(int index)
+  public void removeAt(Variable index)
     throws ScriptException;
     
   // The following operations correspond to xxx[index]
   
   /** Get an indexed property of the variable */
-  public VariableReference getIndexed(int index)
+  public VariableReference getIndexed(Variable index)
     throws ScriptException;
     
 }

@@ -44,12 +44,12 @@ public class VariableConfigurationNode extends VariableBase
   {
     StringBuilder sb = new StringBuilder();
     sb.append("<< ");
-    sb.append(new VariableString(configurationNode.getType()).toString());
+    sb.append(new VariableString(configurationNode.getType()).getScriptValue());
     sb.append(" : ");
     String valueField = configurationNode.getValue();
     if (valueField == null)
       valueField = "";
-    sb.append(new VariableString(valueField).toString());
+    sb.append(new VariableString(valueField).getScriptValue());
     sb.append(" : ");
     boolean needComma = false;
     Iterator<String> iter = configurationNode.getAttributes();
@@ -61,9 +61,9 @@ public class VariableConfigurationNode extends VariableBase
         sb.append(", ");
       else
         needComma = true;
-      sb.append(new VariableString(attrName).toString());
+      sb.append(new VariableString(attrName).getScriptValue());
       sb.append("=");
-      sb.append(new VariableString(value).toString());
+      sb.append(new VariableString(value).getScriptValue());
     }
     sb.append(" : ");
     int i = 0;
@@ -72,7 +72,7 @@ public class VariableConfigurationNode extends VariableBase
       ConfigurationNode child = configurationNode.findChild(i);
       if (i > 0)
         sb.append(", ");
-      sb.append(new VariableConfigurationNode(child).toString());
+      sb.append(new VariableConfigurationNode(child).getScriptValue());
       i++;
     }
     sb.append(" >>");
@@ -119,34 +119,46 @@ public class VariableConfigurationNode extends VariableBase
   }
   
   /** Get an indexed property of the variable */
-  public VariableReference getIndexed(int index)
+  public VariableReference getIndexed(Variable index)
     throws ScriptException
   {
-    if (index < configurationNode.getChildCount())
-      return new NodeReference(index);
-    return super.getIndexed(index);
+    if (index == null)
+      throw new ScriptException("Subscript cannot be null for configurationnode");
+    int indexValue = index.getIntValue();
+    if (indexValue >= 0 && indexValue < configurationNode.getChildCount())
+      return new NodeReference(indexValue);
+    throw new ScriptException("Subscript "+indexValue+" is out of bounds");
   }
 
   /** Insert an object into this variable at a position. */
-  public void insertAt(Variable v, int index)
+  public void insertAt(Variable v, Variable index)
     throws ScriptException
   {
     if (v == null)
-      throw new ScriptException("Can't insert a null object");
-    if (index > configurationNode.getChildCount())
-      throw new ScriptException("Insert out of bounds");
-    ConfigurationNode insertObject = v.getConfigurationNodeValue();
-    configurationNode.addChild(index,insertObject);
+      throw new ScriptException("Can't insert a null object into a configurationnode");
+    if (index == null)
+      configurationNode.addChild(configurationNode.getChildCount(),v.getConfigurationNodeValue());
+    else
+    {
+      int indexValue = index.getIntValue();
+      if (indexValue < 0 || indexValue > configurationNode.getChildCount())
+        throw new ScriptException("Configurationnode insert out of bounds");
+      configurationNode.addChild(indexValue,v.getConfigurationNodeValue());
+    }
   }
 
-  /** Insert an object into this variable at end. */
-  public void insert(Variable v)
+  /** Delete an object from this variable at a position. */
+  public void removeAt(Variable index)
     throws ScriptException
   {
-    if (v == null)
-      throw new ScriptException("Can't insert a null object");
-    configurationNode.addChild(configurationNode.getChildCount(),v.getConfigurationNodeValue());
+    if (index == null)
+      throw new ScriptException("Configurationnode remove index cannot be null");
+    int indexValue = index.getIntValue();
+    if (indexValue < 0 || indexValue >= configurationNode.getChildCount())
+      throw new ScriptException("Configurationnode remove out of bounds");
+    configurationNode.removeChild(indexValue);
   }
+
 
   public VariableReference plus(Variable v)
     throws ScriptException
@@ -171,15 +183,6 @@ public class VariableConfigurationNode extends VariableBase
     }
     cn.addChild(cn.getChildCount(),node);
     return new VariableConfigurationNode(cn);
-  }
-
-  /** Delete an object from this variable at a position. */
-  public void removeAt(int index)
-    throws ScriptException
-  {
-    if (index >= configurationNode.getChildCount())
-      throw new ScriptException("Remove out of bounds");
-    configurationNode.removeChild(index);
   }
 
   /** Implement VariableReference to allow values to be set or cleared */
