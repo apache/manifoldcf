@@ -83,6 +83,18 @@ public class VariableConfiguration extends VariableBase
     // We recognize only the __size__ attribute
     if (attributeName.equals(ATTRIBUTE_SIZE))
       return new VariableInt(configuration.getChildCount());
+    if (attributeName.equals(ATTRIBUTE_DICT))
+    {
+      VariableDict dict = new VariableDict();
+      int i = 0;
+      while (i < configuration.getChildCount())
+      {
+        ConfigurationNode child = configuration.findChild(i++);
+        String type = child.getType();
+        dict.getIndexed(new VariableString(type)).setReference(new VariableConfigurationNode(child));
+      }
+      return dict;
+    }
     return super.getAttribute(attributeName);
   }
   

@@ -407,6 +407,9 @@
         <copy todir="dist/script-engine/script">
             <fileset dir="engine-scripts"/>
         </copy>
+        <copy todir="dist/script-engine">
+            <fileset dir="script-example"/>
+        </copy>
     </target>
     
     <target name="example" depends="war-crawler-ui,war-api-service,war-authority-service,jar-jetty-runner,jar-core,jar-agents,jar-pull-agent">

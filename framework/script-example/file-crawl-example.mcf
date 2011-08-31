@@ -106,22 +106,14 @@ while true do
   ;
 
   # Find the job's status
-  set jobstatusData = result.__value__[0];
-  set index = 0;
-  set jobstatus = "";
-  while index < jobstatusData.__size__ do
-    set node = jobstatusData[index];
-    if node.__type__ == "status" then
-      set jobstatus = node.__value__;
-    ;
-    set index = index + 1;
-  ;
-  
-  if jobstatus == "" then
+  set jobstatus = result.__value__.__dict__["jobstatus"];
+  if isnull jobstatus then
     error "Couldn't find job status in response: " + result.__script__;
   ;
-    
-  if jobstatus == "done" || jobstatus == "error" then
+  
+  set thestatus = jobstatus.__dict__["status"].__value__;
+  
+  if thestatus == "done" || thestatus == "error" then
     break;
   ;
   wait 10000;

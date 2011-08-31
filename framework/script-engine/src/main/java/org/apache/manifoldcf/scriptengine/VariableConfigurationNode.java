@@ -108,6 +108,18 @@ public class VariableConfigurationNode extends VariableBase
     // And the __value__ attribute
     if (attributeName.equals(ATTRIBUTE_VALUE))
       return new ValueReference();
+    if (attributeName.equals(ATTRIBUTE_DICT))
+    {
+      VariableDict dict = new VariableDict();
+      int i = 0;
+      while (i < configurationNode.getChildCount())
+      {
+        ConfigurationNode child = configurationNode.findChild(i++);
+        String type = child.getType();
+        dict.getIndexed(new VariableString(type)).setReference(new VariableConfigurationNode(child));
+      }
+      return dict;
+    }
     if (attributeName.equals(ATTRIBUTE_SCRIPT) ||
       attributeName.equals(ATTRIBUTE_STRING) ||
       attributeName.equals(ATTRIBUTE_INT) ||

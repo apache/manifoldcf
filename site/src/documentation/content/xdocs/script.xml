@@ -190,6 +190,7 @@ print "3".__int__+7;
         <tr><td>__size__</td><td>Typically returns the number of subscript children</td></tr>
         <tr><td>__type__</td><td>Returns the 'type' of the variable</td></tr>
         <tr><td>__value__</td><td>Returns the 'value' of the variable</td></tr>
+        <tr><td>__dict__</td><td>Returns a dictionary equivalent of the variable</td></tr>
         <tr><td>__OK__</td><td>Returns a boolean 'true' if the variable was "OK", false otherwise</td></tr>
         <tr><td>__NOTFOUND__</td><td>Returns a boolean 'true' if the variable was "NOTFOUND", false otherwise</td></tr>
         <tr><td>__CREATED__</td><td>Returns a boolean 'true' if the variable was "CREATED", false otherwise</td></tr>
@@ -293,6 +294,18 @@ print "3".__int__+7;
           by array types, as well as the <em>insert</em> and <em>remove</em> statements.</p>
       </section>
       <section>
+        <title>Dictionaries</title>
+        <p>Array variable types are created using the "new" operator, e.g. <strong>new</strong> <strong>dictionary</strong>.</p>
+        <p>The operations supported for this variable type, and their meanings, are listed in the table below:</p>
+        <table>
+          <caption>Array operations</caption>
+          <tr><th>Operation</th><th>Meaning</th><th>Example</th></tr>
+          <tr><td>subscript []</td><td>Find the specified key, yielding the keyed variable</td><td>mydict ["keyname"]</td></tr>
+        </table>
+        <p>In addition, the standard attributes <em>__script__</em> and <em>__size__</em> are supported 
+          by dictionary types.</p>
+      </section>
+      <section>
         <title>Configurations</title>
         <p>Configuration variables contain the equivalent of the JSON used to communicate with the ManifoldCF API.  They can be created using an initializer
           of the form <strong>{</strong> [<em>expression</em> [<strong>,</strong> <em>expression</em> ...]] <strong>}</strong>.  For example, the script code '{ &lt; "outputconnector" : "" :  : , &lt; "description" : "Solr" :  :  &gt;, &lt; "class_name" : "org.apache.manifoldcf.agents.output.solr.SolrConnector" :  :  &gt; &gt; }'
@@ -304,7 +317,7 @@ print "3".__int__+7;
           <tr><td>subscript []</td><td>Find the specified child configuration node variable, yielding the variable</td><td>myconfig [0]</td></tr>
           <tr><td>binary +</td><td>Append a configuration child node variable to the list</td><td>myconfig + &lt; "something" : "somethingvalue" : : &gt;</td></tr>
         </table>
-        <p>In addition, the standard attributes <em>__script__</em> and <em>__size__</em> are supported 
+        <p>In addition, the standard attributes <em>__script__</em>, <em>__dict__</em>, and <em>__size__</em> are supported 
           by configuration variable types, as well as the <em>insert</em> and <em>remove</em> statements.</p>
       </section>
       <section>
@@ -326,7 +339,7 @@ print "3".__int__+7;
           <tr><td>subscript []</td><td>Find the specified child configuration node variable, yielding the variable</td><td>myconfig [0]</td></tr>
           <tr><td>binary +</td><td>Append a configuration child node variable to the list</td><td>myconfig + &lt;&lt; "something" : "somethingvalue" : : &gt;&gt;</td></tr>
         </table>
-        <p>In addition, the standard attributes <em>__script__</em>, <em>__string__</em>, <em>__size__</em>, <em>__type__</em>, and <em>__value__</em> are supported 
+        <p>In addition, the standard attributes <em>__script__</em>, <em>__string__</em>, <em>__size__</em>, <em>__type__</em>, <em>__dict__</em> and <em>__value__</em> are supported 
           by configuration node variable types, as well as the <em>insert</em> and <em>remove</em> statements.</p>
       </section>
       <section>
