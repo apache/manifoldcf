@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-229: CMIS connector needs to be documented in "how to build and deploy"
+(Piergiorgio Lucidi)
+
 CONNECTORS-244: Add a fix to recover for another Derby deadlock situation.
 (Karl Wright)
 
