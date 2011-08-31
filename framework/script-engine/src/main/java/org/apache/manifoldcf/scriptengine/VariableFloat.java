@@ -30,8 +30,21 @@ public class VariableFloat extends VariableBase
     this.value = value;
   }
   
-  /** Get a displayable string for the value */
-  public String toString()
+  public int hashCode()
+  {
+    return new Double(value).hashCode();
+  }
+  
+  public boolean equals(Object o)
+  {
+    if (!(o instanceof VariableFloat))
+      return false;
+    return ((VariableFloat)o).value == value;
+  }
+
+  /** Get the variable's script value */
+  public String getScriptValue()
+    throws ScriptException
   {
     return new Double(value).toString();
   }

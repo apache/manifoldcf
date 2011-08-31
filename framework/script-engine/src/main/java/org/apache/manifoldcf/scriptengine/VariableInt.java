@@ -30,8 +30,21 @@ public class VariableInt extends VariableBase
     this.value = value;
   }
 
-  /** Get a displayable string for the value */
-  public String toString()
+  public int hashCode()
+  {
+    return new Integer(value).hashCode();
+  }
+  
+  public boolean equals(Object o)
+  {
+    if (!(o instanceof VariableInt))
+      return false;
+    return ((VariableInt)o).value == value;
+  }
+  
+  /** Get the variable's script value */
+  public String getScriptValue()
+    throws ScriptException
   {
     return Integer.toString(value);
   }

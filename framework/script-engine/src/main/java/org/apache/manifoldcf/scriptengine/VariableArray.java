@@ -31,9 +31,41 @@ public class VariableArray extends VariableBase
   public VariableArray()
   {
   }
+  
+  public int hashCode()
+  {
+    int rval = 0;
+    int i = 0;
+    while (i < array.size())
+    {
+      Variable v = array.get(i++);
+      rval += v.hashCode();
+    }
+    return rval;
+  }
 
-  /** Get a displayable string from this */
-  public String toString()
+  public boolean equals(Object o)
+  {
+    if (!(o instanceof VariableArray))
+      return false;
+    VariableArray va = (VariableArray)o;
+    if (va.array.size() != array.size())
+      return false;
+    int i = 0;
+    while (i < array.size())
+    {
+      Variable v = array.get(i);
+      Variable v2 = va.array.get(i);
+      if (!v.equals(v2))
+        return false;
+      i++;
+    }
+    return true;
+  }
+  
+  /** Get the variable's script value */
+  public String getScriptValue()
+    throws ScriptException
   {
     StringBuilder sb = new StringBuilder("[ ");
     int i = 0;

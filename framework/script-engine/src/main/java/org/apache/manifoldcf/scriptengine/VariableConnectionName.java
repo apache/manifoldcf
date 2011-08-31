@@ -34,8 +34,22 @@ public class VariableConnectionName extends VariableBase
     this.connectionName = connectionName;
     this.encodedConnectionName = encode(connectionName);
   }
+
+  public int hashCode()
+  {
+    return connectionName.hashCode();
+  }
   
-  public String toString()
+  public boolean equals(Object o)
+  {
+    if (!(o instanceof VariableConnectionName))
+      return false;
+    return ((VariableConnectionName)o).connectionName.equals(connectionName);
+  }
+
+  /** Get the variable's script value */
+  public String getScriptValue()
+    throws ScriptException
   {
     StringBuilder sb = new StringBuilder();
     sb.append("(new connectionname \"");

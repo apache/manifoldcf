@@ -30,8 +30,21 @@ public class VariableBoolean extends VariableBase
     this.value = value;
   }
 
-  /** Get a displayable string for the value */
-  public String toString()
+  public int hashCode()
+  {
+    return new Boolean(value).hashCode();
+  }
+  
+  public boolean equals(Object o)
+  {
+    if (!(o instanceof VariableBoolean))
+      return false;
+    return ((VariableBoolean)o).value == value;
+  }
+
+  /** Get the variable's script value */
+  public String getScriptValue()
+    throws ScriptException
   {
     if (value)
       return "true";

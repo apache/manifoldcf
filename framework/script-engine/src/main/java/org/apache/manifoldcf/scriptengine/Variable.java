@@ -44,6 +44,8 @@ public interface Variable
   public static String ATTRIBUTE_VALUE = "__value__";
   /** Size attribute */
   public static String ATTRIBUTE_SIZE = "__size__";
+  /** Dict attribute */
+  public static String ATTRIBUTE_DICT = "__dict__";
   /** OK status attribute */
   public static String ATTRIBUTE_OKSTATUS = "__OK__";
   /** NOTFOUND status attribute */
@@ -53,6 +55,10 @@ public interface Variable
   
   /** Get the variable's value as a string */
   public String getStringValue()
+    throws ScriptException;
+
+  /** Get the variable's script value */
+  public String getScriptValue()
     throws ScriptException;
 
   /** Get the variable's value as a Configuration object */

@@ -38,8 +38,9 @@ public class VariableConfigurationNode extends VariableBase
     configurationNode = node;
   }
   
-  /** Get the variable's value as a string */
-  public String toString()
+  /** Get the variable's script value */
+  public String getScriptValue()
+    throws ScriptException
   {
     StringBuilder sb = new StringBuilder();
     sb.append("<< ");

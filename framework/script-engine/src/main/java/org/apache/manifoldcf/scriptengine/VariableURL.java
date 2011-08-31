@@ -36,7 +36,21 @@ public class VariableURL extends VariableBase
       this.encodedURL = this.encodedURL.substring(0,this.encodedURL.length()-1);
   }
   
-  public String toString()
+  public int hashCode()
+  {
+    return encodedURL.hashCode();
+  }
+  
+  public boolean equals(Object o)
+  {
+    if (!(o instanceof VariableURL))
+      return false;
+    return ((VariableURL)o).encodedURL.equals(encodedURL);
+  }
+
+  /** Get the variable's script value */
+  public String getScriptValue()
+    throws ScriptException
   {
     StringBuilder sb = new StringBuilder();
     sb.append("\"");

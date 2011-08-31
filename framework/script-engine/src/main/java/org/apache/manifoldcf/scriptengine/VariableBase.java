@@ -36,6 +36,13 @@ public class VariableBase implements Variable, VariableReference
   {
     throw new ScriptException("Cannot convert variable to string");
   }
+
+  /** Get the variable's script value */
+  public String getScriptValue()
+    throws ScriptException
+  {
+    throw new ScriptException("Variable has no script value");
+  }
   
   /** Get the variable's value as a Configuration object */
   public Configuration getConfigurationValue()
@@ -185,7 +192,7 @@ public class VariableBase implements Variable, VariableReference
     else if (attributeName.equals(ATTRIBUTE_BOOLEAN))
       return new VariableBoolean(getBooleanValue());
     else if (attributeName.equals(ATTRIBUTE_SCRIPT))
-      return new VariableString(toString());
+      return new VariableString(getScriptValue());
     else
       throw new ScriptException("Variable has no attribute called '"+attributeName+"'");
   }

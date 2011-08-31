@@ -51,8 +51,9 @@ public class VariableConfiguration extends VariableBase
     }
   }
   
-  /** Get a string from this */
-  public String toString()
+  /** Get the variable's script value */
+  public String getScriptValue()
+    throws ScriptException
   {
     StringBuilder sb = new StringBuilder();
     sb.append("{ ");

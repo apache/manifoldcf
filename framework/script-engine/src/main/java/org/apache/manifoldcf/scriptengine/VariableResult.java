@@ -34,8 +34,9 @@ public class VariableResult extends VariableBase
     this.result = new VariableConfiguration(json);
   }
   
-  /** Get the variable's value as a string */
-  public String toString()
+  /** Get the variable's script value */
+  public String getScriptValue()
+    throws ScriptException
   {
     return "("+Integer.toString(resultCode)+") "+result.toString();
   }

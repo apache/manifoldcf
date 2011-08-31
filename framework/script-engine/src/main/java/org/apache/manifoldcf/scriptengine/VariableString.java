@@ -30,8 +30,21 @@ public class VariableString extends VariableBase
     this.value = value;
   }
 
-  /** Get a displayable string for the value */
-  public String toString()
+  public int hashCode()
+  {
+    return value.hashCode();
+  }
+  
+  public boolean equals(Object o)
+  {
+    if (!(o instanceof VariableString))
+      return false;
+    return ((VariableString)o).value.equals(value);
+  }
+
+  /** Get the variable's script value */
+  public String getScriptValue()
+    throws ScriptException
   {
     StringBuilder sb = new StringBuilder();
     sb.append("\"");
