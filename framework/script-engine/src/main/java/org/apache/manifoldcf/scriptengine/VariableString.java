@@ -92,7 +92,7 @@ public class VariableString extends VariableBase
     throws ScriptException
   {
     if (v == null)
-      throw new ScriptException("+ operand cannot be null");
+      throw new ScriptException(composeMessage("Binary '+' operand cannot be null"));
     return new VariableString(value + v.getStringValue());
   }
   
@@ -100,7 +100,7 @@ public class VariableString extends VariableBase
     throws ScriptException
   {
     if (v == null)
-      throw new ScriptException("== operand cannot be null");
+      throw new ScriptException(composeMessage("Binary '==' operand cannot be null"));
     return new VariableBoolean(value.equals(v.getStringValue()));
   }
 
@@ -108,7 +108,7 @@ public class VariableString extends VariableBase
     throws ScriptException
   {
     if (v == null)
-      throw new ScriptException("!= operand cannot be null");
+      throw new ScriptException(composeMessage("Binary '!=' operand cannot be null"));
     return new VariableBoolean(!value.equals(v.getStringValue()));
   }
 

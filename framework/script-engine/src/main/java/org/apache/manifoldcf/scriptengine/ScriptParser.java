@@ -75,7 +75,7 @@ public class ScriptParser
       localError(currentStream,"Break command must be inside a loop");
     Token t = currentStream.peek();
     if (t != null)
-      t.throwException("Characters after end of script");
+      localError(currentStream,"Characters after end of script");
   }
 
   // Statement return codes
@@ -681,12 +681,12 @@ public class ScriptParser
 	VariableReference expression = evaluateExpression(currentStream);
 	if (expression == null)
 	  syntaxError(currentStream,"Missing expression after '['");
-	Variable indexValue = resolveMustExist(currentStream,expression);
-	vr = resolveMustExist(currentStream,vr).getIndexed(indexValue);
+	Variable v = resolveMustExist(currentStream,vr);
 	t = currentStream.peek();
 	if (t == null || t.getPunctuation() == null || !t.getPunctuation().equals("]"))
 	  syntaxError(currentStream,"Missing ']'");
 	currentStream.skip();
+        vr = v.getIndexed(expression.resolve());
       }
       else if (t != null && t.getPunctuation() != null && t.getPunctuation().equals("."))
       {
@@ -694,8 +694,9 @@ public class ScriptParser
 	t = currentStream.peek();
 	if (t == null || t.getToken() == null)
 	  syntaxError(currentStream,"Need attribute name");
-	vr = resolveMustExist(currentStream,vr).getAttribute(t.getToken());
+	Variable v = resolveMustExist(currentStream,vr);
 	currentStream.skip();
+        vr = v.getAttribute(t.getToken());
       }
       else
 	break;
@@ -1127,7 +1128,7 @@ public class ScriptParser
     if (t == null)
       throw new ScriptException(message+", at end of file");
     else
-      t.throwException(message+": "+t);
+      t.throwException(message + ": "+t);
   }
   
   

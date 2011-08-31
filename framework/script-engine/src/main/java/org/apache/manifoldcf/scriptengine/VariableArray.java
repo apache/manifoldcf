@@ -98,11 +98,11 @@ public class VariableArray extends VariableBase
     throws ScriptException
   {
     if (index == null)
-      throw new ScriptException("Subscript cannot be null for array");
+      throw new ScriptException(composeMessage("Subscript cannot be null"));
     int indexValue = index.getIntValue();
-    if (indexValue < array.size())
+    if (indexValue >= 0 && indexValue < array.size())
       return new ElementReference(indexValue);
-    return super.getIndexed(index);
+    throw new ScriptException(composeMessage("Index out of bounds: "+indexValue));
   }
   
   /** Insert an object into this variable at a position. */
@@ -114,8 +114,8 @@ public class VariableArray extends VariableBase
     else
     {
       int indexValue = index.getIntValue();
-      if (indexValue > array.size())
-        throw new ScriptException("Array insert out of bounds");
+      if (indexValue < 0 || indexValue > array.size())
+        throw new ScriptException(composeMessage("Insert index out of bounds: "+indexValue));
       array.add(indexValue,v);
     }
   }
@@ -125,10 +125,10 @@ public class VariableArray extends VariableBase
     throws ScriptException
   {
     if (index == null)
-      throw new ScriptException("Array remove cannot be null.");
+      throw new ScriptException(composeMessage("Array remove index cannot be null"));
     int indexValue = index.getIntValue();
     if (indexValue < 0 || indexValue >= array.size())
-      throw new ScriptException("Array remove out of bounds: "+indexValue);
+      throw new ScriptException(composeMessage("Array remove index out of bounds: "+indexValue));
     array.remove(indexValue);
   }
 
@@ -145,23 +145,23 @@ public class VariableArray extends VariableBase
     public void setReference(Variable v)
       throws ScriptException
     {
-      if (index >= array.size())
-        throw new ScriptException("Index out of range for array children");
+      if (index < 0 || index >= array.size())
+        throw new ScriptException(composeMessage("Index out of range for array children: "+index));
       array.set(index,v);
     }
     
     public Variable resolve()
       throws ScriptException
     {
-      if (index >= array.size())
-        throw new ScriptException("Index out of range for array children");
+      if (index < 0 || index >= array.size())
+        throw new ScriptException(composeMessage("Index out of range for array children: "+index));
       return array.get(index);
     }
     
     /** Check if this reference is null */
     public boolean isNull()
     {
-      return index >= array.size() || array.get(index) == null;
+      return index < 0 || index >= array.size() || array.get(index) == null;
     }
 
   }

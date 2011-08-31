@@ -103,11 +103,11 @@ public class VariableConfiguration extends VariableBase
     throws ScriptException
   {
     if (index == null)
-      throw new ScriptException("Subscript cannot be null for configuration");
+      throw new ScriptException(composeMessage("Subscript cannot be null"));
     int indexValue = index.getIntValue();
-    if (indexValue < configuration.getChildCount())
+    if (indexValue >= 0 && indexValue < configuration.getChildCount())
       return new NodeReference(indexValue);
-    throw new ScriptException("Subscript "+indexValue+" is out of bounds");
+    throw new ScriptException(composeMessage("Subscript is out of bounds: "+indexValue));
   }
   
   /** Insert an object into this variable at a position. */
@@ -115,14 +115,14 @@ public class VariableConfiguration extends VariableBase
     throws ScriptException
   {
     if (v == null)
-      throw new ScriptException("Can't insert a null object into a configuration");
+      throw new ScriptException(composeMessage("Can't insert a null object into a configuration"));
     if (index == null)
       configuration.addChild(configuration.getChildCount(),v.getConfigurationNodeValue());
     else
     {
       int indexValue = index.getIntValue();
       if (indexValue < 0 || indexValue > configuration.getChildCount())
-        throw new ScriptException("Configuration insert out of bounds");
+        throw new ScriptException(composeMessage("Configuration insert out of bounds: "+indexValue));
       configuration.addChild(indexValue,v.getConfigurationNodeValue());
     }
   }
@@ -132,10 +132,10 @@ public class VariableConfiguration extends VariableBase
     throws ScriptException
   {
     if (index == null)
-      throw new ScriptException("Configuration remove index cannot be null");
+      throw new ScriptException(composeMessage("Configuration remove index cannot be null"));
     int indexValue = index.getIntValue();
     if (indexValue < 0 || indexValue >= configuration.getChildCount())
-      throw new ScriptException("Configuration remove out of bounds");
+      throw new ScriptException(composeMessage("Configuration remove index out of bounds"));
     configuration.removeChild(indexValue);
   }
 
@@ -143,7 +143,7 @@ public class VariableConfiguration extends VariableBase
     throws ScriptException
   {
     if (v == null)
-      throw new ScriptException("Can't add a null object");
+      throw new ScriptException(composeMessage("Binary '+' can't add a null object"));
     ConfigurationNode node = v.getConfigurationNodeValue();
     Configuration c = new Configuration();
     int i = 0;
@@ -170,8 +170,8 @@ public class VariableConfiguration extends VariableBase
     public void setReference(Variable v)
       throws ScriptException
     {
-      if (index >= configuration.getChildCount())
-        throw new ScriptException("Index out of range for Configuration children");
+      if (index < 0 || index >= configuration.getChildCount())
+        throw new ScriptException(composeMessage("Index out of range for Configuration children: "+index));
       ConfigurationNode confNode = v.getConfigurationNodeValue();
       configuration.removeChild(index);
       configuration.addChild(index,confNode);
@@ -180,15 +180,15 @@ public class VariableConfiguration extends VariableBase
     public Variable resolve()
       throws ScriptException
     {
-      if (index >= configuration.getChildCount())
-        throw new ScriptException("Index out of range for Configuration children");
+      if (index < 0 || index >= configuration.getChildCount())
+        throw new ScriptException(composeMessage("Index out of range for Configuration children: "+index));
       return new VariableConfigurationNode(configuration.findChild(index));
     }
     
     /** Check if this reference is null */
     public boolean isNull()
     {
-      return index >= configuration.getChildCount();
+      return index < 0 || index >= configuration.getChildCount();
     }
 
   }

@@ -47,7 +47,7 @@ public class VariableDict extends VariableBase
     throws ScriptException
   {
     if (index == null)
-      throw new ScriptException("Dictionary subscript cannot be null");
+      throw new ScriptException(composeMessage("Subscript cannot be null"));
     VariableReference rval = dict.get(index);
     if (rval == null)
     {

@@ -77,14 +77,14 @@ public class VariableURL extends VariableBase
     throws ScriptException
   {
     if (v == null)
-      throw new ScriptException("+ operand cannot be null");
+      throw new ScriptException(composeMessage("Binary '+' operand cannot be null"));
     try
     {
       return new VariableURL(encodedURL + "/" + URLEncoder.encode(v.getStringValue(),"utf-8").replace("+","%20"));
     }
     catch (UnsupportedEncodingException e)
     {
-      throw new ScriptException(e.getMessage(),e);
+      throw new ScriptException(composeMessage(e.getMessage()),e);
     }
   }
   
@@ -92,7 +92,7 @@ public class VariableURL extends VariableBase
     throws ScriptException
   {
     if (v == null)
-      throw new ScriptException("== operand cannot be null");
+      throw new ScriptException(composeMessage("Binary '==' operand cannot be null"));
     return new VariableBoolean(encodedURL.equals(v.getStringValue()));
   }
 
@@ -100,7 +100,7 @@ public class VariableURL extends VariableBase
     throws ScriptException
   {
     if (v == null)
-      throw new ScriptException("!= operand cannot be null");
+      throw new ScriptException(composeMessage("Binary '!=' operand cannot be null"));
     return new VariableBoolean(!encodedURL.equals(v.getStringValue()));
   }
 

@@ -62,7 +62,7 @@ public class VariableBoolean extends VariableBase
     throws ScriptException
   {
     if (v == null)
-      throw new ScriptException("== operand cannot be null");
+      throw new ScriptException(composeMessage("Binary '==' operand cannot be null"));
     return new VariableBoolean(value == v.getBooleanValue());
   }
 
@@ -70,7 +70,7 @@ public class VariableBoolean extends VariableBase
     throws ScriptException
   {
     if (v == null)
-      throw new ScriptException("!= operand cannot be null");
+      throw new ScriptException(composeMessage("Binary '!=' operand cannot be null"));
     return new VariableBoolean(value != v.getBooleanValue());
   }
 
@@ -78,7 +78,7 @@ public class VariableBoolean extends VariableBase
     throws ScriptException
   {
     if (v == null)
-      throw new ScriptException("&& operand cannot be null");
+      throw new ScriptException(composeMessage("Binary '&&' operand cannot be null"));
     return new VariableBoolean(value && v.getBooleanValue());
   }
     
@@ -86,7 +86,7 @@ public class VariableBoolean extends VariableBase
     throws ScriptException
   {
     if (v == null)
-      throw new ScriptException("|| operand cannot be null");
+      throw new ScriptException(composeMessage("Binary '||' operand cannot be null"));
     return new VariableBoolean(value || v.getBooleanValue());
   }
 
@@ -94,7 +94,7 @@ public class VariableBoolean extends VariableBase
     throws ScriptException
   {
     if (v == null)
-      throw new ScriptException("& operand cannot be null");
+      throw new ScriptException(composeMessage("Binary '&' operand cannot be null"));
     return new VariableBoolean(value && v.getBooleanValue());
   }
     
@@ -102,7 +102,7 @@ public class VariableBoolean extends VariableBase
     throws ScriptException
   {
     if (v == null)
-      throw new ScriptException("| operand cannot be null");
+      throw new ScriptException(composeMessage("Binary '|' operand cannot be null"));
     return new VariableBoolean(value || v.getBooleanValue());
   }
 

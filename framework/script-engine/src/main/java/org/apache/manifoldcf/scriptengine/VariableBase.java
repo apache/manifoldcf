@@ -30,53 +30,54 @@ public class VariableBase implements Variable, VariableReference
   {
   }
   
-  /** Get the variable's value as a string */
-  public String getStringValue()
-    throws ScriptException
-  {
-    throw new ScriptException("Cannot convert variable to string");
-  }
 
   /** Get the variable's script value */
   public String getScriptValue()
     throws ScriptException
   {
-    throw new ScriptException("Variable has no script value");
+    throw new ScriptException(composeMessage("Variable has no script value"));
+  }
+
+  /** Get the variable's value as a string */
+  public String getStringValue()
+    throws ScriptException
+  {
+    throw new ScriptException(composeMessage("Cannot convert variable to string"));
   }
   
   /** Get the variable's value as a Configuration object */
   public Configuration getConfigurationValue()
     throws ScriptException
   {
-    throw new ScriptException("Cannot convert variable to Configuration object");
+    throw new ScriptException(composeMessage("Cannot convert variable to Configuration object"));
   }
     
   /** Get the variable's value as a ConfigurationNode object */
   public ConfigurationNode getConfigurationNodeValue()
     throws ScriptException
   {
-    throw new ScriptException("Cannot convert variable to ConfigurationNode object");
+    throw new ScriptException(composeMessage("Cannot convert variable to ConfigurationNode object"));
   }
 
   /** Get the variable's value as a boolean */
   public boolean getBooleanValue()
     throws ScriptException
   {
-    throw new ScriptException("Cannot convert variable to boolean");
+    throw new ScriptException(composeMessage("Cannot convert variable to boolean"));
   }
   
   /** Get the variable's value as an integer */
   public int getIntValue()
     throws ScriptException
   {
-    throw new ScriptException("Cannot convert variable to int");
+    throw new ScriptException(composeMessage("Cannot convert variable to int"));
   }
   
   /** Get the variable's value as a double */
   public double getDoubleValue()
     throws ScriptException
   {
-    throw new ScriptException("Cannot convert variable to float");
+    throw new ScriptException(composeMessage("Cannot convert variable to float"));
   }
 
   // Operations
@@ -84,97 +85,97 @@ public class VariableBase implements Variable, VariableReference
   public VariableReference plus(Variable v)
     throws ScriptException
   {
-    throw new ScriptException("+ operator illegal for this type");
+    throw new ScriptException(composeMessage("Binary '+' operator illegal for this type"));
   }
     
   public VariableReference minus(Variable v)
     throws ScriptException
   {
-    throw new ScriptException("- operator illegal for this type");
+    throw new ScriptException(composeMessage("Binary '-' operator illegal for this type"));
   }
     
   public VariableReference asterisk(Variable v)
     throws ScriptException
   {
-    throw new ScriptException("* operator illegal for this type");
+    throw new ScriptException(composeMessage("Binary '*' operator illegal for this type"));
   }
     
   public VariableReference slash(Variable v)
     throws ScriptException
   {
-    throw new ScriptException("/ operator illegal for this type");
+    throw new ScriptException(composeMessage("Binary '/' operator illegal for this type"));
   }
     
   public VariableReference unaryMinus()
     throws ScriptException
   {
-    throw new ScriptException("Unary - operator illegal for this type");
+    throw new ScriptException(composeMessage("Unary '-' operator illegal for this type"));
   }
   
   public VariableReference greaterAngle(Variable v)
     throws ScriptException
   {
-    throw new ScriptException("> operator illegal for this type");
+    throw new ScriptException(composeMessage("Binary '>' operator illegal for this type"));
   }
     
   public VariableReference lesserAngle(Variable v)
     throws ScriptException
   {
-    throw new ScriptException("< operator illegal for this type");
+    throw new ScriptException(composeMessage("Binary '<' operator illegal for this type"));
   }
     
   public VariableReference doubleEquals(Variable v)
     throws ScriptException
   {
-    throw new ScriptException("= operator illegal for this type");
+    throw new ScriptException(composeMessage("Binary '==' operator illegal for this type"));
   }
     
   public VariableReference greaterAngleEquals(Variable v)
     throws ScriptException
   {
-    throw new ScriptException(">= operator illegal for this type");
+    throw new ScriptException(composeMessage("Binary '>=' operator illegal for this type"));
   }
     
   public VariableReference lesserAngleEquals(Variable v)
     throws ScriptException
   {
-    throw new ScriptException("<= operator illegal for this type");
+    throw new ScriptException(composeMessage("Binary '<=' operator illegal for this type"));
   }
   
   public VariableReference exclamationEquals(Variable v)
     throws ScriptException
   {
-    throw new ScriptException("!= operator illegal for this type");
+    throw new ScriptException(composeMessage("Binary '!=' operator illegal for this type"));
   }
   
   public VariableReference ampersand(Variable v)
     throws ScriptException
   {
-    throw new ScriptException("& operator illegal for this type");
+    throw new ScriptException(composeMessage("Binary '&' operator illegal for this type"));
   }
     
   public VariableReference pipe(Variable v)
     throws ScriptException
   {
-    throw new ScriptException("| operator illegal for this type");
+    throw new ScriptException(composeMessage("Binary '|' operator illegal for this type"));
   }
 
   public VariableReference doubleAmpersand(Variable v)
     throws ScriptException
   {
-    throw new ScriptException("&& operator illegal for this type");
+    throw new ScriptException(composeMessage("Binary '&&' operator illegal for this type"));
   }
     
   public VariableReference doublePipe(Variable v)
     throws ScriptException
   {
-    throw new ScriptException("|| operator illegal for this type");
+    throw new ScriptException(composeMessage("Binary '||' operator illegal for this type"));
   }
   
   public VariableReference unaryExclamation()
     throws ScriptException
   {
-    throw new ScriptException("! operator illegal for this type");
+    throw new ScriptException(composeMessage("Unary '!' operator illegal for this type"));
   }
 
   // The following operations allow manipulation of a Configuration structure
@@ -194,21 +195,21 @@ public class VariableBase implements Variable, VariableReference
     else if (attributeName.equals(ATTRIBUTE_SCRIPT))
       return new VariableString(getScriptValue());
     else
-      throw new ScriptException("Variable has no attribute called '"+attributeName+"'");
+      throw new ScriptException(composeMessage("Variable has no attribute called '"+attributeName+"'"));
   }
   
   /** Insert an object into this variable at a position. */
   public void insertAt(Variable v, Variable index)
     throws ScriptException
   {
-    throw new ScriptException("Can't insert into variable");
+    throw new ScriptException(composeMessage("Variable does not support 'insert' operation"));
   }
 
   /** Delete an object from this variable at a position. */
   public void removeAt(Variable index)
     throws ScriptException
   {
-    throw new ScriptException("Can't remove from variable");
+    throw new ScriptException(composeMessage("Variable does not support 'remove' operation"));
   }
     
 
@@ -218,7 +219,7 @@ public class VariableBase implements Variable, VariableReference
   public VariableReference getIndexed(Variable index)
     throws ScriptException
   {
-    throw new ScriptException("Variable does not support subscripts");
+    throw new ScriptException(composeMessage("Variable does not support subscripts"));
   }
 
   // As a variable reference, refer to self
@@ -227,7 +228,7 @@ public class VariableBase implements Variable, VariableReference
   public void setReference(Variable object)
     throws ScriptException
   {
-    throw new ScriptException("Cannot set reference of this kind");
+    throw new ScriptException(composeMessage("Cannot set reference"));
   }
   
   /** Resolve the reference */
@@ -243,4 +244,11 @@ public class VariableBase implements Variable, VariableReference
     return false;
   }
 
+  // Protected methods
+  
+  /** Compose a message which includes the current class name, so we can see what type of variable it is. */
+  protected String composeMessage(String input)
+  {
+    return "Variable of type '"+getClass().getName()+"': "+input;
+  }
 }

@@ -76,7 +76,7 @@ public class VariableConnectionName extends VariableBase
     throws ScriptException
   {
     if (v == null)
-      throw new ScriptException("== operand cannot be null");
+      throw new ScriptException(composeMessage("Binary '==' operand cannot be null"));
     return new VariableBoolean(encodedConnectionName.equals(v.getStringValue()));
   }
 
@@ -84,7 +84,7 @@ public class VariableConnectionName extends VariableBase
     throws ScriptException
   {
     if (v == null)
-      throw new ScriptException("!= operand cannot be null");
+      throw new ScriptException(composeMessage("Binary '!=' operand cannot be null"));
     return new VariableBoolean(!encodedConnectionName.equals(v.getStringValue()));
   }
 

@@ -74,7 +74,7 @@ public class VariableFloat extends VariableBase
     throws ScriptException
   {
     if (v == null)
-      throw new ScriptException("+ operand cannot be null");
+      throw new ScriptException(composeMessage("Binary '+' operand cannot be null"));
     return new VariableFloat(value + v.getDoubleValue());
   }
     
@@ -82,7 +82,7 @@ public class VariableFloat extends VariableBase
     throws ScriptException
   {
     if (v == null)
-      throw new ScriptException("- operand cannot be null");
+      throw new ScriptException(composeMessage("Binary '-' operand cannot be null"));
     return new VariableFloat(value - v.getDoubleValue());
   }
     
@@ -90,7 +90,7 @@ public class VariableFloat extends VariableBase
     throws ScriptException
   {
     if (v == null)
-      throw new ScriptException("* operand cannot be null");
+      throw new ScriptException(composeMessage("Binary '*' operand cannot be null"));
     return new VariableFloat(value * v.getDoubleValue());
   }
     
@@ -98,7 +98,7 @@ public class VariableFloat extends VariableBase
     throws ScriptException
   {
     if (v == null)
-      throw new ScriptException("/ operand cannot be null");
+      throw new ScriptException(composeMessage("Binary '/' operand cannot be null"));
     return new VariableFloat(value / v.getDoubleValue());
   }
     
@@ -112,7 +112,7 @@ public class VariableFloat extends VariableBase
     throws ScriptException
   {
     if (v == null)
-      throw new ScriptException("> operand cannot be null");
+      throw new ScriptException(composeMessage("Binary '>' operand cannot be null"));
     return new VariableBoolean(value > v.getDoubleValue());
   }
   
@@ -120,7 +120,7 @@ public class VariableFloat extends VariableBase
     throws ScriptException
   {
     if (v == null)
-      throw new ScriptException("< operand cannot be null");
+      throw new ScriptException(composeMessage("Binary '<' operand cannot be null"));
     return new VariableBoolean(value < v.getDoubleValue());
   }
     
@@ -128,7 +128,7 @@ public class VariableFloat extends VariableBase
     throws ScriptException
   {
     if (v == null)
-      throw new ScriptException("== operand cannot be null");
+      throw new ScriptException(composeMessage("Binary '==' operand cannot be null"));
     return new VariableBoolean(value == v.getDoubleValue());
   }
     
@@ -136,7 +136,7 @@ public class VariableFloat extends VariableBase
     throws ScriptException
   {
     if (v == null)
-      throw new ScriptException(">= operand cannot be null");
+      throw new ScriptException(composeMessage("Binary '>=' operand cannot be null"));
     return new VariableBoolean(value >= v.getDoubleValue());
   }
     
@@ -144,7 +144,7 @@ public class VariableFloat extends VariableBase
     throws ScriptException
   {
     if (v == null)
-      throw new ScriptException("<= operand cannot be null");
+      throw new ScriptException(composeMessage("Binary '<=' operand cannot be null"));
     return new VariableBoolean(value <= v.getDoubleValue());
   }
   
@@ -152,7 +152,7 @@ public class VariableFloat extends VariableBase
     throws ScriptException
   {
     if (v == null)
-      throw new ScriptException("!= operand cannot be null");
+      throw new ScriptException(composeMessage("Binary '!=' operand cannot be null"));
     return new VariableBoolean(value != v.getDoubleValue());
   }
 
