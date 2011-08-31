@@ -2382,11 +2382,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }
     
     // Schedule records
-    child = new ConfigurationNode(JOBNODE_SCHEDULE);
     j = 0;
     while (j < job.getScheduleRecordCount())
     {
       ScheduleRecord sr = job.getScheduleRecord(j++);
+      child = new ConfigurationNode(JOBNODE_SCHEDULE);
       ConfigurationNode recordChild;
       
       // timezone
@@ -2420,8 +2420,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         formatEnumeratedValues(child,JOBNODE_HOUROFDAY,sr.getHourOfDay());
       if (sr.getMinutesOfHour() != null)
         formatEnumeratedValues(child,JOBNODE_MINUTESOFHOUR,sr.getMinutesOfHour());
+      
+      jobNode.addChild(jobNode.getChildCount(),child);
     }
-    jobNode.addChild(jobNode.getChildCount(),child);
   }
 
   protected static void formatEnumeratedValues(ConfigurationNode recordNode, String childType, EnumeratedValues value)

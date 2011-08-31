@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-245: Fix API bug where schedule JSON was incorrect when fetching
+job description.
+(Karl Wright)
+
 CONNECTORS-229: CMIS connector needs to be documented in "how to build and deploy"
 (Piergiorgio Lucidi)
 

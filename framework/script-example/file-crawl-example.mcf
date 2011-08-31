@@ -70,7 +70,6 @@ POST result = {
   << "job" : "" :  : 
     << "start_mode" : "manual" :  :  >>,
     << "reseed_interval" : "3600000" :  :  >>,
-    << "schedule" : "" :  :  >>,
     << "recrawl_interval" : "86400000" :  :  >>,
     << "run_mode" : "scan once" :  :  >>,
     << "hopcount_mode" : "never delete" :  :  >>,
