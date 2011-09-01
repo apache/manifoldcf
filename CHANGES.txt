@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-144: Remove Apache license from DISCLAIMER.txt, as per the
+incubator's instructions.
+(Karl Wright)
+
 CONNECTORS-177: Remove test code from file system connector.
 (Karl Wright)
 
