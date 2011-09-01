@@ -1627,7 +1627,7 @@
               <title>CMIS Repository Connection</title>
               <p>The CMIS Repository Connection type allows you to index content from any CMIS-compliant repository.</p>
               <p>By default each CMIS Connection manages a single CMIS repository, this means that if you have multiple CMIS repositories exposed by a single endpoint, you need to create a specific connection for each CMIS repository.</p>
-              <br/><br/>
+              <br/>
               <p>A CMIS connection has the following configuration parameters on the repository connection editing screen:</p>
               <br/><br/>
               <figure src="images/cmis-repository-connection-configuration.png" alt="CMIS Repository Connection, configuration parameters" width="80%"/>
@@ -1638,7 +1638,7 @@
               <p><code>http://HOSTNAME:PORT/CMIS_CONTEXT_PATH</code></p>
               <br/><br/>
               <p>Optionally you can provide the repository ID to select one of the exposed CMIS repository, if this parameter is null the CMIS Connector will consider the first CMIS repository exposed by the CMIS server.</p>
-              <br/><br/>
+              <br/>
               <p>Note that, in a CMIS system, a specific binding protocol has its own context path, this means that the endpoints are different:</p>
               <p>for example the endpoint of the AtomPub binding exposed by the actual version of the InMemory Server provided by the OpenCMIS framework is the following:</p>
               <p><code>http://localhost:8080/chemistry-opencmis-server-inmemory-war-0.5.0-SNAPSHOT/atom</code></p>
