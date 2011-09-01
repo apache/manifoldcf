@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-58: Add client scripting language and a file-system-based example.
+(Karl Wright)
+
 CONNECTORS-245: Fix API bug where schedule JSON was incorrect when fetching
 job description.
 (Karl Wright)

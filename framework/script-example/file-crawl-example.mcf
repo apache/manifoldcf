@@ -118,5 +118,9 @@ while true do
   wait 10000;
 ;
 
-print "The job completed";
+if thestatus == "error" then
+  print "The job aborted, with error: " + jobstatus.__dict__["error_text"].__value;
+else
+  print "The job completed";
+;
 
