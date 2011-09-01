@@ -3,9 +3,12 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-177: Remove test code from file system connector.
+(Karl Wright)
+
 CONNECTORS-141: Exclude files from rat report that the Forrest teams says I
 should.
-(Karl Wright
+(Karl Wright)
 
 CONNECTORS-58: Add client scripting language and a file-system-based example.
 (Karl Wright)

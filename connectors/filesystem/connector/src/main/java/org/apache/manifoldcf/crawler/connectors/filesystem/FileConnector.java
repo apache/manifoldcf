@@ -71,12 +71,11 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
   }
 
   /** For any given document, list the bins that it is a member of.
-  * For the file system, this would be typically just a blank value, but since we use this connector for testing, I have
-  * it returning TWO values for each document, so I can set up tests to see how the scheduler behaves under those conditions.
   */
   @Override
   public String[] getBinNames(String documentIdentifier)
   {
+/*
     // Note: This code is for testing, so we can see how documents behave when they are in various kinds of bin situations.
     // The testing model is that there are documents belonging to "SLOW", to "FAST", or both to "SLOW" and "FAST" bins.
     // The connector chooses which bins to assign a document to based on the identifier (which is the document's path), so
@@ -87,6 +86,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
       return new String[]{"SLOW"};
     if (documentIdentifier.indexOf("/FAST/") != -1)
       return new String[]{"FAST"};
+*/
     return new String[]{""};
   }
 
