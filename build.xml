@@ -2240,6 +2240,8 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </fileset>
         <fileset dir="site/">
           <exclude name="**/build/"/>
+          <exclude name="src/documentation/skins/common/xslt/html/split.xsl"/>
+          <exclude name="src/documentation/skins/lucene/note.txt"/>
         </fileset>
       </rat:report>
     </target>
