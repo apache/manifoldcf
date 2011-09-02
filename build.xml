@@ -1806,7 +1806,7 @@
 
     <target name="run-filesystem-tests" depends="compile-filesystem-tests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
         <mkdir dir="test-output/filesystem"/>
-        <junit fork="true" maxmemory="128m" dir="test-output/filesystem" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="128m" dir="test-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -1831,6 +1831,8 @@
 	      </fileset>
                 <pathelement location="build/filesystem-tests/classes"/>
             </classpath>
+            <formatter type="brief" usefile="false"/>
+
             <test name="org.apache.manifoldcf.filesystem_tests.SanityTest" todir="test-output/filesystem"/>
             <test name="org.apache.manifoldcf.filesystem_tests.APISanityTest" todir="test-output/filesystem"/>
             <test name="org.apache.manifoldcf.filesystem_tests.HopcountTest" todir="test-output/filesystem"/>
@@ -1841,7 +1843,7 @@
 
     <target name="run-cmis-tests" depends="compile-cmis-tests,calculate-cmis-tests-condition" if="cmis-tests.include">
         <mkdir dir="test-output/cmis"/>
-        <junit fork="true" maxmemory="128m" dir="test-output/cmis" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="128m" dir="test-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -1869,6 +1871,8 @@
 	      </fileset>
                 <pathelement location="build/cmis-tests/classes"/>
             </classpath>
+            <formatter type="brief" usefile="false"/>
+	    
             <test name="org.apache.manifoldcf.cmis_tests.APISanityTest" todir="test-output/cmis"/>
             <!-- MHL -->
         </junit>
@@ -1876,7 +1880,7 @@
 
     <target name="run-sharepoint-tests" depends="compile-sharepoint-tests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
         <mkdir dir="test-output/sharepoint"/>
-        <junit fork="true" maxmemory="128m" dir="test-output/sharepoint" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="128m" dir="test-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -1901,13 +1905,15 @@
 	      </fileset>
                 <pathelement location="build/sharepoint-tests/classes"/>
             </classpath>
+            <formatter type="brief" usefile="false"/>
+
             <!-- MHL -->
         </junit>
     </target>
 
     <target name="run-filesystem-tests-postgresql" depends="compile-filesystem-tests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
         <mkdir dir="test-postgresql-output/filesystem"/>
-        <junit fork="true" maxmemory="128m" dir="test-postgresql-output/filesystem" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="128m" dir="test-postgresql-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -1932,6 +1938,8 @@
 	      </fileset>
                 <pathelement location="build/filesystem-tests/classes"/>
             </classpath>
+            <formatter type="brief" usefile="false"/>
+
             <test name="org.apache.manifoldcf.filesystem_tests.SanityPostgresqlTest" todir="test-postgresql-output/filesystem"/>
             <test name="org.apache.manifoldcf.filesystem_tests.APISanityPostgresqlTest" todir="test-postgresql-output/filesystem"/>
             <test name="org.apache.manifoldcf.filesystem_tests.HopcountPostgresqlTest" todir="test-postgresql-output/filesystem"/>
@@ -1942,7 +1950,7 @@
 
     <target name="run-filesystem-tests-HSQLDB" depends="compile-filesystem-tests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
         <mkdir dir="test-HSQLDB-output/filesystem"/>
-        <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output/filesystem" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -1967,6 +1975,8 @@
 	      </fileset>
                 <pathelement location="build/filesystem-tests/classes"/>
             </classpath>
+            <formatter type="brief" usefile="false"/>
+
             <test name="org.apache.manifoldcf.filesystem_tests.SanityHSQLDBTest" todir="test-HSQLDB-output/filesystem"/>
             <test name="org.apache.manifoldcf.filesystem_tests.APISanityHSQLDBTest" todir="test-HSQLDB-output/filesystem"/>
             <test name="org.apache.manifoldcf.filesystem_tests.HopcountHSQLDBTest" todir="test-HSQLDB-output/filesystem"/>
@@ -1977,7 +1987,7 @@
 
     <target name="run-sharepoint-tests-postgresql" depends="compile-sharepoint-tests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
         <mkdir dir="test-postgresql-output/sharepoint"/>
-        <junit fork="true" maxmemory="128m" dir="test-postgresql-output/sharepoint" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="128m" dir="test-postgresql-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -2002,13 +2012,15 @@
 	      </fileset>
                 <pathelement location="build/sharepoint-tests/classes"/>
             </classpath>
+            <formatter type="brief" usefile="false"/>
+
             <!-- MHL -->
         </junit>
     </target>
 
     <target name="run-sharepoint-tests-HSQLDB" depends="compile-sharepoint-tests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
         <mkdir dir="test-postgresql-output/sharepoint"/>
-        <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output/sharepoint" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -2033,6 +2045,8 @@
 	      </fileset>
                 <pathelement location="build/sharepoint-tests/classes"/>
             </classpath>
+            <formatter type="brief" usefile="false"/>
+
             <!-- MHL -->
         </junit>
     </target>

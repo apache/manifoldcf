@@ -510,7 +510,20 @@
         </javac>
     </target>
 
-    <target name="compile-tests" depends="compile-core-tests,compile-agents-tests,compile-pull-agent-tests"/>
+    <target name="compile-script-engine-tests" depends="compile-core,compile-script-engine">
+        <mkdir dir="build/script-engine-tests/classes"/>
+        <javac srcdir="script-engine/src/test/java" destdir="build/script-engine-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+            <classpath>
+                 <fileset dir="lib"> 
+                    <include name="*.jar"/> 
+                </fileset>
+                <pathelement location="build/core/classes"/>
+                <pathelement location="build/script-engine/classes"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="compile-tests" depends="compile-core-tests,compile-agents-tests,compile-pull-agent-tests,compile-script-engine-tests"/>
     
     <target name="jar-core-tests" depends="compile-core-tests">
         <mkdir dir="build/test-jar"/>
@@ -527,13 +540,37 @@
         <jar destfile="build/test-jar/mcf-pull-agent-tests.jar" basedir="build/pull-agent-tests/classes"/>
     </target>
 
-    <target name="jar-tests" depends="jar-core-tests,jar-agents-tests,jar-pull-agent-tests"/>
+    <target name="jar-script-engine-tests" depends="compile-script-engine-tests">
+        <mkdir dir="build/test-jar"/>
+        <jar destfile="build/test-jar/mcf-script-engine-tests.jar" basedir="build/script-engine-tests/classes"/>
+    </target>
+
+    <target name="jar-tests" depends="jar-core-tests,jar-agents-tests,jar-pull-agent-tests,jar-script-engine-tests"/>
 
     <target name="build-tests" depends="jar-tests"/>
 
-    <target name="run-tests" depends="compile-tests">
+    <target name="run-script-engine-tests" depends="compile-core,compile-script-engine,compile-script-engine-tests">
         <mkdir dir="test-output"/>
-        <junit fork="true" maxmemory="128m" dir="test-output" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="lib">
+                    <include name="*.jar"/>
+                </fileset>
+                <pathelement location="build/core/classes"/>
+                <pathelement location="build/script-engine/classes"/>
+                <pathelement location="build/script-engine-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+
+            <test name="org.apache.manifoldcf.scriptengine.tests.ExpressionTest" todir="test-output"/>
+            <!-- MHL -->
+            
+        </junit>
+    </target>
+    
+    <target name="run-tests" depends="compile-tests,run-script-engine-tests">
+        <mkdir dir="test-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="lib">
                     <include name="*.jar"/>
@@ -548,6 +585,8 @@
                 <pathelement location="build/agents-tests/classes"/>
                 <pathelement location="build/pull-agent-tests/classes"/>
             </classpath>
+            <formatter type="brief" usefile="false"/>
+
             <test name="org.apache.manifoldcf.agents.tests.SanityTest" todir="test-output"/>
             <test name="org.apache.manifoldcf.crawler.tests.SanityTest" todir="test-output"/>
             <!-- MHL -->
@@ -556,7 +595,7 @@
 
     <target name="run-tests-postgresql" depends="compile-tests">
         <mkdir dir="test-output-postgresql"/>
-        <junit fork="true" maxmemory="128m" dir="test-output-postgresql" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="128m" dir="test-output-postgresql" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="lib">
                     <include name="*.jar"/>
@@ -571,6 +610,8 @@
                 <pathelement location="build/agents-tests/classes"/>
                 <pathelement location="build/pull-agent-tests/classes"/>
             </classpath>
+            <formatter type="brief" usefile="false"/>
+
             <test name="org.apache.manifoldcf.agents.tests.SanityPostgresqlTest" todir="test-output-postgresql"/>
             <test name="org.apache.manifoldcf.crawler.tests.SanityPostgresqlTest" todir="test-output-postgresql"/>
             <!-- MHL -->
@@ -579,7 +620,7 @@
 
     <target name="run-tests-HSQLDB" depends="compile-tests">
         <mkdir dir="test-output-HSQLDB"/>
-        <junit fork="true" maxmemory="128m" dir="test-output-HSQLDB" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="128m" dir="test-output-HSQLDB" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="lib">
                     <include name="*.jar"/>
@@ -594,6 +635,8 @@
                 <pathelement location="build/agents-tests/classes"/>
                 <pathelement location="build/pull-agent-tests/classes"/>
             </classpath>
+            <formatter type="brief" usefile="false"/>
+
             <test name="org.apache.manifoldcf.agents.tests.SanityHSQLDBTest" todir="test-output-HSQLDB"/>
             <test name="org.apache.manifoldcf.crawler.tests.SanityHSQLDBTest" todir="test-output-HSQLDB"/>
             <!-- MHL -->
