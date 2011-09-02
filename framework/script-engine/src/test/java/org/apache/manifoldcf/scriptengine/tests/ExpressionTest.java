@@ -30,10 +30,114 @@ public class ExpressionTest extends ScriptEngineBase
     throws Exception
   {
     VariableReference vr;
+    
+    // Binary +
     vr = evaluateExpression("1+2");
     assertNotNull(vr);
     assertEquals(vr.resolve().getIntValue(),3);
-    // MHL
+    
+    // Binary -
+    vr = evaluateExpression("1-2");
+    assertNotNull(vr);
+    assertEquals(vr.resolve().getIntValue(),-1);
+
+    // Binary *
+    vr = evaluateExpression("2*3");
+    assertNotNull(vr);
+    assertEquals(vr.resolve().getIntValue(),6);
+
+    // Binary /
+    vr = evaluateExpression("3/2");
+    assertNotNull(vr);
+    assertEquals(vr.resolve().getIntValue(),1);
+
+    // Unary -
+    vr = evaluateExpression("-2");
+    assertNotNull(vr);
+    assertEquals(vr.resolve().getIntValue(),-2);
+
+    // Binary &
+    vr = evaluateExpression("1&5");
+    assertNotNull(vr);
+    assertEquals(vr.resolve().getIntValue(),1);
+
+    // Binary |
+    vr = evaluateExpression("1|2");
+    assertNotNull(vr);
+    assertEquals(vr.resolve().getIntValue(),3);
+
+    // Unary !
+    vr = evaluateExpression("!2");
+    assertNotNull(vr);
+    assertEquals(vr.resolve().getIntValue(),2^2);
+
+    // >
+    vr = evaluateExpression("1>1");
+    assertNotNull(vr);
+    assertEquals(vr.resolve().getBooleanValue(),false);
+    vr = evaluateExpression("2>1");
+    assertNotNull(vr);
+    assertEquals(vr.resolve().getBooleanValue(),true);
+
+    // >=
+    vr = evaluateExpression("0>=1");
+    assertNotNull(vr);
+    assertEquals(vr.resolve().getBooleanValue(),false);
+    vr = evaluateExpression("1>=1");
+    assertNotNull(vr);
+    assertEquals(vr.resolve().getBooleanValue(),true);
+
+    // <
+    vr = evaluateExpression("2<2");
+    assertNotNull(vr);
+    assertEquals(vr.resolve().getBooleanValue(),false);
+    vr = evaluateExpression("1<2");
+    assertNotNull(vr);
+    assertEquals(vr.resolve().getBooleanValue(),true);
+
+    // <=
+    vr = evaluateExpression("2<=1");
+    assertNotNull(vr);
+    assertEquals(vr.resolve().getBooleanValue(),false);
+    vr = evaluateExpression("1<=1");
+    assertNotNull(vr);
+    assertEquals(vr.resolve().getBooleanValue(),true);
+
+    // ==
+    vr = evaluateExpression("1==2");
+    assertNotNull(vr);
+    assertEquals(vr.resolve().getBooleanValue(),false);
+    vr = evaluateExpression("1==1");
+    assertNotNull(vr);
+    assertEquals(vr.resolve().getBooleanValue(),true);
+
+    // !=
+    vr = evaluateExpression("1!=1");
+    assertNotNull(vr);
+    assertEquals(vr.resolve().getBooleanValue(),false);
+    vr = evaluateExpression("1!=2");
+    assertNotNull(vr);
+    assertEquals(vr.resolve().getBooleanValue(),true);
+
+    // Attributes
+    vr = evaluateExpression("2 .__int__");
+    assertNotNull(vr);
+    assertEquals(vr.resolve().getIntValue(),2);
+    vr = evaluateExpression("2 .__string__");
+    assertNotNull(vr);
+    assertEquals(vr.resolve().getStringValue(),"2");
+    vr = evaluateExpression("2 .__float__");
+    assertNotNull(vr);
+    assertEquals(vr.resolve().getDoubleValue(),2.0,0.0);
+    vr = evaluateExpression("2 .__script__");
+    assertNotNull(vr);
+    assertEquals(vr.resolve().getStringValue(),"2");
+
+    // Various values
+    assertEquals(new VariableInt(2).getIntValue(),2);
+    assertEquals(new VariableInt(2).getStringValue(),"2");
+    assertEquals(new VariableInt(2).getDoubleValue(),2.0,0.0);
+
   }
 
 }
