@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-246, CONNECTORS-248: Problems with MVCC model of Hsqldb
+causing query inconsistencies, claimed to be fixed in HSQLDB 2.2.5.
+(Karl Wright)
+
 CONNECTORS-144: Remove Apache license from DISCLAIMER.txt, as per the
 incubator's instructions.
 (Karl Wright)
