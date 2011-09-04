@@ -563,7 +563,7 @@
             <formatter type="brief" usefile="false"/>
 
             <test name="org.apache.manifoldcf.scriptengine.tests.ExpressionTest" todir="test-output"/>
-            <!-- MHL -->
+            <test name="org.apache.manifoldcf.scriptengine.tests.CommandTest" todir="test-output"/>
             
         </junit>
     </target>
