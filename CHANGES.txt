@@ -3,11 +3,11 @@ $Id$
 
 ======================= 0.3-dev =========================
 
-CONNECTORS-247: Add unit tests for script engine.
-(Karl Wright)
+CONNECTORS-246, CONNECTORS-248, CONNECTORS-249: Problems with MVCC
+model of Hsqldb causing query inconsistencies, fixed in HSQLDB 2.2.5-6-9-2011.
+(Fred Toussi, Karl Wright)
 
-CONNECTORS-246, CONNECTORS-248: Problems with MVCC model of Hsqldb
-causing query inconsistencies, claimed to be fixed in HSQLDB 2.2.5.
+CONNECTORS-247: Add unit tests for script engine.
 (Karl Wright)
 
 CONNECTORS-144: Remove Apache license from DISCLAIMER.txt, as per the
