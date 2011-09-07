@@ -2086,7 +2086,7 @@
     <target name="doc" depends="deliver-site-doc"/>
     
     <target name="set-version">
-      <property name="release-version" value="0.3-dev"/>
+      <property name="release-version" value="0.3-incubating"/>
     </target>
     
     <target name="create-source-zip" depends="set-version">
