@@ -1,7 +1,9 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 0.3-dev =========================
+======================= 0.4-dev =====================
+
+======================= Release 0.3 =========================
 
 CONNECTORS-246, CONNECTORS-248, CONNECTORS-249: Problems with MVCC
 model of Hsqldb causing query inconsistencies, fixed in HSQLDB 2.2.5-6-9-2011.

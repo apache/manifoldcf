@@ -53,6 +53,10 @@
 
     <section>
         <title>News</title>
+          <section>
+             <title>07 Sep 2011 - ManifoldCF 0.3-incubating RC0 is built!</title>
+                <p>Developer community reviews the third ManifoldCF release.</p>
+          </section>
 	  <section>
 	     <title>17 May 2011 - ManifoldCF 0.2-incubating is released!</title>
                 <p>Developer community and Apache Incubator sign off on second release</p>
