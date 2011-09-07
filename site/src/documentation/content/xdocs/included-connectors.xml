@@ -41,7 +41,7 @@
         <tr><td>RSS</td><td> Pure Java </td><td> N/A </td><td> N/A </td><td>Atom, RSS 2.0, others </td></tr>
         <tr><td>Web</td><td> Pure Java </td><td>N/A</td><td> N/A </td><td>HTML Version 1.0, 1.1, 2.0, Atom, RSS 2.0, others </td></tr>
         <tr><td>LiveLink (OpenText)</td><td> Pure Java </td><td> Win </td><td> LAPI 9.7.1 </td><td> Tested with 9.2.0 - 9.7.1 </td></tr>
-        <tr><td>Open Search Server</td><td> Pure Java </td><td> N/A</td><td> Unknown </td><td>Tested with 1.2.1, 1.2.2, 1.2.3</td></tr>
+        <tr><td>OpenSearchServer</td><td> Pure Java </td><td> N/A </td><td> N/A</td><td> Tested with OpenSearchServer 1.2.1, 1.2.2, 1.2.3 </td></tr>
         <tr><td>Documentum (EMC)</td><td> Win, RedHat </td><td> Win, RedHat </td><td> Tested with DFC 5.3 SP5 </td><td> Tested against 5.3, 6.0, and 6.5 servers </td></tr>
         <tr><td>SharePoint (MSFT)</td><td>Pure Java </td><td>Win</td><td> N/A </td><td> Tested with SharePoint 2003 (2.0), 2007 (3.0) </td></tr>
         <tr><td>Meridio (Autonomy)</td><td> Pure Java </td><td> Win </td><td> N/A </td><td> Tested with Meridio 4.1, 5.0 </td></tr>

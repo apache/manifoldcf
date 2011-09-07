@@ -68,6 +68,7 @@
         <ul>
           <li>MetaCarta GTS output connector</li>
           <li>Apache Solr output connector</li>
+          <li>OpenSearchServer output connector</li>
           <li>Null output connector</li>
         </ul>
         <p></p>
@@ -585,6 +586,7 @@ log4j.appender.MAIN.layout.ConversionPattern=[%d]%-5p %m%n
             <tr><td>org.apache.manifoldcf.agents.Register</td><td>org.apache.manifoldcf.crawler.system.CrawlerAgent</td></tr>
             <tr><td>org.apache.manifoldcf.agents.RegisterOutput</td><td>org.apache.manifoldcf.agents.output.gts.GTSConnector "GTS Connector"</td></tr>
             <tr><td>org.apache.manifoldcf.agents.RegisterOutput</td><td>org.apache.manifoldcf.agents.output.solr.SolrConnector "SOLR Connector"</td></tr>
+            <tr><td>org.apache.manifoldcf.agents.RegisterOutput</td><td>org.apache.manifoldcf.agents.output.opensearchserver.OpenSearchServerConnector "OpenSearchServer Connector"</td></tr>
             <tr><td>org.apache.manifoldcf.agents.RegisterOutput</td><td>org.apache.manifoldcf.agents.output.nullconnector.NullConnector "Null Connector"</td></tr>
             <tr><td>org.apache.manifoldcf.authorities.RegisterAuthority</td><td>org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryAuthority "Active Directory Authority"</td></tr>
             <tr><td>org.apache.manifoldcf.crawler.Register</td><td>org.apache.manifoldcf.crawler.connectors.cmis.CmisRepositoryConnector "CMIS"</td></tr>

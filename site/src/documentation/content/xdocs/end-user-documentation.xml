@@ -473,6 +473,12 @@
                        Solr, and click the "Add" button.  Leaving the "target" field blank will result in all metadata items of that name not being sent to Solr.</p>
             </section>
             
+            <section id="osssoutputconnector">
+            	<title>OpenSearchServer Output Connection</title>
+            	<p>The OpenSearchServer Output Connection allow ManifoldCF to submit documents to an OpenSearchServer instance, via the XML over HTTP API.</p>
+            	<p>You may also refer to the <a href="http://www.open-search-server.com/documentation">OpenSearchServer's user documentation</a>.</p>
+            </section>
+            
             <section id="gtsoutputconnector">
                 <title>MetaCarta GTS Output Connection</title>
                 <p>The MetaCarta GTS output connection type is designed to allow ManifoldCF to submit documents to an appropriate MetaCarta GTS search
