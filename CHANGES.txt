@@ -8,6 +8,9 @@ CONNECTORS-252: Clean up build, dist and lib of each connector after build.
 
 ======================= Release 0.3 =========================
 
+CONNECTORS-240: Add OpenSearchServer end-user documentation.
+(Emmanuel Keller, Karl Wright)
+
 CONNECTORS-250: Renew jcifs download site link.
 (Shinichiro Abe)
 
