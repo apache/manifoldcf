@@ -1,7 +1,10 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 0.3-dev =========================
+======================= Release 0.3 =========================
+
+CONNECTORS-250: Renew jcifs download site link.
+(Shinichiro Abe)
 
 CONNECTORS-253: Make script output of configurationnode script object
 have attributes that are ordered, so the test does not depend on hash order.
