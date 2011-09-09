@@ -3,6 +3,9 @@ $Id$
 
 ======================= Release 0.3 =========================
 
+CONNECTORS-240: Add OpenSearchServer end-user documentation.
+(Emmanuel Keller, Karl Wright)
+
 CONNECTORS-250: Renew jcifs download site link.
 (Shinichiro Abe)
 
