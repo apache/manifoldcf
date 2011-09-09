@@ -67,6 +67,50 @@
         <ant dir="connectors/webcrawler" target="clean"/>
         <delete dir="connectors/webcrawler/lib"/>
     </target>
+
+    <target name="cleanup-afterbuild">
+        <delete dir="build"/>
+        <delete dir="framework/build"/>
+        <delete dir="framework/dist"/>
+        <delete dir="framework/lib"/>
+        <ant dir="connectors/cmis" target="clean"/>
+        <delete dir="connectors/cmis/lib"/>
+        <ant dir="connectors/activedirectory" target="clean"/>
+        <delete dir="connectors/activedirectory/lib"/>
+        <ant dir="connectors/documentum" target="clean"/>
+        <delete dir="connectors/documentum/lib"/>
+        <ant dir="connectors/filenet" target="clean"/>
+        <delete dir="connectors/filenet/lib"/>
+        <delete dir="connectors/filesystem/build"/>
+        <delete dir="connectors/filesystem/dist"/>
+        <delete dir="connectors/filesystem/lib"/>
+        <ant dir="connectors/gts" target="clean"/>
+        <delete dir="connectors/gts/lib"/>
+        <ant dir="connectors/jcifs" target="clean"/>
+        <delete dir="connectors/jcifs/lib"/>
+        <ant dir="connectors/jdbc" target="clean"/>
+        <delete dir="connectors/jdbc/lib"/>
+        <ant dir="connectors/livelink" target="clean"/>
+        <delete dir="connectors/livelink/lib"/>
+        <ant dir="connectors/solr" target="clean"/>
+        <delete dir="connectors/solr/lib"/>
+        <ant dir="connectors/memex" target="clean"/>
+        <delete dir="connectors/memex/lib"/>
+        <ant dir="connectors/meridio" target="clean"/>
+        <delete dir="connectors/meridio/lib"/>
+    	<ant dir="connectors/opensearchserver" target="clean"/>
+    	<delete dir="connectors/opensearchserver/lib"/>
+        <ant dir="connectors/nullauthority" target="clean"/>
+        <delete dir="connectors/nullauthority/lib"/>
+        <ant dir="connectors/nulloutput" target="clean"/>
+        <delete dir="connectors/nulloutput/lib"/>
+        <ant dir="connectors/rss" target="clean"/>
+        <delete dir="connectors/rss/lib"/>
+        <ant dir="connectors/sharepoint" target="clean"/>
+        <delete dir="connectors/sharepoint/lib"/>
+        <ant dir="connectors/webcrawler" target="clean"/>
+        <delete dir="connectors/webcrawler/lib"/>
+    </target>
     
     <target name="build-site">
       <ant dir="site" target="all"/>
@@ -2081,7 +2125,7 @@
     <target name="deliver-proprietary-connectors" depends="deliver-documentum-connector,deliver-filenet-connector,deliver-livelink-connector,deliver-memex-connector,deliver-meridio-connector,deliver-sharepoint-connector"/>
     <target name="deliver-proprietary-connectors-doc" depends="deliver-documentum-connector-doc,deliver-filenet-connector-doc,deliver-livelink-connector-doc,deliver-memex-connector-doc,deliver-meridio-connector-doc,deliver-sharepoint-connector-doc"/>
 
-    <target name="build" depends="deliver-framework,deliver-open-connectors,deliver-output-connectors,deliver-lgpl-connectors,deliver-proprietary-connectors,deliver-example"/>
+    <target name="build" depends="deliver-framework,deliver-open-connectors,deliver-output-connectors,deliver-lgpl-connectors,deliver-proprietary-connectors,deliver-example,cleanup-afterbuild"/>
     <target name="javadoc" depends="deliver-framework-doc,deliver-open-connectors-doc,deliver-output-connectors-doc,deliver-lgpl-connectors-doc,deliver-proprietary-connectors-doc"/>
     <target name="doc" depends="deliver-site-doc"/>
     

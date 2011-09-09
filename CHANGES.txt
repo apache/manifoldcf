@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-252: Clean up build, dist and lib of each connector after build.
+(Shinichiro Abe)
+
 CONNECTORS-250: Renew jcifs download site link.
 (Shinichiro Abe)
 
