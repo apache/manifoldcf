@@ -118,7 +118,7 @@
         <section>
           <title>Building the jCIFS connector</title>
           <p></p>
-          <p>To build this connector, you need to download jcifs.jar from <a href="http://samba.jcifs.org">http://samba.jcifs.org</a>, and copy it into the "connectors/jcifs/jcifs" directory.</p>
+          <p>To build this connector, you need to download jcifs.jar from <a href="http://jcifs.samba.org">http://jcifs.samba.org</a>, and copy it into the "connectors/jcifs/jcifs" directory.</p>
           <p></p>
         </section>
         

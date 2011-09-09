@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-250: Renew jcifs download site link.
+(Shinichiro Abe)
+
 ======================= Release 0.3 =========================
 
 CONNECTORS-253: Make script output of configurationnode script object
