@@ -53,9 +53,18 @@ public class VariableConfigurationNode extends VariableBase
     sb.append(" : ");
     boolean needComma = false;
     Iterator<String> iter = configurationNode.getAttributes();
+    String[] attrs = new String[configurationNode.getAttributeCount()];
+    int i = 0;
     while (iter.hasNext())
     {
       String attrName = iter.next();
+      attrs[i++] = attrName;
+    }
+    java.util.Arrays.sort(attrs);
+    i = 0;
+    while (i < attrs.length)
+    {
+      String attrName = attrs[i++];
       String value = configurationNode.getAttributeValue(attrName);
       if (needComma)
         sb.append(", ");
@@ -66,7 +75,7 @@ public class VariableConfigurationNode extends VariableBase
       sb.append(new VariableString(value).getScriptValue());
     }
     sb.append(" : ");
-    int i = 0;
+    i = 0;
     while (i < configurationNode.getChildCount())
     {
       ConfigurationNode child = configurationNode.findChild(i);
