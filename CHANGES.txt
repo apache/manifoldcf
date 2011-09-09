@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.3-dev =========================
 
+CONNECTORS-253: Make script output of configurationnode script object
+have attributes that are ordered, so the test does not depend on hash order.
+(Shinichiro Abe, Karl Wright)
+
 CONNECTORS-246, CONNECTORS-248, CONNECTORS-249: Problems with MVCC
 model of Hsqldb causing query inconsistencies, fixed in HSQLDB 2.2.5-6-9-2011.
 (Fred Toussi, Karl Wright)
