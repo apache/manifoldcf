@@ -449,8 +449,10 @@
                 <br/><br/>
                 <figure src="images/solr-configure-schema.PNG" alt="Solr Configuration, Schema tab" width="80%"/>
                 <br/><br/>
-                <p>The third tab is the "Arguments" tab, which allows you to specify arbitrary arguments to be sent to Solr.  This is a popular way of telling Solr how to handle
-                       specific documents, so the connection type allows you to add arguments to each Solr indexing request:</p>
+                <p>The third tab is the "Arguments" tab, which allows you to specify arbitrary arguments to be sent to Solr. All valid Solr update request parameters
+                       can be specified here. A popular example is <a href="http://wiki.apache.org/solr/CommitWithin">commitWithin=60000</a>, which tells Solr to automatically commit documents behind the scenes, ensuring
+                       an indexing latency of maximum 60000ms (1m). Another example is <a href="http://wiki.apache.org/solr/UpdateRequestProcessor">update.chain=myChain</a> to select the document processing pipeline/chain to use for
+                       processing documents in Solr. See the Solr documentation for more valid arguments. The tab looks like:</p>
                 <br/><br/>
                 <figure src="images/solr-configure-arguments.PNG" alt="Solr Configuration, Arguments tab" width="80%"/>
                 <br/><br/>
