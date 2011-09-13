@@ -62,5 +62,18 @@
     <target name="run-tests-postgresql"/>
     <target name="run-tests-HSQLDB"/>
     <target name="all" depends="build,doc,build-tests,run-tests,run-tests-postgresql,run-tests-HSQLDB"/>
+
+    <target name="download-ojdbc"/>
+
+    <target name="download-jtds">
+        <property name="version" value="1.2.5"/>
+        <mkdir dir="download/jtds"/>
+        <get src="http://sourceforge.net/projects/jtds/files/jtds/${version}/jtds-${version}-dist.zip" dest="download"/>
+        <unzip src="download/jtds-${version}-dist.zip" dest="download/jtds"/>
+        <copy todir="jdbc-drivers" file="download/jtds/jtds-${version}.jar"/>
+        <delete dir="download"/>
+    </target>
+
+    <target name="download-dependencies" depends="download-ojdbc,download-jtds"/>
     
 </project>

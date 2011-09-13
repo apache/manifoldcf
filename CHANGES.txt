@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-251: Add target "download-dependencies" to build.xml.
+(Shinichiro Abe)
+
 CONNECTORS-252: Clean up build, dist and lib of each connector after build.
 (Shinichiro Abe)
 

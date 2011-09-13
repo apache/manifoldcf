@@ -2232,6 +2232,9 @@ all     - Do it all (requires Apache Forrest and Postgresql)
 
 run-script-interpreter - Run the ManifoldCF script interpreter
 
+download-dependencies  - Picking up the non-redistributable
+                         dependencies for all connectors
+
 Use Apache Forrest version forrest-0.9-dev or higher.
       </echo>
     </target>
@@ -2312,6 +2315,11 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             </fileset>
           </classpath>
         </java>
+    </target>
+
+    <target name="download-dependencies">
+        <ant dir="connectors/jcifs" target="download-dependencies"/>
+        <ant dir="connectors/jdbc" target="download-dependencies"/>
     </target>
 
 </project>
