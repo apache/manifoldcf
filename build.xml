@@ -2125,7 +2125,8 @@
     <target name="deliver-proprietary-connectors" depends="deliver-documentum-connector,deliver-filenet-connector,deliver-livelink-connector,deliver-memex-connector,deliver-meridio-connector,deliver-sharepoint-connector"/>
     <target name="deliver-proprietary-connectors-doc" depends="deliver-documentum-connector-doc,deliver-filenet-connector-doc,deliver-livelink-connector-doc,deliver-memex-connector-doc,deliver-meridio-connector-doc,deliver-sharepoint-connector-doc"/>
 
-    <target name="build" depends="deliver-framework,deliver-open-connectors,deliver-output-connectors,deliver-lgpl-connectors,deliver-proprietary-connectors,deliver-example,cleanup-afterbuild"/>
+    <target name="build-dev" depends="deliver-framework,deliver-open-connectors,deliver-output-connectors,deliver-lgpl-connectors,deliver-proprietary-connectors,deliver-example"/>
+    <target name="build" depends="build-dev,cleanup-afterbuild"/>
     <target name="javadoc" depends="deliver-framework-doc,deliver-open-connectors-doc,deliver-output-connectors-doc,deliver-lgpl-connectors-doc,deliver-proprietary-connectors-doc"/>
     <target name="doc" depends="deliver-site-doc"/>
     
@@ -2234,6 +2235,8 @@ run-script-interpreter - Run the ManifoldCF script interpreter
 
 download-dependencies  - Picking up the non-redistributable
                          dependencies for all connectors
+
+build-dev              - Build for development
 
 Use Apache Forrest version forrest-0.9-dev or higher.
       </echo>
